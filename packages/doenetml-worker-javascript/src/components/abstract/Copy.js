@@ -2012,6 +2012,17 @@ export default class Copy extends CompositeComponent {
         // if creating copy directly from the target component,
         // create a serialized copy of the entire component
 
+        // A case, a pick or an iteration that holds one component of a type
+        // related to the one the copy is written as is made into that type
+        // from the component, as `$cc[1]` is (`componentStoodFor`).
+        const sourceToSerialize =
+            (await componentStoodFor({
+                component,
+                source: replacementSourceComponent,
+                components,
+                componentInfoObjects,
+            })) ?? replacementSourceComponent;
+
         // If we are copying without linking a source that is shadowing another source,
         // then the attributes and children of the source may not be sufficient
         // to determine its state variables (as values linked from its source may be used).
@@ -2021,7 +2032,7 @@ export default class Copy extends CompositeComponent {
         let serializedReplacements;
         try {
             serializedReplacements = [
-                await replacementSourceComponent.serialize({
+                await sourceToSerialize.serialize({
                     // a value reference is copied as a component of its
                     // type (`ValueRef.serialize`); unlinked, it reads the
                     // settings it takes from its referent here
@@ -2042,7 +2053,7 @@ export default class Copy extends CompositeComponent {
             // same whichever case of a `<conditionalContent>` the copy is made
             // from, so what was saved of one case would be applied to another.
             const sourceStateIdInfo = {
-                prefix: `${stateIdInfo.prefix}${await stateIdSegmentForCopyOf(replacementSourceComponent)}`,
+                prefix: `${stateIdInfo.prefix}${await stateIdSegmentForCopyOf(sourceToSerialize)}`,
                 num: stateIdInfo.num,
             };
             // An unlinked copy is its source's DoenetML pasted, whose
@@ -5543,6 +5554,104 @@ function containerKind(instanceOf) {
     }
     const kind = instanceKindOf(instanceOf);
     return kind === "iteration" || kind === "pick" ? kind : "other";
+}
+
+/**
+ * The one component a case, a pick or an iteration (`source`, a `<group>`
+ * that `replacementSourceIdentities` stops at) holds, when `component`, an
+ * `extend` or `copy` written as a tag, is written as another type that may
+ * be made from it (`typeChangeRule`):
+ * `<point extend="$cc"/>` while the active case holds one math. The copy is
+ * made from that component, as `<point extend="$cc[1]"/>` is, rather than
+ * from the group, which, given the type, could only make an empty component
+ * of it (`verifyReplacementsMatchSpecifiedType`). Otherwise `undefined`.
+ *
+ * A `<setup>` and blank strings show nothing. What a group holds is fixed
+ * when it is made, so the copy is made again when its source is another
+ * group (another case, pick or iteration), as it is made again from the
+ * group. A `_copy` is not looked into: what it holds is made again without
+ * its source changing, which a copy of its shadow follows and a copy of
+ * the component it held would not (a group holding
+ * `<point extend="$cc[1]"/>`, extended as a vector).
+ */
+async function componentStoodFor({
+    component,
+    source,
+    components,
+    componentInfoObjects,
+}) {
+    const writtenValue =
+        component.attributes._createComponentOfType?.primitive?.value;
+    if (
+        !writtenValue ||
+        !component.attributes._copyInChildren?.primitive?.value
+    ) {
+        return undefined;
+    }
+    const writtenType =
+        componentInfoObjects.componentTypeLowerCaseMapping[
+            writtenValue.toLowerCase()
+        ];
+    const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
+    if (
+        !writtenClass ||
+        writtenClass.listEntryComponentType !== undefined ||
+        writtenType === "group"
+    ) {
+        return undefined;
+    }
+    let one = source;
+    while (one?.componentType === "group") {
+        if (!one.isExpanded || one.componentIdx === component.componentIdx) {
+            return undefined;
+        }
+        let replacements = one.replacements ?? [];
+        if (one.replacementsToWithhold > 0) {
+            replacements = replacements.slice(0, -one.replacementsToWithhold);
+        }
+        const shown = [];
+        for (const replacement of replacements) {
+            if (typeof replacement === "string") {
+                if (replacement.trim() !== "") {
+                    return undefined;
+                }
+                continue;
+            }
+            const comp = components[replacement.componentIdx];
+            if (!comp) {
+                return undefined;
+            }
+            if (comp.componentType !== "setup") {
+                shown.push(comp);
+            }
+        }
+        if (shown.length !== 1) {
+            return undefined;
+        }
+        one = shown[0];
+    }
+    if (one === source) {
+        return undefined;
+    }
+    const oneClass =
+        componentInfoObjects.allComponentClasses[one.componentType];
+    if (
+        !oneClass ||
+        oneClass.listEntryComponentType !== undefined ||
+        componentInfoObjects.isCompositeComponent({
+            componentType: one.componentType,
+            includeNonStandard: true,
+        }) ||
+        replacementIsOfType(one.componentType, writtenType) ||
+        !typeChangeRule({
+            writtenType,
+            sourceType: one.componentType,
+            componentInfoObjects,
+        }).allowed
+    ) {
+        return undefined;
+    }
+    return one;
 }
 
 /**

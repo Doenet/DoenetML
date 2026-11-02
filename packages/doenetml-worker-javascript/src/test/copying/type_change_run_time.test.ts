@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
+    movePoint,
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
@@ -118,9 +119,19 @@ async function setup(doenetML: string) {
         });
     }
 
+    async function move(name: string, x: number, y: number) {
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx(name),
+            x,
+            y,
+            core,
+        });
+    }
+
     return {
         texts,
         typeOf,
+        move,
         replacedBy,
         newDiagnostics,
         errors,
@@ -781,6 +792,171 @@ describe("Deciding again as content made at run time changes @group4", () => {
 
         await d.setBoolean("b", false);
         expect(await d.texts(["p2"])).eqls({ p2: "12" });
+    });
+
+    it("a conditionalContent whose active case holds one component of a related type is made the tag written from it, follows the case and writes back", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<conditionalContent name="cc">
+  <case condition="$b"><math>(1,2)</math></case>
+  <else><vector>(3,4)</vector></else>
+</conditionalContent>
+<conditionalContent name="cc2">
+  <case condition="$b"><number>3.14159</number></case>
+  <else><text>y</text></else>
+</conditionalContent>
+<graph><point name="P" extend="$cc"/></graph>
+<p name="p1">$P</p>
+<p name="p2"><math name="m" extend="$cc2" displayDigits="2"/></p>
+<p name="p3"><math extend="$cc"/></p>
+<p name="p4"><boolean extend="$cc2"/></p>
+<p name="p5"><point copy="$cc"/></p>
+<p name="p6" extend="$p2"/>
+<p name="p7">$cc</p>
+`);
+        const names = ["p1", "p2", "p3", "p4", "p5", "p6", "p7"];
+        expect(await d.texts(names)).eqls({
+            p1: "(3, 4)",
+            p2: "y",
+            p3: "(3, 4)",
+            p4: "false",
+            p5: "(3, 4)",
+            p6: "y",
+            p7: "(3, 4)",
+        });
+        expect(await d.typeOf("P")).eqls("point");
+        expect(await d.typeOf("m")).eqls("math");
+
+        await d.setBoolean("b", true);
+        expect(await d.texts(names)).eqls({
+            p1: "(1, 2)",
+            p2: "3.1",
+            p3: "(1, 2)",
+            p4: "true",
+            // a copy stays as it was made
+            p5: "(3, 4)",
+            p6: "3.1",
+            p7: "(1, 2)",
+        });
+
+        // The point is made from the case's math, and moving it changes it.
+        await d.move("P", 5, 6);
+        expect(await d.texts(["p1", "p3", "p7"])).eqls({
+            p1: "(5, 6)",
+            p3: "(5, 6)",
+            p7: "(5, 6)",
+        });
+
+        await d.setBoolean("b", false);
+        expect(await d.texts(["p1", "p2", "p7"])).eqls({
+            p1: "(3, 4)",
+            p2: "y",
+            p7: "(3, 4)",
+        });
+        // and moving it changes the vector of the other case
+        await d.move("P", 7, 8);
+        expect(await d.texts(["p1", "p7"])).eqls({
+            p1: "(7, 8)",
+            p7: "(7, 8)",
+        });
+
+        await d.setBoolean("b", true);
+        expect(await d.texts(["p1", "p2", "p7"])).eqls({
+            p1: "(5, 6)",
+            p2: "3.1",
+            p7: "(5, 6)",
+        });
+
+        await d.reload();
+        expect(await d.texts(names)).eqls({
+            p1: "(5, 6)",
+            p2: "3.1",
+            p3: "(5, 6)",
+            p4: "true",
+            // a copy made again from what the case holds now
+            p5: "(5, 6)",
+            p6: "3.1",
+            p7: "(5, 6)",
+        });
+        expect(await d.typeOf("P")).eqls("point");
+        expect(d.newDiagnostics()).eqls([]);
+        expect(d.errors()).eqls([]);
+    });
+
+    it("a select, a repeat and a group holding a conditionalContent of one component of a related type are made the tag written from it", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<mathInput name="n" prefill="1"/>
+<select name="s"><option><math>(1,2)</math></option></select>
+<select name="s2"><option><number>4</number></option></select>
+<selectFromSequence name="sfs" from="5" to="5"/>
+<repeatForSequence name="r" length="$n"><math>(3,4)</math></repeatForSequence>
+<repeat name="r2" for="1" valueName="v"><math>($v,2)</math></repeat>
+<group name="g">
+  <conditionalContent>
+    <case condition="$b"><math>(5,6)</math></case>
+    <else><text>no</text></else>
+  </conditionalContent>
+</group>
+<graph>
+  <point name="Ps" extend="$s"/>
+  <point name="Pr" extend="$r"/>
+  <point name="Pr2" extend="$r2"/>
+  <point name="Pg" extend="$g"/>
+</graph>
+<p name="p1">$Ps</p>
+<p name="p2"><math extend="$s2"/></p>
+<p name="p3"><number extend="$sfs"/></p>
+<p name="p4">$Pr</p>
+<p name="p5">$Pr2</p>
+<p name="p6">$Pg</p>
+`);
+        const names = ["p1", "p2", "p3", "p4", "p5", "p6"];
+        expect(await d.texts(names)).eqls({
+            p1: "(1, 2)",
+            p2: "4",
+            p3: "5",
+            p4: "(3, 4)",
+            p5: "(1, 2)",
+            p6: "",
+        });
+        expect(d.newDiagnostics().map((x) => x.code)).eqls(["doenet-e0065"]);
+
+        await d.setBoolean("b", true);
+        await d.setMath("n", "2");
+        expect(await d.texts(["p4", "p6"])).eqls({ p4: "", p6: "(5, 6)" });
+        expect(d.newDiagnostics().map((x) => x.code)).eqls(["doenet-e0064"]);
+        await d.setMath("n", "1");
+        expect(await d.texts(["p4"])).eqls({ p4: "(3, 4)" });
+
+        await d.move("Ps", 1, 1);
+        await d.move("Pr", 2, 2);
+        await d.move("Pr2", 3, 3);
+        await d.move("Pg", 4, 4);
+        expect(await d.texts(names)).eqls({
+            p1: "(1, 1)",
+            p2: "4",
+            p3: "5",
+            p4: "(2, 2)",
+            p5: "(3, 3)",
+            p6: "(4, 4)",
+        });
+
+        await d.setBoolean("b", false);
+        expect(await d.texts(["p6"])).eqls({ p6: "" });
+        await d.setBoolean("b", true);
+        expect(await d.texts(["p6"])).eqls({ p6: "(4, 4)" });
+
+        await d.reload();
+        expect(await d.texts(names)).eqls({
+            p1: "(1, 1)",
+            p2: "4",
+            p3: "5",
+            p4: "(2, 2)",
+            p5: "(3, 3)",
+            p6: "(4, 4)",
+        });
+        expect(d.errors()).eqls([]);
     });
 
     it("what is shown and what is decided are the same after a reload, in each state", async () => {

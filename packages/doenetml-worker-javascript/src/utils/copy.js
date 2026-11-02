@@ -499,10 +499,16 @@ export async function verifyReplacementsMatchSpecifiedType({
         // then wrap each replacement with a blank component we are creating,
         // i.e., add each current replacement as the child of a new component
 
+        // A source that made nothing, such as an iteration a `<repeat>`
+        // withholds while it has fewer, is not counted.
         let wrapExistingReplacements =
             replacementTypes.length === requiredLength &&
             !(replacementsToWithhold > 0) &&
-            workspace.sourceIndices?.length === requiredLength;
+            (workspace.sourceIndices?.length === requiredLength ||
+                (!replacementChanges &&
+                    workspace.sourceIndices?.length > requiredLength &&
+                    workspace.numReplacementsBySource?.filter((n) => n > 0)
+                        .length === requiredLength));
 
         let originalReplacements;
 

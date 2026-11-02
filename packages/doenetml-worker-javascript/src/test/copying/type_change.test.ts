@@ -759,7 +759,8 @@ describe("A reference written as a different tag is allowed only between related
 
     it("an extend of a group holding an extend follows it when what it holds changes", async () => {
         // What `g0` and `h0` hold is made at run time, and each stands for
-        // one component of a related type, so each is allowed.
+        // one component of a related type, so each is allowed and made from
+        // it: the math from the text `a`.
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`
 <booleanInput name="b"/>
@@ -770,7 +771,7 @@ describe("A reference written as a different tag is allowed only between related
 <group name="h1"><point extend="$h0"/></group>
 <p name="p2"><point extend="$h1"/></p>
 `);
-        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "(3, 4)" });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "a", p2: "(3, 4)" });
 
         const b = await resolvePathToNodeIdx("b");
         await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
@@ -781,7 +782,7 @@ describe("A reference written as a different tag is allowed only between related
             componentIdx: b,
             core,
         });
-        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "(3, 4)" });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "a", p2: "(3, 4)" });
 
         await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
         expect(await texts(["p1", "p2"])).eqls({ p1: "1", p2: "(1, 2)" });
