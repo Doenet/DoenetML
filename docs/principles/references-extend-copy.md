@@ -110,12 +110,12 @@ Root names follow it (`r:1:2`).
 Evidence: `T/copying/indexSelectsInstances.test.ts`, `T/copying/index_into_value.test.ts`.
 
 Known violations:
-- an extend of an iteration takes child indices instead of passing through (B26);
+- an extend of an iteration takes child indices instead of passing through (B26, #2438);
 - an index beyond an array's dimensions is dropped for points, vectors and matrices, a tuple of
-  tuples is indexed one level, and `$l.coords[1]` ignores its index (B27);
-- an index past a list in an iteration reaches the repeat's internal `<setup>` (B28);
+  tuples is indexed one level, and `$l.coords[1]` ignores its index (B27, #2438);
+- an index past a list in an iteration reaches the repeat's internal `<setup>` (B28, #2438);
 - an index into a scalar entry of a list gives `＿`, unreported, and a write through it changes
-  the entry (B34);
+  the entry (B34, #2438);
 - `w0181` is a warning even when the count comes from a value that can change, such as a repeat
   of `length="$n"`, which DIAG-2 makes an info (#2422).
 
@@ -234,8 +234,8 @@ renders.
 
 Known violations:
 - a math indexing itself, `<math name="m">(1, $m[2])</math>`, fails with an internal error
-  (B29);
-- two `<conditionalContent>`s extending each other give infos, not `doenet-e0005` (B32);
+  (B29, #2439);
+- two `<conditionalContent>`s extending each other give infos, not `doenet-e0005` (B32, #2439);
 - a loop where no composite can be singled out still stops the document (#2425).
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
@@ -458,9 +458,9 @@ Known violations:
 - `<text extend="$cc"/>` of bare-text cases throws (B23, #2433);
 - the `bindValueTo` that `e0062` recommends throws for a `<subsetOfRealsInput>` (B24, #2429);
 - some allowed pairs give a default (a mathInput holding a tuple as a point, a text `true` as a
-  boolean), and a property source is not checked against its value (B30);
-- a type-changed copy can change on reload (B31);
-- infos are not cleared when the content matches again (B33).
+  boolean), and a property source is not checked against its value (B30, #2440);
+- a type-changed copy can change on reload (B31, #2441);
+- infos are not cleared when the content matches again (B33, #2442).
 
 Cost (Tier 3): a linked extend that follows run-time content is about twice as slow as before
 (#2436).

@@ -163,7 +163,7 @@ What it *looks like* depends on the parent and on the spelling (**[probe]**):
 
 How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
 `$n.value[1]`, `$ms[1]` and `$pl[2].coords[1]` now show nothing. An index into a scalar entry of a
-list still gives `＿` (B34). A property with no value, such as `$c.maxNumber` with no
+list still gives `＿` (B34, #2438). A property with no value, such as `$c.maxNumber` with no
 limit, shows `NaN` (#2416, D10).
 
 That table is an accident of which internal form was built. A rewrite should choose one
