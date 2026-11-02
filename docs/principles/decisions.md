@@ -760,7 +760,8 @@ x", which is what the syntax suggests. This behavior does not need to be reprodu
 **Rule (decided).** One table, declared the way adapters are. A type change is allowed only in
 these cases:
 - **between value types:**
-  - math, number, text and boolean, among each other;
+  - math, number, text and boolean, among each other. A boolean is `1` or `0` as a number or a
+    math (decided after #2445, for #2440);
   - point, vector and coords, among each other;
   - math from a point, vector or coords, as the tuple of its coordinates (`<math extend="$P"/>`
     gives `(1, 2)`, tested in `extend_references.test.ts`, "extend wraps to match specified
