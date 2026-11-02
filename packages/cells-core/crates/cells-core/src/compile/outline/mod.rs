@@ -131,8 +131,8 @@ impl Compiler<'_> {
             planned_as: component_type,
             body: Body::Plain,
             hold: Hold::Off,
-            dead: false,
         });
+        tpl.boxes.push(BoxState::Live);
         if let (Some(id), Some(names)) = (name_id, names) {
             // Two siblings with one name can never be told apart.
             if !names.siblings.insert((t.get(), name_scope.get(), id)) {
@@ -186,6 +186,9 @@ impl Compiler<'_> {
             // made for it, when it got that far, else a new one.
             Err(error) if self.compiled.templates[t.index()].elems.len() > n => {
                 let e = ElemId::from_index(n);
+                // A duplicate name was never registered; the box carries
+                // none. Outlining's own row, before it is boxed.
+                self.drop_unregistered_name(t, e);
                 self.box_in_place(t, e, error);
                 e
             }

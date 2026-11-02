@@ -1,6 +1,6 @@
 # Each stage of the compile has its own table
 
-Status: proposed 2026-11-02. Step 1 is done; see Migration. Amended
+Status: proposed 2026-11-02. Steps 1 and 2 are done; see Migration. Amended
 2026-11-02: the boundaries the tables draw leak in three places (boxing,
 the planner context, code more than one stage runs); see "Where the
 boundaries leak".
@@ -220,6 +220,25 @@ otherwise.
    and `referent_type` reads only outlining's while planning. Readers
    ask whether an element is a box (`Compiled::is_box`) and what type to
    read it as.
+   Done. A `BoxState::Boxed` row holds the box as the build sees it
+   (`Elem::as_box`: type `Error`, its node and name, nothing else), the
+   stage that boxed it, and whether it is dead; sealing and the build
+   read `Template::row`, which is that row for a box and the element's own
+   otherwise, and nothing reads `Elem::dead`, which is gone. The checks
+   for a box are `Template::is_box` and `is_dead`. A box a reader of its
+   referent's type may see is `Compiler::is_visible_box`: while planning,
+   only one outlining made; `read_referent` finds the referent's element
+   with `ref_target`, since a box made in place keeps its outlined type.
+   `plan_ref` stops a path only at an element outlined as `Error`, which
+   has no children to go on to; through any other box the path goes on,
+   and the build reads what is under it as undefined. Boxing's report
+   rule is `drop_reports_of_boxes`, run once at the end of the compile: a
+   box keeps its own error and loses its warnings, and what is under it
+   loses both. That is what the unread-attribute check did for its own boxes. For a box made while planning or linking, its own warnings, and the errors and warnings of what is under it, reported before it was boxed, are now left out too, where they were reported before; no test or golden document has such a report.
+   Tests: a box keeps outlining's row (`compile/boxes.rs`), and a
+   reference through a box made while planning and a copy of what is
+   under it give the same values and diagnostics in either order
+   (`tests/diagnostics.rs`).
 3. **`$ref` children.** Dense ids in child lists, and a table of their
    plans that planning fills, a box among them; planning makes no
    element, and the debug assertion of ADR 0030 loses its exception.

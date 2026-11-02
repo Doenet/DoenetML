@@ -122,7 +122,7 @@ impl super::seal::Seal<'_> {
             let mut ids: Vec<ElemKey> = Vec::with_capacity(tpl.elems.len());
             // Whether each element is keyed by its name.
             let mut named: Vec<bool> = Vec::with_capacity(tpl.elems.len());
-            for (e, el) in tpl.elems.iter().enumerate() {
+            for (e, el) in tpl.rows().enumerate() {
                 // The nearest ancestor keyed by its name.
                 let mut a = el.name_scope;
                 let anchor = loop {
@@ -210,7 +210,7 @@ impl super::seal::Seal<'_> {
         // public one by the prop's.
         for (&(t, e), state) in self.shared_state {
             let id = elem_keys[t as usize][e as usize];
-            let n_public = n_public(&c.templates[t as usize].elems[e as usize]);
+            let n_public = n_public(c.templates[t as usize].row(ElemId::new(e)));
             for (s, &slot) in state {
                 if slot as usize >= n_public {
                     keys.hidden.insert((id, slot as u32), s.key().into());

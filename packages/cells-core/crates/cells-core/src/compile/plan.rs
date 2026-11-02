@@ -425,9 +425,53 @@ pub(crate) struct Elem {
     pub(crate) body: Body,
     /// What holds it (`fixed`, `compile/planning/fix.rs`).
     pub(crate) hold: Hold,
-    /// Under an element boxed while planning (ADR 0027): no build makes
-    /// it, and a reference to it reads as undefined.
-    pub(crate) dead: bool,
+}
+
+impl Elem {
+    /// This element as its box (ADR 0013, ADR 0027): an `_error` element
+    /// with its node and name, and no props, children, body or extend.
+    pub(crate) fn as_box(&self) -> Elem {
+        Elem {
+            node: self.node,
+            component_type: ComponentType::Error,
+            name: self.name,
+            name_scope: self.name_scope,
+            props: Vec::new(),
+            n_public: NPublic::Table,
+            children: Vec::new(),
+            extend: None,
+            cloned: self.cloned,
+            planned_as: self.planned_as,
+            body: Body::Plain,
+            hold: Hold::Off,
+        }
+    }
+}
+
+/// The stage that made a box (ADR 0031): a reader of a referent's type
+/// while planning sees only outlining's, so planning does not depend on
+/// its own order.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Stage {
+    Outline,
+    Plan,
+    Link,
+}
+
+/// Whether an element is a box (ADR 0031): boxing's own table, parallel to
+/// the elements, so boxing never rewrites what another stage made.
+#[derive(Debug, Clone, Default)]
+pub(crate) enum BoxState {
+    #[default]
+    Live,
+    /// Boxed where it failed, or, `dead`, under a box: no build makes a
+    /// dead element, and a reference to it reads as undefined. `row` is
+    /// the element as the build sees it (`Elem::as_box`).
+    Boxed {
+        row: Box<Elem>,
+        by: Stage,
+        dead: bool,
+    },
 }
 
 /// What holds an element (`compile/planning/fix.rs`): a fact beside its plans,
@@ -468,12 +512,39 @@ pub(crate) struct Template {
     /// (template, element) of the repeat or choice this template belongs to.
     pub(crate) parent: Option<(TemplateId, ElemId)>,
     pub(crate) elems: Vec<Elem>,
+    /// Boxing's table (ADR 0031), parallel to `elems`: a row per element.
+    pub(crate) boxes: Vec<BoxState>,
     /// Sealing's table (ADR 0031), parallel to `elems`: empty until
     /// sealing makes it.
     pub(crate) sealed: SealedTemplate,
     /// Children of the template itself (the document, a repeat body or a
     /// choice branch).
     pub(crate) children: Vec<Child>,
+}
+
+impl Template {
+    /// Whether element `e` is a box, or under one.
+    pub(crate) fn is_box(&self, e: ElemId) -> bool {
+        matches!(self.boxes[e.index()], BoxState::Boxed { .. })
+    }
+
+    /// Whether element `e` is under a box: no build makes it.
+    pub(crate) fn is_dead(&self, e: ElemId) -> bool {
+        matches!(self.boxes[e.index()], BoxState::Boxed { dead: true, .. })
+    }
+
+    /// Element `e` as built: its box's row when it is a box, else its own.
+    pub(crate) fn row(&self, e: ElemId) -> &Elem {
+        match &self.boxes[e.index()] {
+            BoxState::Boxed { row, .. } => row,
+            BoxState::Live => &self.elems[e.index()],
+        }
+    }
+
+    /// Every element as built, in order.
+    pub(crate) fn rows(&self) -> impl Iterator<Item = &Elem> {
+        (0..self.elems.len()).map(|e| self.row(ElemId::from_index(e)))
+    }
 }
 
 /// One step of a resolved reference path.

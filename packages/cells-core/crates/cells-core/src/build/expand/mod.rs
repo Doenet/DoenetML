@@ -564,11 +564,11 @@ impl<'c> Builder<'c> {
         let n_elems = self.compiled.templates[t.index()].elems.len();
         // Create every element's component first so children can refer to them.
         for e in 0..n_elems {
-            let el = &self.compiled.templates[t.index()].elems[e];
             // What is under a box is not built (ADR 0027).
-            if el.dead {
+            if self.compiled.templates[t.index()].is_dead(ElemId::from_index(e)) {
                 continue;
             }
+            let el = self.compiled.templates[t.index()].row(ElemId::from_index(e));
             // A copy of a type with a list takes its slots, as many as its
             // referent has, when its referent is known (`place_list_copies`).
             let n_slots = match el.n_public {
@@ -596,9 +596,14 @@ impl<'c> Builder<'c> {
             if comp == CompIdx::NONE {
                 continue;
             }
-            let kids = match self.compiled.templates[t.index()].elems[e].body {
+            let kids = match self.compiled.templates[t.index()]
+                .row(ElemId::from_index(e))
+                .body
+            {
                 Body::Repeat { template } => {
-                    let node = self.compiled.templates[t.index()].elems[e].node;
+                    let node = self.compiled.templates[t.index()]
+                        .row(ElemId::from_index(e))
+                        .node;
                     let n = self.view.iterations(scope, node);
                     let mut kids = Vec::new();
                     let mut iter_scopes = Vec::with_capacity(n as usize);
@@ -628,7 +633,9 @@ impl<'c> Builder<'c> {
                     Vec::new()
                 }
                 Body::Choice(cid) => {
-                    let node = self.compiled.templates[t.index()].elems[e].node;
+                    let node = self.compiled.templates[t.index()]
+                        .row(ElemId::from_index(e))
+                        .node;
                     match self.expand_choice(cid, node, scope, comp) {
                         Ok(kids) => kids,
                         Err(err) => {
@@ -641,7 +648,9 @@ impl<'c> Builder<'c> {
                     self.pointlists.push(comp);
                     Vec::new()
                 }
-                _ if self.compiled.templates[t.index()].elems[e].component_type
+                _ if self.compiled.templates[t.index()]
+                    .row(ElemId::from_index(e))
+                    .component_type
                     == ComponentType::PointList =>
                 {
                     // A copy of a point list: children copied once the
@@ -672,12 +681,10 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         parent: CompIdx,
     ) -> Vec<ChildEntry> {
-        let n = self.compiled.templates[t.index()].elems[e.index()]
-            .children
-            .len();
+        let n = self.compiled.templates[t.index()].row(e).children.len();
         let mut kids = Vec::with_capacity(n);
         for i in 0..n {
-            let ch = &self.compiled.templates[t.index()].elems[e.index()].children[i];
+            let ch = &self.compiled.templates[t.index()].row(e).children[i];
             kids.push(self.child_entry(ch, scope, parent));
         }
         kids
@@ -774,7 +781,7 @@ impl<'c> Builder<'c> {
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
             let c: &'c Compiled = self.compiled;
-            let flags = match &c.templates[inst.template.index()].elems[inst.elem.index()].hold {
+            let flags = match &c.templates[inst.template.index()].row(inst.elem).hold {
                 Hold::Off => continue,
                 Hold::Always => vec![self.const_slot(1.0)],
                 Hold::While(refs) => {
@@ -971,7 +978,7 @@ impl<'c> Builder<'c> {
     /// list it is a copy of.
     pub(in crate::build) fn expand_pointlist(&mut self, comp: CompIdx) -> Result<()> {
         let inst = self.instances[self.comp_instance[comp.index()] as usize];
-        let el = &self.compiled.templates[inst.template.index()].elems[inst.elem.index()];
+        let el = &self.compiled.templates[inst.template.index()].row(inst.elem);
         let mut kids = Vec::new();
         match (el.body.clone(), el.extend) {
             (Body::PointList { from }, _) => {
@@ -1043,7 +1050,9 @@ impl<'c> Builder<'c> {
         let Body::Collect {
             from,
             component_type,
-        } = self.compiled.templates[inst.template.index()].elems[inst.elem.index()].body
+        } = self.compiled.templates[inst.template.index()]
+            .row(inst.elem)
+            .body
         else {
             unreachable!()
         };
@@ -1186,7 +1195,7 @@ impl<'c> Builder<'c> {
     /// missing value (`instance_sources`). `visiting` holds the copies being
     /// placed, so a loop of them is a cycle.
     fn place_list_copy(&mut self, inst: Instance, visiting: &mut Vec<CompIdx>) -> Result<()> {
-        let el = &self.compiled.templates[inst.template.index()].elems[inst.elem.index()];
+        let el = &self.compiled.templates[inst.template.index()].row(inst.elem);
         let (component_type, extend_plan, n_props) = (el.component_type, el.extend, el.props.len());
         // Not such a copy, or placed already.
         if el.n_public != NPublic::AsReferent || self.n_public[inst.comp.index()] != NONE {
@@ -1251,7 +1260,7 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
         let (component_type, extend_plan) = {
-            let el = &self.compiled.templates[inst.template.index()].elems[inst.elem.index()];
+            let el = &self.compiled.templates[inst.template.index()].row(inst.elem);
             (el.component_type, el.extend)
         };
         let extend = match extend_plan {
@@ -1264,13 +1273,16 @@ impl<'c> Builder<'c> {
         }
         // A copy of a type with a list was made whole by `place_list_copy`.
         if extend.is_some()
-            && self.compiled.templates[inst.template.index()].elems[inst.elem.index()].n_public
+            && self.compiled.templates[inst.template.index()]
+                .row(inst.elem)
+                .n_public
                 == NPublic::AsReferent
         {
             return Ok(());
         }
         let extend_label = self.label.clone();
-        let n_props = self.compiled.templates[inst.template.index()].elems[inst.elem.index()]
+        let n_props = self.compiled.templates[inst.template.index()]
+            .row(inst.elem)
             .props
             .len();
         for pi in 0..n_props {
@@ -1278,7 +1290,7 @@ impl<'c> Builder<'c> {
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
             let c: &'c Compiled = self.compiled;
-            let plan = &c.templates[inst.template.index()].elems[inst.elem.index()].props[pi];
+            let plan = &c.templates[inst.template.index()].row(inst.elem).props[pi];
             if matches!(plan, Source::Deferred(_)) {
                 continue; // wired from the tree (`fill_deferred`)
             }
@@ -1452,7 +1464,7 @@ impl<'c> Builder<'c> {
                 let inst = self.instances[i as usize];
                 let pi = s.index() - self.slot_base[comp.index()].index();
                 matches!(
-                    self.compiled.templates[inst.template.index()].elems[inst.elem.index()]
+                    self.compiled.templates[inst.template.index()].row(inst.elem)
                         .props
                         .get(pi),
                     Some(Source::Deferred(k)) if *k == kind

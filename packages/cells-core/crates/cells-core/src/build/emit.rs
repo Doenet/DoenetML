@@ -992,7 +992,7 @@ impl<'c> Builder<'c> {
             return None;
         }
         let inst = self.instances[i as usize];
-        let el = &self.compiled.templates[inst.template.index()].elems[inst.elem.index()];
+        let el = &self.compiled.templates[inst.template.index()].row(inst.elem);
         let pi = slot.get() - self.slot_base[comp.index()].get();
         if pi as usize >= el.props.len().max(el.component_type.prop_defs().len()) {
             return None;

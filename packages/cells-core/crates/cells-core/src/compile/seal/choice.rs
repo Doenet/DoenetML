@@ -12,9 +12,7 @@ impl Seal<'_> {
         for cid in 0..self.compiled.choices.len() {
             let def = &self.compiled.choices[cid];
             // A boxed choice has no branches to read.
-            if self.compiled.templates[def.at.0.index()].elems[def.at.1.index()].component_type
-                == ComponentType::Error
-            {
+            if self.compiled.templates[def.at.0.index()].is_box(def.at.1) {
                 continue;
             }
             // A conditional content without an else has an implicit empty
@@ -26,7 +24,7 @@ impl Seal<'_> {
                 let first = &self.compiled.templates[b0.index()];
                 // The names visible from the first branch's root that name
                 // one element each.
-                for (e0, el) in first.elems.iter().enumerate() {
+                for (e0, el) in first.rows().enumerate() {
                     if el.name == StrId::NONE {
                         continue;
                     }
@@ -41,8 +39,7 @@ impl Seal<'_> {
                         .iter()
                         .map(|&b| match self.names.at(b, ROOT_SCOPE, name) {
                             NameHit::One(x)
-                                if self.compiled.templates[b.index()].elems[x.index()]
-                                    .component_type
+                                if self.compiled.templates[b.index()].row(x).component_type
                                     == component_type =>
                             {
                                 Some(x)
@@ -81,7 +78,7 @@ impl Seal<'_> {
             if let Some(error) = failure {
                 // Reported on the choice element.
                 let (t, e) = self.compiled.choices[cid].at;
-                let node = self.compiled.templates[t.index()].elems[e.index()].node;
+                let node = self.compiled.templates[t.index()].row(e).node;
                 return Err(Failure {
                     error,
                     node: (node != NodeId::NONE).then_some(node),
@@ -106,7 +103,7 @@ impl Seal<'_> {
                 match self.names.at(tpl, ROOT_SCOPE, name) {
                     NameHit::One(x) => {
                         let component_type =
-                            self.compiled.templates[tpl.index()].elems[x.index()].component_type;
+                            self.compiled.templates[tpl.index()].row(x).component_type;
                         match first {
                             None => first = Some((b, component_type)),
                             Some((b0, type0)) if type0 != component_type => {

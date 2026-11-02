@@ -52,7 +52,7 @@ impl Seal<'_> {
             }
         }
         for tpl in &self.compiled.templates {
-            for el in &tpl.elems {
+            for el in tpl.rows() {
                 if let Some((op, n)) = el.props.iter().find_map(misbound) {
                     let tag = el.component_type.tag();
                     return Err(Failure {
@@ -74,7 +74,7 @@ impl Seal<'_> {
         (self.compiled.templates.iter())
             .map(|tpl| {
                 let mut off = 0;
-                let offs = (tpl.elems.iter())
+                let offs = (tpl.rows())
                     .map(|el| {
                         let at = off;
                         off += el.props.len().max(el.component_type.prop_defs().len()) as u32;

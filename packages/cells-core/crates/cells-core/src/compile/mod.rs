@@ -381,6 +381,7 @@ impl Compiler<'_> {
         cp.restart_if_needed()?;
         crate::trace::span("seal").run(|| cp.seal(&planned))?;
         let _s = crate::trace::span("finish");
+        cp.drop_reports_of_boxes();
         let c = &mut cp.compiled;
         c.shrink_to_fit();
         if c.has_repeats() {

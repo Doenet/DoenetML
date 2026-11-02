@@ -219,10 +219,7 @@ impl<'c> Builder<'c> {
         let i = self.instances[inst as usize];
         let pi = slot.index() - self.slot_base[comp.index()].index();
         let c: &'c Compiled = self.compiled;
-        let next = match c.templates[i.template.index()].elems[i.elem.index()]
-            .props
-            .get(pi)
-        {
+        let next = match c.templates[i.template.index()].row(i.elem).props.get(pi) {
             Some(Source::GivenMath(_) | Source::GivenMathFrom(_)) => {
                 return ValueType::Math;
             }
@@ -230,7 +227,7 @@ impl<'c> Builder<'c> {
             Some(Source::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
             // The extend referent's slot, as `instance_sources` resolves it.
             Some(Source::Inherit) => {
-                let Some(p) = c.templates[i.template.index()].elems[i.elem.index()].extend else {
+                let Some(p) = c.templates[i.template.index()].row(i.elem).extend else {
                     return ValueType::Number;
                 };
                 let referent = match self.resolve(p, i.scope) {
@@ -300,7 +297,8 @@ impl<'c> Builder<'c> {
             ComponentType::MathInput => {
                 let i = self.instances[inst as usize];
                 matches!(
-                    self.compiled.templates[i.template.index()].elems[i.elem.index()]
+                    self.compiled.templates[i.template.index()]
+                        .row(i.elem)
                         .props
                         .get(prop::math_input::EXPR),
                     Some(Source::GivenMath(_))
@@ -308,7 +306,8 @@ impl<'c> Builder<'c> {
             }
             ComponentType::Math => {
                 let i = self.instances[inst as usize];
-                match self.compiled.templates[i.template.index()].elems[i.elem.index()]
+                match self.compiled.templates[i.template.index()]
+                    .row(i.elem)
                     .props
                     .get(prop::math::EXPR)
                 {

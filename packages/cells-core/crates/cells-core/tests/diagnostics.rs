@@ -548,3 +548,27 @@ fn an_unread_attribute_is_boxed_in_place_and_plans_once() {
     assert_eq!(doc.value("k", "value"), Some(5.0));
     assert_eq!(keys(&list), keys(doc.diagnostics()));
 }
+
+/// A reference through an element boxed while planning, and a copy of
+/// what is under it, plan the same whichever is planned first: no
+/// reference plan reads a box made while planning, and a reader of one is
+/// boxed when linking (ADR 0031).
+#[test]
+fn what_reads_a_box_made_while_planning_does_not_depend_on_order() {
+    let g = r#"<graph name="g" xmin="$nope"><point name="A" x="1"/></graph>"#;
+    let n = r#"<number name="n">$g.A.x</number>"#;
+    let q = r#"<point name="Q" extend="$g.A"/>"#;
+    let k = r#"<number name="k">5</number>"#;
+    let mut seen = None;
+    for src in [format!("{g}{n}{q}{k}"), format!("{n}{q}{k}{g}")] {
+        let doc = load(&src).unwrap();
+        assert!(doc.value("n", "value").unwrap().is_nan(), "{src}");
+        assert_eq!(doc.value("k", "value"), Some(5.0), "{src}");
+        let mut codes: Vec<_> = errors(doc.diagnostics()).iter().map(|d| d.code).collect();
+        codes.sort();
+        assert_eq!(codes, ["cells-boxed-referent", "doenet-w0104"], "{src}");
+        assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()), "{src}");
+        let count = errors(doc.diagnostics()).len();
+        assert_eq!(*seen.get_or_insert(count), count);
+    }
+}

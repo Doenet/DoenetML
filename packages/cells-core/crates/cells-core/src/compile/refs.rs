@@ -4,6 +4,10 @@
 
 use super::*;
 
+/// What a reference names, as far as the templates tell: its type, and
+/// the last element its path named (`Compiler::ref_target`).
+pub(in crate::compile) type RefTarget = (Option<ComponentType>, Option<(TemplateId, ElemId)>);
+
 impl<'a> Compiler<'a> {
     /// A copy of plan `p` naming `prop` instead of its own (`$l` -> `$l.x2`).
     pub(in crate::compile) fn plan_with_prop(
@@ -100,24 +104,34 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
+        Ok(self.ref_target(t, p)?.0)
+    }
+
+    /// `ref_target_type`, and the last element the path named on the way
+    /// (the target, or the collect an index steps into).
+    pub(in crate::compile) fn ref_target(&mut self, t: TemplateId, p: RefId) -> Result<RefTarget> {
         let hops = self.compiled.refs[p.index()].hops;
         let mut t = t;
         for _ in 0..hops {
             let Some((pt, _)) = self.compiled.templates[t.index()].parent else {
-                return Ok(None);
+                return Ok((None, None));
             };
             t = pt;
         }
         let mut cur: Option<ElemId> = None;
+        let mut last = None;
         let mut ty = None;
         for i in 0..self.compiled.refs[p.index()].steps.len() {
             match self.compiled.refs[p.index()].steps[i] {
                 Step::Elem(e) => {
                     cur = Some(e);
+                    last = Some((t, e));
                     ty = Some(self.outlined_elem(t, e)?.component_type);
                 }
                 Step::Index(_) => {
-                    let Some(c) = cur else { return Ok(None) };
+                    let Some(c) = cur else {
+                        return Ok((None, last));
+                    };
                     match self.compiled.templates[t.index()].elems[c.index()].body {
                         Body::Repeat { template } => {
                             t = template;
@@ -125,13 +139,13 @@ impl<'a> Compiler<'a> {
                             ty = None;
                         }
                         Body::Collect { component_type, .. } => ty = Some(component_type),
-                        _ => return Ok(None),
+                        _ => return Ok((None, last)),
                     }
                 }
-                Step::Iface(..) => return Ok(None),
+                Step::Iface(..) => return Ok((None, last)),
             }
         }
-        Ok(ty)
+        Ok((ty, last))
     }
 
     /// Find a name as the current core's resolver does: from the
@@ -242,8 +256,13 @@ impl<'a> Compiler<'a> {
         // Past an interface name only props may follow.
         let mut after_iface = false;
         for (i, &part) in parts.iter().enumerate() {
-            // A box has no props, children or items: a path through it
-            // ends at it, and reads as undefined when built (ADR 0027).
+            // An element outlined as a box (an earlier compile's, or one
+            // outlining could not read) has no props, children or items: a
+            // path through it ends at it, and reads as undefined when built
+            // (ADR 0027). A box made in place keeps what outlining made of
+            // it, so the path goes on, the same in every stage and order
+            // (ADR 0031), and the build reads what is under a box as
+            // undefined.
             if let At::Elem(e) = at
                 && self.compiled.templates[cur_t.index()].elems[e.index()].component_type
                     == ComponentType::Error
@@ -722,17 +741,21 @@ impl Compiler<'_> {
         self.read_referent(t, p)
     }
 
-    /// The type of what `p` names, or, when it is a box, the error that
+    /// The type of what `p` names, or, when it is a box this stage may see
+    /// (`is_visible_box`; one outlined as `Error` always), the error that
     /// boxes what reads it.
     pub(in crate::compile) fn read_referent(
         &mut self,
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
-        match self.ref_target_type(t, p)? {
-            Some(ComponentType::Error) => Err(Error::BoxedReferent(self.compiled.ref_display(p))),
-            k => Ok(k),
+        let (ty, last) = self.ref_target(t, p)?;
+        let boxed = ty == Some(ComponentType::Error)
+            || last.is_some_and(|(lt, le)| self.is_visible_box(lt, le));
+        if boxed {
+            return Err(Error::BoxedReferent(self.compiled.ref_display(p)));
         }
+        Ok(ty)
     }
 
     /// The step for interface name `name` of choice `cid`, and the element

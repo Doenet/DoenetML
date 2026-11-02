@@ -8,10 +8,9 @@ use crate::compile::*;
 
 impl Compiler<'_> {
     /// Box in place every element, outside every box, with an attribute
-    /// nothing read while planning. What is under it was planned but is
-    /// now dead, so what its planning reported (errors, boxes, warnings,
-    /// its own warnings too) is dropped: the element is refused as if it
-    /// had never been planned. An element the check names with no element
+    /// nothing read while planning. What it and what is under it reported
+    /// while planning is left out of the diagnostics, as for any box
+    /// (`Compiler::drop_reports_of_boxes`). An element the check names with no element
     /// made for it (a child its parent's planner reads) is boxed by
     /// compiling again.
     pub(in crate::compile) fn box_unread_attributes(&mut self) {
@@ -38,16 +37,6 @@ impl Compiler<'_> {
                 });
                 continue;
             };
-            let under: HashSet<NodeId> = self
-                .subtree(t, e)
-                .into_iter()
-                .map(|(dt, de)| self.compiled.templates[dt.index()].elems[de.index()].node)
-                .filter(|&n| n != NodeId::NONE)
-                .collect();
-            let reported = |d: &Diagnostic| d.node.is_some_and(|n| under.contains(&n));
-            self.errors.retain(|d| !reported(d));
-            self.boxed_here.retain(|n| !under.contains(n));
-            Arc::make_mut(&mut self.compiled.diagnostics).retain(|d| !reported(d));
             self.box_in_place(t, e, error);
         }
     }
