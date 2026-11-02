@@ -437,7 +437,8 @@ component with a single-child group ([testing-principles.md](testing-principles.
 `<T extend="$x"/>` with T different from x's type asks for a T made from x. The same table decides
 `copy` and D33's fresh form (D26). The allowed cases:
 - **between value types:**
-  - math, number, text and boolean, among each other;
+  - math, number, text and boolean, among each other. A boolean is `1` or `0` as a number or a
+    math;
   - point, vector and coords, among each other;
   - math from a point, vector or coords, as the tuple of its coordinates;
   - a point, vector or coords from a math whose value is a tuple;
@@ -520,8 +521,8 @@ Known violations:
   boolean), and a property source is not checked against its value (B30, #2440). The input pairs
   are wider than that: `<math extend="$bi"/>`, `<text extend="$mi"/>` and every other tag from a
   `<textInput>` hold the input itself as a child, show a default, and mostly warn `doenet-w0107`
-  "Invalid children". So do `<math extend="$b"/>` and `<number extend="$b"/>` of a `<boolean>`.
-  What a boolean is as a math or a number is not decided;
+  "Invalid children". So do `<math extend="$b"/>` and `<number extend="$b"/>` of a `<boolean>`,
+  which should be `1` or `0`;
 - a type-changed copy can change on reload (B31, #2441);
 - infos are not cleared when the content matches again (B33, #2442).
 
