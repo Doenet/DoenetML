@@ -1,6 +1,7 @@
 # Each stage of the compile is a function of what it reads
 
-Status: proposed 2026-11-02. Every step is done; see Migration. Amends ADR
+Status: accepted 2026-11-02. Proposed 2026-11-02; every step is done (see
+Migration). Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 

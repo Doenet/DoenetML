@@ -120,11 +120,9 @@ impl Compiler<'_> {
         tpl.elems.push(Elem {
             node,
             // Set once every element is planned (`assign_keys`).
-            key: ElemKey::new(0),
             component_type,
             name,
             name_scope,
-            slot_off: 0,
             props: Vec::new(),
             n_public: NPublic::Table,
             children: Vec::new(),

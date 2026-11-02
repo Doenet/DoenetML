@@ -451,11 +451,10 @@ impl<'a> Signer<'a> {
             ComponentType::Select => {
                 let key = out.comp_keys[c.index()];
                 let templates = &self.compiled.templates;
-                let def = self
-                    .compiled
-                    .choices
-                    .iter()
-                    .find(|d| templates[d.at.0.index()].elems[d.at.1.index()].key == key);
+                let def =
+                    self.compiled.choices.iter().find(|d| {
+                        templates[d.at.0.index()].sealed.elems[d.at.1.index()].key == key
+                    });
                 if let Some(def) = def {
                     return Domain::Options {
                         keys: def.branch_keys.iter().map(|k| k.to_string()).collect(),

@@ -232,7 +232,7 @@ impl<'c> Builder<'c> {
         // never used still raises the high-water mark.
         let (last_comps, last_slots) = session.last_build;
         let elems: usize = c.templates.iter().map(|t| t.elems.len()).sum();
-        let n_slots: usize = c.templates.iter().map(|t| t.n_slots as usize).sum();
+        let n_slots: usize = c.templates.iter().map(|t| t.sealed.n_slots as usize).sum();
         let guess = elems.max(last_comps);
         let guess = guess + guess / 8;
         let slots = n_slots.max(last_slots);
@@ -1376,7 +1376,7 @@ impl<'c> Builder<'c> {
             }
             Source::IterIndex => BuiltSource::Const(self.scopes[inst.scope].2 as f64),
             Source::SequencePick { from, step, count } => {
-                let key = c.templates[inst.template.index()].elems[inst.elem.index()].key;
+                let key = c.templates[inst.template.index()].sealed.elems[inst.elem.index()].key;
                 let h = choice::splitmix(self.seeded_stream(inst.scope, key));
                 let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
                 BuiltSource::Const(from + step * k.min(count - 1) as f64)

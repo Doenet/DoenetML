@@ -84,8 +84,9 @@ fn push_number(out: &mut String, k: u32) {
 }
 
 impl super::seal::Seal<'_> {
-    /// Give every element its key, once every element is planned.
-    pub(in crate::compile) fn assign_keys(&mut self) {
+    /// Every element's key, once every element is planned, by template;
+    /// the key texts go to `Compiled::keys`.
+    pub(in crate::compile) fn assign_keys(&mut self) -> Vec<Vec<ElemKey>> {
         let c = &mut *self.compiled;
         let mut keys = Keys::default();
         // The branch each choice template is: (choice, branch).
@@ -216,15 +217,11 @@ impl super::seal::Seal<'_> {
                 }
             }
         }
-        for (t, ids) in elem_keys.into_iter().enumerate() {
-            for (el, id) in c.templates[t].elems.iter_mut().zip(ids) {
-                el.key = id;
-            }
-        }
         keys.text.shrink_to_fit();
         keys.ends.shrink_to_fit();
         keys.types.shrink_to_fit();
         c.keys = Arc::new(keys);
+        elem_keys
     }
 }
 

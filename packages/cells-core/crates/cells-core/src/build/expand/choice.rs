@@ -30,7 +30,11 @@ impl<'c> Builder<'c> {
                 (0..def.branches.len()).collect()
             } else {
                 let (t, e) = def.at;
-                self.pick(def, scope, c.templates[t.index()].elems[e.index()].key)
+                self.pick(
+                    def,
+                    scope,
+                    c.templates[t.index()].sealed.elems[e.index()].key,
+                )
             };
             // A pick's scope is its option and which pick of it this is
             // (ADR 0017), so its state is the option's whatever order the

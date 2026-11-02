@@ -411,12 +411,6 @@ pub(crate) struct Elem {
     /// resolver; repeats hide their children behind their own name because
     /// each repeat body is its own template.
     pub(crate) name_scope: ElemId,
-    /// First of this element's prop slots within the template's slot space.
-    /// Assigned once every element is planned, since planned types add
-    /// hidden slots after the public props.
-    pub(crate) slot_off: u32,
-    /// The element's identity across loads, for saved state.
-    pub(crate) key: ElemKey,
     pub(crate) props: Vec<Source>,
     /// How many of `props` are public (ADR 0016); hidden slots follow.
     pub(crate) n_public: NPublic,
@@ -449,12 +443,34 @@ pub(crate) enum Hold {
     While(Vec<RefId>),
 }
 
+/// What sealing makes of one element (ADR 0031): row `e` of a template's
+/// `sealed` table is element `e`'s.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Sealed {
+    /// The element's identity across loads, for saved state.
+    pub(crate) key: ElemKey,
+    /// First of this element's prop slots within the template's slot space,
+    /// once every element is planned, since planned types add hidden slots
+    /// after the public props.
+    pub(crate) slot_off: u32,
+}
+
+/// What sealing makes of a template (ADR 0031): a row per element, and
+/// how many slots its elements take.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct SealedTemplate {
+    pub(crate) elems: Vec<Sealed>,
+    pub(crate) n_slots: u32,
+}
+
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Template {
     /// (template, element) of the repeat or choice this template belongs to.
     pub(crate) parent: Option<(TemplateId, ElemId)>,
     pub(crate) elems: Vec<Elem>,
-    pub(crate) n_slots: u32,
+    /// Sealing's table (ADR 0031), parallel to `elems`: empty until
+    /// sealing makes it.
+    pub(crate) sealed: SealedTemplate,
     /// Children of the template itself (the document, a repeat body or a
     /// choice branch).
     pub(crate) children: Vec<Child>,

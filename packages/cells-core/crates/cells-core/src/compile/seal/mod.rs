@@ -24,8 +24,19 @@ impl Seal<'_> {
     pub(in crate::compile) fn run(mut self) -> std::result::Result<(), Failure> {
         crate::trace::span("choices").run(|| self.finish_choices())?;
         crate::trace::span("arity").run(|| self.check_arity())?;
-        crate::trace::span("keys").run(|| self.assign_keys());
-        crate::trace::span("slot offsets").run(|| self.slot_offsets());
+        let keys = crate::trace::span("keys").run(|| self.assign_keys());
+        let offsets = crate::trace::span("slot offsets").run(|| self.slot_offsets());
+        // Sealing's table, made once (ADR 0031).
+        for ((tpl, keys), (offs, n_slots)) in
+            self.compiled.templates.iter_mut().zip(keys).zip(offsets)
+        {
+            tpl.sealed = SealedTemplate {
+                elems: (keys.into_iter().zip(offs))
+                    .map(|(key, slot_off)| Sealed { key, slot_off })
+                    .collect(),
+                n_slots,
+            };
+        }
         Ok(())
     }
 
@@ -57,16 +68,22 @@ impl Seal<'_> {
         Ok(())
     }
 
-    /// Slot offsets, now that planned types know their hidden slot count.
-    fn slot_offsets(&mut self) {
-        for tpl in &mut self.compiled.templates {
-            let mut off = 0;
-            for el in &mut tpl.elems {
-                el.slot_off = off;
-                off += el.props.len().max(el.component_type.prop_defs().len()) as u32;
-            }
-            tpl.n_slots = off;
-        }
+    /// Slot offsets, now that planned types know their hidden slot count:
+    /// by template, each element's, and how many slots they take.
+    fn slot_offsets(&self) -> Vec<(Vec<u32>, u32)> {
+        (self.compiled.templates.iter())
+            .map(|tpl| {
+                let mut off = 0;
+                let offs = (tpl.elems.iter())
+                    .map(|el| {
+                        let at = off;
+                        off += el.props.len().max(el.component_type.prop_defs().len()) as u32;
+                        at
+                    })
+                    .collect();
+                (offs, off)
+            })
+            .collect()
     }
 }
 

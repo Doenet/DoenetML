@@ -123,9 +123,9 @@ pub fn inputs(
 
     let mut key_of = std::collections::HashMap::new();
     for t in &compiled.templates {
-        for el in &t.elems {
+        for (el, sealed) in t.elems.iter().zip(&t.sealed.elems) {
             if el.node != crate::dast::NodeId::NONE {
-                key_of.insert(el.node, compiled.keys.key_text(el.key).to_string());
+                key_of.insert(el.node, compiled.keys.key_text(sealed.key).to_string());
             }
         }
     }
