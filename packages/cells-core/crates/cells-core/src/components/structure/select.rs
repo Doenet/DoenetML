@@ -1,5 +1,5 @@
 //! `<select>`: its definition and its planner (ADR 0016). How a choice
-//! is planned is the machinery in `compile/choice.rs`.
+//! is planned is the machinery in `compile/planning/choice.rs`.
 
 use crate::compile::api::*;
 use crate::components::define::*;

@@ -70,7 +70,7 @@ mechanism count as expected failures rather than gaps.
 | REF-2 a reference is linked both ways; REF-6 an extend keeps the source's bindings, however deep | A bare `extend` aliases every prop to the referent's cells (`plan_with_extend`, `Source::Inherit`). There is no second state to drift, and no "re-resolve, fall back on failure" path (#1805) |
 | SAVE-2 a shadow's state is saved once | Aliased props share one essential cell with one key |
 | CTX-7 a reference is fixed when its source is | The hold is on the source's cells (`Program::holds`), which every alias shares (`tests/fixed.rs` `a_copy_of_a_dynamically_fixed_point_is_fixed`) |
-| CTX-1 `fixed` still follows its definition; nothing pushes into it | `Fix::Literal` turns essential literals into fixed cells and holds references and math; forward evaluation is untouched, inverses drop (`compile/fix.rs`) |
+| CTX-1 `fixed` still follows its definition; nothing pushes into it | `Fix::Literal` turns essential literals into fixed cells and holds references and math; forward evaluation is untouched, inverses drop (`compile/planning/fix.rs`) |
 | VAL-6 to VAL-8 three attribute forms | `plan_value`: literal, exactly one reference (an alias, so two-way), else math (an operator chain with inverses) |
 | VAL-5 and D10 one representation of a missing value | The shared fixed NaN cell (`missing_slot`); `$r[32]` and an index past a list both land there |
 | COMP-4 which mechanism built a list is invisible; COMP-7 iterations come back as they were; D12 "state belongs to iteration k" | One mechanism (stamp a template per scope); essential values are keyed by (scope, template slot) and survive a rebuild (`Session`, ADR 0004) |
@@ -288,7 +288,7 @@ write to, and the hold is upstream of every alias.
 
 ### 3.4 A literal `<number>` is a fixed cell (INT-1, INT-2, ACT-2)
 
-**Today.** `compile/attrs.rs` turns `<number>3</number>` into
+**Today.** `compile/planning/attrs.rs` turns `<number>3</number>` into
 `Source::Fixed(3)`, with the comment that the current core cannot change
 it by a drag. ADR 0018 records the consequence: "a trigger whose target
 is a literal `<number>` sets nothing". But INT-1's own Tier 1 example is

@@ -26,105 +26,21 @@
 //! or the most any award gives (`credit` × holds). Other content (choices,
 //! text answers, `matchPartial`, feedback) is refused, never left blank.
 
-use super::*;
+use crate::compile::*;
 use crate::components::prop::{
     answer, award, choice, choice_input, math_input, response, text_input, when,
 };
 use crate::limits::MAX_CHOICES;
 
 /// An `<award>` as read from the DAST: its `<when>`, or its content.
-struct AwardForm {
-    e: ElemId,
-    el: NodeId,
-    when: Option<(ElemId, NodeId)>,
-    nodes: Vec<NodeId>,
+pub(in crate::compile) struct AwardForm {
+    pub(in crate::compile) e: ElemId,
+    pub(in crate::compile) el: NodeId,
+    pub(in crate::compile) when: Option<(ElemId, NodeId)>,
+    pub(in crate::compile) nodes: Vec<NodeId>,
 }
 
 impl<'a> Compiler<'a> {
-    /// The end of outlining (ADR 0030): every answer's synthetic children,
-    /// its implicit `<mathInput>` and a `response` per input its whens
-    /// read, in the order the walk made the answers. They follow every
-    /// element the walk and the container copies made.
-    pub(in crate::compile) fn add_answer_children(&mut self) {
-        let made = self.outlining().work.to_plan.clone();
-        let answers: Vec<(TemplateId, ElemId)> = made
-            .into_iter()
-            .filter(|&(t, e)| {
-                let el = &self.compiled.templates[t.index()].elems[e.index()];
-                el.component_type == ComponentType::Answer && !el.cloned && el.node != NodeId::NONE
-            })
-            .collect();
-        for (t, e) in answers {
-            // An answer the planner refuses is boxed then; what is made
-            // for it here dies with it.
-            let _ = self.add_answer_children_of(t, e);
-        }
-    }
-
-    /// `add_answer_children` for answer `e`, deciding as `plan_answer`
-    /// does. Where the planner refuses the answer, this stops early.
-    fn add_answer_children_of(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.dast;
-        let el = self.compiled.templates[t.index()].elems[e.index()].node;
-        if self.reject_answer_attrs(el)? {
-            return Ok(());
-        }
-        let mut inputs = Vec::new();
-        let mut awards = Vec::new();
-        for k in self.elem_children(t, e) {
-            match self.compiled.templates[t.index()].elems[k.index()].component_type {
-                ComponentType::ChoiceInput => return Ok(()),
-                ComponentType::MathInput
-                | ComponentType::BooleanInput
-                | ComponentType::TextInput => inputs.push(k),
-                ComponentType::Award => awards.push(k),
-                _ => return Ok(()),
-            }
-        }
-        let mut forms = Vec::with_capacity(awards.len());
-        for &a in &awards {
-            forms.push(self.award_form(t, a)?);
-        }
-        let needs_input =
-            !self.content_nodes(el).is_empty() || forms.iter().any(|f| f.when.is_none());
-        if needs_input && d.attr(el, "response").is_none() && inputs.is_empty() {
-            self.add_implicit_input(t, e);
-        }
-        let mut keys = Vec::new();
-        for form in &forms {
-            let Some((w, w_el)) = form.when else {
-                continue;
-            };
-            if d.children(w_el)
-                .iter()
-                .any(|&n| d.kind(n) == NodeKind::Element)
-            {
-                return Ok(());
-            }
-            for m in self.content_nodes(w_el) {
-                if d.kind(m) != NodeKind::Macro {
-                    continue;
-                }
-                let p = self.plan_ref(t, w, m)?;
-                self.outlining().work.settled.when_refs.insert(m, p);
-                if let Some((key, _)) = self.input_named(t, p)
-                    && !keys.contains(&key)
-                {
-                    keys.push(key);
-                    let r = self.add_response(t, e);
-                    self.outlining()
-                        .work
-                        .settled
-                        .answer_responses
-                        .entry((t.get(), e.get()))
-                        .or_default()
-                        .push((key, r));
-                }
-            }
-        }
-        Ok(())
-    }
-
     pub(in crate::compile) fn plan_answer(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.dast;
         let Elem {
@@ -423,7 +339,7 @@ impl<'a> Compiler<'a> {
 
     /// Attributes that change what an answer checks and are out of scope.
     /// Returns whether the answer is `type="text"`.
-    fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {
+    pub(in crate::compile) fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {
         let d = self.dast;
         self.reject_compare_attrs(el, "answer")?;
         let mut text = false;
@@ -472,7 +388,7 @@ impl<'a> Compiler<'a> {
     }
 
     /// The element children of `e`.
-    fn elem_children(&self, t: TemplateId, e: ElemId) -> Vec<ElemId> {
+    pub(in crate::compile) fn elem_children(&self, t: TemplateId, e: ElemId) -> Vec<ElemId> {
         self.compiled.templates[t.index()].elems[e.index()]
             .children
             .iter()
@@ -484,7 +400,7 @@ impl<'a> Compiler<'a> {
     }
 
     /// The text and `$ref` nodes of an element, blanks left out.
-    fn content_nodes(&self, el: NodeId) -> Vec<NodeId> {
+    pub(in crate::compile) fn content_nodes(&self, el: NodeId) -> Vec<NodeId> {
         let d = self.dast;
         d.children(el)
             .iter()
@@ -493,7 +409,7 @@ impl<'a> Compiler<'a> {
             .collect()
     }
 
-    fn award_form(&self, t: TemplateId, a: ElemId) -> Result<AwardForm> {
+    pub(in crate::compile) fn award_form(&self, t: TemplateId, a: ElemId) -> Result<AwardForm> {
         let d = self.dast;
         let el = self.compiled.templates[t.index()].elems[a.index()].node;
         if d.attr(el, "feedback").is_some() {
@@ -632,7 +548,11 @@ impl<'a> Compiler<'a> {
 
     /// The input a reference plan names (`$mi`, `$mi.value`), as (hops,
     /// element) and its type; None for anything else.
-    fn input_named(&self, t: TemplateId, p: RefId) -> Option<((u32, ElemId), ComponentType)> {
+    pub(in crate::compile) fn input_named(
+        &self,
+        t: TemplateId,
+        p: RefId,
+    ) -> Option<((u32, ElemId), ComponentType)> {
         let r = &self.compiled.refs[p.index()];
         if !r.prop.is_none_or(|p| p.is("value")) {
             return None;
@@ -657,18 +577,6 @@ impl<'a> Compiler<'a> {
             },
             None => Source::Const(1.0),
         })
-    }
-
-    /// A `response` child of answer `e`, which its planner plans
-    /// (`plan_response`).
-    fn add_response(&mut self, t: TemplateId, e: ElemId) -> ElemId {
-        let r = self
-            .push_elem(t, NodeId::NONE, ComponentType::Response, StrId::NONE, e)
-            .expect("unnamed");
-        self.compiled.templates[t.index()].elems[e.index()]
-            .children
-            .push(Child::Elem(r));
-        r
     }
 
     /// The `response` outlining made in answer `e` for the input `key`
@@ -705,18 +613,6 @@ impl<'a> Compiler<'a> {
             value,
         }
         .into_vec();
-    }
-
-    /// The `<mathInput>` DoenetML sugars into an answer that names no
-    /// input: an unbound input, first among the answer's children, which
-    /// its planner plans (`plan_implicit_input`).
-    fn add_implicit_input(&mut self, t: TemplateId, e: ElemId) {
-        let mi = self
-            .push_elem(t, NodeId::NONE, ComponentType::MathInput, StrId::NONE, e)
-            .expect("unnamed");
-        self.compiled.templates[t.index()].elems[e.index()]
-            .children
-            .insert(0, Child::Elem(mi));
     }
 
     /// Plans answer `e`'s implicit input, which outlining made.

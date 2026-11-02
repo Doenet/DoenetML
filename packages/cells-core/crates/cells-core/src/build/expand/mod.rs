@@ -763,7 +763,7 @@ impl<'c> Builder<'c> {
     }
 
     /// Hold every slot of every element the compile says is held
-    /// (`Elem::hold`, `compile/fix.rs`), each by its flags: whatever planned
+    /// (`Elem::hold`, `compile/planning/fix.rs`), each by its flags: whatever planned
     /// the element, and whatever its slots turned out to be, once each has
     /// its source. A slot is held as its cell, so a reference to the
     /// element is held with it. A slot that aliases another element's gets

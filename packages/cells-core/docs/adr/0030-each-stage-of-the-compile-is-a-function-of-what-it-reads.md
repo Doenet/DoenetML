@@ -1,6 +1,6 @@
 # Each stage of the compile is a function of what it reads
 
-Status: proposed 2026-11-02. Steps 1 to 7 are done; see Migration. Amends ADR
+Status: proposed 2026-11-02. Every step is done; see Migration. Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -258,4 +258,19 @@ otherwise.
    earlier steps' notes name `compile_all`; its body is now
    `Compiler::compile`'s.
 8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`
-   name the new paths.
+   name the new paths. Done: `outline/` (the walk; `copies.rs`,
+   `choice.rs`, `answer.rs` for what outlining makes of each), `parse.rs`,
+   `planning/` (the planners' machinery, `ctx.rs` and `planner.rs`),
+   `link/` (with `unread.rs`) and `seal/` (with `keys.rs` and
+   `choice.rs`). A file that held more than one stage's code is split by
+   function, so a choice, a copy and an answer each have a file per stage
+   they are worked on in. What more than one stage uses has a module of
+   its own: `names.rs` (the name table), `refs.rs` (reference paths, an
+   extend's plan, a referent's type), `maths.rs` (math text, which
+   outlining tokenizes, parsing parses and planners plan), `source.rs`
+   (reading an element's attributes and children) and `boxes.rs`
+   (boxing). `compile/mod.rs` keeps the driver, `Compiler` and the
+   stages' results. The planning directory is `planning/`, not `plan/`:
+   `compile::plan` is the compile's output types, which the rest of the
+   crate reads. `compile::keys` is still the keys' path, re-exported.
+   No code changed but its place and what it may be called from.

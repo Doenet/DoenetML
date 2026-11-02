@@ -1,6 +1,6 @@
 //! [`PlanCtx`]: what every planner in `components/` is given (ADR 0016).
 
-use super::*;
+use crate::compile::*;
 
 /// What a planner is given (ADR 0016): its element and the source it reads
 /// (the DAST, read-only), its attributes planned the ways every component
@@ -14,7 +14,7 @@ use super::*;
 /// planner; the kind decides what is done around the call. For a `Plan`
 /// type, `plan_with_extend` makes it and does the rest: a bare copy and
 /// sharing state with the referent. No planner applies `fixed`:
-/// `plan_elem` holds every element after its planner (`compile/fix.rs`).
+/// `plan_elem` holds every element after its planner (`compile/planning/fix.rs`).
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
     t: TemplateId,
@@ -491,30 +491,30 @@ impl<'a> PlanCtx<'_, 'a> {
     // Machinery several components build on.
 
     /// Plans an answer, its inputs, awards and whens, and the responses
-    /// they compare (`compile/answer.rs`).
+    /// they compare (`compile/planning/answer.rs`).
     pub(crate) fn plan_answer(&mut self) -> Result<()> {
         self.c.plan_answer(self.t, self.e)
     }
 
     /// Plans a choice, reactive or at load: its cases' conditions, or a
-    /// select's `hide` (`compile/choice.rs`).
+    /// select's `hide` (`compile/planning/choice.rs`).
     pub(crate) fn plan_choice(&mut self) -> Result<()> {
         self.c.plan_choice(self.t, self.e)
     }
 
-    /// Plans a repeat over a list (`compile/iterates.rs`).
+    /// Plans a repeat over a list (`compile/planning/iterates.rs`).
     pub(crate) fn plan_repeat_for(&mut self) -> Result<()> {
         self.c.plan_iteration_names(self.t, self.e);
         self.c.plan_repeat_for(self.t, self.e)
     }
 
     /// Plans the hidden elements a repeat's `valueName` and `indexName`
-    /// make (`compile/iterates.rs`).
+    /// make (`compile/planning/iterates.rs`).
     pub(crate) fn plan_iteration_names(&mut self) {
         self.c.plan_iteration_names(self.t, self.e)
     }
 
-    /// Plans a function's iterates as a repeat (`compile/iterates.rs`).
+    /// Plans a function's iterates as a repeat (`compile/planning/iterates.rs`).
     pub(crate) fn plan_function_iterates(&mut self) -> Result<()> {
         self.c.plan_function_iterates(self.t, self.e)
     }

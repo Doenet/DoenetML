@@ -19,7 +19,7 @@ use std::collections::HashMap;
 
 use serde_json::{Value, json};
 
-use super::*;
+use crate::compile::*;
 
 /// Every element's key, by `ElemKey`, and what saved state needs besides.
 #[derive(Debug, Default)]

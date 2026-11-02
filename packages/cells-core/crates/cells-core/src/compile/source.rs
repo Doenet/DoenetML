@@ -1,0 +1,104 @@
+//! Reading the source, which every stage does: an element's literal
+//! attributes and which of its children are content.
+
+use crate::compile::*;
+
+impl Compiler<'_> {
+    pub(in crate::compile) fn attr_name_str(&self, el: NodeId, attr: &str) -> Option<StrId> {
+        let d = self.dast;
+        let a = d.attr(el, attr)?;
+        match d.attr_children(a) {
+            [t] if d.kind(*t) == NodeKind::Text => Some(d.str_id(*t)),
+            _ => None,
+        }
+    }
+
+    /// Whether a child node is presentation a renderer reads rather than
+    /// content a planner does: a `<label>` or `<shortDescription>` element.
+    /// Every type keeps such a child as a component (ADR 0024); a planner
+    /// reading its element children passes over them.
+    pub(in crate::compile) fn is_presentation_child(&self, n: NodeId) -> bool {
+        self.dast.kind(n) == NodeKind::Element
+            && matches!(self.dast.str(n), "label" | "shortDescription")
+    }
+
+    /// Whether a child node is no content of its element: layout
+    /// (`is_blank`) or presentation (`is_presentation_child`). What
+    /// decides an element's value from its children looks past these.
+    pub(in crate::compile) fn is_not_content(&self, n: NodeId) -> bool {
+        self.is_blank(n) || self.is_presentation_child(n)
+    }
+
+    /// Children of element `e` have `e` as their parent.
+    pub(in crate::compile) fn child_scope(&self, _t: TemplateId, e: ElemId) -> ElemId {
+        e
+    }
+
+    /// An on/off attribute that may also take a value: present and not
+    /// `false` or `none` (`simplify`, `simplify="full"`).
+    pub(in crate::compile) fn attr_on(&self, el: NodeId, name: &str) -> bool {
+        match self.dast.attr(el, name) {
+            None => false,
+            Some(a) => {
+                let text = self.attr_text(a).unwrap_or_default();
+                !matches!(text.trim().to_ascii_lowercase().as_str(), "false" | "none")
+            }
+        }
+    }
+
+    /// A boolean attribute: present and empty, or `true`.
+    pub(in crate::compile) fn attr_flag(&self, el: NodeId, name: &str) -> bool {
+        match self.dast.attr(el, name) {
+            None => false,
+            Some(a) => {
+                let text = self.attr_text(a).unwrap_or_default();
+                let text = text.trim();
+                text.is_empty() || text.eq_ignore_ascii_case("true")
+            }
+        }
+    }
+
+    pub(in crate::compile) fn attr_text(&self, a: u32) -> Option<String> {
+        let d = self.dast;
+        let mut s = String::new();
+        for &n in d.attr_children(a) {
+            match d.kind(n) {
+                NodeKind::Text => s.push_str(d.str(n)),
+                NodeKind::Macro => return None,
+                _ => {}
+            }
+        }
+        Some(s)
+    }
+
+    pub(in crate::compile) fn single_macro(&self, a: u32) -> Option<NodeId> {
+        let d = self.dast;
+        let mut found = None;
+        for &n in d.attr_children(a) {
+            match d.kind(n) {
+                NodeKind::Macro if found.is_none() => found = Some(n),
+                NodeKind::Macro => return None,
+                NodeKind::Text if d.str(n).trim().is_empty() => {}
+                NodeKind::Text => return None,
+                _ => {}
+            }
+        }
+        found
+    }
+
+    pub(in crate::compile) fn is_blank(&self, n: NodeId) -> bool {
+        match self.dast.kind(n) {
+            NodeKind::Text => self.dast.str(n).trim().is_empty(),
+            NodeKind::Other => true,
+            _ => false,
+        }
+    }
+
+    pub(in crate::compile) fn literal_attr(&self, a: u32, name: &str) -> Result<f64> {
+        let text = self.attr_text(a).ok_or_else(|| Error::Banned(format!("'{name}' must be a literal number: a load-time choice depends only on the document seed and literals")))?;
+        text.trim().parse::<f64>().map_err(|_| Error::BadValue {
+            attr: name.into(),
+            text,
+        })
+    }
+}

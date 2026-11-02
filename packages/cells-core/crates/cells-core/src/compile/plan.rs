@@ -429,14 +429,14 @@ pub(crate) struct Elem {
     /// is the type outlining settled (a `<math>` that is a point, ADR 0029).
     pub(crate) planned_as: ComponentType,
     pub(crate) body: Body,
-    /// What holds it (`fixed`, `compile/fix.rs`).
+    /// What holds it (`fixed`, `compile/planning/fix.rs`).
     pub(crate) hold: Hold,
     /// Under an element boxed while planning (ADR 0027): no build makes
     /// it, and a reference to it reads as undefined.
     pub(crate) dead: bool,
 }
 
-/// What holds an element (`compile/fix.rs`): a fact beside its plans,
+/// What holds an element (`compile/planning/fix.rs`): a fact beside its plans,
 /// never a change to them. The build makes each of the element's cells
 /// refuse requests as it says (`Program::holds`).
 #[derive(Debug, Clone, Default)]

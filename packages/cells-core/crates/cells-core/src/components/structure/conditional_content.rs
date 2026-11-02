@@ -1,6 +1,6 @@
 //! `<conditionalContent>` and `<feedback>`: their definition and their
 //! planner (ADR 0016). How a choice is planned is the machinery in
-//! `compile/choice.rs`.
+//! `compile/planning/choice.rs`.
 
 use crate::compile::api::*;
 use crate::components::define::*;

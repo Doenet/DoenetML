@@ -1,8 +1,8 @@
 //! The kinds of planner a component type's definition names
 //! (`component!`'s `planner:`), and how the compile finds a type's.
 
-use super::*;
-use ctx::PlanCtx;
+use super::ctx::PlanCtx;
+use crate::compile::*;
 
 /// Adjusts the props `plan_attrs` planned from the table.
 pub(crate) type PropsFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>, &mut [Option<Source>]) -> Result<()>;
@@ -26,7 +26,7 @@ pub(crate) enum Planner {
     /// By the function, which returns the plan; `plan_with_extend` applies
     /// the copy rules and the list's length around it, and the function
     /// reads the element's children itself. (`fixed`, for every kind, is
-    /// `plan_elem`'s: `compile/fix.rs`.)
+    /// `plan_elem`'s: `compile/planning/fix.rs`.)
     Plan(PlanFn),
     /// By the function alone, which writes the plan itself.
     Whole(WholeFn),
@@ -35,7 +35,7 @@ pub(crate) enum Planner {
 impl Compiler<'_> {
     /// How an element of `component_type` is planned: what its definition
     /// (`component!`) says.
-    pub(super) fn planner(component_type: ComponentType) -> Planner {
+    pub(in crate::compile) fn planner(component_type: ComponentType) -> Planner {
         component_type.def().planner
     }
 }

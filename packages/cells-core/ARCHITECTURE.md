@@ -98,16 +98,19 @@ Runs once per load and depends on the source alone.
   stamped copy. Each element is planned by its component type's planner
   (see [Add a component type](#add-a-component-type)). The compile runs
   in stages (ADR 0027, ADR 0029, ADR 0030; `Compiler::compile`), each
-  returning what it makes for the later ones: **outline**
-  makes every element, template and name, settles what a reference reads
-  of each (a `<math>`'s type, a `<collect>`'s collected type), gives
-  container copies their clones and answers their synthetic children,
-  and plans nothing (ADR 0030); **parse** parses every `<math>`'s text
-  once; **plan** plans every element; **link** boxes what read a boxed
-  referent and every element with an attribute nothing read, and ties
-  shared state between plans; **seal** (`seal.rs`)
-  makes choice interfaces, checks arity, and assigns keys and slot
-  offsets; the **abstract build** (below) comes last. A planner reads the
+  returning what it makes for the later ones, each in its own module:
+  **outline** (`outline/`) makes every element, template and name,
+  settles what a reference reads of each (a `<math>`'s type, a
+  `<collect>`'s collected type), gives container copies their clones and
+  answers their synthetic children, and plans nothing (ADR 0030);
+  **parse** (`parse.rs`) parses every `<math>`'s text once; **plan**
+  (`planning/`) plans every element; **link** (`link/`) boxes what read
+  a boxed referent and every element with an attribute nothing read, and
+  ties shared state between plans; **seal** (`seal/`) makes choice
+  interfaces, checks arity, and assigns keys and slot offsets; the
+  **abstract build** (below) comes last. What more than one stage uses
+  has a module of its own (`names.rs`, `refs.rs`, `maths.rs`,
+  `source.rs`, `boxes.rs`). A planner reads the
   source and what outlining and parsing made, never another element's plan
   (ADR 0029), so elements are planned in any order: what one shares with
   another (an extend's essential state) is linked once all are planned.
@@ -289,7 +292,7 @@ was planned (ADR 0021): the core ignores no attribute silently.
 `Dast::attr` records every lookup, and a build makes none; once planning
 is done, every element outside the boxes with an attribute never looked
 up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
-`presentation`), is boxed in place when linking (`compile/unread.rs`, ADR
+`presentation`), is boxed in place when linking (`compile/link/unread.rs`, ADR
 0030), all of them at once, like any failure: what its planning reported
 under it is dropped, and a reference into it reads undefined.
 
@@ -383,7 +386,7 @@ planner of its own as the block's last section:
 
 - `Plan(plan)` to return the element's plan, with the copy rules
   (`extend`), `fixed` and its list's length applied around it
-  (`plan_with_extend`, `compile/copies.rs`); the points, lines and circle
+  (`plan_with_extend`, `compile/planning/copies.rs`); the points, lines and circle
   are planned this way,
 - `PropsThen(plan)` to adjust the plan the prop table produces (reached
   through `Props::AT`),
@@ -441,7 +444,7 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   component writes.
 - An attribute the planner never looks up is refused: the check boxes any
   element carrying an attribute nothing read while the document was
-  planned (`compile/unread.rs`, ADR 0021), so an author's attribute never
+  planned (`compile/link/unread.rs`, ADR 0021), so an author's attribute never
   does nothing silently. Reading an attribute (`ctx.attr`, `d.attr`) is
   what accepts it; an attribute a renderer reads from the literal
   attributes instead, and the core never does, is declared in the block

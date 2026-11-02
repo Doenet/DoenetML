@@ -2,7 +2,7 @@
 //! or a polygon's `vertices` (bare references, tuples, and list props, one
 //! point per item), and how many a list holds, known at compile time.
 
-use super::*;
+use crate::compile::*;
 
 impl<'a> Compiler<'a> {
     /// The points of attribute `a` of the element at `node`: bare

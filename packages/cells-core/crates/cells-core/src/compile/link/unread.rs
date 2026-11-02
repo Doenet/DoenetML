@@ -4,7 +4,7 @@
 //! attribute nothing read is boxed in place there, like any failure, and
 //! the compile goes on.
 
-use super::*;
+use crate::compile::*;
 
 impl Compiler<'_> {
     /// Box in place every element, outside every box, with an attribute

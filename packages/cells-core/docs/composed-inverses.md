@@ -87,7 +87,7 @@ input, until an essential cell is written (`tick/invert.rs`):
   Math lowering puts a literal second, a constant cell, so the input
   that leads to state stays first (`k + x` becomes `Add(x, k)`).
 - **`fixed`, `fixLocation` and `fixAxes` are hold flags** beside each
-  element's plans (`compile/fix.rs`, `Program::holds`): every cell of a
+  element's plans (`compile/planning/fix.rs`, `Program::holds`): every cell of a
   held element refuses requests while its flag is set. They are not code
   in any component.
 - **Moves of several inputs together are vector operators with

@@ -15,7 +15,7 @@
 //! on an older version overwrite state moved to a newer one.
 //!
 //! An entry names its cell by keys an ordinary edit does not move (ADR
-//! 0017, step 1; `compile/keys.rs`): `path` is the cell's scope from the
+//! 0017, step 1; `compile/seal/keys.rs`): `path` is the cell's scope from the
 //! document down, one level per repeat iteration (`[repeat, k]`),
 //! conditional branch (`[choice, branch]`) or select pick (`[select,
 //! option, m]`); `element` is the element's stable key and `prop` the

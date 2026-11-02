@@ -6,7 +6,10 @@
 //! boxed by compiling again, not in place: other elements' plans may
 //! already name what it would box.
 
-use super::*;
+pub(in crate::compile) mod choice;
+pub(crate) mod keys;
+
+use crate::compile::*;
 
 pub(in crate::compile) struct Seal<'a> {
     pub(in crate::compile) compiled: &'a mut Compiled,
@@ -64,5 +67,23 @@ impl Seal<'_> {
             }
             tpl.n_slots = off;
         }
+    }
+}
+
+impl Compiler<'_> {
+    /// Sealing (`seal.rs`): what reads every plan, the source and the name
+    /// table, and changes no plan; what fails is boxed by compiling again.
+    pub(in crate::compile) fn seal(
+        &mut self,
+        planned: &Planned,
+    ) -> std::result::Result<(), Failure> {
+        let settled = self.settled();
+        seal::Seal {
+            compiled: &mut self.compiled,
+            dast: self.dast,
+            names: &settled.names,
+            shared_state: &planned.shared_state,
+        }
+        .run()
     }
 }

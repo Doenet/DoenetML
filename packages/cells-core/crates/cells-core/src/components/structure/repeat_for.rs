@@ -1,6 +1,6 @@
 //! `<repeat for>`: its definition and its planner (ADR 0016). How a
 //! repeat over a list is planned is the machinery in
-//! `compile/iterates.rs`.
+//! `compile/planning/iterates.rs`.
 
 use crate::compile::api::*;
 use crate::components::define::*;

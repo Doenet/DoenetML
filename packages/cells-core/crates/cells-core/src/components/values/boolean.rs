@@ -2,7 +2,7 @@
 //! content (`true`, `false`, a number, nothing) is an essential 0/1 cell,
 //! since DoenetML's boolean value is state (`<updateValue>` writes it). A
 //! lone `$ref` aliases the referent. Anything else is a condition
-//! (`compile/condition.rs`): comparisons and connectives over numeric
+//! (`compile/planning/condition.rs`): comparisons and connectives over numeric
 //! math, with `=` between expressions compared in the engine under the
 //! compare attributes.
 

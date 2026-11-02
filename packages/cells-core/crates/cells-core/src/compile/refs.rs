@@ -656,6 +656,119 @@ fn parse_index(mut chars: impl Iterator<Item = char>) -> Option<i64> {
     Some(value)
 }
 
+/// What both outlining and planning read of a reference: an `extend`'s
+/// plan, its referent's type, and a choice's interface a path steps into.
+impl Compiler<'_> {
+    /// The reference in `e`'s `extend`, planned once from where `e` sits:
+    /// by outlining for a container copy, by planning for the rest.
+    pub(in crate::compile) fn plan_extend(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<Option<RefId>> {
+        let key = (t.get(), e.get());
+        if let Some(&p) = self.extend_refs.get(&key) {
+            return Ok(Some(p));
+        }
+        let Elem {
+            node, name_scope, ..
+        } = self.compiled.templates[t.index()].elems[e.index()];
+        let Some(a) = self.dast.attr(node, "extend") else {
+            return Ok(None);
+        };
+        let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
+            attr: "extend".into(),
+            text: self.attr_text(a).unwrap_or_default(),
+        })?;
+        let p = self.plan_ref(t, name_scope, m)?;
+        // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an extend
+        // across related types is the referent's value as the element's
+        // type (REF-5, ADR 0025), so it is the extend of its default prop,
+        // decided here from the types outlining settled. An unrelated pair
+        // is left to the build, which refuses it once both types are
+        // known. A container copy names its referent itself.
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        if !component_type.container()
+            && self.compiled.refs[p.index()].prop.is_none()
+            && let Ok(Some(rt)) = self.ref_target_type(t, p)
+            && rt != component_type
+            && ComponentType::extends_as(rt, component_type)
+            && let Some(dp) = rt.default_prop()
+        {
+            let r = &mut self.compiled.refs[p.index()];
+            r.prop = Some(RefProp::named(Some(rt), dp));
+            let base = std::mem::replace(&mut r.display, RefDisplay::Written);
+            r.display = RefDisplay::Prop(Box::new(base), dp);
+        }
+        self.extend_refs.insert(key, p);
+        Ok(Some(p))
+    }
+
+    /// The type of what `p` names, as outlining settled it, for `e`'s planner
+    /// to decide its plan by (an extend, `<constrainTo>`, ...). A box has
+    /// no type to plan from, so `e` is boxed in turn, its referent's box
+    /// the cause: here for a referent already boxed, when linking for one
+    /// boxed after `e` is planned (`box_readers_of_boxes`).
+    pub(in crate::compile) fn referent_type(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        p: RefId,
+    ) -> Result<Option<ComponentType>> {
+        match &mut self.outlining {
+            Some(o) => o.work.settled.referent_readers.push((t, e, p)),
+            None => self.planning().referent_readers.push((t, e, p)),
+        }
+        self.read_referent(t, p)
+    }
+
+    /// The type of what `p` names, or, when it is a box, the error that
+    /// boxes what reads it.
+    pub(in crate::compile) fn read_referent(
+        &mut self,
+        t: TemplateId,
+        p: RefId,
+    ) -> Result<Option<ComponentType>> {
+        match self.ref_target_type(t, p)? {
+            Some(ComponentType::Error) => Err(Error::BoxedReferent(self.compiled.ref_display(p))),
+            k => Ok(k),
+        }
+    }
+
+    /// The step for interface name `name` of choice `cid`, and the element
+    /// of the first branch that has it, which stands for every branch while
+    /// the rest of the path is planned (the interface check makes their
+    /// types equal).
+    pub(in crate::compile) fn iface_step(
+        &mut self,
+        cid: ChoiceId,
+        name: &str,
+        display: impl std::fmt::Display,
+    ) -> Result<(Step, TemplateId, ElemId)> {
+        let name = name.trim();
+        let def = &self.compiled.choices[cid.index()];
+        let found = def
+            .branches
+            .iter()
+            .find_map(|&b| match self.name_at(b, ROOT_SCOPE, name) {
+                NameHit::One(x) => Some((b, x)),
+                _ => None,
+            });
+        let Some((tpl, elem)) = found else {
+            return Err(Error::UnknownName(display.to_string()));
+        };
+        let def = &mut self.compiled.choices[cid.index()];
+        let u = match def.used.iter().position(|n| n == name) {
+            Some(u) => u,
+            None => {
+                def.used.push(name.to_string());
+                def.used.len() - 1
+            }
+        };
+        Ok((Step::Iface(cid, u as u32), tpl, elem))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::parse_index;

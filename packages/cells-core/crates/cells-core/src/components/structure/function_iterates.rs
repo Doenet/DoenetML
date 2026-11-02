@@ -1,6 +1,6 @@
 //! `<functionIterates>`: its definition and its planner (ADR 0016). How
 //! its iterates are built as a repeat is the machinery in
-//! `compile/iterates.rs`.
+//! `compile/planning/iterates.rs`.
 
 use crate::compile::api::*;
 use crate::components::define::*;

@@ -14,7 +14,7 @@
 //! and every way an element is planned: no planner applies them, and none
 //! can leave them out.
 
-use super::*;
+use crate::compile::*;
 
 /// An attribute that holds an element, as `inherited-attributes.md` §5 of
 /// the principles states one: whether an element without it takes the

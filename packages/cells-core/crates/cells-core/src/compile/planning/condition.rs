@@ -9,7 +9,7 @@
 //! two expressions in the engine, the way an `<answer>` does, and `<`, `>`
 //! and a lone operand evaluate the expression to a number first.
 
-use super::*;
+use crate::compile::*;
 
 /// How `=` compares two expressions that are not both numeric: as written
 /// (`symbolicEquality`) or by value, after `post` on both sides.

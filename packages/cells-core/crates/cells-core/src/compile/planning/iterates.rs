@@ -1,7 +1,7 @@
 //! `<functionIterates>` and the `<repeat for>` over its iterates: the
 //! planners of types whose contents follow a list.
 
-use super::*;
+use crate::compile::*;
 use crate::components::MAX_TUPLE;
 use crate::components::prop::function_iterates;
 

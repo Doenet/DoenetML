@@ -1,6 +1,6 @@
 //! Choices at expansion: a select's picks from the document seed, a
 //! conditional content's cases, and references through a branch interface.
-//! The design is in `compile/choice.rs`.
+//! The design is in `compile/planning/choice.rs`.
 
 use super::*;
 
