@@ -61,15 +61,30 @@ from `7c2bb1f`:
 | a `<sampleRandomNumbers>` whose `standardDeviation` comes from a blank input | warning `doenet-w0126` |
 | a `<collect>` from content in a case that isn't active | warning `doenet-w0072` |
 
-Also `doenet-w0181` ("the `<repeat>` made no iterations"), when the count comes from a value
-that can change, and B33: an info is not cleared when its condition ends, and an index diagnostic
-is decided once, when the reference resolves.
+Also:
+- `doenet-w0181` ("the `<repeat>` made no iterations"), when the count comes from a value that
+  can change;
+- `doenet-w0100` for an index into a scalar, `$m[2]`, when `m`'s value can change. Since #2444
+  it follows the value, but it is still a warning.
+
 
 The audit of every warning call site is #2422.
 
 **A value-driven diagnostic tracks the value.** It follows from DIAG-1 and DIAG-2: an info
 explains why nothing shows now, so it appears when the condition starts and goes away when it
-ends. Today diagnostics are append-only (B33, #2442).
+ends. While the condition holds there is one of it. Done by #2444 (B33, closing #2442):
+- a component reports what a condition gives now (`setConditionDiagnostics` in
+  `DiagnosticsManager`), and `[]` withdraws it. A condition that nothing re-evaluates is watched
+  (`watchCondition`) and decided again before each renderer update;
+- a diagnostic is shown only while its component is shown, so not inside content a composite
+  withholds, such as a case that isn't chosen. Content hidden with `hide` still counts as shown;
+- a diagnostic is withdrawn when its component is deleted;
+- **a `copy` keeps the diagnostic it was made with**, as it keeps what it shows (CPY-2), through
+  a reload too.
+
+**Known violations:** `doenet-w0181`, past the end of a repeat that shrank, is still decided in
+`RefResolutionDependency` and reported only after a reload (#1499). The call sites in
+`Chart.js`, `CountOperators.js` and `listIndexOperators.js` still use the add-only queue (#2422).
 
 Decided in D35.
 
@@ -112,4 +127,5 @@ A reload restores what the reader saw (SAVE-1), and that includes the diagnostic
 **Known violations:**
 - an index past the end of a repeat that shrank adds a diagnostic only after a reload (#1499).
   Under DIAG-2 it is an info, reported the same way before and after;
-- infos that piled up before a reload are not reproduced after it (B33, #2442).
+- a copy that made nothing is not held in a save, so a reload can report a different info for
+  why it shows nothing, when its source's case changed (B37, from #2443).
