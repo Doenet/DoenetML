@@ -94,15 +94,16 @@ impl Default for LoadOptions {
 #[derive(Debug, Clone, Default)]
 pub struct LoadTimings {
     /// Every span the load recorded, in opening order: `load`, then
-    /// `deserialize`, `compile` (with the plan, the probe or the first
-    /// build, and the lint), and per pass `build`, `schedule` and `compute`.
+    /// `deserialize`, `compile` (with the plan, the abstract build or the
+    /// first build, and the lint), and per pass `build`, `schedule` and
+    /// `compute`.
     pub spans: Vec<Span>,
     pub deserialize: Duration,
     /// The compile, its check included, and every build pass after it.
     pub build: Duration,
     pub schedule: Duration,
     pub initial_compute: Duration,
-    /// The load check, part of `build`: the probe build that stands for
+    /// The load check, part of `build`: the abstract build that stands for
     /// every count and pick, which finds the document's cycles (ADR 0012)
     /// and its errors (ADR 0014). Only a document with repeats or
     /// selects runs it.
@@ -128,7 +129,7 @@ impl LoadTimings {
             build: total("compile") + total("build"),
             schedule: total("schedule"),
             initial_compute: total("compute"),
-            cycle_check: total("probe"),
+            cycle_check: total("abstract build"),
             passes: spans.iter().filter(|s| s.name == "schedule").count() as u32,
             structural_depth,
             spans,

@@ -57,10 +57,11 @@ impl<'c> Builder<'c> {
         // the essential cells, then the derived ones.
         // Essential values come from the previous build when the slot existed.
         // A value slot is essential when a student's action can write it,
-        // and a constant otherwise (ADR 0018): the probe finds them by its walk
-        // and records them by template slot, and every other build reads
-        // the record, so a slot's class is the same in every build; with
-        // the classing off (no record), every value slot is essential.
+        // and a constant otherwise (ADR 0018): the abstract build finds
+        // them by its walk and records them by template slot, and every
+        // other build reads the record, so a slot's class is the same in
+        // every build; with the classing off (no record), every value slot
+        // is essential.
         let folds = self.view.folds_iterations();
         let (essential, record): (Vec<bool>, Record) = if folds {
             let writable = self.writable_slots(&slot_cells);
@@ -76,7 +77,8 @@ impl<'c> Builder<'c> {
             (essential, Record::default())
         };
         // Which cells the document computes (ADR 0019), the same way:
-        // the probe walks and records, every other build reads the record.
+        // the abstract build walks and records, every other build reads the
+        // record.
         let (live_slot, live_record): (Vec<bool>, Record) = if folds {
             let live = self.live_slots(&slot_cells);
             let record = self.record_of(&live);
@@ -85,7 +87,7 @@ impl<'c> Builder<'c> {
             let live = self.live_by_record(&self.compiled.live, &slot_cells);
             (live, Record::default())
         };
-        // The counted values the probe found (ADR 0028).
+        // The counted values the abstract build found (ADR 0028).
         let counted_record = if folds {
             let mut marked = vec![false; n];
             for &s in &self.counted_slots {
@@ -95,8 +97,9 @@ impl<'c> Builder<'c> {
         } else {
             Record::default()
         };
-        // The document constants the probe found (ADR 0028): of the slots
-        // whose plan gives one, those that are constants, not essential.
+        // The document constants the abstract build found (ADR 0028): of
+        // the slots whose plan gives one, those that are constants, not
+        // essential.
         let document_record = if folds {
             let mut marked = vec![false; n];
             for &s in &self.document_slots {
@@ -117,10 +120,10 @@ impl<'c> Builder<'c> {
         #[cfg(feature = "testing")]
         let walked_writable = self.writable_slots(&slot_cells);
         // A dead class gets no cell (ADR 0019): its slots name the one dead
-        // cell. Not in the probe, whose build is not kept, nor where the
-        // load asked for every cell (`LoadOptions::prune`). An essential
-        // slot is always live; were one not, it would be kept. A vector
-        // output goes with its head, whose instruction writes it.
+        // cell. Not in the abstract build, whose build is not kept, nor
+        // where the load asked for every cell (`LoadOptions::prune`). An
+        // essential slot is always live; were one not, it would be kept. A
+        // vector output goes with its head, whose instruction writes it.
         let prune = self.compiled.prune && !folds;
         let pruned = |s: usize| {
             let s = match self.sources[s] {
@@ -152,7 +155,8 @@ impl<'c> Builder<'c> {
         }
         // The document constants go to the pool (ADR 0028): a template
         // slot the compile's record makes one, an operator's constant, the
-        // missing-referent cell. Not in the probe, whose build is not kept.
+        // missing-referent cell. Not in the abstract build, whose build is
+        // not kept.
         let pooled = |s: usize| {
             !folds
                 && match self.sources[s] {
@@ -361,10 +365,10 @@ impl<'c> Builder<'c> {
             .map(|s| slot_cell[slot_cells.cell_of(s).index()])
             .collect();
         // The live walk follows what a cell needs, so a live cell needs no
-        // dead one; the record, made from the probe's walk, keeps that
-        // in every build (`tests/live.rs`). A build that breaks it would
-        // compute from NaN, or hold a cell by a flag never computed, so it
-        // fails instead.
+        // dead one; the record, made from the abstract build's walk, keeps
+        // that in every build (`tests/live.rs`). A build that breaks it
+        // would compute from NaN, or hold a cell by a flag never computed,
+        // so it fails instead.
         if let Some(dead) = dead_cell {
             for s in SlotId::below(n) {
                 if !slot_cells.defines(s) || pruned(s.index()) {
@@ -432,9 +436,9 @@ impl<'c> Builder<'c> {
         let mut tapes = Vec::new();
         // Compile curves whose expression has a constant shape into tapes,
         // and take a constant shape's derivative once, unless the load asked for
-        // engine sampling. Not in the probe, whose instructions never run:
-        // its build is discarded, and the input signature reads the
-        // expressions themselves (`signature.rs`).
+        // engine sampling. Not in the abstract build, whose instructions
+        // never run: its build is discarded, and the input signature reads
+        // the expressions themselves (`signature.rs`).
         #[cfg(feature = "testing")]
         let compile = !self.session.sample_with_engine && !folds;
         #[cfg(not(feature = "testing"))]
@@ -670,8 +674,9 @@ impl<'c> Builder<'c> {
         components.scope.shrink_to_fit();
         components.referent.shrink_to_fit();
         // Requests the program cannot land (ADR 0026, `program::refuse`):
-        // the probe warns of each interactive prop once, by its template
-        // element, so a repeat's props are named once, not per iteration.
+        // the abstract build warns of each interactive prop once, by its
+        // template element, so a repeat's props are named once, not per
+        // iteration.
         if folds {
             // Each asked cell once, with the first component and prop that
             // names it.
@@ -759,7 +764,7 @@ impl<'c> Builder<'c> {
             comp_keys,
             cell_label,
             live,
-            probed: Probed {
+            findings: AbstractFindings {
                 structural_depth: self.structural_depth,
                 writable: record,
                 live: live_record,
@@ -846,8 +851,8 @@ impl<'c> Builder<'c> {
             let mut src = slot_to_cell[from.index()];
             // A collect's count is a counted value (ADR 0028): the number
             // a build gathered, held by a copy, which the seed takes; the
-            // probe only stands it in by an operator over the repeats'
-            // counts.
+            // abstract build only stands it in by an operator over the
+            // repeats' counts.
             let stand_in = self
                 .follows_counts
                 .iter()
@@ -901,8 +906,8 @@ impl<'c> Builder<'c> {
     /// so whether a slot folds never turns on whether a referent exists
     /// (the missing-referent cell is never read as one). A counted value
     /// (ADR 0028) follows the counts, and is never folded. Nothing folds in
-    /// the probe, whose instructions never run, or where the load asked
-    /// for every instruction (`LoadOptions::fold`).
+    /// the abstract build, whose instructions never run, or where the load
+    /// asked for every instruction (`LoadOptions::fold`).
     fn folded_slots(
         &self,
         slot_cells: &SlotCells,

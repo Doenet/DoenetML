@@ -9,12 +9,12 @@
 //! which a request on it reads. A seeded slot reads its seed's source when
 //! it is built. A cell it reaches is live.
 //!
-//! When the view folds iterations (the probe), a slot may have another
-//! source in the iterations after the first (`Builder::later_sources`): the
-//! walk follows that one too, as the writable walk does
-//! (`Builder::walk_cells` is the walk both share). The probe records
-//! what it finds by template slot, and every other build reads the record
-//! (`live_by_record`).
+//! When the view folds iterations (the abstract build), a slot may have
+//! another source in the iterations after the first
+//! (`Builder::later_sources`): the walk follows that one too, as the
+//! writable walk does (`Builder::walk_cells` is the walk both share). The
+//! abstract build records what it finds by template slot, and every other
+//! build reads the record (`live_by_record`).
 
 use super::*;
 
@@ -29,14 +29,15 @@ impl<'c> Builder<'c> {
             .collect()
     }
 
-    /// Per slot, whether the probe's record makes its cell live: a cell
-    /// with a template slot the record marks. The record names a cell by
-    /// template slot, which a synthesized component's slots (a choice's
+    /// Per slot, whether the abstract build's record makes its cell live: a
+    /// cell with a template slot the record marks. The record names a cell
+    /// by template slot, which a synthesized component's slots (a choice's
     /// interface, `expand/choice.rs`) have none of, so such a cell is live
-    /// when a root or a live cell needs it, as it was in the probe's walk.
-    /// A cell the record names and does not mark stays dead whatever needs
-    /// it: the record is checked against the walk (`tests/live.rs`), and a
-    /// live cell needing a dead one fails the build.
+    /// when a root or a live cell needs it, as it was in the abstract
+    /// build's walk. A cell the record names and does not mark stays dead
+    /// whatever needs it: the record is checked against the walk
+    /// (`tests/live.rs`), and a live cell needing a dead one fails the
+    /// build.
     pub(in crate::build) fn live_by_record(
         &self,
         record: &Record,

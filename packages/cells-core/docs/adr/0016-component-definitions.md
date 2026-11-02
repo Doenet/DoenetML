@@ -20,9 +20,9 @@ its copy rules to `compile/copies.rs`, its point lists to
 written before then keeps the old names.
 
 A component should be writable, and changeable, without knowing cells,
-slots, shared state, the probe or the renderer, and without costing load time or
-tick time. This ADR says what a component's definition holds, what the
-shared machinery does around it, and how its author learns that a
+slots, shared state, the abstract build or the renderer, and without costing
+load time or tick time. This ADR says what a component's definition holds,
+what the shared machinery does around it, and how its author learns that a
 component is done.
 
 ## Context
@@ -113,8 +113,8 @@ vector operator's inputs.
 A count that follows state (ADR 0004) belongs to `repeat`,
 `repeatForSequence`, `conditionalContent` or `select`. Any other component
 whose length follows state is planned as one of them, as
-`functionIterates` is already a repeat. `View`, the probe (ADR 0012, ADR
-0014) and the rebuild are never another component's concern.
+`functionIterates` is already a repeat. `View`, the abstract build (ADR
+0012, ADR 0014) and the rebuild are never another component's concern.
 
 ### Operators are one declaration
 
@@ -180,19 +180,18 @@ They are kept in three layers instead:
   does not compile, or the rule is out of the component's reach. A bare
   copy is planned before the component's planner runs
   (`plan_with_extend`, and `compile/mod.rs` for the other kinds); `View`,
-  the probe and the rebuild are never a component's concern (above). What
-  is still a convention moves into the definition. A planner names an
-  attribute by a typed handle its block declares (`attributes { .. }`,
-  `attr::radius`), both to read it and to say it supplied a piece of
+  the abstract build and the rebuild are never a component's concern
+  (above). What is still a convention moves into the definition. A planner
+  names an attribute by a typed handle its block declares (`attributes { ..
+  }`, `attr::radius`), both to read it and to say it supplied a piece of
   shared state (`Wire::essential_from(shared_state::R, attr::radius, v)`),
-  so a misspelling does not compile; it was a string that
-  `plan_with_extend` compared with a copy's own attributes, and a
-  misspelling silently shared the base's value where the copy's own was
-  asked for (amended 2026-10-22, see Migration step 8). A plan cannot
-  hold a literal NaN, so an
-  unsupported combination goes through `PlanCtx::warn`. What a copy
-  inherits is the machinery's: the point's own `Source::Inherit`, and
-  its rule for `hide` (`point.rs`), move there.
+  so a misspelling does not compile; it was a string that `plan_with_extend`
+  compared with a copy's own attributes, and a misspelling silently shared
+  the base's value where the copy's own was asked for (amended 2026-10-22,
+  see Migration step 8). A plan cannot hold a literal NaN, so an unsupported
+  combination goes through `PlanCtx::warn`. What a copy inherits is the
+  machinery's: the point's own `Source::Inherit`, and its rule for `hide`
+  (`point.rs`), move there.
 - **Unit tests of the core.** Each rule is tested where it is
   implemented, in `compile/` and `build/`, against test-only components
   (`#[cfg(test)]` entries of `component!` with only what a rule needs,
@@ -234,10 +233,10 @@ case), carry every piece before other components follow:
    `tests/specs/`. The derived guards
    are the reference evaluator after every tick and the cost snapshot;
    the other guards this step first listed (`extend` variants of each
-   case, `every_count` and the probe's coverage, operator round trips) are
-   the core's own tests instead (step 8). Writing the slider's spec found
-   one deviation from the JavaScript core: with no `initialValue` the
-   slider started at the grid point nearest 0, not at `from`; fixed
+   case, `every_count` and the abstract build's coverage, operator round
+   trips) are the core's own tests instead (step 8). Writing the slider's
+   spec found one deviation from the JavaScript core: with no `initialValue`
+   the slider started at the grid point nearest 0, not at `from`; fixed
    since.
 2. Typed plans and roles; the circle's NaN cases become diagnostics.
    **Done for the circle**: `component!` (`components/define.rs`) gives

@@ -41,7 +41,7 @@ what it supports.
   A document that loads with no errors has none (ADR 0014); an ignored
   attribute is one.
 - Refusing one element per compile, as other failures do. Rejected: a
-  document with twenty `draggable="false"` would compile and probe
+  document with twenty `draggable="false"` would compile and abstract build
   twenty times more. The unread check knows every offending element, so
   it boxes them in one round.
 

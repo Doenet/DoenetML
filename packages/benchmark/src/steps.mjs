@@ -87,12 +87,12 @@ export const STEPS = {
         "Every element planned by its type's planner into templates: where each prop's value comes from, every reference, every choice. Math text is parsed into expression trees here, once.",
         `${C}/compile/mod.rs, compile/planner.rs`,
     ],
-    "core/new Core/load/compile/probe": [
-        "Only with a repeat or a select: one build through the probe, which stands for every iteration count and every pick, to find every cycle and error the document can have. Discarded afterwards (ADR 0012, ADR 0014).",
-        `${C}/build/probe.rs`,
+    "core/new Core/load/compile/abstract build": [
+        "One build through the abstract view, which stands for every iteration count and every pick, to find every cycle and error the document can have, and the writable, live, counted and constant records every later build reads. Its cells are discarded (ADR 0012, ADR 0014).",
+        `${C}/build/abstract_build.rs`,
     ],
     "core/new Core/load/compile/first build": [
-        "Without a repeat or a select: the document's one build, which is also its check (the probe's loop check runs in it). The load keeps it instead of building again.",
+        "Without a repeat or a select: the document's one build, which is also its check (the abstract build's loop check runs in it). The load keeps it instead of building again.",
         `${C}/build/mod.rs (first_build)`,
     ],
     "core/new Core/load/compile/lint": [
@@ -148,8 +148,8 @@ export const CORE_STEPS = {
         `${C}/build/expand/mod.rs (resolve_all)`,
     ],
     "loop check": [
-        "The probe's checks that no dependency loop closes, at any count.",
-        `${C}/build/probe.rs`,
+        "The abstract build's checks that no dependency loop closes, at any count.",
+        `${C}/build/abstract_build.rs`,
     ],
     emit: [
         "Aliased slots merged into cells, cells numbered (essential, fixed, derived), operators bound into instructions.",

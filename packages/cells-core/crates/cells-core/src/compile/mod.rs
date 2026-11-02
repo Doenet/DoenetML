@@ -7,9 +7,10 @@
 //! found, which element, which `[index]` steps, which prop). Nothing in a
 //! plan depends on which iteration it will be stamped in, so all string
 //! work happens once per template element. **Check** (`check.rs`) builds
-//! the plans once through the probe (`build::probe`, ADR 0012, ADR 0014),
-//! which stands for every count and pick, and boxes every element that
-//! fails (ADR 0013); `lint.rs` holds the rules that need only the DAST.
+//! the plans once through the abstract build (`build::abstract build`, ADR
+//! 0012, ADR 0014), which stands for every count and pick, and boxes every
+//! element that fails (ADR 0013); `lint.rs` holds the rules that need only
+//! the DAST.
 //!
 //! Files: this one walks the DAST and decides each element's shape;
 //! `planner.rs` names each type's planner, which is in the type's file
@@ -29,8 +30,8 @@
 //! **parse** (every `<math>`'s text), **plan** (every element on its own,
 //! references as planners ask for them), **link** (readers of boxed
 //! referents boxed, shared state tied), **seal** (`seal.rs`: choice
-//! interfaces, arity, keys, slot offsets), then the **probe** (`check.rs`).
-//! An element that fails is boxed where it fails.
+//! interfaces, arity, keys, slot offsets), then the **abstract build**
+//! (`check.rs`). An element that fails is boxed where it fails.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};

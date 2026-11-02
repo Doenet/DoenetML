@@ -115,8 +115,8 @@ fn an_unchosen_option_is_still_diagnosed() {
 
 #[test]
 fn a_repeat_body_at_count_zero_is_still_diagnosed() {
-    // The cycle check's probe stamps the body once at load, so the load
-    // boxes it too; `diagnose` reports the same.
+    // The cycle check's abstract build stamps the body once at load, so the
+    // load boxes it too; `diagnose` reports the same.
     let src = r#"<point name="p"/><repeatForSequence name="r" length="0"><number name="x">$p</number></repeatForSequence>"#;
     let doc = load(src).unwrap();
     let list = diagnose_src(src);

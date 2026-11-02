@@ -60,7 +60,8 @@ impl<'c> Builder<'c> {
         self.scored_items(c, None, &mut items);
         // With a scored item in a repeat below `c`, there is none at some
         // count: the credit is then a counted value (ADR 0028), which the
-        // probe, whose one iteration stands for every count, records.
+        // abstract build, whose one iteration stands for every count,
+        // records.
         if self.view.folds_iterations() {
             let depth = |b: &Self, scope| b.enclosing_repeats(scope).len();
             let at = depth(self, self.components.scope[c.index()]);
@@ -270,8 +271,8 @@ struct Counter {
     before: Option<SlotId>,
     /// A section was counted in a repeat (or a collect from one) before
     /// the next one: its number follows the counts, a counted value (ADR
-    /// 0026). Found in the probe, whose one iteration stands for every
-    /// count; another build reads the probe's record.
+    /// 0026). Found in the abstract build, whose one iteration stands for
+    /// every count; another build reads the abstract build's record.
     follows: bool,
     /// The number slots counted so far.
     numbered: Vec<SlotId>,

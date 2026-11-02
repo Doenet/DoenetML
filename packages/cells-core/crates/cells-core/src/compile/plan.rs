@@ -868,8 +868,9 @@ pub struct Compiled {
     /// In a document with repeats, each math text's parse once a build has
     /// found the math symbolic: a template parses once however many
     /// instances stamp it and however many builds run. Empty in a document
-    /// without repeats, whose probe and one build each parse, which costs
-    /// less than keeping the trees would raise its load's peak memory.
+    /// without repeats, whose abstract build and one build each parse,
+    /// which costs less than keeping the trees would raise its load's peak
+    /// memory.
     pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree<RefId>, String>>>,
     pub(crate) choices: Vec<ChoiceDef>,
     /// The source's `Dast::version_hash`, once per load rather than per
@@ -882,43 +883,44 @@ pub struct Compiled {
     /// the DAST's table in every build, so their ids are the same each time.
     pub(crate) extra_strings: Vec<String>,
     /// The source's diagnostics (ADR 0013, ADR 0015): the lint findings,
-    /// the errors of the boxed elements and the planners' and the probe's
-    /// warnings, in node order, which every document built from this
-    /// compile reports. Set by `compile::compile`.
+    /// the errors of the boxed elements and the planners' and the abstract
+    /// build's warnings, in node order, which every document built from
+    /// this compile reports. Set by `compile::compile`.
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
-    /// The document's structural depth (`CONTEXT.md`) as the probe found
-    /// it, which bounds every build's, since each build's chains of
-    /// repeats map onto the probe's: 0 without a repeat, and 0 when a test
-    /// load skips the probe's count check.
+    /// The document's structural depth (`CONTEXT.md`) as the abstract build
+    /// found it, which bounds every build's, since each build's chains of
+    /// repeats map onto the abstract build's: 0 without a repeat, and 0
+    /// when a test load skips the abstract build's count check.
     pub(crate) structural_depth: u32,
-    /// The probe's record of the value slots a student's action can write
-    /// (ADR 0018), by which every build classes them essential or constant;
-    /// None with the classing off (a test load), when every value slot is
-    /// essential.
+    /// The abstract build's record of the value slots a student's action
+    /// can write (ADR 0018), by which every build classes them essential or
+    /// constant; None with the classing off (a test load), when every value
+    /// slot is essential.
     pub(crate) classes: Option<Arc<Record>>,
-    /// The probe's record of the live slots (ADR 0019), by which every
-    /// build finds which cells it computes.
+    /// The abstract build's record of the live slots (ADR 0019), by which
+    /// every build finds which cells it computes.
     pub(crate) live: Arc<Record>,
-    /// The probe's record of the counted values (ADR 0028): the template
-    /// slots whose value a build counts from the structure it stamped (a
-    /// collect's count, a section's number after a repeat, the credit of a
-    /// section whose answers are all in repeats). Each follows the counts,
-    /// so every build makes it a derived cell, never a constant, even at a
-    /// count where it has nothing to count.
+    /// The abstract build's record of the counted values (ADR 0028): the
+    /// template slots whose value a build counts from the structure it
+    /// stamped (a collect's count, a section's number after a repeat, the
+    /// credit of a section whose answers are all in repeats). Each follows
+    /// the counts, so every build makes it a derived cell, never a
+    /// constant, even at a count where it has nothing to count.
     pub(crate) counted: Arc<Record>,
-    /// The probe's record of the document constants (ADR 0028): the
-    /// template slots whose constant is the same in every instance, made
-    /// from the source alone. Every other constant is a scope constant.
+    /// The abstract build's record of the document constants (ADR 0028):
+    /// the template slots whose constant is the same in every instance,
+    /// made from the source alone. Every other constant is a scope
+    /// constant.
     pub(crate) document_constants: Arc<Record>,
     /// Whether a build gives a dead slot no cell (ADR 0019,
-    /// `LoadOptions::prune`); never in the probe.
+    /// `LoadOptions::prune`); never in the abstract build.
     pub(crate) prune: bool,
     /// Whether a build folds instructions over constants (ADR 0028,
-    /// `LoadOptions::fold`); never in the probe.
+    /// `LoadOptions::fold`); never in the abstract build.
     pub(crate) fold: bool,
 }
 
-/// What the probe records of a document (ADR 0018, ADR 0019): per
+/// What the abstract build records of a document (ADR 0018, ADR 0019): per
 /// template, a bit per template slot (`slot_off + pi`), set for a slot a
 /// student's action can write or for a live one. Every build of the
 /// document reads it, so a slot's class is the same in every build.

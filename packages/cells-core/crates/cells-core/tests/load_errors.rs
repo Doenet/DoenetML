@@ -123,12 +123,12 @@ fn a_referent_past_the_count_is_missing_not_an_error() {
     assert_eq!(doc.cells[x.index()], 1.0);
 }
 
-// The probe runs in every load, its loop checks aside (`check_cycles`),
-// so an error a growth would otherwise find, the whole-pick rule, is
-// reported at load at every seed, and no build after the load finds one
-// (ADR 0014). A build that does roll the tick back with `Error::Unchecked`:
-// `rebuild_cycles.rs` reaches that with a cycle, which only the loop checks
-// find.
+// The abstract build runs in every load, its loop checks aside
+// (`check_cycles`), so an error a growth would otherwise find, the
+// whole-pick rule, is reported at load at every seed, and no build after
+// the load finds one (ADR 0014). A build that does roll the tick back with
+// `Error::Unchecked`: `rebuild_cycles.rs` reaches that with a cycle, which
+// only the loop checks find.
 #[test]
 fn an_error_a_growth_would_find_is_reported_at_load() {
     for seed in 0..12 {
@@ -176,9 +176,9 @@ fn an_interface_name_holds_one_kind_of_value() {
 }
 
 // What a reference to a whole pick needs of its referent holds of every
-// option, as the probe stands for them all: a prefill names a value that
-// is not computed in each, though iteration 2, whose pick could be the
-// computed one, does not exist at load.
+// option, as the abstract build stands for them all: a prefill names a
+// value that is not computed in each, though iteration 2, whose pick could
+// be the computed one, does not exist at load.
 #[test]
 fn a_rule_on_a_whole_picks_referent_holds_for_every_option() {
     let src = r#"<numberInput name="n" value="1"/><numberInput name="x" value="2"/>

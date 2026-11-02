@@ -29,8 +29,8 @@
 //! operator needs is never visited, and a document without one costs
 //! nothing. A loop of classes (a recurrence the view folds) counts as not
 //! leading where it closes. The walk follows a slot's later sources too
-//! (`Builder::later_sources`), as the writable walk does, so the probe
-//! orients what later iterations plan.
+//! (`Builder::later_sources`), as the writable walk does, so the abstract
+//! build orients what later iterations plan.
 
 use super::*;
 

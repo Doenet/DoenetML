@@ -10,7 +10,7 @@ pub mod round_trip;
 pub mod spec;
 pub mod test_utils;
 
-pub use crate::build::coverage::{ProbeEdges, probe_edges, uncovered};
+pub use crate::build::coverage::{AbstractEdges, abstract_edges, uncovered};
 
 /// The compile of `dast`, checked as a load checks it. It depends on the
 /// source alone (ADR 0014): no seed reaches it.

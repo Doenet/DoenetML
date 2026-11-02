@@ -10,29 +10,31 @@ Method: for each candidate a minimal document was loaded with
 `cells_core::testing::test_utils::load` (or `load_with_seed`), then driven
 with one request through `Document::request`, and the load result,
 `TickOutcome::rebuilt`, `rebuild_error` and `structure_settled()` were
-recorded. The throwaway probe is deleted; the open holes are kept as
-ignored tests in `crates/cells-core/tests/rebuild_cycles.rs`, each
+recorded. The throwaway abstract build is deleted; the open holes are kept
+as ignored tests in `crates/cells-core/tests/rebuild_cycles.rs`, each
 asserting the behaviour proposed below.
 
-Closed 2026-10-16, after the survey: the probe now models entries 2, 3, 4
-and 12, each verdict below says how, and the tests are un-ignored. Entry
-1's false rejection is removed too. The rest of this report reads as
-surveyed. Since, the probe has become an implementation of the structure
-view (`build/view.rs`, ADR 0012's Outcome), in `build/probe.rs` (the
-`build/cycles.rs` below); the names below
-(`Probe::follows_repeat`, `probe_collect_count`, `Probe::iter_repeat`,
-`Probe::extra`, `check_seeds`) are those of the code at 6e66632.
+Closed 2026-10-16, after the survey: the abstract build now models entries
+2, 3, 4 and 12, each verdict below says how, and the tests are un-ignored.
+Entry 1's false rejection is removed too. The rest of this report reads as
+surveyed. Since, the abstract build has become an implementation of the
+structure view (`build/view.rs`, ADR 0012's Outcome), in
+`build/abstract_build.rs` (the `build/cycles.rs` below); the names below
+(`Abstract::follows_repeat`, `abstract_collect_count`,
+`Abstract::iter_repeat`, `Abstract::extra`, `check_seeds`) are those of the
+code at 6e66632.
 
-What ADR 0012 covered at the survey, as read from `build/cycles.rs`: a probe expansion
-with one iteration per repeat and the picks a select really draws for
-iteration 1; every reference edge labelled per nesting level of its target
-as kept (with a shift) or reset; reset coordinates free; an SCC is a cycle
-when every kept coordinate admits a zero-sum closed walk; and a count whose
-inputs reach a slot inside its own iterations (`check_counts`, a DFS over
-slot inputs). Three things the probe does not model: the *existence* of an
-iteration is never an edge; a value the build fixes from the gathered set
-(a collect's `count`) is a constant with no inputs; and emit (`finish`)
-does not run in the probe, so rules checked at emit are not checked.
+What ADR 0012 covered at the survey, as read from `build/cycles.rs`: a
+abstract-build expansion with one iteration per repeat and the picks a
+select really draws for iteration 1; every reference edge labelled per
+nesting level of its target as kept (with a shift) or reset; reset
+coordinates free; an SCC is a cycle when every kept coordinate admits a
+zero-sum closed walk; and a count whose inputs reach a slot inside its own
+iterations (`check_counts`, a DFS over slot inputs). Three things the
+abstract build does not model: the *existence* of an iteration is never an
+edge; a value the build fixes from the gathered set (a collect's `count`) is
+a constant with no inputs; and emit (`finish`) does not run in the abstract
+build, so rules checked at emit are not checked.
 
 ## Entries
 
@@ -48,9 +50,9 @@ does not run in the probe, so rules checked at emit are not checked.
 and the same with `<polyline name="pl" vertices="$r"/>` and `$pl[2].x`.
 
 Observed: load error, `dependency cycle involving component 'x.value'`
-(`'p.x'` for the polyline). The probe clamps an index past its one item to
-the last item (`resolve.rs`, the `Collect | Polyline` arm) and the copy's
-edge to the original defaults to a reset label.
+(`'p.x'` for the polyline). The abstract build clamps an index past its one
+item to the last item (`resolve.rs`, the `Collect | Polyline` arm) and the
+copy's edge to the original defaults to a reset label.
 
 Verdict: closed by ADR 0012.
 
@@ -62,9 +64,10 @@ rejected at load, although `$c[5]` is missing at every count. A rule that
 clamps only when some gathered item lives in an iteration scope would
 remove the false rejection.
 
-Removed since: the probe clamps only a collect in `Probe::follows_repeat`,
-set by `expand_collect` when a gathered original sits in an iteration
-scope. Checked by `a_collect_over_fixed_items_is_not_clamped`.
+Removed since: the abstract build clamps only a collect in
+`Abstract::follows_repeat`, set by `expand_collect` when a gathered original
+sits in an iteration scope. Checked by
+`a_collect_over_fixed_items_is_not_clamped`.
 
 ### 2. Collect count and polyline `numVertices` read by the repeat's count
 
@@ -89,13 +92,13 @@ number gathered; a polyline is the same body. The count's DFS in
 Reading an *item* of the collect instead (`$c[2].x`) is caught, since the
 copy's slot aliases the original inside the iteration.
 
-Verdict: **closed**. In the probe, `expand_collect` gives the collect's
-count (a polyline's `numVertices` is the same slot) a source that reads
-the count slot of every repeat whose iterations hold a gathered original
-(`probe_collect_count`), rather than a slot of the originals, so a point
-whose coordinate reads `$c.count` is not a false cycle. A count reading it
-loops back to its own count slot, which `check_counts` reports naming the
-repeat. Checked by
+Verdict: **closed**. In the abstract build, `expand_collect` gives the
+collect's count (a polyline's `numVertices` is the same slot) a source that
+reads the count slot of every repeat whose iterations hold a gathered
+original (`abstract_collect_count`), rather than a slot of the originals, so
+a point whose coordinate reads `$c.count` is not a false cycle. A count
+reading it loops back to its own count slot, which `check_counts` reports
+naming the repeat. Checked by
 `a_count_reading_a_collect_over_its_own_iterations_is_a_cycle`.
 
 ### 3. Two repeats whose counts read each other's iterations
@@ -124,8 +127,8 @@ it: `numIterates` reading an iterate through the repeat is caught.
 
 Verdict: **closed**. `check_counts` now builds the repeat graph: an edge
 from repeat `r` to repeat `s` when `r`'s count reaches a slot inside `s`'s
-iterations (`Probe::iter_repeat` maps a scope to its repeat), no edge when
-`r` itself sits inside `s`'s iterations, and a depth-first walk reports
+iterations (`Abstract::iter_repeat` maps a scope to its repeat), no edge
+when `r` itself sits inside `s`'s iterations, and a depth-first walk reports
 the first loop, naming the repeat the back edge reaches. Checked by
 `counts_reading_each_others_iterations_are_a_cycle`; the legal nesting by
 `an_inner_count_reading_its_outer_iteration_is_legal`.
@@ -157,22 +160,22 @@ select's node and its chain of (repeat node, position) pairs
 iteration that disappears and returns draws the same option. The seed is
 in `Structure` and carried over unchanged. The essential key of a pick is
 (scope, template slot) and scope ids only grow. What differs is the pick
-*per iteration*, by design, and the probe expands iteration 1 only.
+*per iteration*, by design, and the abstract build expands iteration 1 only.
 
-The same mechanism empties a collect in the probe: with the point living
-only in the option iteration 1 does not draw,
-`<collect name="c" from="$r" componentType="point"/>` has no item in the
-probe, `$c[1].x` resolves to the missing slot (the `Some(_) => Missing`
-arm), and a document that feeds that back into the point loads clean and
-fails at `n = 3` (seeds 1 and 2).
+The same mechanism empties a collect in the abstract build: with the point
+living only in the option iteration 1 does not draw, `<collect name="c"
+from="$r" componentType="point"/>` has no item in the abstract build,
+`$c[1].x` resolves to the missing slot (the `Some(_) => Missing` arm), and a
+document that feeds that back into the point loads clean and fails at `n =
+3` (seeds 1 and 2).
 
-Verdict: **closed**. In the probe, `expand_choice` builds every option of
-a select inside a repeat body (`ChoiceInst::every_option`) and one stand-in
-component per interface name, as a reactive choice does, whose props read
-the name in every option; `$s[k].a` resolves to the stand-in, so the edge
-into each option resets the pick coordinate, and a collect gathers from
-every option. A select outside any repeat keeps probing its real pick, so
-its load errors stay per seed. Checked by
+Verdict: **closed**. In the abstract build, `expand_choice` builds every
+option of a select inside a repeat body (`ChoiceInst::every_option`) and one
+stand-in component per interface name, as a reactive choice does, whose
+props read the name in every option; `$s[k].a` resolves to the stand-in, so
+the edge into each option resets the pick coordinate, and a collect gathers
+from every option. A select outside any repeat builds only its real pick in
+the abstract build, so its load errors stay per seed. Checked by
 `a_cyclic_option_drawn_by_a_later_iteration_is_a_cycle`, both forms.
 
 ### 5. Reactive `<conditionalContent>` and the branch interface
@@ -230,11 +233,11 @@ follows iteration counts without touching the graph.
 Observed: load error, cycle at `r`.
 
 Verdict: closed by ADR 0012. The credit wiring (`scoring.rs`) runs in the
-probe too; the weighted mean's edges into the iteration's answer are
-labelled reset by default and `check_counts` follows them. At count 0 the
-credit is a constant, which is exactly the case the probe's one iteration
-exposes. Section numbers inside a repeat are constants per position and
-read nothing structural.
+abstract build too; the weighted mean's edges into the iteration's answer
+are labelled reset by default and `check_counts` follows them. At count 0
+the credit is a constant, which is exactly the case the abstract build's one
+iteration exposes. Section numbers inside a repeat are constants per
+position and read nothing structural.
 
 ### 8. Math lowering
 
@@ -249,11 +252,11 @@ Observed: load error, cycle at `mm.expr`.
 Verdict: closed by ADR 0012. The symbolic-or-numeric decision
 (`is_symbolic`) can flip between builds (`m` is numeric at count 1 because
 its leaf is the missing slot, symbolic at count 2), but the decision only
-changes the operator; the set of leaf edges is the same, and the probe
-resolves the leaf to iteration 1 so it decides as the full build would.
-The "reference cycle counts as numeric" memo (`MathMode::Deciding`) breaks
-only the *decision's* recursion; the edges are still emitted and the loop
-is reported. `Source::Math` emits no edges when the expression has a
+changes the operator; the set of leaf edges is the same, and the abstract
+build resolves the leaf to iteration 1 so it decides as the full build
+would. The "reference cycle counts as numeric" memo (`MathMode::Deciding`)
+breaks only the *decision's* recursion; the edges are still emitted and the
+loop is reported. `Source::Math` emits no edges when the expression has a
 free symbol (`is_numeric`), but that is decided by the DAST text alone.
 
 ### 9. `<functionIterates>` and `<repeat for>`
@@ -269,11 +272,11 @@ free symbol (`is_numeric`), but that is decided by the DAST text alone.
 
 Observed: load error, cycle at `x.x1`.
 
-Verdict: closed by ADR 0012. The probe carries both the first-iteration and
-later-iteration sources (`Probe::extra`), the `<repeat for>` count aliases
-the iterates' count, and `$fi[i+offset]` is labelled with the offset. A
-`numIterates` reading an iterate through the repeat is caught by
-`check_counts` through the alias (entry 3).
+Verdict: closed by ADR 0012. The abstract build carries both the
+first-iteration and later-iteration sources (`Abstract::extra`), the
+`<repeat for>` count aliases the iterates' count, and `$fi[i+offset]` is
+labelled with the offset. A `numIterates` reading an iterate through the
+repeat is caught by `check_counts` through the alias (entry 3).
 
 ### 10. Nested repeats
 
@@ -288,10 +291,10 @@ the iterates' count, and `$fi[i+offset]` is labelled with the offset. A
 Observed: load error, cycle at `x.value`.
 
 Verdict: closed by ADR 0012 for misses. A real cycle in the stamped graph
-projects to a closed walk of the probe graph whose shifts sum to zero in
-every kept coordinate, so the per-coordinate test cannot miss one unless an
-edge carries a wrong kept label; the labels read from `resolve` and
-`edge_label` are correct for every path examined (unlabelled edges keep
+projects to a closed walk of the abstract-build graph whose shifts sum to
+zero in every kept coordinate, so the per-coordinate test cannot miss one
+unless an edge carries a wrong kept label; the labels read from `resolve`
+and `edge_label` are correct for every path examined (unlabelled edges keep
 only the scope prefix the two slots share).
 
 Imprecision, as the ADR says: the per-coordinate test over-reports.
@@ -315,14 +318,14 @@ into iterations, a collect-derived constant (entry 2) or another count
 
 A reference past the count at load resolves to the missing slot without
 looking at what it would name, so rules about the referent run only on the
-rebuild that makes it exist. Probed: a number aliasing a point
+rebuild that makes it exist. AbstractFindings: a number aliasing a point
 (`$r[2].p`, arity), a copy of a section (`$r[2].sec`, uncopyable), a math
 leaf naming a point (`$r[2].p + 1`), an unknown prop (`$r[2].x.nosuch`),
-`extend="$r[2].p"`. Every one is a load error today, because the probe
-expansion resolves them against iteration 1 and runs the same rules. This
-is a side effect of ADR 0012 worth keeping.
+`extend="$r[2].p"`. Every one is a load error today, because the abstract
+build expansion resolves them against iteration 1 and runs the same rules.
+This is a side effect of ADR 0012 worth keeping.
 
-One rule runs at emit and escapes the probe:
+One rule runs at emit and escapes the abstract build:
 
 ```xml
 <numberInput name="n" value="1"/>
@@ -335,10 +338,10 @@ Observed: loads clean; `n = 2` fails the rebuild with
 computed` (and then panics, see entry 13). With count 2 at load the same
 document is rejected at load.
 
-Verdict: **closed**. The probe runs `check_seeds` after `resolve_all`:
-each seed's source is followed through its aliases, and one ending at an
-`Op` or a vector output is the same `Unsupported` error `seed_cells`
-raises at emit. Checked by
+Verdict: **closed**. The abstract build runs `check_seeds` after
+`resolve_all`: each seed's source is followed through its aliases, and one
+ending at an `Op` or a vector output is the same `Unsupported` error
+`seed_cells` raises at emit. Checked by
 `a_prefill_naming_a_computed_cell_past_the_count_is_rejected_at_load`.
 
 Also noted, not an error: `$r[2].t.value` with `t` a text is a `Number`
@@ -377,8 +380,8 @@ a count its iterations do not match and later ticks, structural ones
 included, still work. This is the rollback ADR 0012 listed as a separate
 change. Checked by `a_failed_rebuild_rolls_the_tick_back` on entry 2's
 document. The student still cannot reach the count, with no explanation
-beyond `rebuild_error`. The probe holes are closed since; the two tests
-load this document with the check off to reach a failing rebuild.
+beyond `rebuild_error`. The abstract-build holes are closed since; the two
+tests load this document with the check off to reach a failing rebuild.
 
 ### 14. Other `Resolved::Missing` sites
 
@@ -391,33 +394,34 @@ load this document with the check off to reach a failing rebuild.
 - `Step::Index` on a select past `numToSelect`: a literal. Cannot happen.
   `$r[2].s[2].v` with the select in a repeat loads and rebuilds cleanly.
 - `resolve_iface` from `Missing`: only reached through an indexed path,
-  which the probe clamps.
-- A `Step::Index` on a collect that is empty in the probe: entry 4.
+  which the abstract build clamps.
+- A `Step::Index` on a collect that is empty in the abstract build: entry 4.
 
 ## Open holes, ranked
 
 1. **A failed rebuild panics beside a symbolic instruction** (entry 13).
    Fixed: the old `Sym` keeps its memo across a failed rebuild, and the
    tick that failed is rolled back. Independent of ADR 0012.
-2. **Select inside a repeat probed at iteration 1's pick only** (entry 4).
-   The most likely to be authored: a problem set that repeats a randomly
-   chosen variant, where one variant has a loop the author never drew.
-   Closed: the probe builds every option of a select inside a repeat body.
+2. **Select inside a repeat abstractly built at iteration 1's pick only**
+   (entry 4). The most likely to be authored: a problem set that repeats a
+   randomly chosen variant, where one variant has a loop the author never
+   drew. Closed: the abstract build builds every option of a select inside a
+   repeat body.
 3. **Counts reading each other's iterations** (entry 3). Needs two repeats
    coupled through indexed references in both directions, which is rare
    but is exactly the pattern a "show one more row when the other table is
    full" document has. Closed: loops on the repeat graph, not self-loops.
 4. **A collect count or polyline `numVertices` over the repeat's own
    iterations** (entry 2). A `count` reading `$c.count` is natural to write
-   (grow until the collection has N items). Closed: in the probe the
-   collect's count reads the gathered repeats' counts.
+   (grow until the collection has N items). Closed: in the abstract build
+   the collect's count reads the gathered repeats' counts.
 5. **Prefill rule deferred past the count** (entry 12). Rare and an
    `Unsupported` error rather than a cycle, but the same clean-load,
-   failing-tick shape. Closed: the probe checks the seeds' sources.
+   failing-tick shape. Closed: the abstract build checks the seeds' sources.
 
-Items 2 to 5 were gaps in what the probe models, not in the SCC test, and
-each was closed in `build/cycles.rs` and the probe arms of `resolve.rs`,
-`expand/mod.rs` and `expand/choice.rs` with the SCC test untouched. No
-document is now known to load clean and fail on rebuild; the rollback of
-item 1 stays, since a hole this survey missed would have the same shape.
-What remains is the over-reporting noted under entry 10.
+Items 2 to 5 were gaps in what the abstract build models, not in the SCC
+test, and each was closed in `build/cycles.rs` and the abstract-build arms
+of `resolve.rs`, `expand/mod.rs` and `expand/choice.rs` with the SCC test
+untouched. No document is now known to load clean and fail on rebuild; the
+rollback of item 1 stays, since a hole this survey missed would have the
+same shape. What remains is the over-reporting noted under entry 10.

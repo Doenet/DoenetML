@@ -104,25 +104,24 @@ Runs once per load and depends on the source alone.
   once; **plan** plans every element; **link** boxes what read a boxed
   referent and ties shared state between plans; **seal** (`seal.rs`)
   makes choice interfaces, checks arity, and assigns keys and slot
-  offsets; the **probe** (below) comes last. A planner reads the source
-  and what outlining and parsing made, never another element's plan
-  (ADR 0029), so elements are planned in any order: what one shares
-  with another (an extend's essential state) is linked once all are
-  planned.
+  offsets; the **abstract build** (below) comes last. A planner reads the
+  source and what outlining and parsing made, never another element's plan
+  (ADR 0029), so elements are planned in any order: what one shares with
+  another (an extend's essential state) is linked once all are planned.
 - **Check** (`check.rs`, ADR 0012, ADR 0014) finds every error the document
-  can have. It builds the plans once through the **probe**
-  (`build/probe.rs`), which folds every iteration into one and builds
-  every option of every select, so its graph holds every edge any count or
-  pick could create. It rejects any dependency loop that could close at
-  some count, records what every build reads (below) and the document's
-  structural depth, then discards that build. Every document is probed,
-  with or without repeats: a load is one sequence of steps. An element
-  that fails to build is *boxed*; see
-  [An element cannot be built](#an-element-cannot-be-built).
+  can have. It builds the plans once through the **abstract build**
+  (`build/abstract_build.rs`), which folds every iteration into one and
+  builds every option of every select, so its graph holds every edge any
+  count or pick could create. It rejects any dependency loop that could
+  close at some count, records what every build reads (below) and the
+  document's structural depth, then discards that build. Every document goes
+  through the abstract build, with or without repeats: a load is one
+  sequence of steps. An element that fails to build is *boxed*; see [An
+  element cannot be built](#an-element-cannot-be-built).
 
 The result is `Compiled` (`plan.rs`): the templates, their plans, the
-probe's records and the source's diagnostics, the probe's warnings
-included.
+abstract build's records and the source's diagnostics, the abstract build's
+warnings included.
 
 ### Build (`build/`)
 
@@ -144,43 +143,43 @@ draw for every select.
   (`Def`), which defines its two relations once: what it needs (what its
   source reads, and the flags that hold it) and where a request on it goes
   (what its inverse may write, nowhere past a constant hold).
-  `Program::needs` is the first over the cells a build made. The probe
-  runs the walk and records the writable template slots in `Compiled` (a `Record`), and every build
-  classes by that record, so a slot's class is the same in every build. A
-  class is computed only when it is live (ADR 0019): `build/live.rs`
-  walks back from every root (the rendered props of rendered components,
-  scores, inputs, what an action or snapping reads, repeat counts)
-  through what each cell needs. The probe records the live
-  template slots in `Compiled::live` as it records the writable ones; a
-  class the record cannot name (a synthesized component's, such as a
+  `Program::needs` is the first over the cells a build made. The abstract
+  build runs the walk and records the writable template slots in `Compiled`
+  (a `Record`), and every build classes by that record, so a slot's class is
+  the same in every build. A class is computed only when it is live (ADR
+  0019): `build/live.rs` walks back from every root (the rendered props of
+  rendered components, scores, inputs, what an action or snapping reads,
+  repeat counts) through what each cell needs. The abstract build records
+  the live template slots in `Compiled::live` as it records the writable
+  ones; a class the record cannot name (a synthesized component's, such as a
   choice's interface) is live when something live reads it. A dead class
   gets no cell: its props name the one dead cell, a constant NaN, and its
   instruction is never bound. A live class that needs the dead cell, an
   instruction's input or a hold's flag, fails the build
-  (`Error::Unchecked`). `LoadOptions::prune` off
-  computes every class.
+  (`Error::Unchecked`). `LoadOptions::prune` off computes every class.
 
   Emit also makes the constants (ADR 0028). A document constant, by the
-  probe's record (`Compiled::document_constants`), an operator's constant
-  and the missing-referent cell name a cell of the session's **constant
-  pool**, one per distinct value, which every build starts its cells from
-  and appends to; a document constant's cell index is the same in every
-  build of the session. Every other constant, a scope constant, gets a
-  cell of its own. An instruction whose inputs are all constants made in
-  its scope or one around it is **folded** (`Builder::folded_slots`): its
-  outputs are numbered among the constants, it is run once as emit ends,
-  and the program keeps no instruction for it. A *counted value*, which a
-  build counts from the structure it stamped (a collect's count from a
-  repeat, a section's number after one), is a derived cell in every
-  build, never a constant; the probe records which slots hold one
+  abstract build's record (`Compiled::document_constants`), an operator's
+  constant and the missing-referent cell name a cell of the session's
+  **constant pool**, one per distinct value, which every build starts its
+  cells from and appends to; a document constant's cell index is the same in
+  every build of the session. Every other constant, a scope constant, gets a
+  cell of its own. An instruction whose inputs are all constants made in its
+  scope or one around it is **folded** (`Builder::folded_slots`): its
+  outputs are numbered among the constants, it is run once as emit ends, and
+  the program keeps no instruction for it. A *counted value*, which a build
+  counts from the structure it stamped (a collect's count from a repeat, a
+  section's number after one), is a derived cell in every build, never a
+  constant; the abstract build records which slots hold one
   (`Compiled::counted`).
 
 A build learns the document's structure only through the **structure view**
 (`View`, `build/view.rs`): iteration counts, which iteration or item an
 index names, a collect's count, a select's options. A real build uses the
 `Stamped` view, which answers from the counts it was asked for; the check
-uses the `Probe` view. Because the cycle check reasons about the probe, any
-structural read that bypasses the view is one the cycle check cannot see.
+uses the `Abstract` view. Because the cycle check reasons about the
+abstract build, any structural read that bypasses the view is one the cycle
+check cannot see.
 
 A build reads the `Session` (`session.rs`) and returns the next one. The
 session is everything that survives across builds: the scope table, every
@@ -217,7 +216,7 @@ downstream, and report a `TickOutcome`. See
 `Document::load` (`document/load.rs`):
 
 1. The bytes become a `Dast`.
-2. The compile runs once: lint, plan, check. The check's probe also
+2. The compile runs once: lint, plan, check. The check's abstract build also
    records which template slots are writable (ADR 0018), which are
    live (ADR 0019), which are document constants and which hold counted
    values (ADR 0028), which every build reads, and the structural depth,
@@ -272,13 +271,12 @@ Errors are a build product, not a failure (ADR 0013). An element that
 fails to plan is *boxed* where it fails (ADR 0027): it becomes an `_error`
 element with no children or props, what is under it is never built, and
 planning goes on, so one compile finds every planning error. An error the
-probe raises records the innermost element it concerns, which is boxed
-from the start of a new compile, and the check builds again until every
-element builds.
-A box keeps its name (ADR 0027): a reference to it resolves and reads as
-undefined, with no diagnostic of its own, and an extend of it is boxed in
-turn (`cells-boxed-referent`). Only an error with no element to box, a
-dependency cycle, fails the load.
+abstract build raises records the innermost element it concerns, which is
+boxed from the start of a new compile, and the check builds again until
+every element builds. A box keeps its name (ADR 0027): a reference to it
+resolves and reads as undefined, with no diagnostic of its own, and an
+extend of it is boxed in turn (`cells-boxed-referent`). Only an error with
+no element to box, a dependency cycle, fails the load.
 
 `Document::diagnostics` lists, in node order, the lint findings plus the
 errors and warnings of the elements that built.
@@ -289,11 +287,11 @@ was planned (ADR 0021): the core ignores no attribute silently.
 is done, every element outside the boxes with an attribute never looked
 up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
 `presentation`), is boxed, all of them at once, and the plan is made
-again before the probe runs.
+again before the abstract build runs.
 
-Every error depends on the source alone (ADR 0014), and the probe stands
-for every count and every pick, so the check finds every error at load.
-Later builds never find a new one: a build's error type
+Every error depends on the source alone (ADR 0014), and the abstract build
+stands for every count and every pick, so the check finds every error at
+load. Later builds never find a new one: a build's error type
 (`build::BuildError`) has no variant for an author's mistake, and a build
 that hits one anyway fails with `BuildError::Unchecked` instead of boxing
 mid-session.
@@ -322,7 +320,7 @@ the other action: it sets each `<updateValue>`'s target.
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. |
 | `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
 | `Compiled`, `Template` | `compile/plan.rs` | The compile's output: one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
-| `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Probe`, which folds every iteration into one (`build/probe.rs`). |
+| `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Abstract`, which folds every iteration into one (`build/abstract_build.rs`). |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
 | `Session`, `Counts`, `Pool` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine, the constant pool (ADR 0028); and the counts a build stamps. |
 | `Structure` | `build/structure.rs` | What one build made: its repeats and its essential cells' keys. |
@@ -532,18 +530,18 @@ the core does not compute it, and the viewer's test, which checks every
 - `tests/every_count.rs` builds every golden document and fixture at
   iteration counts 0 to 4 and four seeds, and checks that a document that
   passed the cycle check never fails a build with a cycle or an unsettled
-  structure. It also checks each build against the probe's graph
-  (`build/coverage.rs`): every dependency must be one the probe has, with a
-  label its iterations satisfy. This tests the assumptions the cycle check
-  rests on directly, instead of waiting for a missed cycle. The same holds
-  for the classing (ADR 0018): at each count and seed, nothing a build's
-  own walk finds writable is missing from the probe's record, and every
-  request on an interactive cell, submit and trigger, made with every value
-  essential (`LoadOptions::classify` off), writes only cells the record
-  makes essential. And for the constants (ADR 0028): a slot that is a
-  constant in one build of a scope is the same constant in every build of
-  it, at every count, and a document constant the same in every scope of
-  its template.
+  structure. It also checks each build against the abstract build's graph
+  (`build/coverage.rs`): every dependency must be one the abstract build
+  has, with a label its iterations satisfy. This tests the assumptions the
+  cycle check rests on directly, instead of waiting for a missed cycle. The
+  same holds for the classing (ADR 0018): at each count and seed, nothing a
+  build's own walk finds writable is missing from the abstract build's
+  record, and every request on an interactive cell, submit and trigger, made
+  with every value essential (`LoadOptions::classify` off), writes only
+  cells the record makes essential. And for the constants (ADR 0028): a slot
+  that is a constant in one build of a scope is the same constant in every
+  build of it, at every count, and a document constant the same in every
+  scope of its template.
 - `tests/constants.rs` counts each document's constants and pool, and
   checks that a full recompute changes no constant, that a folded curve is
   still drawn, and that a document constant keeps its pooled cell through

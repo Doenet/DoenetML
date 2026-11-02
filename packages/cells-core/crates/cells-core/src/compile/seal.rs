@@ -1,10 +1,10 @@
-//! Sealing, the compile's last stage before the probe (ADR 0027): what
-//! needs every element planned and linked, from the plans, the source
-//! and the name table alone, changing no plan. The branch
-//! interface of every choice (`choice.rs`), the arity of every operator a
-//! plan names, every element's key (`keys.rs`) and the slot offsets. What
-//! fails here is boxed by compiling again, not in place: other elements'
-//! plans may already name what it would box.
+//! Sealing, the compile's last stage before the abstract build (ADR 0027):
+//! what needs every element planned and linked, from the plans, the source
+//! and the name table alone, changing no plan. The branch interface of
+//! every choice (`choice.rs`), the arity of every operator a plan names,
+//! every element's key (`keys.rs`) and the slot offsets. What fails here is
+//! boxed by compiling again, not in place: other elements' plans may
+//! already name what it would box.
 
 use super::*;
 

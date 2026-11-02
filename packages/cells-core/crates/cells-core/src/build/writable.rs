@@ -9,11 +9,11 @@
 //! writable; a fixed one ends it, and so does a cell a `fixed` holds by a
 //! constant flag, which no request passes.
 //!
-//! When the view folds iterations (the probe), a slot may have another
-//! source in the iterations after the first (`Builder::later_sources`): the
-//! walk follows that one too when it reaches the slot's cell, so a
-//! template slot a later iteration writes is found (`Builder::walk_cells`
-//! is the walk the live walk shares).
+//! When the view folds iterations (the abstract build), a slot may have
+//! another source in the iterations after the first
+//! (`Builder::later_sources`): the walk follows that one too when it
+//! reaches the slot's cell, so a template slot a later iteration writes is
+//! found (`Builder::walk_cells` is the walk the live walk shares).
 
 use super::*;
 

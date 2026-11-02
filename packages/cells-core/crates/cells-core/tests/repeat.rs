@@ -293,8 +293,8 @@ fn structural_depth_counts_cross_iteration_count_dependencies() {
     let w = doc.warnings();
     assert_eq!(w.len(), 2, "{w:?}");
     assert!(w[0].contains("'b'") && w[1].contains("'c'"), "{w:?}");
-    // The depth and the warnings are the probe's, so a load at a count
-    // that stamps nothing reports the same (ADR 0014).
+    // The depth and the warnings are the abstract build's, so a load at a
+    // count that stamps nothing reports the same (ADR 0014).
     let empty = load(
         r#"<numberInput name="n" value="0"/>
            <repeatForSequence name="a" length="$n" indexName="i"><number name="k">$i</number></repeatForSequence>

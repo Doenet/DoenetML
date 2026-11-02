@@ -427,9 +427,9 @@ fn folding_keeps_every_live_value() {
 
 /// A reactive choice's interface component is synthesized, so the record
 /// cannot name its slots: they are live by what reads them, as in the
-/// probe's walk. Its `throughX3` is read, so the branches' are live; its
-/// diameter is not, so the branches' stay dead, and a pruned load must not
-/// compute the interface's diameter from them.
+/// abstract build's walk. Its `throughX3` is read, so the branches' are
+/// live; its diameter is not, so the branches' stay dead, and a pruned load
+/// must not compute the interface's diameter from them.
 #[test]
 fn an_interface_is_live_by_what_reads_it() {
     let src = r#"<booleanInput name="b"/>

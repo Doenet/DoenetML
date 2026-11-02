@@ -160,18 +160,18 @@ takes no request, so the walk stops there, as the writable walk stops at
   `TickOutcome::dropped`. A point group is dropped whole when any of its
   cells is refused, as the current core fails the whole update when one
   coordinate cannot be inverted.
-- The probe's build (`build/emit.rs`) runs the same analysis and warns
-  of each refused prop, `cells-request-reaches-its-source-twice`, naming
-  the prop and the value it reaches twice: "a request on 'p.x' is
-  refused: the value it would write, 'n.value', reaches it along more
-  than one path …".
+- The abstract build's build (`build/emit.rs`) runs the same analysis and
+  warns of each refused prop, `cells-request-reaches-its-source-twice`,
+  naming the prop and the value it reaches twice: "a request on 'p.x' is
+  refused: the value it would write, 'n.value', reaches it along more than
+  one path …".
 - The same pass emits the listing ADR 0016 promised: an info diagnostic,
   `cells-request-meets-no-inverse`, for an interactive prop whose inverse
   reaches an operator that drops every request (a power, a comparison).
-- *A known gap:* the probe folds a repeat's or an iterate's iterations
-  into one, so a value reaching a cell twice *across* iterations is not
-  seen there. `sir`'s iterates are refused, but the build does not warn
-  of them.
+- *A known gap:* the abstract build folds a repeat's or an iterate's
+  iterations into one, so a value reaching a cell twice *across* iterations
+  is not seen there. `sir`'s iterates are refused, but the build does not
+  warn of them.
 - *Wider than the current core.* The current core refuses only where
   both paths meet in one `<math>`, since each of its handwritten
   inverses sees only its own expression. This rule counts paths over the
@@ -362,8 +362,8 @@ golden diff (`scripts/golden-diff.sh`), or lists the diff it expects.
    - **The analysis costs** about 2 ms per call on `depth`, `breadth` and
      `poly` at 100,000 elements, and 27 ms on `coords` (200,000
      interactive cells along one chain). It runs twice per load, in the
-     probe and in the document, so under 1% of load on the first three
-     and about 5% on `coords`. Each written cell's paths are counted
+     abstract build and in the document, so under 1% of load on the first
+     three and about 5% on `coords`. Each written cell's paths are counted
      only over the cells from which an asked cell can be reached, and a
      group asking only the written cell itself is skipped. Loads timed
      before and after, alternately, agree within the machine's noise of
@@ -397,7 +397,8 @@ golden diff (`scripts/golden-diff.sh`), or lists the diff it expects.
      - a walk keeps its zero or one written cells inline;
      - the held cells are one array (`Holds::held_always`), not a hash
        lookup per walked cell.
-     The passes cost, per load (probe and document, `examples/load_cost.rs`):
+     The passes cost, per load (abstract build and document,
+     `examples/load_cost.rs`):
 
      | | orientation | refusal | of load |
      |---|---:|---:|---:|

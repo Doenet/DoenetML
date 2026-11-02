@@ -7,12 +7,12 @@
 //!
 //! Two views exist. `View::Stamped` answers from the counts a build is
 //! asked for, so the build stamps every iteration it has and a reference
-//! past the count is missing. The cycle check's `View::Probe` (`probe.rs`,
-//! ADR 0012) folds every iteration into one, so the graph it builds holds
-//! every edge some count would create.
-//! A structural read that bypasses the view is one the probe cannot model;
-//! `tests/every_count.rs` builds every document at several counts and
-//! seeds to catch one.
+//! past the count is missing. The cycle check's `View::Abstract`
+//! (`abstract_build.rs`, ADR 0012) folds every iteration into one, so the
+//! graph it builds holds every edge some count would create. A structural
+//! read that bypasses the view is one the abstract build cannot model;
+//! `tests/every_count.rs` builds every document at several counts and seeds
+//! to catch one.
 
 use super::*;
 
@@ -23,11 +23,12 @@ pub(in crate::build) enum View<'c> {
     /// iteration it has, a reference past the count is missing, and a
     /// select draws its options from the session's seed.
     Stamped { counts: &'c Counts },
-    /// The probe (`probe.rs`, ADR 0012, ADR 0014): one iteration per
-    /// repeat, standing for every iteration, and every option of every
-    /// select, standing for every draw, so what it finds depends on the
-    /// source alone.
-    Probe,
+    /// The abstract view, which the abstract build reads
+    /// (`abstract_build.rs`, ADR 0012, ADR 0014): one iteration per repeat,
+    /// standing for every iteration, and every option of every select,
+    /// standing for every draw, so what it finds depends on the source
+    /// alone.
+    Abstract,
 }
 
 impl View<'_> {
@@ -35,7 +36,7 @@ impl View<'_> {
     pub(in crate::build) fn iterations(&self, scope: ScopeId, node: NodeId) -> u32 {
         match self {
             View::Stamped { counts } => counts.get(scope, node),
-            View::Probe => 1,
+            View::Abstract => 1,
         }
     }
 
@@ -44,21 +45,21 @@ impl View<'_> {
     /// collect's items or a select's picks; `varies` says they stand for
     /// entries that differ at other counts or in other iterations (always
     /// for a repeat, for a collect that gathers from one, for a select whose
-    /// every option was built). In the probe an index past such entries
-    /// lands in them; the edge's label says which it named.
+    /// every option was built). In the abstract build an index past such
+    /// entries lands in them; the edge's label says which it named.
     pub(in crate::build) fn index(&self, len: usize, k: i64, varies: bool) -> Option<usize> {
         match self {
-            View::Probe if varies && len > 0 => Some((k.max(1) as usize - 1).min(len - 1)),
+            View::Abstract if varies && len > 0 => Some((k.max(1) as usize - 1).min(len - 1)),
             _ => in_range(len, k),
         }
     }
 
     /// What a collect's count (a polyline's `numVertices`) is: in the
-    /// probe, a count reading it reaches the gathered repeats.
+    /// abstract build, a count reading it reaches the gathered repeats.
     pub(in crate::build) fn collect_count(&self) -> CollectCount {
         match self {
             View::Stamped { .. } => CollectCount::Gathered,
-            View::Probe => CollectCount::RepeatCounts,
+            View::Abstract => CollectCount::RepeatCounts,
         }
     }
 
@@ -66,17 +67,18 @@ impl View<'_> {
     pub(in crate::build) fn options(&self) -> Options {
         match self {
             View::Stamped { .. } => Options::Drawn,
-            View::Probe => Options::Every,
+            View::Abstract => Options::Every,
         }
     }
 
     /// Which plans a prop with a first-iteration form gets in iteration
-    /// `k`: in the probe, the one iteration carries both plans' edges.
+    /// `k`: in the abstract build, the one iteration carries both plans'
+    /// edges.
     pub(in crate::build) fn plans(&self, k: u32) -> Plans {
         match self {
             View::Stamped { .. } if k == 1 => Plans::First,
             View::Stamped { .. } => Plans::Rest,
-            View::Probe => Plans::Both,
+            View::Abstract => Plans::Both,
         }
     }
 
@@ -86,7 +88,7 @@ impl View<'_> {
     /// recurrence folded onto itself rather than a cycle: the cycle check
     /// decides, not emit.
     pub(in crate::build) fn folds_iterations(&self) -> bool {
-        matches!(self, View::Probe)
+        matches!(self, View::Abstract)
     }
 }
 

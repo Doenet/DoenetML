@@ -76,7 +76,7 @@ mechanism count as expected failures rather than gaps.
 | COMP-4 which mechanism built a list is invisible; COMP-7 iterations come back as they were; D12 "state belongs to iteration k" | One mechanism (stamp a template per scope); essential values are keyed by (scope, template slot) and survive a rebuild (`Session`, ADR 0004) |
 | COMP-8, VAR-1, D17 selections are made once and survive adding content | Picks are drawn from the seed and the choice's *stable key*, never stored (ADR 0009, ADR 0017 §1) |
 | COMP-10 a case keeps its state; COMP-11 and D13/D22(b) the branch interface | ADR 0009: every branch is built, an interface name is a `Choose` over the branches, a flip is a tick |
-| NAME-7 and D14 a cycle is a located diagnostic and the rest renders | ADR 0012 and ADR 0013: the probe rejects a loop at any count, the element is boxed |
+| NAME-7 and D14 a cycle is a located diagnostic and the rest renders | ADR 0012 and ADR 0013: the abstract build rejects a loop at any count, the element is boxed |
 | NAME-3, REF-8 names inside a copy are private and an unnamed reference adds no names | `push_elem_visible_to(.., stop)` registers a clone's names only up to the copy (`names_resolve_through_containers_and_copies`) |
 | NAME-1 nearest match wins, a tie is reported | `Compiler::lookup` walks ancestors, own name first, unique descendant next, several is `AmbiguousName`; reported as `doenet-w0105` **[probe]** |
 | INT-2 derived values are never stored; INT-4 rigid drags; INT-5 projection | ADR 0018 (only what a student can write is essential), ADR 0006 (point groups), ADR 0003 (project then write), which is D15's first recommendation |
@@ -161,7 +161,7 @@ so the paste is a compile-time operation, not a runtime one:
   from the prop's cell and never aliased to it.
 
 What this costs the core: templates grow by the pasted elements, once
-per copy at compile; the probe and the cycle check see ordinary
+per copy at compile; the abstract build and the cycle check see ordinary
 elements. What it removes compared with main: the whole of
 `Copy.js`'s serialization path, `remapRefResolutions`, the snapshot
 compare at save time, and `copyVariants`.
@@ -214,7 +214,7 @@ that rule:
 
 - `base: Option<NodeId>` leaves `PlanCtx`; planners read only their own
   element, which is ADR 0016's stated goal ("writable without knowing …
-  the probe");
+  the abstract build");
 - `shared_state`, `Given`, `attr_or_inherited` and `plan_flag`'s three
   cases go, since "share unless overridden" is now the default for
   every slot, essential or not;
@@ -413,10 +413,10 @@ and rounded, and `value_references.test.ts:286` pins it.
 branch interface name is a `Choose` operator over every branch's cells.
 A dynamic index into a repeat (capped, as every repeat is) is a
 `Choose` over the stamped iterations' cells, selected by the rounded
-index cell, with the missing NaN past the end. The probe labels it as
-reading every iteration, which keeps the cycle check conservative, and
-no rebuild is involved. Dynamic indices into lists (`$l[$i]`) fall out
-the same way.
+index cell, with the missing NaN past the end. The abstract build labels it
+as reading every iteration, which keeps the cycle check conservative, and no
+rebuild is involved. Dynamic indices into lists (`$l[$i]`) fall out the same
+way.
 
 ### 3.11 Credit is derived, not recorded (ANS-1, D16)
 

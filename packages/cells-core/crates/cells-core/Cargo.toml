@@ -19,7 +19,7 @@ web-time = "1"
 
 [features]
 # Test-only hooks: `LoadOptions::check_cycles`, to load with the cycle
-# check off, and the probe-coverage helpers (`testing::probe_edges`,
+# check off, and the abstract-build coverage helpers (`testing::abstract_edges`,
 # `testing::uncovered`). Enabled for this crate's own tests by the
 # self-dependency below.
 testing = []

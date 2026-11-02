@@ -1,9 +1,9 @@
 //! The holes the rebuild-cycle survey found
 //! (`docs/rebuild-cycles-survey.md`): documents that loaded without a cycle
-//! error and hit one on a rebuild. The probe (ADR 0012) now models each one
-//! and rejects the document at load, which each test asserts; the rebuild
-//! failure path is tested with the check switched off, since no document
-//! that passes it is known to fail on rebuild.
+//! error and hit one on a rebuild. The abstract build (ADR 0012) now models
+//! each one and rejects the document at load, which each test asserts; the
+//! rebuild failure path is tested with the check switched off, since no
+//! document that passes it is known to fail on rebuild.
 
 mod common;
 use common::{set, type_into, v};
@@ -11,8 +11,8 @@ use common::{set, type_into, v};
 use cells_core::testing::test_utils::{dast_json, load, load_with_seed};
 use cells_core::{Document, Error, LoadOptions};
 
-/// Load with the cycle check off, so a document the probe rejects reaches
-/// its rebuild and fails there.
+/// Load with the cycle check off, so a document the abstract build rejects
+/// reaches its rebuild and fails there.
 fn load_unchecked(src: &str) -> Document {
     Document::load(
         dast_json(src).as_bytes(),
@@ -72,8 +72,8 @@ fn counts_reading_each_others_iterations_are_a_cycle() {
     ));
 }
 
-// Hole 3: a select inside a repeat draws per iteration, and the probe
-// expands only iteration 1, so an option that is cyclic (alone, or
+// Hole 3: a select inside a repeat draws per iteration, and the abstract
+// build expands only iteration 1, so an option that is cyclic (alone, or
 // through a document-level reference) is checked only when iteration 1
 // draws it. With seed 1 iteration 1 draws the acyclic option.
 #[test]
@@ -88,8 +88,9 @@ fn a_cyclic_option_drawn_by_a_later_iteration_is_a_cycle() {
            </repeatForSequence>"#,
         1,
     ));
-    // The same hole lets a collect be empty in the probe: the point exists
-    // only in the option iteration 1 does not draw, so `$c[1]` has no edge.
+    // The same hole lets a collect be empty in the abstract build: the
+    // point exists only in the option iteration 1 does not draw, so `$c[1]`
+    // has no edge.
     expect_cycle(load_with_seed(
         r#"<numberInput name="n" value="1"/>
            <repeatForSequence name="r" length="$n">
@@ -105,10 +106,10 @@ fn a_cyclic_option_drawn_by_a_later_iteration_is_a_cycle() {
 }
 
 // Hole 4: the prefill rule (a seed must name a value that is not
-// computed) runs at emit, which the probe does not reach, so a prefill
-// naming a computed cell past the count at load is accepted and rejected
-// on the rebuild that makes it exist. The probe reaches emit now, and the
-// rule boxes the input at load (ADR 0013, ADR 0014).
+// computed) runs at emit, which the abstract build does not reach, so a
+// prefill naming a computed cell past the count at load is accepted and
+// rejected on the rebuild that makes it exist. The abstract build reaches
+// emit now, and the rule boxes the input at load (ADR 0013, ADR 0014).
 #[test]
 fn a_prefill_naming_a_computed_cell_past_the_count_is_rejected_at_load() {
     let mut doc = load(

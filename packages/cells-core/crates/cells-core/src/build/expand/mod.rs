@@ -162,11 +162,11 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) choice_insts: Vec<ChoiceInst>,
     pub(in crate::build) comp_choice: HashMap<CompIdx, usize>,
     /// A component standing for whichever branch a choice takes (an
-    /// interface name, or in the probe a select's whole pick) -> the
-    /// branches' components it stands for. What it holds is what any of
+    /// interface name, or in the abstract build a select's whole pick) ->
+    /// the branches' components it stands for. What it holds is what any of
     /// them may (`value_type`, `is_symbolic`).
     pub(in crate::build) stand_ins: HashMap<CompIdx, Vec<CompIdx>>,
-    /// Per select (in the probe): the stand-in for its whole pick.
+    /// Per select (in the abstract build): the stand-in for its whole pick.
     pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
     /// One slot per constant an operator or a hold reads, by the value's
@@ -192,11 +192,11 @@ pub(in crate::build) struct Builder<'c> {
     /// repeats they gather from (`CollectCount::RepeatCounts`).
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
     /// When the view folds iterations: the slots of the counted values it
-    /// found (`Builder::counted`), which the probe records.
+    /// found (`Builder::counted`), which the abstract build records.
     pub(in crate::build) counted_slots: Vec<SlotId>,
     /// When the view folds iterations: the slots whose plan gives a
     /// document constant if they are constants (`Source::gives_document_constant`),
-    /// which the probe records.
+    /// which the abstract build records.
     pub(in crate::build) document_slots: Vec<SlotId>,
     /// Sources a slot has in iterations after the first, when the view
     /// folds iterations (`Plans::Both`): edges the graph carries as well.
@@ -206,14 +206,14 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) author_ops: Vec<SlotId>,
     /// When the view folds iterations: the label of the last reference
     /// resolved, and those of reference edges (from slot, to slot) that are
-    /// not the identity (`build/probe.rs`).
+    /// not the identity (`build/abstract_build.rs`).
     pub(in crate::build) label: Vec<Coord>,
     pub(in crate::build) labels: HashMap<(SlotId, SlotId), Vec<Coord>>,
     /// The node of the element whose expansion or resolution failed, for
     /// `build` to box (ADR 0013); none when the failure has no element.
     pub(in crate::build) failed_node: Option<NodeId>,
-    /// The probe's warnings and structural depth (`check_counts`, ADR
-    /// 0013): empty and zero in any other build.
+    /// The abstract build's warnings and structural depth (`check_counts`,
+    /// ADR 0013): empty and zero in any other build.
     pub(in crate::build) diagnostics: Vec<Diagnostic>,
     pub(in crate::build) structural_depth: u32,
 }
@@ -421,9 +421,9 @@ impl<'c> Builder<'c> {
 
     /// Whether slot `s` holds a counted value (ADR 0028): one the build
     /// counts from the structure it stamped, so it follows the counts. The
-    /// probe finds them, `found` saying this one is, and records them;
-    /// every other build reads the record, since at some counts there is
-    /// nothing to count and a build cannot tell.
+    /// abstract build finds them, `found` saying this one is, and records
+    /// them; every other build reads the record, since at some counts there
+    /// is nothing to count and a build cannot tell.
     pub(in crate::build) fn is_counted(&mut self, s: SlotId, found: bool) -> bool {
         if self.view.folds_iterations() {
             if found {
@@ -1084,8 +1084,8 @@ impl<'c> Builder<'c> {
         };
         // With no gathered original in an iteration, the number gathered is
         // a constant at every count. Otherwise it is a counted value: the
-        // probe stands it in by its repeats' counts, and every other build
-        // holds the number it gathered (ADR 0028).
+        // abstract build stands it in by its repeats' counts, and every
+        // other build holds the number it gathered (ADR 0028).
         let count = if counts.is_empty() {
             let count = self.counted(s0, copies.len() as f64, false);
             if matches!(count, BuiltSource::Op(..)) {

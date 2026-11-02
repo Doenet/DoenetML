@@ -133,9 +133,9 @@ a sticky group reads.
 
 **Live cell** — A root, or a cell some root reads, through aliases and
 every input of the instructions that compute it. The compile finds the live template
-slots once, through the probe (the *live record*), and every build reads
-it. Every essential cell is live. A cell that is not live is **dead**: a
-load with `LoadOptions::prune`, the default, gives it no cell, and every
+slots once, through the abstract build (the *live record*), and every build
+reads it. Every essential cell is live. A cell that is not live is **dead**:
+a load with `LoadOptions::prune`, the default, gives it no cell, and every
 prop that would name it names the one **dead cell** instead, a constant NaN
 that nothing computes. Unpruned, every cell is computed and
 `Document::is_live` says which are needed.
@@ -307,7 +307,7 @@ _Avoid_: literal (a literal is text written in the source)
 which follows the iteration counts (ADR 0028): a collect's count from a
 repeat, a section's number after one, the credit of a section whose answers
 are all in repeats. A derived cell in every build, holding the number its build
-counted; the probe records which template slots hold one
+counted; the abstract build records which template slots hold one
 (`Compiled::counted`), since at a count with nothing to count a build cannot
 tell. Never a constant.
 
@@ -333,9 +333,9 @@ math) and each reference's *reference plan* (`RefPlan`: a path through names
 and indices). Expansion turns plans into slots per scope.
 
 **Compile** — The once-per-load stage (ADR 0015): the source made into
-templates and plans (*plan*), checked through the probe (*check*), with every
-element that fails boxed. Its product, `Compiled`, is what every build stamps,
-and depends on the source alone, not the seed (ADR 0014).
+templates and plans (*plan*), checked through the abstract build (*check*),
+with every element that fails boxed. Its product, `Compiled`, is what every
+build stamps, and depends on the source alone, not the seed (ADR 0014).
 
 **Compile stages** — The compile's steps, in order, each reading only what
 earlier ones made (ADR 0027, ADR 0029). *Outline*: every element,
@@ -346,8 +346,8 @@ element's plan, from the source and what outlining and parsing made,
 never from another element's plan. *Link*: what ties plans together once
 all are made (shared state; boxing what read a boxed referent). *Seal*:
 what reads every plan and changes none (choice interfaces, arity, keys,
-slot offsets). *Probe*: one build through the probe view. They are not
-called passes: a *pass* is one build while the repeat counts settle.
+slot offsets). *Abstract build*: one build through the abstract view. They
+are not called passes: a *pass* is one build while the repeat counts settle.
 
 **Build** — One pass from the compile, the session and iteration counts to
 cells, program and component table: expand, resolve, emit, schedule. A
@@ -442,10 +442,10 @@ cell, the student's work.
 sequence before its count can be computed, plus one. Nesting adds one; a
 count that reads a cell inside another repeat's iterations adds one. A
 document loads in depth + 1 build passes, and a rebuild takes at most as
-many. The compile's check bounds the depth from the source (the probe's
-depth, which no build exceeds), and load and rebuild allow that many passes,
-so a structure that does not settle in them is a core bug. The second kind
-of link is reported as a warning, since authors can avoid it.
+many. The compile's check bounds the depth from the source (the abstract
+build's depth, which no build exceeds), and load and rebuild allow that many
+passes, so a structure that does not settle in them is a core bug. The
+second kind of link is reported as a warning, since authors can avoid it.
 
 **Structural cell** — A cell whose value determines document structure, such
 as the iteration count of a repeat. A change to a structural cell triggers a
@@ -458,8 +458,8 @@ document can reach, not only the count at load. Rejected at load time
 **Diagnostic** — An error, warning, info or accessibility finding about the
 document: a kind, a code, its arguments and the node it is about. A
 function of the document text alone, found by the compile's check through
-the probe; `diagnose`, which the language server calls, returns the same
-list a load reports. A tick never produces one (ADR 0013).
+the abstract build; `diagnose`, which the language server calls, returns the
+same list a load reports. A tick never produces one (ADR 0013).
 
 **Presentation attribute** — An attribute a renderer reads from the
 document's literal attributes (a `styleNumber`, a `<ref>`'s `to`) and the

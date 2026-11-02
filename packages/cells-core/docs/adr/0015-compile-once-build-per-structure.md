@@ -59,21 +59,21 @@ dropped after load. It holds:
   template its owner;
 - the canonical string ids (`extra_strings`);
 - **the boxes and the diagnostic list**: lint, then the compile's own
-  errors, then the **check**, the probe build (ADR 0012, ADR 0014) that
+  errors, then the **check**, the abstract build (ADR 0012, ADR 0014) that
   stands for every count and every pick and is discarded. Boxing and
   retrying happen here and nowhere else.
 
 Compile has two steps, named for what they do: **plan** (DAST to templates
-and plans, today's `build/compile/`) and **check** (the probe). A rule
-whose answer cannot differ between two instances of the same source
+and plans, today's `build/compile/`) and **check** (the abstract build). A
+rule whose answer cannot differ between two instances of the same source
 belongs to plan; one that can, to check, which sees every instance (ADR
 0014). Whatever compile can work out, it works out: a build never asks a
 question of the source twice.
 
-The check reuses the build's expand and resolve code through the probe
-`View`. That is a dependency of compile on build's machinery, not on its
-data: the `View` trait is the seam, and the probe's output never leaves
-compile.
+The check reuses the build's expand and resolve code through the abstract
+build `View`. That is a dependency of compile on build's machinery, not on
+its data: the `View` trait is the seam, and the abstract build's output
+never leaves compile.
 
 ### Session: what a student's session accumulates
 
@@ -117,7 +117,7 @@ src/
   dast/        the parsed source and its wire formats
   components/  the tag vocabulary
   compile/     plan (today's build/compile/), check (cycles.rs, the
-               probe view), lint.rs, diagnostics.rs, element keys;
+               abstract view), lint.rs, diagnostics.rs, element keys;
                `Compiled`
   build/       expand/, resolve, emit, the stamped view, `Structure`
   session.rs   `Session`, saved state
@@ -204,12 +204,12 @@ this way). A document without repeats builds each template once and
 parses without keeping the tree, which would only raise its load's peak
 heap. Whether math parses is still asked by the build, since only math
 the build finds symbolic is parsed; the answer depends on the text alone,
-so the probe finds it as before. Two costs the profile showed in every
-build went with it: the cycle-error labels no longer copy every
+so the abstract build finds it as before. Two costs the profile showed in
+every build went with it: the cycle-error labels no longer copy every
 component's name into a `String` (they read the DAST when a cycle is
 reported), and the seeds' math check and the repeat-depth scan no longer
-hash every math cell and every scope. Measured against the commit before,
-in instructions:
+hash every math cell and every scope. Measured against the commit before, in
+instructions:
 
 - rebuild of a 1,000-iteration repeat: −43%;
 - load: −4.6% (repeat-1000), −2.2% (sir) to −0.03%; ticks within ±1.5%,
@@ -223,17 +223,18 @@ kind (`math_ref`) is 2% of it.
 
 **Step 5, files (done).** `src/compile/` is today's plan (the old
 `build/compile/`), `lint.rs`, and `check.rs`, which holds `compile::compile`
-and `compile::diagnose`: the boxing loop, the probe check, and for a
-document checked by its one stamped build, that build, which the load
+and `compile::diagnose`: the boxing loop, the abstract build check, and for
+a document checked by its one stamped build, that build, which the load
 keeps. `compile::compile` returns the compile, that first build when there
-is one, and the check's time; a load with repeats then builds its first
-pass with `build::build` like every other. `src/build/` keeps expand, emit,
-the view and the probe (`probe.rs`, the old `cycles.rs`), since the probe
-is build's machinery run through another view; it offers compile exactly
-`build::probe` and `build::first_build`. `src/session.rs` holds `Session`
-and `Counts`, which both stages read. Compile's items are visible only
-inside `compile` except the plan types and the expression arena, which the
-build stamps; build uses nothing else of compile's.
+is one, and the check's time; a load with repeats then builds its first pass
+with `build::build` like every other. `src/build/` keeps expand, emit, the
+view and the abstract build (`abstract_build.rs`, the old `cycles.rs`),
+since the abstract build is build's machinery run through another view; it
+offers compile exactly `build::abstract build` and `build::first_build`.
+`src/session.rs` holds `Session` and `Counts`, which both stages read.
+Compile's items are visible only inside `compile` except the plan types and
+the expression arena, which the build stamps; build uses nothing else of
+compile's.
 
 **The engine into the session (done).** `Session::engine` holds the math
 engine (`Rc<RefCell<Engine>>`); a build borrows it from the session it
@@ -243,10 +244,10 @@ The engine only grows (but for what a lookahead stores and forgets, ADR
 0006), so a failed rebuild, which may have imported into
 it, leaves every handle the document holds valid and gives nothing back:
 `take_engine` and `put_engine` are gone, and so is the fresh engine (and
-math parser) `take_engine` made for every rebuild. The probe still builds
-with an engine of its own. Against the commit before, in instructions:
-load −0.6% to +0.03%; ticks −1.2% to 0, sir's, which rebuild, −21%; a
-1,000-iteration rebuild −1.4%.
+math parser) `take_engine` made for every rebuild. The abstract build still
+builds with an engine of its own. Against the commit before, in
+instructions: load −0.6% to +0.03%; ticks −1.2% to 0, sir's, which rebuild,
+−21%; a 1,000-iteration rebuild −1.4%.
 
 **Memory (done for now).** In wasm, linear memory never shrinks, so what
 a page keeps is a load's high-water mark, not what the document holds
@@ -300,24 +301,24 @@ reuse.
 **`BuildError` (done).** `build::build` and `BuildOutput::schedule`
 return `build::BuildError`, whose one variant is `Unchecked`: the compile
 missed something. It has no way to say an author's error, a cycle
-included: the compile finds every cycle, through the probe for a document
-with repeats or selects and through the same loop check on the one build
-of any other (it once left those to the load's schedule), and a load can
-skip the check only with the crate's `testing` feature. The machinery the build
-shares with the compile's check (expand, resolve, emit) fails with a
-`Failure`, a fact about the source; the compile turns one into a
-diagnostic, and the build can only turn it into a `BuildError`. A load
-and a rebuild convert it into the crate's `Error`, so their API is
-unchanged. An unsettled structure stays the rebuild's own error, since a
-single build cannot fail that way. `tests/every_count.rs` fails on any
-`BuildError`; it used to let some failures end its stamping silently.
+included: the compile finds every cycle, through the abstract build for a
+document with repeats or selects and through the same loop check on the one
+build of any other (it once left those to the load's schedule), and a load
+can skip the check only with the crate's `testing` feature. The machinery
+the build shares with the compile's check (expand, resolve, emit) fails with
+a `Failure`, a fact about the source; the compile turns one into a
+diagnostic, and the build can only turn it into a `BuildError`. A load and a
+rebuild convert it into the crate's `Error`, so their API is unchanged. An
+unsettled structure stays the rebuild's own error, since a single build
+cannot fail that way. `tests/every_count.rs` fails on any `BuildError`; it
+used to let some failures end its stamping silently.
 
 **What each stage takes from the other.** The build reads, from the
 compile, the plan types (`compile::plan`, which includes `ElemKey`, since
 the compile assigns element keys), the expression arena, and `Failure`;
 the session and saved state read only `ElemKey`; the tick reads neither.
 The compile reads, from the build, only what its check runs:
-`build::probe`, `build::first_build` and `BuildOutput`, all in
+`build::abstract build`, `build::first_build` and `BuildOutput`, all in
 `compile/check.rs`. Per-phase profiling (`profile.rs`) belongs to
 neither. A change that needs more across the line is a change to this ADR.
 
@@ -347,32 +348,31 @@ neither. A change that needs more across the line is a change to this ADR.
   "instantiate" collides with `SymKind::Instantiate`; `State` collides with
   DoenetML's state variables and with saved state, which is the session
   serialized.
-- **Make the check independent of build's code.** Rejected: the probe's
-  value is that it runs the very resolution the build runs, so the two
-  cannot disagree about what a reference reaches.
+- **Make the check independent of build's code.** Rejected: the abstract
+  build's value is that it runs the very resolution the build runs, so the
+  two cannot disagree about what a reference reaches.
 
 ## Amendment: one load sequence, 2026-10-29
 
 As accepted, the compile checked a document with repeats or selects
-through the probe and any other through its first stamped build, which
-the load then kept as its first pass (`build::first_build`). Which path a
-document took decided whether its builds classed value slots by the
-probe's record or by their own walk (ADR 0018), whether its live cells
-came from the record or the walk (ADR 0019), and whether its structural
-depth was known; a test load with the check off added a third way to
-each. Now every document is probed and every load builds from pass zero:
-compile, probe, build until the structure settles. The compile reads no
-session, so it depends on the source alone by construction and
-`tests/compile_purity.rs` is gone. The record is the one way a build
-classes its slots (`compile/plan.rs`, `Record`), the depth is always the
-probe's, and `Error::UnstableStructure` is gone with the unchecked case.
-The price is one more expand and emit at load for a document without
-repeats or selects, about the size of its one build; ADR 0012's
-measurement of 2026-10-29 has the numbers. Reading the record in every
-build also found a bug the first-build path had hidden: a class the
-record cannot name (a reactive choice's interface component is
-synthesized and has no template slot) was taken as live whatever read
-it, so a pruned build computed an interface prop nothing reads from
-branch cells the record had pruned and failed as unchecked. Such a class
-is now live only when a root or a live class reads it, as in the probe's
-walk (`build/live.rs`).
+through the abstract build and any other through its first stamped build,
+which the load then kept as its first pass (`build::first_build`). Which
+path a document took decided whether its builds classed value slots by the
+abstract build's record or by their own walk (ADR 0018), whether its live
+cells came from the record or the walk (ADR 0019), and whether its
+structural depth was known; a test load with the check off added a third way
+to each. Now every document goes through the abstract build and every load
+builds from pass zero: compile, abstract build, build until the structure
+settles. The compile reads no session, so it depends on the source alone by
+construction and `tests/compile_purity.rs` is gone. The record is the one
+way a build classes its slots (`compile/plan.rs`, `Record`), the depth is
+always the abstract build's, and `Error::UnstableStructure` is gone with the
+unchecked case. The price is one more expand and emit at load for a document
+without repeats or selects, about the size of its one build; ADR 0012's
+measurement of 2026-10-29 has the numbers. Reading the record in every build
+also found a bug the first-build path had hidden: a class the record cannot
+name (a reactive choice's interface component is synthesized and has no
+template slot) was taken as live whatever read it, so a pruned build
+computed an interface prop nothing reads from branch cells the record had
+pruned and failed as unchecked. Such a class is now live only when a root or
+a live class reads it, as in the abstract build's walk (`build/live.rs`).

@@ -32,7 +32,7 @@ This core is most of the way there by construction. Build time does every
 piece of string work and every piece of reasoning about the document's
 shape, and a tick never consults components, tag names or the DAST
 (`ARCHITECTURE.md`). The cycle check already builds the document once
-through a probe view that folds every iteration into one and discards the
+through a abstract view that folds every iteration into one and discards the
 result (ADR 0012). What is missing is that errors abort the build at the
 first one, warnings are an afterthought derived from `Structure` as
 strings with no code and no position, positions never reach the core
@@ -44,10 +44,10 @@ count.
 - **Load-time choices.** Unchosen branches of a `<select>` are never built
   (ADR 0009), so an error expand or resolve raises (an unknown prop, an
   arity mismatch, math that does not parse) fires only for the options a
-  seed draws. The probe builds every option inside a repeat but keeps the
-  real draw outside one, explicitly so that load errors stay per seed.
-  (Since ADR 0014's amendment the probe builds every option everywhere,
-  and load errors no longer depend on the seed.)
+  seed draws. The abstract build builds every option inside a repeat but
+  keeps the real draw outside one, explicitly so that load errors stay per
+  seed. (Since ADR 0014's amendment the abstract build builds every option
+  everywhere, and load errors no longer depend on the seed.)
 - **Repeats at a count that stamps nothing.** A body whose repeat loads at
   count zero never expands, so its errors surface on the first rebuild
   that stamps it, inside a student's tick, as `rebuild_error`.
@@ -63,16 +63,16 @@ flip is an ordinary tick.
 
 - **Collected, not thrown.** The compile carries a `Vec<Diagnostic>`
   (`src/diagnostics.rs`; since ADR 0015 it is the compile's, and since
-  ADR 0014's amendment of 2026-10-29 the probe's one warning joins it
-  there, so a build has no list of its own). A diagnostic is a kind (error, warning, info,
-  accessibility with its level 1 or 2), a stable code, its arguments as
-  data, and the node it is about. The code is the i18n registry's
-  (`packages/i18n/src/diagnostics.ts`) where it names the same situation,
-  whatever letter the current core gives it (an unknown reference is its
-  warning `doenet-w0104` and our error, since the element did not build);
-  a `cells-` code otherwise, to be registered. `Error::code` is the map.
-  A `Result` is kept for what the build cannot continue past: a malformed
-  wire format, a cycle.
+  ADR 0014's amendment of 2026-10-29 the abstract build's one warning joins
+  it there, so a build has no list of its own). A diagnostic is a kind
+  (error, warning, info, accessibility with its level 1 or 2), a stable
+  code, its arguments as data, and the node it is about. The code is the
+  i18n registry's (`packages/i18n/src/diagnostics.ts`) where it names the
+  same situation, whatever letter the current core gives it (an unknown
+  reference is its warning `doenet-w0104` and our error, since the element
+  did not build); a `cells-` code otherwise, to be registered. `Error::code`
+  is the map. A `Result` is kept for what the build cannot continue past: a
+  malformed wire format, a cycle.
 - **Recovered, not aborted, by building again.** The compiler and the
   builder keep raising errors as they do; what changed is who catches
   them. Each records the innermost element the error is about (the
@@ -89,27 +89,27 @@ flip is an ordinary tick.
   as before. One bad element no longer renders nothing and no longer
   masks every other problem. The renderer shows the box
   (`cells-viewer/src/renderers/index.tsx`).
-- **Taken from an exhaustive build, by the language server.** The probe
-  view (`build/probe.rs`) gains one switch, `every_option`: with it,
-  every option of every select is built, inside a repeat or not.
-  `diagnose(dast) -> Vec<Diagnostic>` runs the one box-and-retry loop
-  a load runs (`compile/check.rs`), through that view with the probe's
-  checks, and returns the list; the build itself is discarded. The list is seed- and count-independent
-  because the view's answers do not depend on either. A load does not
-  call it. The real build still collects diagnostics for the elements it
-  stamps, which the viewer needs to render error boxes; they are a subset
-  of `diagnose`'s, which the tests check. The cycle check keeps running
-  at load, as ADR 0012 requires: a cycle is the one finding a load cannot
-  proceed past, and it is reported with no node.
+- **Taken from an exhaustive build, by the language server.** The abstract
+  build view (`build/abstract_build.rs`) gains one switch, `every_option`:
+  with it, every option of every select is built, inside a repeat or not.
+  `diagnose(dast) -> Vec<Diagnostic>` runs the one box-and-retry loop a load
+  runs (`compile/check.rs`), through that view with the abstract build's
+  checks, and returns the list; the build itself is discarded. The list is
+  seed- and count-independent because the view's answers do not depend on
+  either. A load does not call it. The real build still collects diagnostics
+  for the elements it stamps, which the viewer needs to render error boxes;
+  they are a subset of `diagnose`'s, which the tests check. The cycle check
+  keeps running at load, as ADR 0012 requires: a cycle is the one finding a
+  load cannot proceed past, and it is reported with no node.
 
   Two of the three holes turned out narrower than described above.
   Compile walks every branch, so a name that does not exist is found
   whatever a select draws; only what expand and resolve raise (an arity
   mismatch, an unknown prop, math that does not lower) stays per seed.
-  And the cycle probe stamps every repeat body once at load, so a body at
-  count zero is already boxed by the load. What `diagnose` adds over a
-  load is the unchosen options, and a list for a document that has no
-  load at all, in the language server.
+  And the cycle abstract build stamps every repeat body once at load, so a
+  body at count zero is already boxed by the load. What `diagnose` adds over
+  a load is the unchosen options, and a list for a document that has no load
+  at all, in the language server.
 - **Static where the current core is dynamic.** Whether a prop can be
   written is known when its producing operator is bound (an `Op` carries
   its inverse or does not); whether an action's target prop exists is
@@ -159,17 +159,18 @@ flip is an ordinary tick.
 Measured on the generated fixtures (`npm run stats`, release build), a
 load is deserialize plus build in roughly equal parts, and compile is half
 to four fifths of build (chain-100000: 199 ms deserialize, 474 ms build,
-330 ms of it compile; select-1000: 14, 20 and 13 ms). The probe stamps
-each template once, so its cost follows the source, not the document:
-repeat-10000, sixty thousand components, builds in 19 ms and probes in
-0.2 ms. An exhaustive build therefore costs about one compile plus one
-template-sized stamping, a few milliseconds for a hand-written document.
+330 ms of it compile; select-1000: 14, 20 and 13 ms). The abstract build
+stamps each template once, so its cost follows the source, not the document:
+repeat-10000, sixty thousand components, builds in 19 ms and runs the
+abstract build in 0.2 ms. An exhaustive build therefore costs about one
+compile plus one template-sized stamping, a few milliseconds for a
+hand-written document.
 
 Where it runs decides whether a reader pays it:
 
 - A viewer loading for a student calls only `Core::new`, which runs the
-  real build and, with a repeat present, the cycle probe it already runs.
-  Load time does not change.
+  real build and, with a repeat present, the abstract build it already runs
+  for the cycle check. Load time does not change.
 - The language server calls `diagnose` once per edit, in the sub-worker it
   already spawns per document, where a few milliseconds beside the parse
   is nothing. It needs no `Core`, no state and no seed.
@@ -203,9 +204,9 @@ All in `packages/cells-core`, under `cargo test`:
   rebuild-time error the first hole describes stays.
 - Run the exhaustive build inside every load. Rejected: it is the right
   list, but a student's viewer pays for an author's panel. For a document
-  with a repeat the probe already runs and the cost is nothing; for one
-  with a load-time select the unchosen options are new work; for one with
-  neither the real build is already exhaustive. The language server is
+  with a repeat the abstract build already runs and the cost is nothing; for
+  one with a load-time select the unchosen options are new work; for one
+  with neither the real build is already exhaustive. The language server is
   the one caller that always wants the whole list, and it has its own
   process.
 - Defer the exhaustive build to an idle callback after first render.

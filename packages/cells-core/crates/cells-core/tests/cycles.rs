@@ -97,9 +97,9 @@ fn an_inner_count_reading_its_outer_iteration_is_legal() {
     assert!(doc.structure_settled());
 }
 
-// The probe clamps an index into a collect only when the collect gathers
-// from a repeat; an index past a fixed gathered set is missing at every
-// count and closes no loop.
+// The abstract build clamps an index into a collect only when the collect
+// gathers from a repeat; an index past a fixed gathered set is missing at
+// every count and closes no loop.
 #[test]
 fn a_collect_over_fixed_items_is_not_clamped() {
     let doc = load(
@@ -112,10 +112,10 @@ fn a_collect_over_fixed_items_is_not_clamped() {
     assert!(doc.structure_settled());
 }
 
-// Every document is probed, with or without repeats: the one load
-// sequence (ADR 0012, ADR 0015).
+// Every document goes through the abstract build, with or without repeats:
+// the one load sequence (ADR 0012, ADR 0015).
 #[test]
-fn every_document_is_probed() {
+fn every_document_goes_through_the_abstract_build() {
     for src in [
         r#"<point name="p"/><number>$p.x</number>"#,
         r#"<repeatForSequence name="r" length="2"><point/></repeatForSequence>"#,

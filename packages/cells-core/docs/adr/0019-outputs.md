@@ -65,7 +65,7 @@ What it shows:
 - The second walk found the same live set as the first on every document:
   at these structures, deciding per template slot cost no precision. It
   approximates the template slot by the element's DAST node and does not
-  fold iterations as the probe does, so phase 2 counts it properly.
+  fold iterations as the abstract build does, so phase 2 counts it properly.
 
 ## Decision
 
@@ -149,24 +149,23 @@ dead until the prototype's renderers drew a curve through them (ADR
 
 As ADR 0018 records what is writable, the compile records what is live:
 
-- A document with repeats or selects is checked through the probe, whose
-  graph holds every edge any count or pick can create (ADR 0012, ADR 0014),
-  and which stamps each template once. Rendering follows the template's
-  chain of parents, which the probe stamps as every build does. The walk
-  of step 2 runs on the probe's graph, over emit's alias classes, and
-  follows a slot's later-iteration sources as the writable walk does.
-  `Compiled` records, per template slot, whether its class is live, in a
-  record shaped as the writable one (`Classes::Record`: per template, a
-  bit per template slot, `slot_off + pi`).
+- A document with repeats or selects is checked through the abstract build,
+  whose graph holds every edge any count or pick can create (ADR 0012, ADR
+  0014), and which stamps each template once. Rendering follows the
+  template's chain of parents, which the abstract build stamps as every
+  build does. The walk of step 2 runs on the abstract build's graph, over
+  emit's alias classes, and follows a slot's later-iteration sources as the
+  writable walk does. `Compiled` records, per template slot, whether its
+  class is live, in a record shaped as the writable one (`Classes::Record`:
+  per template, a bit per template slot, `slot_off + pi`).
 - A document without either has one structure, and its first build is its
   check (ADR 0015): the walk runs on that build's graph and classes its
   slots by it.
 
-A slot live at some count is live in the probe, so the record holds every
-slot any build needs. It holds more where an edge exists only at some
-counts: every iteration of a template shares its slots, so an output
-reading iteration 3's `x` keeps every iteration's `x`. The rebuild runs no
-walk.
+A slot live at some count is live in the abstract build, so the record holds
+every slot any build needs. It holds more where an edge exists only at some
+counts: every iteration of a template shares its slots, so an output reading
+iteration 3's `x` keeps every iteration's `x`. The rebuild runs no walk.
 
 ### 5. A dead slot has no cell
 
@@ -256,9 +255,9 @@ Each phase leaves the tree green.
    component table, unpruned). Nothing is pruned.
 2. **The record, measured** (steps 2 and 4). `build/live.rs`, beside
    `build/writable.rs`; `Compiled` gains a live record beside the
-   writable one (`Classes`), set by the probe in `compile/check.rs` where
-   the writable record is, and off (every slot live) where the classing is
-   off for want of a probe. A census test,
+   writable one (`Classes`), set by the abstract build in `compile/check.rs`
+   where the writable record is, and off (every slot live) where the
+   classing is off for want of an abstract build. A census test,
    `tests/live.rs`, prints per document what each build's own walk finds
    live and what the record finds, at counts 0 to 4, and asserts every
    essential cell is live. Settle which template slot a synthesized
@@ -312,16 +311,16 @@ Settled while implementing phase 1:
 
 Settled while implementing phase 2:
 
-- The walk is `build/live.rs`. Emit runs it in the probe, which records
-  every template slot whose class is live in `Compiled::live` (a
-  `Classes`, as the writable record is), and in the one build of a
-  document without repeats or selects. Every other build reads the
-  record: a class is live when one of its slots has a template slot the
-  record marks, or when none has a template slot to be named by. Each
-  build keeps a bit per cell, `Document::is_live` and `live_cells`, which
-  phase 3 prunes by; nothing reads them yet. `tests/live.rs` checks the
-  record against a build of the same compile that finds what is live by
-  its own walk (`testing::with_own_live_walk`).
+- The walk is `build/live.rs`. Emit runs it in the abstract build, which
+  records every template slot whose class is live in `Compiled::live` (a
+  `Classes`, as the writable record is), and in the one build of a document
+  without repeats or selects. Every other build reads the record: a class is
+  live when one of its slots has a template slot the record marks, or when
+  none has a template slot to be named by. Each build keeps a bit per cell,
+  `Document::is_live` and `live_cells`, which phase 3 prunes by; nothing
+  reads them yet. `tests/live.rs` checks the record against a build of the
+  same compile that finds what is live by its own walk
+  (`testing::with_own_live_walk`).
 - A component is rendered when the children lists reach it from the
   document (`ComponentTable::placement`, which `rendered_components` and
   the walk share), as a renderer finds it, not when its chain of parents
@@ -350,17 +349,17 @@ Settled while implementing phase 2:
   builds' walks, all in `repeats.doenet`, over all those builds together.
 - A load costs 3% to 12% more, natively (release, best of 15, the commit
   before this phase in a worktree; `sir.doenet` 3.46 ms to 3.89 ms): the
-  probe's walk, and every build's lookup of each slot in the record.
-  Nothing is pruned yet to pay for it.
+  abstract build's walk, and every build's lookup of each slot in the
+  record. Nothing is pruned yet to pay for it.
 
 Settled while implementing phase 3:
 
-- Emit prunes only outside the probe, whose build is not kept, and only
-  when the load asked (`Compiled::prune`, apart from the record, so an
+- Emit prunes only outside the abstract build, whose build is not kept, and
+  only when the load asked (`Compiled::prune`, apart from the record, so an
   unpruned load still reports what is live). A dead class's defining slot
-  goes nowhere; the dead cell is the first fixed cell, made only when
-  some class is dead. A vector output is pruned with its head, whose
-  instruction writes it. An essential slot is never pruned; none is dead.
+  goes nowhere; the dead cell is the first fixed cell, made only when some
+  class is dead. A vector output is pruned with its head, whose instruction
+  writes it. An essential slot is never pruned; none is dead.
 - The walk follows every input, so no live instruction reads a dead cell,
   and the record keeps that in every build (phase 2). Emit checks it as
   it binds each instruction: one that would read the dead cell fails the
@@ -415,8 +414,8 @@ it says phase 2's (`6d3f777`):
   `curves-100` 0.38, `circles3-1000` and `answers-100` 1.00, `sir.doenet`
   about 1.08, `repeat-10000` 1.04 to 1.17, `recur-1000` about 1.12; the
   golden set as phase 3 measured. A document with repeats pays for the
-  probe's walk and every build's lookup of each slot in the record, which
-  pruning repays only where much is dead.
+  abstract build's walk and every build's lookup of each slot in the record,
+  which pruning repays only where much is dead.
 - **Tick**, natively (`tick-diff.sh` against phase 2's, seven rounds): the
   same instructions on every shape, which render all they compute, and
   medians within the harness's noise, 0.94 to 1.18 on sub-microsecond
@@ -446,21 +445,21 @@ Settled after the migration (2026-10-28):
   check that fails, on `rebuild-100000`, fails both ways: the driver
   cannot resolve its path), and memory is within 1%.
 - Left as they are, for now: the record's cost for a document with
-  repeats (every build looks each slot up in it, and the probe walks once
-  more); content under a literal `hide`, which stays rendered; and a
-  polyline's vertices, whose `hide` counts as rendered with their
+  repeats (every build looks each slot up in it, and the abstract build
+  walks once more); content under a literal `hide`, which stays rendered;
+  and a polyline's vertices, whose `hide` counts as rendered with their
   coordinates.
 
 ## Amendment: one record for every build, 2026-10-29
 
-Every document is probed now (ADR 0015's amendment of the same date), so
-every build reads the live record; the one build of a document without
-repeats or selects no longer walks for itself. Reading the record in
-every build found that a class the record cannot name, a reactive
-choice's interface component being synthesized, was taken as live
-whatever read it, which computed an interface prop nothing reads from
-branch cells the record had pruned. Such a class is live only when a
-root or a live class reads it, as it was in the probe's walk
+Every document goes through the abstract build now (ADR 0015's amendment of
+the same date), so every build reads the live record; the one build of a
+document without repeats or selects no longer walks for itself. Reading the
+record in every build found that a class the record cannot name, a reactive
+choice's interface component being synthesized, was taken as live whatever
+read it, which computed an interface prop nothing reads from branch cells
+the record had pruned. Such a class is live only when a root or a live class
+reads it, as it was in the abstract build's walk
 (`Builder::live_by_record`); a class the record names and does not mark
 stays dead whatever reads it, so `tests/live.rs` still checks the record
 against the walk. `Classes` is gone: `Compiled::live` is the record.

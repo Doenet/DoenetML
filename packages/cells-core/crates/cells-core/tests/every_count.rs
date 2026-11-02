@@ -1,7 +1,7 @@
-//! The promise of ADR 0012, checked independently of how the probe keeps
-//! it: a document that loads with the cycle check on has no dependency loop
-//! at any iteration count, and its structure settles at every count a
-//! student can reach.
+//! The promise of ADR 0012, checked independently of how the abstract build
+//! keeps it: a document that loads with the cycle check on has no
+//! dependency loop at any iteration count, and its structure settles at
+//! every count a student can reach.
 //!
 //! Every document of the golden set (`crates/cells-bench/golden`),
 //! `fixtures/sir.doenet`, every generated fixture (`npm run fixtures`;
@@ -20,10 +20,10 @@
 //! load did not report (ADR 0014), which is `Error::Unchecked`.
 //!
 //! This is the regression net for a structural read that bypasses the
-//! structure view (`build/view.rs`): the probe cannot model such a read, so
-//! a document it should reject loads, and a count here closes the loop. The
-//! documents in `HOLES` are rejected at load today and skipped; they are
-//! here for the day one is not.
+//! structure view (`build/view.rs`): the abstract build cannot model such a
+//! read, so a document it should reject loads, and a count here closes the
+//! loop. The documents in `HOLES` are rejected at load today and skipped;
+//! they are here for the day one is not.
 
 use cells_core::CompIdx;
 use std::collections::{BTreeSet, HashMap};
@@ -35,7 +35,7 @@ use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::session::{Counts, Session};
 use cells_core::testing::test_utils::{dast_json, repo_root};
-use cells_core::testing::{ProbeEdges, probe_edges, uncovered};
+use cells_core::testing::{AbstractEdges, abstract_edges, uncovered};
 use cells_core::{Compiled, Document, Error, LoadOptions, Request};
 
 const SEEDS: [u64; 4] = [0, 1, 2, 3];
@@ -263,18 +263,19 @@ fn check(name: &str, bytes: &[u8]) -> bool {
             .compiled
             .clone()
             .expect("a document with a repeat");
-        let probe = probe_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the probe: {e}"));
+        let edges =
+            abstract_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
         let at = |what: &str| format!("{name}, seed {seed}, {what}");
         for &node in &nodes {
             for c in COUNTS {
                 let what = at(&format!("repeat node {node} at {c}"));
-                stamp(&what, seed, &doc, &probe, &|n| (n == node).then_some(c));
+                stamp(&what, seed, &doc, &edges, &|n| (n == node).then_some(c));
                 drive(&what, &mut doc, &|n| n == node, c);
             }
         }
         for c in COUNTS {
             let what = at(&format!("every repeat at {c}"));
-            stamp(&what, seed, &doc, &probe, &|_| Some(c));
+            stamp(&what, seed, &doc, &edges, &|_| Some(c));
             drive(&what, &mut doc, &|_| true, c);
         }
     }
@@ -290,7 +291,7 @@ fn stamp(
     what: &str,
     seed: u64,
     loaded: &Document,
-    probe: &ProbeEdges,
+    edges: &AbstractEdges,
     forced: &dyn Fn(NodeId) -> Option<u32>,
 ) {
     let mut counts: HashMap<(ScopeId, NodeId), u32> = HashMap::new();
@@ -307,7 +308,7 @@ fn stamp(
                 .compiled
                 .clone()
                 .expect("a document with a repeat");
-            covered(what, probe, &compiled, &session, &stamped);
+            covered(what, edges, &compiled, &session, &stamped);
             let doc = build(&compiled, &session, &stamped, false)
                 .and_then(|built| built.schedule(compiled.clone()));
             let mut doc = match doc {
@@ -383,30 +384,30 @@ fn structural(e: &str) -> bool {
     e.starts_with(&cycle) || e.starts_with(&unchecked)
 }
 
-/// Every dependency of the build at `counts` must be one the probe's graph
-/// has, with a label its iterations satisfy: what lets the compile's check
-/// stand for every build (ADR 0012, ADR 0014).
+/// Every dependency of the build at `counts` must be one the abstract
+/// build's graph has, with a label its iterations satisfy: what lets the
+/// compile's check stand for every build (ADR 0012, ADR 0014).
 fn covered(
     what: &str,
-    probe: &ProbeEdges,
+    edges: &AbstractEdges,
     compiled: &Compiled,
     session: &Session,
     counts: &Counts,
 ) {
-    let missing = uncovered(probe, compiled, session, counts)
+    let missing = uncovered(edges, compiled, session, counts)
         .unwrap_or_else(|e| panic!("{what}: the build: {e}"));
     assert!(
         missing.is_empty(),
-        "{what}: {} dependencies the probe does not have, first: {}",
+        "{what}: {} dependencies the abstract build does not have, first: {}",
         missing.len(),
         missing[0]
     );
 }
 
 // A document without a repeat has one build per seed, which must be
-// covered too: a select's draw is what the probe stands for there.
+// covered too: a select's draw is what the abstract build stands for there.
 #[test]
-fn the_probe_covers_every_build_of_a_document_without_repeats() {
+fn the_abstract_build_covers_every_build_of_a_document_without_repeats() {
     let mut checked = 0;
     for (name, bytes) in documents() {
         let dast = cells_core::dast::load(&bytes).unwrap();
@@ -416,12 +417,13 @@ fn the_probe_covers_every_build_of_a_document_without_repeats() {
         if has_repeats(&dast) {
             continue; // `stamp` covers these at every count
         }
-        let probe = probe_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the probe: {e}"));
+        let edges =
+            abstract_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
         for seed in SEEDS {
             let session = Session::new(seed);
             covered(
                 &format!("{name}, seed {seed}"),
-                &probe,
+                &edges,
                 &compiled,
                 &session,
                 &Counts::default(),
@@ -439,9 +441,10 @@ fn has_repeats(dast: &Dast) -> bool {
 }
 
 /// ADR 0018: a value slot is essential when a student's action can write
-/// it, and the probe's record of those slots stands for every build. For
-/// every document, at every seed it draws with and every repeat at 0 to 4
-/// iterations, two things are checked against builds at those counts:
+/// it, and the abstract build's record of those slots stands for every
+/// build. For every document, at every seed it draws with and every repeat
+/// at 0 to 4 iterations, two things are checked against builds at those
+/// counts:
 ///
 /// - every slot a build's own walk finds writable is one the record holds,
 ///   so no build meets a write it did not expect;

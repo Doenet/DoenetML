@@ -42,13 +42,13 @@ literal `fixed` holds by a constant flag, so the classing makes the
 element's values fixed cells" uses three of them.
 
 The plan's names have drifted since ADR 0018 moved the class decision
-from the planner to the probe's walk. `Source::Literal` is documented
-as "an essential cell with this initial value", and `Wire::essential`,
-`Wire::essential_from`, `Wire::text_essential` and
-`Source::MathEssential` make one, though each becomes a fixed cell when
-no student can reach it. `Source::Fixed`, a value that is never state,
-and `Source::Literal`, one that is state when reachable, are a real
-distinction that the names do not show.
+from the planner to the abstract build's walk. `Source::Literal` is
+documented as "an essential cell with this initial value", and
+`Wire::essential`, `Wire::essential_from`, `Wire::text_essential` and
+`Source::MathEssential` make one, though each becomes a fixed cell when no
+student can reach it. `Source::Fixed`, a value that is never state, and
+`Source::Literal`, one that is state when reachable, are a real distinction
+that the names do not show.
 
 ### What a rebuild does with them
 
@@ -120,13 +120,13 @@ Each is a **counted value**: a derived cell holding the number its build
 counted, an `OpSpec::Copy` of an operator's constant, in every build,
 whatever the count. A build cannot tell which values are counted,
 since at a count with nothing to count it sees no repeat contribute; the
-probe, whose one iteration stands for every count, finds them and
+abstract build, whose one iteration stands for every count, finds them and
 records their template slots (`Compiled::counted`), as it records the
 writable and live ones, and every build reads the record. The copy
 reads no count cell: a change of count rebuilds the document, which
-counts again, and the cycle check reads the probe's stand-ins, which do.
-Folding (step 4) never folds a counted value. A value the build counts
-from a scope alone (a section's number inside an iteration, counting
+counts again, and the cycle check reads the abstract build's stand-ins,
+which do. Folding (step 4) never folds a counted value. A value the build
+counts from a scope alone (a section's number inside an iteration, counting
 the iterations before it) is a scope constant.
 
 What the remaining constants are, by what they depend on:
@@ -255,7 +255,7 @@ holds is *held*.
 - The interactive bit (ADR 0018). A document constant an interactive prop
   names (a held point's `x`) drops a request as a fixed cell does today.
 - The cycle check and diagnostics (ADR 0012, ADR 0014), which run on the
-  probe's unfolded graph.
+  abstract build's unfolded graph.
 - Pruning (ADR 0019): the pool holds only live document constants, and a
   dead slot still names the dead cell.
 - The flat `f64` array and its zero-copy view (ADR 0001).
@@ -270,13 +270,13 @@ holds is *held*.
   constants"). Rejected: it keeps a class whose values change on a
   rebuild under a name that says they do not, and every consumer that
   caches a constant must know which. Each has a derived form already
-  (the probe's collect count, the gated section number); the cost is a
-  few instructions where a repeat is involved.
+  (the abstract build's collect count, the gated section number); the cost
+  is a few instructions where a repeat is involved.
 - **Counted values as formulas over the count cells**: the count times
   what one iteration contributes, where every iteration contributes the
   same, else a sum of each iteration's contribution. Deferred: the graph
   would read the counts, but nothing needs that edge (a count change
-  rebuilds; the cycle check has the probe's), and count 0, nested
+  rebuilds; the cycle check has the abstract build's), and count 0, nested
   repeats, a select in an iteration and sections collected among a
   section's siblings each need their own wiring. It can replace the
   copy for the common case later without changing any value.
@@ -335,10 +335,10 @@ after each.
    *Done 2026-10-30*; see below.
 3. **Rename** (step 5), code and docs, with no behavior change. *Done
    2026-10-30*; see below.
-4. **Document or scope constant**, recorded per template slot by the probe
-   beside the writable and live records; a census test prints it per
-   golden document and `sir.doenet`. *Done 2026-10-30*; see below.
-5. **Fold** (step 4): the probe records folded template slots; emit
+4. **Document or scope constant**, recorded per template slot by the
+   abstract build beside the writable and live records; a census test prints
+   it per golden document and `sir.doenet`. *Done 2026-10-30*; see below.
+5. **Fold** (step 4): the abstract build records folded template slots; emit
    evaluates scope-constant folds; a full recompute after load changes no
    constant (tested). Spec cost snapshots move and are rewritten with
    `SPEC_UPDATE=1`. *Done
@@ -355,10 +355,11 @@ Settled while implementing phase 1:
 
 - The handles are kept in the session (`Session::math_constants`), not
   in `Compiled`: a handle is a position in the session's engine, and the
-  probe builds with an engine of its own (`build/probe.rs`), so a handle
-  the compile kept would name nothing in the document's engine. The
-  cache is shared with every build's session as the engine is, and only
-  grows as the engine does, so a failed rebuild leaves it valid.
+  abstract build builds with an engine of its own
+  (`build/abstract_build.rs`), so a handle the compile kept would name
+  nothing in the document's engine. The cache is shared with every build's
+  session as the engine is, and only grows as the engine does, so a failed
+  rebuild leaves it valid.
 - An expression is constant exactly when its parsed tree has no cell
   leaves, which the source decides, so the key needs no scope.
   `sym_source` looks it up before parsing, after the check that refuses
@@ -373,12 +374,13 @@ Settled while implementing phase 1:
 
 Settled while implementing phase 2:
 
-- The probe's operator for a collect's count was a stand-in for the
+- The abstract build's operator for a collect's count was a stand-in for the
   cycle check's edges (a `Max` over the counts, `Builder::reads`), never
-  its value, and the probe numbered a section after a repeat as a
+  its value, and the abstract build numbered a section after a repeat as a
   constant like any build. So no build had a derived form to take, and
   none could tell at count 0 that a value was counted: the record
-  (`Compiled::counted`) and the copy replace "as the probe wires it".
+  (`Compiled::counted`) and the copy replace "as the abstract build wires
+  it".
 - The check is `a_constant_is_the_same_in_every_build` in
   `tests/every_count.rs`. Each build records, for tests, what every live
   template slot's own source makes it (`Structure::slot_classes`); every
@@ -409,8 +411,8 @@ Settled while implementing phase 3:
 
 Settled while implementing phase 4:
 
-- The record is `Compiled::document_constants`, made by the probe from
-  the slots whose plan `Source::gives_document_constant` and which are
+- The record is `Compiled::document_constants`, made by the abstract build
+  from the slots whose plan `Source::gives_document_constant` and which are
   constants there (a given value only when no student can write it).
 - `a_constant_is_the_same_in_every_build` checks it: a template slot the
   record makes a document constant has the same value in every scope its
@@ -432,9 +434,9 @@ Settled while implementing phase 4:
 
 Settled while implementing phase 5:
 
-- The probe does not record folds, as step 4 first said: most foldable
-  instructions are lowered math's anonymous steps, which a record by
-  template slot cannot name, so each build decides by its own walk under
+- The abstract build does not record folds, as step 4 first said: most
+  foldable instructions are lowered math's anonymous steps, which a record
+  by template slot cannot name, so each build decides by its own walk under
   the scope rule. What that gives up is pruning a constant read only by
   folds, which stays live; constants are the cheapest cells.
 - `LoadOptions::fold`, on by default and off only in tests, turns folding

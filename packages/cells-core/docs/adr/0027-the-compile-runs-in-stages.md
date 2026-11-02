@@ -22,7 +22,7 @@ records it where it arises rather than restarting the compile.
 | **References** | the outline | a `RefPlan` for every `$ref` and every `extend` (made within planning: see "References") | unknown or ambiguous names, bad paths |
 | **Plan** | the outline, references | every element's `Source`s and hold | every planner's errors and warnings, then unread attributes (ADR 0021) |
 | **Seal** | every plan | choice interfaces, arity, keys, slot offsets | a choice interface a reference misuses, a misbound operator |
-| **Probe** | the whole `Compiled` | cycles, writable and live records, structural depth | dependency and structural cycles, what only a build sees |
+| **Abstract build** | the whole `Compiled` | cycles, writable and live records, structural depth | dependency and structural cycles, what only a build sees |
 
 ADR 0029 adds two: **parse**, between outline and plan, which parses
 every `<math>`'s text once, and **link**, between plan and seal, which
@@ -53,7 +53,8 @@ the end, and learns the rest by trial and restart:
   `<math>` ahead of its turn; the rule should be the compile's, not each
   reader's.
 - **Every failure restarts everything.** `plan_and_check` boxes one
-  element per failure, then plans and probes the whole document again.
+  element per failure, then plans the whole document again and reruns the
+  abstract build.
 - **Boxes cascade.** A boxed element has no name, so every reference to it
   is an unknown reference, which boxes its reader on the next round. With
   only `P` wrong,
@@ -63,9 +64,9 @@ the end, and learns the rest by trial and restart:
   ```
 
   reports `bogus` on `<point>`, then `unknown reference '$P'`, then
-  `unknown reference '$n'`: three compiles and probes, two errors that are
-  false (`$P` names an element the author wrote). The language server,
-  which sees documents mid-edit, sees this most.
+  `unknown reference '$n'`: three compiles and abstract builds, two errors
+  that are false (`$P` names an element the author wrote). The language
+  server, which sees documents mid-edit, sees this most.
 - **The unread-attribute rule leans on order.** `ReadFlags` persist across
   attempts so a later attempt does not forget earlier reads, and lint must
   run after the check, since its own lookups (`decorative`, `label`,
@@ -73,7 +74,7 @@ the end, and learns the rest by trial and restart:
 
 A build never reads an attribute (`build/` looks one up only in its test
 fixtures), so every read ADR 0021 counts happens by the end of planning,
-and the rule can run there rather than after the probe.
+and the rule can run there rather than after the abstract build.
 
 ## The rule for planning
 
@@ -151,12 +152,12 @@ after outlining, as the type outlining settled.
 - **Plan elements in parallel.** Planning's independent elements could be,
   but `Compiler`'s tables (the expression arena, `refs`, `shared_state`)
   are shared and would need splitting into per-element parts and a merge.
-  Not chosen for its own sake: the probe, not planning, is the expensive
-  stage, and this ADR runs it once. The stages allow it later.
-- **Make the probe a separate checker.** Rejected: the probe is a real
-  build through a view that stands for every count and pick (ADR 0012,
-  ADR 0014), so what it rejects is what a build would do, with no second
-  model to keep in step. It stays the last stage.
+  Not chosen for its own sake: the abstract build, not planning, is the
+  expensive stage, and this ADR runs it once. The stages allow it later.
+- **Make the abstract build a separate checker.** Rejected: the abstract
+  build is a real build through a view that stands for every count and pick
+  (ADR 0012, ADR 0014), so what it rejects is what a build would do, with no
+  second model to keep in step. It stays the last stage.
 
 ## Consequences
 
@@ -165,10 +166,10 @@ after outlining, as the type outlining settled.
   several errors at once sort them by node, as `diagnostics::sort` does
   now, so the list does not depend on the order work ran in.
 - A document with *n* independent errors compiles once, not *n* + 1 times.
-  The probe may still find an error the stages before it cannot (a cycle has no
-  element to box and fails the load, as now; an element that fails only in
-  the probe is boxed and the probe runs again). That retry remains, and is
-  the only one.
+  The abstract build may still find an error the stages before it cannot (a
+  cycle has no element to box and fails the load, as now; an element that
+  fails only in the abstract build is boxed and the abstract build runs
+  again). That retry remains, and is the only one.
 - The unread-attribute check boxes what it finds and plans once more:
   a box keeps its name, and read flags are not cleared, so replanning
   cannot make another attribute unread. Lint reads attributes through a
@@ -214,18 +215,18 @@ says otherwise.
 3. **Lint reads without recording.** Add `Dast::attr_peek`, use it in
    `lint.rs`, and run lint first.
 4. **Collect planning's errors in place.** A planner's failure boxes its
-   element and planning continues; `plan_and_check` loops only on probe
-   failures. Move the unread-attribute check to the end of planning. Done,
-   for outlining and planning: an element that fails in either, and a `$ref` that
-   cannot be planned, is boxed in place (`Compiler::box_in_place`), and
-   what is under it (its children, its repeats' and choices' templates)
-   is marked dead and never built; a reference to it reads undefined. A
-   failure is still boxed by compiling again when it cannot be boxed in
-   place: something already planned or cloned what is under it, it has no
-   node (a clone), or it is sealing's (a branch interface, a misbound
-   operator), which other elements' plans may already name.
-   `tests/diagnostics.rs` checks that four independent errors take one
-   plan.
+   element and planning continues; `plan_and_check` loops only on abstract
+   build failures. Move the unread-attribute check to the end of planning.
+   Done, for outlining and planning: an element that fails in either, and a
+   `$ref` that cannot be planned, is boxed in place
+   (`Compiler::box_in_place`), and what is under it (its children, its
+   repeats' and choices' templates) is marked dead and never built; a
+   reference to it reads undefined. A failure is still boxed by compiling
+   again when it cannot be boxed in place: something already planned or
+   cloned what is under it, it has no node (a clone), or it is sealing's (a
+   branch interface, a misbound operator), which other elements' plans may
+   already name. `tests/diagnostics.rs` checks that four independent errors
+   take one plan.
 5. **Expand container copies when outlining.** The riskiest step: a copy's
    referent must be found from the name table alone, and copies of copies
    expanded in extend order. A copy whose referent is reached through an

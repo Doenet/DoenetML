@@ -25,13 +25,13 @@
 //! `scoring.rs` wires credit and section numbers. **`emit.rs`** makes cells
 //! and instructions. **`view.rs`** is the structure view, the one interface
 //! through which expand and emit learn iteration counts, indexed referents,
-//! a collect's count and a select's options. **`probe.rs`** is the probe,
-//! the build through a view that folds every iteration into one, which the
-//! compile's check runs (ADR 0012, ADR 0014). This file holds [`build`] and
-//! what a build returns ([`BuildOutput`]); `structure.rs` what a build
-//! records about the document's shape ([`Structure`], [`ScopeTable`],
-//! [`Repeat`]); `coverage.rs`, for tests, checks that the probe's graph
-//! covers a real build's.
+//! a collect's count and a select's options. **`abstract_build.rs`** is the
+//! abstract build, the build through a view that folds every iteration into
+//! one, which the compile's check runs (ADR 0012, ADR 0014). This file
+//! holds [`build`] and what a build returns ([`BuildOutput`]);
+//! `structure.rs` what a build records about the document's shape
+//! ([`Structure`], [`ScopeTable`], [`Repeat`]); `coverage.rs`, for tests,
+//! checks that the abstract build's graph covers a real build's.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -53,20 +53,20 @@ use crate::program::{Instr, OpSpec, Post, SymKind};
 use crate::program::{Operands, Program, ValueType};
 use crate::session::{Counts, Session};
 
+mod abstract_build;
 #[cfg(feature = "testing")]
 pub mod coverage;
 mod emit;
 mod expand;
 mod live;
 mod orient;
-mod probe;
 pub mod signature;
 mod slot_cells;
 mod structure;
 mod view;
 mod writable;
 
-pub(crate) use probe::probe;
+pub(crate) use abstract_build::abstract_build;
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
 pub use structure::SlotClass;
@@ -88,25 +88,25 @@ impl crate::sym::Leaf for SlotId {
     }
 }
 
+use abstract_build::Coord;
 use expand::*;
-use probe::Coord;
 use view::{CollectCount, Options, Plans, View};
 
-/// Expand, resolve, optionally run the probe's count and loop checks, and
-/// emit, through `view`. The failure names the element to box.
+/// Expand, resolve, optionally run the abstract build's count and loop
+/// checks, and emit, through `view`. The failure names the element to box.
 pub(in crate::build) fn build_with(
     compiled: &Compiled,
     session: &Session,
     reseed: bool,
     engine: &mut Engine,
     view: &View,
-    probe_checks: bool,
+    abstract_checks: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
     let mut b = Builder::new(compiled, session, reseed, engine, view);
     let staged = (|| {
         crate::trace::span("expand").run(|| b.expand_all())?;
         crate::trace::span("resolve").run(|| b.resolve_all())?;
-        if probe_checks {
+        if abstract_checks {
             let _s = crate::trace::span("loop check");
             b.check_counts()?;
             b.check_loops()?;
@@ -240,15 +240,16 @@ pub struct BuildOutput {
     cell_label: Box<dyn Fn(CellIdx) -> String>,
     /// Which cells the document computes (ADR 0019).
     live: Live,
-    /// What the probe found for the compile to keep (`probed`): empty in
-    /// any other build, which records nothing and runs no count check.
-    probed: Probed,
+    /// What the abstract build found for the compile to keep (`findings`):
+    /// empty in any other build, which records nothing and runs no count
+    /// check.
+    findings: AbstractFindings,
 }
 
-/// What the probe's build found for the compile to keep (ADR 0012, ADR
-/// 0018, ADR 0019): what every later build reads, and the warnings.
+/// What the abstract build's build found for the compile to keep (ADR 0012,
+/// ADR 0018, ADR 0019): what every later build reads, and the warnings.
 #[derive(Debug, Default)]
-pub(crate) struct Probed {
+pub(crate) struct AbstractFindings {
     /// The structural depth (`check_counts`).
     pub(crate) structural_depth: u32,
     /// The template slots a student's action can write.
@@ -287,9 +288,9 @@ impl BuildOutput {
         i < self.n_const
     }
 
-    /// What the probe found, which the compile keeps.
-    pub(crate) fn probed(self) -> Probed {
-        self.probed
+    /// What the abstract build found, which the compile keeps.
+    pub(crate) fn abstract_findings(self) -> AbstractFindings {
+        self.findings
     }
 
     /// Schedule the program into a document.

@@ -1,9 +1,9 @@
 //! The input signature (ADR 0017, step 3): what students can act on in a
 //! document, and what decides what each input shows and whether it exists
 //! or can be acted on, named by stable keys and literals only. It is a
-//! function of the source, read off the build the check makes (the probe),
-//! whose graph holds every edge any count or pick can create, so an input
-//! in any iteration or branch is covered by its template's.
+//! function of the source, read off the build the check makes (the abstract
+//! build), whose graph holds every edge any count or pick can create, so an
+//! input in any iteration or branch is covered by its template's.
 //!
 //! An input's *derivation* is a hash over the backward closure of its
 //! interactive props and of what decides whether it exists or can be acted

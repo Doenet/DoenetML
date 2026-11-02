@@ -128,10 +128,10 @@ impl<'c> Builder<'c> {
         w
     }
 
-    /// The probe's stand-in for a whole pick of select `c` built with every
-    /// option, whose options each hold one component of one type: it reads
-    /// each option's component, so a rule about the referent sees every
-    /// option a later iteration may draw (ADR 0014).
+    /// The abstract build's stand-in for a whole pick of select `c` built
+    /// with every option, whose options each hold one component of one
+    /// type: it reads each option's component, so a rule about the referent
+    /// sees every option a later iteration may draw (ADR 0014).
     pub(in crate::build) fn whole_pick(&mut self, c: CompIdx) -> Result<CompIdx> {
         if let Some(&w) = self.pick_stand_ins.get(&c) {
             return Ok(w);
@@ -153,8 +153,9 @@ impl<'c> Builder<'c> {
 
     /// Sources and kinds of stand-in `w` for `members`: each prop chooses
     /// among theirs by `choice` when it is given (a reactive choice), else
-    /// only reads them (the probe's stand-in for a pick). The members must
-    /// hold one kind of value per prop, which the stand-in holds too.
+    /// only reads them (the abstract build's stand-in for a pick). The
+    /// members must hold one kind of value per prop, which the stand-in
+    /// holds too.
     fn stand_in_sources(
         &mut self,
         w: CompIdx,

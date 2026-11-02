@@ -27,8 +27,8 @@ their defaults, one entry per cell: `[scopePath, [node, k], slot, kind,
 value]`. Derived cells, credit among them, are not saved; they are
 recomputed from the essential cells. A restored value can never make the
 document unbuildable: every error depends on the source alone (ADR 0014)
-and the probe covers every count and every pick, so restored values only
-reach structures the load's check accepted.
+and the abstract build covers every count and every pick, so restored values
+only reach structures the load's check accepted.
 
 So most edits need nothing of saved state: text, layout, hints, feedback,
 formulas that feed only what is displayed, an answer's correct answer and
@@ -245,15 +245,14 @@ fail which condition, tied to their nodes, so the editor can show them.
 The check may be conservative: a "not safe" edit may harm no one (an
 input every student left alone). It must never be optimistic, and that is
 tested, as `tests/every_count.rs` tests the cycle check against the
-probe: `tests/safe_edits.rs` takes every golden document and fixture,
-applies generated edits to it (literals, formulas, defaults, bounds,
-inserted, removed and renamed elements, added inputs), and runs generated
-sessions of requests and submits on the original. Whenever
-`compare_versions` says an edit is safe, the session's saved state,
-restored into the edited version, must show every old input with the
-values it had and inside its new domain, and every new input inside its
-domain. A failure is a hole in the check, found before a student finds
-it.
+abstract build: `tests/safe_edits.rs` takes every golden document and
+fixture, applies generated edits to it (literals, formulas, defaults,
+bounds, inserted, removed and renamed elements, added inputs), and runs
+generated sessions of requests and submits on the original. Whenever
+`compare_versions` says an edit is safe, the session's saved state, restored
+into the edited version, must show every old input with the values it had
+and inside its new domain, and every new input inside its domain. A failure
+is a hole in the check, found before a student finds it.
 
 ### 6. State never crosses core releases
 
@@ -447,36 +446,34 @@ session generator can start after 3.
    against the props the renderers request, that derived props are not
    marked, and that a submit and a trigger write only marked cells.
 4. **The input signature** (step 3). `compile/signature.rs`, run on the
-   build the check already makes (the probe, or the one stamped build of
-   a document without repeats or selects), whose graph holds every edge
-   any count or pick can create. An input's derivation is the backward
-   closure from it and from the cells that decide whether it exists or
-   can be acted on, each slot's plan hashed with `Arg::Own`, `Arg::Elem`,
+   build the check already makes (the abstract build, or the one stamped
+   build of a document without repeats or selects), whose graph holds every
+   edge any count or pick can create. An input's derivation is the backward
+   closure from it and from the cells that decide whether it exists or can
+   be acted on, each slot's plan hashed with `Arg::Own`, `Arg::Elem`,
    references and expressions resolved to stable keys, names and trees. A
-   test inserts unrelated elements and checks that no hash moves. Format
-   3's `doc` is the signature's hash.
-   **Done**, in `build/signature.rs` since it reads the build: the
-   signature is read off the probe, which `input_signature` and
-   `compare_versions` build, not off a load, so a load pays nothing for
-   it. A cell hashes as what it is: an essential cell by its key and
-   prop, a fixed one by its value, a derived one by its operator with its
-   literal parameters (`Op::unbound`) over its inputs' hashes, an
+   test inserts unrelated elements and checks that no hash moves. Format 3's
+   `doc` is the signature's hash. **Done**, in `build/signature.rs` since it
+   reads the build: the signature is read off the abstract build, which
+   `input_signature` and `compare_versions` build, not off a load, so a load
+   pays nothing for it. A cell hashes as what it is: an essential cell by
+   its key and prop, a fixed one by its value, a derived one by its operator
+   with its literal parameters (`Op::unbound`) over its inputs' hashes, an
    expression with its leaves numbered by input. The defaults are kept
    beside the derivation, each with whether any other input's closure
    reaches its cell; a default may change only where it is the input's
    starting value in both versions. The cells an input writes were its
    closure's essential leaves but a hold's flag, until the 2026-10-26
-   amendment folded them into the derivation; which elements share a
-   cell never needed a list of its own, since a cell is named by the
-   element that defines it, so a copy given an override writes another
-   cell.
-   Format 3's `doc` names the version by a hash of its source instead
+   amendment folded them into the derivation; which elements share a cell
+   never needed a list of its own, since a cell is named by the element that
+   defines it, so a copy given an override writes another cell. Format 3's
+   `doc` names the version by a hash of its source instead
    (`Dast::version_hash`), since a signature at every load would cost a
-   probe; what a platform needs it for is which version a save was made
-   in. The keys cost a load at most 3% more instructions
+   abstract build; what a platform needs it for is which version a save was
+   made in. The keys cost a load at most 3% more instructions
    (`points-10000`, callgrind, against phase 0), and memory grows by the
-   keys' text: 8% on `chain-100000`, 53% on `select-1000`, whose many
-   small elements have long keys; `points-10000` is unchanged.
+   keys' text: 8% on `chain-100000`, 53% on `select-1000`, whose many small
+   elements have long keys; `points-10000` is unchanged.
 5. **`compare_versions`** (step 4), in `compile/check.rs`, with an
    optional map of renames, its failures tied to nodes as diagnostics
    are; exposed by `cells-wasm`. Each row of step 4's table is a test.

@@ -101,12 +101,12 @@ one out.
 The class is a fact about the source, so the compile records it per
 template slot, and every build of the document reads it (ADR 0015):
 
-- A document with repeats or selects is checked through the probe, whose
-  graph holds every edge any count or pick can create (ADR 0012, ADR
-  0014). Emit runs the walk on the probe's graph and records the writable
-  template slots in `Compiled`; every later build classes its slots from
-  that record. A slot writable at some count is writable in the probe, so
-  no build meets a write it did not expect.
+- A document with repeats or selects is checked through the abstract build,
+  whose graph holds every edge any count or pick can create (ADR 0012, ADR
+  0014). Emit runs the walk on the abstract build's graph and records the
+  writable template slots in `Compiled`; every later build classes its slots
+  from that record. A slot writable at some count is writable in the
+  abstract build, so no build meets a write it did not expect.
 - A document without either has one structure, and its first build is its
   check (ADR 0015). Emit runs the walk on that build's graph and classes
   its cells by it; there is no other build.
@@ -176,8 +176,8 @@ cell is an input's.
 - **Small.** Every essential cell is one some input's inverse can reach.
   It is larger than the cells a student does reach only where the rules
   are conservative: an inverse whose target depends on values declares
-  every target it may pick, and the probe folds iterations, so an edge
-  some count has is assumed at every count.
+  every target it may pick, and the abstract build folds iterations, so an
+  edge some count has is assumed at every count.
 
 ## Considered options
 
@@ -334,17 +334,17 @@ snapshots only.
 4. **The class** (steps 1 and 3).
    - `Compiled` gains `writable: Option<Arc<[Bits]>>`, one bit per
      template slot of each template (`Template::n_slots`, indexed by
-     `slot_off + pi`, as `essential_key`'s template slot is). The probe
-     sets it in `compile/check.rs` beside `structural_depth`, marking
-     the template slot of every value slot the walk marks; the probe
-     stamps each template once, so one probe slot stands for each
-     template slot, and two that meet are or-ed.
+     `slot_off + pi`, as `essential_key`'s template slot is). The abstract
+     build sets it in `compile/check.rs` beside `structural_depth`, marking
+     the template slot of every value slot the walk marks; the abstract
+     build stamps each template once, so one abstract-build slot stands for
+     each template slot, and two that meet are or-ed.
    - Emit classes a value slot by the record when there is one, and by
      its own walk when there is none: the first build of a document
      without repeats or selects, its only build, which keeps no
      `Compiled` to rebuild from (`Document::rebuild` returns early). A
-     load with `check_cycles` off and a repeat or select has no probe
-     and so no record; there every value slot is essential, as before
+     load with `check_cycles` off and a repeat or select has no abstract
+     build and so no record; there every value slot is essential, as before
      this ADR, which keeps the cycle tests' documents as they were.
    - In emit's counting and numbering loops an unwritable value slot
      goes with the fixed slots, with its literal or default as its
@@ -369,8 +369,8 @@ snapshots only.
    with every value identical; load, rebuild and memory on
    `sir.doenet` and the golden set with `perf-diff.sh` and callgrind;
    the parity dashboard. The walk is linear in slots and runs once per
-   load with a repeat or select, in the probe, so the load should not
-   slow; a rebuild and a save should be faster on `sir.doenet`.
+   load with a repeat or select, in the abstract build, so the load should
+   not slow; a rebuild and a save should be faster on `sir.doenet`.
 6. **ADR 0017** follows. `essential_leaves` with `writes` follows
    `OpSpec::writes` instead of every input but a hold's flag; an
    unwritable author value is a fixed cell, so the signature hashes it
@@ -452,8 +452,8 @@ Settled while implementing:
 - The golden script (`cells-bench/src/script.rs`) no longer requests a
   `<number>`, which no renderer does. The JavaScript harness's
   `changeRadius` is a named gap; no test calls it.
-- The walk follows the probe's later-iteration sources, so it sees the
-  edges the cycle check sees. No document here needs it (a later
+- The walk follows the abstract build's later-iteration sources, so it sees
+  the edges the cycle check sees. No document here needs it (a later
   iterate's source writes nothing, or folds onto its own slot), and the
   soundness test does not notice its absence.
 - The soundness test catches an undeclared write where it is the only way
@@ -482,12 +482,12 @@ Settled after the migration (2026-10-26):
 
 ## Amendment: one record for every build, 2026-10-29
 
-Every document is probed now (ADR 0015's amendment of the same date), so
-every build classes its value slots by the probe's record; the first
-build of a document without repeats or selects no longer classes by its
-own walk, and a load with `check_cycles` off still has a record, since
-only the probe's loop checks are skipped. `Classes` is gone: `Compiled`
-holds the record, or none with the classing off. Under the `testing`
-feature each build still runs its own walk and keeps the keys it would
-make essential (`Structure::walked_essential_slots`), which
+Every document goes through the abstract build now (ADR 0015's amendment of
+the same date), so every build classes its value slots by the abstract
+build's record; the first build of a document without repeats or selects no
+longer classes by its own walk, and a load with `check_cycles` off still has
+a record, since only the abstract build's loop checks are skipped. `Classes`
+is gone: `Compiled` holds the record, or none with the classing off. Under
+the `testing` feature each build still runs its own walk and keeps the keys
+it would make essential (`Structure::walked_essential_slots`), which
 `tests/every_count.rs` checks the record against.
