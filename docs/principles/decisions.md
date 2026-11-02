@@ -48,7 +48,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B27 | (#2438) An index is not applied uniformly to values (NAME-2): an index beyond an array's dimensions is dropped for `<point>`, `<vector>`, `<matrix>`, `<matrixInput>` (`$P[1][1]` is `3`, `$M[1][2][3]` is `2`), while `$c[2][1]` of a `<coords>` names nothing and warns; a tuple of tuples is indexed one level (`$m[1][2]` of `((1,2),(3,4))` names nothing, silently); a list entry two levels deep (`$ml[1][1][2]` is a blank); `$l.coords[1]` ignores the index. | #2431, "Known gaps" | `variableForIndexAsProp` arrays (`xs`, `displacement`, `matrix`) |
 | B28 | (#2438) An index past a list held by a repeat iteration reaches the `<setup>` the repeat adds for `valueName`: `$r[1][4].v` of `<repeat name="r" for="1 2" valueName="v">$l</repeat>` (3 entries) shows `1`, silently. Breaks NAME-3. | #2431, "Known gaps" | `doenetAttributes.iterationAliases` |
 | B29 | (#2439) `<math name="m">(1, $m[2])</math>` fails with an internal error ("Cannot read properties of undefined") instead of the circular-dependency error it gave before #2431. Breaks NAME-7 and DIAG-3. | #2431, "Known gaps" | the scalar check evaluates the value while the reference is resolved |
-| B30 | (#2440) Allowed REF-5 pairs that give a default instead of converting: `<point extend="$mi"/>` of a mathInput holding `(1,2)` shows `(0, 0)`; `<boolean extend="$t"/>` of text `true` is `false`. A property source is not checked against its value: `<point extend="$P.x"/>` makes the point `3`. | #2427, "Known limits" | the wrapping in `verifyReplacementsMatchSpecifiedType` |
+| B30 | (#2440) Allowed REF-5 pairs that give a default instead of converting: `<point extend="$mi"/>` of a mathInput holding `(1,2)` shows `(0, 0)`; `<boolean extend="$t"/>` of text `true` is `false`. Also every value tag other than its own from a `<textInput>`, `<math>` and `<text>` from a `<booleanInput>`, `<text>` from a `<mathInput>`, and `<math>`/`<number>` from a `<boolean>`: the new tag holds the source itself as a child and warns `doenet-w0107` "Invalid children" (comment on #2440). A property source is not checked against its value: `<point extend="$P.x"/>` makes the point `3`. | #2427, "Known limits" | the wrapping in `verifyReplacementsMatchSpecifiedType` |
 | B31 | (#2441) A type-changed copy can change on reload. An unlinked `<point copy="$mi"/>` saved after `mi` changed whether it is a tuple, and a copy of a `<conditionalContent>` made during a mismatch or from another case, are remade from the state at reload. Breaks SAVE-1 (also on main for a same-type `<point copy="$cc"/>`). | #2427, #2436 | the saved snapshot does not record the decision |
 | B32 | (#2439) Two `<conditionalContent>`s extending each other show "holds nothing" infos instead of `doenet-e0005` (on main before #2436 the switch threw). Breaks NAME-7. | #2436, "Known limits" | the re-entrancy guard |
 | B33 | (#2442) A value-driven diagnostic does not track the value (DIAG-2). Diagnostics are append-only, so an info is not cleared when the content matches again, and each new mismatch adds another. An index diagnostic is decided when the reference resolves: a value that is a scalar then and a tuple later keeps its warning. | #2427, #2431, #2436 | `DiagnosticsManager` is append-only |
@@ -741,6 +741,11 @@ single-use child group, writing two of them uses the second, and adding one in a
 ## D26. Which type changes may an `extend`, a `copy` or the fresh form make?
 
 **Decided. Done by #2427 and #2436** (closing #2423, #2414, #2415, #2435). REF-5 states it.
+
+**Revised by D36.** The run-time rule below ("Known at load or at run time") is replaced. A
+composite written as a scalar tag must be guaranteed by the DoenetML to hold one component of one
+type, or it is an error at load. Only an index and a value conversion are still decided as values
+change.
 
 **Decided:** related types are allowed, and any other pair is an error. The same table decides
 all three forms: `extend`, `copy`, and D33's fresh form, whose name is still open. Each asks
@@ -1800,3 +1805,134 @@ although it is found only at run time, because the author should write the fresh
 **Tests that change:** tests that assert these warnings for value-driven conditions. They expect
 an info instead. The codes stay the same.
 
+
+## D36. A tag you write makes that tag (decided, Tier 1; revises D26)
+
+**Decided.** REF-0 states the guarantee, and REF-1 and REF-5 are restated to match. It replaces
+D26's run-time rule, which #2436 implemented: content made at run time is no longer checked against
+the tag as it changes. The implementation is #2445.
+
+**Today** (#2436), `<math extend="$cc"/>` is a math while the active case holds one, and nothing
+while no case is active or the case holds something else. **[probe]** on main, built from
+`4e609c6`:
+
+| Document | Shows | Diagnostic |
+|---|---|---|
+| `<math extend="$nothing"/>` | a blank math `＿` | warning `doenet-w0104` |
+| `<math extend="$r[1]"/>` of a repeat with no iterations | a blank math `＿` | none |
+| `<math extend="$cc"/>` while no case is active | nothing | info `doenet-e0064` |
+| `<math extend="$cc"/>` while the case holds a section | nothing | info `doenet-e0065` |
+| `<point extend="$cc"/>` while no case is active | nothing | info `doenet-e0064` |
+| `<point extend="$m"/>` while `m` is not a tuple | nothing | info `doenet-i0053` |
+
+An author who writes `<math>` needs to know it is a math. Anything that reads it relies on that:
+`$x + 1`, `$x.value`, an answer that checks `$x`. A bare reference is different. `$cc` takes the
+shape of what it finds, and may be nothing.
+
+### The principle
+
+**A tag you write makes that tag.** In a document without errors, `<T extend="$x" …>…</T>`
+always makes exactly one T. The same holds for `copy` and for D33's fresh form. Errors are
+excluded: an error shows in place of the component, and the author must change the document
+(DIAG-1).
+
+**What the DoenetML could guarantee, it must.** Whether the tag can be made from x is decided at
+load, from the DoenetML alone. If the DoenetML does not guarantee it, the tag is an error. Nothing
+about what x holds is decided again as values change.
+
+### For a scalar tag
+
+`<T extend="$x"/>` of a composite (a `<conditionalContent>`, `<select>`, `<group>`, iteration and
+so on) is allowed only if x **always holds exactly one component, of one type S**, and S may become a
+T (REF-5's table). To decide this from the DoenetML:
+- **a `<conditionalContent>`** needs an `<else>`, and each case and the else must hold one
+  component of type S. "A case is always chosen" could be proven only when a condition is
+  literally `true`, so the rule is in practice an `<else>`.
+- **a `<select>` and the other selectors** (`selectFromSequence`, `selectRandomNumbers`,
+  `selectPrimeNumbers`, the `sample…` tags) need `numToSelect` written as the literal `1`, or
+  left out. A reference is an error, even though a select freezes its count at creation and the
+  value may be 1: knowing it would mean evaluating the document during the check. The message
+  suggests `$s[1]`.
+- **a `<group>`, `<sort>` or `<shuffle>`** needs one component.
+- **a `<repeat>`, `<collect>`, `<sequence>` or `<intersection>`**, whose count depends on values, is
+  an error as a scalar. The message suggests `$x[1]`. `<point extend="$i"/>` of an intersection
+  becomes `<point extend="$i[1]"/>`.
+- **what each part holds** is its tag. A bare reference `$y` holds y's tag (from the resolver).
+  A nested composite is looked through. A bare string is a text. A property, `$P.x`, holds its
+  declared type, once properties declare one (D20); until then it is an error.
+- **an attribute that decides the type**, such as `type="$t"` on a `<sequence>`, is an error.
+
+Different types that could each become a T are also an error: a math in one case and a number in
+the else, as a `<math>`. The author wraps it instead, `<math>$cc</math>`. A wrapper is a new
+component whose children are the reference, so it doesn't inherit the source's attributes.
+
+**A missing referent is an error.** `<math extend="$nothing"/>` is an error, not a blank math. The
+same goes for, when written on a tag:
+- an ambiguous name (`doenet-w0105`);
+- a literal index that names nothing (`<math extend="$s[2]"/>` of a one-pick select);
+- a property that doesn't exist (#2434 item 1).
+
+A bare `$nothing` stays a warning, since a bare reference may show nothing.
+
+### What can still change at run time
+
+Two cases depend on values, so they can't be decided at load. Neither changes what the component
+is.
+- **An index that names nothing because of its value.** `<math extend="$r[$i]"/>`, or `$r[1]` of
+  `<repeat for="1..$n">`, while there is no such iteration. An index is how an author says "this
+  may not exist". While it names nothing, the result is `<T/>` with the extend's own attributes
+  and children, with an info (DIAG-2). When it names a component again, the T takes it again.
+- **A conversion of a value.** `<point extend="$mi"/>` while mi's value is not a tuple, and
+  `<boolean extend="$t"/>` while t is not `true` or `false`. The component exists. Its value is
+  `<T/>`'s while the conversion fails, with info `doenet-i0053`.
+
+"`<T/>`'s value" is the current default: `＿` for a math, an empty text, `NaN` for a number,
+`false` for a boolean, and a point at (0, 0). These may change later (D10); `<angle/>` is the odd
+one. This decision does not change them.
+
+An input reached through such an index is a plain input while the index names nothing. The reader
+can type in it, and the link wins when the iteration returns.
+
+### For a list tag
+
+A list (`<mathList>`, `<numberList>`, `<textList>`, `<booleanList>`) takes **any number of
+components, including none**, all of one type S that converts to its entry type. So:
+- `<mathList extend="$c"/>` of a `<collect componentType="math">` is fine at any count.
+- a `<conditionalContent>` with no `<else>` is fine: holding nothing is an empty list, with no
+  info.
+- `numToSelect="$n"`, a repeat, or a sequence of variable length is fine.
+- mixed types are an error: `<mathList extend="$g"/>` of a group holding a math and a number. The
+  wrapper is `<mathList>$g</mathList>`.
+
+A list from the matching scalar or list (#2231) is unchanged.
+
+### What follows
+
+- **REF-1** holds only when there is a referent: `<math extend="$m"/>` is the same as `$m` while
+  `m` is a math.
+- **#2436's run-time path is removed.** The check of the whole composite is #2427's load-time
+  check, extended to every case and option. "Holds nothing now" is no longer possible for a
+  scalar. An index that names nothing gives `<T/>`, which is the blank-T fallback that existed
+  before #2436.
+- **#2437** becomes part of the load-time check. A case holding `$m` holds m's tag, decided from
+  the DoenetML, not by following a `_copy` as it changes.
+- **#2440**'s expected results change from "an info and nothing shown" to "an info and `<T/>`'s
+  value".
+- **The infos for composite content** (`e0064` and `e0065` at info level) go away. Those
+  conditions become load-time errors. `i0053` stays, for a value conversion and for an index that
+  names nothing.
+- **DIAG-1's info examples** lose "a type change that does not match the active case".
+
+### Tests that change
+
+- Most of `T/copying/type_change_run_time.test.ts` becomes load-time errors: mixed-type cases,
+  collects whose count changes, picks of several components. The value-conversion tests and the
+  index tests stay, expecting `<T/>`'s value instead of nothing.
+- `T/copying/type_change.test.ts`: `<point extend="$i"/>` of an intersection, scalar extends of a
+  collect, and composites that may hold nothing become errors.
+- Tests of `<math extend="$nothing"/>` expect an error instead of `w0104`.
+
+No test outside the two type-change suites relies on what is removed. Every `<conditionalContent>`
+extended as a scalar tag in the other tests has an `<else>` holding one type
+(`conditionalcontent.test.ts:426`, `:1237`; `extend_references.test.ts:1274`). Every select
+extended as a scalar picks one.

@@ -100,8 +100,12 @@ removed.
    - a different tag `T` is allowed only between related types (math, number, text and
      boolean among each other; point and vector), and gives x's value as a T; any other pair
      is an error.
+   - a tag you write makes that tag: `<math extend="$x"/>` is always a math. If the DoenetML
+     doesn't guarantee one component that can be a math (no referent, a `<conditionalContent>`
+     without an `<else>`, cases of different types), it is an error. Wrap it instead,
+     `<math>$cc</math>`, or index it, `$x[1]`.
 
-   (REF-3 to REF-5)
+   (REF-0, REF-3 to REF-5)
 
 **`copy`**
 
