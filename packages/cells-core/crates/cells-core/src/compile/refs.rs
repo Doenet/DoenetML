@@ -536,17 +536,16 @@ impl<'a> Compiler<'a> {
         display: impl std::fmt::Display,
     ) -> Result<i64> {
         let d = self.dast;
-        let mut text = String::new();
-        for &n in expr {
-            match d.kind(n) {
-                NodeKind::Text => text.push_str(d.str(n)),
-                NodeKind::Macro => return Err(Error::DynamicIndex(display.to_string())),
-                _ => {}
-            }
+        if expr.iter().any(|&n| d.kind(n) == NodeKind::Macro) {
+            return Err(Error::DynamicIndex(display.to_string()));
         }
-        text.trim()
-            .parse::<i64>()
-            .map_err(|_| Error::BadIndex(display.to_string()))
+        // The text of the nodes as one, trimmed: read in place.
+        let chars = expr
+            .iter()
+            .filter(|&&n| d.kind(n) == NodeKind::Text)
+            .flat_map(|&n| d.str(n).chars())
+            .skip_while(|c| c.is_whitespace());
+        parse_index(chars).ok_or_else(|| Error::BadIndex(display.to_string()))
     }
 
     /// An index expression: a sum of literal integers and iteration indices.
@@ -561,15 +560,19 @@ impl<'a> Compiler<'a> {
         for &n in expr {
             match d.kind(n) {
                 NodeKind::Text => {
-                    let s: String = d.str(n).chars().filter(|c| !c.is_whitespace()).collect();
-                    if s.is_empty() {
+                    let s = d.str(n);
+                    if s.chars().all(char::is_whitespace) {
                         continue;
                     }
-                    terms.push(IndexTerm::Const(
-                        s.trim_start_matches('+')
-                            .parse::<i64>()
-                            .map_err(|_| Error::BadIndex(display.to_string()))?,
-                    ));
+                    // Whitespace anywhere is no part of the term, nor are
+                    // leading `+`s: `$i + 1`, `$i - 1`.
+                    let chars = s
+                        .chars()
+                        .filter(|c| !c.is_whitespace())
+                        .skip_while(|&c| c == '+');
+                    let k =
+                        parse_index(chars).ok_or_else(|| Error::BadIndex(display.to_string()))?;
+                    terms.push(IndexTerm::Const(k));
                 }
                 NodeKind::Macro => {
                     let path = d.macro_path(n);
@@ -618,5 +621,86 @@ pub(in crate::compile) struct Written<'d>(
 impl std::fmt::Display for Written<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.0.macro_display(self.1))
+    }
+}
+
+/// An integer as `str::parse::<i64>` reads it, from `chars` with no
+/// leading whitespace, trailing whitespace allowed (`str::trim`'s end):
+/// one optional sign, then ASCII digits, within `i64`. Reads the source
+/// in place: no string is built.
+fn parse_index(mut chars: impl Iterator<Item = char>) -> Option<i64> {
+    let mut first = chars.next()?;
+    let negative = first == '-';
+    if first == '-' || first == '+' {
+        first = chars.next()?;
+    }
+    let mut value: i64 = 0;
+    let mut c = Some(first);
+    while let Some(ch) = c {
+        let Some(digit) = ch.to_digit(10) else {
+            // Only whitespace may follow the digits.
+            return (ch.is_whitespace() && chars.all(char::is_whitespace)).then_some(value);
+        };
+        let digit = i64::from(digit);
+        value = value.checked_mul(10)?;
+        value = if negative {
+            value.checked_sub(digit)?
+        } else {
+            value.checked_add(digit)?
+        };
+        c = chars.next();
+    }
+    Some(value)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_index;
+
+    /// `parse_index` reads as the string-building readers it replaced: a
+    /// `plan_index` term (whitespace stripped, leading `+`s dropped) and
+    /// a `literal_index` (trimmed).
+    #[test]
+    fn index_text_reads_as_parse_does() {
+        let cases = [
+            "1",
+            " 2 ",
+            "+ 1",
+            " - 1",
+            "-1",
+            "+-1",
+            "-+1",
+            "++3",
+            "+",
+            "-",
+            "",
+            "  ",
+            "1 2",
+            "12a",
+            "a",
+            "007",
+            "-0",
+            "1.5",
+            "9223372036854775807",
+            "9223372036854775808",
+            "-9223372036854775808",
+            "-9223372036854775809",
+            "\u{a0}4\u{a0}",
+            "٣",
+            "1\t",
+            "+ -",
+        ];
+        for case in cases {
+            let stripped: String = case.chars().filter(|c| !c.is_whitespace()).collect();
+            let old = stripped.trim_start_matches('+').parse::<i64>().ok();
+            let chars = case
+                .chars()
+                .filter(|c| !c.is_whitespace())
+                .skip_while(|&c| c == '+');
+            assert_eq!(parse_index(chars), old, "term {case:?}");
+            let old = case.trim().parse::<i64>().ok();
+            let chars = case.chars().skip_while(|c| c.is_whitespace());
+            assert_eq!(parse_index(chars), old, "literal {case:?}");
+        }
     }
 }
