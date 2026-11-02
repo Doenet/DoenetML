@@ -557,6 +557,65 @@ describe("An unlinked copy through a reload @group4", () => {
         expect(await inPoints()).eqls([["tuple", 1, 2]]);
     });
 
+    it("deleted and made again without a reload, is made as it was", async () => {
+        // Leaving a case deletes the copies in it, and coming back makes
+        // them again, from what decided what they made when they were made
+        // (`keepSavedStateForRecreation`): `P` is still made from the math,
+        // whose value is no longer a tuple, and `g` from the case of `cc`
+        // it was made from, with the reader's edit.
+        const doenetML = `
+    <math name="m">x</math>
+    <mathInput name="mi" bindValueTo="$m" />
+    <booleanInput name="b" />
+    <booleanInput name="c" prefill="true" />
+    <booleanInput name="o" prefill="true" />
+    <conditionalContent>
+        <case condition="$b"><point copy="$m" name="P" /></case>
+        <else>no point</else>
+    </conditionalContent>
+    <conditionalContent name="cc">
+        <case condition="$c"><mathInput name="a" prefill="1" /></case>
+        <else><textInput name="t" prefill="hi" /></else>
+    </conditionalContent>
+    <conditionalContent name="outer">
+        <case condition="$o"><group copy="$cc" name="g" /></case>
+        <else>no group</else>
+    </conditionalContent>
+    `;
+        const { sv, setBoolean, core, resolve, pointsShown } =
+            await reloader(doenetML);
+        await updateMathInputValue({
+            latex: "(1,2)",
+            componentIdx: await resolve("mi"),
+            core: core(),
+        });
+        await setBoolean("b", true);
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolve("mi"),
+            core: core(),
+        });
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolve("outer.g.a"),
+            core: core(),
+        });
+        await setBoolean("c", false);
+        expect(await pointsShown()).eqls([[1, 2]]);
+        expect((await sv("outer.g.a")).stateValues.value.tree).eq(7);
+
+        await setBoolean("b", false);
+        await setBoolean("o", false);
+        expect(await pointsShown()).eqls([]);
+        expect(await sv("outer.g.a")).eq(undefined);
+
+        await setBoolean("b", true);
+        await setBoolean("o", true);
+        expect(await pointsShown()).eqls([[1, 2]]);
+        expect((await sv("outer.g.a")).stateValues.value.tree).eq(7);
+        expect(await sv("outer.g.t")).eq(undefined);
+    });
+
     it("keeps values its source holds in primitive children or in essential state", async () => {
         // Dragging `<point>(1,2)</point>` or binding an input to
         // `<text>hi</text>` changes the source's string child, not its
