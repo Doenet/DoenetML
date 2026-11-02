@@ -170,6 +170,36 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
         ]);
     });
 
+    it("an info of an unlinked copy names the value it was made from, after a reload too", async () => {
+        // A `copy` stays as it was made, and so does its info, though a
+        // copy made now would show nothing too.
+        const d = await setup(`
+<mathInput name="mi" prefill="x"/>
+<group name="g"><math>$mi</math></group>
+<p name="p1"><point name="P" copy="$g"/></p>
+`);
+        const infoNamingX = {
+            code: "doenet-i0053",
+            type: "info",
+            line: 4,
+            message:
+                "A `<point>` can't be made from `$g` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+        };
+        expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([infoNamingX]);
+
+        await d.setMath("mi", "y");
+        expect(await d.text("p1")).eq("");
+        expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([
+            infoNamingX,
+        ]);
+
+        await d.setMath("mi", "(1,2)");
+        expect(await d.text("p1")).eq("");
+        expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([
+            infoNamingX,
+        ]);
+    });
+
     it("an info of an extend in a case that is withheld is not reported while it is", async () => {
         const d = await setup(`
 <booleanInput name="show" prefill="true"/>

@@ -168,8 +168,10 @@ of a math doesn't allow the tag: `<text extend="$cc"/>{:dn}` while the active
 case holds a point, or `<point extend="$m"/>{:dn}` while `m` is not a tuple, as
 for a math in a group of one or the one entry of a list. An `extend` is shown again when what it stands
 for matches, and its info goes away. While the mismatch lasts there is one info,
-naming the value as it is now, and none for an `extend` inside content that
-isn't shown, such as a case that isn't chosen. A `copy` does not follow its source, so it stays as it was made. A
+naming the value as it is now, and none for an `extend` in content that isn't
+there now, such as a case that isn't chosen (one hidden with `hide` still has
+it). A `copy` does not follow its source, so it stays as it was made, and so
+does its info. A
 property, such as `<point extend="$P.x"/>{:dn}`, and the selected value of a
 `<choiceInput>` are not checked against their value.
 

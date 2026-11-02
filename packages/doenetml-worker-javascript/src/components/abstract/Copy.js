@@ -1523,15 +1523,18 @@ export default class Copy extends CompositeComponent {
             }
             component.unlinkedSnapshot = copySnapshotOf(result.replacements);
             component.unlinkedMadeFrom = args.workspace.madeFrom;
-            component.freshUnlinkedSnapshot = async () =>
-                copySnapshotOf(
-                    (
-                        await this.createReplacementsFromSources({
-                            ...args,
-                            workspace: {},
-                        })
-                    ).replacements,
-                );
+            component.freshUnlinkedSnapshot = async () => {
+                const workspace = {};
+                const { replacements } =
+                    await this.createReplacementsFromSources({
+                        ...args,
+                        workspace,
+                    });
+                return {
+                    snapshot: copySnapshotOf(replacements),
+                    madeFrom: workspace.madeFrom,
+                };
+            };
         }
         return result;
     }

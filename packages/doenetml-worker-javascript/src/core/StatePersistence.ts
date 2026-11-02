@@ -366,7 +366,9 @@ export class StatePersistence {
 
     /**
      * Hold, under `__copySnapshots`, the snapshot of each unlinked copy that
-     * a copy made now would not match (`snapshotStillMade`): a reload makes
+     * a copy made now would not match (`snapshotStillMade`), or would match
+     * while deciding its type change otherwise (an info naming another
+     * value, while it shows nothing either way): a reload makes
      * the copy again from its source as restored, and takes the saved
      * snapshot instead (`utils/copySnapshot.js`). A copy that one made now
      * would reproduce needs nothing saved, as #1940 asks of what a reader has
@@ -391,13 +393,22 @@ export class StatePersistence {
         const componentOfStateId = (stateId: string) =>
             this.core._components[this.core.componentIdxByStateId?.[stateId]];
         for (const component of copies) {
-            const fresh = await component.freshUnlinkedSnapshot();
+            const { snapshot: fresh, madeFrom } =
+                await component.freshUnlinkedSnapshot();
+            const typeChange = madeFrom?.typeChange;
+            const madeTypeChange = component.unlinkedMadeFrom?.typeChange;
             if (
-                await snapshotStillMade(
+                // A copy made now that decides its type change otherwise,
+                // as an info naming another value while it still shows
+                // nothing, would report another info after a reload (DIAG-6)
+                typeChange?.key === madeTypeChange?.key &&
+                typeChange?.diagnostic?.message ===
+                    madeTypeChange?.diagnostic?.message &&
+                (await snapshotStillMade(
                     fresh,
                     component.unlinkedSnapshot,
                     componentOfStateId,
-                )
+                ))
             ) {
                 delete snapshots[component.stateId];
             } else {
