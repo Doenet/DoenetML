@@ -185,6 +185,51 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    /// The hidden iteration elements outlining made in repeat `e`'s body
+    /// for its `valueName` and `indexName`: a `<repeatForSequence>`'s value
+    /// is `from + (k - 1) * step`, its `from` and `step` aliasing the
+    /// repeat's own (one hop up) and `k` the iteration's position; either
+    /// repeat's index is the iteration's position. A `<repeat>`'s value, a
+    /// tuple, is `plan_repeat_for`'s.
+    pub(in crate::compile) fn plan_iteration_names(&mut self, t: TemplateId, e: ElemId) {
+        let Body::Repeat { template: sub } =
+            self.compiled.templates[t.index()].elems[e.index()].body
+        else {
+            return;
+        };
+        for i in 0..self.compiled.templates[sub.index()].elems.len() {
+            let el = &self.compiled.templates[sub.index()].elems[i];
+            if el.node != NodeId::NONE {
+                continue;
+            }
+            let props = match el.component_type {
+                ComponentType::SequenceValue => {
+                    let from = self.own_prop_plan(e, "from");
+                    let step = self.own_prop_plan(e, "step");
+                    use prop::sequence_value as sv;
+                    let at = sv::Props::AT;
+                    let table = |i| Wire::from_table(ComponentType::SequenceValue, i);
+                    let mut wiring = ElemWiring::of(ComponentType::SequenceValue);
+                    wiring.set_public(sv::Props {
+                        from: Source::reference(from).into(),
+                        step: Source::reference(step).into(),
+                        k: Source::IterIndex.into(),
+                        km1: table(at.km1),
+                        scaled: table(at.scaled),
+                        value: table(at.value),
+                    });
+                    wiring.finish()
+                }
+                ComponentType::Number => prop::number::Props {
+                    value: Source::IterIndex,
+                }
+                .into_vec(),
+                _ => continue,
+            };
+            self.compiled.templates[sub.index()].elems[i].props = props;
+        }
+    }
+
     /// `<repeat for="$fi.allIteratesWithInitial">`: `count` aliases the
     /// list's length, and the item `$x` of iteration `k` aliases every
     /// prop of the tuple of iteration `k` of the `<functionIterates>`

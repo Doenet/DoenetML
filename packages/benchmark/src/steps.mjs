@@ -95,6 +95,10 @@ export const STEPS = {
         "Container copies given their clones, once every name is in the table.",
         `${C}/compile/copies.rs (expand_container_copies)`,
     ],
+    "core/new Core/load/compile/plan/outline/answer children": [
+        "Every answer's synthetic children made: its implicit input and a response for each input its whens read, so the element set is fixed before planning (ADR 0030).",
+        `${C}/compile/answer.rs (add_answer_children)`,
+    ],
     "core/new Core/load/compile/plan/parse maths": [
         "Every math text parsed into an expression tree, once.",
         `${C}/compile/mod.rs (parse_maths)`,
@@ -112,12 +116,16 @@ export const STEPS = {
         `${C}/compile/mod.rs (plan_ref)`,
     ],
     "core/new Core/load/compile/plan/link": [
-        "Readers of boxed elements boxed, then shared state tied between the elements left.",
+        "Readers of boxed elements boxed, elements with an attribute nothing read boxed and their readers in turn, then shared state tied between the elements left.",
         `${C}/compile/mod.rs (link)`,
     ],
     "core/new Core/load/compile/plan/link/box readers": [
         "Every reader of a boxed referent boxed.",
         `${C}/compile/mod.rs (box_readers_of_boxes)`,
+    ],
+    "core/new Core/load/compile/plan/link/unread attributes": [
+        "Every element with an attribute nothing read while planning boxed in place (ADR 0021, ADR 0030).",
+        `${C}/compile/unread.rs (box_unread_attributes)`,
     ],
     "core/new Core/load/compile/plan/link/shared state": [
         "Shared state tied between geometry elements.",
@@ -146,10 +154,6 @@ export const STEPS = {
     "core/new Core/load/compile/plan/finish": [
         "The plan's storage shrunk to fit, and the expression-tree cache made for repeats.",
         `${C}/compile/mod.rs (Compiler::compile)`,
-    ],
-    "core/new Core/load/compile/unread attributes": [
-        "Every element with an attribute nothing read while planning found, to be boxed (ADR 0021).",
-        `${C}/compile/check.rs (unread_attributes)`,
     ],
     "core/new Core/load/compile/diagnostics": [
         "The lint's, planners' and abstract build's diagnostics joined and sorted.",

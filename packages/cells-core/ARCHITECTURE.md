@@ -99,8 +99,9 @@ Runs once per load and depends on the source alone.
   (see [Add a component type](#add-a-component-type)). The compile runs
   in stages (ADR 0027, ADR 0029; `Compiler::compile_all`): **outline**
   makes every element, template and name, settles what a reference reads
-  of each (a `<math>`'s type, a `<collect>`'s collected type) and gives
-  container copies their clones; **parse** parses every `<math>`'s text
+  of each (a `<math>`'s type, a `<collect>`'s collected type), gives
+  container copies their clones and answers their synthetic children,
+  and plans nothing (ADR 0030); **parse** parses every `<math>`'s text
   once; **plan** plans every element; **link** boxes what read a boxed
   referent and every element with an attribute nothing read, and ties
   shared state between plans; **seal** (`seal.rs`)

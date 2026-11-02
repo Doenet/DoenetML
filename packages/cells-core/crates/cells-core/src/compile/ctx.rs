@@ -503,7 +503,14 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Plans a repeat over a list (`compile/iterates.rs`).
     pub(crate) fn plan_repeat_for(&mut self) -> Result<()> {
+        self.c.plan_iteration_names(self.t, self.e);
         self.c.plan_repeat_for(self.t, self.e)
+    }
+
+    /// Plans the hidden elements a repeat's `valueName` and `indexName`
+    /// make (`compile/iterates.rs`).
+    pub(crate) fn plan_iteration_names(&mut self) {
+        self.c.plan_iteration_names(self.t, self.e)
     }
 
     /// Plans a function's iterates as a repeat (`compile/iterates.rs`).

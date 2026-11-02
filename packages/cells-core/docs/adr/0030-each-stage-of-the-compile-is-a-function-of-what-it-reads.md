@@ -1,6 +1,6 @@
 # Each stage of the compile is a function of what it reads
 
-Status: proposed 2026-11-02. Steps 1 to 3 are done; see Migration. Amends ADR
+Status: proposed 2026-11-02. Steps 1 to 4 are done; see Migration. Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -149,7 +149,8 @@ table, `plan_ref`) lives in a module of its own that says so.
 - What a stage reads and writes is its signature, and the compiler
   enforces it. A planner that reads another element's plan (ADR 0029)
   cannot compile, rather than being caught by review.
-- The element set is fixed once outlined, as ADR 0027 says.
+- The element set is fixed once outlined, as ADR 0027 says, but for
+  the box of a `$ref` child that cannot be planned.
 - A plan is never edited after it is made, except by linking, whose
   edits are named (a box, a shared slot's alias).
 - A document with *n* independent errors and an unread attribute plans
@@ -202,7 +203,19 @@ otherwise.
    synthetic document's props into their planners, push an answer's
    `response` and `mathInput` when outlining, and decide an extend's
    default prop in `plan_extend`. `elem_shape` stops editing a
-   `RefPlan`.
+   `RefPlan`. Done. A repeat's planner plans its `valueName` and
+   `indexName` elements (`plan_iteration_names`), and the synthesized
+   root of an unnormalized DAST is planned with every element
+   (`plan_synthetic`). Outlining ends by making every answer's synthetic
+   children (`add_answer_children`), deciding them from the source as
+   `plan_answer` does, and planning the references in its whens to find
+   the inputs they read; the planner reuses those references and plans
+   the children. They are made after everything else outlining makes, in
+   the order the answers were made, which is where planning pushed them,
+   so the golden diff is unchanged. Where the planner refuses the answer,
+   they die with its box. A debug assertion in `compile_all` checks that
+   planning and linking make no element but the box of a `$ref` child
+   that cannot be planned, which has no element to be boxed in place.
 5. **`outline` returns `Outline`.** Its handover fields leave
    `Compiler`.
 6. **`parse` returns `Parsed`**, and planners read it without taking from

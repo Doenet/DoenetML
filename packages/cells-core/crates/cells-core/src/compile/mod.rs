@@ -13,7 +13,7 @@
 //! | Stage | Code | Makes |
 //! |---|---|---|
 //! | lint | `lint.rs` | findings from the DAST alone, first |
-//! | **outline** | `Compiler::outline` | elements, templates, the name table, what a reference reads of each (`settle_outline`), container copies' clones (`copies.rs`) |
+//! | **outline** | `Compiler::outline` | every element and template, the name table, what a reference reads of each (`settle_outline`), container copies' clones (`copies.rs`), answers' synthetic children (`answer.rs`); no plans |
 //! | **parse** | `Compiler::parse_maths` | every `<math>`'s text parsed, its `$ref`s planned |
 //! | **plan** | `Compiler::plan_all` | every element's plans and hold, every `$ref` child's plan |
 //! | **link** | `Compiler::link` | readers of boxed referents boxed, elements with an attribute nothing read boxed (`unread.rs`, ADR 0021), shared state tied |
@@ -125,13 +125,15 @@ pub(in crate::compile) struct Planned {
 pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled; `compiled` keeps it too. R: every stage.
     pub(in crate::compile) dast: &'a Dast,
-    /// What the compile makes. W: every stage. Outlining pushes elements,
-    /// templates and some references (`own_prop_plan`, an `extend`'s) and
-    /// the props of synthesized elements, and settles a `<math>`'s type;
-    /// parsing pushes references and expressions; planning sets props,
-    /// bodies, holds and `extend`s, and pushes an answer's `response` and
-    /// `mathInput` elements; linking boxes and aliases shared slots;
-    /// sealing sets choice interfaces, keys and slot offsets.
+    /// What the compile makes. W: every stage. Outlining pushes every
+    /// element (an answer's synthetic ones too, `add_answer_children`) and
+    /// template, and the references it reads (a container copy's
+    /// `extend`, an answer's whens), and settles a `<math>`'s type; it
+    /// plans no prop. Parsing pushes references and expressions; planning
+    /// sets props, bodies, holds and `extend`s, and pushes no element but
+    /// the box of a `$ref` child it cannot plan; linking boxes and aliases
+    /// shared slots; sealing sets choice interfaces, keys and slot
+    /// offsets.
     pub(in crate::compile) compiled: Compiled,
     /// Every element to plan. W: outline (`add_elem`, `clone_children`).
     /// R: plan (`plan_all`), drained.
@@ -206,6 +208,14 @@ pub(in crate::compile) struct Compiler<'a> {
     /// copies), plan. R: link (`box_readers_of_boxes`), which boxes one
     /// whose referent is a box.
     referent_readers: Vec<(TemplateId, ElemId, RefId)>,
+    /// The references in an answer's whens, planned when outlining made the
+    /// answer's responses (`add_answer_children`), by macro node.
+    /// W: outline. R: plan (`plan_award`).
+    when_refs: HashMap<NodeId, RefId>,
+    /// By (template, answer), the `response` outlining made for each input
+    /// its whens read, keyed as `input_named` keys them. W: outline
+    /// (`add_answer_children`). R: plan (`plan_award`).
+    answer_responses: HashMap<(u32, u32), Vec<(InputKey, ElemId)>>,
     /// By (template, element), the reference in the element's `extend`,
     /// planned once (`plan_extend`). A cache. W, R: outline (container
     /// copies), plan.
@@ -222,6 +232,10 @@ pub(in crate::compile) struct Share {
     referent: ElemId,
     state: SharedState,
 }
+
+/// An input an answer's when reads, as `input_named` keys it: how many
+/// templates up, and which element.
+pub(in crate::compile) type InputKey = (u32, ElemId);
 
 /// A name-table entry naming more than one element.
 const AMBIGUOUS: u32 = u32::MAX;
@@ -343,6 +357,8 @@ impl<'a> Compiler<'a> {
             shared_state: HashMap::new(),
             referent_readers: Vec::new(),
             extend_refs: HashMap::new(),
+            when_refs: HashMap::new(),
+            answer_responses: HashMap::new(),
             math_texts: Vec::new(),
             parsed_maths: HashMap::new(),
         };
@@ -386,12 +402,26 @@ impl<'a> Compiler<'a> {
     fn compile_all(&mut self) -> std::result::Result<(), Failure> {
         crate::trace::span("outline").run(|| self.outline());
         self.restart_if_needed()?;
+        // The element set is outlining's (ADR 0030): planning and linking
+        // make none, but for the box of a `$ref` child that cannot be
+        // planned, which has no element to be boxed in place.
+        let outlined = self.elem_count();
         crate::trace::span("parse maths").run(|| self.parse_maths());
-        crate::trace::span("plan all").run(|| self.plan_all());
+        let ref_boxes = crate::trace::span("plan all").run(|| self.plan_all());
         self.restart_if_needed()?;
         crate::trace::span("link").run(|| self.link())?;
+        debug_assert_eq!(
+            self.elem_count(),
+            outlined + ref_boxes,
+            "only outlining makes elements (ADR 0030)"
+        );
         self.restart_if_needed()?;
         crate::trace::span("seal").run(|| self.seal())
+    }
+
+    /// How many elements the templates hold.
+    fn elem_count(&self) -> usize {
+        self.compiled.templates.iter().map(|t| t.elems.len()).sum()
     }
 
     /// The failure to compile again from, when a stage recorded one.
@@ -418,14 +448,11 @@ impl<'a> Compiler<'a> {
                 ROOT_SCOPE,
             ))],
             None => {
-                // Synthesize a root when the DAST was not normalized.
+                // Synthesize a root when the DAST was not normalized; it is
+                // planned with every element (`plan_synthetic`).
                 let e =
                     self.add_synthetic(TemplateId::new(0), ComponentType::Document, StrId::NONE);
-                self.compiled.templates[0].elems[e.index()].props = prop::document::Props {
-                    creditAchieved: Source::Deferred(Deferred::Credit),
-                    percentCreditAchieved: Source::Deferred(Deferred::PercentCredit),
-                }
-                .into_vec();
+                self.pending_elems.push((TemplateId::new(0), e));
                 let kids = self.add_children(
                     TemplateId::new(0),
                     Some(e),
@@ -437,16 +464,21 @@ impl<'a> Compiler<'a> {
             }
         };
         self.compiled.templates[0].children = children;
-        let _s = crate::trace::span("container copies");
-        crate::trace::count("copies", self.container_copies.len());
-        self.expand_container_copies()
+        {
+            let _s = crate::trace::span("container copies");
+            crate::trace::count("copies", self.container_copies.len());
+            self.expand_container_copies();
+        }
+        crate::trace::span("answer children").run(|| self.add_answer_children());
     }
 
     /// Planning: every element and every `$ref` child, each from the
     /// source and what outlining and parsing made alone, never from
     /// another element's plan (ADR 0029). What fails is boxed in place.
-    fn plan_all(&mut self) {
+    /// Returns how many `$ref` children were boxed, each a new element.
+    fn plan_all(&mut self) -> usize {
         let dast = self.dast;
+        let mut ref_boxes = 0;
         {
             let _s = crate::trace::span("elements");
             crate::trace::count("elements", self.pending_elems.len());
@@ -478,6 +510,7 @@ impl<'a> Compiler<'a> {
                 Err(error) => {
                     self.errors.push(Diagnostic::error(Some(m), &error));
                     self.boxed_here.insert(m);
+                    ref_boxes += 1;
                     Child::Elem(self.push_error_elem(t, m, scope))
                 }
             };
@@ -486,6 +519,7 @@ impl<'a> Compiler<'a> {
                 None => self.compiled.templates[t.index()].children[i] = child,
             }
         }
+        ref_boxes
     }
 
     /// Linking: what planning left for once every element is planned. A
@@ -826,40 +860,19 @@ impl<'a> Compiler<'a> {
                     ..Default::default()
                 });
                 // Hidden iteration components first, so `$v` and `$i` resolve
-                // anywhere inside the template. A `<repeat>`'s item is a
-                // tuple, element 0 of the body, planned with the repeat
-                // (`plan_repeat_for`).
-                if component_type == ComponentType::RepeatFor {
-                    if let Some(vn) = self.attr_name_str(el, "valueName") {
-                        self.add_synthetic(sub, ComponentType::Tuple, vn);
-                    }
-                } else if let Some(vn) = self.attr_name_str(el, "valueName") {
-                    let v = self.add_synthetic(sub, ComponentType::SequenceValue, vn);
-                    // from and step alias the repeat's own props (one hop up);
-                    // k is the iteration position; the rest is the type's chain.
-                    let from = self.own_prop_plan(e, "from");
-                    let step = self.own_prop_plan(e, "step");
-                    use prop::sequence_value as sv;
-                    let at = sv::Props::AT;
-                    let table = |i| Wire::from_table(ComponentType::SequenceValue, i);
-                    let mut wiring = ElemWiring::of(ComponentType::SequenceValue);
-                    wiring.set_public(sv::Props {
-                        from: Source::reference(from).into(),
-                        step: Source::reference(step).into(),
-                        k: Source::IterIndex.into(),
-                        km1: table(at.km1),
-                        scaled: table(at.scaled),
-                        value: table(at.value),
-                    });
-                    self.compiled.templates[sub.index()].elems[v.index()].props = wiring.finish();
+                // anywhere inside the template; the repeat's planner plans
+                // them (`plan_iteration_names`). A `<repeat>`'s item is a
+                // tuple, element 0 of the body (`plan_repeat_for`).
+                let value_type = if component_type == ComponentType::RepeatFor {
+                    ComponentType::Tuple
+                } else {
+                    ComponentType::SequenceValue
+                };
+                if let Some(vn) = self.attr_name_str(el, "valueName") {
+                    self.add_synthetic(sub, value_type, vn);
                 }
                 if let Some(iname) = self.attr_name_str(el, "indexName") {
-                    let i = self.add_synthetic(sub, ComponentType::Number, iname);
-                    self.compiled.templates[sub.index()].elems[i.index()].props =
-                        prop::number::Props {
-                            value: Source::IterIndex,
-                        }
-                        .into_vec();
+                    self.add_synthetic(sub, ComponentType::Number, iname);
                 }
                 let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el));
                 self.compiled.templates[sub.index()].children = kids;
@@ -1076,6 +1089,24 @@ impl<'a> Compiler<'a> {
             text: self.attr_text(a).unwrap_or_default(),
         })?;
         let p = self.plan_ref(t, name_scope, m)?;
+        // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an extend
+        // across related types is the referent's value as the element's
+        // type (REF-5, ADR 0025), so it is the extend of its default prop,
+        // decided here from the types outlining settled. An unrelated pair
+        // is left to the build, which refuses it once both types are
+        // known. A container copy names its referent itself.
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        if !component_type.container()
+            && self.compiled.refs[p.index()].prop.is_none()
+            && let Ok(Some(rt)) = self.ref_target_type(t, p)
+            && rt != component_type
+            && ComponentType::extends_as(rt, component_type)
+            && let Some(dp) = rt.default_prop()
+        {
+            let r = &mut self.compiled.refs[p.index()];
+            r.prop = Some(dp.to_string());
+            r.display = format!("{}.{dp}", r.display);
+        }
         self.extend_refs.insert(key, p);
         Ok(Some(p))
     }
@@ -1152,8 +1183,12 @@ impl<'a> Compiler<'a> {
                 self.plan_bare_copy(t, e);
                 Ok(())
             }
-            // Synthesized elements (iteration values) come planned.
-            ElemShape::Synthetic => Ok(()),
+            // The synthesized root; the other synthesized elements are
+            // planned by what owns them and never reach here.
+            ElemShape::Synthetic => {
+                self.plan_synthetic(t, e);
+                Ok(())
+            }
             ElemShape::ExtendProp(p) => self.plan_extend_prop(t, e, p),
             ElemShape::ContainerCopy(p) => self.plan_container_copy(t, e, p),
             ElemShape::ByType(extend) => match Self::planner(component_type) {
@@ -1190,26 +1225,13 @@ impl<'a> Compiler<'a> {
         let extend = match self.plan_extend(t, e)? {
             Some(p) => {
                 // An extend of a box is planned from nothing (ADR 0027).
-                let referent_type = self.referent_type(t, e, p)?;
+                self.referent_type(t, e, p)?;
                 // `<point extend="$c.center"/>`, `<math extend="$c.radius"/>`,
                 // `<pointList extend="$l.points"/>`: the element's value
-                // props alias the named prop.
+                // props alias the named prop. An extend across related
+                // types names the referent's default prop already
+                // (`plan_extend`).
                 if self.compiled.refs[p.index()].prop.is_some() {
-                    return Ok(ElemShape::ExtendProp(p));
-                }
-                // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an
-                // extend across related types is the referent's value as
-                // the element's type (REF-5, ADR 0025), so it is the
-                // extend of its default prop. An unrelated pair is left to
-                // the build, which refuses it once both types are known.
-                if let Some(rt) = referent_type
-                    && rt != component_type
-                    && ComponentType::extends_as(rt, component_type)
-                    && let Some(dp) = rt.default_prop()
-                {
-                    let r = &mut self.compiled.refs[p.index()];
-                    r.prop = Some(dp.to_string());
-                    r.display = format!("{}.{dp}", r.display);
                     return Ok(ElemShape::ExtendProp(p));
                 }
                 Some(p)
@@ -1218,6 +1240,15 @@ impl<'a> Compiler<'a> {
         };
         self.compiled.templates[t.index()].elems[e.index()].extend = extend;
         Ok(ElemShape::ByType(extend))
+    }
+
+    /// Plans the synthesized root of a DAST that was not normalized: it has
+    /// no source, so only its deferred props, which every root's are.
+    fn plan_synthetic(&mut self, t: TemplateId, e: ElemId) {
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let mut props = vec![Source::absent(); component_type.prop_defs().len()];
+        Deferred::mark(component_type, &mut props);
+        self.compiled.templates[t.index()].elems[e.index()].props = props;
     }
 
     /// Whether a child node is presentation a renderer reads rather than

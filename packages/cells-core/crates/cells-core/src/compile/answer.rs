@@ -5,7 +5,7 @@
 //! - `<answer response="$mi">x</answer>`: the response is the named
 //!   input's expression; `x` is the correct expression.
 //! - `<answer>x</answer>`: the answer owns an implicit `<mathInput>`,
-//!   created here as a synthetic child.
+//!   a synthetic child outlining makes (`add_answer_children`).
 //! - `<answer><mathInput name="mi"/>x</answer>`: the input child is the
 //!   response.
 //! - `<answer><award>x</award><award credit="0.5">y</award></answer>`:
@@ -14,8 +14,13 @@
 //! - `<answer><award><when>$mi = x</when></award></answer>`: each award
 //!   holds when its condition does. A `$mi` naming an input stands for the
 //!   answer's *submitted* copy of that input (a `response` component,
-//!   one per input referenced), so credit changes only on submit. No
-//!   implicit input is made.
+//!   one per input referenced, which outlining makes), so credit changes
+//!   only on submit. No implicit input is made.
+//!
+//! Outlining makes the synthetic children, so the element set is fixed
+//! before anything is planned (ADR 0030); the answer's planner plans them.
+//! Outlining decides them from the source as the planner does, and where
+//! the planner would refuse the answer, they die with its box.
 //!
 //! In every form `credit` is what a submit earns: equality with `correct`,
 //! or the most any award gives (`credit` × holds). Other content (choices,
@@ -36,6 +41,88 @@ struct AwardForm {
 }
 
 impl<'a> Compiler<'a> {
+    /// The end of outlining (ADR 0030): every answer's synthetic children,
+    /// its implicit `<mathInput>` and a `response` per input its whens
+    /// read, in the order the walk made the answers. They follow every
+    /// element the walk and the container copies made.
+    pub(in crate::compile) fn add_answer_children(&mut self) {
+        let answers: Vec<(TemplateId, ElemId)> = self
+            .pending_elems
+            .iter()
+            .copied()
+            .filter(|&(t, e)| {
+                let el = &self.compiled.templates[t.index()].elems[e.index()];
+                el.component_type == ComponentType::Answer && !el.cloned && el.node != NodeId::NONE
+            })
+            .collect();
+        for (t, e) in answers {
+            // An answer the planner refuses is boxed then; what is made
+            // for it here dies with it.
+            let _ = self.add_answer_children_of(t, e);
+        }
+    }
+
+    /// `add_answer_children` for answer `e`, deciding as `plan_answer`
+    /// does. Where the planner refuses the answer, this stops early.
+    fn add_answer_children_of(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        let d = self.dast;
+        let el = self.compiled.templates[t.index()].elems[e.index()].node;
+        if self.reject_answer_attrs(el)? {
+            return Ok(());
+        }
+        let mut inputs = Vec::new();
+        let mut awards = Vec::new();
+        for k in self.elem_children(t, e) {
+            match self.compiled.templates[t.index()].elems[k.index()].component_type {
+                ComponentType::ChoiceInput => return Ok(()),
+                ComponentType::MathInput
+                | ComponentType::BooleanInput
+                | ComponentType::TextInput => inputs.push(k),
+                ComponentType::Award => awards.push(k),
+                _ => return Ok(()),
+            }
+        }
+        let mut forms = Vec::with_capacity(awards.len());
+        for &a in &awards {
+            forms.push(self.award_form(t, a)?);
+        }
+        let needs_input =
+            !self.content_nodes(el).is_empty() || forms.iter().any(|f| f.when.is_none());
+        if needs_input && d.attr(el, "response").is_none() && inputs.is_empty() {
+            self.add_implicit_input(t, e);
+        }
+        let mut keys = Vec::new();
+        for form in &forms {
+            let Some((w, w_el)) = form.when else {
+                continue;
+            };
+            if d.children(w_el)
+                .iter()
+                .any(|&n| d.kind(n) == NodeKind::Element)
+            {
+                return Ok(());
+            }
+            for m in self.content_nodes(w_el) {
+                if d.kind(m) != NodeKind::Macro {
+                    continue;
+                }
+                let p = self.plan_ref(t, w, m)?;
+                self.when_refs.insert(m, p);
+                if let Some((key, _)) = self.input_named(t, p)
+                    && !keys.contains(&key)
+                {
+                    keys.push(key);
+                    let r = self.add_response(t, e);
+                    self.answer_responses
+                        .entry((t.get(), e.get()))
+                        .or_default()
+                        .push((key, r));
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub(in crate::compile) fn plan_answer(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.dast;
         let Elem {
@@ -46,7 +133,11 @@ impl<'a> Compiler<'a> {
         let text_answer = self.reject_answer_attrs(el)?;
         let mut inputs = Vec::new();
         let mut awards = Vec::new();
+        // The synthetic children outlining made are planned below.
         for k in self.elem_children(t, e) {
+            if self.compiled.templates[t.index()].elems[k.index()].node == NodeId::NONE {
+                continue;
+            }
             match self.compiled.templates[t.index()].elems[k.index()].component_type {
                 ComponentType::MathInput
                 | ComponentType::BooleanInput
@@ -125,7 +216,7 @@ impl<'a> Compiler<'a> {
                 Source::Alias(Arg::Elem(*mi, own_slot(math_input::EXPR)))
             }
             (true, None, []) => {
-                let mi = self.add_implicit_input(t, e);
+                let mi = self.plan_implicit_input(t, e)?;
                 Source::Alias(Arg::Elem(mi, own_slot(math_input::EXPR)))
             }
             (true, None, _) => {
@@ -484,12 +575,17 @@ impl<'a> Compiler<'a> {
                 // Each `$mi` naming an input reads the submitted copy.
                 let mut subst = HashMap::new();
                 for &m in nodes.iter().filter(|&&n| d.kind(n) == NodeKind::Macro) {
-                    let p = self.plan_ref(t, w, m)?;
+                    // Planned when outlining made the responses.
+                    let p = match self.when_refs.get(&m) {
+                        Some(&p) => p,
+                        None => self.plan_ref(t, w, m)?,
+                    };
                     if let Some((key, input_type)) = self.input_named(t, p) {
                         let r = match responses.iter().find(|(k, _)| *k == key) {
                             Some(&(_, r)) => r,
                             None => {
-                                let r = self.add_response(t, answer_e, p, input_type);
+                                let r = self.outlined_response(t, answer_e, key)?;
+                                self.plan_response(t, r, p, input_type);
                                 responses.push((key, r));
                                 r
                             }
@@ -561,19 +657,31 @@ impl<'a> Compiler<'a> {
         })
     }
 
-    /// A `response` child of answer `e` for the input plan `p` names: its
-    /// live expression (or a boolean input's value), the submitted copy,
-    /// and the copy's value.
-    fn add_response(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-        p: RefId,
-        input_type: ComponentType,
-    ) -> ElemId {
+    /// A `response` child of answer `e`, which its planner plans
+    /// (`plan_response`).
+    fn add_response(&mut self, t: TemplateId, e: ElemId) -> ElemId {
         let r = self
             .push_elem(t, NodeId::NONE, ComponentType::Response, StrId::NONE, e)
             .expect("unnamed");
+        self.compiled.templates[t.index()].elems[e.index()]
+            .children
+            .push(Child::Elem(r));
+        r
+    }
+
+    /// The `response` outlining made in answer `e` for the input `key`
+    /// names.
+    fn outlined_response(&self, t: TemplateId, e: ElemId, key: (u32, ElemId)) -> Result<ElemId> {
+        self.answer_responses
+            .get(&(t.get(), e.get()))
+            .and_then(|rs| rs.iter().find(|(k, _)| *k == key))
+            .map(|&(_, r)| r)
+            .ok_or_else(|| Error::Internal("a response outlining did not make".into()))
+    }
+
+    /// Response `r` for the input plan `p` names: its live expression (or
+    /// a boolean input's value), the submitted copy, and the copy's value.
+    fn plan_response(&mut self, t: TemplateId, r: ElemId, p: RefId, input_type: ComponentType) {
         let mut live = self.compiled.refs[p.index()].clone();
         let math = input_type == ComponentType::MathInput;
         live.prop = Some(if math { "expr" } else { "value" }.into());
@@ -593,27 +701,36 @@ impl<'a> Compiler<'a> {
             value,
         }
         .into_vec();
-        self.compiled.templates[t.index()].elems[e.index()]
-            .children
-            .push(Child::Elem(r));
-        r
     }
 
     /// The `<mathInput>` DoenetML sugars into an answer that names no
-    /// input: an unbound input, first among the answer's children.
-    fn add_implicit_input(&mut self, t: TemplateId, e: ElemId) -> ElemId {
+    /// input: an unbound input, first among the answer's children, which
+    /// its planner plans (`plan_implicit_input`).
+    fn add_implicit_input(&mut self, t: TemplateId, e: ElemId) {
         let mi = self
             .push_elem(t, NodeId::NONE, ComponentType::MathInput, StrId::NONE, e)
             .expect("unnamed");
+        self.compiled.templates[t.index()].elems[e.index()]
+            .children
+            .insert(0, Child::Elem(mi));
+    }
+
+    /// Plans answer `e`'s implicit input, which outlining made.
+    fn plan_implicit_input(&mut self, t: TemplateId, e: ElemId) -> Result<ElemId> {
+        let mi = self
+            .elem_children(t, e)
+            .into_iter()
+            .find(|&k| {
+                let el = &self.compiled.templates[t.index()].elems[k.index()];
+                el.node == NodeId::NONE && el.component_type == ComponentType::MathInput
+            })
+            .ok_or_else(|| Error::Internal("an implicit input outlining did not make".into()))?;
         self.compiled.templates[t.index()].elems[mi.index()].props = math_input::Props {
             value: Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![math_input::EXPR]),
             expr: Source::GivenMath(None),
         }
         .into_vec();
-        self.compiled.templates[t.index()].elems[e.index()]
-            .children
-            .insert(0, Child::Elem(mi));
-        mi
+        Ok(mi)
     }
 
     /// The equality an answer or award compares with.
