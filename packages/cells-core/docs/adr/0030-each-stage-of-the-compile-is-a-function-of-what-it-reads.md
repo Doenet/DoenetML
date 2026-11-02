@@ -1,0 +1,182 @@
+# Each stage of the compile is a function of what it reads
+
+Status: proposed 2026-11-02. Step 1 is done; see Migration. Amends ADR
+0027 and ADR 0029 in how their stages are written, not in what any stage
+does.
+
+ADR 0027 and ADR 0029 split the compile into stages (outline, parse,
+plan, link, seal, then the abstract build), each reading only what earlier
+stages finished. That rule is stated, not shown: every stage but sealing
+is a method on one `Compiler`, and every one can read and write every
+field of it. This ADR makes each stage a function whose arguments are
+what it reads and whose result is what it makes, as sealing already is
+(`seal::Seal`). What a stage reads is then the signature of a function,
+not something found by searching for the fields it touches.
+
+## Context
+
+ADR 0027, step 6, did this for sealing alone, and the rest stayed one
+object. Reading the compile after ADR 0029 shows where that costs.
+
+### Stages hand over through fields
+
+What one stage gives the next is a field of `Compiler` that the later
+stage empties with `mem::take`: outlining fills `pending_elems`,
+`pending_macros`, `container_copies` and `math_texts`; planning fills
+`shares` and `referent_readers`, which linking drains; parsing fills
+`parsed_maths`, which planners read. Several fields serve one stage and
+live for all of them (`expanding`, `expanded`, `cloned_sources`,
+`extend_refs`). `compile/mod.rs` now lists, for each field, the stage
+that writes it and the stages that read it (step 1); the list is long
+because nothing in the types keeps it short.
+
+### A method's stage is not visible
+
+Eleven files add methods to `Compiler`, by topic (`copies.rs`,
+`attrs.rs`, `refs.rs`, ...), so no file and no type says which stage a
+method runs in. Some run in several: `plan_ref` in outlining (a
+container copy's `extend`, through `plan_extend`), parsing (a math's
+`$ref`s) and planning; `plan_extend` and `referent_type` in outlining
+and planning. Outlining also does planning's work: it wires a
+`<repeatForSequence>`'s value element and an unnormalized document's
+props, and pushes `RefPlan`s (`own_prop_plan`).
+
+### The element set grows while planning
+
+ADR 0027 says the element set is complete once outlining ends. It is
+not: an `<answer>`'s planner pushes its `response` and `mathInput`
+elements (`answer.rs`, `add_response`). Nothing reads them across
+elements, so no order bug follows, but a reader of `Compiled` after
+outlining cannot trust its element count.
+
+### Plans are edited after they are made
+
+Outlining overwrites a `<math>`'s `component_type` with the type its text
+settles (`settle_outline`). An element's `extend` is set by outlining for
+a container copy and by planning for the rest. `elem_shape` rewrites a
+`RefPlan` already cached in `extend_refs`, adding the referent's default
+prop (`r.prop = Some(dp)`). `PlanCtx::parsed_math` removes a parse error
+from `parsed_maths` as it reads it.
+
+### There are six ways to box
+
+An element that fails is boxed by one of:
+
+1. `push_error_elem`, when outlining, for a node an earlier compile
+   boxed or an element that fails before it is pushed, and when
+   planning, for a `$ref` child that cannot be planned;
+2. `box_in_place`, when outlining, planning or linking;
+3. `fail_at` and `failed_node`, when `box_in_place` cannot (a clone was
+   made of what is under it, or it has no node): the compile restarts;
+4. sealing's `Failure`, which restarts;
+5. an unread attribute (ADR 0021), found by `plan_and_check` in
+   `check.rs` after the stages, which restarts;
+6. the abstract build's `Failure`, which restarts.
+
+Four places guard with `Err(e) if self.failed_node.is_some() => return
+Err(e)` (`add_elem`, `plan_elem`, `plan_all`, `expand_container_copy`),
+so once one failure restarts the compile, every later one passes through
+unboxed: how a failure is handled depends on the failures before it.
+ADR 0027 meant the abstract build's retry to be the only one.
+
+## Decision
+
+Each stage is a function. Its arguments are what it reads, borrowed
+immutably when it only reads them; its result is what it makes, a type
+named for the stage. Nothing a stage makes for one later stage is stored
+where every stage can reach it.
+
+```
+outline(dast, boxed)               -> Outline
+parse(&Outline, &mut Refs)         -> Parsed
+plan(&Outline, &Parsed, &mut Refs) -> Planned
+link(&mut Planned)                 -> ()
+seal(&mut Planned, &Outline)       -> Sealed        (as now)
+```
+
+- **`Outline`** holds the templates and their elements, complete (an
+  answer's `response` and `mathInput` are pushed here), the name table,
+  every math's tokens, the container copies' clones and every `extend`'s
+  `RefPlan`, its default prop already decided (the referent's type and the
+  element's are both outlining's). Outlining makes no prop plans.
+- **`Parsed`** holds each `<math>`'s parse. Planners read it; none takes
+  from it.
+- **`Planned`** holds every element's plans and hold, what each copy
+  shares, every reader of a referent's type, the boxes made and their
+  errors. Read flags are complete when it is returned.
+- **`Refs`** is the reference arena, append-only: a stage that plans
+  references gets it mutably, and no stage edits a reference already in
+  it.
+
+**Boxing has one path.** A stage records a failure as one of two values:
+boxed here, or box this node and compile again. No later failure's
+handling depends on an earlier one. Only `plan_and_check` compiles again.
+
+**The unread-attribute check is the end of planning**, as ADR 0027
+states: planning boxes what it finds in place, like any planner's
+failure, and linking boxes what read it. It leaves `check.rs`, and a
+document with an unread attribute plans once, not twice.
+
+**Files follow the stages**: `compile/outline/`, `compile/parse.rs`,
+`compile/plan/` (the planners' machinery, behind `api.rs` as now),
+`compile/link.rs`, `compile/seal.rs`. Code two stages share (the name
+table, `plan_ref`) lives in a module of its own that says so.
+
+## Considered options
+
+- **Document the fields and leave the code.** Step 1 does this, and it
+  is worth having, but a table kept by hand drifts as fields are added,
+  and the compiler does not check it. Kept only as the first step.
+- **One context type per stage, over one `Compiler`.** Wrap the shared
+  object in views that expose only some fields. Cheaper than moving
+  data, but a view still borrows the whole compiler mutably, so what a
+  stage *writes* stays unchecked, and that is most of the trouble.
+- **Plan elements in parallel now.** ADR 0027 and ADR 0029 left room
+  for it. These stages make it possible (planning would read `Outline`
+  and `Parsed` only, and each element's result would merge into
+  `Planned`), but it is not a goal here: the abstract build, not
+  planning, is the expensive stage.
+
+## Consequences
+
+- What a stage reads and writes is its signature, and the compiler
+  enforces it. A planner that reads another element's plan (ADR 0029)
+  cannot compile, rather than being caught by review.
+- The element set is fixed once outlined, as ADR 0027 says.
+- A plan is never edited after it is made, except by linking, whose
+  edits are named (a box, a shared slot's alias).
+- A document with *n* independent errors and an unread attribute plans
+  once.
+- `failed_node`, the four guards, `pending_elems`, `pending_macros`,
+  `container_copies` and `math_texts` as fields, and `child_scope` go.
+- No step changes a diagnostic or the golden diff.
+
+## Migration
+
+Each step lands alone, with the golden diff unchanged unless it says
+otherwise.
+
+1. **Write down who reads what.** Fix the `compile/mod.rs` module doc,
+   which still described the compile as plan then check, and document
+   every `Compiler` field with the stage that writes it and the stages
+   that read it. Done.
+2. **One boxing path.** Replace `failed_node` and the four guards with a
+   failure value that says whether it was boxed in place or needs a new
+   compile; `plan_and_check` is the only caller that compiles again.
+3. **Unread attributes at the end of planning.** Run the check over the
+   plan stage's read flags and box in place what it finds. Tests: a
+   document with an unread attribute plans once; `tests/diagnostics.rs`
+   unchanged.
+4. **Outlining makes no plans.** Move the repeat's value wiring and the
+   synthetic document's props into their planners, push an answer's
+   `response` and `mathInput` when outlining, and decide an extend's
+   default prop in `plan_extend`. `elem_shape` stops editing a
+   `RefPlan`.
+5. **`outline` returns `Outline`.** Its handover fields leave
+   `Compiler`.
+6. **`parse` returns `Parsed`**, and planners read it without taking from
+   it.
+7. **`plan` returns `Planned`**, given `&Outline` and `&Parsed`; `link`
+   takes it. `Compiler` is left as planning's own state, or goes.
+8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`
+   name the new paths.

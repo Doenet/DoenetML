@@ -1,18 +1,37 @@
-//! The compile stage (ADR 0015): the source made, once per load, into
-//! what every build stamps. **Plan** walks the DAST once and produces one
-//! [`Template`](plan::Template) per repeat body, choice branch and the
-//! document, with a *plan* for every prop (a literal, a default, an
-//! operator over references, a math, a reference) and every reference (a
-//! path through the template nesting: how many levels up the name was
-//! found, which element, which `[index]` steps, which prop). Nothing in a
-//! plan depends on which iteration it will be stamped in, so all string
-//! work happens once per template element. **Check** (`check.rs`) builds
-//! the plans once through the abstract build (`build::abstract build`, ADR
-//! 0012, ADR 0014), which stands for every count and pick, and boxes every
-//! element that fails (ADR 0013); `lint.rs` holds the rules that need only
-//! the DAST.
+//! The compile (ADR 0015): the source made, once per load, into what
+//! every build stamps: one [`Template`](plan::Template) per repeat body,
+//! choice branch and the document, with a *plan* for every prop (a
+//! literal, a default, an operator over references, a math, a reference)
+//! and every reference (a path through the template nesting: how many
+//! levels up the name was found, which element, which `[index]` steps,
+//! which prop). Nothing in a plan depends on which iteration it will be
+//! stamped in, so all string work happens once per template element.
 //!
-//! Files: this one walks the DAST and decides each element's shape;
+//! The compile runs in stages (ADR 0027, ADR 0029), each reading only
+//! what earlier stages made (`Compiler::compile_all`):
+//!
+//! | Stage | Code | Makes |
+//! |---|---|---|
+//! | lint | `lint.rs` | findings from the DAST alone, first |
+//! | **outline** | `Compiler::outline` | elements, templates, the name table, what a reference reads of each (`settle_outline`), container copies' clones (`copies.rs`) |
+//! | **parse** | `Compiler::parse_maths` | every `<math>`'s text parsed, its `$ref`s planned |
+//! | **plan** | `Compiler::plan_all` | every element's plans and hold, every `$ref` child's plan |
+//! | **link** | `Compiler::link` | readers of boxed referents boxed, shared state tied |
+//! | **seal** | `seal.rs` | choice interfaces, arity, keys, slot offsets |
+//! | unread attributes | `check.rs` | refusals of attributes nothing read (ADR 0021) |
+//! | **abstract build** | `check.rs`, `build/abstract_build.rs` | cycles, writable and live records, structural depth |
+//!
+//! `check.rs` drives them (`plan_and_check`): it runs outline to seal
+//! (`Compiler::compile`), then the unread-attribute check, then the
+//! abstract build, which stands for every count and pick (ADR 0012, ADR
+//! 0014), and compiles again when a failure could not be boxed where it
+//! arose (ADR 0013). Every stage but sealing is a method on `Compiler`,
+//! and hands over to later stages through its fields; the fields' docs say
+//! which stage writes each and which read it. ADR 0030 proposes making
+//! each stage a function of what it reads.
+//!
+//! Files: this one has the stages' entry points, outlining's walk and
+//! each element's shape;
 //! `planner.rs` names each type's planner, which is in the type's file
 //! under `components/` (ADR 0016), and `ctx.rs` the [`PlanCtx`] it is
 //! given; `api.rs` is all of `compile/` a planner may use. The rest is
@@ -24,14 +43,14 @@
 //! `fix.rs` `fixed`, `answer.rs` answers and `iterates.rs` repeats over
 //! lists. What compile produces is in `plan.rs`.
 //!
-//! The compile runs in stages (ADR 0027, ADR 0029), each reading only
-//! what earlier stages made (`compile_all`): **outline** (elements, the
-//! name table, what a reference reads of each, container copies' clones),
-//! **parse** (every `<math>`'s text), **plan** (every element on its own,
-//! references as planners ask for them), **link** (readers of boxed
-//! referents boxed, shared state tied), **seal** (`seal.rs`: choice
-//! interfaces, arity, keys, slot offsets), then the **abstract build**
-//! (`check.rs`). An element that fails is boxed where it fails.
+//! An element that fails is boxed (ADR 0013, ADR 0027) by one of:
+//! `push_error_elem` while outlining (a node boxed by an earlier compile,
+//! an element that fails before it is pushed) or planning (a `$ref` child
+//! that cannot be planned); `box_in_place` while outlining, planning or linking;
+//! `fail_at`, when `box_in_place` cannot, and sealing's, the
+//! unread-attribute check's and the abstract build's failures, each of
+//! which compiles again with the node boxed from the start. Once
+//! `failed_node` is set, every later failure passes through unboxed.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
@@ -97,60 +116,96 @@ pub(in crate::compile) struct Planned {
     pub(in crate::compile) boxed: HashSet<NodeId>,
 }
 
+/// The state of one compile, outline to seal. Each field says which stage
+/// writes it (*W*) and which read it (*R*), as the module doc names them;
+/// a field one stage fills for another is drained by the reader with
+/// `mem::take`. ADR 0030 proposes replacing these handovers with each
+/// stage's result.
 pub(in crate::compile) struct Compiler<'a> {
-    /// The source being compiled; `compiled` keeps it too.
+    /// The source being compiled; `compiled` keeps it too. R: every stage.
     pub(in crate::compile) dast: &'a Dast,
+    /// What the compile makes. W: every stage. Outlining pushes elements,
+    /// templates and some references (`own_prop_plan`, an `extend`'s) and
+    /// the props of synthesized elements, and settles a `<math>`'s type;
+    /// parsing pushes references and expressions; planning sets props,
+    /// bodies, holds and `extend`s, and pushes an answer's `response` and
+    /// `mathInput` elements; linking boxes and aliases shared slots;
+    /// sealing sets choice interfaces, keys and slot offsets.
     pub(in crate::compile) compiled: Compiled,
-    /// Elements whose attribute plans are computed once every name exists.
+    /// Every element to plan. W: outline (`add_elem`, `clone_children`).
+    /// R: plan (`plan_all`), drained.
     pub(in crate::compile) pending_elems: Vec<(TemplateId, ElemId)>,
     /// Macro children awaiting plans: (template, owning element or None for
     /// the template's own children, index in that child list, node).
+    /// W: outline (`add_children`). R: plan (`plan_all`), drained.
     pub(in crate::compile) pending_macros: Vec<(TemplateId, Option<ElemId>, usize, NodeId)>,
     /// Macro nodes whose reference is already planned: `$mi` inside an
     /// answer's `<when>` is its submitted response (`plan_answer`).
+    /// W: plan (`plan_answer`, set and cleared around one `<when>`).
+    /// R: `plan_ref`, while that `<when>` is planned.
     pub(in crate::compile) ref_subst: HashMap<NodeId, RefId>,
     /// Every string's canonical id, over the DAST table (built when first
-    /// needed) and then `extra_strings`: see `intern_literal`.
+    /// needed) and then `extra_strings`: see `intern_literal`. A cache.
+    /// W, R: plan (`intern_literal`).
     pub(in crate::compile) string_ids: Option<HashMap<String, StrId>>,
-    /// Nodes an earlier attempt could not build: compiled as `_error`
+    /// Nodes an earlier compile could not build: compiled as `_error`
     /// elements with their names but no children and no props (ADR 0013,
-    /// ADR 0027).
+    /// ADR 0027). The compile's input, from `plan_and_check`. R: outline
+    /// (`add_elem`, `add_children`).
     pub(in crate::compile) boxed: &'a HashSet<NodeId>,
     /// The node of the element to box before compiling again, set when a
     /// failure cannot be boxed in place (`box_in_place`); every failure
-    /// after it passes through to the end of the compile.
+    /// after it passes through to the end of the compile. W: outline, plan,
+    /// link (`fail_at`), seal. R: every stage's boxing, and `compile`,
+    /// which returns it.
     pub(in crate::compile) failed_node: Option<NodeId>,
     /// Elements boxed where they failed, with their errors (ADR 0027).
+    /// W: outline, plan, link (`box_in_place`, `push_error_elem`).
+    /// R: `compile`, which returns them.
     errors: Vec<Diagnostic>,
     boxed_here: HashSet<NodeId>,
-    /// What copies share of their referents' state, tied when linking.
+    /// What copies share of their referents' state. W: plan
+    /// (`plan_with_extend`). R: link (`link_shared_state`), drained.
     shares: Vec<Share>,
     /// By (template, element), the elements a container copy has cloned:
     /// a clone took its type, so one boxed later cannot be boxed in place.
+    /// W: outline (`clone_children`). R: `box_in_place` (outline, plan,
+    /// link).
     cloned_sources: HashSet<(u32, u32)>,
     /// The container copies (`<graph extend="$g"/>`) outlining found, which
-    /// get their clones once every name is in the table.
+    /// get their clones once every name is in the table. W: outline
+    /// (`add_elem_inner`). R: outline's end (`expand_container_copies`),
+    /// drained.
     container_copies: Vec<(TemplateId, ElemId)>,
     /// By (template, element), the container copies expanding now and
     /// those done: one reached again while it expands is a cycle.
+    /// W, R: outline (`expand_container_copy`).
     expanding: HashSet<(u32, u32)>,
     expanded: HashSet<(u32, u32)>,
-    /// The name table, outlining's.
+    /// The name table. W: outline (`push_elem_visible_to`). R: plan
+    /// (`plan_ref`), link (`drop_unregistered_name`), seal (choices, keys).
     names: NameTable,
     /// By (template, element), a geometry element's shared state: which slot holds
     /// each piece of essential state, which a copy shares with its original.
+    /// W: plan (`plan_with_extend`). R: link (`link_shared_state`), seal
+    /// (`assign_keys`).
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
     /// Each `<math>`'s text, tokenized when outlining, where its type is
-    /// settled, in the order the walk made them; parsing parses them.
+    /// settled, in the order the walk made them. W: outline
+    /// (`settle_outline`). R: parse (`parse_maths`), drained.
     math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
     /// By (template, element), each `<math>`'s text as parsing parsed it.
+    /// W: parse (`parse_maths`). R: plan (the math's planner, which takes a
+    /// parse error out; a line's equation, which inlines a parse).
     pub(in crate::compile) parsed_maths: HashMap<(u32, u32), Result<ParsedMath>>,
     /// Every element whose plan reads the type of what a reference names
-    /// (`referent_type`), with the reference: linking boxes one whose
-    /// referent is a box (`box_readers_of_boxes`).
+    /// (`referent_type`), with the reference. W: outline (container
+    /// copies), plan. R: link (`box_readers_of_boxes`), which boxes one
+    /// whose referent is a box.
     referent_readers: Vec<(TemplateId, ElemId, RefId)>,
     /// By (template, element), the reference in the element's `extend`,
-    /// planned once (`plan_extend`).
+    /// planned once (`plan_extend`). A cache. W, R: outline (container
+    /// copies), plan.
     extend_refs: HashMap<(u32, u32), RefId>,
 }
 
