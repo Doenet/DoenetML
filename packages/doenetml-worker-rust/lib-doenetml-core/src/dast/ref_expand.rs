@@ -340,11 +340,13 @@ impl Expander {
                 // We couldn't find a unique `extending` prop, so the `extend` attribute is invalid.
                 // Push an error message as a child of `node`.
 
-                let error_type = if let Some(_err) = error_found {
-                    ErrorType::Warning
-                } else {
-                    ErrorType::Error
-                };
+                // A tag written with `extend` or `copy` always makes that tag
+                // (D36), so a reference in the attribute that names nothing,
+                // or more than one thing, is an error, where the same
+                // reference written bare is a warning. It keeps the
+                // reference's code: a code names the situation, and the
+                // severity is the call site's (`@doenet/i18n` diagnostics).
+                let error_type = ErrorType::Error;
 
                 let message = if let Some(err) = error_found {
                     format!("In '{}' attribute: {}", extend_or_copy.name, err.message)

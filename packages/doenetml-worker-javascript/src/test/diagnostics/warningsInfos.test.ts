@@ -929,8 +929,10 @@ describe("Warning Tests @group4", async () => {
 
     it("Correctly get reference text when extend with an index", async () => {
         // Note: since extending with an index, the reference cannot be resolved in the first pass before core is initialized.
-        // Instead, the warning is generated after core can determine what replacements the group has.
+        // Instead, the diagnostic is generated after core can determine what replacements the group has.
         // This tests that the correct text is used for the reference in that case, where the text has to be rebuilt from the source and position info.
+        // A tag always makes that tag (D36): while its index names nothing,
+        // it is `<text/>`, with an info.
         let { core } = await createTestCore({
             doenetML: `
 <group name="g"></group>
@@ -941,16 +943,16 @@ describe("Warning Tests @group4", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(1);
-        expect(diagnosticsByType.infos.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(1);
 
-        expect(diagnosticsByType.warnings[0].message).contain(
-            "No referent found for reference: `$g[1]`",
+        expect(diagnosticsByType.infos[0].message).eq(
+            "`$g[1]` names nothing now, so this `<text>` has the value of `<text/>` until it does.",
         );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(24);
+        expect(diagnosticsByType.infos[0].position.start.line).eq(3);
+        expect(diagnosticsByType.infos[0].position.start.column).eq(1);
+        expect(diagnosticsByType.infos[0].position.end.line).eq(3);
+        expect(diagnosticsByType.infos[0].position.end.column).eq(24);
     });
 
     it("Warn if simplifyOnCompare or expandOnCompare are specified with symbolicEquality set to false", async () => {

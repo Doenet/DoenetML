@@ -843,8 +843,16 @@ export class RefResolutionDependency extends Dependency {
             const instanceKind = instanceKindOf(indexedComponent.componentType);
 
             // A composite that produces instances says how many it made
-            // (`doenet-w0181`), naming what the author wrote (D27).
-            if (instanceKind) {
+            // (`doenet-w0181`), naming what the author wrote (D27). A tag
+            // whose literal index names nothing whatever happens at run
+            // time had that reported as an error when the document loaded
+            // (D36, `typeChangeAtLoad.ts`).
+            if (this.isScalarTag(composite)) {
+                // Reported by the copy as an info that lasts while the
+                // index names nothing (`doenet-i0054`), or, for a literal
+                // index past what a selector picks, as an error when the
+                // document loaded (D36, `typeChangeAtLoad.ts`).
+            } else if (instanceKind) {
                 this.dependencyHandler.core.addDiagnostic(
                     codedDiagnostic({
                         type: "warning",
@@ -880,6 +888,41 @@ export class RefResolutionDependency extends Dependency {
         }
 
         return this.foundExtend();
+    }
+
+    /**
+     * Whether `composite` is a reference written as a tag that is not a list
+     * or a `<group>` (`<math extend="$r[1]"/>`), which always makes that tag
+     * (D36): it is `<T/>` while its index names nothing, and says so itself
+     * (`indexNamesNothing` in `Copy.js`).
+     */
+    isScalarTag(composite: any) {
+        const written =
+            composite.attributes?._createComponentOfType?.primitive?.value;
+        if (
+            !written ||
+            !composite.attributes?._copyInChildren?.primitive?.value ||
+            composite.doenetAttributes?.forList !== undefined
+        ) {
+            return false;
+        }
+        const componentInfoObjects =
+            this.dependencyHandler.componentInfoObjects;
+        const writtenType =
+            componentInfoObjects.componentTypeLowerCaseMapping[
+                written.toLowerCase()
+            ];
+        const writtenClass = componentInfoObjects.allComponentClasses[
+            writtenType
+        ] as any;
+        return Boolean(
+            writtenClass &&
+            writtenClass.listEntryComponentType === undefined &&
+            writtenType !== "group" &&
+            !componentInfoObjects.isCompositeComponent({
+                componentType: writtenType,
+            }),
+        );
     }
 
     /**

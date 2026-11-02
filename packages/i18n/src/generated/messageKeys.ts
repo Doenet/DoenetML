@@ -489,6 +489,9 @@ export type MessageKey =
     | "type-change-input-from-value"
     | "type-change-from-container"
     | "type-change-composite-not-one"
+    | "type-change-composite-types-differ"
+    | "type-change-composite-type-unknown"
+    | "type-change-index-names-nothing"
     | "type-change-value-not-convertible"
     | "children-invalid-attribute-format"
     | "children-invalid"
@@ -1154,6 +1157,9 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "type-change-input-from-value",
     "type-change-from-container",
     "type-change-composite-not-one",
+    "type-change-composite-types-differ",
+    "type-change-composite-type-unknown",
+    "type-change-index-names-nothing",
     "type-change-value-not-convertible",
     "children-invalid-attribute-format",
     "children-invalid",

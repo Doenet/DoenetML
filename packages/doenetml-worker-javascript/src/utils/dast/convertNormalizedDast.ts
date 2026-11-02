@@ -35,6 +35,7 @@ import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
 import { convertCopiesToValueReferences } from "./valueReferences";
 import { convertToListForms } from "./listForms";
+import { checkTypeChangesAtLoad } from "./typeChangeAtLoad";
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
 import { DiagnosticRecord } from "@doenet/utils";
@@ -110,6 +111,7 @@ function unresolvedReferenceDiagnostic(
         sourceDoc?: number;
     },
     sources: readonly string[],
+    type: "warning" | "error" = "warning",
 ): DiagnosticRecord {
     // The path has a position for each of its parts, so it spans just the
     // reference even in the parenthesized form `$(l[0])`. The resolver gives
@@ -139,7 +141,7 @@ function unresolvedReferenceDiagnostic(
     }
 
     return codedDiagnostic({
-        type: "warning",
+        type,
         // Spread rather than a ternary on the value: the code has to sit
         // next to `code:` as a literal, or `lint:i18n` reads it as a code
         // nothing raises.
@@ -179,6 +181,13 @@ export async function normalizedDastToSerializedComponents(
      * Convert Elements to a `componentType` matching their name.
      * Convert Errors to a `componentType` of "_error".
      */
+    /**
+     * The `_error`s made for a reference in an `extend` or `copy` attribute
+     * that names nothing, or more than one thing: the tag cannot be made
+     * (D36), so the error is shown in its place.
+     */
+    const errorsInPlaceOfTag = new Set<UnflattenedComponent>();
+
     function unflattenDastNodes(
         indicesOrStrings: UntaggedContent[],
         diagnostics: DiagnosticRecord[],
@@ -192,6 +201,42 @@ export async function normalizedDastToSerializedComponents(
             } else {
                 const node = normalized_root.nodes[idxOrString];
                 if (node.type === "element") {
+                    const children = unflattenDastNodes(
+                        node.children,
+                        diagnostics,
+                    );
+                    const inPlaceOfTag = children.find(
+                        (child): child is UnflattenedComponent =>
+                            typeof child === "object" &&
+                            errorsInPlaceOfTag.has(child),
+                    );
+                    if (inPlaceOfTag) {
+                        // The tag, with what its `extend` or `copy`
+                        // names unresolved, is shown as the error, under
+                        // its own index and name, so a reference to it
+                        // finds the error.
+                        const nameAttribute = node.attributes.find(
+                            (attribute) => attribute.name === "name",
+                        );
+                        unflattenedNodes.push({
+                            ...inPlaceOfTag,
+                            componentIdx: idxOrString,
+                            attributes: nameAttribute
+                                ? {
+                                      name: {
+                                          name: "name",
+                                          children: unflattenDastNodes(
+                                              nameAttribute.children,
+                                              diagnostics,
+                                          ),
+                                          position: nameAttribute.position,
+                                          sourceDoc: nameAttribute.sourceDoc,
+                                      },
+                                  }
+                                : {},
+                        });
+                        continue;
+                    }
                     unflattenedNodes.push({
                         type: "unflattened",
                         componentType: getComponentType(node),
@@ -223,10 +268,7 @@ export async function normalizedDastToSerializedComponents(
                         extending: node.extending
                             ? unFlattenExtending(node.extending, diagnostics)
                             : undefined,
-                        children: unflattenDastNodes(
-                            node.children,
-                            diagnostics,
-                        ),
+                        children,
                         state: {},
                     });
                 } else {
@@ -300,6 +342,34 @@ export async function normalizedDastToSerializedComponents(
                                 children: [],
                             });
                         }
+                    } else if (
+                        node.code === "doenet-w0104" ||
+                        node.code === "doenet-w0105"
+                    ) {
+                        // A reference in the `extend` or `copy` attribute
+                        // of a tag that names nothing, or more than one
+                        // thing (`ref_expand.rs`). Quoted as a reference
+                        // written as text is, at the error level.
+                        const diagnostic = unresolvedReferenceDiagnostic(
+                            node,
+                            normalized_root.sources,
+                            "error",
+                        );
+                        const error: UnflattenedComponent = {
+                            type: "unflattened",
+                            componentType: "_error",
+                            componentIdx: idxOrString,
+                            attributes: {},
+                            position: node.position,
+                            sourceDoc: node.sourceDoc,
+                            state: errorComponentState(
+                                diagnostic.message,
+                                diagnostic,
+                            ),
+                            children: [],
+                        };
+                        errorsInPlaceOfTag.add(error);
+                        unflattenedNodes.push(error);
                     } else {
                         unflattenedNodes.push({
                             type: "unflattened",
@@ -459,6 +529,14 @@ export async function normalizedDastToSerializedComponents(
     //     JSON.parse(JSON.stringify(sugarResult.components)),
     //     nComponents,
     // );
+
+    // After sugar, which makes an `<else>` a `<case>`, and before the list
+    // forms and value references, so that what a reference written as a tag
+    // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
+    checkTypeChangesAtLoad({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+    });
 
     // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
     // the values it reads, and before the value references, so that a

@@ -157,6 +157,8 @@ describe("External References Tests @group1", async () => {
     });
 
     it("references to external content fail without parent name", async () => {
+        // A reference that names nothing is an error on a tag, shown in its
+        // place (D36).
         const doenetMLs = {
             abc: `<section name="s1" copy="doenet:def"><p name="p1">Hello</p></section>`,
             def: `<section name="s2" copy="doenet:ghi"><p name="p2">Bye</p></section>`,
@@ -195,27 +197,24 @@ describe("External References Tests @group1", async () => {
         ).eq("How");
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("s.p4")].stateValues.text,
-        ).eq(" world");
+            stateVariables[await resolvePathToNodeIdx("s.p4")].componentType,
+        ).eq("_error");
         expect(
-            stateVariables[await resolvePathToNodeIdx("s.p5")].stateValues.text,
-        ).eq(" there");
+            stateVariables[await resolvePathToNodeIdx("s.p5")].componentType,
+        ).eq("_error");
         expect(
-            stateVariables[await resolvePathToNodeIdx("s.p6")].stateValues.text,
-        ).eq(" now");
+            stateVariables[await resolvePathToNodeIdx("s.p6")].componentType,
+        ).eq("_error");
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("s2.p4")].stateValues
-                .text,
-        ).eq(" world");
+            stateVariables[await resolvePathToNodeIdx("s2.p4")].componentType,
+        ).eq("_error");
         expect(
-            stateVariables[await resolvePathToNodeIdx("s2.p5")].stateValues
-                .text,
-        ).eq(" there");
+            stateVariables[await resolvePathToNodeIdx("s2.p5")].componentType,
+        ).eq("_error");
         expect(
-            stateVariables[await resolvePathToNodeIdx("s2.p6")].stateValues
-                .text,
-        ).eq(" now");
+            stateVariables[await resolvePathToNodeIdx("s2.p6")].componentType,
+        ).eq("_error");
     });
 
     it("local names supersede external names in references", async () => {
@@ -270,6 +269,8 @@ describe("External References Tests @group1", async () => {
     });
 
     it("External content cannot reference local names", async () => {
+        // A reference that names nothing is an error on a tag, shown in its
+        // place (D36).
         const doenetMLs = {
             abc: `
         <section name="s1">
@@ -304,21 +305,17 @@ describe("External References Tests @group1", async () => {
         ).eq("Bye");
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("s.s1.p3")].stateValues
-                .text,
-        ).eq(" world");
+            stateVariables[await resolvePathToNodeIdx("s.s1.p3")].componentType,
+        ).eq("_error");
         expect(
-            stateVariables[await resolvePathToNodeIdx("s.s1.p4")].stateValues
-                .text,
-        ).eq(" there");
+            stateVariables[await resolvePathToNodeIdx("s.s1.p4")].componentType,
+        ).eq("_error");
         expect(
-            stateVariables[await resolvePathToNodeIdx("s.s1.p5")].stateValues
-                .text,
-        ).eq(" world");
+            stateVariables[await resolvePathToNodeIdx("s.s1.p5")].componentType,
+        ).eq("_error");
         expect(
-            stateVariables[await resolvePathToNodeIdx("s.s1.p6")].stateValues
-                .text,
-        ).eq(" there");
+            stateVariables[await resolvePathToNodeIdx("s.s1.p6")].componentType,
+        ).eq("_error");
     });
 
     it("reference external content from within an extend or copy", async () => {

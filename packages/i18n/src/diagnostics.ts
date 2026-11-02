@@ -91,6 +91,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0051": "attribute-value-invalid-ignoring",
     "doenet-i0052": "chart-histogram-values-outside-bins",
     "doenet-i0053": "type-change-value-not-convertible",
+    "doenet-i0054": "type-change-index-names-nothing",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -338,6 +339,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0063": "type-change-from-container",
     "doenet-e0064": "type-change-composite-not-one",
     "doenet-e0065": "type-change-unrelated",
+    "doenet-e0066": "type-change-composite-types-differ",
+    "doenet-e0067": "type-change-composite-type-unknown",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

@@ -712,7 +712,8 @@ fn a_reference_with_more_than_one_referent_is_coded() {
 
 /// The same index in an `extend` or `copy` attribute keeps the code and the
 /// path, and is marked at the reference inside the attribute rather than at the
-/// whole attribute, as the same reference written as text is (#2407).
+/// whole attribute, as the same reference written as text is (#2407). It is an
+/// error rather than a warning, as a tag always makes that tag (D36).
 #[test]
 fn an_index_that_names_nothing_in_an_extend_attribute_is_coded() {
     for attribute in ["extend", "copy"] {
@@ -740,10 +741,8 @@ fn an_index_that_names_nothing_in_an_extend_attribute_is_coded() {
         assert_eq!(error.parent, Some(math.idx), "{attribute}");
         assert_eq!(error.code.as_deref(), Some("doenet-w0104"), "{attribute}");
         assert!(error.args.is_none(), "{attribute}");
-        assert!(
-            matches!(error.error_type, ErrorType::Warning),
-            "{attribute}"
-        );
+        // An error, not a warning: the tag cannot be made (D36).
+        assert!(matches!(error.error_type, ErrorType::Error), "{attribute}");
         assert_eq!(
             error.message,
             format!("In '{attribute}' attribute: No referent found for reference: `$l`")
