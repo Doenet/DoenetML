@@ -107,25 +107,38 @@ impl<'a> Compiler<'a> {
     /// (hops, element).
     pub(in crate::compile) fn lookup(
         &self,
+        t: TemplateId,
+        from: ElemId,
+        name: StrId,
+    ) -> Result<Option<(u32, ElemId)>> {
+        let Some(id) = self.names.id_of(self.dast, name) else {
+            return Ok(None);
+        };
+        self.lookup_id(t, from, id)
+            .map_err(|()| Error::AmbiguousName(self.dast.strings.get(name).trim().to_string()))
+    }
+
+    /// `lookup` of name `id`; `Err` when the name is ambiguous.
+    fn lookup_id(
+        &self,
         mut t: TemplateId,
         mut from: ElemId,
-        name: &str,
-    ) -> Result<Option<(u32, ElemId)>> {
-        let name = name.trim();
+        id: u32,
+    ) -> std::result::Result<Option<(u32, ElemId)>, ()> {
         let mut hops = 0;
         loop {
             let tpl = &self.compiled.templates[t.index()];
             let mut a = from;
             loop {
-                if a != ROOT_SCOPE
-                    && tpl.elems[a.index()].name != StrId::NONE
-                    && self.dast.strings.get(tpl.elems[a.index()].name).trim() == name
-                {
-                    return Ok(Some((hops, a)));
+                if a != ROOT_SCOPE {
+                    let own = tpl.elems[a.index()].name;
+                    if own != StrId::NONE && self.names.id_of(self.dast, own) == Some(id) {
+                        return Ok(Some((hops, a)));
+                    }
                 }
-                match self.name_at(t, a, name) {
+                match self.names.at_id(t, a, id) {
                     NameHit::One(e) => return Ok(Some((hops, e))),
-                    NameHit::Ambiguous => return Err(Error::AmbiguousName(name.to_string())),
+                    NameHit::Ambiguous => return Err(()),
                     NameHit::None => {}
                 }
                 if a == ROOT_SCOPE {
@@ -147,11 +160,17 @@ impl<'a> Compiler<'a> {
         &self,
         t: TemplateId,
         e: ElemId,
-        name: &str,
+        name: StrId,
     ) -> Result<Option<ElemId>> {
-        match self.name_at(t, e, name) {
+        let hit = match self.names.id_of(self.dast, name) {
+            Some(id) => self.names.at_id(t, e, id),
+            None => NameHit::None,
+        };
+        match hit {
             NameHit::One(c) => Ok(Some(c)),
-            NameHit::Ambiguous => Err(Error::AmbiguousName(name.trim().to_string())),
+            NameHit::Ambiguous => Err(Error::AmbiguousName(
+                self.dast.strings.get(name).trim().to_string(),
+            )),
             NameHit::None => Ok(None),
         }
     }
@@ -173,10 +192,9 @@ impl<'a> Compiler<'a> {
         let parts: Vec<_> = d.macro_parts(m).collect();
         drop(g);
         let g = crate::trace::tally("lookup");
-        let first = d.strings.get(names[0]);
         let (hops, e0) = self
-            .lookup(t, scope, first)?
-            .ok_or_else(|| Error::UnknownName(first.into()))?;
+            .lookup(t, scope, names[0])?
+            .ok_or_else(|| Error::UnknownName(d.strings.get(names[0]).into()))?;
         let mut cur_t = self.template_up(t, hops);
         drop(g);
         let path = crate::trace::tally("path");
@@ -249,14 +267,18 @@ impl<'a> Compiler<'a> {
                     // A select's pick always takes the choice branch above.
                     At::Iteration | At::SelectPick(_) => {
                         let e = self
-                            .child_named(cur_t, ROOT_SCOPE, name)?
+                            .child_named(cur_t, ROOT_SCOPE, names[i])?
                             .ok_or_else(|| Error::UnknownName(display.clone()))?;
                         steps.push(Step::Elem(e));
                         at = At::Elem(e);
                     }
                     // A descendant of the component: `$g.p`.
-                    At::Elem(e) if !after_iface && self.child_named(cur_t, e, name)?.is_some() => {
-                        let child = self.child_named(cur_t, e, name)?.unwrap();
+                    At::Elem(e)
+                        if let Some(child) = (!after_iface)
+                            .then(|| self.child_named(cur_t, e, names[i]))
+                            .transpose()?
+                            .flatten() =>
+                    {
                         steps.push(Step::Elem(child));
                         at = At::Elem(child);
                     }
@@ -508,10 +530,9 @@ impl<'a> Compiler<'a> {
                     if path.len() != 1 || d.macro_has_index(n) {
                         return Err(Error::DynamicIndex(display.to_string()));
                     }
-                    let name = d.strings.get(path[0]);
                     let (hops, e) = self
-                        .lookup(t, ROOT_SCOPE, name)?
-                        .ok_or_else(|| Error::UnknownName(name.into()))?;
+                        .lookup(t, ROOT_SCOPE, path[0])?
+                        .ok_or_else(|| Error::UnknownName(d.strings.get(path[0]).into()))?;
                     let tt = self.template_up(t, hops);
                     let el = &self.compiled.templates[tt.index()].elems[e.index()];
                     match (el.component_type, el.props.get(prop::number::VALUE)) {

@@ -250,15 +250,41 @@ pub(in crate::compile) struct NameTable {
     by_scope: HashMap<(u32, u32, u32), u32>,
     /// Each element name, trimmed, by its id in `by_scope`.
     ids: HashMap<Box<str>, u32>,
+    /// The id of each DAST string an element is named by, by string id
+    /// (`NO_NAME` for the rest): the DAST's strings are deduplicated, so a
+    /// reference `$c` to `name="c"` finds the id without hashing text.
+    by_str: Vec<u32>,
     /// (template, name scope, name) of every named element: two siblings
     /// with one name can never be told apart.
     siblings: HashSet<(u32, u32, u32)>,
 }
 
+/// A string no element is named by exactly (`NameTable::by_str`).
+const NO_NAME: u32 = u32::MAX;
+
 impl NameTable {
     /// The id of `name`, when some element carries it.
     fn id(&self, name: &str) -> Option<u32> {
         self.ids.get(name.trim()).copied()
+    }
+
+    /// The id of the DAST string `s` as a name, when some element carries
+    /// it: from `by_str` when an element is named by `s` itself, else by
+    /// its trimmed text (`s` spelled with spaces, or naming nothing).
+    pub(in crate::compile) fn id_of(&self, dast: &Dast, s: StrId) -> Option<u32> {
+        match self.by_str.get(s.index()) {
+            Some(&id) if id != NO_NAME => Some(id),
+            _ => self.id(dast.strings.get(s)),
+        }
+    }
+
+    /// What name `id` names from `scope` of template `t`.
+    pub(in crate::compile) fn at_id(&self, t: TemplateId, scope: ElemId, id: u32) -> NameHit {
+        match self.entry(t, scope, id) {
+            None => NameHit::None,
+            Some(AMBIGUOUS) => NameHit::Ambiguous,
+            Some(e) => NameHit::One(ElemId::new(e)),
+        }
     }
 
     /// The entry for name `id` at `scope` of template `t`: an element, or
@@ -707,14 +733,20 @@ impl<'a> Compiler<'a> {
     ) -> Result<ElemId> {
         let name_id = (name != StrId::NONE).then(|| {
             let s = self.dast.strings.get(name).trim();
-            match self.names.ids.get(s) {
+            let id = match self.names.ids.get(s) {
                 Some(&id) => id,
                 None => {
                     let id = self.names.ids.len() as u32;
                     self.names.ids.insert(s.into(), id);
                     id
                 }
+            };
+            let by_str = &mut self.names.by_str;
+            if by_str.len() <= name.index() {
+                by_str.resize(self.dast.strings.len().max(name.index() + 1), NO_NAME);
             }
+            by_str[name.index()] = id;
+            id
         });
         let tpl = &mut self.compiled.templates[t.index()];
         let e = tpl.elems.len();

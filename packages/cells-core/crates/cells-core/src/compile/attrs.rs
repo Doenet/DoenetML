@@ -168,7 +168,8 @@ impl<'a> Compiler<'a> {
 
     /// Whether `m` is a reference to a text value: `$t`, `$ti`, `$t.value`
     /// on a `<text>` or `<textInput>`. Decided from the referent's type at
-    /// plan time, so a text cell never reaches a numeric comparison.
+    /// plan time, so a text cell never reaches a numeric comparison. The
+    /// type is read first: only a text referent's path is spelled out.
     pub(in crate::compile) fn macro_is_text(
         &self,
         t: TemplateId,
@@ -177,18 +178,29 @@ impl<'a> Compiler<'a> {
     ) -> bool {
         let d = self.dast;
         let names = d.macro_path(m);
-        let parts = names.len();
-        if parts > 2 || parts == 2 && d.strings.get(names[1]).trim() != "value" {
+        if names.len() > 2 {
             return false;
         }
-        let Ok(Some((hops, e))) = self.lookup(t, scope, d.strings.get(names[0])) else {
+        let Ok(Some((hops, e))) = self.lookup(t, scope, names[0]) else {
             return false;
         };
         let cur_t = self.template_up(t, hops);
-        matches!(
-            self.compiled.templates[cur_t.index()].elems[e.index()].component_type,
-            ComponentType::Text | ComponentType::TextInput
-        )
+        is_text_type(self.compiled.templates[cur_t.index()].elems[e.index()].component_type)
+            && names
+                .get(1)
+                .is_none_or(|&p| d.strings.get(p).trim() == "value")
+    }
+
+    /// Whether planned ref `p`, planned from template `t`, reads a text
+    /// value: `macro_is_text` from the plan, with no second lookup.
+    fn ref_is_text(&self, t: TemplateId, p: RefId) -> bool {
+        let r = &self.compiled.refs[p.index()];
+        let [Step::Elem(e)] = r.steps.as_slice() else {
+            return false;
+        };
+        let cur_t = self.template_up(t, r.hops);
+        is_text_type(self.compiled.templates[cur_t.index()].elems[e.index()].component_type)
+            && r.prop.as_deref().is_none_or(|p| p == "value")
     }
 
     /// An on/off attribute that may also take a value: present and not
@@ -370,13 +382,22 @@ impl<'a> Compiler<'a> {
         let mut plans = Vec::with_capacity(mt.macros.len());
         for (k, &m) in mt.macros.iter().enumerate() {
             // A text cell holds a string id, which is not a number.
-            if crate::trace::tally("is text").run(|| self.macro_is_text(t, scope, m)) {
+            // A substituted ref was planned elsewhere: its path is the DAST's.
+            let substituted = self.ref_subst.contains_key(&m);
+            let p = self.plan_ref(t, scope, m)?;
+            let is_text = crate::trace::tally("is text").run(|| {
+                if substituted {
+                    self.macro_is_text(t, scope, m)
+                } else {
+                    self.ref_is_text(t, p)
+                }
+            });
+            if is_text {
                 return Err(Error::Unsupported(format!(
                     "a text value (${}) inside math",
                     d.macro_display(m)
                 )));
             }
-            let p = self.plan_ref(t, scope, m)?;
             // Spaces keep `2$a` from reading as one token.
             sym.push_str(&format!(
                 " {} ",
@@ -657,6 +678,14 @@ impl<'a> Compiler<'a> {
 /// The copy rules of `plan_attrs` (ADR 0016, Migration step 8), against
 /// `<testValue>`: under `extend`, a prop without its attribute is its
 /// referent's, and one with it is the copy's own.
+/// The types whose value is text (a string id), not a number.
+fn is_text_type(component_type: ComponentType) -> bool {
+    matches!(
+        component_type,
+        ComponentType::Text | ComponentType::TextInput
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use crate::testing::dast::{document, el, load, mac};
