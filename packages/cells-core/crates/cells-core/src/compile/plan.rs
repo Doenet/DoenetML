@@ -285,16 +285,93 @@ pub(crate) struct MathText {
     pub(in crate::compile) toks: Vec<Token>,
     /// The `$ref` nodes, one per placeholder, in order.
     pub(in crate::compile) macros: Vec<NodeId>,
-    /// The text, each `$ref` as written, for errors.
-    pub(in crate::compile) text: String,
-    /// The text around the `$ref`s, one piece more than `macros`: the
-    /// symbolic engine's text is these with each `$ref`'s leaf between.
-    pub(in crate::compile) between: Vec<String>,
+    /// The nodes the text was read from: spelled only for an error or the
+    /// symbolic engine (`MathSrc`, `SymText`).
+    pub(in crate::compile) nodes: Box<[NodeId]>,
 }
 
 impl MathText {
     pub(crate) fn tokens(&self) -> &[Token] {
         &self.toks
+    }
+
+    /// Where the text came from, for an error.
+    pub(in crate::compile) fn src(&self) -> MathSrc<'_> {
+        MathSrc(&self.nodes)
+    }
+}
+
+/// The nodes math text was read from, spelled (`text`) only when an error
+/// shows it: planning math builds no strings.
+#[derive(Clone, Copy)]
+pub(crate) struct MathSrc<'n>(pub(in crate::compile) &'n [NodeId]);
+
+impl MathSrc<'_> {
+    /// The text, each `$ref` as written, trimmed.
+    pub(crate) fn text(self, dast: &Dast) -> String {
+        spell_math(dast, self.0).trim().to_string()
+    }
+}
+
+/// Math text from `nodes` as written: its text, and `$` with each
+/// reference's path. Other elements are skipped, as tokenizing skips them.
+pub(in crate::compile) fn spell_math(dast: &Dast, nodes: &[NodeId]) -> String {
+    let mut text = String::new();
+    for &n in nodes {
+        match dast.kind(n) {
+            NodeKind::Text => text.push_str(dast.str(n)),
+            NodeKind::Macro => {
+                text.push('$');
+                text.push_str(&dast.macro_display(n));
+            }
+            _ => {}
+        }
+    }
+    text
+}
+
+/// The symbolic engine's text of a math template (`Compiled::sym_text`),
+/// spelled by the build only when it finds the math symbolic.
+#[derive(Debug, Clone)]
+pub(crate) enum SymText {
+    /// Math text from the DAST: its nodes, and the plan of each `$ref` among
+    /// them, in order, which the text spells as its leaf.
+    Nodes {
+        nodes: Box<[NodeId]>,
+        plans: Box<[RefId]>,
+    },
+    /// One reference's leaf alone.
+    Leaf(RefId),
+    /// Text the compile spelled already (a condition's operand).
+    Spelled(String),
+}
+
+impl SymText {
+    /// The text, each `$ref` written `cellN<plan>` (`sym::engine::leaf_name`).
+    pub(crate) fn spell(&self, dast: &Dast) -> String {
+        let leaf = |p: RefId| crate::sym::engine::leaf_name(p.get(), false);
+        match self {
+            SymText::Nodes { nodes, plans } => {
+                let mut text = String::new();
+                let mut plans = plans.iter();
+                for &n in nodes.iter() {
+                    match dast.kind(n) {
+                        NodeKind::Text => text.push_str(dast.str(n)),
+                        // Spaces keep `2$a` from reading as one token.
+                        NodeKind::Macro => {
+                            let p = *plans.next().expect("a plan per reference");
+                            text.push(' ');
+                            text.push_str(&leaf(p));
+                            text.push(' ');
+                        }
+                        _ => {}
+                    }
+                }
+                text
+            }
+            SymText::Leaf(p) => leaf(*p),
+            SymText::Spelled(text) => text.clone(),
+        }
     }
 }
 
@@ -864,7 +941,7 @@ pub struct Compiled {
     pub(crate) arena: Arena<RefId>,
     /// The math text of templates that may be symbolic, with each `$ref`
     /// written `cellN<plan>` (see `sym::engine::leaf_name`).
-    pub(crate) sym_text: HashMap<ExprId, String>,
+    pub(crate) sym_text: HashMap<ExprId, SymText>,
     /// In a document with repeats, each math text's parse once a build has
     /// found the math symbolic: a template parses once however many
     /// instances stamp it and however many builds run. Empty in a document

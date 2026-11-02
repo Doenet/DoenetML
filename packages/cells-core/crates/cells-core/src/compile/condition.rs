@@ -54,8 +54,8 @@ impl<'a> Compiler<'a> {
         if let Some(slot) = self.plan_text_condition(t, e, nodes, wiring)? {
             return Ok(slot);
         }
-        let (toks, text) = self.math_tokens(t, e, nodes)?;
-        self.plan_condition_tokens(wiring, &toks, &text, Compare::default())
+        let (toks, src) = self.math_tokens(t, e, nodes)?;
+        self.plan_condition_tokens(wiring, &toks, src, Compare::default())
     }
 
     /// A condition over a text value: `$t = rain`, `rain != $t`, `$t = $ti`,
@@ -136,13 +136,14 @@ impl<'a> Compiler<'a> {
         &mut self,
         wiring: &mut ElemWiring,
         toks: &[Token],
-        text: &str,
+        src: MathSrc<'_>,
         compare: Compare,
     ) -> Result<usize> {
         let mut p = CondParser {
             toks,
             pos: 0,
-            text,
+            dast: self.dast,
+            src,
             compare,
         };
         let slot = p.or(self, wiring)?;
@@ -168,7 +169,7 @@ impl<'a> Compiler<'a> {
             return Ok(slot);
         }
         match self.math_tokens(t, scope, nodes) {
-            Ok((toks, text)) => self.plan_condition_tokens(wiring, &toks, &text, compare),
+            Ok((toks, src)) => self.plan_condition_tokens(wiring, &toks, src, compare),
             Err(Error::BadMath { text, reason }) => {
                 let sym = self.sym_spelling(t, scope, nodes)?;
                 let Some((lhs, rhs, negate)) = split_equality(&sym) else {
@@ -240,7 +241,7 @@ impl<'a> Compiler<'a> {
         // The arena only needs an id to key the text by; the engine parses
         // the text itself when the element expands (`sym_source`).
         let id = self.compiled.arena.push(Expr::Sym(sym.clone()));
-        self.compiled.sym_text.insert(id, sym);
+        self.compiled.sym_text.insert(id, SymText::Spelled(sym));
         wiring.hidden(Source::SymExpr(id, post))
     }
 }
@@ -250,7 +251,8 @@ impl<'a> Compiler<'a> {
 struct CondParser<'t> {
     toks: &'t [Token],
     pos: usize,
-    text: &'t str,
+    dast: &'t Dast,
+    src: MathSrc<'t>,
     compare: Compare,
 }
 
@@ -264,7 +266,7 @@ struct Operand {
 impl CondParser<'_> {
     fn err(&self, reason: String) -> Error {
         Error::BadMath {
-            text: self.text.to_string(),
+            text: self.src.text(self.dast),
             reason,
         }
     }

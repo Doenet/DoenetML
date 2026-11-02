@@ -17,7 +17,7 @@ impl<'a> Compiler<'a> {
         a: u32,
     ) -> Result<Vec<GivenPoint>> {
         let d = self.dast;
-        let (toks, text) = self.math_tokens(t, scope, d.attr_children(a))?;
+        let (toks, src) = self.math_tokens(t, scope, d.attr_children(a))?;
         let mut out = Vec::new();
         let mut i = 0;
         while i < toks.len() {
@@ -41,7 +41,7 @@ impl<'a> Compiler<'a> {
                             Some(Token::RParen) => depth -= 1,
                             None => {
                                 return Err(Error::BadMath {
-                                    text,
+                                    text: src.text(d),
                                     reason: "missing ')'".into(),
                                 });
                             }
@@ -53,7 +53,7 @@ impl<'a> Compiler<'a> {
                         }
                     }
                     let entries = super::expr::tuple_entries(&toks[start..i]).unwrap();
-                    out.push(GivenPoint::Tuple(self.point_from_entries(&entries, &text)?));
+                    out.push(GivenPoint::Tuple(self.point_from_entries(&entries, src)?));
                 }
                 Token::Comma => i += 1,
                 // A symbol (`through="A"`) is not a point here: undefined,
@@ -73,7 +73,7 @@ impl<'a> Compiler<'a> {
                 }
                 other => {
                     return Err(Error::BadMath {
-                        text,
+                        text: src.text(d),
                         reason: format!("unexpected {other:?} in a point list"),
                     });
                 }

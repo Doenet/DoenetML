@@ -33,9 +33,7 @@ impl<'a> Compiler<'a> {
             | ComponentType::BooleanInput => vec![Source::reference(p)],
             ComponentType::Math => {
                 let id = self.compiled.arena.push(Expr::Cell(p));
-                self.compiled
-                    .sym_text
-                    .insert(id, crate::sym::engine::leaf_name(p.get(), false));
+                self.compiled.sym_text.insert(id, SymText::Leaf(p));
                 prop::math::props_of(id, Post::None)
             }
             ComponentType::PointList => {

@@ -338,8 +338,12 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
-    /// Math text as tokens, `$ref`s as cell leaves, and its text.
-    pub(crate) fn math_tokens(&mut self, nodes: &[NodeId]) -> Result<(Vec<Token>, String)> {
+    /// Math text as tokens, `$ref`s as cell leaves, and where its text came
+    /// from, for an error.
+    pub(crate) fn math_tokens<'n>(
+        &mut self,
+        nodes: &'n [NodeId],
+    ) -> Result<(Vec<Token>, MathSrc<'n>)> {
         let scope = self.scope_for(nodes);
         self.c.math_tokens(self.t, scope, nodes)
     }
@@ -375,18 +379,18 @@ impl<'a> PlanCtx<'_, 'a> {
         vy: &str,
     ) -> Result<Option<[Source; 3]>> {
         let t = self.t;
-        let (toks, text) = self.math_tokens(nodes)?;
+        let (toks, src) = self.math_tokens(nodes)?;
         let c = &mut *self.c;
         let sides = super::expr::split_top(&toks, &Token::Eq);
         if sides.len() != 2 {
             return Err(Error::BadMath {
-                text,
+                text: src.text(c.dast),
                 reason: "a line equation needs one '='".into(),
             });
         }
         let (lhs, rhs) = (
-            c.parse_tokens(&sides[0], &text)?,
-            c.parse_tokens(&sides[1], &text)?,
+            c.parse_tokens(&sides[0], src)?,
+            c.parse_tokens(&sides[1], src)?,
         );
         let diff = c.compiled.arena.push(Expr::Sub(lhs, rhs));
         let diff = c.inline_symbolic_maths(t, diff);

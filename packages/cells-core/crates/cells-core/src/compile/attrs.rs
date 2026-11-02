@@ -272,19 +272,19 @@ impl<'a> Compiler<'a> {
         nodes: &[NodeId],
     ) -> Result<ExprId> {
         let _s = crate::trace::tally("plan math");
-        let (toks, text) = self.math_tokens(t, scope, nodes)?;
-        self.parse_tokens(&toks, &text)
+        let (toks, src) = self.math_tokens(t, scope, nodes)?;
+        self.parse_tokens(&toks, src)
     }
 
-    /// Parse math tokens into the arena; `text` is for the error.
+    /// Parse math tokens into the arena; `src` is for the error.
     pub(in crate::compile) fn parse_tokens(
         &mut self,
         toks: &[Token],
-        text: &str,
+        src: MathSrc<'_>,
     ) -> Result<ExprId> {
         let _s = crate::trace::tally("parse");
         Parser::parse(toks, &mut self.compiled.arena).map_err(|reason| Error::BadMath {
-            text: text.to_string(),
+            text: src.text(self.dast),
             reason,
         })
     }
@@ -301,49 +301,45 @@ impl<'a> Compiler<'a> {
         self.parse_math_text(t, scope, &mt)
     }
 
-    /// Tokenize math text with `$ref` children as cell leaves holding plan ids.
-    pub(in crate::compile) fn math_tokens(
+    /// Tokenize math text with `$ref` children as cell leaves holding plan
+    /// ids; with where the text came from, for an error.
+    pub(in crate::compile) fn math_tokens<'n>(
         &mut self,
         t: TemplateId,
         scope: ElemId,
-        nodes: &[NodeId],
-    ) -> Result<(Vec<Token>, String)> {
-        let (toks, text, _) = self.math_tokens_sym(t, scope, nodes)?;
-        Ok((toks, text))
-    }
-
-    /// `math_tokens`, plus the text with each `$ref` written `cellN<plan>`,
-    /// the engine's own spelling of a numeric cell leaf.
-    fn math_tokens_sym(
-        &mut self,
-        t: TemplateId,
-        scope: ElemId,
-        nodes: &[NodeId],
-    ) -> Result<(Vec<Token>, String, String)> {
-        let mt = self.math_text(nodes)?;
-        self.resolve_math(t, scope, &mt)
+        nodes: &'n [NodeId],
+    ) -> Result<(Vec<Token>, MathSrc<'n>)> {
+        let (toks, macros) = self.tokenize_math(nodes)?;
+        let (toks, _) = self.resolve_tokens(t, scope, &toks, &macros)?;
+        Ok((toks, MathSrc(nodes)))
     }
 
     /// Math text tokenized: the one tokenizer of math text. Its `$ref`s
     /// are placeholders, planned by `resolve_math`, so tokenizing reads no
     /// other element and may run while outlining (a `<math>`'s, ADR 0029).
     pub(in crate::compile) fn math_text(&self, nodes: &[NodeId]) -> Result<MathText> {
+        let (toks, macros) = self.tokenize_math(nodes)?;
+        Ok(MathText {
+            toks,
+            macros,
+            nodes: nodes.into(),
+        })
+    }
+
+    /// The tokens of `nodes`, each `$ref` a placeholder, and the `$ref`
+    /// nodes in order.
+    fn tokenize_math(&self, nodes: &[NodeId]) -> Result<(Vec<Token>, Vec<NodeId>)> {
         let _s = crate::trace::tally("math text");
         let d = self.dast;
-        let mut mt = MathText {
-            toks: Vec::new(),
-            macros: Vec::new(),
-            text: String::new(),
-            between: vec![String::new()],
-        };
-        for &n in nodes {
+        let mut toks = Vec::new();
+        let mut macros = Vec::new();
+        for (i, &n) in nodes.iter().enumerate() {
             match d.kind(n) {
                 NodeKind::Text => {
-                    mt.text.push_str(d.str(n));
-                    mt.between.last_mut().unwrap().push_str(d.str(n));
-                    super::expr::tokenize(d.str(n), &mut mt.toks).map_err(|reason| {
+                    super::expr::tokenize(d.str(n), &mut toks).map_err(|reason| {
                         Error::BadMath {
-                            text: mt.text.clone(),
+                            // The text up to where tokenizing failed.
+                            text: super::plan::spell_math(d, &nodes[..=i]),
                             reason,
                         }
                     })?;
@@ -355,36 +351,42 @@ impl<'a> Compiler<'a> {
                     )));
                 }
                 NodeKind::Macro => {
-                    mt.text.push('$');
-                    mt.text.push_str(&d.macro_display(n));
-                    mt.macros.push(n);
-                    mt.toks.push(Token::Cell(RefId::NONE));
-                    mt.between.push(String::new());
+                    macros.push(n);
+                    toks.push(Token::Cell(RefId::NONE));
                 }
                 _ => {}
             }
         }
-        mt.text = mt.text.trim().to_string();
-        Ok(mt)
+        Ok((toks, macros))
     }
 
-    /// The tokens of `mt` with its `$ref`s planned from `scope`, its text,
-    /// and the symbolic engine's text (each `$ref` its leaf name).
+    /// The tokens of `mt` with its `$ref`s planned from `scope`, and the
+    /// plan of each `$ref`, in order (what its symbolic text spells).
     pub(in crate::compile) fn resolve_math(
         &mut self,
         t: TemplateId,
         scope: ElemId,
         mt: &MathText,
-    ) -> Result<(Vec<Token>, String, String)> {
+    ) -> Result<(Vec<Token>, Vec<RefId>)> {
+        self.resolve_tokens(t, scope, &mt.toks, &mt.macros)
+    }
+
+    /// `toks` with each placeholder the plan of its `$ref` in `macros`,
+    /// planned from `scope`; and the plans.
+    fn resolve_tokens(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        toks: &[Token],
+        macros: &[NodeId],
+    ) -> Result<(Vec<Token>, Vec<RefId>)> {
         let _s = crate::trace::tally("resolve math");
-        let d = self.dast;
-        let mut sym = mt.between[0].clone();
-        let mut plans = Vec::with_capacity(mt.macros.len());
-        for (k, &m) in mt.macros.iter().enumerate() {
-            // A text cell holds a string id, which is not a number.
+        let mut plans = Vec::with_capacity(macros.len());
+        for &m in macros {
             // A substituted ref was planned elsewhere: its path is the DAST's.
             let substituted = self.ref_subst.contains_key(&m);
             let p = self.plan_ref(t, scope, m)?;
+            // A text cell holds a string id, which is not a number.
             let is_text = crate::trace::tally("is text").run(|| {
                 if substituted {
                     self.macro_is_text(t, scope, m)
@@ -395,29 +397,22 @@ impl<'a> Compiler<'a> {
             if is_text {
                 return Err(Error::Unsupported(format!(
                     "a text value (${}) inside math",
-                    d.macro_display(m)
+                    self.dast.macro_display(m)
                 )));
             }
-            // Spaces keep `2$a` from reading as one token.
-            sym.push_str(&format!(
-                " {} ",
-                crate::sym::engine::leaf_name(p.get(), false)
-            ));
-            sym.push_str(&mt.between[k + 1]);
             plans.push(p);
         }
-        let mut plans = plans.into_iter();
-        let toks = mt
-            .toks
+        let mut next = plans.iter();
+        let toks = toks
             .iter()
             .map(|tok| match tok {
                 Token::Cell(p) if *p == RefId::NONE => {
-                    Token::Cell(plans.next().expect("a plan per placeholder"))
+                    Token::Cell(*next.next().expect("a plan per placeholder"))
                 }
                 other => other.clone(),
             })
             .collect();
-        Ok((toks, mt.text.clone(), sym))
+        Ok((toks, plans))
     }
 
     /// `mt` parsed as one expression, its `$ref`s planned from `scope`,
@@ -428,9 +423,15 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         mt: &MathText,
     ) -> Result<ExprId> {
-        let (toks, text, sym) = self.resolve_math(t, scope, mt)?;
-        let id = self.parse_tokens(&toks, &text)?;
-        self.compiled.sym_text.insert(id, sym);
+        let (toks, plans) = self.resolve_math(t, scope, mt)?;
+        let id = self.parse_tokens(&toks, mt.src())?;
+        self.compiled.sym_text.insert(
+            id,
+            SymText::Nodes {
+                nodes: mt.nodes.clone(),
+                plans: plans.into(),
+            },
+        );
         Ok(id)
     }
 
@@ -446,11 +447,11 @@ impl<'a> Compiler<'a> {
         if component_type == ComponentType::Math {
             return Ok(ParsedMath::Expr(self.parse_math_text(t, scope, mt)?));
         }
-        let (toks, text, _) = self.resolve_math(t, scope, mt)?;
+        let (toks, _) = self.resolve_math(t, scope, mt)?;
         let parts = super::expr::tuple_entries(&toks).expect("outlining settled a tuple");
         let entries = parts
             .iter()
-            .map(|part| self.parse_tokens(part, &text))
+            .map(|part| self.parse_tokens(part, mt.src()))
             .collect::<Result<_>>()?;
         Ok(ParsedMath::Entries(entries))
     }
@@ -516,27 +517,27 @@ impl<'a> Compiler<'a> {
             let p = self.plan_ref(t, scope, macros[0])?;
             return Ok([Source::coord(p, 0), Source::coord(p, 1)]);
         }
-        let (toks, text) = self.math_tokens(t, scope, nodes)?;
+        let (toks, src) = self.math_tokens(t, scope, nodes)?;
         let entries = super::expr::tuple_entries(&toks).ok_or_else(|| Error::BadMath {
-            text: text.clone(),
+            text: src.text(self.dast),
             reason: "expected a tuple like (x, y)".into(),
         })?;
-        self.point_from_entries(&entries, &text)
+        self.point_from_entries(&entries, src)
     }
 
     /// The entries of `(a, b)` (`tuple_entries`), as two scalar sources.
     pub(in crate::compile) fn point_from_entries(
         &mut self,
         parts: &[Vec<Token>],
-        text: &str,
+        src: MathSrc<'_>,
     ) -> Result<[Source; 2]> {
         let [x, y] = parts else {
             return Err(Error::BadMath {
-                text: text.to_string(),
+                text: src.text(self.dast),
                 reason: format!("expected 2 coordinates, got {}", parts.len()),
             });
         };
-        let (x, y) = (self.parse_tokens(x, text)?, self.parse_tokens(y, text)?);
+        let (x, y) = (self.parse_tokens(x, src)?, self.parse_tokens(y, src)?);
         Ok([self.plan_from_expr(x), self.plan_from_expr(y)])
     }
 

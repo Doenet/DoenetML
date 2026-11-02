@@ -15,13 +15,15 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
     ) -> Result<BuiltSource> {
         let compiled = self.compiled;
-        let text = compiled.sym_text.get(&expr).ok_or_else(|| Error::BadMath {
+        let sym = compiled.sym_text.get(&expr).ok_or_else(|| Error::BadMath {
             text: format!("{:?}", self.compiled.arena.get(expr)),
             reason: "no math text recorded".into(),
         })?;
+        // Spelled only to parse once, or for an error.
+        let text = || sym.spell(&compiled.dast);
         if compiled.arena.has_call(expr) {
             return Err(Error::BadMath {
-                text: text.clone(),
+                text: text(),
                 reason: "round, floor, min, max and clamp are for numeric math only".into(),
             });
         }
@@ -33,9 +35,9 @@ impl<'c> Builder<'c> {
         }
         let parsed;
         let tree = if let Some(cached) = compiled.sym_trees.get(&expr) {
-            cached.get_or_init(|| self.engine.parse_tree(text))
+            cached.get_or_init(|| self.engine.parse_tree(&text()))
         } else {
-            parsed = self.engine.parse_tree(text);
+            parsed = self.engine.parse_tree(&text());
             &parsed
         };
         let tree = match tree {
@@ -43,11 +45,11 @@ impl<'c> Builder<'c> {
             // A relation, tuple or multi-argument function with no cell
             // leaves is a constant expression all the same (a `<boolean>`
             // comparing `(a, b)` with `(a, b)`).
-            Err(reason) => match self.engine.parse_constant(text) {
+            Err(reason) => match self.engine.parse_constant(&text()) {
                 Ok(h) => return Ok(self.math_constant(constant, h)),
                 Err(_) => {
                     return Err(Error::BadMath {
-                        text: text.clone(),
+                        text: text(),
                         reason: reason.clone(),
                     });
                 }
@@ -66,7 +68,7 @@ impl<'c> Builder<'c> {
         self.sym_templates.push(tree);
         if leaves.len() > crate::limits::MAX_REFERENCES {
             return Err(Error::BadMath {
-                text: text.clone(),
+                text: text(),
                 reason: format!("more than {} references", crate::limits::MAX_REFERENCES),
             });
         }

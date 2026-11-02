@@ -56,7 +56,7 @@ impl<'a> Compiler<'a> {
         let fnode = self.compiled.templates[ft.index()].elems[fe.index()].node;
         let vars = self.function_variables(fnode);
         let nodes: Vec<NodeId> = d.children(fnode).to_vec();
-        let (mut toks, text) = self.math_tokens(sub, ROOT_SCOPE, &nodes)?;
+        let (mut toks, src) = self.math_tokens(sub, ROOT_SCOPE, &nodes)?;
         // Variable j is entry j of the previous iterate: `$fi[k-1]`'s tuple.
         let prev: Vec<RefId> = (0..vars.len())
             .map(|j| {
@@ -97,12 +97,12 @@ impl<'a> Compiler<'a> {
         }
         let mut exprs = Vec::with_capacity(n);
         for part in &parts {
-            let id = self.parse_tokens(part, &text)?;
+            let id = self.parse_tokens(part, src)?;
             let mut syms = Vec::new();
             self.compiled.arena.symbols(id, &mut syms);
             if !syms.is_empty() {
                 return Err(Error::BadMath {
-                    text: text.clone(),
+                    text: src.text(self.dast),
                     reason: format!(
                         "an iterated function must be numeric; '{}' is not a variable",
                         syms[0]
@@ -140,21 +140,21 @@ impl<'a> Compiler<'a> {
             });
         }
         let nodes: Vec<NodeId> = d.attr_children(a).to_vec();
-        let (toks, text) = self.math_tokens(sub, ROOT_SCOPE, &nodes)?;
+        let (toks, src) = self.math_tokens(sub, ROOT_SCOPE, &nodes)?;
         let parts = match expr::tuple_entries(&toks) {
             Some(entries) if n > 1 => entries,
             _ => vec![toks.clone()],
         };
         if parts.len() != n {
             return Err(Error::BadMath {
-                text,
+                text: src.text(self.dast),
                 reason: format!("expected an initial value of {n} entries"),
             });
         }
         parts
             .iter()
             .map(|part| {
-                let id = self.parse_tokens(part, &text)?;
+                let id = self.parse_tokens(part, src)?;
                 Ok(match self.plan_from_expr(id) {
                     Source::Given(v) => Source::Const(v),
                     other => other,
