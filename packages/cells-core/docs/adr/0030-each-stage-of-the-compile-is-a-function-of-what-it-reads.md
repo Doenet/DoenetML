@@ -1,6 +1,6 @@
 # Each stage of the compile is a function of what it reads
 
-Status: proposed 2026-11-02. Steps 1 to 4 are done; see Migration. Amends ADR
+Status: proposed 2026-11-02. Steps 1 to 5 are done; see Migration. Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -217,7 +217,18 @@ otherwise.
    planning and linking make no element but the box of a `$ref` child
    that cannot be planned, which has no element to be boxed in place.
 5. **`outline` returns `Outline`.** Its handover fields leave
-   `Compiler`.
+   `Compiler`. Done: `Outline` holds the elements to plan, the `$ref`
+   children to plan and the math texts to parse, which `compile_all`
+   passes to `parse_maths` and `plan_all`; `pending_elems`,
+   `pending_macros` and `math_texts` are gone. Outlining's own state (the
+   container copies to expand, those expanding and expanded) and the
+   `Outline` being filled are an `Outlining` that exists only while
+   outlining runs (`Compiler::outlining`), so adding work after it panics
+   rather than going unplanned. What outlining settles that later stages
+   look up through the planners' context (the name table, an answer's
+   responses and when references, the clones made, the extend
+   references) stays on `Compiler` until planning takes its inputs as
+   arguments (step 7).
 6. **`parse` returns `Parsed`**, and planners read it without taking from
    it.
 7. **`plan` returns `Planned`**, given `&Outline` and `&Parsed`; `link`

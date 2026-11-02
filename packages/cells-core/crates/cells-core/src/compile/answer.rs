@@ -46,10 +46,9 @@ impl<'a> Compiler<'a> {
     /// read, in the order the walk made the answers. They follow every
     /// element the walk and the container copies made.
     pub(in crate::compile) fn add_answer_children(&mut self) {
-        let answers: Vec<(TemplateId, ElemId)> = self
-            .pending_elems
-            .iter()
-            .copied()
+        let made = self.outlining().work.to_plan.clone();
+        let answers: Vec<(TemplateId, ElemId)> = made
+            .into_iter()
             .filter(|&(t, e)| {
                 let el = &self.compiled.templates[t.index()].elems[e.index()];
                 el.component_type == ComponentType::Answer && !el.cloned && el.node != NodeId::NONE

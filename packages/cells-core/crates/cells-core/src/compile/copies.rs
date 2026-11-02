@@ -63,7 +63,7 @@ impl<'a> Compiler<'a> {
     /// complete before anything is planned. A copy of a copy is expanded
     /// after its referent, whatever the document's order.
     pub(in crate::compile) fn expand_container_copies(&mut self) {
-        for (t, e) in std::mem::take(&mut self.container_copies) {
+        for (t, e) in std::mem::take(&mut self.outlining().container_copies) {
             // Nothing is expanding between two copies here, so none is
             // reached again; were one, it is boxed like any failure.
             if let Err(error) = self.expand_container_copy(t, e) {
@@ -84,16 +84,21 @@ impl<'a> Compiler<'a> {
         e: ElemId,
     ) -> Result<()> {
         let key = (t.get(), e.get());
-        if self.expanded.contains(&key) || self.is_box(t, e) {
+        // After outlining, every copy has its clones.
+        let Some(o) = self.outlining.as_mut() else {
+            return Ok(());
+        };
+        if o.expanded.contains(&key) || self.is_box(t, e) {
             return Ok(());
         }
-        if !self.expanding.insert(key) {
+        if !self.outlining().expanding.insert(key) {
             return Err(Error::Cycle(self.elem_label(t, e)));
         }
         let n = self.compiled.templates[t.index()].elems.len();
         let r = self.expand_container_copy_inner(t, e);
-        self.expanding.remove(&key);
-        self.expanded.insert(key);
+        let o = self.outlining();
+        o.expanding.remove(&key);
+        o.expanded.insert(key);
         if let Err(error) = r {
             for x in n..self.compiled.templates[t.index()].elems.len() {
                 self.make_box(t, ElemId::from_index(x), true);
@@ -180,7 +185,7 @@ impl<'a> Compiler<'a> {
                     let child_scope = if name != StrId::NONE { ne } else { scope };
                     let sub = self.clone_children(t, c, child_scope, root)?;
                     self.compiled.templates[t.index()].elems[ne.index()].children = sub;
-                    self.pending_elems.push((t, ne));
+                    self.outlining().work.to_plan.push((t, ne));
                     out.push(Child::Elem(ne));
                 }
                 other => out.push(other),

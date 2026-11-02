@@ -21,12 +21,14 @@
 //! | **abstract build** | `check.rs`, `build/abstract_build.rs` | cycles, writable and live records, structural depth |
 //!
 //! `check.rs` drives them (`plan_and_check`): it runs outline to seal
-//! (`Compiler::compile`), then the abstract build, which stands for every count and pick (ADR 0012, ADR
-//! 0014), and compiles again when a failure could not be boxed where it
-//! arose (ADR 0013). Every stage but sealing is a method on `Compiler`,
-//! and hands over to later stages through its fields; the fields' docs say
-//! which stage writes each and which read it. ADR 0030 proposes making
-//! each stage a function of what it reads.
+//! (`Compiler::compile`), then the abstract build, which stands for every
+//! count and pick (ADR 0012, ADR 0014), and compiles again when a failure
+//! could not be boxed where it arose (ADR 0013). Every stage but sealing
+//! is a method on `Compiler`. Outlining returns the work it found for
+//! parsing and planning ([`Outline`]), which `compile_all` passes on; the
+//! rest the stages hand over through `Compiler`'s fields, whose docs say
+//! which stage writes each and which read it. ADR 0030 makes each stage a
+//! function of what it reads, step by step.
 //!
 //! Files: this one has the stages' entry points, outlining's walk and
 //! each element's shape;
@@ -118,10 +120,9 @@ pub(in crate::compile) struct Planned {
 }
 
 /// The state of one compile, outline to seal. Each field says which stage
-/// writes it (*W*) and which read it (*R*), as the module doc names them;
-/// a field one stage fills for another is drained by the reader with
-/// `mem::take`. ADR 0030 proposes replacing these handovers with each
-/// stage's result.
+/// writes it (*W*) and which read it (*R*), as the module doc names them.
+/// What outlining hands on is its result ([`Outline`]), not a field; ADR
+/// 0030 does the same for the later stages.
 pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled; `compiled` keeps it too. R: every stage.
     pub(in crate::compile) dast: &'a Dast,
@@ -135,13 +136,10 @@ pub(in crate::compile) struct Compiler<'a> {
     /// shared slots; sealing sets choice interfaces, keys and slot
     /// offsets.
     pub(in crate::compile) compiled: Compiled,
-    /// Every element to plan. W: outline (`add_elem`, `clone_children`).
-    /// R: plan (`plan_all`), drained.
-    pub(in crate::compile) pending_elems: Vec<(TemplateId, ElemId)>,
-    /// Macro children awaiting plans: (template, owning element or None for
-    /// the template's own children, index in that child list, node).
-    /// W: outline (`add_children`). R: plan (`plan_all`), drained.
-    pub(in crate::compile) pending_macros: Vec<(TemplateId, Option<ElemId>, usize, NodeId)>,
+    /// Outlining's own state, and the `Outline` it is filling: `Some`
+    /// only while outlining runs (`outline`), so nothing after it can add
+    /// an element or work for a later stage (ADR 0030).
+    outlining: Option<Outlining>,
     /// Macro nodes whose reference is already planned: `$mi` inside an
     /// answer's `<when>` is its submitted response (`plan_answer`).
     /// W: plan (`plan_answer`, set and cleared around one `<when>`).
@@ -177,16 +175,6 @@ pub(in crate::compile) struct Compiler<'a> {
     /// W: outline (`clone_children`). R: `box_in_place` (outline, plan,
     /// link).
     cloned_sources: HashSet<(u32, u32)>,
-    /// The container copies (`<graph extend="$g"/>`) outlining found, which
-    /// get their clones once every name is in the table. W: outline
-    /// (`add_elem_inner`). R: outline's end (`expand_container_copies`),
-    /// drained.
-    container_copies: Vec<(TemplateId, ElemId)>,
-    /// By (template, element), the container copies expanding now and
-    /// those done: one reached again while it expands is a cycle.
-    /// W, R: outline (`expand_container_copy`).
-    expanding: HashSet<(u32, u32)>,
-    expanded: HashSet<(u32, u32)>,
     /// The name table. W: outline (`push_elem_visible_to`). R: plan
     /// (`plan_ref`), link (`drop_unregistered_name`), seal (choices, keys).
     names: NameTable,
@@ -195,10 +183,6 @@ pub(in crate::compile) struct Compiler<'a> {
     /// W: plan (`plan_with_extend`). R: link (`link_shared_state`), seal
     /// (`assign_keys`).
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
-    /// Each `<math>`'s text, tokenized when outlining, where its type is
-    /// settled, in the order the walk made them. W: outline
-    /// (`settle_outline`). R: parse (`parse_maths`), drained.
-    math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
     /// By (template, element), each `<math>`'s text as parsing parsed it.
     /// W: parse (`parse_maths`). R: plan (the math's planner, which takes a
     /// parse error out; a line's equation, which inlines a parse).
@@ -220,6 +204,45 @@ pub(in crate::compile) struct Compiler<'a> {
     /// planned once (`plan_extend`). A cache. W, R: outline (container
     /// copies), plan.
     extend_refs: HashMap<(u32, u32), RefId>,
+}
+
+/// What outlining hands to the stages after it (ADR 0030): the work it
+/// found for them, in the order the walk made it. What it settles of each
+/// element is in the templates themselves.
+#[derive(Default)]
+pub(in crate::compile) struct Outline {
+    /// Every element to plan, as outlining made them (`plan_all`).
+    to_plan: Vec<(TemplateId, ElemId)>,
+    /// Every `$ref` child to plan (`plan_all`).
+    macros: Vec<PendingMacro>,
+    /// Each `<math>`'s text, tokenized where its type was settled
+    /// (`parse_maths`).
+    math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
+}
+
+/// A `$ref` child awaiting its plan: its template, the element whose
+/// child it is (`None` for the template's own children), its index in that
+/// child list, and its node.
+struct PendingMacro {
+    t: TemplateId,
+    owner: Option<ElemId>,
+    i: usize,
+    node: NodeId,
+}
+
+/// Outlining's state while it runs (`Compiler::outlining`).
+#[derive(Default)]
+pub(in crate::compile) struct Outlining {
+    /// What outlining hands on, as it fills it.
+    work: Outline,
+    /// The container copies (`<graph extend="$g"/>`) the walk found, which
+    /// get their clones once every name is in the table
+    /// (`expand_container_copies`).
+    container_copies: Vec<(TemplateId, ElemId)>,
+    /// By (template, element), the container copies expanding now and
+    /// those done: one reached again while it expands is a cycle.
+    expanding: HashSet<(u32, u32)>,
+    expanded: HashSet<(u32, u32)>,
 }
 
 /// A piece of essential state copy `e` shares with its referent (ADR
@@ -366,8 +389,7 @@ impl<'a> Compiler<'a> {
                 prune: false,
                 fold: false,
             },
-            pending_elems: Vec::new(),
-            pending_macros: Vec::new(),
+            outlining: None,
             ref_subst: HashMap::new(),
             string_ids: None,
             boxed,
@@ -376,16 +398,12 @@ impl<'a> Compiler<'a> {
             boxed_here: HashSet::new(),
             cloned_sources: HashSet::new(),
             shares: Vec::new(),
-            container_copies: Vec::new(),
-            expanding: HashSet::new(),
-            expanded: HashSet::new(),
             names: NameTable::default(),
             shared_state: HashMap::new(),
             referent_readers: Vec::new(),
             extend_refs: HashMap::new(),
             when_refs: HashMap::new(),
             answer_responses: HashMap::new(),
-            math_texts: Vec::new(),
             parsed_maths: HashMap::new(),
         };
         match cp.compile_all() {
@@ -426,14 +444,18 @@ impl<'a> Compiler<'a> {
     /// boxed there (`box_in_place`) ends the compile once its stage is
     /// done, for `plan_and_check` to box its node and compile again.
     fn compile_all(&mut self) -> std::result::Result<(), Failure> {
-        crate::trace::span("outline").run(|| self.outline());
+        let Outline {
+            to_plan,
+            macros,
+            math_texts,
+        } = crate::trace::span("outline").run(|| self.outline());
         self.restart_if_needed()?;
         // The element set is outlining's (ADR 0030): planning and linking
         // make none, but for the box of a `$ref` child that cannot be
         // planned, which has no element to be boxed in place.
         let outlined = self.elem_count();
-        crate::trace::span("parse maths").run(|| self.parse_maths());
-        let ref_boxes = crate::trace::span("plan all").run(|| self.plan_all());
+        crate::trace::span("parse maths").run(|| self.parse_maths(math_texts));
+        let ref_boxes = crate::trace::span("plan all").run(|| self.plan_all(to_plan, macros));
         self.restart_if_needed()?;
         crate::trace::span("link").run(|| self.link())?;
         debug_assert_eq!(
@@ -458,9 +480,11 @@ impl<'a> Compiler<'a> {
     /// Outlining: every element, template and name, and what a reference
     /// reads of each that its own source settles (`settle_outline`); once
     /// every name is in the table, container copies get their clones,
-    /// which completes the element set. Nothing is planned.
-    fn outline(&mut self) {
+    /// which completes the element set. Nothing is planned. Returns the
+    /// work it found for the stages after it.
+    fn outline(&mut self) -> Outline {
         let dast = self.dast;
+        self.outlining = Some(Outlining::default());
         // Template 0 is the document: its one child is the root component.
         let doc_el = dast
             .children(Dast::ROOT)
@@ -478,7 +502,7 @@ impl<'a> Compiler<'a> {
                 // planned with every element (`plan_synthetic`).
                 let e =
                     self.add_synthetic(TemplateId::new(0), ComponentType::Document, StrId::NONE);
-                self.pending_elems.push((TemplateId::new(0), e));
+                self.outlining().work.to_plan.push((TemplateId::new(0), e));
                 let kids = self.add_children(
                     TemplateId::new(0),
                     Some(e),
@@ -492,29 +516,43 @@ impl<'a> Compiler<'a> {
         self.compiled.templates[0].children = children;
         {
             let _s = crate::trace::span("container copies");
-            crate::trace::count("copies", self.container_copies.len());
+            crate::trace::count("copies", self.outlining().container_copies.len());
             self.expand_container_copies();
         }
         crate::trace::span("answer children").run(|| self.add_answer_children());
+        self.outlining.take().expect("outlining").work
+    }
+
+    /// Outlining's state; only outlining reaches it.
+    pub(in crate::compile) fn outlining(&mut self) -> &mut Outlining {
+        self.outlining
+            .as_mut()
+            .expect("only outlining makes elements and work for later stages (ADR 0030)")
     }
 
     /// Planning: every element and every `$ref` child, each from the
     /// source and what outlining and parsing made alone, never from
     /// another element's plan (ADR 0029). What fails is boxed in place.
     /// Returns how many `$ref` children were boxed, each a new element.
-    fn plan_all(&mut self) -> usize {
+    fn plan_all(&mut self, to_plan: Vec<(TemplateId, ElemId)>, macros: Vec<PendingMacro>) -> usize {
         let dast = self.dast;
         let mut ref_boxes = 0;
         {
             let _s = crate::trace::span("elements");
-            crate::trace::count("elements", self.pending_elems.len());
-            for (t, e) in std::mem::take(&mut self.pending_elems) {
+            crate::trace::count("elements", to_plan.len());
+            for (t, e) in to_plan {
                 self.plan_elem(t, e);
             }
         }
         let _s = crate::trace::span("refs");
-        crate::trace::count("refs", self.pending_macros.len());
-        for (t, owner, i, m) in std::mem::take(&mut self.pending_macros) {
+        crate::trace::count("refs", macros.len());
+        for PendingMacro {
+            t,
+            owner,
+            i,
+            node: m,
+        } in macros
+        {
             // Content of a box is not planned.
             let dead = match owner {
                 Some(e) => self.is_box(t, e),
@@ -866,9 +904,9 @@ impl<'a> Compiler<'a> {
         }
         let name = self.attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
-        self.pending_elems.push((t, e));
+        self.outlining().work.to_plan.push((t, e));
         if self.is_container_copy(t, e) {
-            self.container_copies.push((t, e));
+            self.outlining().container_copies.push((t, e));
         }
         let child_scope = e;
         match component_type {
@@ -976,7 +1014,7 @@ impl<'a> Compiler<'a> {
                     Err(_) => ComponentType::Math,
                 };
                 self.compiled.templates[t.index()].elems[e.index()].component_type = k;
-                self.math_texts.push(((t, e), mt));
+                self.outlining().work.math_texts.push(((t, e), mt));
                 return Ok(());
             }
             ComponentType::Collect => crate::components::structure::collect::collected_type(
@@ -1037,7 +1075,13 @@ impl<'a> Compiler<'a> {
                         kids.push(Child::Elem(self.push_error_elem(t, n, name_scope)));
                         continue;
                     }
-                    self.pending_macros.push((t, owner, kids.len(), n));
+                    let i = kids.len();
+                    self.outlining().work.macros.push(PendingMacro {
+                        t,
+                        owner,
+                        i,
+                        node: n,
+                    });
                     kids.push(Child::Macro(RefId::NONE, false));
                 }
                 NodeKind::Other => {}
@@ -1084,8 +1128,8 @@ impl<'a> Compiler<'a> {
     /// parsed once as the type outlining settled, its `$ref`s planned where
     /// the math sits; what its planner plans from, and what a line's
     /// equation inlines.
-    fn parse_maths(&mut self) {
-        for ((t, e), mt) in std::mem::take(&mut self.math_texts) {
+    fn parse_maths(&mut self, math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>) {
+        for ((t, e), mt) in math_texts {
             if self.is_box(t, e) {
                 continue;
             }
