@@ -378,6 +378,8 @@ export default class Core {
         this.diagnosticsManager = new DiagnosticsManager({
             preliminaryDiagnostics,
         });
+        this.diagnosticsManager.isShown = (componentIdx: number) =>
+            this.isComponentShown(componentIdx);
 
         this.numerics = new (Numerics as any)();
         this.flags = flags;
@@ -832,6 +834,42 @@ export default class Core {
             }
         }
         return this.diagnosticsManager.addDiagnostic(diagnostic);
+    }
+
+    /**
+     * Whether component `componentIdx` exists and is not inside content a
+     * composite withholds (`replacementsToWithhold`), as a
+     * `<conditionalContent>` withholds a case that is not chosen: neither it
+     * nor any component it is inside, through parents and the composites
+     * that made them, is withheld.
+     */
+    isComponentShown(componentIdx: number): boolean {
+        let component: any = this._components[componentIdx];
+        if (!component) {
+            return false;
+        }
+        while (component) {
+            let replacement = component;
+            while (replacement.replacementOf) {
+                const composite = replacement.replacementOf;
+                const withheld = composite.replacementsToWithhold ?? 0;
+                if (withheld > 0) {
+                    const ind = composite.replacements.findIndex(
+                        (x: any) =>
+                            x?.componentIdx === replacement.componentIdx,
+                    );
+                    if (ind >= composite.replacements.length - withheld) {
+                        return false;
+                    }
+                }
+                replacement = composite;
+            }
+            component =
+                component.parentIdx === undefined
+                    ? undefined
+                    : this._components[component.parentIdx];
+        }
+        return true;
     }
 
     getSourceLocationForComponent(component: ComponentInstance): {

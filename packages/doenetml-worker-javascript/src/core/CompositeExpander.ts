@@ -12,6 +12,7 @@ import { processNewDefiningChildren } from "./ComponentLifecycle";
 import {
     addReplacementsToResolver,
     gatherDiagnosticsAndAssignDoenetMLRange,
+    reportConditionDiagnostics,
 } from "./ResolverAdapter";
 import {
     addAttributesToSingleReplacement,
@@ -397,6 +398,7 @@ export async function expandCompositeComponent({
         sourceDoc,
         overwriteDoenetMLRange,
     });
+    reportConditionDiagnostics({ core, component });
 
     if (component.constructor.stateVariableToEvaluateAfterReplacements) {
         await component.stateValues[

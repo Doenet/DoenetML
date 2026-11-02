@@ -2136,6 +2136,75 @@ async function createArraySizeStateVariable({
  */
 export const INDEX_NAMES_NOTHING = "__index_names_nothing";
 
+/**
+ * Report that `reference`, an index into the value of `component`, names
+ * nothing because the value is a scalar (`doenet-w0100`, from
+ * `stateVarObj.indexIntoScalar`).
+ *
+ * The value can change, from a scalar to a tuple and back, and nothing about
+ * the reference is resolved again when it does, so with `watch` this is a
+ * watched condition of the component the reference belongs to
+ * (`DiagnosticsManager.watchCondition`): reported while the value is a
+ * scalar, withdrawn when it has entries, and reported again if it becomes a
+ * scalar later, as a reload would decide it (B33, DIAG-6). It is withdrawn
+ * for good once the reference no longer reads `component`
+ * (`watch.isCurrent`) or `component` is gone.
+ */
+async function reportIndexIntoScalarOf({
+    core,
+    component,
+    stateVarObj,
+    propIndex,
+    reference,
+    watch,
+}: {
+    core: Core;
+    component: ComponentInstance;
+    stateVarObj: any;
+    propIndex: number[];
+    reference: { text: string; position?: Position; sourceDoc?: number };
+    watch?: { owner: number; isCurrent: () => boolean };
+}) {
+    const diagnostic = codedDiagnostic({
+        type: "warning",
+        code: "doenet-w0100",
+        args: { reference: reference.text },
+        position: reference.position,
+        sourceDoc: reference.sourceDoc,
+    });
+    if (!watch) {
+        if (await stateVarObj.indexIntoScalar(component, propIndex)) {
+            core.addDiagnostic(diagnostic);
+        }
+        return;
+    }
+
+    const componentIdx = component.componentIdx;
+    let first = true;
+    async function decide() {
+        // Decided while the reference is being resolved, before it is
+        // registered as reading `component`.
+        if (
+            !first &&
+            (!watch!.isCurrent() || !core._components[componentIdx])
+        ) {
+            return null;
+        }
+        first = false;
+        return (await stateVarObj.indexIntoScalar(
+            core._components[componentIdx],
+            propIndex,
+        ))
+            ? [diagnostic]
+            : [];
+    }
+    await core.diagnosticsManager.watchCondition(
+        watch.owner,
+        `indexIntoScalar:${componentIdx}:${reference.text}`,
+        decide,
+    );
+}
+
 // arrayEntryNamesFromPropIndex is essentially a wrapper around
 // stateVarObj.arrayVarNameFromPropIndex.
 // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
@@ -2151,6 +2220,7 @@ export async function arrayEntryNamesFromPropIndex({
     propIndex,
     reference,
     reportIndexIntoScalar = true,
+    watch,
 }: {
     core: Core;
     stateVariables: string[];
@@ -2180,6 +2250,15 @@ export async function arrayEntryNamesFromPropIndex({
         position?: Position;
         sourceDoc?: number;
     };
+    /**
+     * Who the reference belongs to, so that whether an index into a value
+     * names nothing because the value is a scalar (`indexIntoScalar`) follows
+     * the value (B33): reported as a condition of component `owner`, decided
+     * again after each update while `isCurrent` says the reference still
+     * reads this component, and withdrawn once it does not. Without it, it is
+     * decided once, now.
+     */
+    watch?: { owner: number; isCurrent: () => boolean };
 }) {
     /**
      * Report that the index the author wrote cannot be applied.
@@ -2285,17 +2364,16 @@ export async function arrayEntryNamesFromPropIndex({
                 newName &&
                 reference &&
                 reportIndexIntoScalar &&
-                (await stateVarObj.indexIntoScalar?.(component, propIndex))
+                stateVarObj.indexIntoScalar
             ) {
-                core.addDiagnostic(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0100",
-                        args: { reference: reference.text },
-                        position: reference.position,
-                        sourceDoc: reference.sourceDoc,
-                    }),
-                );
+                await reportIndexIntoScalarOf({
+                    core,
+                    component,
+                    stateVarObj,
+                    propIndex,
+                    reference,
+                    watch,
+                });
             }
         } else if (stateVarObj.isArrayEntry) {
             let arrayStateVarObj =

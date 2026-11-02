@@ -430,6 +430,45 @@ export function gatherDiagnosticsAndAssignDoenetMLRange({
     }
 }
 
+/**
+ * Report the diagnostics `component` holds on its conditions now, as its
+ * `createSerializedReplacements` or `calculateReplacementChanges` left them in
+ * `workspace.conditionDiagnostics`: by the name of each condition it decides,
+ * what that condition gives (`[]` once it ends). Each replaces what the
+ * condition gave before (`DiagnosticsManager.setConditionDiagnostics`), so a
+ * diagnostic caused by values that can change appears and goes away with its
+ * condition (B33), rather than being added again each time it is decided. A
+ * condition not named is left as it was.
+ *
+ * Marked where the composite is, as the diagnostics it returns are
+ * (`gatherDiagnosticsAndAssignDoenetMLRange`).
+ */
+export function reportConditionDiagnostics({
+    core,
+    component,
+}: {
+    core: Core;
+    component: any;
+}): void {
+    const conditionDiagnostics =
+        component.replacementsWorkspace?.conditionDiagnostics;
+    if (!conditionDiagnostics) {
+        return;
+    }
+    const composite = core._components[component.componentIdx];
+    for (const condition in conditionDiagnostics) {
+        core.diagnosticsManager.setConditionDiagnostics(
+            component.componentIdx,
+            condition,
+            conditionDiagnostics[condition].map((diagnostic: any) => ({
+                ...diagnostic,
+                position: composite.position,
+                sourceDoc: composite.sourceDoc,
+            })),
+        );
+    }
+}
+
 export function removeComponentsFromResolver({
     core,
     componentsToRemove,

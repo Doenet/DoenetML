@@ -585,6 +585,11 @@ export class Dependency {
                     component: downComponent,
                     propIndex: this.propIndex,
                     reportIndexIntoScalar: !this.definition.indexPastComposite,
+                    watch: {
+                        owner: this.upstreamComponentIdx,
+                        isCurrent: () =>
+                            this.readsComponent(downComponent.componentIdx),
+                    },
                     reference: referenceText
                         ? {
                               text: `$${referenceText}`,
@@ -1053,6 +1058,22 @@ export class Dependency {
     }
 
     deleteFromUpdateTriggers() {}
+
+    /**
+     * Whether this dependency is still one of its upstream component's, and
+     * still reads component `componentIdx`: it is replaced when it is
+     * determined again (`deleteDependency`) and its components can change.
+     */
+    readsComponent(componentIdx: ComponentIdx): boolean {
+        const registered =
+            this.dependencyHandler.downstreamDependencies[
+                this.upstreamComponentIdx
+            ]?.[this.upstreamVariableNames[0]]?.[this.dependencyName] === this;
+        return (
+            registered &&
+            (this.downstreamComponentIndices?.includes(componentIdx) ?? false)
+        );
+    }
 
     async getValueNoProxy({
         verbose = false,
