@@ -87,6 +87,74 @@ export const STEPS = {
         "Every element planned by its type's planner into templates: where each prop's value comes from, every reference, every choice. Math text is parsed into expression trees here, once.",
         `${C}/compile/mod.rs, compile/planner.rs`,
     ],
+    "core/new Core/load/compile/plan/outline": [
+        "Every element, template and name entered, and what a reference reads that its own source settles; nothing is planned yet.",
+        `${C}/compile/mod.rs (outline)`,
+    ],
+    "core/new Core/load/compile/plan/outline/container copies": [
+        "Container copies given their clones, once every name is in the table.",
+        `${C}/compile/copies.rs (expand_container_copies)`,
+    ],
+    "core/new Core/load/compile/plan/parse maths": [
+        "Every math text parsed into an expression tree, once.",
+        `${C}/compile/mod.rs (parse_maths)`,
+    ],
+    "core/new Core/load/compile/plan/plan all": [
+        "Planning: every element, then every reference child.",
+        `${C}/compile/mod.rs (plan_all)`,
+    ],
+    "core/new Core/load/compile/plan/plan all/elements": [
+        "Every element planned by its type's planner.",
+        `${C}/compile/mod.rs (plan_elem), planner.rs`,
+    ],
+    "core/new Core/load/compile/plan/plan all/refs": [
+        "Every `$ref` child planned.",
+        `${C}/compile/mod.rs (plan_ref)`,
+    ],
+    "core/new Core/load/compile/plan/link": [
+        "Readers of boxed elements boxed, then shared state tied between the elements left.",
+        `${C}/compile/mod.rs (link)`,
+    ],
+    "core/new Core/load/compile/plan/link/box readers": [
+        "Every reader of a boxed referent boxed.",
+        `${C}/compile/mod.rs (box_readers_of_boxes)`,
+    ],
+    "core/new Core/load/compile/plan/link/shared state": [
+        "Shared state tied between geometry elements.",
+        `${C}/compile/copies.rs (link_shared_state)`,
+    ],
+    "core/new Core/load/compile/plan/seal": [
+        "What reads every plan and changes none: choices, operator arity, keys, slot offsets.",
+        `${C}/compile/seal.rs`,
+    ],
+    "core/new Core/load/compile/plan/seal/choices": [
+        "Choices finished.",
+        `${C}/compile/seal.rs (finish_choices)`,
+    ],
+    "core/new Core/load/compile/plan/seal/arity": [
+        "Every operator a plan names checked to take as many inputs as it reads.",
+        `${C}/compile/seal.rs (check_arity)`,
+    ],
+    "core/new Core/load/compile/plan/seal/keys": [
+        "Every slot given its key.",
+        `${C}/compile/seal.rs (assign_keys), keys.rs`,
+    ],
+    "core/new Core/load/compile/plan/seal/slot offsets": [
+        "Slot offsets, once every planned type knows its hidden slot count.",
+        `${C}/compile/seal.rs (slot_offsets)`,
+    ],
+    "core/new Core/load/compile/plan/finish": [
+        "The plan's storage shrunk to fit, and the expression-tree cache made for repeats.",
+        `${C}/compile/mod.rs (Compiler::compile)`,
+    ],
+    "core/new Core/load/compile/unread attributes": [
+        "Every element with an attribute nothing read while planning found, to be boxed (ADR 0021).",
+        `${C}/compile/check.rs (unread_attributes)`,
+    ],
+    "core/new Core/load/compile/diagnostics": [
+        "The lint's, planners' and abstract build's diagnostics joined and sorted.",
+        `${C}/compile/check.rs (compile)`,
+    ],
     "core/new Core/load/compile/abstract build": [
         "One build through the abstract view, which stands for every iteration count and every pick, to find every cycle and error the document can have, and the writable, live, counted and constant records every later build reads. Its cells are discarded (ADR 0012, ADR 0014).",
         `${C}/build/abstract_build.rs`,

@@ -56,6 +56,7 @@ pub(crate) fn compile(
     })?;
     // The planners' and the abstract build's warnings, from the compile
     // that built.
+    let _s = crate::trace::span("diagnostics");
     list.append(Arc::make_mut(&mut compiled.diagnostics));
     crate::diagnostics::sort(&mut list);
     compiled.diagnostics = Arc::new(list);
@@ -142,7 +143,8 @@ fn plan_and_check<T>(
         // done: a build reads none (ADR 0027).
         let mut outside: HashSet<NodeId> = boxed.clone();
         outside.extend(planned.boxed.iter().copied());
-        let unread = unread_attributes(dast, &outside);
+        let unread =
+            crate::trace::span("unread attributes").run(|| unread_attributes(dast, &outside));
         if !unread.is_empty() {
             for (node, error) in unread {
                 crate::trace::count("boxed", 1);

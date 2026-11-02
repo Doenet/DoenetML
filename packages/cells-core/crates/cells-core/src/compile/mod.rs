@@ -345,6 +345,7 @@ impl<'a> Compiler<'a> {
         };
         match cp.compile_all() {
             Ok(()) => {
+                let _s = crate::trace::span("finish");
                 let c = &mut cp.compiled;
                 c.shrink_to_fit();
                 if c.has_repeats() {
@@ -381,11 +382,11 @@ impl<'a> Compiler<'a> {
 
     /// The compile's stages, in order (ADR 0027, ADR 0029).
     fn compile_all(&mut self) -> Result<()> {
-        self.outline()?;
-        self.parse_maths();
-        self.plan_all()?;
-        self.link()?;
-        self.seal()
+        crate::trace::span("outline").run(|| self.outline())?;
+        crate::trace::span("parse maths").run(|| self.parse_maths());
+        crate::trace::span("plan all").run(|| self.plan_all())?;
+        crate::trace::span("link").run(|| self.link())?;
+        crate::trace::span("seal").run(|| self.seal())
     }
 
     /// Outlining: every element, template and name, and what a reference
@@ -426,6 +427,8 @@ impl<'a> Compiler<'a> {
             }
         };
         self.compiled.templates[0].children = children;
+        let _s = crate::trace::span("container copies");
+        crate::trace::count("copies", self.container_copies.len());
         self.expand_container_copies()
     }
 
@@ -434,9 +437,15 @@ impl<'a> Compiler<'a> {
     /// another element's plan (ADR 0029). What fails is boxed in place.
     fn plan_all(&mut self) -> Result<()> {
         let dast = self.dast;
-        for (t, e) in std::mem::take(&mut self.pending_elems) {
-            self.plan_elem(t, e)?;
+        {
+            let _s = crate::trace::span("elements");
+            crate::trace::count("elements", self.pending_elems.len());
+            for (t, e) in std::mem::take(&mut self.pending_elems) {
+                self.plan_elem(t, e)?;
+            }
         }
+        let _s = crate::trace::span("refs");
+        crate::trace::count("refs", self.pending_macros.len());
         for (t, owner, i, m) in std::mem::take(&mut self.pending_macros) {
             // Content of a box is not planned.
             let dead = match owner {
@@ -476,8 +485,8 @@ impl<'a> Compiler<'a> {
     /// shared state is tied between the elements left
     /// (`link_shared_state`).
     fn link(&mut self) -> Result<()> {
-        self.box_readers_of_boxes()?;
-        self.link_shared_state();
+        crate::trace::span("box readers").run(|| self.box_readers_of_boxes())?;
+        crate::trace::span("shared state").run(|| self.link_shared_state());
         Ok(())
     }
 

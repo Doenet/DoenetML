@@ -19,10 +19,10 @@ pub(in crate::compile) struct Seal<'a> {
 
 impl Seal<'_> {
     pub(in crate::compile) fn run(mut self) -> std::result::Result<(), Failure> {
-        self.finish_choices()?;
-        self.check_arity()?;
-        self.assign_keys();
-        self.slot_offsets();
+        crate::trace::span("choices").run(|| self.finish_choices())?;
+        crate::trace::span("arity").run(|| self.check_arity())?;
+        crate::trace::span("keys").run(|| self.assign_keys());
+        crate::trace::span("slot offsets").run(|| self.slot_offsets());
         Ok(())
     }
 
