@@ -492,10 +492,10 @@ fn a_failure_under_a_cloned_subtree_compiles_once_more() {
             2,
         ),
         // Fails while outlining, as a container copy; the unread attribute
-        // takes a plan of its own.
+        // is boxed in place, and takes no plan of its own (ADR 0030).
         (
             r#"<graph name="C" extend="$X"/><graph name="A" extend="$nope"><graph name="X"><point name="p" x="1"/></graph></graph><number name="n" bogus="1">2</number><number name="k">$nope2</number>"#,
-            3,
+            2,
         ),
     ] {
         let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
@@ -516,4 +516,35 @@ fn a_failure_under_a_cloned_subtree_compiles_once_more() {
         let doc = load(src).unwrap();
         assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()), "{src}");
     }
+}
+
+/// An element with an attribute nothing read is boxed in place when
+/// linking (ADR 0030), so the document plans once. What its planning
+/// reported under it is dropped, as if it had never been planned; a
+/// reference into it reads undefined, and an extend of it is boxed with it
+/// as the cause, as for any box made in place (ADR 0027).
+#[test]
+fn an_unread_attribute_is_boxed_in_place_and_plans_once() {
+    let src = r#"<graph name="g" bogus="1"><point name="A" x="$nope"/></graph>
+        <number name="n">$A.x</number><point name="Q" extend="$A"/>
+        <number name="k">5</number>"#;
+    let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
+    cells_core::trace::start();
+    let list = diagnose(&dast);
+    let plans = cells_core::trace::finish()
+        .iter()
+        .filter(|s| s.name == "plan")
+        .count();
+    assert_eq!(plans, 1);
+    let mut codes: Vec<_> = errors(&list).iter().map(|d| d.code).collect();
+    codes.sort();
+    assert_eq!(
+        codes,
+        ["cells-boxed-referent", "cells-unsupported-attribute"],
+        "{list:?}"
+    );
+    let doc = load(src).unwrap();
+    assert!(doc.value("n", "value").unwrap().is_nan());
+    assert_eq!(doc.value("k", "value"), Some(5.0));
+    assert_eq!(keys(&list), keys(doc.diagnostics()));
 }

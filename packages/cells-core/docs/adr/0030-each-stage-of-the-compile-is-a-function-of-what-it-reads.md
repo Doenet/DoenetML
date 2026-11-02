@@ -1,6 +1,6 @@
 # Each stage of the compile is a function of what it reads
 
-Status: proposed 2026-11-02. Steps 1 and 2 are done; see Migration. Amends ADR
+Status: proposed 2026-11-02. Steps 1 to 3 are done; see Migration. Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -118,9 +118,11 @@ No failure's handling depends on an earlier one. Only `plan_and_check`
 compiles again.
 
 **The unread-attribute check is the end of planning**, as ADR 0027
-states: planning boxes what it finds in place, like any planner's
-failure, and linking boxes what read it. It leaves `check.rs`, and a
-document with an unread attribute plans once, not twice.
+states: it runs when linking, once every element is planned and the
+readers of planning's boxes are boxed, and boxes what it finds in
+place, like any planner's failure; linking then boxes what read those.
+It leaves `check.rs`, and a document with an unread attribute plans
+once, not twice.
 
 **Files follow the stages**: `compile/outline/`, `compile/parse.rs`,
 `compile/plan/` (the planners' machinery, behind `api.rs` as now),
@@ -154,7 +156,10 @@ table, `plan_ref`) lives in a module of its own that says so.
   once.
 - `failed_node`, the four guards, `pending_elems`, `pending_macros`,
   `container_copies` and `math_texts` as fields, and `child_scope` go.
-- No step changes a diagnostic or the golden diff.
+- No step changes the golden diff. Step 3 changes diagnostics for a
+  document with an unread attribute: what referred into the refused
+  element was an unknown reference, a false error, and now reads it as
+  any box made in place (ADR 0027).
 
 ## Migration
 
@@ -179,9 +184,20 @@ otherwise.
    outlining and while planning, against the same errors and number of
    plans as before.
 3. **Unread attributes at the end of planning.** Run the check over the
-   plan stage's read flags and box in place what it finds. Tests: a
-   document with an unread attribute plans once; `tests/diagnostics.rs`
-   unchanged.
+   plan stage's read flags and box in place what it finds. Test: a
+   document with an unread attribute plans once. Done: `compile/unread.rs`, between linking's two passes of
+   `box_readers_of_boxes`. What the refused element's planning reported
+   under it (errors, boxes, warnings, its own included) is dropped, as
+   when it was boxed from the start of a new compile, and an element the
+   check names with no element made for it (a child its parent's planner
+   reads) is still boxed by compiling again. One change in diagnostics,
+   the cascade ADR 0027 removed for other boxes: with
+   `<graph name="g" bogus="1"><point name="A"/></graph>`, `$A.x`
+   elsewhere was an unknown reference, since a box made from the start
+   has no children, and now reads undefined with no error of its own;
+   `<point extend="$A"/>` is boxed with `cells-boxed-referent` instead
+   of an unknown reference. `tests/diagnostics.rs` checks this, and the
+   restart test now takes two plans, not three.
 4. **Outlining makes no plans.** Move the repeat's value wiring and the
    synthetic document's props into their planners, push an answer's
    `response` and `mathInput` when outlining, and decide an extend's

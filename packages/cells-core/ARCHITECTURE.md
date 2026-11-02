@@ -102,7 +102,8 @@ Runs once per load and depends on the source alone.
   of each (a `<math>`'s type, a `<collect>`'s collected type) and gives
   container copies their clones; **parse** parses every `<math>`'s text
   once; **plan** plans every element; **link** boxes what read a boxed
-  referent and ties shared state between plans; **seal** (`seal.rs`)
+  referent and every element with an attribute nothing read, and ties
+  shared state between plans; **seal** (`seal.rs`)
   makes choice interfaces, checks arity, and assigns keys and slot
   offsets; the **abstract build** (below) comes last. A planner reads the
   source and what outlining and parsing made, never another element's plan
@@ -286,8 +287,9 @@ was planned (ADR 0021): the core ignores no attribute silently.
 `Dast::attr` records every lookup, and a build makes none; once planning
 is done, every element outside the boxes with an attribute never looked
 up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
-`presentation`), is boxed, all of them at once, and the plan is made
-again before the abstract build runs.
+`presentation`), is boxed in place when linking (`compile/unread.rs`, ADR
+0030), all of them at once, like any failure: what its planning reported
+under it is dropped, and a reference into it reads undefined.
 
 Every error depends on the source alone (ADR 0014), and the abstract build
 stands for every count and every pick, so the check finds every error at
@@ -437,7 +439,7 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   component writes.
 - An attribute the planner never looks up is refused: the check boxes any
   element carrying an attribute nothing read while the document was
-  planned (`compile/check.rs`, ADR 0021), so an author's attribute never
+  planned (`compile/unread.rs`, ADR 0021), so an author's attribute never
   does nothing silently. Reading an attribute (`ctx.attr`, `d.attr`) is
   what accepts it; an attribute a renderer reads from the literal
   attributes instead, and the core never does, is declared in the block

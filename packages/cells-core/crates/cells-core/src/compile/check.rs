@@ -96,11 +96,11 @@ pub(crate) fn signature_renamed(
     Ok(u.signature(&compiled, rename))
 }
 
-/// The compile's loop (ADR 0013, ADR 0027): plan `dast`, boxing every
-/// element that fails where it fails; refuse every element with an
-/// attribute nothing read while planning (ADR 0021), which needs a second
-/// plan; then run `check` on the plan. An element `check` fails on, or
-/// one planning could not box in place, is boxed and the plan made again.
+/// The compile's loop (ADR 0013, ADR 0027, ADR 0030): plan `dast`,
+/// boxing every element that fails where it fails, an element with an
+/// attribute nothing read among them (ADR 0021); then run `check` on the
+/// plan. An element `check` fails on, or one the compile could not box in
+/// place, is boxed and the plan made again.
 /// Each box is an error in `errors`. Only a failure with no element to
 /// box, a cycle, fails it, after its error joins `errors` too.
 fn plan_and_check<T>(
@@ -139,20 +139,6 @@ fn plan_and_check<T>(
                 continue;
             }
         };
-        // Every attribute the compile reads has been read once planning is
-        // done: a build reads none (ADR 0027).
-        let mut outside: HashSet<NodeId> = boxed.clone();
-        outside.extend(planned.boxed.iter().copied());
-        let unread =
-            crate::trace::span("unread attributes").run(|| unread_attributes(dast, &outside));
-        if !unread.is_empty() {
-            for (node, error) in unread {
-                crate::trace::count("boxed", 1);
-                boxed.insert(node);
-                errors.push(Diagnostic::error(Some(node), &error));
-            }
-            continue;
-        }
         let Planned {
             mut compiled,
             errors: boxed_here,
@@ -167,56 +153,4 @@ fn plan_and_check<T>(
             Err(f) => restart(&mut boxed, errors, f)?,
         }
     }
-}
-
-/// The elements, outside every boxed element, with an attribute nothing
-/// read while the document was planned and checked, each with the error
-/// for its first such attribute. An attribute the core never looks up
-/// would be ignored, and an author's attribute that does nothing is a
-/// silent wrong answer (ADR 0016, "no silent NaN"), so the element is
-/// refused and boxed (ADR 0013). Attributes a renderer reads from the
-/// literal attributes are accepted (`PRESENTATION_ATTRS` and the type's
-/// `presentation`), and so is anything in an element the normalizer made
-/// (a tag starting with `_`).
-/// Reads are recorded by `Dast::attr` over the whole compile; a node
-/// inside a boxed element is skipped rather than reported for what its
-/// planner never ran to read.
-fn unread_attributes(dast: &Dast, boxed: &HashSet<NodeId>) -> Vec<(NodeId, Error)> {
-    let presentation = |tag: &str, name: &str| {
-        let of_type = ComponentType::from_tag(tag).map_or(&[][..], |k| k.def().presentation);
-        crate::components::PRESENTATION_ATTRS
-            .iter()
-            .chain(of_type)
-            .any(|p| p.eq_ignore_ascii_case(name))
-    };
-    let mut out = Vec::new();
-    let mut stack = vec![Dast::ROOT];
-    while let Some(n) = stack.pop() {
-        if boxed.contains(&n) {
-            continue;
-        }
-        if dast.kind(n) == NodeKind::Element {
-            let tag = dast.str(n);
-            // The normalizer's own elements (`_repeatSetup`) and what they
-            // hold are the sugar's, not the author's.
-            if tag.starts_with('_') {
-                continue;
-            }
-            let unread = dast
-                .attrs(n)
-                .find(|&a| !dast.attr_read(a) && !presentation(tag, dast.attr_name(a)));
-            if let Some(a) = unread {
-                out.push((
-                    n,
-                    Error::UnsupportedAttribute {
-                        tag: dast.str(n).to_string(),
-                        attr: dast.attr_name(a).to_string(),
-                    },
-                ));
-                continue;
-            }
-        }
-        stack.extend(dast.children(n).iter().rev().copied());
-    }
-    out
 }

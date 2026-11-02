@@ -16,14 +16,12 @@
 //! | **outline** | `Compiler::outline` | elements, templates, the name table, what a reference reads of each (`settle_outline`), container copies' clones (`copies.rs`) |
 //! | **parse** | `Compiler::parse_maths` | every `<math>`'s text parsed, its `$ref`s planned |
 //! | **plan** | `Compiler::plan_all` | every element's plans and hold, every `$ref` child's plan |
-//! | **link** | `Compiler::link` | readers of boxed referents boxed, shared state tied |
+//! | **link** | `Compiler::link` | readers of boxed referents boxed, elements with an attribute nothing read boxed (`unread.rs`, ADR 0021), shared state tied |
 //! | **seal** | `seal.rs` | choice interfaces, arity, keys, slot offsets |
-//! | unread attributes | `check.rs` | refusals of attributes nothing read (ADR 0021) |
 //! | **abstract build** | `check.rs`, `build/abstract_build.rs` | cycles, writable and live records, structural depth |
 //!
 //! `check.rs` drives them (`plan_and_check`): it runs outline to seal
-//! (`Compiler::compile`), then the unread-attribute check, then the
-//! abstract build, which stands for every count and pick (ADR 0012, ADR
+//! (`Compiler::compile`), then the abstract build, which stands for every count and pick (ADR 0012, ADR
 //! 0014), and compiles again when a failure could not be boxed where it
 //! arose (ADR 0013). Every stage but sealing is a method on `Compiler`,
 //! and hands over to later stages through its fields; the fields' docs say
@@ -51,8 +49,8 @@
 //! this compile (a container copy cloned what is under the element) is
 //! recorded as `restart`, and ends the compile at the next stage
 //! boundary; so do sealing's failures. `plan_and_check` boxes the node of
-//! such a failure, and of an unread attribute or an abstract build
-//! failure, from the start of a new compile. No failure's handling
+//! such a failure, and of an abstract build failure, from the start of a
+//! new compile. No failure's handling
 //! depends on what failed before it.
 
 use std::collections::{HashMap, HashSet};
@@ -87,6 +85,7 @@ mod planner;
 mod points;
 mod refs;
 mod seal;
+mod unread;
 
 pub use check::diagnose;
 pub(crate) use check::{CompileOutput, compile};
@@ -111,12 +110,11 @@ impl From<Failure> for Error {
 use ctx::PlanCtx;
 use planner::Planner;
 
-/// A compile that planned: what it planned, and the elements it boxed
-/// where they failed (ADR 0027), each with its error.
+/// A compile that planned: what it planned, and the errors of the
+/// elements it boxed where they failed (ADR 0027).
 pub(in crate::compile) struct Planned {
     pub(in crate::compile) compiled: Compiled,
     pub(in crate::compile) errors: Vec<Diagnostic>,
-    pub(in crate::compile) boxed: HashSet<NodeId>,
 }
 
 /// The state of one compile, outline to seal. Each field says which stage
@@ -163,8 +161,10 @@ pub(in crate::compile) struct Compiler<'a> {
     /// (`box_in_place`). R: `compile_all`, between stages.
     restart: Option<Failure>,
     /// Elements boxed where they failed, with their errors (ADR 0027).
-    /// W: outline, plan, link (`box_in_place`, `push_error_elem`).
-    /// R: `compile`, which returns them.
+    /// W: outline, plan, link (`box_in_place`, `push_error_elem`; the
+    /// unread-attribute check drops what was under what it boxes).
+    /// R: link (the unread-attribute check skips what is boxed), and
+    /// `compile`, which returns the errors.
     errors: Vec<Diagnostic>,
     boxed_here: HashSet<NodeId>,
     /// What copies share of their referents' state. W: plan
@@ -357,7 +357,6 @@ impl<'a> Compiler<'a> {
                 Ok(Planned {
                     compiled: cp.compiled,
                     errors: cp.errors,
-                    boxed: cp.boxed_here,
                 })
             }
             Err(f) => Err(f),
@@ -490,13 +489,20 @@ impl<'a> Compiler<'a> {
     }
 
     /// Linking: what planning left for once every element is planned. A
-    /// reader of a boxed referent is boxed (`box_readers_of_boxes`), then
-    /// shared state is tied between the elements left
+    /// reader of a boxed referent is boxed (`box_readers_of_boxes`); an
+    /// element with an attribute nothing read is boxed, every attribute
+    /// having been read by now (`box_unread_attributes`), and its readers
+    /// in turn; then shared state is tied between the elements left
     /// (`link_shared_state`).
     fn link(&mut self) -> std::result::Result<(), Failure> {
-        crate::trace::span("box readers")
-            .run(|| self.box_readers_of_boxes())
-            .map_err(|error| Failure { error, node: None })?;
+        let box_readers = |cp: &mut Self| {
+            crate::trace::span("box readers")
+                .run(|| cp.box_readers_of_boxes())
+                .map_err(|error| Failure { error, node: None })
+        };
+        box_readers(self)?;
+        crate::trace::span("unread attributes").run(|| self.box_unread_attributes());
+        box_readers(self)?;
         crate::trace::span("shared state").run(|| self.link_shared_state());
         Ok(())
     }
