@@ -5807,8 +5807,16 @@ async function typeChangeStatus({
                 },
             });
         }
+        // The type of the entries is the source's own: the list form of a
+        // `<collect>`, `<sort>` or `<shuffle>` is registered under one
+        // class, whatever the type of what it holds
+        // (`classForSerializedComponent`).
         return decide({
-            sourceType: sourceClass.listEntryComponentType,
+            sourceType:
+                sourceComponent.componentType === sourceType
+                    ? (sourceComponent.constructor.listEntryComponentType ??
+                      sourceClass.listEntryComponentType)
+                    : sourceClass.listEntryComponentType,
             level,
         });
     }

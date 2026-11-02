@@ -384,6 +384,38 @@ describe("A reference written as a different tag, of content made at run time (D
         expect(d.errors()).eqls([]);
     });
 
+    it("the list form of a collect or a sort holds entries of the type it collects or sorts", async () => {
+        const d = await setup(`
+<mathInput name="n" prefill="1"/>
+<group name="g" hide><math>(1,2)</math><math>(5,6)</math></group>
+<collect name="c" componentType="math" from="$g" maxNumber="$n"/>
+<group name="gp" hide><point>(3,4)</point><point>(7,8)</point></group>
+<collect name="cp" componentType="point" from="$gp" maxNumber="$n"/>
+<sort name="s"><math>(9,10)</math></sort>
+<p name="p1"><point extend="$c"/></p>
+<p name="p2"><vector extend="$cp"/></p>
+<p name="p3"><point extend="$s"/></p>
+`);
+        const one = { p1: "(1, 2)", p2: "(3, 4)", p3: "(9, 10)" };
+        expect(await d.texts(Object.keys(one))).eqls(one);
+        expect(await d.replacedBy("p1")).eqls(["point"]);
+        expect(await d.replacedBy("p2")).eqls(["vector"]);
+        expect(await d.replacedBy("p3")).eqls(["point"]);
+        expect(d.newDiagnostics()).eqls([]);
+
+        await d.setMath("n", "2");
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.type, x.line])).eqls([
+            ["doenet-e0064", "info", 8],
+            ["doenet-e0064", "info", 9],
+        ]);
+
+        await d.setMath("n", "1");
+        expect(await d.texts(Object.keys(one))).eqls(one);
+        expect(d.newDiagnostics()).eqls([]);
+        expect(d.errors()).eqls([]);
+    });
+
     it("the value of a math in a group", async () => {
         const d = await setup(`
 <mathInput name="mi" prefill="x"/>
