@@ -91,11 +91,11 @@ export function copySnapshotOf(serializedComponents) {
  * (an entry without one, from before it was held, applies to none), and
  * none applies within a replacement whose `stateId` has an entry only of
  * another type: that replacement and what it contains were made from other
- * DoenetML. A copy made again with a different shape (of a composite other
- * than a `<conditionalContent>`, or from a save that held the snapshot
- * alone, `heldCopySnapshot`) is thus made from its source as restored, and
- * keeps nothing it cannot apply: the copy then holds only the snapshot of
- * what it made.
+ * DoenetML. A copy made again with a different shape (one whose shape no
+ * held case decides, as of a `<collect>` or of `$cc.p`, or one from a save
+ * that held the snapshot alone, `heldCopySnapshot`) is thus made from its
+ * source as restored, and keeps nothing it cannot apply: the copy then holds
+ * only the snapshot of what it made.
  */
 export function applyCopySnapshot(serializedComponents, snapshot) {
     const byStateId = new Map(snapshot.map((entry) => [entry.stateId, entry]));

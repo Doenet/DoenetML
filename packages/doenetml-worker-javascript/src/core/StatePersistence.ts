@@ -377,8 +377,9 @@ export class StatePersistence {
      * made again could decide otherwise: whether a copy written as a
      * different tag was made, and the case of a `<conditionalContent>` it
      * was made from (`heldCopySnapshot`), so a reload makes the copy as it
-     * was. A copy made again with a different shape all the same (from a
-     * save that held the snapshot alone) is made from its source as
+     * was. A copy made again with a different shape all the same (one whose
+     * shape no held case decides, as of a `<collect>` or of `$cc.p`, or one
+     * from a save that held the snapshot alone) is made from its source as
      * restored, and keeps nothing it could not apply (`applyCopySnapshot`).
      * A save with no unlinked copies does not call this (`unlinkedCopies`).
      */
