@@ -4,7 +4,7 @@
 //! operator over slots).
 
 use super::*;
-use crate::components::PropAt;
+use crate::components::{PropAt, PropSel};
 
 mod choice;
 mod math;
@@ -341,29 +341,34 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// The slots of the prop `name` of `comp`, or None when the type has
-    /// no such prop. A point of the list past the element's length is the
-    /// missing value, as an index past a repeat's count is.
-    pub(in crate::build) fn prop_slots(
+    /// The slots of prop `sel` of `comp` (resolved on its type), or None
+    /// when they are not slots (a table list as a whole). A point of the
+    /// list past the element's length is the missing value, as an index
+    /// past a repeat's count is.
+    pub(in crate::build) fn sel_slots(
         &mut self,
         comp: CompIdx,
-        name: &str,
+        sel: PropSel,
     ) -> Option<Vec<SlotId>> {
         let component_type = self.components.component_type[comp.index()];
-        if let Some(parts) = component_type.combined_prop(name) {
-            return Some(
-                parts
-                    .iter()
-                    .map(|p| self.slot(comp, component_type.prop_index(p).unwrap()))
-                    .collect(),
-            );
-        }
+        let at = match sel {
+            PropSel::Parts { .. } => {
+                return Some(
+                    sel.parts()
+                        .iter()
+                        .map(|&i| self.slot(comp, i as usize))
+                        .collect(),
+                );
+            }
+            PropSel::TableList => return None,
+            PropSel::At(at) => at,
+        };
         let n = self.n_public(comp);
         let coord = |b: &mut Self, k: usize, j: usize| match component_type.list_slot(n, k, j) {
             Some(i) => b.slot(comp, i),
             None => b.missing_slot(),
         };
-        Some(match component_type.prop_at(name)? {
+        Some(match at {
             PropAt::Position(i) => vec![self.slot(comp, i)],
             PropAt::Item(k) => vec![coord(self, k, 0), coord(self, k, 1)],
             PropAt::Coord(k, j) => vec![coord(self, k, j)],
@@ -938,7 +943,8 @@ impl<'c> Builder<'c> {
         let component_type = self.components.component_type[comp.index()];
         let prop = prop.ok_or_else(|| Error::PathTooDeep(self.compiled.ref_display(plan)))?;
         // A list: the points the element holds.
-        if component_type.prop_at(prop) == Some(PropAt::List) {
+        let sel = prop.sel_on(component_type);
+        if sel == Some(PropSel::At(PropAt::List)) {
             let n = self.n_public(comp);
             return Ok((1..=component_type.list_len(n))
                 .map(|k| {
@@ -947,20 +953,16 @@ impl<'c> Builder<'c> {
                 })
                 .collect());
         }
-        let items = component_type
-            .table_list(prop)
-            .ok_or_else(|| Error::UnknownProp {
+        if sel != Some(PropSel::TableList) {
+            return Err(Error::UnknownProp {
                 name: self.comp_label(comp),
-                prop: prop.into(),
-            })?;
-        Ok(items
+                prop: prop.name().into_owned(),
+            });
+        }
+        Ok(component_type
+            .table_point_positions()
             .iter()
-            .map(|[x, y]| {
-                [
-                    self.slot(comp, component_type.prop_index(x).unwrap()),
-                    self.slot(comp, component_type.prop_index(y).unwrap()),
-                ]
-            })
+            .map(|&[x, y]| [self.slot(comp, x as usize), self.slot(comp, y as usize)])
             .collect())
     }
 

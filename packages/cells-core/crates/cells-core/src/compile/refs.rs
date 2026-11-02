@@ -6,12 +6,47 @@ use super::*;
 
 impl<'a> Compiler<'a> {
     /// A copy of plan `p` naming `prop` instead of its own (`$l` -> `$l.x2`).
-    pub(in crate::compile) fn plan_with_prop(&mut self, p: RefId, prop: &'static str) -> RefId {
+    pub(in crate::compile) fn plan_with_prop(
+        &mut self,
+        t: TemplateId,
+        p: RefId,
+        prop: &'static str,
+    ) -> RefId {
+        let of = self.ref_target_type(t, p).ok().flatten();
         let mut plan = self.compiled.refs[p.index()].clone();
-        plan.prop = Some(prop.to_string());
+        plan.prop = Some(RefProp::named(of, prop));
         plan.display = RefDisplay::Prop(Box::new(plan.display), prop);
         self.compiled.refs.push(plan);
         RefId::from_index(self.compiled.refs.len() - 1)
+    }
+
+    /// Prop `name` (a DAST string) of type `ty`, found once per type and
+    /// spelling: a reference reads it with no name to compare.
+    fn prop_sel(&mut self, ty: ComponentType, name: StrId) -> Option<PropSel> {
+        let i = name.index();
+        if let Some(Some((of, sel))) = self.prop_sels.get(i)
+            && *of == ty
+        {
+            return *sel;
+        }
+        let sel = ty.resolve_prop(ty.canonical_prop(self.dast.strings.get(name)));
+        if self.prop_sels.len() <= i {
+            self.prop_sels
+                .resize(self.dast.strings.len().max(i + 1), None);
+        }
+        self.prop_sels[i] = Some((ty, sel));
+        sel
+    }
+
+    /// Prop `name` of what plan `p`, planned from `t`, names: resolved on
+    /// its type when the compile knows it.
+    pub(in crate::compile) fn prop_named(
+        &mut self,
+        t: TemplateId,
+        p: RefId,
+        name: &'static str,
+    ) -> RefProp {
+        RefProp::named(self.ref_target_type(t, p).ok().flatten(), name)
     }
 
     /// The template `hops` levels up from `t`: the one a plan's names are
@@ -294,14 +329,18 @@ impl<'a> Compiler<'a> {
                                 _ => component_type,
                             };
                         // `$l.points[1]`, `$l.points[1][2]`, `$l.points[2].y`:
-                        // points of a list, by literal index.
-                        let name = component_type.canonical_prop(name);
+                        // points of a list, by literal index. The prop is
+                        // found once per type and spelling (`prop_sel`).
+                        let sel = self.prop_sel(component_type, names[i]);
+                        let prop_of = |sel| RefProp::of(component_type, sel);
                         // A list's points are as many as the element has: an
                         // index past them is the missing value when built.
                         let list = component_type
                             .given_coords()
-                            .filter(|_| component_type.prop_at(name) == Some(PropAt::List));
-                        let items = component_type.table_list(name);
+                            .filter(|_| sel == Some(PropSel::At(PropAt::List)));
+                        let items = (sel == Some(PropSel::TableList))
+                            .then(|| component_type.table_points())
+                            .flatten();
                         if list.is_some() || items.is_some() {
                             let items = items.unwrap_or(&[]);
                             let idx: Vec<i64> = d
@@ -312,15 +351,18 @@ impl<'a> Compiler<'a> {
                                 if i + 1 != parts.len() {
                                     return Err(Error::PathTooDeep(display.to_string()));
                                 }
-                                prop = Some(name.to_string());
+                                prop = sel.map(prop_of);
                                 break;
                             };
                             if k < 1 || (list.is_none() && k as usize > items.len()) {
                                 return Err(Error::BadIndex(display.to_string()));
                             }
-                            let coord_name = |j: usize| match list {
-                                Some(coords) => format!("{}{k}", coords[j]),
-                                None => items[k as usize - 1][j].to_string(),
+                            let k = k as usize;
+                            let coord_sel = |j: usize| match list {
+                                Some(_) => PropSel::At(PropAt::Coord(k, j)),
+                                None => PropSel::At(PropAt::Position(
+                                    component_type.parts_sel(&items[k - 1]).parts()[j] as usize,
+                                )),
                             };
                             let coord = match (rest.first(), parts.get(i + 1)) {
                                 (Some(&j), None) => Some(j),
@@ -334,35 +376,36 @@ impl<'a> Compiler<'a> {
                                 (None, None) => None,
                                 _ => return Err(Error::PathTooDeep(display.to_string())),
                             };
-                            prop = Some(match (coord, list) {
-                                (Some(1), _) => coord_name(0),
-                                (Some(2), _) => coord_name(1),
+                            prop = Some(prop_of(match (coord, list) {
+                                (Some(1), _) => coord_sel(0),
+                                (Some(2), _) => coord_sel(1),
                                 (Some(_), _) => return Err(Error::BadIndex(display.to_string())),
-                                (None, Some(_)) => {
-                                    format!("{}{k}", component_type.list().expect("a list").item)
-                                }
-                                (None, None) => component_type
-                                    .table_list_item(name, k as usize)
-                                    .ok_or_else(|| Error::PathTooDeep(display.to_string()))?,
-                            });
+                                (None, Some(_)) => PropSel::At(PropAt::Item(k)),
+                                (None, None) => component_type.parts_sel(&items[k - 1]),
+                            }));
                             break;
                         }
                         // The coordinates of a point-valued prop: a combined prop
                         // (`center`) or a list's point (`vertex3`).
-                        let point_parts: Option<Vec<String>> = match (
-                            component_type.combined_prop(name),
-                            component_type.prop_at(name),
-                        ) {
-                            (Some(parts), _) => Some(parts.iter().map(|p| p.to_string()).collect()),
-                            (None, Some(PropAt::Item(k))) => component_type
-                                .given_coords()
-                                .map(|coords| coords.iter().map(|c| format!("{c}{k}")).collect()),
+                        let given_item = |sel: Option<PropSel>| match sel {
+                            Some(PropSel::At(PropAt::Item(k))) => {
+                                component_type.given_coords().map(|_| k)
+                            }
+                            _ => None,
+                        };
+                        let point_parts =
+                            matches!(sel, Some(PropSel::Parts { .. })) || given_item(sel).is_some();
+                        // Coordinate `j` (0-based) of the point-valued prop.
+                        let part_sel = |j: usize| match (sel, given_item(sel)) {
+                            (Some(s @ PropSel::Parts { .. }), _) => s
+                                .parts()
+                                .get(j)
+                                .map(|&pi| PropSel::At(PropAt::Position(pi as usize))),
+                            (_, Some(k)) => (j < 2).then_some(PropSel::At(PropAt::Coord(k, j))),
                             _ => None,
                         };
                         // `$l.point1[2]`: a coordinate of a point-valued prop.
-                        if let (Some(parts_of), Some(expr)) =
-                            (point_parts.as_ref(), d.part_indices(part).next())
-                        {
+                        if let (true, Some(expr)) = (point_parts, d.part_indices(part).next()) {
                             let k = self.literal_index(expr, display)?;
                             if !(1..=2).contains(&k)
                                 || d.part_indices(part).nth(1).is_some()
@@ -370,7 +413,7 @@ impl<'a> Compiler<'a> {
                             {
                                 return Err(Error::PathTooDeep(display.to_string()));
                             }
-                            prop = Some(parts_of[k as usize - 1].clone());
+                            prop = part_sel(k as usize - 1).map(prop_of);
                             break;
                         }
                         if d.part_indices(part).next().is_some() {
@@ -379,9 +422,9 @@ impl<'a> Compiler<'a> {
                         // A prop name, or a coordinate of a point-valued prop
                         // (`$c.center.y`), which must end the path.
                         if i + 1 != parts.len() {
-                            let parts_of = point_parts
-                                .as_ref()
-                                .ok_or_else(|| Error::PathTooDeep(display.to_string()))?;
+                            if !point_parts {
+                                return Err(Error::PathTooDeep(display.to_string()));
+                            }
                             let coord = d.strings.get(names[i + 1]).trim();
                             let j = match coord {
                                 "x" | "1" => 0,
@@ -391,19 +434,16 @@ impl<'a> Compiler<'a> {
                             if i + 2 != parts.len() {
                                 return Err(Error::PathTooDeep(display.to_string()));
                             }
-                            prop = Some(parts_of[j].clone());
+                            prop = part_sel(j).map(prop_of);
                             break;
                         }
-                        if component_type.prop_at(name).is_none()
-                            && component_type.combined_prop(name).is_none()
-                            && component_type.table_list(name).is_none()
-                        {
+                        let Some(sel) = sel else {
                             return Err(Error::UnknownProp {
                                 name: self.elem_label(cur_t, e),
-                                prop: name.into(),
+                                prop: component_type.canonical_prop(name).into(),
                             });
-                        }
-                        prop = Some(name.to_string());
+                        };
+                        prop = Some(prop_of(sel));
                         break;
                     }
                 }
@@ -419,15 +459,17 @@ impl<'a> Compiler<'a> {
                 };
                 // `$p[2]`: a coordinate of a point (a `<math>` may be one).
                 let ek = self.outlined_elem(cur_t, e)?.component_type;
-                if let Some(parts_of) = ek.default_prop().and_then(|dp| ek.combined_prop(dp)) {
+                if let Some(dsel @ PropSel::Parts { .. }) = ek.default_sel() {
                     if prop.is_some() || i + 1 != parts.len() {
                         return Err(Error::PathTooDeep(display.to_string()));
                     }
                     let k = self.literal_index(expr, display)?;
+                    let parts_of = dsel.parts();
                     if !(1..=parts_of.len() as i64).contains(&k) {
                         return Err(Error::BadIndex(display.to_string()));
                     }
-                    prop = Some(parts_of[k as usize - 1].to_string());
+                    let pi = parts_of[k as usize - 1] as usize;
+                    prop = Some(RefProp::of(ek, PropSel::At(PropAt::Position(pi))));
                     continue;
                 }
                 match self.compiled.templates[cur_t.index()].elems[e.index()].body {

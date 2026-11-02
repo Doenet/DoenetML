@@ -310,16 +310,16 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Makes a reference that names no prop name `prop` (`$b` reads as
     /// `$b.value`).
-    pub(crate) fn name_prop_if_none(&mut self, p: RefId, prop: &str) {
-        let reference = &mut self.c.compiled.refs[p.index()];
-        if reference.prop.is_none() {
-            reference.prop = Some(prop.into());
+    pub(crate) fn name_prop_if_none(&mut self, p: RefId, prop: &'static str) {
+        if self.c.compiled.refs[p.index()].prop.is_none() {
+            let named = self.c.prop_named(self.t, p, prop);
+            self.c.compiled.refs[p.index()].prop = Some(named);
         }
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`).
     pub(crate) fn with_prop(&mut self, p: RefId, prop: &'static str) -> RefId {
-        self.c.plan_with_prop(p, prop)
+        self.c.plan_with_prop(self.t, p, prop)
     }
 
     /// A prop of the element a reference names, as an operator's argument.
@@ -464,7 +464,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Makes the element an alias of the value its `extend` names, which
     /// it no longer extends (`<boolean extend="$bi"/>`).
-    pub(crate) fn alias_extended(&mut self, prop: &str) -> Result<()> {
+    pub(crate) fn alias_extended(&mut self, prop: &'static str) -> Result<()> {
         let p = self.extend().expect("the element extends another");
         self.name_prop_if_none(p, prop);
         let el = &mut self.c.compiled.templates[self.t.index()].elems[self.e.index()];

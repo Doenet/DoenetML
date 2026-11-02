@@ -65,7 +65,7 @@ impl<'c> Builder<'c> {
         &mut self,
         plan: RefId,
         scope: ScopeId,
-    ) -> Result<(Resolved, Option<&'c str>)> {
+    ) -> Result<(Resolved, Option<RefProp>)> {
         let c: &'c Compiled = self.compiled;
         let p = &c.refs[plan.index()];
         let labelling = self.view.folds_iterations();
@@ -197,7 +197,7 @@ impl<'c> Builder<'c> {
             }
         }
         self.label = label;
-        Ok((cur, p.prop.as_deref()))
+        Ok((cur, p.prop))
     }
 
     /// Whether every built option of select `c` holds one component, all of
@@ -286,7 +286,7 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn targets_of(
         &mut self,
         target: Resolved,
-        prop: Option<&str>,
+        prop: Option<RefProp>,
         plan: RefId,
         expected: Option<usize>,
     ) -> Result<Vec<SlotId>> {
@@ -298,16 +298,24 @@ impl<'c> Builder<'c> {
             other => self.single_component(other, plan)?,
         };
         let component_type = self.components.component_type[comp.index()];
-        let prop = match prop {
-            Some(p) => p,
-            None => component_type
-                .default_prop()
-                .ok_or_else(|| Error::NoDefaultProp(self.comp_label(comp)))?,
+        // The prop as the plan resolved it on this type, or by name on
+        // another; the type's default when the plan names none.
+        let sel = match prop {
+            Some(p) => p.sel_on(component_type),
+            None => {
+                if component_type.default_prop().is_none() {
+                    return Err(Error::NoDefaultProp(self.comp_label(comp)));
+                }
+                component_type.default_sel()
+            }
         };
-        self.prop_slots(comp, prop)
+        sel.and_then(|sel| self.sel_slots(comp, sel))
             .ok_or_else(|| Error::UnknownProp {
                 name: self.comp_label(comp),
-                prop: prop.into(),
+                prop: match prop {
+                    Some(p) => p.name().into_owned(),
+                    None => component_type.default_prop().unwrap_or_default().into(),
+                },
             })
     }
 

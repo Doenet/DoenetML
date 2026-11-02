@@ -278,13 +278,41 @@ pub enum StickyPoints {
 
 /// Where a prop name lands in an element's props: a position, or a point
 /// of the type's list (`k` 1-based), whole or one coordinate.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PropAt {
     Position(usize),
     Item(usize),
     Coord(usize, usize),
     /// The list as a whole (`throughPoints`).
     List,
+}
+
+/// A prop of a component type, found from its name once
+/// (`ComponentType::resolve_prop`): what a reference plan keeps and the
+/// build reads slots by, so neither compares prop names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PropSel {
+    /// Where `prop_at` finds it.
+    At(PropAt),
+    /// A combined prop (`center`) or a point of a list whose points are
+    /// table props (`vertex3`, `point1`): its single-cell parts, as table
+    /// positions (`parts`).
+    Parts { idx: [u8; MAX_PARTS], len: u8 },
+    /// A list whose points are table props, as a whole (`points`).
+    TableList,
+}
+
+/// The most parts a combined prop has: a tuple's entries.
+pub const MAX_PARTS: usize = crate::limits::MAX_TUPLE;
+
+impl PropSel {
+    /// A `Parts`'s table positions.
+    pub fn parts(&self) -> &[u8] {
+        match self {
+            PropSel::Parts { idx, len } => &idx[..*len as usize],
+            _ => &[],
+        }
+    }
 }
 
 /// What a type is, apart from its props: each false until its
@@ -415,6 +443,107 @@ impl ComponentType {
     pub fn table_list_item(self, name: &str, k: usize) -> Option<String> {
         self.table_list(name)
             .map(|_| format!("{}{k}", self.list().expect("a list").item))
+    }
+
+    /// Prop `name` of the type, found once: a combined prop or a table
+    /// list's point by its parts, then where `prop_at` finds it, then a
+    /// table list as a whole. None when the type has no such prop.
+    pub fn resolve_prop(self, name: &str) -> Option<PropSel> {
+        if let Some(parts) = self.combined_prop(name) {
+            return Some(self.parts_sel(parts));
+        }
+        if let Some(at) = self.prop_at(name) {
+            return Some(PropSel::At(at));
+        }
+        self.table_list(name).map(|_| PropSel::TableList)
+    }
+
+    /// The `Parts` of the table props named `parts`.
+    pub fn parts_sel(self, parts: &[&str]) -> PropSel {
+        let mut idx = [0u8; MAX_PARTS];
+        assert!(
+            parts.len() <= MAX_PARTS,
+            "a combined prop of at most MAX_PARTS parts"
+        );
+        for (slot, part) in idx.iter_mut().zip(parts) {
+            let i = self.prop_index(part).expect("a part is a table prop");
+            *slot = u8::try_from(i).expect("fewer than 256 table props");
+        }
+        PropSel::Parts {
+            idx,
+            len: parts.len() as u8,
+        }
+    }
+
+    /// The type's default prop (`default_prop`), resolved: once per type.
+    pub fn default_sel(self) -> Option<PropSel> {
+        static DEFAULTS: std::sync::OnceLock<Vec<Option<PropSel>>> = std::sync::OnceLock::new();
+        let table = DEFAULTS.get_or_init(|| {
+            let mut table = vec![None; ComponentType::ALL.len()];
+            for &ty in ComponentType::ALL {
+                table[ty as usize] = ty.default_prop().and_then(|dp| ty.resolve_prop(dp));
+            }
+            table
+        });
+        table[self as usize]
+    }
+
+    /// The table positions of each point of the type's list when its
+    /// points are table props (`table_points`): once per type.
+    pub fn table_point_positions(self) -> &'static [[u8; 2]] {
+        static POSITIONS: std::sync::OnceLock<Vec<Vec<[u8; 2]>>> = std::sync::OnceLock::new();
+        let table = POSITIONS.get_or_init(|| {
+            let mut table = vec![Vec::new(); ComponentType::ALL.len()];
+            for &ty in ComponentType::ALL {
+                table[ty as usize] = ty.table_points().map_or_else(Vec::new, |points| {
+                    points
+                        .iter()
+                        .map(|p| {
+                            let parts = ty.parts_sel(p);
+                            [parts.parts()[0], parts.parts()[1]]
+                        })
+                        .collect()
+                });
+            }
+            table
+        });
+        &table[self as usize]
+    }
+
+    /// The points of the type's list when they are table props.
+    pub fn table_points(self) -> Option<&'static [[&'static str; 2]]> {
+        match self.list()?.points {
+            ListPoints::Table(points) => Some(points),
+            ListPoints::Given { .. } => None,
+        }
+    }
+
+    /// The name of `sel` on this type, as an error shows it or another
+    /// type looks it up by.
+    pub fn sel_name(self, sel: PropSel) -> std::borrow::Cow<'static, str> {
+        let list = self.list();
+        let list_name = || list.map_or("", |l| l.names.first().copied().unwrap_or(""));
+        match sel {
+            PropSel::At(PropAt::Position(i)) => self.prop_defs()[i].name.into(),
+            PropSel::At(PropAt::Item(k)) => format!("{}{k}", list.map_or("", |l| l.item)).into(),
+            PropSel::At(PropAt::Coord(k, j)) => {
+                format!("{}{k}", self.given_coords().map_or("", |c| c[j])).into()
+            }
+            PropSel::At(PropAt::List) | PropSel::TableList => list_name().into(),
+            PropSel::Parts { .. } => {
+                let named = |parts: &[&str]| self.parts_sel(parts) == sel;
+                if let Some((name, _)) = self.def().combined_props.iter().find(|(_, p)| named(p)) {
+                    return (*name).into();
+                }
+                match self
+                    .table_points()
+                    .and_then(|ps| ps.iter().position(|p| named(p)))
+                {
+                    Some(k) => format!("{}{}", list.map_or("", |l| l.item), k + 1).into(),
+                    None => "".into(),
+                }
+            }
+        }
     }
 
     /// Where the prop `name` is: a position in the table, or a point (or
@@ -715,7 +844,53 @@ impl PropDef {
 
 #[cfg(test)]
 mod tests {
+    use super::ComponentType;
     use std::path::Path;
+
+    /// Every prop of every type, resolved, spells back to a name that
+    /// resolves to the same place (`sel_name`): what the build looks a
+    /// prop up by on a component of another type, and an error shows.
+    #[test]
+    fn a_resolved_prop_spells_back_to_itself() {
+        for &ty in ComponentType::ALL {
+            let def = ty.def();
+            let mut names: Vec<String> = ty.prop_defs().iter().map(|d| d.name.into()).collect();
+            names.extend(def.combined_props.iter().map(|(n, _)| n.to_string()));
+            if let Some(list) = ty.list() {
+                names.extend(list.names.iter().map(|n| n.to_string()));
+                names.extend((1..=3).map(|k| format!("{}{k}", list.item)));
+            }
+            if let Some(coords) = ty.given_coords() {
+                names.extend(coords.iter().map(|c| format!("{c}2")));
+            }
+            for name in names {
+                let Some(sel) = ty.resolve_prop(&name) else {
+                    continue;
+                };
+                let spelled = ty.sel_name(sel);
+                assert_eq!(
+                    ty.resolve_prop(&spelled),
+                    Some(sel),
+                    "{}.{name} spells as {spelled}",
+                    ty.tag()
+                );
+            }
+        }
+    }
+
+    /// A default prop resolves wherever a type has one.
+    #[test]
+    fn every_default_prop_resolves() {
+        for &ty in ComponentType::ALL {
+            if let Some(dp) = ty.default_prop() {
+                assert_eq!(ty.default_sel(), ty.resolve_prop(dp), "{}", ty.tag());
+                assert!(ty.default_sel().is_some(), "{}.{dp}", ty.tag());
+            }
+            if let Some(points) = ty.table_points() {
+                assert_eq!(ty.table_point_positions().len(), points.len());
+            }
+        }
+    }
 
     /// Every `.rs` file under `dir`.
     fn sources(dir: &Path, out: &mut Vec<std::path::PathBuf>) {

@@ -58,7 +58,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
 
-use crate::components::{ComponentType, PropAt, PropFrom, prop};
+use crate::components::{ComponentType, PropAt, PropFrom, PropSel, prop};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
 use crate::diagnostics::Diagnostic;
 use crate::error::{Error, Result};
@@ -188,6 +188,11 @@ pub(in crate::compile) struct Compiler<'a> {
     /// change it. R: plan (the math's planner; a line's equation, which
     /// inlines a parse).
     pub(in crate::compile) parsed: Parsed,
+    /// By DAST string, the prop a reference spelled with it last named,
+    /// with the type it named it on: a spelling is nearly always used on
+    /// one type, so this is an array read. W, R: every stage that plans a
+    /// reference (`prop_sel`).
+    pub(in crate::compile) prop_sels: Vec<Option<(ComponentType, Option<PropSel>)>>,
     /// Every element whose plan reads the type of what a reference names
     /// (`referent_type`), with the reference. W: outline (container
     /// copies), plan. R: link (`box_readers_of_boxes`), which boxes one
@@ -423,6 +428,7 @@ impl<'a> Compiler<'a> {
             when_refs: HashMap::new(),
             answer_responses: HashMap::new(),
             parsed: Parsed::default(),
+            prop_sels: Vec::new(),
         };
         match cp.compile_all() {
             Ok(()) => {
@@ -1050,11 +1056,11 @@ impl<'a> Compiler<'a> {
 
     /// A plan naming prop `prop` of element `e` in the parent template, as
     /// seen from the repeat's own template (one hop up).
-    pub(in crate::compile) fn own_prop_plan(&mut self, e: ElemId, prop: &str) -> RefId {
+    pub(in crate::compile) fn own_prop_plan(&mut self, e: ElemId, prop: &'static str) -> RefId {
         self.compiled.refs.push(RefPlan {
             hops: 1,
             steps: vec![Step::Elem(e)],
-            prop: Some(prop.to_string()),
+            prop: Some(RefProp::Named(prop)),
             display: RefDisplay::Spelled(format!("(repeat).{prop}").into()),
             node: NodeId::NONE,
         });
@@ -1200,7 +1206,7 @@ impl<'a> Compiler<'a> {
             && let Some(dp) = rt.default_prop()
         {
             let r = &mut self.compiled.refs[p.index()];
-            r.prop = Some(dp.to_string());
+            r.prop = Some(RefProp::named(Some(rt), dp));
             let base = std::mem::replace(&mut r.display, RefDisplay::Written);
             r.display = RefDisplay::Prop(Box::new(base), dp);
         }

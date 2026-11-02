@@ -492,12 +492,72 @@ pub(crate) struct RefPlan {
     pub(crate) hops: u32,
     pub(crate) steps: Vec<Step>,
     /// The prop named by the final part, if any.
-    pub(crate) prop: Option<String>,
+    pub(crate) prop: Option<RefProp>,
     /// How the plan is shown in an error (`Compiled::display_of`).
     pub(crate) display: RefDisplay,
     /// The macro node the plan came from, or NONE for a plan the build
     /// made itself; what an error in resolving it is reported on.
     pub(crate) node: NodeId,
+}
+
+/// The prop a reference plan names, found from its name once: on the type
+/// the compile saw at the referent, or, when it did not know that type, a
+/// name the build looks up (a prop a planner names).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum RefProp {
+    /// `sel` of `of`. A build reaching a component of another type looks
+    /// the prop up by its name on that type.
+    Resolved {
+        of: ComponentType,
+        sel: crate::components::PropSel,
+    },
+    /// A prop named by the compile for a referent of a type it did not know.
+    Named(&'static str),
+}
+
+impl RefProp {
+    /// `sel` of `of`.
+    pub(crate) fn of(of: ComponentType, sel: crate::components::PropSel) -> RefProp {
+        RefProp::Resolved { of, sel }
+    }
+
+    /// Prop `name` of a referent of type `of`, when the compile knows it.
+    pub(crate) fn named(of: Option<ComponentType>, name: &'static str) -> RefProp {
+        match of.and_then(|ty| ty.resolve_prop(name).map(|sel| (ty, sel))) {
+            Some((of, sel)) => RefProp::Resolved { of, sel },
+            None => RefProp::Named(name),
+        }
+    }
+
+    /// The prop's name: for an error, or a component of another type.
+    pub(crate) fn name(&self) -> std::borrow::Cow<'static, str> {
+        match *self {
+            RefProp::Resolved { of, sel } => of.sel_name(sel),
+            RefProp::Named(name) => name.into(),
+        }
+    }
+
+    /// The selector on a component of type `ty`: the resolved one when
+    /// `ty` is the type it was resolved on, else found by name.
+    pub(crate) fn sel_on(&self, ty: ComponentType) -> Option<crate::components::PropSel> {
+        match *self {
+            RefProp::Resolved { of, sel } if of == ty => Some(sel),
+            _ => ty.resolve_prop(&self.name()),
+        }
+    }
+
+    /// Whether this is the table prop `name` (`value`, `expr`): for the
+    /// compile's few checks of what a reference reads.
+    pub(crate) fn is(&self, name: &str) -> bool {
+        match *self {
+            RefProp::Resolved {
+                of,
+                sel: crate::components::PropSel::At(crate::components::PropAt::Position(i)),
+            } => of.prop_defs()[i].name == name,
+            RefProp::Resolved { .. } => false,
+            RefProp::Named(n) => n == name,
+        }
+    }
 }
 
 /// How a reference plan is shown in an error, spelled only then

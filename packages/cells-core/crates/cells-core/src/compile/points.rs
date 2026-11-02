@@ -97,18 +97,19 @@ impl<'a> Compiler<'a> {
             return Ok(None);
         };
         let el = &self.compiled.templates[cur_t.index()].elems[e.index()];
+        let sel = prop.sel_on(el.component_type);
         // A list holds the points its attribute gives, up to its type's
         // most: a circle's `through`, up to three.
-        if el.component_type.prop_at(prop) == Some(PropAt::List)
+        if sel == Some(PropSel::At(PropAt::List))
             && let Some((attribute, max)) = el.component_type.given_from()
         {
             let n = self.count_points_in_attr(el.node, attribute.name())?;
             return Ok(Some(max.map_or(n, |max| n.min(max))));
         }
-        let Some(items) = el.component_type.table_list(prop) else {
+        if sel != Some(PropSel::TableList) {
             return Ok(None);
-        };
-        Ok(Some(items.len()))
+        }
+        Ok(el.component_type.table_points().map(|items| items.len()))
     }
 
     /// Points in a point-list attribute, counted from its text alone.

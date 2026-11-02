@@ -186,7 +186,7 @@ impl<'a> Compiler<'a> {
         };
         let cur_t = self.template_up(t, r.hops);
         is_text_type(self.compiled.templates[cur_t.index()].elems[e.index()].component_type)
-            && r.prop.as_deref().is_none_or(|p| p == "value")
+            && r.prop.is_none_or(|p| p.is("value"))
     }
 
     /// An on/off attribute that may also take a value: present and not
@@ -208,7 +208,7 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         attr: &str,
         nodes: &[NodeId],
-        ref_prop: Option<&str>,
+        ref_prop: Option<&'static str>,
     ) -> Result<Source> {
         match self.try_value(t, scope, nodes, ref_prop)? {
             Some(source) => Ok(source),
@@ -227,7 +227,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
-        ref_prop: Option<&str>,
+        ref_prop: Option<&'static str>,
     ) -> Result<Option<Source>> {
         let _s = crate::trace::tally("plan value");
         let d = self.dast;
@@ -253,7 +253,7 @@ impl<'a> Compiler<'a> {
             (1, 0) => {
                 let p = self.plan_ref(t, scope, macro_node)?;
                 if let (None, Some(rp)) = (&self.compiled.refs[p.index()].prop, ref_prop) {
-                    self.compiled.refs[p.index()].prop = Some(rp.to_string());
+                    self.compiled.refs[p.index()].prop = Some(self.prop_named(t, p, rp));
                 }
                 Ok(Some(Source::reference(p)))
             }
@@ -634,7 +634,7 @@ impl<'a> Compiler<'a> {
         match e {
             Expr::Cell(p) => {
                 let plan = &self.compiled.refs[p.index()];
-                let is_value = plan.prop.as_deref().is_none_or(|pr| pr == "value");
+                let is_value = plan.prop.is_none_or(|pr| pr.is("value"));
                 let Some(target) = (is_value).then(|| self.plan_elem_target(t, p)).flatten() else {
                     return id;
                 };

@@ -10,6 +10,11 @@ fn tuple_prop(i: usize) -> &'static str {
     ComponentType::Tuple.prop_defs()[i].name
 }
 
+/// Tuple prop `i` as a reference names it.
+fn tuple_ref_prop(i: usize) -> RefProp {
+    RefProp::of(ComponentType::Tuple, PropSel::At(PropAt::Position(i)))
+}
+
 impl<'a> Compiler<'a> {
     fn attr_macro(&self, el: NodeId, tag: &str, attr: &str) -> Result<NodeId> {
         self.compiled
@@ -69,7 +74,7 @@ impl<'a> Compiler<'a> {
                         }),
                         Step::Elem(ElemId::new(0)),
                     ],
-                    prop: Some(tuple_prop(crate::components::prop::tuple::X1 + j).to_string()),
+                    prop: Some(tuple_ref_prop(crate::components::prop::tuple::X1 + j)),
                     display: RefDisplay::Spelled(format!("(previous iterate).{}", vars[j]).into()),
                     node: NodeId::NONE,
                 });
@@ -253,9 +258,9 @@ impl<'a> Compiler<'a> {
                     .into(),
             )
         };
-        let offset = match self.compiled.refs[fp.index()].prop.as_deref() {
-            Some("allIteratesWithInitial") => 0,
-            Some("iterates") => 1,
+        let offset = match self.compiled.refs[fp.index()].prop {
+            Some(p) if p.is("allIteratesWithInitial") => 0,
+            Some(p) if p.is("iterates") => 1,
             _ => return Err(unsupported()),
         };
         let mut base = self.compiled.refs[fp.index()].clone();
@@ -283,12 +288,12 @@ impl<'a> Compiler<'a> {
             }));
             steps.push(Step::Elem(ElemId::new(0)));
             let props = (0..ComponentType::Tuple.prop_defs().len())
-                .map(tuple_prop)
-                .map(|prop| {
+                .map(|i| {
+                    let prop = tuple_prop(i);
                     self.compiled.refs.push(RefPlan {
                         hops: base.hops + 1,
                         steps: steps.clone(),
-                        prop: Some(prop.to_string()),
+                        prop: Some(tuple_ref_prop(i)),
                         display: RefDisplay::Spelled(
                             format!("({}[i]).{prop}", self.compiled.display_of(&base)).into(),
                         ),

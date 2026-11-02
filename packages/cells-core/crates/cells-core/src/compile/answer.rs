@@ -631,7 +631,7 @@ impl<'a> Compiler<'a> {
     /// element) and its type; None for anything else.
     fn input_named(&self, t: TemplateId, p: RefId) -> Option<((u32, ElemId), ComponentType)> {
         let r = &self.compiled.refs[p.index()];
-        if !matches!(r.prop.as_deref(), None | Some("value")) {
+        if !r.prop.is_none_or(|p| p.is("value")) {
             return None;
         }
         let (cur_t, x) = self.static_target(t, p)?;
@@ -683,7 +683,8 @@ impl<'a> Compiler<'a> {
     fn plan_response(&mut self, t: TemplateId, r: ElemId, p: RefId, input_type: ComponentType) {
         let mut live = self.compiled.refs[p.index()].clone();
         let math = input_type == ComponentType::MathInput;
-        live.prop = Some(if math { "expr" } else { "value" }.into());
+        let name = if math { "expr" } else { "value" };
+        live.prop = Some(RefProp::named(Some(input_type), name));
         self.compiled.refs.push(live);
         let live = Source::reference(RefId::from_index(self.compiled.refs.len() - 1));
         let (submitted, value) = if math {
