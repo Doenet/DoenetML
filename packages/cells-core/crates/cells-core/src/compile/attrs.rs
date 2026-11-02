@@ -80,37 +80,23 @@ impl<'a> Compiler<'a> {
                     let from_attr = def.attr.and_then(|a| d.attr(el, a));
                     if blank {
                         match from_attr {
-                            Some(a) => {
-                                match self.plan_value(
-                                    t,
-                                    scope,
-                                    def.attr_name(),
-                                    d.attr_children(a),
-                                    None,
-                                ) {
-                                    Ok(p) => p,
-                                    Err(Error::BadValue { .. }) => Source::Math(self.plan_math(
-                                        t,
-                                        scope,
-                                        d.attr_children(a),
-                                    )?),
-                                    Err(e) => return Err(e),
+                            Some(a) => match self.try_value(t, scope, d.attr_children(a), None)? {
+                                Some(p) => p,
+                                None => {
+                                    Source::Math(self.plan_math(t, scope, d.attr_children(a))?)
                                 }
-                            }
+                            },
                             None => default(def.default),
                         }
                     } else {
-                        match self.plan_value(t, scope, def.name, &content, None) {
+                        match self.try_value(t, scope, &content, None)? {
                             // A literal child (`<number>3</number>`, an input's
                             // initial state) is a value slot: the classing
                             // (ADR 0018) makes it essential when an input or an
                             // action can reach it, a constant otherwise.
-                            Ok(p) => p,
+                            Some(p) => p,
                             // Not a single literal or reference: math text.
-                            Err(Error::BadValue { .. }) => {
-                                Source::Math(self.plan_math(t, scope, &content)?)
-                            }
-                            Err(e) => return Err(e),
+                            None => Source::Math(self.plan_math(t, scope, &content)?),
                         }
                     }
                 }
@@ -215,7 +201,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    /// A literal number or a single reference.
+    /// A literal number or a single reference; else `BadValue`.
     pub(in crate::compile) fn plan_value(
         &mut self,
         t: TemplateId,
@@ -224,43 +210,69 @@ impl<'a> Compiler<'a> {
         nodes: &[NodeId],
         ref_prop: Option<&str>,
     ) -> Result<Source> {
+        match self.try_value(t, scope, nodes, ref_prop)? {
+            Some(source) => Ok(source),
+            None => Err(Error::BadValue {
+                attr: attr.into(),
+                text: self.value_text(nodes).trim().into(),
+            }),
+        }
+    }
+
+    /// `plan_value`, with `None` for what is not a single literal or
+    /// reference (math text, most often): reading the nodes builds no
+    /// string, so a caller that goes on to plan math pays for none.
+    pub(in crate::compile) fn try_value(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &[NodeId],
+        ref_prop: Option<&str>,
+    ) -> Result<Option<Source>> {
         let _s = crate::trace::tally("plan value");
         let d = self.dast;
-        let macros: Vec<NodeId> = nodes
-            .iter()
-            .copied()
-            .filter(|&n| d.kind(n) == NodeKind::Macro)
-            .collect();
-        let text: String = nodes
-            .iter()
-            .filter(|&&n| d.kind(n) == NodeKind::Text)
-            .map(|&n| d.str(n))
-            .collect();
-        let text = text.trim();
-        match (macros.len(), text.is_empty()) {
-            (1, true) => {
-                let p = self.plan_ref(t, scope, macros[0])?;
+        let (mut macros, mut macro_node) = (0, NodeId::NONE);
+        let (mut texts, mut text) = (0, "");
+        for &n in nodes {
+            match d.kind(n) {
+                NodeKind::Macro => {
+                    macros += 1;
+                    macro_node = n;
+                }
+                NodeKind::Text => {
+                    let s = d.str(n).trim();
+                    if !s.is_empty() {
+                        texts += 1;
+                        text = s;
+                    }
+                }
+                _ => {}
+            }
+        }
+        match (macros, texts) {
+            (1, 0) => {
+                let p = self.plan_ref(t, scope, macro_node)?;
                 if let (None, Some(rp)) = (&self.compiled.refs[p.index()].prop, ref_prop) {
                     self.compiled.refs[p.index()].prop = Some(rp.to_string());
                 }
-                Ok(Source::reference(p))
+                Ok(Some(Source::reference(p)))
             }
-            (0, false) => match text {
-                "true" => Ok(Source::Given(1.0)),
-                "false" => Ok(Source::Given(0.0)),
-                _ => text
-                    .parse::<f64>()
-                    .map(Source::Given)
-                    .map_err(|_| Error::BadValue {
-                        attr: attr.into(),
-                        text: text.into(),
-                    }),
-            },
-            _ => Err(Error::BadValue {
-                attr: attr.into(),
-                text: text.into(),
-            }),
+            (0, 1) => Ok(literal_value(text)),
+            // Text in several nodes reads as one (the parser seldom splits it).
+            (0, _) if texts > 1 => Ok(literal_value(self.value_text(nodes).trim())),
+            _ => Ok(None),
         }
+    }
+
+    /// The text among `nodes`, as one string: for an error, or the rare
+    /// value split across text nodes.
+    fn value_text(&self, nodes: &[NodeId]) -> String {
+        let d = self.dast;
+        nodes
+            .iter()
+            .filter(|&&n| d.kind(n) == NodeKind::Text)
+            .map(|&n| d.str(n))
+            .collect()
     }
 
     /// Math text and `$ref` children to an expression template whose cell
@@ -473,16 +485,14 @@ impl<'a> Compiler<'a> {
         &mut self,
         t: TemplateId,
         scope: ElemId,
-        attr: &str,
         nodes: &[NodeId],
     ) -> Result<Source> {
-        match self.plan_value(t, scope, attr, nodes, None) {
-            Ok(p) => Ok(p),
-            Err(Error::BadValue { .. }) => {
+        match self.try_value(t, scope, nodes, None)? {
+            Some(p) => Ok(p),
+            None => {
                 let id = self.plan_math(t, scope, nodes)?;
                 Ok(self.plan_from_expr(id))
             }
-            Err(e) => Err(e),
         }
     }
 
@@ -679,6 +689,15 @@ impl<'a> Compiler<'a> {
 /// The copy rules of `plan_attrs` (ADR 0016, Migration step 8), against
 /// `<testValue>`: under `extend`, a prop without its attribute is its
 /// referent's, and one with it is the copy's own.
+/// A literal value: `true`, `false` or a number.
+fn literal_value(text: &str) -> Option<Source> {
+    match text {
+        "true" => Some(Source::Given(1.0)),
+        "false" => Some(Source::Given(0.0)),
+        _ => text.parse::<f64>().ok().map(Source::Given),
+    }
+}
+
 /// The types whose value is text (a string id), not a number.
 fn is_text_type(component_type: ComponentType) -> bool {
     matches!(

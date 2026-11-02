@@ -80,7 +80,7 @@ pub(crate) mod test_shape {
             (None, Some(referent)) => (referent, Given::Referent),
             (None, None) => return Ok(Wire::given(shared_state::A, 0.0)),
         };
-        Ok(match ctx.scalar_of(attr::a, &nodes)? {
+        Ok(match ctx.scalar_of(&nodes)? {
             Source::Given(v) => Wire::given_from(shared_state::A, from, v),
             other => other.into(),
         })

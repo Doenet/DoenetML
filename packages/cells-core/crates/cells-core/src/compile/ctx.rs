@@ -260,14 +260,13 @@ impl<'a> PlanCtx<'_, 'a> {
             return Ok(None);
         };
         let nodes = self.c.dast.attr_children(a);
-        self.scalar_of(name, nodes).map(Some)
+        self.scalar_of(nodes).map(Some)
     }
 
-    /// Nodes as a scalar, a literal, a reference or math; `name` is the
-    /// attribute they come from, for errors.
-    pub(crate) fn scalar_of(&mut self, name: Attr, nodes: &[NodeId]) -> Result<Source> {
+    /// Nodes as a scalar: a literal, a reference or math.
+    pub(crate) fn scalar_of(&mut self, nodes: &[NodeId]) -> Result<Source> {
         let scope = self.scope_for(nodes);
-        self.c.plan_scalar(self.t, scope, name.name(), nodes)
+        self.c.plan_scalar(self.t, scope, nodes)
     }
 
     /// A 0/1 flag attribute (`hide`), as a copy inherits it

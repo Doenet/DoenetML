@@ -330,7 +330,7 @@ impl<'a> Compiler<'a> {
                     Some((_, bs)) if d.attr(el, name).is_none() => bs,
                     _ => scope,
                 };
-                self.plan_scalar(t, scope, name, d.attr_children(a))?
+                self.plan_scalar(t, scope, d.attr_children(a))?
             }
             Some(_) => {
                 // The copy's own attribute wins: `hide="false"` reveals a
