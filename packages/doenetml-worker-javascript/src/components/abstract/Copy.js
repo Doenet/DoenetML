@@ -1343,13 +1343,23 @@ export default class Copy extends CompositeComponent {
                         stateValues.typeChangeValueCheck === "numEntriesValue"
                     ) {
                         // the value of the first entry, which is checked
-                        // when it is the only one (a list of maths; a list
-                        // of other entries has no `math1`)
+                        // when it is the only one. Only an entry that is a
+                        // math is (`utils/typeChange.js`): of a list of
+                        // maths, `math1`, or of intervals, `interval1`; the
+                        // list has one of them, a list of other entries
+                        // neither.
                         dependencies.typeChangeSourceEntryValue = {
                             dependencyType: "stateVariable",
                             componentIdx:
                                 stateValues.extendedComponent.componentIdx,
                             variableName: "math1",
+                            variablesOptional: true,
+                        };
+                        dependencies.typeChangeSourceIntervalValue = {
+                            dependencyType: "stateVariable",
+                            componentIdx:
+                                stateValues.extendedComponent.componentIdx,
+                            variableName: "interval1",
                             variablesOptional: true,
                         };
                     }
@@ -2555,7 +2565,7 @@ export default class Copy extends CompositeComponent {
                 );
             if (found.listCountPending && sameSources) {
                 // Decided once the list's count has caught up with its
-                // values (`typeChangeSourceEntryValue` fires first).
+                // values (the dependency on its first entry fires first).
                 return { replacementChanges: [], diagnostics, nComponents };
             }
             // What a composite holds: whether it changed where the

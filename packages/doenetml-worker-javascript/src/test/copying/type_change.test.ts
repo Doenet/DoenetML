@@ -931,6 +931,45 @@ describe("A reference written as a different tag is allowed only between related
         ]);
     });
 
+    it("the value of the one entry of a list of intervals is checked and followed, as an interval's is", async () => {
+        // An interval is a math, so its value is checked; the list holds
+        // its entries as `interval1`, ..., not `math1`.
+        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
+            await setup(`
+<mathInput name="mi" prefill="x"/>
+<intervalList name="il"><interval>$mi</interval></intervalList>
+<interval name="i">$mi</interval>
+<p name="p1"><boolean extend="$il"/></p>
+<p name="p2"><boolean extend="$i"/></p>
+`);
+        const names = ["p1", "p2"];
+        async function setMath(latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+        }
+
+        expect(await texts(names)).eqls({ p1: "", p2: "" });
+        expect(
+            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
+        ).eqls([
+            ["doenet-i0053", "info", 5],
+            ["doenet-i0053", "info", 6],
+        ]);
+
+        await setMath("1");
+        expect(await texts(names)).eqls({ p1: "true", p2: "true" });
+        await setMath("x>1");
+        expect(await texts(names)).eqls({ p1: "false", p2: "false" });
+        await setMath("(0,1]");
+        expect(await texts(names)).eqls({ p1: "", p2: "" });
+        expect(typeChangeDiagnostics().map((d) => d.message)).toContain(
+            "A `<boolean>` can't be made from `$il` while its value, (0, 1], isn't true or false, so nothing is shown for it.",
+        );
+    });
+
     it("a coords follows the rules of a point and a vector, not of a math", async () => {
         // A `<coords>` inherits from `<math>`, but is geometric.
         const { texts, typeChangeDiagnostics } = await setup(`
