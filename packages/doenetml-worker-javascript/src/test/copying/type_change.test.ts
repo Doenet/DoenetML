@@ -843,6 +843,94 @@ describe("A reference written as a different tag is allowed only between related
         expect(await texts(["p1"])).eqls({ p1: "1" });
     });
 
+    it("the value of the one entry of a list whose entries are written is checked as a math's, and followed", async () => {
+        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
+            await setup(`
+<mathInput name="mi" prefill="x"/>
+<mathInput name="n" prefill="1"/>
+<mathList name="ml">$mi</mathList>
+<mathList name="ml2" maxNumber="$n">$mi (7,8)</mathList>
+<p name="p1"><point name="P" extend="$ml"/></p>
+<p name="p2"><boolean extend="$ml2"/></p>
+<p name="p3"><coords extend="$ml2"/></p>
+`);
+        const names = ["p1", "p2", "p3"];
+        const reported: Record<string, number> = {};
+        /**
+         * The type change diagnostics reported since this was last called,
+         * errors first.
+         */
+        function newDiagnostics() {
+            const added = [];
+            for (const type of ["error", "info"]) {
+                const all = typeChangeDiagnostics().filter(
+                    (d) => d.type === type,
+                );
+                added.push(...all.slice(reported[type] ?? 0));
+                reported[type] = all.length;
+            }
+            return added.map((d) => [d.code, d.type, d.line]);
+        }
+        async function setMath(name: string, latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        /** The point the extend shows. */
+        async function pointShown() {
+            return (core as any).core._components[
+                await resolvePathToNodeIdx("P")
+            ];
+        }
+
+        expect(await texts(names)).eqls({ p1: "", p2: "", p3: "" });
+        expect(typeChangeDiagnostics()[0].message).eq(
+            "A `<point>` can't be made from `$ml` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+        );
+        expect(newDiagnostics()).eqls([
+            ["doenet-i0053", "info", 6],
+            ["doenet-i0053", "info", 7],
+            ["doenet-i0053", "info", 8],
+        ]);
+
+        await setMath("mi", "(1,2)");
+        expect(await texts(names)).eqls({ p1: "(1, 2)", p2: "", p3: "(1, 2)" });
+        expect(newDiagnostics()).eqls([["doenet-i0053", "info", 7]]);
+        const before = await pointShown();
+        expect(before.componentType).eq("point");
+
+        // a value that still passes leaves the point as it was made
+        await setMath("mi", "(3,4)");
+        expect(await texts(names)).eqls({ p1: "(3, 4)", p2: "", p3: "(3, 4)" });
+        expect((await pointShown()) === before).eq(true);
+        expect(newDiagnostics()).eqls([["doenet-i0053", "info", 7]]);
+
+        await setMath("n", "2");
+        expect(await texts(names)).eqls({ p1: "(3, 4)", p2: "", p3: "" });
+        expect(newDiagnostics()).eqls([
+            ["doenet-e0064", "error", 7],
+            ["doenet-e0064", "error", 8],
+        ]);
+
+        await setMath("n", "1");
+        expect(await texts(names)).eqls({ p1: "(3, 4)", p2: "", p3: "(3, 4)" });
+
+        await setMath("mi", "1");
+        expect(await texts(names)).eqls({ p1: "", p2: "true", p3: "" });
+        newDiagnostics();
+
+        // decided once the count has caught up with the values, not from
+        // the blank entry the list holds until then
+        await setMath("n", "0");
+        expect(await texts(names)).eqls({ p1: "", p2: "", p3: "" });
+        expect(newDiagnostics()).eqls([
+            ["doenet-e0064", "error", 7],
+            ["doenet-e0064", "error", 8],
+        ]);
+    });
+
     it("a coords follows the rules of a point and a vector, not of a math", async () => {
         // A `<coords>` inherits from `<math>`, but is geometric.
         const { texts, typeChangeDiagnostics } = await setup(`

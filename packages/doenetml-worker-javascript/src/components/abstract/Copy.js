@@ -1199,15 +1199,20 @@ export default class Copy extends CompositeComponent {
                 const sourceClass =
                     componentInfoObjects.allComponentClasses[sourceType];
                 if (sourceClass?.listEntryComponentType !== undefined) {
-                    return {
-                        setValue: {
-                            typeChangeValueCheck: listIsDecided(sourceType, {
-                                componentInfoObjects,
-                            })
-                                ? "numEntries"
-                                : null,
-                        },
-                    };
+                    // `"numEntriesValue"` when, written as a point, vector,
+                    // coords or boolean, the one entry is also checked
+                    // against its value, as a math is.
+                    let typeChangeValueCheck = null;
+                    if (listIsDecided(sourceType, { componentInfoObjects })) {
+                        typeChangeValueCheck = typeChangeRule({
+                            writtenType,
+                            sourceType: "math",
+                            componentInfoObjects,
+                        }).valueCheck
+                            ? "numEntriesValue"
+                            : "numEntries";
+                    }
+                    return { setValue: { typeChangeValueCheck } };
                 }
                 return {
                     setValue: {
@@ -1317,8 +1322,9 @@ export default class Copy extends CompositeComponent {
                 }
 
                 if (
-                    (stateValues.typeChangeValueCheck === "value" ||
-                        stateValues.typeChangeValueCheck === "numEntries") &&
+                    ["value", "numEntries", "numEntriesValue"].includes(
+                        stateValues.typeChangeValueCheck,
+                    ) &&
                     !stateValues.effectivePropNameBySource?.[0]
                 ) {
                     // whether the type the extend is written as can be made
@@ -1327,9 +1333,26 @@ export default class Copy extends CompositeComponent {
                         dependencyType: "stateVariable",
                         componentIdx:
                             stateValues.extendedComponent.componentIdx,
-                        variableName: stateValues.typeChangeValueCheck,
+                        variableName:
+                            stateValues.typeChangeValueCheck === "value"
+                                ? "value"
+                                : "numEntries",
                         variablesOptional: true,
                     };
+                    if (
+                        stateValues.typeChangeValueCheck === "numEntriesValue"
+                    ) {
+                        // the value of the first entry, which is checked
+                        // when it is the only one (a list of maths; a list
+                        // of other entries has no `math1`)
+                        dependencies.typeChangeSourceEntryValue = {
+                            dependencyType: "stateVariable",
+                            componentIdx:
+                                stateValues.extendedComponent.componentIdx,
+                            variableName: "math1",
+                            variablesOptional: true,
+                        };
+                    }
                 }
 
                 if (stateValues.removeEmptyArrayEntries) {
@@ -2530,6 +2553,11 @@ export default class Copy extends CompositeComponent {
                     (source, ind) =>
                         source.componentIdx === workspace.sourceIndices[ind],
                 );
+            if (found.listCountPending && sameSources) {
+                // Decided once the list's count has caught up with its
+                // values (`typeChangeSourceEntryValue` fires first).
+                return { replacementChanges: [], diagnostics, nComponents };
+            }
             // What a composite holds: whether it changed where the
             // dependency `allReplacementIdentities` sees it, which would
             // update the extend whatever was decided
@@ -5529,7 +5557,7 @@ async function holdsWrittenContent(composite, components) {
                 !isWrittenComposite(target)) ||
             (await composite.stateValues.unresolvedPath)?.length > 0 ||
             path?.some((part) => part.index.length > 0) ||
-            ["value", "numEntries"].includes(
+            ["value", "numEntries", "numEntriesValue"].includes(
                 await composite.stateValues.typeChangeValueCheck,
             ) ||
             shadowedOriginal(composite, components).replacementsWorkspace
@@ -5902,6 +5930,16 @@ async function typeChangeStatus({
             : "info";
         found.runTime = level === "info";
         const count = await sourceComponent.stateValues.numEntries;
+        if (
+            sourceComponent.state.numEntries?.shadowOfComponentIdx ===
+                undefined &&
+            (await sourceComponent.stateValues.computedNumEntries) !== count
+        ) {
+            // The values changed and `numEntries` has not caught up yet
+            // (`EssentialValueWriter.updateListEntryCount`), which updates
+            // the extend again when it does.
+            found.listCountPending = true;
+        }
         if (count !== 1) {
             return mismatch({
                 level,
@@ -5919,13 +5957,23 @@ async function typeChangeStatus({
         // The type of the entries is the source's own: the list form of a
         // `<collect>`, `<sort>` or `<shuffle>` is registered under one
         // class, whatever the type of what it holds
-        // (`classForSerializedComponent`).
+        // (`classForSerializedComponent`). The one entry's value is checked
+        // as a math's is (`numEntriesValue`).
+        if (sourceComponent.componentType !== sourceType) {
+            return decide({
+                sourceType: sourceClass.listEntryComponentType,
+                level,
+            });
+        }
+        const listClass = sourceComponent.constructor;
         return decide({
-            sourceType:
-                sourceComponent.componentType === sourceType
-                    ? (sourceComponent.constructor.listEntryComponentType ??
-                      sourceClass.listEntryComponentType)
-                    : sourceClass.listEntryComponentType,
+            sourceType: listClass.listEntryComponentType,
+            readValue: async () =>
+                (
+                    await sourceComponent.stateValues[
+                        listClass.listValuesArrayName
+                    ]
+                )?.[0],
             level,
         });
     }

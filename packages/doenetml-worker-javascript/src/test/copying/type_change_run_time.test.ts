@@ -567,6 +567,103 @@ describe("A reference written as a different tag, of content made at run time (D
         expect(d.errors()).eqls([]);
     });
 
+    it("the value of the one entry of a list the document makes, as it changes", async () => {
+        const d = await setup(`
+<mathInput name="mi" prefill="x"/>
+<mathInput name="n" prefill="1"/>
+<sort name="s"><math>$mi</math></sort>
+<group name="g" hide><math>$mi</math></group>
+<collect name="c" componentType="math" from="$g"/>
+<sequence name="sq" type="math" from="$mi" length="$n"/>
+<p name="p1"><point name="P" extend="$s"/></p>
+<p name="p2"><boolean name="B" extend="$c"/></p>
+<p name="p3"><vector extend="$sq"/></p>
+<p name="p4"><point copy="$s"/></p>
+`);
+        const names = ["p1", "p2", "p3", "p4"];
+        expect(await d.texts(names)).eqls({ p1: "", p2: "", p3: "", p4: "" });
+        for (const name of names) {
+            expect(await d.replacedBy(name)).eqls([]);
+        }
+        expect(d.newDiagnostics()).eqls([
+            {
+                code: "doenet-i0053",
+                type: "info",
+                line: 8,
+                message:
+                    "A `<point>` can't be made from `$s` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+            },
+            {
+                code: "doenet-i0053",
+                type: "info",
+                line: 9,
+                message:
+                    "A `<boolean>` can't be made from `$c` while its value, x, isn't true or false, so nothing is shown for it.",
+            },
+            {
+                code: "doenet-i0053",
+                type: "info",
+                line: 10,
+                message:
+                    "A `<vector>` can't be made from `$sq` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+            },
+            {
+                code: "doenet-i0053",
+                type: "info",
+                line: 11,
+                message:
+                    "A `<point>` can't be made from `$s` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+            },
+        ]);
+
+        await d.setMath("mi", "(1,2)");
+        expect(await d.texts(names)).eqls({
+            p1: "(1, 2)",
+            p2: "",
+            p3: "(1, 2)",
+            // a copy stays as it was made
+            p4: "",
+        });
+        expect(await d.typeOf("P")).eq("point");
+        expect(await d.replacedBy("p1")).eqls(["point"]);
+        expect(await d.replacedBy("p3")).eqls(["vector"]);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0053", 9],
+        ]);
+
+        await d.setMath("mi", "1");
+        expect(await d.texts(names)).eqls({
+            p1: "",
+            p2: "true",
+            p3: "",
+            p4: "",
+        });
+        expect(await d.texts(["B"])).eqls({ B: "true" });
+        expect(await d.replacedBy("p1")).eqls([]);
+        expect(await d.replacedBy("p2")).eqls(["boolean"]);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0053", 8],
+            ["doenet-i0053", 10],
+        ]);
+
+        // how many entries the list holds is decided as before
+        await d.setMath("n", "2");
+        expect(await d.texts(["p3"])).eqls({ p3: "" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 10],
+        ]);
+        await d.setMath("mi", "(3,4)");
+        await d.setMath("n", "1");
+        expect(await d.texts(names)).eqls({
+            p1: "(3, 4)",
+            p2: "",
+            p3: "(3, 4)",
+            p4: "",
+        });
+        expect(await d.replacedBy("p3")).eqls(["vector"]);
+        expect(d.errors()).eqls([]);
+    });
+
     it("a pick holding a repeatForSequence whose length changes", async () => {
         const d = await setup(`
 <mathInput name="mi" prefill="1"/>
