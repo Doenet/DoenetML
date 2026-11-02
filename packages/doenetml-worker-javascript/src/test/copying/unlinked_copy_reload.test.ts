@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     movePoint,
     moveText,
@@ -11,6 +12,93 @@ import {
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+/**
+ * A document, and the means to reload it from what a save holds: with
+ * `legacy`, from a save that holds each copy's snapshot alone, as those made
+ * before #2441 do.
+ */
+async function reloader(doenetML: string) {
+    let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+        doenetML,
+    });
+    let diagnostics = getDiagnosticsByType(core);
+    async function resolve(name: string) {
+        return await resolvePathToNodeIdx(name);
+    }
+    /** The state of the named component, or `undefined` if it is not made. */
+    async function sv(name: string) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        let idx;
+        try {
+            idx = await resolvePathToNodeIdx(name);
+        } catch {
+            return undefined;
+        }
+        return stateVariables[idx];
+    }
+    async function setBoolean(name: string, boolean: boolean) {
+        await updateBooleanInputValue({
+            boolean,
+            componentIdx: await resolvePathToNodeIdx(name),
+            core,
+        });
+    }
+    async function reload({ legacy = false } = {}) {
+        await core.saveImmediately();
+        const saved = JSON.parse(scoreState.state);
+        if (legacy) {
+            for (const [stateId, held] of Object.entries(
+                saved.__copySnapshots ?? {},
+            )) {
+                saved.__copySnapshots[stateId] = Array.isArray(held)
+                    ? held
+                    : (held as any).snapshot;
+            }
+        }
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: JSON.stringify(saved),
+        }));
+        diagnostics = getDiagnosticsByType(core);
+        return saved;
+    }
+    /** The source named by each info that a type change shows nothing. */
+    function typeChangeInfos() {
+        return diagnostics.infos
+            .filter((d: any) =>
+                ["doenet-e0065", "doenet-i0053"].includes(d.code),
+            )
+            .map((d: any) => d.args?.source);
+    }
+    /**
+     * The coordinates of each point shown, in document order, not counting
+     * one inside another (a point made from a math holds a point).
+     */
+    async function pointsShown() {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const points = (Object.values(stateVariables) as any[]).filter(
+            (sv) => sv.componentType === "point",
+        );
+        const inner = new Set(
+            points.flatMap((sv) =>
+                sv.activeChildren.map((child: any) => child.componentIdx),
+            ),
+        );
+        return points
+            .filter((sv) => !inner.has(sv.componentIdx))
+            .map((sv) => sv.stateValues.xs.map((x: any) => x.tree));
+    }
+    return {
+        core: () => core,
+        resolve,
+        sv,
+        setBoolean,
+        reload,
+        typeChangeInfos,
+        pointsShown,
+    };
+}
 
 /**
  * An unlinked copy (`copy=`) keeps what it made of its source, through a
@@ -227,12 +315,12 @@ describe("An unlinked copy through a reload @group4", () => {
         await check(1, 5);
     });
 
-    it("takes a held entry only for a component of its type", async () => {
+    it("is made again from the case of a conditionalContent it was made from, with the reader's edits", async () => {
         // A copy of a `<conditionalContent>` is made from whichever case is
-        // active: made again on load with `b` false, its textInput takes
-        // nothing held of the mathInput (its prefill `1` would have shown in
-        // the textInput). The ids of a copy's components name the case they
-        // were made from, so nothing held of one case reaches another's.
+        // active. Made from the first case and edited, it is made again on
+        // load from that case, with the edit, whichever case is active then
+        // (#2441). Its components take nothing of the other case's: no
+        // textInput is made.
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc">
@@ -241,183 +329,292 @@ describe("An unlinked copy through a reload @group4", () => {
     </conditionalContent>
     <group copy="$cc" name="c" />
     `;
-        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
-            doenetML,
-        });
-        async function sv(name: string) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            return stateVariables[await resolvePathToNodeIdx(name)];
-        }
-        async function reload() {
-            await core.saveImmediately();
-            const state = scoreState.state;
-            ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
-                doenetML,
-                initialState: state,
-            }));
-            return JSON.parse(state);
-        }
+        const { sv, reload, setBoolean, core, resolve } =
+            await reloader(doenetML);
 
         await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolve("c.a"),
+            core: core(),
+        });
+        await updateMathInputValue({
             latex: "5",
-            componentIdx: await resolvePathToNodeIdx("cc.a"),
-            core,
+            componentIdx: await resolve("cc.a"),
+            core: core(),
         });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentIdx: await resolvePathToNodeIdx("b"),
-            core,
-        });
-        expect((await sv("c.a")).stateValues.value.tree).eq(1);
+        await setBoolean("b", false);
+        expect((await sv("c.a")).stateValues.value.tree).eq(7);
 
+        const saved = await reload();
+        expect(Object.values(saved.__copySnapshots)).toMatchObject([
+            { caseIndex: 0 },
+        ]);
+        expect((await sv("cc.t")).stateValues.value).eq("hi");
+        expect((await sv("c.a")).stateValues.value.tree).eq(7);
+        expect(await sv("c.t")).eq(undefined);
+
+        // the case active again, and a reload then, keep what the copy made
+        await setBoolean("b", true);
         await reload();
-        const t = await sv("c.t");
-        expect(t.componentType).eq("textInput");
-        expect(t.stateValues.value).eq("hi");
+        expect((await sv("cc.a")).stateValues.value.tree).eq(5);
+        expect((await sv("c.a")).stateValues.value.tree).eq(7);
     });
 
-    it("is made from its source as restored when made again with a different shape", async () => {
-        // Made again on load with `b` false, the copy has no replacements
-        // but itself. It keeps nothing of the mathInput it had, so it is not
-        // held on later saves, and once `b` is true a reload makes it again
-        // from its source as restored, as a copy was made before snapshots
-        // were held.
+    it("made while no case was active, is made again with nothing", async () => {
+        // With one case, the copy made while it is active is made again from
+        // it when it is not, and the copy made while it is not is made again
+        // with nothing when it is.
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc" condition="$b">
         <mathInput name="a" prefill="1" />
     </conditionalContent>
     <group copy="$cc" name="c" />
-    <mathInput name="other" />
+    <booleanInput name="b2" />
+    <conditionalContent name="cc2" condition="$b2">
+        <mathInput name="a2" prefill="2" />
+    </conditionalContent>
+    <group copy="$cc2" name="c2" />
     `;
-        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
-            doenetML,
-        });
-        async function sv(name: string) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            return stateVariables[await resolvePathToNodeIdx(name)];
-        }
-        async function reload() {
-            await core.saveImmediately();
-            const state = scoreState.state;
-            ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
-                doenetML,
-                initialState: state,
-            }));
-            return JSON.parse(state);
-        }
+        const { sv, reload, setBoolean, core, resolve } =
+            await reloader(doenetML);
 
         await updateMathInputValue({
             latex: "5",
-            componentIdx: await resolvePathToNodeIdx("cc.a"),
-            core,
+            componentIdx: await resolve("cc.a"),
+            core: core(),
         });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentIdx: await resolvePathToNodeIdx("b"),
-            core,
-        });
+        await setBoolean("b", false);
+        await setBoolean("b2", true);
         expect((await sv("c.a")).stateValues.value.tree).eq(1);
+        expect((await sv("c2")).activeChildren).eqls([]);
 
-        const held = (await reload()).__copySnapshots;
-        expect(Object.keys(held).length).eq(1);
-        expect((await sv("c")).activeChildren).eqls([]);
+        await reload();
+        expect((await sv("c.a")).stateValues.value.tree).eq(1);
+        expect((await sv("cc2.a2")).stateValues.value.tree).eq(2);
+        expect((await sv("c2")).activeChildren).eqls([]);
 
-        // later saves hold nothing of the copy
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: await resolvePathToNodeIdx("other"),
-            core,
-        });
-        expect((await reload()).__copySnapshots).eq(undefined);
-        expect((await sv("c")).activeChildren).eqls([]);
-
-        await updateBooleanInputValue({
-            boolean: true,
-            componentIdx: await resolvePathToNodeIdx("b"),
-            core,
-        });
-        // the copy now shows nothing where one made now has a mathInput
-        expect(Object.keys((await reload()).__copySnapshots)).eqls(
-            Object.keys(held),
-        );
+        await setBoolean("b", true);
+        await reload();
         expect((await sv("cc.a")).stateValues.value.tree).eq(5);
-        expect((await sv("c.a")).stateValues.value.tree).eq(5);
-
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: await resolvePathToNodeIdx("other"),
-            core,
-        });
-        expect((await reload()).__copySnapshots).eq(undefined);
-        expect((await sv("c.a")).stateValues.value.tree).eq(5);
+        expect((await sv("c.a")).stateValues.value.tree).eq(1);
+        expect((await sv("c2")).activeChildren).eqls([]);
     });
 
-    it("takes nothing held of another case's components", async () => {
-        // The cases' wrappers differ in type and their mathInputs do not:
-        // made again on load with `b` false, the copy's div and mathInput
-        // take nothing held of the p's. Made again with `b` true, its
-        // mathInput shows its source as restored, not the div's mathInput's
-        // prefill `2`.
+    it("a save made before what decided a copy was held makes it from its source as restored", async () => {
+        // A save that holds a snapshot alone, as those made before #2441
+        // do, makes a copy of a `<conditionalContent>` again from the case
+        // active on load: its components take nothing held of the other
+        // case's, whose ids name that case (`case0|`, not `case1|`): the
+        // textInput does not take the mathInput's value, and the div's
+        // mathInput not the p's.
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc">
+        <case condition="$b"><mathInput name="a" prefill="1" /></case>
+        <else><textInput name="t" prefill="hi" /></else>
+    </conditionalContent>
+    <group copy="$cc" name="c" />
+    <conditionalContent name="cc2">
         <case condition="$b"><p><mathInput name="a" prefill="1" /></p></case>
         <else><div><mathInput name="t" prefill="2" /></div></else>
     </conditionalContent>
-    <group copy="$cc" name="c" />
+    <group copy="$cc2" name="c2" />
     `;
-        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
-            doenetML,
+        const { sv, reload, setBoolean, core, resolve } =
+            await reloader(doenetML);
+
+        for (const name of ["c.a", "c2.a"]) {
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolve(name),
+                core: core(),
+            });
+        }
+        await setBoolean("b", false);
+
+        const saved = await reload({ legacy: true });
+        expect(Object.keys(saved.__copySnapshots)).toHaveLength(2);
+        const t = await sv("c.t");
+        expect(t.componentType).eq("textInput");
+        expect(t.stateValues.value).eq("hi");
+        expect((await sv("c2.t")).stateValues.value.tree).eq(2);
+        expect(await sv("c.a")).eq(undefined);
+    });
+
+    it("written as a different tag, is shown, or not, as it was when made", async () => {
+        // Whether the copy is made is decided from the value of a math, or
+        // from what a `<conditionalContent>` holds, when it is made. A reload
+        // makes it as it was, not from what is decided then (#2441).
+        const doenetML = `
+    <math name="m">x</math>
+    <mathInput name="mi" bindValueTo="$m" />
+    <booleanInput name="b" />
+    <conditionalContent>
+        <case condition="$b"><point copy="$m" name="P" /></case>
+    </conditionalContent>
+    <conditionalContent name="cc">
+        <case condition="$b"><math>(3,4)</math></case>
+        <else><text>hi</text></else>
+    </conditionalContent>
+    <point copy="$cc" name="Q" />
+    <booleanInput name="b2" prefill="true" />
+    <conditionalContent name="cc2">
+        <case condition="$b2"><math>(5,6)</math></case>
+        <else><text>hi</text></else>
+    </conditionalContent>
+    <point copy="$cc2" name="R" />
+    <math name="m2">x</math>
+    <mathInput name="mi2" bindValueTo="$m2" />
+    <point copy="$m2" name="S" />
+    `;
+        const {
+            reload,
+            setBoolean,
+            core,
+            resolve,
+            typeChangeInfos,
+            pointsShown,
+        } = await reloader(doenetML);
+
+        await updateMathInputValue({
+            latex: "(1,2)",
+            componentIdx: await resolve("mi"),
+            core: core(),
         });
-        async function sv(name: string) {
-            const stateVariables = await core.returnAllStateVariables(
+        await setBoolean("b", true);
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolve("mi"),
+            core: core(),
+        });
+        await setBoolean("b2", false);
+        await updateMathInputValue({
+            latex: "(7,8)",
+            componentIdx: await resolve("mi2"),
+            core: core(),
+        });
+        // `P` was made from `(1,2)`, and `R` from the case holding `(5,6)`;
+        // `Q` while the case held a text, and `S` while `m2` was `x`, so
+        // they show nothing
+        const shown = [
+            [1, 2],
+            [5, 6],
+        ];
+        expect(await pointsShown()).eqls(shown);
+        expect(typeChangeInfos().sort()).eqls(["$cc", "$m2"]);
+
+        const saved = await reload();
+        expect(Object.keys(saved.__copySnapshots)).toHaveLength(4);
+        expect(await pointsShown()).eqls(shown);
+        // `Q` and `S` are reported as they were when made
+        expect(typeChangeInfos().sort()).eqls(["$cc", "$m2"]);
+    });
+
+    it("of a mathInput, written as a point, keeps what it was made from", async () => {
+        // The copy's point holds a copy of the mathInput, which keeps the
+        // value it had, though the mathInput's is not a tuple on load
+        const doenetML = `
+    <mathInput name="mi" prefill="x" />
+    <booleanInput name="b" />
+    <conditionalContent>
+        <case condition="$b"><point copy="$mi" name="P" /></case>
+    </conditionalContent>
+    `;
+        const { reload, setBoolean, core, resolve } = await reloader(doenetML);
+        await updateMathInputValue({
+            latex: "(1,2)",
+            componentIdx: await resolve("mi"),
+            core: core(),
+        });
+        await setBoolean("b", true);
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolve("mi"),
+            core: core(),
+        });
+
+        /** The value of each mathInput a point holds. */
+        async function inPoints() {
+            const stateVariables = await core().returnAllStateVariables(
                 false,
                 true,
             );
-            return stateVariables[await resolvePathToNodeIdx(name)];
+            const result = [];
+            for (const sv of Object.values(stateVariables) as any[]) {
+                if (sv.componentType === "point") {
+                    for (const child of sv.activeChildren) {
+                        result.push(
+                            stateVariables[child.componentIdx].stateValues.value
+                                .tree,
+                        );
+                    }
+                }
+            }
+            return result;
         }
-        async function reload() {
-            await core.saveImmediately();
-            const state = scoreState.state;
-            ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
-                doenetML,
-                initialState: state,
-            }));
-            return JSON.parse(state);
-        }
+        expect(await inPoints()).eqls([["tuple", 1, 2]]);
+        await reload();
+        expect(await inPoints()).eqls([["tuple", 1, 2]]);
+    });
 
+    it("deleted and made again without a reload, is made as it was", async () => {
+        // Leaving a case deletes the copies in it, and coming back makes
+        // them again, from what decided what they made when they were made
+        // (`keepSavedStateForRecreation`): `P` is still made from the math,
+        // whose value is no longer a tuple, and `g` from the case of `cc`
+        // it was made from, with the reader's edit.
+        const doenetML = `
+    <math name="m">x</math>
+    <mathInput name="mi" bindValueTo="$m" />
+    <booleanInput name="b" />
+    <booleanInput name="c" prefill="true" />
+    <booleanInput name="o" prefill="true" />
+    <conditionalContent>
+        <case condition="$b"><point copy="$m" name="P" /></case>
+        <else>no point</else>
+    </conditionalContent>
+    <conditionalContent name="cc">
+        <case condition="$c"><mathInput name="a" prefill="1" /></case>
+        <else><textInput name="t" prefill="hi" /></else>
+    </conditionalContent>
+    <conditionalContent name="outer">
+        <case condition="$o"><group copy="$cc" name="g" /></case>
+        <else>no group</else>
+    </conditionalContent>
+    `;
+        const { sv, setBoolean, core, resolve, pointsShown } =
+            await reloader(doenetML);
         await updateMathInputValue({
-            latex: "5",
-            componentIdx: await resolvePathToNodeIdx("cc.a"),
-            core,
+            latex: "(1,2)",
+            componentIdx: await resolve("mi"),
+            core: core(),
         });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentIdx: await resolvePathToNodeIdx("b"),
-            core,
+        await setBoolean("b", true);
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolve("mi"),
+            core: core(),
         });
-        expect((await sv("c.a")).stateValues.value.tree).eq(1);
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolve("outer.g.a"),
+            core: core(),
+        });
+        await setBoolean("c", false);
+        expect(await pointsShown()).eqls([[1, 2]]);
+        expect((await sv("outer.g.a")).stateValues.value.tree).eq(7);
 
-        await reload();
-        expect((await sv("c.t")).stateValues.value.tree).eq(2);
+        await setBoolean("b", false);
+        await setBoolean("o", false);
+        expect(await pointsShown()).eqls([]);
+        expect(await sv("outer.g.a")).eq(undefined);
 
-        await updateBooleanInputValue({
-            boolean: true,
-            componentIdx: await resolvePathToNodeIdx("b"),
-            core,
-        });
-        await reload();
-        const source = (await sv("cc.a")).stateValues.value.tree;
-        const copy = (await sv("c.a")).stateValues.value.tree;
-        expect(copy).not.eq(2);
-        expect(copy).eq(source);
+        await setBoolean("b", true);
+        await setBoolean("o", true);
+        expect(await pointsShown()).eqls([[1, 2]]);
+        expect((await sv("outer.g.a")).stateValues.value.tree).eq(7);
+        expect(await sv("outer.g.t")).eq(undefined);
     });
 
     it("keeps values its source holds in primitive children or in essential state", async () => {
