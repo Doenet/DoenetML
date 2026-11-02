@@ -9,8 +9,16 @@
 //! drops; `count(name, n)` adds work to the innermost open span. Names are
 //! the step names the benchmark's glossary explains (`src/steps.mjs` there),
 //! so a span renamed here is renamed there.
+//!
+//! A tally (`tally(name)`) is for work done many times inside one span,
+//! such as planning each element by its type: every opening of `name`
+//! under the same parent adds to one span, whose `n` counts the openings
+//! and whose duration is their sum (its start is the first opening's, so
+//! it is not a stretch of the timeline). Tallies cost two clock reads
+//! each, so they record only when the profile is on (`CELLS_BUILD_PROFILE`).
 
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::time::Duration;
 use web_time::Instant;
 
@@ -32,6 +40,9 @@ struct Recorder {
     spans: Vec<Span>,
     /// Indices into `spans` of the spans still open, innermost last.
     open: Vec<usize>,
+    /// The span of each tally, by its parent's index (`usize::MAX` for
+    /// none) and its name.
+    tallies: HashMap<(usize, &'static str), usize>,
 }
 
 thread_local! {
@@ -45,6 +56,7 @@ pub fn start() {
             origin: Instant::now(),
             spans: Vec::new(),
             open: Vec::new(),
+            tallies: HashMap::new(),
         })
     });
 }
@@ -59,6 +71,8 @@ pub fn finish() -> Vec<Span> {
 #[must_use = "a span closes when its guard drops"]
 pub struct Guard {
     index: Option<usize>,
+    /// For a tally, when this opening started: its time adds to the span.
+    tally_start: Option<Duration>,
 }
 
 /// Open the span `name`, nested in whatever span is open.
@@ -77,7 +91,53 @@ pub fn span(name: &'static str) -> Guard {
         rec.open.push(index);
         Some(index)
     });
-    Guard { index }
+    Guard {
+        index,
+        tally_start: None,
+    }
+}
+
+/// Open the tally `name`, nested in whatever span is open, when the
+/// profile is on; see the module's doc.
+pub fn tally(name: &'static str) -> Guard {
+    if !crate::profile::enabled() {
+        return Guard {
+            index: None,
+            tally_start: None,
+        };
+    }
+    open_tally(name)
+}
+
+fn open_tally(name: &'static str) -> Guard {
+    RECORDER.with(|r| {
+        let mut r = r.borrow_mut();
+        let Some(rec) = r.as_mut() else {
+            return Guard {
+                index: None,
+                tally_start: None,
+            };
+        };
+        let now = rec.origin.elapsed();
+        let parent = rec.open.last().copied().unwrap_or(usize::MAX);
+        let depth = rec.open.len() as u32;
+        let spans = &mut rec.spans;
+        let index = *rec.tallies.entry((parent, name)).or_insert_with(|| {
+            spans.push(Span {
+                name,
+                depth,
+                start: now,
+                duration: Duration::ZERO,
+                counts: Vec::new(),
+            });
+            spans.len() - 1
+        });
+        rec.open.push(index);
+        Guard {
+            index: Some(index),
+            tally_start: Some(now),
+        }
+    })
 }
 
 impl Guard {
@@ -96,7 +156,16 @@ impl Drop for Guard {
             let Some(rec) = r.as_mut() else { return };
             let now = rec.origin.elapsed();
             let span = &mut rec.spans[index];
-            span.duration = now - span.start;
+            match self.tally_start {
+                Some(started) => {
+                    span.duration += now - started;
+                    match span.counts.iter_mut().find(|(k, _)| *k == "n") {
+                        Some((_, v)) => *v += 1,
+                        None => span.counts.push(("n", 1)),
+                    }
+                }
+                None => span.duration = now - span.start,
+            }
             if let Some(pos) = rec.open.iter().rposition(|&i| i == index) {
                 rec.open.truncate(pos);
             }
@@ -160,6 +229,24 @@ mod tests {
         assert_eq!(names, [("load", 0), ("compile", 1), ("build", 1)]);
         assert_eq!(spans[0].counts, [("bytes", 10)]);
         assert_eq!(spans[1].counts, [("elements", 5)]);
+        assert!(spans[0].duration >= spans[1].duration + spans[2].duration);
+    }
+
+    #[test]
+    fn tallies_sum_under_their_parent() {
+        start();
+        {
+            let _outer = span("plan");
+            for name in ["point", "line", "point"] {
+                let _t = open_tally(name);
+                count("props", 2);
+            }
+        }
+        let spans = finish();
+        let names: Vec<_> = spans.iter().map(|s| (s.name, s.depth)).collect();
+        assert_eq!(names, [("plan", 0), ("point", 1), ("line", 1)]);
+        assert_eq!(spans[1].counts, [("props", 4), ("n", 2)]);
+        assert_eq!(spans[2].counts, [("props", 2), ("n", 1)]);
         assert!(spans[0].duration >= spans[1].duration + spans[2].duration);
     }
 

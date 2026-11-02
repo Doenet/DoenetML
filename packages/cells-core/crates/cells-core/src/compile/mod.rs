@@ -1001,6 +1001,8 @@ impl<'a> Compiler<'a> {
         if self.is_box(t, e) {
             return Ok(());
         }
+        let planned_as = self.compiled.templates[t.index()].elems[e.index()].planned_as;
+        let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(t, e).and_then(|()| {
             let hold = self.plan_hold(t, e)?;
             self.compiled.templates[t.index()].elems[e.index()].hold = hold;
