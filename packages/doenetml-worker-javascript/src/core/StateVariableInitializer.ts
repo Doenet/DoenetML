@@ -4,6 +4,7 @@ import { reportInternalError } from "../utils/internalErrors";
 import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
 import { isListEntryArrayVariable } from "../utils/listEntryReference";
+import { readHeldCopySnapshot } from "../utils/copySnapshot";
 import {
     applyPendingShadowModification,
     getClassStateVariableDefinitions,
@@ -2149,6 +2150,9 @@ export const INDEX_NAMES_NOTHING = "__index_names_nothing";
  * scalar later, as a reload would decide it (B33, DIAG-6). It is withdrawn
  * for good once the reference no longer reads `component`
  * (`watch.isCurrent`) or `component` is gone.
+ *
+ * A `copy` (an unlinked copy, `link` false) does not follow its source, so
+ * its warning is the one decided when it was made (`reportIndexIntoScalarAsMade`).
  */
 async function reportIndexIntoScalarOf({
     core,
@@ -2180,6 +2184,19 @@ async function reportIndexIntoScalarOf({
     }
 
     const componentIdx = component.componentIdx;
+    const owner: any = core._components[watch.owner];
+    if (owner?.attributes?._link?.primitive?.value === false) {
+        await reportIndexIntoScalarAsMade({
+            core,
+            owner,
+            component,
+            stateVarObj,
+            propIndex,
+            reference,
+            diagnostic,
+        });
+        return;
+    }
     let first = true;
     async function decide() {
         // Decided while the reference is being resolved, before it is
@@ -2202,6 +2219,57 @@ async function reportIndexIntoScalarOf({
         watch.owner,
         `indexIntoScalar:${componentIdx}:${reference.text}`,
         decide,
+    );
+}
+
+/**
+ * Report the warning that `reference` of the unlinked copy `owner` indexes
+ * into a scalar as it was decided when the copy was made: a `copy` does not
+ * follow its source, so the warning, like what it shows and like the info of
+ * a type change (`heldTypeChange` in `Copy.js`), stays as it was, which is
+ * what explains what the copy shows.
+ *
+ * It is decided once per reference and recorded on the copy
+ * (`unlinkedIndexWarnings`), as a condition of the copy, so it is withdrawn
+ * when the copy is deleted. When a warning decided now would differ, so
+ * does what the copy would show (an entry where it shows nothing, or the
+ * reverse), so a save holds the copy (`StatePersistence.recordCopySnapshots`)
+ * with the decision (`heldCopySnapshot`), and a reload reads it back: the
+ * warning after a reload is the one before it (DIAG-6).
+ */
+async function reportIndexIntoScalarAsMade({
+    core,
+    owner,
+    component,
+    stateVarObj,
+    propIndex,
+    reference,
+    diagnostic,
+}: {
+    core: Core;
+    owner: any;
+    component: ComponentInstance;
+    stateVarObj: any;
+    propIndex: number[];
+    reference: { text: string };
+    diagnostic: any;
+}) {
+    const componentIdx = component.componentIdx;
+    owner.unlinkedIndexWarnings ??= {};
+    let holds = owner.unlinkedIndexWarnings[reference.text];
+    if (holds === undefined) {
+        const held = readHeldCopySnapshot(
+            owner.coreFunctions?.savedCopySnapshot?.(owner.stateId),
+        )?.madeFrom.indexIntoScalar?.[reference.text];
+        holds =
+            held ??
+            Boolean(await stateVarObj.indexIntoScalar(component, propIndex));
+        owner.unlinkedIndexWarnings[reference.text] = holds;
+    }
+    core.diagnosticsManager.setConditionDiagnostics(
+        owner.componentIdx,
+        `indexIntoScalar:${reference.text}`,
+        holds ? [diagnostic] : [],
     );
 }
 

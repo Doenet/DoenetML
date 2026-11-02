@@ -297,6 +297,62 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
         expect(await d.text("p")).eq("[5]");
         expect(await d.diagnosticsSurvivingReload(["doenet-w0100"])).eqls([]);
     });
+
+    it("the index warning of a copy stays as it was when the copy was made", async () => {
+        // A `copy` does not follow its source, so its warning explains what
+        // it shows: the warning it was made with. `$m[2]` follows the value.
+        const d = await setup(`
+<mathInput name="mi" prefill="5"/>
+<math name="m">$mi</math>
+<p name="linked">[$m[2]]</p>
+<p name="copied">[<math copy="$m[2]"/>]</p>
+`);
+        function lines() {
+            return d
+                .diagnostics(["doenet-w0100"])
+                .map((x: any) => [x.line, x.message]);
+        }
+        const linkedWarning = [4, "Cannot reference index `$m[2]`"];
+        const copiedWarning = [5, "Cannot reference index `$m[2]`"];
+        expect(lines()).eqls([linkedWarning, copiedWarning]);
+
+        await d.setMath("mi", "(1,2)");
+        expect(await d.text("linked")).eq("[2]");
+        expect(await d.text("copied")).eq("[＿]");
+        expect(lines()).eqls([copiedWarning]);
+        expect(
+            (await d.diagnosticsSurvivingReload(["doenet-w0100"])).map(
+                (x: any) => x.line,
+            ),
+        ).eqls([5]);
+
+        await d.setMath("mi", "7");
+        expect(lines()).eqls([linkedWarning, copiedWarning]);
+        expect(
+            (await d.diagnosticsSurvivingReload(["doenet-w0100"])).map(
+                (x: any) => x.line,
+            ),
+        ).eqls([4, 5]);
+    });
+
+    it("a copy made from a tuple has no index warning when the value becomes a scalar", async () => {
+        const d = await setup(`
+<mathInput name="mi" prefill="(1,2)"/>
+<math name="m">$mi</math>
+<p name="linked">[$m[2]]</p>
+<p name="copied">[<math copy="$m[2]"/>]</p>
+`);
+        expect(d.diagnostics(["doenet-w0100"])).eqls([]);
+
+        await d.setMath("mi", "3");
+        expect(await d.text("linked")).eq("[]");
+        expect(await d.text("copied")).eq("[2]");
+        expect(
+            (await d.diagnosticsSurvivingReload(["doenet-w0100"])).map(
+                (x: any) => x.line,
+            ),
+        ).eqls([4]);
+    });
 });
 
 describe("DiagnosticsManager conditions (B33) @group4", () => {

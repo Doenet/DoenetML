@@ -91,7 +91,9 @@ row, like a `<matrix>`. A value that is a single expression, such as
 `<number name="n">5</number>`, has no entries, so `$n[1]` references nothing
 and DoenetML reports a warning. The warning follows the value: for `$m[2]` of a
 `<math>` whose value comes from an input, it is there while the value is a
-single expression and goes away once it is a tuple. An index past the last
+single expression and goes away once it is a tuple. A `copy`, such as
+`<math copy="$m[2]"/>{:dn}`, doesn't follow its source, so it keeps the warning
+it was made with, as it keeps what it shows. An index past the last
 entry also references nothing, without a warning, since the number of entries
 can change.
 

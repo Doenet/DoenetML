@@ -234,14 +234,25 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
  *   document makes at run time (`typeChangeStatus` in `Copy.js`): the value
  *   of a math, or what a `<conditionalContent>` holds;
  * - `caseIndex`, the case of a `<conditionalContent>` a copy of it was made
- *   from, or `null` when it had no active case.
+ *   from, or `null` when it had no active case;
+ * - `indexIntoScalar`, by the reference as written, whether an index of the
+ *   copy named nothing because it indexed into a scalar, which is reported
+ *   as it was when the copy was made (`reportIndexIntoScalarAsMade`).
  *
- * A copy with neither is held as its snapshot alone, as saves made before
- * these were held are.
+ * A copy with none of these is held as its snapshot alone, as saves made
+ * before these were held are.
  */
 export function heldCopySnapshot(component) {
     const madeFrom = component.unlinkedMadeFrom ?? {};
-    if (madeFrom.typeChange === undefined && madeFrom.caseIndex === undefined) {
+    const indexIntoScalar = component.unlinkedIndexWarnings;
+    const hasIndexWarnings =
+        indexIntoScalar !== undefined &&
+        Object.keys(indexIntoScalar).length > 0;
+    if (
+        madeFrom.typeChange === undefined &&
+        madeFrom.caseIndex === undefined &&
+        !hasIndexWarnings
+    ) {
         return component.unlinkedSnapshot;
     }
     return {
@@ -252,6 +263,7 @@ export function heldCopySnapshot(component) {
         ...(madeFrom.caseIndex !== undefined && {
             caseIndex: madeFrom.caseIndex,
         }),
+        ...(hasIndexWarnings && { indexIntoScalar }),
     };
 }
 
