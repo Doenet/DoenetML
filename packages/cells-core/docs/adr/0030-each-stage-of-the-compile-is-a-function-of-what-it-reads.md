@@ -1,6 +1,6 @@
 # Each stage of the compile is a function of what it reads
 
-Status: proposed 2026-11-02. Steps 1 to 5 are done; see Migration. Amends ADR
+Status: proposed 2026-11-02. Steps 1 to 6 are done; see Migration. Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -230,7 +230,13 @@ otherwise.
    references) stays on `Compiler` until planning takes its inputs as
    arguments (step 7).
 6. **`parse` returns `Parsed`**, and planners read it without taking from
-   it.
+   it. Done: `parse_maths` returns `Parsed`, which `compile_all` keeps on
+   `Compiler` for the planners to read through their context
+   (`Parsed::math`); nothing writes it after. `PlanCtx::parsed_math`
+   clones a parse error rather than removing it, so `Error` is now
+   `Clone`, its one payload that was not (`Json`'s `serde_json::Error`)
+   held in an `Arc`. Passing `Parsed` to planning as an argument is step
+   7.
 7. **`plan` returns `Planned`**, given `&Outline` and `&Parsed`; `link`
    takes it. `Compiler` is left as planning's own state, or goes.
 8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`

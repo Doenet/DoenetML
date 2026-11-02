@@ -1,9 +1,13 @@
+use std::sync::Arc;
+
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+/// Cloneable, so a stage's result can hold an error for every reader of
+/// it to report (a `<math>`'s parse, ADR 0030).
+#[derive(Debug, Clone, Error)]
 pub enum Error {
     #[error("invalid DAST JSON: {0}")]
-    Json(#[from] serde_json::Error),
+    Json(#[source] Arc<serde_json::Error>),
     #[error("invalid binary DAST: {0}")]
     WireFormat(String),
     #[error("unsupported tag <{0}>")]
@@ -92,3 +96,9 @@ pub enum Error {
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+impl From<serde_json::Error> for Error {
+    fn from(e: serde_json::Error) -> Error {
+        Error::Json(Arc::new(e))
+    }
+}

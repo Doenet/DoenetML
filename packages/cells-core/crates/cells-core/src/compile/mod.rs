@@ -183,10 +183,11 @@ pub(in crate::compile) struct Compiler<'a> {
     /// W: plan (`plan_with_extend`). R: link (`link_shared_state`), seal
     /// (`assign_keys`).
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
-    /// By (template, element), each `<math>`'s text as parsing parsed it.
-    /// W: parse (`parse_maths`). R: plan (the math's planner, which takes a
-    /// parse error out; a line's equation, which inlines a parse).
-    pub(in crate::compile) parsed_maths: HashMap<(u32, u32), Result<ParsedMath>>,
+    /// What parsing made (`parse_maths`), which `compile_all` keeps here
+    /// for the planners, who read it through their context and never
+    /// change it. R: plan (the math's planner; a line's equation, which
+    /// inlines a parse).
+    pub(in crate::compile) parsed: Parsed,
     /// Every element whose plan reads the type of what a reference names
     /// (`referent_type`), with the reference. W: outline (container
     /// copies), plan. R: link (`box_readers_of_boxes`), which boxes one
@@ -218,6 +219,23 @@ pub(in crate::compile) struct Outline {
     /// Each `<math>`'s text, tokenized where its type was settled
     /// (`parse_maths`).
     math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
+}
+
+/// What parsing makes (ADR 0029, ADR 0030): each `<math>`'s text parsed
+/// once, as the type outlining settled, or the error parsing it met. Read,
+/// never changed, by the stages after it.
+#[derive(Default)]
+pub(in crate::compile) struct Parsed {
+    /// By (template, element).
+    maths: HashMap<(u32, u32), Result<ParsedMath>>,
+}
+
+impl Parsed {
+    /// `<math>` `e`'s parse, or the error parsing it met; `None` for an
+    /// element that is no math, or one boxed before it was parsed.
+    pub(in crate::compile) fn math(&self, t: TemplateId, e: ElemId) -> Option<&Result<ParsedMath>> {
+        self.maths.get(&(t.get(), e.get()))
+    }
 }
 
 /// A `$ref` child awaiting its plan: its template, the element whose
@@ -404,7 +422,7 @@ impl<'a> Compiler<'a> {
             extend_refs: HashMap::new(),
             when_refs: HashMap::new(),
             answer_responses: HashMap::new(),
-            parsed_maths: HashMap::new(),
+            parsed: Parsed::default(),
         };
         match cp.compile_all() {
             Ok(()) => {
@@ -454,7 +472,7 @@ impl<'a> Compiler<'a> {
         // make none, but for the box of a `$ref` child that cannot be
         // planned, which has no element to be boxed in place.
         let outlined = self.elem_count();
-        crate::trace::span("parse maths").run(|| self.parse_maths(math_texts));
+        self.parsed = crate::trace::span("parse maths").run(|| self.parse_maths(math_texts));
         let ref_boxes = crate::trace::span("plan all").run(|| self.plan_all(to_plan, macros));
         self.restart_if_needed()?;
         crate::trace::span("link").run(|| self.link())?;
@@ -1128,7 +1146,8 @@ impl<'a> Compiler<'a> {
     /// parsed once as the type outlining settled, its `$ref`s planned where
     /// the math sits; what its planner plans from, and what a line's
     /// equation inlines.
-    fn parse_maths(&mut self, math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>) {
+    fn parse_maths(&mut self, math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>) -> Parsed {
+        let mut parsed = Parsed::default();
         for ((t, e), mt) in math_texts {
             if self.is_box(t, e) {
                 continue;
@@ -1138,9 +1157,10 @@ impl<'a> Compiler<'a> {
                 component_type,
                 ..
             } = self.compiled.templates[t.index()].elems[e.index()];
-            let parsed = mt.and_then(|mt| self.parse_math(t, name_scope, component_type, &mt));
-            self.parsed_maths.insert((t.get(), e.get()), parsed);
+            let math = mt.and_then(|mt| self.parse_math(t, name_scope, component_type, &mt));
+            parsed.maths.insert((t.get(), e.get()), math);
         }
+        parsed
     }
 
     /// The reference in `e`'s `extend`, planned once from where `e` sits:
