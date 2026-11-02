@@ -268,6 +268,24 @@ export function heldCopySnapshot(component) {
 }
 
 /**
+ * Whether the unlinked copy `component` would decide each index warning it
+ * was made with (`unlinkedIndexWarnings`) the same way if it were made now
+ * (`freshIndexWarnings`, from `reportIndexIntoScalarAsMade`). One that would
+ * not, or can no longer be decided, is held, so a reload reports what the
+ * copy reported.
+ */
+export async function indexWarningsStillMade(component) {
+    const made = component.unlinkedIndexWarnings ?? {};
+    for (const text in made) {
+        const fresh = await component.freshIndexWarnings?.[text]?.();
+        if (fresh !== made[text]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * What `heldCopySnapshot` held: the snapshot, and what decided what the copy
  * made (`madeFrom`, empty for a save that held the snapshot alone).
  */

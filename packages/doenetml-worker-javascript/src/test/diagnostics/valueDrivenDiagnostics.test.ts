@@ -353,6 +353,49 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
             ),
         ).eqls([4]);
     });
+    it("a copy keeps its index warning through a reload when what it shows does not tell", async () => {
+        // A copy of nothing entered shows nothing and has no warning, as one
+        // of a scalar shows nothing and has one: a save holds the copy, so
+        // a reload reports the warning it was made with.
+        const d = await setup(`
+<mathInput name="mi"/>
+<math name="m">$mi</math>
+<p name="linked">[$m[2]]</p>
+<p name="copied">[<math copy="$m[2]"/>]</p>
+`);
+        expect(d.diagnostics(["doenet-w0100"])).eqls([]);
+
+        await d.setMath("mi", "5");
+        expect(await d.text("copied")).eq("[＿]");
+        expect(
+            (await d.diagnosticsSurvivingReload(["doenet-w0100"])).map(
+                (x: any) => x.line,
+            ),
+        ).eqls([4]);
+
+        await d.setMath("mi", "");
+        expect(await d.diagnosticsSurvivingReload(["doenet-w0100"])).eqls([]);
+    });
+
+    it("a copy of a second index keeps its warning through a reload", async () => {
+        // `$m[2][1]` shows nothing whether `$m[2]` is a scalar or not.
+        const d = await setup(`
+<mathInput name="mi" prefill="(1,2)"/>
+<math name="m">$mi</math>
+<p name="copied">[<math copy="$m[2][1]"/>]</p>
+`);
+        expect(d.diagnostics(["doenet-w0100"]).map((x: any) => x.line)).eqls([
+            4,
+        ]);
+
+        await d.setMath("mi", "((1,2),(3,4))");
+        expect(await d.text("copied")).eq("[＿]");
+        expect(
+            (await d.diagnosticsSurvivingReload(["doenet-w0100"])).map(
+                (x: any) => x.line,
+            ),
+        ).eqls([4]);
+    });
 });
 
 describe("DiagnosticsManager conditions (B33) @group4", () => {

@@ -2231,11 +2231,11 @@ async function reportIndexIntoScalarOf({
  *
  * It is decided once per reference and recorded on the copy
  * (`unlinkedIndexWarnings`), as a condition of the copy, so it is withdrawn
- * when the copy is deleted. When a warning decided now would differ, so
- * does what the copy would show (an entry where it shows nothing, or the
- * reverse), so a save holds the copy (`StatePersistence.recordCopySnapshots`)
- * with the decision (`heldCopySnapshot`), and a reload reads it back: the
- * warning after a reload is the one before it (DIAG-6).
+ * when the copy is deleted. When a warning decided now would differ
+ * (`freshIndexWarnings`), a save holds the copy
+ * (`StatePersistence.recordCopySnapshots`) with the decision
+ * (`heldCopySnapshot`), and a reload reads it back: the warning after a
+ * reload is the one before it (DIAG-6).
  */
 async function reportIndexIntoScalarAsMade({
     core,
@@ -2266,6 +2266,20 @@ async function reportIndexIntoScalarAsMade({
             Boolean(await stateVarObj.indexIntoScalar(component, propIndex));
         owner.unlinkedIndexWarnings[reference.text] = holds;
     }
+    // What a copy made now would decide, which a save compares with what it
+    // was made with (`StatePersistence.recordCopySnapshots`): what the copy
+    // shows need not tell them apart (a blank value has no warning, as an
+    // entry has; `$m[2][1]` shows nothing whether `$m[2]` is a scalar or
+    // not), and a copy whose warning would be decided otherwise is held
+    // with it, so a reload reports the one it had. `undefined` once the
+    // component indexed is gone.
+    owner.freshIndexWarnings ??= {};
+    owner.freshIndexWarnings[reference.text] = async () => {
+        const indexed = core._components[componentIdx];
+        return indexed
+            ? Boolean(await stateVarObj.indexIntoScalar(indexed, propIndex))
+            : undefined;
+    };
     core.diagnosticsManager.setConditionDiagnostics(
         owner.componentIdx,
         `indexIntoScalar:${reference.text}`,
