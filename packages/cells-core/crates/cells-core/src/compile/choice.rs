@@ -250,7 +250,7 @@ impl<'a> Compiler<'a> {
         &mut self,
         cid: ChoiceId,
         name: &str,
-        display: &str,
+        display: impl std::fmt::Display,
     ) -> Result<(Step, TemplateId, ElemId)> {
         let name = name.trim();
         let def = &self.compiled.choices[cid.index()];

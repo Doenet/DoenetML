@@ -936,8 +936,7 @@ impl<'c> Builder<'c> {
         }
         let comp = self.single_component(target, plan)?;
         let component_type = self.components.component_type[comp.index()];
-        let prop = prop
-            .ok_or_else(|| Error::PathTooDeep(self.compiled.refs[plan.index()].display.clone()))?;
+        let prop = prop.ok_or_else(|| Error::PathTooDeep(self.compiled.ref_display(plan)))?;
         // A list: the points the element holds.
         if component_type.prop_at(prop) == Some(PropAt::List) {
             let n = self.n_public(comp);
@@ -1238,7 +1237,7 @@ impl<'c> Builder<'c> {
         let rk = self.components.component_type[referent.index()];
         if rk != component_type {
             return Err(Error::ExtendTypeMismatch {
-                referent: self.compiled.refs[p.index()].display.clone(),
+                referent: self.compiled.ref_display(p),
                 referent_type: rk.tag().into(),
                 component_type: component_type.tag().into(),
             });
@@ -1366,7 +1365,7 @@ impl<'c> Builder<'c> {
                     {
                         return Err(Error::Unsupported(format!(
                             "a text value (${}) used as a number",
-                            c.refs[p.index()].display
+                            c.ref_display(p)
                         )));
                     }
                     self.op_inputs.push(slot);

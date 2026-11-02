@@ -117,7 +117,9 @@ impl<'c> Builder<'c> {
                     let k = self.index_value(ip, scope);
                     cur = match cur {
                         Resolved::Missing => Resolved::Missing,
-                        Resolved::Iter(..) => return Err(Error::NotIndexable(p.display.clone())),
+                        Resolved::Iter(..) => {
+                            return Err(Error::NotIndexable(self.compiled.display_of(p)));
+                        }
                         Resolved::Comp(c) => match self.components.component_type[c.index()] {
                             _ if self.comp_repeat[c.index()] != NONE => {
                                 let r = &self.repeats[self.comp_repeat[c.index()] as usize];
@@ -134,7 +136,7 @@ impl<'c> Builder<'c> {
                             }
                             ComponentType::Collect | ComponentType::Polyline => {
                                 let Some(items) = self.collected.get(&c) else {
-                                    return Err(Error::NotIndexable(p.display.clone()));
+                                    return Err(Error::NotIndexable(self.compiled.display_of(p)));
                                 };
                                 let varies = self.follows_counts.contains(&c);
                                 match self.view.index(items.len(), k, varies) {
@@ -176,7 +178,7 @@ impl<'c> Builder<'c> {
                                         if !self.picks_alike(c) {
                                             return Err(Error::Unsupported(format!(
                                                 "'${}' names a whole pick, so every option must hold one component, all of one type: name the content and use $s[k].name",
-                                                p.display
+                                                self.compiled.display_of(p)
                                             )));
                                         }
                                         Resolved::Comp(self.whole_pick(c)?)
@@ -188,7 +190,7 @@ impl<'c> Builder<'c> {
                                     }
                                 }
                             }
-                            _ => return Err(Error::NotIndexable(p.display.clone())),
+                            _ => return Err(Error::NotIndexable(self.compiled.display_of(p))),
                         },
                     };
                 }
@@ -271,14 +273,12 @@ impl<'c> Builder<'c> {
                     Ok(comps[0])
                 } else {
                     Err(Error::AmbiguousIteration(
-                        self.compiled.refs[plan.index()].display.clone(),
+                        self.compiled.ref_display(plan),
                         comps.len(),
                     ))
                 }
             }
-            Resolved::Missing => Err(Error::UnknownName(
-                self.compiled.refs[plan.index()].display.clone(),
-            )),
+            Resolved::Missing => Err(Error::UnknownName(self.compiled.ref_display(plan))),
         }
     }
 

@@ -999,7 +999,7 @@ impl<'a> Compiler<'a> {
             hops: 1,
             steps: vec![Step::Elem(e)],
             prop: Some(prop.to_string()),
-            display: format!("(repeat).{prop}"),
+            display: RefDisplay::Spelled(format!("(repeat).{prop}").into()),
             node: NodeId::NONE,
         });
         RefId::from_index(self.compiled.refs.len() - 1)
@@ -1137,7 +1137,8 @@ impl<'a> Compiler<'a> {
         {
             let r = &mut self.compiled.refs[p.index()];
             r.prop = Some(dp.to_string());
-            r.display = format!("{}.{dp}", r.display);
+            let base = std::mem::replace(&mut r.display, RefDisplay::Written);
+            r.display = RefDisplay::Prop(Box::new(base), dp);
         }
         self.extend_refs.insert(key, p);
         Ok(Some(p))
@@ -1162,9 +1163,7 @@ impl<'a> Compiler<'a> {
     /// boxes what reads it.
     fn read_referent(&mut self, t: TemplateId, p: RefId) -> Result<Option<ComponentType>> {
         match self.ref_target_type(t, p)? {
-            Some(ComponentType::Error) => Err(Error::BoxedReferent(
-                self.compiled.refs[p.index()].display.clone(),
-            )),
+            Some(ComponentType::Error) => Err(Error::BoxedReferent(self.compiled.ref_display(p))),
             k => Ok(k),
         }
     }

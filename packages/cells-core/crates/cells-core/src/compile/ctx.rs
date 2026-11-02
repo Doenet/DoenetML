@@ -319,12 +319,12 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`).
-    pub(crate) fn with_prop(&mut self, p: RefId, prop: &str) -> RefId {
+    pub(crate) fn with_prop(&mut self, p: RefId, prop: &'static str) -> RefId {
         self.c.plan_with_prop(p, prop)
     }
 
     /// A prop of the element a reference names, as an operator's argument.
-    pub(crate) fn reference_prop(&mut self, p: RefId, prop: &str) -> Arg {
+    pub(crate) fn reference_prop(&mut self, p: RefId, prop: &'static str) -> Arg {
         Arg::Ref(self.with_prop(p, prop), Sel::Whole)
     }
 

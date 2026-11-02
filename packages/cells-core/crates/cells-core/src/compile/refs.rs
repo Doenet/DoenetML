@@ -6,10 +6,10 @@ use super::*;
 
 impl<'a> Compiler<'a> {
     /// A copy of plan `p` naming `prop` instead of its own (`$l` -> `$l.x2`).
-    pub(in crate::compile) fn plan_with_prop(&mut self, p: RefId, prop: &str) -> RefId {
+    pub(in crate::compile) fn plan_with_prop(&mut self, p: RefId, prop: &'static str) -> RefId {
         let mut plan = self.compiled.refs[p.index()].clone();
         plan.prop = Some(prop.to_string());
-        plan.display = format!("{}.{prop}", plan.display);
+        plan.display = RefDisplay::Prop(Box::new(plan.display), prop);
         self.compiled.refs.push(plan);
         RefId::from_index(self.compiled.refs.len() - 1)
     }
@@ -186,8 +186,8 @@ impl<'a> Compiler<'a> {
             return Ok(p);
         }
         let d = self.dast;
-        let g = crate::trace::tally("display");
-        let display = d.macro_display(m);
+        let g = crate::trace::tally("parts");
+        let display = Written(d, m);
         let names = d.macro_path(m);
         let parts: Vec<_> = d.macro_parts(m).collect();
         drop(g);
@@ -251,7 +251,7 @@ impl<'a> Compiler<'a> {
                             terms: vec![IndexTerm::Const(1)],
                         }));
                     }
-                    let (step, tpl, x) = self.iface_step(cid, name, &display)?;
+                    let (step, tpl, x) = self.iface_step(cid, name, display)?;
                     steps.push(step);
                     cur_t = tpl;
                     at = At::Elem(x);
@@ -268,7 +268,7 @@ impl<'a> Compiler<'a> {
                     At::Iteration | At::SelectPick(_) => {
                         let e = self
                             .child_named(cur_t, ROOT_SCOPE, names[i])?
-                            .ok_or_else(|| Error::UnknownName(display.clone()))?;
+                            .ok_or_else(|| Error::UnknownName(display.to_string()))?;
                         steps.push(Step::Elem(e));
                         at = At::Elem(e);
                     }
@@ -306,17 +306,17 @@ impl<'a> Compiler<'a> {
                             let items = items.unwrap_or(&[]);
                             let idx: Vec<i64> = d
                                 .part_indices(part)
-                                .map(|expr| self.literal_index(expr, &display))
+                                .map(|expr| self.literal_index(expr, display))
                                 .collect::<Result<_>>()?;
                             let (Some(&k), rest) = (idx.first(), &idx[1.min(idx.len())..]) else {
                                 if i + 1 != parts.len() {
-                                    return Err(Error::PathTooDeep(display));
+                                    return Err(Error::PathTooDeep(display.to_string()));
                                 }
                                 prop = Some(name.to_string());
                                 break;
                             };
                             if k < 1 || (list.is_none() && k as usize > items.len()) {
-                                return Err(Error::BadIndex(display));
+                                return Err(Error::BadIndex(display.to_string()));
                             }
                             let coord_name = |j: usize| match list {
                                 Some(coords) => format!("{}{k}", coords[j]),
@@ -328,22 +328,22 @@ impl<'a> Compiler<'a> {
                                     Some(match d.strings.get(names[i + 1]).trim() {
                                         "x" | "1" => 1,
                                         "y" | "2" => 2,
-                                        _ => return Err(Error::PathTooDeep(display)),
+                                        _ => return Err(Error::PathTooDeep(display.to_string())),
                                     })
                                 }
                                 (None, None) => None,
-                                _ => return Err(Error::PathTooDeep(display)),
+                                _ => return Err(Error::PathTooDeep(display.to_string())),
                             };
                             prop = Some(match (coord, list) {
                                 (Some(1), _) => coord_name(0),
                                 (Some(2), _) => coord_name(1),
-                                (Some(_), _) => return Err(Error::BadIndex(display)),
+                                (Some(_), _) => return Err(Error::BadIndex(display.to_string())),
                                 (None, Some(_)) => {
                                     format!("{}{k}", component_type.list().expect("a list").item)
                                 }
                                 (None, None) => component_type
                                     .table_list_item(name, k as usize)
-                                    .ok_or_else(|| Error::PathTooDeep(display.clone()))?,
+                                    .ok_or_else(|| Error::PathTooDeep(display.to_string()))?,
                             });
                             break;
                         }
@@ -363,33 +363,33 @@ impl<'a> Compiler<'a> {
                         if let (Some(parts_of), Some(expr)) =
                             (point_parts.as_ref(), d.part_indices(part).next())
                         {
-                            let k = self.literal_index(expr, &display)?;
+                            let k = self.literal_index(expr, display)?;
                             if !(1..=2).contains(&k)
                                 || d.part_indices(part).nth(1).is_some()
                                 || i + 1 != parts.len()
                             {
-                                return Err(Error::PathTooDeep(display));
+                                return Err(Error::PathTooDeep(display.to_string()));
                             }
                             prop = Some(parts_of[k as usize - 1].clone());
                             break;
                         }
                         if d.part_indices(part).next().is_some() {
-                            return Err(Error::PathTooDeep(display));
+                            return Err(Error::PathTooDeep(display.to_string()));
                         }
                         // A prop name, or a coordinate of a point-valued prop
                         // (`$c.center.y`), which must end the path.
                         if i + 1 != parts.len() {
                             let parts_of = point_parts
                                 .as_ref()
-                                .ok_or_else(|| Error::PathTooDeep(display.clone()))?;
+                                .ok_or_else(|| Error::PathTooDeep(display.to_string()))?;
                             let coord = d.strings.get(names[i + 1]).trim();
                             let j = match coord {
                                 "x" | "1" => 0,
                                 "y" | "2" => 1,
-                                _ => return Err(Error::PathTooDeep(display)),
+                                _ => return Err(Error::PathTooDeep(display.to_string())),
                             };
                             if i + 2 != parts.len() {
-                                return Err(Error::PathTooDeep(display));
+                                return Err(Error::PathTooDeep(display.to_string()));
                             }
                             prop = Some(parts_of[j].clone());
                             break;
@@ -415,47 +415,47 @@ impl<'a> Compiler<'a> {
                             "'${display}' reaches into a select's option by position; name the content and use $s[k].name"
                         )));
                     }
-                    return Err(Error::NotIndexable(display));
+                    return Err(Error::NotIndexable(display.to_string()));
                 };
                 // `$p[2]`: a coordinate of a point (a `<math>` may be one).
                 let ek = self.outlined_elem(cur_t, e)?.component_type;
                 if let Some(parts_of) = ek.default_prop().and_then(|dp| ek.combined_prop(dp)) {
                     if prop.is_some() || i + 1 != parts.len() {
-                        return Err(Error::PathTooDeep(display));
+                        return Err(Error::PathTooDeep(display.to_string()));
                     }
-                    let k = self.literal_index(expr, &display)?;
+                    let k = self.literal_index(expr, display)?;
                     if !(1..=parts_of.len() as i64).contains(&k) {
-                        return Err(Error::BadIndex(display));
+                        return Err(Error::BadIndex(display.to_string()));
                     }
                     prop = Some(parts_of[k as usize - 1].to_string());
                     continue;
                 }
                 match self.compiled.templates[cur_t.index()].elems[e.index()].body {
                     Body::Repeat { template } => {
-                        let ip = self.plan_index(t, expr, &display)?;
+                        let ip = self.plan_index(t, expr, display)?;
                         steps.push(Step::Index(ip));
                         cur_t = template;
                         at = At::Iteration;
                     }
                     // A collect's or point list's item: still that component.
                     Body::Collect { .. } => {
-                        let ip = self.plan_index(t, expr, &display)?;
+                        let ip = self.plan_index(t, expr, display)?;
                         steps.push(Step::Index(ip));
                     }
                     Body::Choice(cid)
                         if !self.compiled.choices[cid.index()].reactive && !after_iface =>
                     {
-                        let ip = self.plan_index(t, expr, &display)?;
+                        let ip = self.plan_index(t, expr, display)?;
                         steps.push(Step::Index(ip));
                         at = At::SelectPick(cid);
                     }
                     _ if self.compiled.templates[cur_t.index()].elems[e.index()].component_type
                         == ComponentType::PointList =>
                     {
-                        let ip = self.plan_index(t, expr, &display)?;
+                        let ip = self.plan_index(t, expr, display)?;
                         steps.push(Step::Index(ip));
                     }
-                    _ => return Err(Error::NotIndexable(display)),
+                    _ => return Err(Error::NotIndexable(display.to_string())),
                 }
             }
         }
@@ -480,7 +480,7 @@ impl<'a> Compiler<'a> {
             hops,
             steps,
             prop,
-            display,
+            display: RefDisplay::Written,
             node: m,
         });
         Ok(RefId::from_index(self.compiled.refs.len() - 1))
@@ -488,7 +488,11 @@ impl<'a> Compiler<'a> {
 
     /// A literal integer index (list props are static, so `[$n]` is not
     /// supported on them).
-    pub(in crate::compile) fn literal_index(&self, expr: &[NodeId], display: &str) -> Result<i64> {
+    pub(in crate::compile) fn literal_index(
+        &self,
+        expr: &[NodeId],
+        display: impl std::fmt::Display,
+    ) -> Result<i64> {
         let d = self.dast;
         let mut text = String::new();
         for &n in expr {
@@ -508,7 +512,7 @@ impl<'a> Compiler<'a> {
         &self,
         t: TemplateId,
         expr: &[NodeId],
-        display: &str,
+        display: impl std::fmt::Display + Copy,
     ) -> Result<IndexPlan> {
         let d = self.dast;
         let mut terms = Vec::new();
@@ -559,4 +563,18 @@ enum At {
     Iteration,
     /// Right after `$s[k]` on a select: the next name is an interface name.
     SelectPick(ChoiceId),
+}
+
+/// A reference as written (`Dast::macro_display`), spelled only when an
+/// error formats it: planning a reference builds no string.
+#[derive(Clone, Copy)]
+pub(in crate::compile) struct Written<'d>(
+    pub(in crate::compile) &'d Dast,
+    pub(in crate::compile) NodeId,
+);
+
+impl std::fmt::Display for Written<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0.macro_display(self.1))
+    }
 }

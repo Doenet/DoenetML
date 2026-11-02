@@ -206,7 +206,7 @@ fn constrain(
             let target = ctx.reference_type(p)?.ok_or_else(|| {
                 Error::Unsupported("<constrainTo> must name a component in the same scope".into())
             })?;
-            let mut refs = |wiring: &mut ElemWiring, props: &[&str]| -> Vec<usize> {
+            let mut refs = |wiring: &mut ElemWiring, props: &[&'static str]| -> Vec<usize> {
                 props
                     .iter()
                     .map(|pr| wiring.hidden(Source::reference(ctx.with_prop(p, pr))))

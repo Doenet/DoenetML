@@ -493,11 +493,48 @@ pub(crate) struct RefPlan {
     pub(crate) steps: Vec<Step>,
     /// The prop named by the final part, if any.
     pub(crate) prop: Option<String>,
-    /// For error messages.
-    pub(crate) display: String,
+    /// How the plan is shown in an error (`Compiled::display_of`).
+    pub(crate) display: RefDisplay,
     /// The macro node the plan came from, or NONE for a plan the build
     /// made itself; what an error in resolving it is reported on.
     pub(crate) node: NodeId,
+}
+
+/// How a reference plan is shown in an error, spelled only then
+/// (`Compiled::display_of`): planning a reference builds no string.
+#[derive(Debug, Clone)]
+pub(crate) enum RefDisplay {
+    /// The plan's macro node (`RefPlan::node`) as written.
+    Written,
+    /// Another display, then `.prop`: a plan of another's prop.
+    Prop(Box<RefDisplay>, &'static str),
+    /// `(copy of c)`: a container copy's clone of element `c` of template `t`.
+    CopyOf(TemplateId, ElemId),
+    /// Spelled by the compile, for a plan it made itself.
+    Spelled(Box<str>),
+}
+
+impl Compiled {
+    /// How plan `p` is shown in an error.
+    pub(crate) fn ref_display(&self, p: RefId) -> String {
+        self.display_of(&self.refs[p.index()])
+    }
+
+    /// How `plan` is shown in an error.
+    pub(crate) fn display_of(&self, plan: &RefPlan) -> String {
+        self.spell_display(&plan.display, plan.node)
+    }
+
+    fn spell_display(&self, display: &RefDisplay, node: NodeId) -> String {
+        match display {
+            RefDisplay::Written => self.dast.macro_display(node).to_string(),
+            RefDisplay::Prop(base, prop) => format!("{}.{prop}", self.spell_display(base, node)),
+            RefDisplay::CopyOf(t, e) => {
+                format!("(copy of {})", elem_label(&self.dast, self, *t, *e))
+            }
+            RefDisplay::Spelled(text) => text.to_string(),
+        }
+    }
 }
 
 /// An element's own slot as `Arg::Own` stores it.

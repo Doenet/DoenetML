@@ -15,7 +15,6 @@ impl<'a> Compiler<'a> {
         p: RefId,
     ) -> Result<()> {
         let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
-        let display = self.compiled.refs[p.index()].display.clone();
         let props = match component_type {
             ComponentType::Point => prop::point::props_of(Source::coord(p, 0), Source::coord(p, 1)),
             // A mathInput bound to a cell is a numeric input: no expression
@@ -41,7 +40,7 @@ impl<'a> Compiler<'a> {
                     Body::PointList { from: p };
                 Vec::new()
             }
-            _ => return Err(Error::PathTooDeep(display)),
+            _ => return Err(Error::PathTooDeep(self.compiled.ref_display(p))),
         };
         self.compiled.templates[t.index()].elems[e.index()].props = props;
         Ok(())
@@ -165,12 +164,11 @@ impl<'a> Compiler<'a> {
                         scope,
                         root,
                     )?;
-                    let label = format!("(copy of {})", self.elem_label(t, c));
                     self.compiled.refs.push(RefPlan {
                         hops: 0,
                         steps: vec![Step::Elem(c)],
                         prop: None,
-                        display: label,
+                        display: RefDisplay::CopyOf(t, c),
                         node: NodeId::NONE,
                     });
                     let ep = self.compiled.refs.len() - 1;
@@ -246,7 +244,7 @@ impl<'a> Compiler<'a> {
             // alone would give it defaults in silence.
             return Err(Error::Unsupported(format!(
                 "attributes or children on an extend of '${}', which is not an element of this scope; a bare extend of it works",
-                self.compiled.refs[p.index()].display
+                self.compiled.ref_display(p)
             )));
         }
         let wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;

@@ -127,16 +127,15 @@ impl<'c> Builder<'c> {
 
     /// The slot a `$ref` inside math names: one cell, and not a string id.
     fn math_ref(&mut self, plan: RefId, scope: ScopeId) -> Result<SlotId> {
-        let display = &self.compiled.refs[plan.index()].display;
         let slot = self.resolve_one(plan, scope).map_err(|e| match e {
             Error::ArityMismatch { .. } => Error::BadMath {
-                text: display.clone(),
+                text: self.compiled.ref_display(plan),
                 reason: "a reference inside math must name one cell".into(),
             },
             other => other,
         })?;
         if self.value_type(slot) == ValueType::Text {
-            let display = &self.compiled.refs[plan.index()].display;
+            let display = self.compiled.ref_display(plan);
             return Err(Error::Unsupported(format!(
                 "a text value (${display}) inside math"
             )));

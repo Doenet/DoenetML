@@ -70,7 +70,7 @@ impl<'a> Compiler<'a> {
                         Step::Elem(ElemId::new(0)),
                     ],
                     prop: Some(tuple_prop(crate::components::prop::tuple::X1 + j).to_string()),
-                    display: format!("(previous iterate).{}", vars[j]),
+                    display: RefDisplay::Spelled(format!("(previous iterate).{}", vars[j]).into()),
                     node: NodeId::NONE,
                 });
                 RefId::from_index(self.compiled.refs.len() - 1)
@@ -289,7 +289,9 @@ impl<'a> Compiler<'a> {
                         hops: base.hops + 1,
                         steps: steps.clone(),
                         prop: Some(prop.to_string()),
-                        display: format!("({}[i]).{prop}", base.display),
+                        display: RefDisplay::Spelled(
+                            format!("({}[i]).{prop}", self.compiled.display_of(&base)).into(),
+                        ),
                         node: NodeId::NONE,
                     });
                     Source::reference(RefId::from_index(self.compiled.refs.len() - 1))
