@@ -68,7 +68,7 @@ The audit of every warning call site is #2422.
 
 **A value-driven diagnostic tracks the value.** It follows from DIAG-1 and DIAG-2: an info
 explains why nothing shows now, so it appears when the condition starts and goes away when it
-ends. Today diagnostics are append-only (B33).
+ends. Today diagnostics are append-only (B33, #2442).
 
 Decided in D35.
 
@@ -87,7 +87,7 @@ Decided in D35.
 **Known violations:**
 - a function reference with an index quotes only up to the index, `$$f[2]`, not `$$f[2](2)`
   (#2434);
-- a math that indexes itself gives an internal error (B29);
+- a math that indexes itself gives an internal error (B29, #2439);
 - `<p name="p" copy="$p"/>` reports an internal `<_copy>` (NAME-7).
 
 ### DIAG-4: a diagnostic is located where the author wrote the cause (Tier 2)
@@ -111,4 +111,4 @@ A reload restores what the reader saw (SAVE-1), and that includes the diagnostic
 **Known violations:**
 - an index past the end of a repeat that shrank adds a diagnostic only after a reload (#1499).
   Under DIAG-2 it is an info, reported the same way before and after;
-- infos that piled up before a reload are not reproduced after it (B33).
+- infos that piled up before a reload are not reproduced after it (B33, #2442).
