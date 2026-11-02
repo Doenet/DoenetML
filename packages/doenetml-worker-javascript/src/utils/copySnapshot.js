@@ -16,7 +16,9 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
  * reloaded, as they are restored. So that it keeps what it showed, a save
  * holds its snapshot when a copy made then would not show the same
  * (`snapshotStillMade`, `StatePersistence.recordCopySnapshots`), and a copy
- * made again on load takes the saved one (`applyCopySnapshot`).
+ * made again on load takes the saved one (`applyCopySnapshot`). The save
+ * also holds what decided what the copy made, which a copy made again on
+ * load decides as it was decided before (`heldCopySnapshot`).
  */
 export function copySnapshotOf(serializedComponents) {
     const snapshot = [];
@@ -89,9 +91,11 @@ export function copySnapshotOf(serializedComponents) {
  * (an entry without one, from before it was held, applies to none), and
  * none applies within a replacement whose `stateId` has an entry only of
  * another type: that replacement and what it contains were made from other
- * DoenetML. A copy made again with a different shape is thus made from its
- * source as restored, and keeps nothing it cannot apply: the copy then
- * holds only the snapshot of what it made.
+ * DoenetML. A copy made again with a different shape (of a composite other
+ * than a `<conditionalContent>`, or from a save that held the snapshot
+ * alone, `heldCopySnapshot`) is thus made from its source as restored, and
+ * keeps nothing it cannot apply: the copy then holds only the snapshot of
+ * what it made.
  */
 export function applyCopySnapshot(serializedComponents, snapshot) {
     const byStateId = new Map(snapshot.map((entry) => [entry.stateId, entry]));

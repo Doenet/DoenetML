@@ -1498,9 +1498,9 @@ export default class Copy extends CompositeComponent {
      * (`heldCopySnapshot`), and a copy made again is made as it was: from
      * the case it was made from (`heldCaseSource`), and shown, or not, as it
      * was when written as a different tag (`heldTypeChange`). A copy made
-     * again with a different shape otherwise is made from its source as
-     * restored, and keeps nothing it cannot apply: it records only its own
-     * snapshot.
+     * again with a different shape all the same (from a save that held the
+     * snapshot alone) is made from its source as restored, and keeps nothing
+     * it cannot apply: it records only its own snapshot.
      */
     static async createSerializedReplacements(args) {
         const { component } = args;
@@ -1720,7 +1720,8 @@ export default class Copy extends CompositeComponent {
         let numNonStringReplacementsSoFar = 0;
 
         // A copy of a `<conditionalContent>` is made from the case it was
-        // made from before, when a save held it (`heldCaseSource`).
+        // made from before, when a save held it or it was kept while the
+        // copy was deleted (`heldCaseSource`).
         const caseSource = await caseSourceOf({ component, components });
         let heldCase;
         if (caseSource) {

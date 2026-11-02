@@ -405,8 +405,9 @@ describe("An unlinked copy through a reload @group4", () => {
         // A save that holds a snapshot alone, as those made before #2441
         // do, makes a copy of a `<conditionalContent>` again from the case
         // active on load: its components take nothing held of the other
-        // case's, though they have the same ids: the textInput does not
-        // take the mathInput's value, and the div's mathInput not the p's.
+        // case's, whose ids name that case (`case0|`, not `case1|`): the
+        // textInput does not take the mathInput's value, and the div's
+        // mathInput not the p's.
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc">
