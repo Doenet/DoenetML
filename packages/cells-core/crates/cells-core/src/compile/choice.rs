@@ -134,7 +134,7 @@ impl<'a> Compiler<'a> {
                 parent: Some((t, e)),
                 ..Default::default()
             });
-            let kids = self.add_children(sub, None, ROOT_SCOPE, nodes)?;
+            let kids = self.add_children(sub, None, ROOT_SCOPE, nodes);
             self.compiled.templates[sub.index()].children = kids;
             templates.push(sub);
         }

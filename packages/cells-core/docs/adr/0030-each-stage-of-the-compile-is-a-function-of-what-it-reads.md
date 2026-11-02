@@ -1,6 +1,6 @@
 # Each stage of the compile is a function of what it reads
 
-Status: proposed 2026-11-02. Step 1 is done; see Migration. Amends ADR
+Status: proposed 2026-11-02. Steps 1 and 2 are done; see Migration. Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -108,9 +108,14 @@ seal(&mut Planned, &Outline)       -> Sealed        (as now)
   references gets it mutably, and no stage edits a reference already in
   it.
 
-**Boxing has one path.** A stage records a failure as one of two values:
-boxed here, or box this node and compile again. No later failure's
-handling depends on an earlier one. Only `plan_and_check` compiles again.
+**Boxing has one path.** Every failure while outlining, planning or
+linking is boxed where it arises (`box_in_place`), and the stage goes
+on. A failure this compile cannot keep (a copy cloned what is under the
+element, or the element has no node) is boxed all the same, so the
+stage runs over a consistent compile, and is also recorded as the
+compile's restart; the compile ends with it at the next stage boundary.
+No failure's handling depends on an earlier one. Only `plan_and_check`
+compiles again.
 
 **The unread-attribute check is the end of planning**, as ADR 0027
 states: planning boxes what it finds in place, like any planner's
@@ -163,6 +168,16 @@ otherwise.
 2. **One boxing path.** Replace `failed_node` and the four guards with a
    failure value that says whether it was boxed in place or needs a new
    compile; `plan_and_check` is the only caller that compiles again.
+   Done: `box_in_place` always boxes, and records a failure it cannot
+   keep as `Compiler::restart` (the first, when there are several),
+   which `compile_all` checks between stages. `fail_at` and the guards
+   are gone; `add_elem`, `add_children`, `plan_elem`, `plan_all` and
+   `outline` cannot fail, and `expand_container_copy` fails only on a
+   cycle, its reader's failure. The first recorded failure is the one
+   that used to pass through, so diagnostics are unchanged:
+   `tests/diagnostics.rs` checks a failure under a cloned subtree, while
+   outlining and while planning, against the same errors and number of
+   plans as before.
 3. **Unread attributes at the end of planning.** Run the check over the
    plan stage's read flags and box in place what it finds. Tests: a
    document with an unread attribute plans once; `tests/diagnostics.rs`

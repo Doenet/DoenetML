@@ -477,3 +477,43 @@ fn an_extend_of_an_element_boxed_while_planning_is_boxed_in_any_order() {
         assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()), "{src}");
     }
 }
+
+/// An element that fails after a container copy cloned what is under it
+/// cannot be boxed in place, since the clones took its children's types:
+/// the compile ends, and compiles once more with it boxed from the start.
+/// The failures after it are boxed as any are, not passed through (ADR
+/// 0030), and both compiles find the same independent error.
+#[test]
+fn a_failure_under_a_cloned_subtree_compiles_once_more() {
+    for (src, plans_wanted) in [
+        // Fails while planning.
+        (
+            r#"<graph name="C" extend="$X"/><graph name="A" xmin="$nope"><graph name="X"><point name="p" x="1"/></graph></graph><number name="k">$nope2</number>"#,
+            2,
+        ),
+        // Fails while outlining, as a container copy; the unread attribute
+        // takes a plan of its own.
+        (
+            r#"<graph name="C" extend="$X"/><graph name="A" extend="$nope"><graph name="X"><point name="p" x="1"/></graph></graph><number name="n" bogus="1">2</number><number name="k">$nope2</number>"#,
+            3,
+        ),
+    ] {
+        let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
+        cells_core::trace::start();
+        let list = diagnose(&dast);
+        let plans = cells_core::trace::finish()
+            .iter()
+            .filter(|s| s.name == "plan")
+            .count();
+        let messages: Vec<_> = errors(&list).iter().map(|d| d.message.clone()).collect();
+        assert!(messages[0].contains("'$X'"), "{messages:?}");
+        assert!(messages[1].contains("'$nope'"), "{messages:?}");
+        assert!(
+            messages.last().unwrap().contains("'$nope2'"),
+            "{messages:?}"
+        );
+        assert_eq!(plans, plans_wanted, "{src}");
+        let doc = load(src).unwrap();
+        assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()), "{src}");
+    }
+}

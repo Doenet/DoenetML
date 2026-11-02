@@ -43,14 +43,17 @@
 //! `fix.rs` `fixed`, `answer.rs` answers and `iterates.rs` repeats over
 //! lists. What compile produces is in `plan.rs`.
 //!
-//! An element that fails is boxed (ADR 0013, ADR 0027) by one of:
-//! `push_error_elem` while outlining (a node boxed by an earlier compile,
-//! an element that fails before it is pushed) or planning (a `$ref` child
-//! that cannot be planned); `box_in_place` while outlining, planning or linking;
-//! `fail_at`, when `box_in_place` cannot, and sealing's, the
-//! unread-attribute check's and the abstract build's failures, each of
-//! which compiles again with the node boxed from the start. Once
-//! `failed_node` is set, every later failure passes through unboxed.
+//! An element that fails is boxed (ADR 0013, ADR 0027, ADR 0030): by
+//! `box_in_place`, while outlining, planning or linking, or by
+//! `push_error_elem` where no element was made for it yet (a node boxed by
+//! an earlier compile, an element that fails before it is pushed, a `$ref`
+//! child that cannot be planned). A failure `box_in_place` cannot keep in
+//! this compile (a container copy cloned what is under the element) is
+//! recorded as `restart`, and ends the compile at the next stage
+//! boundary; so do sealing's failures. `plan_and_check` boxes the node of
+//! such a failure, and of an unread attribute or an abstract build
+//! failure, from the start of a new compile. No failure's handling
+//! depends on what failed before it.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
@@ -153,12 +156,12 @@ pub(in crate::compile) struct Compiler<'a> {
     /// ADR 0027). The compile's input, from `plan_and_check`. R: outline
     /// (`add_elem`, `add_children`).
     pub(in crate::compile) boxed: &'a HashSet<NodeId>,
-    /// The node of the element to box before compiling again, set when a
-    /// failure cannot be boxed in place (`box_in_place`); every failure
-    /// after it passes through to the end of the compile. W: outline, plan,
-    /// link (`fail_at`), seal. R: every stage's boxing, and `compile`,
-    /// which returns it.
-    pub(in crate::compile) failed_node: Option<NodeId>,
+    /// The first failure that could not be boxed where it arose
+    /// (`box_in_place`): its element is boxed all the same and the stage
+    /// goes on, and the compile ends with it once the stage is done, its
+    /// node to be boxed before compiling again. W: outline, plan, link
+    /// (`box_in_place`). R: `compile_all`, between stages.
+    restart: Option<Failure>,
     /// Elements boxed where they failed, with their errors (ADR 0027).
     /// W: outline, plan, link (`box_in_place`, `push_error_elem`).
     /// R: `compile`, which returns them.
@@ -328,7 +331,7 @@ impl<'a> Compiler<'a> {
             ref_subst: HashMap::new(),
             string_ids: None,
             boxed,
-            failed_node: None,
+            restart: None,
             errors: Vec::new(),
             boxed_here: HashSet::new(),
             cloned_sources: HashSet::new(),
@@ -357,10 +360,7 @@ impl<'a> Compiler<'a> {
                     boxed: cp.boxed_here,
                 })
             }
-            Err(error) => Err(Failure {
-                error,
-                node: cp.failed_node,
-            }),
+            Err(f) => Err(f),
         }
     }
 
@@ -380,20 +380,31 @@ impl<'a> Compiler<'a> {
         Warned::raised()
     }
 
-    /// The compile's stages, in order (ADR 0027, ADR 0029).
-    fn compile_all(&mut self) -> Result<()> {
-        crate::trace::span("outline").run(|| self.outline())?;
+    /// The compile's stages, in order (ADR 0027, ADR 0029). A stage boxes
+    /// every failure where it arises and goes on; one that could not be
+    /// boxed there (`box_in_place`) ends the compile once its stage is
+    /// done, for `plan_and_check` to box its node and compile again.
+    fn compile_all(&mut self) -> std::result::Result<(), Failure> {
+        crate::trace::span("outline").run(|| self.outline());
+        self.restart_if_needed()?;
         crate::trace::span("parse maths").run(|| self.parse_maths());
-        crate::trace::span("plan all").run(|| self.plan_all())?;
+        crate::trace::span("plan all").run(|| self.plan_all());
+        self.restart_if_needed()?;
         crate::trace::span("link").run(|| self.link())?;
+        self.restart_if_needed()?;
         crate::trace::span("seal").run(|| self.seal())
+    }
+
+    /// The failure to compile again from, when a stage recorded one.
+    fn restart_if_needed(&mut self) -> std::result::Result<(), Failure> {
+        self.restart.take().map_or(Ok(()), Err)
     }
 
     /// Outlining: every element, template and name, and what a reference
     /// reads of each that its own source settles (`settle_outline`); once
     /// every name is in the table, container copies get their clones,
     /// which completes the element set. Nothing is planned.
-    fn outline(&mut self) -> Result<()> {
+    fn outline(&mut self) {
         let dast = self.dast;
         // Template 0 is the document: its one child is the root component.
         let doc_el = dast
@@ -406,7 +417,7 @@ impl<'a> Compiler<'a> {
                 TemplateId::new(0),
                 el,
                 ROOT_SCOPE,
-            )?)],
+            ))],
             None => {
                 // Synthesize a root when the DAST was not normalized.
                 let e =
@@ -421,7 +432,7 @@ impl<'a> Compiler<'a> {
                     Some(e),
                     ROOT_SCOPE,
                     dast.children(Dast::ROOT),
-                )?;
+                );
                 self.compiled.templates[0].elems[e.index()].children = kids;
                 vec![Child::Elem(e)]
             }
@@ -435,13 +446,13 @@ impl<'a> Compiler<'a> {
     /// Planning: every element and every `$ref` child, each from the
     /// source and what outlining and parsing made alone, never from
     /// another element's plan (ADR 0029). What fails is boxed in place.
-    fn plan_all(&mut self) -> Result<()> {
+    fn plan_all(&mut self) {
         let dast = self.dast;
         {
             let _s = crate::trace::span("elements");
             crate::trace::count("elements", self.pending_elems.len());
             for (t, e) in std::mem::take(&mut self.pending_elems) {
-                self.plan_elem(t, e)?;
+                self.plan_elem(t, e);
             }
         }
         let _s = crate::trace::span("refs");
@@ -463,7 +474,6 @@ impl<'a> Compiler<'a> {
             };
             let child = match self.plan_ref(t, scope, m) {
                 Ok(plan) => Child::Macro(plan, dast.macro_has_index(m)),
-                Err(e) if self.failed_node.is_some() => return Err(e),
                 // A reference that cannot be planned is boxed where it
                 // stands (ADR 0027).
                 Err(error) => {
@@ -477,40 +487,30 @@ impl<'a> Compiler<'a> {
                 None => self.compiled.templates[t.index()].children[i] = child,
             }
         }
-        Ok(())
     }
 
     /// Linking: what planning left for once every element is planned. A
     /// reader of a boxed referent is boxed (`box_readers_of_boxes`), then
     /// shared state is tied between the elements left
     /// (`link_shared_state`).
-    fn link(&mut self) -> Result<()> {
-        crate::trace::span("box readers").run(|| self.box_readers_of_boxes())?;
+    fn link(&mut self) -> std::result::Result<(), Failure> {
+        crate::trace::span("box readers")
+            .run(|| self.box_readers_of_boxes())
+            .map_err(|error| Failure { error, node: None })?;
         crate::trace::span("shared state").run(|| self.link_shared_state());
         Ok(())
     }
 
     /// Sealing (`seal.rs`): what reads every plan, the source and the name
     /// table, and changes no plan; what fails is boxed by compiling again.
-    fn seal(&mut self) -> Result<()> {
-        let sealed = seal::Seal {
+    fn seal(&mut self) -> std::result::Result<(), Failure> {
+        seal::Seal {
             compiled: &mut self.compiled,
             dast: self.dast,
             names: &self.names,
             shared_state: &self.shared_state,
         }
-        .run();
-        sealed.map_err(|f| {
-            self.failed_node = f.node;
-            f.error
-        })
-    }
-
-    /// Record `node` as the element to box before compiling again.
-    pub(in crate::compile) fn fail_at(&mut self, node: NodeId) {
-        if node != NodeId::NONE {
-            self.failed_node.get_or_insert(node);
-        }
+        .run()
     }
 
     /// Whether element `e` is a box: boxed when outlining, boxed in place, or
@@ -523,30 +523,35 @@ impl<'a> Compiler<'a> {
     /// element keeping its name, everything under it (its children, the
     /// templates of its repeats and choices) is dead, and the compile goes
     /// on. No plan reads another's (ADR 0029), so whatever was planned
-    /// under it is dropped unread. But a container copy that cloned what
-    /// is under it took its type, and an element with no node has nowhere
-    /// to carry the error: then it cannot be boxed here, and the error
-    /// passes on, `e`'s node to be boxed before compiling again.
-    fn box_in_place(&mut self, t: TemplateId, e: ElemId, error: Error) -> Result<()> {
+    /// under it is dropped unread.
+    ///
+    /// But a container copy that cloned what is under it took its type,
+    /// and an element with no node has nowhere to carry the error: then
+    /// this compile cannot stand. `e` is boxed all the same, so the stage
+    /// runs on over a consistent compile, and the failure is recorded
+    /// (the first, when there are several) for `compile_all` to end the
+    /// compile with once the stage is done: `e`'s node is boxed before
+    /// compiling again, and with no node the load fails. Every failure is
+    /// handled here the same way whatever failed before it.
+    fn box_in_place(&mut self, t: TemplateId, e: ElemId, error: Error) {
         let node = self.compiled.templates[t.index()].elems[e.index()].node;
-        if node == NodeId::NONE {
-            return Err(error);
-        }
         let doomed = self.subtree(t, e);
         let cloned = doomed
             .iter()
             .any(|&(dt, de)| self.cloned_sources.contains(&(dt.get(), de.get())));
-        if cloned {
-            self.fail_at(node);
-            return Err(error);
+        if node == NodeId::NONE || cloned {
+            self.restart.get_or_insert(Failure {
+                error,
+                node: (node != NodeId::NONE).then_some(node),
+            });
+        } else {
+            self.errors.push(Diagnostic::error(Some(node), &error));
+            self.boxed_here.insert(node);
         }
-        self.errors.push(Diagnostic::error(Some(node), &error));
-        self.boxed_here.insert(node);
         for (dt, de) in doomed {
             self.make_box(dt, de, (dt, de) != (t, e));
         }
         self.drop_unregistered_name(t, e);
-        Ok(())
     }
 
     /// Element `e` and everything under it: its children, theirs, and
@@ -740,32 +745,32 @@ impl<'a> Compiler<'a> {
     }
 
     /// Create an element (and, for a repeat, its template) from a DAST
-    /// element. A boxed node becomes an `_error` element; a failure
-    /// anywhere under `el` marks the innermost failing element.
+    /// element. A boxed node becomes an `_error` element, and so does one
+    /// that fails: each element boxes its own failure, so a failure under
+    /// `el` boxes the innermost failing element and leaves `el` be.
     pub(in crate::compile) fn add_elem(
         &mut self,
         t: TemplateId,
         el: NodeId,
         name_scope: ElemId,
-    ) -> Result<ElemId> {
+    ) -> ElemId {
         if self.boxed.contains(&el) {
-            return Ok(self.push_error_elem(t, el, name_scope));
+            return self.push_error_elem(t, el, name_scope);
         }
         let n = self.compiled.templates[t.index()].elems.len();
         match self.add_elem_inner(t, el, name_scope) {
-            Ok(e) => Ok(e),
-            Err(error) if self.failed_node.is_some() => Err(error),
+            Ok(e) => e,
             // The element is boxed where it fails (ADR 0027): the one
             // made for it, when it got that far, else a new one.
             Err(error) if self.compiled.templates[t.index()].elems.len() > n => {
                 let e = ElemId::from_index(n);
-                self.box_in_place(t, e, error)?;
-                Ok(e)
+                self.box_in_place(t, e, error);
+                e
             }
             Err(error) => {
                 self.errors.push(Diagnostic::error(Some(el), &error));
                 self.boxed_here.insert(el);
-                Ok(self.push_error_elem(t, el, name_scope))
+                self.push_error_elem(t, el, name_scope)
             }
         }
     }
@@ -850,7 +855,7 @@ impl<'a> Compiler<'a> {
                         }
                         .into_vec();
                 }
-                let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el))?;
+                let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el));
                 self.compiled.templates[sub.index()].children = kids;
                 self.compiled.templates[t.index()].elems[e.index()].body =
                     Body::Repeat { template: sub };
@@ -866,7 +871,7 @@ impl<'a> Compiler<'a> {
                 let mut kids = Vec::new();
                 for &n in d.children(el) {
                     if d.kind(n) == NodeKind::Element {
-                        kids.push(Child::Elem(self.add_elem(t, n, child_scope)?));
+                        kids.push(Child::Elem(self.add_elem(t, n, child_scope)));
                     }
                 }
                 self.compiled.templates[t.index()].elems[e.index()].children = kids;
@@ -890,12 +895,12 @@ impl<'a> Compiler<'a> {
                     .filter(|&n| self.is_presentation_child(n))
                     .collect();
                 if !presentational.is_empty() {
-                    let kids = self.add_children(t, Some(e), child_scope, &presentational)?;
+                    let kids = self.add_children(t, Some(e), child_scope, &presentational);
                     self.compiled.templates[t.index()].elems[e.index()].children = kids;
                 }
             }
             _ => {
-                let kids = self.add_children(t, Some(e), child_scope, d.children(el))?;
+                let kids = self.add_children(t, Some(e), child_scope, d.children(el));
                 self.compiled.templates[t.index()].elems[e.index()].children = kids;
             }
         }
@@ -955,7 +960,7 @@ impl<'a> Compiler<'a> {
         owner: Option<ElemId>,
         name_scope: ElemId,
         nodes: &[NodeId],
-    ) -> Result<Vec<Child>> {
+    ) -> Vec<Child> {
         let d = self.dast;
         let mut kids = Vec::with_capacity(nodes.len());
         for &n in nodes {
@@ -967,7 +972,7 @@ impl<'a> Compiler<'a> {
                     if tag == "_dynamicChildren" || tag == "_repeatSetup" {
                         continue;
                     }
-                    kids.push(Child::Elem(self.add_elem(t, n, name_scope)?));
+                    kids.push(Child::Elem(self.add_elem(t, n, name_scope)));
                 }
                 // Whitespace-only text between lines is layout and would only
                 // become a DOM node; a space between inline items is content
@@ -987,7 +992,7 @@ impl<'a> Compiler<'a> {
                 NodeKind::Other => {}
             }
         }
-        Ok(kids)
+        kids
     }
 
     /// Plans element `e`, and records what holds it (`plan_hold`,
@@ -996,10 +1001,10 @@ impl<'a> Compiler<'a> {
     /// applies it, and none can leave it out. A planner reads the source,
     /// the name table and what outlining made, never another element's plan
     /// (ADR 0029), so elements are planned in any order, each once.
-    pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) {
         // A box, made when outlining or boxed in place, is planned as it is.
         if self.is_box(t, e) {
-            return Ok(());
+            return;
         }
         let planned_as = self.compiled.templates[t.index()].elems[e.index()].planned_as;
         let _s = crate::trace::tally(planned_as.tag());
@@ -1008,11 +1013,9 @@ impl<'a> Compiler<'a> {
             self.compiled.templates[t.index()].elems[e.index()].hold = hold;
             Ok(())
         });
-        match r {
-            Ok(()) => Ok(()),
-            Err(error) if self.failed_node.is_some() => Err(error),
-            // Boxed where it fails; what reads it reads the box.
-            Err(error) => self.box_in_place(t, e, error),
+        // Boxed where it fails; what reads it reads the box.
+        if let Err(error) = r {
+            self.box_in_place(t, e, error);
         }
     }
 
@@ -1111,7 +1114,7 @@ impl<'a> Compiler<'a> {
                 }
                 match self.read_referent(t, p) {
                     Err(error @ Error::BoxedReferent(_)) => {
-                        self.box_in_place(t, e, error)?;
+                        self.box_in_place(t, e, error);
                         boxed_one = true;
                     }
                     Err(error) => return Err(error),

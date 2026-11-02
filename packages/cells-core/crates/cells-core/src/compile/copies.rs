@@ -65,17 +65,22 @@ impl<'a> Compiler<'a> {
     /// clones, now that every name is in the table, so the element set is
     /// complete before anything is planned. A copy of a copy is expanded
     /// after its referent, whatever the document's order.
-    pub(in crate::compile) fn expand_container_copies(&mut self) -> Result<()> {
+    pub(in crate::compile) fn expand_container_copies(&mut self) {
         for (t, e) in std::mem::take(&mut self.container_copies) {
-            self.expand_container_copy(t, e)?;
+            // Nothing is expanding between two copies here, so none is
+            // reached again; were one, it is boxed like any failure.
+            if let Err(error) = self.expand_container_copy(t, e) {
+                self.box_in_place(t, e, error);
+            }
         }
-        Ok(())
     }
 
     /// Give container copy `e` its children: clones of its referent's,
     /// named under the copy, followed by the children written inside the
     /// copy (REF-4 of the principles: added after the referent's). A copy
-    /// that fails is boxed, and the clones it made die with it.
+    /// that fails is boxed, and the clones it made die with it. The one
+    /// error returned is a copy reached again while it expands, a cycle,
+    /// which is its reader's failure.
     pub(in crate::compile) fn expand_container_copy(
         &mut self,
         t: TemplateId,
@@ -92,16 +97,13 @@ impl<'a> Compiler<'a> {
         let r = self.expand_container_copy_inner(t, e);
         self.expanding.remove(&key);
         self.expanded.insert(key);
-        match r {
-            Ok(()) => Ok(()),
-            Err(error) if self.failed_node.is_some() => Err(error),
-            Err(error) => {
-                for x in n..self.compiled.templates[t.index()].elems.len() {
-                    self.make_box(t, ElemId::from_index(x), true);
-                }
-                self.box_in_place(t, e, error)
+        if let Err(error) = r {
+            for x in n..self.compiled.templates[t.index()].elems.len() {
+                self.make_box(t, ElemId::from_index(x), true);
             }
+            self.box_in_place(t, e, error);
         }
+        Ok(())
     }
 
     fn expand_container_copy_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
