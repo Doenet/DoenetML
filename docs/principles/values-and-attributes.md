@@ -166,6 +166,11 @@ How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
 list still gives `＿` (B34, #2438). A property with no value, such as `$c.maxNumber` with no
 limit, shows `NaN` (#2416, D10).
 
+**A property the source doesn't have** (`$n.nonexistent`, `$cc.notThere` where no component of
+the document has that name, `$$f.x(2)`) is a mistake in what the author wrote, so it is warning
+`doenet-w0104` (DIAG-2), and an error on a tag (REF-0, #2447). Decided with D22 (#2434 item 1, #2450).
+**Known violation:** a bare one is silent today (`indexNamesNothing.test.ts` pins the silence).
+
 That table is an accident of which internal form was built. A rewrite should choose one
 representation: "the empty value of the type it presents as, drawn as nothing". See D10.
 Tests that lock the current table:
