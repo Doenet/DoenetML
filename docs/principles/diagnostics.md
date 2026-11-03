@@ -111,6 +111,10 @@ A reference's diagnostic is marked at the reference, also inside an `extend` or 
 attribute (#2410). An extend's error is marked on the extend (#2409). A cycle is marked at the
 components involved, not reported as one message with no location (D14, #2418).
 
+**Known violations:** a reference to a component in error repeats the error where the
+reference is written, quoting the cause: `$m $m` of `<math name="m" extend="$nothing"/>` gives
+three errors, two of them at the `$m`s (B38, #2449).
+
 ### DIAG-5: an error does not stop the rest of the document (Tier 2)
 The component in error shows nothing, or the error in its place. The rest of the document
 renders.
@@ -118,8 +122,10 @@ renders.
 **Known violations:**
 - state-variable cycles throw, and the document fails to load (D14, NAME-7);
 - a loop where no composite can be singled out still stops the document (#2425);
-- `<text extend="$cc"/>` of bare-text cases throws (B23, #2433), and so does `bindValueTo` of a
-  `<subsetOfRealsInput>` (B24, #2429).
+- `bindValueTo` of a `<subsetOfRealsInput>` throws (B24, #2429). `<text extend="$cc"/>` of
+  bare-text cases threw until #2447 (B23);
+- a `<select>` whose options are all written with `copy` fails to load (B39, #2448);
+- a reload throws when a saved value reaches a component of another type (B36, #2446).
 
 ### DIAG-6: the diagnostics are the same after a reload (Tier 2)
 A reload restores what the reader saw (SAVE-1), and that includes the diagnostics.
