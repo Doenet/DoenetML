@@ -33,7 +33,7 @@ async function setUp(doenetML: string) {
         });
     }
     const diagnostics = getDiagnosticsByType(core);
-    return { core, text, toggle, diagnostics };
+    return { core, text, toggle, diagnostics, resolvePathToNodeIdx };
 }
 
 function codes(records: { code?: string }[]) {
@@ -224,6 +224,36 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
     <else><math name="x">3</math></else>
 </conditionalContent>
 <p name="p">[$x][$cc.x]</p>`);
+        expect(await text()).eq("[3][3]");
+        await toggle(true);
+        expect(await text()).eq("[1][1]");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+    });
+
+    it("finds the name again after a branch holding a nested conditionalContent is left", async () => {
+        const { core, text, toggle, diagnostics, resolvePathToNodeIdx } =
+            await setUp(`
+<booleanInput name="b2"/>
+<conditionalContent name="cc">
+    <case condition="$b">
+        <conditionalContent>
+            <case condition="$b2"><math name="x">1</math></case>
+            <else><math name="x">2</math></else>
+        </conditionalContent>
+    </case>
+    <else><math name="x">3</math></else>
+</conditionalContent>
+<p name="p">[$x][$cc.x]</p>`);
+        expect(await text()).eq("[3][3]");
+        await toggle(true);
+        expect(await text()).eq("[2][2]");
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b2"),
+            core,
+        });
+        expect(await text()).eq("[1][1]");
+        await toggle(false);
         expect(await text()).eq("[3][3]");
         await toggle(true);
         expect(await text()).eq("[1][1]");
@@ -434,6 +464,43 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect([...same.diagnostics.warnings, ...same.diagnostics.errors]).eqls(
             [],
         );
+    });
+
+    it("a name after a name is held to the rule through a nested conditionalContent", async () => {
+        // Every branch's `P` is a point, so `x` is its property, though a
+        // component of the document is named `x`
+        const property = await setUp(`
+<math name="x">9</math>
+<conditionalContent name="cc">
+    <case condition="$b"><point name="P">(1,2)</point></case>
+    <else><conditionalContent>
+        <case condition="true"><point name="P">(5,6)</point></case>
+        <else><point name="P">(3,4)</point></else>
+    </conditionalContent></else>
+</conditionalContent>
+<p name="p">[$P.x]</p>`);
+        expect(await property.text()).eq("[5]");
+        await property.toggle(true);
+        expect(await property.text()).eq("[1]");
+        expect([
+            ...property.diagnostics.warnings,
+            ...property.diagnostics.errors,
+        ]).eqls([]);
+
+        // The `h` of each branch of the nested one has no `x`
+        const missing = await setUp(`
+<conditionalContent name="cc">
+    <case condition="$b"><group name="h"><math name="x">1</math></group></case>
+    <else><conditionalContent>
+        <case condition="true"><group name="h"><math name="y">1</math></group></case>
+        <else><group name="h"><math name="y">2</math></group></else>
+    </conditionalContent></else>
+</conditionalContent>
+<p name="p">[$h.x]</p>`);
+        expect(await missing.text()).eq("[]");
+        expect(missing.diagnostics.warnings.map((w) => w.message)).eqls([
+            "`$h.x` names nothing: the `<else>` of `cc` has no `x`. Give it one, or use a name every case has.",
+        ]);
     });
 
     it("a property after a name in the branches is not a name, even one the document has", async () => {

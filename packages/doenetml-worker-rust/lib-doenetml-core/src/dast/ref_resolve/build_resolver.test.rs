@@ -599,3 +599,44 @@ fn names_in_branches_added_to_a_container_are_its_branches_names() {
         Ok((cc_idx, Some(make_path(["x"], None))))
     );
 }
+
+#[test]
+fn a_name_in_branches_of_a_nested_container_is_gone_once_it_is_deleted() {
+    // The active case of `cc` holds a `<conditionalContent>` whose branches declare `x`,
+    // so `x` in `cc` is that container's branches. Once it is deleted, `x` is left for `cc`
+    // again, and another case's `x` is found in its place.
+    let dast_root = dast_root_no_position(
+        r#"<conditionalContent name="cc"><case><conditionalContent><case><m name="x" /></case><else><m name="x" /></else></conditionalContent></case><else><n name="x" /></else></conditionalContent><p />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let cc_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let shift = flat_root.nodes.len();
+    let flat_fragment = flat_fragment_from_str(
+        r#"<g><conditionalContent><case><m name="x" /></case><else><m name="x" /></else></conditionalContent></g>"#,
+        shift,
+        Some(cc_idx),
+    );
+    let inner_idx = shift + 1;
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((inner_idx, Some(make_path(["x"], None))))
+    );
+
+    resolver.delete_nodes(&flat_fragment.nodes);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((cc_idx, Some(make_path(["x"], None))))
+    );
+
+    let shift = shift + flat_fragment.nodes.len();
+    let flat_fragment = flat_fragment_from_str(r#"<g><n name="x" /></g>"#, shift, Some(cc_idx));
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(shift + 1));
+}

@@ -195,6 +195,8 @@ impl Resolver {
     pub fn delete_nodes(&mut self, nodes: &[FlatNode]) {
         self.root_name_cache.invalidate();
 
+        let deleted_idxs: FxHashSet<usize> = nodes.iter().map(|node| node.idx()).collect();
+
         for (name_with_source_doc, node_idx) in nodes
             .iter()
             .filter_map(|node| {
@@ -238,6 +240,13 @@ impl Resolver {
                     }
                     Some(Ref::Unique(_)) => {
                         // The name no longer reaches anything, so it no longer reaches copied content
+                        parent_data.copied_names.remove(&name_with_source_doc);
+                    }
+                    Some(Ref::Branches(container_idx)) if deleted_idxs.contains(&container_idx) => {
+                        // The name was the branches of a container in what the parent holds
+                        // (a `<conditionalContent>` in the active case of another), which is deleted,
+                        // so the name is gone from the parent until it holds another branch,
+                        // as when the one it held is deleted (`Ref::Unique`)
                         parent_data.copied_names.remove(&name_with_source_doc);
                     }
                     Some(branches @ Ref::Branches(_)) => {
