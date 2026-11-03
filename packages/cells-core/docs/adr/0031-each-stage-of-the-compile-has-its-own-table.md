@@ -1,9 +1,9 @@
 # Each stage of the compile has its own table
 
-Status: proposed 2026-11-02. Every step is done; see Migration. Amended
-2026-11-02: the boundaries the tables draw leak in three places (boxing,
-the planner context, code more than one stage runs); see "Where the
-boundaries leak".
+Status: accepted 2026-11-03. Proposed 2026-11-02; every step is done (see
+Migration). Amended 2026-11-02: the boundaries the tables draw leak in
+three places (boxing, the planner context, code more than one stage runs);
+see "Where the boundaries leak".
 
 ADR 0030 made each stage of the compile a function of what it reads, and
 its results values: outlining's `Outline` and `Settled`, parsing's
