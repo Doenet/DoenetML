@@ -255,14 +255,37 @@ Both are Tier 3.
 A known limitation: kept state can go stale after an outside change, for example an answer still
 marked "just submitted" (#2325).
 
-### COMP-11: `$cc.x` names the `x` in whichever case is active (Tier 1 when every case declares `x` with the same type)
-When the cases declare `x` with different types the result is meaningless. With a math `x` in one
-case and a text `x` in the else, `<math>$cc.x+1</math>` becomes `h i + 1` (**[probe]**).
+### COMP-11: a name inside a choice is visible when every branch declares it, with the same type (Tier 1; D13, D22)
+- **A name inside a `<conditionalContent>` is visible outside it**, as a `<group>`'s is. A plain
+  `$x` from outside finds the `x` in the active case, and `$cc.x` still works.
+- **It resolves only if every case declares it, with the same type.**
+  - "Every case" means each `<case>` written, and the `<else>` if there is one. With no
+    `<else>`, `x` in every case is enough: while no case is active, `$x` names nothing.
+  - If a case or the `<else>` has no `x`, or two of them declare `x` with different types, `$x`
+    and `$cc.x` name nothing, with a **warning** at the reference. It is not a deprecation: the
+    reference doesn't work.
+  - So a reference's type, and whether a parent accepts it as a child, never change with the
+    active case.
+- **Two cases declaring `x` don't make it ambiguous**, since only one can be active. An `x`
+  beside the `<conditionalContent>` does (`doenet-w0105`).
+- **On a tag**, `<math extend="$x"/>` is decided by REF-0: a mix of types or a missing `x` is an
+  error, and so is an `x` that can be absent because there's no `<else>`, as for
+  `<math extend="$cc"/>` without one (D36).
+- **A `<select>` with one pick** (`numToSelect` written as `1`, or left out) works the same way,
+  with every option in place of every case. **With several picks**, names stay private, as in a
+  repeat: `$s[2].x`, under the same every-option, same-type rule (D27).
 
-Names inside cases are private today: a plain `$x` from outside finds nothing (**[probe]**).
-Whether they should be is an open decision (D22).
+**Today** (**[probe]** on main at `55db31b`) names inside cases are private:
+- a plain `$x` from outside gives warning `doenet-w0104`;
+- `$cc.x` reaches the `x` in the active case, whatever the other cases hold. With a math `x` in
+  one case and a text `x` in the else, `$cc.x` shows the active one with no diagnostic, and
+  `<math>$cc.x+1</math>` becomes `h i + 1`. The same holds for `$s.x` across options;
+- on a tag, #2447 already gives `doenet-e0066` for different types. An `x` in a case that isn't
+  active gives a blank math with no diagnostic.
 
-ADR 0009 makes the following a rule, and it is easy to state:
+The implementation is #2450.
+
+ADR 0009's rule, accepted as modified above (D13), was:
 
 > A name is visible outside a choice only if every branch declares it, with the same type.
 
@@ -343,7 +366,9 @@ Evidence:
   prefixes in `shuffle`, `sort` and `collect`.
 - **Evaluation order:** `conditionalcontent_case_state.test.ts:188`.
 - **Lazy creation:** `group.test.ts:800`, `solution.test.ts:50`.
-- **Forms that ADR 0009 bans,** if D13 accepts the bans:
+- **Forms that D13 and D22 ban** (names some branch lacks, or of different types), and the
+  tests that assert a plain `$x` from outside finds nothing. #2281's
+  `conditionalContentSelectInterfaceNames.test.ts` rewrites several of them:
   - `conditionalcontent.test.ts:272`, `:416`, `:670`, `:865`, `:1030`, `:1064`, `:1139`, `:1213`,
     `:1306`;
   - `select.test.ts:357`, `:432`, `:2897`.
