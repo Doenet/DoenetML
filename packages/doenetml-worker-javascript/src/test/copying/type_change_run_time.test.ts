@@ -620,6 +620,36 @@ describe("A reference written as a tag of a composite is decided when the docume
         expect(await d.texts(["p1"])).eqls({ p1: "3" });
     });
 
+    it("a tag made from a name in the cases follows the case when one type already is the tag written", async () => {
+        // When the case changes, the `<number>` made from the `x` of the
+        // branch left is deleted with it, and the one made from an
+        // `<integer>` is a `<number>` holding it, not a blank `<number>`
+        // (`NaN`, `verifyReplacementsMatchSpecifiedType`).
+        for (const [caseX, elseX] of [
+            ['<integer name="x">3</integer>', '<number name="x">0.5</number>'],
+            ['<number name="x">0.5</number>', '<integer name="x">3</integer>'],
+        ]) {
+            const d = await setup(`
+<booleanInput name="b"/>
+<conditionalContent name="cc"><case condition="$b">${caseX}</case><else>${elseX}</else></conditionalContent>
+<p name="p1"><number extend="$cc.x"/></p>
+<p name="p2"><number extend="$x"/></p>
+`);
+            const inCase = caseX.includes("integer") ? "3" : "0.5";
+            const inElse = inCase === "3" ? "0.5" : "3";
+            const both = (value: string) => ({ p1: value, p2: value });
+            expect(await d.texts(["p1", "p2"])).eqls(both(inElse));
+            await d.setBoolean("b", true);
+            expect(await d.texts(["p1", "p2"])).eqls(both(inCase));
+            await d.setBoolean("b", false);
+            expect(await d.texts(["p1", "p2"])).eqls(both(inElse));
+            await d.setBoolean("b", true);
+            expect(await d.texts(["p1", "p2"])).eqls(both(inCase));
+            expect(d.errors()).eqls([]);
+            expect(d.newDiagnostics()).eqls([]);
+        }
+    });
+
     it("a tag whose reference names nothing, more than one thing, or a property its source does not have is an error; a bare one is a warning", async () => {
         const d = await setup(`
 <group><text name="t">a</text><text name="t">b</text></group>

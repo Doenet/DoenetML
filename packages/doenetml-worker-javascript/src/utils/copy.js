@@ -476,10 +476,14 @@ export async function verifyReplacementsMatchSpecifiedType({
 
         if (wrapExistingReplacements && replacementChanges) {
             // if we have replacement changes, we can wrap only if we are replacing all components
-            // in a single add
+            // in a single add. It may replace more than the copy has now: a
+            // replacement that shadowed a component deleted with it (the
+            // `<number>` of a case no longer active, when `$cc.x` is now
+            // the `<integer>` of another case) is already gone, as for a
+            // group or a `_copy`, above.
             if (
                 replacementChanges.length === 1 &&
-                replacementChanges[0].numberReplacementsToReplace ===
+                replacementChanges[0].numberReplacementsToReplace >=
                     component.replacements.length
             ) {
                 originalReplacements =
