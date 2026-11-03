@@ -702,6 +702,22 @@ describe("What still changes at run time, without changing what the component is
                 (x: any) => x.code,
             ),
         ).eqls([]);
+
+        // A blank index names nothing, too: the info alone, and no warning
+        // that would outlast it.
+        await d.setMath("n", "");
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0054", 5],
+            ["doenet-i0054", 6],
+        ]);
+        await d.setMath("n", "1");
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "a", p2: "7" });
+        expect(d.newDiagnostics()).eqls([]);
+        const { warnings, infos } = getDiagnosticsByType(
+            (await d.core()) as any,
+        );
+        expect([...warnings, ...infos].map((x: any) => x.code)).eqls([]);
     });
 
     it("an input reached by an index is a plain input while the index names nothing, and the link wins when the iteration returns", async () => {

@@ -2778,13 +2778,17 @@ describe("RepeatForSequence tag tests @group3", async () => {
         // leaves unresolved (`$g[1]` against an empty group, say) does not reach it
         // either — the resolution succeeds and the missing replacement is reported
         // further down, at a site this change does not touch.
+        //
+        // The reference is bare: written as a tag (`<number extend="$g[$n]"/>`),
+        // an index that names nothing is an info the copy reports while it
+        // lasts, not this warning (D36).
         let { core } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
     <group name="g"><number>7</number></group>
 
     <repeatForSequence from="1" to="5" valueName="i" name="r">
-      <p><number>$i</number> <number extend="$g[$n]" /></p>
+      <p><number>$i</number> $g[$n]</p>
     </repeatForSequence>
 
     <div name="d">$r[3]</div>
