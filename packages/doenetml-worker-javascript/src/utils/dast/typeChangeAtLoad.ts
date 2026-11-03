@@ -1851,8 +1851,10 @@ export function checkTypeChangesAtLoad({
 
     /**
      * The branch container (`branchKind`) at `idx`, through a copy of one
-     * (`<conditionalContent name="cc2" extend="$cc"/>`), which has the
-     * branches of the one it copies, or `undefined` if there is none. With
+     * (`<conditionalContent name="cc2" extend="$cc"/>`), or other composite
+     * (`<group extend="$cc"/>`), which has the branches of the one it
+     * copies, or `undefined` if there is none, as for a copy made as a tag
+     * that is not a composite (`<math extend="$s"/>`). With
      * `indexed`, a `<select>` of any number of picks (`branchKind`). A copy
      * written with branches of its own (`<select copy="$s"><option>...`)
      * has them after those it copies, and one writing `numToSelect` picks
@@ -1874,7 +1876,14 @@ export function checkTypeChangesAtLoad({
             }
             visited.add(node.componentIdx);
             const ref = refOf(node);
+            const created = canonicalType(
+                literalText(node.attributes?._createComponentOfType),
+            );
             if (
+                // a tag that is not a composite (`<math extend="$s"/>`)
+                // is itself, not what it copies, so names after it are
+                // its properties
+                (created !== undefined && !isComposite(created)) ||
                 !ref ||
                 ref.nodeIdx < 0 ||
                 (ref.unresolvedPath && ref.unresolvedPath.length > 0)
@@ -2049,12 +2058,20 @@ export function checkTypeChangesAtLoad({
         if (!container) {
             return undefined;
         }
+        const namePath = path.slice(indexed ? 1 : 0);
+        const names = namesOf(namePath);
         const declared = branchDeclaration(
             container,
-            namesOf(path.slice(indexed ? 1 : 0)),
+            names,
             new Set(),
             indexed,
         );
+        const followed = names.filter((name) => name !== INDEX).length;
+        if (declared.status === "types" && namePath[followed]?.name) {
+            // A property after the names (`$x.value`, `value` not a name of
+            // the document) is of components of different types
+            return { ...declared, property: true };
+        }
         if (declared.status === "none" && !allNames.has(first.name)) {
             // A property of the container (`$cc.value`), not a name
             return undefined;
@@ -2166,13 +2183,37 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The error (`doenet-w0181`) for an index past the picks of each
+     * selector it may index (`indexedInstance`), whatever their counts: the
+     * one of the most picks, or `undefined` unless the index is past each.
+     */
+    function pastEach(
+        instances: ReturnType<typeof indexedInstance>[],
+    ): TypeChangeAtLoadError | undefined {
+        let most: TypeChangeAtLoadError | undefined;
+        for (const instance of instances) {
+            if (!instance || !("bounds" in instance)) {
+                return undefined;
+            }
+            if (
+                !most ||
+                Number(instance.bounds.args.count) > Number(most.args.count)
+            ) {
+                most = instance.bounds;
+            }
+        }
+        return most;
+    }
+
+    /**
      * The error (`doenet-w0181`) for a reference into the branches of a
      * container (`$s[2].x`, `$h[2].x` of a `<select name="h">` in each
      * case) with a literal index past what the selector it indexes picks,
      * as its `numToSelect` is written: it names nothing whatever the
      * branches declare. The index into each component a name before it
      * names is checked, as for `$h[2]` (`decide`), and is past the picks
-     * only when it is for each. `undefined` when no index is known to be.
+     * only when it is for each (`pastEach`), though their counts differ.
+     * `undefined` when no index is known to be.
      */
     function literalBounds(copy: SerializedComponent) {
         const ref = refOf(copy);
@@ -2216,23 +2257,13 @@ export function checkTypeChangesAtLoad({
             if (!named || named.length === 0) {
                 return undefined;
             }
-            const bounds = named.map((n) => {
-                const instance = indexedInstance(
-                    n.componentIdx,
-                    index[0],
-                    seen,
-                );
-                return instance && "bounds" in instance
-                    ? instance.bounds
-                    : undefined;
-            });
-            if (
-                bounds[0] !== undefined &&
-                bounds.every(
-                    (b) => JSON.stringify(b) === JSON.stringify(bounds[0]),
-                )
-            ) {
-                return bounds[0];
+            const bounds = pastEach(
+                named.map((n) =>
+                    indexedInstance(n.componentIdx, index[0], seen),
+                ),
+            );
+            if (bounds) {
+                return bounds;
             }
             names.push(INDEX);
         }
@@ -2499,17 +2530,12 @@ export function checkTypeChangesAtLoad({
             const instances = nodeIdxs.map((idx) =>
                 indexedInstance(idx, lastIndex[0], seen),
             );
-            const bounds = instances.map((i) =>
-                i && "bounds" in i ? JSON.stringify(i.bounds) : undefined,
-            );
-            if (bounds[0] !== undefined) {
-                // Past the picks of each, alike, names nothing whatever
-                // happens at run time. A list tag made from it is empty,
-                // which the run time reports as it does an index past the
-                // entries of a list.
-                return !isList && bounds.every((b) => b === bounds[0])
-                    ? (instances[0] as { bounds: TypeChangeAtLoadError }).bounds
-                    : undefined;
+            if (instances[0] && "bounds" in instances[0]) {
+                // Past the picks of each names nothing whatever happens at
+                // run time. A list tag made from it is empty, which the run
+                // time reports as it does an index past the entries of a
+                // list.
+                return isList ? undefined : pastEach(instances);
             }
             const helds: Holding[] = [];
             for (const instance of instances) {

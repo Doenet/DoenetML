@@ -705,6 +705,20 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(await past.text()).eq("");
         expect(codes(past.diagnostics.errors)).eqls(["doenet-w0181"]);
 
+        // past each though they pick different numbers
+        const pastBoth = await setUp(
+            doenetML("")
+                .replace(
+                    `<else><select name="h">`,
+                    `<else><select name="h" numToSelect="2">`,
+                )
+                .replace(`$h[2].x`, `$h[3].x`),
+        );
+        expect(await pastBoth.text()).eq("");
+        expect(pastBoth.diagnostics.errors.map((e) => e.message)).eqls([
+            "`$h[3].x`: the `<select>` made only 2 picks.",
+        ]);
+
         const within = await setUp(doenetML(` numToSelect="2"`));
         expect(["2", "4"]).toContain(await within.text());
         expect([
@@ -731,11 +745,46 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(await onTag.text()).eq("");
         expect(onTag.diagnostics.errors.map((w) => w.message)).eqls([message]);
 
+        // and when no component has its name
+        const unnamed = (reference: string) =>
+            doenetML(reference).replace(`<text name="value">v</text>`, "");
+        const bareUnnamed = await setUp(unnamed("[$x.value]"));
+        expect(await bareUnnamed.text()).eq("[]");
+        expect(bareUnnamed.diagnostics.warnings.map((w) => w.message)).eqls([
+            message,
+        ]);
+        const onTagUnnamed = await setUp(unnamed(`<text extend="$x.value"/>`));
+        expect(await onTagUnnamed.text()).eq("");
+        expect(onTagUnnamed.diagnostics.errors.map((w) => w.message)).eqls([
+            message,
+        ]);
+
         const same = await setUp(doenetML("[$x.value]", "math"));
         expect(await same.text()).eq("[2]");
         expect([...same.diagnostics.warnings, ...same.diagnostics.errors]).eqls(
             [],
         );
+    });
+
+    it("a name after a tag made from a container, not a composite, is its property", async () => {
+        // `m` is a math, so `$m.value` is its value, though a component
+        // is named `value`, not a name in the branches of `s`
+        const doenetML = (tag: string) => `
+<text name="value">v</text>
+<select name="s">
+    <option><math>2</math></option>
+    <option><math>2</math></option>
+</select>
+<${tag} name="m" extend="$s"/>
+<p name="p">[$m.value]</p>`;
+        const { text, diagnostics } = await setUp(doenetML("math"));
+        expect(await text()).eq("[2]");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+
+        // a group holds what it copies, so the name is in the branches
+        const group = await setUp(doenetML("group"));
+        expect(await group.text()).eq("[]");
+        expect(codes(group.diagnostics.warnings)).eqls(["doenet-w0183"]);
     });
 
     it("a select picks one for its names only when numToSelect is written as 1", async () => {
