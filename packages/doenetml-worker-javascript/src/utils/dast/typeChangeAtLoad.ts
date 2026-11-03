@@ -125,6 +125,7 @@ type BranchDeclaration =
           firstType: string;
           secondType: string;
           name: string;
+          property?: boolean;
       }
     | { status: "skip" };
 
@@ -142,7 +143,12 @@ type BranchDeclaration =
 type VisibleDeclaration =
     | { type?: string; canBeAbsent: boolean; unknownBelow?: boolean }
     | { failure: BranchDeclaration }
-    | { absent: string; remaining: number; canBeAbsent?: boolean };
+    | {
+          absent: string;
+          remaining: number;
+          canBeAbsent?: boolean;
+          type?: string;
+      };
 
 /** Why a composite does not always hold exactly one component. */
 type NotOne =
@@ -1630,6 +1636,7 @@ export function checkTypeChangesAtLoad({
                 absent: declared.absent,
                 remaining: declared.remaining!,
                 canBeAbsent: declared.canBeAbsent,
+                type: declared.type,
             };
         }
         return {
@@ -1653,7 +1660,12 @@ export function checkTypeChangesAtLoad({
         names: string[],
         visited: Set<number>,
     ): VisibleDeclaration {
-        const absent = { absent: names[0], remaining: names.length };
+        // what lacks it, whose type is then compared (`$x.value`)
+        const absent = {
+            absent: names[0],
+            remaining: names.length,
+            type: declaredType(component),
+        };
         const indexed = names[0] === INDEX;
         const container = branchContainerAt(component.componentIdx, indexed);
         if (indexed) {
@@ -1786,7 +1798,10 @@ export function checkTypeChangesAtLoad({
         const declarations = perPart.map(([declaration]) =>
             "absent" in declaration
                 ? {
-                      type: undefined,
+                      // what lacks the name after it, which is then a
+                      // property of it (`$x.value`), so that its type is
+                      // what the every-branch rule compares
+                      type: declaration.type,
                       canBeAbsent: declaration.canBeAbsent ?? false,
                   }
                 : (declaration as { type?: string; canBeAbsent: boolean }),
@@ -1796,13 +1811,19 @@ export function checkTypeChangesAtLoad({
             .filter((type): type is string => type !== undefined);
         const differs = knownTypes.find((type) => type !== knownTypes[0]);
         if (differs !== undefined) {
+            // the last name the branches declare, before a property
+            const property = maxReach !== undefined && maxReach < names.length;
+            const named = names
+                .slice(0, property ? maxReach : names.length)
+                .filter((name) => name !== INDEX);
             return {
                 status: "types",
                 container,
                 branch: kind,
                 firstType: knownTypes[0],
                 secondType: differs,
-                name: names[names.length - 1],
+                name: named[named.length - 1],
+                ...(property && { property: true }),
             };
         }
         // Every branch known to declare names lacks the same one, the
@@ -2145,6 +2166,80 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The error (`doenet-w0181`) for a reference into the branches of a
+     * container (`$s[2].x`, `$h[2].x` of a `<select name="h">` in each
+     * case) with a literal index past what the selector it indexes picks,
+     * as its `numToSelect` is written: it names nothing whatever the
+     * branches declare. The index into each component a name before it
+     * names is checked, as for `$h[2]` (`decide`), and is past the picks
+     * only when it is for each. `undefined` when no index is known to be.
+     */
+    function literalBounds(copy: SerializedComponent) {
+        const ref = refOf(copy);
+        if (!ref || ref.nodeIdx < 0) {
+            return undefined;
+        }
+        const path = ref.unresolvedPath ?? [];
+        const indexed = isIndexIntoPicks(path);
+        const seen = new Set([copy.componentIdx]);
+        if (indexed) {
+            const instance = indexedInstance(
+                ref.nodeIdx,
+                path[0].index[0],
+                seen,
+            );
+            if (instance && "bounds" in instance) {
+                return instance.bounds;
+            }
+        }
+        const container = branchContainerAt(ref.nodeIdx, indexed);
+        if (!container) {
+            return undefined;
+        }
+        const namePath = path.slice(indexed ? 1 : 0);
+        const names: string[] = [];
+        for (const [ind, part] of namePath.entries()) {
+            const index = part.index ?? [];
+            if (
+                typeof part.name !== "string" ||
+                part.name === "" ||
+                ind === namePath.length - 1 ||
+                index.length > 1
+            ) {
+                return undefined;
+            }
+            names.push(part.name);
+            if (index.length === 0) {
+                continue;
+            }
+            const named = visibleNamed(container, names);
+            if (!named || named.length === 0) {
+                return undefined;
+            }
+            const bounds = named.map((n) => {
+                const instance = indexedInstance(
+                    n.componentIdx,
+                    index[0],
+                    seen,
+                );
+                return instance && "bounds" in instance
+                    ? instance.bounds
+                    : undefined;
+            });
+            if (
+                bounds[0] !== undefined &&
+                bounds.every(
+                    (b) => JSON.stringify(b) === JSON.stringify(bounds[0]),
+                )
+            ) {
+                return bounds[0];
+            }
+            names.push(INDEX);
+        }
+        return undefined;
+    }
+
+    /**
      * Whether `copy` is a reference written as a tag (`<math extend="$x"/>`,
      * or one filling a list tag), which always makes a component of its tag
      * (REF-0, D36), so that a name it cannot find is an error.
@@ -2192,7 +2287,18 @@ export function checkTypeChangesAtLoad({
             return false;
         }
         if (isTag(copy)) {
-            if (declared.status === "types") {
+            // A literal index past what a selector picks (`$s[2].x` of a
+            // one-pick select) names nothing whatever the branches declare
+            // (`doenet-w0181`, as `decide` finds it for `$s[2]`).
+            const bounds = isScalarTag(copy) && literalBounds(copy);
+            if (bounds) {
+                copy.doenetAttributes = {
+                    ...copy.doenetAttributes,
+                    typeChangeAtLoad: bounds,
+                };
+                return true;
+            }
+            if (declared.status === "types" && !declared.property) {
                 // Decided as for any composite holding types that differ
                 // (`doenet-e0066`, `decide`)
                 return false;
@@ -2346,13 +2452,9 @@ export function checkTypeChangesAtLoad({
             }
             // An index past the picks names nothing, whatever follows it
             // (a list tag made from it is empty, as below).
-            const instance = indexedInstance(
-                ref.nodeIdx,
-                path[0].index[0],
-                seen,
-            );
-            if (instance && "bounds" in instance) {
-                return isList ? undefined : instance.bounds;
+            const bounds = literalBounds(copy);
+            if (bounds) {
+                return isList ? undefined : bounds;
             }
             const named = namedInBranches(container, path.slice(1));
             if (!named) {
@@ -2366,7 +2468,12 @@ export function checkTypeChangesAtLoad({
             nodeIdxs = [ref.nodeIdx];
         } else if (branchContainerAt(ref.nodeIdx)) {
             // A name in the branches of a container (`$x`, `$cc.x`): those
-            // a reference from outside them sees
+            // a reference from outside them sees, unless an index between
+            // the names (`$h[2].x`) is past what each it indexes picks
+            const bounds = literalBounds(copy);
+            if (bounds) {
+                return isList ? undefined : bounds;
+            }
             const named = namedInBranches(
                 branchContainerAt(ref.nodeIdx)!,
                 path,

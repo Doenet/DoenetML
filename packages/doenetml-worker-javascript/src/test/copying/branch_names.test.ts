@@ -677,6 +677,67 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(codes(diagnostics.errors)).eqls(["doenet-w0181"]);
     });
 
+    it("on a tag, an index past what a select picks is an error before an option lacking the name", async () => {
+        const { text, diagnostics } = await setUp(`
+<select name="s">
+    <option><math name="x">1</math></option>
+    <option><math name="y">2</math></option>
+</select>
+<p name="p"><math extend="$s[2].x"/></p>`);
+        expect(await text()).eq("");
+        expect(codes(diagnostics.errors)).eqls(["doenet-w0181"]);
+    });
+
+    it("on a tag, an index between names past what each select picks is an error", async () => {
+        const doenetML = (numToSelect: string) => `
+<conditionalContent>
+    <case condition="$b"><select name="h"${numToSelect}>
+        <option><math name="x">1</math></option>
+        <option><math name="x">3</math></option>
+    </select></case>
+    <else><select name="h"${numToSelect}>
+        <option><math name="x">2</math></option>
+        <option><math name="x">4</math></option>
+    </select></else>
+</conditionalContent>
+<p name="p"><math extend="$h[2].x"/></p>`;
+        const past = await setUp(doenetML(""));
+        expect(await past.text()).eq("");
+        expect(codes(past.diagnostics.errors)).eqls(["doenet-w0181"]);
+
+        const within = await setUp(doenetML(` numToSelect="2"`));
+        expect(["2", "4"]).toContain(await within.text());
+        expect([
+            ...within.diagnostics.warnings,
+            ...within.diagnostics.errors,
+        ]).eqls([]);
+    });
+
+    it("a property after a name of different types in the branches names nothing, though a component has its name", async () => {
+        const doenetML = (reference: string, elseTag = "text") => `
+<text name="value">v</text>
+<conditionalContent>
+    <case condition="$b"><math name="x">1</math></case>
+    <else><${elseTag} name="x">2</${elseTag}></else>
+</conditionalContent>
+<p name="p">${reference}</p>`;
+        const message =
+            "`$x.value` names nothing: `x` is a `<math>` in one case of the `<conditionalContent>` and a `<text>` in another. Use the same type, or different names.";
+        const bare = await setUp(doenetML("[$x.value]"));
+        expect(await bare.text()).eq("[]");
+        expect(bare.diagnostics.warnings.map((w) => w.message)).eqls([message]);
+
+        const onTag = await setUp(doenetML(`<text extend="$x.value"/>`));
+        expect(await onTag.text()).eq("");
+        expect(onTag.diagnostics.errors.map((w) => w.message)).eqls([message]);
+
+        const same = await setUp(doenetML("[$x.value]", "math"));
+        expect(await same.text()).eq("[2]");
+        expect([...same.diagnostics.warnings, ...same.diagnostics.errors]).eqls(
+            [],
+        );
+    });
+
     it("a select picks one for its names only when numToSelect is written as 1", async () => {
         // `01` picks one, but its names are private, as the resolver
         // reads it: the else has no visible `x`
