@@ -253,18 +253,30 @@ impl Resolver {
                         // The branches of a container still declare the name
                         name_map.insert(name_with_source_doc.clone(), branches);
                     }
-                    Some(Ref::Ambiguous(indices)) => {
-                        // remove the deleted node `node_idx` from the ambiguous list, setting the result to unique if there is only one reference left
-                        let new_indices = indices
+                    Some(Ref::Ambiguous(refs)) => {
+                        // Remove the deleted node `node_idx` from the ambiguous list,
+                        // and the branches of a deleted container (one in the deleted content),
+                        // leaving the one left as it was (`Unique` or `Branches`)
+                        // if there is only one reference left
+                        let mut new_refs = refs
                             .into_iter()
-                            .filter(|idx| *idx != node_idx)
+                            .filter(|ref_| {
+                                ref_.single_idx().is_some_and(|idx| {
+                                    idx != node_idx && !deleted_idxs.contains(&idx)
+                                })
+                            })
                             .collect::<Vec<_>>();
-                        if new_indices.len() == 1 {
-                            name_map
-                                .insert(name_with_source_doc.clone(), Ref::Unique(new_indices[0]));
-                        } else {
-                            name_map
-                                .insert(name_with_source_doc.clone(), Ref::Ambiguous(new_indices));
+                        match new_refs.len() {
+                            0 => {
+                                parent_data.copied_names.remove(&name_with_source_doc);
+                            }
+                            1 => {
+                                name_map.insert(name_with_source_doc.clone(), new_refs.remove(0));
+                            }
+                            _ => {
+                                name_map
+                                    .insert(name_with_source_doc.clone(), Ref::Ambiguous(new_refs));
+                            }
                         }
                     }
                     None => {}
@@ -401,9 +413,6 @@ impl Resolver {
                     {
                         carried = Ref::Branches(parent_idx_plus_1 - 1);
                     }
-                    // The index `carried` refers to
-                    let carried_idx = carried.single_idx().unwrap();
-
                     // Add `carried` to the name map of `parent`, creating an ambiguous reference
                     // if its `name_with_source` is already in the name map
                     let parent_names = descendant_names.entry(parent_idx_plus_1).or_default();
@@ -433,17 +442,21 @@ impl Resolver {
                                     } else {
                                         // Since is already something sharing the `name_with_source` with the current element,
                                         // the reference becomes ambiguous
-                                        *x = Ref::Ambiguous(vec![*idx, carried_idx]);
+                                        let existing = x.clone();
+                                        *x = Ref::Ambiguous(vec![existing, carried.clone()]);
                                     }
                                 }
                                 Ref::Ambiguous(vec) => {
-                                    if vec.contains(&previous_parent) {
+                                    if vec
+                                        .iter()
+                                        .any(|ref_| ref_.single_idx() == Some(previous_parent))
+                                    {
                                         // if `name_with_source` contains an element that resolves to the `previous_parent`,
                                         // then the parent supersedes the name of the descendant.
                                         // We don't change the name map, and we stop looping to additional parents
                                         break;
                                     } else if matches!(carried, Ref::Branches(_))
-                                        && vec.contains(&carried_idx)
+                                        && vec.contains(&carried)
                                     {
                                         // The branches of a container were added already, from another branch
                                         break;
@@ -453,26 +466,32 @@ impl Resolver {
                                             | Some(Ref::Branches(descendant_idx)) => {
                                                 // Remove the descendant that `element` is superseding,
                                                 // then add `element` to the list of ambiguous references.
-                                                vec.retain(|idx| *idx != *descendant_idx);
-                                                vec.push(carried_idx);
+                                                vec.retain(|ref_| {
+                                                    ref_.single_idx() != Some(*descendant_idx)
+                                                });
+                                                vec.push(carried.clone());
                                                 *x = Ref::Ambiguous(mem::take(vec));
                                             }
                                             Some(Ref::Ambiguous(descendant_indices)) => {
                                                 // Remove the descendants that `element` is superseding
-                                                vec.retain(|idx| !descendant_indices.contains(idx));
+                                                vec.retain(|ref_| {
+                                                    !descendant_indices.iter().any(|descendant| {
+                                                        descendant.single_idx() == ref_.single_idx()
+                                                    })
+                                                });
                                                 if vec.is_empty() {
                                                     // If we removed all the previous resolutions of `name_with_source`,
                                                     // then `element` becomes the unique resolution
                                                     *x = carried.clone()
                                                 } else {
                                                     // Add `element` to the list of ambiguous sources
-                                                    vec.push(carried_idx);
+                                                    vec.push(carried.clone());
                                                     *x = Ref::Ambiguous(mem::take(vec));
                                                 }
                                             }
                                             None => {
                                                 // Add `element` to the list of ambiguous sources
-                                                vec.push(carried_idx);
+                                                vec.push(carried.clone());
                                                 *x = Ref::Ambiguous(mem::take(vec));
                                             }
                                         }

@@ -640,3 +640,48 @@ fn a_name_in_branches_of_a_nested_container_is_gone_once_it_is_deleted() {
     let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
     assert_eq!(referent.map(|r| r.node_idx), Ok(shift + 1));
 }
+
+#[test]
+fn a_container_ambiguous_with_a_deleted_name_still_has_the_name_in_its_branches() {
+    // `x` is in `m` and in the branches of `cc`, so it is ambiguous. Once `m` is deleted,
+    // `x` is the branches of `cc` again, left for `cc` to resolve, not `cc` itself.
+    let dast_root = dast_root_no_position(
+        r#"<g><m name="x" /><conditionalContent name="cc"><case><n name="x" /></case><else><q name="x" /></else></conditionalContent></g><p />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let m_idx = find(&flat_root, "m").unwrap();
+    let cc_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+
+    resolver.delete_nodes(&flat_root.nodes[m_idx..m_idx + 1]);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((cc_idx, Some(make_path(["x"], None))))
+    );
+}
+
+#[test]
+fn a_deleted_container_is_no_longer_among_the_referents_of_an_ambiguous_name() {
+    // `x` is in `m` and in the branches of `inner`, so it is ambiguous.
+    // Once `inner` and what it holds are deleted, `x` is `m`.
+    let dast_root = dast_root_no_position(
+        r#"<g><m name="x" /><conditionalContent name="inner"><case><n name="x" /></case></conditionalContent></g><p />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let m_idx = find(&flat_root, "m").unwrap();
+    let inner_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+
+    resolver.delete_nodes(&flat_root.nodes[inner_idx..p_idx]);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(m_idx));
+}

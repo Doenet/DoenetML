@@ -52,7 +52,10 @@ pub struct ChildIndex {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Ref {
     Unique(Index),
-    Ambiguous(Vec<Index>),
+    /// The name reaches each of these, each a `Unique` or a `Branches`,
+    /// so that, when all but one are deleted (`Resolver::delete_nodes`),
+    /// the one left is what it was.
+    Ambiguous(Vec<Ref>),
     /// The name is declared in the branches of the `<conditionalContent>` or the one-pick
     /// `<select>` at this index (see [`branch_container_kind`]).
     /// Only one branch is active at a time, so declaring the name in several branches
@@ -166,10 +169,11 @@ pub(super) fn branch_container_kind(
             // unless its own `numToSelect` says otherwise.
             let is_copy = element.name == "_copy"
                 || element.extending.is_some()
-                || element
-                    .attributes
-                    .iter()
-                    .any(|attr| attr.name == "extend" || attr.name == "copy");
+                || element.attributes.iter().any(|attr| {
+                    // matched without regard to case, as `ref_expand` matches them
+                    attr.name.eq_ignore_ascii_case("extend")
+                        || attr.name.eq_ignore_ascii_case("copy")
+                });
             match num_to_select {
                 None if is_copy => None,
                 None => Some(BranchContainerKind::OnePickSelect),
@@ -720,8 +724,11 @@ impl Resolver {
                     Ref::Branches(idx) => {
                         return Ok((*idx, true));
                     }
-                    Ref::Ambiguous(indices) => {
-                        if indices.contains(&child_idx) {
+                    Ref::Ambiguous(refs) => {
+                        if let Some(child_ref) = refs
+                            .iter()
+                            .find(|ref_| ref_.single_idx() == Some(child_idx))
+                        {
                             // If one possibility is that we could resolve back to the child, we disambiguate the reference to be that child.
                             //
                             // For example, for this DoenetML, the reference `$p` from within the first problem
@@ -734,7 +741,7 @@ impl Resolver {
                             //     <problem name="p" />
                             // <section>
                             // ```
-                            return Ok((child_idx, false));
+                            return Ok((child_idx, matches!(child_ref, Ref::Branches(_))));
                         } else {
                             return Err(ResolutionError::NonUniqueReferent);
                         }

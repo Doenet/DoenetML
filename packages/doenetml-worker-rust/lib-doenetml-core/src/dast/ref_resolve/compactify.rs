@@ -29,7 +29,17 @@ impl Resolver {
                             Ref::Ambiguous(vec_idx) => (
                                 key.clone(),
                                 Ref::Ambiguous(
-                                    vec_idx.iter().map(|idx| old_to_new_indices[*idx]).collect(),
+                                    vec_idx
+                                        .iter()
+                                        .map(|ref_| match ref_ {
+                                            Ref::Branches(idx) => {
+                                                Ref::Branches(old_to_new_indices[*idx])
+                                            }
+                                            ref_ => Ref::Unique(
+                                                old_to_new_indices[ref_.single_idx().unwrap()],
+                                            ),
+                                        })
+                                        .collect(),
                                 ),
                             ),
                         })

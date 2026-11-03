@@ -675,6 +675,9 @@ fn options_of_a_select_are_visible_only_when_it_picks_one() {
         // A copy picks as many as what it copies
         (r#"extend="$t""#, false),
         (r#"extend="$t" numToSelect="1""#, true),
+        // An attribute name is matched without regard to case
+        (r#"COPY="$t""#, false),
+        (r#"Extend="$t""#, false),
     ] {
         let dast = format!(
             r#"<select name="s" {num_to_select}><option><m name="x" /></option><option><n name="x" /></option></select><p />"#
