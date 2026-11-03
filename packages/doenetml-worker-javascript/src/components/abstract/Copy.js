@@ -6174,11 +6174,12 @@ async function missingPropertyError({
  * property that what it names does not have (`$n.nonexistent`, `$$f.x(2)`):
  * `doenet-w0104`, as it is a mistake in what the author wrote (DIAG-2,
  * #2434). It is the property the referent's type lacks, not one with no value
- * now: `$P.z` of a point in two dimensions stays silent (VAL-5). For a
- * composite, a name it does not hold now (`$cc.c`) is not a property, so only
- * a property no component of the document is named
- * (`pathStartsWithProperty`, `typeChangeAtLoad.ts`) is reported, when none of
- * what it holds now has it. A reference written as a tag reports it as an
+ * now: `$P.z` of a point in two dimensions stays silent (VAL-5). What follows
+ * the referent is first looked up as a name, so it is a property only if no
+ * component of the document has that name (`pathStartsWithProperty`,
+ * `typeChangeAtLoad.ts`): `$sec.t` of a `t` written elsewhere, or `$cc.c` of a
+ * name the case active now does not hold, is not reported here. For a
+ * composite, it is reported when none of what it holds now has it. A reference written as a tag reports it as an
  * error instead (`missingPropertyError`).
  */
 async function reportMissingProperty({
@@ -6206,10 +6207,9 @@ async function reportMissingProperty({
         if (
             propNames?.length > 0 &&
             propNames.every((name) => name === "__prop_name_not_found") &&
-            (!componentInfoObjects.isCompositeComponent({
-                componentType: sourceComponent.componentType,
-            }) ||
-                component.doenetAttributes?.pathStartsWithProperty) &&
+            // a name of the document is looked up as a name first, so it is
+            // not a property (`$sec.t` of a `t` written elsewhere)
+            component.doenetAttributes?.pathStartsWithProperty &&
             // the property, not an index after it (`$n.value[1]`,
             // `doenet-w0100`), is what is missing
             !sources.some(

@@ -141,14 +141,37 @@ pub(super) fn branch_container_kind(
     element: &FlatElement,
     literal_text: impl Fn(&FlatAttribute) -> Option<String>,
 ) -> Option<BranchContainerKind> {
-    match element.name.as_str() {
-        "conditionalContent" => Some(BranchContainerKind::ConditionalContent),
+    // A tag written with `extend` or `copy` that the core adds as content (in an iteration
+    // of a repeat) is a `_copy` making a component of the type it was written as.
+    let tag = if element.name == "_copy" {
+        element
+            .attributes
+            .iter()
+            .find(|attr| attr.name == "_createComponentOfType")
+            .and_then(&literal_text)
+            .unwrap_or_default()
+    } else {
+        element.name.clone()
+    };
+    match tag.as_str() {
+        "conditionalContent" | "conditionalcontent" => {
+            Some(BranchContainerKind::ConditionalContent)
+        }
         "select" => {
             let num_to_select = element
                 .attributes
                 .iter()
                 .find(|attr| attr.name.eq_ignore_ascii_case("numToSelect"));
+            // A copy of a `<select>` picks as many as the one it copies,
+            // unless its own `numToSelect` says otherwise.
+            let is_copy = element.name == "_copy"
+                || element.extending.is_some()
+                || element
+                    .attributes
+                    .iter()
+                    .any(|attr| attr.name == "extend" || attr.name == "copy");
             match num_to_select {
+                None if is_copy => None,
                 None => Some(BranchContainerKind::OnePickSelect),
                 Some(attr) => match literal_text(attr) {
                     Some(text) if text.trim() == "1" => Some(BranchContainerKind::OnePickSelect),

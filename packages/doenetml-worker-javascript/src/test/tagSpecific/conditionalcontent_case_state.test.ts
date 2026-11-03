@@ -368,21 +368,24 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
 
     it("a copy from a single case keeps what was entered through a reload while the case is hidden", async () => {
         // a single case is withheld, not made again, so a copy of it is not
-        // told apart by case
+        // told apart by case. The copy is a `<group>` of the whole
+        // `<conditionalContent>`, which may hold nothing: a
+        // `<mathInput copy="$cc.a"/>` is an error, as `a` is absent while no
+        // case is true (D36, #2450).
         const h = await setup(`
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc">
         <case condition="$b"><mathInput name="a" prefill="1" /></case>
     </conditionalContent>
-    <mathInput copy="$cc.a" name="c" />
+    <group copy="$cc" name="c" />
     `);
-        await h.typeMath("c", "5");
+        await h.typeMath("c.a", "5");
         await h.setB(false);
-        expect(await h.math("c")).eq(5);
+        expect(await h.math("c.a")).eq(5);
         await h.reload();
-        expect(await h.math("c")).eq(5);
+        expect(await h.math("c.a")).eq(5);
         await h.setB(true);
-        expect(await h.math("c")).eq(5);
+        expect(await h.math("c.a")).eq(5);
     });
 
     it("forgets what was kept of a case once its conditionalContent is deleted", async () => {

@@ -672,6 +672,9 @@ fn options_of_a_select_are_visible_only_when_it_picks_one() {
         (r#"numtoselect=" 1 ""#, true),
         (r#"numToSelect="2""#, false),
         (r#"numToSelect="$k""#, false),
+        // A copy picks as many as what it copies
+        (r#"extend="$t""#, false),
+        (r#"extend="$t" numToSelect="1""#, true),
     ] {
         let dast = format!(
             r#"<select name="s" {num_to_select}><option><m name="x" /></option><option><n name="x" /></option></select><p />"#
