@@ -572,6 +572,18 @@ impl<'c> Builder<'c> {
                 })
                 .collect()
         };
+        #[cfg(feature = "testing")]
+        // What each template slot's cell holds (`Structure::slot_types`).
+        let slot_types: Vec<_> = SlotId::below(n)
+            .filter(|&s| Some(slot_to_cell[s.index()]) != dead_cell)
+            .filter(|&s| self.template_slot(s).is_some())
+            .map(|s| {
+                let (scope, tslot, _) = self.essential_key(s);
+                let (template, _) = self.template_slot(s).expect("a template slot");
+                let ty = value_types[slot_to_cell[s.index()].index()];
+                ((scope, template as u32, tslot), ty)
+            })
+            .collect();
 
         // Each component's prop cell indices, one component after another,
         // in slot order; the cells themselves are not contiguous.
@@ -630,6 +642,8 @@ impl<'c> Builder<'c> {
             walked_essential_slots,
             #[cfg(feature = "testing")]
             slot_classes,
+            #[cfg(feature = "testing")]
+            slot_types,
         };
 
         // Lazy labels for cycle errors.

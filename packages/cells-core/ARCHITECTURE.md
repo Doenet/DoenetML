@@ -107,8 +107,11 @@ Runs once per load and depends on the source alone.
   (`planning/`) plans every element; **link** (`link/`) boxes what read
   a boxed referent and every element with an attribute nothing read, and
   ties shared state between plans; **seal** (`seal/`) makes choice
-  interfaces, checks arity, and assigns keys and slot offsets; the
-  **abstract build** (below) comes last. What more than one stage uses
+  interfaces, checks arity, assigns keys and slot offsets, and infers
+  every port's type (`seal/types.rs`, ADR 0032), a fixpoint over every
+  template from the ports' sources and the references between them,
+  which every build reads for what a cell holds and whether a math is
+  symbolic; the **abstract build** (below) comes last. What more than one stage uses
   has a module of its own (`names.rs`, `refs.rs`, `maths.rs`,
   `source.rs`, `boxes.rs`). A planner reads the
   source and what outlining and parsing made, never another element's plan

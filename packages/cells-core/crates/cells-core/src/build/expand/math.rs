@@ -180,160 +180,60 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// What the cell of `slot` will hold, read from the plans before every
-    /// source is set: the type of the plan that defines it, through
-    /// aliases. A symbolic math's `expr` is decided by `is_symbolic`
-    /// instead; this answers for essential cells and what aliases them.
-    pub(in crate::build) fn value_type(&mut self, slot: SlotId) -> ValueType {
+    /// What the cell of `slot` will hold: its template port's type, which
+    /// the compile settled (ADR 0032, `Compiled::port_type`), read through
+    /// the aliases of a component the build made (a copy, a placed
+    /// reference, a collect's item); an interface's stand-in holds what
+    /// its branches' components hold.
+    pub(in crate::build) fn value_type(&self, slot: SlotId) -> ValueType {
         self.value_type_within(slot, 32)
     }
 
-    fn value_type_within(&mut self, slot: SlotId, depth: u32) -> ValueType {
-        let comp = self.slot_comp[slot.index()];
-        if depth == 0 || comp == CompIdx::NONE {
+    fn value_type_within(&self, slot: SlotId, depth: u32) -> ValueType {
+        if depth == 0 {
             return ValueType::Number;
         }
-        let inst = self.comp_instance[comp.index()];
-        if inst == NONE {
-            // A copy or a placed reference aliases what it copies; an
-            // interface name holds what its branches' components hold.
-            let pi = slot.get() - self.slot_base[comp.index()].get();
-            if let BuiltSource::Alias(t) = self.sources[slot.index()] {
-                return self.value_type_within(t, depth - 1);
-            }
-            // A stand-in holds what any branch may: text or math when one
-            // does (their kinds must agree, `stand_in_sources`).
-            let Some(members) = self.stand_ins.get(&comp).cloned() else {
-                return ValueType::Number;
-            };
-            let mut kind = ValueType::Number;
-            for m in members {
+        if let Some((t, ts)) = self.template_slot(slot) {
+            return self.compiled.port_type(t, ts).value_type();
+        }
+        if let BuiltSource::Alias(t) = self.sources[slot.index()] {
+            return self.value_type_within(t, depth - 1);
+        }
+        let comp = self.slot_comp[slot.index()];
+        if comp == CompIdx::NONE {
+            return ValueType::Number;
+        }
+        // A stand-in holds what any branch may: text or math when one
+        // does (their kinds agree, checked when compiled).
+        let Some(members) = self.stand_ins.get(&comp) else {
+            return ValueType::Number;
+        };
+        let pi = slot.get() - self.slot_base[comp.index()].get();
+        let mut kind = ValueType::Number;
+        for &m in members {
+            if (pi as usize) < self.n_public(m) {
                 let t = self.slot_base[m.index()].offset(pi as usize);
                 match self.value_type_within(t, depth - 1) {
                     ValueType::Number => {}
                     k => kind = k,
                 }
             }
-            return kind;
         }
-        let i = self.instances[inst as usize];
-        let pi = slot.index() - self.slot_base[comp.index()].index();
-        let c: &'c Compiled = self.compiled;
-        let next = match c.templates[i.template.index()].plan(i.elem).props.get(pi) {
-            Some(Source::GivenMath(_) | Source::GivenMathFrom(_)) => {
-                return ValueType::Math;
-            }
-            Some(Source::GivenText(_)) => return ValueType::Text,
-            Some(Source::Alias(Arg::Own(k))) => self.slot(comp, k.index()),
-            // The extend referent's slot, as `instance_sources` resolves it.
-            Some(Source::Inherit) => {
-                let Some(p) = c.templates[i.template.index()].plan(i.elem).extend else {
-                    return ValueType::Number;
-                };
-                let referent = match self.resolve(p, i.scope) {
-                    Ok((target, _)) => match self.single_component(target, p) {
-                        Ok(r) => r,
-                        Err(_) => return ValueType::Number,
-                    },
-                    Err(_) => return ValueType::Number,
-                };
-                self.slot(referent, pi)
-            }
-            Some(Source::Alias(Arg::Elem(e, k))) => {
-                let other = self.scope_comps[i.scope.index()][e.index()];
-                if other == CompIdx::NONE {
-                    return ValueType::Number;
-                }
-                self.slot(other, k.index())
-            }
-            Some(Source::Alias(Arg::Ref(p, Sel::Whole))) => match self.resolve_one(*p, i.scope) {
-                Ok(t) => t,
-                Err(_) => return ValueType::Number,
-            },
-            _ => return ValueType::Number,
-        };
-        self.value_type_within(next, depth - 1)
+        kind
     }
 
-    /// Whether a component's `expr` is a math cell: a function, an unbound
-    /// mathInput, a math with a free symbol or a reference to an
-    /// expression. A copy is symbolic when its referent is. A reference
-    /// cycle counts as numeric (the cycle is reported later).
-    pub(in crate::build) fn is_symbolic(&mut self, comp: CompIdx) -> bool {
-        if self.math_mode.len() < self.components.len() {
-            self.math_mode
-                .resize(self.components.len(), MathMode::Unknown);
-        }
-        match self.math_mode[comp.index()] {
-            MathMode::Numeric | MathMode::Deciding => return false,
-            MathMode::Symbolic => return true,
-            MathMode::Unknown => {}
-        }
-        self.math_mode[comp.index()] = MathMode::Deciding;
+    /// Whether a component's `expr` is a math cell: its port's type is
+    /// `Math` (ADR 0032), for a function, an unbound mathInput, a math with
+    /// a free symbol or a reference to an expression, and for a copy or a
+    /// stand-in of one.
+    pub(in crate::build) fn is_symbolic(&self, comp: CompIdx) -> bool {
         let component_type = self.components.component_type[comp.index()];
-        let inst = self.comp_instance[comp.index()];
-        let yes = match component_type {
-            ComponentType::Function | ComponentType::Derivative => true,
-            // A copy of a math (its `expr`) or a bound mathInput (its `value`).
-            ComponentType::Math | ComponentType::MathInput if inst == NONE => {
-                match self.sources.get(
-                    self.slot(
-                        comp,
-                        if component_type == ComponentType::Math {
-                            prop::math::EXPR
-                        } else {
-                            prop::math_input::VALUE
-                        },
-                    )
-                    .index(),
-                ) {
-                    Some(BuiltSource::Alias(t)) => {
-                        let referent = self.slot_comp[t.index()];
-                        referent != CompIdx::NONE && self.is_symbolic(referent)
-                    }
-                    _ => false,
-                }
-            }
-            ComponentType::MathInput => {
-                let i = self.instances[inst as usize];
-                matches!(
-                    self.compiled.templates[i.template.index()]
-                        .plan(i.elem)
-                        .props
-                        .get(prop::math_input::EXPR),
-                    Some(Source::GivenMath(_))
-                )
-            }
-            ComponentType::Math => {
-                let i = self.instances[inst as usize];
-                match self.compiled.templates[i.template.index()]
-                    .plan(i.elem)
-                    .props
-                    .get(prop::math::EXPR)
-                {
-                    Some(Source::MathHandle(id, _)) => {
-                        let id = *id;
-                        let mut syms = Vec::new();
-                        self.compiled.arena.symbols(id, &mut syms);
-                        let mut leaves = Vec::new();
-                        self.compiled.arena.cell_leaves(id, &mut leaves);
-                        !syms.is_empty()
-                            || leaves.into_iter().any(|p| {
-                                self.resolve_one(p, i.scope)
-                                    .is_ok_and(|s| self.math_target(s).is_some())
-                            })
-                    }
-                    _ => false,
-                }
+        match component_type.prop_index("expr") {
+            Some(pi) if pi < self.n_public(comp) => {
+                self.value_type(self.slot(comp, pi)) == ValueType::Math
             }
             _ => false,
-        };
-        self.math_mode[comp.index()] = if yes {
-            MathMode::Symbolic
-        } else {
-            MathMode::Numeric
-        };
-        yes
+        }
     }
 
     /// Copy an expression template into the document's arena with its plan

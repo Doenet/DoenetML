@@ -111,6 +111,11 @@ pub struct Structure {
     /// constant against across builds (ADR 0028).
     #[cfg(feature = "testing")]
     pub slot_classes: Vec<((ScopeId, u32, u32), SlotClass)>,
+    /// What each template slot's cell holds in this build, by its (scope,
+    /// template, template slot): what `tests/port_types.rs` checks the
+    /// compile's port types against (ADR 0032).
+    #[cfg(feature = "testing")]
+    pub slot_types: Vec<((ScopeId, u32, u32), crate::program::ValueType)>,
 }
 
 /// What a template slot's cell is in one build (`Structure::slot_classes`).

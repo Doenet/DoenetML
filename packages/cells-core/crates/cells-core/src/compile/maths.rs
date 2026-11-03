@@ -87,18 +87,11 @@ impl Compiler<'_> {
         let _s = crate::trace::tally("resolve math");
         let mut plans = Vec::with_capacity(macros.len());
         for &m in macros {
-            // A `$mi` standing for a submitted copy reads as the input it
-            // names (`Settled::submitted`).
-            let substituted = self.submitted(m).is_some();
             let p = self.plan_ref(t, scope, m)?;
-            // A text cell holds a string id, which is not a number.
-            let is_text = crate::trace::tally("is text").run(|| {
-                if substituted {
-                    self.macro_is_text(t, scope, m)
-                } else {
-                    self.ref_is_text(t, p)
-                }
-            });
+            // A text cell holds a string id, which is not a number: refused
+            // here where the plan reaches an element; a path past an
+            // interface name is refused by the type pass (ADR 0032).
+            let is_text = crate::trace::tally("is text").run(|| self.ref_is_text(t, p));
             if is_text {
                 return Err(Error::Unsupported(format!(
                     "a text value (${}) inside math",

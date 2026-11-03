@@ -625,12 +625,51 @@ pub(crate) struct Sealed {
     pub(crate) slot_off: u32,
 }
 
-/// What sealing makes of a template (ADR 0031): a row per element, and
-/// how many slots its elements take.
+/// What sealing makes of a template (ADR 0031): a row per element, how
+/// many slots its elements take, and what each port holds.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct SealedTemplate {
     pub(crate) elems: Vec<Sealed>,
     pub(crate) n_slots: u32,
+    /// Each port's type (ADR 0032), by template slot (`Sealed::slot_off`
+    /// plus the port's position): what the type pass inferred once, which
+    /// every build reads (`compile/seal/types.rs`).
+    pub(crate) types: Vec<PortType>,
+}
+
+/// What a port's cell holds (ADR 0032): a number (a boolean or an index
+/// among them), a string id, or a handle in the symbolic engine. Inferred
+/// once per template port by the compile's type pass, from the port's
+/// source and the ports it reads, and read by every build: a cell's value
+/// type (`program::ValueType`) is its defining port's. `Num` is the
+/// bottom: what a port is until something it reads says otherwise.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum PortType {
+    #[default]
+    Num,
+    Text,
+    Math,
+}
+
+impl PortType {
+    /// The least type above both: `Num` yields to either, and a text port
+    /// read where a math is expected is refused before this is asked.
+    pub(crate) fn join(self, other: PortType) -> PortType {
+        match (self, other) {
+            (PortType::Num, t) | (t, PortType::Num) => t,
+            (PortType::Math, _) | (_, PortType::Math) => PortType::Math,
+            (PortType::Text, PortType::Text) => PortType::Text,
+        }
+    }
+
+    /// The value type a cell of this port holds.
+    pub fn value_type(self) -> crate::program::ValueType {
+        match self {
+            PortType::Num => crate::program::ValueType::Number,
+            PortType::Text => crate::program::ValueType::Text,
+            PortType::Math => crate::program::ValueType::Math,
+        }
+    }
 }
 
 /// What outlining makes of a template (ADR 0031): its elements' rows,
@@ -1495,6 +1534,12 @@ impl Compiled {
     /// The source it was compiled from.
     pub fn dast(&self) -> &Arc<Dast> {
         &self.dast
+    }
+
+    /// The type of template slot `slot` of `template` (ADR 0032): what the
+    /// type pass settled for the port, which every build reads.
+    pub fn port_type(&self, template: usize, slot: u32) -> PortType {
+        self.templates[template].sealed.types[slot as usize]
     }
 
     /// Drop the plans' spare capacity once planning is done, before the

@@ -64,17 +64,6 @@ pub(in crate::build) enum BuiltSource {
     VecOut(SlotId, u8),
 }
 
-/// `Builder::is_symbolic`'s memo for one component.
-#[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub(in crate::build) enum MathMode {
-    #[default]
-    Unknown,
-    Numeric,
-    Symbolic,
-    /// Being decided: a reference cycle back to it counts as numeric.
-    Deciding,
-}
-
 /// Where a reference path has arrived after walking its steps.
 #[derive(Debug, Clone, Copy)]
 pub(in crate::build) enum Resolved {
@@ -88,7 +77,6 @@ pub(in crate::build) enum Resolved {
 /// One expanded choice.
 #[derive(Debug, Clone)]
 pub(in crate::build) struct ChoiceInst {
-    pub(in crate::build) def: ChoiceId,
     pub(in crate::build) comp: CompIdx,
     /// The scope of each built branch (a select's picks in order; every
     /// case of a reactive choice).
@@ -123,14 +111,12 @@ pub(in crate::build) struct Builder<'c> {
     /// Templates of `Instantiate` instructions, cell leaves holding slots
     /// until emit rebinds them to cells and imports them.
     pub(in crate::build) sym_templates: Vec<Tree<SlotId>>,
-    /// Slots defining a cell that is not a number, with its type: essential
-    /// and constant math cells, a choice's math interface, essential text.
-    /// Symbolic instructions' outputs are math by their operator instead.
-    /// A cell's type is its defining slot's (emit), so an alias never
-    /// changes it.
+    /// Slots defining a cell that is not a number, with its type: every
+    /// template slot whose port the compile typed text or math (ADR 0032),
+    /// and a choice's text or math interface. Symbolic instructions'
+    /// outputs are math by their operator as well. A cell's type is its
+    /// defining slot's (emit), so an alias never changes it.
     pub(in crate::build) typed_slots: Vec<(SlotId, ValueType)>,
-    /// Per component, whether its `expr` is a math cell (`is_symbolic`).
-    pub(in crate::build) math_mode: Vec<MathMode>,
     pub(in crate::build) components: ComponentTable,
     pub(in crate::build) slot_base: Vec<SlotId>,
     /// Per component, how many of its slots are public props (its ports
@@ -165,7 +151,7 @@ pub(in crate::build) struct Builder<'c> {
     /// A component standing for whichever branch a choice takes (an
     /// interface name, or in the abstract build a select's whole pick) ->
     /// the branches' components it stands for. What it holds is what any of
-    /// them may (`value_type`, `is_symbolic`).
+    /// them may (`value_type`).
     pub(in crate::build) stand_ins: HashMap<CompIdx, Vec<CompIdx>>,
     /// Per select (in the abstract build): the stand-in for its whole pick.
     pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
@@ -245,7 +231,6 @@ impl<'c> Builder<'c> {
             engine,
             sym_templates: Vec::new(),
             typed_slots: Vec::new(),
-            math_mode: Vec::new(),
             components: ComponentTable {
                 component_type: Vec::with_capacity(guess),
                 name: Vec::with_capacity(guess),
@@ -1319,8 +1304,17 @@ impl<'c> Builder<'c> {
             .plan(inst.elem)
             .props
             .len();
+        let slot_off =
+            self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].slot_off;
         for pi in 0..n_props {
             let s = self.slot(comp, pi);
+            // What the cell holds is the port's type (ADR 0032).
+            let port_type = self
+                .compiled
+                .port_type(inst.template.index(), slot_off + pi as u32);
+            if port_type != PortType::Num {
+                self.typed_slots.push((s, port_type.value_type()));
+            }
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
             let c: &'c Compiled = self.compiled;
@@ -1349,12 +1343,6 @@ impl<'c> Builder<'c> {
                 }
                 plan => self.plan_source(plan, inst, pi, extend, &extend_label)?,
             };
-            if let (BuiltSource::Const(h), Source::MathHandle(..) | Source::SymExpr(..)) =
-                (&source, plan)
-                && !h.is_nan()
-            {
-                self.typed_slots.push((s, ValueType::Math));
-            }
             if self.view.folds_iterations()
                 && matches!(source, BuiltSource::Const(_) | BuiltSource::Given(_))
                 && plan.gives_document_constant()
@@ -1386,10 +1374,7 @@ impl<'c> Builder<'c> {
             Source::Deferred(_) => BuiltSource::Unset,
             Source::FirstIteration(..) => unreachable!("nested FirstIteration"),
             Source::Given(v) => BuiltSource::Given(*v),
-            Source::GivenText(id) => {
-                self.typed_slots.push((s, ValueType::Text));
-                BuiltSource::Given(id.map_or(f64::NAN, StrId::to_value))
-            }
+            Source::GivenText(id) => BuiltSource::Given(id.map_or(f64::NAN, StrId::to_value)),
             Source::Inherit => {
                 let Some(referent) = extend else {
                     return Ok(BuiltSource::Alias(self.missing_slot()));
@@ -1439,7 +1424,12 @@ impl<'c> Builder<'c> {
                 }
             }
             Source::MathHandle(expr, post) => {
-                if self.is_symbolic(comp) {
+                // Symbolic when the compile typed the port math (ADR 0032).
+                if self
+                    .compiled
+                    .port_type(inst.template.index(), slot_off_of(self, inst) + pi as u32)
+                    == PortType::Math
+                {
                     self.sym_source(*expr, *post, inst.scope)?
                 } else {
                     // A numeric math is not a math cell (ADR 0005).
@@ -1463,15 +1453,11 @@ impl<'c> Builder<'c> {
                 }
             }
             Source::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
-            Source::GivenMath(tree) => {
-                self.typed_slots.push((s, ValueType::Math));
-                match tree {
-                    Some(tree) => BuiltSource::Given(self.engine.import(tree).to_value()),
-                    None => BuiltSource::Given(f64::NAN),
-                }
-            }
+            Source::GivenMath(tree) => match tree {
+                Some(tree) => BuiltSource::Given(self.engine.import(tree).to_value()),
+                None => BuiltSource::Given(f64::NAN),
+            },
             Source::GivenMathFrom(p) => {
-                self.typed_slots.push((s, ValueType::Math));
                 let from = self
                     .resolve_one(*p, inst.scope)
                     .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
@@ -1551,6 +1537,11 @@ impl<'c> Builder<'c> {
             Some(g) => self.op_slot(OpSpec::Mul, &[g, x], scope),
         }
     }
+}
+
+/// The slot offset of instance `inst`'s element in its template.
+fn slot_off_of(b: &Builder<'_>, inst: Instance) -> u32 {
+    b.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].slot_off
 }
 
 /// Inheritance as the build makes it (ADR 0016, Migration step 8), against

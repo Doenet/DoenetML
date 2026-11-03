@@ -45,6 +45,7 @@ const BLANK: PropDef = PropDef {
     attr: None,
     bind: None,
     ref_prop: None,
+    text: false,
     interactive: false,
     written_by_action: false,
     rendered: false,
@@ -114,6 +115,11 @@ impl Prop {
     /// referent instead of its default prop.
     pub(super) const fn ref_prop(mut self, prop: &'static str) -> Self {
         self.def.ref_prop = Some(prop);
+        self
+    }
+    /// The prop holds text, a string id, whatever gives it (ADR 0032).
+    pub(super) const fn text(mut self) -> Self {
+        self.def.text = true;
         self
     }
     /// A renderer may request this prop: a student's action writes it
@@ -431,9 +437,10 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
 /// `attr(default)`, `attr_or(other)` or `computed(op, [args])`, where an
 /// arg is a prop or a literal in parentheses (`[radius, (2.0)]`),
-/// optionally followed by `{ attribute: a, bind: b, ref_prop: p,
+/// optionally followed by `{ attribute: a, bind: b, ref_prop: p, text,
 /// interactive, written_by_action, rendered, score, read_by_action,
-/// sampled: p }`.
+/// sampled: p }`. `text` says the prop holds a string id whatever gives
+/// it (a `<text>`'s `value`), so a reference to it reads as text.
 /// `interactive` marks a prop a renderer may request (ADR 0017's inputs);
 /// a list ending `interactive: true` has every point interactive, for a
 /// shape a drag of one point or of the whole shape moves.

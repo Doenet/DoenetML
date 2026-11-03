@@ -2,12 +2,14 @@
 //! what needs every element planned and linked, from the plans, the source
 //! and the name table alone, changing no plan. The branch interface of
 //! every choice (`choice.rs`), the arity of every operator a plan names,
-//! every element's key (`keys.rs`) and the slot offsets. What fails here is
-//! boxed by compiling again, not in place: other elements' plans may
-//! already name what it would box.
+//! every element's key (`keys.rs`), the slot offsets, and every port's
+//! type (`types.rs`, ADR 0032). What fails here is boxed by compiling
+//! again, not in place: other elements' plans may already name what it
+//! would box.
 
 pub(in crate::compile) mod choice;
 pub(crate) mod keys;
+mod types;
 
 use crate::compile::*;
 
@@ -43,13 +45,17 @@ impl<'a> Seal<'a> {
         crate::trace::span("arity").run(|| self.check_arity())?;
         let keys = crate::trace::span("keys").run(|| self.assign_keys());
         let offsets = crate::trace::span("slot offsets").run(|| self.slot_offsets());
+        // Every port's type, once every element is planned and linked and
+        // every choice's interface is known (ADR 0032).
+        let types = crate::trace::span("types").run(|| self.infer_types(&offsets))?;
         // Sealing's table, made once (ADR 0031).
-        let sealed = (keys.into_iter().zip(offsets))
-            .map(|(keys, (offs, n_slots))| SealedTemplate {
+        let sealed = (keys.into_iter().zip(offsets).zip(types))
+            .map(|((keys, (offs, n_slots)), types)| SealedTemplate {
                 elems: (keys.into_iter().zip(offs))
                     .map(|(key, slot_off)| Sealed { key, slot_off })
                     .collect(),
                 n_slots,
+                types,
             })
             .collect();
         Ok((sealed, self.choice_seals))

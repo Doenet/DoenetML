@@ -87,7 +87,7 @@ impl<'a> Compiler<'a> {
                 _ => {}
             }
         }
-        if !refs.iter().any(|&m| self.macro_is_text(t, scope, m)) {
+        if !refs.iter().any(|&m| self.macro_reads_text(t, scope, m)) {
             return Ok(None);
         }
         let refuse = |what: &str| {
@@ -106,7 +106,7 @@ impl<'a> Compiler<'a> {
                 .and_then(|r| r.strip_suffix('\u{0}'))
                 .and_then(|k| k.parse::<usize>().ok());
             match lone {
-                Some(k) if cp.macro_is_text(t, scope, refs[k]) => {
+                Some(k) if cp.macro_reads_text(t, scope, refs[k]) => {
                     let p = cp.plan_ref(t, scope, refs[k])?;
                     Ok(wiring.hidden(Source::reference(p)))
                 }

@@ -16,7 +16,7 @@ component! {
     reads_as: Text,
     default_prop: value,
     props {
-        value: children { attribute: prefill, bind: bindValueTo, interactive, rendered },
+        value: children { attribute: prefill, bind: bindValueTo, text, interactive, rendered },
     }
     shared_state {
         // The value, when it is the input's own state.

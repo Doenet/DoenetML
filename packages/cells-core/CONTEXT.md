@@ -11,9 +11,9 @@ the nodes of the dependency graph. Every cell is essential, a constant or
 derived.
 A cell's number may stand for an integer, a boolean (0 or 1), a string id or
 a handle into the symbolic engine. Which of number, text or math it holds is
-its **value type**, recorded by the build from the source that defines the
-cell (an alias never changes it) and read when a request arrives or state is
-saved, never while the tick recomputes.
+its **value type**: the *port type* the compile settled for the port that
+defines the cell (an alias never changes it, ADR 0032), read when a request
+arrives or state is saved, never while the tick recomputes.
 
 **Essential cell** — A cell with no dependencies that a student's action can
 write: a request through the inverses, a submit or a trigger (ADR 0018).
@@ -329,7 +329,11 @@ a helper value the planner made (`ElemWiring::hidden`). A planner holds a
 port only as the wiring hands it out, never from a number, so no planner
 computes where a value sits. The build numbers an element's ports into
 its slots in the wiring's order: the table's props, then two per list
-point, then the hidden ports.
+point, then the hidden ports. Every port has a **port type** (`PortType`,
+ADR 0032): a number, text or math, which the compile infers once from the
+port's source and the ports it reads (`compile/seal/types.rs`) and every
+build reads to decide what the port's cell holds, whether a `<math>` is a
+math cell, and which reference leaf inside math is a math leaf.
 _Avoid_: slot (a slot is the build's numbering of a port)
 
 **Slot** — At build time, one port of one component instance, before

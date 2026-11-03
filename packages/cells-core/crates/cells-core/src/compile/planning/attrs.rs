@@ -153,11 +153,13 @@ impl<'a> Compiler<'a> {
         id
     }
 
-    /// Whether `m` is a reference to a text value: `$t`, `$ti`, `$t.value`
-    /// on a `<text>` or `<textInput>`. Decided from the referent's type at
-    /// plan time, so a text cell never reaches a numeric comparison. The
-    /// type is read first: only a text referent's path is spelled out.
-    pub(in crate::compile) fn macro_is_text(
+    /// Whether `m`, a `$t` or `$t.prop` not yet planned, reads a text
+    /// value: the prop its referent's type declares as text (`PropDef::text`,
+    /// a `<text>`'s or `<textInput>`'s `value`), read when planning so a
+    /// text cell never reaches a numeric comparison (ADR 0032). The type is
+    /// read first: only a text referent's path is spelled out. A path with
+    /// an index is read from its plan (`ref_is_text`).
+    pub(in crate::compile) fn macro_reads_text(
         &self,
         t: TemplateId,
         scope: ElemId,
@@ -172,22 +174,27 @@ impl<'a> Compiler<'a> {
             return false;
         };
         let cur_t = self.template_up(t, hops);
-        is_text_type(self.outlined(cur_t).elems[e.index()].component_type)
-            && names
-                .get(1)
-                .is_none_or(|&p| d.strings.get(p).trim() == "value")
+        let component_type = self.outlined(cur_t).elems[e.index()].component_type;
+        let prop = names.get(1).map(|&p| d.strings.get(p).trim());
+        prop_is_text(component_type, prop)
     }
 
     /// Whether planned ref `p`, planned from template `t`, reads a text
-    /// value: `macro_is_text` from the plan, with no second lookup.
+    /// value: `macro_reads_text` from the plan, with no second lookup, for
+    /// any path the templates follow to an element.
     pub(in crate::compile) fn ref_is_text(&self, t: TemplateId, p: RefId) -> bool {
         let r = &self.compiled.refs[p.index()];
-        let [Step::Elem(e)] = r.steps.as_slice() else {
+        let Some((cur_t, e)) = self.static_target(t, p) else {
             return false;
         };
-        let cur_t = self.template_up(t, r.hops);
-        is_text_type(self.outlined(cur_t).elems[e.index()].component_type)
-            && r.prop.is_none_or(|p| p.is("value"))
+        let component_type = self.outlined(cur_t).elems[e.index()].component_type;
+        match r.prop {
+            None => prop_is_text(component_type, None),
+            Some(rp) => matches!(
+                rp.sel_on(component_type),
+                Some(PropSel::At(PropAt::Position(i))) if component_type.prop_defs()[i].text
+            ),
+        }
     }
 
     /// A literal number or a single reference; else `BadValue`.
@@ -469,11 +476,16 @@ fn literal_value(text: &str) -> Option<Source> {
     }
 }
 
-/// The types whose value is text (a string id), not a number.
-fn is_text_type(component_type: ComponentType) -> bool {
+/// Whether prop `prop` (the default prop when `None`) of `component_type`
+/// holds text, as its table declares (`PropDef::text`).
+fn prop_is_text(component_type: ComponentType, prop: Option<&str>) -> bool {
+    let sel = match prop {
+        Some(name) => component_type.resolve_prop(component_type.canonical_prop(name)),
+        None => component_type.default_sel(),
+    };
     matches!(
-        component_type,
-        ComponentType::Text | ComponentType::TextInput
+        sel,
+        Some(PropSel::At(PropAt::Position(i))) if component_type.prop_defs()[i].text
     )
 }
 

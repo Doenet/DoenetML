@@ -17,7 +17,6 @@ impl<'c> Builder<'c> {
         let def = &c.choices[cid.index()];
         let every_option = !def.reactive && self.view.options() == Options::Every;
         let mut inst = ChoiceInst {
-            def: cid,
             comp,
             scopes: Vec::new(),
             branch_of: Vec::new(),
@@ -149,8 +148,7 @@ impl<'c> Builder<'c> {
         let scope = self.components.scope[c.index()];
         let w = self.stand_in(component_type, &members, c, scope);
         self.stand_ins.insert(w, members.clone());
-        let what = format!("<{}>", component_type.tag());
-        self.stand_in_sources(w, &members, None, &what)?;
+        self.stand_in_sources(w, &members, None)?;
         self.pick_stand_ins.insert(c, w);
         Ok(w)
     }
@@ -158,24 +156,16 @@ impl<'c> Builder<'c> {
     /// Sources and kinds of stand-in `w` for `members`: each prop chooses
     /// among theirs by `choice` when it is given (a reactive choice), else
     /// only reads them (the abstract build's stand-in for a pick). The
-    /// members must hold one kind of value per prop, which the stand-in
-    /// holds too.
+    /// members hold one kind of value per prop (checked when compiled,
+    /// ADR 0032), which the stand-in holds too.
     fn stand_in_sources(
         &mut self,
         w: CompIdx,
         members: &[CompIdx],
         choice: Option<SlotId>,
-        what: &str,
     ) -> Result<()> {
         let component_type = self.components.component_type[w.index()];
         let symbolic = members.iter().any(|&m| self.is_symbolic(m));
-        self.math_mode
-            .resize(self.components.len(), MathMode::Unknown);
-        self.math_mode[w.index()] = if symbolic {
-            MathMode::Symbolic
-        } else {
-            MathMode::Numeric
-        };
         let n = byte(members.len());
         for pi in 0..self.n_public(w) {
             let branch_slots: Vec<SlotId> = members
@@ -188,15 +178,9 @@ impl<'c> Builder<'c> {
                     }
                 })
                 .collect();
-            let kinds: Vec<ValueType> = branch_slots.iter().map(|&s| self.value_type(s)).collect();
-            if kinds.iter().any(|&k| k != kinds[0]) {
-                return Err(Error::Unsupported(format!(
-                    "{what} holds a different kind of value (number, text or math) in different branches: its '{}' must be the same kind in each",
-                    component_type
-                        .prop_name(self.n_public(w), pi)
-                        .unwrap_or_default()
-                )));
-            }
+            // One kind of value in every branch: checked when compiled
+            // (ADR 0032, `compile/seal/types.rs`).
+            let kind = self.value_type(branch_slots[0]);
             let s = self.slot(w, pi);
             self.sources[s.index()] = match choice {
                 None => {
@@ -209,7 +193,7 @@ impl<'c> Builder<'c> {
                     self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs)
                 }
             };
-            if kinds.first() == Some(&ValueType::Text) {
+            if kind == ValueType::Text {
                 self.typed_slots.push((s, ValueType::Text));
             }
         }
@@ -263,11 +247,9 @@ impl<'c> Builder<'c> {
             let inst = self.choice_insts[i].clone();
             let choice = (!inst.every_option)
                 .then(|| self.slot(inst.comp, prop::conditional_content::CHOICE));
-            let def = &self.compiled.choices[inst.def.index()];
-            for (u, &ic) in inst.iface_comps.iter().enumerate() {
+            for &ic in &inst.iface_comps {
                 let members = self.stand_ins[&ic].clone();
-                let what = format!("'{}'", def.used[u]);
-                if let Err(e) = self.stand_in_sources(ic, &members, choice, &what) {
+                if let Err(e) = self.stand_in_sources(ic, &members, choice) {
                     self.fail_at_comp(inst.comp);
                     return Err(e);
                 }

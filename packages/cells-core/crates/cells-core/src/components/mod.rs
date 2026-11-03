@@ -816,6 +816,11 @@ pub struct PropDef {
     /// the referent instead of its default prop (`function="$m"` wants the
     /// math's `expr`, not its `value`).
     pub ref_prop: Option<&'static str>,
+    /// The prop holds text, a string id (a `<text>`'s or `<textInput>`'s
+    /// `value`), whatever gives it: declared, so a reference to it reads
+    /// as text when it is planned (ADR 0032), before the type pass types
+    /// every port.
+    pub text: bool,
     /// A renderer may request this prop: a student's action writes it, so
     /// it is one of the document's inputs (ADR 0017).
     pub interactive: bool,

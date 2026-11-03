@@ -1,7 +1,7 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Step 1 of the Migration is done; see
-Migration. Builds on
+Status: proposed 2026-11-03. Steps 1 and 2 of the Migration are done;
+see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -491,6 +491,40 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
    the build's `ArityMismatch` with reads of the port's type. Test: the
    type pass agrees with what every build decided on the golden set and
    every fixture, at every count.
+   Done, in the bounded form the single-cell ports of step 1 allow. The
+   lattice is `Num | Text | Math`, what a cell holds (`PortType`,
+   `compile/plan.rs`): a point, a tuple and a list are shapes of the
+   selector that names them, which the type table already states, not
+   types of a port, and `Bool` stays within `Num` as the build's value
+   types have it. The pass (`compile/seal/types.rs`) runs when sealing,
+   once every element is planned and linked and every choice's
+   interface is known: a fixpoint from `Num` up over every template at
+   once, each port typed from its source and the ports it reads, a
+   reference followed as far as the templates tell (into a repeat's
+   body, a collect's candidates, a select's options, an interface's
+   elements in every branch) and joined over where it may land. Every
+   build reads the result (`Compiled::port_type`): what a cell holds
+   (`typed_slots`), whether a `<math>`'s handle is a math cell, and
+   whether a leaf inside math stands for an expression, so `MathMode`,
+   the `is_symbolic` memo and the build's walk of plans for a value's
+   type are gone. `macro_is_text` is a read of the prop's declared kind
+   (`PropDef::text`, a `<text>`'s and `<textInput>`'s `value`), which is
+   what a planning-time read can have before the pass runs. The shape
+   checks the build made move to the pass where the abstract build is
+   sure to land on a component: a reference read as one cell names one,
+   a coordinate is of a point, a leaf inside math names one cell and no
+   text, and an interface name or a whole pick holds text in every
+   branch or in none (a math cell and a number join to a math cell, as
+   the build's stand-in has always held them); an index into a collect
+   that gathers from no repeat,
+   or into a point list, may be past the end at every count, which the
+   build reads as the missing value, so the build keeps its arity check
+   for that path alone. The settling of a `<math>`'s shape (point, tuple
+   or math) stays outlining's, since it decides the element's prop table
+   before anything is planned. Test: `tests/port_types.rs`, which checks
+   every template slot's cell type against its port type on the golden
+   set and every fixture, at load and at every count of every repeat.
+   The golden diff is unchanged.
 3. **`Source` split.** Expression, leaf and specialization as three
    types; `FirstIteration` becomes `Specialize`. `Inherit` and `Deferred`
    stay until steps 4 and 5. Test: `gives_document_constant` and the
