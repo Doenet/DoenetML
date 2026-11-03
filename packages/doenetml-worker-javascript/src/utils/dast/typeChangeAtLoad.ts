@@ -88,8 +88,7 @@ export type BranchNameWarning = {
  *   `canBeAbsent` when no branch may be active (a `<conditionalContent>`
  *   with no `<else>`, here or in a branch); `absent` when, for a name after
  *   it (`$P.x`), what every branch declares by the one before has none of
- *   that name, so that it is a property there (`absent` is the name, with
- *   `remaining` the number of names from it to the end of those checked);
+ *   that name, so that it is a property there (`Absent`);
  *   `unknownBelow` when no branch is known to declare the names after the
  *   first, as each that declares the first is a copy (`declarationsBelow`);
  * - `missing`: the branch `branch` (`case`, `else` or `option`), the
@@ -107,8 +106,7 @@ type BranchDeclaration =
           status: "ok";
           type?: string;
           canBeAbsent: boolean;
-          absent?: string;
-          remaining?: number;
+          absent?: Absent;
           unknownBelow?: boolean;
       }
     | {
@@ -139,8 +137,7 @@ type BranchDeclaration =
  * `unknownBelow` when what it declares by the names after the first is not
  * known (a copy), a failure of a nested branch container, or, for a name
  * after the first (`$h.x`), the name a component on the way lacks
- * (`absent`), with the number of names from it to the end (`remaining`), so
- * that branches lacking names at different depths (`$h.x.y`, one branch's
+ * (`absent`, `Absent`), so that branches lacking names at different depths (`$h.x.y`, one branch's
  * `h` lacking `x`, another's `h.x` lacking `y`) are told apart, and whether
  * what lacks it can itself be absent (`canBeAbsent`).
  */
@@ -148,11 +145,17 @@ type VisibleDeclaration =
     | { type?: string; canBeAbsent: boolean; unknownBelow?: boolean }
     | { failure: BranchDeclaration }
     | {
-          absent: string;
-          remaining: number;
+          absent: Absent;
           canBeAbsent?: boolean;
           type?: string;
       };
+
+/**
+ * A name after the first of a reference (`x` of `$h.x`) that what the names
+ * before it declare has none of, with the number of names checked from it to
+ * the end (`remaining`).
+ */
+type Absent = { name: string; remaining: number };
 
 /** Why a composite does not always hold exactly one component. */
 type NotOne =
@@ -273,6 +276,15 @@ export function checkTypeChangesAtLoad({
      * many references (`$s.x`, `$s.title`) start from it.
      */
     const namedBelowByKey = new Map<string, SerializedComponent[] | null>();
+
+    /**
+     * What `branchContainerAt` found, by the index and whether it is for a
+     * name after an index into picks.
+     */
+    const containerByKey = new Map<string, SerializedComponent | undefined>();
+
+    /** What `literalBounds` found, by the index of the copy. */
+    const boundsByCopy = new Map<number, TypeChangeAtLoadError | undefined>();
 
     const allClasses = componentInfoObjects.allComponentClasses as Record<
         string,
@@ -1638,7 +1650,6 @@ export function checkTypeChangesAtLoad({
         if (declared.absent !== undefined) {
             return {
                 absent: declared.absent,
-                remaining: declared.remaining!,
                 canBeAbsent: declared.canBeAbsent,
                 type: declared.type,
             };
@@ -1666,8 +1677,7 @@ export function checkTypeChangesAtLoad({
     ): VisibleDeclaration {
         // what lacks it, whose type is then compared (`$x.value`)
         const absent = {
-            absent: names[0],
-            remaining: names.length,
+            absent: { name: names[0], remaining: names.length },
             type: declaredType(component),
         };
         const indexed = names[0] === INDEX;
@@ -1761,7 +1771,7 @@ export function checkTypeChangesAtLoad({
             declaration === undefined || "failure" in declaration
                 ? undefined
                 : "absent" in declaration
-                  ? names.length - declaration.remaining
+                  ? names.length - declaration.absent.remaining
                   : declaration.unknownBelow
                     ? undefined
                     : names.length,
@@ -1795,7 +1805,7 @@ export function checkTypeChangesAtLoad({
                     container,
                     branch: isElse ? "else" : kind,
                     ordinal: isElse ? 1 : caseOrdinal,
-                    name: declaration.absent,
+                    name: declaration.absent.name,
                 };
             }
         }
@@ -1840,13 +1850,10 @@ export function checkTypeChangesAtLoad({
         // others being copies
         const absentIn = perPart.find(
             ([declaration]) => "absent" in declaration,
-        );
-        const absent = absentIn?.[0] as
-            { absent: string; remaining: number } | undefined;
+        )?.[0] as { absent: Absent } | undefined;
         return {
             status: "ok",
-            absent: absent?.absent,
-            remaining: absent?.remaining,
+            absent: absentIn?.absent,
             unknownBelow: maxReach === undefined,
             type:
                 knownTypes.length === declarations.length
@@ -1866,9 +1873,18 @@ export function checkTypeChangesAtLoad({
      * written with branches of its own (`<select copy="$s"><option>...`)
      * has them after those it copies, and one writing `numToSelect` picks
      * that many, so the container returned then is the one copied with
-     * those branches and that `numToSelect`.
+     * those branches and that `numToSelect`. Found once for each `idx`
+     * (`containerByKey`), so that a merged container is made once.
      */
     function branchContainerAt(idx: number, indexed = false) {
+        const key = `${idx}|${indexed}`;
+        if (!containerByKey.has(key)) {
+            containerByKey.set(key, findBranchContainer(idx, indexed));
+        }
+        return containerByKey.get(key);
+    }
+
+    function findBranchContainer(idx: number, indexed: boolean) {
         const visited = new Set<number>();
         let node =
             referents.componentsByIdx.get(idx) ??
@@ -2104,33 +2120,56 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The names at the start of `path`, what a reference leaves unresolved
+     * (`h` and `x` of `$h[1].x.value[2]`), with `INDEX` between two names
+     * that one index is written between (`$h[1].x`, the name being in the
+     * branches of what is indexed, as for `$s[1].x`), and `indices`, the
+     * index written at each `INDEX`. They end before a part that is not a
+     * name, or, with `documentNames`, a name after the first that no
+     * component of the document has (a property, `value`), and after a name
+     * with an index not followed by a name, or with more than one index
+     * (`trailingIndex`, the `[2]` of `x[2]`). `rest` is what follows them.
+     */
+    function leadingNames(path: any[], documentNames: boolean) {
+        const isName = (part: any, ind: number) =>
+            typeof part?.name === "string" &&
+            part.name !== "" &&
+            (!documentNames || ind === 0 || allNames.has(part.name));
+        const names: string[] = [];
+        const indices: any[] = [];
+        for (const [ind, part] of path.entries()) {
+            if (!isName(part, ind)) {
+                return { names, indices, rest: path.slice(ind) };
+            }
+            names.push(part.name);
+            const index = part.index ?? [];
+            if (index.length === 0) {
+                continue;
+            }
+            if (index.length === 1 && isName(path[ind + 1], ind + 1)) {
+                names.push(INDEX);
+                indices.push(index[0]);
+                continue;
+            }
+            return {
+                names,
+                indices,
+                trailingIndex: index,
+                rest: path.slice(ind + 1),
+            };
+        }
+        return { names, indices, rest: [] };
+    }
+
+    /**
      * The names at the start of `path` (`h` and `x` of `$h.x`) whose
-     * declarations in the branches are held to the every-branch rule: the
-     * first, and each after it that is a name of the document, up to one
-     * that is a property (`$h.x.value`) or an index with nothing named
-     * after it (`$h.x[1]`). One index followed by a name (`$h[1].x`) is
-     * `INDEX` between them: the name is in the branches of what is indexed,
-     * as for `$s[1].x`.
+     * declarations in the branches are held to the every-branch rule
+     * (`leadingNames`): the first, and each after it that is a name of the
+     * document, up to one that is a property (`$h.x.value`) or an index
+     * with nothing named after it (`$h.x[1]`).
      */
     function namesOf(path: any[]) {
-        const names: string[] = [path[0].name];
-        for (const [ind, part] of path.entries()) {
-            const index = part.index ?? [];
-            const next = path[ind + 1];
-            if (
-                index.length > 1 ||
-                typeof next?.name !== "string" ||
-                next.name === "" ||
-                !allNames.has(next.name)
-            ) {
-                break;
-            }
-            if (index.length === 1) {
-                names.push(INDEX);
-            }
-            names.push(next.name);
-        }
-        return names;
+        return leadingNames(path, true).names;
     }
 
     /**
@@ -2220,9 +2259,17 @@ export function checkTypeChangesAtLoad({
      * branches declare. The index into each component a name before it
      * names is checked, as for `$h[2]` (`decide`), and is past the picks
      * only when it is for each (`pastEach`), though their counts differ.
-     * `undefined` when no index is known to be.
+     * `undefined` when no index is known to be. Found once for each copy
+     * (`boundsByCopy`), as `checkBranchName` and `decide` both ask.
      */
     function literalBounds(copy: SerializedComponent) {
+        if (!boundsByCopy.has(copy.componentIdx)) {
+            boundsByCopy.set(copy.componentIdx, findLiteralBounds(copy));
+        }
+        return boundsByCopy.get(copy.componentIdx);
+    }
+
+    function findLiteralBounds(copy: SerializedComponent) {
         const ref = refOf(copy);
         if (!ref || ref.nodeIdx < 0) {
             return undefined;
@@ -2244,35 +2291,25 @@ export function checkTypeChangesAtLoad({
         if (!container) {
             return undefined;
         }
-        const namePath = path.slice(indexed ? 1 : 0);
-        const names: string[] = [];
-        for (const [ind, part] of namePath.entries()) {
-            const index = part.index ?? [];
-            if (
-                typeof part.name !== "string" ||
-                part.name === "" ||
-                ind === namePath.length - 1 ||
-                index.length > 1
-            ) {
-                return undefined;
-            }
-            names.push(part.name);
-            if (index.length === 0) {
-                continue;
-            }
-            const named = visibleNamed(container, names);
+        // each index between two names, into what the names before it name
+        const { names, indices } = leadingNames(
+            path.slice(indexed ? 1 : 0),
+            false,
+        );
+        const positions = [...names.keys()].filter((i) => names[i] === INDEX);
+        for (const [k, ind] of positions.entries()) {
+            const named = visibleNamed(container, names.slice(0, ind));
             if (!named || named.length === 0) {
                 return undefined;
             }
             const bounds = pastEach(
                 named.map((n) =>
-                    indexedInstance(n.componentIdx, index[0], seen),
+                    indexedInstance(n.componentIdx, indices[k], seen),
                 ),
             );
             if (bounds) {
                 return bounds;
             }
-            names.push(INDEX);
         }
         return undefined;
     }
@@ -2317,9 +2354,7 @@ export function checkTypeChangesAtLoad({
         if (copy.doenetAttributes?.forList !== undefined) {
             return false;
         }
-        const writtenType = canonicalType(
-            literalText(copy.attributes?._createComponentOfType),
-        );
+        const writtenType = tagType(copy);
         return (
             writtenType !== undefined &&
             literalText(copy.attributes._copyInChildren) === "true" &&
@@ -2414,34 +2449,12 @@ export function checkTypeChangesAtLoad({
             return undefined;
         }
         const isList = copy.doenetAttributes?.forList !== undefined;
-        const writtenType = isList
-            ? undefined
-            : canonicalType(
-                  literalText(copy.attributes._createComponentOfType),
-              );
-        if (!isList) {
-            if (
-                !writtenType ||
-                literalText(copy.attributes._copyInChildren) !== "true" ||
-                writtenType === "group" ||
-                isComposite(writtenType) ||
-                allClasses[writtenType]?.listEntryComponentType !== undefined
-            ) {
-                return undefined;
-            }
+        if (!isList && !isScalarTag(copy)) {
+            return undefined;
         }
+        const writtenType = isList ? undefined : tagType(copy);
         // The type of each entry of a list tag.
-        const entryOfList = isList
-            ? (() => {
-                  const list = referents.componentsByIdx.get(
-                      copy.doenetAttributes!.forList,
-                  );
-                  return (
-                      list &&
-                      allClasses[list.componentType]?.listEntryComponentType
-                  );
-              })()
-            : undefined;
+        const entryOfList = isList ? tagType(copy) : undefined;
         /** The decision for a tag made from `held`, of the composite `tag`. */
         function verdict(held: Holding, tag: string, direct: boolean) {
             if (held.skip) {
@@ -2463,20 +2476,9 @@ export function checkTypeChangesAtLoad({
             container: SerializedComponent,
             namePath: any[],
         ) {
-            const names: string[] = [];
-            for (const [ind, part] of namePath.entries()) {
-                const index = part.index ?? [];
-                if (
-                    typeof part.name !== "string" ||
-                    part.name === "" ||
-                    (ind < namePath.length - 1 && index.length > 1)
-                ) {
-                    return undefined;
-                }
-                names.push(part.name);
-                if (ind < namePath.length - 1 && index.length === 1) {
-                    names.push(INDEX);
-                }
+            const { names, rest } = leadingNames(namePath, false);
+            if (names.length === 0 || rest.length > 0) {
+                return undefined;
             }
             const named = visibleNamed(container, names);
             if (!named || named.length === 0) {
