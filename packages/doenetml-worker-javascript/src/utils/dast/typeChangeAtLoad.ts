@@ -462,7 +462,13 @@ export function checkTypeChangesAtLoad({
             const entry = entryType(node);
             return entry ? { types: new Set([entry]) } : unknown;
         }
-        const holder = namedHolder(ref.nodeIdx, seen);
+        // An index after a reference to a copy (`$a1[2]` of `<group
+        // extend="$a"/>`) selects among what the copy holds, not the
+        // instances of what it copies.
+        const holder =
+            node.componentType === "_copy"
+                ? undefined
+                : namedHolder(ref.nodeIdx, seen);
         const held = holder && instanceHolding(holder, seen);
         if (held) {
             return held;
@@ -868,6 +874,14 @@ export function checkTypeChangesAtLoad({
         }
         const indices = path[0].index ?? [];
         if (indices.length !== 1) {
+            return undefined;
+        }
+        const indexed =
+            referents.componentsByIdx.get(ref.nodeIdx) ??
+            referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        if (!indexed || indexed.componentType === "_copy") {
+            // An index after a reference to a copy selects among what the
+            // copy holds (`indexedHolding`).
             return undefined;
         }
         const holder = namedHolder(ref.nodeIdx, seen);

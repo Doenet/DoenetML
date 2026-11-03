@@ -233,7 +233,9 @@ describe("content words follow the document locale @group4", () => {
             <answer name="a">42</answer>
             <text name="raw" extend="$a.submitLabelPreLocalize" />
             `;
-            expect((await values(doc, ["raw"])).raw).eq("");
+            // A tag extending a property its source does not have is an
+            // error in its place (D36), so it has no value.
+            expect((await values(doc, ["raw"])).raw).eq(undefined);
         });
 
         it("labels a section-wide button too", async () => {
