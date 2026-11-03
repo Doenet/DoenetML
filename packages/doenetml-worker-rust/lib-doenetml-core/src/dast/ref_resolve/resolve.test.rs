@@ -27,14 +27,14 @@ fn can_resolve_name_among_parents() {
         name: "y".to_string(),
         source_doc: None.into(),
     };
-    let referent = resolver.search_parents(&y_name, c_idx);
+    let referent = resolver.search_parents(&y_name, c_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(b_idx));
 
-    let referent = resolver.search_parents(&y_name, b_idx);
+    let referent = resolver.search_parents(&y_name, b_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(b_idx));
 
     // Searching from `e` should fail because there are multiple `y`s that could be referred to.
-    let referent = resolver.search_parents(&y_name, e_idx);
+    let referent = resolver.search_parents(&y_name, e_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
 }
 
@@ -63,18 +63,18 @@ fn resolve_to_parent_in_ambiguous_case() {
         name: "x".to_string(),
         source_doc: None.into(),
     };
-    let referent = resolver.search_parents(&x_name, c_idx);
+    let referent = resolver.search_parents(&x_name, c_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(a_idx));
 
-    let referent = resolver.search_parents(&x_name, b_idx);
+    let referent = resolver.search_parents(&x_name, b_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(a_idx));
 
     // Searching from `d` should find itself
-    let referent = resolver.search_parents(&x_name, d_idx);
+    let referent = resolver.search_parents(&x_name, d_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(d_idx));
 
     // Searching from `e` should fail because there are multiple `x`s that could be referred to.
-    let referent = resolver.search_parents(&x_name, e_idx);
+    let referent = resolver.search_parents(&x_name, e_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
 }
 
@@ -469,7 +469,7 @@ fn can_resolve_name_at_ref_origin() {
         name: "x".to_string(),
         source_doc: None.into(),
     };
-    let referent = resolver.search_parents(&x_name, b_idx);
+    let referent = resolver.search_parents(&x_name, b_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(a_idx));
 }
 

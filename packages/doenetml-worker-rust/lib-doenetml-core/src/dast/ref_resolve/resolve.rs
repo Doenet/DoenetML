@@ -6,7 +6,9 @@ use tsify_next::Tsify;
 use super::{IndexKind, NameMap, ResolutionError, root_names::RootNameCache};
 use crate::dast::{
     Position,
-    flat_dast::{FlatElement, FlatNode, FlatPathPart, Index, SourceDoc, UntaggedContent},
+    flat_dast::{
+        FlatAttribute, FlatElement, FlatNode, FlatPathPart, Index, SourceDoc, UntaggedContent,
+    },
     ref_resolve::NameWithSource,
 };
 
@@ -47,10 +49,26 @@ pub struct ChildIndex {
 }
 
 /// Status of a pointer referring to children of an element.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Ref {
     Unique(Index),
     Ambiguous(Vec<Index>),
+    /// The name is declared in the branches of the `<conditionalContent>` or the one-pick
+    /// `<select>` at this index (see [`branch_container_kind`]).
+    /// Only one branch is active at a time, so declaring the name in several branches
+    /// is not ambiguous: the name is resolved as though it were written as a path
+    /// through the container, `$x` as `$cc.x`, which finds the `x` of the active branch.
+    Branches(Index),
+}
+
+impl Ref {
+    /// The index a `Unique` or a `Branches` refers to, `None` for `Ambiguous`.
+    pub(super) fn single_idx(&self) -> Option<Index> {
+        match self {
+            Ref::Unique(idx) | Ref::Branches(idx) => Some(*idx),
+            Ref::Ambiguous(_) => None,
+        }
+    }
 }
 
 /// The `Visibility` of a node determines how the `name_map` is constructed.
@@ -76,6 +94,9 @@ pub enum Ref {
 ///   ```
 ///   - References `$y` and `$z` from `<c>` would fail because the `name_map` of `<d>` would not contain the nodes.
 ///   - References `$x.y` and `$x.z` from `<c>` would resolve because the `name_map` of `<option>` would contain the nodes.
+///
+///   An `<option>` of a `<select>` that picks one is `Visible` instead,
+///   as are a `<case>` and an `<else>`: see [`branch_container_kind`].
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) enum Visibility {
     Visible,
@@ -83,8 +104,60 @@ pub(super) enum Visibility {
     ChildrenInvisibleToTheirGrandparents,
 }
 
-const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 5] =
-    ["repeat", "repeatForSequence", "option", "case", "else"];
+/// The components whose children are private, reached only through the component's name
+/// (`$r[2].x`). An `<option>` is among them unless its `<select>` picks one
+/// (see [`branch_container_kind`]).
+const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 3] = ["repeat", "repeatForSequence", "option"];
+
+/// What kind of branch container an element is, if any.
+///
+/// A `<conditionalContent>` shows one of its `<case>`s or its `<else>`,
+/// and a `<select>` with one pick (`numToSelect` written as `1`, or left out) shows one of its `<option>`s.
+/// The names declared in those branches are visible outside the container, as a `<group>`'s are,
+/// and the same name declared in several branches is not ambiguous, since only one branch is active
+/// (D13, D22). See [`Ref::Branches`].
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(super) enum BranchContainerKind {
+    ConditionalContent,
+    OnePickSelect,
+}
+
+impl BranchContainerKind {
+    /// Whether a child with this tag is one of the container's branches.
+    pub(super) fn is_branch(&self, child_name: &str) -> bool {
+        match self {
+            BranchContainerKind::ConditionalContent => child_name == "case" || child_name == "else",
+            BranchContainerKind::OnePickSelect => child_name == "option",
+        }
+    }
+}
+
+/// The kind of branch container `element` is, if any (see [`BranchContainerKind`]).
+///
+/// `literal_text` gives the text an attribute is written as, if it is only text,
+/// which decides whether a `<select>` picks one.
+pub(super) fn branch_container_kind(
+    element: &FlatElement,
+    literal_text: impl Fn(&FlatAttribute) -> Option<String>,
+) -> Option<BranchContainerKind> {
+    match element.name.as_str() {
+        "conditionalContent" => Some(BranchContainerKind::ConditionalContent),
+        "select" => {
+            let num_to_select = element
+                .attributes
+                .iter()
+                .find(|attr| attr.name.eq_ignore_ascii_case("numToSelect"));
+            match num_to_select {
+                None => Some(BranchContainerKind::OnePickSelect),
+                Some(attr) => match literal_text(attr) {
+                    Some(text) if text.trim() == "1" => Some(BranchContainerKind::OnePickSelect),
+                    _ => None,
+                },
+            }
+        }
+        _ => None,
+    }
+}
 
 impl Visibility {
     fn lookup_by_name(name: &str) -> Self {
@@ -236,7 +309,8 @@ impl Resolver {
 
         if !skip_parent_search {
             let first_path_part = path.next().ok_or(ResolutionError::NoReferent)?;
-            current_idx = self.search_parents(
+            let in_branches;
+            (current_idx, in_branches) = self.search_parents(
                 &NameWithSource {
                     name: first_path_part.name.clone(),
                     source_doc,
@@ -246,11 +320,20 @@ impl Resolver {
             if current_idx != origin {
                 nodes_in_resolved_path.push(current_idx);
             }
-            // If we made it here, the first entry in `path` has a valid referent.
-            // If this entry also has an index, we add the index back to the beginning of the path
-            // so that it will be address first, below. This would
-            // happen if the reference was something like `$a[2].b`.
-            if !first_path_part.index.is_empty() {
+            if in_branches {
+                // The name is declared in the branches of the container `current_idx`,
+                // so it is resolved through the container, `$x` as `$cc.x`:
+                // the whole path is still to be resolved from there.
+                remaining_path = iter::once(first_path_part.clone())
+                    .chain(path.cloned())
+                    .collect();
+
+                path = remaining_path.iter();
+            } else if !first_path_part.index.is_empty() {
+                // If we made it here, the first entry in `path` has a valid referent.
+                // If this entry also has an index, we add the index back to the beginning of the path
+                // so that it will be address first, below. This would
+                // happen if the reference was something like `$a[2].b`.
                 // In order to create a new iterator that is the same type as the original `path` iterator,
                 // we first create a new vector, then create a path iterator from it.
                 remaining_path = iter::once(FlatPathPart {
@@ -274,10 +357,42 @@ impl Resolver {
 
                 // current_idx specifies the "root" of the search. We try to resolve
                 // children based on the path part, returning an error if there is an ambiguity.
-                if let Some(referent) = node_data.name_map.get(&NameWithSource {
+                let name_with_source = NameWithSource {
                     name: part.name.clone(),
                     source_doc,
-                }) {
+                };
+                // A name declared in the branches of a container is resolved through it:
+                // in the container, it is the active branch's, once the container has added
+                // what that branch holds (`add_nodes`), else it is left for the container
+                // to resolve when it has.
+                let mut referent = node_data.name_map.get(&name_with_source);
+                let mut left_for_container = false;
+                while let Some(Ref::Branches(container_idx)) = referent {
+                    if *container_idx == current_idx {
+                        left_for_container = true;
+                        break;
+                    }
+                    current_idx = *container_idx;
+                    if !nodes_in_resolved_path.contains(&current_idx) {
+                        nodes_in_resolved_path.push(current_idx);
+                    }
+                    node_data = &self.node_resolver_data[current_idx + 1];
+                    referent = node_data.name_map.get(&name_with_source);
+                    // No branch is active, so the container holds nothing by that name now
+                    left_for_container = referent.is_none();
+                }
+                if left_for_container {
+                    let remaining_path: Vec<FlatPathPart> =
+                        iter::once(part.clone()).chain(path.cloned()).collect();
+                    return Ok(RefResolution {
+                        node_idx: current_idx,
+                        unresolved_path: Some(remaining_path),
+                        original_path,
+                        nodes_in_resolved_path,
+                        child_indexes,
+                    });
+                }
+                if let Some(referent) = referent {
                     matched_part_name = true;
                     match referent {
                         Ref::Unique(idx) => {
@@ -290,6 +405,7 @@ impl Resolver {
                         Ref::Ambiguous(_) => {
                             return Err(ResolutionError::NonUniqueReferent);
                         }
+                        Ref::Branches(_) => unreachable!(),
                     }
                 }
 
@@ -333,6 +449,22 @@ impl Resolver {
                                         Ref::Ambiguous(_) => {
                                             return Err(ResolutionError::NonUniqueReferent);
                                         }
+                                        Ref::Branches(idx) => {
+                                            // Left for the container to resolve
+                                            current_idx = *idx;
+                                            if !nodes_in_resolved_path.contains(&current_idx) {
+                                                nodes_in_resolved_path.push(current_idx);
+                                            }
+                                            let remaining_path: Vec<FlatPathPart> =
+                                                iter::once(part.clone()).chain(path.cloned()).collect();
+                                            return Ok(RefResolution {
+                                                node_idx: current_idx,
+                                                unresolved_path: Some(remaining_path),
+                                                original_path,
+                                                nodes_in_resolved_path,
+                                                child_indexes,
+                                            });
+                                        }
                                     }
                                 } else {
                                     // In order to allow a reference to the node itself (or a node it is extending)
@@ -368,7 +500,7 @@ impl Resolver {
                                                 node_data =
                                                     &self.node_resolver_data[current_idx + 1];
                                             }
-                                            Ref::Ambiguous(_) => {
+                                            Ref::Ambiguous(_) | Ref::Branches(_) => {
                                                 return Err(ResolutionError::NonUniqueReferent);
                                             }
                                         }
@@ -515,7 +647,9 @@ impl Resolver {
     }
 
     /// Search up the chain of parents to find the first node that has `name` accessible.
-    /// Return the referent of `name`.
+    /// Return the referent of `name`, and whether it is the branches of a container
+    /// (`Ref::Branches`), in which case the index returned is the container's,
+    /// through which `name` is still to be resolved.
     ///
     /// A name is accessible from a node when it is in the node's `name_map`
     /// and does not reach content a copy or an extend made there (`copied_names`):
@@ -524,13 +658,14 @@ impl Resolver {
         &self,
         name_with_source_doc: &NameWithSource,
         origin: usize,
-    ) -> Result<Index, ResolutionError> {
+    ) -> Result<(Index, bool), ResolutionError> {
         let mut node_data = &self.node_resolver_data[origin + 1];
 
         // if passed in a node without a parent, then search from that node itself
         if matches!(node_data.node_parent, NodeParent::None) {
             return match node_data.written_name(name_with_source_doc) {
-                Some(Ref::Unique(idx)) => Ok(*idx),
+                Some(Ref::Unique(idx)) => Ok((*idx, false)),
+                Some(Ref::Branches(idx)) => Ok((*idx, true)),
                 Some(Ref::Ambiguous(_)) => Err(ResolutionError::NonUniqueReferent),
                 None => Err(ResolutionError::NoReferent),
             };
@@ -550,7 +685,10 @@ impl Resolver {
             {
                 match resolved {
                     Ref::Unique(idx) => {
-                        return Ok(*idx);
+                        return Ok((*idx, false));
+                    }
+                    Ref::Branches(idx) => {
+                        return Ok((*idx, true));
                     }
                     Ref::Ambiguous(indices) => {
                         if indices.contains(&child_idx) {
@@ -566,7 +704,7 @@ impl Resolver {
                             //     <problem name="p" />
                             // <section>
                             // ```
-                            return Ok(child_idx);
+                            return Ok((child_idx, false));
                         } else {
                             return Err(ResolutionError::NonUniqueReferent);
                         }

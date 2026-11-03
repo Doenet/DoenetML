@@ -23,6 +23,9 @@ impl Resolver {
                             Ref::Unique(idx) => {
                                 (key.clone(), Ref::Unique(old_to_new_indices[*idx]))
                             }
+                            Ref::Branches(idx) => {
+                                (key.clone(), Ref::Branches(old_to_new_indices[*idx]))
+                            }
                             Ref::Ambiguous(vec_idx) => (
                                 key.clone(),
                                 Ref::Ambiguous(

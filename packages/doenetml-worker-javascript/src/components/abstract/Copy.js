@@ -1512,6 +1512,12 @@ export default class Copy extends CompositeComponent {
      * keeps nothing it cannot apply: it records only its own snapshot.
      */
     static async createSerializedReplacements(args) {
+        const result = await this.createSerializedReplacementsOfCopy(args);
+        await reportMissingProperty(args);
+        return result;
+    }
+
+    static async createSerializedReplacementsOfCopy(args) {
         const { component } = args;
         const unlinked = (await component.stateValues.link) === false;
         const held = unlinked
@@ -2470,7 +2476,13 @@ export default class Copy extends CompositeComponent {
         };
     }
 
-    static async calculateReplacementChanges({
+    static async calculateReplacementChanges(args) {
+        const result = await this.calculateReplacementChangesOfCopy(args);
+        await reportMissingProperty(args);
+        return result;
+    }
+
+    static async calculateReplacementChangesOfCopy({
         component,
         nComponents,
         componentChanges,
@@ -6066,10 +6078,14 @@ async function typeChangeAtLoadError({
             await component.stateValues.originalPath,
             components[extended?.componentIdx],
         );
-    const args =
-        mark.code === "doenet-w0181"
-            ? { reference: source, ...mark.args }
-            : { componentType: writtenType, source, ...mark.args };
+    // A reference that names nothing (an index past what a selector picks,
+    // or a name the branches of a container do not all declare,
+    // `branchNameIssue`) is quoted as a reference.
+    const args = ["doenet-w0181", "doenet-w0183", "doenet-w0184"].includes(
+        mark.code,
+    )
+        ? { reference: source, ...mark.args }
+        : { componentType: writtenType, source, ...mark.args };
     return {
         level: "error",
         diagnostic: codedDiagnostic({ type: "error", code: mark.code, args }),
@@ -6148,6 +6164,69 @@ async function missingPropertyError({
                 ),
             },
         }),
+    };
+}
+
+/**
+ * Report, as the `"missingProperty"` condition of the copy `component`
+ * (`reportConditionDiagnostics`), a reference not written as a tag to a
+ * property that what it names does not have (`$n.nonexistent`, `$$f.x(2)`):
+ * `doenet-w0104`, as it is a mistake in what the author wrote (DIAG-2,
+ * #2434). It is the property the referent's type lacks, not one with no value
+ * now: `$P.z` of a point in two dimensions stays silent (VAL-5). For a
+ * composite, a name it does not hold now (`$cc.c`) is not a property, so only
+ * a property no component of the document is named
+ * (`pathStartsWithProperty`, `typeChangeAtLoad.ts`) is reported, when none of
+ * what it holds now has it. A reference written as a tag reports it as an
+ * error instead (`missingPropertyError`).
+ */
+async function reportMissingProperty({
+    component,
+    components,
+    componentInfoObjects,
+    workspace,
+}) {
+    if (!workspace) {
+        return;
+    }
+    let diagnostics = [];
+    const isTag =
+        component.attributes._createComponentOfType?.primitive?.value !==
+            undefined || component.doenetAttributes?.forList !== undefined;
+    const extendedComponent = isTag
+        ? undefined
+        : await component.stateValues.extendedComponent;
+    const sourceComponent = components[extendedComponent?.componentIdx];
+    if (sourceComponent) {
+        const propNames = await component.stateValues.effectivePropNameBySource;
+        if (
+            propNames?.length > 0 &&
+            propNames.every((name) => name === "__prop_name_not_found") &&
+            (!componentInfoObjects.isCompositeComponent({
+                componentType: sourceComponent.componentType,
+            }) ||
+                component.doenetAttributes?.pathStartsWithProperty)
+        ) {
+            diagnostics = [
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0104",
+                    args: {
+                        // as written, `$$` and all (`createReplacementsFromSources`)
+                        reference:
+                            workspace.referenceAsWritten ??
+                            referenceAsWritten(
+                                await component.stateValues.originalPath,
+                                sourceComponent,
+                            ),
+                    },
+                }),
+            ];
+        }
+    }
+    workspace.conditionDiagnostics = {
+        ...workspace.conditionDiagnostics,
+        missingProperty: diagnostics,
     };
 }
 

@@ -61,6 +61,54 @@ export type TypeChangeAtLoadError = {
     args: Record<string, string | number>;
 };
 
+/**
+ * A reference, not written as a tag, to a name declared in the branches of
+ * a `<conditionalContent>` or a one-pick `<select>` that does not satisfy
+ * the every-branch, same-type rule (D13, D22, `branchDeclaration`): it names
+ * nothing, and `code` with `args` is the warning, which is quoted with the
+ * reference as written (`reference` is added by the caller).
+ */
+export type BranchNameWarning = {
+    copy: SerializedComponent;
+    code: string;
+    args: Record<string, string | number>;
+};
+
+/**
+ * What the branches of a `<conditionalContent>` (its cases and its
+ * `<else>`) or of a `<select>` that picks one (its options) declare by one
+ * name (`branchDeclaration`):
+ *
+ * - `none`: no branch declares it;
+ * - `ok`: every branch declares it once, with the same tag (`type`,
+ *   `undefined` when what one is cannot be known from the DoenetML), and
+ *   `canBeAbsent` when no branch may be active (a `<conditionalContent>`
+ *   with no `<else>`, here or in a branch);
+ * - `missing`: the branch `branch` (`case`, `else` or `option`), the
+ *   `ordinal`-th of its kind, of `container` has none;
+ * - `types`: branches of `container` declare it as `<firstType>` and
+ *   `<secondType>`;
+ * - `skip`: not decided here (a branch declares it twice, which the
+ *   run time reports as ambiguous, or what a branch holds is not read here).
+ */
+type BranchDeclaration =
+    | { status: "none" }
+    | { status: "ok"; type?: string; canBeAbsent: boolean }
+    | {
+          status: "missing";
+          container: SerializedComponent;
+          branch: "case" | "else" | "option";
+          ordinal: number;
+      }
+    | {
+          status: "types";
+          container: SerializedComponent;
+          branch: "case" | "option";
+          firstType: string;
+          secondType: string;
+      }
+    | { status: "skip" };
+
 /** Why a composite does not always hold exactly one component. */
 type NotOne =
     /** a `<conditionalContent>` with no `<else>` */
@@ -127,7 +175,9 @@ export function checkTypeChangesAtLoad({
 }: {
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
-}) {
+}): { branchNameWarnings: BranchNameWarning[] } {
+    const branchNameWarnings: BranchNameWarning[] = [];
+
     const referents = documentReferents({
         serializedComponents,
         componentInfoObjects,
@@ -1404,6 +1454,379 @@ export function checkTypeChangesAtLoad({
         return { held, tag: holder.componentType };
     }
 
+    /**
+     * The kind of branch `component` holds, if it is a branch container: a
+     * `<conditionalContent>` shows one of its cases (`case`), and a
+     * `<select>` whose `numToSelect` is written as 1 or left out shows one of
+     * its options (`option`). The names declared in those branches are
+     * visible outside it, as a `<group>`'s are (D13, D22; `Ref::Branches` in
+     * the resolver).
+     */
+    function branchKind(component: SerializedComponent) {
+        if (component.componentType === "conditionalContent") {
+            return "case" as const;
+        }
+        if (
+            component.componentType === "select" &&
+            numPicked(component) === 1
+        ) {
+            return "option" as const;
+        }
+        return undefined;
+    }
+
+    /**
+     * The tag of the component `component` declares by its name, or
+     * `undefined` when the DoenetML does not give it: a tag written with
+     * `extend` or `copy` is the tag written, and a bare `$y` given a name
+     * holds y's tag, as in `typeChangeAtLoad` (#2447).
+     */
+    function declaredType(component: SerializedComponent) {
+        if (component.componentType !== "_copy") {
+            return component.componentType;
+        }
+        const written = canonicalType(
+            literalText(component.attributes?._createComponentOfType),
+        );
+        if (written) {
+            return written;
+        }
+        const ref = refOf(component);
+        if (
+            !ref ||
+            ref.nodeIdx < 0 ||
+            (ref.unresolvedPath && ref.unresolvedPath.length > 0)
+        ) {
+            return undefined;
+        }
+        const type = referents.referentType(ref.nodeIdx);
+        return type === "_error" ? undefined : type;
+    }
+
+    /**
+     * The declarations of `name` among `components`, where a reference from
+     * outside them would see one (`branchDeclaration`): written there, or in
+     * a component written there, not in a repeat or the options of a select
+     * that picks several (whose names are private), nor in what a copy copies
+     * (reached only through the copy's name). A branch container among them
+     * declares it if its branches do, as `branchDeclaration` decides. A
+     * component with the name hides any of that name in it.
+     */
+    function visibleDeclarations(
+        components: (SerializedComponent | string)[],
+        name: string,
+        visited: Set<number>,
+        found: (
+            | { type?: string; canBeAbsent: boolean }
+            | { failure: BranchDeclaration }
+        )[],
+    ) {
+        for (const component of components) {
+            if (typeof component !== "object") {
+                continue;
+            }
+            const attributes = component.attributes ?? {};
+            if (
+                literalText(attributes.name) === name ||
+                literalText(attributes._createComponentName) === name
+            ) {
+                found.push({
+                    type: declaredType(component),
+                    canBeAbsent: false,
+                });
+                continue;
+            }
+            if (branchKind(component)) {
+                const declared = branchDeclaration(component, name, visited);
+                if (declared.status === "ok") {
+                    found.push({
+                        type: declared.type,
+                        canBeAbsent: declared.canBeAbsent,
+                    });
+                } else if (declared.status !== "none") {
+                    found.push({ failure: declared });
+                }
+                continue;
+            }
+            if (
+                component.componentType === "repeat" ||
+                component.componentType === "repeatForSequence" ||
+                component.componentType === "select" ||
+                component.componentType === "option"
+            ) {
+                continue;
+            }
+            visibleDeclarations(component.children ?? [], name, visited, found);
+        }
+    }
+
+    /**
+     * What the branches of the branch container `container` (`branchKind`)
+     * declare by `name` (see `BranchDeclaration`). A name in a branch is
+     * found by a reference from outside only if every branch declares it,
+     * with the same tag, so that what the reference names, and whether a
+     * parent accepts it as a child, never changes with the active branch
+     * (D13, D22, COMP-11). With no `<else>`, a name in every case is enough:
+     * while no case is active, it names nothing (`canBeAbsent`).
+     */
+    function branchDeclaration(
+        container: SerializedComponent,
+        name: string,
+        visited: Set<number>,
+    ): BranchDeclaration {
+        const kind = branchKind(container);
+        if (!kind || visited.has(container.componentIdx)) {
+            return { status: "skip" };
+        }
+        const parts = partsOf(container, kind);
+        if (!parts) {
+            return { status: "skip" };
+        }
+        const visitedBelow = new Set(visited).add(container.componentIdx);
+        const perPart = parts.map(({ part }) => {
+            const found: Parameters<typeof visibleDeclarations>[3] = [];
+            visibleDeclarations(
+                kind === "case"
+                    ? withoutSugarGroup(part.children ?? [])
+                    : (part.children ?? []),
+                name,
+                visitedBelow,
+                found,
+            );
+            return found;
+        });
+        if (perPart.every((found) => found.length === 0)) {
+            return { status: "none" };
+        }
+        if (perPart.some((found) => found.length > 1)) {
+            // Declared twice in one branch: the reference is ambiguous,
+            // which the run time reports when that branch is active.
+            return { status: "skip" };
+        }
+        let caseOrdinal = 0;
+        for (const [ind, found] of perPart.entries()) {
+            const isElse = kind === "case" && parts[ind].isElse;
+            if (!isElse) {
+                caseOrdinal++;
+            }
+            if (found.length === 0) {
+                return {
+                    status: "missing",
+                    container,
+                    branch: isElse ? "else" : kind,
+                    ordinal: isElse ? 1 : caseOrdinal,
+                };
+            }
+            const [declaration] = found;
+            if ("failure" in declaration) {
+                return declaration.failure;
+            }
+        }
+        const declarations = perPart.map(
+            ([declaration]) =>
+                declaration as { type?: string; canBeAbsent: boolean },
+        );
+        const known = declarations
+            .map(({ type }) => type)
+            .filter((type): type is string => type !== undefined);
+        const differs = known.find((type) => type !== known[0]);
+        if (differs !== undefined) {
+            return {
+                status: "types",
+                container,
+                branch: kind,
+                firstType: known[0],
+                secondType: differs,
+            };
+        }
+        return {
+            status: "ok",
+            type: known.length === declarations.length ? known[0] : undefined,
+            canBeAbsent:
+                (kind === "case" && !parts.some(({ isElse }) => isElse)) ||
+                parts.length === 0 ||
+                declarations.some(({ canBeAbsent }) => canBeAbsent),
+        };
+    }
+
+    /**
+     * What the branches of the container a reference names its first name in
+     * (`$x` and `$cc.x`, which the resolver leaves for the container to
+     * resolve, as `node_idx` `cc` with `x` unresolved) declare by that name,
+     * or `undefined` when the reference is not to such a container.
+     */
+    function branchNameOf(copy: SerializedComponent) {
+        const ref = refOf(copy);
+        if (!ref || ref.nodeIdx < 0) {
+            return undefined;
+        }
+        const first = ref.unresolvedPath?.[0];
+        if (typeof first?.name !== "string" || first.name === "") {
+            return undefined;
+        }
+        const container = referents.componentsByIdx.get(ref.nodeIdx);
+        if (!container || !branchKind(container)) {
+            return undefined;
+        }
+        const declared = branchDeclaration(container, first.name, new Set());
+        if (declared.status === "none" && !allNames.has(first.name)) {
+            // A property of the container (`$cc.value`), not a name
+            return undefined;
+        }
+        if (declared.status === "none") {
+            // A name the document has, in no branch: the first lacks it.
+            const kind = branchKind(container)!;
+            const parts = partsOf(container, kind);
+            const firstPart = parts?.[0];
+            if (!firstPart) {
+                return undefined;
+            }
+            const isElse = kind === "case" && firstPart.isElse;
+            return {
+                name: first.name,
+                declared: {
+                    status: "missing",
+                    container,
+                    branch: isElse ? "else" : kind,
+                    ordinal: 1,
+                } as BranchDeclaration,
+            };
+        }
+        return { name: first.name, declared };
+    }
+
+    /**
+     * The diagnostic for a reference whose name the branches of a container
+     * do not all declare with one tag, or `undefined` if they do.
+     */
+    function branchNameIssue(
+        name: string,
+        declared: BranchDeclaration,
+    ): TypeChangeAtLoadError | undefined {
+        if (declared.status !== "missing" && declared.status !== "types") {
+            return undefined;
+        }
+        const containerName = literalText(declared.container.attributes?.name);
+        const hasName =
+            containerName !== undefined &&
+            containerName !== "" &&
+            !containerName.startsWith("_");
+        const container = hasName
+            ? containerName
+            : declared.container.componentType;
+        if (declared.status === "missing") {
+            return {
+                code: "doenet-w0183",
+                args: {
+                    name,
+                    branch: declared.branch,
+                    ordinal: declared.ordinal,
+                    container,
+                    hasName: hasName ? "true" : "false",
+                },
+            };
+        }
+        return {
+            code: "doenet-w0184",
+            args: {
+                name,
+                branch: declared.branch,
+                firstType: declared.firstType,
+                secondType: declared.secondType,
+                container,
+                hasName: hasName ? "true" : "false",
+            },
+        };
+    }
+
+    /**
+     * Whether `copy` is a reference written as a tag (`<math extend="$x"/>`,
+     * or one filling a list tag), which always makes a component of its tag
+     * (REF-0, D36), so that a name it cannot find is an error.
+     */
+    function isTag(copy: SerializedComponent) {
+        return (
+            copy.doenetAttributes?.forList !== undefined ||
+            canonicalType(
+                literalText(copy.attributes?._createComponentOfType),
+            ) !== undefined
+        );
+    }
+
+    /**
+     * Whether `copy` is a reference written as a tag that makes one
+     * component, rather than a list or a `<group>` (see `decide`).
+     */
+    function isScalarTag(copy: SerializedComponent) {
+        if (copy.doenetAttributes?.forList !== undefined) {
+            return false;
+        }
+        const writtenType = canonicalType(
+            literalText(copy.attributes?._createComponentOfType),
+        );
+        return (
+            writtenType !== undefined &&
+            literalText(copy.attributes._copyInChildren) === "true" &&
+            writtenType !== "group" &&
+            !isComposite(writtenType) &&
+            allClasses[writtenType]?.listEntryComponentType === undefined
+        );
+    }
+
+    /**
+     * Decide the every-branch, same-type rule for the reference `copy`
+     * (`branchDeclaration`). A reference written as a tag gets an error in
+     * place of the copy (`typeChangeAtLoad`), as does a scalar tag made from
+     * a name no case may hold (no `<else>`, D36). Any other reference names
+     * nothing, with a warning (`branchNameWarnings`). Returns whether it was
+     * decided here.
+     */
+    function checkBranchName(copy: SerializedComponent) {
+        const found = branchNameOf(copy);
+        if (!found) {
+            return false;
+        }
+        const declared = found.declared;
+        if (isTag(copy)) {
+            if (declared.status === "types") {
+                // Decided as for any composite holding types that differ
+                // (`doenet-e0066`, `decide`)
+                return false;
+            }
+            if (
+                declared.status === "ok" &&
+                declared.canBeAbsent &&
+                isScalarTag(copy)
+            ) {
+                copy.doenetAttributes = {
+                    ...copy.doenetAttributes,
+                    typeChangeAtLoad: {
+                        code: "doenet-e0064",
+                        args: {
+                            reason: "noElse",
+                            sourceType: "conditionalContent",
+                            indexSelectsOne: "false",
+                        },
+                    },
+                };
+                return true;
+            }
+        }
+        const issue = branchNameIssue(found.name, declared);
+        if (issue) {
+            if (isTag(copy)) {
+                copy.doenetAttributes = {
+                    ...copy.doenetAttributes,
+                    typeChangeAtLoad: issue,
+                };
+            } else {
+                branchNameWarnings.push({ copy, ...issue });
+            }
+            return true;
+        }
+        return false;
+    }
+
     /** The decision for one reference written as a tag. */
     function decide(copy: SerializedComponent) {
         const ref = refOf(copy);
@@ -1628,7 +2051,12 @@ export function checkTypeChangesAtLoad({
             if (typeof component !== "object") {
                 continue;
             }
-            if (component.componentType === "_copy") {
+            if (
+                component.componentType === "_copy" &&
+                checkBranchName(component)
+            ) {
+                // decided by the every-branch rule
+            } else if (component.componentType === "_copy") {
                 const decision = decide(component);
                 if (decision !== undefined) {
                     component.doenetAttributes = {
@@ -1660,4 +2088,6 @@ export function checkTypeChangesAtLoad({
 
     collectNames(serializedComponents);
     visit(serializedComponents);
+
+    return { branchNameWarnings };
 }

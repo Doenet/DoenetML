@@ -150,11 +150,23 @@ impl Resolver {
             let parent_data = &mut self.node_resolver_data[parent_idx + 1];
 
             for (key, ref_) in new_parent_map.into_iter() {
-                if let Entry::Vacant(entry) = parent_data.name_map.entry(key) {
-                    if flat_fragment.copied_content {
-                        parent_data.copied_names.insert(entry.key().clone());
+                match parent_data.name_map.entry(key) {
+                    Entry::Vacant(entry) => {
+                        if flat_fragment.copied_content {
+                            parent_data.copied_names.insert(entry.key().clone());
+                        }
+                        entry.insert(ref_);
                     }
-                    entry.insert(ref_);
+                    Entry::Occupied(mut entry) => {
+                        // A name declared in the branches of the parent (`Ref::Branches`) is,
+                        // once the parent holds what its active branch holds, the one there.
+                        // When that is deleted, the name is gone from the parent
+                        // until another branch is active (`delete_nodes`),
+                        // and the more distant ancestors still have the branches.
+                        if *entry.get() == Ref::Branches(parent_idx) {
+                            entry.insert(ref_);
+                        }
+                    }
                 }
             }
         }
@@ -217,6 +229,10 @@ impl Resolver {
                     Some(Ref::Unique(_)) => {
                         // The name no longer reaches anything, so it no longer reaches copied content
                         parent_data.copied_names.remove(&name_with_source_doc);
+                    }
+                    Some(branches @ Ref::Branches(_)) => {
+                        // The branches of a container still declare the name
+                        name_map.insert(name_with_source_doc.clone(), branches);
                     }
                     Some(Ref::Ambiguous(indices)) => {
                         // remove the deleted node `node_idx` from the ambiguous list, setting the result to unique if there is only one reference left
@@ -312,6 +328,11 @@ impl Resolver {
                 // to the name map of any of `previous_parent`'s ancestors.
                 let mut previous_parent = element.idx;
 
+                // What is added to the name map of each ancestor: `element` itself,
+                // until the name passes from a branch into a branch container,
+                // from which it is the container's branches (`Ref::Branches`).
+                let mut carried = Ref::Unique(element.idx);
+
                 for parent_idx_plus_1 in parents {
                     // if child is invisible, then do not add `element` (which is the child or its descendant)
                     // to the name map of parent or more distant ancestors
@@ -319,30 +340,64 @@ impl Resolver {
                         break;
                     }
 
-                    // Add `element` to the name map of `parent`, creating an ambiguous reference
+                    let parent_element = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
+                        || parent_idx_plus_1 == 0
+                    {
+                        // The flat fragment root or the flat root
+                        None
+                    } else {
+                        match flat_root_or_fragment.get_node(parent_idx_plus_1 - 1) {
+                            FlatNode::Element(parent_element) => Some(parent_element),
+                            _ => None,
+                        }
+                    };
+
+                    // A name passing from a branch into its container is the container's branches
+                    // from there on, so that the same name in another branch is not ambiguous with it.
+                    if let Some(parent_element) = parent_element
+                        && let Some(kind) = branch_container_kind(parent_element, |attr| {
+                            literal_attribute_text(flat_root_or_fragment, attr)
+                        })
+                        && previous_parent != element.idx
+                        && let FlatNode::Element(branch) =
+                            flat_root_or_fragment.get_node(previous_parent)
+                        && kind.is_branch(&branch.name)
+                    {
+                        carried = Ref::Branches(parent_element.idx);
+                    }
+                    // The index `carried` refers to
+                    let carried_idx = carried.single_idx().unwrap();
+
+                    // Add `carried` to the name map of `parent`, creating an ambiguous reference
                     // if its `name_with_source` is already in the name map
                     let parent_names = descendant_names.entry(parent_idx_plus_1).or_default();
                     match parent_names.get_mut(&name_with_source) {
                         Some(x) => {
+                            if *x == carried {
+                                // The branches of a container were added already, from another branch,
+                                // and so were they to the more distant ancestors.
+                                break;
+                            }
                             match x {
                                 // There is already something sharing the `name_with_source` with the current element
-                                Ref::Unique(idx) => {
+                                Ref::Unique(idx) | Ref::Branches(idx) => {
                                     if *idx == previous_parent {
                                         // if `name_with_source` resolves to the `previous_parent`,
                                         // then the parent supersedes the name of the descendant.
                                         // We don't change the name map, and we stop looping to additional parents
                                         break;
-                                    } else if let Some(Ref::Unique(descendant_idx)) =
-                                        descendant_ref_of_own_name
+                                    } else if let Some(descendant_idx) = descendant_ref_of_own_name
+                                        .as_ref()
+                                        .and_then(Ref::single_idx)
                                         && *idx == descendant_idx
                                     {
                                         // If the `name_with_source` resolves to the descendant that `element` is superseding,
                                         // then replace it with `element`
-                                        *x = Ref::Unique(element.idx);
+                                        *x = carried.clone();
                                     } else {
                                         // Since is already something sharing the `name_with_source` with the current element,
                                         // the reference becomes ambiguous
-                                        *x = Ref::Ambiguous(vec![*idx, element.idx]);
+                                        *x = Ref::Ambiguous(vec![*idx, carried_idx]);
                                     }
                                 }
                                 Ref::Ambiguous(vec) => {
@@ -351,13 +406,19 @@ impl Resolver {
                                         // then the parent supersedes the name of the descendant.
                                         // We don't change the name map, and we stop looping to additional parents
                                         break;
+                                    } else if matches!(carried, Ref::Branches(_))
+                                        && vec.contains(&carried_idx)
+                                    {
+                                        // The branches of a container were added already, from another branch
+                                        break;
                                     } else {
                                         match &descendant_ref_of_own_name {
-                                            Some(Ref::Unique(descendant_idx)) => {
+                                            Some(Ref::Unique(descendant_idx))
+                                            | Some(Ref::Branches(descendant_idx)) => {
                                                 // Remove the descendant that `element` is superseding,
                                                 // then add `element` to the list of ambiguous references.
                                                 vec.retain(|idx| *idx != *descendant_idx);
-                                                vec.push(element.idx);
+                                                vec.push(carried_idx);
                                                 *x = Ref::Ambiguous(mem::take(vec));
                                             }
                                             Some(Ref::Ambiguous(descendant_indices)) => {
@@ -366,16 +427,16 @@ impl Resolver {
                                                 if vec.is_empty() {
                                                     // If we removed all the previous resolutions of `name_with_source`,
                                                     // then `element` becomes the unique resolution
-                                                    *x = Ref::Unique(element.idx)
+                                                    *x = carried.clone()
                                                 } else {
                                                     // Add `element` to the list of ambiguous sources
-                                                    vec.push(element.idx);
+                                                    vec.push(carried_idx);
                                                     *x = Ref::Ambiguous(mem::take(vec));
                                                 }
                                             }
                                             None => {
                                                 // Add `element` to the list of ambiguous sources
-                                                vec.push(element.idx);
+                                                vec.push(carried_idx);
                                                 *x = Ref::Ambiguous(mem::take(vec));
                                             }
                                         }
@@ -385,19 +446,16 @@ impl Resolver {
                         }
                         None => {
                             // There is no current match for the`name_with_source`, so we have a unique reference
-                            parent_names.insert(name_with_source.clone(), Ref::Unique(element.idx));
+                            parent_names.insert(name_with_source.clone(), carried.clone());
                         }
                     }
 
-                    let parent_visibility = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
-                        || parent_idx_plus_1 == 0
-                    {
+                    let parent_visibility = match parent_element {
                         // Always treat the flat fragment root or the flat root as visible
-                        Visibility::Visible
-                    } else {
-                        Visibility::lookup_by_flat_node(
-                            flat_root_or_fragment.get_node(parent_idx_plus_1 - 1),
-                        )
+                        None => Visibility::Visible,
+                        Some(parent_element) => {
+                            parent_visibility(flat_root_or_fragment, parent_element)
+                        }
                     };
 
                     // if parent's children are invisible to grandparents, do not add `element` (which is the child or its descendant)
@@ -421,6 +479,63 @@ impl Resolver {
         }
 
         descendant_names
+    }
+}
+
+/// The `Visibility` of `element` as a parent, in `flat_root_or_fragment`:
+/// that of its tag, except that an `<option>` of a `<select>` that picks one is `Visible`
+/// (see [`branch_container_kind`]).
+fn parent_visibility(
+    flat_root_or_fragment: &FlatRootOrFragment,
+    element: &FlatElement,
+) -> Visibility {
+    if element.name == "option"
+        && let Some(FlatNode::Element(select)) = element
+            .parent
+            .and_then(|idx| node_in(flat_root_or_fragment, idx))
+        && branch_container_kind(select, |attr| {
+            literal_attribute_text(flat_root_or_fragment, attr)
+        }) == Some(BranchContainerKind::OnePickSelect)
+    {
+        return Visibility::Visible;
+    }
+    Visibility::lookup_by_flat_element(element)
+}
+
+/// The node at `idx`, if it is in `flat_root_or_fragment`
+/// (the parent of a fragment is not).
+fn node_in<'a>(flat_root_or_fragment: &'a FlatRootOrFragment, idx: usize) -> Option<&'a FlatNode> {
+    match flat_root_or_fragment {
+        FlatRootOrFragment::Root(flat_root) => flat_root.nodes.get(idx),
+        FlatRootOrFragment::Fragment(flat_fragment) => flat_fragment
+            .contains_idx(idx)
+            .then(|| flat_fragment.get_node(idx)),
+    }
+}
+
+/// The text `attr` is written as, if it is only text.
+/// In a fragment the core made, an attribute such as `numToSelect="1"` is a component,
+/// an `<integer>` holding the text, which is read through.
+fn literal_attribute_text(
+    flat_root_or_fragment: &FlatRootOrFragment,
+    attr: &FlatAttribute,
+) -> Option<String> {
+    fn text_of(children: &[UntaggedContent]) -> Option<String> {
+        children
+            .iter()
+            .map(|child| match child {
+                UntaggedContent::Text(text) => Some(text.as_str()),
+                UntaggedContent::Ref(_) => None,
+            })
+            .collect::<Option<Vec<_>>>()
+            .map(|texts| texts.concat())
+    }
+    match attr.children.as_slice() {
+        [UntaggedContent::Ref(idx)] => match node_in(flat_root_or_fragment, *idx) {
+            Some(FlatNode::Element(component)) => text_of(&component.children),
+            _ => None,
+        },
+        children => text_of(children),
     }
 }
 
