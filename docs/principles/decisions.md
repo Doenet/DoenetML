@@ -283,8 +283,10 @@ if written in a child.
   then outward (NAME-1's nearest scope, as for a child). An attribute on a copy or extend is no different from any other attribute:
   - it sees the children written inside the copy tag, because they are written;
   - it does not see the copied content, because that is not written there.
-- **The existing privacy rules still apply** to written content. Children of `repeat`, `option`,
-  `case` and `else` are reached only through their container (NAME-1, D22).
+- **The existing privacy rules still apply** to written content. Children of `repeat` and
+  `option` are reached only through their container (NAME-1). Since D22, names in a `case` or
+  `else`, and in the options of a one-pick select, are visible when every branch declares them
+  with the same type (COMP-11).
 - **References inside the copied content** resolve where they were written, in the source. D1
   settles what they point to in the copy.
 
@@ -477,6 +479,16 @@ rebuild.
 
 ## D13. Accept ADR 0009's branch interface for choices?
 
+**Decided, together with D22's option (c).** ADR 0009's branch interface is accepted, as
+modified:
+- names in a choice are visible, not only through `$cc.x` (D22);
+- a name that some branch lacks, or that branches declare with different types, doesn't resolve,
+  with a warning, rather than being an error at the declaration;
+- extend follows D32, and indexing into a branch follows D27;
+- a non-literal `numToSelect` stays allowed.
+
+COMP-11 states the rule. The implementation is #2450.
+
 This goes together with D22, which asks how names inside a `conditionalContent` should work
 at all.
 
@@ -633,6 +645,29 @@ gives the component instead. A reference to something that *contains* an input
   `value`"), so that docs and a new core read the same list.
 
 ## D22. How should names inside a `conditionalContent` work?
+
+**Decided: option (c), with (b)'s same-type rule** (decided together with D13). Names inside a
+`<conditionalContent>` are visible, like a `<group>`'s:
+- **A name inside a `<conditionalContent>` is visible outside it**, as a `<group>`'s is. A plain
+  `$x` from outside finds the `x` in the active case, and `$cc.x` still works.
+- **It resolves only if every case declares it, with the same type.**
+  - "Every case" means each `<case>` written, and the `<else>` if there is one. With no
+    `<else>`, `x` in every case is enough: while no case is active, `$x` names nothing.
+  - If a case or the `<else>` has no `x`, or two of them declare `x` with different types, `$x`
+    and `$cc.x` name nothing, with a **warning** at the reference. It is not a deprecation: the
+    reference doesn't work.
+  - So a reference's type, and whether a parent accepts it as a child, never change with the
+    active case.
+- **Two cases declaring `x` don't make it ambiguous**, since only one can be active. An `x`
+  beside the `<conditionalContent>` does (`doenet-w0105`).
+- **On a tag**, `<math extend="$x"/>` is decided by REF-0: a mix of types or a missing `x` is an
+  error, and so is an `x` that can be absent because there's no `<else>`, as for
+  `<math extend="$cc"/>` without one (D36).
+- **A `<select>` with one pick** (`numToSelect` written as `1`, or left out) works the same way,
+  with every option in place of every case. **With several picks**, names stay private, as in a
+  repeat: `$s[2].x`, under the same every-option, same-type rule (D27).
+
+COMP-11 states it. Implementation: #2450.
 
 **Today.** Names inside both forms of `<conditionalContent>` are private (**[probe]**):
 - a plain `$x` from outside reports "No referent found";

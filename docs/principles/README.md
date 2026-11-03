@@ -75,11 +75,10 @@ removed.
    copy and in a child added inside it. A reference's first name only finds components written in
    the DoenetML, and an attribute sees what a child of its component would see.
 
-   Names inside a `<conditionalContent>` are private too: a plain `$x` from outside finds
-   nothing, and only `$cc.x` reaches the `x` in the active case. Privacy is needed for repeats
-   and copies, because they make several instances of a name. A `conditionalContent` shows at
-   most one case at a time, so it does not need privacy. How names and `conditionalContent`
-   should work is open ([decisions.md](decisions.md), D22).
+   Names inside a `<conditionalContent>`, or a `<select>` with one pick, are visible, as a
+   group's are: `$x` finds the `x` in the active case. But every case (and the `<else>`, if there
+   is one) must declare `x` with the same type, or `$x` doesn't work and you get a warning. Give
+   the else its own `x`, or use different names. (COMP-11; D13, D22)
 
 **References and `extend`**
 

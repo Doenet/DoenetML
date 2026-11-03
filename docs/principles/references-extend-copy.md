@@ -38,15 +38,15 @@ Sub-rules. All three are Tier 2: they rarely matter, but they keep the rule tota
   section (`RS/resolve.test.rs` `resolve_to_parent_in_ambiguous_case`).
 - An ancestor's name beats a descendant with the same name
   (`parent_name_supersedes_unique_descendant`).
-- Children of `repeat`, `repeatForSequence`, `option`, `case` and `else` are invisible from
-  outside. They are reached only through the container: `$r[2].x`, `$opt.x`, `$cc.x`
-  (`elements_with_children_invisible_to_their_grandparents`, `RS/resolve.rs:64`).
-  - **[probe]** This covers both forms of `<conditionalContent>`. A plain `$x` from outside
-    reports "No referent found". `$cc.x` follows the active case, and is empty when no case
-    is active.
-  - For repeats and options the privacy is needed, because they make several instances of a
-    name. A `conditionalContent` shows at most one case at a time, so it is the one place where
-    the privacy is a choice rather than a necessity (D22).
+- Children of `repeat`, `repeatForSequence` and the options of a select with several picks are
+  invisible from outside. They are reached only through the container: `$r[2].x`, `$s[2].x`
+  (`elements_with_children_invisible_to_their_grandparents`, `RS/resolve.rs:64`). The privacy
+  is needed, because these make several instances of a name.
+  - **Names in a `case` or `else`, or in the options of a one-pick select, are visible** when
+    every branch declares them with the same type. Otherwise the reference names nothing, with
+    a warning (COMP-11; D13, D22). Branches of one choice don't make a name ambiguous.
+  - **Today** they are private like the rest: a plain `$x` from outside reports "No referent
+    found", and `$cc.x` follows the active case whatever the others hold (#2450).
 
 Evidence:
 - `packages/docs-nextra/content/concepts/references.mdx` ("Resolving to the nearest match",
