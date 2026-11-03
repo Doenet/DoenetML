@@ -551,7 +551,8 @@ describe("Specifying single variant tests @group1", async () => {
           <option><selectFromSequence from="-1000" to="-900" /></option>
         </select>
       </p></option>
-      <option><p name="p">Chosen letter: <selectFromSequence type="letters" to="g" name="item" /></p></option>
+      <!-- item is a select in every option, so $s.item names it (#2450) -->
+      <option><p name="p">Chosen letter: <select name="item"><option><selectFromSequence type="letters" to="g" /></option></select></p></option>
       <option><p name="p">Variable: <select type="text" name="item">u v w x z y</select></p></option>
     </select>
     <p>Enter item $s.item as text: <answer name="ans"><textInput name="ti"/><award><text>$(s.item)</text></award></answer></p>
