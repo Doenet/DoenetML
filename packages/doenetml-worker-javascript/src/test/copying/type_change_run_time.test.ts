@@ -848,6 +848,74 @@ describe("A reference written as a tag of a composite is decided when the docume
         // An unknown type beside one known type is not decided for a list.
         expect(await d.texts(["p3"])).eqls({ p3: "1, 1" });
     });
+
+    it("a case, an else or an option written with copy is the one it copies", async () => {
+        const d = await setup(`
+<conditionalContent name="c0"><case name="c" condition="true"><text>a</text></case><else name="e"><math>2</math></else></conditionalContent>
+<conditionalContent name="cc1"><case condition="false"><math>1</math></case><else copy="$e"/></conditionalContent>
+<conditionalContent name="cc2"><case copy="$c"/><else><math>2</math></else></conditionalContent>
+<select name="s0"><option name="o"><text>a</text></option></select>
+<select name="s"><option><math>1</math></option><option copy="$o"/></select>
+<p name="p1"><math extend="$cc1"/></p>
+<p name="p2"><math extend="$cc2"/></p>
+<p name="p3"><math extend="$s"/></p>
+<p name="p4"><math extend="$s[1]"/></p>
+`);
+        // A copied else is an else; a copied case or option holding a text
+        // is one of the types the composite can hold.
+        expect(await d.texts(["p1"])).eqls({ p1: "2" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 8],
+            ["doenet-e0066", 9],
+            ["doenet-e0066", 10],
+        ]);
+    });
+
+    it("names, then an index, in what a copy copies, decided as for the composite named", async () => {
+        const d = await setup(`
+<module name="m">
+  <select name="s"><option><math>1</math><math>2</math></option></select>
+  <repeat name="r" for="1 2" valueName="v"><math>$v</math><math>2</math></repeat>
+</module>
+<module name="m2" extend="$m"/>
+<p name="p1"><math extend="$m2.s[1]"/></p>
+<p name="p2"><math extend="$m2.r[1]"/></p>
+<p name="p3"><math extend="$m2.s[2]"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 7],
+            ["doenet-e0064", 8],
+            ["doenet-w0181", 9],
+        ]);
+    });
+
+    it("components of one name that are not composites, of different types, are an error", async () => {
+        const d = await setup(`
+<select name="s"><option><math name="go">1</math></option><option><number name="go">2</number></option></select>
+<select name="t"><option><math name="go">1</math></option><option><math name="go">2</math></option></select>
+<p name="p1"><math extend="$s.go"/></p>
+<p name="p2"><mathList extend="$s.go"/></p>
+<p name="p3"><math extend="$t.go"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 4],
+            ["doenet-e0066", 5],
+        ]);
+        expect(await d.texts(["p3"])).eqls({ p3: "2" });
+    });
+
+    it("a list tag made from an index into a repeat holds what an iteration holds", async () => {
+        const d = await setup(`
+<repeat name="r" for="1 2" valueName="v"><math>$v</math><text>a</text></repeat>
+<repeat name="r2" for="1 2" valueName="v"><math>$v</math><math>2</math></repeat>
+<p name="p1"><mathList extend="$r[1]"/></p>
+<p name="p2"><mathList extend="$r2[2]"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 4],
+        ]);
+        expect(await d.texts(["p2"])).eqls({ p2: "2, 2" });
+    });
 });
 
 describe("What still changes at run time, without changing what the component is (D36) @group4", () => {
