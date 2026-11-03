@@ -1610,6 +1610,32 @@ export default class Copy extends CompositeComponent {
                 num: workspace.replacementsCreated,
             };
 
+            // What the DoenetML could decide was decided when the document
+            // loaded (D36), whatever the index names now.
+            const atLoad = await typeChangeAtLoadError({
+                component,
+                components,
+                componentInfoObjects,
+                workspace,
+            });
+            if (atLoad) {
+                workspace.typeChangeKey = typeChangeKey(atLoad);
+                diagnostics.push(atLoad.diagnostic);
+                replacements = errorInPlaceOfCopy({
+                    component,
+                    componentInfoObjects,
+                    diagnostic: atLoad.diagnostic,
+                    stateIdInfo,
+                    nComponents: nComponents++,
+                });
+                workspace.numReplacementsBySource = [replacements.length];
+                workspace.numNonStringReplacementsBySource = [
+                    replacements.length,
+                ];
+                workspace.replacementsCreated = stateIdInfo.num;
+                return { replacements, diagnostics, nComponents };
+            }
+
             if (component.attributes._copyInChildren?.primitive.value) {
                 // even though don't have valid target,
                 // if copyInChildren, then include children added directly to component
@@ -1824,6 +1850,7 @@ export default class Copy extends CompositeComponent {
                       componentInfoObjects,
                       propReplacements: replacements,
                       found,
+                      workspace,
                   }),
             heldMadeFrom,
         );
@@ -1844,28 +1871,13 @@ export default class Copy extends CompositeComponent {
         });
         if (typeChange?.level === "error") {
             diagnostics.push(typeChange.diagnostic);
-            replacements = [
-                {
-                    type: "serialized",
-                    componentType: "_error",
-                    componentIdx: nComponents++,
-                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                    state: errorComponentState(
-                        typeChange.diagnostic.message,
-                        typeChange.diagnostic,
-                    ),
-                    attributes: {},
-                    // Not given the type the copy is written as
-                    // (`verifyReplacementsMatchSpecifiedType`)
-                    doenetAttributes: { inPlaceOfExtend: true },
-                    children: [],
-                },
-            ];
-            addAttributesToSingleReplacement(
-                replacements,
+            replacements = errorInPlaceOfCopy({
                 component,
                 componentInfoObjects,
-            );
+                diagnostic: typeChange.diagnostic,
+                stateIdInfo,
+                nComponents: nComponents++,
+            });
             workspace.numReplacementsBySource = [replacements.length];
             workspace.numNonStringReplacementsBySource = [replacements.length];
             workspace.propVariablesCopiedBySource = [];
@@ -2496,6 +2508,54 @@ export default class Copy extends CompositeComponent {
             let previousZeroSourceIndices =
                 workspace.sourceIndices.length === 0;
 
+            // What the DoenetML could decide was decided when the document
+            // loaded (D36): its error stays in place of the copy, whatever
+            // the index names now.
+            const atLoad = await typeChangeAtLoadError({
+                component,
+                components,
+                componentInfoObjects,
+                workspace,
+            });
+            if (atLoad) {
+                const key = typeChangeKey(atLoad);
+                workspace.sourceIndices = [];
+                if (key === workspace.typeChangeKey) {
+                    return { replacementChanges: [], diagnostics, nComponents };
+                }
+                workspace.typeChangeKey = key;
+                reportTypeChange(workspace, atLoad);
+                diagnostics.push(atLoad.diagnostic);
+                const replacements = errorInPlaceOfCopy({
+                    component,
+                    componentInfoObjects,
+                    diagnostic: atLoad.diagnostic,
+                    stateIdInfo,
+                    nComponents: nComponents++,
+                });
+                workspace.numReplacementsBySource = [replacements.length];
+                workspace.numNonStringReplacementsBySource = [
+                    replacements.length,
+                ];
+                workspace.propVariablesCopiedBySource = [];
+                workspace.replacementsCreated = stateIdInfo.num;
+                return {
+                    replacementChanges: [
+                        ...unwithheldChanges(component),
+                        {
+                            changeType: "add",
+                            changeTopLevelReplacements: true,
+                            firstReplacementInd: 0,
+                            numberReplacementsToReplace:
+                                component.replacements.length,
+                            serializedReplacements: replacements,
+                        },
+                    ],
+                    diagnostics,
+                    nComponents,
+                };
+            }
+
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
 
@@ -2695,6 +2755,7 @@ export default class Copy extends CompositeComponent {
                 components,
                 componentInfoObjects,
                 found,
+                workspace,
             });
             const key = typeChangeKey(typeChange);
             const valueCheck = await component.stateValues.typeChangeValueCheck;
@@ -5973,12 +6034,15 @@ function heldTypeChange(typeChange, heldMadeFrom) {
  * tag `component` (D36, `doenetAttributes.typeChangeAtLoad`, set by
  * `utils/dast/typeChangeAtLoad.ts`), as a `typeChangeStatus` mismatch, or
  * `undefined` when there is none. It names the tag as written: for the copy
- * that fills a list (`forList`), the list's.
+ * that fills a list (`forList`), the list's. It names the reference as
+ * written (`workspace.referenceAsWritten`, `$r[$k]`), where that is known,
+ * since it is decided by what is written, not by the value of an index.
  */
 async function typeChangeAtLoadError({
     component,
     components,
     componentInfoObjects,
+    workspace,
 }) {
     const mark = component.doenetAttributes?.typeChangeAtLoad;
     if (!mark || mark === "allowed") {
@@ -5996,10 +6060,12 @@ async function typeChangeAtLoadError({
         ] ??
             writtenValue);
     const extended = await component.stateValues.extendedComponent;
-    const source = referenceAsWritten(
-        await component.stateValues.originalPath,
-        components[extended?.componentIdx],
-    );
+    const source =
+        workspace?.referenceAsWritten ??
+        referenceAsWritten(
+            await component.stateValues.originalPath,
+            components[extended?.componentIdx],
+        );
     const args =
         mark.code === "doenet-w0181"
             ? { reference: source, ...mark.args }
@@ -6083,6 +6149,39 @@ async function missingPropertyError({
             },
         }),
     };
+}
+
+/**
+ * The `_error` shown in place of the copy `component` for `diagnostic`, as
+ * its one replacement, with the index `componentIdx`.
+ */
+function errorInPlaceOfCopy({
+    component,
+    componentInfoObjects,
+    diagnostic,
+    stateIdInfo,
+    nComponents: componentIdx,
+}) {
+    const replacements = [
+        {
+            type: "serialized",
+            componentType: "_error",
+            componentIdx,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+            state: errorComponentState(diagnostic.message, diagnostic),
+            attributes: {},
+            // Not given the type the copy is written as
+            // (`verifyReplacementsMatchSpecifiedType`)
+            doenetAttributes: { inPlaceOfExtend: true },
+            children: [],
+        },
+    ];
+    addAttributesToSingleReplacement(
+        replacements,
+        component,
+        componentInfoObjects,
+    );
+    return replacements;
 }
 
 /**
@@ -6243,12 +6342,14 @@ async function typeChangeStatus({
     componentInfoObjects,
     propReplacements,
     found = {},
+    workspace,
 }) {
     found.canWatch = false;
     const atLoad = await typeChangeAtLoadError({
         component,
         components,
         componentInfoObjects,
+        workspace,
     });
     if (atLoad) {
         return atLoad;

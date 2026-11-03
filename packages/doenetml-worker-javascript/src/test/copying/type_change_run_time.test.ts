@@ -757,6 +757,97 @@ describe("A reference written as a tag of a composite is decided when the docume
             },
         ]);
     });
+    it("an iteration holding an index into its own repeat holds itself, and is not decided", async () => {
+        const d = await setup(`
+<repeat name="r" for="1 2" valueName="v">$r[1]</repeat>
+<p name="p"><math extend="$r[1]"/></p>
+`);
+        expect(d.newDiagnostics()).eqls([]);
+        expect(d.errors()).eqls(["doenet-e0005"]);
+    });
+
+    it("an index into a selector or a repeat named by several parts is read once", async () => {
+        // Each option names a pick of the next select, so following every
+        // path would read the innermost select 2^30 times.
+        const depth = 30;
+        let doenetML = `<select name="s${depth}"><option><math>x</math></option></select>\n`;
+        for (let k = depth - 1; k >= 0; k--) {
+            doenetML += `<select name="s${k}"><option>$s${k + 1}[1]</option><option>$s${k + 1}[1]</option></select>\n`;
+        }
+        doenetML += `<p name="p"><math extend="$s0[1]"/></p>`;
+        const d = await setup(doenetML);
+        expect(await d.texts(["p"])).eqls({ p: "x" });
+        expect(d.newDiagnostics()).eqls([]);
+    }, 15000);
+
+    it("what holds nothing counts as nothing beside what holds one component", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<group name="g1"><group/><math>7</math><math>8</math></group>
+<group name="g2"><group/><group/></group>
+<group name="g3"><group/><repeat for="1 2" valueName="v"><math>$v</math></repeat></group>
+<group name="g4"><group/><math>7</math></group>
+<p name="p1"><math extend="$g1"/></p>
+<p name="p2"><math extend="$g2"/></p>
+<p name="p3"><math extend="$g3"/></p>
+<p name="p4"><math extend="$g4"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 7],
+            ["doenet-e0064", 8],
+            ["doenet-e0064", 9],
+        ]);
+        expect(await d.replacedBy("p1")).eqls(["_error"]);
+        expect(d.newDiagnostics()).eqls([]);
+        // One component beside an empty group is not decided when the
+        // document loads: no error that it holds two.
+        expect(await d.replacedBy("p4")).eqls(["math"]);
+    });
+
+    it("a name, then an index, in what a copy copies", async () => {
+        const d = await setup(`
+<module name="m"><mathList name="l">1 2</mathList></module>
+<module name="m2" extend="$m"/>
+<conditionalContent name="cc"><case condition="false"><math>3</math></case><else>$m2.l[1]</else></conditionalContent>
+<p name="p"><math extend="$cc"/></p>
+`);
+        expect(await d.texts(["p"])).eqls({ p: "1" });
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("a name of components in different options names any of them", async () => {
+        const d = await setup(`
+<select name="s1"><option><group name="go"><math>1</math></group></option><option><group name="go"><math>1</math><math>2</math></group></option></select>
+<select name="s2"><option><group name="gt"><math>1</math></group></option><option><group name="gt"><text>a</text></group></option></select>
+<conditionalContent name="cc"><case condition="false"><math>3</math></case><else>$s1.go</else></conditionalContent>
+<p name="p1"><math extend="$s1.go"/></p>
+<p name="p2"><math extend="$s2.gt"/></p>
+<p name="p3"><math extend="$cc"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 5],
+            ["doenet-e0066", 6],
+            ["doenet-e0064", 7],
+        ]);
+    });
+
+    it("types that are known and differ are an error, whatever an unknown one would be", async () => {
+        const d = await setup(`
+<point name="P">(1,2)</point>
+<group name="g"><math>1</math><text>a</text>$P.x</group>
+<conditionalContent name="cc"><case condition="true"><math>1</math></case><case condition="false"><text>a</text></case><else>$P.x</else></conditionalContent>
+<group name="h"><math>1</math>$P.x</group>
+<p name="p1"><mathList extend="$g"/></p>
+<p name="p2"><math extend="$cc"/></p>
+<p name="p3"><mathList extend="$h"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 6],
+            ["doenet-e0066", 7],
+        ]);
+        // An unknown type beside one known type is not decided for a list.
+        expect(await d.texts(["p3"])).eqls({ p3: "1, 1" });
+    });
 });
 
 describe("What still changes at run time, without changing what the component is (D36) @group4", () => {
@@ -899,6 +990,32 @@ describe("What still changes at run time, without changing what the component is
             (await d.core()) as any,
         );
         expect([...warnings, ...infos].map((x: any) => x.code)).eqls([]);
+    });
+
+    it("an index that names nothing does not hide an error found when the document loaded", async () => {
+        const d = await setup(`
+<mathInput name="k"/>
+<repeat name="r" for="1 2" valueName="v"><math>$v</math><math>2</math></repeat>
+<p name="p"><math extend="$r[$k]"/></p>
+`);
+        const error = [
+            {
+                code: "doenet-e0064",
+                type: "error",
+                line: 4,
+                message:
+                    "A `<math>` can be made from `$r[$k]` only when it always holds one component, and an iteration of the `<repeat>` holds 2. To read what it holds as one value, write `<math>$r[$k]</math>`.",
+            },
+        ];
+        expect(await d.replacedBy("p")).eqls(["_error"]);
+        expect(d.newDiagnostics()).eqls(error);
+        for (const k of ["1", "2", "0", ""]) {
+            await d.setMath("k", k);
+            expect(await d.replacedBy("p"), k).eqls(["_error"]);
+            expect(d.newDiagnostics(), k).eqls([]);
+        }
+        const { infos } = getDiagnosticsByType((await d.core()) as any);
+        expect(infos.map((x: any) => x.code)).eqls([]);
     });
 
     it("an index that names nothing keeps the tag's own children, however the index came to name nothing", async () => {

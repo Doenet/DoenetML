@@ -147,6 +147,14 @@ export function checkTypeChangesAtLoad({
         number,
         { held: Holding; touched: Set<number> }
     >();
+    /**
+     * What one instance of each selector or repeat an index selects holds
+     * (`instanceHolding`), kept as `heldByIdx` keeps what all of it holds.
+     */
+    const instanceByIdx = new Map<
+        number,
+        { held: Holding; touched: Set<number> }
+    >();
     /** How many times a search met what it was finding already. */
     let seenHits = 0;
     /**
@@ -156,11 +164,11 @@ export function checkTypeChangesAtLoad({
     let trail: number[] = [];
 
     /**
-     * What `descendantNamed` found, by the index of the component searched
+     * What `descendantsNamed` found, by the index of the component searched
      * and the name, so that a component is searched once for a name however
      * many references (`$s.x`, `$s.title`) start from it.
      */
-    const namedBelowByKey = new Map<string, SerializedComponent | undefined>();
+    const namedBelowByKey = new Map<string, SerializedComponent[]>();
 
     const allClasses = componentInfoObjects.allComponentClasses as Record<
         string,
@@ -335,11 +343,114 @@ export function checkTypeChangesAtLoad({
         if (holdings.length === 1) {
             return holdings[0];
         }
+        // How many they hold together, `<group/><math/><math/>` two.
+        let total = 0;
+        let holdsNothing = false;
+        for (const holding of holdings) {
+            const count = countOf(holding);
+            if (count === undefined) {
+                // it does not always hold one number of components,
+                // whatever the others hold
+                return {
+                    notOne: holding.notOne,
+                    notOneTag: holding.notOneTag,
+                    types,
+                    unknown,
+                };
+            }
+            total += count;
+            holdsNothing ||= count === 0;
+        }
+        if (total === 1) {
+            // One component beside what holds nothing (a `<group/>` beside
+            // a `<math>`) is one, but the copy is made from each of them
+            // (`replacementSourceIdentities` stops at a group), so it could
+            // not be made from that one: not decided, rather than an error
+            // that it holds more.
+            return holdsNothing ? { types, skip: true } : { types, unknown };
+        }
         return {
-            notOne: { reason: "count", count: holdings.length, part },
+            notOne: { reason: "count", count: total, part },
             types,
             unknown,
         };
+    }
+
+    /**
+     * How many components `h` always holds, or `undefined` when that is not
+     * one number (a count of a case, a `<repeat>`).
+     */
+    function countOf(h: Holding) {
+        if (h.notOne === undefined) {
+            return 1;
+        }
+        return h.notOne.reason === "count" && h.notOne.part === "other"
+            ? h.notOne.count
+            : undefined;
+    }
+
+    /**
+     * What one of `holdings` holds, where which one is not known from the
+     * DoenetML (each a component of one name in a different option).
+     */
+    function eitherOf(holdings: Holding[]): Holding {
+        if (holdings.length === 1) {
+            return holdings[0];
+        }
+        const types = new Set<string>();
+        let unknown: Holding["unknown"];
+        let notOneOf: Holding | undefined;
+        for (const holding of holdings) {
+            if (holding.skip) {
+                return { types, skip: true };
+            }
+            holding.types.forEach((type) => types.add(type));
+            unknown ??= holding.unknown;
+            notOneOf ??= holding.notOne ? holding : undefined;
+        }
+        return {
+            ...(notOneOf && {
+                notOne: notOneOf.notOne,
+                notOneTag: notOneOf.notOneTag,
+            }),
+            types,
+            unknown,
+        };
+    }
+
+    /**
+     * What `node`, a composite or a copy reached by a reference, holds, as
+     * `compute` finds it from the components `seen` and `node`, kept in
+     * `cache` (see `heldByIdx`). `skip` when `node` is being found already:
+     * what it holds holds itself (`doenet-e0005`).
+     */
+    function cachedHolding(
+        cache: Map<number, { held: Holding; touched: Set<number> }>,
+        node: SerializedComponent,
+        seen: Set<number>,
+        compute: (seenBelow: Set<number>) => Holding,
+    ): Holding {
+        const idx = node.componentIdx;
+        trail.push(idx);
+        if (seen.has(idx)) {
+            seenHits++;
+            return { types: new Set(), skip: true };
+        }
+        const known = cache.get(idx);
+        if (known && ![...seen].some((i) => known.touched.has(i))) {
+            trail.push(...known.touched);
+            return known.held;
+        }
+        const hitsBefore = seenHits;
+        const trailBefore = trail.length;
+        const held = compute(new Set(seen).add(idx));
+        if (seenHits === hitsBefore && !known) {
+            cache.set(idx, {
+                held,
+                touched: new Set(trail.slice(trailBefore - 1)),
+            });
+        }
+        return held;
     }
 
     /** What one component written in a composite stands for. */
@@ -390,27 +501,51 @@ export function checkTypeChangesAtLoad({
         if (!ref || ref.nodeIdx < 0) {
             return { types: new Set(), skip: true };
         }
-        if (ref.unresolvedPath && ref.unresolvedPath.length > 0) {
-            if (ref.unresolvedPath[0].name !== "") {
-                const named = descendantNamed(ref.nodeIdx, ref.unresolvedPath);
-                if (!named) {
-                    return { types: new Set(), unknown: "property" };
-                }
-                return referenceHolding(
-                    {
-                        ...copy,
-                        extending: {
-                            Ref: {
-                                nodeIdx: named.componentIdx,
-                                unresolvedPath: null,
-                                originalPath: [],
-                            },
-                        },
-                    } as any,
-                    seen,
-                );
+        const path = ref.unresolvedPath ?? [];
+        if (path.length > 0) {
+            if (path[0].name === "") {
+                return indexedHolding(ref, seen);
             }
-            return indexedHolding(ref, seen);
+            // Names, the last of which may have one index (`$m2.l[1]`).
+            const last = path[path.length - 1];
+            const lastIndex = last.index ?? [];
+            const named =
+                lastIndex.length <= 1
+                    ? descendantsNamed(ref.nodeIdx, [
+                          ...path.slice(0, -1),
+                          { ...last, index: [] },
+                      ])
+                    : [];
+            if (named.length === 0) {
+                return { types: new Set(), unknown: "property" };
+            }
+            return eitherOf(
+                named.map((n) =>
+                    lastIndex.length === 1
+                        ? indexedHolding(
+                              {
+                                  nodeIdx: n.componentIdx,
+                                  unresolvedPath: [
+                                      { name: "", index: lastIndex },
+                                  ],
+                              },
+                              seen,
+                          )
+                        : referenceHolding(
+                              {
+                                  ...copy,
+                                  extending: {
+                                      Ref: {
+                                          nodeIdx: n.componentIdx,
+                                          unresolvedPath: null,
+                                          originalPath: [],
+                                      },
+                                  },
+                              } as any,
+                              seen,
+                          ),
+                ),
+            );
         }
         const referent = referents.componentsByIdx.get(ref.nodeIdx);
         const referentType = referents.referentType(ref.nodeIdx);
@@ -426,62 +561,47 @@ export function checkTypeChangesAtLoad({
             node &&
             (node.componentType === "_copy" || isHolder(referentType))
         ) {
-            trail.push(node.componentIdx);
-            if (seen.has(node.componentIdx)) {
-                // what it holds holds itself (`doenet-e0005`)
-                seenHits++;
-                return { types: new Set(), skip: true };
-            }
-            const known = heldByIdx.get(node.componentIdx);
-            if (known && ![...seen].some((idx) => known.touched.has(idx))) {
-                trail.push(...known.touched);
-                return known.held;
-            }
-            const hitsBefore = seenHits;
-            const trailBefore = trail.length;
-            const seenBelow = new Set(seen).add(node.componentIdx);
-            const held =
+            return cachedHolding(heldByIdx, node, seen, (seenBelow) =>
                 node.componentType === "_copy"
                     ? itemHolding(node, seenBelow)
-                    : holding(node, seenBelow);
-            if (seenHits === hitsBefore && !known) {
-                heldByIdx.set(node.componentIdx, {
-                    held,
-                    touched: new Set(trail.slice(trailBefore - 1)),
-                });
-            }
-            return held;
+                    : holding(node, seenBelow),
+            );
         }
         return { types: new Set([referentType]) };
     }
 
     /**
-     * The component a reference names by names left for run time
+     * The components a reference can name by names left for run time
      * (`$s.go`, of a `<group name="go">` in an option of a `<select>`):
-     * each a descendant, written in the DoenetML, of the one before it, or
-     * of what it copies (`$m2.go` of `<module name="m2" extend="$m"/>`), or
-     * `undefined` when a part is not such a name (a property, an index).
+     * each a descendant, written in the DoenetML, of one before it, or of
+     * what it copies (`$m2.go` of `<module name="m2" extend="$m"/>`). Each
+     * written with the name is one it can name, as one in each option of a
+     * `<select>` is. None when a part is not such a name (a property, an
+     * index).
      */
-    function descendantNamed(nodeIdx: number, path: any[]) {
-        let node: SerializedComponent | undefined =
+    function descendantsNamed(nodeIdx: number, path: any[]) {
+        const start =
             referents.componentsByIdx.get(nodeIdx) ??
             referents.copiesByCreatedIdx.get(nodeIdx);
+        let nodes: SerializedComponent[] = start ? [start] : [];
         for (const part of path) {
-            if (!node || part.name === "" || (part.index ?? []).length > 0) {
-                return undefined;
+            if (part.name === "" || (part.index ?? []).length > 0) {
+                return [];
             }
-            const key = `${node.componentIdx}:${part.name}`;
-            if (!namedBelowByKey.has(key)) {
-                namedBelowByKey.set(key, namedIn(node, part.name));
-            }
-            node = namedBelowByKey.get(key);
+            nodes = nodes.flatMap((node) => {
+                const key = `${node.componentIdx}:${part.name}`;
+                if (!namedBelowByKey.has(key)) {
+                    namedBelowByKey.set(key, namedIn(node, part.name));
+                }
+                return namedBelowByKey.get(key)!;
+            });
         }
-        return node;
+        return nodes;
     }
 
     /**
-     * The first component named `name` written in `node`, or, when there
-     * is none and `node` is a copy, in what it copies.
+     * The components named `name` written in `node`, or, when there are
+     * none and `node` is a copy, in what it copies.
      */
     function namedIn(node: SerializedComponent, name: string) {
         const visited = new Set<number>();
@@ -489,7 +609,7 @@ export function checkTypeChangesAtLoad({
         while (current && !visited.has(current.componentIdx)) {
             visited.add(current.componentIdx);
             const found = findNamed(current.children ?? [], name);
-            if (found || current.componentType !== "_copy") {
+            if (found.length > 0 || current.componentType !== "_copy") {
                 return found;
             }
             const ref = refOf(current);
@@ -498,20 +618,24 @@ export function checkTypeChangesAtLoad({
                 ref.nodeIdx < 0 ||
                 (ref.unresolvedPath && ref.unresolvedPath.length > 0)
             ) {
-                return undefined;
+                return [];
             }
             current =
                 referents.componentsByIdx.get(ref.nodeIdx) ??
                 referents.copiesByCreatedIdx.get(ref.nodeIdx);
         }
-        return undefined;
+        return [];
     }
 
-    /** The first component named `name` among `components` and theirs. */
+    /**
+     * The components named `name` among `components` and theirs, not
+     * looking in one so named.
+     */
     function findNamed(
         components: (SerializedComponent | string)[],
         name: string,
-    ): SerializedComponent | undefined {
+        found: SerializedComponent[] = [],
+    ): SerializedComponent[] {
         for (const component of components) {
             if (typeof component !== "object") {
                 continue;
@@ -523,14 +647,12 @@ export function checkTypeChangesAtLoad({
                 literalText(attributes.name) === name ||
                 literalText(attributes._createComponentName) === name
             ) {
-                return component;
+                found.push(component);
+                continue;
             }
-            const below = findNamed(component.children ?? [], name);
-            if (below) {
-                return below;
-            }
+            findNamed(component.children ?? [], name, found);
         }
-        return undefined;
+        return found;
     }
 
     /**
@@ -562,10 +684,15 @@ export function checkTypeChangesAtLoad({
         // An index after a reference to a copy (`$a1[2]` of `<group
         // extend="$a"/>`) selects among what the copy holds, not the
         // instances of what it copies.
+        const hitsBefore = seenHits;
         const holder =
             node.componentType === "_copy"
                 ? undefined
                 : namedHolder(ref.nodeIdx, seen);
+        if (seenHits !== hitsBefore) {
+            // what it holds holds itself (`doenet-e0005`)
+            return { types: new Set(), skip: true };
+        }
         const held = holder && instanceHolding(holder, seen);
         if (held) {
             return held;
@@ -791,18 +918,6 @@ export function checkTypeChangesAtLoad({
         }
         const types = new Set([...held.types, ...extra.types]);
         const unknown = held.unknown ?? extra.unknown;
-        /**
-         * How many components `h` always holds, or `undefined` when that is
-         * not one number (a count of a case, a `<repeat>`).
-         */
-        function countOf(h: Holding) {
-            if (h.notOne === undefined) {
-                return 1;
-            }
-            return h.notOne.reason === "count" && h.notOne.part === "other"
-                ? h.notOne.count
-                : undefined;
-        }
         const heldCount = countOf(held);
         const extraCount = countOf(extra);
         if (heldCount === undefined || extraCount === undefined) {
@@ -840,21 +955,29 @@ export function checkTypeChangesAtLoad({
                     typeof child === "object" &&
                     child.componentType === "option",
             );
-            return combineParts(
-                options.map((o) => childrenHolding(o.children, "option", seen)),
-                undefined,
-                "select",
-                "option",
+            return cachedHolding(instanceByIdx, x, seen, (seenBelow) =>
+                combineParts(
+                    options.map((o) =>
+                        childrenHolding(o.children, "option", seenBelow),
+                    ),
+                    undefined,
+                    "select",
+                    "option",
+                ),
             );
         }
         if (
             x.componentType === "repeat" ||
             x.componentType === "repeatForSequence"
         ) {
-            return asPartOf(
-                childrenHolding(x.children, "other", seen),
-                x.componentType,
-                "iteration",
+            // An instance holding an instance of itself (`$r[1]` in the
+            // repeat `r`) is `skip`, as what holds itself is.
+            return cachedHolding(instanceByIdx, x, seen, (seenBelow) =>
+                asPartOf(
+                    childrenHolding(x.children, "other", seenBelow),
+                    x.componentType,
+                    "iteration",
+                ),
             );
         }
         return undefined;
@@ -937,12 +1060,8 @@ export function checkTypeChangesAtLoad({
                 },
             };
         }
-        if (held.unknown) {
-            return {
-                code: "doenet-e0067",
-                args: { what: held.unknown },
-            };
-        }
+        // What the types that are known prove is reported, whatever an
+        // unknown one would be.
         const types = typesAs(held.types, writtenType);
         for (const sourceType of types) {
             const rule = becomes(sourceType, writtenType);
@@ -962,6 +1081,12 @@ export function checkTypeChangesAtLoad({
                 },
             };
         }
+        if (held.unknown) {
+            return {
+                code: "doenet-e0067",
+                args: { what: held.unknown },
+            };
+        }
         return undefined;
     }
 
@@ -973,9 +1098,8 @@ export function checkTypeChangesAtLoad({
         held: Holding,
         entryType: string | undefined,
     ): TypeChangeAtLoadError | undefined {
-        if (held.unknown) {
-            return undefined;
-        }
+        // Types that are known and differ are an error, whatever an
+        // unknown one would be; an unknown one alone is not decided.
         const types = typesAs(held.types, entryType);
         if (types.length > 1) {
             return {
@@ -1066,19 +1190,27 @@ export function checkTypeChangesAtLoad({
 
         const named =
             path.length > 0 && path[0].name !== ""
-                ? descendantNamed(ref.nodeIdx, path)
-                : undefined;
-        if (path.length === 0 || named) {
-            const added: (SerializedComponent | string)[][] = [];
-            const holder = namedHolder(
-                named ? named.componentIdx : ref.nodeIdx,
-                seen,
-                added,
-            );
-            if (!holder) {
-                return undefined;
+                ? descendantsNamed(ref.nodeIdx, path)
+                : [];
+        if (path.length === 0 || named.length > 0) {
+            // Each component the reference can name (`$s.go` of a
+            // `<group name="go">` in each option), which must each be a
+            // composite for this to be decided.
+            const holders: SerializedComponent[] = [];
+            const helds: Holding[] = [];
+            for (const idx of path.length === 0
+                ? [ref.nodeIdx]
+                : named.map((n) => n.componentIdx)) {
+                const added: (SerializedComponent | string)[][] = [];
+                const holder = namedHolder(idx, seen, added);
+                if (!holder) {
+                    return undefined;
+                }
+                holders.push(holder);
+                helds.push(withAdded(holding(holder, seen), added, seen));
             }
-            const held = withAdded(holding(holder, seen), added, seen);
+            const holder = holders[0];
+            const held = eitherOf(helds);
             if (held.skip) {
                 return undefined;
             }
