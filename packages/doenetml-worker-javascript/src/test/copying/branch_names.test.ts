@@ -611,4 +611,84 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
             "No referent found for reference: `$s[1].x.nonexistent`",
         ]);
     });
+
+    it("on a tag, a name a nested case without an else holds can be absent, whatever follows it", async () => {
+        // `x` is also a name of the document, so `$P.x` is followed as a
+        // name into each `P`, which lacks it
+        const { text, diagnostics } = await setUp(`
+<math name="x">5</math>
+<conditionalContent>
+    <case condition="$b"><conditionalContent>
+        <case condition="$b"><point name="P">(1,2)</point></case>
+    </conditionalContent></case>
+    <else><point name="P">(3,4)</point></else>
+</conditionalContent>
+<p name="p"><number extend="$P.x"/></p>`);
+        expect(await text()).eq("");
+        expect(codes(diagnostics.errors)).eqls(["doenet-e0064"]);
+    });
+
+    it("on a tag, a select copied in each case is held to the rule in each", async () => {
+        const { text, diagnostics } = await setUp(`
+<select name="s">
+    <option><math name="x">1</math></option>
+    <option><text name="x">t</text></option>
+</select>
+<conditionalContent>
+    <case condition="$b"><select name="t" copy="$s"/></case>
+    <else><select name="t" copy="$s"/></else>
+</conditionalContent>
+<p name="p"><math extend="$t.x"/></p>`);
+        expect(await text()).eq("");
+        expect(codes(diagnostics.errors)).eqls(["doenet-e0066"]);
+    });
+
+    it("a name after an index into a select in each case is held to the rule", async () => {
+        const doenetML = (reference: string) => `
+<conditionalContent>
+    <case condition="$b"><select name="h">
+        <option><math name="x">1</math></option>
+        <option><text name="x">t</text></option>
+    </select></case>
+    <else><select name="h">
+        <option><math name="x">2</math></option>
+        <option><text name="x">u</text></option>
+    </select></else>
+</conditionalContent>
+<p name="p">${reference}</p>`;
+        const bare = await setUp(doenetML("[$h[1].x]"));
+        expect(await bare.text()).eq("[]");
+        expect(bare.diagnostics.warnings.map((w) => w.message)).eqls([
+            "`$h[1].x` names nothing: `x` is a `<math>` in one option of `h` and a `<text>` in another. Use the same type, or different names.",
+        ]);
+        const onTag = await setUp(doenetML(`<math extend="$h[1].x"/>`));
+        expect(await onTag.text()).eq("");
+        expect(codes(onTag.diagnostics.errors)).eqls(["doenet-e0066"]);
+    });
+
+    it("on a tag, an index past what a select picks is an error before the name after it", async () => {
+        const { text, diagnostics } = await setUp(`
+<select name="s">
+    <option><math name="x">1</math></option>
+    <option><math name="x">2</math></option>
+</select>
+<p name="p"><math extend="$s[2].x"/></p>`);
+        expect(await text()).eq("");
+        expect(codes(diagnostics.errors)).eqls(["doenet-w0181"]);
+    });
+
+    it("a select picks one for its names only when numToSelect is written as 1", async () => {
+        // `01` picks one, but its names are private, as the resolver
+        // reads it: the else has no visible `x`
+        const { text, diagnostics } = await setUp(`
+<conditionalContent>
+    <case condition="$b"><math name="x">1</math></case>
+    <else><select numToSelect="01"><option><math name="x">2</math></option></select></else>
+</conditionalContent>
+<p name="p">[$x]</p>`);
+        expect(await text()).eq("[]");
+        expect(diagnostics.warnings.map((w) => w.message)).eqls([
+            "`$x` names nothing: the `<else>` of the `<conditionalContent>` has no `x`. Give it one, or use a name every case has.",
+        ]);
+    });
 });

@@ -136,12 +136,13 @@ type BranchDeclaration =
  * after the first (`$h.x`), the name a component on the way lacks
  * (`absent`), with the number of names from it to the end (`remaining`), so
  * that branches lacking names at different depths (`$h.x.y`, one branch's
- * `h` lacking `x`, another's `h.x` lacking `y`) are told apart.
+ * `h` lacking `x`, another's `h.x` lacking `y`) are told apart, and whether
+ * what lacks it can itself be absent (`canBeAbsent`).
  */
 type VisibleDeclaration =
     | { type?: string; canBeAbsent: boolean; unknownBelow?: boolean }
     | { failure: BranchDeclaration }
-    | { absent: string; remaining: number };
+    | { absent: string; remaining: number; canBeAbsent?: boolean };
 
 /** Why a composite does not always hold exactly one component. */
 type NotOne =
@@ -195,6 +196,12 @@ const SELECTORS: Record<string, string> = {
     sampleRandomNumbers: "numSamples",
     samplePrimeNumbers: "numSamples",
 };
+
+/**
+ * In the names of a reference held to the every-branch rule (`namesOf`), an
+ * index between two names (`$h[1].x`), which no name can be.
+ */
+const INDEX = "[]";
 
 /** The composites that hold what is written in them, reordered or not. */
 const HOLD_CHILDREN = new Set(["group", "sort", "shuffle"]);
@@ -1491,8 +1498,10 @@ export function checkTypeChangesAtLoad({
     /**
      * The kind of branch `component` holds, if it is a branch container: a
      * `<conditionalContent>` shows one of its cases (`case`), and a
-     * `<select>` whose `numToSelect` is written as 1 or left out shows one of
-     * its options (`option`). The names declared in those branches are
+     * `<select>` whose `numToSelect` is written as `1` or left out shows one
+     * of its options (`option`), read as the resolver reads it
+     * (`branch_container_kind`): the text `1`, not any whole number equal to
+     * it (`01`). The names declared in those branches are
      * visible outside it, as a `<group>`'s are (D13, D22; `Ref::Branches` in
      * the resolver). With `indexed`, for a name after an index into a
      * select's picks (`$s[2].x`, D27), a `<select>` of any number of picks
@@ -1502,9 +1511,12 @@ export function checkTypeChangesAtLoad({
         if (component.componentType === "conditionalContent") {
             return "case" as const;
         }
+        const picks = attributeOf(component, "numToSelect");
         if (
             component.componentType === "select" &&
-            (indexed || numPicked(component) === 1)
+            (indexed ||
+                picks === undefined ||
+                literalText(picks)?.trim() === "1")
         ) {
             return "option" as const;
         }
@@ -1614,7 +1626,11 @@ export function checkTypeChangesAtLoad({
             return { failure: declared };
         }
         if (declared.absent !== undefined) {
-            return { absent: declared.absent, remaining: declared.remaining! };
+            return {
+                absent: declared.absent,
+                remaining: declared.remaining!,
+                canBeAbsent: declared.canBeAbsent,
+            };
         }
         return {
             type: declared.type,
@@ -1638,7 +1654,21 @@ export function checkTypeChangesAtLoad({
         visited: Set<number>,
     ): VisibleDeclaration {
         const absent = { absent: names[0], remaining: names.length };
-        const container = branchContainerAt(component.componentIdx);
+        const indexed = names[0] === INDEX;
+        const container = branchContainerAt(component.componentIdx, indexed);
+        if (indexed) {
+            // what an index into another composite names is not known here
+            return container
+                ? (asVisible(
+                      branchDeclaration(
+                          container,
+                          names.slice(1),
+                          visited,
+                          true,
+                      ),
+                  ) ?? absent)
+                : { type: undefined, canBeAbsent: false, unknownBelow: true };
+        }
         if (container) {
             return (
                 asVisible(branchDeclaration(container, names, visited)) ??
@@ -1755,7 +1785,10 @@ export function checkTypeChangesAtLoad({
         }
         const declarations = perPart.map(([declaration]) =>
             "absent" in declaration
-                ? { type: undefined, canBeAbsent: false }
+                ? {
+                      type: undefined,
+                      canBeAbsent: declaration.canBeAbsent ?? false,
+                  }
                 : (declaration as { type?: string; canBeAbsent: boolean }),
         );
         const knownTypes = declarations
@@ -1882,21 +1915,23 @@ export function checkTypeChangesAtLoad({
         names: string[],
     ): SerializedComponent[] | null {
         const found: SerializedComponent[] = [];
-        const visited = new Set<number>();
+        // the containers on the way, so that one reached again inside
+        // itself is a cycle, while one copied in two branches is not
+        const onPath = new Set<number>();
         function inBranches(
             branchContainer: SerializedComponent,
             names: string[],
         ) {
             const kind = branchKind(branchContainer, true)!;
-            if (visited.has(branchContainer.componentIdx)) {
+            if (onPath.has(branchContainer.componentIdx)) {
                 return false;
             }
-            visited.add(branchContainer.componentIdx);
             const parts = partsOf(branchContainer, kind);
             if (!parts) {
                 return false;
             }
-            return parts.every(({ part }) =>
+            onPath.add(branchContainer.componentIdx);
+            const all = parts.every(({ part }) =>
                 among(
                     kind === "case"
                         ? withoutSugarGroup(part.children ?? [])
@@ -1904,6 +1939,8 @@ export function checkTypeChangesAtLoad({
                     names,
                 ),
             );
+            onPath.delete(branchContainer.componentIdx);
+            return all;
         }
         function among(
             components: (SerializedComponent | string)[],
@@ -1922,12 +1959,16 @@ export function checkTypeChangesAtLoad({
                         found.push(component);
                         continue;
                     }
-                    const below = branchContainerAt(component.componentIdx);
+                    const indexed = names[1] === INDEX;
+                    const below = branchContainerAt(
+                        component.componentIdx,
+                        indexed,
+                    );
                     if (below) {
-                        if (!inBranches(below, names.slice(1))) {
+                        if (!inBranches(below, names.slice(indexed ? 2 : 1))) {
                             return false;
                         }
-                    } else if (component.componentType === "_copy") {
+                    } else if (indexed || component.componentType === "_copy") {
                         return false;
                     } else if (
                         !among(component.children ?? [], names.slice(1))
@@ -2021,21 +2062,26 @@ export function checkTypeChangesAtLoad({
      * The names at the start of `path` (`h` and `x` of `$h.x`) whose
      * declarations in the branches are held to the every-branch rule: the
      * first, and each after it that is a name of the document, up to one
-     * with an index (`$h.x[1]`) or one that is a property (`$h.x.value`).
+     * that is a property (`$h.x.value`) or an index with nothing named
+     * after it (`$h.x[1]`). One index followed by a name (`$h[1].x`) is
+     * `INDEX` between them: the name is in the branches of what is indexed,
+     * as for `$s[1].x`.
      */
     function namesOf(path: any[]) {
         const names: string[] = [path[0].name];
         for (const [ind, part] of path.entries()) {
-            if ((part.index ?? []).length > 0) {
-                break;
-            }
+            const index = part.index ?? [];
             const next = path[ind + 1];
             if (
+                index.length > 1 ||
                 typeof next?.name !== "string" ||
                 next.name === "" ||
                 !allNames.has(next.name)
             ) {
                 break;
+            }
+            if (index.length === 1) {
+                names.push(INDEX);
             }
             names.push(next.name);
         }
@@ -2241,21 +2287,22 @@ export function checkTypeChangesAtLoad({
             container: SerializedComponent,
             namePath: any[],
         ) {
-            if (
-                namePath.some(
-                    (part, ind) =>
-                        typeof part.name !== "string" ||
-                        part.name === "" ||
-                        (ind < namePath.length - 1 &&
-                            (part.index ?? []).length > 0),
-                )
-            ) {
-                return undefined;
+            const names: string[] = [];
+            for (const [ind, part] of namePath.entries()) {
+                const index = part.index ?? [];
+                if (
+                    typeof part.name !== "string" ||
+                    part.name === "" ||
+                    (ind < namePath.length - 1 && index.length > 1)
+                ) {
+                    return undefined;
+                }
+                names.push(part.name);
+                if (ind < namePath.length - 1 && index.length === 1) {
+                    names.push(INDEX);
+                }
             }
-            const named = visibleNamed(
-                container,
-                namePath.map((part) => part.name),
-            );
+            const named = visibleNamed(container, names);
             if (!named || named.length === 0) {
                 return undefined;
             }
@@ -2296,6 +2343,16 @@ export function checkTypeChangesAtLoad({
             const container = branchContainerAt(ref.nodeIdx, true);
             if (!container) {
                 return undefined;
+            }
+            // An index past the picks names nothing, whatever follows it
+            // (a list tag made from it is empty, as below).
+            const instance = indexedInstance(
+                ref.nodeIdx,
+                path[0].index[0],
+                seen,
+            );
+            if (instance && "bounds" in instance) {
+                return isList ? undefined : instance.bounds;
             }
             const named = namedInBranches(container, path.slice(1));
             if (!named) {
@@ -2469,7 +2526,10 @@ export function checkTypeChangesAtLoad({
                 allNames.has(first.name) &&
                 branchContainerAt(ref.nodeIdx, indexed)
             ) {
-                path = path.slice(start + namesOf(path.slice(start)).length);
+                const names = namesOf(path.slice(start));
+                path = path.slice(
+                    start + names.filter((name) => name !== INDEX).length,
+                );
             }
         }
         const first = path.find((part) => part.name !== "");
