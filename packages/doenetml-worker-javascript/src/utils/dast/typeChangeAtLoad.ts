@@ -87,9 +87,11 @@ export type BranchNameWarning = {
  *   `canBeAbsent` when no branch may be active (a `<conditionalContent>`
  *   with no `<else>`, here or in a branch);
  * - `missing`: the branch `branch` (`case`, `else` or `option`), the
- *   `ordinal`-th of its kind, of `container` has none;
- * - `types`: branches of `container` declare it as `<firstType>` and
- *   `<secondType>`;
+ *   `ordinal`-th of its kind, of `container` has no `name`: the name, or,
+ *   for a name after it (`$h.x`), that name in what the branch declares by
+ *   the one before it;
+ * - `types`: branches of `container` declare `name`, the name or the last
+ *   after it, as `<firstType>` and `<secondType>`;
  * - `skip`: not decided here (a branch declares it twice, which the
  *   run time reports as ambiguous, or what a branch holds is not read here).
  */
@@ -101,6 +103,7 @@ type BranchDeclaration =
           container: SerializedComponent;
           branch: "case" | "else" | "option";
           ordinal: number;
+          name: string;
       }
     | {
           status: "types";
@@ -108,8 +111,20 @@ type BranchDeclaration =
           branch: "case" | "option";
           firstType: string;
           secondType: string;
+          name: string;
       }
     | { status: "skip" };
+
+/**
+ * One declaration found in a branch (`visibleDeclarations`): its tag
+ * (`undefined` when unknown) and whether it can be absent, a failure of a
+ * nested branch container, or, for a name after the first (`$h.x`), the
+ * name the component declared by the first lacks (`absent`).
+ */
+type VisibleDeclaration =
+    | { type?: string; canBeAbsent: boolean }
+    | { failure: BranchDeclaration }
+    | { absent: string };
 
 /** Why a composite does not always hold exactly one component. */
 type NotOne =
@@ -1508,23 +1523,23 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * The declarations of `name` among `components`, where a reference from
-     * outside them would see one (`branchDeclaration`): written there, or in
-     * a component written there, not in a repeat or the options of a select
-     * that picks several (whose names are private), nor in what a copy copies
-     * (reached only through the copy's name). A branch container among them
-     * declares it if its branches do, as `branchDeclaration` decides. A
-     * component with the name hides any of that name in it.
+     * The declarations of `names[0]` among `components`, where a reference
+     * from outside them would see one (`branchDeclaration`): written there,
+     * or in a component written there, not in a repeat or the options of a
+     * select that picks several (whose names are private), nor in what a copy
+     * copies (reached only through the copy's name). A branch container among
+     * them declares it if its branches do, as `branchDeclaration` decides. A
+     * component with the name hides any of that name in it. With names after
+     * it (`$h.x`), what is found is what the one so named declares by them
+     * (`declarationsBelow`).
      */
     function visibleDeclarations(
         components: (SerializedComponent | string)[],
-        name: string,
+        names: string[],
         visited: Set<number>,
-        found: (
-            | { type?: string; canBeAbsent: boolean }
-            | { failure: BranchDeclaration }
-        )[],
+        found: VisibleDeclaration[],
     ) {
+        const name = names[0];
         for (const component of components) {
             if (typeof component !== "object") {
                 continue;
@@ -1534,14 +1549,15 @@ export function checkTypeChangesAtLoad({
                 literalText(attributes.name) === name ||
                 literalText(attributes._createComponentName) === name
             ) {
-                found.push({
-                    type: declaredType(component),
-                    canBeAbsent: false,
-                });
+                found.push(
+                    names.length === 1
+                        ? { type: declaredType(component), canBeAbsent: false }
+                        : declarationsBelow(component, names.slice(1), visited),
+                );
                 continue;
             }
             if (branchKind(component)) {
-                const declared = branchDeclaration(component, name, visited);
+                const declared = branchDeclaration(component, names, visited);
                 if (declared.status === "ok") {
                     found.push({
                         type: declared.type,
@@ -1560,8 +1576,55 @@ export function checkTypeChangesAtLoad({
             ) {
                 continue;
             }
-            visibleDeclarations(component.children ?? [], name, visited, found);
+            visibleDeclarations(
+                component.children ?? [],
+                names,
+                visited,
+                found,
+            );
         }
+    }
+
+    /**
+     * What `component`, declared by a name in a branch, declares by the
+     * names after it (`names`, the `x` of `$h.x`), so that the type of what
+     * the whole reference names is held to the every-branch rule too: one
+     * declaration, `absent` when it has none, or one of unknown type when
+     * that is not known from the DoenetML (a copy, or a name declared twice
+     * in it, which the run time reports as ambiguous).
+     */
+    function declarationsBelow(
+        component: SerializedComponent,
+        names: string[],
+        visited: Set<number>,
+    ): VisibleDeclaration {
+        const unknown = { type: undefined, canBeAbsent: false };
+        const container = branchContainerAt(component.componentIdx);
+        if (container) {
+            const declared = branchDeclaration(container, names, visited);
+            if (declared.status === "ok") {
+                return {
+                    type: declared.type,
+                    canBeAbsent: declared.canBeAbsent,
+                };
+            }
+            if (declared.status === "none") {
+                return { absent: names[0] };
+            }
+            if (declared.status === "skip") {
+                return unknown;
+            }
+            return { failure: declared };
+        }
+        if (component.componentType === "_copy") {
+            return unknown;
+        }
+        const below: VisibleDeclaration[] = [];
+        visibleDeclarations(component.children ?? [], names, visited, below);
+        if (below.length === 0) {
+            return { absent: names[0] };
+        }
+        return below.length === 1 ? below[0] : unknown;
     }
 
     /**
@@ -1577,7 +1640,7 @@ export function checkTypeChangesAtLoad({
      */
     function branchDeclaration(
         container: SerializedComponent,
-        name: string,
+        names: string[],
         visited: Set<number>,
         indexed = false,
     ): BranchDeclaration {
@@ -1591,12 +1654,12 @@ export function checkTypeChangesAtLoad({
         }
         const visitedBelow = new Set(visited).add(container.componentIdx);
         const perPart = parts.map(({ part }) => {
-            const found: Parameters<typeof visibleDeclarations>[3] = [];
+            const found: VisibleDeclaration[] = [];
             visibleDeclarations(
                 kind === "case"
                     ? withoutSugarGroup(part.children ?? [])
                     : (part.children ?? []),
-                name,
+                names,
                 visitedBelow,
                 found,
             );
@@ -1610,6 +1673,11 @@ export function checkTypeChangesAtLoad({
             // which the run time reports when that branch is active.
             return { status: "skip" };
         }
+        // A name after the first that no branch has (`$h.value`) is not a
+        // name there but a property, which is not decided here.
+        const noneBelow = perPart.every(
+            (found) => found.length === 1 && "absent" in found[0],
+        );
         let caseOrdinal = 0;
         for (const [ind, found] of perPart.entries()) {
             const isElse = kind === "case" && parts[ind].isElse;
@@ -1622,16 +1690,29 @@ export function checkTypeChangesAtLoad({
                     container,
                     branch: isElse ? "else" : kind,
                     ordinal: isElse ? 1 : caseOrdinal,
+                    name: names[0],
                 };
             }
             const [declaration] = found;
             if ("failure" in declaration) {
                 return declaration.failure;
             }
+            if ("absent" in declaration && !noneBelow) {
+                // The one it declares by the first name has none of a name
+                // after it (`$h.x`) that another branch's has
+                return {
+                    status: "missing",
+                    container,
+                    branch: isElse ? "else" : kind,
+                    ordinal: isElse ? 1 : caseOrdinal,
+                    name: declaration.absent,
+                };
+            }
         }
-        const declarations = perPart.map(
-            ([declaration]) =>
-                declaration as { type?: string; canBeAbsent: boolean },
+        const declarations = perPart.map(([declaration]) =>
+            "absent" in declaration
+                ? { type: undefined, canBeAbsent: false }
+                : (declaration as { type?: string; canBeAbsent: boolean }),
         );
         const known = declarations
             .map(({ type }) => type)
@@ -1644,6 +1725,7 @@ export function checkTypeChangesAtLoad({
                 branch: kind,
                 firstType: known[0],
                 secondType: differs,
+                name: names[names.length - 1],
             };
         }
         return {
@@ -1695,7 +1777,10 @@ export function checkTypeChangesAtLoad({
      * after an index into the picks of a `<select>` (`$s[2].x`, as `node_idx`
      * `s` with `[2]` and `x` unresolved) is held to the same rule, for a
      * select of any number of picks (D27), as is one after an index into a
-     * `<conditionalContent>` (`$cc[1].x`).
+     * `<conditionalContent>` (`$cc[1].x`). The names of the document after
+     * the first (`$h.x`, of a `<group name="h">` in every case) are held to
+     * the rule too (`namesOf`), as what they name is decided by the active
+     * branch.
      */
     function branchNameOf(copy: SerializedComponent) {
         const ref = refOf(copy);
@@ -1714,7 +1799,7 @@ export function checkTypeChangesAtLoad({
         }
         const declared = branchDeclaration(
             container,
-            first.name,
+            namesOf(path.slice(indexed ? 1 : 0)),
             new Set(),
             indexed,
         );
@@ -1732,16 +1817,39 @@ export function checkTypeChangesAtLoad({
             }
             const isElse = kind === "case" && firstPart.isElse;
             return {
+                status: "missing",
+                container,
+                branch: isElse ? "else" : kind,
+                ordinal: 1,
                 name: first.name,
-                declared: {
-                    status: "missing",
-                    container,
-                    branch: isElse ? "else" : kind,
-                    ordinal: 1,
-                } as BranchDeclaration,
-            };
+            } as BranchDeclaration;
         }
-        return { name: first.name, declared };
+        return declared;
+    }
+
+    /**
+     * The names at the start of `path` (`h` and `x` of `$h.x`) whose
+     * declarations in the branches are held to the every-branch rule: the
+     * first, and each after it that is a name of the document, up to one
+     * with an index (`$h.x[1]`) or one that is a property (`$h.x.value`).
+     */
+    function namesOf(path: any[]) {
+        const names: string[] = [path[0].name];
+        for (const [ind, part] of path.entries()) {
+            if ((part.index ?? []).length > 0) {
+                break;
+            }
+            const next = path[ind + 1];
+            if (
+                typeof next?.name !== "string" ||
+                next.name === "" ||
+                !allNames.has(next.name)
+            ) {
+                break;
+            }
+            names.push(next.name);
+        }
+        return names;
     }
 
     /**
@@ -1761,12 +1869,12 @@ export function checkTypeChangesAtLoad({
      * do not all declare with one tag, or `undefined` if they do.
      */
     function branchNameIssue(
-        name: string,
         declared: BranchDeclaration,
     ): TypeChangeAtLoadError | undefined {
         if (declared.status !== "missing" && declared.status !== "types") {
             return undefined;
         }
+        const name = declared.name;
         const containerName = literalText(declared.container.attributes?.name);
         const hasName =
             containerName !== undefined &&
@@ -1843,11 +1951,10 @@ export function checkTypeChangesAtLoad({
      * decided here.
      */
     function checkBranchName(copy: SerializedComponent) {
-        const found = branchNameOf(copy);
-        if (!found) {
+        const declared = branchNameOf(copy);
+        if (!declared) {
             return false;
         }
-        const declared = found.declared;
         if (isTag(copy)) {
             if (declared.status === "types") {
                 // Decided as for any composite holding types that differ
@@ -1873,7 +1980,7 @@ export function checkTypeChangesAtLoad({
                 return true;
             }
         }
-        const issue = branchNameIssue(found.name, declared);
+        const issue = branchNameIssue(declared);
         if (issue) {
             if (isTag(copy)) {
                 copy.doenetAttributes = {

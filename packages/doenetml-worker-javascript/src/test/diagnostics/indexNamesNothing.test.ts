@@ -182,6 +182,16 @@ describe("An index that names nothing @group4", async () => {
             expect(warnings[0].message, body).contain(reference);
         }
 
+        // On a tag, as for `<math extend="$n.nonexistent"/>`, it is an error,
+        // and a property the iteration's math has is made.
+        const onTag = await shownAndReported(
+            `<repeatForSequence name="r" length="2" valueName="v"><math>$v</math></repeatForSequence><p name="p">[<math extend="$r[1].nonexistent"/>][<math extend="$r[2].value"/>]</p>`,
+        );
+        expect(onTag.text).eq("[][2]");
+        expect([...onTag.warnings, ...onTag.infos]).eqls([]);
+        expect(onTag.errors.map((e) => e.code)).eqls(["doenet-w0104"]);
+        expect(onTag.errors[0].message).contain("$r[1].nonexistent");
+
         // A property the picked component has, or a name, stays silent.
         const { text, warnings, errors, infos } = await shownAndReported(
             inParagraph(

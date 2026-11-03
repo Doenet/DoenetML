@@ -386,6 +386,70 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         );
     });
 
+    it("a name after a name in the branches is held to the every-branch rule", async () => {
+        const branches = (caseX: string, elseX: string) => `
+<conditionalContent name="cc">
+    <case condition="$b"><group name="h">${caseX}</group></case>
+    <else><group name="h">${elseX}</group></else>
+</conditionalContent>`;
+
+        const mixed = await setUp(
+            `${branches(`<math name="x">1</math>`, `<text name="x">t</text>`)}<p name="p">[$h.x][$cc.h.x]</p>`,
+        );
+        expect(await mixed.text()).eq("[][]");
+        await mixed.toggle(true);
+        expect(await mixed.text()).eq("[][]");
+        expect(mixed.diagnostics.warnings.map((w) => w.message)).eqls([
+            "`$h.x` names nothing: `x` is a `<math>` in one case of `cc` and a `<text>` in another. Use the same type, or different names.",
+            "`$cc.h.x` names nothing: `x` is a `<math>` in one case of `cc` and a `<text>` in another. Use the same type, or different names.",
+        ]);
+
+        const missing = await setUp(
+            `${branches(`<math name="x">1</math>`, `<math name="y">2</math>`)}<p name="p">[$h.x]<math extend="$h.x"/></p>`,
+        );
+        expect(await missing.text()).eq("[]");
+        expect(missing.diagnostics.warnings.map((w) => w.message)).eqls([
+            "`$h.x` names nothing: the `<else>` of `cc` has no `x`. Give it one, or use a name every case has.",
+        ]);
+        expect(codes(missing.diagnostics.errors)).eqls(["doenet-w0183"]);
+
+        // A name in a select in every case, of different types in its options
+        const nested = await setUp(`
+<conditionalContent name="cc">
+    <case condition="$b"><select name="t"><option><math name="x">1</math></option><option><text name="x">a</text></option></select></case>
+    <else><select name="t"><option><math name="x">1</math></option><option><math name="x">2</math></option></select></else>
+</conditionalContent>
+<p name="p">[$t.x]</p>`);
+        expect(await nested.text()).eq("[]");
+        expect(nested.diagnostics.warnings.map((w) => w.message)).eqls([
+            "`$t.x` names nothing: `x` is a `<math>` in one option of `t` and a `<text>` in another. Use the same type, or different names.",
+        ]);
+
+        const same = await setUp(
+            `${branches(`<math name="x">1</math>`, `<math name="x">2</math>`)}<p name="p">[$h.x][$h.x.value]<math extend="$h.x"/></p>`,
+        );
+        expect(await same.text()).eq("[2][2]2");
+        await same.toggle(true);
+        expect(await same.text()).eq("[1][1]1");
+        expect([...same.diagnostics.warnings, ...same.diagnostics.errors]).eqls(
+            [],
+        );
+    });
+
+    it("a property after a name in the branches is not a name, even one the document has", async () => {
+        const { text, toggle, diagnostics } = await setUp(`
+<math name="value">7</math>
+<conditionalContent name="cc">
+    <case condition="$b"><math name="h">1</math></case>
+    <else><math name="h">2</math></else>
+</conditionalContent>
+<p name="p">[$h.value]</p>`);
+        expect(await text()).eq("[2]");
+        await toggle(true);
+        expect(await text()).eq("[1]");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+    });
+
     it("a property of the container is not a name", async () => {
         const { text, diagnostics } = await setUp(`
 <conditionalContent name="cc">
