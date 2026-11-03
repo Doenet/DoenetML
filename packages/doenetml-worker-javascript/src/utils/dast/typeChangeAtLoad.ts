@@ -128,6 +128,26 @@ export function checkTypeChangesAtLoad({
         componentInfoObjects,
     });
 
+    /**
+     * What each composite or copy a reference names holds
+     * (`referenceHolding`), by its index, kept when nothing in finding it
+     * met what was being found already (`seenHits`): then it does not
+     * depend on where it was reached from, so it is found once however
+     * many references, or parts, name it. Without it, cases that each
+     * name a composite whose cases each name another would be read once
+     * per path, doubling with each level.
+     */
+    const heldByIdx = new Map<number, Holding>();
+    /** How many times a search met what it was finding already. */
+    let seenHits = 0;
+
+    /**
+     * What `descendantNamed` found, by the index of the component searched
+     * and the name, so that a component is searched once for a name however
+     * many references (`$s.x`, `$s.title`) start from it.
+     */
+    const namedBelowByKey = new Map<string, SerializedComponent | undefined>();
+
     const allClasses = componentInfoObjects.allComponentClasses as Record<
         string,
         any
@@ -390,13 +410,23 @@ export function checkTypeChangesAtLoad({
         ) {
             if (seen.has(node.componentIdx)) {
                 // what it holds holds itself (`doenet-e0005`)
+                seenHits++;
                 return { types: new Set(), skip: true };
             }
-            const seenBelow = new Set(seen).add(node.componentIdx);
-            if (node.componentType === "_copy") {
-                return itemHolding(node, seenBelow);
+            const known = heldByIdx.get(node.componentIdx);
+            if (known) {
+                return known;
             }
-            return holding(node, seenBelow);
+            const hitsBefore = seenHits;
+            const seenBelow = new Set(seen).add(node.componentIdx);
+            const held =
+                node.componentType === "_copy"
+                    ? itemHolding(node, seenBelow)
+                    : holding(node, seenBelow);
+            if (seenHits === hitsBefore) {
+                heldByIdx.set(node.componentIdx, held);
+            }
+            return held;
         }
         return { types: new Set([referentType]) };
     }
@@ -405,18 +435,52 @@ export function checkTypeChangesAtLoad({
      * The component a reference names by names left for run time
      * (`$s.go`, of a `<group name="go">` in an option of a `<select>`):
      * each a descendant, written in the DoenetML, of the one before it, or
+     * of what it copies (`$m2.go` of `<module name="m2" extend="$m"/>`), or
      * `undefined` when a part is not such a name (a property, an index).
      */
     function descendantNamed(nodeIdx: number, path: any[]) {
         let node: SerializedComponent | undefined =
-            referents.componentsByIdx.get(nodeIdx);
+            referents.componentsByIdx.get(nodeIdx) ??
+            referents.copiesByCreatedIdx.get(nodeIdx);
         for (const part of path) {
             if (!node || part.name === "" || (part.index ?? []).length > 0) {
                 return undefined;
             }
-            node = findNamed(node.children ?? [], part.name);
+            const key = `${node.componentIdx}:${part.name}`;
+            if (!namedBelowByKey.has(key)) {
+                namedBelowByKey.set(key, namedIn(node, part.name));
+            }
+            node = namedBelowByKey.get(key);
         }
         return node;
+    }
+
+    /**
+     * The first component named `name` written in `node`, or, when there
+     * is none and `node` is a copy, in what it copies.
+     */
+    function namedIn(node: SerializedComponent, name: string) {
+        const visited = new Set<number>();
+        let current: SerializedComponent | undefined = node;
+        while (current && !visited.has(current.componentIdx)) {
+            visited.add(current.componentIdx);
+            const found = findNamed(current.children ?? [], name);
+            if (found || current.componentType !== "_copy") {
+                return found;
+            }
+            const ref = refOf(current);
+            if (
+                !ref ||
+                ref.nodeIdx < 0 ||
+                (ref.unresolvedPath && ref.unresolvedPath.length > 0)
+            ) {
+                return undefined;
+            }
+            current =
+                referents.componentsByIdx.get(ref.nodeIdx) ??
+                referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        }
+        return undefined;
     }
 
     /** The first component named `name` among `components` and theirs. */
@@ -843,6 +907,7 @@ export function checkTypeChangesAtLoad({
         const visited = new Set(seen);
         for (;;) {
             if (visited.has(idx)) {
+                seenHits++;
                 return undefined;
             }
             visited.add(idx);

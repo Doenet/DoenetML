@@ -464,6 +464,29 @@ describe("A reference written as a tag of a composite is decided when the docume
         expect(d.newDiagnostics()).eqls([]);
     });
 
+    it("a name in what a copy copies is found there", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<module name="mod">
+  <conditionalContent name="one"><case condition="$b"><math>1</math></case><else><math>2</math></else></conditionalContent>
+  <conditionalContent name="none"><case condition="$b"><math>1</math></case></conditionalContent>
+</module>
+<module name="m2" extend="$mod"/>
+<conditionalContent name="c1"><case condition="$b">$m2.one</case><else><math>3</math></else></conditionalContent>
+<conditionalContent name="c2"><case condition="$b">$m2.none</case><else><math>3</math></else></conditionalContent>
+<p name="p1"><math name="m1" extend="$c1"/></p>
+<p name="p2"><math extend="$c2"/></p>
+`);
+        expect(await d.texts(["m1"])).eqls({ m1: "3" });
+        expect(await d.replacedBy("p2")).eqls(["_error"]);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 11],
+        ]);
+        await d.setBoolean("b", true);
+        expect(await d.texts(["m1"])).eqls({ m1: "1" });
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
     it("a part that does not hold one component is named as the part of the composite it is of", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
@@ -602,6 +625,21 @@ describe("A reference written as a tag of a composite is decided when the docume
             },
         ]);
     });
+
+    it("a composite named by several parts is read once, so composites nested by reference load in time", async () => {
+        // Each case and else names the next composite, so following every
+        // path would read the innermost group 2^24 times.
+        const depth = 24;
+        let doenetML = `<booleanInput name="b"/>\n<group name="g${depth}"><math>x</math></group>\n`;
+        for (let k = depth - 1; k >= 0; k--) {
+            doenetML += `<conditionalContent name="g${k}"><case condition="$b">$g${k + 1}</case><else>$g${k + 1}</else></conditionalContent>\n`;
+        }
+        doenetML += `<p name="p"><math extend="$g0"/></p>`;
+        const d = await setup(doenetML);
+        expect(await d.texts(["p"])).eqls({ p: "x" });
+        expect(d.newDiagnostics()).eqls([]);
+        // About 3 seconds; reading every path took about 30.
+    }, 15000);
 });
 
 describe("What still changes at run time, without changing what the component is (D36) @group4", () => {
