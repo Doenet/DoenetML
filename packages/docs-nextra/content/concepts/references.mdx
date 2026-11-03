@@ -315,6 +315,8 @@ A [`<select>`](../reference/select) that picks one option (`numToSelect`
 written as `1`, or left out) works the same way, with every option in place of
 every case. A `<select>` that picks several keeps its names private, as a
 `<repeat>` does: reach a name in one pick with an index, as in `$s[2].x`.
+That works under the same rule: every option must declare `x`, with the same
+type, or `$s[2].x` names nothing, with a warning.
 
 ### References in a copy's attributes
 

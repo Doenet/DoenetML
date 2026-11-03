@@ -287,6 +287,78 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(codes(diagnostics.warnings)).eqls(["doenet-w0104"]);
     });
 
+    it("a name after an index into a select's picks names nothing when an option lacks it", async () => {
+        for (const numToSelect of ["", `numToSelect="2"`]) {
+            const { text, diagnostics } = await setUp(`
+<select name="s" ${numToSelect}>
+    <option><math name="x">1</math></option>
+    <option><math name="y">2</math></option>
+</select>
+<p name="p">[$s[1].x]</p>`);
+            expect(await text(), numToSelect).eq("[]");
+            expect(
+                diagnostics.warnings.map((w) => w.message),
+                numToSelect,
+            ).eqls([
+                "`$s[1].x` names nothing: option 2 of `s` has no `x`. Give it one, or use a name every option has.",
+            ]);
+            expect(diagnostics.errors, numToSelect).eqls([]);
+        }
+    });
+
+    it("a name after an index into a select's picks names nothing when options declare different types", async () => {
+        for (const numToSelect of ["", `numToSelect="2"`]) {
+            const { text, diagnostics } = await setUp(`
+<select name="s" ${numToSelect}>
+    <option><math name="x">1</math></option>
+    <option><text name="x">t</text></option>
+</select>
+<select name="s2" extend="$s"/>
+<p name="p">[$s[1].x][$s2[1].x]</p>`);
+            expect(await text(), numToSelect).eq("[][]");
+            expect(
+                diagnostics.warnings.map((w) => w.message),
+                numToSelect,
+            ).eqls([
+                "`$s[1].x` names nothing: `x` is a `<math>` in one option of `s` and a `<text>` in another. Use the same type, or different names.",
+                "`$s2[1].x` names nothing: `x` is a `<math>` in one option of `s` and a `<text>` in another. Use the same type, or different names.",
+            ]);
+        }
+    });
+
+    it("a name after an index into a select's picks, every option with one type, is found", async () => {
+        const { text, diagnostics } = await setUp(`
+<select name="s" numToSelect="2">
+    <option><math name="x">1</math></option>
+    <option><group><math name="x">1</math></group></option>
+</select>
+<p name="p">[$s[1].x][$s[2].x]<math extend="$s[2].x"/></p>`);
+        expect(await text()).eq("[1][1]1");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+    });
+
+    it("on a tag, a name after an index into a select's picks is an error when an option lacks it or types differ", async () => {
+        const missing = await setUp(`
+<select name="s" numToSelect="2">
+    <option><math name="x">1</math></option>
+    <option><math name="y">2</math></option>
+</select>
+<p name="p"><math extend="$s[1].x"/></p>`);
+        expect(await missing.text()).eq("");
+        expect(codes(missing.diagnostics.errors)).eqls(["doenet-w0183"]);
+        expect(missing.diagnostics.warnings).eqls([]);
+
+        const mixed = await setUp(`
+<select name="s" numToSelect="2">
+    <option><math name="x">1</math></option>
+    <option><text name="x">t</text></option>
+</select>
+<p name="p"><math extend="$s[1].x"/></p>`);
+        expect(await mixed.text()).eq("");
+        expect(codes(mixed.diagnostics.errors)).eqls(["doenet-e0066"]);
+        expect(mixed.diagnostics.warnings).eqls([]);
+    });
+
     it("a property of the container is not a name", async () => {
         const { text, diagnostics } = await setUp(`
 <conditionalContent name="cc">

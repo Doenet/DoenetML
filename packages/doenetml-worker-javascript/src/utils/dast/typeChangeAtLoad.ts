@@ -63,7 +63,8 @@ export type TypeChangeAtLoadError = {
 
 /**
  * A reference, not written as a tag, to a name declared in the branches of
- * a `<conditionalContent>` or a one-pick `<select>` that does not satisfy
+ * a `<conditionalContent>` or a one-pick `<select>` (or, after an index into
+ * its picks, `$s[2].x`, any `<select>`) that does not satisfy
  * the every-branch, same-type rule (D13, D22, `branchDeclaration`): it names
  * nothing, and `code` with `args` is the warning, which is quoted with the
  * reference as written (`reference` is added by the caller).
@@ -76,8 +77,9 @@ export type BranchNameWarning = {
 
 /**
  * What the branches of a `<conditionalContent>` (its cases and its
- * `<else>`) or of a `<select>` that picks one (its options) declare by one
- * name (`branchDeclaration`):
+ * `<else>`) or of a `<select>` that picks one (its options; any `<select>`
+ * for a name after an index into its picks, `$s[2].x`) declare by one name
+ * (`branchDeclaration`):
  *
  * - `none`: no branch declares it;
  * - `ok`: every branch declares it once, with the same tag (`type`,
@@ -1460,15 +1462,17 @@ export function checkTypeChangesAtLoad({
      * `<select>` whose `numToSelect` is written as 1 or left out shows one of
      * its options (`option`). The names declared in those branches are
      * visible outside it, as a `<group>`'s are (D13, D22; `Ref::Branches` in
-     * the resolver).
+     * the resolver). With `indexed`, for a name after an index into a
+     * select's picks (`$s[2].x`, D27), a `<select>` of any number of picks
+     * shows one of its options there.
      */
-    function branchKind(component: SerializedComponent) {
+    function branchKind(component: SerializedComponent, indexed = false) {
         if (component.componentType === "conditionalContent") {
             return "case" as const;
         }
         if (
             component.componentType === "select" &&
-            numPicked(component) === 1
+            (indexed || numPicked(component) === 1)
         ) {
             return "option" as const;
         }
@@ -1567,14 +1571,17 @@ export function checkTypeChangesAtLoad({
      * with the same tag, so that what the reference names, and whether a
      * parent accepts it as a child, never changes with the active branch
      * (D13, D22, COMP-11). With no `<else>`, a name in every case is enough:
-     * while no case is active, it names nothing (`canBeAbsent`).
+     * while no case is active, it names nothing (`canBeAbsent`). With
+     * `indexed`, `container` is a `<select>` of any number of picks, for a
+     * name after an index into them (`$s[2].x`, D27, `branchKind`).
      */
     function branchDeclaration(
         container: SerializedComponent,
         name: string,
         visited: Set<number>,
+        indexed = false,
     ): BranchDeclaration {
-        const kind = branchKind(container);
+        const kind = branchKind(container, indexed);
         if (!kind || visited.has(container.componentIdx)) {
             return { status: "skip" };
         }
@@ -1652,9 +1659,10 @@ export function checkTypeChangesAtLoad({
     /**
      * The branch container (`branchKind`) at `idx`, through a copy of one
      * (`<conditionalContent name="cc2" extend="$cc"/>`), which has the
-     * branches of the one it copies, or `undefined` if there is none.
+     * branches of the one it copies, or `undefined` if there is none. With
+     * `indexed`, a `<select>` of any number of picks (`branchKind`).
      */
-    function branchContainerAt(idx: number) {
+    function branchContainerAt(idx: number, indexed = false) {
         const visited = new Set<number>();
         let node =
             referents.componentsByIdx.get(idx) ??
@@ -1676,36 +1684,46 @@ export function checkTypeChangesAtLoad({
                 referents.componentsByIdx.get(ref.nodeIdx) ??
                 referents.copiesByCreatedIdx.get(ref.nodeIdx);
         }
-        return node && branchKind(node) ? node : undefined;
+        return node && branchKind(node, indexed) ? node : undefined;
     }
 
     /**
      * What the branches of the container a reference names its first name in
      * (`$x` and `$cc.x`, which the resolver leaves for the container to
      * resolve, as `node_idx` `cc` with `x` unresolved) declare by that name,
-     * or `undefined` when the reference is not to such a container.
+     * or `undefined` when the reference is not to such a container. A name
+     * after an index into the picks of a `<select>` (`$s[2].x`, as `node_idx`
+     * `s` with `[2]` and `x` unresolved) is held to the same rule, for a
+     * select of any number of picks (D27).
      */
     function branchNameOf(copy: SerializedComponent) {
         const ref = refOf(copy);
         if (!ref || ref.nodeIdx < 0) {
             return undefined;
         }
-        const first = ref.unresolvedPath?.[0];
+        const path = ref.unresolvedPath ?? [];
+        const indexed = isIndexIntoPicks(path);
+        const first = indexed ? path[1] : path[0];
         if (typeof first?.name !== "string" || first.name === "") {
             return undefined;
         }
-        const container = branchContainerAt(ref.nodeIdx);
-        if (!container) {
+        const container = branchContainerAt(ref.nodeIdx, indexed);
+        if (!container || (indexed && container.componentType !== "select")) {
             return undefined;
         }
-        const declared = branchDeclaration(container, first.name, new Set());
+        const declared = branchDeclaration(
+            container,
+            first.name,
+            new Set(),
+            indexed,
+        );
         if (declared.status === "none" && !allNames.has(first.name)) {
             // A property of the container (`$cc.value`), not a name
             return undefined;
         }
         if (declared.status === "none") {
             // A name the document has, in no branch: the first lacks it.
-            const kind = branchKind(container)!;
+            const kind = branchKind(container, indexed)!;
             const parts = partsOf(container, kind);
             const firstPart = parts?.[0];
             if (!firstPart) {
@@ -1723,6 +1741,18 @@ export function checkTypeChangesAtLoad({
             };
         }
         return { name: first.name, declared };
+    }
+
+    /**
+     * Whether `path`, what a reference leaves unresolved, is one index into
+     * the picks of what it names followed by a name (`$s[2].x`).
+     */
+    function isIndexIntoPicks(path: any[]) {
+        return (
+            path.length > 1 &&
+            path[0].name === "" &&
+            (path[0].index ?? []).length === 1
+        );
     }
 
     /**
@@ -1922,14 +1952,31 @@ export function checkTypeChangesAtLoad({
         }
 
         // Names, the last of which may have one index (`$m2.s[1]`), or one
-        // index alone (`$s[1]`).
+        // index alone (`$s[1]`), or one index into the picks of a select
+        // and names (`$s[1].x`).
         const last = path[path.length - 1];
         const lastIndex = last.index ?? [];
         if (lastIndex.length > 1) {
             return undefined;
         }
         let nodeIdxs: number[];
-        if (path[0].name === "") {
+        if (isIndexIntoPicks(path)) {
+            // A name after an index into the picks of a `<select>`
+            // (`$s[2].x`): the components so named in each option, which
+            // `checkBranchName` has found every option declares.
+            const select = branchContainerAt(ref.nodeIdx, true);
+            if (select?.componentType !== "select") {
+                return undefined;
+            }
+            const named = descendantsNamed(select.componentIdx, [
+                ...path.slice(1, -1),
+                { ...last, index: [] },
+            ]);
+            if (!named || named.length === 0) {
+                return undefined;
+            }
+            nodeIdxs = named.map((n) => n.componentIdx);
+        } else if (path[0].name === "") {
             if (path.length !== 1) {
                 return undefined;
             }
