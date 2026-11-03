@@ -464,6 +464,32 @@ describe("A reference written as a tag of a composite is decided when the docume
         expect(d.newDiagnostics()).eqls([]);
     });
 
+    it("a part that does not hold one component is named as the part of the composite it is of", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<group name="g"><conditionalContent><case condition="$b"><math>1</math><math>2</math></case><else><math>3</math></else></conditionalContent></group>
+<conditionalContent name="cc1"><case condition="$b"><group><math>1</math><math>2</math></group></case><else><math>3</math></else></conditionalContent>
+<conditionalContent name="cc2"><case condition="$b"><select><option><math>1</math><math>2</math></option></select></case><else><math>3</math></else></conditionalContent>
+<conditionalContent name="cc3"><case condition="$b"><math>1</math></case><else></else></conditionalContent>
+<repeat name="r" for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat>
+<p name="p1"><math extend="$g"/></p>
+<p name="p2"><math extend="$cc1"/></p>
+<p name="p3"><math extend="$cc2"/></p>
+<p name="p4"><math extend="$cc3"/></p>
+<p name="p5"><math extend="$r[1]"/></p>
+`);
+        for (const p of ["p1", "p2", "p3", "p4", "p5"]) {
+            expect(await d.replacedBy(p), p).eqls(["_error"]);
+        }
+        expect(d.newDiagnostics().map((x) => x.message)).eqls([
+            "A `<math>` can be made from `$g` only when it always holds one component, and a case of the `<conditionalContent>` holds 2. To read what it holds as one value, write `<math>$g</math>`.",
+            "A `<math>` can be made from `$cc1` only when it always holds one component, and a case of the `<conditionalContent>` holds 2. To read what it holds as one value, write `<math>$cc1</math>`.",
+            "A `<math>` can be made from `$cc2` only when it always holds one component, and an option of the `<select>` holds 2. To read what it holds as one value, write `<math>$cc2</math>`.",
+            "A `<math>` can be made from `$cc3` only when it always holds one component, and a case of the `<conditionalContent>` holds nothing. To read what it holds as one value, write `<math>$cc3</math>`.",
+            "A `<math>` can be made from `$r[1]` only when it always holds one component, and an iteration of the `<repeat>` holds 2. To read what it holds as one value, write `<math>$r[1]</math>`.",
+        ]);
+    });
+
     it("a list tag takes any number of components, including none, all of one type", async () => {
         const d = await setup(`
 <booleanInput name="b"/>

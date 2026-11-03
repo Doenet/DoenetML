@@ -1118,15 +1118,16 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        // What decides, as the document runs, whether the type an `extend`
-        // or `copy` is written as can be made from what it is of
-        // (`typeChangeStatus`): the state variable of its source that does,
-        // the `value` of a math for `<point extend="$m"/>`
-        // (`utils/typeChange.js`) or `numEntries` of a list, which stands
-        // for its one entry; or `"content"`, what a composite holds
-        // (`typeChangeContent`), and `"contentValue"`, also the value of the
-        // math it holds. A value reference (`_ref`)
-        // is of the type it presents (`typeStoodFor`).
+        // What an `extend` or `copy` written as a different tag than what
+        // it is of watches as the document runs (`typeChangeStatus`): the
+        // state variable of its source whose value decides whether the tag
+        // can be made from it, the `value` of a math for
+        // `<point extend="$m"/>` (`utils/typeChange.js`) or `numEntries` of
+        // a list, which stands for its one entry; or, for a composite,
+        // `"content"`, what it holds (`typeChangeContent`), whose one
+        // component it is made from, and `"contentValue"`, also the value of
+        // the math it holds. A value reference (`_ref`) is of the type it
+        // presents (`typeStoodFor`).
         stateVariableDefinitions.typeChangeValueCheck = {
             stateVariablesDeterminingDependencies: ["extendedComponent"],
             returnDependencies: ({ stateValues }) => ({
@@ -6074,10 +6075,10 @@ async function indexNamesNothing({
  * What a composite, or a list the document makes, holds is decided when the
  * document loads (D36, `utils/dast/typeChangeAtLoad.ts`), which records an
  * error on the copy (`typeChangeAtLoad`): a `<conditionalContent>` with no
- * `<else>`, a `<select>` that picks more than one, a `<repeat>`, a case of
- * two types. What is left to decide here is the value of the one math it
- * holds. A list whose entries are written (`isAuthoredList`) is decided by
- * what the author wrote, too. A composite is read from the components it
+ * `<else>`, a `<select>` whose `numToSelect` is not written as 1, a
+ * `<repeat>`, cases of two types. What is left to decide here is the value
+ * of the one math it holds. A list whose entries are written
+ * (`isAuthoredList`) is decided by what the author wrote, too. A composite is read from the components it
  * has made, so it must be expanded, as an `extend` or `copy` of it waits for
  * (`needsReplacementsUpdatedWhenStale`, `unlinkedTargetsExpanded`).
  *
@@ -6198,10 +6199,11 @@ async function typeChangeStatus({
     /**
      * Whether `writtenType` can be made from a component of `sourceType`,
      * whose value, if one must be checked, is read by `readValue`. At
-     * `level` `"info"`, for the one component a composite holds, only the
-     * value is checked: its type was decided when the document loaded
-     * (`typeChangeAtLoad`), and a type found otherwise here, such as while
-     * a composite in it is made again, is not decided.
+     * `level` `"info"`, for the one component a composite holds or the one
+     * entry of a list the document makes, only the value is checked: its
+     * type was decided when the document loaded (`typeChangeAtLoad`), and
+     * a type found otherwise here, such as while a composite in it is made
+     * again, is not decided.
      */
     async function decide({ sourceType, readValue, level = "error" }) {
         // What content made at run time is, other than its value, was
@@ -6489,14 +6491,13 @@ async function typeChangeStatus({
         // decided when the document loaded.
         return undefined;
     }
-    const level = "info";
     const one = content[0];
     return decide({
         sourceType: typeStoodFor(one),
         readValue: one.stateValues
             ? async () => one.stateValues.value
             : undefined,
-        level,
+        level: "info",
     });
 }
 

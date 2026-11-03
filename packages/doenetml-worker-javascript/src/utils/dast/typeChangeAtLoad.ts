@@ -64,8 +64,14 @@ type NotOne =
     | { reason: "numToSelect"; attribute: string }
     /** a composite that can hold any number, such as a `<repeat>` */
     | { reason: "anyNumber" }
-    /** a part (a case, an option, a group) that holds `count` */
-    | { reason: "count"; count: number; part: "case" | "option" | "other" };
+    /**
+     * a part (a case, an option, an iteration), or a composite itself
+     * (`other`), that holds `count`
+     */
+    | { reason: "count"; count: number; part: Part };
+
+/** What a count of `NotOne` is of. */
+type Part = "case" | "option" | "iteration" | "other";
 
 /**
  * What a composite, or a part of one, can hold, read from the DoenetML:
@@ -262,7 +268,7 @@ export function checkTypeChangesAtLoad({
     /** What the children of a group, a case or an option hold together. */
     function childrenHolding(
         children: (SerializedComponent | string)[],
-        part: "case" | "option" | "other",
+        part: Part,
         seen: Set<number>,
     ): Holding {
         const holdings: Holding[] = [];
@@ -505,6 +511,7 @@ export function checkTypeChangesAtLoad({
                 ),
                 hasElse ? undefined : { reason: "noElse" },
                 componentType,
+                "case",
             );
         }
 
@@ -529,6 +536,7 @@ export function checkTypeChangesAtLoad({
                     ),
                     notOne,
                     componentType,
+                    "option",
                 );
             }
             const type = entryType(x);
@@ -553,11 +561,11 @@ export function checkTypeChangesAtLoad({
         }
 
         if (HOLD_CHILDREN.has(componentType)) {
-            const result = childrenHolding(children, "other", seen);
-            if (result.notOne?.reason === "count") {
-                return { ...result, notOneTag: componentType };
-            }
-            return result;
+            return asPartOf(
+                childrenHolding(children, "other", seen),
+                componentType,
+                "other",
+            );
         }
 
         // Any other composite, or a list the document makes, can hold any
@@ -600,14 +608,38 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * What a composite holding one of `parts` at a time (a case, an option)
-     * holds: one component when each part holds one, and `notOne` is not
-     * given.
+     * `held`, what one `part` of the composite `tag` holds, with a count of
+     * what that part holds itself named as `tag`'s `part`. A count passed
+     * up from a `<group>` written in it (`part` `other`) is one too. A count
+     * of a part of a composite further in (a case of a `<conditionalContent>`
+     * in a `<group>`) keeps naming that composite.
+     */
+    function asPartOf(held: Holding, tag: string, part: Part): Holding {
+        if (held.notOne?.reason !== "count") {
+            return held;
+        }
+        if (held.notOne.part === "other") {
+            return {
+                ...held,
+                notOne: { ...held.notOne, part },
+                notOneTag: tag,
+            };
+        }
+        return held.notOneTag === undefined
+            ? { ...held, notOneTag: tag }
+            : held;
+    }
+
+    /**
+     * What a composite `tag` holding one of `parts` at a time (each a
+     * `partKind`, a case or an option) holds: one component when each part
+     * holds one, and `notOne` is not given.
      */
     function combineParts(
         parts: Holding[],
         notOne: NotOne | undefined,
         tag: string,
+        partKind: "case" | "option",
     ): Holding {
         const types = new Set<string>();
         let unknown: Holding["unknown"];
@@ -626,12 +658,10 @@ export function checkTypeChangesAtLoad({
             return { notOne, notOneTag: tag, types, unknown };
         }
         if (partNotOne) {
+            const named = asPartOf(partNotOne, tag, partKind);
             return {
-                notOne: partNotOne.notOne,
-                notOneTag:
-                    partNotOne.notOne?.reason === "count"
-                        ? tag
-                        : partNotOne.notOneTag,
+                notOne: named.notOne,
+                notOneTag: named.notOneTag,
                 types,
                 unknown,
             };
@@ -661,14 +691,15 @@ export function checkTypeChangesAtLoad({
                 options.map((o) => childrenHolding(o.children, "option", seen)),
                 undefined,
                 "select",
+                "option",
             );
         }
         if (x.componentType === "repeat") {
-            const template = childrenHolding(x.children, "other", seen);
-            if (template.notOne?.reason === "count") {
-                return { ...template, notOneTag: "repeat" };
-            }
-            return template;
+            return asPartOf(
+                childrenHolding(x.children, "other", seen),
+                "repeat",
+                "iteration",
+            );
         }
         return undefined;
     }
@@ -733,10 +764,7 @@ export function checkTypeChangesAtLoad({
                     ...(notOne.reason === "count" && {
                         count: notOne.count,
                         holdsNothing: notOne.count === 0 ? "true" : "false",
-                        part:
-                            tag === sourceTag || notOne.part !== "other"
-                                ? notOne.part
-                                : "other",
+                        part: notOne.part,
                     }),
                     ...(notOne.reason === "numToSelect" && {
                         attribute: notOne.attribute,

@@ -797,9 +797,10 @@ type-change-from-container = A `<{ $componentType }>` can't be made from `{ $sou
 # when no case is true; `numToSelect` for a `<select>` or another selector
 # whose $attribute (`numToSelect` or `numSamples`) is not written as 1;
 # `anyNumber` for a composite such as a `<repeat>` or `<collect>`, which can
-# hold any number; and `count` when it, or one $part of it (`case` or
-# `option`), holds $count components. $sourceType is the tag of the composite
-# the reason is about, which may be one $source holds. $holdsNothing is
+# hold any number; and `count` when it, or one $part of it (`case`,
+# `option` or `iteration`), holds $count components. $sourceType is the tag
+# of the composite the reason is about, which may be one $source holds, or
+# the one `$source` indexes (an iteration of a `<repeat>`). $holdsNothing is
 # "true" when $count is zero. $indexSelectsOne is "true" when `$source[1]`
 # names one component, so the message suggests it. `numToSelect`, `<else>`
 # and the tags are DoenetML and stay in English.
@@ -815,8 +816,18 @@ type-change-composite-not-one =
            *[other] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` can hold any number. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
         }
        *[count] { $part ->
-            [case] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a case of the `<{ $sourceType }>` holds { $count }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-            [option] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and an option of the `<{ $sourceType }>` holds { $count }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            [case] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a case of the `<{ $sourceType }>` holds { $holdsNothing ->
+                [true] nothing
+               *[other] { $count }
+            }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            [option] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and an option of the `<{ $sourceType }>` holds { $holdsNothing ->
+                [true] nothing
+               *[other] { $count }
+            }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            [iteration] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and an iteration of the `<{ $sourceType }>` holds { $holdsNothing ->
+                [true] nothing
+               *[other] { $count }
+            }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
            *[other] { $holdsNothing ->
                 [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing.
                *[other] { $indexSelectsOne ->
