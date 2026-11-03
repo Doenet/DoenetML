@@ -640,6 +640,35 @@ describe("A reference written as a tag of a composite is decided when the docume
         expect(d.newDiagnostics()).eqls([]);
         // About 3 seconds; reading every path took about 30.
     }, 15000);
+
+    it("what a composite read once holds is read again from inside a cycle through it", async () => {
+        // `$X` is read first for `$W`, where it holds `<math>` (`c2`) or
+        // `<text>`. For `c2`, X's case holds `c2` itself, so what Y holds
+        // is not decided, whether or not `$W` is written.
+        const cycle = `
+<booleanInput name="b"/>
+<conditionalContent name="X"><case condition="$b">$c2</case><else><text>t</text></else></conditionalContent>
+<conditionalContent name="Y"><case condition="$b">$X</case><else><math>2</math></else></conditionalContent>
+<p name="p2"><math name="c2" extend="$Y"/></p>`;
+        const d1 = await setup(cycle);
+        expect(await d1.texts(["p2"])).eqls({ p2: "2" });
+        expect(d1.newDiagnostics()).eqls([]);
+
+        const d2 = await setup(
+            `<conditionalContent name="W"><case condition="$b">$X</case><else><math>3</math></else></conditionalContent><p name="p1"><text extend="$W"/></p>` +
+                cycle,
+        );
+        expect(await d2.texts(["p2"])).eqls({ p2: "2" });
+        expect(d2.newDiagnostics()).eqls([
+            {
+                code: "doenet-e0066",
+                type: "error",
+                line: 1,
+                message:
+                    "A `<text>` can be made from `$W` only when what it holds is always of one type, and it can hold `<math>`, `<text>`. To read what it holds as one value, write `<text>$W</text>`.",
+            },
+        ]);
+    });
 });
 
 describe("What still changes at run time, without changing what the component is (D36) @group4", () => {

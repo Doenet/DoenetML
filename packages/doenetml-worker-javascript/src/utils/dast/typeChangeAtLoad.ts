@@ -131,15 +131,27 @@ export function checkTypeChangesAtLoad({
     /**
      * What each composite or copy a reference names holds
      * (`referenceHolding`), by its index, kept when nothing in finding it
-     * met what was being found already (`seenHits`): then it does not
-     * depend on where it was reached from, so it is found once however
-     * many references, or parts, name it. Without it, cases that each
-     * name a composite whose cases each name another would be read once
-     * per path, doubling with each level.
+     * met what was being found already (`seenHits`), with the components
+     * finding it checked against `seen` (`touched`). Where none of those
+     * is being found already, finding it again would follow the same path
+     * and meet nothing, so the result is the same however it was reached,
+     * and it is found once however many references, or parts, name it.
+     * Without it, cases that each name a composite whose cases each name
+     * another would be read once per path, doubling with each level. Where
+     * one of them is being found already (it is reached from inside a
+     * cycle through it), it is found again, and that meets the cycle.
      */
-    const heldByIdx = new Map<number, Holding>();
+    const heldByIdx = new Map<
+        number,
+        { held: Holding; touched: Set<number> }
+    >();
     /** How many times a search met what it was finding already. */
     let seenHits = 0;
+    /**
+     * The components checked against `seen` while deciding one reference,
+     * in order, from which `touched` of what `heldByIdx` keeps is taken.
+     */
+    let trail: number[] = [];
 
     /**
      * What `descendantNamed` found, by the index of the component searched
@@ -408,23 +420,29 @@ export function checkTypeChangesAtLoad({
             node &&
             (node.componentType === "_copy" || isHolder(referentType))
         ) {
+            trail.push(node.componentIdx);
             if (seen.has(node.componentIdx)) {
                 // what it holds holds itself (`doenet-e0005`)
                 seenHits++;
                 return { types: new Set(), skip: true };
             }
             const known = heldByIdx.get(node.componentIdx);
-            if (known) {
-                return known;
+            if (known && ![...seen].some((idx) => known.touched.has(idx))) {
+                trail.push(...known.touched);
+                return known.held;
             }
             const hitsBefore = seenHits;
+            const trailBefore = trail.length;
             const seenBelow = new Set(seen).add(node.componentIdx);
             const held =
                 node.componentType === "_copy"
                     ? itemHolding(node, seenBelow)
                     : holding(node, seenBelow);
-            if (seenHits === hitsBefore) {
-                heldByIdx.set(node.componentIdx, held);
+            if (seenHits === hitsBefore && !known) {
+                heldByIdx.set(node.componentIdx, {
+                    held,
+                    touched: new Set(trail.slice(trailBefore - 1)),
+                });
             }
             return held;
         }
@@ -906,6 +924,7 @@ export function checkTypeChangesAtLoad({
         let idx = nodeIdx;
         const visited = new Set(seen);
         for (;;) {
+            trail.push(idx);
             if (visited.has(idx)) {
                 seenHits++;
                 return undefined;
@@ -964,6 +983,7 @@ export function checkTypeChangesAtLoad({
         }
         const path = ref.unresolvedPath ?? [];
         const seen = new Set([copy.componentIdx]);
+        trail = [];
 
         const named =
             path.length > 0 && path[0].name !== ""
