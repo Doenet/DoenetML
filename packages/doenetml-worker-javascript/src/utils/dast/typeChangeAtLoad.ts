@@ -171,7 +171,7 @@ export function checkTypeChangesAtLoad({
      * and the name, so that a component is searched once for a name however
      * many references (`$s.x`, `$s.title`) start from it.
      */
-    const namedBelowByKey = new Map<string, SerializedComponent[]>();
+    const namedBelowByKey = new Map<string, SerializedComponent[] | null>();
 
     const allClasses = componentInfoObjects.allComponentClasses as Record<
         string,
@@ -519,6 +519,9 @@ export function checkTypeChangesAtLoad({
                           { ...last, index: [] },
                       ])
                     : [];
+            if (named === null) {
+                return { types: new Set(), skip: true };
+            }
             if (named.length === 0) {
                 return { types: new Set(), unknown: "property" };
             }
@@ -570,6 +573,11 @@ export function checkTypeChangesAtLoad({
                     : holding(node, seenBelow),
             );
         }
+        if (allClasses[referentType]?.listEntryComponentType !== undefined) {
+            // a list, not decided here, as a list written there is not
+            // (`itemHolding`)
+            return { types: new Set(), skip: true };
+        }
         return { types: new Set([referentType]) };
     }
 
@@ -580,9 +588,13 @@ export function checkTypeChangesAtLoad({
      * what it copies (`$m2.go` of `<module name="m2" extend="$m"/>`). Each
      * written with the name is one it can name, as one in each option of a
      * `<select>` is. None when a part is not such a name (a property, an
-     * index).
+     * index). `null` when what can be so named is not known from the
+     * DoenetML (`findNamed`).
      */
-    function descendantsNamed(nodeIdx: number, path: any[]) {
+    function descendantsNamed(
+        nodeIdx: number,
+        path: any[],
+    ): SerializedComponent[] | null {
         const start =
             referents.componentsByIdx.get(nodeIdx) ??
             referents.copiesByCreatedIdx.get(nodeIdx);
@@ -591,13 +603,19 @@ export function checkTypeChangesAtLoad({
             if (part.name === "" || (part.index ?? []).length > 0) {
                 return [];
             }
-            nodes = nodes.flatMap((node) => {
+            const next: SerializedComponent[] = [];
+            for (const node of nodes) {
                 const key = `${node.componentIdx}:${part.name}`;
                 if (!namedBelowByKey.has(key)) {
                     namedBelowByKey.set(key, namedIn(node, part.name));
                 }
-                return namedBelowByKey.get(key)!;
-            });
+                const named = namedBelowByKey.get(key)!;
+                if (named === null) {
+                    return null;
+                }
+                next.push(...named);
+            }
+            nodes = next;
         }
         return nodes;
     }
@@ -611,7 +629,11 @@ export function checkTypeChangesAtLoad({
         let current: SerializedComponent | undefined = node;
         while (current && !visited.has(current.componentIdx)) {
             visited.add(current.componentIdx);
-            const found = findNamed(current.children ?? [], name);
+            const search = { visited: new Set<number>(), incomplete: false };
+            const found = findNamed(current.children ?? [], name, [], search);
+            if (search.incomplete) {
+                return null;
+            }
             if (found.length > 0 || current.componentType !== "_copy") {
                 return found;
             }
@@ -631,13 +653,17 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * The components named `name` among `components` and theirs, not
-     * looking in one so named.
+     * The components named `name` among `components` and theirs, and those
+     * of what a copy among them copies (`<option copy="$o"/>`), not looking
+     * in one so named. `search.incomplete` when a copy among them copies
+     * what is not known from the DoenetML (`$m.g`), which could hold one so
+     * named; `search.visited` is each component a copy was followed to.
      */
     function findNamed(
         components: (SerializedComponent | string)[],
         name: string,
-        found: SerializedComponent[] = [],
+        found: SerializedComponent[],
+        search: { visited: Set<number>; incomplete: boolean },
     ): SerializedComponent[] {
         for (const component of components) {
             if (typeof component !== "object") {
@@ -653,9 +679,53 @@ export function checkTypeChangesAtLoad({
                 found.push(component);
                 continue;
             }
-            findNamed(component.children ?? [], name, found);
+            findNamed(component.children ?? [], name, found, search);
+            if (component.componentType === "_copy") {
+                findInCopied(component, name, found, search);
+            }
         }
         return found;
+    }
+
+    /**
+     * The components named `name` in what `copy` copies, through copies of
+     * it, added to `found` (see `findNamed`).
+     */
+    function findInCopied(
+        copy: SerializedComponent,
+        name: string,
+        found: SerializedComponent[],
+        search: { visited: Set<number>; incomplete: boolean },
+    ) {
+        let current = copy;
+        while (current.componentType === "_copy") {
+            const ref = refOf(current);
+            if (!ref || ref.nodeIdx < 0) {
+                return;
+            }
+            const first = ref.unresolvedPath?.[0];
+            if (first) {
+                // A property (`$P.x`) holds no named component; anything
+                // else left for run time could.
+                if (
+                    typeof first.name !== "string" ||
+                    first.name === "" ||
+                    allNames.has(first.name)
+                ) {
+                    search.incomplete = true;
+                }
+                return;
+            }
+            const next =
+                referents.componentsByIdx.get(ref.nodeIdx) ??
+                referents.copiesByCreatedIdx.get(ref.nodeIdx);
+            if (!next || search.visited.has(next.componentIdx)) {
+                return;
+            }
+            search.visited.add(next.componentIdx);
+            findNamed(next.children ?? [], name, found, search);
+            current = next;
+        }
     }
 
     /**
@@ -1062,6 +1132,25 @@ export function checkTypeChangesAtLoad({
                 selectHolding(x, undefined, seenBelow),
             );
         }
+        if (x.componentType === "collect") {
+            // One component collected, of the type written as its
+            // `componentType`. A composite or a list collected is not
+            // decided here, nor is a collect whose type is not written.
+            const collected = canonicalType(
+                literalText(attributeOf(x, "componentType")),
+            );
+            if (collected === undefined) {
+                return undefined;
+            }
+            if (
+                collected === "group" ||
+                isHolder(collected) ||
+                allClasses[collected]?.listEntryComponentType !== undefined
+            ) {
+                return { types: new Set(), skip: true };
+            }
+            return { types: new Set([collected]) };
+        }
         if (
             x.componentType === "repeat" ||
             x.componentType === "repeatForSequence"
@@ -1393,13 +1482,14 @@ export function checkTypeChangesAtLoad({
             }
             nodeIdxs = [ref.nodeIdx];
         } else {
-            nodeIdxs = descendantsNamed(ref.nodeIdx, [
+            const named = descendantsNamed(ref.nodeIdx, [
                 ...path.slice(0, -1),
                 { ...last, index: [] },
-            ]).map((n) => n.componentIdx);
-            if (nodeIdxs.length === 0) {
+            ]);
+            if (!named || named.length === 0) {
                 return undefined;
             }
+            nodeIdxs = named.map((n) => n.componentIdx);
         }
 
         if (lastIndex.length === 1) {
@@ -1474,6 +1564,20 @@ export function checkTypeChangesAtLoad({
         return verdict(held, tag ?? held.notOneTag ?? "", true);
     }
 
+    /**
+     * What is written between the brackets of each index of the reference
+     * of `component` (`$l[<integer extend="$cc"/>]`), in the path as
+     * written, as `applySugar` and `documentReferents` read it.
+     */
+    function indexContents(component: SerializedComponent) {
+        return (refOf(component)?.originalPath ?? []).flatMap((part: any) =>
+            (part.index ?? []).map(
+                (piece: any) =>
+                    (piece.value ?? []) as (SerializedComponent | string)[],
+            ),
+        );
+    }
+
     /** Each name written in the document. */
     const allNames = new Set<string>();
     function collectNames(components: (SerializedComponent | string)[]) {
@@ -1494,6 +1598,9 @@ export function checkTypeChangesAtLoad({
                 } else if (Array.isArray(attr.children)) {
                     collectNames(attr.children);
                 }
+            }
+            for (const value of indexContents(component)) {
+                collectNames(value);
             }
             collectNames(component.children ?? []);
         }
@@ -1543,6 +1650,9 @@ export function checkTypeChangesAtLoad({
                 } else if (Array.isArray(attr.children)) {
                     visit(attr.children);
                 }
+            }
+            for (const value of indexContents(component)) {
+                visit(value);
             }
             visit(component.children ?? []);
         }

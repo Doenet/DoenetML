@@ -916,6 +916,57 @@ describe("A reference written as a tag of a composite is decided when the docume
         ]);
         expect(await d.texts(["p2"])).eqls({ p2: "2, 2" });
     });
+
+    it("a reference to a list is not decided, as a list written there is not", async () => {
+        const d = await setup(`
+<mathList name="l">7</mathList>
+<group name="g">$l</group>
+<p name="p1"><math extend="$g"/></p>
+`);
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("an index into a collect holds one component of the type it collects", async () => {
+        const d = await setup(`
+<group name="src"><math>1</math><group><math>2</math><math>3</math></group></group>
+<collect name="c" componentType="math" from="$src"/>
+<collect name="cg" componentType="group" from="$src"/>
+<group name="h">$c[1]</group>
+<group name="hg">$cg[1]</group>
+<p name="p1"><math extend="$h"/></p>
+<p name="p2"><math extend="$hg"/></p>
+<p name="p3"><text extend="$h"/></p>
+`);
+        expect(await d.texts(["p1"])).eqls({ p1: "1" });
+        // A math becomes a text; a group collected is not decided.
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("a tag written in an index is decided too", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<mathList name="l">1 2</mathList>
+<conditionalContent name="cc"><case condition="$b"><integer>1</integer></case></conditionalContent>
+<p name="p">$l[<integer extend="$cc"/>]</p>
+`);
+        expect(
+            d
+                .newDiagnostics()
+                .filter((x) => x.type === "error")
+                .map((x) => [x.code, x.line]),
+        ).eqls([["doenet-e0064", 5]]);
+    });
+
+    it("a name in what a copied part copies is one the reference can name", async () => {
+        const d = await setup(`
+<select name="s0"><option name="o"><group name="go"><math>1</math><math>2</math></group></option></select>
+<select name="s"><option><group name="go"><math>1</math></group></option><option copy="$o"/></select>
+<p name="p1"><math extend="$s.go"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 4],
+        ]);
+    });
 });
 
 describe("What still changes at run time, without changing what the component is (D36) @group4", () => {
