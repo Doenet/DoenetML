@@ -766,6 +766,53 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         );
     });
 
+    it("a property after a name that is an integer in one case and a number in another is a number, on a number tag", async () => {
+        // On a `<number>` tag, an `<integer>` counts as a `<number>`
+        // (#2447), as for `<number extend="$x"/>`, and the `value` of
+        // either is a number. A bare reference, or another tag, is held to
+        // the same tag.
+        const doenetML = (reference: string, named = "") => `${named}
+<conditionalContent name="cc">
+    <case condition="$b"><integer name="x">1</integer></case>
+    <else><number name="x">2.5</number></else>
+</conditionalContent>
+<p name="p">${reference}</p>`;
+        const tags = `<number extend="$x"/>|<number extend="$x.value"/>|<number extend="$cc.x.value"/>`;
+        for (const named of ["", `<text name="value">v</text>`]) {
+            const { text, toggle, diagnostics } = await setUp(
+                doenetML(tags, named),
+            );
+            expect(await text()).eq("2.5|2.5|2.5");
+            await toggle(true);
+            expect(await text()).eq("1|1|1");
+            await toggle(false);
+            expect(await text()).eq("2.5|2.5|2.5");
+            expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+        }
+
+        const message =
+            "`$x.value` names nothing: `x` is a `<integer>` in one case of `cc` and a `<number>` in another. Use the same type, or different names.";
+        const bare = await setUp(doenetML("[$x.value]"));
+        expect(await bare.text()).eq("[]");
+        expect(bare.diagnostics.warnings.map((w) => w.message)).eqls([message]);
+        for (const tag of ["math", "integer"]) {
+            const onTag = await setUp(doenetML(`<${tag} extend="$x.value"/>`));
+            expect(await onTag.text()).eq("");
+            expect(onTag.diagnostics.errors.map((e) => e.message)).eqls([
+                message,
+            ]);
+        }
+
+        // with no else, it can be absent (D36)
+        const noElse = await setUp(
+            doenetML(`<number extend="$x.value"/>`).replace(
+                `<else><number name="x">2.5</number></else>`,
+                `<case condition="true"><number name="x">2.5</number></case>`,
+            ),
+        );
+        expect(codes(noElse.diagnostics.errors)).eqls(["doenet-e0064"]);
+    });
+
     it("a name after a tag made from a container, not a composite, is its property", async () => {
         // `m` is a math, so `$m.value` is its value, though a component
         // is named `value`, not a name in the branches of `s`

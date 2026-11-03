@@ -124,8 +124,12 @@ type BranchDeclaration =
           branch: "case" | "option";
           firstType: string;
           secondType: string;
+          /** each type known, once */
+          types: string[];
           name: string;
           property?: boolean;
+          /** as for `ok` */
+          canBeAbsent: boolean;
       }
     | { status: "skip" };
 
@@ -1810,6 +1814,10 @@ export function checkTypeChangesAtLoad({
             .map(({ type }) => type)
             .filter((type): type is string => type !== undefined);
         const differs = knownTypes.find((type) => type !== knownTypes[0]);
+        const canBeAbsent =
+            (kind === "case" && !parts.some(({ isElse }) => isElse)) ||
+            parts.length === 0 ||
+            declarations.some(({ canBeAbsent }) => canBeAbsent);
         if (differs !== undefined) {
             // the last name the branches declare, before a property
             const property = maxReach !== undefined && maxReach < names.length;
@@ -1822,8 +1830,10 @@ export function checkTypeChangesAtLoad({
                 branch: kind,
                 firstType: knownTypes[0],
                 secondType: differs,
+                types: [...new Set(knownTypes)],
                 name: named[named.length - 1],
                 ...(property && { property: true }),
+                canBeAbsent,
             };
         }
         // Every branch known to declare names lacks the same one, the
@@ -1842,10 +1852,7 @@ export function checkTypeChangesAtLoad({
                 knownTypes.length === declarations.length
                     ? knownTypes[0]
                     : undefined,
-            canBeAbsent:
-                (kind === "case" && !parts.some(({ isElse }) => isElse)) ||
-                parts.length === 0 ||
-                declarations.some(({ canBeAbsent }) => canBeAbsent),
+            canBeAbsent,
         };
     }
 
@@ -2285,6 +2292,24 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The type `copy`, a reference written as a tag, makes: its tag, or, for
+     * one filling a list tag, the type of each entry of the list.
+     */
+    function tagType(copy: SerializedComponent) {
+        if (copy.doenetAttributes?.forList !== undefined) {
+            const list = referents.componentsByIdx.get(
+                copy.doenetAttributes.forList,
+            );
+            return (
+                list && allClasses[list.componentType]?.listEntryComponentType
+            );
+        }
+        return canonicalType(
+            literalText(copy.attributes?._createComponentOfType),
+        );
+    }
+
+    /**
      * Whether `copy` is a reference written as a tag that makes one
      * component, rather than a list or a `<group>` (see `decide`).
      */
@@ -2313,7 +2338,7 @@ export function checkTypeChangesAtLoad({
      * decided here.
      */
     function checkBranchName(copy: SerializedComponent) {
-        const declared = branchNameOf(copy);
+        let declared = branchNameOf(copy);
         if (!declared) {
             return false;
         }
@@ -2333,6 +2358,20 @@ export function checkTypeChangesAtLoad({
                 // Decided as for any composite holding types that differ
                 // (`doenet-e0066`, `decide`)
                 return false;
+            }
+            if (
+                declared.status === "types" &&
+                typesAs(new Set(declared.types), tagType(copy)).length === 1
+            ) {
+                // A property (`$x.value`) of components that each already
+                // are the tag's type (an `<integer>` and a `<number>` for a
+                // `<number>` tag), as the tag would be allowed made from
+                // them (`$x`, `typesAs`, #2447): the property of either is
+                // what the tag is made from.
+                declared = {
+                    status: "ok",
+                    canBeAbsent: declared.canBeAbsent,
+                };
             }
             if (
                 declared.status === "ok" &&

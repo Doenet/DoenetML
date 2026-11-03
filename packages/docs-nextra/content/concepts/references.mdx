@@ -299,7 +299,10 @@ With no `<else>`, an `x` in every case is enough: while no case is true, `$x`
 names nothing. If a case lacks `x`, or two cases declare it with different
 types, `$x` and `$cc.x` name nothing, with a warning that says which. Written as
 a tag, such as `<math extend="$x"/>{:dn}`, either is an error, and so is a name
-that is missing while no case is true, with no `<else>`. A name after it is held
+that is missing while no case is true, with no `<else>`. On a tag, a type that
+already is the tag counts as it: with an `<integer name="x">{:dn}` in one case
+and a `<number name="x">{:dn}` in another, `<number extend="$x"/>{:dn}` and
+`<number extend="$x.value"/>{:dn}` work, while `$x` alone does not. A name after it is held
 to the same rule: if every case has a `<group name="h">{:dn}`, `$h.x` works only
 if each of those groups declares `x`, with the same type.
 
