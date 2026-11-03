@@ -162,6 +162,23 @@ describe("An index that names nothing @group4", async () => {
             expect(text, body).eq("[]");
             expect([...warnings, ...errors, ...infos], body).eqls([]);
         }
+
+        // A collect with no limit has the property `maxNumber`.
+        const { warnings, errors, infos } = await shownAndReported(
+            `<collect name="c" componentType="math" from="$l"/><p name="p">[$c.maxNumber]</p>`,
+        );
+        expect([...warnings, ...errors, ...infos]).eqls([]);
+    });
+
+    it("warns for a property a function does not have, in an evaluation", async () => {
+        // `x` is not a name in the document and `<function>` has no
+        // property `x`, so `$$f.x(2)` names a property that does not exist.
+        const { warnings, errors, infos } = await shownAndReported(
+            `<function name="f">t^2</function><p name="p">[$$f.x(2)]</p>`,
+        );
+        expect([...errors, ...infos]).eqls([]);
+        expect(warnings.map((w) => w.code)).eqls(["doenet-w0104"]);
+        expect(warnings[0].message).contain("$$f.x");
     });
 
     it("warns when a dynamic index becomes 0, as the literal index does", async () => {
