@@ -50,6 +50,7 @@ impl Resolver {
                         index_resolutions,
                         index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
+                        branch_kind: node_data.branch_kind,
                     }
                 } else {
                     NodeResolverData {
@@ -62,6 +63,7 @@ impl Resolver {
                         index_resolutions,
                         index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
+                        branch_kind: node_data.branch_kind,
                     }
                 }
             })

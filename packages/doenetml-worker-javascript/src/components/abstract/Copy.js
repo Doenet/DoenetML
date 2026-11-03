@@ -1,3 +1,4 @@
+import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
 import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
 import ValueListComponent from "./ValueListComponent";
@@ -6197,15 +6198,29 @@ async function reportMissingProperty({
         ? undefined
         : await component.stateValues.extendedComponent;
     const sourceComponent = components[extendedComponent?.componentIdx];
-    if (sourceComponent) {
+    const propName = (await component.stateValues.unresolvedPath)?.[0]?.name;
+    if (sourceComponent && propName) {
         const propNames = await component.stateValues.effectivePropNameBySource;
+        const sources =
+            (await component.stateValues.replacementSourceIdentities) ?? [];
         if (
             propNames?.length > 0 &&
             propNames.every((name) => name === "__prop_name_not_found") &&
             (!componentInfoObjects.isCompositeComponent({
                 componentType: sourceComponent.componentType,
             }) ||
-                component.doenetAttributes?.pathStartsWithProperty)
+                component.doenetAttributes?.pathStartsWithProperty) &&
+            // the property, not an index after it (`$n.value[1]`,
+            // `doenet-w0100`), is what is missing
+            !sources.some(
+                (source) =>
+                    typeof source === "object" &&
+                    typeHasProperty({
+                        componentType: source.componentType,
+                        propName,
+                        componentInfoObjects,
+                    }),
+            )
         ) {
             diagnostics = [
                 codedDiagnostic({
@@ -6228,6 +6243,25 @@ async function reportMissingProperty({
         ...workspace.conditionDiagnostics,
         missingProperty: diagnostics,
     };
+}
+
+/**
+ * Whether a component of type `componentType` has the public property
+ * `propName`, matched as a reference matches it (without regard to case,
+ * through aliases and array entries).
+ */
+function typeHasProperty({ componentType, propName, componentInfoObjects }) {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[componentType];
+    if (!componentClass) {
+        return false;
+    }
+    const [mapped] = publicCaseInsensitiveAliasSubstitutions({
+        stateVariables: [propName],
+        componentClass,
+        componentInfoObjects,
+    });
+    return mapped !== undefined && !mapped.startsWith("__not_public_");
 }
 
 /**

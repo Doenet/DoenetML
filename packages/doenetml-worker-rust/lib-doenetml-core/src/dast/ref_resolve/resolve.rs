@@ -107,7 +107,8 @@ pub(super) enum Visibility {
 /// The components whose children are private, reached only through the component's name
 /// (`$r[2].x`). An `<option>` is among them unless its `<select>` picks one
 /// (see [`branch_container_kind`]).
-const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 3] = ["repeat", "repeatForSequence", "option"];
+const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 3] =
+    ["repeat", "repeatForSequence", "option"];
 
 /// What kind of branch container an element is, if any.
 ///
@@ -116,7 +117,7 @@ const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 3] = ["repeat", "repeatFo
 /// The names declared in those branches are visible outside the container, as a `<group>`'s are,
 /// and the same name declared in several branches is not ambiguous, since only one branch is active
 /// (D13, D22). See [`Ref::Branches`].
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub(super) enum BranchContainerKind {
     ConditionalContent,
     OnePickSelect,
@@ -228,6 +229,10 @@ pub struct NodeResolverData {
     /// `doenet:def` resolved to source number 1 containing `<section>`, then `source_sequence` for the `<section>`
     /// would be `[0, 3, 1]`.
     pub(super) source_sequence: Option<Vec<SourceDoc>>,
+    /// The kind of branch container the node is, if any (see [`branch_container_kind`]),
+    /// so that the names of a fragment added to it (`Resolver::add_nodes`) are its branches' names.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(super) branch_kind: Option<BranchContainerKind>,
 }
 
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
@@ -456,7 +461,9 @@ impl Resolver {
                                                 nodes_in_resolved_path.push(current_idx);
                                             }
                                             let remaining_path: Vec<FlatPathPart> =
-                                                iter::once(part.clone()).chain(path.cloned()).collect();
+                                                iter::once(part.clone())
+                                                    .chain(path.cloned())
+                                                    .collect();
                                             return Ok(RefResolution {
                                                 node_idx: current_idx,
                                                 unresolved_path: Some(remaining_path),

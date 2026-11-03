@@ -131,16 +131,31 @@ describe("An index that names nothing @group4", async () => {
         }
     });
 
-    it("leaves a property that does not exist as silent with an index as without", async () => {
-        // The index is applied only to a property that exists, so an index
-        // below 1 does not make `$n.nonexistent[0]` warn where
-        // `$n.nonexistent` and `$n.nonexistent[1]` do not.
-        for (const body of [
-            `[$n.nonexistent]`,
-            `[$n.nonexistent[1]]`,
-            `[$n.nonexistent[0]]`,
-            `[$P.nonexistent[0]]`,
+    it("warns once for a property that does not exist, with an index as without", async () => {
+        // A property the referent's type does not have is a mistake in what
+        // the author wrote (DIAG-2, #2434 item 1, #2450), so it is one
+        // `doenet-w0104` quoting the reference, whatever index follows it:
+        // the index is applied only to a property that exists.
+        for (const { body, reference } of [
+            { body: `[$n.nonexistent]`, reference: "$n.nonexistent" },
+            { body: `[$n.nonexistent[1]]`, reference: "$n.nonexistent[1]" },
+            { body: `[$n.nonexistent[0]]`, reference: "$n.nonexistent[0]" },
+            { body: `[$P.nonexistent[0]]`, reference: "$P.nonexistent[0]" },
         ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                inParagraph(body),
+            );
+            expect(text, body).eq("[]");
+            expect([...errors, ...infos], body).eqls([]);
+            expect(warnings.length, body).eq(1);
+            expect(warnings[0].code, body).eq("doenet-w0104");
+            expect(warnings[0].message, body).contain(reference);
+        }
+    });
+
+    it("leaves a property the type has, with no value now, silent", async () => {
+        // VAL-5: the referent's type has the property, which is missing now.
+        for (const body of [`[$P.z]`, `[$P.xs[3]]`]) {
             const { text, warnings, errors, infos } = await shownAndReported(
                 inParagraph(body),
             );

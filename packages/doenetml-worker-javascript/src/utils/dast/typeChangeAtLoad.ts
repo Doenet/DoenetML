@@ -1650,6 +1650,36 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The branch container (`branchKind`) at `idx`, through a copy of one
+     * (`<conditionalContent name="cc2" extend="$cc"/>`), which has the
+     * branches of the one it copies, or `undefined` if there is none.
+     */
+    function branchContainerAt(idx: number) {
+        const visited = new Set<number>();
+        let node =
+            referents.componentsByIdx.get(idx) ??
+            referents.copiesByCreatedIdx.get(idx);
+        while (node && node.componentType === "_copy") {
+            if (visited.has(node.componentIdx)) {
+                return undefined;
+            }
+            visited.add(node.componentIdx);
+            const ref = refOf(node);
+            if (
+                !ref ||
+                ref.nodeIdx < 0 ||
+                (ref.unresolvedPath && ref.unresolvedPath.length > 0)
+            ) {
+                return undefined;
+            }
+            node =
+                referents.componentsByIdx.get(ref.nodeIdx) ??
+                referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        }
+        return node && branchKind(node) ? node : undefined;
+    }
+
+    /**
      * What the branches of the container a reference names its first name in
      * (`$x` and `$cc.x`, which the resolver leaves for the container to
      * resolve, as `node_idx` `cc` with `x` unresolved) declare by that name,
@@ -1664,8 +1694,8 @@ export function checkTypeChangesAtLoad({
         if (typeof first?.name !== "string" || first.name === "") {
             return undefined;
         }
-        const container = referents.componentsByIdx.get(ref.nodeIdx);
-        if (!container || !branchKind(container)) {
+        const container = branchContainerAt(ref.nodeIdx);
+        if (!container) {
             return undefined;
         }
         const declared = branchDeclaration(container, first.name, new Set());

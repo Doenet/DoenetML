@@ -15,7 +15,7 @@ type DescendantNames = FxHashMap<usize, FxHashMap<NameWithSource, Ref>>;
 
 impl Resolver {
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
-        let mut name_map = Self::build_name_map(&FlatRootOrFragment::Root(flat_root));
+        let mut name_map = Self::build_name_map(&FlatRootOrFragment::Root(flat_root), None);
 
         let mut resolver = Resolver {
             node_resolver_data: Range {
@@ -31,6 +31,7 @@ impl Resolver {
                         index_resolutions: Vec::new(),
                         index_kind: IndexKind::Instances,
                         source_sequence: None,
+                        branch_kind: None,
                     }
                 } else {
                     let node = &flat_root.nodes[idx_plus_1 - 1];
@@ -44,6 +45,7 @@ impl Resolver {
                         index_resolutions: Vec::new(),
                         index_kind: IndexKind::of_node(node),
                         source_sequence: extract_source_sequence(node),
+                        branch_kind: node_branch_kind(&FlatRootOrFragment::Root(flat_root), node),
                     }
                 }
             })
@@ -109,6 +111,7 @@ impl Resolver {
                     index_resolutions: Vec::new(),
                     index_kind: IndexKind::Instances,
                     source_sequence: None,
+                    branch_kind: None,
                 },
                 padding,
             ));
@@ -120,10 +123,17 @@ impl Resolver {
                 node.parent().map(NodeParent::Node).unwrap_or(parent_node);
             self.node_resolver_data[node.idx() + 1].source_sequence = extract_source_sequence(node);
             self.node_resolver_data[node.idx() + 1].index_kind = IndexKind::of_node(node);
+            self.node_resolver_data[node.idx() + 1].branch_kind =
+                node_branch_kind(&FlatRootOrFragment::Fragment(flat_fragment), node);
         }
 
-        let mut subtree_name_map =
-            Self::build_name_map(&FlatRootOrFragment::Fragment(flat_fragment));
+        let base_parent_kind = flat_fragment
+            .parent_idx
+            .and_then(|idx| self.node_resolver_data[idx + 1].branch_kind);
+        let mut subtree_name_map = Self::build_name_map(
+            &FlatRootOrFragment::Fragment(flat_fragment),
+            base_parent_kind,
+        );
 
         // Add new items to `name_map`.
         // If a node was already in the `name_map`, its value is replaced.
@@ -268,7 +278,13 @@ impl Resolver {
 
     /// Build a map of all the names that are accessible from a given node
     /// and the indices of the referents.
-    fn build_name_map(flat_root_or_fragment: &FlatRootOrFragment) -> DescendantNames {
+    ///
+    /// `base_parent_kind` is the kind of branch container the parent of a fragment is, if any,
+    /// as the parent is not in the fragment.
+    fn build_name_map(
+        flat_root_or_fragment: &FlatRootOrFragment,
+        base_parent_kind: Option<BranchContainerKind>,
+    ) -> DescendantNames {
         let mut descendant_names = DescendantNames::default();
 
         // If we were given a flat root, then include root itself (with index 0),
@@ -340,30 +356,41 @@ impl Resolver {
                         break;
                     }
 
-                    let parent_element = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
+                    // The parent's node: `None` for the flat fragment root or the flat root
+                    let parent_node = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
                         || parent_idx_plus_1 == 0
                     {
-                        // The flat fragment root or the flat root
                         None
                     } else {
-                        match flat_root_or_fragment.get_node(parent_idx_plus_1 - 1) {
-                            FlatNode::Element(parent_element) => Some(parent_element),
-                            _ => None,
-                        }
+                        Some(flat_root_or_fragment.get_node(parent_idx_plus_1 - 1))
+                    };
+                    let parent_element = match parent_node {
+                        Some(FlatNode::Element(parent_element)) => Some(parent_element),
+                        _ => None,
+                    };
+
+                    // The kind of branch container the parent is, if any
+                    let parent_kind = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
+                        && parent_idx_plus_1 > 0
+                    {
+                        base_parent_kind
+                    } else {
+                        parent_element.and_then(|parent_element| {
+                            branch_container_kind(parent_element, |attr| {
+                                literal_attribute_text(flat_root_or_fragment, attr)
+                            })
+                        })
                     };
 
                     // A name passing from a branch into its container is the container's branches
                     // from there on, so that the same name in another branch is not ambiguous with it.
-                    if let Some(parent_element) = parent_element
-                        && let Some(kind) = branch_container_kind(parent_element, |attr| {
-                            literal_attribute_text(flat_root_or_fragment, attr)
-                        })
+                    if let Some(kind) = parent_kind
                         && previous_parent != element.idx
                         && let FlatNode::Element(branch) =
                             flat_root_or_fragment.get_node(previous_parent)
                         && kind.is_branch(&branch.name)
                     {
-                        carried = Ref::Branches(parent_element.idx);
+                        carried = Ref::Branches(parent_idx_plus_1 - 1);
                     }
                     // The index `carried` refers to
                     let carried_idx = carried.single_idx().unwrap();
@@ -450,12 +477,19 @@ impl Resolver {
                         }
                     }
 
-                    let parent_visibility = match parent_element {
+                    let parent_visibility = match parent_node {
                         // Always treat the flat fragment root or the flat root as visible
                         None => Visibility::Visible,
-                        Some(parent_element) => {
-                            parent_visibility(flat_root_or_fragment, parent_element)
+                        Some(FlatNode::Element(parent_element)) => {
+                            parent_visibility(flat_root_or_fragment, parent_element, |idx| {
+                                if Some(idx + 1) == base_parent_idx_plus_1 {
+                                    base_parent_kind
+                                } else {
+                                    None
+                                }
+                            })
                         }
+                        Some(node) => Visibility::lookup_by_flat_node(node),
                     };
 
                     // if parent's children are invisible to grandparents, do not add `element` (which is the child or its descendant)
@@ -484,22 +518,41 @@ impl Resolver {
 
 /// The `Visibility` of `element` as a parent, in `flat_root_or_fragment`:
 /// that of its tag, except that an `<option>` of a `<select>` that picks one is `Visible`
-/// (see [`branch_container_kind`]).
+/// (see [`branch_container_kind`]). `kind_outside` gives the kind of branch container
+/// a parent that is not in `flat_root_or_fragment` (the parent of a fragment) is.
 fn parent_visibility(
     flat_root_or_fragment: &FlatRootOrFragment,
     element: &FlatElement,
+    kind_outside: impl Fn(usize) -> Option<BranchContainerKind>,
 ) -> Visibility {
     if element.name == "option"
-        && let Some(FlatNode::Element(select)) = element
-            .parent
-            .and_then(|idx| node_in(flat_root_or_fragment, idx))
-        && branch_container_kind(select, |attr| {
-            literal_attribute_text(flat_root_or_fragment, attr)
-        }) == Some(BranchContainerKind::OnePickSelect)
+        && let Some(select_idx) = element.parent
     {
-        return Visibility::Visible;
+        let select_kind = match node_in(flat_root_or_fragment, select_idx) {
+            Some(FlatNode::Element(select)) => branch_container_kind(select, |attr| {
+                literal_attribute_text(flat_root_or_fragment, attr)
+            }),
+            Some(_) => None,
+            None => kind_outside(select_idx),
+        };
+        if select_kind == Some(BranchContainerKind::OnePickSelect) {
+            return Visibility::Visible;
+        }
     }
     Visibility::lookup_by_flat_element(element)
+}
+
+/// The kind of branch container `node` is, if any (see [`branch_container_kind`]).
+fn node_branch_kind(
+    flat_root_or_fragment: &FlatRootOrFragment,
+    node: &FlatNode,
+) -> Option<BranchContainerKind> {
+    match node {
+        FlatNode::Element(element) => branch_container_kind(element, |attr| {
+            literal_attribute_text(flat_root_or_fragment, attr)
+        }),
+        _ => None,
+    }
 }
 
 /// The node at `idx`, if it is in `flat_root_or_fragment`
