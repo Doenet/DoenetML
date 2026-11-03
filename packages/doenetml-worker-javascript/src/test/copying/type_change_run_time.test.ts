@@ -503,6 +503,27 @@ describe("A reference written as a tag of a composite is decided when the docume
         expect(d.newDiagnostics()).eqls([]);
     });
 
+    it("a type that already is the tag written counts as that tag", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<conditionalContent name="cc"><case condition="$b"><integer>3</integer></case><else><number>0.5</number></else></conditionalContent>
+<group name="g"><integer>3</integer><number>0.5</number></group>
+<p name="p1"><number extend="$cc"/></p>
+<p name="p2"><numberList extend="$g"/></p>
+<p name="p3"><integer extend="$cc"/></p>
+`);
+        // An `<integer>` is a `<number>`, so both hold numbers only. As an
+        // `<integer>`, a `<number>` is a different type.
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "0.5", p2: "3, 0.5" });
+        expect(await d.replacedBy("p3")).eqls(["_error"]);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 7],
+        ]);
+
+        await d.setBoolean("b", true);
+        expect(await d.texts(["p1"])).eqls({ p1: "3" });
+    });
+
     it("a tag whose reference names nothing, more than one thing, or a property its source does not have is an error; a bare one is a warning", async () => {
         const d = await setup(`
 <group><text name="t">a</text><text name="t">b</text></group>

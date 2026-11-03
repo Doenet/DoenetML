@@ -22,7 +22,8 @@
  *
  * Different types that could each become a `T` are an error too: the author
  * wraps the reference, `<math>$cc</math>`, to read whatever it holds as one
- * value.
+ * value. A type that already is a `T` (an `<integer>` for a `<number>`)
+ * counts as `T`.
  *
  * A list tag (`<mathList extend="$g"/>`) takes any number of components,
  * including none, but they must all be of one type.
@@ -692,6 +693,28 @@ export function checkTypeChangesAtLoad({
         });
     }
 
+    /**
+     * The types in `types`, with each that already is a `writtenType`
+     * (`<integer>` for a `<number>`) counted as one: a `writtenType` is
+     * made from any of them without a type change, so they are one type
+     * for it.
+     */
+    function typesAs(types: Set<string>, writtenType: string | undefined) {
+        const result = new Set<string>();
+        for (const type of types) {
+            result.add(
+                writtenType !== undefined &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: type,
+                        baseComponentType: writtenType,
+                    })
+                    ? writtenType
+                    : type,
+            );
+        }
+        return [...result];
+    }
+
     /** The error for a scalar tag `writtenType` made from `held`, if any. */
     function scalarError(
         held: Holding,
@@ -736,13 +759,13 @@ export function checkTypeChangesAtLoad({
                 args: { what: held.unknown },
             };
         }
-        const types = [...held.types];
+        const types = typesAs(held.types, writtenType);
         for (const sourceType of types) {
             const rule = becomes(sourceType, writtenType);
             if (!rule.allowed) {
                 return {
                     code: "doenet-e0065",
-                    args: { sourceType, now: "false" },
+                    args: { sourceType },
                 };
             }
         }
@@ -758,12 +781,18 @@ export function checkTypeChangesAtLoad({
         return undefined;
     }
 
-    /** The error for the list tag `writtenType` made from `held`, if any. */
-    function listError(held: Holding): TypeChangeAtLoadError | undefined {
+    /**
+     * The error for a list tag whose entries are `entryType` made from
+     * `held`, if any.
+     */
+    function listError(
+        held: Holding,
+        entryType: string | undefined,
+    ): TypeChangeAtLoadError | undefined {
         if (held.unknown) {
             return undefined;
         }
-        const types = [...held.types];
+        const types = typesAs(held.types, entryType);
         if (types.length > 1) {
             return {
                 code: "doenet-e0066",
@@ -860,7 +889,17 @@ export function checkTypeChangesAtLoad({
                 return undefined;
             }
             if (isList) {
-                return listError(held) ?? "allowed";
+                const list = referents.componentsByIdx.get(
+                    copy.doenetAttributes!.forList,
+                );
+                return (
+                    listError(
+                        held,
+                        list &&
+                            allClasses[list.componentType]
+                                ?.listEntryComponentType,
+                    ) ?? "allowed"
+                );
             }
             return (
                 scalarError(held, writtenType!, holder.componentType, true) ??

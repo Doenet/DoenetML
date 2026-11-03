@@ -843,10 +843,7 @@ export class RefResolutionDependency extends Dependency {
             const instanceKind = instanceKindOf(indexedComponent.componentType);
 
             // A composite that produces instances says how many it made
-            // (`doenet-w0181`), naming what the author wrote (D27). A tag
-            // whose literal index names nothing whatever happens at run
-            // time had that reported as an error when the document loaded
-            // (D36, `typeChangeAtLoad.ts`).
+            // (`doenet-w0181`), naming what the author wrote (D27).
             if (this.isScalarTag(composite)) {
                 // Reported by the copy as an info that lasts while the
                 // index names nothing (`doenet-i0054`), or, for a literal
