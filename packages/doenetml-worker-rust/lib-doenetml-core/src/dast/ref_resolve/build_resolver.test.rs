@@ -685,3 +685,58 @@ fn a_deleted_container_is_no_longer_among_the_referents_of_an_ambiguous_name() {
     let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
     assert_eq!(referent.map(|r| r.node_idx), Ok(m_idx));
 }
+
+#[test]
+fn a_name_in_branches_of_an_external_document_is_the_active_branch_s_once_added() {
+    // `<section name="s" extend="doenet:abc"/>`, with `doenet:abc` holding a `<conditionalContent>`:
+    // `$s.x` is looked up in the external document's names (`source_sequence`),
+    // where it is in the branches of the container, and, once the container has added
+    // what its active case holds, it is that, with the names after it from that document.
+    let dast_root = dast_root_no_position(
+        r#"<a name="s"><conditionalContent><case><m name="x" /></case><else><n name="x" /></else></conditionalContent></a><p />"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let s_idx = find(&flat_root, "a").unwrap();
+    let cc_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    add_source_doc_to_descendants(
+        &mut flat_root,
+        s_idx,
+        Some(1.into()),
+        Some("s2".to_string()),
+    );
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    // Before the container has added its active case, it is left for the container
+    let referent = resolver.resolve(make_path(["s", "x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((cc_idx, Some(make_path(["x"], None))))
+    );
+
+    let shift = flat_root.nodes.len();
+    let mut flat_fragment = flat_fragment_from_str(
+        r#"<g><m name="x"><k name="y" /></m></g>"#,
+        shift,
+        Some(cc_idx),
+    );
+    for node in flat_fragment.nodes.iter_mut() {
+        if let FlatNode::Element(element) = node {
+            element.source_doc = Some(1.into());
+        }
+    }
+    let x_idx = shift + 1;
+    let y_idx = shift + 2;
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+
+    let referent = resolver.resolve(make_path(["s", "x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path, r.nodes_in_resolved_path)),
+        Ok((x_idx, None, vec![p_idx, s_idx, cc_idx, x_idx]))
+    );
+    let referent = resolver.resolve(make_path(["s", "x", "y"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((y_idx, None))
+    );
+}
