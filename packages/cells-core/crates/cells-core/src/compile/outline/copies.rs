@@ -35,6 +35,8 @@ impl Compiler<'_> {
             return Ok(());
         };
         if o.expanded.contains(&key) || self.is_box(t, e) {
+            // A copy boxed before its clones were made has none to read.
+            self.compiled.templates[t.index()].elems[e.index()].clones_pending = false;
             return Ok(());
         }
         if !self.outlining().expanding.insert(key) {
@@ -45,6 +47,8 @@ impl Compiler<'_> {
         let o = self.outlining();
         o.expanding.remove(&key);
         o.expanded.insert(key);
+        // Its clones are made, or it is boxed and has none to read.
+        self.compiled.templates[t.index()].elems[e.index()].clones_pending = false;
         if let Err(error) = r {
             for x in n..self.compiled.templates[t.index()].elems.len() {
                 self.make_box(t, ElemId::from_index(x), true);
@@ -55,7 +59,9 @@ impl Compiler<'_> {
     }
 
     fn expand_container_copy_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let p = self.plan_extend(t, e)?.expect("a container copy extends");
+        let p = self
+            .with_clones(|cp| cp.plan_extend(t, e))?
+            .expect("a container copy extends");
         // `<graph extend="$x.prop"/>` is no container copy: planning refuses
         // it as an extend of a prop.
         if self.compiled.refs[p.index()].prop.is_some() {
@@ -66,6 +72,7 @@ impl Compiler<'_> {
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
         // A referent that is itself a copy has its clones first; one that
         // is a box has none to clone.
+        self.with_clones(|cp| cp.ref_target(t, p).map(drop))?;
         self.referent_type(t, e, p)?;
         self.compiled.templates[t.index()].elems[e.index()].extend = Some(p);
         let scope = self.child_scope(t, e);
@@ -92,6 +99,9 @@ impl Compiler<'_> {
                 Child::Elem(c) => {
                     // A copy among the children has its clones first; a
                     // clone takes the type outlining settled for its original.
+                    if self.is_container_copy(t, c) {
+                        self.expand_container_copy(t, c)?;
+                    }
                     let el = self.outlined_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
                     let repeat = matches!(el.body, Body::Repeat { .. });
@@ -152,5 +162,29 @@ impl Compiler<'_> {
             && !el.cloned
             && el.component_type.container()
             && self.dast.attr_peek(el.node, "extend").is_some()
+    }
+}
+
+impl Compiler<'_> {
+    /// Run `f`, which reads what outlining made through references (ADR
+    /// 0031): when it reaches a container copy whose clones are not made
+    /// yet (`Error::AwaitsClones`), make them, and run it again from where
+    /// it began. A copy reached again while it is expanding is a cycle
+    /// (`expand_container_copy`), so this ends.
+    pub(in crate::compile) fn with_clones<T>(
+        &mut self,
+        mut f: impl FnMut(&mut Self) -> Result<T>,
+    ) -> Result<T> {
+        loop {
+            let n = self.compiled.refs.len();
+            match f(self) {
+                Err(Error::AwaitsClones { template, elem }) => {
+                    // What the attempt planned is planned again.
+                    self.compiled.refs.truncate(n);
+                    self.expand_container_copy(TemplateId::new(template), ElemId::new(elem))?;
+                }
+                r => return r,
+            }
+        }
     }
 }

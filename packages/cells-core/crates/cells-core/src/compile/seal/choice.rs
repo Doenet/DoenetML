@@ -5,6 +5,25 @@ use super::Seal;
 use crate::compile::*;
 
 impl Seal<'_> {
+    /// Every choice's `used`: the interface names reference plans step
+    /// into, in the order the plans first name them, and where each is
+    /// (`used_at`). Gathered here from the plans, so no stage that plans a
+    /// reference writes a choice (ADR 0031).
+    pub(in crate::compile) fn gather_used_names(&mut self) {
+        let c = &mut *self.compiled;
+        for r in &c.refs {
+            for step in &r.steps {
+                if let Step::Iface(cid, id) = *step {
+                    let def = &mut c.choices[cid.index()];
+                    if let std::collections::hash_map::Entry::Vacant(v) = def.used_at.entry(id) {
+                        v.insert(def.used.len() as u32);
+                        def.used.push(self.names.text(id).to_string());
+                    }
+                }
+            }
+        }
+    }
+
     /// The branch interface of every choice, once every element is planned
     /// (a tuple-valued `<math>` only becomes a point when planned), then the
     /// check that every interface name a reference uses is in it.

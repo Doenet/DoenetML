@@ -280,9 +280,13 @@ pub(crate) struct ChoiceDef {
     /// The branch interface (`CONTEXT.md`): name -> type and the element
     /// carrying it in each branch. Filled once every element is planned.
     pub(crate) iface: HashMap<String, (ComponentType, Vec<ElemId>)>,
-    /// Interface names that references use, in first-use order; a
-    /// `Step::Iface` holds an index here.
+    /// Interface names that references use, in the order the reference
+    /// plans first name them. Sealing's (ADR 0031), from every plan's
+    /// `Step::Iface`.
     pub(crate) used: Vec<String>,
+    /// Each used name's position in `used`, by the name-table id a
+    /// `Step::Iface` holds. Sealing's.
+    pub(crate) used_at: HashMap<u32, u32>,
 }
 
 /// Math text tokenized once (`Compiler::math_text`): its `$ref`s are
@@ -432,6 +436,10 @@ pub(crate) struct Elem {
     pub(crate) body: Body,
     /// What holds it (`fixed`, `compile/planning/fix.rs`).
     pub(crate) hold: Hold,
+    /// A container copy whose clones outlining has not made yet: what a
+    /// reference reads of it is not there (`Compiler::outlined_elem`).
+    /// Outlining's, and false once outlining is done.
+    pub(crate) clones_pending: bool,
 }
 
 impl Elem {
@@ -451,6 +459,7 @@ impl Elem {
             planned_as: self.planned_as,
             body: Body::Plain,
             hold: Hold::Off,
+            clones_pending: false,
         }
     }
 }
@@ -587,8 +596,10 @@ pub(crate) enum Step {
     Elem(ElemId),
     /// `[k]` on the repeat or collect just selected.
     Index(IndexPlan),
-    /// Interface name `used[k]` of a choice: `$cc.x`, or `$s[1].x` after
-    /// an index into a select's picks.
+    /// An interface name of a choice, by its name-table id: `$cc.x`, or
+    /// `$s[1].x` after an index into a select's picks. Its position among
+    /// the names references use is sealing's (`ChoiceDef::used_at`), so a
+    /// reference plans the same in any stage and order (ADR 0031).
     Iface(ChoiceId, u32),
 }
 

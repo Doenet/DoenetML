@@ -276,14 +276,16 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
-    /// Where interface name `used[u]` of choice `cid` lands from `cur`.
+    /// Where the interface name with name-table id `id` of choice `cid`
+    /// lands from `cur`.
     pub(in crate::build) fn resolve_iface(
         &self,
         cid: ChoiceId,
-        u: u32,
+        id: u32,
         cur: Resolved,
     ) -> (Resolved, ScopeId) {
         let def = &self.compiled.choices[cid.index()];
+        let u = def.used_at[&id];
         let elems = &def.iface[&def.used[u as usize]].1;
         let in_branch = |inst: &ChoiceInst, j: usize| {
             let s = inst.scopes[j];

@@ -476,3 +476,19 @@ fn a_container_copy_inside_its_referent_is_a_cycle() {
     assert_eq!(v(&doc, "n", "value"), 5.0);
     assert_eq!(v(&doc, "A", "x"), 1.0);
 }
+
+/// A container copy whose referent is inside another copy's clones,
+/// written before that copy: planning its reference reaches the other
+/// copy before outlining has made its clones, so outlining makes them and
+/// plans the reference again (ADR 0031). Either order loads to the same
+/// values.
+#[test]
+fn a_copy_of_what_is_inside_a_later_copy_has_its_clones() {
+    let c = r#"<graph name="c" extend="$g2.inner"/>"#;
+    let g2 = r#"<graph name="g2" extend="$g"/>"#;
+    let g = r#"<graph name="g"><graph name="inner"><point name="P" x="3"/></graph></graph>"#;
+    for src in [format!("{c}{g2}{g}"), format!("{g}{g2}{c}")] {
+        let doc = cells_core::testing::test_utils::load(&src).unwrap();
+        assert_eq!(doc.value("c.P", "x"), Some(3.0), "{src}");
+    }
+}

@@ -22,6 +22,7 @@ pub(in crate::compile) struct Seal<'a> {
 
 impl Seal<'_> {
     pub(in crate::compile) fn run(mut self) -> std::result::Result<(), Failure> {
+        crate::trace::span("used names").run(|| self.gather_used_names());
         crate::trace::span("choices").run(|| self.finish_choices())?;
         crate::trace::span("arity").run(|| self.check_arity())?;
         let keys = crate::trace::span("keys").run(|| self.assign_keys());

@@ -234,9 +234,6 @@ impl<'a> Compiler<'a> {
         m: NodeId,
     ) -> Result<RefId> {
         let _s = crate::trace::tally("plan ref");
-        if let Some(&p) = self.ref_subst.get(&m) {
-            return Ok(p);
-        }
         let d = self.dast;
         let g = crate::trace::tally("parts");
         let display = Written(d, m);
@@ -539,6 +536,14 @@ impl<'a> Compiler<'a> {
             }));
         }
         drop(path);
+        // A `$mi` in a `<when>` that names an input stands for the answer's
+        // submitted copy of it (`Settled::submitted`), a fact outlining
+        // settled: the path planned to the input is planned to the copy,
+        // whose props the input's prop names.
+        let (hops, steps) = match self.submitted(m) {
+            Some(r) => (0, vec![Step::Elem(r)]),
+            None => (hops, steps),
+        };
         let _p = crate::trace::tally("push");
         self.compiled.refs.push(RefPlan {
             hops,
@@ -678,6 +683,22 @@ fn parse_index(mut chars: impl Iterator<Item = char>) -> Option<i64> {
 /// What both outlining and planning read of a reference: an `extend`'s
 /// plan, its referent's type, and a choice's interface a path steps into.
 impl Compiler<'_> {
+    /// Element `e` as outlining made it, for a reference to read on
+    /// through. A container copy whose clones outlining has not made yet
+    /// is not there to read: the read fails naming it, for outlining to
+    /// make them and plan the reference again (`with_clones`). So planning
+    /// a reference makes nothing, in whichever stage (ADR 0031).
+    pub(in crate::compile) fn outlined_elem(&self, t: TemplateId, e: ElemId) -> Result<&Elem> {
+        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        if el.clones_pending {
+            return Err(Error::AwaitsClones {
+                template: t.get(),
+                elem: e.get(),
+            });
+        }
+        Ok(el)
+    }
+
     /// The reference in `e`'s `extend`, planned once from where `e` sits:
     /// by outlining for a container copy, by planning for the rest.
     pub(in crate::compile) fn plan_extend(
@@ -763,7 +784,7 @@ impl Compiler<'_> {
     /// the rest of the path is planned (the interface check makes their
     /// types equal).
     pub(in crate::compile) fn iface_step(
-        &mut self,
+        &self,
         cid: ChoiceId,
         name: &str,
         display: impl std::fmt::Display,
@@ -780,15 +801,10 @@ impl Compiler<'_> {
         let Some((tpl, elem)) = found else {
             return Err(Error::UnknownName(display.to_string()));
         };
-        let def = &mut self.compiled.choices[cid.index()];
-        let u = match def.used.iter().position(|n| n == name) {
-            Some(u) => u,
-            None => {
-                def.used.push(name.to_string());
-                def.used.len() - 1
-            }
-        };
-        Ok((Step::Iface(cid, u as u32), tpl, elem))
+        // A branch carries the name, so the name table has it. Which
+        // names references use is sealing's to gather (ADR 0031).
+        let id = self.names().id(name).expect("a name a branch carries");
+        Ok((Step::Iface(cid, id), tpl, elem))
     }
 }
 

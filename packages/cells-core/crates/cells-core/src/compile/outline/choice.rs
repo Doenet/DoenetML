@@ -135,6 +135,7 @@ impl Compiler<'_> {
             weights: branches.iter().map(|b| b.2).collect(),
             iface: HashMap::new(),
             used: Vec::new(),
+            used_at: HashMap::new(),
         });
         self.compiled.templates[t.index()].elems[e.index()].body =
             Body::Choice(ChoiceId::from_index(id));

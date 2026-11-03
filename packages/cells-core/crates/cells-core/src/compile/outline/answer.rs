@@ -71,18 +71,24 @@ impl Compiler<'_> {
                 }
                 let p = self.plan_ref(t, w, m)?;
                 self.outlining().work.settled.when_refs.insert(m, p);
-                if let Some((key, _)) = self.input_named(t, p)
-                    && !keys.contains(&key)
-                {
-                    keys.push(key);
-                    let r = self.add_response(t, e);
-                    self.outlining()
-                        .work
-                        .settled
-                        .answer_responses
-                        .entry((t.get(), e.get()))
-                        .or_default()
-                        .push((key, r));
+                if let Some((key, _)) = self.input_named(t, p) {
+                    let r = match keys.iter().find(|(k, _)| *k == key) {
+                        Some(&(_, r)) => r,
+                        None => {
+                            let r = self.add_response(t, e);
+                            keys.push((key, r));
+                            self.outlining()
+                                .work
+                                .settled
+                                .answer_responses
+                                .entry((t.get(), e.get()))
+                                .or_default()
+                                .push((key, r));
+                            r
+                        }
+                    };
+                    // The `$mi` stands for the submitted copy, from here on.
+                    self.outlining().work.settled.submitted.insert(m, r);
                 }
             }
         }

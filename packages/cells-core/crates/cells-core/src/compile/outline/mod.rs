@@ -105,6 +105,7 @@ impl Compiler<'_> {
                 None => {
                     let id = names.ids.len() as u32;
                     names.ids.insert(s.into(), id);
+                    names.texts.push(s.into());
                     id
                 }
             };
@@ -131,6 +132,7 @@ impl Compiler<'_> {
             planned_as: component_type,
             body: Body::Plain,
             hold: Hold::Off,
+            clones_pending: false,
         });
         tpl.boxes.push(BoxState::Live);
         if let (Some(id), Some(names)) = (name_id, names) {
@@ -222,6 +224,7 @@ impl Compiler<'_> {
         self.outlining().work.to_plan.push((t, e));
         if self.is_container_copy(t, e) {
             self.outlining().container_copies.push((t, e));
+            self.compiled.templates[t.index()].elems[e.index()].clones_pending = true;
         }
         let child_scope = e;
         match component_type {
@@ -391,15 +394,5 @@ impl Compiler<'_> {
             }
         }
         kids
-    }
-
-    /// Element `e` as outlining makes it: a container copy with its
-    /// clones, which a copy of it, or a path through it, reads while
-    /// outlining expands copies. After outlining, the element as it is.
-    pub(in crate::compile) fn outlined_elem(&mut self, t: TemplateId, e: ElemId) -> Result<&Elem> {
-        if self.is_container_copy(t, e) {
-            self.expand_container_copy(t, e)?;
-        }
-        Ok(&self.compiled.templates[t.index()].elems[e.index()])
     }
 }

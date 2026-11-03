@@ -87,6 +87,11 @@ pub enum Error {
     Unchecked(String),
     #[error("the core planned an element it cannot build (a core bug): {0}")]
     Internal(String),
+    /// A reference reached a container copy whose clones outlining has not
+    /// made yet (ADR 0031): outlining makes them and plans the reference
+    /// again (`with_clones`). Never reported, but as a core bug.
+    #[error("a container copy's clones were read before outlining made them (a core bug)")]
+    AwaitsClones { template: u32, elem: u32 },
     #[error("'{name}' is not in the branch interface of '{choice}': {reason}")]
     NotInInterface {
         choice: String,

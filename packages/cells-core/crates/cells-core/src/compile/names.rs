@@ -16,6 +16,8 @@ pub(in crate::compile) struct NameTable {
     pub(in crate::compile) by_scope: HashMap<(u32, u32, u32), u32>,
     /// Each element name, trimmed, by its id in `by_scope`.
     pub(in crate::compile) ids: HashMap<Box<str>, u32>,
+    /// Each name by its id: the inverse of `ids`.
+    pub(in crate::compile) texts: Vec<Box<str>>,
     /// The id of each DAST string an element is named by, by string id
     /// (`NO_NAME` for the rest): the DAST's strings are deduplicated, so a
     /// reference `$c` to `name="c"` finds the id without hashing text.
@@ -29,6 +31,11 @@ pub(in crate::compile) struct NameTable {
 pub(in crate::compile) const NO_NAME: u32 = u32::MAX;
 
 impl NameTable {
+    /// The name with id `id`.
+    pub(in crate::compile) fn text(&self, id: u32) -> &str {
+        &self.texts[id as usize]
+    }
+
     /// The id of `name`, when some element carries it.
     pub(in crate::compile) fn id(&self, name: &str) -> Option<u32> {
         self.ids.get(name.trim()).copied()

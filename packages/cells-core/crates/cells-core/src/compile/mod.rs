@@ -152,11 +152,6 @@ pub(in crate::compile) struct Compiler<'a> {
     parsed: Option<&'a Parsed>,
     /// What planning is making: `Some` only while it runs (`plan_all`).
     planning: Option<Planned>,
-    /// Macro nodes whose reference is already planned: `$mi` inside an
-    /// answer's `<when>` is its submitted response (`plan_answer`).
-    /// W: plan (`plan_answer`, set and cleared around one `<when>`).
-    /// R: `plan_ref`, while that `<when>` is planned.
-    pub(in crate::compile) ref_subst: HashMap<NodeId, RefId>,
     /// Every string's canonical id, over the DAST table (built when first
     /// needed) and then `extra_strings`: see `intern_literal`. A cache.
     /// W, R: plan (`intern_literal`).
@@ -221,6 +216,12 @@ pub(in crate::compile) struct Settled {
     /// the answer's responses (`add_answer_children`), by macro node.
     /// R: plan (`plan_award`).
     when_refs: HashMap<NodeId, RefId>,
+    /// Each `$mi` in an answer's `<when>` that names an input, with the
+    /// answer's `response` for that input, which it stands for: credit
+    /// reads the submitted copy (`compile/planning/answer.rs`). A fact
+    /// about the source, so `plan_ref` plans such a `$mi` as the response
+    /// in every stage after outlining. R: `plan_ref`.
+    submitted: HashMap<NodeId, ElemId>,
     /// By (template, answer), the `response` outlining made for each input
     /// its whens read, keyed as `input_named` keys them. R: plan
     /// (`plan_award`).
@@ -333,7 +334,6 @@ impl Compiler<'_> {
             settled: None,
             parsed: None,
             planning: None,
-            ref_subst: HashMap::new(),
             string_ids: None,
             boxed,
             restart: None,
@@ -407,6 +407,15 @@ impl<'a> Compiler<'a> {
         match &self.outlining {
             Some(o) => &o.work.settled.names,
             None => &self.settled().names,
+        }
+    }
+
+    /// The answer's `response` a `$mi` in a `<when>` stands for
+    /// (`Settled::submitted`), as `names` does.
+    pub(in crate::compile) fn submitted(&self, m: NodeId) -> Option<ElemId> {
+        match &self.outlining {
+            Some(o) => o.work.settled.submitted.get(&m).copied(),
+            None => self.settled().submitted.get(&m).copied(),
         }
     }
 

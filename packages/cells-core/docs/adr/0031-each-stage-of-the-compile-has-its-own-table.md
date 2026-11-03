@@ -1,6 +1,6 @@
 # Each stage of the compile has its own table
 
-Status: proposed 2026-11-02. Steps 1 to 3 are done; see Migration. Amended
+Status: proposed 2026-11-02. Steps 1 to 4 are done; see Migration. Amended
 2026-11-02: the boundaries the tables draw leak in three places (boxing,
 the planner context, code more than one stage runs); see "Where the
 boundaries leak".
@@ -257,6 +257,25 @@ otherwise.
    expanded by outlining when a reference reports one it needs;
    `ref_subst` moves out of it; an interface step names its name by id,
    and sealing makes `used`.
+   Done, with one change of plan for the substitution. A container copy
+   whose clones are not made yet says so in its own row
+   (`Elem::clones_pending`); `outlined_elem` reads, and fails with
+   `Error::AwaitsClones` naming such a copy, which is never reported:
+   outlining's expansion runs what reads references through `with_clones`,
+   which makes that copy's clones and runs again, dropping what the
+   attempt planned. A `$mi` in a `<when>` was a substitution planning set
+   while it planned the condition (`ref_subst`); moving it to a wrapper of
+   planning's would have left the math helpers, which parsing shares,
+   asking which stage they are in. Which response such a `$mi` stands for
+   is outlining's decision, made with the responses, so it is an outlining
+   fact (`Settled::submitted`), and `plan_ref` plans the `$mi` as its
+   response in every stage after outlining; `ref_subst` is gone. A
+   `Step::Iface` names its name by name-table id; sealing gathers each
+   choice's `used`, in the order the plans first name them, and where each
+   is (`used_at`), which the build reads. `plan_ref` and `iface_step` now
+   write only the reference arena and `prop_sels`. Test: a copy of what is
+   inside a later copy's clones loads the same in either order
+   (`tests/extend.rs`).
 5. **Planning's table.** `props`, `n_public`, `hold`, a body's `from`
    and what a choice's planner decides leave `Elem` and `ChoiceDef` for
    `Template::plans`.

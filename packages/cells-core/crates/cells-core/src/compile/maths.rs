@@ -87,8 +87,9 @@ impl Compiler<'_> {
         let _s = crate::trace::tally("resolve math");
         let mut plans = Vec::with_capacity(macros.len());
         for &m in macros {
-            // A substituted ref was planned elsewhere: its path is the DAST's.
-            let substituted = self.ref_subst.contains_key(&m);
+            // A `$mi` standing for a submitted copy reads as the input it
+            // names (`Settled::submitted`).
+            let substituted = self.submitted(m).is_some();
             let p = self.plan_ref(t, scope, m)?;
             // A text cell holds a string id, which is not a number.
             let is_text = crate::trace::tally("is text").run(|| {

@@ -135,6 +135,10 @@ export const STEPS = {
         "What reads every plan and changes none: choices, operator arity, keys, slot offsets.",
         `${C}/compile/seal/mod.rs`,
     ],
+    "core/new Core/load/compile/plan/seal/used names": [
+        "Every choice's interface names that references use, gathered from the reference plans (ADR 0031).",
+        `${C}/compile/seal/choice.rs (gather_used_names)`,
+    ],
     "core/new Core/load/compile/plan/seal/choices": [
         "Choices finished.",
         `${C}/compile/seal/choice.rs (finish_choices)`,

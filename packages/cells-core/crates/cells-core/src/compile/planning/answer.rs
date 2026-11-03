@@ -490,36 +490,25 @@ impl<'a> Compiler<'a> {
                         d.str(n)
                     )));
                 }
-                // Each `$mi` naming an input reads the submitted copy.
-                let mut subst = HashMap::new();
+                // Each input a `$mi` names has a response, planned once.
                 for &m in nodes.iter().filter(|&&n| d.kind(n) == NodeKind::Macro) {
                     // Planned when outlining made the responses.
                     let p = match self.settled().when_refs.get(&m) {
                         Some(&p) => p,
                         None => self.plan_ref(t, w, m)?,
                     };
-                    if let Some((key, input_type)) = self.input_named(t, p) {
-                        let r = match responses.iter().find(|(k, _)| *k == key) {
-                            Some(&(_, r)) => r,
-                            None => {
-                                let r = self.outlined_response(t, answer_e, key)?;
-                                self.plan_response(t, r, p, input_type);
-                                responses.push((key, r));
-                                r
-                            }
-                        };
-                        let mut sub = self.compiled.refs[p.index()].clone();
-                        sub.hops = 0;
-                        sub.steps = vec![Step::Elem(r)];
-                        self.compiled.refs.push(sub);
-                        subst.insert(m, RefId::from_index(self.compiled.refs.len() - 1));
+                    if let Some((key, input_type)) = self.input_named(t, p)
+                        && !responses.iter().any(|(k, _)| *k == key)
+                    {
+                        let r = self.outlined_response(t, answer_e, key)?;
+                        self.plan_response(t, r, p, input_type);
+                        responses.push((key, r));
                     }
                 }
+                // Each such `$mi` is planned as its response when the
+                // condition plans it (`Settled::submitted`).
                 let mut when_wiring = ElemWiring::of(ComponentType::When);
-                self.ref_subst = subst;
-                let planned = self.plan_condition_content(t, w, &nodes, compare, &mut when_wiring);
-                self.ref_subst.clear();
-                let slot = planned?;
+                let slot = self.plan_condition_content(t, w, &nodes, compare, &mut when_wiring)?;
                 when_wiring.set_public_sources(when::Props {
                     value: Source::own(slot),
                 });
