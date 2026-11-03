@@ -153,6 +153,45 @@ describe("An index that names nothing @group4", async () => {
         }
     });
 
+    it("warns for a property that does not exist after an index into picks or iterations", async () => {
+        // The index is resolved at run time, and what follows it is a
+        // property of what it picks, not a name of the document.
+        for (const { body, reference } of [
+            {
+                body: `<select name="s"><option><math name="x">1</math></option></select>[$s[1].nonexistent]`,
+                reference: "$s[1].nonexistent",
+            },
+            {
+                body: `<select name="s" numToSelect="2"><option><math name="x">1</math></option><option><math name="x">2</math></option></select>[$s[2].nonexistent]`,
+                reference: "$s[2].nonexistent",
+            },
+            {
+                body: `<repeatForSequence name="r" length="2" valueName="v"><math>$v</math></repeatForSequence>[$r[1].nonexistent]`,
+                reference: "$r[1].nonexistent",
+            },
+        ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                inParagraph(body),
+            );
+            expect(text, body).eq("[]");
+            expect([...errors, ...infos], body).eqls([]);
+            expect(
+                warnings.map((w) => w.code),
+                body,
+            ).eqls(["doenet-w0104"]);
+            expect(warnings[0].message, body).contain(reference);
+        }
+
+        // A property the picked component has, or a name, stays silent.
+        const { text, warnings, errors, infos } = await shownAndReported(
+            inParagraph(
+                `<select name="s"><option><math name="x">1</math></option></select>[$s[1].value][$s[1].x]`,
+            ),
+        );
+        expect(text).eq("[1][1]");
+        expect([...warnings, ...errors, ...infos]).eqls([]);
+    });
+
     it("leaves a property the type has, with no value now, silent", async () => {
         // VAL-5: the referent's type has the property, which is missing now.
         for (const body of [`[$P.z]`, `[$P.xs[3]]`]) {

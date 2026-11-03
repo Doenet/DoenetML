@@ -359,6 +359,33 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(mixed.diagnostics.warnings).eqls([]);
     });
 
+    it("a name after an index into a conditionalContent is held to the every-case rule", async () => {
+        const mixed = `<conditionalContent name="cc">
+    <case condition="$b"><math name="x">1</math></case>
+    <else><text name="x">t</text></else>
+</conditionalContent>`;
+        const bare = await setUp(`${mixed}<p name="p">[$cc[1].x]</p>`);
+        expect(await bare.text()).eq("[]");
+        expect(bare.diagnostics.warnings.map((w) => w.message)).eqls([
+            "`$cc[1].x` names nothing: `x` is a `<math>` in one case of `cc` and a `<text>` in another. Use the same type, or different names.",
+        ]);
+
+        const onTag = await setUp(
+            `${mixed}<p name="p"><math extend="$cc[1].x"/></p>`,
+        );
+        expect(codes(onTag.diagnostics.errors)).eqls(["doenet-e0066"]);
+
+        const same = await setUp(
+            `${sameTypeCases}<p name="p">[$cc[1].x]<math extend="$cc[1].x"/></p>`,
+        );
+        expect(await same.text()).eq("[2]2");
+        await same.toggle(true);
+        expect(await same.text()).eq("[1]1");
+        expect([...same.diagnostics.warnings, ...same.diagnostics.errors]).eqls(
+            [],
+        );
+    });
+
     it("a property of the container is not a name", async () => {
         const { text, diagnostics } = await setUp(`
 <conditionalContent name="cc">

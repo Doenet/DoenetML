@@ -64,8 +64,8 @@ export type TypeChangeAtLoadError = {
 /**
  * A reference, not written as a tag, to a name declared in the branches of
  * a `<conditionalContent>` or a one-pick `<select>` (or, after an index into
- * its picks, `$s[2].x`, any `<select>`) that does not satisfy
- * the every-branch, same-type rule (D13, D22, `branchDeclaration`): it names
+ * its picks, `$s[2].x`, any `<select>`) that does not satisfy (as does one
+ * after an index into a `<conditionalContent>`, `$cc[1].x`) the every-branch, same-type rule (D13, D22, `branchDeclaration`): it names
  * nothing, and `code` with `args` is the warning, which is quoted with the
  * reference as written (`reference` is added by the caller).
  */
@@ -1572,8 +1572,8 @@ export function checkTypeChangesAtLoad({
      * parent accepts it as a child, never changes with the active branch
      * (D13, D22, COMP-11). With no `<else>`, a name in every case is enough:
      * while no case is active, it names nothing (`canBeAbsent`). With
-     * `indexed`, `container` is a `<select>` of any number of picks, for a
-     * name after an index into them (`$s[2].x`, D27, `branchKind`).
+     * `indexed`, for a name after an index (`$s[2].x`, D27, `branchKind`),
+     * `container` may be a `<select>` of any number of picks.
      */
     function branchDeclaration(
         container: SerializedComponent,
@@ -1694,7 +1694,8 @@ export function checkTypeChangesAtLoad({
      * or `undefined` when the reference is not to such a container. A name
      * after an index into the picks of a `<select>` (`$s[2].x`, as `node_idx`
      * `s` with `[2]` and `x` unresolved) is held to the same rule, for a
-     * select of any number of picks (D27).
+     * select of any number of picks (D27), as is one after an index into a
+     * `<conditionalContent>` (`$cc[1].x`).
      */
     function branchNameOf(copy: SerializedComponent) {
         const ref = refOf(copy);
@@ -1708,7 +1709,7 @@ export function checkTypeChangesAtLoad({
             return undefined;
         }
         const container = branchContainerAt(ref.nodeIdx, indexed);
-        if (!container || (indexed && container.componentType !== "select")) {
+        if (!container) {
             return undefined;
         }
         const declared = branchDeclaration(
@@ -1953,7 +1954,7 @@ export function checkTypeChangesAtLoad({
 
         // Names, the last of which may have one index (`$m2.s[1]`), or one
         // index alone (`$s[1]`), or one index into the picks of a select
-        // and names (`$s[1].x`).
+        // or into a conditionalContent, and names (`$s[1].x`).
         const last = path[path.length - 1];
         const lastIndex = last.index ?? [];
         if (lastIndex.length > 1) {
@@ -1962,13 +1963,14 @@ export function checkTypeChangesAtLoad({
         let nodeIdxs: number[];
         if (isIndexIntoPicks(path)) {
             // A name after an index into the picks of a `<select>`
-            // (`$s[2].x`): the components so named in each option, which
-            // `checkBranchName` has found every option declares.
-            const select = branchContainerAt(ref.nodeIdx, true);
-            if (select?.componentType !== "select") {
+            // (`$s[2].x`), or into a `<conditionalContent>` (`$cc[1].x`):
+            // the components so named in each branch, which
+            // `checkBranchName` has found every branch declares.
+            const container = branchContainerAt(ref.nodeIdx, true);
+            if (!container) {
                 return undefined;
             }
-            const named = descendantsNamed(select.componentIdx, [
+            const named = descendantsNamed(container.componentIdx, [
                 ...path.slice(1, -1),
                 { ...last, index: [] },
             ]);
@@ -2112,10 +2114,12 @@ export function checkTypeChangesAtLoad({
      * of the document has. A tag made from a composite is an error when
      * none of what it holds has that property (`missingPropertyError` in
      * `Copy.js`), but not when it is a name that the case now active does
-     * not hold (`$cc.c`).
+     * not hold (`$cc.c`). An index before it (`$s[1].nothing`) is resolved
+     * at run time, leaving the property first.
      */
     function pathStartsWithProperty(copy: SerializedComponent) {
-        const first = refOf(copy)?.unresolvedPath?.[0];
+        const path: any[] = refOf(copy)?.unresolvedPath ?? [];
+        const first = path.find((part) => part.name !== "");
         return (
             typeof first?.name === "string" &&
             first.name !== "" &&
