@@ -271,14 +271,27 @@ not change these (D10).
 An input reached through such an index is a plain input while it names nothing. The reader can
 type in it, and the link wins when the iteration returns.
 
-**Known violations:**
-- `<math extend="$nothing"/>` is a blank math with warning `doenet-w0104`, not an error;
-- since #2436, a scalar tag extending a composite whose content changes shows nothing while the
-  content does not match, with an info (`doenet-e0064`, `e0065` at info level). Under D36 that
-  composite is an error at load;
-- a value that does not convert shows nothing with `doenet-i0053`, not `<T/>`'s value.
+Done by #2447 (closing #2445):
+- **a missing referent on a tag** is an error shown in the tag's place: `doenet-w0104` (no
+  referent, or a property the source doesn't have) and `w0105` (an ambiguous name), at error
+  level. For a composite, only a name that no component of the document has counts as a
+  property, so `$cc.c` of a case that isn't active is not an error;
+- **a value that does not convert** gives `<T/>` with the tag's own attributes and children, and
+  `doenet-i0053`;
+- **an index that names nothing** gives `<T/>` with its own attributes and children, and info
+  **`doenet-i0054`**, which appears and goes away with the index (DIAG-2). On a tag it replaces
+  the `w0181` and `w0104` such an index gave. An unlinked copy made this way is `<T/>` again
+  after a reload;
+- **an error found at load stays** while an index names nothing. The error names the reference
+  as written (`$r[$k]`), so it does not change with the index's value.
 
-The fix for all three is #2445.
+**Known violations:**
+- `<group><group/><math/></group>`, one component beside a child that holds nothing, is not
+  decided at load. The copy is made from each source, so the tag can't be made from the one;
+- a `<conditionalContent>` or `<select>` nested in a case or option is allowed at load but shows
+  `<T/>`'s default with no info (B22, #2437);
+- `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written,
+  because `$m` copies the `_error` in m's place (B38).
 
 ### REF-1: `$x` is shorthand for the unadorned `extend` (Tier 1 for the meaning, Tier 2 for exact parity)
 `$x` means `<T extend="$x"/>`, where T is the referent's own tag. Write the `extend` out only to
@@ -452,8 +465,21 @@ component with a single-child group ([testing-principles.md](testing-principles.
   - a `<select>` or other selector has `numToSelect` written as `1`, or left out. A reference
     is an error, even if its value is 1;
   - a `<group>`, `<sort>` or `<shuffle>` holds one component;
-  - a part's type is its tag. A bare `$y` is y's tag, a nested composite is looked through, and a
-    bare string is a text. A property is an error until properties declare their type (D20).
+  - a part's type is its tag:
+    - a bare `$y` is y's tag, and a nested composite is looked through;
+    - a bare string is a text (#2433);
+    - a case, `<else>` or option written with `copy` is what it copies;
+    - an index into a list is the list's entry type. An index into a select, repeat or
+      `<repeatForSequence>` is one pick or iteration. An index into a `<collect>` with a written
+      `componentType` is one component of that type;
+    - a name inside a composite (`$s.go`) is each component of that name in its written
+      descendants, including in what a copy among them copies. `<math name="go">` in one option
+      and `<number name="go">` in another are two types;
+    - a property, and a repeat's `valueName`, is an error, **`doenet-e0067`**, until properties
+      declare their type (D20).
+  - a type that already is the tag written counts as that tag: an `<integer>` case and a
+    `<number>` else are one type for a `<number>` or a `<numberList>`, but not for an
+    `<integer>` or a `<math>`.
 
   Authors write `<math extend="$s"/>` for a one-pick select, `<text extend="$cc"/>` of text cases
   with an else, `<math extend="$g"/>`, and `<number extend="$s"/>` of a one-value
@@ -473,6 +499,8 @@ Not allowed, each an error whose message gives the clearer form (DIAG-3):
   - `numToSelect` that is not a literal 1, a `<repeat>`, `<collect>`, `<sequence>` or
     `<intersection>` ("use `$x[1]`").
   `<point extend="$i"/>` of an intersection is `<point extend="$i[1]"/>`.
+  A literal index past what a selector picks (`$s[2]` of a one-pick select) is `doenet-w0181` at
+  error level for a scalar tag. For a list tag it stays the run-time `w0181`.
 - **a list from components of more than one type** ("wrap it: `<mathList>$g</mathList>`").
 - **any other pair.**
 
@@ -484,8 +512,10 @@ For the allowed pairs the result is x's value as a T. It is linked both ways whe
 can be run backward: **[probe]** `<point extend="$v"/>` of a vector is draggable, and dragging it
 moves `v`.
 
-Done by #2427 (content fixed at load) and #2436 (content made at run time). D36 replaces #2436's
-run-time check of the composite with a load-time check of every case (#2445). The table is
+Done by #2427 (content fixed at load) and #2436 (content made at run time). #2447 (D36) replaced
+#2436's run-time check of the composite with a load-time check of every case:
+`W/utils/dast/typeChangeAtLoad.ts`, a pass over the serialized document after sugar and before
+the list forms, which records `typeChangeAtLoad` on each `_copy` written as a tag. The table is
 `typeChangeRule` in `W/utils/typeChange.js`, applied only to author-written extends and copies.
 It also allows:
 - any pair an `adapter` gives, such as `<text extend="$ion"/>`;
@@ -497,25 +527,29 @@ Diagnostics:
 - **`doenet-e0062`:** an input from a value;
 - **`doenet-e0063`:** a container with a `text` (`<p>`, `<li>`) as another tag, suggesting
   `$p.text`;
-- **`doenet-e0064`:** a composite or list not holding exactly one component;
+- **`doenet-e0064`:** a composite the DoenetML doesn't guarantee holds one component. Its reason
+  says why: no `<else>`, `numToSelect`, any number, or a case, option or iteration holding the
+  wrong number;
 - **`doenet-e0065`:** any other pair;
+- **`doenet-e0066`:** different types, suggesting `<T>$x</T>`, for a scalar or a list tag;
+- **`doenet-e0067`:** a property or a repeat's value, whose type isn't known at load;
 - **`doenet-i0053`:** an info for a value that does not allow the tag (a point from a non-tuple,
-  a boolean from a math that is not true or false). Today the tag shows nothing; under D36 it is
-  `<T/>`'s value.
+  a boolean from a math that is not true or false). The tag has `<T/>`'s value;
+- **`doenet-i0054`:** an info for an index that names nothing now (REF-0).
 
-Since #2436, `e0064` and `e0065` are also reported at info level for content made at run time.
-Under D36 these become load-time errors (REF-0's known violations).
+The run-time `e0064` and `e0065` infos from #2436 are gone (#2447).
 
 A linked extend takes the converted value again when it converts. A copy stays as it was made.
 
 Evidence: `T/copying/type_change.test.ts`, `T/copying/type_change_run_time.test.ts`.
 
-Not decided yet (behave as before): content holding a list, a list or `<group>` written as the
-tag, property sources, internal list forms, and unresolved paths.
+Not decided yet (behave as before): content holding a list (written there or by a bare `$l`), a
+list or `<group>` written as the tag, internal list forms, and unresolved paths. An index after a
+reference to a copy (`$a1[2]` of `<group name="a1" extend="$a"/>`) selects a child of the copy,
+not a pick of what it copies, so it is left to run time (compare B26).
 
 Known violations:
 - a related type reached through a reference shows a default (B22, #2437);
-- `<text extend="$cc"/>` of bare-text cases throws (B23, #2433);
 - the `bindValueTo` that `e0062` recommends throws for a `<subsetOfRealsInput>` (B24, #2429);
 - some allowed pairs give a default (a mathInput holding a tuple as a point, a text `true` as a
   boolean), and a property source is not checked against its value (B30, #2440). The input pairs
@@ -523,13 +557,22 @@ Known violations:
   `<textInput>` hold the input itself as a child, show a default, and mostly warn `doenet-w0107`
   "Invalid children". So do `<math extend="$b"/>` and `<number extend="$b"/>` of a `<boolean>`,
   which should be `1` or `0`;
-- a copy that made nothing can report a different info after a reload (B37).
+- a copy that made nothing could report a different info after a reload (B37). #2447 removed
+  the run-time `e0065` of its example; whether two infos can still differ is not checked;
+- a `<select>` whose options are all written with `copy` fails to load, "Number of indices
+  specified for select must match number to select" (B39).
 
-Fixed: a type-changed copy kept its decision through a reload since #2443 (B31). Infos follow
-their condition since #2444 (B33).
+Fixed: a type-changed copy keeps its decision through a reload since #2443 (B31). Infos follow
+their condition since #2444 (B33). Bare-text cases convert since #2447 (B23).
 
 Cost (Tier 3): a linked extend that follows run-time content is about twice as slow as before
-(#2436). Removing that path under D36 should recover it.
+(#2436). #2447 did not recover it. It keeps `typeChangeContent` watching the composite, though
+that no longer decides anything. The watching is still needed to:
+- make the copy from the one component a case or pick holds, which changes when a case further
+  in changes;
+- stop two `<conditionalContent>`s extending each other from recursing.
+
+The perf census is unchanged.
 
 Evidence for the related pairs:
 - `T/copying/extend_references.test.ts:3200` "extend wraps to match specified type" (math,
