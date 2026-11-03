@@ -126,6 +126,8 @@ A reload restores what the reader saw (SAVE-1), and that includes the diagnostic
 
 **Known violations:**
 - an index past the end of a repeat that shrank adds a diagnostic only after a reload (#1499).
-  Under DIAG-2 it is an info, reported the same way before and after;
+  Under DIAG-2 it is an info, reported the same way before and after. On a tag it is info
+  `doenet-i0054` since #2447, which follows the index. A bare reference still has the late
+  `w0181`;
 - a copy that made nothing is not held in a save, so a reload can report a different info for
   why it shows nothing, when its source's case changed (B37, from #2443).
