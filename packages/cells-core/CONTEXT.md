@@ -341,9 +341,12 @@ aliases merge slots into cells: the build numbers each element's ports in
 their wiring's order. A *template slot* is the same position within a
 template, shared by every instance; essential keys use it.
 
-**Plan** — What the compile phase records per template: each prop's
-*source* (`Source`: a literal, an alias, an operator over other props, a
-math) and each reference's *reference plan* (`RefPlan`: a path through names
+**Plan** — What the compile phase records per template: each port's
+*source* (`Source`, ADR 0032: a *leaf*, which is a given value, a constant
+or a scope constant; a *dataflow expression* over ports, which is an
+alias, an operator, a lowered math or a symbolic template; or a *scope
+specialization* choosing between two by the scope the template is stamped
+in) and each reference's *reference plan* (`RefPlan`: a path through names
 and indices). Expansion turns plans into slots per scope.
 
 **Compile** — The once-per-load stage (ADR 0015): the source made into

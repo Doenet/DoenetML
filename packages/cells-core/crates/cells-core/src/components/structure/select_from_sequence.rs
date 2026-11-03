@@ -67,10 +67,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<
             "<selectFromSequence> with an empty sequence".into(),
         ));
     }
-    props[Props::PORTS.value] = Some(Source::SequencePick {
+    props[Props::PORTS.value] = Some(Source::Leaf(Leaf::Scope(ScopeConst::SequencePick {
         from,
         step,
         count: count as u32,
-    });
+    })));
     Ok(())
 }

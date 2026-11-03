@@ -74,9 +74,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     }
     let id = ctx.sym_math(&nodes, &mt)?;
     let expr = if component_type == ComponentType::Function {
-        Source::SymExpr(id, Post::None).into()
+        Source::sym_expr(id, Post::None).into()
     } else {
-        let of = wiring.hidden(Source::SymExpr(id, Post::None));
+        let of = wiring.hidden(Source::sym_expr(id, Post::None));
         Wire::computed(OpSpec::Sym(SymKind::Derivative), vec![of])
     };
     let [xmin, xmax] = match (

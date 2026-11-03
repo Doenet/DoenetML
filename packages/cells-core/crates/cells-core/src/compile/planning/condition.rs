@@ -116,7 +116,7 @@ impl<'a> Compiler<'a> {
                 }
                 None => {
                     let id = cp.intern_literal(s);
-                    Ok(wiring.hidden(Source::Const(id.to_value())))
+                    Ok(wiring.hidden(Source::constant(id.to_value())))
                 }
             }
         };
@@ -242,7 +242,7 @@ impl<'a> Compiler<'a> {
         // the text itself when the element expands (`sym_source`).
         let id = self.compiled.arena.push(Expr::Sym(sym.clone()));
         self.compiled.sym_text.insert(id, SymText::Spelled(sym));
-        wiring.hidden(Source::SymExpr(id, post))
+        wiring.hidden(Source::sym_expr(id, post))
     }
 }
 
@@ -407,16 +407,16 @@ impl CondParser<'_> {
         let toks = &self.toks[start..self.pos];
         let numeric = match toks {
             [] => return Err(self.err("expected a value".into())),
-            [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(Source::Const(1.0)),
-            [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(Source::Const(0.0)),
+            [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(Source::constant(1.0)),
+            [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(Source::constant(0.0)),
             _ => match Parser::parse(toks, &mut cp.compiled.arena) {
                 Ok(id) if cp.compiled.arena.is_numeric(id) => {
                     Some(match cp.compiled.arena.get(id) {
                         // A constant in a condition is not state.
-                        Expr::Num(v) => Source::Const(*v),
+                        Expr::Num(v) => Source::constant(*v),
                         // A lone reference too, so expand checks it is a
                         // number; it lowers to an alias of the referent.
-                        _ => Source::Math(id),
+                        _ => Source::math(id),
                     })
                 }
                 // A free symbol, or a function the lowering does not know

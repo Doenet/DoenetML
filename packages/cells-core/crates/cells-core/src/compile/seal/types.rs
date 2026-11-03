@@ -203,70 +203,74 @@ impl Types<'_, '_> {
         check: bool,
     ) -> std::result::Result<PortType, Failure> {
         Ok(match src {
-            Source::Given(_)
-            | Source::Const(_)
-            | Source::IterIndex
-            | Source::SequencePick { .. }
-            | Source::Deferred(_)
-            | Source::VecOut(..) => PortType::Num,
-            Source::GivenText(_) => PortType::Text,
-            Source::GivenMath(_) => PortType::Math,
-            Source::GivenMathFrom(p) => {
-                if check {
-                    self.one_cell(t, e, *p, ArityOf::Prop(pi))?;
-                }
-                PortType::Math
-            }
-            // Lowered to operators, or NaN: a number either way.
-            Source::Math(id) | Source::MathValue(id) => {
-                if check {
-                    self.check_leaves(t, e, *id)?;
-                }
-                PortType::Num
-            }
-            Source::MathHandle(id, _) => {
-                if check {
-                    self.check_leaves(t, e, *id)?;
-                }
-                if self.symbolic(t, *id)? {
-                    PortType::Math
-                } else {
+            Source::Leaf(leaf) => match leaf {
+                Leaf::Given(_) | Leaf::Const(_) => PortType::Num,
+                Leaf::GivenText(_) => PortType::Text,
+                Leaf::GivenMath(_) => PortType::Math,
+                Leaf::Scope(ScopeConst::IterIndex | ScopeConst::SequencePick { .. }) => {
                     PortType::Num
                 }
-            }
-            Source::SymExpr(id, _) => {
-                if check {
-                    self.check_leaves(t, e, *id)?;
+                Leaf::Scope(ScopeConst::Seed(p)) => {
+                    if check {
+                        self.one_cell(t, e, *p, ArityOf::Prop(pi))?;
+                    }
+                    PortType::Math
                 }
-                PortType::Math
-            }
-            Source::Op(spec, args) => {
-                for a in args {
-                    let ty = self.arg_type(t, e, pi, *a, check)?;
-                    // A reference read by an operator is a number: text
-                    // compares only through the planned `Eq` of own ports.
-                    if check
-                        && ty == PortType::Text
-                        && let Arg::Ref(p, _) = a
-                    {
-                        return Err(self.fail(
-                            t,
-                            e,
-                            Error::Unsupported(format!(
-                                "a text value (${}) used as a number",
-                                self.seal.compiled.ref_display(*p)
-                            )),
-                        ));
+            },
+            Source::Deferred(_) => PortType::Num,
+            Source::Flow(flow) => match flow {
+                Flow::VecOut(..) => PortType::Num,
+                // Lowered to operators, or NaN: a number either way.
+                Flow::Math(id) | Flow::MathValue(id) => {
+                    if check {
+                        self.check_leaves(t, e, *id)?;
+                    }
+                    PortType::Num
+                }
+                Flow::MathHandle(id, _) => {
+                    if check {
+                        self.check_leaves(t, e, *id)?;
+                    }
+                    if self.symbolic(t, *id)? {
+                        PortType::Math
+                    } else {
+                        PortType::Num
                     }
                 }
-                match spec {
-                    OpSpec::Sym(kind) if kind.makes_math() => PortType::Math,
-                    _ => PortType::Num,
+                Flow::SymExpr(id, _) => {
+                    if check {
+                        self.check_leaves(t, e, *id)?;
+                    }
+                    PortType::Math
                 }
-            }
-            Source::Alias(arg) => self.arg_type(t, e, pi, *arg, check)?,
+                Flow::Op(spec, args) => {
+                    for a in args {
+                        let ty = self.arg_type(t, e, pi, *a, check)?;
+                        // A reference read by an operator is a number: text
+                        // compares only through the planned `Eq` of own ports.
+                        if check
+                            && ty == PortType::Text
+                            && let Arg::Ref(p, _) = a
+                        {
+                            return Err(self.fail(
+                                t,
+                                e,
+                                Error::Unsupported(format!(
+                                    "a text value (${}) used as a number",
+                                    self.seal.compiled.ref_display(*p)
+                                )),
+                            ));
+                        }
+                    }
+                    match spec {
+                        OpSpec::Sym(kind) if kind.makes_math() => PortType::Math,
+                        _ => PortType::Num,
+                    }
+                }
+                Flow::Alias(arg) => self.arg_type(t, e, pi, *arg, check)?,
+            },
             Source::Inherit => self.inherited(t, e, pi),
-            Source::FirstIteration(first, rest) => self
+            Source::Specialize(_, first, rest) => self
                 .source_type(t, e, pi, first, check)?
                 .join(self.source_type(t, e, pi, rest, check)?),
         })

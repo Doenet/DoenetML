@@ -118,7 +118,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     // (projection, ADR 0003).
     let radius_wire = |wiring: &mut ElemWiring| -> Wire {
         let pres = wiring.hidden_wire(match &radius {
-            Some(Source::Given(v)) => Wire::given_from(shared_state::R, attr::radius, *v),
+            Some(Source::Leaf(Leaf::Given(v))) => {
+                Wire::given_from(shared_state::R, attr::radius, *v)
+            }
             Some(other) => other.clone().into(),
             None => Wire::given(shared_state::R, 1.0),
         });

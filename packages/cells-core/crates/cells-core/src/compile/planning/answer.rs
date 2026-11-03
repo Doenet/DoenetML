@@ -128,11 +128,11 @@ impl<'a> Compiler<'a> {
                         "an <answer> comparing a <booleanInput>: <answer type=\"boolean\">".into(),
                     ));
                 }
-                Source::Alias(Arg::Elem(*mi, math_input::Props::PORTS.expr))
+                Source::alias(Arg::Elem(*mi, math_input::Props::PORTS.expr))
             }
             (true, None, []) => {
                 let mi = self.plan_implicit_input(t, e)?;
-                Source::Alias(Arg::Elem(mi, math_input::Props::PORTS.expr))
+                Source::alias(Arg::Elem(mi, math_input::Props::PORTS.expr))
             }
             (true, None, _) => {
                 return Err(Error::Unsupported(
@@ -151,9 +151,9 @@ impl<'a> Compiler<'a> {
             Source::absent()
         } else {
             let id = self.plan_sym_math(t, scope, &text_nodes)?;
-            Source::SymExpr(id, Post::None)
+            Source::sym_expr(id, Post::None)
         };
-        let mut submitted = Source::GivenMath(None);
+        let mut submitted = Source::Leaf(Leaf::GivenMath(None));
         let weight = self.plan_weight(t, e, el)?;
 
         if forms.is_empty() {
@@ -164,7 +164,7 @@ impl<'a> Compiler<'a> {
                 submitted,
                 credit: Source::computed(OpSpec::Sym(eq), vec![ports.submitted, ports.correct]),
                 weight,
-                numSubmissions: Source::Given(0.0),
+                numSubmissions: Source::given(0.0),
             });
             self.tables[t.index()].plans[e.index()].props = wiring.finish().0;
             return Ok(());
@@ -178,8 +178,8 @@ impl<'a> Compiler<'a> {
         let awards: Vec<ElemId> = forms.iter().map(|f| f.e).collect();
         let best = best_award(&mut wiring, &awards);
         if !needs_input && let Some(&(_, r)) = responses.first() {
-            response = Source::Alias(Arg::Elem(r, response::Props::PORTS.response));
-            submitted = Source::Alias(Arg::Elem(r, response::Props::PORTS.submitted));
+            response = Source::alias(Arg::Elem(r, response::Props::PORTS.response));
+            submitted = Source::alias(Arg::Elem(r, response::Props::PORTS.submitted));
         }
         wiring.set_public_sources(answer::Props {
             response,
@@ -187,7 +187,7 @@ impl<'a> Compiler<'a> {
             submitted,
             credit: Source::own(best),
             weight,
-            numSubmissions: Source::Given(0.0),
+            numSubmissions: Source::given(0.0),
         });
         self.tables[t.index()].plans[e.index()].props = wiring.finish().0;
         Ok(())
@@ -200,7 +200,7 @@ impl<'a> Compiler<'a> {
         let scope = self.outlined(t).elems[e.index()].name_scope;
         Ok(match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, scope, "weight", d.attr_children(a), None)?,
-            None => Source::Const(1.0),
+            None => Source::constant(1.0),
         })
     }
 
@@ -234,19 +234,19 @@ impl<'a> Compiler<'a> {
                 .iter()
                 .map(|&c| Arg::Elem(c, choice::Props::PORTS.credit)),
         );
-        let chosen = wiring.hidden(Source::Op(
+        let chosen = wiring.hidden(Source::op(
             OpSpec::Vec(VecOp::Choose {
                 n: byte(choices.len()),
             }),
             args,
         ));
         wiring.set_public_sources(answer::Props {
-            response: Source::Alias(Arg::Elem(ci, choice_input::Props::PORTS.selectedIndex)),
+            response: Source::alias(Arg::Elem(ci, choice_input::Props::PORTS.selectedIndex)),
             correct: Source::absent(),
-            submitted: Source::Given(0.0),
+            submitted: Source::given(0.0),
             credit: Source::computed_k(OpSpec::NanTo, chosen, 0.0),
             weight,
-            numSubmissions: Source::Given(0.0),
+            numSubmissions: Source::given(0.0),
         });
         self.tables[t.index()].plans[e.index()].props = wiring.finish().0;
         Ok(())
@@ -303,8 +303,8 @@ impl<'a> Compiler<'a> {
             let id = self.intern_literal(text.trim()).to_value();
             let mut award_wiring = ElemWiring::of(ComponentType::Award);
             let credit = self.award_credit(t, a, form.el)?;
-            let correct = award_wiring.hidden(Source::Const(id));
-            let holds = award_wiring.hidden(Source::Op(
+            let correct = award_wiring.hidden(Source::constant(id));
+            let holds = award_wiring.hidden(Source::op(
                 OpSpec::Eq,
                 vec![
                     Arg::Elem(e, answer::Props::PORTS.submitted),
@@ -320,12 +320,12 @@ impl<'a> Compiler<'a> {
         }
         let best = best_award(&mut wiring, &planned);
         wiring.set_public_sources(answer::Props {
-            response: Source::Alias(Arg::Elem(ti, text_input::Props::PORTS.value)),
+            response: Source::alias(Arg::Elem(ti, text_input::Props::PORTS.value)),
             correct: Source::absent(),
-            submitted: Source::GivenText(None),
+            submitted: Source::Leaf(Leaf::GivenText(None)),
             credit: Source::own(best),
             weight,
-            numSubmissions: Source::Given(0.0),
+            numSubmissions: Source::given(0.0),
         });
         self.tables[t.index()].plans[e.index()].props = wiring.finish().0;
         Ok(())
@@ -507,12 +507,12 @@ impl<'a> Compiler<'a> {
                     value: Source::own(port),
                 });
                 self.tables[t.index()].plans[w.index()].props = when_wiring.finish().0;
-                wiring.hidden(Source::Alias(Arg::Elem(w, when::Props::PORTS.value)))
+                wiring.hidden(Source::alias(Arg::Elem(w, when::Props::PORTS.value)))
             }
             None => {
                 let id = self.plan_sym_math(t, form.e, &form.nodes)?;
-                let correct = wiring.hidden(Source::SymExpr(id, Post::None));
-                wiring.hidden(Source::Op(
+                let correct = wiring.hidden(Source::sym_expr(id, Post::None));
+                wiring.hidden(Source::op(
                     OpSpec::Sym(compare.equals()),
                     vec![
                         Arg::Elem(answer_e, answer::Props::PORTS.submitted),
@@ -555,10 +555,10 @@ impl<'a> Compiler<'a> {
         let d = self.dast;
         Ok(match d.attr(el, "credit") {
             Some(c) => match self.plan_value(t, a, "credit", d.attr_children(c), None)? {
-                Source::Given(v) => Source::Const(v),
+                Source::Leaf(Leaf::Given(v)) => Source::constant(v),
                 p => p,
             },
-            None => Source::Const(1.0),
+            None => Source::constant(1.0),
         })
     }
 
@@ -585,11 +585,11 @@ impl<'a> Compiler<'a> {
         let submitted_port = response::Props::PORTS.submitted;
         let (submitted, value) = if math {
             (
-                Source::GivenMath(None),
+                Source::Leaf(Leaf::GivenMath(None)),
                 Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![submitted_port]),
             )
         } else {
-            (Source::Given(0.0), Source::own(submitted_port))
+            (Source::given(0.0), Source::own(submitted_port))
         };
         self.tables[t.index()].plans[r.index()].props = response::Props {
             response: live,
@@ -614,7 +614,7 @@ impl<'a> Compiler<'a> {
                 OpSpec::Sym(SymKind::Evaluate),
                 vec![math_input::Props::PORTS.expr],
             ),
-            expr: Source::GivenMath(None),
+            expr: Source::Leaf(Leaf::GivenMath(None)),
         }
         .into_vec();
         Ok(mi)
@@ -631,7 +631,7 @@ impl<'a> Compiler<'a> {
 fn best_award(wiring: &mut ElemWiring, awards: &[ElemId]) -> Port {
     let mut best = None;
     for &a in awards {
-        let awarded = wiring.hidden(Source::Alias(Arg::Elem(a, award::Props::PORTS.awarded)));
+        let awarded = wiring.hidden(Source::alias(Arg::Elem(a, award::Props::PORTS.awarded)));
         best = Some(match best {
             None => awarded,
             Some(b) => wiring.hidden(Source::computed(OpSpec::Max, vec![b, awarded])),

@@ -118,7 +118,11 @@ impl<'a> Compiler<'a> {
             .into_iter()
             .enumerate()
             .map(|(j, first)| {
-                Source::FirstIteration(Box::new(first), Box::new(Source::Math(exprs[j])))
+                Source::Specialize(
+                    ScopePred::FirstIteration,
+                    Box::new(first),
+                    Box::new(Source::math(exprs[j])),
+                )
             })
             .collect();
         self.tables[sub.index()].plans[0].props = prop::tuple::props_of(entries);
@@ -158,7 +162,7 @@ impl<'a> Compiler<'a> {
             .map(|part| {
                 let id = self.parse_tokens(part, src)?;
                 Ok(match self.plan_from_expr(id) {
-                    Source::Given(v) => Source::Const(v),
+                    Source::Leaf(Leaf::Given(v)) => Source::constant(v),
                     other => other,
                 })
             })
@@ -213,7 +217,7 @@ impl<'a> Compiler<'a> {
                     wiring.set_public(sv::Props {
                         from: Source::reference(from).into(),
                         step: Source::reference(step).into(),
-                        k: Source::IterIndex.into(),
+                        k: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)).into(),
                         km1: table(ports.km1),
                         scaled: table(ports.scaled),
                         value: table(ports.value),
@@ -221,7 +225,7 @@ impl<'a> Compiler<'a> {
                     wiring.finish().0
                 }
                 ComponentType::Number => prop::number::Props {
-                    value: Source::IterIndex,
+                    value: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)),
                 }
                 .into_vec(),
                 _ => continue,

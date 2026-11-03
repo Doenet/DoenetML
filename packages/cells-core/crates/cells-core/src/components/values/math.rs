@@ -30,8 +30,8 @@ pub const VALUE: usize = Props::AT.value;
 pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<Source> {
     let mut wiring = ElemWiring::of(ComponentType::Math);
     wiring.set_public(Props {
-        expr: Source::MathHandle(id, post).into(),
-        value: Source::MathValue(id).into(),
+        expr: Source::Flow(Flow::MathHandle(id, post)).into(),
+        value: Source::Flow(Flow::MathValue(id)).into(),
     });
     wiring.finish().0
 }

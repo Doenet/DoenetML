@@ -1330,7 +1330,9 @@ impl<'c> Builder<'c> {
                 self.slot_label(s)
             );
             let source = match plan {
-                Source::FirstIteration(first, rest) => {
+                // The one predicate today: the enclosing repeat's first
+                // iteration.
+                Source::Specialize(ScopePred::FirstIteration, first, rest) => {
                     match self.view.plans(self.scopes[inst.scope].2) {
                         Plans::First => self.plan_source(first, inst, pi, extend, &extend_label)?,
                         Plans::Rest => self.plan_source(rest, inst, pi, extend, &extend_label)?,
@@ -1372,9 +1374,7 @@ impl<'c> Builder<'c> {
         Ok(match plan {
             // Left unset: wired from the tree by `fill_deferred`.
             Source::Deferred(_) => BuiltSource::Unset,
-            Source::FirstIteration(..) => unreachable!("nested FirstIteration"),
-            Source::Given(v) => BuiltSource::Given(*v),
-            Source::GivenText(id) => BuiltSource::Given(id.map_or(f64::NAN, StrId::to_value)),
+            Source::Specialize(..) => unreachable!("a nested specialization"),
             Source::Inherit => {
                 let Some(referent) = extend else {
                     return Ok(BuiltSource::Alias(self.missing_slot()));
@@ -1383,88 +1383,97 @@ impl<'c> Builder<'c> {
                 self.record_label_as(s, t, extend_label);
                 BuiltSource::Alias(t)
             }
-            Source::Const(v) => BuiltSource::Const(*v),
-            Source::Alias(arg) => {
-                BuiltSource::Alias(self.arg_slot(*arg, comp, inst.scope, component_type, pi)?)
-            }
-            Source::Op(spec, args) => {
-                let start = self.op_inputs.len() as u32;
-                for &a in args {
-                    let slot = self.arg_slot(a, comp, inst.scope, component_type, pi)?;
-                    // A reference read by an operator is a number: text
-                    // compares only through the planned `Eq` of own slots.
-                    if let Arg::Ref(p, _) = a
-                        && self.value_type(slot) == ValueType::Text
-                    {
-                        return Err(Error::Unsupported(format!(
-                            "a text value (${}) used as a number",
-                            c.ref_display(p)
-                        )));
+            Source::Leaf(leaf) => match leaf {
+                Leaf::Given(v) => BuiltSource::Given(*v),
+                Leaf::GivenText(id) => BuiltSource::Given(id.map_or(f64::NAN, StrId::to_value)),
+                Leaf::GivenMath(tree) => match tree {
+                    Some(tree) => BuiltSource::Given(self.engine.import(tree).to_value()),
+                    None => BuiltSource::Given(f64::NAN),
+                },
+                Leaf::Const(v) => BuiltSource::Const(*v),
+                Leaf::Scope(ScopeConst::IterIndex) => {
+                    BuiltSource::Const(self.scopes[inst.scope].2 as f64)
+                }
+                Leaf::Scope(ScopeConst::SequencePick { from, step, count }) => {
+                    let key =
+                        c.templates[inst.template.index()].sealed.elems[inst.elem.index()].key;
+                    let h = choice::splitmix(self.seeded_stream(inst.scope, key));
+                    let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
+                    BuiltSource::Const(from + step * k.min(count - 1) as f64)
+                }
+                Leaf::Scope(ScopeConst::Seed(p)) => {
+                    let from = self
+                        .resolve_one(*p, inst.scope)
+                        .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
+                    self.seeds.push((s, from));
+                    BuiltSource::Given(f64::NAN)
+                }
+            },
+            Source::Flow(flow) => match flow {
+                Flow::Alias(arg) => {
+                    BuiltSource::Alias(self.arg_slot(*arg, comp, inst.scope, component_type, pi)?)
+                }
+                Flow::Op(spec, args) => {
+                    let start = self.op_inputs.len() as u32;
+                    for &a in args {
+                        let slot = self.arg_slot(a, comp, inst.scope, component_type, pi)?;
+                        // A reference read by an operator is a number: text
+                        // compares only through the planned `Eq` of own slots.
+                        if let Arg::Ref(p, _) = a
+                            && self.value_type(slot) == ValueType::Text
+                        {
+                            return Err(Error::Unsupported(format!(
+                                "a text value (${}) used as a number",
+                                c.ref_display(p)
+                            )));
+                        }
+                        self.op_inputs.push(slot);
                     }
-                    self.op_inputs.push(slot);
+                    BuiltSource::Op(PlannedOp::Spec(*spec), start, byte(args.len()))
                 }
-                BuiltSource::Op(PlannedOp::Spec(*spec), start, byte(args.len()))
-            }
-            Source::IterIndex => BuiltSource::Const(self.scopes[inst.scope].2 as f64),
-            Source::SequencePick { from, step, count } => {
-                let key = c.templates[inst.template.index()].sealed.elems[inst.elem.index()].key;
-                let h = choice::splitmix(self.seeded_stream(inst.scope, key));
-                let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
-                BuiltSource::Const(from + step * k.min(count - 1) as f64)
-            }
-            Source::Math(expr) => {
-                let id = self.instantiate_expr(*expr, inst.scope)?;
-                if let Expr::Num(v) = *self.arena.get(id) {
-                    // Its own cell: `lower` gives a shared constant.
-                    BuiltSource::Const(v)
-                } else if self.arena.is_numeric(id) {
-                    BuiltSource::Alias(self.lower(id, inst.scope))
-                } else {
-                    BuiltSource::Const(f64::NAN)
-                }
-            }
-            Source::MathHandle(expr, post) => {
-                // Symbolic when the compile typed the port math (ADR 0032).
-                if self
-                    .compiled
-                    .port_type(inst.template.index(), slot_off_of(self, inst) + pi as u32)
-                    == PortType::Math
-                {
-                    self.sym_source(*expr, *post, inst.scope)?
-                } else {
-                    // A numeric math is not a math cell (ADR 0005).
-                    BuiltSource::Const(f64::NAN)
-                }
-            }
-            Source::MathValue(expr) => {
-                if self.is_symbolic(comp) {
-                    // Planned only as a `<math>`'s value (`math::props_of`).
-                    let expr = self.slot(comp, prop::math::EXPR);
-                    self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
-                } else {
+                Flow::VecOut(head, k) => BuiltSource::VecOut(self.slot(comp, head.index()), *k),
+                Flow::Math(expr) => {
                     let id = self.instantiate_expr(*expr, inst.scope)?;
                     if let Expr::Num(v) = *self.arena.get(id) {
-                        // `<math>5</math>` is state, as a number literal is: a
-                        // drag that reaches it changes it, as in the current core.
-                        BuiltSource::Given(v)
-                    } else {
+                        // Its own cell: `lower` gives a shared constant.
+                        BuiltSource::Const(v)
+                    } else if self.arena.is_numeric(id) {
                         BuiltSource::Alias(self.lower(id, inst.scope))
+                    } else {
+                        BuiltSource::Const(f64::NAN)
                     }
                 }
-            }
-            Source::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
-            Source::GivenMath(tree) => match tree {
-                Some(tree) => BuiltSource::Given(self.engine.import(tree).to_value()),
-                None => BuiltSource::Given(f64::NAN),
+                Flow::MathHandle(expr, post) => {
+                    // Symbolic when the compile typed the port math (ADR 0032).
+                    if self
+                        .compiled
+                        .port_type(inst.template.index(), slot_off_of(self, inst) + pi as u32)
+                        == PortType::Math
+                    {
+                        self.sym_source(*expr, *post, inst.scope)?
+                    } else {
+                        // A numeric math is not a math cell (ADR 0005).
+                        BuiltSource::Const(f64::NAN)
+                    }
+                }
+                Flow::MathValue(expr) => {
+                    if self.is_symbolic(comp) {
+                        // Planned only as a `<math>`'s value (`math::props_of`).
+                        let expr = self.slot(comp, prop::math::EXPR);
+                        self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
+                    } else {
+                        let id = self.instantiate_expr(*expr, inst.scope)?;
+                        if let Expr::Num(v) = *self.arena.get(id) {
+                            // `<math>5</math>` is state, as a number literal is: a
+                            // drag that reaches it changes it, as in the current core.
+                            BuiltSource::Given(v)
+                        } else {
+                            BuiltSource::Alias(self.lower(id, inst.scope))
+                        }
+                    }
+                }
+                Flow::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
             },
-            Source::GivenMathFrom(p) => {
-                let from = self
-                    .resolve_one(*p, inst.scope)
-                    .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
-                self.seeds.push((s, from));
-                BuiltSource::Given(f64::NAN)
-            }
-            Source::VecOut(head, k) => BuiltSource::VecOut(self.slot(comp, head.index()), *k),
         })
     }
 

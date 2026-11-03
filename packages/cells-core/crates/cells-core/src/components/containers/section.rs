@@ -130,14 +130,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<
         }
     };
     let at = Props::PORTS;
-    props[at.aggregateScores] = Some(Source::Const(flag(
+    props[at.aggregateScores] = Some(Source::constant(flag(
         "aggregateScores",
         section_tag.aggregates_scores,
     )?));
-    props[at.includeParentNumber] = Some(Source::Const(flag(
+    props[at.includeParentNumber] = Some(Source::constant(flag(
         "includeParentNumber",
         section_tag.includes_parent_number,
     )?));
-    props[at.label] = Some(Source::Const(label as f64));
+    props[at.label] = Some(Source::constant(label as f64));
     Ok(())
 }

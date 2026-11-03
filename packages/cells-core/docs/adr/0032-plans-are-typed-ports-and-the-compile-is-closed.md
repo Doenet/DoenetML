@@ -1,6 +1,6 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Steps 1 and 2 of the Migration are done;
+Status: proposed 2026-11-03. Steps 1 to 3 of the Migration are done;
 see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
@@ -529,6 +529,14 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
    types; `FirstIteration` becomes `Specialize`. `Inherit` and `Deferred`
    stay until steps 4 and 5. Test: `gives_document_constant` and the
    arity check are matches on the leaf and expression types alone.
+   Done. `Source` is `Leaf`, `Flow` (the dataflow expressions) or
+   `Specialize(ScopePred, then, else)`, with `Inherit` and `Deferred`
+   beside them until their steps; `FirstIteration` is
+   `Specialize(ScopePred::FirstIteration, ..)`, and a `prefill="$n"`
+   seed is the scope constant `ScopeConst::Seed`. The build's
+   `plan_source`, the type pass and the arity check each match the leaf
+   and the expression kinds once; a unit test in `compile/plan.rs` holds
+   `gives_document_constant` to the kinds. The golden diff is unchanged.
 4. **Typed attribute records and two-phase planners.** The `attributes`
    section carries types; the compile parses the record; `PlanCtx`
    exposes the record and the port makers only. Then the merge rule for

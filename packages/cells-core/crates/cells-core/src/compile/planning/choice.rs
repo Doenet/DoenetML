@@ -36,14 +36,14 @@ impl<'a> Compiler<'a> {
         } = self.outlined(t).elems[e.index()];
         let hide = match d.attr(node, "hide") {
             Some(a) if self.attr_text(a).is_some() => {
-                Source::Const(if self.attr_flag(node, "hide") {
+                Source::constant(if self.attr_flag(node, "hide") {
                     1.0
                 } else {
                     0.0
                 })
             }
             Some(a) => self.plan_value(t, scope, "hide", d.attr_children(a), None)?,
-            None => Source::Const(0.0),
+            None => Source::constant(0.0),
         };
         if !self.choice(cid).reactive {
             self.tables[t.index()].plans[e.index()].props = prop::select::Props { hide }.into_vec();
@@ -54,7 +54,7 @@ impl<'a> Compiler<'a> {
         for c in self.choice(cid).conditions.clone() {
             conds.push(match c {
                 Some(a) => self.plan_condition(t, e, &mut wiring, d.attr_children(a))?,
-                None => wiring.hidden(Source::Const(1.0)),
+                None => wiring.hidden(Source::constant(1.0)),
             });
         }
         if conds.len() > MAX_CASES {

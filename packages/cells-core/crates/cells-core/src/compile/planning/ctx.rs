@@ -141,7 +141,7 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn enclosing_graph_prop(&self, port: Port) -> Option<Source> {
         let scope = self.scope();
         (scope != ROOT_SCOPE && self.c.elem(self.t, scope).component_type == ComponentType::Graph)
-            .then_some(Source::Alias(Arg::Elem(scope, port)))
+            .then_some(Source::alias(Arg::Elem(scope, port)))
     }
 
     // Attributes.

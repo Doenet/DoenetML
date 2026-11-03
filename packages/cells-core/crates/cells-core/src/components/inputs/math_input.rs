@@ -43,9 +43,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<
         && d.children(el).iter().all(|&n| ctx.is_not_content(n))
         && let Some(a) = d.attr(el, "prefill")
         && ctx.single_macro(a).is_some()
-        && let Some(Source::Alias(Arg::Ref(p, Sel::Whole))) = props[at.value]
+        && let Some(Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole)))) = props[at.value]
     {
-        props[at.expr] = Some(Source::GivenMathFrom(p));
+        props[at.expr] = Some(Source::Leaf(Leaf::Scope(ScopeConst::Seed(p))));
         props[at.value] = Some(Source::computed(
             OpSpec::Sym(SymKind::Evaluate),
             vec![at.expr],
@@ -56,7 +56,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<
         Some(a) => d.attr_children(a),
         None => d.children(el),
     };
-    let bound = matches!(props[at.value], Some(Source::Alias(_)))
+    let bound = matches!(props[at.value], Some(Source::Flow(Flow::Alias(_))))
         || nodes.iter().any(|&n| d.kind(n) == NodeKind::Macro);
     if bound {
         props[at.expr] = Some(Source::absent());
@@ -81,7 +81,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<
                 })?,
         )
     };
-    props[at.expr] = Some(Source::GivenMath(tree));
+    props[at.expr] = Some(Source::Leaf(Leaf::GivenMath(tree)));
     props[at.value] = Some(Source::computed(
         OpSpec::Sym(SymKind::Evaluate),
         vec![at.expr],

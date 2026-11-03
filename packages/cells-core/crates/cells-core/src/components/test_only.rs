@@ -81,7 +81,7 @@ pub(crate) mod test_shape {
             (None, None) => return Ok(Wire::given(shared_state::A, 0.0)),
         };
         Ok(match ctx.scalar_of(&nodes)? {
-            Source::Given(v) => Wire::given_from(shared_state::A, from, v),
+            Source::Leaf(Leaf::Given(v)) => Wire::given_from(shared_state::A, from, v),
             other => other.into(),
         })
     }
@@ -90,7 +90,7 @@ pub(crate) mod test_shape {
     /// value, anything else is what it computes, and none is 0.
     fn given(ctx: &mut PlanCtx<'_, '_>, state: SharedState, name: Attr) -> Result<Wire> {
         Ok(match ctx.scalar(name)? {
-            Some(Source::Given(v)) => Wire::given_from(state, name, v),
+            Some(Source::Leaf(Leaf::Given(v))) => Wire::given_from(state, name, v),
             Some(other) => other.into(),
             None => Wire::given(state, 0.0),
         })

@@ -186,14 +186,14 @@ impl<'a> Compiler<'a> {
                     Some(b) if d.attr(el, name).is_none() => b,
                     _ => el,
                 };
-                Source::Given(if self.attr_flag(owner, name) {
+                Source::given(if self.attr_flag(owner, name) {
                     1.0
                 } else {
                     0.0
                 })
             }
             None if base.is_some() => Source::Inherit,
-            None => Source::Given(if default { 1.0 } else { 0.0 }),
+            None => Source::given(if default { 1.0 } else { 0.0 }),
         })
     }
 

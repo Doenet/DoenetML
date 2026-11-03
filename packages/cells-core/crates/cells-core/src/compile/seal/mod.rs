@@ -80,8 +80,12 @@ impl<'a> Seal<'a> {
     fn check_arity(&self) -> std::result::Result<(), Failure> {
         fn misbound(p: &Source) -> Option<(OpSpec, usize)> {
             match p {
-                Source::Op(op, args) if !op.accepts(args.len()) => Some((*op, args.len())),
-                Source::FirstIteration(a, b) => misbound(a).or_else(|| misbound(b)),
+                Source::Flow(Flow::Op(op, args)) if !op.accepts(args.len()) => {
+                    Some((*op, args.len()))
+                }
+                Source::Specialize(ScopePred::FirstIteration, a, b) => {
+                    misbound(a).or_else(|| misbound(b))
+                }
                 _ => None,
             }
         }

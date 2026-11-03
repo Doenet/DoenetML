@@ -75,7 +75,7 @@ impl Compiler<'_> {
                 .and_then(|m| m.get(&s.state))
             {
                 self.tables[s.t.index()].plans[s.e.index()].props[s.port.index()] =
-                    Source::Alias(Arg::Elem(s.referent, bs));
+                    Source::alias(Arg::Elem(s.referent, bs));
             }
         }
     }

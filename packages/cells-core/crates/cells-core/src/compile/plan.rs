@@ -131,31 +131,73 @@ impl Warned {
     }
 }
 
-/// Where a prop's value comes from, before any iteration exists.
+/// Where a port's value comes from, before any iteration exists (ADR
+/// 0032, decision 2): a leaf, a dataflow expression over ports, or a
+/// scope specialization choosing between two by the scope the template is
+/// stamped in. `Inherit` and `Deferred` are the two holes the build still
+/// fills, until an extend is a merge (step 4) and a deferred prop an
+/// aggregate (step 5).
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
+    Leaf(Leaf),
+    Flow(Flow),
+    /// The first source where `pred` holds of the scope the template is
+    /// stamped in, the second elsewhere: chosen per instance, like a
+    /// scope constant.
+    Specialize(ScopePred, Box<Source>, Box<Source>),
+    /// The matching port of the `extend` referent.
+    Inherit,
+    /// Wired once the whole tree is built, from what is around the element
+    /// (`build/expand/scoring.rs`, a collect's expansion): no planner can
+    /// wire it, so its wiring says that it is deferred and who fills it.
+    Deferred(Deferred),
+}
+
+/// A value nothing computes: given (essential when a student's action can
+/// write it, a constant otherwise, ADR 0018), a constant, or a scope
+/// constant, the same in every instance of the template slot but for the
+/// scope it is stamped in.
+#[derive(Debug, Clone)]
+pub(crate) enum Leaf {
     /// A given value (ADR 0028): the attribute's, or the type's default
-    /// without one. Essential when a student's action can write it, a
-    /// constant otherwise (ADR 0018).
+    /// without one.
     Given(f64),
     /// A given text value holding this string, or none (blank).
     GivenText(Option<StrId>),
-    /// The matching slot of the `extend` referent.
-    Inherit,
+    /// A given math value (an unbound mathInput's `expr`, an answer's
+    /// `submitted`) holding this expression, or blank (NaN).
+    GivenMath(Option<Tree<RefId>>),
     /// A constant (ADR 0028): never state, whatever can reach it.
     Const(f64),
-    Alias(Arg),
-    /// Operator over cells.
-    Op(OpSpec, Vec<Arg>),
+    /// A value that depends on the scope the template is stamped in.
+    Scope(ScopeConst),
+}
+
+/// A scope constant: a value that depends on the scope alone (ADR 0028).
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum ScopeConst {
     /// The 1-based position of the enclosing iteration.
     IterIndex,
     /// A `<selectFromSequence>`'s value: `from + step * k` for a `k` below
     /// `count` drawn per instance from the document seed (ADR 0009).
-    SequencePick {
-        from: f64,
-        step: f64,
-        count: u32,
-    },
+    SequencePick { from: f64, step: f64, count: u32 },
+    /// A given math value whose initial expression is the value the
+    /// reference names when the cell is first built (a mathInput's
+    /// `prefill="$n"`): a seed, not a binding.
+    Seed(RefId),
+}
+
+/// A dataflow expression over ports: an alias, an operator, a lowered math
+/// tree whose leaves are ports, or a symbolic template whose leaves are
+/// ports.
+#[derive(Debug, Clone)]
+pub(crate) enum Flow {
+    Alias(Arg),
+    /// Operator over cells.
+    Op(OpSpec, Vec<Arg>),
+    /// Output `k` of the vector instruction headed at own port `head`
+    /// (an `Op(OpSpec::Vec(..))`, which is output 0).
+    VecOut(Port, u8),
     /// Math text: lowered to operators if numeric, else NaN.
     Math(ExprId),
     /// A `<math>`'s `expr` prop: NaN when the math is numeric (it lowers),
@@ -169,70 +211,92 @@ pub(crate) enum Source {
     /// without cell leaves, an alias of a lone math leaf, else an
     /// `Instantiate` instruction over the leaves.
     SymExpr(ExprId, Post),
-    /// A given math value (an unbound mathInput's `expr`, an answer's
-    /// `submitted`) holding this expression, or blank (NaN).
-    GivenMath(Option<Tree<RefId>>),
-    /// A given math value whose initial expression is the value the
-    /// reference names when the cell is first built (a mathInput's
-    /// `prefill="$n"`): a seed, not a binding.
-    GivenMathFrom(RefId),
-    /// `first` in the first iteration of the enclosing repeat, `rest` in
-    /// the others (a function iterate: the initial value, else `f` of the
-    /// previous iterate). Chosen per instance, like `IterIndex`.
-    FirstIteration(Box<Source>, Box<Source>),
-    /// Wired once the whole tree is built, from what is around the element
-    /// (`build/expand/scoring.rs`, a collect's expansion): no planner can
-    /// wire it, so its wiring says that it is deferred and who fills it.
-    Deferred(Deferred),
-    /// Output `k` of the vector instruction headed at own port `head`
-    /// (an `Op(OpSpec::Vec(..))`, which is output 0).
-    VecOut(Port, u8),
+}
+
+/// A structural predicate of the scope a template is stamped in
+/// (`Source::Specialize`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ScopePred {
+    /// The first iteration of the enclosing repeat (a function iterate's
+    /// initial value).
+    FirstIteration,
+}
+
+impl Leaf {
+    /// Whether the leaf is a document constant when it is a constant (ADR
+    /// 0028): the same in every instance of its template slot. A scope
+    /// constant is not.
+    pub(crate) fn is_document_constant(&self) -> bool {
+        !matches!(self, Leaf::Scope(_))
+    }
+}
+
+impl Flow {
+    /// Whether a constant this expression gives is a document constant
+    /// (ADR 0028): math text with nothing to read is the same in every
+    /// instance; an alias or an operator is what it reads.
+    pub(crate) fn is_document_constant(&self) -> bool {
+        matches!(
+            self,
+            Flow::Math(_) | Flow::MathHandle(..) | Flow::MathValue(_) | Flow::SymExpr(..)
+        )
+    }
 }
 
 impl Source {
     /// Whether a constant this plan gives is a document constant (ADR
-    /// 0026): one made from the source alone, the same in every instance
-    /// of its template slot. A given value or a constant written in the
-    /// plan, or math text with nothing to read. An iteration's index, a
-    /// pick, a seed or a first-iteration form depends on the scope.
+    /// 0028): one made from the source alone, the same in every instance
+    /// of its template slot. A match on the leaf and expression types
+    /// alone: a specialization, an inherited or a deferred port depends on
+    /// the scope or the tree.
     pub(crate) fn gives_document_constant(&self) -> bool {
-        matches!(
-            self,
-            Source::Given(_)
-                | Source::GivenText(_)
-                | Source::GivenMath(_)
-                | Source::Const(_)
-                | Source::Math(_)
-                | Source::MathHandle(..)
-                | Source::MathValue(_)
-                | Source::SymExpr(..)
-        )
+        match self {
+            Source::Leaf(leaf) => leaf.is_document_constant(),
+            Source::Flow(flow) => flow.is_document_constant(),
+            Source::Specialize(..) | Source::Inherit | Source::Deferred(_) => false,
+        }
     }
 
+    /// A given value (ADR 0028).
+    pub(crate) fn given(v: f64) -> Self {
+        Source::Leaf(Leaf::Given(v))
+    }
+    /// A constant (ADR 0028).
+    pub(crate) fn constant(v: f64) -> Self {
+        Source::Leaf(Leaf::Const(v))
+    }
     /// A value the element cannot have, as `warned` explains: NaN.
     pub(crate) fn undefined(_: Warned) -> Self {
-        Source::Const(f64::NAN)
+        Source::constant(f64::NAN)
     }
     /// A value not given (`NO_VALUE`), as a constant.
     pub(crate) fn absent() -> Self {
-        Source::Const(NO_VALUE)
+        Source::constant(NO_VALUE)
     }
     pub(crate) fn reference(p: RefId) -> Self {
-        Source::Alias(Arg::Ref(p, Sel::Whole))
+        Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole)))
     }
     pub(crate) fn coord(p: RefId, j: usize) -> Self {
-        Source::Alias(Arg::Ref(p, Sel::Coord(byte(j))))
+        Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Coord(byte(j)))))
     }
     pub(crate) fn item(p: RefId, i: usize, j: usize) -> Self {
-        Source::Alias(Arg::Ref(p, Sel::Item(byte(i), byte(j))))
+        Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Item(byte(i), byte(j)))))
     }
     /// An alias of the element's own port.
     pub(crate) fn own(port: Port) -> Self {
-        Source::Alias(Arg::Own(port))
+        Source::Flow(Flow::Alias(Arg::Own(port)))
+    }
+    /// An alias of `arg`.
+    pub(crate) fn alias(arg: Arg) -> Self {
+        Source::Flow(Flow::Alias(arg))
+    }
+    /// Operator `op` over `args`.
+    pub(crate) fn op(op: OpSpec, args: Vec<Arg>) -> Self {
+        Source::Flow(Flow::Op(op, args))
     }
     /// Operator over the element's own ports.
     pub(crate) fn computed(op: OpSpec, args: Vec<Port>) -> Self {
-        Source::Op(op, args.into_iter().map(Arg::Own).collect())
+        Source::op(op, args.into_iter().map(Arg::Own).collect())
     }
     /// A type's `PropFrom::Computed` prop.
     pub(crate) fn from_def(op: OpSpec, args: &[ArgFrom]) -> Self {
@@ -240,16 +304,24 @@ impl Source {
             ArgFrom::Prop(p) => Arg::Own(Port::table(p as usize)),
             ArgFrom::Const(k) => Arg::Const(k),
         };
-        Source::Op(op, args.iter().map(arg).collect())
+        Source::op(op, args.iter().map(arg).collect())
     }
     /// Operator over the element's own port `a` and the literal `k`.
     pub(crate) fn computed_k(op: OpSpec, a: Port, k: f64) -> Self {
-        Source::Op(op, vec![Arg::Own(a), Arg::Const(k)])
+        Source::op(op, vec![Arg::Own(a), Arg::Const(k)])
     }
     /// Head of a vector instruction over own ports; this port is output 0,
     /// the next `n_out - 1` ports are `VecOut`.
     pub(crate) fn vector(op: VecOp, args: Vec<Port>) -> Self {
         Source::computed(OpSpec::Vec(op), args)
+    }
+    /// A math cell from math text (`Flow::SymExpr`).
+    pub(crate) fn sym_expr(id: ExprId, post: Post) -> Self {
+        Source::Flow(Flow::SymExpr(id, post))
+    }
+    /// Math text (`Flow::Math`).
+    pub(crate) fn math(id: ExprId) -> Self {
+        Source::Flow(Flow::Math(id))
     }
 }
 
@@ -1041,7 +1113,7 @@ impl Wire {
     /// student's action can write it (ADR 0018).
     pub(crate) fn given(state: SharedState, v: f64) -> Self {
         Wire {
-            source: Source::Given(v),
+            source: Source::given(v),
             state: Some((state, None)),
         }
     }
@@ -1049,14 +1121,14 @@ impl Wire {
     /// says: a copy that gives it itself does not share it.
     pub(crate) fn given_from(state: SharedState, given: impl Into<Given>, v: f64) -> Self {
         Wire {
-            source: Source::Given(v),
+            source: Source::given(v),
             state: Some((state, Some(given.into()))),
         }
     }
     /// A given text value, shared as `state`, initially the string `id`.
     pub(crate) fn given_text(state: SharedState, id: StrId) -> Self {
         Wire {
-            source: Source::GivenText(Some(id)),
+            source: Source::Leaf(Leaf::GivenText(Some(id))),
             state: Some((state, None)),
         }
     }
@@ -1067,7 +1139,7 @@ impl Wire {
             !v.is_nan(),
             "Wire::constant(NaN): use Wire::absent, or Wire::undefined after a warning"
         );
-        Source::Const(v).into()
+        Source::constant(v).into()
     }
     /// A value not given (`NO_VALUE`), as a constant.
     pub(crate) fn absent() -> Self {
@@ -1119,7 +1191,7 @@ impl Wire {
     ) -> [Self; 2] {
         let given = given.into();
         std::array::from_fn(|j| match p.coord(j) {
-            Source::Given(v) => Wire::given_from(shared_state[j], given, v),
+            Source::Leaf(Leaf::Given(v)) => Wire::given_from(shared_state[j], given, v),
             other => other.into(),
         })
     }
@@ -1287,7 +1359,7 @@ impl ElemWiring {
     ) -> [Port; 2] {
         let given = given.into();
         std::array::from_fn(|j| match p.coord(j) {
-            Source::Given(v) => {
+            Source::Leaf(Leaf::Given(v)) => {
                 self.shared_state_given.insert(shared_state[j], given);
                 self.given(shared_state[j], v)
             }
@@ -1308,7 +1380,7 @@ impl ElemWiring {
     }
     /// A hidden port holding a given value, shared state `state`.
     pub(crate) fn given(&mut self, state: SharedState, value: f64) -> Port {
-        let port = self.hidden(Source::Given(value));
+        let port = self.hidden(Source::given(value));
         self.shared_state.insert(state, port);
         port
     }
@@ -1361,9 +1433,9 @@ impl ElemWiring {
         (0..op.n_out())
             .map(|k| {
                 if k == 0 {
-                    Source::Op(OpSpec::Vec(op), args.clone()).into()
+                    Source::op(OpSpec::Vec(op), args.clone()).into()
                 } else {
-                    Source::VecOut(head, byte(k)).into()
+                    Source::Flow(Flow::VecOut(head, byte(k))).into()
                 }
             })
             .collect()
@@ -1383,7 +1455,7 @@ impl ElemWiring {
             if k == 0 {
                 Source::vector(op, args.clone()).into()
             } else {
-                Source::VecOut(at[0], byte(k)).into()
+                Source::Flow(Flow::VecOut(at[0], byte(k))).into()
             }
         })
     }
@@ -1398,7 +1470,7 @@ impl ElemWiring {
 
     /// Whether `port` is planned as a given value.
     pub(in crate::compile) fn is_given(&self, port: Port) -> bool {
-        matches!(self.props[port.index()], Some(Source::Given(_)))
+        matches!(self.props[port.index()], Some(Source::Leaf(Leaf::Given(_))))
     }
 
     /// Every port's source, by `Port::index`, and how many points the list
@@ -1582,5 +1654,69 @@ impl Compiled {
                 .iter()
                 .any(|e| matches!(e.body, Body::Repeat { .. }))
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// What a plan gives is classed by its kind alone (ADR 0032, step 3):
+    /// every leaf but a scope constant is a document constant when it is a
+    /// constant, every math expression is, and nothing that reads a port,
+    /// chooses by the scope or waits for the tree is.
+    #[test]
+    fn document_constants_are_classed_by_kind() {
+        let p = RefId::new(0);
+        let expr = ExprId::new(0);
+        let leaves = [
+            (Leaf::Given(1.0), true),
+            (Leaf::GivenText(None), true),
+            (Leaf::GivenMath(None), true),
+            (Leaf::Const(1.0), true),
+            (Leaf::Scope(ScopeConst::IterIndex), false),
+            (
+                Leaf::Scope(ScopeConst::SequencePick {
+                    from: 1.0,
+                    step: 1.0,
+                    count: 2,
+                }),
+                false,
+            ),
+            (Leaf::Scope(ScopeConst::Seed(p)), false),
+        ];
+        for (leaf, document) in leaves {
+            assert_eq!(
+                Source::Leaf(leaf.clone()).gives_document_constant(),
+                document,
+                "{leaf:?}"
+            );
+        }
+        let flows = [
+            (Flow::Alias(Arg::Ref(p, Sel::Whole)), false),
+            (
+                Flow::Op(OpSpec::Add, vec![Arg::Const(1.0), Arg::Const(2.0)]),
+                false,
+            ),
+            (Flow::VecOut(Port::table(0), 1), false),
+            (Flow::Math(expr), true),
+            (Flow::MathHandle(expr, Post::None), true),
+            (Flow::MathValue(expr), true),
+            (Flow::SymExpr(expr, Post::None), true),
+        ];
+        for (flow, document) in flows {
+            assert_eq!(
+                Source::Flow(flow.clone()).gives_document_constant(),
+                document,
+                "{flow:?}"
+            );
+        }
+        let one = Box::new(Source::constant(1.0));
+        assert!(
+            !Source::Specialize(ScopePred::FirstIteration, one.clone(), one)
+                .gives_document_constant()
+        );
+        assert!(!Source::Inherit.gives_document_constant());
+        assert!(!Source::Deferred(Deferred::Credit).gives_document_constant());
     }
 }

@@ -239,8 +239,8 @@ fn direction(ctx: &mut PlanCtx<'_, '_>, name: Attr, wiring: &mut ElemWiring) -> 
         )
     {
         let [x1, y1, x2, y2] = ["x1", "y1", "x2", "y2"].map(|prop| ctx.reference_prop(r, prop));
-        let ux = wiring.hidden(Source::Op(OpSpec::Sub, vec![x2, x1]));
-        let uy = wiring.hidden(Source::Op(OpSpec::Sub, vec![y2, y1]));
+        let ux = wiring.hidden(Source::op(OpSpec::Sub, vec![x2, x1]));
+        let uy = wiring.hidden(Source::op(OpSpec::Sub, vec![y2, y1]));
         return Ok([ux, uy]);
     }
     Ok(wiring.hidden_point(&p))

@@ -26,7 +26,7 @@ impl<'a> Compiler<'a> {
             if extend.is_some() {
                 Source::Inherit
             } else {
-                Source::Given(v)
+                Source::given(v)
             }
         };
         let mut props = TableProps::of(component_type);
@@ -84,7 +84,7 @@ impl<'a> Compiler<'a> {
                             Some(a) => match self.try_value(t, scope, d.attr_children(a), None)? {
                                 Some(p) => p,
                                 None => {
-                                    Source::Math(self.plan_math(t, scope, d.attr_children(a))?)
+                                    Source::math(self.plan_math(t, scope, d.attr_children(a))?)
                                 }
                             },
                             None => default(def.default),
@@ -97,7 +97,7 @@ impl<'a> Compiler<'a> {
                             // action can reach it, a constant otherwise.
                             Some(p) => p,
                             // Not a single literal or reference: math text.
-                            None => Source::Math(self.plan_math(t, scope, &content)?),
+                            None => Source::math(self.plan_math(t, scope, &content)?),
                         }
                     }
                 }
@@ -316,9 +316,9 @@ impl<'a> Compiler<'a> {
     /// literal, a lone reference an alias, anything else a lowered math.
     pub(in crate::compile) fn plan_from_expr(&mut self, id: ExprId) -> Source {
         match self.compiled.arena.get(id) {
-            Expr::Num(v) => Source::Given(*v),
+            Expr::Num(v) => Source::given(*v),
             Expr::Cell(p) => Source::reference(*p),
-            _ => Source::Math(id),
+            _ => Source::math(id),
         }
     }
 
@@ -470,9 +470,9 @@ impl<'a> Compiler<'a> {
 /// A literal value: `true`, `false` or a number.
 fn literal_value(text: &str) -> Option<Source> {
     match text {
-        "true" => Some(Source::Given(1.0)),
-        "false" => Some(Source::Given(0.0)),
-        _ => text.parse::<f64>().ok().map(Source::Given),
+        "true" => Some(Source::given(1.0)),
+        "false" => Some(Source::given(0.0)),
+        _ => text.parse::<f64>().ok().map(Source::given),
     }
 }
 
