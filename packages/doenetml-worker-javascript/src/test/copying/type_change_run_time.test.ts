@@ -487,6 +487,50 @@ describe("A reference written as a tag of a composite is decided when the docume
         expect(d.newDiagnostics()).eqls([]);
     });
 
+    it("a name written on a tag made with extend is found in what a copy copies", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<math name="n">5</math>
+<module name="mod"><math name="go" extend="$n"/></module>
+<module name="m2" extend="$mod"/>
+<conditionalContent name="c"><case condition="$b">$m2.go</case><else><math>3</math></else></conditionalContent>
+<p name="p1"><math name="m1" extend="$c"/></p>
+`);
+        expect(await d.texts(["m1"])).eqls({ m1: "3" });
+        expect(d.newDiagnostics()).eqls([]);
+        expect(d.errors()).eqls([]);
+    });
+
+    it("a copy of a group holds what it copies and what is written in it", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<group name="g"><math>1</math></group>
+<group name="h" extend="$g"><math>2</math></group>
+<group name="e"/>
+<group name="h2" extend="$e"><math>7</math></group>
+<group name="h3" extend="$g"><text>q</text></group>
+<conditionalContent name="cc"><case condition="$b">$h</case><else><math>3</math></else></conditionalContent>
+<p name="p1"><math extend="$h"/></p>
+<p name="p2"><math extend="$cc"/></p>
+<p name="p3"><math name="m3" extend="$h2"/></p>
+<p name="p4"><mathList extend="$h"/></p>
+<p name="p5"><mathList extend="$h3"/></p>
+`);
+        for (const p of ["p1", "p2"]) {
+            expect(await d.replacedBy(p), p).eqls(["_error"]);
+        }
+        expect(await d.texts(["m3", "p4", "p5"])).eqls({
+            m3: "7",
+            p4: "1, 2",
+            p5: "",
+        });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 9],
+            ["doenet-e0064", 10],
+            ["doenet-e0066", 13],
+        ]);
+    });
+
     it("a part that does not hold one component is named as the part of the composite it is of", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
@@ -495,13 +539,15 @@ describe("A reference written as a tag of a composite is decided when the docume
 <conditionalContent name="cc2"><case condition="$b"><select><option><math>1</math><math>2</math></option></select></case><else><math>3</math></else></conditionalContent>
 <conditionalContent name="cc3"><case condition="$b"><math>1</math></case><else></else></conditionalContent>
 <repeat name="r" for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat>
+<repeatForSequence name="rs" length="2"><math>1</math><math>2</math></repeatForSequence>
 <p name="p1"><math extend="$g"/></p>
 <p name="p2"><math extend="$cc1"/></p>
 <p name="p3"><math extend="$cc2"/></p>
 <p name="p4"><math extend="$cc3"/></p>
 <p name="p5"><math extend="$r[1]"/></p>
+<p name="p6"><math extend="$rs[1]"/></p>
 `);
-        for (const p of ["p1", "p2", "p3", "p4", "p5"]) {
+        for (const p of ["p1", "p2", "p3", "p4", "p5", "p6"]) {
             expect(await d.replacedBy(p), p).eqls(["_error"]);
         }
         expect(d.newDiagnostics().map((x) => x.message)).eqls([
@@ -510,6 +556,7 @@ describe("A reference written as a tag of a composite is decided when the docume
             "A `<math>` can be made from `$cc2` only when it always holds one component, and an option of the `<select>` holds 2. To read what it holds as one value, write `<math>$cc2</math>`.",
             "A `<math>` can be made from `$cc3` only when it always holds one component, and a case of the `<conditionalContent>` holds nothing. To read what it holds as one value, write `<math>$cc3</math>`.",
             "A `<math>` can be made from `$r[1]` only when it always holds one component, and an iteration of the `<repeat>` holds 2. To read what it holds as one value, write `<math>$r[1]</math>`.",
+            "A `<math>` can be made from `$rs[1]` only when it always holds one component, and an iteration of the `<repeatForSequence>` holds 2. To read what it holds as one value, write `<math>$rs[1]</math>`.",
         ]);
     });
 
@@ -624,6 +671,47 @@ describe("A reference written as a tag of a composite is decided when the docume
                 message: "No referent found for reference: `$nothing`",
             },
         ]);
+    });
+
+    it("a property none of the components a composite holds has is an error, for a scalar or a list tag", async () => {
+        const d = await setup(`
+<group name="g"><text>a</text></group>
+<group name="pg"><point>(1,2)</point></group>
+<number name="n">1</number>
+<mathInput name="k"/>
+<repeat name="r" for="1 2" valueName="v"><point>($v, 0)</point></repeat>
+<p name="p1"><text extend="$g.nothing"/></p>
+<p name="p2"><mathList extend="$n.nothing"/></p>
+<p name="p3"><math name="m3" extend="$pg.x"/></p>
+<p name="p4"><math extend="$r[$k].x"/></p>
+`);
+        expect(await d.replacedBy("p1")).eqls(["_error"]);
+        expect(await d.texts(["m3", "p4"])).eqls({ m3: "1", p4: "＿" });
+        expect(d.newDiagnostics()).eqls([
+            {
+                code: "doenet-w0104",
+                type: "error",
+                line: 7,
+                message: "No referent found for reference: `$g.nothing`",
+            },
+            {
+                code: "doenet-w0104",
+                type: "error",
+                line: 8,
+                message: "No referent found for reference: `$n.nothing`",
+            },
+            {
+                code: "doenet-i0054",
+                type: "info",
+                line: 10,
+                message:
+                    "`$r[$k].x` names nothing now, so this `<math>` has the value of `<math/>` until it does.",
+            },
+        ]);
+        // An index that names nothing yet is the info alone.
+        await d.setMath("k", "2");
+        expect(await d.texts(["p4"])).eqls({ p4: "2" });
+        expect(d.newDiagnostics()).eqls([]);
     });
 
     it("a composite named by several parts is read once, so composites nested by reference load in time", async () => {
@@ -811,6 +899,56 @@ describe("What still changes at run time, without changing what the component is
             (await d.core()) as any,
         );
         expect([...warnings, ...infos].map((x: any) => x.code)).eqls([]);
+    });
+
+    it("an index that names nothing keeps the tag's own children, however the index came to name nothing", async () => {
+        const d = await setup(`
+<mathInput name="n"/>
+<repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
+<p name="p1"><text name="t" extend="$r[$n]">!</text></p>
+`);
+        const names = ["p1"];
+        const steps: [string, string, boolean][] = [
+            ["", "!", true],
+            ["1", "a!", false],
+            ["", "!", true],
+            ["5", "!", true],
+            ["2", "b!", false],
+            ["3", "!", true],
+        ];
+        for (const [step, [index, shown, info]] of steps.entries()) {
+            if (step > 0) {
+                await d.setMath("n", index);
+            }
+            expect(await d.texts(names), `n=${index}`).eqls({ p1: shown });
+            expect(await d.typeOf("t")).eq("text");
+            const infos = getDiagnosticsByType((await d.core()) as any).infos;
+            expect(
+                [...infos].map((x: any) => x.code),
+                `n=${index}`,
+            ).eqls(info ? ["doenet-i0054"] : []);
+        }
+    });
+
+    it("an unlinked copy made while its index names nothing is made so again after a reload", async () => {
+        const d = await setup(`
+<mathInput name="n"/>
+<repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
+<p name="p1"><text copy="$r[$n]">!</text></p>
+`);
+        expect(await d.texts(["p1"])).eqls({ p1: "!" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0054", 4],
+        ]);
+        // A copy stays as it was made.
+        await d.setMath("n", "1");
+        expect(await d.texts(["p1"])).eqls({ p1: "!" });
+
+        await d.reload();
+        expect(await d.texts(["p1"])).eqls({ p1: "!" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0054", 4],
+        ]);
     });
 
     it("an input reached by an index is a plain input while the index names nothing, and the link wins when the iteration returns", async () => {

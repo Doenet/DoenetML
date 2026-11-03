@@ -13,7 +13,9 @@
  *   `condition`), and each case one component;
  * - a `<select>` and the other selectors need `numToSelect` (`numSamples`)
  *   written as `1` or left out, and each option one component;
- * - a `<group>`, `<sort>` or `<shuffle>` needs one component;
+ * - a `<group>`, `<sort>` or `<shuffle>` needs one component, and a copy of
+ *   one (`<group name="h" extend="$g">…</group>`) holds what it copies and
+ *   what is written in it;
  * - a `<repeat>`, `<collect>`, `<sequence>`, `<intersection>`, or any other
  *   composite whose content is made rather than written, can hold any number;
  * - a bare string is a text, a bare `$y` holds y's tag (looked through when
@@ -361,7 +363,11 @@ export function checkTypeChangesAtLoad({
             ) {
                 return { types: new Set([written]) };
             }
-            return referenceHolding(item, seen);
+            return withAdded(
+                referenceHolding(item, seen),
+                [item.children ?? []],
+                seen,
+            );
         }
         if (isHolder(componentType)) {
             return holding(item, seen);
@@ -510,10 +516,12 @@ export function checkTypeChangesAtLoad({
             if (typeof component !== "object") {
                 continue;
             }
-            const written = component.attributes?.name as any;
+            // A tag written with `extend` or `copy` has its name moved to
+            // `_createComponentName` (`convertToCopy.ts`).
+            const attributes = component.attributes ?? {};
             if (
-                written?.type === "primitive" &&
-                written.primitive.value === name
+                literalText(attributes.name) === name ||
+                literalText(attributes._createComponentName) === name
             ) {
                 return component;
             }
@@ -758,6 +766,69 @@ export function checkTypeChangesAtLoad({
         return { types, unknown };
     }
 
+    /**
+     * What `held`, what a composite a copy is of holds, holds with the
+     * children written on the copy and each copy between (`added`, as
+     * `<group name="h" extend="$g"><math>2</math></group>` adds a math to
+     * what `g` holds), which it holds after what it copies.
+     */
+    function withAdded(
+        held: Holding,
+        added: (SerializedComponent | string)[][],
+        seen: Set<number>,
+    ): Holding {
+        const children = added
+            .flat()
+            .filter(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            );
+        if (held.skip || children.length === 0) {
+            return held;
+        }
+        const extra = childrenHolding(children, "other", seen);
+        if (extra.skip) {
+            return extra;
+        }
+        const types = new Set([...held.types, ...extra.types]);
+        const unknown = held.unknown ?? extra.unknown;
+        /**
+         * How many components `h` always holds, or `undefined` when that is
+         * not one number (a count of a case, a `<repeat>`).
+         */
+        function countOf(h: Holding) {
+            if (h.notOne === undefined) {
+                return 1;
+            }
+            return h.notOne.reason === "count" && h.notOne.part === "other"
+                ? h.notOne.count
+                : undefined;
+        }
+        const heldCount = countOf(held);
+        const extraCount = countOf(extra);
+        if (heldCount === undefined || extraCount === undefined) {
+            // one of them does not always hold one number of components,
+            // whatever the other holds
+            const notOneOf = heldCount === undefined ? held : extra;
+            return {
+                notOne: notOneOf.notOne,
+                notOneTag: notOneOf.notOneTag,
+                types,
+                unknown,
+            };
+        }
+        const total = heldCount + extraCount;
+        if (total === 1) {
+            return { types, unknown };
+        }
+        return {
+            notOne: { reason: "count", count: total, part: "other" },
+            notOneTag:
+                held.notOne?.reason === "count" ? held.notOneTag : undefined,
+            types,
+            unknown,
+        };
+    }
+
     /** What one instance of `x` an index selects holds, if that is known. */
     function instanceHolding(
         x: SerializedComponent,
@@ -776,10 +847,13 @@ export function checkTypeChangesAtLoad({
                 "option",
             );
         }
-        if (x.componentType === "repeat") {
+        if (
+            x.componentType === "repeat" ||
+            x.componentType === "repeatForSequence"
+        ) {
             return asPartOf(
                 childrenHolding(x.children, "other", seen),
-                "repeat",
+                x.componentType,
                 "iteration",
             );
         }
@@ -920,7 +994,11 @@ export function checkTypeChangesAtLoad({
      * no path left, looking through references to it (`<group name="h"
      * extend="$g"/>`), or `undefined` when it names something else.
      */
-    function namedHolder(nodeIdx: number, seen: Set<number>) {
+    function namedHolder(
+        nodeIdx: number,
+        seen: Set<number>,
+        added: (SerializedComponent | string)[][] = [],
+    ) {
         let idx = nodeIdx;
         const visited = new Set(seen);
         for (;;) {
@@ -949,6 +1027,7 @@ export function checkTypeChangesAtLoad({
                 ) {
                     return undefined;
                 }
+                added.push(node.children ?? []);
                 idx = ref.nodeIdx;
                 continue;
             }
@@ -990,14 +1069,16 @@ export function checkTypeChangesAtLoad({
                 ? descendantNamed(ref.nodeIdx, path)
                 : undefined;
         if (path.length === 0 || named) {
+            const added: (SerializedComponent | string)[][] = [];
             const holder = namedHolder(
                 named ? named.componentIdx : ref.nodeIdx,
                 seen,
+                added,
             );
             if (!holder) {
                 return undefined;
             }
-            const held = holding(holder, seen);
+            const held = withAdded(holding(holder, seen), added, seen);
             if (held.skip) {
                 return undefined;
             }
@@ -1072,6 +1153,48 @@ export function checkTypeChangesAtLoad({
         );
     }
 
+    /** Each name written in the document. */
+    const allNames = new Set<string>();
+    function collectNames(components: (SerializedComponent | string)[]) {
+        for (const component of components) {
+            if (typeof component !== "object") {
+                continue;
+            }
+            for (const attrName of ["name", "_createComponentName"]) {
+                const name = literalText(component.attributes?.[attrName]);
+                if (name !== undefined) {
+                    allNames.add(name);
+                }
+            }
+            for (const attribute of Object.values(component.attributes ?? {})) {
+                const attr: any = attribute;
+                if (attr.type === "component" && attr.component) {
+                    collectNames([attr.component]);
+                } else if (Array.isArray(attr.children)) {
+                    collectNames(attr.children);
+                }
+            }
+            collectNames(component.children ?? []);
+        }
+    }
+
+    /**
+     * Whether what is left of the reference of `copy` for run time starts
+     * with a property (`$g.nothing`) rather than a name: one no component
+     * of the document has. A tag made from a composite is an error when
+     * none of what it holds has that property (`missingPropertyError` in
+     * `Copy.js`), but not when it is a name that the case now active does
+     * not hold (`$cc.c`).
+     */
+    function pathStartsWithProperty(copy: SerializedComponent) {
+        const first = refOf(copy)?.unresolvedPath?.[0];
+        return (
+            typeof first?.name === "string" &&
+            first.name !== "" &&
+            !allNames.has(first.name)
+        );
+    }
+
     function visit(components: (SerializedComponent | string)[]) {
         for (const component of components) {
             if (typeof component !== "object") {
@@ -1083,6 +1206,12 @@ export function checkTypeChangesAtLoad({
                     component.doenetAttributes = {
                         ...component.doenetAttributes,
                         typeChangeAtLoad: decision,
+                    };
+                }
+                if (pathStartsWithProperty(component)) {
+                    component.doenetAttributes = {
+                        ...component.doenetAttributes,
+                        pathStartsWithProperty: true,
                     };
                 }
             }
@@ -1098,5 +1227,6 @@ export function checkTypeChangesAtLoad({
         }
     }
 
+    collectNames(serializedComponents);
     visit(serializedComponents);
 }

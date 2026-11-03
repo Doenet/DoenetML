@@ -1630,14 +1630,13 @@ export default class Copy extends CompositeComponent {
             }
 
             // An index that names nothing now (D36).
-            reportTypeChange(
+            const info = await indexNamesNothing({
+                component,
+                componentInfoObjects,
                 workspace,
-                await indexNamesNothing({
-                    component,
-                    componentInfoObjects,
-                    workspace,
-                }),
-            );
+            });
+            reportTypeChange(workspace, info);
+            recordIndexNamesNothing(workspace, info);
 
             let verificationResult = await verifyReplacementsMatchSpecifiedType(
                 {
@@ -1717,6 +1716,7 @@ export default class Copy extends CompositeComponent {
 
         let numReplacementsBySource = [];
         let numNonStringReplacementsBySource = [];
+        let madeBlankBySource = [];
         let numReplacementsSoFar = 0;
         let numNonStringReplacementsSoFar = 0;
 
@@ -1795,6 +1795,7 @@ export default class Copy extends CompositeComponent {
             numReplacementsBySource[sourceNum] = sourceReplacements.length;
             numNonStringReplacementsBySource[sourceNum] =
                 sourceReplacements.filter((x) => typeof x !== "string").length;
+            madeBlankBySource[sourceNum] = Boolean(results.madeBlank);
             numReplacementsSoFar += numReplacementsBySource[sourceNum];
             numNonStringReplacementsSoFar +=
                 numNonStringReplacementsBySource[sourceNum];
@@ -1804,6 +1805,7 @@ export default class Copy extends CompositeComponent {
         workspace.numReplacementsBySource = numReplacementsBySource;
         workspace.numNonStringReplacementsBySource =
             numNonStringReplacementsBySource;
+        workspace.madeBlankBySource = madeBlankBySource;
         workspace.sourceIndices = replacementSourceIdentities.map(
             (x) => x.componentIdx,
         );
@@ -1886,7 +1888,7 @@ export default class Copy extends CompositeComponent {
             workspace.propVariablesCopiedBySource = [];
         } else if (
             typeChange === undefined &&
-            !replacements.some((x) => typeof x === "object")
+            namesNothing(numNonStringReplacementsBySource, madeBlankBySource)
         ) {
             // An index that names nothing now (D36).
             const info = await indexNamesNothing({
@@ -1896,6 +1898,7 @@ export default class Copy extends CompositeComponent {
             });
             if (info) {
                 reportTypeChange(workspace, info);
+                recordIndexNamesNothing(workspace, info);
             }
         }
 
@@ -2065,6 +2068,9 @@ export default class Copy extends CompositeComponent {
             let serializedReplacements = results.serializedReplacements;
             let propVariablesCopiedByReplacement =
                 results.propVariablesCopiedByReplacement;
+            // Whether what is made is only the tag's own children, as
+            // `<T/>` is (`blankOfWrittenType`), made nothing of the prop.
+            let madeBlank = false;
 
             if (copyInChildren && component.serializedChildren.length > 0) {
                 if (serializedReplacements.length === 0) {
@@ -2114,6 +2120,7 @@ export default class Copy extends CompositeComponent {
                     ];
 
                     propVariablesCopiedByReplacement = [[]];
+                    madeBlank = true;
                 } else if (serializedReplacements.length === 1) {
                     addChildrenFromComposite({
                         replacements: serializedReplacements,
@@ -2128,6 +2135,7 @@ export default class Copy extends CompositeComponent {
                 propVariablesCopiedByReplacement,
                 diagnostics,
                 nComponents,
+                madeBlank,
             };
         }
 
@@ -2485,7 +2493,40 @@ export default class Copy extends CompositeComponent {
                 num: workspace.replacementsCreated,
             };
 
-            if (component.replacements.length > 0) {
+            let previousZeroSourceIndices =
+                workspace.sourceIndices.length === 0;
+
+            workspace.numReplacementsBySource = [];
+            workspace.numNonStringReplacementsBySource = [];
+
+            if (
+                component.attributes._copyInChildren?.primitive.value &&
+                !previousZeroSourceIndices
+            ) {
+                // `<T/>` with the tag's own attributes and children, as when
+                // it is made with no source (`createReplacementsFromSources`)
+                const blank = blankOfWrittenType({
+                    component,
+                    componentInfoObjects,
+                    compositeAttributesObj,
+                    nComponents,
+                    stateIdInfo,
+                });
+                nComponents = blank.nComponents;
+                replacementChanges.push({
+                    changeType: "add",
+                    changeTopLevelReplacements: true,
+                    firstReplacementInd: 0,
+                    numberReplacementsToReplace: component.replacements.length,
+                    serializedReplacements: blank.replacements,
+                });
+                workspace.numReplacementsBySource.push(
+                    blank.replacements.length,
+                );
+                workspace.numNonStringReplacementsBySource.push(
+                    blank.replacements.length,
+                );
+            } else if (component.replacements.length > 0) {
                 let replacementInstruction = {
                     changeType: "delete",
                     changeTopLevelReplacements: true,
@@ -2494,9 +2535,6 @@ export default class Copy extends CompositeComponent {
                 };
                 replacementChanges.push(replacementInstruction);
             }
-
-            let previousZeroSourceIndices =
-                workspace.sourceIndices.length === 0;
 
             workspace.sourceIndices = [];
             workspace.typeChangeKey = undefined;
@@ -2509,8 +2547,6 @@ export default class Copy extends CompositeComponent {
                     workspace,
                 }),
             );
-            workspace.numReplacementsBySource = [];
-            workspace.numNonStringReplacementsBySource = [];
             workspace.propVariablesCopiedBySource = [];
             workspace.sourceContainsCopyBySource = [];
 
@@ -2788,6 +2824,7 @@ export default class Copy extends CompositeComponent {
 
         let numReplacementsBySource = [];
         let numNonStringReplacementsBySource = [];
+        let madeBlankBySource = [];
         let propVariablesCopiedBySource = [];
         let sourceContainsCopyBySource = [];
 
@@ -3010,6 +3047,7 @@ export default class Copy extends CompositeComponent {
                 numReplacementsBySource[sourceNum] = results.numReplacements;
                 numNonStringReplacementsBySource[sourceNum] =
                     results.numNonStringReplacements;
+                madeBlankBySource[sourceNum] = results.madeBlank;
 
                 propVariablesCopiedBySource[sourceNum] =
                     results.propVariablesCopiedByReplacement;
@@ -3061,6 +3099,8 @@ export default class Copy extends CompositeComponent {
                     workspace.numReplacementsBySource[sourceNum];
                 numNonStringReplacementsBySource[sourceNum] =
                     workspace.numNonStringReplacementsBySource[sourceNum];
+                madeBlankBySource[sourceNum] =
+                    workspace.madeBlankBySource?.[sourceNum];
                 sourceContainsCopyBySource[sourceNum] =
                     workspace.sourceContainsCopyBySource[sourceNum];
                 continue;
@@ -3216,6 +3256,7 @@ export default class Copy extends CompositeComponent {
 
             numReplacementsBySource[sourceNum] = nNewReplacements;
             numNonStringReplacementsBySource[sourceNum] = nNewNonStrings;
+            madeBlankBySource[sourceNum] = Boolean(results.madeBlank);
 
             propVariablesCopiedBySource[sourceNum] =
                 propVariablesCopiedByReplacement;
@@ -3231,13 +3272,17 @@ export default class Copy extends CompositeComponent {
         );
         workspace.propVariablesCopiedBySource = propVariablesCopiedBySource;
         workspace.sourceContainsCopyBySource = sourceContainsCopyBySource;
+        workspace.madeBlankBySource = madeBlankBySource;
 
         // An index that names nothing now, or names something again (D36).
         // A value that does not convert reports itself (`doenet-i0053`).
         if (!workspace.typeChangeKey?.startsWith("mismatch")) {
             reportTypeChange(
                 workspace,
-                numNonStringReplacementsBySource.some((n) => n > 0)
+                !namesNothing(
+                    numNonStringReplacementsBySource,
+                    madeBlankBySource,
+                )
                     ? undefined
                     : await indexNamesNothing({
                           component,
@@ -3349,6 +3394,7 @@ export default class Copy extends CompositeComponent {
                 diagnostics,
                 nComponents,
                 sourceContainsCopy: Boolean(results.sourceContainsCopy),
+                madeBlank: Boolean(results.madeBlank),
             };
         } else {
             return {
@@ -5427,6 +5473,33 @@ function reportTypeChange(workspace, typeChange) {
     };
 }
 
+/**
+ * Record, for a save to hold (`heldCopySnapshot`), that an unlinked copy was
+ * made as `<T/>` because its index named nothing (`info`, from
+ * `indexNamesNothing`), as a value that does not convert is
+ * (`heldTypeChange`): a reload makes it `<T/>` again, with the info, though
+ * its index names something by then.
+ */
+function recordIndexNamesNothing(workspace, info) {
+    if (info) {
+        workspace.madeFrom.typeChange = {
+            key: typeChangeKey(info),
+            diagnostic: info.diagnostic,
+        };
+    }
+}
+
+/**
+ * Whether the sources of a copy made nothing of what its reference names:
+ * each made no component (`numNonStringReplacementsBySource`), or only the
+ * tag's own children (`madeBlankBySource`), as `<T/>` is.
+ */
+function namesNothing(numNonStringReplacementsBySource, madeBlankBySource) {
+    return numNonStringReplacementsBySource.every(
+        (n, ind) => !(n > 0) || madeBlankBySource[ind],
+    );
+}
+
 /** The change that shows any replacements `component` withholds. */
 function unwithheldChanges(component) {
     return component.replacementsToWithhold > 0
@@ -5874,8 +5947,10 @@ async function heldCaseSource({ caseSource, components, heldMadeFrom }) {
  * value at run time (allowed, or an info) is the one made before, so the
  * copy is made as it was: one made from a math while its value was a
  * tuple, which is not one now, is still made from it, and one made while
- * it was not is still `<T/>`. What a composite holds is decided when the
- * document loads (D36), so only a value decides it here. A
+ * it was not is still `<T/>`, as is one made while its index named nothing
+ * (`doenet-i0054`, `recordIndexNamesNothing`). What a composite holds is
+ * decided when the document loads (D36), so only a value or an index
+ * decides it here. A
  * decision that follows from what the author wrote (an error, or nothing
  * to decide when it was made) is the same on every load, and is kept.
  */
@@ -5932,6 +6007,81 @@ async function typeChangeAtLoadError({
     return {
         level: "error",
         diagnostic: codedDiagnostic({ type: "error", code: mark.code, args }),
+    };
+}
+
+/**
+ * The error for a reference written as a tag, scalar or list, whose property
+ * none of its sources has (`$t.nothing`, or `$g.nothing` of a `<group>`
+ * holding a `<text>`): the tag cannot be made (D36), as for a name that
+ * names nothing (#2434). `undefined` otherwise, as while a composite has
+ * made nothing to look in, or for a name a composite does not hold now.
+ */
+async function missingPropertyError({
+    component,
+    components,
+    componentInfoObjects,
+}) {
+    if (component.readingTypeChangeValue) {
+        return undefined;
+    }
+    const isList = component.doenetAttributes?.forList !== undefined;
+    if (!isList) {
+        const writtenValue =
+            component.attributes._createComponentOfType?.primitive?.value;
+        const writtenType =
+            writtenValue &&
+            componentInfoObjects.componentTypeLowerCaseMapping[
+                writtenValue.toLowerCase()
+            ];
+        const writtenClass =
+            componentInfoObjects.allComponentClasses[writtenType];
+        if (
+            !component.attributes._copyInChildren?.primitive?.value ||
+            !writtenClass ||
+            writtenClass.listEntryComponentType !== undefined ||
+            writtenType === "group"
+        ) {
+            return undefined;
+        }
+    }
+    const extendedComponent = await component.stateValues.extendedComponent;
+    const sourceComponent = components[extendedComponent?.componentIdx];
+    if (!sourceComponent) {
+        return undefined;
+    }
+    const propNames = await component.stateValues.effectivePropNameBySource;
+    if (
+        !(propNames?.length > 0) ||
+        !propNames.every((name) => name === "__prop_name_not_found")
+    ) {
+        return undefined;
+    }
+    if (
+        componentInfoObjects.isCompositeComponent({
+            componentType: sourceComponent.componentType,
+        }) &&
+        !component.doenetAttributes?.pathStartsWithProperty
+    ) {
+        // What a composite holds now need not have a name it can hold
+        // (`$cc.c` of a case not active), and an index into what it made
+        // names nothing now (`indexNamesNothing`). Only a property, which
+        // no component of the document is named (`typeChangeAtLoad.ts`),
+        // is an error.
+        return undefined;
+    }
+    return {
+        level: "error",
+        diagnostic: codedDiagnostic({
+            type: "error",
+            code: "doenet-w0104",
+            args: {
+                reference: referenceAsWritten(
+                    await component.stateValues.originalPath,
+                    sourceComponent,
+                ),
+            },
+        }),
     };
 }
 
@@ -6103,6 +6253,14 @@ async function typeChangeStatus({
     if (atLoad) {
         return atLoad;
     }
+    const missing = await missingPropertyError({
+        component,
+        components,
+        componentInfoObjects,
+    });
+    if (missing) {
+        return missing;
+    }
     if (
         !component.attributes._copyInChildren?.primitive?.value ||
         component.readingTypeChangeValue
@@ -6140,28 +6298,6 @@ async function typeChangeStatus({
     const propName = (
         await component.stateValues.effectivePropNameBySource
     )?.[0];
-    if (
-        propName === "__prop_name_not_found" &&
-        !componentInfoObjects.isCompositeComponent({
-            componentType: sourceComponent.componentType,
-        })
-    ) {
-        // A property its source does not have: the tag cannot be made
-        // (D36), as for a name that names nothing (#2434).
-        return {
-            level: "error",
-            diagnostic: codedDiagnostic({
-                type: "error",
-                code: "doenet-w0104",
-                args: {
-                    reference: referenceAsWritten(
-                        await component.stateValues.originalPath,
-                        sourceComponent,
-                    ),
-                },
-            }),
-        };
-    }
     if (
         propName?.startsWith("__") ||
         (!propName && (await component.stateValues.unresolvedPath)?.length > 0)
