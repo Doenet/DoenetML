@@ -46,7 +46,8 @@ describe(
           <option><selectFromSequence from="-1000" to="-900" /></option>
         </select>
       </p></option>
-      <option><p>Chosen letter: <selectFromSequence type="letters" to="g" name="item" /></p></option>
+      <!-- item is a select in every option, so $p.item names it -->
+      <option><p>Chosen letter: <select name="item"><option><selectFromSequence type="letters" to="g" /></option></select></p></option>
       <option><p>Variable: <select type="text" name="item">u v w x z y</select></p></option>
     </select>
     <p>Enter item $item as text: <answer><textInput name="textInput1"/><award><text>$(p.item)</text></award></answer></p>
