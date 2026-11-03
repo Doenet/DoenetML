@@ -166,10 +166,20 @@ How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
 list still gives `＿` (B34, #2438). A property with no value, such as `$c.maxNumber` with no
 limit, shows `NaN` (#2416, D10).
 
-**A property the source doesn't have** (`$n.nonexistent`, `$cc.notThere` where no component of
-the document has that name, `$$f.x(2)`) is a mistake in what the author wrote, so it is warning
-`doenet-w0104` (DIAG-2), and an error on a tag (REF-0, #2447). Decided with D22 (#2434 item 1, #2450).
-**Known violation:** a bare one is silent today (`indexNamesNothing.test.ts` pins the silence).
+**A property the source doesn't have** is a mistake in what the author wrote, so it is warning
+`doenet-w0104` (DIAG-2), and an error on a tag (REF-0, #2447). Examples: `$n.nonexistent`,
+`$$f.x(2)`, and `$cc.notThere`. It is decided in this order:
+1. **A name first.** `.notThere` is a property only if no component of the document has that
+   name (#2447's `pathStartsWithProperty`).
+2. **Then the type's properties, not the value.** It is a mistake only if the referent's type has
+   no property of that name (`__prop_name_not_found` in `W/components/abstract/Copy.js`). A
+   property the type has, but with no value now, stays missing with no warning: `$P.z` of a 2D
+   point, `$c.maxNumber` with no limit (above).
+3. **For a composite, everything it can hold.** `$cc.value` is fine when the cases hold maths.
+   It warns only when no component the composite can hold has the property.
+
+Decided with D22 (#2434 item 1, #2450). **Known violation:** a bare one is silent today
+(`indexNamesNothing.test.ts` pins the silence).
 
 That table is an accident of which internal form was built. A rewrite should choose one
 representation: "the empty value of the type it presents as, drawn as nothing". See D10.
