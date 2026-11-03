@@ -286,6 +286,28 @@ pub(crate) struct ChoiceDef {
     pub(crate) used_at: HashMap<u32, u32>,
 }
 
+/// What sealing finds of a choice (ADR 0031): its branch interface and
+/// the interface names references use, put into its `ChoiceDef` once the
+/// compile is done.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct ChoiceSeal {
+    pub(crate) iface: HashMap<String, (ComponentType, Vec<ElemId>)>,
+    pub(crate) used: Vec<String>,
+    pub(crate) used_at: HashMap<u32, u32>,
+}
+
+impl ChoiceSeal {
+    /// `def`, as outlining made it, with what sealing found.
+    pub(crate) fn into_def(self, def: ChoiceDef) -> ChoiceDef {
+        ChoiceDef {
+            iface: self.iface,
+            used: self.used,
+            used_at: self.used_at,
+            ..def
+        }
+    }
+}
+
 /// Math text tokenized once (`Compiler::math_text`): its `$ref`s are
 /// placeholders, `Token::Cell(RefId::NONE)`, until `resolve_math` plans
 /// them.
@@ -569,60 +591,124 @@ pub(crate) struct SealedTemplate {
     pub(crate) n_slots: u32,
 }
 
+/// What outlining makes of a template (ADR 0031): its elements' rows,
+/// its own children and its `$ref` children. Read-only to every stage
+/// after outlining (`Settled::templates`).
 #[derive(Debug, Clone, Default)]
-pub(crate) struct Template {
+pub(crate) struct Outlined {
     /// (template, element) of the repeat or choice this template belongs to.
     pub(crate) parent: Option<(TemplateId, ElemId)>,
     pub(crate) elems: Vec<Elem>,
-    /// Boxing's table (ADR 0031), parallel to `elems`: a row per element.
-    pub(crate) boxes: Vec<BoxState>,
-    /// Planning's table (ADR 0031), parallel to `elems`: empty until
-    /// planning makes it.
-    pub(crate) plans: Vec<ElemPlan>,
-    /// Outlining's table of `$ref` children (ADR 0031), by `RefChildId`.
-    pub(crate) ref_children: Vec<RefChild>,
-    /// Planning's table of `$ref` children's plans, parallel to
-    /// `ref_children`: empty until planning makes it.
-    pub(crate) ref_child_plans: Vec<RefChildPlan>,
-    /// Sealing's table (ADR 0031), parallel to `elems`: empty until
-    /// sealing makes it.
-    pub(crate) sealed: SealedTemplate,
     /// Children of the template itself (the document, a repeat body or a
     /// choice branch).
     pub(crate) children: Vec<Child>,
+    /// Outlining's table of `$ref` children (ADR 0031), by `RefChildId`.
+    pub(crate) ref_children: Vec<RefChild>,
 }
 
-impl Template {
+/// What boxing and planning make of a template's elements (ADR 0031),
+/// parallel to `Outlined::elems` and `ref_children`: the tables the stages
+/// after outlining write.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct Tables {
+    /// Boxing's table: a row per element.
+    pub(crate) boxes: Vec<BoxState>,
+    /// Planning's table: empty until planning makes it.
+    pub(crate) plans: Vec<ElemPlan>,
+    /// Planning's table of `$ref` children's plans: empty until planning
+    /// makes it.
+    pub(crate) ref_child_plans: Vec<RefChildPlan>,
+}
+
+/// A template as the build reads it: each stage's table, put together
+/// once the compile is done (ADR 0031). It reads as its outlined part
+/// (`Deref`).
+#[derive(Debug, Clone, Default)]
+pub(crate) struct Template {
+    pub(crate) outlined: Outlined,
+    pub(crate) tables: Tables,
+    /// Sealing's table (ADR 0031), parallel to `elems`.
+    pub(crate) sealed: SealedTemplate,
+}
+
+impl std::ops::Deref for Template {
+    type Target = Outlined;
+    fn deref(&self) -> &Outlined {
+        &self.outlined
+    }
+}
+
+/// A template's outlined part and its tables, read together: an element as
+/// built, its plan, whether it is a box.
+#[derive(Clone, Copy)]
+pub(crate) struct TemplateRef<'t> {
+    pub(crate) outlined: &'t Outlined,
+    pub(crate) tables: &'t Tables,
+}
+
+impl std::ops::Deref for TemplateRef<'_> {
+    type Target = Outlined;
+    fn deref(&self) -> &Outlined {
+        self.outlined
+    }
+}
+
+impl<'t> TemplateRef<'t> {
     /// Whether element `e` is a box, or under one.
-    pub(crate) fn is_box(&self, e: ElemId) -> bool {
-        matches!(self.boxes[e.index()], BoxState::Boxed { .. })
+    pub(crate) fn is_box(self, e: ElemId) -> bool {
+        matches!(self.tables.boxes[e.index()], BoxState::Boxed { .. })
     }
 
     /// Whether element `e` is under a box: no build makes it.
-    pub(crate) fn is_dead(&self, e: ElemId) -> bool {
-        matches!(self.boxes[e.index()], BoxState::Boxed { dead: true, .. })
+    pub(crate) fn is_dead(self, e: ElemId) -> bool {
+        matches!(
+            self.tables.boxes[e.index()],
+            BoxState::Boxed { dead: true, .. }
+        )
     }
 
     /// Element `e` as built: its box's row when it is a box, else its own.
-    pub(crate) fn row(&self, e: ElemId) -> &Elem {
-        match &self.boxes[e.index()] {
+    pub(crate) fn row(self, e: ElemId) -> &'t Elem {
+        match &self.tables.boxes[e.index()] {
             BoxState::Boxed { row, .. } => row,
-            BoxState::Live => &self.elems[e.index()],
+            BoxState::Live => &self.outlined.elems[e.index()],
         }
     }
 
     /// Element `e`'s plan as built: nothing for a box, else planning's.
-    pub(crate) fn plan(&self, e: ElemId) -> &ElemPlan {
+    pub(crate) fn plan(self, e: ElemId) -> &'t ElemPlan {
         static NONE: ElemPlan = ElemPlan::NONE;
-        match self.boxes[e.index()] {
+        match self.tables.boxes[e.index()] {
             BoxState::Boxed { .. } => &NONE,
-            BoxState::Live => &self.plans[e.index()],
+            BoxState::Live => &self.tables.plans[e.index()],
         }
     }
 
     /// Every element as built, in order.
-    pub(crate) fn rows(&self) -> impl Iterator<Item = &Elem> {
-        (0..self.elems.len()).map(|e| self.row(ElemId::from_index(e)))
+    pub(crate) fn rows(self) -> impl Iterator<Item = &'t Elem> {
+        (0..self.outlined.elems.len()).map(move |e| self.row(ElemId::from_index(e)))
+    }
+}
+
+impl Template {
+    /// Its outlined part and its tables, read together.
+    pub(crate) fn view(&self) -> TemplateRef<'_> {
+        TemplateRef {
+            outlined: &self.outlined,
+            tables: &self.tables,
+        }
+    }
+
+    pub(crate) fn is_dead(&self, e: ElemId) -> bool {
+        self.view().is_dead(e)
+    }
+
+    pub(crate) fn row(&self, e: ElemId) -> &Elem {
+        self.view().row(e)
+    }
+
+    pub(crate) fn plan(&self, e: ElemId) -> &ElemPlan {
+        self.view().plan(e)
     }
 }
 
@@ -758,7 +844,8 @@ impl Compiled {
             RefDisplay::Written => self.dast.macro_display(node).to_string(),
             RefDisplay::Prop(base, prop) => format!("{}.{prop}", self.spell_display(base, node)),
             RefDisplay::CopyOf(t, e) => {
-                format!("(copy of {})", elem_label(&self.dast, self, *t, *e))
+                let el = &self.templates[t.index()].elems[e.index()];
+                format!("(copy of {})", elem_label(&self.dast, el))
             }
             RefDisplay::Spelled(text) => text.to_string(),
         }
@@ -1292,12 +1379,13 @@ impl Compiled {
     pub(crate) fn shrink_to_fit(&mut self) {
         self.templates.shrink_to_fit();
         for tpl in &mut self.templates {
-            tpl.elems.shrink_to_fit();
-            tpl.children.shrink_to_fit();
-            for el in &mut tpl.elems {
+            let o = &mut tpl.outlined;
+            o.elems.shrink_to_fit();
+            o.children.shrink_to_fit();
+            for el in &mut o.elems {
                 el.children.shrink_to_fit();
             }
-            for plan in &mut tpl.plans {
+            for plan in &mut tpl.tables.plans {
                 plan.props.shrink_to_fit();
             }
         }

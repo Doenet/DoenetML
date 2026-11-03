@@ -96,7 +96,7 @@ impl<'a> Compiler<'a> {
         let Some((cur_t, e)) = self.static_target(t, p) else {
             return Ok(None);
         };
-        let el = &self.compiled.templates[cur_t.index()].elems[e.index()];
+        let el = &self.outlined(cur_t).elems[e.index()];
         let sel = prop.sel_on(el.component_type);
         // A list holds the points its attribute gives, up to its type's
         // most: a circle's `through`, up to three.

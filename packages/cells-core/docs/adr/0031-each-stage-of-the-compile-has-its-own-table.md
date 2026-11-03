@@ -1,6 +1,6 @@
 # Each stage of the compile has its own table
 
-Status: proposed 2026-11-02. Steps 1 to 6 are done; see Migration. Amended
+Status: proposed 2026-11-02. Every step is done; see Migration. Amended
 2026-11-02: the boundaries the tables draw leak in three places (boxing,
 the planner context, code more than one stage runs); see "Where the
 boundaries leak".
@@ -312,3 +312,28 @@ otherwise.
    and `Parsed` read-only and planning's table writable; `PlanCtx` wraps
    it, and planning's machinery is `impl Planning`. Outlining's table
    moves into `Settled` while the later stages run.
+   Done, as a split of the data rather than a new type. A template is
+   three parts: `Outlined` (outlining's: parent, element rows, children,
+   `$ref` children), `Tables` (boxing's and planning's: boxes, plans, `$ref`
+   children's plans) and `SealedTemplate` (sealing's). Outlining builds the
+   `Outlined`s and the choices in its own state; they move into `Settled`,
+   which `Compiler::compile` keeps in an immutable binding and every later
+   stage holds as `&Settled`, so nothing can change outlining's table, or
+   a choice as outlining made it, once outlining is done: the only
+   mutable copy is gone. `Compiler` owns the `Tables`, and holds the parse
+   as `&Parsed`. Sealing reads all of them through shared references and
+   returns its own tables (`SealedTemplate`, and `ChoiceSeal`, a choice's
+   interface and used names, which no longer live in the `ChoiceDef`
+   outlining made). `Compiler::compile` puts `Compiled::templates` and
+   `choices` together at the end, and no stage reads `Compiled::templates`
+   while compiling: compile code reads a template through `outlined`,
+   `view` and `tables`. So `Compiler`, while planning, is planning's view:
+   what earlier stages made is read-only to it by type, and what it may
+   write is its own table, the boxes, and the append-only reference arena
+   and expressions. `PlanCtx` still wraps `Compiler` and planning's
+   machinery is still `impl Compiler`; making them a `Planning` type would
+   rename every planning method without changing what planning can
+   reach, and the shared code (`plan_ref`, math text, reading the source)
+   would need a second home. `outlined_mut`, outlining's way to write its
+   table, panics after outlining rather than failing to compile, but it
+   has nothing to write by then. The golden diff is unchanged.

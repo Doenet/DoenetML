@@ -43,8 +43,9 @@ impl Compiler<'_> {
     ) -> Planned {
         self.planning = Some(Planned::default());
         // Planning's table, a row per element, made here (ADR 0031).
-        for tpl in &mut self.compiled.templates {
-            tpl.plans = vec![ElemPlan::default(); tpl.elems.len()];
+        for t in 0..self.n_templates() {
+            let n = self.outlined(TemplateId::from_index(t)).elems.len();
+            self.tables[t].plans = vec![ElemPlan::default(); n];
         }
         {
             let _s = crate::trace::span("elements");
@@ -56,16 +57,17 @@ impl Compiler<'_> {
         let _s = crate::trace::span("refs");
         crate::trace::count("refs", ref_children.len());
         // Planning's table of `$ref` children, made here.
-        for tpl in &mut self.compiled.templates {
-            tpl.ref_child_plans = vec![RefChildPlan::Unplanned; tpl.ref_children.len()];
+        for t in 0..self.n_templates() {
+            let n = self.outlined(TemplateId::from_index(t)).ref_children.len();
+            self.tables[t].ref_child_plans = vec![RefChildPlan::Unplanned; n];
         }
         for (t, id) in ref_children {
-            let RefChild { node: m, owner, .. } =
-                self.compiled.templates[t.index()].ref_children[id.index()];
+            let RefChild { node: m, owner, .. } = self.outlined(t).ref_children[id.index()];
             // Content of a box is not planned.
             let dead = match owner {
                 Some(e) => self.is_box(t, e),
-                None => self.compiled.templates[t.index()]
+                None => self
+                    .outlined(t)
                     .parent
                     .is_some_and(|(pt, pe)| self.is_box(pt, pe)),
             };
@@ -86,7 +88,7 @@ impl Compiler<'_> {
                     RefChildPlan::Boxed
                 }
             };
-            self.compiled.templates[t.index()].ref_child_plans[id.index()] = plan;
+            self.tables[t.index()].ref_child_plans[id.index()] = plan;
         }
         self.planning.take().expect("planning")
     }
@@ -102,11 +104,11 @@ impl Compiler<'_> {
         if self.is_box(t, e) {
             return;
         }
-        let planned_as = self.compiled.templates[t.index()].elems[e.index()].planned_as;
+        let planned_as = self.outlined(t).elems[e.index()].planned_as;
         let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(t, e).and_then(|()| {
             let hold = crate::trace::tally("hold").run(|| self.plan_hold(t, e))?;
-            self.compiled.templates[t.index()].plans[e.index()].hold = hold;
+            self.tables[t.index()].plans[e.index()].hold = hold;
             Ok(())
         });
         // Boxed where it fails; what reads it reads the box.
@@ -116,7 +118,7 @@ impl Compiler<'_> {
     }
 
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let component_type = self.compiled.templates[t.index()].elems[e.index()].planned_as;
+        let component_type = self.outlined(t).elems[e.index()].planned_as;
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to
             // plan.
@@ -149,11 +151,11 @@ impl Compiler<'_> {
             component_type,
             cloned,
             ..
-        } = self.compiled.templates[t.index()].elems[e.index()];
+        } = self.outlined(t).elems[e.index()];
         if cloned {
             // A clone is a copy of its original.
-            let original = self.compiled.templates[t.index()].elems[e.index()].extend;
-            self.compiled.templates[t.index()].plans[e.index()].extend = original;
+            let original = self.outlined(t).elems[e.index()].extend;
+            self.tables[t.index()].plans[e.index()].extend = original;
             return Ok(ElemShape::Cloned);
         }
         if el == NodeId::NONE {
@@ -161,12 +163,12 @@ impl Compiler<'_> {
         }
         // Every `extend` was planned when outlining (ADR 0031). A container
         // copy got its clones then too.
-        let extend = self.compiled.templates[t.index()].elems[e.index()].extend;
+        let extend = self.outlined(t).elems[e.index()].extend;
         if let Some(p) = extend
             && component_type.container()
             && self.compiled.refs[p.index()].prop.is_none()
         {
-            self.compiled.templates[t.index()].plans[e.index()].extend = Some(p);
+            self.tables[t.index()].plans[e.index()].extend = Some(p);
             return Ok(ElemShape::ContainerCopy(p));
         }
         let extend = match extend {
@@ -185,17 +187,17 @@ impl Compiler<'_> {
             }
             None => None,
         };
-        self.compiled.templates[t.index()].plans[e.index()].extend = extend;
+        self.tables[t.index()].plans[e.index()].extend = extend;
         Ok(ElemShape::ByType(extend))
     }
 
     /// Plans the synthesized root of a DAST that was not normalized: it has
     /// no source, so only its deferred props, which every root's are.
     fn plan_synthetic(&mut self, t: TemplateId, e: ElemId) {
-        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let component_type = self.outlined(t).elems[e.index()].component_type;
         let mut props = vec![Source::absent(); component_type.prop_defs().len()];
         Deferred::mark(component_type, &mut props);
-        self.compiled.templates[t.index()].plans[e.index()].props = props;
+        self.tables[t.index()].plans[e.index()].props = props;
     }
 
     /// A plan naming prop `prop` of element `e` in the parent template, as

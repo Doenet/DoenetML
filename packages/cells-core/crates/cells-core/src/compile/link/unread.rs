@@ -21,8 +21,13 @@ impl Compiler<'_> {
             return;
         }
         let mut at: HashMap<NodeId, (TemplateId, ElemId)> = HashMap::new();
-        for (ti, tpl) in self.compiled.templates.iter().enumerate() {
-            for (ei, el) in tpl.elems.iter().enumerate() {
+        for ti in 0..self.n_templates() {
+            for (ei, el) in self
+                .outlined(TemplateId::from_index(ti))
+                .elems
+                .iter()
+                .enumerate()
+            {
                 if el.node != NodeId::NONE && !el.cloned {
                     at.entry(el.node)
                         .or_insert((TemplateId::from_index(ti), ElemId::from_index(ei)));

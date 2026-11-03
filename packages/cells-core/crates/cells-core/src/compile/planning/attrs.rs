@@ -19,7 +19,7 @@ impl<'a> Compiler<'a> {
             component_type,
             name_scope: scope,
             ..
-        } = self.compiled.templates[t.index()].elems[e.index()];
+        } = self.outlined(t).elems[e.index()];
         // Without an attribute a prop is the type's default, or under
         // `extend` the referent's prop.
         let default = |v: f64| {
@@ -127,7 +127,7 @@ impl<'a> Compiler<'a> {
         let _s = crate::trace::tally("mark");
         let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
         Deferred::mark(component_type, &mut props);
-        self.compiled.templates[t.index()].plans[e.index()].props = props;
+        self.tables[t.index()].plans[e.index()].props = props;
         Ok(())
     }
 
@@ -172,7 +172,7 @@ impl<'a> Compiler<'a> {
             return false;
         };
         let cur_t = self.template_up(t, hops);
-        is_text_type(self.compiled.templates[cur_t.index()].elems[e.index()].component_type)
+        is_text_type(self.outlined(cur_t).elems[e.index()].component_type)
             && names
                 .get(1)
                 .is_none_or(|&p| d.strings.get(p).trim() == "value")
@@ -186,7 +186,7 @@ impl<'a> Compiler<'a> {
             return false;
         };
         let cur_t = self.template_up(t, r.hops);
-        is_text_type(self.compiled.templates[cur_t.index()].elems[e.index()].component_type)
+        is_text_type(self.outlined(cur_t).elems[e.index()].component_type)
             && r.prop.is_none_or(|p| p.is("value"))
     }
 

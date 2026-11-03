@@ -33,17 +33,15 @@ impl<'a> Compiler<'a> {
     pub(super) fn plan_function_iterates(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         self.plan_attrs(t, e, None)?;
         let at = function_iterates::Props::AT;
-        self.compiled.templates[t.index()].plans[e.index()].props[at.allIteratesWithInitial] =
+        self.tables[t.index()].plans[e.index()].props[at.allIteratesWithInitial] =
             Source::own(at.count);
         let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,
             ..
-        } = self.compiled.templates[t.index()].elems[e.index()];
-        let Body::Repeat { template: sub } =
-            self.compiled.templates[t.index()].elems[e.index()].body
-        else {
+        } = self.outlined(t).elems[e.index()];
+        let Body::Repeat { template: sub } = self.outlined(t).elems[e.index()].body else {
             unreachable!("a functionIterates has a body template")
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
@@ -52,13 +50,12 @@ impl<'a> Compiler<'a> {
         let (ft, fe) = self
             .static_target(t, fp)
             .filter(|&(ft, fe)| {
-                self.compiled.templates[ft.index()].elems[fe.index()].component_type
-                    == ComponentType::Function
+                self.outlined(ft).elems[fe.index()].component_type == ComponentType::Function
             })
             .ok_or_else(|| {
                 Error::Unsupported("<functionIterates function> must name a <function>".into())
             })?;
-        let fnode = self.compiled.templates[ft.index()].elems[fe.index()].node;
+        let fnode = self.outlined(ft).elems[fe.index()].node;
         let vars = self.function_variables(fnode);
         let nodes: Vec<NodeId> = d.children(fnode).to_vec();
         let (mut toks, src) = self.math_tokens(sub, ROOT_SCOPE, &nodes)?;
@@ -124,7 +121,7 @@ impl<'a> Compiler<'a> {
                 Source::FirstIteration(Box::new(first), Box::new(Source::Math(exprs[j])))
             })
             .collect();
-        self.compiled.templates[sub.index()].plans[0].props = prop::tuple::props_of(entries);
+        self.tables[sub.index()].plans[0].props = prop::tuple::props_of(entries);
         Ok(())
     }
 
@@ -197,13 +194,11 @@ impl<'a> Compiler<'a> {
     /// repeat's index is the iteration's position. A `<repeat>`'s value, a
     /// tuple, is `plan_repeat_for`'s.
     pub(in crate::compile) fn plan_iteration_names(&mut self, t: TemplateId, e: ElemId) {
-        let Body::Repeat { template: sub } =
-            self.compiled.templates[t.index()].elems[e.index()].body
-        else {
+        let Body::Repeat { template: sub } = self.outlined(t).elems[e.index()].body else {
             return;
         };
-        for i in 0..self.compiled.templates[sub.index()].elems.len() {
-            let el = &self.compiled.templates[sub.index()].elems[i];
+        for i in 0..self.outlined(sub).elems.len() {
+            let el = &self.outlined(sub).elems[i];
             if el.node != NodeId::NONE {
                 continue;
             }
@@ -231,7 +226,7 @@ impl<'a> Compiler<'a> {
                 .into_vec(),
                 _ => continue,
             };
-            self.compiled.templates[sub.index()].plans[i].props = props;
+            self.tables[sub.index()].plans[i].props = props;
         }
     }
 
@@ -244,10 +239,8 @@ impl<'a> Compiler<'a> {
             node: el,
             name_scope: scope,
             ..
-        } = self.compiled.templates[t.index()].elems[e.index()];
-        let Body::Repeat { template: sub } =
-            self.compiled.templates[t.index()].elems[e.index()].body
-        else {
+        } = self.outlined(t).elems[e.index()];
+        let Body::Repeat { template: sub } = self.outlined(t).elems[e.index()].body else {
             unreachable!("a repeat has a body template")
         };
         let m = self.attr_macro(el, "repeat", "for")?;
@@ -269,18 +262,18 @@ impl<'a> Compiler<'a> {
         let base_id = self.compiled.refs.len() - 1;
         match self.static_target(t, RefId::from_index(base_id)) {
             Some((ft, fe))
-                if self.compiled.templates[ft.index()].elems[fe.index()].component_type
+                if self.outlined(ft).elems[fe.index()].component_type
                     == ComponentType::FunctionIterates => {}
             _ => return Err(unsupported()),
         }
-        self.compiled.templates[t.index()].plans[e.index()].props = prop::repeat_for::Props {
+        self.tables[t.index()].plans[e.index()].props = prop::repeat_for::Props {
             count: Source::reference(fp),
         }
         .into_vec();
-        let has_item = self.compiled.templates[sub.index()]
-            .elems
-            .first()
-            .is_some_and(|x| x.node == NodeId::NONE && x.component_type == ComponentType::Tuple);
+        let has_item =
+            self.outlined(sub).elems.first().is_some_and(|x| {
+                x.node == NodeId::NONE && x.component_type == ComponentType::Tuple
+            });
         if has_item {
             let mut steps = base.steps.clone();
             steps.push(Step::Index(IndexPlan {
@@ -302,7 +295,7 @@ impl<'a> Compiler<'a> {
                     Source::reference(RefId::from_index(self.compiled.refs.len() - 1))
                 })
                 .collect();
-            self.compiled.templates[sub.index()].plans[0].props = props;
+            self.tables[sub.index()].plans[0].props = props;
         }
         Ok(())
     }

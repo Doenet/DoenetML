@@ -15,7 +15,7 @@ impl<'a> Compiler<'a> {
         e: ElemId,
         p: RefId,
     ) -> Result<()> {
-        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let component_type = self.outlined(t).elems[e.index()].component_type;
         let props = match component_type {
             ComponentType::Point => prop::point::props_of(Source::coord(p, 0), Source::coord(p, 1)),
             // A mathInput bound to a cell is a numeric input: no expression
@@ -38,12 +38,12 @@ impl<'a> Compiler<'a> {
             }
             // Its points are the list's, synthesized when built.
             ComponentType::PointList => {
-                self.compiled.templates[t.index()].plans[e.index()].from = Some(p);
+                self.tables[t.index()].plans[e.index()].from = Some(p);
                 Vec::new()
             }
             _ => return Err(Error::PathTooDeep(self.compiled.ref_display(p))),
         };
-        self.compiled.templates[t.index()].plans[e.index()].props = props;
+        self.tables[t.index()].plans[e.index()].props = props;
         Ok(())
     }
 
@@ -64,10 +64,10 @@ impl<'a> Compiler<'a> {
     /// its deferred props planned as every element's are, and a list is as
     /// long as the referent's, which only the build knows.
     pub(in crate::compile) fn plan_bare_copy(&mut self, t: TemplateId, e: ElemId) {
-        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let component_type = self.outlined(t).elems[e.index()].component_type;
         let mut props = vec![Source::Inherit; component_type.prop_defs().len()];
         Deferred::mark(component_type, &mut props);
-        let plan = &mut self.compiled.templates[t.index()].plans[e.index()];
+        let plan = &mut self.tables[t.index()].plans[e.index()];
         plan.props = props;
         if component_type.given_coords().is_some() {
             plan.n_public = NPublic::AsReferent;
@@ -89,7 +89,7 @@ impl<'a> Compiler<'a> {
             node: el,
             component_type,
             ..
-        } = self.compiled.templates[t.index()].elems[e.index()];
+        } = self.outlined(t).elems[e.index()];
         // Own attributes other than name and extend, or children, override
         // the referent's; with none, the copy aliases every public prop.
         let own_attrs: Vec<String> = d
@@ -106,7 +106,7 @@ impl<'a> Compiler<'a> {
         // omits, each planned where its writer sits (ADR 0023).
         let base_elem = extend
             .and_then(|p| self.plan_elem_target(t, p))
-            .filter(|&r| self.compiled.templates[t.index()].elems[r.index()].node != NodeId::NONE);
+            .filter(|&r| self.outlined(t).elems[r.index()].node != NodeId::NONE);
         if let (Some(p), None) = (extend, base_elem) {
             // Reached by an index, through another repeat or choice, or
             // an element the compile made: nothing here to take the rest
@@ -150,10 +150,10 @@ impl<'a> Compiler<'a> {
                 .insert((t.get(), e.get()), wiring.shared_state.clone());
         }
         if component_type.given_coords().is_some() {
-            self.compiled.templates[t.index()].plans[e.index()].n_public =
+            self.tables[t.index()].plans[e.index()].n_public =
                 NPublic::Planned(wiring.n_public as u32);
         }
-        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
+        self.tables[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 

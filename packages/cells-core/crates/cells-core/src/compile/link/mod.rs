@@ -74,7 +74,7 @@ impl Compiler<'_> {
                 .get(&(s.t.get(), s.referent.get()))
                 .and_then(|m| m.get(&s.state))
             {
-                self.compiled.templates[s.t.index()].plans[s.e.index()].props[s.slot as usize] =
+                self.tables[s.t.index()].plans[s.e.index()].props[s.slot as usize] =
                     Source::Alias(Arg::Elem(s.referent, bs));
             }
         }

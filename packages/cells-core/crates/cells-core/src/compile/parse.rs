@@ -39,7 +39,7 @@ impl Compiler<'_> {
                 name_scope,
                 component_type,
                 ..
-            } = self.compiled.templates[t.index()].elems[e.index()];
+            } = self.outlined(t).elems[e.index()];
             let math = mt.and_then(|mt| self.parse_math(t, name_scope, component_type, &mt));
             parsed.maths.insert((t.get(), e.get()), math);
         }

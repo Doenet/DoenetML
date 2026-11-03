@@ -83,15 +83,14 @@ fn push_number(out: &mut String, k: u32) {
     let _ = write!(out, "{k}");
 }
 
-impl super::seal::Seal<'_> {
+impl super::Seal<'_> {
     /// Every element's key, once every element is planned, by template;
     /// the key texts go to `Compiled::keys`.
     pub(in crate::compile) fn assign_keys(&mut self) -> Vec<Vec<ElemKey>> {
-        let c = &mut *self.compiled;
         let mut keys = Keys::default();
         // The branch each choice template is: (choice, branch).
         let mut branch_of: HashMap<TemplateId, (ChoiceId, usize)> = HashMap::new();
-        for (ci, ch) in c.choices.iter().enumerate() {
+        for (ci, ch) in self.choices.iter().enumerate() {
             for (b, &tpl) in ch.branches.iter().enumerate() {
                 branch_of.insert(tpl, (ChoiceId::from_index(ci), b));
             }
@@ -102,23 +101,23 @@ impl super::seal::Seal<'_> {
         // for the template's prefix).
         let mut unnamed: HashMap<(TemplateId, ElemId, ComponentType), u32> = HashMap::new();
         let mut made: HashMap<(TemplateId, ElemId), u32> = HashMap::new();
-        let mut elem_keys: Vec<Vec<ElemKey>> = Vec::with_capacity(c.templates.len());
+        let mut elem_keys: Vec<Vec<ElemKey>> = Vec::with_capacity(self.templates.len());
         // Templates are made after the template of the element that owns
         // them, so the owner's key is known first.
-        for t in TemplateId::below(c.templates.len()) {
-            let prefix = match c.templates[t.index()].parent {
+        for t in self.template_ids() {
+            let prefix = match self.templates[t.index()].parent {
                 None => String::new(),
                 Some((pt, pe)) => {
                     let owner = keys.text_of(elem_keys[pt.index()][pe.index()]);
                     match branch_of.get(&t) {
                         Some(&(ci, b)) => {
-                            format!("{owner}[{}]", c.choices[ci.index()].branch_keys[b])
+                            format!("{owner}[{}]", self.choices[ci.index()].branch_keys[b])
                         }
                         None => format!("{owner}[*]"),
                     }
                 }
             };
-            let tpl = &c.templates[t.index()];
+            let tpl = self.view(t);
             let mut ids: Vec<ElemKey> = Vec::with_capacity(tpl.elems.len());
             // Whether each element is keyed by its name.
             let mut named: Vec<bool> = Vec::with_capacity(tpl.elems.len());
@@ -187,8 +186,8 @@ impl super::seal::Seal<'_> {
                         }
                         Body::Choice(ci) => {
                             let branches = Branches {
-                                reactive: c.choices[ci.index()].reactive,
-                                keys: c.choices[ci.index()].branch_keys.clone(),
+                                reactive: self.choices[ci.index()].reactive,
+                                keys: self.choices[ci.index()].branch_keys.clone(),
                             };
                             keys.owners.insert(el.node, (id, Some(branches)));
                         }
@@ -210,7 +209,7 @@ impl super::seal::Seal<'_> {
         // public one by the prop's.
         for (&(t, e), state) in self.shared_state {
             let id = elem_keys[t as usize][e as usize];
-            let tpl = &c.templates[t as usize];
+            let tpl = self.view(TemplateId::new(t));
             let n_public = n_public(tpl.row(ElemId::new(e)), tpl.plan(ElemId::new(e)));
             for (s, &slot) in state {
                 if slot as usize >= n_public {
@@ -221,7 +220,7 @@ impl super::seal::Seal<'_> {
         keys.text.shrink_to_fit();
         keys.ends.shrink_to_fit();
         keys.types.shrink_to_fit();
-        c.keys = Arc::new(keys);
+        self.compiled.keys = Arc::new(keys);
         elem_keys
     }
 }

@@ -154,6 +154,11 @@ pub(in crate::compile) struct Compiler<'a> {
     parsed: Option<&'a Parsed>,
     /// What planning is making: `Some` only while it runs (`plan_all`).
     planning: Option<Planned>,
+    /// Boxing's and planning's tables, by `TemplateId` (ADR 0031): what
+    /// the stages after outlining write, beside outlining's part
+    /// (`Settled::templates`), which they only read. W: boxing (outline,
+    /// plan, link), plan; link aliases shared slots in `plans`.
+    tables: Vec<Tables>,
     /// Every string's canonical id, over the DAST table (built when first
     /// needed) and then `extra_strings`: see `intern_literal`. A cache.
     /// W, R: plan (`intern_literal`).
@@ -203,6 +208,14 @@ pub(in crate::compile) struct Outline {
 /// (ADR 0030), beside what it settles of each element in the templates.
 #[derive(Default)]
 pub(in crate::compile) struct Settled {
+    /// Outlining's part of every template (ADR 0031): its elements' rows,
+    /// its children and its `$ref` children, by `TemplateId`. R: every
+    /// stage after outlining; the build, once put together with the other
+    /// stages' tables.
+    templates: Vec<Outlined>,
+    /// Every choice as outlining made it, by `ChoiceId`; sealing finds its
+    /// interface (`ChoiceSeal`).
+    choices: Vec<ChoiceDef>,
     /// The name table. R: parse and plan (`plan_ref`), link
     /// (`drop_unregistered_name`), seal (choices, keys).
     names: NameTable,
@@ -278,13 +291,7 @@ pub(in crate::compile) struct Share {
 pub(in crate::compile) type InputKey = (u32, ElemId);
 
 /// How an element is named in a diagnostic: its name, else its tag.
-pub(in crate::compile) fn elem_label(
-    dast: &Dast,
-    compiled: &Compiled,
-    t: TemplateId,
-    e: ElemId,
-) -> String {
-    let el = &compiled.templates[t.index()].elems[e.index()];
+pub(in crate::compile) fn elem_label(dast: &Dast, el: &Elem) -> String {
     if el.name != StrId::NONE {
         dast.strings.get(el.name).trim().to_string()
     } else {
@@ -310,7 +317,8 @@ impl Compiler<'_> {
             dast,
             compiled: Compiled {
                 dast: dast.clone(),
-                templates: vec![Template::default()],
+                // Put together once the compile is done (ADR 0031).
+                templates: Vec::new(),
                 refs: Vec::new(),
                 arena: Arena::default(),
                 sym_text: HashMap::new(),
@@ -332,6 +340,7 @@ impl Compiler<'_> {
             settled: None,
             parsed: None,
             planning: None,
+            tables: Vec::new(),
             string_ids: None,
             boxed,
             restart: None,
@@ -364,18 +373,36 @@ impl Compiler<'_> {
             "only outlining makes elements (ADR 0030, ADR 0031)"
         );
         cp.restart_if_needed()?;
-        crate::trace::span("seal").run(|| cp.seal(&planned))?;
+        let (sealed, choice_seals) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
         let _s = crate::trace::span("finish");
         cp.drop_reports_of_boxes();
-        let c = &mut cp.compiled;
+        // Each stage's tables put together, as the build reads them (ADR
+        // 0031): outlining's part, released by every stage that read it.
+        let Compiler {
+            mut compiled,
+            errors,
+            tables,
+            ..
+        } = cp;
+        let Settled {
+            templates, choices, ..
+        } = settled;
+        compiled.templates = (templates.into_iter().zip(tables).zip(sealed))
+            .map(|((outlined, tables), sealed)| Template {
+                outlined,
+                tables,
+                sealed,
+            })
+            .collect();
+        compiled.choices = (choices.into_iter().zip(choice_seals))
+            .map(|(def, seal)| seal.into_def(def))
+            .collect();
+        let c = &mut compiled;
         c.shrink_to_fit();
         if c.has_repeats() {
             c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
         }
-        Ok(Attempt {
-            compiled: cp.compiled,
-            errors: cp.errors,
-        })
+        Ok(Attempt { compiled, errors })
     }
 }
 
@@ -416,6 +443,61 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    /// Outlining's part of template `t`: outlining's own while it makes it,
+    /// then what it settled, read-only (ADR 0031).
+    pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &Outlined {
+        match &self.outlining {
+            Some(o) => &o.work.settled.templates[t.index()],
+            None => &self.settled().templates[t.index()],
+        }
+    }
+
+    /// Outlining's part of template `t`, to make; only outlining reaches it.
+    pub(in crate::compile) fn outlined_mut(&mut self, t: TemplateId) -> &mut Outlined {
+        &mut self.outlining().work.settled.templates[t.index()]
+    }
+
+    /// Element `e` of template `t` as outlining made it.
+    pub(in crate::compile) fn elem(&self, t: TemplateId, e: ElemId) -> &Elem {
+        &self.outlined(t).elems[e.index()]
+    }
+
+    /// How many templates there are.
+    pub(in crate::compile) fn n_templates(&self) -> usize {
+        self.tables.len()
+    }
+
+    /// Template `t`'s outlined part and its tables, read together.
+    pub(in crate::compile) fn view(&self, t: TemplateId) -> TemplateRef<'_> {
+        TemplateRef {
+            outlined: self.outlined(t),
+            tables: &self.tables[t.index()],
+        }
+    }
+
+    /// Choice `cid` as outlining made it.
+    pub(in crate::compile) fn choice(&self, cid: ChoiceId) -> &ChoiceDef {
+        match &self.outlining {
+            Some(o) => &o.work.settled.choices[cid.index()],
+            None => &self.settled().choices[cid.index()],
+        }
+    }
+
+    /// Adds a template to outlining's part and to the tables; only
+    /// outlining makes one.
+    pub(in crate::compile) fn push_template(
+        &mut self,
+        parent: Option<(TemplateId, ElemId)>,
+    ) -> TemplateId {
+        let t = TemplateId::from_index(self.tables.len());
+        self.outlining().work.settled.templates.push(Outlined {
+            parent,
+            ..Default::default()
+        });
+        self.tables.push(Tables::default());
+        t
+    }
+
     /// The elements a container copy cloned, as `names` does.
     fn cloned(&self) -> &HashSet<(u32, u32)> {
         match &self.outlining {
@@ -442,7 +524,9 @@ impl<'a> Compiler<'a> {
 
     /// How many elements the templates hold.
     fn elem_count(&self) -> usize {
-        self.compiled.templates.iter().map(|t| t.elems.len()).sum()
+        (0..self.n_templates())
+            .map(|t| self.outlined(TemplateId::from_index(t)).elems.len())
+            .sum()
     }
 
     /// The failure to compile again from, when a stage recorded one.
@@ -451,6 +535,6 @@ impl<'a> Compiler<'a> {
     }
 
     pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {
-        elem_label(self.dast, &self.compiled, t, e)
+        elem_label(self.dast, self.elem(t, e))
     }
 }

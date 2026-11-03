@@ -13,8 +13,8 @@ impl Compiler<'_> {
         el: NodeId,
     ) -> Result<()> {
         let d = self.dast;
-        let reactive = self.compiled.templates[t.index()].elems[e.index()].component_type
-            == ComponentType::ConditionalContent;
+        let reactive =
+            self.outlined(t).elems[e.index()].component_type == ComponentType::ConditionalContent;
         let tag = d.str(el).to_string();
         if d.attr(el, "extend").is_some() || d.attr(el, "copySource").is_some() {
             return Err(Error::Banned(format!(
@@ -114,17 +114,13 @@ impl Compiler<'_> {
         }
         let mut templates = Vec::with_capacity(branches.len());
         for (_, nodes, _) in &branches {
-            let sub = TemplateId::from_index(self.compiled.templates.len());
-            self.compiled.templates.push(Template {
-                parent: Some((t, e)),
-                ..Default::default()
-            });
+            let sub = self.push_template(Some((t, e)));
             let kids = self.add_children(sub, None, ROOT_SCOPE, nodes);
-            self.compiled.templates[sub.index()].children = kids;
+            self.outlined_mut(sub).children = kids;
             templates.push(sub);
         }
-        let id = self.compiled.choices.len();
-        self.compiled.choices.push(ChoiceDef {
+        let id = self.outlining().work.settled.choices.len();
+        self.outlining().work.settled.choices.push(ChoiceDef {
             at: (t, e),
             reactive,
             branches: templates,
@@ -137,8 +133,7 @@ impl Compiler<'_> {
             used: Vec::new(),
             used_at: HashMap::new(),
         });
-        self.compiled.templates[t.index()].elems[e.index()].body =
-            Body::Choice(ChoiceId::from_index(id));
+        self.outlined_mut(t).elems[e.index()].body = Body::Choice(ChoiceId::from_index(id));
         Ok(())
     }
 

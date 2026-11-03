@@ -13,7 +13,7 @@ impl Compiler<'_> {
     /// Whether element `e` is a box: boxed when outlining, boxed in place, or
     /// under one.
     pub(in crate::compile) fn is_box(&self, t: TemplateId, e: ElemId) -> bool {
-        self.compiled.templates[t.index()].is_box(e)
+        self.view(t).is_box(e)
     }
 
     /// The stage running now, which a box records (`BoxState::Boxed::by`).
@@ -32,7 +32,7 @@ impl Compiler<'_> {
     /// own order (ADR 0031); a reader of a box made while planning is boxed
     /// when linking (`box_readers_of_boxes`).
     pub(in crate::compile) fn is_visible_box(&self, t: TemplateId, e: ElemId) -> bool {
-        match &self.compiled.templates[t.index()].boxes[e.index()] {
+        match &self.tables[t.index()].boxes[e.index()] {
             BoxState::Live => false,
             BoxState::Boxed { by, .. } => self.planning.is_none() || *by == Stage::Outline,
         }
@@ -53,7 +53,7 @@ impl Compiler<'_> {
     /// compiling again, and with no node the load fails. Every failure is
     /// handled here the same way whatever failed before it.
     pub(in crate::compile) fn box_in_place(&mut self, t: TemplateId, e: ElemId, error: Error) {
-        let node = self.compiled.templates[t.index()].elems[e.index()].node;
+        let node = self.outlined(t).elems[e.index()].node;
         let doomed = self.subtree(t, e);
         let cloned = doomed
             .iter()
@@ -80,8 +80,9 @@ impl Compiler<'_> {
     pub(in crate::compile) fn drop_reports_of_boxes(&mut self) {
         let mut boxes = HashSet::new();
         let mut dead = HashSet::new();
-        for tpl in &self.compiled.templates {
-            for (el, b) in tpl.elems.iter().zip(&tpl.boxes) {
+        for t in 0..self.n_templates() {
+            let tpl = self.view(TemplateId::from_index(t));
+            for (el, b) in tpl.outlined.elems.iter().zip(&tpl.tables.boxes) {
                 if let BoxState::Boxed { dead: d, .. } = b
                     && el.node != NodeId::NONE
                 {
@@ -93,14 +94,20 @@ impl Compiler<'_> {
             }
         }
         // A `$ref` child's box is under a box when what it is a child of is.
-        let templates = &self.compiled.templates;
-        for tpl in templates {
-            for (rc, plan) in tpl.ref_children.iter().zip(&tpl.ref_child_plans) {
+        for t in 0..self.n_templates() {
+            let tpl = self.view(TemplateId::from_index(t));
+            for (rc, plan) in tpl
+                .outlined
+                .ref_children
+                .iter()
+                .zip(&tpl.tables.ref_child_plans)
+            {
                 let under_box = match rc.owner {
                     Some(e) => tpl.is_box(e),
                     None => tpl
+                        .outlined
                         .parent
-                        .is_some_and(|(pt, pe)| templates[pt.index()].is_box(pe)),
+                        .is_some_and(|(pt, pe)| self.view(pt).is_box(pe)),
                 };
                 if *plan == RefChildPlan::Boxed && under_box {
                     dead.insert(rc.node);
@@ -128,7 +135,7 @@ impl Compiler<'_> {
         while i < out.len() {
             let (ct, ce) = out[i];
             i += 1;
-            let el = &self.compiled.templates[ct.index()].elems[ce.index()];
+            let el = &self.outlined(ct).elems[ce.index()];
             let mut under: Vec<(TemplateId, ElemId)> = el
                 .children
                 .iter()
@@ -137,7 +144,8 @@ impl Compiler<'_> {
                     _ => None,
                 })
                 .collect();
-            for (ti, tpl) in self.compiled.templates.iter().enumerate() {
+            for ti in 0..self.n_templates() {
+                let tpl = self.outlined(TemplateId::from_index(ti));
                 if tpl.parent == Some((ct, ce)) {
                     let sub = TemplateId::from_index(ti);
                     under.extend((0..tpl.elems.len()).map(|x| (sub, ElemId::from_index(x))));
@@ -169,7 +177,7 @@ impl Compiler<'_> {
         };
         // A name a sibling holds fails to register, but the element is
         // pushed all the same.
-        let e = ElemId::from_index(self.compiled.templates[t.index()].elems.len());
+        let e = ElemId::from_index(self.outlined(t).elems.len());
         let _ = self.push_elem(t, node, ComponentType::Error, name, name_scope);
         self.drop_unregistered_name(t, e);
         self.make_box(t, e, false);
@@ -181,7 +189,7 @@ impl Compiler<'_> {
     /// none. Outlining's, where it pushes the element: only outlining names
     /// elements, so a name a later stage boxes is registered.
     pub(in crate::compile) fn drop_unregistered_name(&mut self, t: TemplateId, e: ElemId) {
-        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        let el = &self.outlined(t).elems[e.index()];
         if el.name == StrId::NONE {
             return;
         }
@@ -191,7 +199,7 @@ impl Compiler<'_> {
             .and_then(|id| names.entry(t, el.name_scope, id))
             .is_some_and(|x| x == e.get() || x == AMBIGUOUS);
         if !registered {
-            self.compiled.templates[t.index()].elems[e.index()].name = StrId::NONE;
+            self.outlined_mut(t).elems[e.index()].name = StrId::NONE;
         }
     }
 
@@ -201,9 +209,8 @@ impl Compiler<'_> {
     /// made of it stays as they made it.
     pub(in crate::compile) fn make_box(&mut self, t: TemplateId, e: ElemId, dead: bool) {
         let by = self.stage();
-        let tpl = &mut self.compiled.templates[t.index()];
-        let row = Box::new(tpl.elems[e.index()].as_box());
-        tpl.boxes[e.index()] = BoxState::Boxed { row, by, dead };
+        let row = Box::new(self.elem(t, e).as_box());
+        self.tables[t.index()].boxes[e.index()] = BoxState::Boxed { row, by, dead };
     }
 }
 
@@ -237,7 +244,7 @@ mod tests {
         let (t, g) = find(&compiled, "g");
         let (_, a) = find(&compiled, "a");
         let tpl = &compiled.templates[t.index()];
-        assert!(tpl.is_box(g) && !tpl.is_dead(g));
+        assert!(tpl.view().is_box(g) && !tpl.is_dead(g));
         assert_eq!(tpl.elems[g.index()].component_type, ComponentType::Graph);
         assert_eq!(tpl.elems[g.index()].children.len(), 1);
         assert_eq!(tpl.row(g).component_type, ComponentType::Error);
@@ -263,7 +270,7 @@ mod tests {
         let [Child::Macro(id)] = tpl.elems[p.index()].children[..] else {
             panic!("one $ref child");
         };
-        assert_eq!(tpl.ref_child_plans[id.index()], RefChildPlan::Boxed);
+        assert_eq!(tpl.tables.ref_child_plans[id.index()], RefChildPlan::Boxed);
         assert!(
             compiled
                 .diagnostics

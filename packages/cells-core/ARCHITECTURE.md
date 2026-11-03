@@ -125,6 +125,11 @@ Runs once per load and depends on the source alone.
   sequence of steps. An element that fails to build is *boxed*; see [An
   element cannot be built](#an-element-cannot-be-built).
 
+Each stage keeps its own table (ADR 0031): a template is outlining's part
+(`Outlined`, read-only once outlining is done), boxing's and planning's
+(`Tables`) and sealing's (`SealedTemplate`), put together into `Compiled`
+when the compile is done.
+
 The result is `Compiled` (`plan.rs`): the templates, their plans, the
 abstract build's records and the source's diagnostics, the abstract build's
 warnings included.

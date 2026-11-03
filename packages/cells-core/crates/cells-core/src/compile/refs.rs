@@ -57,7 +57,8 @@ impl<'a> Compiler<'a> {
     /// looked up in.
     pub(in crate::compile) fn template_up(&self, mut t: TemplateId, hops: u32) -> TemplateId {
         for _ in 0..hops {
-            t = self.compiled.templates[t.index()]
+            t = self
+                .outlined(t)
                 .parent
                 .expect("a plan's hops stay within the template nesting")
                 .0;
@@ -113,7 +114,7 @@ impl<'a> Compiler<'a> {
         let hops = self.compiled.refs[p.index()].hops;
         let mut t = t;
         for _ in 0..hops {
-            let Some((pt, _)) = self.compiled.templates[t.index()].parent else {
+            let Some((pt, _)) = self.outlined(t).parent else {
                 return Ok((None, None));
             };
             t = pt;
@@ -132,7 +133,7 @@ impl<'a> Compiler<'a> {
                     let Some(c) = cur else {
                         return Ok((None, last));
                     };
-                    match self.compiled.templates[t.index()].elems[c.index()].body {
+                    match self.outlined(t).elems[c.index()].body {
                         Body::Repeat { template } => {
                             t = template;
                             cur = None;
@@ -178,7 +179,7 @@ impl<'a> Compiler<'a> {
         let names = self.names();
         let mut hops = 0;
         loop {
-            let tpl = &self.compiled.templates[t.index()];
+            let tpl = self.outlined(t);
             let mut a = from;
             loop {
                 if a != ROOT_SCOPE {
@@ -261,8 +262,7 @@ impl<'a> Compiler<'a> {
             // (ADR 0031), and the build reads what is under a box as
             // undefined.
             if let At::Elem(e) = at
-                && self.compiled.templates[cur_t.index()].elems[e.index()].component_type
-                    == ComponentType::Error
+                && self.outlined(cur_t).elems[e.index()].component_type == ComponentType::Error
             {
                 break;
             }
@@ -277,9 +277,9 @@ impl<'a> Compiler<'a> {
                 }
                 let choice_here = match at {
                     At::Elem(e) if !after_iface => {
-                        match self.compiled.templates[cur_t.index()].elems[e.index()].body {
+                        match self.outlined(cur_t).elems[e.index()].body {
                             Body::Choice(cid)
-                                if self.compiled.templates[cur_t.index()].elems[e.index()]
+                                if self.outlined(cur_t).elems[e.index()]
                                     .component_type
                                     .prop_index(name)
                                     .is_none() =>
@@ -293,12 +293,12 @@ impl<'a> Compiler<'a> {
                     _ => None,
                 };
                 if let Some(cid) = choice_here {
-                    if matches!(at, At::Elem(_)) && !self.compiled.choices[cid.index()].reactive {
+                    if matches!(at, At::Elem(_)) && !self.choice(cid).reactive {
                         // `$s.x` is `$s[1].x` when the select picks one option.
-                        if self.compiled.choices[cid.index()].num_to_select != 1 {
+                        if self.choice(cid).num_to_select != 1 {
                             return Err(Error::Banned(format!(
                                 "'${display}' needs an index: the select picks {} options",
-                                self.compiled.choices[cid.index()].num_to_select
+                                self.choice(cid).num_to_select
                             )));
                         }
                         steps.push(Step::Index(IndexPlan {
@@ -337,16 +337,14 @@ impl<'a> Compiler<'a> {
                         at = At::Elem(child);
                     }
                     At::Elem(e) => {
-                        let component_type =
-                            self.compiled.templates[cur_t.index()].elems[e.index()].component_type;
-                        let component_type =
-                            match self.compiled.templates[cur_t.index()].elems[e.index()].body {
-                                // After `$c[k]` the component is a collected copy.
-                                Body::Collect {
-                                    component_type: ck, ..
-                                } if steps.len() > 1 => ck,
-                                _ => component_type,
-                            };
+                        let component_type = self.outlined(cur_t).elems[e.index()].component_type;
+                        let component_type = match self.outlined(cur_t).elems[e.index()].body {
+                            // After `$c[k]` the component is a collected copy.
+                            Body::Collect {
+                                component_type: ck, ..
+                            } if steps.len() > 1 => ck,
+                            _ => component_type,
+                        };
                         // `$l.points[1]`, `$l.points[1][2]`, `$l.points[2].y`:
                         // points of a list, by literal index. The prop is
                         // found once per type and spelling (`prop_sel`).
@@ -491,7 +489,7 @@ impl<'a> Compiler<'a> {
                     prop = Some(RefProp::of(ek, PropSel::At(PropAt::Position(pi))));
                     continue;
                 }
-                match self.compiled.templates[cur_t.index()].elems[e.index()].body {
+                match self.outlined(cur_t).elems[e.index()].body {
                     Body::Repeat { template } => {
                         let ip = self.plan_index(t, expr, display)?;
                         steps.push(Step::Index(ip));
@@ -503,14 +501,12 @@ impl<'a> Compiler<'a> {
                         let ip = self.plan_index(t, expr, display)?;
                         steps.push(Step::Index(ip));
                     }
-                    Body::Choice(cid)
-                        if !self.compiled.choices[cid.index()].reactive && !after_iface =>
-                    {
+                    Body::Choice(cid) if !self.choice(cid).reactive && !after_iface => {
                         let ip = self.plan_index(t, expr, display)?;
                         steps.push(Step::Index(ip));
                         at = At::SelectPick(cid);
                     }
-                    _ if self.compiled.templates[cur_t.index()].elems[e.index()].component_type
+                    _ if self.outlined(cur_t).elems[e.index()].component_type
                         == ComponentType::PointList =>
                     {
                         let ip = self.plan_index(t, expr, display)?;
@@ -522,13 +518,13 @@ impl<'a> Compiler<'a> {
         }
         // A bare `$s` names the one option a select picks.
         if let (At::Elem(e), None, false) = (at, &prop, after_iface)
-            && let Body::Choice(cid) = self.compiled.templates[cur_t.index()].elems[e.index()].body
-            && !self.compiled.choices[cid.index()].reactive
+            && let Body::Choice(cid) = self.outlined(cur_t).elems[e.index()].body
+            && !self.choice(cid).reactive
         {
-            if self.compiled.choices[cid.index()].num_to_select != 1 {
+            if self.choice(cid).num_to_select != 1 {
                 return Err(Error::Banned(format!(
                     "'${display}' needs an index: the select picks {} options",
-                    self.compiled.choices[cid.index()].num_to_select
+                    self.choice(cid).num_to_select
                 )));
             }
             steps.push(Step::Index(IndexPlan {
@@ -615,7 +611,7 @@ impl<'a> Compiler<'a> {
                     // makes. Read from outlining's row, so a reference
                     // planned before the repeat (a `<math>`'s, when
                     // parsing) finds it too.
-                    let el = &self.compiled.templates[tt.index()].elems[e.index()];
+                    let el = &self.outlined(tt).elems[e.index()];
                     let index_name = el.component_type == ComponentType::Number
                         && el.node == NodeId::NONE
                         && !el.cloned;
@@ -695,7 +691,7 @@ impl Compiler<'_> {
     /// make them and plan the reference again (`with_clones`). So planning
     /// a reference makes nothing, in whichever stage (ADR 0031).
     pub(in crate::compile) fn outlined_elem(&self, t: TemplateId, e: ElemId) -> Result<&Elem> {
-        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        let el = &self.outlined(t).elems[e.index()];
         if el.clones_pending {
             return Err(Error::AwaitsClones {
                 template: t.get(),
@@ -714,12 +710,12 @@ impl Compiler<'_> {
         t: TemplateId,
         e: ElemId,
     ) -> Result<Option<RefId>> {
-        if let Some(p) = self.compiled.templates[t.index()].elems[e.index()].extend {
+        if let Some(p) = self.outlined(t).elems[e.index()].extend {
             return Ok(Some(p));
         }
         let Elem {
             node, name_scope, ..
-        } = self.compiled.templates[t.index()].elems[e.index()];
+        } = self.outlined(t).elems[e.index()];
         let Some(a) = self.dast.attr(node, "extend") else {
             return Ok(None);
         };
@@ -734,7 +730,7 @@ impl Compiler<'_> {
         // decided here from the types outlining settled. An unrelated pair
         // is left to the build, which refuses it once both types are
         // known. A container copy names its referent itself.
-        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let component_type = self.outlined(t).elems[e.index()].component_type;
         if !component_type.container()
             && self.compiled.refs[p.index()].prop.is_none()
             && let Ok(Some(rt)) = self.ref_target_type(t, p)
@@ -748,7 +744,7 @@ impl Compiler<'_> {
             r.display = RefDisplay::Prop(Box::new(base), dp);
         }
         debug_assert!(self.outlining.is_some(), "only outlining plans an extend");
-        self.compiled.templates[t.index()].elems[e.index()].extend = Some(p);
+        self.outlined_mut(t).elems[e.index()].extend = Some(p);
         Ok(Some(p))
     }
 
@@ -798,7 +794,7 @@ impl Compiler<'_> {
         display: impl std::fmt::Display,
     ) -> Result<(Step, TemplateId, ElemId)> {
         let name = name.trim();
-        let def = &self.compiled.choices[cid.index()];
+        let def = self.choice(cid);
         let found = def
             .branches
             .iter()

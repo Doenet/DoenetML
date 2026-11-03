@@ -73,7 +73,7 @@ impl<'a> Compiler<'a> {
     /// literal true on any of them holds the element always; a reference
     /// holds it while its flag is set, several while any is.
     pub(in crate::compile) fn plan_hold(&mut self, t: TemplateId, e: ElemId) -> Result<Hold> {
-        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let component_type = self.outlined(t).elems[e.index()].component_type;
         let mut flags = Vec::new();
         for row in HOLD_ATTRS {
             let holds = (row.holds)(component_type);
@@ -90,7 +90,7 @@ impl<'a> Compiler<'a> {
             }
             let Elem {
                 node, name_scope, ..
-            } = self.compiled.templates[at.index()].elems[ae.index()];
+            } = self.outlined(at).elems[ae.index()];
             if self.attr_text(a).is_some() {
                 if self.attr_flag(node, row.name) {
                     return Ok(Hold::Always);
@@ -132,7 +132,7 @@ impl<'a> Compiler<'a> {
         let d = self.dast;
         let mut hops = 0;
         loop {
-            let el = &self.compiled.templates[t.index()].elems[e.index()];
+            let el = &self.outlined(t).elems[e.index()];
             if el.node != NodeId::NONE
                 && let Some(a) = d.attr(el.node, name)
             {
@@ -144,7 +144,7 @@ impl<'a> Compiler<'a> {
             if el.name_scope != ROOT_SCOPE {
                 e = el.name_scope;
             } else {
-                let (pt, pe) = self.compiled.templates[t.index()].parent?;
+                let (pt, pe) = self.outlined(t).parent?;
                 t = pt;
                 e = pe;
                 hops += 1;

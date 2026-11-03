@@ -11,7 +11,7 @@ impl Compiler<'_> {
     pub(in crate::compile) fn plan_extends(&mut self) {
         let made = self.outlining().work.to_plan.clone();
         for (t, e) in made {
-            let el = &self.compiled.templates[t.index()].elems[e.index()];
+            let el = &self.outlined(t).elems[e.index()];
             if el.node == NodeId::NONE
                 || el.cloned
                 || el.extend.is_some()
@@ -58,21 +58,21 @@ impl Compiler<'_> {
         };
         if o.expanded.contains(&key) || self.is_box(t, e) {
             // A copy boxed before its clones were made has none to read.
-            self.compiled.templates[t.index()].elems[e.index()].clones_pending = false;
+            self.outlined_mut(t).elems[e.index()].clones_pending = false;
             return Ok(());
         }
         if !self.outlining().expanding.insert(key) {
             return Err(Error::Cycle(self.elem_label(t, e)));
         }
-        let n = self.compiled.templates[t.index()].elems.len();
+        let n = self.outlined(t).elems.len();
         let r = self.expand_container_copy_inner(t, e);
         let o = self.outlining();
         o.expanding.remove(&key);
         o.expanded.insert(key);
         // Its clones are made, or it is boxed and has none to read.
-        self.compiled.templates[t.index()].elems[e.index()].clones_pending = false;
+        self.outlined_mut(t).elems[e.index()].clones_pending = false;
         if let Err(error) = r {
-            for x in n..self.compiled.templates[t.index()].elems.len() {
+            for x in n..self.outlined(t).elems.len() {
                 self.make_box(t, ElemId::from_index(x), true);
             }
             self.box_in_place(t, e, error);
@@ -98,9 +98,9 @@ impl Compiler<'_> {
         self.referent_type(t, e, p)?;
         let scope = self.child_scope(t, e);
         let mut kids = self.clone_children(t, r, scope, e)?;
-        let own = std::mem::take(&mut self.compiled.templates[t.index()].elems[e.index()].children);
+        let own = std::mem::take(&mut self.outlined_mut(t).elems[e.index()].children);
         kids.extend(own);
-        self.compiled.templates[t.index()].elems[e.index()].children = kids;
+        self.outlined_mut(t).elems[e.index()].children = kids;
         Ok(())
     }
 
@@ -111,9 +111,7 @@ impl Compiler<'_> {
         scope: ElemId,
         root: ElemId,
     ) -> Result<Vec<Child>> {
-        let kids = self.compiled.templates[t.index()].elems[from.index()]
-            .children
-            .clone();
+        let kids = self.outlined(t).elems[from.index()].children.clone();
         let mut out = Vec::with_capacity(kids.len());
         for ch in kids {
             match ch {
@@ -159,13 +157,13 @@ impl Compiler<'_> {
                     });
                     let ep = self.compiled.refs.len() - 1;
                     {
-                        let el = &mut self.compiled.templates[t.index()].elems[ne.index()];
+                        let el = &mut self.outlined_mut(t).elems[ne.index()];
                         el.extend = Some(RefId::from_index(ep));
                         el.cloned = true;
                     }
                     let child_scope = if name != StrId::NONE { ne } else { scope };
                     let sub = self.clone_children(t, c, child_scope, root)?;
-                    self.compiled.templates[t.index()].elems[ne.index()].children = sub;
+                    self.outlined_mut(t).elems[ne.index()].children = sub;
                     self.outlining().work.to_plan.push((t, ne));
                     out.push(Child::Elem(ne));
                 }
@@ -178,7 +176,7 @@ impl Compiler<'_> {
     /// Whether `e` is a container copy (`<graph extend="$g"/>`), which
     /// outlining gives its clones.
     pub(in crate::compile) fn is_container_copy(&self, t: TemplateId, e: ElemId) -> bool {
-        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        let el = &self.outlined(t).elems[e.index()];
         el.node != NodeId::NONE
             && !el.cloned
             && el.component_type.container()

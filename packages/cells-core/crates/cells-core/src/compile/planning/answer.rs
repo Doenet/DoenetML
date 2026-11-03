@@ -47,16 +47,16 @@ impl<'a> Compiler<'a> {
             node: el,
             name_scope: scope,
             ..
-        } = self.compiled.templates[t.index()].elems[e.index()];
+        } = self.outlined(t).elems[e.index()];
         let text_answer = self.reject_answer_attrs(el)?;
         let mut inputs = Vec::new();
         let mut awards = Vec::new();
         // The synthetic children outlining made are planned below.
         for k in self.elem_children(t, e) {
-            if self.compiled.templates[t.index()].elems[k.index()].node == NodeId::NONE {
+            if self.outlined(t).elems[k.index()].node == NodeId::NONE {
                 continue;
             }
-            match self.compiled.templates[t.index()].elems[k.index()].component_type {
+            match self.outlined(t).elems[k.index()].component_type {
                 ComponentType::MathInput
                 | ComponentType::BooleanInput
                 | ComponentType::TextInput
@@ -73,8 +73,7 @@ impl<'a> Compiler<'a> {
         let text_nodes = self.content_nodes(el);
         // A choice input: the submitted index earns its choice's credit.
         if let [ci] = inputs.as_slice()
-            && self.compiled.templates[t.index()].elems[ci.index()].component_type
-                == ComponentType::ChoiceInput
+            && self.outlined(t).elems[ci.index()].component_type == ComponentType::ChoiceInput
         {
             if !text_nodes.is_empty() || !awards.is_empty() {
                 return Err(Error::Unsupported(
@@ -86,10 +85,10 @@ impl<'a> Compiler<'a> {
         if text_answer {
             return self.plan_text_answer(t, e, el, &inputs, &awards);
         }
-        if inputs.iter().any(|&k| {
-            self.compiled.templates[t.index()].elems[k.index()].component_type
-                == ComponentType::TextInput
-        }) {
+        if inputs
+            .iter()
+            .any(|&k| self.outlined(t).elems[k.index()].component_type == ComponentType::TextInput)
+        {
             return Err(Error::Unsupported(
                 "a <textInput> in an <answer> that is not type=\"text\"".into(),
             ));
@@ -124,9 +123,7 @@ impl<'a> Compiler<'a> {
                 ));
             }
             (true, None, [mi]) => {
-                if self.compiled.templates[t.index()].elems[mi.index()].component_type
-                    != ComponentType::MathInput
-                {
+                if self.outlined(t).elems[mi.index()].component_type != ComponentType::MathInput {
                     return Err(Error::Unsupported(
                         "an <answer> comparing a <booleanInput>: <answer type=\"boolean\">".into(),
                     ));
@@ -169,7 +166,7 @@ impl<'a> Compiler<'a> {
                 weight,
                 numSubmissions: Source::Given(0.0),
             });
-            self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
+            self.tables[t.index()].plans[e.index()].props = wiring.finish();
             return Ok(());
         }
 
@@ -192,7 +189,7 @@ impl<'a> Compiler<'a> {
             weight,
             numSubmissions: Source::Given(0.0),
         });
-        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
+        self.tables[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 
@@ -200,7 +197,7 @@ impl<'a> Compiler<'a> {
     /// the answer's scope like any other attribute's.
     fn plan_weight(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<Source> {
         let d = self.dast;
-        let scope = self.compiled.templates[t.index()].elems[e.index()].name_scope;
+        let scope = self.outlined(t).elems[e.index()].name_scope;
         Ok(match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, scope, "weight", d.attr_children(a), None)?,
             None => Source::Const(1.0),
@@ -220,10 +217,7 @@ impl<'a> Compiler<'a> {
         let choices: Vec<ElemId> = self
             .elem_children(t, ci)
             .into_iter()
-            .filter(|&k| {
-                self.compiled.templates[t.index()].elems[k.index()].component_type
-                    == ComponentType::Choice
-            })
+            .filter(|&k| self.outlined(t).elems[k.index()].component_type == ComponentType::Choice)
             .collect();
         if choices.is_empty() || choices.len() > MAX_CHOICES {
             return Err(Error::Unsupported(format!(
@@ -254,7 +248,7 @@ impl<'a> Compiler<'a> {
             weight,
             numSubmissions: Source::Given(0.0),
         });
-        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
+        self.tables[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 
@@ -271,7 +265,7 @@ impl<'a> Compiler<'a> {
     ) -> Result<()> {
         let d = self.dast;
         let ti = match inputs {
-            [ti] if self.compiled.templates[t.index()].elems[ti.index()].component_type
+            [ti] if self.outlined(t).elems[ti.index()].component_type
                 == ComponentType::TextInput =>
             {
                 *ti
@@ -321,7 +315,7 @@ impl<'a> Compiler<'a> {
                 credit,
                 awarded: Source::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
             });
-            self.compiled.templates[t.index()].plans[a.index()].props = award_wiring.finish();
+            self.tables[t.index()].plans[a.index()].props = award_wiring.finish();
             planned.push(a);
         }
         let best = best_award(&mut wiring, &planned);
@@ -333,7 +327,7 @@ impl<'a> Compiler<'a> {
             weight,
             numSubmissions: Source::Given(0.0),
         });
-        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
+        self.tables[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 
@@ -389,7 +383,7 @@ impl<'a> Compiler<'a> {
 
     /// The element children of `e`.
     pub(in crate::compile) fn elem_children(&self, t: TemplateId, e: ElemId) -> Vec<ElemId> {
-        self.compiled.templates[t.index()].elems[e.index()]
+        self.outlined(t).elems[e.index()]
             .children
             .iter()
             .filter_map(|c| match c {
@@ -411,7 +405,7 @@ impl<'a> Compiler<'a> {
 
     pub(in crate::compile) fn award_form(&self, t: TemplateId, a: ElemId) -> Result<AwardForm> {
         let d = self.dast;
-        let el = self.compiled.templates[t.index()].elems[a.index()].node;
+        let el = self.outlined(t).elems[a.index()].node;
         if d.attr(el, "feedback").is_some() {
             return Err(Error::Unsupported("<award feedback>".into()));
         }
@@ -423,12 +417,12 @@ impl<'a> Compiler<'a> {
         // `<award><math>2 + $a</math></award>`: the math is the content.
         let mut math_child = None;
         for k in self.elem_children(t, a) {
-            match self.compiled.templates[t.index()].elems[k.index()].component_type {
+            match self.outlined(t).elems[k.index()].component_type {
                 ComponentType::When if when.is_none() => {
-                    when = Some((k, self.compiled.templates[t.index()].elems[k.index()].node))
+                    when = Some((k, self.outlined(t).elems[k.index()].node))
                 }
                 ComponentType::Math if math_child.is_none() && when.is_none() => {
-                    math_child = Some(self.compiled.templates[t.index()].elems[k.index()].node)
+                    math_child = Some(self.outlined(t).elems[k.index()].node)
                 }
                 ComponentType::When => {
                     return Err(Error::Unsupported("two <when>s in an <award>".into()));
@@ -512,7 +506,7 @@ impl<'a> Compiler<'a> {
                 when_wiring.set_public_sources(when::Props {
                     value: Source::own(slot),
                 });
-                self.compiled.templates[t.index()].plans[w.index()].props = when_wiring.finish();
+                self.tables[t.index()].plans[w.index()].props = when_wiring.finish();
                 wiring.hidden(Source::Alias(Arg::Elem(w, own_slot(when::VALUE))))
             }
             None => {
@@ -531,7 +525,7 @@ impl<'a> Compiler<'a> {
             credit,
             awarded: Source::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
         });
-        self.compiled.templates[t.index()].plans[form.e.index()].props = wiring.finish();
+        self.tables[t.index()].plans[form.e.index()].props = wiring.finish();
         Ok(())
     }
 
@@ -547,7 +541,7 @@ impl<'a> Compiler<'a> {
             return None;
         }
         let (cur_t, x) = self.static_target(t, p)?;
-        let input_type = self.compiled.templates[cur_t.index()].elems[x.index()].component_type;
+        let input_type = self.outlined(cur_t).elems[x.index()].component_type;
         matches!(
             input_type,
             ComponentType::MathInput | ComponentType::BooleanInput
@@ -596,7 +590,7 @@ impl<'a> Compiler<'a> {
         } else {
             (Source::Given(0.0), Source::own(response::SUBMITTED))
         };
-        self.compiled.templates[t.index()].plans[r.index()].props = response::Props {
+        self.tables[t.index()].plans[r.index()].props = response::Props {
             response: live,
             submitted,
             value,
@@ -610,11 +604,11 @@ impl<'a> Compiler<'a> {
             .elem_children(t, e)
             .into_iter()
             .find(|&k| {
-                let el = &self.compiled.templates[t.index()].elems[k.index()];
+                let el = &self.outlined(t).elems[k.index()];
                 el.node == NodeId::NONE && el.component_type == ComponentType::MathInput
             })
             .ok_or_else(|| Error::Internal("an implicit input outlining did not make".into()))?;
-        self.compiled.templates[t.index()].plans[mi.index()].props = math_input::Props {
+        self.tables[t.index()].plans[mi.index()].props = math_input::Props {
             value: Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![math_input::EXPR]),
             expr: Source::GivenMath(None),
         }

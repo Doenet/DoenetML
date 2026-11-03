@@ -25,7 +25,7 @@ impl<'a> Compiler<'a> {
     /// hidden slot per case condition (an else is a constant 1) and
     /// `choice`, the first of them that holds.
     pub(in crate::compile) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let Body::Choice(cid) = self.compiled.templates[t.index()].elems[e.index()].body else {
+        let Body::Choice(cid) = self.outlined(t).elems[e.index()].body else {
             unreachable!()
         };
         let d = self.dast;
@@ -33,7 +33,7 @@ impl<'a> Compiler<'a> {
             node,
             name_scope: scope,
             ..
-        } = self.compiled.templates[t.index()].elems[e.index()];
+        } = self.outlined(t).elems[e.index()];
         let hide = match d.attr(node, "hide") {
             Some(a) if self.attr_text(a).is_some() => {
                 Source::Const(if self.attr_flag(node, "hide") {
@@ -45,14 +45,13 @@ impl<'a> Compiler<'a> {
             Some(a) => self.plan_value(t, scope, "hide", d.attr_children(a), None)?,
             None => Source::Const(0.0),
         };
-        if !self.compiled.choices[cid.index()].reactive {
-            self.compiled.templates[t.index()].plans[e.index()].props =
-                prop::select::Props { hide }.into_vec();
+        if !self.choice(cid).reactive {
+            self.tables[t.index()].plans[e.index()].props = prop::select::Props { hide }.into_vec();
             return Ok(());
         }
         let mut wiring = ElemWiring::of(ComponentType::ConditionalContent);
         let mut conds = Vec::new();
-        for c in self.compiled.choices[cid.index()].conditions.clone() {
+        for c in self.choice(cid).conditions.clone() {
             conds.push(match c {
                 Some(a) => self.plan_condition(t, e, &mut wiring, d.attr_children(a))?,
                 None => wiring.hidden(Source::Const(1.0)),
@@ -74,7 +73,7 @@ impl<'a> Compiler<'a> {
             choice: Source::own(first),
             hide,
         });
-        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
+        self.tables[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 }

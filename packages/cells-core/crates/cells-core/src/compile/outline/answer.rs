@@ -14,7 +14,7 @@ impl Compiler<'_> {
         let answers: Vec<(TemplateId, ElemId)> = made
             .into_iter()
             .filter(|&(t, e)| {
-                let el = &self.compiled.templates[t.index()].elems[e.index()];
+                let el = &self.outlined(t).elems[e.index()];
                 el.component_type == ComponentType::Answer && !el.cloned && el.node != NodeId::NONE
             })
             .collect();
@@ -29,14 +29,14 @@ impl Compiler<'_> {
     /// does. Where the planner refuses the answer, this stops early.
     fn add_answer_children_of(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.dast;
-        let el = self.compiled.templates[t.index()].elems[e.index()].node;
+        let el = self.outlined(t).elems[e.index()].node;
         if self.reject_answer_attrs(el)? {
             return Ok(());
         }
         let mut inputs = Vec::new();
         let mut awards = Vec::new();
         for k in self.elem_children(t, e) {
-            match self.compiled.templates[t.index()].elems[k.index()].component_type {
+            match self.outlined(t).elems[k.index()].component_type {
                 ComponentType::ChoiceInput => return Ok(()),
                 ComponentType::MathInput
                 | ComponentType::BooleanInput
@@ -101,7 +101,7 @@ impl Compiler<'_> {
         let r = self
             .push_elem(t, NodeId::NONE, ComponentType::Response, StrId::NONE, e)
             .expect("unnamed");
-        self.compiled.templates[t.index()].elems[e.index()]
+        self.outlined_mut(t).elems[e.index()]
             .children
             .push(Child::Elem(r));
         r
@@ -114,7 +114,7 @@ impl Compiler<'_> {
         let mi = self
             .push_elem(t, NodeId::NONE, ComponentType::MathInput, StrId::NONE, e)
             .expect("unnamed");
-        self.compiled.templates[t.index()].elems[e.index()]
+        self.outlined_mut(t).elems[e.index()]
             .children
             .insert(0, Child::Elem(mi));
     }

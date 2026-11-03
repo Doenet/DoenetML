@@ -21,6 +21,8 @@ impl Compiler<'_> {
     pub(in crate::compile) fn outline(&mut self) -> Outline {
         let dast = self.dast;
         self.outlining = Some(Outlining::default());
+        // Template 0, the document's.
+        self.push_template(None);
         // Template 0 is the document: its one child is the root component.
         let doc_el = dast
             .children(Dast::ROOT)
@@ -45,11 +47,11 @@ impl Compiler<'_> {
                     ROOT_SCOPE,
                     dast.children(Dast::ROOT),
                 );
-                self.compiled.templates[0].elems[e.index()].children = kids;
+                self.outlined_mut(TemplateId::new(0)).elems[e.index()].children = kids;
                 vec![Child::Elem(e)]
             }
         };
-        self.compiled.templates[0].children = children;
+        self.outlined_mut(TemplateId::new(0)).children = children;
         {
             let _s = crate::trace::span("container copies");
             crate::trace::count("copies", self.outlining().container_copies.len());
@@ -90,16 +92,17 @@ impl Compiler<'_> {
         name_scope: ElemId,
         stop: ElemId,
     ) -> Result<ElemId> {
-        // Only outlining names elements (ADR 0030).
+        // Only outlining makes and names elements (ADR 0030).
         let dast = self.dast;
-        let mut names = (name != StrId::NONE).then(|| {
-            &mut (self.outlining.as_mut())
-                .expect("only outlining names elements (ADR 0030)")
-                .work
-                .settled
-                .names
-        });
-        let name_id = names.as_mut().map(|names| {
+        self.tables[t.index()].boxes.push(BoxState::Live);
+        let Settled {
+            names, templates, ..
+        } = &mut (self.outlining.as_mut())
+            .expect("only outlining makes elements (ADR 0030)")
+            .work
+            .settled;
+        let tpl = &mut templates[t.index()];
+        let name_id = (name != StrId::NONE).then(|| {
             let s = dast.strings.get(name).trim();
             let id = match names.ids.get(s) {
                 Some(&id) => id,
@@ -117,11 +120,9 @@ impl Compiler<'_> {
             by_str[name.index()] = id;
             id
         });
-        let tpl = &mut self.compiled.templates[t.index()];
         let e = tpl.elems.len();
         tpl.elems.push(Elem {
             node,
-            // Set once every element is planned (`assign_keys`).
             component_type,
             name,
             name_scope,
@@ -132,8 +133,7 @@ impl Compiler<'_> {
             body: Body::Plain,
             clones_pending: false,
         });
-        tpl.boxes.push(BoxState::Live);
-        if let (Some(id), Some(names)) = (name_id, names) {
+        if let Some(id) = name_id {
             // Two siblings with one name can never be told apart.
             if !names.siblings.insert((t.get(), name_scope.get(), id)) {
                 let s = dast.strings.get(name).trim().to_string();
@@ -179,12 +179,12 @@ impl Compiler<'_> {
         if self.boxed.contains(&el) {
             return self.push_error_elem(t, el, name_scope);
         }
-        let n = self.compiled.templates[t.index()].elems.len();
+        let n = self.outlined(t).elems.len();
         match self.add_elem_inner(t, el, name_scope) {
             Ok(e) => e,
             // The element is boxed where it fails (ADR 0027): the one
             // made for it, when it got that far, else a new one.
-            Err(error) if self.compiled.templates[t.index()].elems.len() > n => {
+            Err(error) if self.outlined(t).elems.len() > n => {
                 let e = ElemId::from_index(n);
                 // A duplicate name was never registered; the box carries
                 // none. Outlining's own row, before it is boxed.
@@ -222,29 +222,20 @@ impl Compiler<'_> {
         self.outlining().work.to_plan.push((t, e));
         if self.is_container_copy(t, e) {
             self.outlining().container_copies.push((t, e));
-            self.compiled.templates[t.index()].elems[e.index()].clones_pending = true;
+            self.outlined_mut(t).elems[e.index()].clones_pending = true;
         }
         let child_scope = e;
         match component_type {
             ComponentType::FunctionIterates => {
                 // One hidden tuple per iteration, planned with the element
                 // (`plan_function_iterates`); it is element 0 of the body.
-                let sub = TemplateId::from_index(self.compiled.templates.len());
-                self.compiled.templates.push(Template {
-                    parent: Some((t, e)),
-                    ..Default::default()
-                });
+                let sub = self.push_template(Some((t, e)));
                 let it = self.add_synthetic(sub, ComponentType::Tuple, StrId::NONE);
-                self.compiled.templates[sub.index()].children = vec![Child::Elem(it)];
-                self.compiled.templates[t.index()].elems[e.index()].body =
-                    Body::Repeat { template: sub };
+                self.outlined_mut(sub).children = vec![Child::Elem(it)];
+                self.outlined_mut(t).elems[e.index()].body = Body::Repeat { template: sub };
             }
             ComponentType::RepeatForSequence | ComponentType::RepeatFor => {
-                let sub = TemplateId::from_index(self.compiled.templates.len());
-                self.compiled.templates.push(Template {
-                    parent: Some((t, e)),
-                    ..Default::default()
-                });
+                let sub = self.push_template(Some((t, e)));
                 // Hidden iteration components first, so `$v` and `$i` resolve
                 // anywhere inside the template; the repeat's planner plans
                 // them (`plan_iteration_names`). A `<repeat>`'s item is a
@@ -261,9 +252,8 @@ impl Compiler<'_> {
                     self.add_synthetic(sub, ComponentType::Number, iname);
                 }
                 let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el));
-                self.compiled.templates[sub.index()].children = kids;
-                self.compiled.templates[t.index()].elems[e.index()].body =
-                    Body::Repeat { template: sub };
+                self.outlined_mut(sub).children = kids;
+                self.outlined_mut(t).elems[e.index()].body = Body::Repeat { template: sub };
             }
             ComponentType::Collect | ComponentType::PointList => {}
             ComponentType::ConditionalContent | ComponentType::Select => {
@@ -279,7 +269,7 @@ impl Compiler<'_> {
                         kids.push(Child::Elem(self.add_elem(t, n, child_scope)));
                     }
                 }
-                self.compiled.templates[t.index()].elems[e.index()].children = kids;
+                self.outlined_mut(t).elems[e.index()].children = kids;
             }
             ComponentType::When => {}
             // A number's children are its value, not rendered children; a
@@ -301,12 +291,12 @@ impl Compiler<'_> {
                     .collect();
                 if !presentational.is_empty() {
                     let kids = self.add_children(t, Some(e), child_scope, &presentational);
-                    self.compiled.templates[t.index()].elems[e.index()].children = kids;
+                    self.outlined_mut(t).elems[e.index()].children = kids;
                 }
             }
             _ => {
                 let kids = self.add_children(t, Some(e), child_scope, d.children(el));
-                self.compiled.templates[t.index()].elems[e.index()].children = kids;
+                self.outlined_mut(t).elems[e.index()].children = kids;
             }
         }
         self.settle_outline(t, e, el)?;
@@ -321,7 +311,7 @@ impl Compiler<'_> {
     /// `from`.
     fn settle_outline(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<()> {
         let d = self.dast;
-        let elem = &self.compiled.templates[t.index()].elems[e.index()];
+        let elem = &self.outlined(t).elems[e.index()];
         let component_type = match elem.component_type {
             ComponentType::Math => {
                 let mt = self.math_text(d.children(el));
@@ -329,7 +319,7 @@ impl Compiler<'_> {
                     Ok(mt) => crate::components::values::math::settled_type(mt.tokens()),
                     Err(_) => ComponentType::Math,
                 };
-                self.compiled.templates[t.index()].elems[e.index()].component_type = k;
+                self.outlined_mut(t).elems[e.index()].component_type = k;
                 self.outlining().work.math_texts.push(((t, e), mt));
                 return Ok(());
             }
@@ -339,7 +329,7 @@ impl Compiler<'_> {
             ComponentType::Polyline => crate::components::geometry::polyline::COLLECTED,
             _ => return Ok(()),
         };
-        self.compiled.templates[t.index()].elems[e.index()].body = Body::Collect { component_type };
+        self.outlined_mut(t).elems[e.index()].body = Body::Collect { component_type };
         Ok(())
     }
 
@@ -375,7 +365,7 @@ impl Compiler<'_> {
                         kids.push(Child::Elem(self.push_error_elem(t, n, name_scope)));
                         continue;
                     }
-                    let tpl = &mut self.compiled.templates[t.index()];
+                    let tpl = self.outlined_mut(t);
                     let id = RefChildId::from_index(tpl.ref_children.len());
                     tpl.ref_children.push(RefChild {
                         node: n,

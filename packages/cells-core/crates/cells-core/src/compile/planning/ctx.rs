@@ -44,7 +44,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         let base = base.map(|b| {
             let Elem {
                 node, name_scope, ..
-            } = c.compiled.templates[t.index()].elems[b.index()];
+            } = *c.elem(t, b);
             let d = c.dast;
             let mut subtree = HashSet::new();
             let mut stack = vec![node];
@@ -71,7 +71,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
 
 impl<'a> PlanCtx<'_, 'a> {
     fn elem(&self) -> &Elem {
-        &self.c.compiled.templates[self.t.index()].elems[self.e.index()]
+        self.c.elem(self.t, self.e)
     }
 
     fn scope(&self) -> ElemId {
@@ -125,13 +125,13 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// The reference in the element's `extend`, if any.
     pub(crate) fn extend(&self) -> Option<RefId> {
-        self.c.compiled.templates[self.t.index()].plans[self.e.index()].extend
+        self.c.tables[self.t.index()].plans[self.e.index()].extend
     }
 
     /// Whether the element has been planned already (an award by its
     /// answer).
     pub(crate) fn is_planned(&self) -> bool {
-        !self.c.compiled.templates[self.t.index()].plans[self.e.index()]
+        !self.c.tables[self.t.index()].plans[self.e.index()]
             .props
             .is_empty()
     }
@@ -140,9 +140,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// directly, if it sits in one.
     pub(crate) fn enclosing_graph_prop(&self, pos: usize) -> Option<Source> {
         let scope = self.scope();
-        (scope != ROOT_SCOPE
-            && self.c.compiled.templates[self.t.index()].elems[scope.index()].component_type
-                == ComponentType::Graph)
+        (scope != ROOT_SCOPE && self.c.elem(self.t, scope).component_type == ComponentType::Graph)
             .then(|| Source::Alias(Arg::Elem(scope, own_slot(pos))))
     }
 
@@ -452,7 +450,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Sets the element's props.
     pub(crate) fn set_props(&mut self, props: Vec<Source>) {
-        self.c.compiled.templates[self.t.index()].plans[self.e.index()].props = props;
+        self.c.tables[self.t.index()].plans[self.e.index()].props = props;
     }
 
     /// The element's `<math>` text as it was parsed (ADR 0029), or the
@@ -469,9 +467,9 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn alias_extended(&mut self, prop: &'static str) -> Result<()> {
         let p = self.extend().expect("the element extends another");
         self.name_prop_if_none(p, prop);
-        let tpl = &mut self.c.compiled.templates[self.t.index()];
-        tpl.plans[self.e.index()].extend = None;
-        tpl.plans[self.e.index()].props = vec![Source::reference(p)];
+        let plan = &mut self.c.tables[self.t.index()].plans[self.e.index()];
+        plan.extend = None;
+        plan.props = vec![Source::reference(p)];
         Ok(())
     }
 
@@ -486,7 +484,7 @@ impl<'a> PlanCtx<'_, 'a> {
         );
         let mut props = vec![Source::absent(); own_type.prop_defs().len()];
         Deferred::mark(own_type, &mut props);
-        let plan = &mut self.c.compiled.templates[self.t.index()].plans[self.e.index()];
+        let plan = &mut self.c.tables[self.t.index()].plans[self.e.index()];
         plan.from = Some(from);
         plan.props = props;
     }

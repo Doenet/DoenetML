@@ -705,7 +705,7 @@ impl<'c> Builder<'c> {
             Child::Macro(id) => {
                 let tpl = &self.compiled.templates[t.index()];
                 let rc = tpl.ref_children[id.index()];
-                match tpl.ref_child_plans[id.index()] {
+                match tpl.tables.ref_child_plans[id.index()] {
                     RefChildPlan::Ref(plan) => {
                         // Type is unknown until the reference resolves;
                         // Document stands in.
