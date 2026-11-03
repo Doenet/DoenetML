@@ -48,6 +48,12 @@ crate::index::index_type! {
     pub(crate) struct ChoiceId;
 }
 
+crate::index::index_type! {
+    /// A `$ref` child of a template's elements or of the template itself:
+    /// a position in its template's `ref_children` and `ref_child_plans`.
+    pub(crate) struct RefChildId;
+}
+
 // ---------------------------------------------------------------------------
 // Compiled templates
 // ---------------------------------------------------------------------------
@@ -227,9 +233,10 @@ impl Source {
 pub(crate) enum Child {
     Elem(ElemId),
     Text(StrId),
-    /// A `$ref` child: a copy or a number, decided when it resolves. The
-    /// flag says whether the path carries an index.
-    Macro(RefId, bool),
+    /// A `$ref` child: a copy or a number, decided when it resolves. What
+    /// outlining knows of it is its template's `ref_children`, and its
+    /// plan its template's `ref_child_plans` (ADR 0031).
+    Macro(RefChildId),
 }
 
 #[derive(Debug, Clone)]
@@ -448,6 +455,27 @@ impl Elem {
     }
 }
 
+/// What outlining knows of a `$ref` child (ADR 0031): its node, the
+/// element whose child it is (`None` for the template's own children), and
+/// whether its path carries an index.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct RefChild {
+    pub(crate) node: NodeId,
+    pub(crate) owner: Option<ElemId>,
+    pub(crate) has_index: bool,
+}
+
+/// A `$ref` child's plan (ADR 0031): planning's, as a reference, or a box
+/// when it cannot be planned (ADR 0027), which the build makes an `_error`
+/// component of. `Unplanned` is under a box: no build reaches it.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) enum RefChildPlan {
+    #[default]
+    Unplanned,
+    Ref(RefId),
+    Boxed,
+}
+
 /// The stage that made a box (ADR 0031): a reader of a referent's type
 /// while planning sees only outlining's, so planning does not depend on
 /// its own order.
@@ -514,6 +542,11 @@ pub(crate) struct Template {
     pub(crate) elems: Vec<Elem>,
     /// Boxing's table (ADR 0031), parallel to `elems`: a row per element.
     pub(crate) boxes: Vec<BoxState>,
+    /// Outlining's table of `$ref` children (ADR 0031), by `RefChildId`.
+    pub(crate) ref_children: Vec<RefChild>,
+    /// Planning's table of `$ref` children's plans, parallel to
+    /// `ref_children`: empty until planning makes it.
+    pub(crate) ref_child_plans: Vec<RefChildPlan>,
     /// Sealing's table (ADR 0031), parallel to `elems`: empty until
     /// sealing makes it.
     pub(crate) sealed: SealedTemplate,

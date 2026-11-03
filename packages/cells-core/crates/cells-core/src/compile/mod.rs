@@ -132,14 +132,14 @@ pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled; `compiled` keeps it too. R: every stage.
     pub(in crate::compile) dast: &'a Dast,
     /// What the compile makes. W: every stage. Outlining pushes every
-    /// element (an answer's synthetic ones too, `add_answer_children`) and
-    /// template, and the references it reads (a container copy's
-    /// `extend`, an answer's whens), and settles a `<math>`'s type; it
-    /// plans no prop. Parsing pushes references and expressions; planning
-    /// sets props, bodies, holds and `extend`s, and pushes no element but
-    /// the box of a `$ref` child it cannot plan; linking boxes and aliases
-    /// shared slots; sealing sets choice interfaces, keys and slot
-    /// offsets.
+    /// element (an answer's synthetic ones too, `add_answer_children`),
+    /// template and `$ref` child (`ref_children`), and the references it
+    /// reads (a container copy's `extend`, an answer's whens), and settles
+    /// a `<math>`'s type; it plans no prop. Parsing pushes references and
+    /// expressions; planning sets props, bodies, holds and `extend`s, and
+    /// makes the `$ref` children's plans (`ref_child_plans`), pushing no
+    /// element; boxing writes `boxes`; linking aliases shared slots;
+    /// sealing makes `sealed` and choice interfaces (ADR 0031).
     pub(in crate::compile) compiled: Compiled,
     /// Outlining's own state, and the `Outline` it is filling: `Some`
     /// only while outlining runs (`outline`), so nothing after it can add
@@ -198,7 +198,7 @@ pub(in crate::compile) struct Outline {
     /// Every element to plan, as outlining made them (`plan_all`).
     to_plan: Vec<(TemplateId, ElemId)>,
     /// Every `$ref` child to plan (`plan_all`).
-    macros: Vec<PendingMacro>,
+    macros: Vec<(TemplateId, RefChildId)>,
     /// Each `<math>`'s text, tokenized where its type was settled
     /// (`parse_maths`).
     math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
@@ -246,16 +246,6 @@ pub(in crate::compile) struct Planned {
     /// (`referent_type`), with the reference. R: link
     /// (`box_readers_of_boxes`), which boxes one whose referent is a box.
     referent_readers: Vec<(TemplateId, ElemId, RefId)>,
-}
-
-/// A `$ref` child awaiting its plan: its template, the element whose
-/// child it is (`None` for the template's own children), its index in that
-/// child list, and its node.
-struct PendingMacro {
-    t: TemplateId,
-    owner: Option<ElemId>,
-    i: usize,
-    node: NodeId,
 }
 
 /// Outlining's state while it runs (`Compiler::outlining`).
@@ -363,20 +353,18 @@ impl Compiler<'_> {
         // From here on, every stage reads what outlining settled and none
         // can change it.
         cp.settled = Some(&settled);
-        // The element set is outlining's (ADR 0030): planning and linking
-        // make none, but for the box of a `$ref` child that cannot be
-        // planned, which has no element to be boxed in place.
+        // The element set is outlining's (ADR 0030, ADR 0031): planning and
+        // linking make none.
         let outlined = cp.elem_count();
         let parsed: Parsed = crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
         cp.parsed = Some(&parsed);
-        let (mut planned, ref_boxes) =
-            crate::trace::span("plan all").run(|| cp.plan_all(to_plan, macros));
+        let mut planned = crate::trace::span("plan all").run(|| cp.plan_all(to_plan, macros));
         cp.restart_if_needed()?;
         crate::trace::span("link").run(|| cp.link(&mut planned))?;
         debug_assert_eq!(
             cp.elem_count(),
-            outlined + ref_boxes,
-            "only outlining makes elements (ADR 0030)"
+            outlined,
+            "only outlining makes elements (ADR 0030, ADR 0031)"
         );
         cp.restart_if_needed()?;
         crate::trace::span("seal").run(|| cp.seal(&planned))?;

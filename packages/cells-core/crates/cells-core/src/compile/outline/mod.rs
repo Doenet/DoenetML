@@ -377,14 +377,15 @@ impl Compiler<'_> {
                         kids.push(Child::Elem(self.push_error_elem(t, n, name_scope)));
                         continue;
                     }
-                    let i = kids.len();
-                    self.outlining().work.macros.push(PendingMacro {
-                        t,
-                        owner,
-                        i,
+                    let tpl = &mut self.compiled.templates[t.index()];
+                    let id = RefChildId::from_index(tpl.ref_children.len());
+                    tpl.ref_children.push(RefChild {
                         node: n,
+                        owner,
+                        has_index: d.macro_has_index(n),
                     });
-                    kids.push(Child::Macro(RefId::NONE, false));
+                    self.outlining().work.macros.push((t, id));
+                    kids.push(Child::Macro(id));
                 }
                 NodeKind::Other => {}
             }

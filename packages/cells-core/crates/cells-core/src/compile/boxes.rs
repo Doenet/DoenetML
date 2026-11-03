@@ -92,7 +92,22 @@ impl Compiler<'_> {
                 }
             }
         }
-        if boxes.is_empty() {
+        // A `$ref` child's box is under a box when what it is a child of is.
+        let templates = &self.compiled.templates;
+        for tpl in templates {
+            for (rc, plan) in tpl.ref_children.iter().zip(&tpl.ref_child_plans) {
+                let under_box = match rc.owner {
+                    Some(e) => tpl.is_box(e),
+                    None => tpl
+                        .parent
+                        .is_some_and(|(pt, pe)| templates[pt.index()].is_box(pe)),
+                };
+                if *plan == RefChildPlan::Boxed && under_box {
+                    dead.insert(rc.node);
+                }
+            }
+        }
+        if boxes.is_empty() && dead.is_empty() {
             return;
         }
         let on = |set: &HashSet<NodeId>, d: &Diagnostic| d.node.is_some_and(|n| set.contains(&n));
@@ -229,5 +244,31 @@ mod tests {
         assert!(tpl.row(g).children.is_empty());
         assert!(tpl.is_dead(a));
         assert_eq!(tpl.elems[a.index()].component_type, ComponentType::Point);
+    }
+
+    /// A `$ref` child that cannot be planned is boxed in planning's table
+    /// of `$ref` children (ADR 0031): no element is made for it, and the
+    /// child list outlining made is left as it made it.
+    #[test]
+    fn a_ref_child_that_cannot_be_planned_is_boxed_in_planning_table() {
+        let dast = document([el("p").name("p").child(mac("nope"))]);
+        let compiled = crate::testing::compile(&dast).unwrap();
+        let (t, p) = find(&compiled, "p");
+        let tpl = &compiled.templates[t.index()];
+        assert!(
+            tpl.elems
+                .iter()
+                .all(|e| e.component_type != ComponentType::Error)
+        );
+        let [Child::Macro(id)] = tpl.elems[p.index()].children[..] else {
+            panic!("one $ref child");
+        };
+        assert_eq!(tpl.ref_child_plans[id.index()], RefChildPlan::Boxed);
+        assert!(
+            compiled
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "doenet-w0104")
+        );
     }
 }

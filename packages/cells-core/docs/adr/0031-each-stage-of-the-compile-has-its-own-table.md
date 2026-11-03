@@ -1,6 +1,6 @@
 # Each stage of the compile has its own table
 
-Status: proposed 2026-11-02. Steps 1 and 2 are done; see Migration. Amended
+Status: proposed 2026-11-02. Steps 1 to 3 are done; see Migration. Amended
 2026-11-02: the boundaries the tables draw leak in three places (boxing,
 the planner context, code more than one stage runs); see "Where the
 boundaries leak".
@@ -242,6 +242,17 @@ otherwise.
 3. **`$ref` children.** Dense ids in child lists, and a table of their
    plans that planning fills, a box among them; planning makes no
    element, and the debug assertion of ADR 0030 loses its exception.
+   Done. `Child::Macro` holds a `RefChildId` into its template's
+   `ref_children` (outlining's: the node, the element it is a child of,
+   whether the path has an index) and `ref_child_plans` (planning's:
+   `Ref`, `Boxed`, or `Unplanned` under a box). Planning writes no child
+   list and makes no element; the build makes a boxed `$ref` child's
+   `_error` component from its row, while it walks the child lists, and
+   that box no longer takes a key. Outlining still makes an element for
+   a `$ref` child an earlier compile boxed, as it does for any node boxed
+   from the start. `drop_reports_of_boxes` leaves out a `$ref` child's
+   error when what it is a child of is a box, as when its box was an
+   element under it. Test: `compile/boxes.rs`.
 4. **`plan_ref` reads only outlining's facts.** Container copies are
    expanded by outlining when a reference reports one it needs;
    `ref_subst` moves out of it; an interface step names its name by id,

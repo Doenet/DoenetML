@@ -669,7 +669,7 @@ impl<'c> Builder<'c> {
         let mut out = Vec::with_capacity(self.compiled.templates[t.index()].children.len());
         for i in 0..self.compiled.templates[t.index()].children.len() {
             let ch = &self.compiled.templates[t.index()].children[i];
-            out.push(self.child_entry(ch, scope, parent));
+            out.push(self.child_entry(t, ch, scope, parent));
         }
         Ok(out)
     }
@@ -685,13 +685,14 @@ impl<'c> Builder<'c> {
         let mut kids = Vec::with_capacity(n);
         for i in 0..n {
             let ch = &self.compiled.templates[t.index()].row(e).children[i];
-            kids.push(self.child_entry(ch, scope, parent));
+            kids.push(self.child_entry(t, ch, scope, parent));
         }
         kids
     }
 
     pub(in crate::build) fn child_entry(
         &mut self,
+        t: TemplateId,
         ch: &Child,
         scope: ScopeId,
         parent: CompIdx,
@@ -699,18 +700,38 @@ impl<'c> Builder<'c> {
         match *ch {
             Child::Elem(e) => ChildEntry::comp(self.scope_comps[scope.index()][e.index()]),
             Child::Text(s) => ChildEntry::text(s),
-            Child::Macro(plan, has_index) => {
-                // Type is unknown until the reference resolves; Document stands in.
-                let idx = self.new_component(
-                    ComponentType::Document,
-                    StrId::NONE,
-                    parent,
-                    NodeId::NONE,
-                    scope,
-                    0,
-                );
-                self.pending.push((idx, plan, scope, has_index));
-                ChildEntry::comp(idx)
+            Child::Macro(id) => {
+                let tpl = &self.compiled.templates[t.index()];
+                let rc = tpl.ref_children[id.index()];
+                match tpl.ref_child_plans[id.index()] {
+                    RefChildPlan::Ref(plan) => {
+                        // Type is unknown until the reference resolves;
+                        // Document stands in.
+                        let idx = self.new_component(
+                            ComponentType::Document,
+                            StrId::NONE,
+                            parent,
+                            NodeId::NONE,
+                            scope,
+                            0,
+                        );
+                        self.pending.push((idx, plan, scope, rc.has_index));
+                        ChildEntry::comp(idx)
+                    }
+                    // A `$ref` child that could not be planned is its box
+                    // (ADR 0027, ADR 0031); one under a box is never
+                    // reached, since a box has no children.
+                    RefChildPlan::Boxed | RefChildPlan::Unplanned => {
+                        ChildEntry::comp(self.new_component(
+                            ComponentType::Error,
+                            StrId::NONE,
+                            parent,
+                            rc.node,
+                            scope,
+                            0,
+                        ))
+                    }
+                }
             }
         }
     }

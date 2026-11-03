@@ -32,15 +32,15 @@ enum ElemShape {
 impl Compiler<'_> {
     /// Planning: every element and every `$ref` child, each from the
     /// source and what outlining and parsing made alone, never from
-    /// another element's plan (ADR 0029). What fails is boxed in place.
-    /// Returns how many `$ref` children were boxed, each a new element.
+    /// another element's plan (ADR 0029). What fails is boxed in place. A
+    /// `$ref` child's plan goes in its template's `ref_child_plans`, a box
+    /// among them for one that cannot be planned: planning makes no
+    /// element and writes no child list (ADR 0031).
     pub(in crate::compile) fn plan_all(
         &mut self,
         to_plan: Vec<(TemplateId, ElemId)>,
-        macros: Vec<PendingMacro>,
-    ) -> (Planned, usize) {
-        let dast = self.dast;
-        let mut ref_boxes = 0;
+        ref_children: Vec<(TemplateId, RefChildId)>,
+    ) -> Planned {
         self.planning = Some(Planned::default());
         {
             let _s = crate::trace::span("elements");
@@ -50,14 +50,14 @@ impl Compiler<'_> {
             }
         }
         let _s = crate::trace::span("refs");
-        crate::trace::count("refs", macros.len());
-        for PendingMacro {
-            t,
-            owner,
-            i,
-            node: m,
-        } in macros
-        {
+        crate::trace::count("refs", ref_children.len());
+        // Planning's table of `$ref` children, made here.
+        for tpl in &mut self.compiled.templates {
+            tpl.ref_child_plans = vec![RefChildPlan::Unplanned; tpl.ref_children.len()];
+        }
+        for (t, id) in ref_children {
+            let RefChild { node: m, owner, .. } =
+                self.compiled.templates[t.index()].ref_children[id.index()];
             // Content of a box is not planned.
             let dead = match owner {
                 Some(e) => self.is_box(t, e),
@@ -72,24 +72,19 @@ impl Compiler<'_> {
                 Some(e) => self.child_scope(t, e),
                 None => ROOT_SCOPE,
             };
-            let child = match self.plan_ref(t, scope, m) {
-                Ok(plan) => Child::Macro(plan, dast.macro_has_index(m)),
+            let plan = match self.plan_ref(t, scope, m) {
+                Ok(p) => RefChildPlan::Ref(p),
                 // A reference that cannot be planned is boxed where it
                 // stands (ADR 0027).
                 Err(error) => {
                     self.errors.push(Diagnostic::error(Some(m), &error));
                     self.boxed_here.insert(m);
-                    ref_boxes += 1;
-                    Child::Elem(self.push_error_elem(t, m, scope))
+                    RefChildPlan::Boxed
                 }
             };
-            match owner {
-                Some(e) => self.compiled.templates[t.index()].elems[e.index()].children[i] = child,
-                None => self.compiled.templates[t.index()].children[i] = child,
-            }
+            self.compiled.templates[t.index()].ref_child_plans[id.index()] = plan;
         }
-        let planned = self.planning.take().expect("planning");
-        (planned, ref_boxes)
+        self.planning.take().expect("planning")
     }
 
     /// Plans element `e`, and records what holds it (`plan_hold`,
