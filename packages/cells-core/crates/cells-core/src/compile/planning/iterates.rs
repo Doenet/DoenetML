@@ -32,9 +32,9 @@ impl<'a> Compiler<'a> {
     /// the body, so its references resolve from the `<functionIterates>`.
     pub(super) fn plan_function_iterates(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         self.plan_attrs(t, e, None)?;
-        let at = function_iterates::Props::AT;
-        self.tables[t.index()].plans[e.index()].props[at.allIteratesWithInitial] =
-            Source::own(at.count);
+        let ports = function_iterates::Props::PORTS;
+        self.tables[t.index()].plans[e.index()].props[ports.allIteratesWithInitial.index()] =
+            Source::own(ports.count);
         let d = self.dast;
         let Elem {
             node: el,
@@ -207,18 +207,18 @@ impl<'a> Compiler<'a> {
                     let from = self.own_prop_plan(e, "from");
                     let step = self.own_prop_plan(e, "step");
                     use prop::sequence_value as sv;
-                    let at = sv::Props::AT;
-                    let table = |i| Wire::from_table(ComponentType::SequenceValue, i);
+                    let ports = sv::Props::PORTS;
+                    let table = |port| Wire::from_table(ComponentType::SequenceValue, port);
                     let mut wiring = ElemWiring::of(ComponentType::SequenceValue);
                     wiring.set_public(sv::Props {
                         from: Source::reference(from).into(),
                         step: Source::reference(step).into(),
                         k: Source::IterIndex.into(),
-                        km1: table(at.km1),
-                        scaled: table(at.scaled),
-                        value: table(at.value),
+                        km1: table(ports.km1),
+                        scaled: table(ports.scaled),
+                        value: table(ports.value),
                     });
-                    wiring.finish()
+                    wiring.finish().0
                 }
                 ComponentType::Number => prop::number::Props {
                     value: Source::IterIndex,

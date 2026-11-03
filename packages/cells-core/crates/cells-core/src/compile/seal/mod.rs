@@ -27,8 +27,8 @@ pub(in crate::compile) struct Seal<'a> {
     /// What sealing finds of each choice, as it finds it.
     pub(in crate::compile) choice_seals: Vec<ChoiceSeal>,
     /// By (template, element), a geometry element's shared state
-    /// (`Compiler::shared_state`), which a key names a hidden slot by.
-    pub(in crate::compile) shared_state: &'a HashMap<(u32, u32), HashMap<SharedState, u8>>,
+    /// (`Compiler::shared_state`), which a key names a hidden port by.
+    pub(in crate::compile) shared_state: &'a HashMap<(u32, u32), HashMap<SharedState, Port>>,
 }
 
 impl<'a> Seal<'a> {
@@ -98,7 +98,7 @@ impl<'a> Seal<'a> {
         Ok(())
     }
 
-    /// Slot offsets, now that planned types know their hidden slot count:
+    /// Slot offsets, now that planned types know their hidden port count:
     /// by template, each element's, and how many slots they take.
     fn slot_offsets(&self) -> Vec<(Vec<u32>, u32)> {
         (self.template_ids())

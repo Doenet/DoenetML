@@ -403,8 +403,10 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// `Props<T>` is a struct with one field per prop of the table, named as
 /// the props are, in table order, and generic over what each field holds:
 /// a planner fills `Props<Wire>` (`compile::plan::Wire`) as a struct
-/// literal, so a prop left unplanned does not compile, and
-/// `Props::<usize>::AT` holds every prop's position.
+/// literal, so a prop left unplanned does not compile; `Props::PORTS`
+/// holds every prop's port (`compile::plan::Port`, ADR 0032), which is
+/// how a planner names one in its wiring; and `Props::<usize>::AT` holds
+/// every prop's position, for what reads a built component by position.
 ///
 /// `shared_state { .. }` names the pieces of essential state a copy with
 /// overrides shares with its original unless it overrides them
@@ -595,9 +597,22 @@ macro_rules! component {
 
         #[allow(dead_code)]
         impl Props<usize> {
-            /// Each prop's position in the table.
+            /// Each prop's position in the table: the slot the build
+            /// numbers its port to, for what reads a built component's
+            /// props by position (`components::prop`).
             pub(crate) const AT: Props<usize> = Props {
                 $($pname: $crate::components::define::at(PROPS, stringify!($pname)),)+
+            };
+        }
+
+        #[allow(dead_code)]
+        impl Props<$crate::compile::api::Port> {
+            /// Each prop's port (ADR 0032): how a planner names a table
+            /// prop in its wiring (`ports.cx`), never by its position.
+            pub(crate) const PORTS: Props<$crate::compile::api::Port> = Props {
+                $($pname: $crate::compile::api::Port::table(
+                    $crate::components::define::at(PROPS, stringify!($pname))
+                ),)+
             };
         }
 

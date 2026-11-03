@@ -61,7 +61,7 @@ impl Compiler<'_> {
     }
 
     /// Linking (ADR 0029): each piece of state a copy shares
-    /// aliases the referent's slot for it, now that every element is
+    /// aliases the referent's port for it, now that every element is
     /// planned. A copy or referent that is a box shares nothing, and a
     /// copy keeps its own given value for state its referent has none of.
     pub(in crate::compile) fn link_shared_state(&mut self, planned: &mut Planned) {
@@ -74,7 +74,7 @@ impl Compiler<'_> {
                 .get(&(s.t.get(), s.referent.get()))
                 .and_then(|m| m.get(&s.state))
             {
-                self.tables[s.t.index()].plans[s.e.index()].props[s.slot as usize] =
+                self.tables[s.t.index()].plans[s.e.index()].props[s.port.index()] =
                     Source::Alias(Arg::Elem(s.referent, bs));
             }
         }

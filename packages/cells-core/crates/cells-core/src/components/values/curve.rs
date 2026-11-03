@@ -55,7 +55,7 @@ fn is_vector_function(ctx: &PlanCtx<'_, '_>, mt: &MathText) -> bool {
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let component_type = ctx.component_type();
     let nodes: Vec<NodeId> = ctx.dast().children(ctx.node()).to_vec();
-    let at = Props::AT;
+    let at = Props::PORTS;
     let mut wiring = ElemWiring::of(component_type);
     let mt = ctx.math_text(&nodes)?;
     if component_type == ComponentType::Function && is_vector_function(ctx, &mt) {
@@ -80,8 +80,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         Wire::computed(OpSpec::Sym(SymKind::Derivative), vec![of])
     };
     let [xmin, xmax] = match (
-        ctx.enclosing_graph_prop(graph::XMIN),
-        ctx.enclosing_graph_prop(graph::XMAX),
+        ctx.enclosing_graph_prop(graph::Props::PORTS.xmin),
+        ctx.enclosing_graph_prop(graph::Props::PORTS.xmax),
     ) {
         (Some(xmin), Some(xmax)) => [xmin.into(), xmax.into()],
         _ => [Wire::constant(-10.0), Wire::constant(10.0)],

@@ -29,7 +29,7 @@ impl<'a> Compiler<'a> {
                 Source::Given(v)
             }
         };
-        let mut props: Vec<Option<Source>> = vec![None; component_type.prop_defs().len()];
+        let mut props = TableProps::of(component_type);
         for (pi, def) in component_type.prop_defs().iter().enumerate() {
             let _p = crate::trace::tally(match def.from {
                 PropFrom::Attribute => "attribute",
@@ -65,7 +65,7 @@ impl<'a> Compiler<'a> {
                     Some(a) => {
                         self.plan_value(t, scope, def.attr_name(), d.attr_children(a), None)?
                     }
-                    None => Source::own(alias as usize),
+                    None => Source::own(Port::table(alias as usize)),
                 },
                 (None, PropFrom::Computed { op, args }) => Source::from_def(op, &args),
                 (None, PropFrom::Children) => {
@@ -118,14 +118,14 @@ impl<'a> Compiler<'a> {
                 }
                 (None, PropFrom::ByPlanner) => unreachable!("`Plan` types take plan_with_extend"),
             };
-            props[pi] = Some(source);
+            props[Port::table(pi)] = Some(source);
         }
         if let Planner::PropsThen(then) = Self::planner(component_type) {
             let _s = crate::trace::tally("props then");
             then(&mut PlanCtx::new(self, t, e, None), &mut props)?;
         }
         let _s = crate::trace::tally("mark");
-        let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
+        let mut props = props.finish();
         Deferred::mark(component_type, &mut props);
         self.tables[t.index()].plans[e.index()].props = props;
         Ok(())

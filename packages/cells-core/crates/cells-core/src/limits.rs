@@ -10,9 +10,9 @@
 /// The most inputs one vector operator reads.
 pub const MAX_VEC_IN: usize = 64;
 
-/// The most vertices of a polygon: two slots each, and an element's slots
-/// are numbered by a byte (`Arg::Own`), with room left for its hidden
-/// slots.
+/// The most vertices of a polygon: two ports each, and an element's ports
+/// are numbered by a byte (`compile::plan::Port`), with room left for its
+/// hidden ports.
 pub const MAX_VERTICES: usize = 100;
 
 /// The most vertices of a rigid polygon (`VecOp::Shape` reads two per

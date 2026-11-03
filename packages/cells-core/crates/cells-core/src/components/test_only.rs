@@ -63,7 +63,7 @@ pub(crate) mod test_shape {
         wiring.set_public(Props {
             a: a(ctx)?,
             b: given(ctx, shared_state::B, attr::b)?,
-            sum: Wire::from_table(ComponentType::TestShape, Props::AT.sum),
+            sum: Wire::from_table(ComponentType::TestShape, Props::PORTS.sum),
             hide: ctx.flag(attr::hide, false)?.into(),
         });
         Ok(wiring)

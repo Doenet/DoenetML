@@ -224,7 +224,7 @@ impl<'c> Builder<'c> {
                 return ValueType::Math;
             }
             Some(Source::GivenText(_)) => return ValueType::Text,
-            Some(Source::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
+            Some(Source::Alias(Arg::Own(k))) => self.slot(comp, k.index()),
             // The extend referent's slot, as `instance_sources` resolves it.
             Some(Source::Inherit) => {
                 let Some(p) = c.templates[i.template.index()].plan(i.elem).extend else {
@@ -244,7 +244,7 @@ impl<'c> Builder<'c> {
                 if other == CompIdx::NONE {
                     return ValueType::Number;
                 }
-                self.slot(other, *k as usize)
+                self.slot(other, k.index())
             }
             Some(Source::Alias(Arg::Ref(p, Sel::Whole))) => match self.resolve_one(*p, i.scope) {
                 Ok(t) => t,

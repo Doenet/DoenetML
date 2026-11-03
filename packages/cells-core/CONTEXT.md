@@ -59,7 +59,7 @@ _Avoid_: alias (an alias is two state variables sharing one cell)
 **Shared state** — Essential state a copy shares with its original unless
 it overrides it: a circle's center and radius when they are its own
 state. Each piece has a name (`SharedState`) declared with its component's
-props; the copy's slot holding a name aliases the original's slot holding
+props; the copy's port holding a name aliases the original's port holding
 the same name. A copy extends only its own type, so a name need be unique
 only within its type.
 _Avoid_: role
@@ -322,10 +322,20 @@ its cell and is held with it. Not to be confused with a gate. An element's
 holds a *located* type (one whose every value is a location: the geometry
 types) the same way.
 
-**Slot** — At build time, one prop of one component instance (or a hidden
-value a component type's planner needs), before aliases merge slots into cells. A
-*template slot* is the same position within a template, shared by every
-instance; essential keys use it.
+**Port** — One value of an element's wiring as its planner names it (ADR
+0032): a public prop of its type's table (`Props::PORTS`), a coordinate of
+one of its list's points (`ElemWiring::item`), or a *hidden port* holding
+a helper value the planner made (`ElemWiring::hidden`). A planner holds a
+port only as the wiring hands it out, never from a number, so no planner
+computes where a value sits. The build numbers an element's ports into
+its slots in the wiring's order: the table's props, then two per list
+point, then the hidden ports.
+_Avoid_: slot (a slot is the build's numbering of a port)
+
+**Slot** — At build time, one port of one component instance, before
+aliases merge slots into cells: the build numbers each element's ports in
+their wiring's order. A *template slot* is the same position within a
+template, shared by every instance; essential keys use it.
 
 **Plan** — What the compile phase records per template: each prop's
 *source* (`Source`: a literal, an alias, an operator over other props, a
@@ -426,7 +436,7 @@ an unnamed element its nearest named ancestor's key, its tag and its
 position among that ancestor's unnamed elements of the tag
 (`s.mathInput#2`), or for an element the compile makes the element it is
 made for and its position among those (`a+1`). A prop is named by its name,
-a hidden slot by the shared state it holds; a scope by the repeat's
+a hidden port by the shared state it holds; a scope by the repeat's
 iteration, the case's key or the select's option.
 
 **Touched** — An essential cell a request wrote, whether or not the value

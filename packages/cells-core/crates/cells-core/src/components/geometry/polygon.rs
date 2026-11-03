@@ -101,7 +101,6 @@ pub(super) fn plan_vertices(
     }
     // The vertices are the list (ADR 0016), as many as given.
     let mut wiring = ElemWiring::with_list(component_type, n);
-    let n_public = wiring.n_public;
     let flag = |ctx: &PlanCtx<'_, '_>, name: Attr, default: bool| -> bool {
         match ctx.attr(name) {
             None => default,
@@ -191,9 +190,7 @@ pub(super) fn plan_vertices(
                     args.push(wiring.hidden(Source::absent()));
                 }
             }
-            let first = component_type
-                .list_slot(n_public, 1, 0)
-                .expect("a vertex the polygon holds");
+            let [first, _] = wiring.item(0);
             let mut outputs = ElemWiring::vector_from(
                 first,
                 VecOp::Shape { n: byte(n), opts },
@@ -223,15 +220,14 @@ pub(super) fn plan_vertices(
         );
         [Wire::undefined(w), Wire::undefined(w)]
     } else {
-        let vertices = (1..=n)
-            .flat_map(|k| (0..2).map(move |j| (k, j)))
-            .map(|(k, j)| {
-                component_type
-                    .list_slot(n_public, k, j)
-                    .expect("a vertex the polygon holds")
-            })
-            .collect();
-        ElemWiring::vector([CX, CY], VecOp::Centroid { n: byte(n) }, vertices)
+        let vertices = wiring.items().flatten().collect();
+        // A triangle's table is laid out as this one (`triangle.rs`).
+        let ports = Props::PORTS;
+        ElemWiring::vector(
+            [ports.cx, ports.cy],
+            VecOp::Centroid { n: byte(n) },
+            vertices,
+        )
     };
     // A triangle's table is laid out as this one (`triangle.rs`).
     wiring.set_public(Props {

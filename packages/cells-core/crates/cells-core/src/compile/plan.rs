@@ -13,9 +13,35 @@ crate::index::index_type! {
     pub struct ElemKey;
 }
 
-/// A slot's position among its element's, as an essential key holds it:
-/// a public prop's position, or a hidden slot's with `HIDDEN` set.
-pub const HIDDEN: u32 = 1 << 31;
+/// A port of an element's wiring (ADR 0032): one of its public props, a
+/// coordinate of one of its list's points, or a hidden port its planner
+/// made. A planner holds one only as its type's table or the wiring hands
+/// it out (`Props::PORTS`, `ElemWiring::item`, `ElemWiring::hidden`),
+/// never from a number: a wiring names a port by identifier, and no
+/// planner computes a slot. The build numbers ports into slots in the
+/// order the wiring holds them (`index`): the table's props, then two
+/// per point of the list, then the hidden ports. A saved-state key names
+/// an element's port by this number, and a port's name is a fact of its
+/// element (`keys::Keys::prop_key`): a public prop's, or the shared state
+/// a hidden port holds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct Port(u8);
+
+impl Port {
+    /// The port at position `i` of its element's wiring: a table prop by
+    /// its position, which only `component!` and the wiring make.
+    #[doc(hidden)]
+    pub(crate) const fn table(i: usize) -> Port {
+        assert!(i < 256, "fewer than 256 ports per element");
+        Port(i as u8)
+    }
+
+    /// The port's position among its element's, which the build numbers
+    /// its slot by.
+    pub(crate) const fn index(self) -> usize {
+        self.0 as usize
+    }
+}
 
 crate::index::index_type! {
     /// A template: a position in `Compiled::templates`.
@@ -60,15 +86,15 @@ crate::index::index_type! {
 
 /// A cell an operator reads or a slot aliases, named before any iteration
 /// exists: a reference (with a selector into what it names), one of the
-/// element's own slots, a slot of another element in the same template, or
+/// element's own ports, a port of another element in the same template, or
 /// a constant.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Arg {
     Ref(RefId, Sel),
-    Own(u8),
+    Own(Port),
     /// A copy with overridden attributes shares the rest of the original's
     /// essential state through this.
-    Elem(ElemId, u8),
+    Elem(ElemId, Port),
     /// A literal an operator reads: the build's one constant for the
     /// value (`Builder::const_slot`). Only an operator input, never an
     /// alias.
@@ -158,9 +184,9 @@ pub(crate) enum Source {
     /// (`build/expand/scoring.rs`, a collect's expansion): no planner can
     /// wire it, so its wiring says that it is deferred and who fills it.
     Deferred(Deferred),
-    /// Output `k` of the vector instruction headed at own slot `head`
+    /// Output `k` of the vector instruction headed at own port `head`
     /// (an `Op(OpSpec::Vec(..))`, which is output 0).
-    VecOut(u8, u8),
+    VecOut(Port, u8),
 }
 
 impl Source {
@@ -200,31 +226,29 @@ impl Source {
     pub(crate) fn item(p: RefId, i: usize, j: usize) -> Self {
         Source::Alias(Arg::Ref(p, Sel::Item(byte(i), byte(j))))
     }
-    pub(crate) fn own(slot: usize) -> Self {
-        Source::Alias(Arg::Own(own_slot(slot)))
+    /// An alias of the element's own port.
+    pub(crate) fn own(port: Port) -> Self {
+        Source::Alias(Arg::Own(port))
     }
-    /// Operator over the element's own slots.
-    pub(crate) fn computed(op: OpSpec, args: Vec<usize>) -> Self {
-        Source::Op(
-            op,
-            args.into_iter().map(|a| Arg::Own(own_slot(a))).collect(),
-        )
+    /// Operator over the element's own ports.
+    pub(crate) fn computed(op: OpSpec, args: Vec<Port>) -> Self {
+        Source::Op(op, args.into_iter().map(Arg::Own).collect())
     }
     /// A type's `PropFrom::Computed` prop.
     pub(crate) fn from_def(op: OpSpec, args: &[ArgFrom]) -> Self {
         let arg = |&a: &ArgFrom| match a {
-            ArgFrom::Prop(p) => Arg::Own(p),
+            ArgFrom::Prop(p) => Arg::Own(Port::table(p as usize)),
             ArgFrom::Const(k) => Arg::Const(k),
         };
         Source::Op(op, args.iter().map(arg).collect())
     }
-    /// Operator over the element's own slot `a` and the literal `k`.
-    pub(crate) fn computed_k(op: OpSpec, a: usize, k: f64) -> Self {
-        Source::Op(op, vec![Arg::Own(own_slot(a)), Arg::Const(k)])
+    /// Operator over the element's own port `a` and the literal `k`.
+    pub(crate) fn computed_k(op: OpSpec, a: Port, k: f64) -> Self {
+        Source::Op(op, vec![Arg::Own(a), Arg::Const(k)])
     }
-    /// Head of a vector instruction over own slots; this slot is output 0,
-    /// the next `n_out - 1` slots are `VecOut`.
-    pub(crate) fn vector(op: VecOp, args: Vec<usize>) -> Self {
+    /// Head of a vector instruction over own ports; this port is output 0,
+    /// the next `n_out - 1` ports are `VecOut`.
+    pub(crate) fn vector(op: VecOp, args: Vec<Port>) -> Self {
         Source::computed(OpSpec::Vec(op), args)
     }
 }
@@ -416,14 +440,17 @@ pub(crate) enum ParsedMath {
     Entries(Vec<ExprId>),
 }
 
-/// How many public props an element has.
+/// How many points an element's list holds (ADR 0016, ADR 0032), which
+/// with its type's table says which of its ports are public.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub(crate) enum NPublic {
-    /// Its type table's, whatever type the element ends up with.
+pub(crate) enum ListLen {
+    /// No points after the table's props: a type without a given list, or
+    /// one planned without its list.
     #[default]
-    Table,
-    /// The table's, then two per point of its list, as planned.
-    Planned(u32),
+    None,
+    /// As many as planning made, two ports per point after the table's
+    /// props.
+    Points(u32),
     /// As many as its `extend` referent has: a bare or cloned copy of a
     /// type with a list, whose length is known only when built.
     AsReferent,
@@ -481,13 +508,16 @@ impl Elem {
 }
 
 /// What planning makes of one element (ADR 0031): row `e` of a
-/// template's `plans` is element `e`'s. Linking aliases shared slots in
+/// template's `plans` is element `e`'s. Linking aliases shared ports in
 /// `props`; no other stage writes it.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct ElemPlan {
+    /// Each port's source, by `Port::index`: the table's props, then two
+    /// per point of the list, then the hidden ports.
     pub(crate) props: Vec<Source>,
-    /// How many of `props` are public (ADR 0016); hidden slots follow.
-    pub(crate) n_public: NPublic,
+    /// How many points its list holds (ADR 0016), which says how many of
+    /// `props` are public; the hidden ports follow them.
+    pub(crate) list: ListLen,
     /// What holds it (`fixed`, `compile/planning/fix.rs`).
     pub(crate) hold: Hold,
     /// What planning gave its body to read: the reference a `<collect>`
@@ -504,11 +534,23 @@ impl ElemPlan {
     /// The plan of a box, and of an element not planned: nothing.
     pub(crate) const NONE: ElemPlan = ElemPlan {
         props: Vec::new(),
-        n_public: NPublic::Table,
+        list: ListLen::None,
         hold: Hold::Off,
         from: None,
         extend: None,
     };
+
+    /// How many of the element's ports are public, for an element of
+    /// `component_type`: its table's props and its list's points. None
+    /// when only a build knows (`ListLen::AsReferent`).
+    pub(crate) fn n_public(&self, component_type: ComponentType) -> Option<usize> {
+        let n_table = component_type.prop_defs().len();
+        match self.list {
+            ListLen::None => Some(n_table),
+            ListLen::Points(n) => Some(n_table + 2 * n as usize),
+            ListLen::AsReferent => None,
+        }
+    }
 }
 
 /// What outlining knows of a `$ref` child (ADR 0031): its node, the
@@ -852,14 +894,9 @@ impl Compiled {
     }
 }
 
-/// An element's own slot as `Arg::Own` stores it.
-pub(crate) fn own_slot(i: usize) -> u8 {
-    u8::try_from(i).expect("fewer than 256 slots per element")
-}
-
 /// The name of a piece of essential state a copy shares with its
-/// original unless it overrides it (`plan_with_extend`): the copy's slot
-/// holding shared state `R` aliases the original's slot holding `R`. A copy
+/// original unless it overrides it (`plan_with_extend`): the copy's port
+/// holding shared state `R` aliases the original's port holding `R`. A copy
 /// extends an element of its own type only, so a name need only be
 /// unique within its type. Every one is a constant: a component's own,
 /// declared beside its props (`shared_state { .. }` in `component!`), or a
@@ -883,7 +920,7 @@ impl SharedState {
         self.0
     }
 
-    /// What saved state names a hidden slot holding it by (ADR 0017): its
+    /// What saved state names a hidden port holding it by (ADR 0017): its
     /// name, and its position for a list's points (`pt3`).
     pub(crate) fn key(self) -> String {
         if self.1 == 0 {
@@ -941,10 +978,10 @@ impl From<Attr> for Given {
 /// segment's values are in `components/geometry/mod.rs`).
 pub(crate) type DefaultPoint = ([SharedState; 2], [f64; 2]);
 
-/// One prop's source and, when it is essential state that a copy shares,
+/// One port's source and, when it is essential state that a copy shares,
 /// which shared state it is and where its value was given: what a typed
 /// plan's fields hold (`component!`'s `Props`), so shared state is always named on
-/// the slot that holds it.
+/// the port that holds it.
 #[derive(Debug, Clone)]
 pub(crate) struct Wire {
     pub(crate) source: Source,
@@ -1001,16 +1038,18 @@ impl Wire {
     pub(crate) fn undefined(warned: Warned) -> Self {
         Source::undefined(warned).into()
     }
-    /// An alias of the element's own slot.
-    pub(crate) fn own(slot: usize) -> Self {
-        Source::own(slot).into()
+    /// An alias of the element's own port.
+    pub(crate) fn own(port: Port) -> Self {
+        Source::own(port).into()
     }
-    /// An operator over the element's own slots.
-    pub(crate) fn computed(op: OpSpec, args: Vec<usize>) -> Self {
+    /// An operator over the element's own ports.
+    pub(crate) fn computed(op: OpSpec, args: Vec<Port>) -> Self {
         Source::computed(op, args).into()
     }
-    /// Prop `i` as the type's table computes it from its other props.
-    pub(crate) fn from_table(component_type: ComponentType, i: usize) -> Self {
+    /// The prop at `port` as the type's table computes it from its other
+    /// props.
+    pub(crate) fn from_table(component_type: ComponentType, port: Port) -> Self {
+        let i = port.index();
         match component_type.prop_defs()[i].from {
             PropFrom::Computed { op, args } => Source::from_def(op, &args).into(),
             _ => unreachable!(
@@ -1047,18 +1086,58 @@ impl Wire {
     }
 }
 
-/// How each of an element's props gets its value, as its planner builds it:
-/// the public props (the table's, then the list's points), then hidden
-/// helper values that the props read like any own prop.
+/// How each of an element's ports gets its value, as its planner builds
+/// it (ADR 0032): the public ports (the table's props, then the list's
+/// points), then hidden ports holding helper values that the props read
+/// like any own port. A planner names a port only as the wiring hands it
+/// out: the table's by `Props::PORTS`, a list point's by `item`, a hidden
+/// one by what made it.
 pub(crate) struct ElemWiring {
-    pub(crate) props: Vec<Option<Source>>,
-    /// The public slots: the table's props, then the list's points.
-    pub(crate) n_public: usize,
-    /// Which slot holds each piece of shared state.
-    pub(crate) shared_state: HashMap<SharedState, u8>,
+    component_type: ComponentType,
+    /// Each port's source, by `Port::index`.
+    props: Vec<Option<Source>>,
+    /// How many points the list holds, two ports each after the table's
+    /// props.
+    n_points: usize,
+    /// Which port holds each piece of shared state.
+    shared_state: HashMap<SharedState, Port>,
     /// Where a piece of shared state's value was given, if it was; a copy
     /// that gives it itself does not share it.
-    pub(crate) shared_state_given: HashMap<SharedState, Given>,
+    shared_state_given: HashMap<SharedState, Given>,
+}
+
+/// The props of an element planned from its type's table (`plan_attrs`),
+/// one per table prop by its port, which a `PropsThen` planner adjusts
+/// (`props[Props::PORTS.expr] = Some(..)`).
+pub(crate) struct TableProps(Vec<Option<Source>>);
+
+impl TableProps {
+    /// One unplanned prop per prop of `component_type`'s table.
+    pub(in crate::compile) fn of(component_type: ComponentType) -> Self {
+        TableProps(vec![None; component_type.prop_defs().len()])
+    }
+
+    /// The props in table order, each planned.
+    pub(in crate::compile) fn finish(self) -> Vec<Source> {
+        self.0
+            .into_iter()
+            .enumerate()
+            .map(|(i, p)| p.unwrap_or_else(|| panic!("table prop {i} left unplanned")))
+            .collect()
+    }
+}
+
+impl std::ops::Index<Port> for TableProps {
+    type Output = Option<Source>;
+    fn index(&self, port: Port) -> &Option<Source> {
+        &self.0[port.index()]
+    }
+}
+
+impl std::ops::IndexMut<Port> for TableProps {
+    fn index_mut(&mut self, port: Port) -> &mut Option<Source> {
+        &mut self.0[port.index()]
+    }
 }
 
 /// A prop wired from the built tree rather than planned (`Source::Deferred`).
@@ -1107,40 +1186,66 @@ impl Deferred {
 }
 
 impl ElemWiring {
-    /// Wiring for an element of `component_type`, one public slot per prop
-    /// in its table, each set by its name's position (`components::prop`).
+    /// Wiring for an element of `component_type`, one public port per prop
+    /// in its table, each set by its name (`Props::PORTS`).
     pub(crate) fn of(component_type: ComponentType) -> Self {
-        let n_public = component_type.prop_defs().len();
+        let n_table = component_type.prop_defs().len();
         ElemWiring {
-            n_public,
-            props: vec![None; n_public],
+            component_type,
+            props: vec![None; n_table],
+            n_points: 0,
             shared_state: HashMap::new(),
             shared_state_given: HashMap::new(),
         }
     }
 
     /// Wiring for an element of `component_type` whose list holds
-    /// `n_points` points, after the table's props.
+    /// `n_points` points, two public ports each after the table's props
+    /// (`item`).
     pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
         debug_assert!(component_type.given_coords().is_some());
         let mut wiring = Self::of(component_type);
-        wiring.n_public += 2 * n_points;
-        wiring.props.resize(wiring.n_public, None);
+        wiring.n_points = n_points;
+        wiring.props.resize(wiring.n_public(), None);
         wiring
     }
-    pub(crate) fn hidden(&mut self, source: Source) -> usize {
-        self.props.push(Some(source));
-        own_slot(self.props.len() - 1);
-        self.props.len() - 1
+
+    /// How many of the ports are public: the table's props and the list's
+    /// points.
+    fn n_public(&self) -> usize {
+        self.component_type.prop_defs().len() + 2 * self.n_points
     }
-    /// Two hidden slots holding a point's coordinates, a literal coordinate
+
+    /// The two ports holding the coordinates of list point `k` (0-based),
+    /// which the wiring holds.
+    pub(crate) fn item(&self, k: usize) -> [Port; 2] {
+        assert!(
+            k < self.n_points,
+            "list point {k} of a list of {} points",
+            self.n_points
+        );
+        let first = self.component_type.prop_defs().len() + 2 * k;
+        [Port::table(first), Port::table(first + 1)]
+    }
+
+    /// The ports of every list point, in order (`item`).
+    pub(crate) fn items(&self) -> impl Iterator<Item = [Port; 2]> + '_ {
+        (0..self.n_points).map(|k| self.item(k))
+    }
+
+    /// A hidden port planned as `source`.
+    pub(crate) fn hidden(&mut self, source: Source) -> Port {
+        self.props.push(Some(source));
+        Port::table(self.props.len() - 1)
+    }
+    /// Two hidden ports holding a point's coordinates, a literal coordinate
     /// as essential state with its shared state, given as `given` says.
     pub(crate) fn hidden_point_with_shared_state(
         &mut self,
         p: &GivenPoint,
         shared_state: [SharedState; 2],
         given: impl Into<Given>,
-    ) -> [usize; 2] {
+    ) -> [Port; 2] {
         let given = given.into();
         std::array::from_fn(|j| match p.coord(j) {
             Source::Given(v) => {
@@ -1150,37 +1255,37 @@ impl ElemWiring {
             other => self.hidden(other),
         })
     }
-    /// Two hidden slots holding a point's coordinates.
-    pub(crate) fn hidden_point(&mut self, p: &GivenPoint) -> [usize; 2] {
+    /// Two hidden ports holding a point's coordinates.
+    pub(crate) fn hidden_point(&mut self, p: &GivenPoint) -> [Port; 2] {
         [self.hidden(p.coord(0)), self.hidden(p.coord(1))]
     }
-    /// A hidden slot planned as `p`, holding its shared state if any.
-    pub(crate) fn hidden_wire(&mut self, p: Wire) -> usize {
-        let i = self.hidden(p.source);
+    /// A hidden port planned as `p`, holding its shared state if any.
+    pub(crate) fn hidden_wire(&mut self, p: Wire) -> Port {
+        let port = self.hidden(p.source);
         if let Some((state, given)) = p.state {
-            self.add_shared_state(i, state, given);
+            self.add_shared_state(port, state, given);
         }
-        i
+        port
     }
-    /// A hidden slot holding a given value, shared state `state`.
-    pub(crate) fn given(&mut self, state: SharedState, value: f64) -> usize {
-        let i = self.hidden(Source::Given(value));
-        self.shared_state.insert(state, own_slot(i));
-        i
+    /// A hidden port holding a given value, shared state `state`.
+    pub(crate) fn given(&mut self, state: SharedState, value: f64) -> Port {
+        let port = self.hidden(Source::Given(value));
+        self.shared_state.insert(state, port);
+        port
     }
-    fn add_shared_state(&mut self, i: usize, state: SharedState, given: Option<Given>) {
-        self.shared_state.insert(state, own_slot(i));
+    fn add_shared_state(&mut self, port: Port, state: SharedState, given: Option<Given>) {
+        self.shared_state.insert(state, port);
         if let Some(g) = given {
             self.shared_state_given.insert(state, g);
         }
     }
-    /// Every public slot, from a typed plan's fields in table order
-    /// (`Props::into_vec`), with their shared state.
+    /// Every table prop's port, from a typed plan's fields in table order
+    /// (`Props::into_iter`), with their shared state.
     pub(crate) fn set_public(&mut self, props: impl IntoIterator<Item = Wire>) {
         for (i, p) in props.into_iter().enumerate() {
             self.props[i] = Some(p.source);
             if let Some((state, given)) = p.state {
-                self.add_shared_state(i, state, given);
+                self.add_shared_state(Port::table(i), state, given);
             }
         }
     }
@@ -1188,34 +1293,30 @@ impl ElemWiring {
     pub(crate) fn set_public_sources(&mut self, props: impl IntoIterator<Item = Source>) {
         self.set_public(props.into_iter().map(Wire::from));
     }
-    /// The list's points, which fill the public slots after the table's
-    /// props, with their shared state.
+    /// The list's points, which fill the public ports after the table's
+    /// props (`item`), with their shared state.
     pub(crate) fn set_list(&mut self, points: Vec<[Wire; 2]>) {
-        let n_const = self
-            .n_public
-            .checked_sub(2 * points.len())
-            .expect("the wiring holds the list's points");
+        assert_eq!(
+            points.len(),
+            self.n_points,
+            "the wiring holds the list's points"
+        );
         for (k, point) in points.into_iter().enumerate() {
-            for (j, p) in point.into_iter().enumerate() {
-                let i = n_const + 2 * k + j;
-                self.props[i] = Some(p.source);
+            let ports = self.item(k);
+            for (port, p) in ports.into_iter().zip(point) {
+                self.props[port.index()] = Some(p.source);
                 if let Some((state, given)) = p.state {
-                    self.add_shared_state(i, state, given);
+                    self.add_shared_state(port, state, given);
                 }
             }
         }
     }
-    /// `vector` for as many consecutive slots as the operator has outputs,
+    /// `vector` for as many consecutive ports as the operator has outputs,
     /// from `head` (a list's points, which a polygon's `Shape` moves).
-    pub(crate) fn vector_from(
-        head: usize,
-        op: VecOp,
-        args: Vec<usize>,
-        consts: &[f64],
-    ) -> Vec<Wire> {
+    pub(crate) fn vector_from(head: Port, op: VecOp, args: Vec<Port>, consts: &[f64]) -> Vec<Wire> {
         let args: Vec<Arg> = args
             .into_iter()
-            .map(|a| Arg::Own(own_slot(a)))
+            .map(Arg::Own)
             .chain(consts.iter().map(|&k| Arg::Const(k)))
             .collect();
         (0..op.n_out())
@@ -1223,34 +1324,59 @@ impl ElemWiring {
                 if k == 0 {
                     Source::Op(OpSpec::Vec(op), args.clone()).into()
                 } else {
-                    Source::VecOut(own_slot(head), byte(k)).into()
+                    Source::VecOut(head, byte(k)).into()
                 }
             })
             .collect()
     }
-    /// The outputs of a vector instruction over own slots, for the public
-    /// slots `at`, which must be consecutive: the head at `at[0]`, output
+    /// The outputs of a vector instruction over own ports, for the public
+    /// ports `at`, which must be consecutive: the head at `at[0]`, output
     /// `k` at `at[k]`.
-    pub(crate) fn vector<const N: usize>(at: [usize; N], op: VecOp, args: Vec<usize>) -> [Wire; N] {
-        assert_eq!(op.n_out(), N, "a vector operator's outputs are its slots");
+    pub(crate) fn vector<const N: usize>(at: [Port; N], op: VecOp, args: Vec<Port>) -> [Wire; N] {
+        assert_eq!(op.n_out(), N, "a vector operator's outputs are its ports");
         assert!(
-            at.iter().enumerate().all(|(k, &a)| a == at[0] + k),
-            "a vector operator's outputs are consecutive slots"
+            at.iter()
+                .enumerate()
+                .all(|(k, a)| a.index() == at[0].index() + k),
+            "a vector operator's outputs are consecutive ports"
         );
         std::array::from_fn(|k| {
             if k == 0 {
                 Source::vector(op, args.clone()).into()
             } else {
-                Source::VecOut(own_slot(at[0]), byte(k)).into()
+                Source::VecOut(at[0], byte(k)).into()
             }
         })
     }
-    pub(crate) fn finish(self) -> Vec<Source> {
-        self.props
+
+    /// Which port holds each piece of shared state, and where each piece's
+    /// value was given, if it was (`plan_with_extend`).
+    pub(in crate::compile) fn shared_state(
+        &self,
+    ) -> (&HashMap<SharedState, Port>, &HashMap<SharedState, Given>) {
+        (&self.shared_state, &self.shared_state_given)
+    }
+
+    /// Whether `port` is planned as a given value.
+    pub(in crate::compile) fn is_given(&self, port: Port) -> bool {
+        matches!(self.props[port.index()], Some(Source::Given(_)))
+    }
+
+    /// Every port's source, by `Port::index`, and how many points the list
+    /// holds: what an element's plan keeps of it.
+    pub(crate) fn finish(self) -> (Vec<Source>, ListLen) {
+        let list = if self.component_type.given_coords().is_some() {
+            ListLen::Points(self.n_points as u32)
+        } else {
+            ListLen::None
+        };
+        let props = self
+            .props
             .into_iter()
             .enumerate()
             .map(|(i, p)| p.unwrap_or_else(|| panic!("public prop {i} left unplanned")))
-            .collect()
+            .collect();
+        (props, list)
     }
 }
 

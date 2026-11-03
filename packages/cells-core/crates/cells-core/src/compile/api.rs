@@ -6,8 +6,8 @@
 
 pub(crate) use super::expr::{ExprId, Token, tuple_entries};
 pub(crate) use super::plan::{
-    Arg, Attr, DefaultPoint, ElemWiring, Given, GivenPoint, MathText, NO_VALUE, ParsedMath, Sel,
-    SharedState, Source, Wire, shared_point_state,
+    Arg, Attr, DefaultPoint, ElemWiring, Given, GivenPoint, MathText, NO_VALUE, ParsedMath, Port,
+    Sel, SharedState, Source, TableProps, Wire, shared_point_state,
 };
 pub(crate) use super::planning::ctx::PlanCtx;
 pub(crate) use super::planning::planner::Planner;

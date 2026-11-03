@@ -78,10 +78,9 @@ pub fn request_points_unchecked(
     doc.tick_unchecked(&[], &[points.to_vec()])
 }
 
-/// The essential cells saved state cannot name (ADR 0017): hidden slots
+/// The essential cells saved state cannot name (ADR 0017): hidden ports
 /// holding no shared state, as `key (hidden slot k)`.
 pub fn unsaved_essentials(doc: &crate::Document) -> Vec<String> {
-    use crate::compile::plan::HIDDEN;
     let mut out: Vec<String> = doc
         .structure
         .essential_keys
@@ -92,7 +91,7 @@ pub fn unsaved_essentials(doc: &crate::Document) -> Vec<String> {
                 "{} {} (hidden slot {})",
                 doc.loaded.keys.key_type(key).tag(),
                 doc.loaded.keys.key_text(key),
-                prop & !HIDDEN
+                prop
             )
         })
         .collect();

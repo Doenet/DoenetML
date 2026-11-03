@@ -102,7 +102,7 @@ pub const LABEL: usize = Props::AT.label;
 /// A section's `aggregateScores`, `includeParentNumber` and `label`:
 /// literals, defaulted by tag as in the current core, since they decide
 /// how credit and numbers are wired.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> Result<()> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<()> {
     let d = ctx.dast();
     let el = ctx.node();
     let tag = match d.str(el) {
@@ -129,7 +129,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> R
             ))),
         }
     };
-    let at = Props::AT;
+    let at = Props::PORTS;
     props[at.aggregateScores] = Some(Source::Const(flag(
         "aggregateScores",
         section_tag.aggregates_scores,

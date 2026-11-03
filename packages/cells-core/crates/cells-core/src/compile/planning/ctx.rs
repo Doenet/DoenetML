@@ -136,12 +136,12 @@ impl<'a> PlanCtx<'_, 'a> {
             .is_empty()
     }
 
-    /// The prop at position `pos` of the graph the element sits in
-    /// directly, if it sits in one.
-    pub(crate) fn enclosing_graph_prop(&self, pos: usize) -> Option<Source> {
+    /// The prop at `port` (`graph::Props::PORTS`) of the graph the
+    /// element sits in directly, if it sits in one.
+    pub(crate) fn enclosing_graph_prop(&self, port: Port) -> Option<Source> {
         let scope = self.scope();
         (scope != ROOT_SCOPE && self.c.elem(self.t, scope).component_type == ComponentType::Graph)
-            .then(|| Source::Alias(Arg::Elem(scope, own_slot(pos))))
+            .then_some(Source::Alias(Arg::Elem(scope, port)))
     }
 
     // Attributes.
@@ -417,8 +417,8 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// A condition over the element's content (comparisons and
     /// connectives, `=` compared under the element's compare attributes),
-    /// in a hidden slot of `wiring` holding 1 while it holds.
-    pub(crate) fn condition(&mut self, nodes: &[NodeId], wiring: &mut ElemWiring) -> Result<usize> {
+    /// in a hidden port of `wiring` holding 1 while it holds.
+    pub(crate) fn condition(&mut self, nodes: &[NodeId], wiring: &mut ElemWiring) -> Result<Port> {
         let scope = self.scope_for(nodes);
         let compare = self.c.compare_attrs(&[self.node()]);
         self.c
@@ -445,7 +445,10 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Sets the element's props from its wiring.
     pub(crate) fn set_wiring(&mut self, wiring: ElemWiring) {
-        self.set_props(wiring.finish());
+        let (props, list) = wiring.finish();
+        let plan = &mut self.c.tables[self.t.index()].plans[self.e.index()];
+        plan.props = props;
+        plan.list = list;
     }
 
     /// Sets the element's props.

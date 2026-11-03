@@ -1021,21 +1021,16 @@ impl<'c> Builder<'c> {
     }
 
     /// An essential slot's key: its scope, its template slot (the element's
-    /// slot offset plus the prop's position; a document's boxes are settled
+    /// slot offset plus the port's position; a document's boxes are settled
     /// at load, ADR 0014, so the offsets are the same in every build), and
-    /// its element's key and position, `HIDDEN` marking a hidden slot.
+    /// its element's key and port (ADR 0032), which `Keys::prop_key` names.
     #[inline]
     pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
         let comp = self.slot_comp[slot.index()];
         let inst = self.instances[self.comp_instance[comp.index()] as usize];
         let pi = slot.get() - self.slot_base[comp.index()].get();
-        let prop = if (pi as usize) < self.n_public(comp) {
-            pi
-        } else {
-            pi | HIDDEN
-        };
         let sealed = self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()];
-        (inst.scope, sealed.slot_off + pi, (sealed.key, prop))
+        (inst.scope, sealed.slot_off + pi, (sealed.key, pi))
     }
 }
 

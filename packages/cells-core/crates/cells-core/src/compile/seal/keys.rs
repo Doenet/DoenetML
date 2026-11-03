@@ -29,10 +29,14 @@ pub(crate) struct Keys {
     ends: Vec<u32>,
     /// The type of the element each key names.
     types: Vec<ComponentType>,
+    /// How many of each element's ports are public (ADR 0032): its
+    /// table's props and its list's points, as far as the compile knows
+    /// (`n_public`). A port past them is hidden.
+    n_public: Vec<u32>,
     /// The elements that own templates (repeats, choices), by node: their
     /// key, and a choice's branches.
     owners: HashMap<NodeId, (ElemKey, Option<Branches>)>,
-    /// A hidden slot's name, by (element, position), when it holds shared
+    /// A hidden port's name, by (element, port), when it holds shared
     /// state; one without is not saved.
     hidden: HashMap<(ElemKey, u32), Box<str>>,
 }
@@ -58,12 +62,13 @@ pub(crate) fn pick_position(b: usize, m: u32) -> u32 {
     (b as u32) << PICK_SHIFT | m
 }
 
-/// How many public props an element has, as far as the compile knows: a
-/// bare copy's list is its referent's, which only a build knows.
-fn n_public(el: &Elem, plan: &ElemPlan) -> usize {
-    match plan.n_public {
-        NPublic::Planned(n) => n as usize,
-        NPublic::Table | NPublic::AsReferent => el.component_type.prop_defs().len(),
+/// How many of an element's ports are public, as far as the compile
+/// knows: a bare copy's list is its referent's, which only a build knows,
+/// and such a copy has no hidden port, so every port of its is public.
+fn n_public(el: &Elem, plan: &ElemPlan) -> u32 {
+    match plan.n_public(el.component_type) {
+        Some(n) => n as u32,
+        None => u32::MAX,
     }
 }
 
@@ -178,7 +183,8 @@ impl super::Seal<'_> {
                         }
                     }
                 };
-                let id = keys.push(&text, el.component_type);
+                let n_public = n_public(el, tpl.plan(ElemId::from_index(e)));
+                let id = keys.push(&text, el.component_type, n_public);
                 if el.node != NodeId::NONE {
                     match el.body {
                         Body::Repeat { .. } => {
@@ -205,31 +211,33 @@ impl super::Seal<'_> {
             },
             "two elements share a key"
         );
-        // A hidden slot holding shared state is saved by its name; a
+        // A hidden port holding shared state is saved by its name; a
         // public one by the prop's.
         for (&(t, e), state) in self.shared_state {
             let id = elem_keys[t as usize][e as usize];
-            let tpl = self.view(TemplateId::new(t));
-            let n_public = n_public(tpl.row(ElemId::new(e)), tpl.plan(ElemId::new(e)));
-            for (s, &slot) in state {
-                if slot as usize >= n_public {
-                    keys.hidden.insert((id, slot as u32), s.key().into());
+            let n_public = keys.n_public[id.index()];
+            for (s, &port) in state {
+                if port.index() as u32 >= n_public {
+                    keys.hidden
+                        .insert((id, port.index() as u32), s.key().into());
                 }
             }
         }
         keys.text.shrink_to_fit();
         keys.ends.shrink_to_fit();
         keys.types.shrink_to_fit();
+        keys.n_public.shrink_to_fit();
         self.compiled.keys = Arc::new(keys);
         elem_keys
     }
 }
 
 impl Keys {
-    fn push(&mut self, text: &str, component_type: ComponentType) -> ElemKey {
+    fn push(&mut self, text: &str, component_type: ComponentType, n_public: u32) -> ElemKey {
         self.text.push_str(text);
         self.ends.push(self.text.len() as u32);
         self.types.push(component_type);
+        self.n_public.push(n_public);
         ElemKey::from_index(self.ends.len() - 1)
     }
 
@@ -257,18 +265,16 @@ impl Keys {
             .collect()
     }
 
-    /// What saved state names a slot of `key` by: a public prop's name, or
-    /// the shared state a hidden slot holds; None for a hidden slot without
-    /// any, which is not saved.
-    pub(crate) fn prop_key(&self, key: ElemKey, prop: u32) -> Option<String> {
-        if prop & HIDDEN != 0 {
-            return self
-                .hidden
-                .get(&(key, prop & !HIDDEN))
-                .map(|s| s.to_string());
+    /// What saved state names port `port` of `key` by (ADR 0032): a public
+    /// prop's name, or the shared state a hidden port holds; None for a
+    /// hidden port without any, which is not saved.
+    pub(crate) fn prop_key(&self, key: ElemKey, port: u32) -> Option<String> {
+        let n_public = self.n_public[key.index()];
+        if port >= n_public {
+            return self.hidden.get(&(key, port)).map(|s| s.to_string());
         }
         self.types[key.index()]
-            .prop_name(usize::MAX, prop as usize)
+            .prop_name(n_public as usize, port as usize)
             .map(|n| n.into_owned())
     }
 
@@ -279,7 +285,7 @@ impl Keys {
             && matches!(prop, "xmin" | "xmax" | "ymin" | "ymax")
     }
 
-    /// The slot of `key` that saved state names `name`, as `prop_key` names
+    /// The port of `key` that saved state names `name`, as `prop_key` names
     /// it.
     pub(crate) fn prop_named(&self, key: ElemKey, name: &str) -> Option<u32> {
         let component_type = self.types[key.index()];
@@ -289,13 +295,13 @@ impl Keys {
             Some(PropAt::Coord(k, j)) => Some((n_table + 2 * (k - 1) + j) as u32),
             _ => None,
         };
-        if public.is_some() {
-            return public;
+        if let Some(port) = public.filter(|&p| p < self.n_public[key.index()]) {
+            return Some(port);
         }
         self.hidden
             .iter()
             .find(|(at, n)| at.0 == key && &***n == name)
-            .map(|(at, _)| at.1 | HIDDEN)
+            .map(|(at, _)| at.1)
     }
 
     /// A scope level's stable form, the level of position `k` of the
@@ -346,6 +352,7 @@ impl Keys {
         self.text.capacity()
             + self.ends.capacity() * 4
             + self.types.capacity() * std::mem::size_of::<ComponentType>()
+            + self.n_public.capacity() * 4
             + self.owners.capacity() * 48
             + self.hidden.capacity() * 32
     }
@@ -400,5 +407,34 @@ mod tests {
     fn a_made_element_is_keyed_by_the_element_it_is_made_for() {
         let k = keys(r#"<answer name="ans"><award><math>x</math></award></answer>"#);
         assert!(k.iter().any(|x| x == "ans+1"), "{k:?}");
+    }
+
+    // A port is saved by its name (ADR 0032): a table prop by the prop's,
+    // a list point's coordinate by the coordinate's, a hidden port by the
+    // shared state it holds, and the name finds the port again. A hidden
+    // port's number is past the public ports, with no bit to mark it.
+    #[test]
+    fn a_ports_key_is_its_name_and_names_it_again() {
+        // One through point: the radius is the circle's own state.
+        let doc = load(r#"<graph><circle name="c" through="(1,2)"/></graph>"#).unwrap();
+        let keys = &doc.loaded.keys;
+        let c = keys.by_text()["c"];
+        let n_table = crate::components::ComponentType::Circle.prop_defs().len() as u32;
+        for (port, name) in [
+            (0, "cx"),
+            (n_table, "throughX1"),
+            (n_table + 1, "throughY1"),
+        ] {
+            assert_eq!(keys.prop_key(c, port).as_deref(), Some(name));
+            assert_eq!(keys.prop_named(c, name), Some(port));
+        }
+        // The radius is in a hidden port, past the public ones.
+        let r = keys.prop_named(c, "R").expect("a hidden port holding R");
+        assert!(r >= n_table + 2, "hidden ports follow the public ones: {r}");
+        assert_eq!(keys.prop_key(c, r).as_deref(), Some("R"));
+        // A name no port has, and a list point past the list's end, name
+        // nothing.
+        assert_eq!(keys.prop_named(c, "nothing"), None);
+        assert_eq!(keys.prop_named(c, "throughX2"), None);
     }
 }

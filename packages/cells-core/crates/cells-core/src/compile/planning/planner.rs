@@ -4,8 +4,9 @@
 use super::ctx::PlanCtx;
 use crate::compile::*;
 
-/// Adjusts the props `plan_attrs` planned from the table.
-pub(crate) type PropsFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>, &mut [Option<Source>]) -> Result<()>;
+/// Adjusts the props `plan_attrs` planned from the table, each by its
+/// port (`Props::PORTS`).
+pub(crate) type PropsFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>, &mut TableProps) -> Result<()>;
 /// Returns the element's plan, its attributes merged over those of the
 /// element it extends; `plan_with_extend` applies the copy rules around
 /// it.

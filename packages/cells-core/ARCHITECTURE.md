@@ -396,8 +396,8 @@ planner of its own as the block's last section:
   (`extend`), `fixed` and its list's length applied around it
   (`plan_with_extend`, `compile/planning/copies.rs`); the points, lines and circle
   are planned this way,
-- `PropsThen(plan)` to adjust the plan the prop table produces (reached
-  through `Props::AT`),
+- `PropsThen(plan)` to adjust the plan the prop table produces (each prop
+  by its port, `props[Props::PORTS.expr]`),
 - `Whole(plan)` to plan the element entirely.
 
 Such a type lives in its own file, block and planner together (for
@@ -410,6 +410,12 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
 - Use only what `compile/api.rs` exports. Logic two planners both need
   belongs in `compile/` behind `api.rs`, once. Behavior a family shares
   belongs in the family's `mod.rs`.
+- Name a value of the wiring by its *port* (`CONTEXT.md`, ADR 0032), as
+  the wiring hands it out: a table prop by `Props::PORTS.radius`, a list
+  point's coordinates by `wiring.item(k)`, a helper value by what made it
+  (`wiring.hidden(..)`). A planner never computes a position: `Props::AT`,
+  the table's positions, is for what reads a built component (the build,
+  the document), and a test holds `components/` to it.
 - A type built on shared machinery (answers, selects) has a thin planner
   that names that machinery and keeps its own decisions, such as what it
   refuses, in its file (`values/answer.rs`, `structure/select.rs`).

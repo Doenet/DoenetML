@@ -934,6 +934,38 @@ mod tests {
         );
     }
 
+    /// A planner names a port, never a position (ADR 0032): nothing under
+    /// `components/` computes where a value sits in an element's wiring.
+    /// `Port::table` is the macro's (`define.rs`), and `list_slot`, defined
+    /// here for the build, is called by no planner.
+    #[test]
+    fn components_compute_no_slot_positions() {
+        // Spelled in halves, so this file does not find itself.
+        let needles = [concat!(".list_", "slot("), concat!("Port::", "table(")];
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/components");
+        let mut files = Vec::new();
+        sources(&dir, &mut files);
+        let found: Vec<String> = files
+            .iter()
+            .filter(|p| p.file_name().is_some_and(|n| n != "define.rs"))
+            .flat_map(|p| {
+                let text = std::fs::read_to_string(p).unwrap();
+                text.lines()
+                    .enumerate()
+                    .filter(|(_, l)| {
+                        needles.iter().any(|n| l.contains(n)) && !l.trim_start().starts_with("//")
+                    })
+                    .map(|(i, l)| format!("{}:{}: {}", p.display(), i + 1, l.trim()))
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+        assert!(
+            found.is_empty(),
+            "name a port (`Props::PORTS`, `wiring.item(k)`, `wiring.hidden(..)`) instead of computing a position:\n{}",
+            found.join("\n")
+        );
+    }
+
     /// Types a spec is still to be written for (ADR 0016, Migration step
     /// 8): the list only shrinks. A type with a spec must leave it, and a
     /// new type comes with its spec.

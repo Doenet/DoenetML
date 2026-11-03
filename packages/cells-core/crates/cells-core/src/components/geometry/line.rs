@@ -77,7 +77,7 @@ fn variables(ctx: &PlanCtx<'_, '_>) -> (String, String) {
 /// Plans a line from its equation, or its `through` points and a
 /// `slope`, `parallelTo` or `perpendicularTo`.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let at = Props::AT;
+    let at = Props::PORTS;
     let mut wiring = ElemWiring::of(ComponentType::Line);
     let through = ctx.points(attr::through)?;
     let by_direction =
@@ -228,9 +228,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     Ok(wiring)
 }
 
-/// Two hidden slots holding a direction: a point or tuple's coordinates,
+/// Two hidden ports holding a direction: a point or tuple's coordinates,
 /// or another line's or segment's `point2 - point1`.
-fn direction(ctx: &mut PlanCtx<'_, '_>, name: Attr, wiring: &mut ElemWiring) -> Result<[usize; 2]> {
+fn direction(ctx: &mut PlanCtx<'_, '_>, name: Attr, wiring: &mut ElemWiring) -> Result<[Port; 2]> {
     let p = ctx.point(name)?.expect("the direction attribute is given");
     if let GivenPoint::Ref(r) = p
         && matches!(

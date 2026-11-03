@@ -33,7 +33,7 @@ pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<Source> {
         expr: Source::MathHandle(id, post).into(),
         value: Source::MathValue(id).into(),
     });
-    wiring.finish()
+    wiring.finish().0
 }
 
 /// The type a `<math>` is, from its text alone: a tuple of two,

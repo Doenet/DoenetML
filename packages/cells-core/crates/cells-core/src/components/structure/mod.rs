@@ -3,7 +3,7 @@
 //! rather than hold a value.
 
 use super::define::*;
-use crate::compile::api::{PlanCtx, Source};
+use crate::compile::api::{PlanCtx, TableProps};
 use crate::error::{Error, Result};
 
 pub mod collect;
@@ -61,7 +61,7 @@ pub mod repeat_for_sequence {
 
     /// Its props from the table; then the hidden elements its `valueName`
     /// and `indexName` make, in its body.
-    fn plan(ctx: &mut PlanCtx<'_, '_>, _: &mut [Option<Source>]) -> Result<()> {
+    fn plan(ctx: &mut PlanCtx<'_, '_>, _: &mut TableProps) -> Result<()> {
         ctx.plan_iteration_names();
         Ok(())
     }

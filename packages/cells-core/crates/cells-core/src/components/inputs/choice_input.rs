@@ -27,7 +27,7 @@ component! {
 pub const SELECTED_INDEX: usize = Props::AT.selectedIndex;
 
 /// Its choices must be `<choice>` elements; `selectMultiple` is refused.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> Result<()> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<()> {
     let d = ctx.dast();
     let el = ctx.node();
     if ctx.attr_on(el, "selectMultiple") {
@@ -46,7 +46,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> R
             }
         }
     }
-    let at = Props::AT;
+    let at = Props::PORTS;
     props[at.selectedIndex] = Some(Source::computed_k(
         OpSpec::ChoiceIndex,
         at.preliminaryIndex,

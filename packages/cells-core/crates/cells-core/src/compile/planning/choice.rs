@@ -22,7 +22,7 @@ use crate::limits::MAX_CASES;
 
 impl<'a> Compiler<'a> {
     /// A choice's props: a select's `hide`; for a reactive choice also a
-    /// hidden slot per case condition (an else is a constant 1) and
+    /// hidden port per case condition (an else is a constant 1) and
     /// `choice`, the first of them that holds.
     pub(in crate::compile) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let Body::Choice(cid) = self.outlined(t).elems[e.index()].body else {
@@ -73,7 +73,7 @@ impl<'a> Compiler<'a> {
             choice: Source::own(first),
             hide,
         });
-        self.tables[t.index()].plans[e.index()].props = wiring.finish();
+        self.tables[t.index()].plans[e.index()].props = wiring.finish().0;
         Ok(())
     }
 }

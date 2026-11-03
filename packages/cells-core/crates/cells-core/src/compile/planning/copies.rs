@@ -70,7 +70,7 @@ impl<'a> Compiler<'a> {
         let plan = &mut self.tables[t.index()].plans[e.index()];
         plan.props = props;
         if component_type.given_coords().is_some() {
-            plan.n_public = NPublic::AsReferent;
+            plan.list = ListLen::AsReferent;
         }
     }
 
@@ -85,11 +85,7 @@ impl<'a> Compiler<'a> {
         plan: super::planner::PlanFn,
     ) -> Result<()> {
         let d = self.dast;
-        let Elem {
-            node: el,
-            component_type,
-            ..
-        } = self.outlined(t).elems[e.index()];
+        let el = self.outlined(t).elems[e.index()].node;
         // Own attributes other than name and extend, or children, override
         // the referent's; with none, the copy aliases every public prop.
         let own_attrs: Vec<String> = d
@@ -120,40 +116,40 @@ impl<'a> Compiler<'a> {
         let wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;
         // Essential state the copy did not override is the original's: the
         // current core's copies share their essential state variables. The
-        // copy names what it shares, and linking ties it to the slot the
+        // copy names what it shares, and linking ties it to the port the
         // referent's planning gives it (`link_shared_state`, ADR 0029).
+        let (shared_state, shared_state_given) = wiring.shared_state();
         if let Some(r) = base_elem {
-            for (state, &slot) in &wiring.shared_state {
+            for (state, &port) in shared_state {
                 // Shared state the copy gave itself is its own.
-                let own = match wiring.shared_state_given.get(state) {
+                let own = match shared_state_given.get(state) {
                     Some(Given::Attr(a)) => {
                         own_attrs.iter().any(|o| o.eq_ignore_ascii_case(a.name()))
                     }
                     Some(Given::Children) => true,
                     Some(Given::Referent) | None => false,
                 };
-                if own || !matches!(wiring.props[slot as usize], Some(Source::Given(_))) {
+                if own || !wiring.is_given(port) {
                     continue;
                 }
                 self.planning().shares.push(Share {
                     t,
                     e,
-                    slot,
+                    port,
                     referent: r,
                     state: *state,
                 });
             }
         }
-        if !wiring.shared_state.is_empty() {
+        if !shared_state.is_empty() {
             self.planning()
                 .shared_state
-                .insert((t.get(), e.get()), wiring.shared_state.clone());
+                .insert((t.get(), e.get()), shared_state.clone());
         }
-        if component_type.given_coords().is_some() {
-            self.tables[t.index()].plans[e.index()].n_public =
-                NPublic::Planned(wiring.n_public as u32);
-        }
-        self.tables[t.index()].plans[e.index()].props = wiring.finish();
+        let (props, list) = wiring.finish();
+        let plan = &mut self.tables[t.index()].plans[e.index()];
+        plan.props = props;
+        plan.list = list;
         Ok(())
     }
 

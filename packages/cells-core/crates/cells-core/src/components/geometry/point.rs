@@ -55,7 +55,7 @@ pub(crate) fn props_of(x: Source, y: Source) -> Vec<Source> {
         y: y.into(),
         hide: Source::Given(hide).into(),
     });
-    wiring.finish()
+    wiring.finish().0
 }
 
 /// Plans a point: coordinates from `coords`, from `x`/`y`, or from
@@ -148,7 +148,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     Ok(wiring)
 }
 
-/// The point's coordinates as planned so far move to hidden raw slots,
+/// The point's coordinates as planned so far move to hidden raw ports,
 /// with their shared state, since they are its state; the public `x`, `y` are
 /// their projection onto the constraint.
 fn constrain(
@@ -160,7 +160,7 @@ fn constrain(
     let d = ctx.dast();
     let raw_x = wiring.hidden_wire(x);
     let raw_y = wiring.hidden_wire(y);
-    let at = Props::AT;
+    let at = Props::PORTS;
     match d.str(c) {
         "constrainToGrid" => {
             let num = |name: &str, default: f64| -> Result<f64> {
@@ -174,7 +174,7 @@ fn constrain(
             };
             let (dx, dy) = (num("dx", 1.0)?, num("dy", 1.0)?);
             let (xo, yo) = (num("xoffset", 0.0)?, num("yoffset", 0.0)?);
-            let snap = |wiring: &mut ElemWiring, raw: usize, step: f64, offset: f64| -> Wire {
+            let snap = |wiring: &mut ElemWiring, raw: Port, step: f64, offset: f64| -> Wire {
                 let mut cur = raw;
                 if offset != 0.0 {
                     cur = wiring.hidden(Source::computed_k(OpSpec::Sub, cur, offset));
@@ -206,7 +206,7 @@ fn constrain(
             let target = ctx.reference_type(p)?.ok_or_else(|| {
                 Error::Unsupported("<constrainTo> must name a component in the same scope".into())
             })?;
-            let mut refs = |wiring: &mut ElemWiring, props: &[&'static str]| -> Vec<usize> {
+            let mut refs = |wiring: &mut ElemWiring, props: &[&'static str]| -> Vec<Port> {
                 props
                     .iter()
                     .map(|pr| wiring.hidden(Source::reference(ctx.with_prop(p, pr))))

@@ -156,7 +156,7 @@ impl<'a> Signer<'a> {
         for (i, &(key, prop)) in out.structure.essential_keys.iter().enumerate() {
             let prop = keys
                 .prop_key(key, prop)
-                .unwrap_or_else(|| format!("(hidden {})", prop & !HIDDEN));
+                .unwrap_or_else(|| format!("(hidden {prop})"));
             named.insert(
                 CellIdx::from_index(out.n_const + i),
                 (rename(keys.key_text(key)), prop),

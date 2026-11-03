@@ -92,7 +92,7 @@ const INVALID_CENTER: (&str, &str) = (
 /// Plans a circle from any combination of `center`, `radius` and
 /// `through`.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let at = Props::AT;
+    let at = Props::PORTS;
     let center = match ctx.point(attr::center) {
         // Not a point (`center="A"`): no center.
         Err(Error::BadMath { .. }) if !ctx.is_reference(attr::center) => {
@@ -134,13 +134,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         .enumerate()
         .map(|(i, p)| Wire::point(p, shared_point_state(i), attr::through))
         .collect();
-    // Coordinate `j` of through point `k` (0-based).
-    let n_public = wiring.n_public;
-    let tp = |k: usize, j: usize| {
-        ComponentType::Circle
-            .list_slot(n_public, k + 1, j)
-            .expect("a through point the circle holds")
-    };
+    // Coordinate `j` of through point `k` (0-based): a port of the list.
+    let tps: Vec<[Port; 2]> = wiring.items().collect();
+    let tp = |k: usize, j: usize| tps[k][j];
     let [center_x, center_y] = match &center {
         Some(c) => Wire::point(c, [shared_state::CX, shared_state::CY], attr::center),
         None => [Wire::own(at.cx), Wire::own(at.cy)],

@@ -15,11 +15,11 @@ impl<'c> Builder<'c> {
     ) -> Result<SlotId> {
         let from = self.slot(comp, pi);
         Ok(match arg {
-            Arg::Own(a) => self.slot(comp, a as usize),
+            Arg::Own(a) => self.slot(comp, a.index()),
             Arg::Const(k) => self.const_slot(k),
-            Arg::Elem(el, slot) => {
+            Arg::Elem(el, port) => {
                 let other = self.scope_comps[scope.index()][el.index()];
-                self.slot(other, slot as usize)
+                self.slot(other, port.index())
             }
             Arg::Ref(p, Sel::Whole) => {
                 let t = self

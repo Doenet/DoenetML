@@ -133,9 +133,10 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) math_mode: Vec<MathMode>,
     pub(in crate::build) components: ComponentTable,
     pub(in crate::build) slot_base: Vec<SlotId>,
-    /// Per component, how many of its slots are public props when that is
-    /// not its type table's count: an element whose list holds points
-    /// (ADR 0016). NONE: the table's.
+    /// Per component, how many of its slots are public props (its ports
+    /// up to its list's last point, ADR 0032) when that is not its type
+    /// table's count: an element whose list holds points (ADR 0016).
+    /// NONE: the table's.
     pub(in crate::build) n_public: Vec<u32>,
     pub(in crate::build) sources: Vec<BuiltSource>,
     /// Owning component of each slot (prop index = slot - slot_base[comp]).
@@ -575,15 +576,20 @@ impl<'c> Builder<'c> {
             );
             // A copy of a type with a list takes its slots, as many as its
             // referent has, when its referent is known (`place_list_copies`).
-            let n_slots = match plan.n_public {
-                NPublic::AsReferent => 0,
+            let n_slots = match plan.list {
+                ListLen::AsReferent => 0,
                 _ => plan.props.len().max(el.component_type.prop_defs().len()),
             };
-            let n_public = plan.n_public;
+            // One slot per port, in the wiring's order (ADR 0032); the
+            // public ones end with the list's points.
+            let n_public = match plan.list {
+                ListLen::Points(_) => plan.n_public(el.component_type),
+                ListLen::None | ListLen::AsReferent => None,
+            };
             let comp =
                 self.new_component(el.component_type, el.name, parent, el.node, scope, n_slots);
-            if let NPublic::Planned(n) = n_public {
-                self.n_public[comp.index()] = n;
+            if let Some(n) = n_public {
+                self.n_public[comp.index()] = n as u32;
             }
             self.scope_comps[scope.index()][e] = comp;
             self.comp_instance[comp.index()] = self.instances.len() as u32;
@@ -1223,7 +1229,7 @@ impl<'c> Builder<'c> {
         let (component_type, extend_plan, n_props) =
             (el.component_type, plan.extend, plan.props.len());
         // Not such a copy, or placed already.
-        if plan.n_public != NPublic::AsReferent || self.n_public[inst.comp.index()] != NONE {
+        if plan.list != ListLen::AsReferent || self.n_public[inst.comp.index()] != NONE {
             return Ok(());
         }
         if visiting.contains(&inst.comp) {
@@ -1303,8 +1309,8 @@ impl<'c> Builder<'c> {
         if extend.is_some()
             && self.compiled.templates[inst.template.index()]
                 .plan(inst.elem)
-                .n_public
-                == NPublic::AsReferent
+                .list
+                == ListLen::AsReferent
         {
             return Ok(());
         }
@@ -1472,7 +1478,7 @@ impl<'c> Builder<'c> {
                 self.seeds.push((s, from));
                 BuiltSource::Given(f64::NAN)
             }
-            Source::VecOut(head, k) => BuiltSource::VecOut(self.slot(comp, *head as usize), *k),
+            Source::VecOut(head, k) => BuiltSource::VecOut(self.slot(comp, head.index()), *k),
         })
     }
 

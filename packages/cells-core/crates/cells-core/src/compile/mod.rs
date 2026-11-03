@@ -140,7 +140,7 @@ pub(in crate::compile) struct Compiler<'a> {
     /// what a copy copies) and the `$ref` children's plans
     /// (`ref_child_plans`), and pushes no element; boxing writes `boxes`;
     /// linking
-    /// aliases shared slots in `plans`; sealing makes `sealed` and choice
+    /// aliases shared ports in `plans`; sealing makes `sealed` and choice
     /// interfaces (ADR 0031).
     pub(in crate::compile) compiled: Compiled,
     /// Outlining's own state, and the `Outline` it is filling: `Some`
@@ -251,9 +251,9 @@ pub(in crate::compile) struct Planned {
     /// R: link (`link_shared_state`).
     shares: Vec<Share>,
     /// By (template, element), a geometry element's shared state: which
-    /// slot holds each piece of essential state, which a copy shares with
+    /// port holds each piece of essential state, which a copy shares with
     /// its original. R: link (`link_shared_state`), seal (`assign_keys`).
-    shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
+    shared_state: HashMap<(u32, u32), HashMap<SharedState, Port>>,
     /// Every element whose plan read the type of what a reference names
     /// (`referent_type`), with the reference. R: link
     /// (`box_readers_of_boxes`), which boxes one whose referent is a box.
@@ -276,12 +276,12 @@ pub(in crate::compile) struct Outlining {
 }
 
 /// A piece of essential state copy `e` shares with its referent (ADR
-/// 0023): slot `slot` of the copy is to alias the referent's slot for
+/// 0023): port `port` of the copy is to alias the referent's port for
 /// `state`, which only the referent's planning knows.
 pub(in crate::compile) struct Share {
     t: TemplateId,
     e: ElemId,
-    slot: u8,
+    port: Port,
     referent: ElemId,
     state: SharedState,
 }

@@ -173,7 +173,7 @@ pub mod tuple {
             x7: next(),
             x8: next(),
         });
-        wiring.finish()
+        wiring.finish().0
     }
 
     /// A tuple is made from a `<math>` or by the builder, never by a tag.

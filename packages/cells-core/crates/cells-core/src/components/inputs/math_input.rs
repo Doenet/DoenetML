@@ -35,9 +35,9 @@ pub const EXPR: usize = Props::AT.expr;
 /// holding the prefill (or its children's text) and `value` evaluates it.
 /// A `prefill="$n"` is not a binding: the expression starts as `$n`'s
 /// value when the input is first built.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> Result<()> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<()> {
     let d = ctx.dast();
-    let at = Props::AT;
+    let at = Props::PORTS;
     let el = ctx.node();
     if d.attr(el, "bindValueTo").is_none()
         && d.children(el).iter().all(|&n| ctx.is_not_content(n))

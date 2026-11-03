@@ -1,5 +1,5 @@
 //! Conditions: comparisons and boolean operators over math, planned as
-//! hidden slots of an element. A `<case condition>` and a
+//! hidden ports of an element. A `<case condition>` and a
 //! `<conditionalContent condition>` plan theirs on the choice element; a
 //! `<boolean>` plans its content on itself (`components/values/boolean.rs`).
 //!
@@ -40,7 +40,7 @@ impl Compare {
 }
 
 impl<'a> Compiler<'a> {
-    /// A condition as hidden slots of element `e`; returns the slot holding
+    /// A condition as hidden ports of element `e`; returns the port holding
     /// 1 or 0. Comparisons (`< <= > >= = !=`), `and`/`&&`, `or`/`||`,
     /// `not`/`!`, parentheses, `true`, `false`, and math operands; a bare
     /// operand holds when it is nonzero.
@@ -50,9 +50,9 @@ impl<'a> Compiler<'a> {
         e: ElemId,
         wiring: &mut ElemWiring,
         nodes: &[NodeId],
-    ) -> Result<usize> {
-        if let Some(slot) = self.plan_text_condition(t, e, nodes, wiring)? {
-            return Ok(slot);
+    ) -> Result<Port> {
+        if let Some(port) = self.plan_text_condition(t, e, nodes, wiring)? {
+            return Ok(port);
         }
         let (toks, src) = self.math_tokens(t, e, nodes)?;
         self.plan_condition_tokens(wiring, &toks, src, Compare::default())
@@ -71,7 +71,7 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         nodes: &[NodeId],
         wiring: &mut ElemWiring,
-    ) -> Result<Option<usize>> {
+    ) -> Result<Option<Port>> {
         let d = self.dast;
         // Each reference spelled as a placeholder, so the sides can be split
         // on the text as written.
@@ -100,7 +100,7 @@ impl<'a> Compiler<'a> {
                 "a text value in a condition that is not one `=` or `!=`",
             ));
         };
-        let mut side = |cp: &mut Self, s: &str| -> Result<usize> {
+        let mut side = |cp: &mut Self, s: &str| -> Result<Port> {
             let lone = s
                 .strip_prefix('\u{0}')
                 .and_then(|r| r.strip_suffix('\u{0}'))
@@ -138,7 +138,7 @@ impl<'a> Compiler<'a> {
         toks: &[Token],
         src: MathSrc<'_>,
         compare: Compare,
-    ) -> Result<usize> {
+    ) -> Result<Port> {
         let mut p = CondParser {
             toks,
             pos: 0,
@@ -146,15 +146,15 @@ impl<'a> Compiler<'a> {
             src,
             compare,
         };
-        let slot = p.or(self, wiring)?;
+        let port = p.or(self, wiring)?;
         if p.pos != toks.len() {
             return Err(p.err(format!("unexpected {:?}", toks[p.pos])));
         }
-        Ok(slot)
+        Ok(port)
     }
 
     /// A condition from an element's content nodes (a `<boolean>`'s, a
-    /// `<when>`'s) as hidden slots of `wiring`; returns the slot holding 1 or
+    /// `<when>`'s) as hidden ports of `wiring`; returns the port holding 1 or
     /// 0. Text the numeric tokenizer cannot read (`%`, `'`, `_`) can still
     /// be one `=` between two expressions for the engine.
     pub(in crate::compile) fn plan_condition_content(
@@ -164,9 +164,9 @@ impl<'a> Compiler<'a> {
         nodes: &[NodeId],
         compare: Compare,
         wiring: &mut ElemWiring,
-    ) -> Result<usize> {
-        if let Some(slot) = self.plan_text_condition(t, scope, nodes, wiring)? {
-            return Ok(slot);
+    ) -> Result<Port> {
+        if let Some(port) = self.plan_text_condition(t, scope, nodes, wiring)? {
+            return Ok(port);
         }
         match self.math_tokens(t, scope, nodes) {
             Ok((toks, src)) => self.plan_condition_tokens(wiring, &toks, src, compare),
@@ -231,13 +231,13 @@ impl<'a> Compiler<'a> {
     }
 
     /// A symbolic math source from the engine's spelling of an operand
-    /// (each `$ref` written `cellN<plan>`), as a hidden slot of `wiring`.
+    /// (each `$ref` written `cellN<plan>`), as a hidden port of `wiring`.
     pub(in crate::compile) fn sym_operand(
         &mut self,
         wiring: &mut ElemWiring,
         sym: String,
         post: Post,
-    ) -> usize {
+    ) -> Port {
         // The arena only needs an id to key the text by; the engine parses
         // the text itself when the element expands (`sym_source`).
         let id = self.compiled.arena.push(Expr::Sym(sym.clone()));
@@ -247,7 +247,7 @@ impl<'a> Compiler<'a> {
 }
 
 /// Recursive descent over a condition's tokens. Operands are math, planned
-/// as hidden slots of the element.
+/// as hidden ports of the element.
 struct CondParser<'t> {
     toks: &'t [Token],
     pos: usize,
@@ -283,11 +283,11 @@ impl CondParser<'_> {
         matches!(self.peek(k), Some(Token::Op(x)) if *x == c)
     }
 
-    fn or(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<usize> {
+    fn or(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<Port> {
         self.chain(cp, wiring, "or", '|', OpSpec::Max, Self::and)
     }
 
-    fn and(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<usize> {
+    fn and(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<Port> {
         self.chain(cp, wiring, "and", '&', OpSpec::Min, Self::not)
     }
 
@@ -299,8 +299,8 @@ impl CondParser<'_> {
         word: &str,
         c: char,
         op: OpSpec,
-        next: fn(&mut Self, &mut Compiler, &mut ElemWiring) -> Result<usize>,
-    ) -> Result<usize> {
+        next: fn(&mut Self, &mut Compiler, &mut ElemWiring) -> Result<Port>,
+    ) -> Result<Port> {
         let mut lhs = next(self, cp, wiring)?;
         loop {
             if self.is_word(word) {
@@ -315,7 +315,7 @@ impl CondParser<'_> {
         }
     }
 
-    fn not(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<usize> {
+    fn not(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<Port> {
         if self.is_word("not") || (self.is_op(0, '!') && !matches!(self.peek(1), Some(Token::Eq))) {
             self.pos += 1;
             let a = self.not(cp, wiring)?;
@@ -326,7 +326,7 @@ impl CondParser<'_> {
 
     /// A parenthesized condition, or a comparison of two operands, or a
     /// lone operand.
-    fn cmp(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<usize> {
+    fn cmp(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<Port> {
         if let Some(Token::LParen) = self.peek(0) {
             let close = self.matching(self.pos)?;
             if self.toks[self.pos + 1..close]
@@ -430,9 +430,9 @@ impl CondParser<'_> {
         })
     }
 
-    /// The operand as a numeric slot: its lowered source, else its
+    /// The operand as a numeric port: its lowered source, else its
     /// expression evaluated (NaN with free symbols).
-    fn number(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring, a: &Operand) -> usize {
+    fn number(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring, a: &Operand) -> Port {
         match &a.numeric {
             Some(p) => wiring.hidden(p.clone()),
             None => {
@@ -449,7 +449,7 @@ impl CondParser<'_> {
         wiring: &mut ElemWiring,
         a: &Operand,
         post: Post,
-    ) -> usize {
+    ) -> Port {
         cp.sym_operand(wiring, render_tokens(&self.toks[a.span.clone()]), post)
     }
 

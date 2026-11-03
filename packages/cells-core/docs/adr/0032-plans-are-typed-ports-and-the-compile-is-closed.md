@@ -1,6 +1,7 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Nothing is done; see Migration. Builds on
+Status: proposed 2026-11-03. Step 1 of the Migration is done; see
+Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -464,6 +465,26 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
    `NPublic` goes with the list as a port. Test: every planner compiles
    with no `list_slot` or offset arithmetic; the cost snapshots are
    unchanged.
+   Done, with one choice to record. A port is a handle (`Port`,
+   `compile/plan.rs`) that only the type's table (`Props::PORTS`) and
+   the wiring hand out (`ElemWiring::item` for a list point's
+   coordinates, `hidden` and its kin for a helper value): a planner
+   cannot make one from a number, so `list_slot`, `own_slot`, a circle's
+   `tp(k, j)` and every slot computation in a planner are gone, and a
+   source-scan test in `components/mod.rs` keeps them out. `Arg::Own`,
+   `Arg::Elem` and `Source::VecOut` hold a port; a `PropsThen` planner
+   adjusts its table's props by port (`TableProps`, `props[ports.expr]`).
+   The handle is the port's position in the wiring's order (the table's
+   props, the list's points, the hidden ports), which is what the build
+   numbers its slot by; a port is not yet carried by name through the
+   compile, so step 4's merge rule will identify a given leaf by the
+   attribute it came from rather than by a port name. `NPublic` is
+   `ListLen`, how many points the list holds, from which the public
+   count follows; `Props::AT`, the table's positions, stays for what
+   reads a built component by position. A saved-state key names a port
+   by its number with no `HIDDEN` bit: the keys record each element's
+   public count, so a port past it is hidden and named by the shared
+   state it holds (`Keys::prop_key`). The golden diff is unchanged.
 2. **A type per port, inferred once.** The lattice, the inference pass
    after planning, and the coercion table. Replace `is_symbolic`,
    `MathMode`, `macro_is_text`, `settled_type`'s use after outlining and
