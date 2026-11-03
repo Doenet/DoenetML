@@ -529,4 +529,86 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
             "No referent found for reference: `$cc.notThere`",
         ]);
     });
+
+    it("a branch lacking a name nearer the start is reported, though another lacks one after it", async () => {
+        // The case's `h.x` lacks `y`, but the else's `h` lacks `x` itself
+        const { text, toggle, diagnostics } = await setUp(`
+<math name="y">5</math>
+<conditionalContent name="cc">
+    <case condition="$b"><group name="h"><group name="x"><math name="z">1</math></group></group></case>
+    <else><group name="h"><math name="w">3</math></group></else>
+</conditionalContent>
+<p name="p">[$h.x.y]</p>`);
+        expect(await text()).eq("[]");
+        await toggle(true);
+        expect(await text()).eq("[]");
+        expect(diagnostics.warnings.map((w) => w.message)).eqls([
+            "`$h.x.y` names nothing: the `<else>` of `cc` has no `x`. Give it one, or use a name every case has.",
+        ]);
+    });
+
+    it("a copy in a branch is not evidence that a name after it is a name", async () => {
+        const { text, toggle, diagnostics } = await setUp(`
+<math name="m">7</math>
+<text name="value">v</text>
+<conditionalContent name="cc">
+    <case condition="$b"><math name="h" extend="$m"/></case>
+    <else><math name="h">2</math></else>
+</conditionalContent>
+<p name="p">[$h.value]</p>`);
+        expect(await text()).eq("[2]");
+        await toggle(true);
+        expect(await text()).eq("[7]");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+    });
+
+    it("a copy of a select is held to the rule with the options it adds", async () => {
+        const { text, diagnostics } = await setUp(`
+<select name="s">
+    <option><math name="x">1</math></option>
+</select>
+<select name="t" copy="$s"><option><text name="x">t</text></option></select>
+<p name="p">[$t[1].x][$t.x]</p>`);
+        expect(await text()).eq("[][]");
+        expect(diagnostics.warnings.map((w) => w.message)).eqls([
+            "`$t[1].x` names nothing: `x` is a `<math>` in one option of `t` and a `<text>` in another. Use the same type, or different names.",
+            "`$t.x` names nothing: `x` is a `<math>` in one option of `t` and a `<text>` in another. Use the same type, or different names.",
+        ]);
+    });
+
+    it("on a tag, a private name in a repeat in a branch does not count", async () => {
+        const { text, diagnostics } = await setUp(`
+<select name="s">
+    <option><math name="x">1</math><repeat for="1 2" valueName="v"><text name="x">a</text></repeat></option>
+    <option><math name="x">1</math></option>
+</select>
+<p name="p"><math extend="$s[1].x"/><math extend="$x"/></p>`);
+        expect(await text()).eq("11");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+    });
+
+    it("a property after a name in the branches warns when the type lacks it", async () => {
+        const { text, toggle, diagnostics } = await setUp(
+            `${sameTypeCases}<p name="p">[$x.nonexistent][$cc.x.nonexistent]</p>`,
+        );
+        expect(await text()).eq("[][]");
+        await toggle(true);
+        expect(await text()).eq("[][]");
+        expect(diagnostics.warnings.map((w) => w.message)).eqls([
+            "No referent found for reference: `$x.nonexistent`",
+            "No referent found for reference: `$cc.x.nonexistent`",
+        ]);
+
+        // and after an index into a select's picks
+        const indexed = await setUp(`
+<select name="s" numToSelect="2">
+    <option><math name="x">1</math></option>
+    <option><math name="x">2</math></option>
+</select>
+<p name="p">[$s[1].x.nonexistent]</p>`);
+        expect(await indexed.text()).eq("[]");
+        expect(indexed.diagnostics.warnings.map((w) => w.message)).eqls([
+            "No referent found for reference: `$s[1].x.nonexistent`",
+        ]);
+    });
 });
