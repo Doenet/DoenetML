@@ -134,11 +134,12 @@ pub(in crate::compile) struct Compiler<'a> {
     /// What the compile makes. W: every stage. Outlining pushes every
     /// element (an answer's synthetic ones too, `add_answer_children`),
     /// template and `$ref` child (`ref_children`), and the references it
-    /// reads (a container copy's `extend`, an answer's whens), and settles
+    /// reads (every element's `extend`, an answer's whens), and settles
     /// a `<math>`'s type; it plans no prop. Parsing pushes references and
-    /// expressions; planning makes `plans` (props, holds, a body's `from`)
-    /// and the `$ref` children's plans (`ref_child_plans`), sets
-    /// `extend`s, and pushes no element; boxing writes `boxes`; linking
+    /// expressions; planning makes `plans` (props, holds, a body's `from`,
+    /// what a copy copies) and the `$ref` children's plans
+    /// (`ref_child_plans`), and pushes no element; boxing writes `boxes`;
+    /// linking
     /// aliases shared slots in `plans`; sealing makes `sealed` and choice
     /// interfaces (ADR 0031).
     pub(in crate::compile) compiled: Compiled,
@@ -180,10 +181,6 @@ pub(in crate::compile) struct Compiler<'a> {
     /// one type, so this is an array read. A cache. W, R: every stage that
     /// plans a reference (`prop_sel`).
     pub(in crate::compile) prop_sels: Vec<Option<(ComponentType, Option<PropSel>)>>,
-    /// By (template, element), the reference in the element's `extend`,
-    /// planned once (`plan_extend`). A cache. W, R: outline (container
-    /// copies), plan.
-    extend_refs: HashMap<(u32, u32), RefId>,
 }
 
 /// What outlining hands to the stages after it (ADR 0030): the work it
@@ -340,7 +337,6 @@ impl Compiler<'_> {
             restart: None,
             errors: Vec::new(),
             boxed_here: HashSet::new(),
-            extend_refs: HashMap::new(),
             prop_sels: Vec::new(),
         };
         let outline = crate::trace::span("outline").run(|| cp.outline());

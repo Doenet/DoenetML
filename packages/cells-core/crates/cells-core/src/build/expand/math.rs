@@ -227,7 +227,7 @@ impl<'c> Builder<'c> {
             Some(Source::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
             // The extend referent's slot, as `instance_sources` resolves it.
             Some(Source::Inherit) => {
-                let Some(p) = c.templates[i.template.index()].row(i.elem).extend else {
+                let Some(p) = c.templates[i.template.index()].plan(i.elem).extend else {
                     return ValueType::Number;
                 };
                 let referent = match self.resolve(p, i.scope) {

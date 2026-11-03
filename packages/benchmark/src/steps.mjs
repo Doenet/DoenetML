@@ -95,6 +95,10 @@ export const STEPS = {
         "Container copies given their clones, once every name is in the table.",
         `${C}/compile/outline/copies.rs (expand_container_copies)`,
     ],
+    "core/new Core/load/compile/plan/outline/extends": [
+        "Every other element's `extend` planned, once the container copies have their clones (ADR 0031).",
+        `${C}/compile/outline/copies.rs (plan_extends)`,
+    ],
     "core/new Core/load/compile/plan/outline/answer children": [
         "Every answer's synthetic children made: its implicit input and a response for each input its whens read, so the element set is fixed before planning (ADR 0030).",
         `${C}/compile/outline/answer.rs (add_answer_children)`,

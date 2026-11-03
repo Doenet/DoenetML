@@ -705,15 +705,16 @@ impl Compiler<'_> {
         Ok(el)
     }
 
-    /// The reference in `e`'s `extend`, planned once from where `e` sits:
-    /// by outlining for a container copy, by planning for the rest.
+    /// The reference in `e`'s `extend`, planned once, when outlining, from
+    /// where `e` sits (ADR 0031): first for a container copy, which needs it
+    /// for its clones, then for every other element (`plan_extends`). It is
+    /// outlining's row's `extend`.
     pub(in crate::compile) fn plan_extend(
         &mut self,
         t: TemplateId,
         e: ElemId,
     ) -> Result<Option<RefId>> {
-        let key = (t.get(), e.get());
-        if let Some(&p) = self.extend_refs.get(&key) {
+        if let Some(p) = self.compiled.templates[t.index()].elems[e.index()].extend {
             return Ok(Some(p));
         }
         let Elem {
@@ -746,7 +747,8 @@ impl Compiler<'_> {
             let base = std::mem::replace(&mut r.display, RefDisplay::Written);
             r.display = RefDisplay::Prop(Box::new(base), dp);
         }
-        self.extend_refs.insert(key, p);
+        debug_assert!(self.outlining.is_some(), "only outlining plans an extend");
+        self.compiled.templates[t.index()].elems[e.index()].extend = Some(p);
         Ok(Some(p))
     }
 

@@ -151,19 +151,25 @@ impl Compiler<'_> {
             ..
         } = self.compiled.templates[t.index()].elems[e.index()];
         if cloned {
+            // A clone is a copy of its original.
+            let original = self.compiled.templates[t.index()].elems[e.index()].extend;
+            self.compiled.templates[t.index()].plans[e.index()].extend = original;
             return Ok(ElemShape::Cloned);
         }
         if el == NodeId::NONE {
             return Ok(ElemShape::Synthetic);
         }
-        // A container copy's extend was planned when outlining, with its
-        // clones.
-        if let Some(p) = self.compiled.templates[t.index()].elems[e.index()].extend
+        // Every `extend` was planned when outlining (ADR 0031). A container
+        // copy got its clones then too.
+        let extend = self.compiled.templates[t.index()].elems[e.index()].extend;
+        if let Some(p) = extend
             && component_type.container()
+            && self.compiled.refs[p.index()].prop.is_none()
         {
+            self.compiled.templates[t.index()].plans[e.index()].extend = Some(p);
             return Ok(ElemShape::ContainerCopy(p));
         }
-        let extend = match self.plan_extend(t, e)? {
+        let extend = match extend {
             Some(p) => {
                 // An extend of a box is planned from nothing (ADR 0027).
                 self.referent_type(t, e, p)?;
@@ -179,7 +185,7 @@ impl Compiler<'_> {
             }
             None => None,
         };
-        self.compiled.templates[t.index()].elems[e.index()].extend = extend;
+        self.compiled.templates[t.index()].plans[e.index()].extend = extend;
         Ok(ElemShape::ByType(extend))
     }
 

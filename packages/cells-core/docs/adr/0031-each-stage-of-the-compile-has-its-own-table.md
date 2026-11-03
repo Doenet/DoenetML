@@ -1,6 +1,6 @@
 # Each stage of the compile has its own table
 
-Status: proposed 2026-11-02. Steps 1 to 5 are done; see Migration. Amended
+Status: proposed 2026-11-02. Steps 1 to 6 are done; see Migration. Amended
 2026-11-02: the boundaries the tables draw leak in three places (boxing,
 the planner context, code more than one stage runs); see "Where the
 boundaries leak".
@@ -299,6 +299,15 @@ otherwise.
    step 6 settles.
 6. **Every `extend` planned when outlining.** `extend` joins outlining's
    row.
+   Done. `extend` meant two things: the reference the attribute names,
+   and what the build copies, which planning decides (an extend of a prop,
+   or a value an element aliases, `alias_extended`, is no copy). The
+   first is outlining's row's `extend`, which `plan_extend` writes, only
+   while outlining: a container copy's when it expands, every other
+   element's once the copies have their clones (`plan_extends`), which
+   boxes an element whose `extend` cannot be planned, as planning did. The
+   second is `ElemPlan::extend`, which the build reads. `extend_refs`
+   goes. Test: `compile/outline/copies.rs`.
 7. **Planning's view.** `Planning`, holding outlining's table, `Settled`
    and `Parsed` read-only and planning's table writable; `PlanCtx` wraps
    it, and planning's machinery is `impl Planning`. Outlining's table

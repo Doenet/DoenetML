@@ -4,6 +4,28 @@
 use crate::compile::*;
 
 impl Compiler<'_> {
+    /// After the container copies have their clones, every other
+    /// element's `extend` is planned (ADR 0031), so planning reads the
+    /// reference from outlining's row. One that cannot be planned boxes its
+    /// element here, as planning did.
+    pub(in crate::compile) fn plan_extends(&mut self) {
+        let made = self.outlining().work.to_plan.clone();
+        for (t, e) in made {
+            let el = &self.compiled.templates[t.index()].elems[e.index()];
+            if el.node == NodeId::NONE
+                || el.cloned
+                || el.extend.is_some()
+                || self.is_box(t, e)
+                || self.dast.attr_peek(el.node, "extend").is_none()
+            {
+                continue;
+            }
+            if let Err(error) = self.with_clones(|cp| cp.plan_extend(t, e)) {
+                self.box_in_place(t, e, error);
+            }
+        }
+    }
+
     /// The end of outlining (ADR 0027): every container copy gets its
     /// clones, now that every name is in the table, so the element set is
     /// complete before anything is planned. A copy of a copy is expanded
@@ -74,7 +96,6 @@ impl Compiler<'_> {
         // is a box has none to clone.
         self.with_clones(|cp| cp.ref_target(t, p).map(drop))?;
         self.referent_type(t, e, p)?;
-        self.compiled.templates[t.index()].elems[e.index()].extend = Some(p);
         let scope = self.child_scope(t, e);
         let mut kids = self.clone_children(t, r, scope, e)?;
         let own = std::mem::take(&mut self.compiled.templates[t.index()].elems[e.index()].children);
@@ -185,6 +206,44 @@ impl Compiler<'_> {
                 }
                 r => return r,
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::compile::*;
+    use crate::testing::dast::{document, el, mac};
+
+    /// Template and element of the element named `name`.
+    fn find(compiled: &Compiled, name: &str) -> (TemplateId, ElemId) {
+        for (ti, tpl) in compiled.templates.iter().enumerate() {
+            for (ei, e) in tpl.elems.iter().enumerate() {
+                if e.name != StrId::NONE && compiled.dast.strings.get(e.name).trim() == name {
+                    return (TemplateId::from_index(ti), ElemId::from_index(ei));
+                }
+            }
+        }
+        panic!("no element named {name}");
+    }
+
+    /// Every `extend` is planned when outlining, in outlining's row (ADR
+    /// 0031); whether the element is a copy of what it names is planning's:
+    /// a copy of a point is, a point extending a prop aliases it instead.
+    #[test]
+    fn outlining_plans_every_extend_and_planning_decides_the_copy() {
+        let dast = document([
+            el("point").name("P").attr("x", "1").attr("y", "2"),
+            el("point").name("Q").attr("extend", mac("P")),
+            el("circle").name("c"),
+            el("point").name("R").attr("extend", mac("c.center")),
+        ]);
+        let compiled = crate::testing::compile(&dast).unwrap();
+        for (name, copy) in [("Q", true), ("R", false)] {
+            let (t, e) = find(&compiled, name);
+            let tpl = &compiled.templates[t.index()];
+            assert!(tpl.elems[e.index()].extend.is_some(), "{name}");
+            assert_eq!(tpl.plan(e).extend.is_some(), copy, "{name}");
         }
     }
 }

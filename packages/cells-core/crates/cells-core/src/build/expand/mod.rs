@@ -1002,9 +1002,9 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn expand_pointlist(&mut self, comp: CompIdx) -> Result<()> {
         let inst = self.instances[self.comp_instance[comp.index()] as usize];
         let tpl = &self.compiled.templates[inst.template.index()];
-        let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
+        let plan = tpl.plan(inst.elem);
         let mut kids = Vec::new();
-        match (plan.from, el.extend) {
+        match (plan.from, plan.extend) {
             (Some(from), _) => {
                 let items = self.resolve_items(from, inst.scope)?;
                 for [x, y] in items {
@@ -1221,7 +1221,7 @@ impl<'c> Builder<'c> {
         let tpl = &self.compiled.templates[inst.template.index()];
         let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
         let (component_type, extend_plan, n_props) =
-            (el.component_type, el.extend, plan.props.len());
+            (el.component_type, plan.extend, plan.props.len());
         // Not such a copy, or placed already.
         if plan.n_public != NPublic::AsReferent || self.n_public[inst.comp.index()] != NONE {
             return Ok(());
@@ -1285,8 +1285,11 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
         let (component_type, extend_plan) = {
-            let el = &self.compiled.templates[inst.template.index()].row(inst.elem);
-            (el.component_type, el.extend)
+            let tpl = &self.compiled.templates[inst.template.index()];
+            (
+                tpl.row(inst.elem).component_type,
+                tpl.plan(inst.elem).extend,
+            )
         };
         let extend = match extend_plan {
             Some(p) => self.extend_referent(p, inst.scope, component_type)?,

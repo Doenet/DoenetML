@@ -55,6 +55,7 @@ impl Compiler<'_> {
             crate::trace::count("copies", self.outlining().container_copies.len());
             self.expand_container_copies();
         }
+        crate::trace::span("extends").run(|| self.plan_extends());
         crate::trace::span("answer children").run(|| self.add_answer_children());
         self.outlining.take().expect("outlining").work
     }

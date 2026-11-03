@@ -421,6 +421,10 @@ pub(crate) struct Elem {
     /// each repeat body is its own template.
     pub(crate) name_scope: ElemId,
     pub(crate) children: Vec<Child>,
+    /// The reference the element's `extend` attribute names, planned when
+    /// outlining (ADR 0031): every element's, once the container copies
+    /// have their clones (`plan_extends`); a clone's names its original.
+    /// What the build copies is planning's (`ElemPlan::extend`).
     pub(crate) extend: Option<RefId>,
     /// A child of a container copy (`<graph extend="$g"/>`): every prop
     /// aliases the original's, and the children are clones too.
@@ -468,6 +472,10 @@ pub(crate) struct ElemPlan {
     /// gathers from, or the list a `<pointList extend="$l.points">`
     /// takes its points from.
     pub(crate) from: Option<RefId>,
+    /// What the element is a copy of, which the build wires it from:
+    /// outlining's `Elem::extend`, unless planning made the element an
+    /// alias of what it extends instead (an extend of a prop, ADR 0025).
+    pub(crate) extend: Option<RefId>,
 }
 
 impl ElemPlan {
@@ -477,6 +485,7 @@ impl ElemPlan {
         n_public: NPublic::Table,
         hold: Hold::Off,
         from: None,
+        extend: None,
     };
 }
 

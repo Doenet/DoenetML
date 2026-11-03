@@ -125,7 +125,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// The reference in the element's `extend`, if any.
     pub(crate) fn extend(&self) -> Option<RefId> {
-        self.elem().extend
+        self.c.compiled.templates[self.t.index()].plans[self.e.index()].extend
     }
 
     /// Whether the element has been planned already (an award by its
@@ -470,7 +470,7 @@ impl<'a> PlanCtx<'_, 'a> {
         let p = self.extend().expect("the element extends another");
         self.name_prop_if_none(p, prop);
         let tpl = &mut self.c.compiled.templates[self.t.index()];
-        tpl.elems[self.e.index()].extend = None;
+        tpl.plans[self.e.index()].extend = None;
         tpl.plans[self.e.index()].props = vec![Source::reference(p)];
         Ok(())
     }
