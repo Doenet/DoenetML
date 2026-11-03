@@ -291,7 +291,7 @@ Done by #2447 (closing #2445):
 - a `<conditionalContent>` or `<select>` nested in a case or option is allowed at load but shows
   `<T/>`'s default with no info (B22, #2437);
 - `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written,
-  because `$m` copies the `_error` in m's place (B38).
+  because `$m` copies the `_error` in m's place (B38, #2449).
 
 ### REF-1: `$x` is shorthand for the unadorned `extend` (Tier 1 for the meaning, Tier 2 for exact parity)
 `$x` means `<T extend="$x"/>`, where T is the referent's own tag. Write the `extend` out only to
@@ -560,7 +560,7 @@ Known violations:
 - a copy that made nothing could report a different info after a reload (B37). #2447 removed
   the run-time `e0065` of its example; whether two infos can still differ is not checked;
 - a `<select>` whose options are all written with `copy` fails to load, "Number of indices
-  specified for select must match number to select" (B39).
+  specified for select must match number to select" (B39, #2448).
 
 Fixed: a type-changed copy keeps its decision through a reload since #2443 (B31). Infos follow
 their condition since #2444 (B33). Bare-text cases convert since #2447 (B23).
