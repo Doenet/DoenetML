@@ -610,13 +610,19 @@ impl<'a> Compiler<'a> {
                         .lookup(t, ROOT_SCOPE, path[0])?
                         .ok_or_else(|| Error::UnknownName(d.strings.get(path[0]).into()))?;
                     let tt = self.template_up(t, hops);
+                    // An iteration index name (`indexName`): the hidden
+                    // `<number>` outlining makes for it, the only one it
+                    // makes. Read from outlining's row, so a reference
+                    // planned before the repeat (a `<math>`'s, when
+                    // parsing) finds it too.
                     let el = &self.compiled.templates[tt.index()].elems[e.index()];
-                    match (el.component_type, el.props.get(prop::number::VALUE)) {
-                        (ComponentType::Number, Some(Source::IterIndex)) => {
-                            terms.push(IndexTerm::Iter(hops))
-                        }
-                        _ => return Err(Error::DynamicIndex(display.to_string())),
+                    let index_name = el.component_type == ComponentType::Number
+                        && el.node == NodeId::NONE
+                        && !el.cloned;
+                    if !index_name {
+                        return Err(Error::DynamicIndex(display.to_string()));
                     }
+                    terms.push(IndexTerm::Iter(hops));
                 }
                 _ => {}
             }

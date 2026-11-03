@@ -373,3 +373,26 @@ fn a_returning_iteration_stamps_its_nested_repeat_in_one_pass() {
     assert!(doc.structure_settled());
     assert_eq!(reference::check(&doc), None);
 }
+
+/// An iteration index name indexes inside a `<math>`'s text as anywhere
+/// else. A math's references are planned when parsing, before the repeat
+/// around it is planned, so whether a name is an index name is read from
+/// what outlining made, not from the repeat's plan.
+#[test]
+fn an_index_name_indexes_inside_a_math() {
+    let src = r#"<collect name="c" from="$g" componentType="number"/>
+        <group name="g"><number>10</number><number>20</number></group>
+        <repeatForSequence name="r" length="2" indexName="i">
+          <math name="m">$c[$i] + 1</math><number name="n">$c[$i]</number>
+        </repeatForSequence>"#;
+    let doc = load(src).unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != cells_core::DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert_eq!(doc.value("r[2].n", "value"), Some(20.0));
+    assert_eq!(doc.value("r[2].m", "value"), Some(21.0));
+}
