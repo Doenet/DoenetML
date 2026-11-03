@@ -33,7 +33,7 @@ impl<'a> Compiler<'a> {
     pub(super) fn plan_function_iterates(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         self.plan_attrs(t, e, None)?;
         let at = function_iterates::Props::AT;
-        self.compiled.templates[t.index()].elems[e.index()].props[at.allIteratesWithInitial] =
+        self.compiled.templates[t.index()].plans[e.index()].props[at.allIteratesWithInitial] =
             Source::own(at.count);
         let d = self.dast;
         let Elem {
@@ -124,7 +124,7 @@ impl<'a> Compiler<'a> {
                 Source::FirstIteration(Box::new(first), Box::new(Source::Math(exprs[j])))
             })
             .collect();
-        self.compiled.templates[sub.index()].elems[0].props = prop::tuple::props_of(entries);
+        self.compiled.templates[sub.index()].plans[0].props = prop::tuple::props_of(entries);
         Ok(())
     }
 
@@ -231,7 +231,7 @@ impl<'a> Compiler<'a> {
                 .into_vec(),
                 _ => continue,
             };
-            self.compiled.templates[sub.index()].elems[i].props = props;
+            self.compiled.templates[sub.index()].plans[i].props = props;
         }
     }
 
@@ -273,7 +273,7 @@ impl<'a> Compiler<'a> {
                     == ComponentType::FunctionIterates => {}
             _ => return Err(unsupported()),
         }
-        self.compiled.templates[t.index()].elems[e.index()].props = prop::repeat_for::Props {
+        self.compiled.templates[t.index()].plans[e.index()].props = prop::repeat_for::Props {
             count: Source::reference(fp),
         }
         .into_vec();
@@ -302,7 +302,7 @@ impl<'a> Compiler<'a> {
                     Source::reference(RefId::from_index(self.compiled.refs.len() - 1))
                 })
                 .collect();
-            self.compiled.templates[sub.index()].elems[0].props = props;
+            self.compiled.templates[sub.index()].plans[0].props = props;
         }
         Ok(())
     }

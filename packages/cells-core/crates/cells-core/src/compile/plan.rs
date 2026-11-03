@@ -245,13 +245,10 @@ pub(crate) enum Body {
     Repeat {
         template: TemplateId,
     },
+    /// A `<collect>` or `<polyline>`, of the type it collects; what it
+    /// gathers from is planning's (`ElemPlan::from`).
     Collect {
-        from: RefId,
         component_type: ComponentType,
-    },
-    /// `<pointList extend="$l.points">`: children are synthesized points.
-    PointList {
-        from: RefId,
     },
     /// A `<conditionalContent>` or `<select>` (ADR 0009): `Compiled::choices`.
     Choice(ChoiceId),
@@ -398,9 +395,10 @@ pub(crate) enum ParsedMath {
 }
 
 /// How many public props an element has.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub(crate) enum NPublic {
     /// Its type table's, whatever type the element ends up with.
+    #[default]
     Table,
     /// The table's, then two per point of its list, as planned.
     Planned(u32),
@@ -422,9 +420,6 @@ pub(crate) struct Elem {
     /// resolver; repeats hide their children behind their own name because
     /// each repeat body is its own template.
     pub(crate) name_scope: ElemId,
-    pub(crate) props: Vec<Source>,
-    /// How many of `props` are public (ADR 0016); hidden slots follow.
-    pub(crate) n_public: NPublic,
     pub(crate) children: Vec<Child>,
     pub(crate) extend: Option<RefId>,
     /// A child of a container copy (`<graph extend="$g"/>`): every prop
@@ -434,8 +429,6 @@ pub(crate) struct Elem {
     /// is the type outlining settled (a `<math>` that is a point, ADR 0029).
     pub(crate) planned_as: ComponentType,
     pub(crate) body: Body,
-    /// What holds it (`fixed`, `compile/planning/fix.rs`).
-    pub(crate) hold: Hold,
     /// A container copy whose clones outlining has not made yet: what a
     /// reference reads of it is not there (`Compiler::outlined_elem`).
     /// Outlining's, and false once outlining is done.
@@ -451,17 +444,40 @@ impl Elem {
             component_type: ComponentType::Error,
             name: self.name,
             name_scope: self.name_scope,
-            props: Vec::new(),
-            n_public: NPublic::Table,
             children: Vec::new(),
             extend: None,
             cloned: self.cloned,
             planned_as: self.planned_as,
             body: Body::Plain,
-            hold: Hold::Off,
             clones_pending: false,
         }
     }
+}
+
+/// What planning makes of one element (ADR 0031): row `e` of a
+/// template's `plans` is element `e`'s. Linking aliases shared slots in
+/// `props`; no other stage writes it.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct ElemPlan {
+    pub(crate) props: Vec<Source>,
+    /// How many of `props` are public (ADR 0016); hidden slots follow.
+    pub(crate) n_public: NPublic,
+    /// What holds it (`fixed`, `compile/planning/fix.rs`).
+    pub(crate) hold: Hold,
+    /// What planning gave its body to read: the reference a `<collect>`
+    /// gathers from, or the list a `<pointList extend="$l.points">`
+    /// takes its points from.
+    pub(crate) from: Option<RefId>,
+}
+
+impl ElemPlan {
+    /// The plan of a box, and of an element not planned: nothing.
+    pub(crate) const NONE: ElemPlan = ElemPlan {
+        props: Vec::new(),
+        n_public: NPublic::Table,
+        hold: Hold::Off,
+        from: None,
+    };
 }
 
 /// What outlining knows of a `$ref` child (ADR 0031): its node, the
@@ -551,6 +567,9 @@ pub(crate) struct Template {
     pub(crate) elems: Vec<Elem>,
     /// Boxing's table (ADR 0031), parallel to `elems`: a row per element.
     pub(crate) boxes: Vec<BoxState>,
+    /// Planning's table (ADR 0031), parallel to `elems`: empty until
+    /// planning makes it.
+    pub(crate) plans: Vec<ElemPlan>,
     /// Outlining's table of `$ref` children (ADR 0031), by `RefChildId`.
     pub(crate) ref_children: Vec<RefChild>,
     /// Planning's table of `$ref` children's plans, parallel to
@@ -580,6 +599,15 @@ impl Template {
         match &self.boxes[e.index()] {
             BoxState::Boxed { row, .. } => row,
             BoxState::Live => &self.elems[e.index()],
+        }
+    }
+
+    /// Element `e`'s plan as built: nothing for a box, else planning's.
+    pub(crate) fn plan(&self, e: ElemId) -> &ElemPlan {
+        static NONE: ElemPlan = ElemPlan::NONE;
+        match self.boxes[e.index()] {
+            BoxState::Boxed { .. } => &NONE,
+            BoxState::Live => &self.plans[e.index()],
         }
     }
 
@@ -1258,8 +1286,10 @@ impl Compiled {
             tpl.elems.shrink_to_fit();
             tpl.children.shrink_to_fit();
             for el in &mut tpl.elems {
-                el.props.shrink_to_fit();
                 el.children.shrink_to_fit();
+            }
+            for plan in &mut tpl.plans {
+                plan.props.shrink_to_fit();
             }
         }
         self.refs.shrink_to_fit();

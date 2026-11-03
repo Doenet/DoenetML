@@ -136,10 +136,11 @@ pub(in crate::compile) struct Compiler<'a> {
     /// template and `$ref` child (`ref_children`), and the references it
     /// reads (a container copy's `extend`, an answer's whens), and settles
     /// a `<math>`'s type; it plans no prop. Parsing pushes references and
-    /// expressions; planning sets props, bodies, holds and `extend`s, and
-    /// makes the `$ref` children's plans (`ref_child_plans`), pushing no
-    /// element; boxing writes `boxes`; linking aliases shared slots;
-    /// sealing makes `sealed` and choice interfaces (ADR 0031).
+    /// expressions; planning makes `plans` (props, holds, a body's `from`)
+    /// and the `$ref` children's plans (`ref_child_plans`), sets
+    /// `extend`s, and pushes no element; boxing writes `boxes`; linking
+    /// aliases shared slots in `plans`; sealing makes `sealed` and choice
+    /// interfaces (ADR 0031).
     pub(in crate::compile) compiled: Compiled,
     /// Outlining's own state, and the `Outline` it is filling: `Some`
     /// only while outlining runs (`outline`), so nothing after it can add

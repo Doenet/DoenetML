@@ -53,8 +53,9 @@ impl Seal<'_> {
             }
         }
         for tpl in &self.compiled.templates {
-            for el in tpl.rows() {
-                if let Some((op, n)) = el.props.iter().find_map(misbound) {
+            for (e, el) in tpl.rows().enumerate() {
+                let plan = tpl.plan(ElemId::from_index(e));
+                if let Some((op, n)) = plan.props.iter().find_map(misbound) {
                     let tag = el.component_type.tag();
                     return Err(Failure {
                         error: Error::Internal(format!(
@@ -75,10 +76,11 @@ impl Seal<'_> {
         (self.compiled.templates.iter())
             .map(|tpl| {
                 let mut off = 0;
-                let offs = (tpl.rows())
-                    .map(|el| {
+                let offs = (tpl.rows().enumerate())
+                    .map(|(e, el)| {
                         let at = off;
-                        off += el.props.len().max(el.component_type.prop_defs().len()) as u32;
+                        let n_props = tpl.plan(ElemId::from_index(e)).props.len();
+                        off += n_props.max(el.component_type.prop_defs().len()) as u32;
                         at
                     })
                     .collect();

@@ -124,14 +124,11 @@ impl Compiler<'_> {
             component_type,
             name,
             name_scope,
-            props: Vec::new(),
-            n_public: NPublic::Table,
             children: Vec::new(),
             extend: None,
             cloned: false,
             planned_as: component_type,
             body: Body::Plain,
-            hold: Hold::Off,
             clones_pending: false,
         });
         tpl.boxes.push(BoxState::Live);
@@ -341,10 +338,7 @@ impl Compiler<'_> {
             ComponentType::Polyline => crate::components::geometry::polyline::COLLECTED,
             _ => return Ok(()),
         };
-        self.compiled.templates[t.index()].elems[e.index()].body = Body::Collect {
-            from: RefId::NONE,
-            component_type,
-        };
+        self.compiled.templates[t.index()].elems[e.index()].body = Body::Collect { component_type };
         Ok(())
     }
 

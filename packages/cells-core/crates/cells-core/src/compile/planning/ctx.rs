@@ -131,7 +131,9 @@ impl<'a> PlanCtx<'_, 'a> {
     /// Whether the element has been planned already (an award by its
     /// answer).
     pub(crate) fn is_planned(&self) -> bool {
-        !self.elem().props.is_empty()
+        !self.c.compiled.templates[self.t.index()].plans[self.e.index()]
+            .props
+            .is_empty()
     }
 
     /// The prop at position `pos` of the graph the element sits in
@@ -450,7 +452,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Sets the element's props.
     pub(crate) fn set_props(&mut self, props: Vec<Source>) {
-        self.c.compiled.templates[self.t.index()].elems[self.e.index()].props = props;
+        self.c.compiled.templates[self.t.index()].plans[self.e.index()].props = props;
     }
 
     /// The element's `<math>` text as it was parsed (ADR 0029), or the
@@ -467,9 +469,9 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn alias_extended(&mut self, prop: &'static str) -> Result<()> {
         let p = self.extend().expect("the element extends another");
         self.name_prop_if_none(p, prop);
-        let el = &mut self.c.compiled.templates[self.t.index()].elems[self.e.index()];
-        el.extend = None;
-        el.props = vec![Source::reference(p)];
+        let tpl = &mut self.c.compiled.templates[self.t.index()];
+        tpl.elems[self.e.index()].extend = None;
+        tpl.plans[self.e.index()].props = vec![Source::reference(p)];
         Ok(())
     }
 
@@ -478,14 +480,15 @@ impl<'a> PlanCtx<'_, 'a> {
     /// found when it expands; its props are set then too.
     pub(crate) fn collect(&mut self, from: RefId) {
         let own_type = self.elem().component_type;
-        let el = &mut self.c.compiled.templates[self.t.index()].elems[self.e.index()];
-        let Body::Collect { from: f, .. } = &mut el.body else {
-            unreachable!("outlining made a collecting element a collect")
-        };
-        *f = from;
+        debug_assert!(
+            matches!(self.elem().body, Body::Collect { .. }),
+            "outlining made a collecting element a collect"
+        );
         let mut props = vec![Source::absent(); own_type.prop_defs().len()];
         Deferred::mark(own_type, &mut props);
-        el.props = props;
+        let plan = &mut self.c.compiled.templates[self.t.index()].plans[self.e.index()];
+        plan.from = Some(from);
+        plan.props = props;
     }
 
     // Machinery several components build on.

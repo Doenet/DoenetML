@@ -46,7 +46,7 @@ impl<'a> Compiler<'a> {
             None => Source::Const(0.0),
         };
         if !self.compiled.choices[cid.index()].reactive {
-            self.compiled.templates[t.index()].elems[e.index()].props =
+            self.compiled.templates[t.index()].plans[e.index()].props =
                 prop::select::Props { hide }.into_vec();
             return Ok(());
         }
@@ -74,7 +74,7 @@ impl<'a> Compiler<'a> {
             choice: Source::own(first),
             hide,
         });
-        self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
+        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 }

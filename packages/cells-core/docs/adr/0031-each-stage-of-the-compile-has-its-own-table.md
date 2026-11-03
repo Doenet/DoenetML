@@ -1,6 +1,6 @@
 # Each stage of the compile has its own table
 
-Status: proposed 2026-11-02. Steps 1 to 4 are done; see Migration. Amended
+Status: proposed 2026-11-02. Steps 1 to 5 are done; see Migration. Amended
 2026-11-02: the boundaries the tables draw leak in three places (boxing,
 the planner context, code more than one stage runs); see "Where the
 boundaries leak".
@@ -279,6 +279,24 @@ otherwise.
 5. **Planning's table.** `props`, `n_public`, `hold`, a body's `from`
    and what a choice's planner decides leave `Elem` and `ChoiceDef` for
    `Template::plans`.
+   Done. An `ElemPlan` row holds `props`, `n_public`, `hold` and `from`:
+   the reference a `<collect>` gathers from, or the list a `<pointList
+   extend="$l.points">` takes its points from, which was a body of its
+   own (`Body::PointList`, gone; `Body::Collect` keeps only the type
+   outlining settled). Planning makes the table before it plans; linking
+   aliases shared slots in it. Sealing and the build read
+   `Template::plan`, which is empty for a box (`ElemPlan::NONE`), as
+   `Template::row` is the box's row. A choice's planner writes nothing in
+   `ChoiceDef`: it reads whether the choice is reactive and its
+   conditions, outlining's, and its decisions are its props, so nothing
+   of `ChoiceDef` moved. Whether a name is an iteration index, which
+   `plan_ref` read off the index element's props, is read from its
+   outlining row (the hidden `<number>` outlining makes for `indexName`);
+   reading it from planning's table had refused `$c[$i]` in a `<math>`,
+   whose references are planned when parsing, since ADR 0030's step 4
+   (fixed in its own commit before this step). `ElemPlan` keeps no
+   `extend`: planning still clears one (`PlanCtx::alias_extended`), which
+   step 6 settles.
 6. **Every `extend` planned when outlining.** `extend` joins outlining's
    row.
 7. **Planning's view.** `Planning`, holding outlining's table, `Settled`

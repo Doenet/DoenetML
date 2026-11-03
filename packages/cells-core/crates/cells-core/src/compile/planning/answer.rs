@@ -169,7 +169,7 @@ impl<'a> Compiler<'a> {
                 weight,
                 numSubmissions: Source::Given(0.0),
             });
-            self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
+            self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
             return Ok(());
         }
 
@@ -192,7 +192,7 @@ impl<'a> Compiler<'a> {
             weight,
             numSubmissions: Source::Given(0.0),
         });
-        self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
+        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 
@@ -254,7 +254,7 @@ impl<'a> Compiler<'a> {
             weight,
             numSubmissions: Source::Given(0.0),
         });
-        self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
+        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 
@@ -321,7 +321,7 @@ impl<'a> Compiler<'a> {
                 credit,
                 awarded: Source::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
             });
-            self.compiled.templates[t.index()].elems[a.index()].props = award_wiring.finish();
+            self.compiled.templates[t.index()].plans[a.index()].props = award_wiring.finish();
             planned.push(a);
         }
         let best = best_award(&mut wiring, &planned);
@@ -333,7 +333,7 @@ impl<'a> Compiler<'a> {
             weight,
             numSubmissions: Source::Given(0.0),
         });
-        self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
+        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 
@@ -512,7 +512,7 @@ impl<'a> Compiler<'a> {
                 when_wiring.set_public_sources(when::Props {
                     value: Source::own(slot),
                 });
-                self.compiled.templates[t.index()].elems[w.index()].props = when_wiring.finish();
+                self.compiled.templates[t.index()].plans[w.index()].props = when_wiring.finish();
                 wiring.hidden(Source::Alias(Arg::Elem(w, own_slot(when::VALUE))))
             }
             None => {
@@ -531,7 +531,7 @@ impl<'a> Compiler<'a> {
             credit,
             awarded: Source::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
         });
-        self.compiled.templates[t.index()].elems[form.e.index()].props = wiring.finish();
+        self.compiled.templates[t.index()].plans[form.e.index()].props = wiring.finish();
         Ok(())
     }
 
@@ -596,7 +596,7 @@ impl<'a> Compiler<'a> {
         } else {
             (Source::Given(0.0), Source::own(response::SUBMITTED))
         };
-        self.compiled.templates[t.index()].elems[r.index()].props = response::Props {
+        self.compiled.templates[t.index()].plans[r.index()].props = response::Props {
             response: live,
             submitted,
             value,
@@ -614,7 +614,7 @@ impl<'a> Compiler<'a> {
                 el.node == NodeId::NONE && el.component_type == ComponentType::MathInput
             })
             .ok_or_else(|| Error::Internal("an implicit input outlining did not make".into()))?;
-        self.compiled.templates[t.index()].elems[mi.index()].props = math_input::Props {
+        self.compiled.templates[t.index()].plans[mi.index()].props = math_input::Props {
             value: Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![math_input::EXPR]),
             expr: Source::GivenMath(None),
         }

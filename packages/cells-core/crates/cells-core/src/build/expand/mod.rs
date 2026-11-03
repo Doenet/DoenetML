@@ -568,14 +568,18 @@ impl<'c> Builder<'c> {
             if self.compiled.templates[t.index()].is_dead(ElemId::from_index(e)) {
                 continue;
             }
-            let el = self.compiled.templates[t.index()].row(ElemId::from_index(e));
+            let tpl = &self.compiled.templates[t.index()];
+            let (el, plan) = (
+                tpl.row(ElemId::from_index(e)),
+                tpl.plan(ElemId::from_index(e)),
+            );
             // A copy of a type with a list takes its slots, as many as its
             // referent has, when its referent is known (`place_list_copies`).
-            let n_slots = match el.n_public {
+            let n_slots = match plan.n_public {
                 NPublic::AsReferent => 0,
-                _ => el.props.len().max(el.component_type.prop_defs().len()),
+                _ => plan.props.len().max(el.component_type.prop_defs().len()),
             };
-            let n_public = el.n_public;
+            let n_public = plan.n_public;
             let comp =
                 self.new_component(el.component_type, el.name, parent, el.node, scope, n_slots);
             if let NPublic::Planned(n) = n_public {
@@ -644,17 +648,15 @@ impl<'c> Builder<'c> {
                         }
                     }
                 }
-                Body::PointList { .. } => {
-                    self.pointlists.push(comp);
-                    Vec::new()
-                }
                 _ if self.compiled.templates[t.index()]
                     .row(ElemId::from_index(e))
                     .component_type
                     == ComponentType::PointList =>
                 {
-                    // A copy of a point list: children copied once the
-                    // original's exist.
+                    // A point list that extends a list prop, whose points
+                    // are synthesized, or a copy of a point list, whose
+                    // children are copied once the original's exist
+                    // (`expand_pointlist`).
                     self.pointlists.push(comp);
                     Vec::new()
                 }
@@ -802,7 +804,7 @@ impl<'c> Builder<'c> {
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
             let c: &'c Compiled = self.compiled;
-            let flags = match &c.templates[inst.template.index()].row(inst.elem).hold {
+            let flags = match &c.templates[inst.template.index()].plan(inst.elem).hold {
                 Hold::Off => continue,
                 Hold::Always => vec![self.const_slot(1.0)],
                 Hold::While(refs) => {
@@ -999,10 +1001,11 @@ impl<'c> Builder<'c> {
     /// list it is a copy of.
     pub(in crate::build) fn expand_pointlist(&mut self, comp: CompIdx) -> Result<()> {
         let inst = self.instances[self.comp_instance[comp.index()] as usize];
-        let el = &self.compiled.templates[inst.template.index()].row(inst.elem);
+        let tpl = &self.compiled.templates[inst.template.index()];
+        let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
         let mut kids = Vec::new();
-        match (el.body.clone(), el.extend) {
-            (Body::PointList { from }, _) => {
+        match (plan.from, el.extend) {
+            (Some(from), _) => {
                 let items = self.resolve_items(from, inst.scope)?;
                 for [x, y] in items {
                     let n = ComponentType::Point.prop_defs().len();
@@ -1068,15 +1071,14 @@ impl<'c> Builder<'c> {
 
     pub(in crate::build) fn expand_collect(&mut self, comp: CompIdx) -> Result<()> {
         let inst = self.instances[self.comp_instance[comp.index()] as usize];
-        let Body::Collect {
-            from,
-            component_type,
-        } = self.compiled.templates[inst.template.index()]
-            .row(inst.elem)
-            .body
-        else {
+        let tpl = &self.compiled.templates[inst.template.index()];
+        let Body::Collect { component_type } = tpl.row(inst.elem).body else {
             unreachable!()
         };
+        let from = tpl
+            .plan(inst.elem)
+            .from
+            .expect("planning gave a collect its `from`");
         let (target, _) = self.resolve(from, inst.scope)?;
         let mut found = Vec::new();
         match target {
@@ -1216,10 +1218,12 @@ impl<'c> Builder<'c> {
     /// missing value (`instance_sources`). `visiting` holds the copies being
     /// placed, so a loop of them is a cycle.
     fn place_list_copy(&mut self, inst: Instance, visiting: &mut Vec<CompIdx>) -> Result<()> {
-        let el = &self.compiled.templates[inst.template.index()].row(inst.elem);
-        let (component_type, extend_plan, n_props) = (el.component_type, el.extend, el.props.len());
+        let tpl = &self.compiled.templates[inst.template.index()];
+        let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
+        let (component_type, extend_plan, n_props) =
+            (el.component_type, el.extend, plan.props.len());
         // Not such a copy, or placed already.
-        if el.n_public != NPublic::AsReferent || self.n_public[inst.comp.index()] != NONE {
+        if plan.n_public != NPublic::AsReferent || self.n_public[inst.comp.index()] != NONE {
             return Ok(());
         }
         if visiting.contains(&inst.comp) {
@@ -1295,7 +1299,7 @@ impl<'c> Builder<'c> {
         // A copy of a type with a list was made whole by `place_list_copy`.
         if extend.is_some()
             && self.compiled.templates[inst.template.index()]
-                .row(inst.elem)
+                .plan(inst.elem)
                 .n_public
                 == NPublic::AsReferent
         {
@@ -1303,7 +1307,7 @@ impl<'c> Builder<'c> {
         }
         let extend_label = self.label.clone();
         let n_props = self.compiled.templates[inst.template.index()]
-            .row(inst.elem)
+            .plan(inst.elem)
             .props
             .len();
         for pi in 0..n_props {
@@ -1311,7 +1315,7 @@ impl<'c> Builder<'c> {
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
             let c: &'c Compiled = self.compiled;
-            let plan = &c.templates[inst.template.index()].row(inst.elem).props[pi];
+            let plan = &c.templates[inst.template.index()].plan(inst.elem).props[pi];
             if matches!(plan, Source::Deferred(_)) {
                 continue; // wired from the tree (`fill_deferred`)
             }
@@ -1485,7 +1489,7 @@ impl<'c> Builder<'c> {
                 let inst = self.instances[i as usize];
                 let pi = s.index() - self.slot_base[comp.index()].index();
                 matches!(
-                    self.compiled.templates[inst.template.index()].row(inst.elem)
+                    self.compiled.templates[inst.template.index()].plan(inst.elem)
                         .props
                         .get(pi),
                     Some(Source::Deferred(k)) if *k == kind

@@ -60,8 +60,8 @@ pub(crate) fn pick_position(b: usize, m: u32) -> u32 {
 
 /// How many public props an element has, as far as the compile knows: a
 /// bare copy's list is its referent's, which only a build knows.
-fn n_public(el: &Elem) -> usize {
-    match el.n_public {
+fn n_public(el: &Elem, plan: &ElemPlan) -> usize {
+    match plan.n_public {
         NPublic::Planned(n) => n as usize,
         NPublic::Table | NPublic::AsReferent => el.component_type.prop_defs().len(),
     }
@@ -210,7 +210,8 @@ impl super::seal::Seal<'_> {
         // public one by the prop's.
         for (&(t, e), state) in self.shared_state {
             let id = elem_keys[t as usize][e as usize];
-            let n_public = n_public(c.templates[t as usize].row(ElemId::new(e)));
+            let tpl = &c.templates[t as usize];
+            let n_public = n_public(tpl.row(ElemId::new(e)), tpl.plan(ElemId::new(e)));
             for (s, &slot) in state {
                 if slot as usize >= n_public {
                     keys.hidden.insert((id, slot as u32), s.key().into());

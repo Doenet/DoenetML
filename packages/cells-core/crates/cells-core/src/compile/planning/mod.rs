@@ -42,6 +42,10 @@ impl Compiler<'_> {
         ref_children: Vec<(TemplateId, RefChildId)>,
     ) -> Planned {
         self.planning = Some(Planned::default());
+        // Planning's table, a row per element, made here (ADR 0031).
+        for tpl in &mut self.compiled.templates {
+            tpl.plans = vec![ElemPlan::default(); tpl.elems.len()];
+        }
         {
             let _s = crate::trace::span("elements");
             crate::trace::count("elements", to_plan.len());
@@ -102,7 +106,7 @@ impl Compiler<'_> {
         let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(t, e).and_then(|()| {
             let hold = crate::trace::tally("hold").run(|| self.plan_hold(t, e))?;
-            self.compiled.templates[t.index()].elems[e.index()].hold = hold;
+            self.compiled.templates[t.index()].plans[e.index()].hold = hold;
             Ok(())
         });
         // Boxed where it fails; what reads it reads the box.
@@ -185,7 +189,7 @@ impl Compiler<'_> {
         let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
         let mut props = vec![Source::absent(); component_type.prop_defs().len()];
         Deferred::mark(component_type, &mut props);
-        self.compiled.templates[t.index()].elems[e.index()].props = props;
+        self.compiled.templates[t.index()].plans[e.index()].props = props;
     }
 
     /// A plan naming prop `prop` of element `e` in the parent template, as

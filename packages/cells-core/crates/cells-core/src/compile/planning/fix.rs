@@ -158,14 +158,15 @@ mod tests {
     use super::*;
     use crate::testing::dast::{Element, Nodes, el, mac};
 
-    /// The element named `name` in the compile, in any template; none
-    /// when it was boxed.
-    fn elem<'c>(compiled: &'c Compiled, name: &str) -> Option<&'c Elem> {
-        compiled
-            .templates
-            .iter()
-            .flat_map(|t| &t.elems)
-            .find(|e| e.name != StrId::NONE && compiled.dast.strings.get(e.name).trim() == name)
+    /// The plan of the element named `name` in the compile, in any
+    /// template: nothing when it was boxed (`Template::plan`).
+    fn plan<'c>(compiled: &'c Compiled, name: &str) -> Option<&'c ElemPlan> {
+        compiled.templates.iter().find_map(|t| {
+            let e = t.elems.iter().position(|e| {
+                e.name != StrId::NONE && compiled.dast.strings.get(e.name).trim() == name
+            })?;
+            Some(t.plan(ElemId::from_index(e)))
+        })
     }
 
     /// Whether the element named `x` in `doc` is held, and whether `doc`
@@ -182,7 +183,7 @@ mod tests {
             .diagnostics
             .iter()
             .all(|d| d.kind == crate::DiagnosticKind::Accessibility);
-        let held = elem(&compiled, "x").is_some_and(|x| !matches!(x.hold, Hold::Off));
+        let held = plan(&compiled, "x").is_some_and(|x| !matches!(x.hold, Hold::Off));
         (held, clean)
     }
 

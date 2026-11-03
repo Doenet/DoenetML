@@ -219,7 +219,7 @@ impl<'c> Builder<'c> {
         let i = self.instances[inst as usize];
         let pi = slot.index() - self.slot_base[comp.index()].index();
         let c: &'c Compiled = self.compiled;
-        let next = match c.templates[i.template.index()].row(i.elem).props.get(pi) {
+        let next = match c.templates[i.template.index()].plan(i.elem).props.get(pi) {
             Some(Source::GivenMath(_) | Source::GivenMathFrom(_)) => {
                 return ValueType::Math;
             }
@@ -298,7 +298,7 @@ impl<'c> Builder<'c> {
                 let i = self.instances[inst as usize];
                 matches!(
                     self.compiled.templates[i.template.index()]
-                        .row(i.elem)
+                        .plan(i.elem)
                         .props
                         .get(prop::math_input::EXPR),
                     Some(Source::GivenMath(_))
@@ -307,7 +307,7 @@ impl<'c> Builder<'c> {
             ComponentType::Math => {
                 let i = self.instances[inst as usize];
                 match self.compiled.templates[i.template.index()]
-                    .row(i.elem)
+                    .plan(i.elem)
                     .props
                     .get(prop::math::EXPR)
                 {

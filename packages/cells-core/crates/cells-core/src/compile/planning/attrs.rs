@@ -127,7 +127,7 @@ impl<'a> Compiler<'a> {
         let _s = crate::trace::tally("mark");
         let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
         Deferred::mark(component_type, &mut props);
-        self.compiled.templates[t.index()].elems[e.index()].props = props;
+        self.compiled.templates[t.index()].plans[e.index()].props = props;
         Ok(())
     }
 

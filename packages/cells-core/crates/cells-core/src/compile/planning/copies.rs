@@ -36,14 +36,14 @@ impl<'a> Compiler<'a> {
                 self.compiled.sym_text.insert(id, SymText::Leaf(p));
                 prop::math::props_of(id, Post::None)
             }
+            // Its points are the list's, synthesized when built.
             ComponentType::PointList => {
-                self.compiled.templates[t.index()].elems[e.index()].body =
-                    Body::PointList { from: p };
+                self.compiled.templates[t.index()].plans[e.index()].from = Some(p);
                 Vec::new()
             }
             _ => return Err(Error::PathTooDeep(self.compiled.ref_display(p))),
         };
-        self.compiled.templates[t.index()].elems[e.index()].props = props;
+        self.compiled.templates[t.index()].plans[e.index()].props = props;
         Ok(())
     }
 
@@ -67,10 +67,10 @@ impl<'a> Compiler<'a> {
         let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
         let mut props = vec![Source::Inherit; component_type.prop_defs().len()];
         Deferred::mark(component_type, &mut props);
-        let el = &mut self.compiled.templates[t.index()].elems[e.index()];
-        el.props = props;
+        let plan = &mut self.compiled.templates[t.index()].plans[e.index()];
+        plan.props = props;
         if component_type.given_coords().is_some() {
-            el.n_public = NPublic::AsReferent;
+            plan.n_public = NPublic::AsReferent;
         }
     }
 
@@ -150,10 +150,10 @@ impl<'a> Compiler<'a> {
                 .insert((t.get(), e.get()), wiring.shared_state.clone());
         }
         if component_type.given_coords().is_some() {
-            self.compiled.templates[t.index()].elems[e.index()].n_public =
+            self.compiled.templates[t.index()].plans[e.index()].n_public =
                 NPublic::Planned(wiring.n_public as u32);
         }
-        self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
+        self.compiled.templates[t.index()].plans[e.index()].props = wiring.finish();
         Ok(())
     }
 
