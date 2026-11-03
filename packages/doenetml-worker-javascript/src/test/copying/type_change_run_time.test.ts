@@ -11,18 +11,27 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-/** The codes of the diagnostics a type change reports. */
+/**
+ * The codes of the diagnostics a reference written as a tag reports: a type
+ * change (D26), a reference that names nothing (D36), and an index that
+ * names nothing.
+ */
 const TYPE_CHANGE_CODES = [
     "doenet-e0062",
     "doenet-e0063",
     "doenet-e0064",
     "doenet-e0065",
+    "doenet-e0066",
+    "doenet-e0067",
     "doenet-i0053",
+    "doenet-i0054",
+    "doenet-w0104",
+    "doenet-w0105",
+    "doenet-w0181",
 ];
 
 /**
- * A document whose references written as a different tag are decided as
- * what the document makes at run time changes (D26, DIAG-2), and what it
+ * A document whose references are written as tags (D26, D36), and what it
  * shows, saved and reloaded when `reload` is called.
  */
 async function setup(doenetML: string) {
@@ -135,6 +144,7 @@ async function setup(doenetML: string) {
     }
 
     return {
+        core: async () => core,
         texts,
         typeOf,
         move,
@@ -148,765 +158,1078 @@ async function setup(doenetML: string) {
     };
 }
 
-describe("A reference written as a different tag, of content made at run time (D26, DIAG-2) @group4", () => {
-    it("the active case of a conditionalContent: shown while it matches, an info and nothing while it does not", async () => {
-        const doc = setup(`
-<booleanInput name="b"/>
-<conditionalContent name="cc">
-  <case condition="$b"><point>(1,2)</point></case>
-  <else><text>no</text></else>
-</conditionalContent>
-<p name="p1"><text name="t" extend="$cc"/></p>
-<p name="p2"><text copy="$cc"/></p>
-<p name="p3">$t</p>
-`);
-        const d = await doc;
-        expect(await d.texts(["p1", "t", "p2", "p3"])).eqls({
-            p1: "no",
-            t: "no",
-            p2: "no",
-            p3: "no",
-        });
-        expect(await d.replacedBy("p1")).eqls(["group"]);
-        expect(d.newDiagnostics()).eqls([]);
-
-        await d.setBoolean("b", true);
-        expect(await d.texts(["p1", "p2", "p3"])).eqls({
-            p1: "",
-            // a copy stays as it was made
-            p2: "no",
-            p3: "",
-        });
-        expect(await d.replacedBy("p1")).eqls([]);
-        expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-e0065",
-                type: "info",
-                line: 7,
-                message:
-                    "A `<text>` can't be made from `$cc`, which gives a `<point>` now, so nothing is shown for it. To show it as it is, write `$cc`.",
-            },
-        ]);
-
-        await d.setBoolean("b", false);
-        expect(await d.texts(["p1", "t", "p2", "p3"])).eqls({
-            p1: "no",
-            t: "no",
-            p2: "no",
-            p3: "no",
-        });
-        expect(await d.replacedBy("p1")).eqls(["group"]);
-        expect(d.newDiagnostics()).eqls([]);
-        expect(d.errors()).eqls([]);
-    });
-
-    it("how many components a collect holds", async () => {
-        const d = await setup(`
-<mathInput name="n" prefill="1"/>
-<group name="g" hide><math>x</math><math>y</math></group>
-<collect name="c" componentType="math" from="$g" maxNumber="$n"/>
-<p name="p1"><math name="mc" extend="$c"/></p>
-`);
-        expect(await d.texts(["p1", "mc"])).eqls({ p1: "x", mc: "x" });
-        expect(await d.replacedBy("p1")).eqls(["math"]);
-
-        await d.setMath("n", "2");
-        expect(await d.texts(["p1"])).eqls({ p1: "" });
-        expect(await d.replacedBy("p1")).eqls([]);
-        expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-e0064",
-                type: "info",
-                line: 5,
-                message:
-                    "A `<math>` can be made from a `<collect>` only when it holds one component, and `$c` holds 2 now, so nothing is shown for it. To use one of them, write `$c[1]` or name it. To read them all as one value, write `<math>$c</math>`.",
-            },
-        ]);
-
-        await d.setMath("n", "1");
-        expect(await d.texts(["p1", "mc"])).eqls({ p1: "x", mc: "x" });
-        expect(await d.replacedBy("p1")).eqls(["math"]);
-        expect(d.newDiagnostics()).eqls([]);
-        expect(d.errors()).eqls([]);
-    });
-
-    it("a repeat, a conditionalContent or a select holding several components", async () => {
+describe("A reference written as a tag of a composite is decided when the document loads (D36) @group4", () => {
+    it("a conditionalContent needs an else, and each case and the else one component of one type", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
-<repeat name="rep" for="1 2" valueName="i"><math>$i</math></repeat>
-<conditionalContent name="cc">
-  <case condition="$b"><math>a</math><math>b</math></case>
-  <else><math>c</math></else>
-</conditionalContent>
-<select name="s" numToSelect="2"><option><math>1</math></option><option><math>2</math></option></select>
-<p name="p1"><math extend="$rep"/></p>
-<p name="p2"><math name="m2" extend="$cc"/></p>
-<p name="p3"><math extend="$s"/></p>
+<conditionalContent name="noElse"><case condition="$b"><math>x</math></case></conditionalContent>
+<conditionalContent name="two"><case condition="$b"><math>a</math><math>b</math></case><else><math>c</math></else></conditionalContent>
+<conditionalContent name="mixed"><case condition="$b"><math>1</math></case><else><number>2</number></else></conditionalContent>
+<conditionalContent name="unrelated"><case condition="$b"><point>(1,2)</point></case><else><text>no</text></else></conditionalContent>
+<conditionalContent name="one"><case condition="$b"><number>1</number></case><else><number>2</number></else></conditionalContent>
+<p name="p1"><math extend="$noElse"/></p>
+<p name="p2"><math extend="$two"/></p>
+<p name="p3"><math extend="$mixed"/></p>
+<p name="p4"><text extend="$unrelated"/></p>
+<p name="p5"><math name="m5" extend="$one"/></p>
+<p name="p6"><math>$mixed</math></p>
+<p name="p7"><math copy="$mixed"/></p>
 `);
-        expect(await d.texts(["p1", "p2", "m2", "p3"])).eqls({
-            p1: "",
-            p2: "c",
-            m2: "c",
-            p3: "",
-        });
-        expect(await d.replacedBy("p1")).eqls([]);
-        expect(await d.replacedBy("p3")).eqls([]);
-        // An index is suggested where it selects one component.
-        expect(d.newDiagnostics()).eqls([
+        const errors = [
             {
                 code: "doenet-e0064",
-                type: "info",
+                type: "error",
+                line: 8,
+                message:
+                    "A `<math>` can be made from `$noElse` only when it always holds one component, and a `<conditionalContent>` with no `<else>` holds nothing when no case is true. Add an `<else>`.",
+            },
+            {
+                code: "doenet-e0064",
+                type: "error",
                 line: 9,
                 message:
-                    "A `<math>` can be made from a `<repeat>` only when it holds one component, and `$rep` holds 2 now, so nothing is shown for it. To use one of them, write `$rep[1]` or name it. To read them all as one value, write `<math>$rep</math>`.",
+                    "A `<math>` can be made from `$two` only when it always holds one component, and a case of the `<conditionalContent>` holds 2. To read what it holds as one value, write `<math>$two</math>`.",
             },
             {
-                code: "doenet-e0064",
-                type: "info",
+                code: "doenet-e0066",
+                type: "error",
+                line: 10,
+                message:
+                    "A `<math>` can be made from `$mixed` only when what it holds is always of one type, and it can hold `<math>`, `<number>`. To read what it holds as one value, write `<math>$mixed</math>`.",
+            },
+            {
+                code: "doenet-e0065",
+                type: "error",
                 line: 11,
                 message:
-                    "A `<math>` can be made from a `<select>` only when it holds one component, and `$s` holds 2 now, so nothing is shown for it. To use one of them, write `$s[1]` or name it. To read them all as one value, write `<math>$s</math>`.",
+                    "A `<text>` can't be made from `$unrelated`, which gives a `<point>`. To show it as it is, write `$unrelated`.",
             },
+            {
+                code: "doenet-e0066",
+                type: "error",
+                line: 14,
+                message:
+                    "A `<math>` can be made from `$mixed` only when what it holds is always of one type, and it can hold `<math>`, `<number>`. To read what it holds as one value, write `<math>$mixed</math>`.",
+            },
+        ];
+        expect(await d.texts(["p5", "m5", "p6"])).eqls({
+            p5: "2",
+            m5: "2",
+            p6: "2",
+        });
+        for (const p of ["p1", "p2", "p3", "p4", "p7"]) {
+            expect(await d.replacedBy(p), p).eqls(["_error"]);
+        }
+        expect(d.newDiagnostics()).eqls(errors);
+
+        // What is shown as a case becomes active does not change what the
+        // tags are.
+        await d.setBoolean("b", true);
+        expect(await d.texts(["p5", "m5", "p6"])).eqls({
+            p5: "1",
+            m5: "1",
+            p6: "1",
+        });
+        for (const p of ["p1", "p2", "p3", "p4", "p7"]) {
+            expect(await d.replacedBy(p), p).eqls(["_error"]);
+        }
+        expect(d.newDiagnostics()).eqls([]);
+        expect(await d.typeOf("m5")).eq("math");
+    });
+
+    it("a case holding a bare string holds a text, and one holding a reference holds its tag", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<number name="n">5</number>
+<conditionalContent name="cc"><case condition="$b">hi</case><else>bye</else></conditionalContent>
+<conditionalContent name="cc2"><case condition="$b">$n</case><else><number>2</number></else></conditionalContent>
+<conditionalContent name="cc3"><case condition="$b">$n</case><else>two</else></conditionalContent>
+<p name="p1"><text name="t" extend="$cc"/></p>
+<p name="p2"><math name="m" extend="$cc2"/></p>
+<p name="p3"><math extend="$cc3"/></p>
+`);
+        expect(await d.texts(["p1", "t", "p2", "m"])).eqls({
+            p1: "bye",
+            t: "bye",
+            p2: "2",
+            m: "2",
+        });
+        expect(await d.replacedBy("p3")).eqls(["_error"]);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 9],
         ]);
 
+        // A case holding a bare string (#2433). What is shown of a case
+        // holding `$n` is #2437.
         await d.setBoolean("b", true);
-        expect(await d.texts(["p2"])).eqls({ p2: "" });
-        expect(await d.replacedBy("p2")).eqls([]);
+        expect(await d.texts(["p1", "t"])).eqls({ p1: "hi", t: "hi" });
+        expect(await d.typeOf("m")).eq("math");
+        expect(d.errors()).eqls(["doenet-e0066"]);
+    });
+
+    it("a select and the other selectors need numToSelect written as 1, or left out", async () => {
+        const d = await setup(`
+<mathInput name="n" prefill="1"/>
+<select name="s1"><option><math>x</math></option></select>
+<select name="s2" numToSelect="2"><option><math>x</math></option><option><math>y</math></option></select>
+<select name="s3" numToSelect="$n"><option><math>x</math></option></select>
+<select name="s4"><option><math>x</math></option><option><number>1</number></option></select>
+<selectFromSequence name="sfs" from="5" to="5"/>
+<selectFromSequence name="sfs2" from="1" to="9" numToSelect="2"/>
+<p name="p1"><math name="m1" extend="$s1"/></p>
+<p name="p2"><math extend="$s2"/></p>
+<p name="p3"><math extend="$s3"/></p>
+<p name="p4"><math extend="$s4"/></p>
+<p name="p5"><number name="n5" extend="$sfs"/></p>
+<p name="p6"><number extend="$sfs2"/></p>
+<p name="p7"><math name="m7" extend="$s2[1]"/></p>
+<p name="p8"><math extend="$s1[2]"/></p>
+`);
+        expect(await d.texts(["p1", "m1", "p5", "n5"])).eqls({
+            p1: "x",
+            m1: "x",
+            p5: "5",
+            n5: "5",
+        });
+        expect(await d.typeOf("m7")).eq("math");
+        for (const p of ["p2", "p3", "p4", "p6", "p8"]) {
+            expect(await d.replacedBy(p), p).eqls(["_error"]);
+        }
+        // A reference is an error, even while its value is 1. A literal
+        // index past what is picked names nothing whatever happens.
         expect(d.newDiagnostics()).eqls([
             {
                 code: "doenet-e0064",
-                type: "info",
+                type: "error",
                 line: 10,
                 message:
-                    "A `<math>` can be made from a `<conditionalContent>` only when it holds one component, and `$cc` holds 2 now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$cc</math>`.",
+                    "A `<math>` can be made from `$s2` only when it always holds one component, and a `<select>` holds one only when its `numToSelect` is written as 1 or left out. To use its first pick, write `$s2[1]`. To read all it picks as one value, write `<math>$s2</math>`.",
+            },
+            {
+                code: "doenet-e0064",
+                type: "error",
+                line: 11,
+                message:
+                    "A `<math>` can be made from `$s3` only when it always holds one component, and a `<select>` holds one only when its `numToSelect` is written as 1 or left out. To use its first pick, write `$s3[1]`. To read all it picks as one value, write `<math>$s3</math>`.",
+            },
+            {
+                code: "doenet-e0066",
+                type: "error",
+                line: 12,
+                message:
+                    "A `<math>` can be made from `$s4` only when what it holds is always of one type, and it can hold `<math>`, `<number>`. To read what it holds as one value, write `<math>$s4</math>`.",
+            },
+            {
+                code: "doenet-e0064",
+                type: "error",
+                line: 14,
+                message:
+                    "A `<number>` can be made from `$sfs2` only when it always holds one component, and a `<selectFromSequence>` holds one only when its `numToSelect` is written as 1 or left out. To use its first pick, write `$sfs2[1]`. To read all it picks as one value, write `<number>$sfs2</number>`.",
+            },
+            {
+                code: "doenet-w0181",
+                type: "error",
+                line: 16,
+                message: "`$s1[2]`: the `<select>` made only 1 pick.",
             },
         ]);
-
-        await d.setBoolean("b", false);
-        expect(await d.texts(["p2", "m2"])).eqls({ p2: "c", m2: "c" });
-        expect(await d.replacedBy("p2")).eqls(["group"]);
-        expect(d.newDiagnostics()).eqls([]);
-        expect(d.errors()).eqls([]);
     });
 
-    it("an iteration, a pick or a case is named by what made it", async () => {
+    it("a repeat, a collect, a sequence or an intersection can hold any number, so an index picks one", async () => {
+        const d = await setup(`
+<repeat name="r" for="1" valueName="v"><math>$v</math></repeat>
+<group name="g" hide><math>x</math></group>
+<collect name="c" componentType="math" from="$g"/>
+<sequence name="seq" length="1"/>
+<intersection name="i"><line through="(0,0) (1,1)"/><line through="(0,1) (1,0)"/></intersection>
+<p name="p1"><math extend="$r"/></p>
+<p name="p2"><math extend="$c"/></p>
+<p name="p3"><number extend="$seq"/></p>
+<p name="p4"><point extend="$i"/></p>
+<p name="p5"><math name="m5" extend="$r[1]"/></p>
+<p name="p6"><math name="m6" extend="$c[1]"/></p>
+<p name="p7"><number name="n7" extend="$seq[1]"/></p>
+<p name="p8"><point name="P8" extend="$i[1]"/></p>
+`);
+        // Even while each holds one component.
+        for (const p of ["p1", "p2", "p3", "p4"]) {
+            expect(await d.replacedBy(p), p).eqls(["_error"]);
+        }
+        expect(d.newDiagnostics()).eqls(
+            [
+                ["math", "r", "repeat", 7],
+                ["math", "c", "collect", 8],
+                ["number", "seq", "sequence", 9],
+                ["point", "i", "intersection", 10],
+            ].map(([T, x, tag, line]) => ({
+                code: "doenet-e0064",
+                type: "error",
+                line,
+                message: `A \`<${T}>\` can be made from \`$${x}\` only when it always holds one component, and a \`<${tag}>\` can hold any number. To use the first, write \`$${x}[1]\`. To read them all as one value, write \`<${T}>$${x}</${T}>\`.`,
+            })),
+        );
+        expect(await d.texts(["m5", "m6", "n7", "p8"])).eqls({
+            m5: "1",
+            m6: "x",
+            n7: "1",
+            p8: "(0.5, 0.5)",
+        });
+        expect(await d.typeOf("P8")).eq("point");
+    });
+
+    it("a group, a sort or a shuffle needs one component, and what each part holds is its tag", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<math name="y">x+1</math>
+<point name="P">(1,2)</point>
+<mathList name="ml">7 8</mathList>
+<group name="g1">$y</group>
+<group name="g2">hello</group>
+<group name="g3">$P.x</group>
+<group name="g4"><conditionalContent><case condition="$b"><math>1</math></case><else><math>2</math></else></conditionalContent></group>
+<group name="g5"><math>1</math><math>2</math></group>
+<group name="g6">$ml[1]</group>
+<group name="g7"><conditionalContent><case condition="$b"><math>1</math></case></conditionalContent></group>
+<sort name="s"><number>3</number></sort>
+<p name="p1"><math name="m1" extend="$g1"/></p>
+<p name="p2"><text name="t2" extend="$g2"/></p>
+<p name="p3"><math extend="$g3"/></p>
+<p name="p4"><math name="m4" extend="$g4"/></p>
+<p name="p5"><math extend="$g5"/></p>
+<p name="p6"><math name="m6" extend="$g6"/></p>
+<p name="p7"><math extend="$g7"/></p>
+<p name="p8"><math name="m8" extend="$s"/></p>
+`);
+        expect(await d.texts(["m1", "t2", "m4", "m6", "m8"])).eqls({
+            m1: "x + 1",
+            t2: "hello",
+            m4: "2",
+            m6: "7",
+            m8: "3",
+        });
+        for (const p of ["p3", "p5", "p7"]) {
+            expect(await d.replacedBy(p), p).eqls(["_error"]);
+        }
+        expect(d.newDiagnostics()).eqls([
+            {
+                code: "doenet-e0067",
+                type: "error",
+                line: 16,
+                message:
+                    "A `<math>` can be made from `$g3` only when the type of what it holds is known from the DoenetML, and it holds a property, whose type isn't. To read what it holds as one value, write `<math>$g3</math>`.",
+            },
+            {
+                code: "doenet-e0064",
+                type: "error",
+                line: 18,
+                message:
+                    "A `<math>` can be made from a `<group>` only when it holds one component, and `$g5` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$g5</math>`.",
+            },
+            {
+                code: "doenet-e0064",
+                type: "error",
+                line: 20,
+                message:
+                    "A `<math>` can be made from `$g7` only when it always holds one component, and a `<conditionalContent>` with no `<else>` holds nothing when no case is true. Add an `<else>`.",
+            },
+        ]);
+        await d.setBoolean("b", true);
+        expect(await d.texts(["m4"])).eqls({ m4: "1" });
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("an iteration or a pick is held to the same rules", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
 <repeat name="rep" for="1" valueName="v">
-  <conditionalContent><case condition="$b"><math>$v</math><math>2$v</math></case><else><math>$v</math></else></conditionalContent>
+  <conditionalContent><case condition="$b"><math>$v</math></case></conditionalContent>
 </repeat>
+<repeat name="rep2" for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat>
 <select name="s">
-  <option><conditionalContent><case condition="$b"><math>1</math><math>3</math></case><else><math>1</math></else></conditionalContent></option>
+  <option><conditionalContent><case condition="$b"><math>1</math></case><else><math>3</math></else></conditionalContent></option>
 </select>
-<conditionalContent name="cc">
-  <case condition="$b"><math>a</math><math>b</math></case>
-  <else><math>c</math></else>
-</conditionalContent>
-<p name="p1"><math name="m1" extend="$rep[1]"/></p>
-<p name="p2"><math name="m2" extend="$s[1]"/></p>
-<p name="p3"><math name="m3" extend="$cc[1]"/></p>
+<p name="p1"><math extend="$rep[1]"/></p>
+<p name="p2"><math extend="$rep2[1]"/></p>
+<p name="p3"><math name="m3" extend="$s[1]"/></p>
 `);
-        const shown = { p1: "1", m1: "1", p2: "1", m2: "1", p3: "c", m3: "c" };
-        expect(await d.texts(Object.keys(shown))).eqls(shown);
-        expect(d.newDiagnostics()).eqls([]);
-
-        await d.setBoolean("b", true);
-        expect(await d.texts(["p1", "p2", "p3"])).eqls({
-            p1: "",
-            p2: "",
-            p3: "",
-        });
-        for (const p of ["p1", "p2", "p3"]) {
-            expect(await d.replacedBy(p)).eqls([]);
-        }
-        // No index is suggested: one after an iteration, a pick or a case
-        // selects a child of the group it is made as (DIAG-3).
-        expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-e0064",
-                type: "info",
-                line: 13,
-                message:
-                    "A `<math>` can be made from an iteration of a `<repeat>` only when it holds one component, and `$rep[1]` holds 2 now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$rep[1]</math>`.",
-            },
-            {
-                code: "doenet-e0064",
-                type: "info",
-                line: 14,
-                message:
-                    "A `<math>` can be made from what a `<select>` picked only when it holds one component, and `$s[1]` holds 2 now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$s[1]</math>`.",
-            },
-            {
-                code: "doenet-e0064",
-                type: "info",
-                line: 15,
-                message:
-                    "A `<math>` can be made from what a `<conditionalContent>` shows only when it holds one component, and `$cc[1]` holds 2 now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$cc[1]</math>`.",
-            },
+        expect(await d.replacedBy("p1")).eqls(["_error"]);
+        expect(await d.replacedBy("p2")).eqls(["_error"]);
+        expect(await d.texts(["m3"])).eqls({ m3: "3" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 10],
+            ["doenet-e0064", 11],
         ]);
-
-        await d.setBoolean("b", false);
-        expect(await d.texts(Object.keys(shown))).eqls(shown);
-        expect([
-            await d.replacedBy("p1"),
-            await d.replacedBy("p2"),
-            await d.replacedBy("p3"),
-        ]).eqls([["group"], ["group"], ["math"]]);
+        await d.setBoolean("b", true);
+        expect(await d.texts(["m3"])).eqls({ m3: "1" });
         expect(d.newDiagnostics()).eqls([]);
-        expect(d.errors()).eqls([]);
     });
 
-    it("the messages for an iteration or a pick holding nothing, for iterations holding several, and for an input or a container in what a conditionalContent shows", async () => {
+    it("a name in what a copy copies is found there", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
-<repeat name="rep" for="1" valueName="v"><conditionalContent><case condition="$b"><math>$v</math></case></conditionalContent></repeat>
-<select name="s"><option><conditionalContent><case condition="$b"><math>1</math></case></conditionalContent></option></select>
-<repeat name="rep2" for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat>
-<conditionalContent name="cc">
-  <case condition="$b"><p>hello</p></case>
-  <else><math>x</math></else>
-</conditionalContent>
-<p name="p1"><math name="m1" extend="$rep[1]"/></p>
-<p name="p2"><math name="m2" extend="$s[1]"/></p>
-<p name="p3"><math extend="$rep2"/></p>
-<p name="p4"><mathInput extend="$cc"/></p>
-<p name="p5"><text extend="$cc"/></p>
+<module name="mod">
+  <conditionalContent name="one"><case condition="$b"><math>1</math></case><else><math>2</math></else></conditionalContent>
+  <conditionalContent name="none"><case condition="$b"><math>1</math></case></conditionalContent>
+</module>
+<module name="m2" extend="$mod"/>
+<conditionalContent name="c1"><case condition="$b">$m2.one</case><else><math>3</math></else></conditionalContent>
+<conditionalContent name="c2"><case condition="$b">$m2.none</case><else><math>3</math></else></conditionalContent>
+<p name="p1"><math name="m1" extend="$c1"/></p>
+<p name="p2"><math extend="$c2"/></p>
 `);
-        expect(await d.texts(["p1", "p2", "p3"])).eqls({
-            p1: "",
-            p2: "",
-            p3: "",
-        });
-        for (const p of ["p1", "p2", "p3", "p4"]) {
-            expect(await d.replacedBy(p)).eqls([]);
+        expect(await d.texts(["m1"])).eqls({ m1: "3" });
+        expect(await d.replacedBy("p2")).eqls(["_error"]);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 11],
+        ]);
+        await d.setBoolean("b", true);
+        expect(await d.texts(["m1"])).eqls({ m1: "1" });
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("a name written on a tag made with extend is found in what a copy copies", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<math name="n">5</math>
+<module name="mod"><math name="go" extend="$n"/></module>
+<module name="m2" extend="$mod"/>
+<conditionalContent name="c"><case condition="$b">$m2.go</case><else><math>3</math></else></conditionalContent>
+<p name="p1"><math name="m1" extend="$c"/></p>
+`);
+        expect(await d.texts(["m1"])).eqls({ m1: "3" });
+        expect(d.newDiagnostics()).eqls([]);
+        expect(d.errors()).eqls([]);
+    });
+
+    it("a copy of a group holds what it copies and what is written in it", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<group name="g"><math>1</math></group>
+<group name="h" extend="$g"><math>2</math></group>
+<group name="e"/>
+<group name="h2" extend="$e"><math>7</math></group>
+<group name="h3" extend="$g"><text>q</text></group>
+<conditionalContent name="cc"><case condition="$b">$h</case><else><math>3</math></else></conditionalContent>
+<p name="p1"><math extend="$h"/></p>
+<p name="p2"><math extend="$cc"/></p>
+<p name="p3"><math name="m3" extend="$h2"/></p>
+<p name="p4"><mathList extend="$h"/></p>
+<p name="p5"><mathList extend="$h3"/></p>
+`);
+        for (const p of ["p1", "p2"]) {
+            expect(await d.replacedBy(p), p).eqls(["_error"]);
         }
-        // No index is suggested for `$rep2`, whose iterations each hold two
-        // components. In what a conditionalContent shows, an input from a
-        // value and a container as a value tag are not given the forms that
-        // name the source (`doenet-e0062`, `doenet-e0063`).
+        expect(await d.texts(["m3", "p4", "p5"])).eqls({
+            m3: "7",
+            p4: "1, 2",
+            p5: "",
+        });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 9],
+            ["doenet-e0064", 10],
+            ["doenet-e0066", 13],
+        ]);
+    });
+
+    it("a part that does not hold one component is named as the part of the composite it is of", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<group name="g"><conditionalContent><case condition="$b"><math>1</math><math>2</math></case><else><math>3</math></else></conditionalContent></group>
+<conditionalContent name="cc1"><case condition="$b"><group><math>1</math><math>2</math></group></case><else><math>3</math></else></conditionalContent>
+<conditionalContent name="cc2"><case condition="$b"><select><option><math>1</math><math>2</math></option></select></case><else><math>3</math></else></conditionalContent>
+<conditionalContent name="cc3"><case condition="$b"><math>1</math></case><else></else></conditionalContent>
+<repeat name="r" for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat>
+<repeatForSequence name="rs" length="2"><math>1</math><math>2</math></repeatForSequence>
+<p name="p1"><math extend="$g"/></p>
+<p name="p2"><math extend="$cc1"/></p>
+<p name="p3"><math extend="$cc2"/></p>
+<p name="p4"><math extend="$cc3"/></p>
+<p name="p5"><math extend="$r[1]"/></p>
+<p name="p6"><math extend="$rs[1]"/></p>
+`);
+        for (const p of ["p1", "p2", "p3", "p4", "p5", "p6"]) {
+            expect(await d.replacedBy(p), p).eqls(["_error"]);
+        }
+        expect(d.newDiagnostics().map((x) => x.message)).eqls([
+            "A `<math>` can be made from `$g` only when it always holds one component, and a case of the `<conditionalContent>` holds 2. To read what it holds as one value, write `<math>$g</math>`.",
+            "A `<math>` can be made from `$cc1` only when it always holds one component, and a case of the `<conditionalContent>` holds 2. To read what it holds as one value, write `<math>$cc1</math>`.",
+            "A `<math>` can be made from `$cc2` only when it always holds one component, and an option of the `<select>` holds 2. To read what it holds as one value, write `<math>$cc2</math>`.",
+            "A `<math>` can be made from `$cc3` only when it always holds one component, and a case of the `<conditionalContent>` holds nothing. To read what it holds as one value, write `<math>$cc3</math>`.",
+            "A `<math>` can be made from `$r[1]` only when it always holds one component, and an iteration of the `<repeat>` holds 2. To read what it holds as one value, write `<math>$r[1]</math>`.",
+            "A `<math>` can be made from `$rs[1]` only when it always holds one component, and an iteration of the `<repeatForSequence>` holds 2. To read what it holds as one value, write `<math>$rs[1]</math>`.",
+        ]);
+    });
+
+    it("a list tag takes any number of components, including none, all of one type", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<mathInput name="n" prefill="2"/>
+<conditionalContent name="cc"><case condition="$b"><math>x</math></case></conditionalContent>
+<repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat>
+<group name="g" hide><math>a</math><math>b</math></group>
+<collect name="c" componentType="math" from="$g"/>
+<select name="s" numToSelect="$n"><option><math>p</math></option><option><math>p</math></option></select>
+<group name="mixed"><math>1</math><text>t</text></group>
+<p name="p1"><mathList extend="$cc"/></p>
+<p name="p2"><mathList extend="$r"/></p>
+<p name="p3"><mathList extend="$c"/></p>
+<p name="p4"><mathList extend="$s"/></p>
+<p name="p5"><mathList extend="$mixed"/></p>
+<p name="p6"><mathList>$mixed</mathList></p>
+`);
+        expect(await d.texts(["p1", "p2", "p3", "p4"])).eqls({
+            p1: "",
+            p2: "1, 2",
+            p3: "a, b",
+            p4: "p, p",
+        });
         expect(d.newDiagnostics()).eqls([
             {
-                code: "doenet-e0064",
-                type: "info",
-                line: 10,
+                code: "doenet-e0066",
+                type: "error",
+                line: 14,
                 message:
-                    "A `<math>` can't be made from `$rep[1]`, an iteration of a `<repeat>` that holds nothing now, so nothing is shown for it.",
+                    "A `<mathList>` can be made from `$mixed` only when what it holds is all of one type, and it holds `<math>`, `<text>`. To read them all as one list, write `<mathList>$mixed</mathList>`.",
             },
-            {
-                code: "doenet-e0064",
-                type: "info",
-                line: 11,
-                message:
-                    "A `<math>` can't be made from `$s[1]`, what a `<select>` picked that holds nothing now, so nothing is shown for it.",
-            },
-            {
-                code: "doenet-e0064",
-                type: "info",
-                line: 12,
-                message:
-                    "A `<math>` can be made from a `<repeat>` only when it holds one component, and `$rep2` holds 4 now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$rep2</math>`.",
-            },
-            {
-                code: "doenet-e0065",
-                type: "info",
-                line: 13,
-                message:
-                    "A `<mathInput>` can't be made from `$cc`, which gives a `<math>` now, so nothing is shown for it. To show it as it is, write `$cc`.",
-            },
+        ]);
+        expect(await d.texts(["p6"])).eqls({ p6: "1, t" });
+
+        await d.setBoolean("b", true);
+        expect(await d.texts(["p1"])).eqls({ p1: "x" });
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("a type that already is the tag written counts as that tag", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<conditionalContent name="cc"><case condition="$b"><integer>3</integer></case><else><number>0.5</number></else></conditionalContent>
+<group name="g"><integer>3</integer><number>0.5</number></group>
+<p name="p1"><number extend="$cc"/></p>
+<p name="p2"><numberList extend="$g"/></p>
+<p name="p3"><integer extend="$cc"/></p>
+`);
+        // An `<integer>` is a `<number>`, so both hold numbers only. As an
+        // `<integer>`, a `<number>` is a different type.
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "0.5", p2: "3, 0.5" });
+        expect(await d.replacedBy("p3")).eqls(["_error"]);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 7],
         ]);
 
         await d.setBoolean("b", true);
-        expect(await d.texts(["p1", "m1", "p2", "m2"])).eqls({
-            p1: "1",
-            m1: "1",
-            p2: "1",
-            m2: "1",
-        });
-        expect(await d.replacedBy("p4")).eqls([]);
-        expect(await d.replacedBy("p5")).eqls([]);
-        expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-e0065",
-                type: "info",
-                line: 13,
-                message:
-                    "A `<mathInput>` can't be made from `$cc`, which gives a `<p>` now, so nothing is shown for it. To show it as it is, write `$cc`.",
-            },
-            {
-                code: "doenet-e0065",
-                type: "info",
-                line: 14,
-                message:
-                    "A `<text>` can't be made from `$cc`, which gives a `<p>` now, so nothing is shown for it. To show it as it is, write `$cc`.",
-            },
-        ]);
-        expect(d.errors()).eqls([]);
+        expect(await d.texts(["p1"])).eqls({ p1: "3" });
     });
 
-    it("a list the document makes holding several entries", async () => {
+    it("a tag whose reference names nothing, more than one thing, or a property its source does not have is an error; a bare one is a warning", async () => {
         const d = await setup(`
-<mathInput name="n" prefill="1"/>
-<selectFromSequence name="sfs" from="1" to="9" numToSelect="2"/>
-<sequence name="seq" to="$n"/>
-<p name="p1"><number extend="$sfs"/></p>
-<p name="p2"><number name="n2" extend="$seq"/></p>
+<group><text name="t">a</text><text name="t">b</text></group>
+<section name="sec"><title>A</title></section>
+<p name="p1"><math extend="$nothing"/></p>
+<p name="p2"><text extend="$t"/></p>
+<p name="p3"><text extend="$sec.nothing"/></p>
+<p name="p4"><text copy="$nothing">x</text></p>
+<p name="p5">$nothing</p>
 `);
-        expect(await d.texts(["p1", "p2", "n2"])).eqls({
+        expect(await d.texts(["p1", "p2", "p3", "p4", "p5"])).eqls({
             p1: "",
-            p2: "1",
-            n2: "1",
+            p2: "",
+            p3: "",
+            p4: "",
+            p5: "",
         });
-        expect(await d.replacedBy("p1")).eqls([]);
-        expect(await d.replacedBy("p2")).eqls(["number"]);
-        expect(d.newDiagnostics()).eqls([
+        expect(
+            d.newDiagnostics().sort((a: any, b: any) => a.line - b.line),
+        ).eqls([
             {
-                code: "doenet-e0064",
-                type: "info",
-                line: 5,
-                message:
-                    "A `<number>` can be made from a `<selectFromSequence>` only when it holds one component, and `$sfs` holds 2 now, so nothing is shown for it. To use one of them, write `$sfs[1]` or name it. To read them all as one value, write `<number>$sfs</number>`.",
-            },
-        ]);
-
-        await d.setMath("n", "2");
-        expect(await d.texts(["p2"])).eqls({ p2: "" });
-        expect(await d.replacedBy("p2")).eqls([]);
-        expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-e0064",
-                type: "info",
-                line: 6,
-                message:
-                    "A `<number>` can be made from a `<sequence>` only when it holds one component, and `$seq` holds 2 now, so nothing is shown for it. To use one of them, write `$seq[1]` or name it. To read them all as one value, write `<number>$seq</number>`.",
-            },
-        ]);
-
-        await d.setMath("n", "1");
-        expect(await d.texts(["p2", "n2"])).eqls({ p2: "1", n2: "1" });
-        expect(await d.replacedBy("p2")).eqls(["number"]);
-        expect(d.newDiagnostics()).eqls([]);
-        expect(d.errors()).eqls([]);
-    });
-
-    it("the list form of a collect or a sort holds entries of the type it collects or sorts", async () => {
-        const d = await setup(`
-<mathInput name="n" prefill="1"/>
-<group name="g" hide><math>(1,2)</math><math>(5,6)</math></group>
-<collect name="c" componentType="math" from="$g" maxNumber="$n"/>
-<group name="gp" hide><point>(3,4)</point><point>(7,8)</point></group>
-<collect name="cp" componentType="point" from="$gp" maxNumber="$n"/>
-<sort name="s"><math>(9,10)</math></sort>
-<p name="p1"><point extend="$c"/></p>
-<p name="p2"><vector extend="$cp"/></p>
-<p name="p3"><point extend="$s"/></p>
-`);
-        const one = { p1: "(1, 2)", p2: "(3, 4)", p3: "(9, 10)" };
-        expect(await d.texts(Object.keys(one))).eqls(one);
-        expect(await d.replacedBy("p1")).eqls(["point"]);
-        expect(await d.replacedBy("p2")).eqls(["vector"]);
-        expect(await d.replacedBy("p3")).eqls(["point"]);
-        expect(d.newDiagnostics()).eqls([]);
-
-        await d.setMath("n", "2");
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
-        expect(d.newDiagnostics().map((x) => [x.code, x.type, x.line])).eqls([
-            ["doenet-e0064", "info", 8],
-            ["doenet-e0064", "info", 9],
-        ]);
-
-        await d.setMath("n", "1");
-        expect(await d.texts(Object.keys(one))).eqls(one);
-        expect(d.newDiagnostics()).eqls([]);
-        expect(d.errors()).eqls([]);
-    });
-
-    it("the value of a math in a group", async () => {
-        const d = await setup(`
-<mathInput name="mi" prefill="x"/>
-<group name="g"><math>$mi</math></group>
-<p name="p1"><point name="P" extend="$g"/></p>
-<p name="p2"><boolean name="B" extend="$g"/></p>
-`);
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
-        expect(await d.replacedBy("p1")).eqls([]);
-        expect(await d.replacedBy("p2")).eqls([]);
-        expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-i0053",
-                type: "info",
+                code: "doenet-w0104",
+                type: "error",
                 line: 4,
-                message:
-                    "A `<point>` can't be made from `$g` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+                message: "No referent found for reference: `$nothing`",
             },
             {
-                code: "doenet-i0053",
-                type: "info",
+                code: "doenet-w0105",
+                type: "error",
                 line: 5,
-                message:
-                    "A `<boolean>` can't be made from `$g` while its value, x, isn't true or false, so nothing is shown for it.",
+                message: "Multiple referents found for reference: `$t`",
+            },
+            {
+                code: "doenet-w0104",
+                type: "error",
+                line: 6,
+                message: "No referent found for reference: `$sec.nothing`",
+            },
+            {
+                code: "doenet-w0104",
+                type: "error",
+                line: 7,
+                message: "No referent found for reference: `$nothing`",
+            },
+            {
+                code: "doenet-w0104",
+                type: "warning",
+                line: 8,
+                message: "No referent found for reference: `$nothing`",
             },
         ]);
-
-        await d.setMath("mi", "(1,2)");
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "(1, 2)", p2: "" });
-        expect(await d.typeOf("P")).eq("point");
-        expect(await d.replacedBy("p1")).eqls(["point"]);
-        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-i0053", 5],
-        ]);
-
-        await d.setMath("mi", "1");
-        expect(await d.texts(["p1", "p2", "B"])).eqls({
-            p1: "",
-            p2: "true",
-            B: "true",
-        });
-        expect(await d.replacedBy("p1")).eqls([]);
-        expect(await d.replacedBy("p2")).eqls(["boolean"]);
-        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-i0053", 4],
-        ]);
-
-        await d.setMath("mi", "(3,4)");
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "(3, 4)", p2: "" });
-        expect(await d.typeOf("P")).eq("point");
-        expect(d.errors()).eqls([]);
     });
 
-    it("the value of the one entry of a list the document makes, as it changes", async () => {
+    it("a property none of the components a composite holds has is an error, for a scalar or a list tag", async () => {
         const d = await setup(`
-<mathInput name="mi" prefill="x"/>
-<mathInput name="n" prefill="1"/>
-<sort name="s"><math>$mi</math></sort>
-<group name="g" hide><math>$mi</math></group>
-<collect name="c" componentType="math" from="$g"/>
-<sequence name="sq" type="math" from="$mi" length="$n"/>
-<p name="p1"><point name="P" extend="$s"/></p>
-<p name="p2"><boolean name="B" extend="$c"/></p>
-<p name="p3"><vector extend="$sq"/></p>
-<p name="p4"><point copy="$s"/></p>
+<group name="g"><text>a</text></group>
+<group name="pg"><point>(1,2)</point></group>
+<number name="n">1</number>
+<mathInput name="k"/>
+<repeat name="r" for="1 2" valueName="v"><point>($v, 0)</point></repeat>
+<p name="p1"><text extend="$g.nothing"/></p>
+<p name="p2"><mathList extend="$n.nothing"/></p>
+<p name="p3"><math name="m3" extend="$pg.x"/></p>
+<p name="p4"><math extend="$r[$k].x"/></p>
 `);
-        const names = ["p1", "p2", "p3", "p4"];
-        expect(await d.texts(names)).eqls({ p1: "", p2: "", p3: "", p4: "" });
-        for (const name of names) {
-            expect(await d.replacedBy(name)).eqls([]);
-        }
+        expect(await d.replacedBy("p1")).eqls(["_error"]);
+        expect(await d.texts(["m3", "p4"])).eqls({ m3: "1", p4: "＿" });
         expect(d.newDiagnostics()).eqls([
             {
-                code: "doenet-i0053",
-                type: "info",
+                code: "doenet-w0104",
+                type: "error",
+                line: 7,
+                message: "No referent found for reference: `$g.nothing`",
+            },
+            {
+                code: "doenet-w0104",
+                type: "error",
                 line: 8,
-                message:
-                    "A `<point>` can't be made from `$s` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+                message: "No referent found for reference: `$n.nothing`",
             },
             {
-                code: "doenet-i0053",
-                type: "info",
-                line: 9,
-                message:
-                    "A `<boolean>` can't be made from `$c` while its value, x, isn't true or false, so nothing is shown for it.",
-            },
-            {
-                code: "doenet-i0053",
+                code: "doenet-i0054",
                 type: "info",
                 line: 10,
                 message:
-                    "A `<vector>` can't be made from `$sq` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
-            },
-            {
-                code: "doenet-i0053",
-                type: "info",
-                line: 11,
-                message:
-                    "A `<point>` can't be made from `$s` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+                    "`$r[$k].x` names nothing now, so this `<math>` has the value of `<math/>` until it does.",
             },
         ]);
+        // An index that names nothing yet is the info alone.
+        await d.setMath("k", "2");
+        expect(await d.texts(["p4"])).eqls({ p4: "2" });
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("a composite named by several parts is read once, so composites nested by reference load in time", async () => {
+        // Each case and else names the next composite, so following every
+        // path would read the innermost group 2^24 times.
+        const depth = 24;
+        let doenetML = `<booleanInput name="b"/>\n<group name="g${depth}"><math>x</math></group>\n`;
+        for (let k = depth - 1; k >= 0; k--) {
+            doenetML += `<conditionalContent name="g${k}"><case condition="$b">$g${k + 1}</case><else>$g${k + 1}</else></conditionalContent>\n`;
+        }
+        doenetML += `<p name="p"><math extend="$g0"/></p>`;
+        const d = await setup(doenetML);
+        expect(await d.texts(["p"])).eqls({ p: "x" });
+        expect(d.newDiagnostics()).eqls([]);
+        // About 3 seconds; reading every path took about 30.
+    }, 15000);
+
+    it("what a composite read once holds is read again from inside a cycle through it", async () => {
+        // `$X` is read first for `$W`, where it holds `<math>` (`c2`) or
+        // `<text>`. For `c2`, X's case holds `c2` itself, so what Y holds
+        // is not decided, whether or not `$W` is written.
+        const cycle = `
+<booleanInput name="b"/>
+<conditionalContent name="X"><case condition="$b">$c2</case><else><text>t</text></else></conditionalContent>
+<conditionalContent name="Y"><case condition="$b">$X</case><else><math>2</math></else></conditionalContent>
+<p name="p2"><math name="c2" extend="$Y"/></p>`;
+        const d1 = await setup(cycle);
+        expect(await d1.texts(["p2"])).eqls({ p2: "2" });
+        expect(d1.newDiagnostics()).eqls([]);
+
+        const d2 = await setup(
+            `<conditionalContent name="W"><case condition="$b">$X</case><else><math>3</math></else></conditionalContent><p name="p1"><text extend="$W"/></p>` +
+                cycle,
+        );
+        expect(await d2.texts(["p2"])).eqls({ p2: "2" });
+        expect(d2.newDiagnostics()).eqls([
+            {
+                code: "doenet-e0066",
+                type: "error",
+                line: 1,
+                message:
+                    "A `<text>` can be made from `$W` only when what it holds is always of one type, and it can hold `<math>`, `<text>`. To read what it holds as one value, write `<text>$W</text>`.",
+            },
+        ]);
+    });
+    it("an iteration holding an index into its own repeat holds itself, and is not decided", async () => {
+        const d = await setup(`
+<repeat name="r" for="1 2" valueName="v">$r[1]</repeat>
+<p name="p"><math extend="$r[1]"/></p>
+`);
+        expect(d.newDiagnostics()).eqls([]);
+        expect(d.errors()).eqls(["doenet-e0005"]);
+    });
+
+    it("an index into a selector or a repeat named by several parts is read once", async () => {
+        // Each option names a pick of the next select, so following every
+        // path would read the innermost select 2^30 times.
+        const depth = 30;
+        let doenetML = `<select name="s${depth}"><option><math>x</math></option></select>\n`;
+        for (let k = depth - 1; k >= 0; k--) {
+            doenetML += `<select name="s${k}"><option>$s${k + 1}[1]</option><option>$s${k + 1}[1]</option></select>\n`;
+        }
+        doenetML += `<p name="p"><math extend="$s0[1]"/></p>`;
+        const d = await setup(doenetML);
+        expect(await d.texts(["p"])).eqls({ p: "x" });
+        expect(d.newDiagnostics()).eqls([]);
+    }, 15000);
+
+    it("what holds nothing counts as nothing beside what holds one component", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<group name="g1"><group/><math>7</math><math>8</math></group>
+<group name="g2"><group/><group/></group>
+<group name="g3"><group/><repeat for="1 2" valueName="v"><math>$v</math></repeat></group>
+<group name="g4"><group/><math>7</math></group>
+<p name="p1"><math extend="$g1"/></p>
+<p name="p2"><math extend="$g2"/></p>
+<p name="p3"><math extend="$g3"/></p>
+<p name="p4"><math extend="$g4"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 7],
+            ["doenet-e0064", 8],
+            ["doenet-e0064", 9],
+        ]);
+        expect(await d.replacedBy("p1")).eqls(["_error"]);
+        expect(d.newDiagnostics()).eqls([]);
+        // One component beside an empty group is not decided when the
+        // document loads: no error that it holds two.
+        expect(await d.replacedBy("p4")).eqls(["math"]);
+    });
+
+    it("a name, then an index, in what a copy copies", async () => {
+        const d = await setup(`
+<module name="m"><mathList name="l">1 2</mathList></module>
+<module name="m2" extend="$m"/>
+<conditionalContent name="cc"><case condition="false"><math>3</math></case><else>$m2.l[1]</else></conditionalContent>
+<p name="p"><math extend="$cc"/></p>
+`);
+        expect(await d.texts(["p"])).eqls({ p: "1" });
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("a name of components in different options names any of them", async () => {
+        const d = await setup(`
+<select name="s1"><option><group name="go"><math>1</math></group></option><option><group name="go"><math>1</math><math>2</math></group></option></select>
+<select name="s2"><option><group name="gt"><math>1</math></group></option><option><group name="gt"><text>a</text></group></option></select>
+<conditionalContent name="cc"><case condition="false"><math>3</math></case><else>$s1.go</else></conditionalContent>
+<p name="p1"><math extend="$s1.go"/></p>
+<p name="p2"><math extend="$s2.gt"/></p>
+<p name="p3"><math extend="$cc"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 5],
+            ["doenet-e0066", 6],
+            ["doenet-e0064", 7],
+        ]);
+    });
+
+    it("types that are known and differ are an error, whatever an unknown one would be", async () => {
+        const d = await setup(`
+<point name="P">(1,2)</point>
+<group name="g"><math>1</math><text>a</text>$P.x</group>
+<conditionalContent name="cc"><case condition="true"><math>1</math></case><case condition="false"><text>a</text></case><else>$P.x</else></conditionalContent>
+<group name="h"><math>1</math>$P.x</group>
+<p name="p1"><mathList extend="$g"/></p>
+<p name="p2"><math extend="$cc"/></p>
+<p name="p3"><mathList extend="$h"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 6],
+            ["doenet-e0066", 7],
+        ]);
+        // An unknown type beside one known type is not decided for a list.
+        expect(await d.texts(["p3"])).eqls({ p3: "1, 1" });
+    });
+
+    it("a case, an else or an option written with copy is the one it copies", async () => {
+        const d = await setup(`
+<conditionalContent name="c0"><case name="c" condition="true"><text>a</text></case><else name="e"><math>2</math></else></conditionalContent>
+<conditionalContent name="cc1"><case condition="false"><math>1</math></case><else copy="$e"/></conditionalContent>
+<conditionalContent name="cc2"><case copy="$c"/><else><math>2</math></else></conditionalContent>
+<select name="s0"><option name="o"><text>a</text></option></select>
+<select name="s"><option><math>1</math></option><option copy="$o"/></select>
+<p name="p1"><math extend="$cc1"/></p>
+<p name="p2"><math extend="$cc2"/></p>
+<p name="p3"><math extend="$s"/></p>
+<p name="p4"><math extend="$s[1]"/></p>
+`);
+        // A copied else is an else; a copied case or option holding a text
+        // is one of the types the composite can hold.
+        expect(await d.texts(["p1"])).eqls({ p1: "2" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 8],
+            ["doenet-e0066", 9],
+            ["doenet-e0066", 10],
+        ]);
+    });
+
+    it("names, then an index, in what a copy copies, decided as for the composite named", async () => {
+        const d = await setup(`
+<module name="m">
+  <select name="s"><option><math>1</math><math>2</math></option></select>
+  <repeat name="r" for="1 2" valueName="v"><math>$v</math><math>2</math></repeat>
+</module>
+<module name="m2" extend="$m"/>
+<p name="p1"><math extend="$m2.s[1]"/></p>
+<p name="p2"><math extend="$m2.r[1]"/></p>
+<p name="p3"><math extend="$m2.s[2]"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 7],
+            ["doenet-e0064", 8],
+            ["doenet-w0181", 9],
+        ]);
+    });
+
+    it("components of one name that are not composites, of different types, are an error", async () => {
+        const d = await setup(`
+<select name="s"><option><math name="go">1</math></option><option><number name="go">2</number></option></select>
+<select name="t"><option><math name="go">1</math></option><option><math name="go">2</math></option></select>
+<p name="p1"><math extend="$s.go"/></p>
+<p name="p2"><mathList extend="$s.go"/></p>
+<p name="p3"><math extend="$t.go"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 4],
+            ["doenet-e0066", 5],
+        ]);
+        expect(await d.texts(["p3"])).eqls({ p3: "2" });
+    });
+
+    it("a list tag made from an index into a repeat holds what an iteration holds", async () => {
+        const d = await setup(`
+<repeat name="r" for="1 2" valueName="v"><math>$v</math><text>a</text></repeat>
+<repeat name="r2" for="1 2" valueName="v"><math>$v</math><math>2</math></repeat>
+<p name="p1"><mathList extend="$r[1]"/></p>
+<p name="p2"><mathList extend="$r2[2]"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0066", 4],
+        ]);
+        expect(await d.texts(["p2"])).eqls({ p2: "2, 2" });
+    });
+
+    it("a reference to a list is not decided, as a list written there is not", async () => {
+        const d = await setup(`
+<mathList name="l">7</mathList>
+<group name="g">$l</group>
+<p name="p1"><math extend="$g"/></p>
+`);
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("an index into a collect holds one component of the type it collects", async () => {
+        const d = await setup(`
+<group name="src"><math>1</math><group><math>2</math><math>3</math></group></group>
+<collect name="c" componentType="math" from="$src"/>
+<collect name="cg" componentType="group" from="$src"/>
+<group name="h">$c[1]</group>
+<group name="hg">$cg[1]</group>
+<p name="p1"><math extend="$h"/></p>
+<p name="p2"><math extend="$hg"/></p>
+<p name="p3"><text extend="$h"/></p>
+`);
+        expect(await d.texts(["p1"])).eqls({ p1: "1" });
+        // A math becomes a text; a group collected is not decided.
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("a tag written in an index is decided too", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<mathList name="l">1 2</mathList>
+<conditionalContent name="cc"><case condition="$b"><integer>1</integer></case></conditionalContent>
+<p name="p">$l[<integer extend="$cc"/>]</p>
+`);
+        expect(
+            d
+                .newDiagnostics()
+                .filter((x) => x.type === "error")
+                .map((x) => [x.code, x.line]),
+        ).eqls([["doenet-e0064", 5]]);
+    });
+
+    it("a name in what a copied part copies is one the reference can name", async () => {
+        const d = await setup(`
+<select name="s0"><option name="o"><group name="go"><math>1</math><math>2</math></group></option></select>
+<select name="s"><option><group name="go"><math>1</math></group></option><option copy="$o"/></select>
+<p name="p1"><math extend="$s.go"/></p>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0064", 4],
+        ]);
+    });
+});
+
+describe("What still changes at run time, without changing what the component is (D36) @group4", () => {
+    it("a value that does not convert: the component has the value of the empty tag, with an info, until it does", async () => {
+        const d = await setup(`
+<mathInput name="mi" prefill="x"/>
+<booleanInput name="b"/>
+<group name="g"><math>$mi</math></group>
+<conditionalContent name="cc"><case condition="$b"><math>(5,6)</math></case><else><math>$mi</math></else></conditionalContent>
+<p name="p1"><point name="P" extend="$g"/></p>
+<p name="p2"><boolean name="B" extend="$g"/></p>
+<p name="p3"><point name="Q" extend="$cc"/></p>
+<p name="p5" extend="$p1"/>
+`);
+        const names = ["p1", "p2", "p3", "p5"];
+        expect(await d.texts(names)).eqls({
+            p1: "(0, 0)",
+            p2: "false",
+            p3: "(0, 0)",
+            p5: "(0, 0)",
+        });
+        for (const name of ["P", "Q"]) {
+            expect(await d.typeOf(name), name).eq("point");
+        }
+        expect(await d.typeOf("B")).eq("boolean");
+        expect(d.newDiagnostics()).eqls(
+            [
+                ["point", "g", 6],
+                ["boolean", "g", 7],
+                ["point", "cc", 8],
+            ].map(([T, x, line]) => ({
+                code: "doenet-i0053",
+                type: "info",
+                line,
+                message:
+                    T === "point"
+                        ? `A \`<point>\` can't be made from \`$${x}\` while its value, x, isn't a tuple of coordinates, so it has the value of \`<point/>\` until it is.`
+                        : `A \`<boolean>\` can't be made from \`$${x}\` while its value, x, isn't true or false, so it has the value of \`<boolean/>\` until it is.`,
+            })),
+        );
 
         await d.setMath("mi", "(1,2)");
         expect(await d.texts(names)).eqls({
             p1: "(1, 2)",
-            p2: "",
+            p2: "false",
             p3: "(1, 2)",
-            // a copy stays as it was made
-            p4: "",
+            p5: "(1, 2)",
         });
         expect(await d.typeOf("P")).eq("point");
-        expect(await d.replacedBy("p1")).eqls(["point"]);
-        expect(await d.replacedBy("p3")).eqls(["vector"]);
-        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-i0053", 9],
-        ]);
-
-        await d.setMath("mi", "1");
-        expect(await d.texts(names)).eqls({
-            p1: "",
-            p2: "true",
-            p3: "",
-            p4: "",
-        });
-        expect(await d.texts(["B"])).eqls({ B: "true" });
-        expect(await d.replacedBy("p1")).eqls([]);
-        expect(await d.replacedBy("p2")).eqls(["boolean"]);
-        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-i0053", 8],
-            ["doenet-i0053", 10],
-        ]);
-
-        // how many entries the list holds is decided as before
-        await d.setMath("n", "2");
-        expect(await d.texts(["p3"])).eqls({ p3: "" });
-        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-e0064", 10],
-        ]);
-        await d.setMath("mi", "(3,4)");
-        await d.setMath("n", "1");
-        expect(await d.texts(names)).eqls({
-            p1: "(3, 4)",
-            p2: "",
-            p3: "(3, 4)",
-            p4: "",
-        });
-        expect(await d.replacedBy("p3")).eqls(["vector"]);
-        expect(d.errors()).eqls([]);
-    });
-
-    it("a pick holding a repeatForSequence whose length changes", async () => {
-        const d = await setup(`
-<mathInput name="mi" prefill="1"/>
-<select name="s"><option><repeatForSequence length="$mi"><text>a</text></repeatForSequence></option></select>
-<p name="p1"><text name="t" extend="$s[1]"/></p>
-`);
-        expect(await d.texts(["p1", "t"])).eqls({ p1: "a", t: "a" });
-        expect(await d.replacedBy("p1")).eqls(["text"]);
-
-        await d.setMath("mi", "2");
-        expect(await d.texts(["p1"])).eqls({ p1: "" });
-        expect(await d.replacedBy("p1")).eqls([]);
         expect(d.newDiagnostics()).eqls([
             {
-                code: "doenet-e0064",
+                code: "doenet-i0053",
                 type: "info",
-                line: 4,
+                line: 7,
                 message:
-                    "A `<text>` can be made from what a `<select>` picked only when it holds one component, and `$s[1]` holds 2 now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<text>$s[1]</text>`.",
+                    "A `<boolean>` can't be made from `$g` while its value, (1, 2), isn't true or false, so it has the value of `<boolean/>` until it is.",
             },
         ]);
 
+        // A case of the same type: only the value is checked.
+        await d.setBoolean("b", true);
+        expect(await d.texts(["p3"])).eqls({ p3: "(5, 6)" });
+        await d.move("Q", 7, 8);
+        expect(await d.texts(["p3"])).eqls({ p3: "(7, 8)" });
+
         await d.setMath("mi", "1");
-        expect(await d.texts(["p1", "t"])).eqls({ p1: "a", t: "a" });
-        expect(await d.replacedBy("p1")).eqls(["text"]);
-        expect(d.newDiagnostics()).eqls([]);
+        expect(await d.texts(["p1", "p2", "B"])).eqls({
+            p1: "(0, 0)",
+            p2: "true",
+            B: "true",
+        });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0053", 6],
+        ]);
         expect(d.errors()).eqls([]);
     });
 
-    it("a group holding a conditionalContent whose case changes type or count", async () => {
+    it("an index that names nothing because of its value: the empty tag with an info, until it names a component again", async () => {
         const d = await setup(`
-<booleanInput name="b"/>
-<group name="g"><conditionalContent><case condition="$b"><text>a</text><text>b</text></case><else><text>c</text></else></conditionalContent></group>
-<group name="h"><conditionalContent><case condition="$b"><point>(1,2)</point></case><else><text>c</text></else></conditionalContent></group>
-<p name="p1"><text name="t1" extend="$g"/></p>
-<p name="p2"><text name="t2" extend="$h"/></p>
+<mathInput name="n" prefill="1"/>
+<repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
+<mathList name="ml">7 8</mathList>
+<p name="p1"><text name="t" extend="$r[$n]"/></p>
+<p name="p2"><math name="m" extend="$ml[$n]"/></p>
 `);
-        const shown = { p1: "c", t1: "c", p2: "c", t2: "c" };
-        expect(await d.texts(Object.keys(shown))).eqls(shown);
+        expect(await d.texts(["p1", "t", "p2", "m"])).eqls({
+            p1: "a",
+            t: "a",
+            p2: "7",
+            m: "7",
+        });
         expect(d.newDiagnostics()).eqls([]);
 
-        await d.setBoolean("b", true);
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
-        expect(await d.replacedBy("p1")).eqls([]);
-        expect(await d.replacedBy("p2")).eqls([]);
+        await d.setMath("n", "3");
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "＿" });
+        expect(await d.typeOf("t")).eq("text");
         expect(d.newDiagnostics()).eqls([
             {
-                code: "doenet-e0064",
+                code: "doenet-i0054",
                 type: "info",
                 line: 5,
                 message:
-                    "A `<text>` can be made from a `<group>` only when it holds one component, and `$g` holds 2 now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<text>$g</text>`.",
+                    "`$r[$n]` names nothing now, so this `<text>` has the value of `<text/>` until it does.",
             },
             {
-                code: "doenet-e0065",
+                code: "doenet-i0054",
                 type: "info",
                 line: 6,
                 message:
-                    "A `<text>` can't be made from `$h`, which gives a `<point>` now, so nothing is shown for it. To show it as it is, write `$h`.",
-            },
-        ]);
-
-        await d.setBoolean("b", false);
-        expect(await d.texts(Object.keys(shown))).eqls(shown);
-        expect(await d.replacedBy("p1")).eqls(["group"]);
-        expect(await d.replacedBy("p2")).eqls(["group"]);
-        expect(d.newDiagnostics()).eqls([]);
-        expect(d.errors()).eqls([]);
-    });
-
-    it("a group holding an entry of a list selected by an index past its end", async () => {
-        const d = await setup(`
-<mathInput name="n" prefill="1"/>
-<mathList name="ml">7 8</mathList>
-<group name="g2">$ml[$n]</group>
-<p name="p1"><math name="m" extend="$g2"/></p>
-`);
-        expect(await d.texts(["p1", "m"])).eqls({ p1: "7", m: "7" });
-
-        await d.setMath("n", "5");
-        expect(await d.texts(["p1"])).eqls({ p1: "" });
-        expect(await d.replacedBy("p1")).eqls([]);
-        expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-e0064",
-                type: "info",
-                line: 5,
-                message:
-                    "A `<math>` can't be made from `$g2`, a `<group>` that holds nothing now, so nothing is shown for it.",
+                    "`$ml[$n]` names nothing now, so this `<math>` has the value of `<math/>` until it does.",
             },
         ]);
 
         await d.setMath("n", "2");
-        expect(await d.texts(["p1", "m"])).eqls({ p1: "8", m: "8" });
-        expect(await d.replacedBy("p1")).eqls(["_copy"]);
+        expect(await d.texts(["p1", "t", "p2", "m"])).eqls({
+            p1: "b",
+            t: "b",
+            p2: "8",
+            m: "8",
+        });
+        expect(d.newDiagnostics()).eqls([]);
+        expect(
+            [...getDiagnosticsByType((await d.core()) as any).infos].map(
+                (x: any) => x.code,
+            ),
+        ).eqls([]);
+
+        // A blank index names nothing, too: the info alone, and no warning
+        // that would outlast it.
+        await d.setMath("n", "");
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0054", 5],
+            ["doenet-i0054", 6],
+        ]);
+        await d.setMath("n", "1");
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "a", p2: "7" });
+        expect(d.newDiagnostics()).eqls([]);
+        const { warnings, infos } = getDiagnosticsByType(
+            (await d.core()) as any,
+        );
+        expect([...warnings, ...infos].map((x: any) => x.code)).eqls([]);
+    });
+
+    it("an index that names nothing does not hide an error found when the document loaded", async () => {
+        const d = await setup(`
+<mathInput name="k"/>
+<repeat name="r" for="1 2" valueName="v"><math>$v</math><math>2</math></repeat>
+<p name="p"><math extend="$r[$k]"/></p>
+`);
+        const error = [
+            {
+                code: "doenet-e0064",
+                type: "error",
+                line: 4,
+                message:
+                    "A `<math>` can be made from `$r[$k]` only when it always holds one component, and an iteration of the `<repeat>` holds 2. To read what it holds as one value, write `<math>$r[$k]</math>`.",
+            },
+        ];
+        expect(await d.replacedBy("p")).eqls(["_error"]);
+        expect(d.newDiagnostics()).eqls(error);
+        for (const k of ["1", "2", "0", ""]) {
+            await d.setMath("k", k);
+            expect(await d.replacedBy("p"), k).eqls(["_error"]);
+            expect(d.newDiagnostics(), k).eqls([]);
+        }
+        const { infos } = getDiagnosticsByType((await d.core()) as any);
+        expect(infos.map((x: any) => x.code)).eqls([]);
+    });
+
+    it("an index that names nothing keeps the tag's own children, however the index came to name nothing", async () => {
+        const d = await setup(`
+<mathInput name="n"/>
+<repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
+<p name="p1"><text name="t" extend="$r[$n]">!</text></p>
+`);
+        const names = ["p1"];
+        const steps: [string, string, boolean][] = [
+            ["", "!", true],
+            ["1", "a!", false],
+            ["", "!", true],
+            ["5", "!", true],
+            ["2", "b!", false],
+            ["3", "!", true],
+        ];
+        for (const [step, [index, shown, info]] of steps.entries()) {
+            if (step > 0) {
+                await d.setMath("n", index);
+            }
+            expect(await d.texts(names), `n=${index}`).eqls({ p1: shown });
+            expect(await d.typeOf("t")).eq("text");
+            const infos = getDiagnosticsByType((await d.core()) as any).infos;
+            expect(
+                [...infos].map((x: any) => x.code),
+                `n=${index}`,
+            ).eqls(info ? ["doenet-i0054"] : []);
+        }
+    });
+
+    it("an unlinked copy made while its index names nothing is made so again after a reload", async () => {
+        const d = await setup(`
+<mathInput name="n"/>
+<repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
+<p name="p1"><text copy="$r[$n]">!</text></p>
+`);
+        expect(await d.texts(["p1"])).eqls({ p1: "!" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0054", 4],
+        ]);
+        // A copy stays as it was made.
+        await d.setMath("n", "1");
+        expect(await d.texts(["p1"])).eqls({ p1: "!" });
+
+        await d.reload();
+        expect(await d.texts(["p1"])).eqls({ p1: "!" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0054", 4],
+        ]);
+    });
+
+    it("an input reached by an index is a plain input while the index names nothing, and the link wins when the iteration returns", async () => {
+        const d = await setup(`
+<mathInput name="k" prefill="1"/>
+<repeat name="r" for="5 6" valueName="v"><mathInput prefill="$v"/></repeat>
+<p name="p1"><mathInput name="ex" extend="$r[$k]"/></p>
+`);
+        /** The value of the input the extend makes. */
+        async function exValue() {
+            const components = (await d.core()).core!._components as any;
+            return (
+                await components[await d.resolvePathToNodeIdx("ex")].stateValues
+                    .value
+            ).toString();
+        }
+        expect(await d.typeOf("ex")).eq("mathInput");
+        expect(await exValue()).eq("5");
+
+        await d.setMath("k", "3");
+        expect(await d.typeOf("ex")).eq("mathInput");
+        expect(await exValue()).eq("＿");
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0054", 4],
+        ]);
+        await d.setMath("ex", "9");
+        expect(await exValue()).eq("9");
+
+        await d.setMath("k", "2");
+        expect(await d.typeOf("ex")).eq("mathInput");
+        expect(await exValue()).eq("6");
         expect(d.newDiagnostics()).eqls([]);
         expect(d.errors()).eqls([]);
     });
-});
 
-describe("Deciding again as content made at run time changes @group4", () => {
-    it("a chain of extends, each of a group holding the one before, follows what the first holds", async () => {
-        const d = await setup(`
-<booleanInput name="b"/>
-<group name="g0"><conditionalContent><case condition="$b"><math>1</math></case><else><text>a</text><text>b</text></else></conditionalContent></group>
-<group name="g1"><math extend="$g0"/></group>
-<group name="g2"><math extend="$g1"/></group>
-<p name="p1"><math extend="$g1"/></p>
-<p name="p2"><math name="m2" extend="$g2"/></p>
-<p name="p3">$g2</p>
-<p name="p4" extend="$p2"/>
-`);
-        const nothing = { p1: "", p2: "", p3: "", p4: "" };
-        const one = { p1: "1", p2: "1", m2: "1", p3: "1", p4: "1" };
-        expect(await d.texts(Object.keys(nothing))).eqls(nothing);
-        // Each says why it shows nothing, as an info: what it is of is made
-        // at run time.
-        expect(d.newDiagnostics().map((x) => [x.code, x.type, x.line])).eqls([
-            ["doenet-e0064", "info", 4],
-            ["doenet-e0064", "info", 5],
-            ["doenet-e0064", "info", 6],
-            ["doenet-e0064", "info", 7],
-        ]);
-
-        for (let i = 0; i < 2; i++) {
-            await d.setBoolean("b", true);
-            expect(await d.texts(Object.keys(one))).eqls(one);
-            expect(await d.replacedBy("p2")).eqls(["_copy"]);
-
-            await d.setBoolean("b", false);
-            expect(await d.texts(Object.keys(nothing))).eqls(nothing);
-            expect(await d.replacedBy("p2")).eqls([]);
-        }
-        expect(d.errors()).eqls([]);
-    });
-
-    it("a copy of a group holding an extend of content made at run time is content made at run time too", async () => {
-        const d = await setup(`
-<booleanInput name="b"/>
-<group name="g0"><conditionalContent><case condition="$b"><math>1</math></case><else><text>a</text><text>b</text></else></conditionalContent></group>
-<group name="g1"><math extend="$g0"/></group>
-<group name="g2" extend="$g1"/>
-<group name="g3">$g1</group>
-<p name="p1"><math extend="$g2"/></p>
-<p name="p2"><math extend="$g3"/></p>
-`);
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
-        // Not an error: what `g2` and `g3` hold is made at run time.
-        expect(d.newDiagnostics().map((x) => [x.code, x.type, x.line])).eqls([
-            ["doenet-e0064", "info", 4],
-            ["doenet-e0064", "info", 7],
-            ["doenet-e0064", "info", 8],
-        ]);
-
-        await d.setBoolean("b", true);
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "1", p2: "1" });
-
-        await d.setBoolean("b", false);
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
-        expect(d.errors()).eqls([]);
-    });
-
-    it("a copy of the content holding an extend that shows nothing for now follows it", async () => {
-        const d = await setup(`
-<mathInput name="mi" prefill="x"/>
-<group name="h0"><math>$mi</math></group>
-<group name="h1"><point name="q" extend="$h0"/></group>
-<p name="p1"><point extend="$h1"/></p>
-<p name="p2">$h1</p>
-<p name="p3">$q</p>
-<graph name="gr"><point extend="$h0"/></graph>
-<graph name="gr2" extend="$gr"/>
-<p name="pp"><point extend="$h0"/></p>
-<p name="p4" extend="$pp"/>
-`);
-        const names = ["p1", "p2", "p3", "p4"];
-        const nothing = { p1: "", p2: "", p3: "", p4: "" };
-        expect(await d.texts(names)).eqls(nothing);
-
-        for (const [value, text] of [
-            ["(1,2)", "(1, 2)"],
-            ["y", ""],
-            ["(3,4)", "(3, 4)"],
-            ["1", ""],
-        ]) {
-            await d.setMath("mi", value);
-            expect(await d.texts(names)).eqls({
-                p1: text,
-                p2: text,
-                p3: text,
-                p4: text,
-            });
-        }
-        expect(d.errors()).eqls([]);
-    });
-
-    it("an extend in what it is of, or extends of each other, load with a circular dependency as on main", async () => {
-        const d = await setup(`
-<booleanInput name="b"/>
-<p name="p1"><conditionalContent name="cc"><case condition="$b"><text extend="$cc"/></case><else><text>x</text><math extend="$cc"/></else></conditionalContent></p>
-<p name="p2"><conditionalContent name="c1"><case condition="$b"><math extend="$c2"/></case><else><math>1</math></else></conditionalContent><conditionalContent name="c2"><case condition="$b"><math extend="$c1"/></case><else><math>2</math></else></conditionalContent></p>
-<p name="p3"><group name="k1"><math extend="$k2"/></group><group name="k2"><math extend="$k3"/></group><group name="k3"><math extend="$k1"/></group></p>
-`);
-        expect(await d.texts(["p1", "p2", "p3"])).eqls({
-            p1: "x",
-            p2: "12",
-            p3: "＿",
-        });
-        expect(d.errors()).eqls([
-            "doenet-e0005",
-            "doenet-e0005",
-            "doenet-e0005",
-        ]);
-
-        // On main, the two conditionalContents showing extends of each
-        // other made the update throw.
-        await d.setBoolean("b", true);
-        expect(await d.texts(["p1", "p2", "p3"])).eqls({
-            p1: "",
-            p2: "",
-            p3: "＿",
-        });
-
-        await d.setBoolean("b", false);
-        expect(await d.texts(["p2"])).eqls({ p2: "12" });
-    });
-
-    it("a conditionalContent whose active case holds one component of a related type is made the tag written from it, follows the case and writes back", async () => {
+    it("a conditionalContent of one type is made the tag written from it, follows the case and writes back", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
 <conditionalContent name="cc">
   <case condition="$b"><math>(1,2)</math></case>
-  <else><vector>(3,4)</vector></else>
+  <else><math>(3,4)</math></else>
 </conditionalContent>
 <conditionalContent name="cc2">
   <case condition="$b"><number>3.14159</number></case>
-  <else><text>y</text></else>
+  <else><number>2</number></else>
 </conditionalContent>
 <graph><point name="P" extend="$cc"/></graph>
 <p name="p1">$P</p>
@@ -920,11 +1243,11 @@ describe("Deciding again as content made at run time changes @group4", () => {
         const names = ["p1", "p2", "p3", "p4", "p5", "p6", "p7"];
         expect(await d.texts(names)).eqls({
             p1: "(3, 4)",
-            p2: "y",
+            p2: "2",
             p3: "(3, 4)",
-            p4: "false",
+            p4: "true",
             p5: "(3, 4)",
-            p6: "y",
+            p6: "2",
             p7: "(3, 4)",
         });
         expect(await d.typeOf("P")).eqls("point");
@@ -953,10 +1276,9 @@ describe("Deciding again as content made at run time changes @group4", () => {
         await d.setBoolean("b", false);
         expect(await d.texts(["p1", "p2", "p7"])).eqls({
             p1: "(3, 4)",
-            p2: "y",
+            p2: "2",
             p7: "(3, 4)",
         });
-        // and moving it changes the vector of the other case
         await d.move("P", 7, 8);
         expect(await d.texts(["p1", "p7"])).eqls({
             p1: "(7, 8)",
@@ -986,80 +1308,32 @@ describe("Deciding again as content made at run time changes @group4", () => {
         expect(d.errors()).eqls([]);
     });
 
-    it("a select, a repeat and a group holding a conditionalContent of one component of a related type are made the tag written from it", async () => {
+    it("an extend in what it is of, or extends of each other", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
-<mathInput name="n" prefill="1"/>
-<select name="s"><option><math>(1,2)</math></option></select>
-<select name="s2"><option><number>4</number></option></select>
-<selectFromSequence name="sfs" from="5" to="5"/>
-<repeatForSequence name="r" length="$n"><math>(3,4)</math></repeatForSequence>
-<repeat name="r2" for="1" valueName="v"><math>($v,2)</math></repeat>
-<group name="g">
-  <conditionalContent>
-    <case condition="$b"><math>(5,6)</math></case>
-    <else><text>no</text></else>
-  </conditionalContent>
-</group>
-<graph>
-  <point name="Ps" extend="$s"/>
-  <point name="Pr" extend="$r"/>
-  <point name="Pr2" extend="$r2"/>
-  <point name="Pg" extend="$g"/>
-</graph>
-<p name="p1">$Ps</p>
-<p name="p2"><math extend="$s2"/></p>
-<p name="p3"><number extend="$sfs"/></p>
-<p name="p4">$Pr</p>
-<p name="p5">$Pr2</p>
-<p name="p6">$Pg</p>
+<p name="p1"><conditionalContent name="cc"><case condition="$b"><text extend="$cc"/></case><else><text>x</text><math extend="$cc"/></else></conditionalContent></p>
+<p name="p2"><conditionalContent name="c1"><case condition="$b"><math extend="$c2"/></case><else><math>1</math></else></conditionalContent><conditionalContent name="c2"><case condition="$b"><math extend="$c1"/></case><else><math>2</math></else></conditionalContent></p>
+<p name="p3"><group name="k1"><math extend="$k2"/></group><group name="k2"><math extend="$k3"/></group><group name="k3"><math extend="$k1"/></group></p>
 `);
-        const names = ["p1", "p2", "p3", "p4", "p5", "p6"];
-        expect(await d.texts(names)).eqls({
-            p1: "(1, 2)",
-            p2: "4",
-            p3: "5",
-            p4: "(3, 4)",
-            p5: "(1, 2)",
-            p6: "",
+        // The else of `cc` holds two components, decided when the document
+        // loads; the others are circular, as on main, reported once for
+        // each cycle.
+        expect(await d.texts(["p1", "p2", "p3"])).eqls({
+            p1: "x",
+            p2: "12",
+            p3: "",
         });
-        expect(d.newDiagnostics().map((x) => x.code)).eqls(["doenet-e0065"]);
+        expect(d.errors().sort()).eqls([
+            "doenet-e0005",
+            "doenet-e0005",
+            "doenet-e0064",
+        ]);
 
         await d.setBoolean("b", true);
-        await d.setMath("n", "2");
-        expect(await d.texts(["p4", "p6"])).eqls({ p4: "", p6: "(5, 6)" });
-        expect(d.newDiagnostics().map((x) => x.code)).eqls(["doenet-e0064"]);
-        await d.setMath("n", "1");
-        expect(await d.texts(["p4"])).eqls({ p4: "(3, 4)" });
-
-        await d.move("Ps", 1, 1);
-        await d.move("Pr", 2, 2);
-        await d.move("Pr2", 3, 3);
-        await d.move("Pg", 4, 4);
-        expect(await d.texts(names)).eqls({
-            p1: "(1, 1)",
-            p2: "4",
-            p3: "5",
-            p4: "(2, 2)",
-            p5: "(3, 3)",
-            p6: "(4, 4)",
-        });
+        expect(await d.texts(["p2", "p3"])).eqls({ p2: "＿", p3: "" });
 
         await d.setBoolean("b", false);
-        expect(await d.texts(["p6"])).eqls({ p6: "" });
-        await d.setBoolean("b", true);
-        expect(await d.texts(["p6"])).eqls({ p6: "(4, 4)" });
-
-        await d.reload();
-        expect(await d.texts(names)).eqls({
-            p1: "(1, 1)",
-            p2: "4",
-            p3: "5",
-            p4: "(2, 2)",
-            p5: "(3, 3)",
-            p6: "(4, 4)",
-        });
-        expect(d.errors()).eqls([]);
+        expect(await d.texts(["p2"])).eqls({ p2: "12" });
     });
 
     it("what is shown and what is decided are the same after a reload, in each state", async () => {
@@ -1067,7 +1341,7 @@ describe("Deciding again as content made at run time changes @group4", () => {
 <booleanInput name="b"/>
 <mathInput name="mi" prefill="x"/>
 <conditionalContent name="cc">
-  <case condition="$b"><point>(1,2)</point></case>
+  <case condition="$b"><text>yes</text></case>
   <else><text>no</text></else>
 </conditionalContent>
 <group name="g"><math>$mi</math></group>
@@ -1077,17 +1351,23 @@ describe("Deciding again as content made at run time changes @group4", () => {
 `);
         const names = ["p1", "p2", "p3"];
         const states: [() => Promise<void>, Record<string, string>][] = [
-            [async () => {}, { p1: "no", p2: "", p3: "" }],
-            [() => d.setBoolean("b", true), { p1: "", p2: "", p3: "" }],
+            [async () => {}, { p1: "no", p2: "(0, 0)", p3: "(0, 0)" }],
+            [
+                () => d.setBoolean("b", true),
+                { p1: "yes", p2: "(0, 0)", p3: "(0, 0)" },
+            ],
             [
                 () => d.setMath("mi", "(1,2)"),
-                { p1: "", p2: "(1, 2)", p3: "(1, 2)" },
+                { p1: "yes", p2: "(1, 2)", p3: "(1, 2)" },
             ],
             [
                 () => d.setBoolean("b", false),
                 { p1: "no", p2: "(1, 2)", p3: "(1, 2)" },
             ],
-            [() => d.setMath("mi", "y"), { p1: "no", p2: "", p3: "" }],
+            [
+                () => d.setMath("mi", "y"),
+                { p1: "no", p2: "(0, 0)", p3: "(0, 0)" },
+            ],
         ];
         for (const [change, shown] of states) {
             await change();
@@ -1103,10 +1383,7 @@ describe("Deciding again as content made at run time changes @group4", () => {
             );
             // An info is reported again where it lasts.
             expect(d.newDiagnostics().map((x) => x.code)).eqls(
-                [
-                    shown.p1 === "" && "doenet-e0065",
-                    shown.p2 === "" && "doenet-i0053",
-                ].filter(Boolean),
+                shown.p2 === "(0, 0)" ? ["doenet-i0053"] : [],
             );
             expect(d.errors()).eqls([]);
         }

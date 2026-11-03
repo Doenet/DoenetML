@@ -97,17 +97,19 @@ describe("An index that names nothing @group4", async () => {
         expect(doenetML.substring(start.offset!, end.offset!)).eq("$l[0]");
     });
 
-    it("is reported the same in an extend or copy attribute, marked at the reference", async () => {
+    it("is an error in an extend or copy attribute, marked at the reference", async () => {
+        // The same reference on a tag is an error, shown in the tag's place:
+        // a tag always makes that tag (D36).
         for (const attribute of ["extend", "copy"]) {
             const { text, warnings, errors, doenetML } = await shownAndReported(
                 `<p name="p"><math ${attribute}="$l[0]" /></p>`,
             );
-            expect(text, attribute).eq("＿");
-            expect(errors, attribute).eqls([]);
-            expect(warnings.length, attribute).eq(1);
-            expect(warnings[0].code, attribute).eq("doenet-w0104");
-            expect(warnings[0].args, attribute).eqls({ reference: "$l[0]" });
-            const { start, end } = warnings[0].position!;
+            expect(text, attribute).eq("");
+            expect(warnings, attribute).eqls([]);
+            expect(errors.length, attribute).eq(1);
+            expect(errors[0].code, attribute).eq("doenet-w0104");
+            expect(errors[0].args, attribute).eqls({ reference: "$l[0]" });
+            const { start, end } = errors[0].position!;
             expect(
                 doenetML.substring(start.offset!, end.offset!),
                 attribute,
@@ -276,16 +278,18 @@ describe("An index that names nothing @group4", async () => {
         expect(warnings[0].args).eqls({ reference: "$t" });
     });
 
-    it("codes a name in an extend attribute that names more than one thing", async () => {
+    it("codes a name in an extend attribute that names more than one thing, as an error", async () => {
         // The resolver gives no path for more than one referent, so the
         // reference is quoted from where it is marked, inside the attribute.
-        const { warnings, doenetML } = await shownAndReported(
+        // On a tag it is an error (D36).
+        const { errors, warnings, doenetML } = await shownAndReported(
             `<group><text name="t">a</text><text name="t">b</text></group><p name="p"><text extend="$t" /></p>`,
         );
-        expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0105");
-        expect(warnings[0].args).eqls({ reference: "$t" });
-        const { start, end } = warnings[0].position!;
+        expect(warnings).eqls([]);
+        expect(errors.length).eq(1);
+        expect(errors[0].code).eq("doenet-w0105");
+        expect(errors[0].args).eqls({ reference: "$t" });
+        const { start, end } = errors[0].position!;
         expect(doenetML.substring(start.offset!, end.offset!)).eq("$t");
     });
 });

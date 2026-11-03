@@ -232,7 +232,8 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
  * - `typeChange`, whether a copy written as a different tag than what it
  *   copies was made, or shows nothing, when that was decided from what the
  *   document makes at run time (`typeChangeStatus` in `Copy.js`): the value
- *   of a math, or what a `<conditionalContent>` holds;
+ *   of a math, or what a `<conditionalContent>` holds, or `<T/>` while its
+ *   index named nothing (`doenet-i0054`);
  * - `caseIndex`, the case of a `<conditionalContent>` a copy of it was made
  *   from, or `null` when it had no active case;
  * - `indexIntoScalar`, by the reference as written, whether an index of the

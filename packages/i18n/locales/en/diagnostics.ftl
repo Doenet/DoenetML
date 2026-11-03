@@ -779,13 +779,7 @@ extend-part-of-choosing-tag = `<{ $componentType }>` is part of a `<{ $parentTyp
 # as, $sourceType the type of what it is made from, and $source the reference,
 # as written (`$t`); all three are DoenetML, so they stay in English, as do
 # `extend`, `copy`, `bindValueTo`, `prefill` and `.text`.
-# $now is "true" when what `$source` gives is made at run time, such as the
-# active case of a `<conditionalContent>`: nothing is shown while it lasts.
-type-change-unrelated =
-    { $now ->
-        [true] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>` now, so nothing is shown for it. To show it as it is, write `{ $source }`.
-       *[other] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
-    }
+type-change-unrelated = A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
 
 # $hasPrefill is "true" when the input has a `prefill` attribute.
 type-change-input-from-value =
@@ -796,51 +790,85 @@ type-change-input-from-value =
 
 type-change-from-container = A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` holding other content. To use its text, write `{ $source }.text`.
 
-# $count is the number of components `$source` holds, which is not one, and
-# $holdsNothing is "true" when that number is zero. $indexSelectsOne is "true"
-# when `$source[1]` selects one of those components (an entry of a list, an
-# iteration or a pick that holds one component); an index does not select a
-# child of a `<group>`, so the author names the one they want instead.
-# $container is `iteration` when `$source` is an iteration of $sourceType,
-# `pick` when it is what $sourceType picked, `case` when it is what
-# $sourceType shows, and `other` when it is a $sourceType itself. $now is
-# "true" when what `$source` holds is made at run time, such as how many
-# components a `<collect>` holds: nothing is shown while it lasts.
+# A tag written with `extend` or `copy` always makes one component (D36), so
+# it can be made from a composite only when the DoenetML guarantees that the
+# composite always holds exactly one component. $reason says why it may not:
+# `noElse` for a `<conditionalContent>` with no `<else>`, which holds nothing
+# when no case is true; `numToSelect` for a `<select>` or another selector
+# whose $attribute (`numToSelect` or `numSamples`) is not written as 1;
+# `anyNumber` for a composite such as a `<repeat>` or `<collect>`, which can
+# hold any number; and `count` when it, or one $part of it (`case`,
+# `option` or `iteration`), holds $count components. $sourceType is the tag
+# of the composite the reason is about, which may be one $source holds, or
+# the one `$source` indexes (an iteration of a `<repeat>`). $holdsNothing is
+# "true" when $count is zero. $indexSelectsOne is "true" when `$source[1]`
+# names one component, so the message suggests it. `numToSelect`, `<else>`
+# and the tags are DoenetML and stay in English.
 type-change-composite-not-one =
-    { $now ->
-        [true] { $holdsNothing ->
-            [true] A `<{ $componentType }>` can't be made from `{ $source }`, { $container ->
-                [iteration] an iteration of a `<{ $sourceType }>`
-                [pick] what a `<{ $sourceType }>` picked
-                [case] what a `<{ $sourceType }>` shows
-               *[other] a `<{ $sourceType }>`
-            } that holds nothing now, so nothing is shown for it.
-           *[other] { $indexSelectsOne ->
-                [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count } now, so nothing is shown for it. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-               *[other] A `<{ $componentType }>` can be made from { $container ->
-                    [iteration] an iteration of a `<{ $sourceType }>`
-                    [pick] what a `<{ $sourceType }>` picked
-                    [case] what a `<{ $sourceType }>` shows
-                   *[other] a `<{ $sourceType }>`
-                } only when it holds one component, and `{ $source }` holds { $count } now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-            }
+    { $reason ->
+        [noElse] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` with no `<else>` holds nothing when no case is true. Add an `<else>`.
+        [numToSelect] { $indexSelectsOne ->
+            [true] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` holds one only when its `{ $attribute }` is written as 1 or left out. To use its first pick, write `{ $source }[1]`. To read all it picks as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+           *[other] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` holds one only when its `{ $attribute }` is written as 1 or left out. To read all it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
         }
-       *[other] { $holdsNothing ->
-            [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing.
-           *[other] { $indexSelectsOne ->
-                [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-               *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+        [anyNumber] { $indexSelectsOne ->
+            [true] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` can hold any number. To use the first, write `{ $source }[1]`. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+           *[other] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` can hold any number. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+        }
+       *[count] { $part ->
+            [case] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a case of the `<{ $sourceType }>` holds { $holdsNothing ->
+                [true] nothing
+               *[other] { $count }
+            }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            [option] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and an option of the `<{ $sourceType }>` holds { $holdsNothing ->
+                [true] nothing
+               *[other] { $count }
+            }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            [iteration] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and an iteration of the `<{ $sourceType }>` holds { $holdsNothing ->
+                [true] nothing
+               *[other] { $count }
+            }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+           *[other] { $holdsNothing ->
+                [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing.
+               *[other] { $indexSelectsOne ->
+                    [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+                   *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+                }
             }
         }
     }
+
+# What `$source` holds can be of more than one type, $types, a list of tags
+# already joined (`<math>`, `<number>`). $isList is "true" when
+# $componentType is a list, such as `<mathList>`, which takes any number of
+# components, all of one type.
+type-change-composite-types-differ =
+    { $isList ->
+        [true] A `<{ $componentType }>` can be made from `{ $source }` only when what it holds is all of one type, and it holds { $types }. To read them all as one list, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+       *[other] A `<{ $componentType }>` can be made from `{ $source }` only when what it holds is always of one type, and it can hold { $types }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+    }
+
+# What `$source` holds is a reference whose type the DoenetML does not give:
+# $what is `property` for a property, such as `$P.x`, and `reference` for
+# any other, such as an index or the value of a repeat.
+type-change-composite-type-unknown =
+    { $what ->
+        [property] A `<{ $componentType }>` can be made from `{ $source }` only when the type of what it holds is known from the DoenetML, and it holds a property, whose type isn't. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+       *[other] A `<{ $componentType }>` can be made from `{ $source }` only when the type of what it holds is known from the DoenetML, and it holds a reference whose type isn't. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+    }
+
+# The index of `$source` names nothing now, such as an iteration past the
+# last one, so the tag $componentType shows the value an empty one has until
+# the index names something again.
+type-change-index-names-nothing = `{ $source }` names nothing now, so this `<{ $componentType }>` has the value of `<{ $componentType }/>` until it does.
 
 # $value is the value of `$source` now. $valueCheck says what it would have
 # to be: a tuple, such as (1, 2), for a point, vector or coords, or true or
 # false, a number or a relation, for a boolean.
 type-change-value-not-convertible =
     { $valueCheck ->
-        [tuple] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't a tuple of coordinates, so nothing is shown for it.
-       *[other] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't true or false, so nothing is shown for it.
+        [tuple] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't a tuple of coordinates, so it has the value of `<{ $componentType }/>` until it is.
+       *[other] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't true or false, so it has the value of `<{ $componentType }/>` until it is.
     }
 
 ## Children that do not match

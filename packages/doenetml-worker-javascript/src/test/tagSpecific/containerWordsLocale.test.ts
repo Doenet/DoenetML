@@ -268,11 +268,13 @@ describe("container words follow the document locale @group4", () => {
             <text name="label" extend="$pc.nextLabel" />
             <text name="raw" extend="$pc.nextLabelPreLocalize" />
             `;
-            // `label` is the control: an empty `raw` says something about
-            // reachability only if a reference that should resolve does.
+            // `label` is the control: a `raw` that is not reached says
+            // something about reachability only if a reference that should
+            // resolve does. A tag extending a property its source does not
+            // have is an error in its place (D36), so `raw` has no value.
             expect(await values(doc, ["label", "raw"], "value")).toEqual({
                 label: "Onward",
-                raw: "",
+                raw: undefined,
             });
         });
     });

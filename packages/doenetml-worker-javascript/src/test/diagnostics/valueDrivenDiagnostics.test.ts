@@ -86,10 +86,15 @@ async function setup(doenetML: string) {
     };
 }
 
-const TYPE_CHANGE_CODES = ["doenet-e0064", "doenet-e0065", "doenet-i0053"];
+const TYPE_CHANGE_CODES = [
+    "doenet-e0064",
+    "doenet-e0065",
+    "doenet-i0053",
+    "doenet-i0054",
+];
 
 describe("A value-driven diagnostic follows its condition (B33) @group4", () => {
-    it("a typed extend whose case switches between matching and not, several times", async () => {
+    it("a typed extend of a conditionalContent whose cases hold different types is an error that stays as the case switches (D36)", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
 <conditionalContent name="cc">
@@ -98,47 +103,60 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
 </conditionalContent>
 <p name="p1"><text name="t" extend="$cc"/></p>
 `);
-        const info = {
+        const error = {
             code: "doenet-e0065",
-            type: "info",
+            type: "error",
             line: 7,
             message:
-                "A `<text>` can't be made from `$cc`, which gives a `<point>` now, so nothing is shown for it. To show it as it is, write `$cc`.",
+                "A `<text>` can't be made from `$cc`, which gives a `<point>`. To show it as it is, write `$cc`.",
         };
-        expect(await d.text("p1")).eq("no");
-        expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([]);
+        expect(await d.text("p1")).eq("");
+        expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([error]);
 
         for (let i = 0; i < 3; i++) {
             await d.setBoolean("b", true);
             expect(await d.text("p1")).eq("");
-            expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([info]);
+            expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([error]);
 
             await d.setBoolean("b", false);
-            expect(await d.text("p1")).eq("no");
-            expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([]);
+            expect(await d.text("p1")).eq("");
+            expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([error]);
         }
+        expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([
+            error,
+        ]);
     });
 
-    it("the same after a reload at each state of a typed extend", async () => {
+    it("an index that names nothing has an info while it does, after a reload too", async () => {
         const d = await setup(`
-<booleanInput name="b"/>
-<conditionalContent name="cc">
-  <case condition="$b"><point>(1,2)</point></case>
-  <else><text>no</text></else>
-</conditionalContent>
-<p name="p1"><text name="t" extend="$cc"/></p>
+<mathInput name="n" prefill="1"/>
+<repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
+<p name="p1"><text name="t" extend="$r[$n]"/></p>
 `);
+        const info = {
+            code: "doenet-i0054",
+            type: "info",
+            line: 4,
+            message:
+                "`$r[$n]` names nothing now, so this `<text>` has the value of `<text/>` until it does.",
+        };
         expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([]);
 
-        await d.setBoolean("b", true);
-        expect(
-            (await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).map(
-                (x: any) => x.code,
-            ),
-        ).eqls(["doenet-e0065"]);
+        for (let i = 0; i < 2; i++) {
+            await d.setMath("n", "3");
+            expect(await d.text("p1")).eq("");
+            expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([info]);
+            expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([
+                info,
+            ]);
 
-        await d.setBoolean("b", false);
-        expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([]);
+            await d.setMath("n", "2");
+            expect(await d.text("p1")).eq("b");
+            expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([]);
+            expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls(
+                [],
+            );
+        }
     });
 
     it("an info naming a value replaces the one before it, and goes when the value matches", async () => {
@@ -152,7 +170,7 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
                 code: "doenet-i0053",
                 type: "info",
                 line: 4,
-                message: `A \`<point>\` can't be made from \`$g\` while its value, ${value}, isn't a tuple of coordinates, so nothing is shown for it.`,
+                message: `A \`<point>\` can't be made from \`$g\` while its value, ${value}, isn't a tuple of coordinates, so it has the value of \`<point/>\` until it is.`,
             };
         }
         expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([infoNaming("x")]);
@@ -171,8 +189,7 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
     });
 
     it("an info of an unlinked copy names the value it was made from, after a reload too", async () => {
-        // A `copy` stays as it was made, and so does its info, though a
-        // copy made now would show nothing too.
+        // A `copy` stays as it was made, `<point/>`, and so does its info.
         const d = await setup(`
 <mathInput name="mi" prefill="x"/>
 <group name="g"><math>$mi</math></group>
@@ -183,18 +200,18 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
             type: "info",
             line: 4,
             message:
-                "A `<point>` can't be made from `$g` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+                "A `<point>` can't be made from `$g` while its value, x, isn't a tuple of coordinates, so it has the value of `<point/>` until it is.",
         };
         expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([infoNamingX]);
 
         await d.setMath("mi", "y");
-        expect(await d.text("p1")).eq("");
+        expect(await d.text("p1")).eq("(0, 0)");
         expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([
             infoNamingX,
         ]);
 
         await d.setMath("mi", "(1,2)");
-        expect(await d.text("p1")).eq("");
+        expect(await d.text("p1")).eq("(0, 0)");
         expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([
             infoNamingX,
         ]);

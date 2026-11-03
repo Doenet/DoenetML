@@ -3215,7 +3215,10 @@ describe("Extend and references tests @group2", async () => {
         ).eqls(NaN);
     });
 
-    it("add children to invalid extend", async () => {
+    it("a tag whose extend names nothing is an error in its place, children and all", async () => {
+        // A tag written with `extend` always makes that tag (D36), so one
+        // whose reference names nothing cannot be made, and the error is
+        // shown where it was written, in place of its children too.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" extend="$invalid">
@@ -3230,43 +3233,12 @@ describe("Extend and references tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
-                .length,
-        ).eq(1);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("g")].activeChildren[0]
-                .componentIdx,
-        ).eq(await resolvePathToNodeIdx("P"));
-        expect(
-            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([0, 0]);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("Pcoords")].stateValues
-                .value.tree,
-        ).eqls(["vector", 0, 0]);
-
-        // move point
-
-        await movePoint({
-            componentIdx: await resolvePathToNodeIdx("P"),
-            x: 3,
-            y: 5,
-            core,
-        });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([3, 5]);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("Pcoords")].stateValues
-                .value.tree,
-        ).eqls(["vector", 3, 5]);
+            stateVariables[await resolvePathToNodeIdx("g")].componentType,
+        ).eq("_error");
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => [e.code, e.message])).eqls([
+            ["doenet-w0104", "No referent found for reference: `$invalid`"],
+        ]);
     });
 
     it("add children with extend", async () => {
@@ -6837,7 +6809,9 @@ describe("Extend and references tests @group2", async () => {
         ).eq("3rd entry: 2, 2");
     });
 
-    it("extending bad prop still add in children", async () => {
+    it("extending a property that does not exist is an error in its place", async () => {
+        // A tag always makes that tag (D36): a property its source does not
+        // have names nothing, as a name that names nothing does (#2434).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p">Hello</p>
@@ -6849,7 +6823,11 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq(" there");
+        ).eq(undefined);
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => [e.code, e.message])).eqls([
+            ["doenet-w0104", "No referent found for reference: `$p.badProp`"],
+        ]);
     });
 
     describe("an element written inside index brackets", () => {

@@ -126,6 +126,11 @@ export function convertRefsToCopies({
                     state: {},
                     children: [],
                     extending: wrappingComponent.extending,
+                    // where the list is written, so that a diagnostic of
+                    // what it is made from (`typeChangeAtLoad.ts`) is marked
+                    // there
+                    position: wrappingComponent.position,
+                    sourceDoc: wrappingComponent.sourceDoc,
                 };
 
                 if (!wrappingComponent.doenetAttributes) {

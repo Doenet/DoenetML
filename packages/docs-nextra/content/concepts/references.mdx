@@ -112,9 +112,14 @@ literal `b`, whereas `$ab` would look for a component named `ab`.
 
 ### Writing a reference as a different tag
 
-`<math extend="$t"/>{:dn}` or `<math copy="$t"/>{:dn}`, where `t` is not a
-`<math>`, asks for a math made from `t`. That works only between related
-types:
+A tag you write makes that tag. `<math extend="$t"/>{:dn}` or
+`<math copy="$t"/>{:dn}` always makes exactly one `<math>`, so `$t + 1`, a
+property of it, and an answer that checks it all read one math. A bare
+reference is different: `$t` takes the shape of what it finds, and may be
+nothing.
+
+When `t` is not a `<math>`, the tag asks for a math made from `t`. That works
+only between related types:
 
 * `<math>`, `<number>`, `<text>` and `<boolean>`, from one another;
 * `<point>`, `<vector>` and `<coords>`, from one another;
@@ -127,20 +132,6 @@ types:
 
 A `<group>` can be made from anything, and holds it.
 
-A `<group>` that holds exactly one component counts as that component, and so
-does a list with one entry, such as a `<mathList>`: `<math extend="$g"/>{:dn}`
-of a group that holds one number. The same goes for what the document makes
-as it runs: what a `<conditionalContent>`, `<select>`, `<repeat>` or
-`<collect>` holds, an iteration, a pick or a case (`$r[1]`, `$s[1]`,
-`$cc[1]`), and a list made by a `<sequence>` or `<selectFromSequence>`. Content
-holding a list is not checked. `<point extend="$cc"/>{:dn}` shows `(1, 2)`
-while the active case holds the math `(1, 2)`, as `<point extend="$cc[1]"/>{:dn}`
-does, and follows the case as it changes. A case, pick or iteration whose one
-component is made by a reference or a composite in it, rather than written in
-it, shows a default component of the tag written, such as `(0, 0)`; for a
-composite, `$cc[1]` shows it. So does a group holding one component beside a
-`<repeat>` or `<repeatForSequence>` that has no iterations.
-
 ```doenet-editor-horiz
 <point name="P">(3,4)</point>
 <group name="g"><number>7</number></group>
@@ -149,33 +140,35 @@ composite, `$cc[1]` shows it. So does a group holding one component beside a
 <p>As a math: <math extend="$g"/></p>
 ```
 
-Any other pair is an error, shown in place of the reference, whose message says
-what to write instead:
+#### Made from a composite
 
-* to use the text of a `<p>` or another container that has one, write `$p.text`;
-* an input is not the same thing as its value: to edit `$m` with an input, write
-  `<mathInput bindValueTo="$m"/>{:dn}`, and to start from its value,
-  `<mathInput prefill="$m"/>{:dn}`;
-* to use one component of a group that holds several, give it a name and refer
-  to it by that name. An index selects one of the entries of a list, so for a
-  list `$ml[1]` works too;
-* to read all the components a group or a list holds as one value, write
-  `<math>$g</math>{:dn}`.
+A tag can be made from a composite, such as a `<group>`, a
+`<conditionalContent>` or a `<select>`, only when the DoenetML guarantees that
+it **always holds exactly one component, of one type** that can become the tag.
+This is decided when the document loads, from what you wrote, not from what
+the composite holds as the document runs:
 
-When what the reference stands for is made as the document runs, a mismatch is
-not an error but an info saying why, and nothing is shown while it lasts. That
-is so when the active case of a `<conditionalContent>`, what a `<select>`
-picked, how many components a `<collect>` or a `<repeat>` holds, or the value
-of a math doesn't allow the tag: `<text extend="$cc"/>{:dn}` while the active
-case holds a point, or `<point extend="$m"/>{:dn}` while `m` is not a tuple, as
-for a math in a group of one or the one entry of a list. An `extend` is shown again when what it stands
-for matches, and its info goes away. While the mismatch lasts there is one info,
-naming the value as it is now, and none for an `extend` in content that isn't
-there now, such as a case that isn't chosen (one hidden with `hide` still has
-it). A `copy` does not follow its source, so it stays as it was made, and so
-does its info. A
-property, such as `<point extend="$P.x"/>{:dn}`, and the selected value of a
-`<choiceInput>` are not checked against their value.
+* a `<conditionalContent>` needs an `<else>`, and each case and the else must
+  hold one component of the same type. Without an `<else>`, it holds nothing
+  while no case is true, so add an `<else>`;
+* a `<select>`, `<selectFromSequence>` or another selector needs `numToSelect`
+  written as `1`, or left out;
+* a `<group>`, `<sort>` or `<shuffle>` needs one component;
+* a `<repeat>`, `<collect>`, `<sequence>` or `<intersection>` can hold any
+  number of components, so it is an error as a single tag, even while it holds
+  one. Index it to use one of them: `<point extend="$i[1]"/>{:dn}`;
+* what each part holds is its tag: a bare `$y` holds `y`'s tag, a bare string
+  is a `<text>`, and a property such as `$P.x` held in the composite is an
+  error, as its type isn't known from the DoenetML.
+
+A list tag, such as `<mathList extend="$c"/>{:dn}`, takes any number of
+components, including none, as long as they are all of one type.
+
+Anything else is an error, shown in place of the tag, whose message says what
+to write instead. To read whatever a composite holds as one value, wrap the
+reference in the tag: `<math>$cc</math>{:dn}`. To use one of several
+components, index what a `<repeat>`, a selector or a `<collect>` makes, such as
+`$r[1]`, or give the one you want a name and refer to it by that name.
 
 ```doenet-editor-horiz
 <booleanInput name="b"><label>Show a point</label></booleanInput>
@@ -184,7 +177,45 @@ property, such as `<point extend="$P.x"/>{:dn}`, and the selected value of a
   <else><text>no point</text></else>
 </conditionalContent>
 
-<p>As a text: <text extend="$cc"/></p>
+<p>An error: <text extend="$cc"/></p>
+<p>Wrapped: <text>$cc</text></p>
+```
+
+A tag whose reference names nothing, more than one thing, or a property its
+source doesn't have is an error too. Written bare, `$nothing` is a warning and
+shows nothing.
+
+Other errors, each with the form to write instead:
+
+* to use the text of a `<p>` or another container that has one, write `$p.text`;
+* an input is not the same thing as its value: to edit `$m` with an input, write
+  `<mathInput bindValueTo="$m"/>{:dn}`, and to start from its value,
+  `<mathInput prefill="$m"/>{:dn}`.
+
+#### What still changes as the document runs
+
+Two things are decided as the document runs, and neither changes what the tag
+makes:
+
+* **A value that doesn't convert.** `<point extend="$m"/>{:dn}` while `m` is not
+  a tuple, or `<boolean extend="$t"/>{:dn}` while `t` is not true or false, is
+  still a point or a boolean. It has the value an empty one has, such as
+  `(0, 0)`, with an info, until the value converts.
+* **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
+  iterations of `r` is still a math, `＿`, with an info, and is made from the
+  iteration again when the index names one.
+
+While the info lasts there is one, naming the value as it is now, and none for a
+tag in content that isn't there now, such as a case that isn't chosen. A `copy`
+does not follow its source, so it stays as it was made, and so does its info.
+A property, such as `<point extend="$P.x"/>{:dn}`, and the selected value of a
+`<choiceInput>` are not checked against their value.
+
+```doenet-editor-horiz
+<mathInput name="mi" prefill="x"><label>Enter a point, such as (1,2)</label></mathInput>
+<math name="m">$mi</math>
+
+<p>As a point: <point extend="$m"/></p>
 ```
 
 ## How references are resolved
@@ -351,6 +382,10 @@ cause is a typo in the name.
 As with an ambiguous reference, `$total` renders nothing and DoenetML reports a
 warning — here, *No referent found for reference: `$total`* — shown in the
 Warnings panel and as a tooltip on hover.
+
+Written as a tag, such as `<number extend="$total"/>{:dn}`, the same reference
+is an error rather than a warning: a tag always makes that tag, and this one
+can't be made. The error is shown in its place.
 
 ## Referencing repeated content
 

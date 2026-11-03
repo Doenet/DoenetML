@@ -442,10 +442,11 @@ describe("An unlinked copy through a reload @group4", () => {
         expect(await sv("c.a")).eq(undefined);
     });
 
-    it("written as a different tag, is shown, or not, as it was when made", async () => {
-        // Whether the copy is made is decided from the value of a math, or
-        // from what a `<conditionalContent>` holds, when it is made. A reload
-        // makes it as it was, not from what is decided then (#2441).
+    it("written as a different tag, is made as it was when made", async () => {
+        // Whether the copy is made from the math it copies, or is
+        // `<point/>`, is decided from the value of the math, or of the math
+        // a `<conditionalContent>` holds, when it is made. A reload makes it
+        // as it was, not from what is decided then (#2441, D36).
         const doenetML = `
     <math name="m">x</math>
     <mathInput name="mi" bindValueTo="$m" />
@@ -455,13 +456,13 @@ describe("An unlinked copy through a reload @group4", () => {
     </conditionalContent>
     <conditionalContent name="cc">
         <case condition="$b"><math>(3,4)</math></case>
-        <else><text>hi</text></else>
+        <else><math>hi</math></else>
     </conditionalContent>
     <point copy="$cc" name="Q" />
     <booleanInput name="b2" prefill="true" />
     <conditionalContent name="cc2">
         <case condition="$b2"><math>(5,6)</math></case>
-        <else><text>hi</text></else>
+        <else><math>hi</math></else>
     </conditionalContent>
     <point copy="$cc2" name="R" />
     <math name="m2">x</math>
@@ -495,18 +496,26 @@ describe("An unlinked copy through a reload @group4", () => {
             core: core(),
         });
         // `P` was made from `(1,2)`, and `R` from the case holding `(5,6)`;
-        // `Q` while the case held a text, and `S` while `m2` was `x`, so
-        // they show nothing
+        // `Q` while the case held `hi`, and `S` while `m2` was `x`, so they
+        // are `<point/>`, at (0, 0)
         const shown = [
+            [0, 0],
+            [0, 0],
             [1, 2],
             [5, 6],
         ];
-        expect(await pointsShown()).eqls(shown);
+        /** The points shown, in order of their coordinates. */
+        async function sortedPointsShown() {
+            return (await pointsShown()).sort(
+                (a: number[], b: number[]) => a[0] - b[0],
+            );
+        }
+        expect(await sortedPointsShown()).eqls(shown);
         expect(typeChangeInfos().sort()).eqls(["$cc", "$m2"]);
 
         const saved = await reload();
         expect(Object.keys(saved.__copySnapshots)).toHaveLength(4);
-        expect(await pointsShown()).eqls(shown);
+        expect(await sortedPointsShown()).eqls(shown);
         // `Q` and `S` are reported as they were when made
         expect(typeChangeInfos().sort()).eqls(["$cc", "$m2"]);
     });

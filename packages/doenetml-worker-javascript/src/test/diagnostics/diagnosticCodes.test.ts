@@ -424,11 +424,13 @@ describe("coded diagnostics reach the record @group4", () => {
         // The resolver hands back `g` with the index still unresolved, so this
         // is `RefResolutionDependency`'s *later* warning — the one for an
         // expanded composite with no replacement at that index — and not the
-        // one the test below reaches.
+        // one the test below reaches. The reference is bare: written as a tag,
+        // `<text extend="$g[1]"/>`, it is `<text/>` with an info instead
+        // (`doenet-i0054`, D36).
         const { core } = await createTestCore({
             doenetML: `
 <group name="g"></group>
-<text extend="$g[1]" />
+<p>$g[1]</p>
 `,
         });
 

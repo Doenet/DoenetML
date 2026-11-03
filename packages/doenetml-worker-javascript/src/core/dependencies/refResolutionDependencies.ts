@@ -679,25 +679,43 @@ export class RefResolutionDependency extends Dependency {
         if (refResolution === undefined) {
             const referenceText = getDoenetMLStringForReference();
 
+            // A reference written as a tag whose index is not a positive
+            // integer now (`<math extend="$r[$k]"/>` while `k` is blank or
+            // 0) names nothing, and says so itself, as an info that lasts
+            // while it does (`doenet-i0054`, `indexNamesNothing` in
+            // `Copy.js`), as for an index past what a composite made
+            // (below).
+            const reportedByCopy =
+                firstResolutionError === "NoReferent" &&
+                this.isScalarTag(composite) &&
+                resolveComponentResult.path.some((part: any) =>
+                    part.index.some(
+                        (index: any) =>
+                            !/^[1-9]\d*$/.test(String(index.value[0])),
+                    ),
+                );
+
             // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
             // Rather than duplicating code to make the messages,
             // we could make sure that `ref_resolve` formats the messages in this case, too.
-            this.dependencyHandler.core.addDiagnostic(
-                codedDiagnostic({
-                    type: "warning",
-                    // Spread rather than a ternary on the value: the
-                    // code has to sit next to `code:` as a literal, or
-                    // `lint:i18n` reads it as a code nothing raises.
-                    ...(firstResolutionError === "NonUniqueReferent"
-                        ? { code: "doenet-w0105" as const }
-                        : { code: "doenet-w0104" as const }),
-                    args: {
-                        reference: `${getDollarsForReference()}${referenceText}`,
-                    },
-                    position: composite.position,
-                    sourceDoc: composite.sourceDoc,
-                }),
-            );
+            if (!reportedByCopy) {
+                this.dependencyHandler.core.addDiagnostic(
+                    codedDiagnostic({
+                        type: "warning",
+                        // Spread rather than a ternary on the value: the
+                        // code has to sit next to `code:` as a literal, or
+                        // `lint:i18n` reads it as a code nothing raises.
+                        ...(firstResolutionError === "NonUniqueReferent"
+                            ? { code: "doenet-w0105" as const }
+                            : { code: "doenet-w0104" as const }),
+                        args: {
+                            reference: `${getDollarsForReference()}${referenceText}`,
+                        },
+                        position: composite.position,
+                        sourceDoc: composite.sourceDoc,
+                    }),
+                );
+            }
 
             this.extendIdx = -1;
             this.unresolvedPath = this.originalPath;
@@ -844,7 +862,12 @@ export class RefResolutionDependency extends Dependency {
 
             // A composite that produces instances says how many it made
             // (`doenet-w0181`), naming what the author wrote (D27).
-            if (instanceKind) {
+            if (this.isScalarTag(composite)) {
+                // Reported by the copy as an info that lasts while the
+                // index names nothing (`doenet-i0054`), or, for a literal
+                // index past what a selector picks, as an error when the
+                // document loaded (D36, `typeChangeAtLoad.ts`).
+            } else if (instanceKind) {
                 this.dependencyHandler.core.addDiagnostic(
                     codedDiagnostic({
                         type: "warning",
@@ -880,6 +903,41 @@ export class RefResolutionDependency extends Dependency {
         }
 
         return this.foundExtend();
+    }
+
+    /**
+     * Whether `composite` is a reference written as a tag that is not a list
+     * or a `<group>` (`<math extend="$r[1]"/>`), which always makes that tag
+     * (D36): it is `<T/>` while its index names nothing, and says so itself
+     * (`indexNamesNothing` in `Copy.js`).
+     */
+    isScalarTag(composite: any) {
+        const written =
+            composite.attributes?._createComponentOfType?.primitive?.value;
+        if (
+            !written ||
+            !composite.attributes?._copyInChildren?.primitive?.value ||
+            composite.doenetAttributes?.forList !== undefined
+        ) {
+            return false;
+        }
+        const componentInfoObjects =
+            this.dependencyHandler.componentInfoObjects;
+        const writtenType =
+            componentInfoObjects.componentTypeLowerCaseMapping[
+                written.toLowerCase()
+            ];
+        const writtenClass = componentInfoObjects.allComponentClasses[
+            writtenType
+        ] as any;
+        return Boolean(
+            writtenClass &&
+            writtenClass.listEntryComponentType === undefined &&
+            writtenType !== "group" &&
+            !componentInfoObjects.isCompositeComponent({
+                componentType: writtenType,
+            }),
+        );
     }
 
     /**

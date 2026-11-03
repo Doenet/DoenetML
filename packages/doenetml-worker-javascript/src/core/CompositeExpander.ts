@@ -786,6 +786,28 @@ export function adjustForCreateComponentIdxName({
     composite: any;
 }) {
     if (serializedReplacements.length === 1) {
+        const createdType =
+            composite.attributes._createComponentOfType?.primitive?.value;
+        if (
+            typeof serializedReplacements[0] === "string" &&
+            createdType != undefined &&
+            composite.attributes._createComponentIdx?.primitive.value !=
+                undefined
+        ) {
+            // A string, such as the text of a case of a `<conditionalContent>`
+            // (`<case>no</case>`), is made the type the composite is given
+            // (`<text extend="$cc"/>`) to take the index and name (#2433).
+            serializedReplacements[0] = {
+                type: "serialized",
+                componentType: createdType,
+                componentIdx: undefined,
+                stateId: `${composite.stateId}|_string`,
+                attributes: {},
+                doenetAttributes: {},
+                state: {},
+                children: [serializedReplacements[0]],
+            };
+        }
         if (
             composite.attributes._createComponentIdx?.primitive.value !=
             undefined

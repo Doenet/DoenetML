@@ -8468,8 +8468,14 @@ What is the derivative of <function name="f">x^2</function>?
 
         expect(await value("colorResolved")).eq("false");
         expect(await value("showResolved")).eq("false");
-        expect(await value("colorRaw")).eq("");
-        expect(await value("showRaw")).eq("");
+        // A tag written with `extend` of a property its source does not
+        // have is an error in its place (D36).
+        for (const name of ["colorRaw", "showRaw"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].componentType,
+                name,
+            ).eq("_error");
+        }
     });
 
     it("color correctness set on sugared inputs", async () => {
