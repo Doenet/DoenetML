@@ -217,6 +217,10 @@ pub struct ComponentDef {
     pub machinery: Option<Machinery>,
     /// What owns an `owned` type, for the refusal of a free one.
     pub owner: Option<ComponentType>,
+    /// How a point is constrained to a component of the type
+    /// (`constrain_target { .. }`, ADR 0034): a type without one is no
+    /// constraint target.
+    pub constrain_target: Option<ConstrainTarget>,
     /// The parameters the type's planner introduces that no attribute
     /// gives (`params { .. }`): named given leaves a copy shares.
     pub params: &'static [&'static str],
@@ -304,6 +308,24 @@ pub enum ChildrenKind {
     /// nothing reads them as a value. What a type that declares nothing
     /// has.
     Rendered,
+}
+
+/// How a `<constrainTo>` naming a component of a type constrains its
+/// point (`constrain_target { .. }`, ADR 0034, decision 5): a fact about
+/// the target type, which the point's planner wires without knowing it.
+#[derive(Debug, Clone, Copy)]
+pub enum ConstrainTarget {
+    /// The point's coordinates are the projection by `op` of what it was
+    /// asked, given the target's props `props`, in order
+    /// (`constrain_target { ports: [cx, cy, radius], op: ProjectCircle }`).
+    Project {
+        props: &'static [&'static str],
+        op: crate::program::VecOp,
+    },
+    /// The point rides a graph: its `x` is what was asked, its `y` the
+    /// target's prop `expr` evaluated there (`constrain_target { graph:
+    /// expr }`).
+    Graph { expr: &'static str },
 }
 
 /// Machinery several types share, which plans an element of a type that

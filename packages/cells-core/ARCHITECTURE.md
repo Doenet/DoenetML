@@ -440,6 +440,10 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   compile refuses one standing free. A type that cannot be extended says
   `flags: [not_extendable]`, and the compile refuses the extend; no
   planner sees `extend` (its record is the merge).
+- What a planner would know about another type belongs to that type: a
+  point constrained to a component wires what the target declares
+  (`constrain_target { ports: [cx, cy, radius], op: ProjectCircle }`,
+  ADR 0034), and matches on no `ComponentType`.
 - Declare the attributes the planner reads, each with its kind
   (`attributes { center: Point, radius: Scalar, through: Points(3) }`,
   ADR 0032), and read them typed from the element's record

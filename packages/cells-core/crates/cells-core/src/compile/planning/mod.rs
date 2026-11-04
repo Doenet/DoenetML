@@ -379,4 +379,37 @@ mod tests {
             doc.diagnostics()
         );
     }
+
+    /// A constraint target is a type that declares how a point is
+    /// constrained to it (`constrain_target`, ADR 0034); one that does not
+    /// is refused as a target, and one that does is wired by it.
+    #[test]
+    fn a_type_without_a_constrain_target_is_no_target() {
+        let doc = load(document([el("graph")
+            .child(el("testValue").name("v").attr("value", "1"))
+            .child(
+                el("point")
+                    .name("p")
+                    .text("(3, 4)")
+                    .child(el("constrainTo").child(mac("v"))),
+            )]))
+        .unwrap();
+        assert!(
+            doc.diagnostics()
+                .iter()
+                .any(|d| d.message.contains("constrainTo a <testValue>")),
+            "{:?}",
+            doc.diagnostics()
+        );
+        let doc = load(document([el("graph")
+            .child(el("circle").name("c").attr("radius", "1"))
+            .child(
+                el("point")
+                    .name("p")
+                    .text("(3, 0)")
+                    .child(el("constrainTo").child(mac("c"))),
+            )]))
+        .unwrap();
+        assert_eq!(crate::testing::prop_value(&doc, "p.x"), 1.0);
+    }
 }

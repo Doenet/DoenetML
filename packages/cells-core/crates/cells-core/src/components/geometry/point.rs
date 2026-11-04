@@ -6,7 +6,7 @@ use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::error::{Error, Result};
-use crate::program::{SymKind, VecOp};
+use crate::program::SymKind;
 use crate::tick::snap::Shape;
 
 component! {
@@ -163,9 +163,7 @@ fn constrain(
                     "<constrainTo> without a reference".into(),
                 ));
             };
-            let target = ctx.reference_type(p)?.ok_or_else(|| {
-                Error::Unsupported("<constrainTo> must name a component in the same scope".into())
-            })?;
+            let target = ctx.constrain_target(p)?;
             let mut refs = |wiring: &mut ElemWiring, props: &[&'static str]| -> Result<Vec<Port>> {
                 props
                     .iter()
@@ -173,36 +171,21 @@ fn constrain(
                     .collect()
             };
             match target {
-                ComponentType::Circle => {
-                    let c = refs(wiring, &["cx", "cy", "radius"])?;
-                    Ok(ElemWiring::vector(
-                        [at.x, at.y],
-                        VecOp::ProjectCircle,
-                        vec![raw_x, raw_y, c[0], c[1], c[2]],
-                    ))
+                // Projected by the target's operator from what was asked.
+                ConstrainTarget::Project { props, op } => {
+                    let mut args = vec![raw_x, raw_y];
+                    args.extend(refs(wiring, props)?);
+                    Ok(ElemWiring::vector([at.x, at.y], op, args))
                 }
-                ComponentType::Function | ComponentType::Derivative => {
-                    // The point rides the curve: `x` is what was asked
-                    // and `y` is f(x). (The current core moves to the
-                    // nearest point of the curve instead.)
-                    let f = refs(wiring, &["expr"])?;
+                // Riding the target's graph: `x` is what was asked and `y`
+                // the target's expression there.
+                ConstrainTarget::Graph { expr } => {
+                    let f = refs(wiring, &[expr])?;
                     Ok([
                         Wire::own(raw_x),
                         Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![f[0], raw_x]),
                     ])
                 }
-                ComponentType::Line | ComponentType::LineSegment => {
-                    let l = refs(wiring, &["x1", "y1", "x2", "y2"])?;
-                    Ok(ElemWiring::vector(
-                        [at.x, at.y],
-                        VecOp::ProjectLine,
-                        vec![raw_x, raw_y, l[0], l[1], l[2], l[3]],
-                    ))
-                }
-                other => Err(Error::Unsupported(format!(
-                    "constrainTo a <{}>",
-                    other.tag()
-                ))),
             }
         }
     }

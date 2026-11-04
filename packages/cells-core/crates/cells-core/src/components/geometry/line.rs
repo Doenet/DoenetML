@@ -39,6 +39,8 @@ component! {
         // A whole-line drag requests both points.
         interactive: true,
     }
+    // A point constrained to a line is projected onto it.
+    constrain_target { ports: [x1, y1, x2, y2], op: ProjectLine }
     attributes {
         through: Points,
         slope: Scalar,

@@ -12,3 +12,4 @@ pub(crate) use super::plan::{
 pub(crate) use super::planning::ctx::PlanCtx;
 pub(crate) use super::planning::planner::Planner;
 pub(crate) use super::record::{ChildValue, Member, PointAttr, Record, ValueChildren};
+pub(crate) use crate::components::ConstrainTarget;

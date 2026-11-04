@@ -1,6 +1,6 @@
 # A planner is a function of its record
 
-Status: accepted 2026-11-04. Steps 1 to 4 are done (see Migration). Builds on ADR
+Status: accepted 2026-11-04. Steps 1 to 5 are done (see Migration). Builds on ADR
 0016 (components are defined without knowing the core), ADR 0029 (a
 planner reads no other element's plan) and ADR 0032 (decision 3, a
 planner is a function from typed attributes to a wiring), and finishes
@@ -401,6 +401,14 @@ Each step lands alone, with the golden diff unchanged.
    segment and function; the point's match removed. Test: the point's
    and circle's specs unchanged; a test-only type with no declaration is
    refused as a target.
+
+   *Done.* As landed: `ComponentDef::constrain_target`, a
+   `ConstrainTarget` of `Project { props, op }` (circle: `[cx, cy,
+   radius]` by `ProjectCircle`; line and segment: `[x1, y1, x2, y2]` by
+   `ProjectLine`) or `Graph { expr }` (function, and derivative, which
+   shares its definition: `constrain_target { graph: expr }`).
+   `PlanCtx::constrain_target` reads the referent's declaration; the
+   point wires it in two arms. The golden diff is identical.
 6. **`PlanCtx` shrunk and sealed.** The DAST readers removed from
    `PlanCtx` and `compile/api.rs`; the source-scan test of decision 1.
    Test: the scan finds nothing; the count of `pub(crate)` methods on

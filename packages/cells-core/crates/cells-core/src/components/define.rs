@@ -270,6 +270,7 @@ pub(super) const fn definition(
         children: super::ChildrenDecl::RENDERED,
         machinery: None,
         owner: None,
+        constrain_target: None,
         params: &[],
     }
 }
@@ -308,6 +309,11 @@ impl ComponentDef {
     /// See [`super::ComponentDef::machinery`].
     pub(super) const fn machinery(mut self, machinery: super::Machinery) -> Self {
         self.machinery = Some(machinery);
+        self
+    }
+    /// See [`super::ComponentDef::constrain_target`].
+    pub(super) const fn constrain_target(mut self, target: super::ConstrainTarget) -> Self {
+        self.constrain_target = Some(target);
         self
     }
     /// See [`super::ComponentDef::owner`].
@@ -646,6 +652,10 @@ macro_rules! component {
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
         $(presentation { $($prname:ident),* $(,)? })?
         $(sticky: $sticky:expr,)?
+        $(constrain_target {
+            $(ports: [$($ctport:ident),+ $(,)?], op: $ctop:ident)?
+            $(graph: $ctgraph:ident)? $(,)?
+        })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(params { $($param:ident),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
@@ -674,6 +684,10 @@ macro_rules! component {
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 $(.sticky($sticky))?
+                $(.constrain_target($crate::components::define::component!(@constrain_target
+                    $([$($ctport),+] $ctop)?
+                    $(graph $ctgraph)?
+                )))?
                 .attributes(ATTRS)
                 .children(CHILDREN)
                 $(.params(&[$(stringify!($param)),*]))?
@@ -846,6 +860,25 @@ macro_rules! component {
             }
         }
     };
+    (@constrain_target [$($port:ident),+] $op:ident) => {{
+        $(
+            const _: () = assert!(
+                $crate::components::define::has(PROPS, stringify!($port)),
+                concat!("component!: constrain_target names `", stringify!($port), "`, which is not a prop"),
+            );
+        )+
+        $crate::components::ConstrainTarget::Project {
+            props: &[$(stringify!($port)),+],
+            op: $crate::program::VecOp::$op,
+        }
+    }};
+    (@constrain_target graph $expr:ident) => {{
+        const _: () = assert!(
+            $crate::components::define::has(PROPS, stringify!($expr)),
+            concat!("component!: constrain_target names `", stringify!($expr), "`, which is not a prop"),
+        );
+        $crate::components::ConstrainTarget::Graph { expr: stringify!($expr) }
+    }};
     (@children) => { $crate::components::ChildrenDecl::RENDERED };
     (@children $ckind:ident $([$($gname:ident : [$($gty:ident),*]),*])?) => {
         $crate::components::ChildrenDecl {

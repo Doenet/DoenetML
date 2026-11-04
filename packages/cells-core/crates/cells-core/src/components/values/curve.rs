@@ -29,6 +29,10 @@ component! {
         // with it when `curve` is 1 (`sampled`).
         samples: by_planner { rendered, sampled: curve },
     }
+    // A point constrained to a function rides its graph: `x` is what was
+    // asked and `y` is f(x). (The current core moves to the nearest point
+    // of the curve instead.)
+    constrain_target { graph: expr }
     attributes {
         variables: Text,
     }

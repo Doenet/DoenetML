@@ -1,6 +1,7 @@
 //! [`PlanCtx`]: what every planner in `components/` is given (ADR 0016).
 
 use crate::compile::*;
+use crate::components::ConstrainTarget;
 
 /// What a planner is given (ADR 0016): its element and the source it reads
 /// (the DAST, read-only), its attributes planned the ways every component
@@ -166,6 +167,19 @@ impl<'a> PlanCtx<'_, 'a> {
             Some(_) => self.c.referent_type(self.t, self.e, p),
             None => Ok(None),
         }
+    }
+
+    /// How a point is constrained to what `p` names: its type's
+    /// declaration (`constrain_target`, ADR 0034); an error when it names
+    /// no component in this template or one of a type that is no target.
+    pub(crate) fn constrain_target(&mut self, p: RefId) -> Result<ConstrainTarget> {
+        let target = self.reference_type(p)?.ok_or_else(|| {
+            Error::Unsupported("<constrainTo> must name a component in the same scope".into())
+        })?;
+        target
+            .def()
+            .constrain_target
+            .ok_or_else(|| Error::Unsupported(format!("constrainTo a <{}>", target.tag())))
     }
 
     /// Math text as tokens, `$ref`s as cell leaves, and where its text came

@@ -54,6 +54,8 @@ component! {
         centerX1: centerX,
         centerX2: centerY,
     }
+    // A point constrained to a circle is projected onto it.
+    constrain_target { ports: [cx, cy, radius], op: ProjectCircle }
     attributes {
         center: Point,
         radius: Scalar,
