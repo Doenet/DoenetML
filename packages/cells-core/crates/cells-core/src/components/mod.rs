@@ -826,7 +826,7 @@ pub enum PropFrom {
 /// containers, repeats and choices, with a *gate* per choice branch (a
 /// case's `active`) where the current core would have no component at
 /// all.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Collection {
     /// The scored items under the element, in document order: the answers,
     /// and the sections that aggregate scores, looking through other

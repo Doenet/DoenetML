@@ -200,6 +200,14 @@ pub(in crate::build) struct Builder<'c> {
     /// The binary operators lowered from the author's math (`Builder::lower`),
     /// which orientation may turn round (ADR 0026), in the order lowered.
     pub(in crate::build) author_ops: Vec<SlotId>,
+    /// Whether the element whose ports are being made shares its math
+    /// (ADR 0033): the compile classed the expressions, and no hold makes
+    /// the element's cells its own.
+    pub(in crate::build) share_math: bool,
+    /// Each expression class instantiated, by scope (`instantiate_expr`).
+    pub(in crate::build) instantiated: HashMap<(ExprId, ScopeId), ExprId>,
+    /// Each node of the build's arena lowered, to its slot (`lower_shared`).
+    pub(in crate::build) lowered: HashMap<ExprId, SlotId>,
     /// When the view folds iterations: the label of the last reference
     /// resolved, and those of reference edges (from slot, to slot) that are
     /// not the identity (`build/abstract_build.rs`).
@@ -286,6 +294,9 @@ impl<'c> Builder<'c> {
             document_slots: Vec::new(),
             later_sources: Vec::new(),
             author_ops: Vec::new(),
+            share_math: false,
+            instantiated: HashMap::new(),
+            lowered: HashMap::new(),
             label: Vec::new(),
             labels: HashMap::new(),
             failed_node: None,
@@ -798,7 +809,10 @@ impl<'c> Builder<'c> {
     /// its source. A slot is held as its cell, so a reference to the
     /// element is held with it. A slot that aliases another element's gets
     /// a cell of its own first (`OpSpec::Copy`), so the hold is on this
-    /// element and not on the other.
+    /// element and not on the other, unless the other is held by the same
+    /// flags, whose cell the hold is on already (the compile shares a
+    /// port between two elements held alike, ADR 0033). Elements held by
+    /// the same flags that copy one cell share the copy.
     fn hold_all(&mut self) -> Result<()> {
         let mut flags_of: HashMap<CompIdx, Vec<SlotId>> = HashMap::new();
         for i in 0..self.instances.len() {
@@ -828,8 +842,12 @@ impl<'c> Builder<'c> {
         }
         let own = |b: &Self, comp: CompIdx, t: SlotId| {
             let owner = b.slot_comp[t.index()];
-            owner == comp || owner == CompIdx::NONE
+            owner == comp
+                || owner == CompIdx::NONE
+                || (flags_of.contains_key(&owner) && flags_of.get(&owner) == flags_of.get(&comp))
         };
+        // One copy per copied slot and set of flags.
+        let mut copies: HashMap<(SlotId, Vec<SlotId>), SlotId> = HashMap::new();
         for s in SlotId::below(self.sources.len()) {
             let comp = self.slot_comp[s.index()];
             let Some(flags) = flags_of.get(&comp) else {
@@ -838,7 +856,15 @@ impl<'c> Builder<'c> {
             if let BuiltSource::Alias(t) = self.sources[s.index()]
                 && !own(self, comp, t)
             {
-                self.sources[s.index()] = self.op_source(OpSpec::Copy, &[t]);
+                let key = (t, flags.clone());
+                self.sources[s.index()] = match copies.get(&key) {
+                    // The slot another element held alike copies it to.
+                    Some(&first) => BuiltSource::Alias(first),
+                    None => {
+                        copies.insert(key, s);
+                        self.op_source(OpSpec::Copy, &[t])
+                    }
+                };
             }
             for &f in flags {
                 self.holds.push((s, f));
@@ -1232,6 +1258,13 @@ impl<'c> Builder<'c> {
             .len();
         let slot_off =
             self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].slot_off;
+        self.share_math = !self.compiled.expr_class.is_empty()
+            && matches!(
+                self.compiled.templates[inst.template.index()]
+                    .plan(inst.elem)
+                    .hold,
+                Hold::Off
+            );
         for pi in 0..n_props {
             let s = self.slot(comp, pi);
             // What the cell holds is the port's type (ADR 0032).

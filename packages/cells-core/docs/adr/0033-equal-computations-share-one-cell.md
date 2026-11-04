@@ -1,7 +1,8 @@
 # Equal computations share one cell
 
-Status: accepted 2026-11-04. Steps 1 and 2 are done; step 3, a decision,
-is open (see Migration).
+Status: accepted 2026-11-04. Steps 1 and 2 landed in the build and step 3
+moved them to the compile, which is where the sharing is decided now (see
+Migration).
 
 Two instructions of one build that apply the same operator to the same
 input cells compute the same value in every tick, so a build keeps one
@@ -316,3 +317,69 @@ Each step lands alone, with the golden diff identical.
    sharing as plan facts (the first considered option), and if so, take
    it as a step of ADR 0032 with this pass kept as the build's check that
    nothing equal is left unshared.
+
+   *Done: the sharing moved to the compile.* The build pass cost every
+   build, rebuilds included, up to 16 percent of a load, for a result
+   that is a function of the plans. It is gone, and so is its check: the
+   compile form finds the same merges on every document measured, so a
+   check would have nothing to report, and its cost was the reason to
+   move. As landed:
+   - A compile stage, **share** (`compile/share.rs`), after seal, when
+     every port's type is known, and before the abstract build. It is
+     the build pass's rule over the plans: per template, a union-find
+     over the cells the ports will make, aliases first, then equal
+     derived ports merged to a fixpoint, each but the kept one rewritten
+     as `Flow::Alias`. The abstract build, its records and every build
+     read the sharing as a plan fact.
+   - What a reference names is a node by its plan (two plans that walk
+     the same steps to the same port name the same cell from every
+     element of the template). A plan of one step to an element of the
+     template that names one of its ports is that port, as the build
+     resolves it, so `x="$A.x"` reads `A`'s port. An extend whose
+     referent is in another template (`Referent::Path`, which linking now
+     records, `Planned::paths`) sees the referent's ports through its
+     path, `Ref(path, Port(k))`. This is what makes the compile form
+     general, not only along an extend, which the first considered option
+     feared it would be.
+   - Math merges by text: `Compiled::expr_class` classes every node of
+     the expression arena with its structurally equal nodes (a reference
+     leaf by its plan), and a math port's class is its expression's, with
+     its symbolic text for a symbolic one; a `<math>`'s value also reads
+     its own `expr`. Math is never read through a path: its references
+     resolve from the referent's template.
+   - What the build pass merged within an expression, the compile cannot
+     name as ports: `sir.doenet`'s 600 were `$b S I` written twice in its
+     function, lowered once per entry per iterate. The build lowers each
+     expression class once per scope instead (`instantiate_expr` and
+     `lower_shared`, `build/expand/math.rs`): a math port's own operator
+     is always new, so its marks and hold stay its own, and what it reads
+     is shared. An element a hold makes its own shares no math.
+   - Holds: two ports merge only under one hold (off, always, or the same
+     flags by their references' plans; through a path, off or always). A
+     held element's copy of another's cell stays its own (`hold_all`),
+     but elements held by the same flags alias each other directly, and
+     share one copy of a cell they both copy (`fixed.doenet`'s two points
+     held always that copy one value).
+   - Excluded as before: leaves, scope specializations, aggregates, and
+     `OpSpec::Copy` (a counted value's, ADR 0028); two vector heads merge
+     only when their outputs would.
+   - `LoadOptions::share` turns the compile stage off.
+   - Measured: every golden document and `sir.doenet` has exactly the
+     instructions it had with the build pass (178 on the golden set, 1422
+     on `sir`), the cost snapshots are those of step 1, and the golden
+     diff is identical. Natively, in one release build, share off then on
+     (best of fifteen loads, best of fifty ticks):
+
+     | fixture       | load, ms    | tick, µs   | instructions |
+     | ------------- | ----------- | ---------- | ------------ |
+     | sir           | 6.1 → 5.6   | 0.1 → 0.1  | 2022 → 1422  |
+     | circles3-1000 | 28.2 → 31.1 | 5.4 → 4.7  | 1000 → 1000  |
+     | extends-1000  | 11.6 → 11.3 | 4.3 → 0.2  | 1001 → 1     |
+     | chain-1000    | 5.7 → 6.3   | 11.8 → 10.0 | 1001 → 1001 |
+     | points-1000   | 4.3 → 4.3   | 0.1 → 0.2  | 0 → 0        |
+     | repeat-1000   | 3.7 → 3.9   | 0.1 → 0.1  | 3 → 3        |
+
+     The stage costs about 3 ms of `circles3-1000`'s compile (31,000
+     ports, one template) and nothing in a rebuild; `sir` loads faster
+     than without sharing, since it builds 600 fewer operators.
+     `perf-diff.sh` remains to be run where it can fetch `wasm-opt`.

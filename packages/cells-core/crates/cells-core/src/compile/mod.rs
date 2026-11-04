@@ -17,7 +17,8 @@
 //! | **parse** | `Compiler::parse_maths` → `Parsed` | every `<math>`'s text parsed, its `$ref`s planned |
 //! | **plan** | `Compiler::plan_all` → `Planned` | every element's plans and hold, every `$ref` child's plan |
 //! | **link** | `Compiler::link(&mut Planned)` | readers of boxed referents boxed, elements with an attribute nothing read boxed (`unread.rs`, ADR 0021), shared state tied |
-//! | **seal** | `seal.rs`, given `&Planned` | choice interfaces, arity, keys, slot offsets |
+//! | **seal** | `seal.rs`, given `&Planned` | choice interfaces, arity, keys, slot offsets, port types |
+//! | **share** | `share.rs`, given `Planned::paths` | equal derived ports made aliases, the expression classes (ADR 0033) |
 //! | **abstract build** | `check.rs`, `build/abstract_build.rs` | cycles, writable and live records, structural depth |
 //!
 //! `check.rs` drives them (`plan_and_check`): it runs outline to seal
@@ -88,6 +89,7 @@ pub(crate) mod rebase;
 pub(crate) mod record;
 mod refs;
 mod seal;
+mod share;
 mod source;
 
 pub use check::diagnose;
@@ -265,6 +267,9 @@ pub(in crate::compile) struct Planned {
     /// plan read the type of what a reference names. R: link
     /// (`box_readers_of_boxes`), which boxes one whose referent is a box.
     reads: Vec<Read>,
+    /// The extends whose referent is in another template, as linking tied
+    /// them (`link_given_leaves`). R: share (`compile/share.rs`).
+    paths: Vec<share::PathExtend>,
 }
 
 /// Outlining's state while it runs (`Compiler::outlining`).
@@ -328,6 +333,7 @@ impl Compiler<'_> {
     pub(in crate::compile) fn compile(
         dast: &Arc<Dast>,
         boxed: &HashSet<NodeId>,
+        share: bool,
     ) -> std::result::Result<Attempt, Failure> {
         let mut cp = Compiler {
             dast,
@@ -351,7 +357,7 @@ impl Compiler<'_> {
                 document_constants: Arc::default(),
                 prune: false,
                 fold: false,
-                share: false,
+                expr_class: Vec::new(),
             },
             outlining: None,
             settled: None,
@@ -416,6 +422,12 @@ impl Compiler<'_> {
         compiled.choices = (choices.into_iter().zip(choice_seals))
             .map(|(def, seal)| seal.into_def(def))
             .collect();
+        // Equal computations share one cell (ADR 0033), once every port's
+        // type is known.
+        if share {
+            let shared = crate::trace::span("share").run(|| compiled.share(&planned.paths));
+            crate::trace::count("shared ports", shared);
+        }
         let c = &mut compiled;
         c.shrink_to_fit();
         if c.has_repeats() {

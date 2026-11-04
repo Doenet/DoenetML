@@ -12,8 +12,7 @@
 //! grows), which is how essential values carry over: they are stored per
 //! (scope, template slot).
 //!
-//! **Emit**: union-find over aliases, and over equal computations
-//! (`share.rs`, ADR 0033), makes cells; cells are numbered
+//! **Emit**: union-find over aliases makes cells; cells are numbered
 //! (the constants, the session's pool first, then essential, then
 //! derived); and operators are bound.
 //! [`BuildOutput::schedule`] then orders the
@@ -24,8 +23,7 @@
 //! templates; `resolve.rs` follows reference plans, `math.rs` gives math
 //! its source per instance, `choice.rs` picks and wires branches, and
 //! `aggregate.rs` materializes aggregates (collects, credit, section
-//! numbers). **`emit.rs`** makes cells and instructions, and
-//! **`share.rs`** merges the equal ones. **`view.rs`** is
+//! numbers). **`emit.rs`** makes cells and instructions. **`view.rs`** is
 //! the structure view, the one interface
 //! through which expand and emit learn iteration counts, indexed referents,
 //! a collect's count and a select's options. **`abstract_build.rs`** is the
@@ -63,7 +61,6 @@ mod emit;
 mod expand;
 mod live;
 mod orient;
-mod share;
 pub mod signature;
 mod slot_cells;
 mod structure;
@@ -71,7 +68,6 @@ mod view;
 mod writable;
 
 pub(crate) use abstract_build::abstract_build;
-use emit::UnionFind;
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
 pub use structure::SlotClass;
