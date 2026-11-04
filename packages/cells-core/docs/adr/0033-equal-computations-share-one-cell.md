@@ -1,6 +1,7 @@
 # Equal computations share one cell
 
-Status: accepted 2026-11-04. Step 1 is done (see Migration).
+Status: accepted 2026-11-04. Steps 1 and 2 are done; step 3, a decision,
+is open (see Migration).
 
 Two instructions of one build that apply the same operator to the same
 input cells compute the same value in every tick, so a build keeps one
@@ -291,11 +292,25 @@ Each step lands alone, with the golden diff identical.
      carry the marks the walks already compute) is open, and is part of
      what step 3 weighs. The wasm comparison should be rerun with
      `perf-diff.sh` where it can fetch its tools.
-2. **Symbolic instructions.** `PlannedOp::Template`, whose memo
+2. **Symbolic instructions.** *Done.* `PlannedOp::Template`, whose memo
    (`SymState`) is per instruction: a merged pair keeps one memo. Test:
    a `<math>` extended with an own `simplify`-free attribute shares its
    `Instantiate`, and `tests/constants.rs`'s check that a folded curve is
    still drawn holds for a shared one.
+   As landed: two templates are equal when they have the same `Post`,
+   the same input cells, and the same tree once each leaf is mapped to its
+   cell's root, so two `<math>`s with the same text over the same cells
+   share one `Instantiate` (one instruction, one memo) whether or not one
+   extends the other. The test is in `tests/constants.rs`: two functions
+   with the same expression share their samples, which still fold and are
+   still drawn. It is not an extend because an extend of a `<function>`
+   seeds its expression (`GivenMathFrom`, a leaf this rule never merges),
+   and an extend of a `<math>` does not take its referent's expression in
+   this core today (its `expr` is blank, with or without sharing): a
+   separate bug. The golden set and `sir.doenet` have no two equal
+   templates, so the census and the cost snapshots are unchanged; the
+   golden diff is identical, one document built differently.
+
 3. **Measure, then decide the link-time form.** With the snapshots and
    `perf-diff.sh` in hand, decide whether the compile's analyses need the
    sharing as plan facts (the first considered option), and if so, take

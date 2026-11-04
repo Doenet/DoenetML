@@ -23,9 +23,11 @@
 use super::*;
 
 /// What a defining slot computes, up to what a bucket can hash: the
-/// operator's kind, or the vector head and position of an output.
+/// operator's kind, a symbolic template's post-processing (ADR 0033,
+/// step 2), or the vector head and position of an output.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum What {
+    Template(Post),
     Spec(std::mem::Discriminant<OpSpec>),
     VecOut(SlotId, u8),
 }
@@ -218,8 +220,7 @@ impl<'c> Builder<'c> {
             BuiltSource::Op(op, start, count) => {
                 let what = match op {
                     PlannedOp::Spec(spec) => What::Spec(std::mem::discriminant(&spec)),
-                    // Symbolic templates are not merged yet (ADR 0033, step 2).
-                    PlannedOp::Template { .. } => return None,
+                    PlannedOp::Template { post, .. } => What::Template(post),
                 };
                 let inputs = self.op_inputs[start as usize..start as usize + count as usize]
                     .iter()

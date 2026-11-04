@@ -199,3 +199,35 @@ fn a_document_constant_keeps_its_cell_across_rebuilds() {
         }
     }
 }
+
+/// A curve shared with another (ADR 0033) is still drawn: two functions
+/// with the same expression over the same cells share its instantiated
+/// template (step 2) and so their samples, which fold as one curve's do,
+/// and both functions' samples are outputs.
+#[test]
+fn a_shared_folded_curve_is_still_drawn() {
+    let src = r#"<number name="a">2</number>
+<graph xmin="-1" xmax="1" fixAxes>
+  <function name="f">$a x^2</function>
+  <function name="g" styleNumber="2">$a x^2</function>
+</graph>"#;
+    let (doc, _) = Document::load(dast_json(src).as_bytes(), LoadOptions::default()).unwrap();
+    let (f, g) = (
+        doc.cell("f", "samples").unwrap(),
+        doc.cell("g", "samples").unwrap(),
+    );
+    assert_eq!(f, g, "the two functions share their samples");
+    assert_eq!(doc.value("g", "curve"), Some(1.0));
+    let outputs = doc.output_cells();
+    for k in 0..SAMPLES {
+        let cell = g.offset(k);
+        assert!(
+            outputs.binary_search(&cell).is_ok(),
+            "samples[{k}] is not an output"
+        );
+        assert!(doc.is_const(cell), "samples[{k}] is not folded");
+        let x = -1.0 + 2.0 * k as f64 / (SAMPLES - 1) as f64;
+        let y = doc.cells[cell.index()];
+        assert!((y - 2.0 * x * x).abs() < 1e-9, "samples[{k}] is {y}");
+    }
+}
