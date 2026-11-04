@@ -246,7 +246,7 @@ impl<'a> Compiler<'a> {
             (1, 0) => {
                 let p = self.plan_ref(t, scope, macro_node)?;
                 if let (None, Some(rp)) = (&self.compiled.refs[p.index()].prop, ref_prop) {
-                    self.compiled.refs[p.index()].prop = Some(self.prop_named(t, p, rp));
+                    self.compiled.refs[p.index()].prop = self.prop_named(t, p, rp)?;
                 }
                 Ok(Some(Source::reference(p)))
             }

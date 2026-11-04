@@ -638,7 +638,7 @@ impl Types<'_, '_> {
                         Walk::Elems(cands)
                     }
                 }
-                Step::Index(_) => {
+                Step::Iter(_) | Step::Item(..) => {
                     let Walk::Elems(es) = cur else {
                         return Target {
                             at: Walk::Missing,
@@ -648,25 +648,30 @@ impl Types<'_, '_> {
                     let mut scopes = Vec::new();
                     let mut elems = Vec::new();
                     let mut points = false;
+                    // The step's kind says what the index walks (ADR
+                    // 0032, decision 5); planning made it from the row.
                     for (ct, ce) in es {
                         let row = self.row(ct, ce);
-                        match row.body {
-                            Body::Repeat { template } => scopes.push(template),
-                            Body::Choice(cid) => {
+                        match (step, &row.body) {
+                            (Step::Iter(_), Body::Repeat { template }) => scopes.push(*template),
+                            (Step::Item(Collection::Picks, _), Body::Choice(cid)) => {
                                 scopes.extend(
                                     self.seal.choices[cid.index()].branches.iter().copied(),
                                 );
                             }
-                            Body::Collect { component_type } => {
-                                let (items, varies) = self.collected(ct, ce, component_type);
+                            (
+                                Step::Item(Collection::Gathered, _),
+                                Body::Collect { component_type },
+                            ) => {
+                                let (items, varies) = self.collected(ct, ce, *component_type);
                                 lands &= varies;
                                 elems.extend(items);
                             }
-                            Body::Plain if row.component_type == ComponentType::PointList => {
+                            (Step::Item(Collection::ListPoints, _), _) => {
                                 points = true;
                                 lands = false;
                             }
-                            Body::Plain => {}
+                            _ => {}
                         }
                     }
                     if !scopes.is_empty() {

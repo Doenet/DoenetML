@@ -294,6 +294,7 @@ impl<'c> Builder<'c> {
                 )
             }
             Resolved::Missing => (Resolved::Missing, ScopeId::DOCUMENT),
+            Resolved::Chosen { .. } => unreachable!("a walk steps into each chosen item"),
         }
     }
 }

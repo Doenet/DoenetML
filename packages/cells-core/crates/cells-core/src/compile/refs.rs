@@ -15,13 +15,13 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
         prop: &'static str,
-    ) -> RefId {
-        let of = self.ref_target_type(t, p).ok().flatten();
+    ) -> Result<RefId> {
+        let named = self.prop_named(t, p, prop)?;
         let mut plan = self.compiled.refs[p.index()].clone();
-        plan.prop = Some(RefProp::named(of, prop));
+        plan.prop = named;
         plan.display = RefDisplay::Prop(Box::new(plan.display), prop);
         self.compiled.refs.push(plan);
-        RefId::from_index(self.compiled.refs.len() - 1)
+        Ok(RefId::from_index(self.compiled.refs.len() - 1))
     }
 
     /// Prop `name` (a DAST string) of type `ty`, found once per type and
@@ -42,15 +42,26 @@ impl<'a> Compiler<'a> {
         sel
     }
 
-    /// Prop `name` of what plan `p`, planned from `t`, names: resolved on
-    /// its type when the compile knows it.
+    /// Prop `name` of what plan `p`, planned from `t`, names, resolved on
+    /// the type the path reaches (ADR 0032, decision 5). None where the
+    /// templates reach no type: a box, or what is under one, which the
+    /// build reads as undefined, or a whole pick or iteration holding
+    /// several components, which the build refuses as it does a bare one.
     pub(in crate::compile) fn prop_named(
         &mut self,
         t: TemplateId,
         p: RefId,
         name: &'static str,
-    ) -> RefProp {
-        RefProp::named(self.ref_target_type(t, p).ok().flatten(), name)
+    ) -> Result<Option<RefProp>> {
+        match self.ref_target_type(t, p)? {
+            None | Some(ComponentType::Error) => Ok(None),
+            Some(ty) => RefProp::named(ty, name)
+                .map(Some)
+                .ok_or_else(|| Error::UnknownProp {
+                    name: self.compiled.ref_display(p),
+                    prop: name.into(),
+                }),
+        }
     }
 
     /// The template `hops` levels up from `t`: the one a plan's names are
@@ -79,7 +90,7 @@ impl<'a> Compiler<'a> {
         for step in &plan.steps {
             match step {
                 Step::Elem(e) => last = Some(*e),
-                Step::Index(_) | Step::Iface(..) => return None,
+                Step::Iter(_) | Step::Item(..) | Step::Iface(..) => return None,
             }
         }
         last.map(|e| (self.template_up(t, plan.hops), e))
@@ -96,10 +107,13 @@ impl<'a> Compiler<'a> {
     }
 
     /// The component type a plan names, when it can be told from the
-    /// templates alone: the element its path ends at, as outlining made
-    /// it (`outlined_elem`), through the repeats and collects an index
-    /// steps into. `None` past an interface name (settled after planning)
-    /// or where the path cannot be followed.
+    /// templates alone (ADR 0032, decision 5): the element its path ends
+    /// at, as outlining made it (`outlined_elem`), through the repeats,
+    /// collects, point lists and picks an index steps into and the branch
+    /// an interface name enters (the first branch carrying the name
+    /// stands for every branch; the interface check makes their types
+    /// equal). `None` where the path cannot be followed, or names a whole
+    /// iteration or pick that holds several components.
     pub(in crate::compile) fn ref_target_type(
         &mut self,
         t: TemplateId,
@@ -123,30 +137,79 @@ impl<'a> Compiler<'a> {
         let mut last = None;
         let mut ty = None;
         for i in 0..self.compiled.refs[p.index()].steps.len() {
-            match self.compiled.refs[p.index()].steps[i] {
+            match self.compiled.refs[p.index()].steps[i].clone() {
                 Step::Elem(e) => {
                     cur = Some(e);
                     last = Some((t, e));
                     ty = Some(self.outlined_elem(t, e)?.component_type);
                 }
-                Step::Index(_) => {
+                Step::Iter(_) => {
                     let Some(c) = cur else {
                         return Ok((None, last));
                     };
-                    match self.outlined(t).elems[c.index()].body {
-                        Body::Repeat { template } => {
-                            t = template;
-                            cur = None;
-                            ty = None;
-                        }
-                        Body::Collect { component_type, .. } => ty = Some(component_type),
-                        _ => return Ok((None, last)),
-                    }
+                    let Body::Repeat { template } = self.outlined(t).elems[c.index()].body else {
+                        return Ok((None, last));
+                    };
+                    t = template;
+                    cur = None;
+                    // A bare `$r[k]` names the one component of the
+                    // iteration, when the body holds one.
+                    ty = self.single_child_type(t);
                 }
-                Step::Iface(..) => return Ok((None, last)),
+                Step::Item(Collection::Gathered, _) => {
+                    let Some(c) = cur else {
+                        return Ok((None, last));
+                    };
+                    let Body::Collect { component_type } = self.outlined(t).elems[c.index()].body
+                    else {
+                        return Ok((None, last));
+                    };
+                    ty = Some(component_type);
+                }
+                Step::Item(Collection::ListPoints, _) => ty = Some(ComponentType::Point),
+                Step::Item(Collection::Picks, _) => {
+                    let Some(c) = cur else {
+                        return Ok((None, last));
+                    };
+                    let Body::Choice(cid) = self.outlined(t).elems[c.index()].body else {
+                        return Ok((None, last));
+                    };
+                    // A whole pick may be any option: its type is known
+                    // when every option holds one component of one type.
+                    let branches = self.choice(cid).branches.clone();
+                    let mut types = branches.iter().map(|&b| self.single_child_type(b));
+                    let first = types.next().flatten();
+                    cur = None;
+                    ty = first.filter(|_| types.all(|x| x == first));
+                }
+                Step::Item(_, _) => return Ok((None, last)),
+                Step::Iface(cid, id) => {
+                    let name = self.names().text(id).to_string();
+                    let Ok((_, bt, be)) = self.iface_step(cid, &name, "") else {
+                        return Ok((None, last));
+                    };
+                    t = bt;
+                    cur = Some(be);
+                    ty = Some(self.outlined(bt).elems[be.index()].component_type);
+                }
             }
         }
         Ok((ty, last))
+    }
+
+    /// The type of the one component template `t` holds at its top, when
+    /// it holds exactly one and that is an element (a `$ref` child's type
+    /// is known only when it resolves).
+    fn single_child_type(&self, t: TemplateId) -> Option<ComponentType> {
+        let mut comps = self
+            .outlined(t)
+            .children
+            .iter()
+            .filter(|c| !matches!(c, Child::Text(_)));
+        match (comps.next(), comps.next()) {
+            (Some(Child::Elem(e)), None) => Some(self.outlined(t).elems[e.index()].component_type),
+            _ => None,
+        }
     }
 
     /// Find a name as the current core's resolver does: from the
@@ -301,9 +364,12 @@ impl<'a> Compiler<'a> {
                                 self.choice(cid).num_to_select
                             )));
                         }
-                        steps.push(Step::Index(IndexPlan {
-                            terms: vec![IndexTerm::Const(1)],
-                        }));
+                        steps.push(Step::Item(
+                            Collection::Picks,
+                            IndexPlan {
+                                terms: vec![IndexTerm::Const(1)],
+                            },
+                        ));
                     }
                     let (step, tpl, x) = self.iface_step(cid, name, display)?;
                     steps.push(step);
@@ -489,28 +555,35 @@ impl<'a> Compiler<'a> {
                     prop = Some(RefProp::of(ek, PropSel::At(PropAt::Position(pi))));
                     continue;
                 }
+                // The step's kind is the body's (ADR 0032, decision 5): the
+                // build walks what the kind says and asks no type.
                 match self.outlined(cur_t).elems[e.index()].body {
                     Body::Repeat { template } => {
-                        let ip = self.plan_index(t, expr, display)?;
-                        steps.push(Step::Index(ip));
+                        let ip = self.plan_index(t, scope, expr, display)?;
+                        steps.push(Step::Iter(ip));
                         cur_t = template;
                         at = At::Iteration;
                     }
-                    // A collect's or point list's item: still that component.
+                    // A collect's item: still that component.
                     Body::Collect { .. } => {
-                        let ip = self.plan_index(t, expr, display)?;
-                        steps.push(Step::Index(ip));
+                        let ip = self.plan_index(t, scope, expr, display)?;
+                        steps.push(Step::Item(Collection::Gathered, ip));
                     }
                     Body::Choice(cid) if !self.choice(cid).reactive && !after_iface => {
-                        let ip = self.plan_index(t, expr, display)?;
-                        steps.push(Step::Index(ip));
+                        let ip = self.plan_index(t, scope, expr, display)?;
+                        // Which option a pick is comes from the seed, not a
+                        // cell.
+                        if ip.is_dynamic() {
+                            return Err(Error::DynamicIndex(display.to_string()));
+                        }
+                        steps.push(Step::Item(Collection::Picks, ip));
                         at = At::SelectPick(cid);
                     }
                     _ if self.outlined(cur_t).elems[e.index()].component_type
                         == ComponentType::PointList =>
                     {
-                        let ip = self.plan_index(t, expr, display)?;
-                        steps.push(Step::Index(ip));
+                        let ip = self.plan_index(t, scope, expr, display)?;
+                        steps.push(Step::Item(Collection::ListPoints, ip));
                     }
                     _ => return Err(Error::NotIndexable(display.to_string())),
                 }
@@ -527,9 +600,12 @@ impl<'a> Compiler<'a> {
                     self.choice(cid).num_to_select
                 )));
             }
-            steps.push(Step::Index(IndexPlan {
-                terms: vec![IndexTerm::Const(1)],
-            }));
+            steps.push(Step::Item(
+                Collection::Picks,
+                IndexPlan {
+                    terms: vec![IndexTerm::Const(1)],
+                },
+            ));
         }
         drop(path);
         // A `$mi` in a `<when>` that names an input stands for the answer's
@@ -571,10 +647,14 @@ impl<'a> Compiler<'a> {
         parse_index(chars).ok_or_else(|| Error::BadIndex(display.to_string()))
     }
 
-    /// An index expression: a sum of literal integers and iteration indices.
+    /// An index expression: a sum of literal integers and iteration
+    /// indices, or one reference to a cell (`$r[$n]`, ADR 0032, decision
+    /// 5), which the build reads when the document runs. A cell plus a
+    /// literal is not read as a sum: the reference is the whole index.
     pub(in crate::compile) fn plan_index(
-        &self,
+        &mut self,
         t: TemplateId,
+        scope: ElemId,
         expr: &[NodeId],
         display: impl std::fmt::Display + Copy,
     ) -> Result<IndexPlan> {
@@ -599,29 +679,40 @@ impl<'a> Compiler<'a> {
                 }
                 NodeKind::Macro => {
                     let path = d.macro_path(n);
-                    if path.len() != 1 || d.macro_has_index(n) {
-                        return Err(Error::DynamicIndex(display.to_string()));
-                    }
-                    let (hops, e) = self
-                        .lookup(t, ROOT_SCOPE, path[0])?
-                        .ok_or_else(|| Error::UnknownName(d.strings.get(path[0]).into()))?;
-                    let tt = self.template_up(t, hops);
-                    // An iteration index name (`indexName`): the hidden
-                    // `<number>` outlining makes for it, the only one it
-                    // makes. Read from outlining's row, so a reference
-                    // planned before the repeat (a `<math>`'s, when
-                    // parsing) finds it too.
-                    let el = &self.outlined(tt).elems[e.index()];
-                    let index_name = el.component_type == ComponentType::Number
-                        && el.node == NodeId::NONE
-                        && !el.cloned;
+                    let index_name = path.len() == 1 && !d.macro_has_index(n) && {
+                        let (hops, e) = self
+                            .lookup(t, ROOT_SCOPE, path[0])?
+                            .ok_or_else(|| Error::UnknownName(d.strings.get(path[0]).into()))?;
+                        let tt = self.template_up(t, hops);
+                        // An iteration index name (`indexName`): the hidden
+                        // `<number>` outlining makes for it, the only one
+                        // it makes. Read from outlining's row, so a
+                        // reference planned before the repeat (a
+                        // `<math>`'s, when parsing) finds it too.
+                        let el = &self.outlined(tt).elems[e.index()];
+                        let is_index = el.component_type == ComponentType::Number
+                            && el.node == NodeId::NONE
+                            && !el.cloned;
+                        if is_index {
+                            terms.push(IndexTerm::Iter(hops));
+                        }
+                        is_index
+                    };
                     if !index_name {
-                        return Err(Error::DynamicIndex(display.to_string()));
+                        // A cell: the whole index.
+                        if !terms.is_empty() {
+                            return Err(Error::DynamicIndex(display.to_string()));
+                        }
+                        let p = self.plan_ref(t, scope, n)?;
+                        terms.push(IndexTerm::Cell(p));
                     }
-                    terms.push(IndexTerm::Iter(hops));
                 }
                 _ => {}
             }
+        }
+        // A literal after a cell is as unsupported as one before it.
+        if terms.len() > 1 && terms.iter().any(|t| matches!(t, IndexTerm::Cell(_))) {
+            return Err(Error::DynamicIndex(display.to_string()));
         }
         Ok(IndexPlan { terms })
     }
@@ -739,7 +830,7 @@ impl Compiler<'_> {
             && let Some(dp) = rt.default_prop()
         {
             let r = &mut self.compiled.refs[p.index()];
-            r.prop = Some(RefProp::named(Some(rt), dp));
+            r.prop = RefProp::named(rt, dp);
             let base = std::mem::replace(&mut r.display, RefDisplay::Written);
             r.display = RefDisplay::Prop(Box::new(base), dp);
         }

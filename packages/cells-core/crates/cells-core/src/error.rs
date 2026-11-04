@@ -58,7 +58,7 @@ pub enum Error {
     #[error("dependency cycle involving component '{0}'")]
     Cycle(String),
     #[error(
-        "index in '${0}' is not a constant: only literal integers and iteration index names (plus or minus a literal) are supported"
+        "index in '${0}' is not supported: a repeat, collect or point list takes a literal integer, an iteration index name (plus or minus a literal) or one reference to a cell; anything else takes a literal integer or an iteration index name"
     )]
     DynamicIndex(String),
     #[error("bad index in '${0}'")]

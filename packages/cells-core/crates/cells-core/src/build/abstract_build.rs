@@ -68,7 +68,8 @@ pub(crate) fn abstract_build(
 
 /// The coordinate an index step contributes: a shift of the referencing
 /// element's position at the entered level when the index is that level's
-/// own iteration index plus a literal, else a reset.
+/// own iteration index plus a literal, else a reset (a cell may name any
+/// item).
 pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32) -> Coord {
     let mut shift = 0i64;
     let mut iters = 0;
@@ -82,6 +83,7 @@ pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32
                     same_level = false;
                 }
             }
+            IndexTerm::Cell(_) => same_level = false,
         }
     }
     if iters == 1 && same_level {

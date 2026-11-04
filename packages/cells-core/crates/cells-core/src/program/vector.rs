@@ -181,7 +181,7 @@ impl VecOp {
     /// The input positions its inverse may write, as a mask (the table's
     /// last column; `OpSpec::writes`).
     pub fn writes(&self) -> u64 {
-        let first = |k: usize| (1u64 << k) - 1;
+        let first = |k: usize| if k >= 64 { u64::MAX } else { (1u64 << k) - 1 };
         match *self {
             VecOp::Shape { n, .. } => first(2 * n as usize),
             VecOp::CircleCenterPoint | VecOp::CircleTwoPointsRadius => first(4),

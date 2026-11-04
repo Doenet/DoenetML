@@ -243,22 +243,24 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// Makes a reference that names no prop name `prop` (`$b` reads as
-    /// `$b.value`).
-    pub(crate) fn name_prop_if_none(&mut self, p: RefId, prop: &'static str) {
+    /// `$b.value`); an error when what it names has no such prop.
+    pub(crate) fn name_prop_if_none(&mut self, p: RefId, prop: &'static str) -> Result<()> {
         if self.c.compiled.refs[p.index()].prop.is_none() {
-            let named = self.c.prop_named(self.t, p, prop);
-            self.c.compiled.refs[p.index()].prop = Some(named);
+            let named = self.c.prop_named(self.t, p, prop)?;
+            self.c.compiled.refs[p.index()].prop = named;
         }
+        Ok(())
     }
 
-    /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`).
-    pub(crate) fn with_prop(&mut self, p: RefId, prop: &'static str) -> RefId {
+    /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
+    /// an error when what it names has no such prop.
+    pub(crate) fn with_prop(&mut self, p: RefId, prop: &'static str) -> Result<RefId> {
         self.c.plan_with_prop(self.t, p, prop)
     }
 
     /// A prop of the element a reference names, as an operator's argument.
-    pub(crate) fn reference_prop(&mut self, p: RefId, prop: &'static str) -> Arg {
-        Arg::Ref(self.with_prop(p, prop), Sel::Whole)
+    pub(crate) fn reference_prop(&mut self, p: RefId, prop: &'static str) -> Result<Arg> {
+        Ok(Arg::Ref(self.with_prop(p, prop)?, Sel::Whole))
     }
 
     /// The component type of the element a reference names, when it
@@ -403,7 +405,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// it no longer extends (`<boolean extend="$bi"/>`).
     pub(crate) fn alias_extended(&mut self, prop: &'static str) -> Result<()> {
         let p = self.extend().expect("the element extends another");
-        self.name_prop_if_none(p, prop);
+        self.name_prop_if_none(p, prop)?;
         let plan = &mut self.c.tables[self.t.index()].plans[self.e.index()];
         plan.extend = None;
         plan.props = vec![Source::reference(p)];

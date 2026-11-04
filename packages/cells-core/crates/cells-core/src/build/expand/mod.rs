@@ -4,7 +4,7 @@
 //! operator over slots).
 
 use super::*;
-use crate::components::{PropAt, PropSel};
+use crate::components::{Collection, PropAt, PropSel};
 
 mod aggregate;
 mod choice;
@@ -65,13 +65,22 @@ pub(in crate::build) enum BuiltSource {
 }
 
 /// Where a reference path has arrived after walking its steps.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub(in crate::build) enum Resolved {
     Comp(CompIdx),
     /// An iteration of a repeat, named by `$r[k]`.
     Iter(CompIdx, ScopeId),
     /// An index with no referent (`$r[32]` with ten iterations).
     Missing,
+    /// `$r[$n]` (ADR 0032, decision 5): any of `items`, the one the cell
+    /// `index` names when the document runs. A value read through it is
+    /// a choose over the items' values (`Builder::targets_of`); it names
+    /// no one component. `label` is the edge to the index cell's.
+    Chosen {
+        index: SlotId,
+        label: Vec<Coord>,
+        items: Vec<Resolved>,
+    },
 }
 
 /// One expanded choice.
@@ -856,6 +865,7 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
     ) -> Result<()> {
         let (target, prop) = self.resolve(plan, scope)?;
+        let through_iteration = matches!(target, Resolved::Iter(..));
         match (target, prop) {
             (Resolved::Missing, _) => {
                 self.components.component_type[idx.index()] = ComponentType::Number;
@@ -863,8 +873,8 @@ impl<'c> Builder<'c> {
                 let s = self.slot(idx, prop::number::VALUE);
                 self.sources[s.index()] = BuiltSource::Alias(self.missing_slot());
             }
-            (_, Some(prop)) => {
-                let targets = self.targets_of(target, Some(prop), plan, Some(1))?;
+            (target, Some(prop)) => {
+                let targets = self.targets_of(target, Some(prop), plan, Some(1), scope)?;
                 // A string id shows as a text.
                 let is_text = self.value_type(targets[0]) == ValueType::Text;
                 let (component_type, value) = if is_text {
@@ -897,7 +907,7 @@ impl<'c> Builder<'c> {
                 // `$mi` is a math, not a second input. Through an
                 // iteration (`$r[1]`) it is the input, as the current
                 // core has it (REF-1a).
-                if let (Resolved::Comp(_), Some(as_type)) = (target, component_type.reads_as()) {
+                if let (false, Some(as_type)) = (through_iteration, component_type.reads_as()) {
                     self.value_copy_into(idx, referent, as_type);
                     return Ok(());
                 }

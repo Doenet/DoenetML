@@ -303,6 +303,11 @@ impl<'c> Builder<'c> {
                 }
             }
             Resolved::Missing => {}
+            Resolved::Chosen { .. } => {
+                return Err(Error::Unsupported(
+                    "<collect from> cannot be indexed by a cell".into(),
+                ));
+            }
         }
         let mut copies = Vec::with_capacity(found.len());
         for &c in &found {

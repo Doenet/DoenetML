@@ -840,6 +840,12 @@ pub enum Collection {
     /// under what it gathers from (`ElemPlan::from`), in document order,
     /// not entering a match: a collect's, or a polyline's points.
     Gathered,
+    /// The points a point list holds: its children, one per item of the
+    /// list it extends.
+    ListPoints,
+    /// The picks of a load-time select, each an option's template stamped
+    /// once; a reference's `Item` into them (`$s[k]`).
+    Picks,
 }
 
 /// An operator over a collection's ports.

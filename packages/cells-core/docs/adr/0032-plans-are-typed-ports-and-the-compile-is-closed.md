@@ -1,6 +1,6 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Steps 1 to 5 of the Migration are done;
+Status: proposed 2026-11-03. Steps 1 to 6 of the Migration are done;
 see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
@@ -607,6 +607,32 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
    indices as choose. Test: every reference in the golden set resolves
    to the same cell as before; a document with `$r[$n].x` loads and a
    request on it writes iteration `n`.
+
+   Done, in this form. A step is `Elem` (a child), `Iter` (into a
+   repeat's iteration), `Item(collection, index)` (a gathered item, a
+   point list's point, or a select's pick, `Collection::Picks`) or
+   `Iface` (a branch), its kind decided when the path is planned from the
+   outlined row; `Up(n)` stays the plan's `hops`. The build's walk
+   dispatches on the step and asks no component's type. The port is a
+   `RefProp { of, sel }` resolved when planned; `RefProp::Named` is
+   gone, and a prop a planner names on a path is resolved on the type
+   the path reaches (`ref_target_type` now follows an interface name
+   into the first branch carrying it, a bare `$r[k]` to the one
+   component of the iteration, and `$s[k]` to the one type every option
+   holds), refused at compile when the type lacks it. What stays: a
+   path that names no port takes the referent's default prop in the
+   build, by the type the build reaches (the same type), and the type
+   pass alone still finds a prop by name on a branch of another type,
+   which the interface check refuses. A dynamic index is one reference
+   as the whole index (`IndexTerm::Cell`), on a repeat, a collect or a
+   point list: the walk keeps every item (`Resolved::Chosen`) and a value
+   read through it is a `VecOp::Choose` over the items' slots by the
+   cell, chunked past one choose's inputs, with the walk's label on
+   each item edge and a reset at the entered level, so the abstract
+   build sees a read of any iteration; its inverse writes the item the
+   cell names. `$l.points[$k]` (a port of one element, not a
+   collection) and a cell plus a literal are left refused. The golden
+   diff changes by no document.
 7. **Recorded reads.** One recorder for cross-element reads; boxing as
    a fixpoint; `restart` and the abstract build's element-naming
    failure become reads. Test: `tests/diagnostics.rs` unchanged, and the

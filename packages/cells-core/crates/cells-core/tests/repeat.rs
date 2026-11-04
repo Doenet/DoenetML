@@ -152,8 +152,9 @@ fn a_forward_lag_is_a_cycle_and_a_dynamic_index_is_rejected() {
     );
     let err = load(r#"<repeatForSequence name="r" length="2" indexName="i"><number name="x">-$r[$i+1].y</number><number name="y">-$r[$i-1].x</number></repeatForSequence>"#).unwrap_err();
     assert!(matches!(err, cells_core::Error::Cycle(_)), "{err}");
+    // A cell indexes a repeat (below), not a point's coordinates.
     let (code, m) = load_error(
-        r#"<numberInput name="k" value="1"/><repeatForSequence name="r" length="3"><point name="p"/></repeatForSequence><number>$r[$k].p.x</number>"#,
+        r#"<numberInput name="k" value="1"/><point name="p" x="3" y="4"/><number>$p[$k]</number>"#,
     );
     assert_eq!(code, "cells-dynamic-index", "{m}");
 }
@@ -395,4 +396,61 @@ fn an_index_name_indexes_inside_a_math() {
     );
     assert_eq!(doc.value("r[2].n", "value"), Some(20.0));
     assert_eq!(doc.value("r[2].m", "value"), Some(21.0));
+}
+
+/// A cell may index a repeat (ADR 0032, decision 5): `$r[$k].p.x` is the
+/// `x` of whichever iteration `k` names, NaN past the count, and a request
+/// on it writes that iteration's point.
+#[test]
+fn a_cell_indexes_a_repeat_and_a_request_through_it_writes_that_iteration() {
+    let mut doc = load(
+        r#"<numberInput name="k" value="1"/><repeatForSequence name="r" length="3"><point name="p" x="0" y="0"/></repeatForSequence><number name="x">$r[$k].p.x</number><point name="q" x="$r[$k].p.x" y="0"/>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.value("x", "value"), Some(0.0));
+    let k = doc.cell("k", "value").unwrap();
+    doc.request(&[req(k, 3.0)]);
+    // A request through the reference (from the point, whose x a renderer
+    // may drag) writes iteration 3's point.
+    let qx = doc.cell("q", "x").unwrap();
+    let tick = doc.request(&[req(qx, 7.5)]);
+    assert!(tick.dropped.is_empty(), "{:?}", tick.dropped);
+    assert_eq!(val(&doc, &["r", "3", "p"], "x"), 7.5);
+    assert_eq!(val(&doc, &["r", "1", "p"], "x"), 0.0);
+    assert_eq!(doc.value("x", "value"), Some(7.5));
+    // Which iteration is read follows the index.
+    doc.request(&[req(k, 1.0)]);
+    assert_eq!(doc.value("x", "value"), Some(0.0));
+    // Past the count there is no value.
+    doc.request(&[req(k, 4.0)]);
+    assert!(doc.value("x", "value").unwrap().is_nan());
+    doc.request(&[req(k, 3.0)]);
+    assert_eq!(doc.value("x", "value"), Some(7.5));
+    assert_eq!(reference::check(&doc), None);
+}
+
+/// More items than one choose reads are read in chunks: a cell indexing a
+/// long repeat reads every iteration, and the inverse still writes the
+/// one it names.
+#[test]
+fn a_cell_indexes_a_repeat_longer_than_one_choose_reads() {
+    let mut doc = load(
+        r#"<numberInput name="k" value="1"/><repeatForSequence name="r" length="130" valueName="v"><point name="p" x="$v" y="0"/></repeatForSequence><number name="x">$r[$k].p.y</number><point name="q" x="$r[$k].p.x" y="$r[$k].p.y"/>"#,
+    )
+    .unwrap();
+    let k = doc.cell("k", "value").unwrap();
+    for i in [1.0, 63.0, 64.0, 127.0, 130.0] {
+        doc.request(&[req(k, i)]);
+        assert_eq!(doc.value("q", "x"), Some(i), "iteration {i}");
+    }
+    doc.request(&[req(k, 131.0)]);
+    assert!(doc.value("q", "x").unwrap().is_nan());
+    doc.request(&[req(k, 100.0)]);
+    let qy = doc.cell("q", "y").unwrap();
+    let tick = doc.request(&[req(qy, -2.0)]);
+    assert!(tick.dropped.is_empty(), "{:?}", tick.dropped);
+    assert_eq!(val(&doc, &["r", "100", "p"], "y"), -2.0);
+    assert_eq!(val(&doc, &["r", "99", "p"], "y"), 0.0);
+    assert_eq!(doc.value("x", "value"), Some(-2.0));
+    assert_eq!(reference::check(&doc), None);
 }

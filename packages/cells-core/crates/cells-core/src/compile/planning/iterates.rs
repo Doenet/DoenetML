@@ -66,7 +66,7 @@ impl<'a> Compiler<'a> {
                     hops: 1,
                     steps: vec![
                         Step::Elem(e),
-                        Step::Index(IndexPlan {
+                        Step::Iter(IndexPlan {
                             terms: vec![IndexTerm::Iter(0), IndexTerm::Const(-1)],
                         }),
                         Step::Elem(ElemId::new(0)),
@@ -208,8 +208,8 @@ impl<'a> Compiler<'a> {
             }
             let props = match el.component_type {
                 ComponentType::SequenceValue => {
-                    let from = self.own_prop_plan(e, "from");
-                    let step = self.own_prop_plan(e, "step");
+                    let from = self.own_prop_plan(t, e, "from");
+                    let step = self.own_prop_plan(t, e, "step");
                     use prop::sequence_value as sv;
                     let ports = sv::Props::PORTS;
                     let table = |port| Wire::from_table(ComponentType::SequenceValue, port);
@@ -280,7 +280,7 @@ impl<'a> Compiler<'a> {
             });
         if has_item {
             let mut steps = base.steps.clone();
-            steps.push(Step::Index(IndexPlan {
+            steps.push(Step::Iter(IndexPlan {
                 terms: vec![IndexTerm::Iter(0), IndexTerm::Const(offset)],
             }));
             steps.push(Step::Elem(ElemId::new(0)));

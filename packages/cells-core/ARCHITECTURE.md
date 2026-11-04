@@ -92,8 +92,10 @@ Runs once per load and depends on the source alone.
 - **Plan** walks the DAST and produces a `Template` for the document, each
   repeat body and each choice branch. Every prop in a template has a
   `Source` (a literal, a default, an operator over references, a math
-  expression, ...) and every reference a `RefPlan`, its path. Nothing in a
-  plan names an
+  expression, ...) and every reference a `RefPlan`, its path: steps of a
+  kind planning decided, ending at a port resolved on the type the path
+  reaches, so the build walks arrays and compares no name (ADR 0032).
+  Nothing in a plan names an
   iteration, so string work happens once per template element, not once per
   stamped copy. Each element is planned by its component type's planner
   (see [Add a component type](#add-a-component-type)). The compile runs

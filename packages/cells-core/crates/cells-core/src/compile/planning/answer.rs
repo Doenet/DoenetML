@@ -579,7 +579,8 @@ impl<'a> Compiler<'a> {
         let mut live = self.compiled.refs[p.index()].clone();
         let math = input_type == ComponentType::MathInput;
         let name = if math { "expr" } else { "value" };
-        live.prop = Some(RefProp::named(Some(input_type), name));
+        live.prop = RefProp::named(input_type, name);
+        debug_assert!(live.prop.is_some(), "an input has its value prop");
         self.compiled.refs.push(live);
         let live = Source::reference(RefId::from_index(self.compiled.refs.len() - 1));
         let submitted_port = response::Props::PORTS.submitted;

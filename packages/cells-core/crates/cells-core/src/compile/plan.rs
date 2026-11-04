@@ -3,7 +3,7 @@
 //! and every reference. Nothing here names an iteration; see `build/mod.rs`.
 
 use super::*;
-use crate::components::{Aggregate, ArgFrom, PropFrom};
+use crate::components::{Aggregate, ArgFrom, Collection, PropFrom};
 
 crate::index::index_type! {
     /// An element's stable key (ADR 0017), as an index into the compile's
@@ -878,13 +878,20 @@ impl Template {
     }
 }
 
-/// One step of a resolved reference path.
+/// One step of a reference path (ADR 0032, decision 5). Planning decides
+/// each step's kind from the outlined table, so the build asks nothing of
+/// a component's type: it evaluates indices and walks arrays.
 #[derive(Debug, Clone)]
 pub(crate) enum Step {
     /// An element of the current template.
     Elem(ElemId),
-    /// `[k]` on the repeat or collect just selected.
-    Index(IndexPlan),
+    /// `[k]` on the repeat just selected: enters its template, at the
+    /// iteration the index names.
+    Iter(IndexPlan),
+    /// `[k]` on a collection of the element just selected: a gathered
+    /// item (a collect's, a polyline's), a point of a point list, or a
+    /// pick of a select, which enters the option's template.
+    Item(Collection, IndexPlan),
     /// An interface name of a choice, by its name-table id: `$cc.x`, or
     /// `$s[1].x` after an index into a select's picks. Its position among
     /// the names references use is sealing's (`ChoiceDef::used_at`), so a
@@ -898,11 +905,23 @@ pub(crate) enum IndexTerm {
     /// The position of the iteration `hops` template levels up from the
     /// referencing element.
     Iter(u32),
+    /// The value of the cell the plan names, read when built (`$r[$n]`):
+    /// a dynamic index, which the build makes a choose over the items of
+    /// the collection (ADR 0032, decision 5).
+    Cell(RefId),
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct IndexPlan {
     pub(crate) terms: Vec<IndexTerm>,
+}
+
+impl IndexPlan {
+    /// Whether the index reads a cell, so which item it names is known
+    /// only when the document runs.
+    pub(crate) fn is_dynamic(&self) -> bool {
+        self.terms.iter().any(|t| matches!(t, IndexTerm::Cell(_)))
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -911,7 +930,8 @@ pub(crate) struct RefPlan {
     /// name was found.
     pub(crate) hops: u32,
     pub(crate) steps: Vec<Step>,
-    /// The prop named by the final part, if any.
+    /// The port the final part names, if any, resolved on the type the
+    /// path reaches (ADR 0032, decision 5).
     pub(crate) prop: Option<RefProp>,
     /// How the plan is shown in an error (`Compiled::display_of`).
     pub(crate) display: RefDisplay,
@@ -920,62 +940,52 @@ pub(crate) struct RefPlan {
     pub(crate) node: NodeId,
 }
 
-/// The prop a reference plan names, found from its name once: on the type
-/// the compile saw at the referent, or, when it did not know that type, a
-/// name the build looks up (a prop a planner names).
+/// The port a reference plan names, found from its name once, when the
+/// path is planned, on the type the path reaches (ADR 0032, decision 5):
+/// `sel` of `of`. The build reads slots by it and compares no name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum RefProp {
-    /// `sel` of `of`. A build reaching a component of another type looks
-    /// the prop up by its name on that type.
-    Resolved {
-        of: ComponentType,
-        sel: crate::components::PropSel,
-    },
-    /// A prop named by the compile for a referent of a type it did not know.
-    Named(&'static str),
+pub(crate) struct RefProp {
+    pub(crate) of: ComponentType,
+    pub(crate) sel: crate::components::PropSel,
 }
 
 impl RefProp {
     /// `sel` of `of`.
     pub(crate) fn of(of: ComponentType, sel: crate::components::PropSel) -> RefProp {
-        RefProp::Resolved { of, sel }
+        RefProp { of, sel }
     }
 
-    /// Prop `name` of a referent of type `of`, when the compile knows it.
-    pub(crate) fn named(of: Option<ComponentType>, name: &'static str) -> RefProp {
-        match of.and_then(|ty| ty.resolve_prop(name).map(|sel| (ty, sel))) {
-            Some((of, sel)) => RefProp::Resolved { of, sel },
-            None => RefProp::Named(name),
-        }
+    /// Prop `name` of a referent of type `of`; None when the type has no
+    /// such prop.
+    pub(crate) fn named(of: ComponentType, name: &str) -> Option<RefProp> {
+        of.resolve_prop(name).map(|sel| RefProp { of, sel })
     }
 
-    /// The prop's name: for an error, or a component of another type.
+    /// The prop's name, for an error.
     pub(crate) fn name(&self) -> std::borrow::Cow<'static, str> {
-        match *self {
-            RefProp::Resolved { of, sel } => of.sel_name(sel),
-            RefProp::Named(name) => name.into(),
-        }
+        self.of.sel_name(self.sel)
     }
 
-    /// The selector on a component of type `ty`: the resolved one when
-    /// `ty` is the type it was resolved on, else found by name.
+    /// The selector on a component of type `ty`: the resolved one, since
+    /// a path reaches the type it was planned to. The type pass alone
+    /// may reach another, through a branch the interface check will
+    /// refuse, and then finds the prop by name.
     pub(crate) fn sel_on(&self, ty: ComponentType) -> Option<crate::components::PropSel> {
-        match *self {
-            RefProp::Resolved { of, sel } if of == ty => Some(sel),
-            _ => ty.resolve_prop(&self.name()),
+        if self.of == ty {
+            Some(self.sel)
+        } else {
+            ty.resolve_prop(&self.name())
         }
     }
 
     /// Whether this is the table prop `name` (`value`, `expr`): for the
     /// compile's few checks of what a reference reads.
     pub(crate) fn is(&self, name: &str) -> bool {
-        match *self {
-            RefProp::Resolved {
-                of,
-                sel: crate::components::PropSel::At(crate::components::PropAt::Position(i)),
-            } => of.prop_defs()[i].name == name,
-            RefProp::Resolved { .. } => false,
-            RefProp::Named(n) => n == name,
+        match self.sel {
+            crate::components::PropSel::At(crate::components::PropAt::Position(i)) => {
+                self.of.prop_defs()[i].name == name
+            }
+            _ => false,
         }
     }
 }

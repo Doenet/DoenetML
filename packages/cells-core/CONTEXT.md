@@ -356,8 +356,18 @@ or a scope constant; a *dataflow expression* over ports, which is an
 alias, an operator, a lowered math, a symbolic template or an aggregate;
 or a *scope specialization* choosing between two by the scope the
 template is stamped in) and each reference's *reference plan* (`RefPlan`:
-a path through names and indices). Expansion turns plans into slots per
-scope.
+a path of steps, each of a kind planning decided from the outlined table,
+up through templates, to a child element, into a repeat's iteration, into
+a collection's item (a collect's, a point list's, a select's picks) or
+through a choice's interface name, ending at a port resolved on the type
+the path reaches). Expansion turns plans into slots per scope by walking
+arrays; it compares no name.
+
+**Dynamic index** — An index that reads a cell (`$r[$n].p.x`, ADR 0032):
+the step keeps every item of the collection, and a value read through it
+is a *choose* over the items' values by the cell, NaN past them, whose
+inverse writes the item the cell names. A select's pick comes from the
+seed, so its index is never a cell.
 
 **Collection** — A set of components around an element, described at
 compile time and materialized by the build (ADR 0032): the scored items

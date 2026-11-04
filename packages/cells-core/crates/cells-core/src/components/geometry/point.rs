@@ -197,15 +197,15 @@ fn constrain(
             let target = ctx.reference_type(p)?.ok_or_else(|| {
                 Error::Unsupported("<constrainTo> must name a component in the same scope".into())
             })?;
-            let mut refs = |wiring: &mut ElemWiring, props: &[&'static str]| -> Vec<Port> {
+            let mut refs = |wiring: &mut ElemWiring, props: &[&'static str]| -> Result<Vec<Port>> {
                 props
                     .iter()
-                    .map(|pr| wiring.hidden(Source::reference(ctx.with_prop(p, pr))))
+                    .map(|pr| Ok(wiring.hidden(Source::reference(ctx.with_prop(p, pr)?))))
                     .collect()
             };
             match target {
                 ComponentType::Circle => {
-                    let c = refs(wiring, &["cx", "cy", "radius"]);
+                    let c = refs(wiring, &["cx", "cy", "radius"])?;
                     Ok(ElemWiring::vector(
                         [at.x, at.y],
                         VecOp::ProjectCircle,
@@ -216,14 +216,14 @@ fn constrain(
                     // The point rides the curve: `x` is what was asked
                     // and `y` is f(x). (The current core moves to the
                     // nearest point of the curve instead.)
-                    let f = refs(wiring, &["expr"]);
+                    let f = refs(wiring, &["expr"])?;
                     Ok([
                         Wire::own(raw_x),
                         Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![f[0], raw_x]),
                     ])
                 }
                 ComponentType::Line | ComponentType::LineSegment => {
-                    let l = refs(wiring, &["x1", "y1", "x2", "y2"]);
+                    let l = refs(wiring, &["x1", "y1", "x2", "y2"])?;
                     Ok(ElemWiring::vector(
                         [at.x, at.y],
                         VecOp::ProjectLine,

@@ -30,22 +30,7 @@ impl<'a> Compiler<'a> {
     /// repeat or a select, an interface name into a branch.
     fn levels_entered(&self, path: RefId) -> u32 {
         let plan = &self.compiled.refs[path.index()];
-        let mut t: Option<TemplateId> = None;
-        let mut cur: Option<ElemId> = None;
-        let mut down = 0;
-        // The path's template, `hops` up from where it was planned, is not
-        // needed to count levels: only the steps are.
-        for step in &plan.steps {
-            match step {
-                Step::Elem(e) => cur = Some(*e),
-                Step::Index(_) | Step::Iface(..) => {
-                    down += 1;
-                    cur = None;
-                }
-            }
-        }
-        let _ = (t.take(), cur);
-        down
+        plan.steps.iter().filter(|s| enters_template(s)).count() as u32
     }
 
     /// Plan `inner`, planned from the referent's template `down` levels
@@ -66,7 +51,7 @@ impl<'a> Compiler<'a> {
             let mut prefix = Vec::new();
             for step in &path_plan.steps {
                 prefix.push(step.clone());
-                if matches!(step, Step::Index(_) | Step::Iface(..)) {
+                if enters_template(step) {
                     entered += 1;
                     if entered == want {
                         break;
@@ -81,7 +66,7 @@ impl<'a> Compiler<'a> {
         let index_at_level = |level: u32| -> Option<IndexPlan> {
             let mut entered = 0;
             for step in &path_plan.steps {
-                if let Step::Index(ip) = step {
+                if let Step::Iter(ip) | Step::Item(Collection::Picks, ip) = step {
                     entered += 1;
                     if entered == level {
                         return Some(ip.clone());
@@ -94,7 +79,7 @@ impl<'a> Compiler<'a> {
         };
         for step in &inner_plan.steps {
             steps.push(match step {
-                Step::Index(ip) => {
+                Step::Iter(ip) | Step::Item(_, ip) => {
                     let mut terms = Vec::new();
                     for term in &ip.terms {
                         match term {
@@ -110,9 +95,18 @@ impl<'a> Compiler<'a> {
                             IndexTerm::Iter(k) => {
                                 terms.push(IndexTerm::Iter(path_plan.hops + *k - down))
                             }
+                            // The cell is read from where the referent sits.
+                            IndexTerm::Cell(p) => {
+                                terms.push(IndexTerm::Cell(self.rebase_ref(path, down, *p)))
+                            }
                         }
                     }
-                    Step::Index(IndexPlan { terms })
+                    let ip = IndexPlan { terms };
+                    match step {
+                        Step::Iter(_) => Step::Iter(ip),
+                        Step::Item(c, _) => Step::Item(*c, ip),
+                        _ => unreachable!(),
+                    }
                 }
                 other => other.clone(),
             });
@@ -182,4 +176,14 @@ impl<'a> Compiler<'a> {
         }
         new
     }
+}
+
+/// Whether a step enters another template: an index into a repeat or a
+/// select's picks, an interface name into a branch. A gathered item or a
+/// list's point stays in the template.
+fn enters_template(step: &Step) -> bool {
+    matches!(
+        step,
+        Step::Iter(_) | Step::Item(Collection::Picks, _) | Step::Iface(..)
+    )
 }

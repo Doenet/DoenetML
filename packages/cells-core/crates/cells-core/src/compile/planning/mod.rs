@@ -203,13 +203,20 @@ impl Compiler<'_> {
         self.tables[t.index()].plans[e.index()].props = props;
     }
 
-    /// A plan naming prop `prop` of element `e` in the parent template, as
-    /// seen from the repeat's own template (one hop up).
-    pub(in crate::compile) fn own_prop_plan(&mut self, e: ElemId, prop: &'static str) -> RefId {
+    /// A plan naming prop `prop` of repeat `e` of template `t`, as seen
+    /// from the repeat's own template (one hop up).
+    pub(in crate::compile) fn own_prop_plan(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        prop: &'static str,
+    ) -> RefId {
+        let ty = self.outlined(t).elems[e.index()].component_type;
+        let prop_sel = RefProp::named(ty, prop).expect("a repeat has the prop its body reads");
         self.compiled.refs.push(RefPlan {
             hops: 1,
             steps: vec![Step::Elem(e)],
-            prop: Some(RefProp::Named(prop)),
+            prop: Some(prop_sel),
             display: RefDisplay::Spelled(format!("(repeat).{prop}").into()),
             node: NodeId::NONE,
         });

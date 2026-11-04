@@ -224,7 +224,12 @@ fn direction(
             Some(ComponentType::Line | ComponentType::LineSegment)
         )
     {
-        let [x1, y1, x2, y2] = ["x1", "y1", "x2", "y2"].map(|prop| ctx.reference_prop(r, prop));
+        let [x1, y1, x2, y2] = [
+            ctx.reference_prop(r, "x1")?,
+            ctx.reference_prop(r, "y1")?,
+            ctx.reference_prop(r, "x2")?,
+            ctx.reference_prop(r, "y2")?,
+        ];
         let ux = wiring.hidden(Source::op(OpSpec::Sub, vec![x2, x1]));
         let uy = wiring.hidden(Source::op(OpSpec::Sub, vec![y2, y1]));
         return Ok([ux, uy]);
