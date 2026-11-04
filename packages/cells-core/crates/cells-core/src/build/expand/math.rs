@@ -243,6 +243,17 @@ impl<'c> Builder<'c> {
         id: ExprId,
         scope: ScopeId,
     ) -> Result<ExprId> {
+        // Equal math is one class (ADR 0033, `Compiled::expr_class`): a
+        // class is instantiated once per scope, for an element no hold
+        // makes its own (`share_math`).
+        let class = self
+            .share_math
+            .then(|| (self.compiled.expr_class[id.index()], scope));
+        if let Some(key) = class
+            && let Some(&done) = self.instantiated.get(&key)
+        {
+            return Ok(done);
+        }
         let e = self.compiled.arena.get(id).clone();
         let out = match e {
             Expr::Num(v) => Expr::Num(v),
@@ -267,13 +278,21 @@ impl<'c> Builder<'c> {
                     .collect::<Result<_>>()?,
             ),
         };
-        Ok(self.arena.push(out))
+        let done = self.arena.push(out);
+        if let Some(key) = class {
+            self.instantiated.insert(key, done);
+        }
+        Ok(done)
     }
 
     /// Lower a numeric expression to operator slots. A literal is read from
     /// the build's shared constants (`const_slot`), so a bare literal gives
     /// a slot no prop may alias. A binary operator's inverse writes its
     /// first input, so a literal goes second where the operator allows it.
+    /// The expression's own operator is new, a cell for the port that
+    /// lowers it, whose marks and hold are its own; what it reads is
+    /// lowered once per node (`lower_shared`), so a subexpression an
+    /// instantiation shares is computed once (ADR 0033).
     pub(in crate::build) fn lower(&mut self, id: ExprId, scope: ScopeId) -> SlotId {
         let num = |a: &Arena<SlotId>, e: ExprId| match a.get(e) {
             Expr::Num(v) => Some(*v),
@@ -285,7 +304,7 @@ impl<'c> Builder<'c> {
             Expr::Cell(slot) => slot,
             Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {
-                let a = self.lower(a, scope);
+                let a = self.lower_shared(a, scope);
                 self.math_op(OpSpec::Negate, &[a], scope)
             }
             // Commutative: a literal on the left goes second.
@@ -298,31 +317,31 @@ impl<'c> Builder<'c> {
                     Some(_) if num(&self.arena, b).is_none() => (b, a),
                     _ => (a, b),
                 };
-                let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                let (a, b) = (self.lower_shared(a, scope), self.lower_shared(b, scope));
                 self.math_op(spec, &[a, b], scope)
             }
             // `k - b` as `-b + k`, so a request reaches `b`.
             Expr::Sub(a, b) if num(&self.arena, a).is_some() && num(&self.arena, b).is_none() => {
-                let (k, b) = (self.lower(a, scope), self.lower(b, scope));
+                let (k, b) = (self.lower_shared(a, scope), self.lower_shared(b, scope));
                 let nb = self.math_op(OpSpec::Negate, &[b], scope);
                 self.math_op(OpSpec::Add, &[nb, k], scope)
             }
             Expr::Sub(a, b) => {
-                let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                let (a, b) = (self.lower_shared(a, scope), self.lower_shared(b, scope));
                 self.math_op(OpSpec::Sub, &[a, b], scope)
             }
             Expr::Div(a, b) => {
-                let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                let (a, b) = (self.lower_shared(a, scope), self.lower_shared(b, scope));
                 self.math_op(OpSpec::Div, &[a, b], scope)
             }
             Expr::Pow(a, b) => {
-                let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                let (a, b) = (self.lower_shared(a, scope), self.lower_shared(b, scope));
                 self.math_op(OpSpec::Pow, &[a, b], scope)
             }
             Expr::Call(f, args) => {
                 let mut xs = args
                     .iter()
-                    .map(|&a| self.lower(a, scope))
+                    .map(|&a| self.lower_shared(a, scope))
                     .collect::<Vec<_>>();
                 match f {
                     Func::Round => self.math_op(OpSpec::Round, &xs, scope),
@@ -342,6 +361,17 @@ impl<'c> Builder<'c> {
                 }
             }
         }
+    }
+
+    /// `lower`, once per node of the build's arena: a node an instantiation
+    /// shares (`instantiate_expr`) gives one slot.
+    fn lower_shared(&mut self, id: ExprId, scope: ScopeId) -> SlotId {
+        if let Some(&s) = self.lowered.get(&id) {
+            return s;
+        }
+        let s = self.lower(id, scope);
+        self.lowered.insert(id, s);
+        s
     }
 
     /// `op_slot` for an operator lowered from the author's math: a binary

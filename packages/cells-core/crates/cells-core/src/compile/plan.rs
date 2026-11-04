@@ -881,7 +881,7 @@ impl Template {
 /// One step of a reference path (ADR 0032, decision 5). Planning decides
 /// each step's kind from the outlined table, so the build asks nothing of
 /// a component's type: it evaluates indices and walks arrays.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum Step {
     /// An element of the current template.
     Elem(ElemId),
@@ -899,7 +899,7 @@ pub(crate) enum Step {
     Iface(ChoiceId, u32),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum IndexTerm {
     Const(i64),
     /// The position of the iteration `hops` template levels up from the
@@ -911,7 +911,7 @@ pub(crate) enum IndexTerm {
     Cell(RefId),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct IndexPlan {
     pub(crate) terms: Vec<IndexTerm>,
 }
@@ -943,7 +943,7 @@ pub(crate) struct RefPlan {
 /// The port a reference plan names, found from its name once, when the
 /// path is planned, on the type the path reaches (ADR 0032, decision 5):
 /// `sel` of `of`. The build reads slots by it and compares no name.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct RefProp {
     pub(crate) of: ComponentType,
     pub(crate) sel: crate::components::PropSel,
@@ -1541,9 +1541,11 @@ pub struct Compiled {
     /// Whether a build folds instructions over constants (ADR 0028,
     /// `LoadOptions::fold`); never in the abstract build.
     pub(crate) fold: bool,
-    /// Whether a build merges equal computations into one cell (ADR 0033,
-    /// `LoadOptions::share`); the abstract build as every other.
-    pub(crate) share: bool,
+    /// Each node of `arena` by its class of structurally equal nodes, its
+    /// first (ADR 0033, `compile/share.rs`): a build lowers each class once
+    /// per scope. Empty when the load does not share
+    /// (`LoadOptions::share`).
+    pub(crate) expr_class: Vec<ExprId>,
 }
 
 /// What the abstract build records of a document (ADR 0018, ADR 0019): per

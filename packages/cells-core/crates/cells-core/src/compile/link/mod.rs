@@ -75,6 +75,14 @@ impl Compiler<'_> {
             if self.is_box(s.t, s.e) || self.is_box(rt, re) {
                 continue;
             }
+            if let Referent::Path(path, ..) = s.referent {
+                planned.paths.push(crate::compile::share::PathExtend {
+                    t: s.t,
+                    path,
+                    rt,
+                    re,
+                });
+            }
             if let Some(&port) = planned
                 .given
                 .get(&(rt.get(), re.get()))

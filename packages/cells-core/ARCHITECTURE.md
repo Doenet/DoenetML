@@ -115,7 +115,22 @@ Runs once per load and depends on the source alone.
   every port's type (`seal/types.rs`, ADR 0032), a fixpoint over every
   template from the ports' sources and the references between them,
   which every build reads for what a cell holds and whether a math is
-  symbolic; the **abstract build** (below) comes last. What more than one stage uses
+  symbolic; **share** (`share.rs`, ADR 0033) makes equal computations one
+  cell by an alias in the plans: per template, a union-find over the
+  cells the ports will make (a reference by its plan, one that names a
+  port of the template as that port, an extend's referent in another
+  template through its path), then two derived ports that apply the same
+  operator to the same cells, are the same output of equal vector heads,
+  or are the same math text, merged to a fixpoint when their cells would
+  carry the same request marks, port types and hold; the referent's port,
+  else the lowest, is kept. So an extend that overrides nothing an
+  instruction reads shares the referent's instruction whatever its
+  planner did, and so do two unrelated elements computing the same thing;
+  every build and the abstract build's records see it as a plan fact, and
+  no build pays to find it. It also classes the math expressions
+  (`Compiled::expr_class`), so a build lowers a subexpression two of a
+  scope's maths share once (`Builder::lower`); the **abstract build**
+  (below) comes last. What more than one stage uses
   has a module of its own (`names.rs`, `refs.rs`, `maths.rs`,
   `source.rs`, `boxes.rs`). A planner reads the
   source and what outlining and parsing made, never another element's plan
@@ -151,15 +166,7 @@ draw for every select.
   *scope* (the document, and each iteration of each repeat) and resolves
   references to slots.
 - **Emit** (`build/emit.rs`) merges aliased slots into cells with a
-  union-find, and then equal computations with them (`build/share.rs`,
-  ADR 0033): two defining slots that apply the same operator to the same
-  input cells, or are the same output of two equal vector heads, become
-  one cell, to a fixpoint, when the cells would carry the same request
-  marks, hold flags, value types and orientation; the lowest slot keeps
-  the instruction. So an extend that overrides nothing an instruction
-  reads shares the referent's instruction, whatever its planner did, and
-  so do two unrelated elements computing the same thing. It then numbers
-  the cells (the constants, with the session's pool of
+  union-find, numbers the cells (the constants, with the session's pool of
   document constants first, ADR 0028; then essential; then derived) and
   binds operators to them as instructions. A given value (an
   attribute's or a default) is essential only when a student's action can write it (ADR
@@ -611,7 +618,7 @@ the core does not compute it, and the viewer's test, which checks every
   still drawn, and that a document constant keeps its pooled cell through
   rebuilds; `tests/live.rs` checks that folding, like pruning, changes no
   live value (`LoadOptions::fold` off against on), and so does sharing
-  (`LoadOptions::share`, ADR 0033).
+  (`LoadOptions::share`, the compile's share stage off, ADR 0033).
 - A test of a component requests only what a renderer would, through an
   input where none does. A test of the core's machinery (an inversion
   through a `<number>`, a forced count) uses `testing::request_unchecked`,
