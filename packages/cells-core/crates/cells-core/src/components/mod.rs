@@ -1219,6 +1219,60 @@ mod tests {
         );
     }
 
+    /// A planner reads its record, never the source (ADR 0034, decision
+    /// 1): no file under `components/` reaches the DAST, a node, an
+    /// `extend` referent or the `extend` itself.
+    #[test]
+    fn components_read_no_source() {
+        // Spelled in halves, so this file does not find itself.
+        let needles = [
+            concat!(".da", "st()"),
+            concat!(".no", "de()"),
+            concat!(".ba", "se()"),
+            concat!(".ext", "end()"),
+        ];
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/components");
+        let mut files = Vec::new();
+        sources(&dir, &mut files);
+        let found: Vec<String> = files
+            .iter()
+            .flat_map(|p| {
+                let text = std::fs::read_to_string(p).unwrap();
+                text.lines()
+                    .enumerate()
+                    .filter(|(_, l)| {
+                        needles.iter().any(|n| l.contains(n)) && !l.trim_start().starts_with("//")
+                    })
+                    .map(|(i, l)| format!("{}:{}: {}", p.display(), i + 1, l.trim()))
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+        assert!(
+            found.is_empty(),
+            "read the element's record (`Attrs::of(ctx.record())`) instead of the source:\n{}",
+            found.join("\n")
+        );
+    }
+
+    /// What `PlanCtx` offers a planner (ADR 0034, decision 1): its record,
+    /// the planning of what the record holds, and `warn`. The count of its
+    /// methods is recorded here, so that it grows deliberately: a planner's
+    /// need is met by the record first.
+    #[test]
+    fn plan_ctx_grows_deliberately() {
+        const PLAN_CTX_METHODS: usize = 19;
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/planning/ctx.rs");
+        let text = std::fs::read_to_string(path).unwrap();
+        let n = text
+            .lines()
+            .filter(|l| l.starts_with(concat!("    pub(crate) ", "fn ")))
+            .count();
+        assert_eq!(
+            n, PLAN_CTX_METHODS,
+            "`PlanCtx` has {n} methods for planners; update the count only with a reason"
+        );
+    }
+
     /// Types a spec is still to be written for (ADR 0016, Migration step
     /// 8): the list only shrinks. A type with a spec must leave it, and a
     /// new type comes with its spec.

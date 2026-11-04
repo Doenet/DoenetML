@@ -419,9 +419,13 @@ planner of its own as the block's last section:
 Such a type lives in its own file, block and planner together (for
 example `values/text.rs`, registered as `values::text::DEFINITION`).
 `geometry/circle.rs` and `geometry/line.rs` are the models. A planner is a
-function given a `PlanCtx`: it reads the source, plans the attributes and
-children it asks for, and sets its props from a `Props<Wire>` struct
-literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
+function of its element's record (ADR 0034): given a `PlanCtx`, it reads
+the attributes and children the compile parsed (`Attrs::of(ctx.record())`),
+picks which ports are leaves and through which operators the rest derive,
+and returns its wiring from a `Props<Wire>` struct literal
+(`ElemWiring::set_public`, ADR 0016). It reaches no DAST, node or `extend`:
+a test keeps those out of `components/`, and another counts `PlanCtx`'s
+methods. Rules for planners:
 
 - Use only what `compile/api.rs` exports. Logic two planners both need
   belongs in `compile/` behind `api.rs`, once. Behavior a family shares

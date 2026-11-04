@@ -3,29 +3,27 @@
 use crate::compile::*;
 use crate::components::ConstrainTarget;
 
-/// What a planner is given (ADR 0016): its element and the source it reads
-/// (the DAST, read-only), its attributes planned the ways every component
-/// shares, the machinery several components build on, and the writes that
-/// make the element's wiring. An attribute by name is the element's own or,
-/// when the element omits it and is a `Plan` type extending another, its
-/// `extend` referent's. What comes from the referent, an attribute or its
-/// children, is planned where the referent sits, so a `$n` in it keeps the
-/// meaning it has there (ADR 0023); what the element writes itself is
-/// planned where the element sits. One context serves every kind of
-/// planner; the kind decides what is done around the call. For a `Plan`
-/// type, `plan_with_extend` makes it and does the rest: a bare copy and
-/// sharing state with the referent. No planner applies `fixed`:
-/// `plan_elem` holds every element after its planner (`compile/planning/fix.rs`).
+/// What a planner is given (ADR 0016, ADR 0034): the element's record, the
+/// attributes and children the compile parsed before planning (the
+/// element's own merged over its `extend` referent's), the planning of
+/// what the record holds (math text, a reference), the port makers'
+/// facts, and `warn`; never the DAST, a node, or `extend`. What comes from
+/// the referent is planned where the referent sits, so a `$n` in it keeps
+/// the meaning it has there (ADR 0023); what the element writes itself is
+/// planned where the element sits. `plan_with_extend` makes it and does
+/// the rest: a bare copy and sharing state with the referent. No planner
+/// applies `fixed`: `plan_elem` holds every element after its planner
+/// (`compile/planning/fix.rs`). A test (`components/mod.rs`) counts its
+/// methods, so that it grows deliberately.
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
     t: TemplateId,
     e: ElemId,
-    /// The element's attribute record (ADR 0032): its own, merged under
-    /// its `extend` referent's for a `Plan` type with overrides.
+    /// The element's record (ADR 0032, ADR 0034): its own, merged under
+    /// its `extend` referent's for a copy with overrides.
     record: record::Record,
-    /// The `extend` referent of a `Plan` type planned with overrides, in
-    /// this template, which supplies the children the element omits until
-    /// children are declared (ADR 0032, decision 3).
+    /// The `extend` referent of a copy with overrides, in this template,
+    /// whose math text in the record is planned where it sits.
     referent: Option<Base>,
 }
 
@@ -98,17 +96,18 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
-    /// The element's attribute record (ADR 0032): every attribute its
-    /// type declares, parsed, the element's own or its referent's. A
-    /// planner reads it as its type's `Attrs` (`Attrs::of(ctx.record())`).
+    /// The element's record (ADR 0032, ADR 0034): every attribute its
+    /// type declares and its children as the type reads them, parsed, the
+    /// element's own or its referent's. A planner reads it as its type's
+    /// `Attrs` (`Attrs::of(ctx.record())`).
     pub(crate) fn record(&self) -> &record::Record {
         &self.record
     }
 
-    // The element and its source.
+    // The element.
 
-    /// The element's node.
-    pub(crate) fn node(&self) -> NodeId {
+    /// The element's node, for a diagnostic: no planner reads it.
+    fn node(&self) -> NodeId {
         self.elem().node
     }
 
@@ -127,8 +126,8 @@ impl<'a> PlanCtx<'_, 'a> {
 
     // Planning.
 
-    /// Nodes as a scalar: a literal, a reference or math (a test
-    /// component's children; a real type's children are declared later).
+    /// Math text in the record as a scalar: a literal, a reference or
+    /// math (a test component's children).
     #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) fn scalar_of(&mut self, nodes: &[NodeId]) -> Result<Source> {
         let scope = self.scope_for(nodes);

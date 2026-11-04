@@ -1,6 +1,6 @@
 # A planner is a function of its record
 
-Status: accepted 2026-11-04. Steps 1 to 5 are done (see Migration). Builds on ADR
+Status: accepted 2026-11-04. Every migration step is done (see Migration). Builds on ADR
 0016 (components are defined without knowing the core), ADR 0029 (a
 planner reads no other element's plan) and ADR 0032 (decision 3, a
 planner is a function from typed attributes to a wiring), and finishes
@@ -413,3 +413,13 @@ Each step lands alone, with the golden diff unchanged.
    `PlanCtx` and `compile/api.rs`; the source-scan test of decision 1.
    Test: the scan finds nothing; the count of `pub(crate)` methods on
    `PlanCtx` is recorded in the test so that growth is deliberate.
+
+   *Done.* As landed: the DAST readers left `PlanCtx` with the steps
+   that stopped using them; this step made `node` private (a
+   diagnostic's) and added the two tests beside
+   `components_compute_no_slot_positions`: `components_read_no_source`
+   and `plan_ctx_grows_deliberately` (19 methods). `compile/api.rs`
+   exports no DAST type. One match on a referent's type is left: a
+   line's direction from another line or segment (`geometry/line.rs`,
+   `direction`), the next candidate for decision 5's move. The golden
+   diff is identical.
