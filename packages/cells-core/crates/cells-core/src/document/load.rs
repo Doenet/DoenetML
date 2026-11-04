@@ -41,6 +41,12 @@ pub struct LoadOptions {
     /// `testing` feature: to check that folding changes no value.
     #[cfg(feature = "testing")]
     pub fold: bool,
+    /// Merge two instructions that apply the same operator to the same
+    /// cells into one, whose cell both props name (ADR 0033): on by
+    /// default. Off, every instruction a plan makes is kept. Only with the
+    /// `testing` feature: to check that sharing changes no value.
+    #[cfg(feature = "testing")]
+    pub share: bool,
 }
 
 impl LoadOptions {
@@ -57,6 +63,14 @@ impl LoadOptions {
     fn folds(&self) -> bool {
         #[cfg(feature = "testing")]
         return self.fold;
+        #[cfg(not(feature = "testing"))]
+        return true;
+    }
+
+    /// Whether builds merge equal computations: always, outside tests.
+    fn shares(&self) -> bool {
+        #[cfg(feature = "testing")]
+        return self.share;
         #[cfg(not(feature = "testing"))]
         return true;
     }
@@ -85,6 +99,8 @@ impl Default for LoadOptions {
             prune: true,
             #[cfg(feature = "testing")]
             fold: true,
+            #[cfg(feature = "testing")]
+            share: true,
         }
     }
 }
@@ -219,6 +235,7 @@ impl Document {
                 options.classifies(),
                 options.prune,
                 options.folds(),
+                options.shares(),
             )?
         };
         // After the first pass no student has changed a value yet, so a

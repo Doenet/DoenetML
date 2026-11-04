@@ -34,6 +34,7 @@ pub(crate) fn compile(
     classify: bool,
     prune: bool,
     fold: bool,
+    share: bool,
 ) -> Result<CompileOutput> {
     let mut list = {
         let _s = crate::trace::span("lint");
@@ -42,6 +43,7 @@ pub(crate) fn compile(
     let (mut compiled, ()) = plan_and_check(dast, &mut list, |compiled| {
         compiled.prune = prune;
         compiled.fold = fold;
+        compiled.share = share;
         let _s = crate::trace::span("abstract build");
         let findings = build::abstract_build(compiled, check_cycles)?.abstract_findings();
         compiled.structural_depth = findings.structural_depth;

@@ -268,6 +268,26 @@ pub fn circles3(n: usize) -> String {
     s
 }
 
+/// One circle through three points, the first driven by a numberInput,
+/// and N extends of it, each giving a `styleNumber` its geometry does not
+/// read (ADR 0033): every extend is planned again from its own record
+/// (ADR 0032) and shares the referent's derived cells only by emit's
+/// merge of equal computations.
+pub fn extends(n: usize) -> String {
+    let mut s = String::from(
+        "<numberInput name=\"n\" value=\"0\"/>\n<graph name=\"g\">\n  <point name=\"a\" x=\"$n\" y=\"0\"/><point name=\"b\" x=\"4\" y=\"0\"/><point name=\"c\" x=\"0\" y=\"3\"/>\n  <circle name=\"k\" through=\"$a $b $c\"/>\n",
+    );
+    for i in 0..n {
+        let _ = writeln!(
+            s,
+            "  <circle name=\"k{i}\" extend=\"$k\" styleNumber=\"{}\"/>",
+            1 + i % 5
+        );
+    }
+    s.push_str("</graph>\n");
+    s
+}
+
 /// `n` free polygons of 4 to 6 vertices on a grid, in one sticky
 /// group (or, with `sticky` false, the same polygons with no group, as the
 /// baseline). Every fourth polygon is rigid. Polygon `p0` is the one dragged.
@@ -542,6 +562,7 @@ pub fn from_spec(spec: &str) -> Option<String> {
         "intchain" => intchain(n?),
         "hidden" => hidden(n?),
         "circles3" => circles3(n?),
+        "extends" => extends(n?),
         "sticky" => sticky(n?, true),
         "stickyfree" => sticky(n?, false),
         "answers" => answers(n?),
@@ -590,6 +611,8 @@ pub const DEFAULT_SWEEP: &[&str] = &[
     "intchain-1000",
     "hidden-1000",
     "circles3-1000",
+    "extends-100",
+    "extends-1000",
     "sticky-100",
     "sticky-1000",
     "stickyfree-100",

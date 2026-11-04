@@ -1,6 +1,6 @@
 # Equal computations share one cell
 
-Status: proposed 2026-11-04. No migration step is done.
+Status: accepted 2026-11-04. Step 1 is done (see Migration).
 
 Two instructions of one build that apply the same operator to the same
 input cells compute the same value in every tick, so a build keeps one
@@ -215,7 +215,7 @@ in every real build, including every rebuild.
 
 Each step lands alone, with the golden diff identical.
 
-1. **Scalar and vector operators.** The pass in `Builder::finish`, over
+1. **Scalar and vector operators.** *Done.* The pass in `Builder::finish`, over
    `BuiltSource::Op(PlannedOp::Spec(..), ..)` and `VecOut`, with the
    live, hold and mark exclusions and the fixpoint; `LoadOptions::share`.
    Tests: a unit test in `build/emit.rs` over the DAST builder
@@ -232,6 +232,65 @@ Each step lands alone, with the golden diff identical.
    `packages/benchmark/scripts/perf-diff.sh`, with a fixture of extends
    each giving one attribute added beside the existing ones, since none
    of them exercises the case.
+
+   As landed (`build/share.rs`):
+   - The pass runs where this ADR places it, after the alias union-find
+     and before `SlotCells`, so it runs before the live walk, not after
+     it, and excludes no slot for being dead. Liveness is per cell (the
+     walk marks cells, and the record marks a cell live when any of its
+     template slots is), so this is the exclusion's effect without a
+     second pass: a dead slot merged into a live cell costs no
+     instruction, and two dead slots merged stay on the dead cell.
+   - Three more things a merged cell carries are compared, beside the
+     holds and the request marks, so a merge changes nothing about a cell
+     but how many instructions compute it: the value types its slots were
+     given, and whether it is an operator of the author's math, which
+     orientation may turn (ADR 0026). And two vector heads merge only when
+     their outputs would, position by position, since a merged head's
+     outputs share cells; a head with an output that may not merge does
+     not.
+   - A slot with another source in later iterations (the abstract build's
+     `later_sources`) never merges, as a counted value never does: in the
+     abstract build it stands for instructions that are not equal in
+     every iteration.
+   - `build/coverage.rs` and `tests/every_count.rs` are unchanged: a merge
+     joins two cells that read the same cells, so it adds no dependency
+     and makes no cycle (a path through the merged cell was a path through
+     one of the two), and the coverage check compares the graphs before
+     emit, where the labels are.
+   - `LoadOptions::share` is a `testing` option, as `fold` is.
+   - Measured: the golden diff is identical (36 documents, six built
+     differently). The live census falls from 189 to 178 instructions on
+     the golden set (`choices.doenet`'s repeated conditions, `circles.doenet`'s
+     copies, `fixed.doenet`'s two points held always that copy one value)
+     and from 2025 to 1425 on `sir.doenet`. One cost snapshot changes:
+     two circles through the same through points share their chain
+     (16 cells and 2 instructions to 13 and 1). The fixture `extends-N`
+     (`cells-docgen`) is a circle through three points and N extends of it
+     each giving a `styleNumber`: at N = 100, 316 cells and 101
+     instructions unshared, 16 and 1 shared.
+   - Speed: `perf-diff.sh` could not run where this step landed (its
+     `wasm-pack` fetches `wasm-opt`, which that network refused), so the
+     pass was timed natively instead, in one release build with
+     `LoadOptions::share` off and on (best of seven loads, best of fifty
+     ticks on the first interactive cell):
+
+     | fixture       | load, ms    | tick, µs  | instructions |
+     | ------------- | ----------- | --------- | ------------ |
+     | sir           | 7.6 → 8.8   | 0.1 → 0.1 | 2022 → 1422  |
+     | circles3-1000 | 32.0 → 36.5 | 5.2 → 4.8 | 1000 → 1000  |
+     | extends-1000  | 13.4 → 13.8 | 4.9 → 0.2 | 1001 → 1     |
+     | chain-1000    | 5.3 → 5.6   | 10.9 → 11.0 | 1001 → 1001 |
+     | points-1000   | 4.5 → 5.1   | 0.2 → 0.2 | 0 → 0        |
+
+     The pass costs 3 to 16 percent of a load where nothing merges, more
+     than "one hash per live defining slot per round" suggested: it
+     gathers what each class carries over every slot, and hashes every
+     defining operator in a last round that merges nothing. Making it
+     cheaper (skip it when no two operators share a kind and first input;
+     carry the marks the walks already compute) is open, and is part of
+     what step 3 weighs. The wasm comparison should be rerun with
+     `perf-diff.sh` where it can fetch its tools.
 2. **Symbolic instructions.** `PlannedOp::Template`, whose memo
    (`SymState`) is per instruction: a merged pair keeps one memo. Test:
    a `<math>` extended with an own `simplify`-free attribute shares its

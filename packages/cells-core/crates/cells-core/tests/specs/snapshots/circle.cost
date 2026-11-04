@@ -16,7 +16,7 @@ a point on a fixed number: half its drag is refused: cells 20 · essential 10 ·
 a copy that overrides the radius shares the center: cells 13 · essential 6 · constant 7 · instrs 0 · components 4
 a through point by name, in the current core's spellings, and past the end: cells 15 · essential 8 · constant 4 · instrs 1 · components 8
 a bare copy holds its referent's through points: cells 13 · essential 8 · constant 2 · instrs 1 · components 4
-through another circle's through points: cells 16 · essential 8 · constant 2 · instrs 2 · components 4
+through another circle's through points: cells 13 · essential 8 · constant 2 · instrs 1 · components 4
 an interface circle as long as its longest branch: cells 39 · essential 15 · constant 6 · instrs 14 · components 10
 center, radius and a through point: over-determined: cells 9 · essential 6 · constant 3 · instrs 0 · components 3
 four through points: over-determined: cells 13 · essential 10 · constant 3 · instrs 0 · components 3

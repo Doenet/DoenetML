@@ -1540,6 +1540,9 @@ pub struct Compiled {
     /// Whether a build folds instructions over constants (ADR 0028,
     /// `LoadOptions::fold`); never in the abstract build.
     pub(crate) fold: bool,
+    /// Whether a build merges equal computations into one cell (ADR 0033,
+    /// `LoadOptions::share`); the abstract build as every other.
+    pub(crate) share: bool,
 }
 
 /// What the abstract build records of a document (ADR 0018, ADR 0019): per

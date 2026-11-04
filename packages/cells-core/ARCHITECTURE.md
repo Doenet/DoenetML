@@ -28,7 +28,8 @@ variables. This one is organized around data:
   to essential cells.
 - **Components and props are only names.** A prop maps to one cell or a list
   of cells; two props that are equal by construction (a reference, a copy)
-  share one cell. Components are not nodes in the graph.
+  share one cell, and so do two that apply the same operator to the same
+  cells (ADR 0033). Components are not nodes in the graph.
 - **Only what leaves the core is computed.** An *output* is a prop a
   renderer reads or a score a grader reads. A cell no output reads, and
   the core does not read itself, is *dead*, and a build gives it no cell
@@ -150,7 +151,15 @@ draw for every select.
   *scope* (the document, and each iteration of each repeat) and resolves
   references to slots.
 - **Emit** (`build/emit.rs`) merges aliased slots into cells with a
-  union-find, numbers the cells (the constants, with the session's pool of
+  union-find, and then equal computations with them (`build/share.rs`,
+  ADR 0033): two defining slots that apply the same operator to the same
+  input cells, or are the same output of two equal vector heads, become
+  one cell, to a fixpoint, when the cells would carry the same request
+  marks, hold flags, value types and orientation; the lowest slot keeps
+  the instruction. So an extend that overrides nothing an instruction
+  reads shares the referent's instruction, whatever its planner did, and
+  so do two unrelated elements computing the same thing. It then numbers
+  the cells (the constants, with the session's pool of
   document constants first, ADR 0028; then essential; then derived) and
   binds operators to them as instructions. A given value (an
   attribute's or a default) is essential only when a student's action can write it (ADR
@@ -579,7 +588,8 @@ the core does not compute it, and the viewer's test, which checks every
   checks that a full recompute changes no constant, that a folded curve is
   still drawn, and that a document constant keeps its pooled cell through
   rebuilds; `tests/live.rs` checks that folding, like pruning, changes no
-  live value (`LoadOptions::fold` off against on).
+  live value (`LoadOptions::fold` off against on), and so does sharing
+  (`LoadOptions::share`, ADR 0033).
 - A test of a component requests only what a renderer would, through an
   input where none does. A test of the core's machinery (an inversion
   through a `<number>`, a forced count) uses `testing::request_unchecked`,

@@ -188,8 +188,11 @@ fn census() {
     // renderer's center handle requests it. A collect's count from a
     // repeat is a counted value, a copy (ADR 0028): one in
     // `repeats.doenet`, dead. An instruction whose inputs are all
-    // constants is folded into a constant (ADR 0028): 90 of the 279.
-    assert!(golden[0] <= 141 && golden[1] == 189, "{golden:?}");
+    // constants is folded into a constant (ADR 0028): 90 of the 279. Two
+    // instructions that apply one operator to the same cells are one
+    // (ADR 0033): `choices.doenet`'s, `circles.doenet`'s and
+    // `fixed.doenet`'s copies share 11 of the 189.
+    assert!(golden[0] <= 134 && golden[1] == 178, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record
@@ -423,6 +426,60 @@ fn folding_keeps_every_live_value() {
             }
         }
     }
+}
+
+/// Sharing changes no value either (ADR 0033): a load that merges equal
+/// computations and one that keeps every instruction, both pruned, given
+/// the same requests and actions at four seeds and every repeat at 0 to 4
+/// iterations, hold the same value in every live cell.
+#[test]
+fn sharing_keeps_every_live_value() {
+    let load = |src: &str, seed: u64, share: bool| {
+        let options = LoadOptions {
+            seed,
+            share,
+            ..Default::default()
+        };
+        Document::load(dast_json(src).as_bytes(), options)
+            .unwrap()
+            .0
+    };
+    let mut merged = 0;
+    for (name, src) in documents() {
+        for seed in [0, 1, 2, 3] {
+            let mut unshared = load(&src, seed, false);
+            let mut shared = load(&src, seed, true);
+            merged += unshared.program.instrs.len() - shared.program.instrs.len();
+            if let Err(e) = live_cells_agree(&unshared, &shared) {
+                panic!("{name}, seed {seed}, after the load: {e}");
+            }
+            act_on_both(&mut unshared, &mut shared, &format!("{name}, seed {seed}"));
+            for k in 0..=4 {
+                let requests = |doc: &Document| -> Vec<Request> {
+                    count_cells(doc)
+                        .into_iter()
+                        .map(|cell| Request {
+                            cell,
+                            value: k as f64,
+                        })
+                        .collect()
+                };
+                let (ru, rs) = (requests(&unshared), requests(&shared));
+                if rs.is_empty() {
+                    break;
+                }
+                request_unchecked(&mut unshared, &ru);
+                request_unchecked(&mut shared, &rs);
+                let at = format!("{name}, seed {seed}, count {k}");
+                if let Err(e) = live_cells_agree(&unshared, &shared) {
+                    panic!("{at}: {e}");
+                }
+                act_on_both(&mut unshared, &mut shared, &at);
+            }
+        }
+    }
+    // Not vacuous: the golden set's copies share instructions.
+    assert!(merged > 0, "no load merged an instruction");
 }
 
 /// A reactive choice's interface component is synthesized, so the record

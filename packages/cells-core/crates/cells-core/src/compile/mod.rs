@@ -351,6 +351,7 @@ impl Compiler<'_> {
                 document_constants: Arc::default(),
                 prune: false,
                 fold: false,
+                share: false,
             },
             outlining: None,
             settled: None,

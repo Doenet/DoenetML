@@ -41,6 +41,13 @@ schedule order.
 reference such as `x="$p1.x"`, or a component copy `$p1`) share one cell.
 Aliasing is structural, decided at load time, never by comparing values.
 
+**Shared computation** — Two instructions that apply the same operator to
+the same input cells, which emit keeps as one, whose cell both props name
+(ADR 0033): what an extend that overrides nothing an instruction reads has
+of its referent's derived props. Decided by the dataflow, not by values or
+planners; a leaf is never shared this way. `LoadOptions::share` off, in
+tests, keeps every instruction.
+
 **Prop** — A named state variable of a component, mapping to one cell or an
 ordered list of cells (a point's `coords` maps to its `x` and `y` cells). Props
 are a naming layer over cells; they are not graph nodes.

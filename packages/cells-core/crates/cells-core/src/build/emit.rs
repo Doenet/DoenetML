@@ -1,4 +1,5 @@
-//! Emit: merge aliases into cells with a union-find, number cells
+//! Emit: merge aliases into cells with a union-find, and equal
+//! computations with them (ADR 0033, `share.rs`), number cells
 //! (constants, the pooled ones first, then essential, then derived) and
 //! bind operators to instructions.
 
@@ -31,12 +32,11 @@ impl<'c> Builder<'c> {
             }
         }
 
-        let cell_of: Vec<SlotId> = SlotId::below(n).map(|s| uf.find(s)).collect();
         // A cell of aliases with no definer is a loop of aliases. When the
         // view folds iterations it may be a recurrence folded onto itself,
         // which the cycle check has judged; it becomes a constant here.
-        for (s, &root) in cell_of.iter().enumerate() {
-            let root = root.index();
+        for s in 0..n {
+            let root = uf.find(SlotId::from_index(s)).index();
             if def[root] == SlotId::NONE {
                 if !self.view.folds_iterations() {
                     return Err(Failure {
@@ -48,6 +48,12 @@ impl<'c> Builder<'c> {
                 def[root] = SlotId::from_index(s);
             }
         }
+        // Equal computations share one cell (ADR 0033), unless the load
+        // asked for every instruction (`LoadOptions::share`).
+        if self.compiled.share {
+            self.share(&mut uf, &mut def);
+        }
+        let cell_of: Vec<SlotId> = SlotId::below(n).map(|s| uf.find(s)).collect();
         let slot_cells = SlotCells::new(&self, cell_of, def);
         // Each binary operator of the author's math writes the input that
         // leads to state (ADR 0026), before the walks read which inputs it
@@ -553,11 +559,14 @@ impl<'c> Builder<'c> {
                 .map(|s| {
                     let (scope, tslot, _) = self.essential_key(s);
                     let (template, _) = self.template_slot(s).expect("a template slot");
+                    // A slot merged into an equal one (ADR 0033) folds as
+                    // the slot that defines its cell does.
+                    let fold_of = |s: SlotId| fold[slot_cells.def(slot_cells.cell_of(s)).index()];
                     let class = match self.sources[s.index()] {
                         BuiltSource::Alias(_) => SlotClass::Alias,
                         BuiltSource::Given(_) if essential[s.index()] => SlotClass::Essential,
-                        BuiltSource::Op(..) if !fold[s.index()] => SlotClass::Derived,
-                        BuiltSource::VecOut(head, _) if !fold[head.index()] => SlotClass::Derived,
+                        BuiltSource::Op(..) if !fold_of(s) => SlotClass::Derived,
+                        BuiltSource::VecOut(head, _) if !fold_of(head) => SlotClass::Derived,
                         BuiltSource::Given(_)
                         | BuiltSource::Const(_)
                         | BuiltSource::Op(..)
@@ -1073,8 +1082,9 @@ fn cell_leaves(t: &Tree<CellIdx>, out: &mut Vec<CellIdx>) {
     });
 }
 
-/// The union-find that merges aliased slots into the cells they share.
-struct UnionFind {
+/// The union-find that merges aliased slots, and equal ones (ADR 0033),
+/// into the cells they share.
+pub(in crate::build) struct UnionFind {
     parent: Vec<SlotId>,
 }
 
@@ -1084,7 +1094,7 @@ impl UnionFind {
             parent: SlotId::below(n).collect(),
         }
     }
-    fn find(&mut self, mut x: SlotId) -> SlotId {
+    pub(in crate::build) fn find(&mut self, mut x: SlotId) -> SlotId {
         while self.parent[x.index()] != x {
             let p = self.parent[x.index()];
             self.parent[x.index()] = self.parent[p.index()];
@@ -1092,10 +1102,167 @@ impl UnionFind {
         }
         x
     }
-    fn union(&mut self, a: SlotId, b: SlotId) {
+    pub(in crate::build) fn union(&mut self, a: SlotId, b: SlotId) {
         let (ra, rb) = (self.find(a), self.find(b));
         if ra != rb {
             self.parent[ra.index()] = rb;
         }
+    }
+}
+
+/// Equal computations share one cell (ADR 0033), over the test-only
+/// components: `<testShape>`'s `sum` adds its `a` and `b`, and
+/// `<testValue>`'s `double` doubles its `value`.
+#[cfg(test)]
+mod share_tests {
+    use crate::Document;
+    use crate::testing::dast::{Element, document, el, mac};
+    use crate::testing::request_prop;
+
+    /// `testing::dast::load`, with sharing on or off.
+    fn load<const N: usize>(nodes: [Element; N], share: bool) -> Document {
+        let options = crate::LoadOptions {
+            classify: false,
+            prune: false,
+            share,
+            ..Default::default()
+        };
+        let dast = std::sync::Arc::new(document(nodes));
+        let doc = Document::load_dast(dast, options).unwrap().0;
+        assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+        doc
+    }
+
+    fn cell(doc: &Document, name: &str, prop: &str) -> crate::CellIdx {
+        doc.cell(name, prop)
+            .unwrap_or_else(|| panic!("no {name}.{prop}"))
+    }
+
+    /// A shape, and an extend of it giving `hide`, which its `sum` does
+    /// not read: the extend's `sum` is the referent's cell, and one
+    /// instruction computes it.
+    fn shape_and_copy() -> [Element; 2] {
+        [
+            el("testShape").name("t").attr("a", "1").attr("b", "2"),
+            el("testShape")
+                .name("u")
+                .attr("extend", mac("t"))
+                .attr("hide", "true"),
+        ]
+    }
+
+    #[test]
+    fn an_extend_shares_what_it_does_not_change() {
+        let doc = load(shape_and_copy(), true);
+        // The leaves are shared by the compile (ADR 0032), the sum by emit.
+        assert_eq!(cell(&doc, "u", "a"), cell(&doc, "t", "a"));
+        assert_eq!(cell(&doc, "u", "sum"), cell(&doc, "t", "sum"));
+        assert_ne!(cell(&doc, "u", "hide"), cell(&doc, "t", "hide"));
+        assert_eq!(doc.value("u", "sum"), Some(3.0));
+        let unshared = load(shape_and_copy(), false);
+        assert_ne!(cell(&unshared, "u", "sum"), cell(&unshared, "t", "sum"));
+        assert_eq!(doc.program.instrs.len() + 1, unshared.program.instrs.len());
+        assert_eq!(doc.cells.len() + 1, unshared.cells.len());
+    }
+
+    /// Three merges, each over the cells the one before it merged, in one
+    /// load: the fixpoint.
+    #[test]
+    fn a_chain_merges_in_one_load() {
+        let nodes = || {
+            [
+                el("testShape").name("t").attr("a", "1").attr("b", "2"),
+                el("testShape")
+                    .name("u")
+                    .attr("extend", mac("t"))
+                    .attr("hide", "true"),
+                el("testValue").name("x").attr("value", mac("t.sum")),
+                el("testValue").name("y").attr("value", mac("u.sum")),
+                el("testValue").name("x2").attr("value", mac("x.double")),
+                el("testValue").name("y2").attr("value", mac("y.double")),
+            ]
+        };
+        let doc = load(nodes(), true);
+        for (a, b, prop) in [
+            ("t", "u", "sum"),
+            ("x", "y", "double"),
+            ("x2", "y2", "double"),
+        ] {
+            assert_eq!(cell(&doc, a, prop), cell(&doc, b, prop), "{a}.{prop}");
+        }
+        assert_eq!(doc.value("y2", "double"), Some(12.0));
+        let unshared = load(nodes(), false);
+        assert_eq!(doc.program.instrs.len() + 3, unshared.program.instrs.len());
+    }
+
+    /// A `fixed` copy holds every cell of its own (ADR 0022): its leaves
+    /// are copies of the referent's (`hold_all`), so its sum reads its own
+    /// cells and stays its own.
+    #[test]
+    fn a_fixed_copy_does_not_merge() {
+        let doc = load(
+            [
+                el("testShape").name("t").attr("a", "1").attr("b", "2"),
+                el("testShape")
+                    .name("u")
+                    .attr("extend", mac("t"))
+                    .attr("fixed", "true"),
+            ],
+            true,
+        );
+        assert_ne!(cell(&doc, "u", "sum"), cell(&doc, "t", "sum"));
+        assert_eq!(doc.value("u", "sum"), Some(3.0));
+    }
+
+    /// Two equal copies merge only when the same flags hold them: a held
+    /// element's copy of another's cell is a cell of its own (`hold_all`),
+    /// so two elements held alike that copy one cell share the copy, and
+    /// one held by another flag keeps its own.
+    #[test]
+    fn copies_merge_only_under_the_same_holds() {
+        let doc = load(
+            [
+                el("testValue").name("t").attr("value", "3"),
+                el("testValue").name("f").attr("value", "1"),
+                el("testValue")
+                    .name("x")
+                    .attr("value", mac("t"))
+                    .attr("fixed", "true"),
+                el("testValue")
+                    .name("y")
+                    .attr("value", mac("t"))
+                    .attr("fixed", "true"),
+                el("testValue")
+                    .name("z")
+                    .attr("value", mac("t"))
+                    .attr("fixed", mac("f")),
+            ],
+            true,
+        );
+        assert_ne!(cell(&doc, "x", "value"), cell(&doc, "t", "value"));
+        assert_eq!(cell(&doc, "x", "value"), cell(&doc, "y", "value"));
+        assert_eq!(cell(&doc, "x", "double"), cell(&doc, "y", "double"));
+        assert_ne!(cell(&doc, "z", "value"), cell(&doc, "x", "value"));
+        assert_ne!(cell(&doc, "z", "double"), cell(&doc, "x", "double"));
+        assert_eq!(doc.value("z", "double"), Some(6.0));
+    }
+
+    /// A request on the extend's sum is a request on the shared cell, and
+    /// writes the shared leaf, as one through the referent's would.
+    #[test]
+    fn a_request_through_a_shared_cell_writes_the_shared_leaf() {
+        let mut shared = load(shape_and_copy(), true);
+        let mut unshared = load(shape_and_copy(), false);
+        for doc in [&mut shared, &mut unshared] {
+            assert!(request_prop(doc, "u.sum", 10.0).dropped.is_empty());
+        }
+        for (name, prop) in [("t", "a"), ("t", "b"), ("t", "sum"), ("u", "sum")] {
+            assert_eq!(
+                shared.value(name, prop),
+                unshared.value(name, prop),
+                "{name}.{prop}"
+            );
+        }
+        assert_eq!(shared.value("t", "sum"), Some(10.0));
     }
 }
