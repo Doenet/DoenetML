@@ -106,9 +106,10 @@ Runs once per load and depends on the source alone.
   `<collect>`'s collected type), gives container copies their clones and
   answers their synthetic children, and plans nothing (ADR 0030);
   **parse** (`parse.rs`) parses every `<math>`'s text once; **plan**
-  (`planning/`) plans every element; **link** (`link/`) boxes what read
-  a boxed referent and every element with an attribute nothing read, and
-  ties shared state between plans; **seal** (`seal/`) makes choice
+  (`planning/`) plans every element; **link** (`link/`) boxes every
+  reader of a box to a fixpoint (every cross-element read is recorded,
+  ADR 0032) and every element with an attribute nothing read, and ties
+  shared state between plans; **seal** (`seal/`) makes choice
   interfaces, checks arity, assigns keys and slot offsets, and infers
   every port's type (`seal/types.rs`, ADR 0032), a fixpoint over every
   template from the ports' sources and the references between them,
@@ -289,7 +290,11 @@ fails to plan is *boxed* where it fails (ADR 0027): it is built as an
 built, and planning goes on. A box is a row of boxing's own table
 (`Template::boxes`, ADR 0031), so what outlining and planning made of the
 element stays as they made it; the build reads the box's row
-(`Template::row`). Planning goes on, so one compile finds every planning error. An error the
+(`Template::row`). Planning goes on, so one compile finds every planning
+error; every read of another element's facts is recorded (an extend's of
+its referent, a container copy's of what it clones, a clone's of its
+original), and linking boxes the readers of every box to a fixpoint (ADR
+0032), so a box's readers never stand on what it was. An error the
 abstract build raises records the innermost element it concerns, which is
 boxed from the start of a new compile, and the check builds again until
 every element builds. A box keeps its name (ADR 0027): a reference to it

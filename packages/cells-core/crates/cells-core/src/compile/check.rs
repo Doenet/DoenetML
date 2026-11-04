@@ -98,9 +98,10 @@ pub(crate) fn signature_renamed(
 
 /// The compile's loop (ADR 0013, ADR 0027, ADR 0030): plan `dast`,
 /// boxing every element that fails where it fails, an element with an
-/// attribute nothing read among them (ADR 0021); then run `check` on the
-/// plan. An element `check` fails on, or one the compile could not box in
-/// place, is boxed and the plan made again.
+/// attribute nothing read among them (ADR 0021) and the readers of every
+/// box (ADR 0032); then run `check` on the plan. An element `check` fails
+/// on, or a failure no element could carry, is boxed and the plan made
+/// again.
 /// Each box is an error in `errors`. Only a failure with no element to
 /// box, a cycle, fails it, after its error joins `errors` too.
 fn plan_and_check<T>(

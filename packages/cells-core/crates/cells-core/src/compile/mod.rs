@@ -48,9 +48,12 @@
 //! `box_in_place`, while outlining, planning or linking, or by
 //! `push_error_elem` where no element was made for it yet (a node boxed by
 //! an earlier compile, an element that fails before it is pushed, a `$ref`
-//! child that cannot be planned). A failure `box_in_place` cannot keep in
-//! this compile (a container copy cloned what is under the element) is
-//! recorded as `restart`, and ends the compile at the next stage
+//! child that cannot be planned). Every read of another element's facts
+//! is recorded (`record_read`, ADR 0032), and linking boxes the readers
+//! of every box to a fixpoint, so what a box's readers planned from it
+//! never stands: a container copy's clones of what is under a box die
+//! with the copy. A failure no element can carry (a synthetic element's)
+//! is recorded as `restart`, and ends the compile at the next stage
 //! boundary; so do sealing's failures. `plan_and_check` boxes the node of
 //! such a failure, and of an abstract build failure, from the start of a
 //! new compile. No failure's handling depends on what failed before it.
@@ -170,11 +173,12 @@ pub(in crate::compile) struct Compiler<'a> {
     /// ADR 0027). The compile's input, from `plan_and_check`. R: outline
     /// (`add_elem`, `add_children`).
     pub(in crate::compile) boxed: &'a HashSet<NodeId>,
-    /// The first failure that could not be boxed where it arose
-    /// (`box_in_place`): its element is boxed all the same and the stage
-    /// goes on, and the compile ends with it once the stage is done, its
-    /// node to be boxed before compiling again. W: outline, plan, link
-    /// (`box_in_place`). R: `compile`, between stages.
+    /// The first failure no element could carry (`box_in_place` of an
+    /// element with no node, an unread attribute of a node with no
+    /// element): the stage goes on, and the compile ends with it once the
+    /// stage is done, its node to be boxed before compiling again, or the
+    /// load to fail. W: outline, plan, link (`box_in_place`). R:
+    /// `compile`, between stages.
     restart: Option<Failure>,
     /// Elements boxed where they failed, with their errors (ADR 0027).
     /// W: outline, plan, link (`box_in_place`, `push_error_elem`; the
@@ -221,10 +225,6 @@ pub(in crate::compile) struct Settled {
     /// The name table. R: parse and plan (`plan_ref`), link
     /// (`drop_unregistered_name`), seal (choices, keys).
     names: NameTable,
-    /// By (template, element), the elements a container copy has cloned:
-    /// a clone took its type, so one boxed later cannot be boxed in place
-    /// (`box_in_place`).
-    cloned: HashSet<(u32, u32)>,
     /// The references in an answer's whens, planned when outlining made
     /// the answer's responses (`add_answer_children`), by macro node.
     /// R: plan (`plan_award`).
@@ -239,11 +239,15 @@ pub(in crate::compile) struct Settled {
     /// its whens read, keyed as `input_named` keys them. R: plan
     /// (`plan_award`).
     answer_responses: HashMap<(u32, u32), Vec<(InputKey, ElemId)>>,
-    /// Every container copy whose expansion read the type of its referent
-    /// (`referent_type`), with the reference. R: link
+    /// Every read outlining recorded (`record_read`): a container copy's
+    /// of its referent's type, and each clone's of its original. R: link
     /// (`box_readers_of_boxes`).
-    referent_readers: Vec<(TemplateId, ElemId, RefId)>,
+    reads: Vec<Read>,
 }
+
+/// A recorded cross-element read (`Compiler::record_read`): the reader,
+/// and the reference to what it read.
+pub(in crate::compile) type Read = (TemplateId, ElemId, RefId);
 
 /// What planning makes for linking and sealing (ADR 0030), beside the
 /// plans themselves in the templates.
@@ -257,10 +261,10 @@ pub(in crate::compile) struct Planned {
     /// 0032): what a copy shares with its original. R: link
     /// (`link_given_leaves`), seal (`assign_keys`).
     given: HashMap<(u32, u32), HashMap<GivenId, Port>>,
-    /// Every element whose plan read the type of what a reference names
-    /// (`referent_type`), with the reference. R: link
+    /// Every read planning recorded (`record_read`): an element whose
+    /// plan read the type of what a reference names. R: link
     /// (`box_readers_of_boxes`), which boxes one whose referent is a box.
-    referent_readers: Vec<(TemplateId, ElemId, RefId)>,
+    reads: Vec<Read>,
 }
 
 /// Outlining's state while it runs (`Compiler::outlining`).
@@ -510,14 +514,6 @@ impl<'a> Compiler<'a> {
         });
         self.tables.push(Tables::default());
         t
-    }
-
-    /// The elements a container copy cloned, as `names` does.
-    fn cloned(&self) -> &HashSet<(u32, u32)> {
-        match &self.outlining {
-            Some(o) => &o.work.settled.cloned,
-            None => &self.settled().cloned,
-        }
     }
 
     /// A warning about the element at `node`: a fact about the source

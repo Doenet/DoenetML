@@ -3,9 +3,10 @@
 //! element where it fails, keeping its name, and what is under it dies with
 //! it. Boxing writes only its own table (`Template::boxes`): what outlining
 //! and planning made of a box is left as they made it, and the build reads
-//! the box's row instead (`Template::row`). A failure the compile cannot
-//! keep is recorded for `Compiler::compile` to restart from
-//! (`box_in_place`).
+//! the box's row instead (`Template::row`). What read the box's facts is
+//! boxed in turn when linking (`box_readers_of_boxes`, ADR 0032). A
+//! failure no element can carry is recorded for `Compiler::compile` to
+//! restart from (`box_in_place`).
 
 use crate::compile::*;
 
@@ -42,30 +43,26 @@ impl Compiler<'_> {
     /// element keeping its name, everything under it (its children, the
     /// templates of its repeats and choices) is dead, and the compile goes
     /// on. No plan reads another's (ADR 0029), so whatever was planned
-    /// under it is dropped unread.
+    /// under it is dropped unread; what read its facts (a container copy
+    /// that cloned what is under it, a clone of it, an extend of it) is
+    /// recorded, and boxed in turn when linking (ADR 0032).
     ///
-    /// But a container copy that cloned what is under it took its type,
-    /// and an element with no node has nowhere to carry the error: then
-    /// this compile cannot stand. `e` is boxed all the same, so the stage
-    /// runs on over a consistent compile, and the failure is recorded
-    /// (the first, when there are several) for `compile` to end the
-    /// compile with once the stage is done: `e`'s node is boxed before
-    /// compiling again, and with no node the load fails. Every failure is
-    /// handled here the same way whatever failed before it.
+    /// A clone has no node and no error of its own: boxed as a reader of
+    /// a box, it is boxed silently, its original's error the explanation.
+    /// Any other element with no node (a synthetic one) has nowhere to
+    /// carry the error: `e` is boxed all the same, so the stage runs on
+    /// over a consistent compile, and the failure is recorded (the first,
+    /// when there are several) for `compile` to end the compile with once
+    /// the stage is done, and the load fails. Every failure is handled
+    /// here the same way whatever failed before it.
     pub(in crate::compile) fn box_in_place(&mut self, t: TemplateId, e: ElemId, error: Error) {
-        let node = self.outlined(t).elems[e.index()].node;
+        let Elem { node, cloned, .. } = self.outlined(t).elems[e.index()];
         let doomed = self.subtree(t, e);
-        let cloned = doomed
-            .iter()
-            .any(|&(dt, de)| self.cloned().contains(&(dt.get(), de.get())));
-        if node == NodeId::NONE || cloned {
-            self.restart.get_or_insert(Failure {
-                error,
-                node: (node != NodeId::NONE).then_some(node),
-            });
-        } else {
+        if node != NodeId::NONE {
             self.errors.push(Diagnostic::error(Some(node), &error));
             self.boxed_here.insert(node);
+        } else if !cloned {
+            self.restart.get_or_insert(Failure { error, node: None });
         }
         for (dt, de) in doomed {
             self.make_box(dt, de, (dt, de) != (t, e));

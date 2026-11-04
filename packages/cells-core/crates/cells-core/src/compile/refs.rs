@@ -843,18 +843,29 @@ impl Compiler<'_> {
     /// to decide its plan by (an extend, `<constrainTo>`, ...). A box has
     /// no type to plan from, so `e` is boxed in turn, its referent's box
     /// the cause: here for a referent already boxed, when linking for one
-    /// boxed after `e` is planned (`box_readers_of_boxes`).
+    /// boxed after `e` is planned (`box_readers_of_boxes`). The read is
+    /// recorded (`record_read`).
     pub(in crate::compile) fn referent_type(
         &mut self,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
-        match &mut self.outlining {
-            Some(o) => o.work.settled.referent_readers.push((t, e, p)),
-            None => self.planning().referent_readers.push((t, e, p)),
-        }
+        self.record_read(t, e, p);
         self.read_referent(t, p)
+    }
+
+    /// The one recorder of cross-element reads (ADR 0032, decision 6):
+    /// element `e` of template `t` read the facts of what `p` names (its
+    /// type, its row, its children), so what it planned stands only while
+    /// they do. Linking boxes every reader of a box, to a fixpoint
+    /// (`box_readers_of_boxes`), so no element is compiled twice. Kept by
+    /// the stage that records it (ADR 0030).
+    pub(in crate::compile) fn record_read(&mut self, t: TemplateId, e: ElemId, p: RefId) {
+        match &mut self.outlining {
+            Some(o) => o.work.settled.reads.push((t, e, p)),
+            None => self.planning().reads.push((t, e, p)),
+        }
     }
 
     /// The type of what `p` names, or, when it is a box this stage may see

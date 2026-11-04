@@ -124,11 +124,6 @@ impl Compiler<'_> {
                     let el = self.outlined_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
                     let repeat = matches!(el.body, Body::Repeat { .. });
-                    self.outlining()
-                        .work
-                        .settled
-                        .cloned
-                        .insert((t.get(), c.get()));
                     if repeat
                         || matches!(
                             component_type,
@@ -152,15 +147,21 @@ impl Compiler<'_> {
                         hops: 0,
                         steps: vec![Step::Elem(c)],
                         prop: None,
-                        display: RefDisplay::CopyOf(t, c),
+                        display: RefDisplay::Spelled(
+                            format!("(copy of {})", self.elem_label(t, c)).into(),
+                        ),
                         node: NodeId::NONE,
                     });
-                    let ep = self.compiled.refs.len() - 1;
+                    let ep = RefId::from_index(self.compiled.refs.len() - 1);
                     {
                         let el = &mut self.outlined_mut(t).elems[ne.index()];
-                        el.extend = Some(RefId::from_index(ep));
+                        el.extend = Some(ep);
                         el.cloned = true;
                     }
+                    // The clone took its original's row: it reads it (ADR
+                    // 0032), and is boxed with it should the original be
+                    // boxed later.
+                    self.record_read(t, ne, ep);
                     let child_scope = if name != StrId::NONE { ne } else { scope };
                     let sub = self.clone_children(t, c, child_scope, root)?;
                     self.outlined_mut(t).elems[ne.index()].children = sub;

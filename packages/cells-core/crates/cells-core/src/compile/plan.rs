@@ -998,8 +998,6 @@ pub(crate) enum RefDisplay {
     Written,
     /// Another display, then `.prop`: a plan of another's prop.
     Prop(Box<RefDisplay>, &'static str),
-    /// `(copy of c)`: a container copy's clone of element `c` of template `t`.
-    CopyOf(TemplateId, ElemId),
     /// Spelled by the compile, for a plan it made itself.
     Spelled(Box<str>),
 }
@@ -1019,10 +1017,6 @@ impl Compiled {
         match display {
             RefDisplay::Written => self.dast.macro_display(node).to_string(),
             RefDisplay::Prop(base, prop) => format!("{}.{prop}", self.spell_display(base, node)),
-            RefDisplay::CopyOf(t, e) => {
-                let el = &self.templates[t.index()].elems[e.index()];
-                format!("(copy of {})", elem_label(&self.dast, el))
-            }
             RefDisplay::Spelled(text) => text.to_string(),
         }
     }

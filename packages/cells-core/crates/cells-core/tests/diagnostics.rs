@@ -479,23 +479,23 @@ fn an_extend_of_an_element_boxed_while_planning_is_boxed_in_any_order() {
 }
 
 /// An element that fails after a container copy cloned what is under it
-/// cannot be boxed in place, since the clones took its children's types:
-/// the compile ends, and compiles once more with it boxed from the start.
-/// The failures after it are boxed as any are, not passed through (ADR
-/// 0030), and both compiles find the same independent error.
+/// is boxed in place like any other, and the copy, which read what is
+/// under it, is boxed with its clones when linking (ADR 0032): the
+/// document compiles once. The failures after it are boxed as any are,
+/// not passed through (ADR 0030).
 #[test]
-fn a_failure_under_a_cloned_subtree_compiles_once_more() {
+fn a_failure_under_a_cloned_subtree_compiles_once() {
     for (src, plans_wanted) in [
         // Fails while planning.
         (
             r#"<graph name="C" extend="$X"/><graph name="A" xmin="$nope"><graph name="X"><point name="p" x="1"/></graph></graph><number name="k">$nope2</number>"#,
-            2,
+            1,
         ),
         // Fails while outlining, as a container copy; the unread attribute
         // is boxed in place, and takes no plan of its own (ADR 0030).
         (
             r#"<graph name="C" extend="$X"/><graph name="A" extend="$nope"><graph name="X"><point name="p" x="1"/></graph></graph><number name="n" bogus="1">2</number><number name="k">$nope2</number>"#,
-            2,
+            1,
         ),
     ] {
         let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
@@ -516,6 +516,35 @@ fn a_failure_under_a_cloned_subtree_compiles_once_more() {
         let doc = load(src).unwrap();
         assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()), "{src}");
     }
+}
+
+/// A clone reads its original (ADR 0032): an original boxed for its own
+/// error after it was cloned takes its clone along silently, the
+/// original's error the only diagnostic, in one compile; the copy itself
+/// stands, and a reference to the clone reads as undefined.
+#[test]
+fn a_clone_of_an_element_boxed_later_is_boxed_silently() {
+    let src = r#"<graph name="X"><point name="p" x="$nope"/><point name="q" x="2"/></graph>
+        <graph name="C" extend="$X"/><number name="n">$C.p.x</number><number name="m">$C.q.x</number>"#;
+    let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
+    cells_core::trace::start();
+    let list = diagnose(&dast);
+    let plans = cells_core::trace::finish()
+        .iter()
+        .filter(|s| s.name == "plan")
+        .count();
+    assert_eq!(plans, 1);
+    let errs = errors(&list);
+    assert_eq!(errs.len(), 1, "{list:?}");
+    assert!(errs[0].message.contains("'$nope'"), "{errs:?}");
+    let doc = load(src).unwrap();
+    assert!(doc.value("n", "value").unwrap().is_nan());
+    assert_eq!(doc.value("m", "value"), Some(2.0));
+    assert_eq!(
+        doc.component_type(doc.resolve_path("C").unwrap()),
+        ComponentType::Graph
+    );
+    assert_eq!(keys(&list), keys(doc.diagnostics()));
 }
 
 /// An element with an attribute nothing read is boxed in place when

@@ -1,7 +1,7 @@
-//! Linking (ADR 0029, ADR 0030): what planning leaves for once every
-//! element is planned. Readers of boxed referents are boxed, elements with
-//! an attribute nothing read are boxed (`unread.rs`), and the given
-//! leaves copies share are tied between the elements left.
+//! Linking (ADR 0029, ADR 0030, ADR 0032): what planning leaves for once
+//! every element is planned. Readers of boxes are boxed to a fixpoint,
+//! elements with an attribute nothing read are boxed (`unread.rs`), and
+//! the given leaves copies share are tied between the elements left.
 
 mod unread;
 
@@ -18,8 +18,8 @@ impl Compiler<'_> {
         &mut self,
         planned: &mut Planned,
     ) -> std::result::Result<(), Failure> {
-        let readers: Vec<(TemplateId, ElemId, RefId)> = (self.settled().referent_readers.iter())
-            .chain(&planned.referent_readers)
+        let readers: Vec<Read> = (self.settled().reads.iter())
+            .chain(&planned.reads)
             .copied()
             .collect();
         let box_readers = |cp: &mut Self| {
@@ -34,11 +34,13 @@ impl Compiler<'_> {
         Ok(())
     }
 
-    /// Linking's first step (ADR 0029): every element that read a
-    /// referent's type (`referent_type`) and whose referent is now a box
-    /// is boxed in place, whichever was planned first; a copy of a copy of
-    /// a box is boxed too.
-    fn box_readers_of_boxes(&mut self, readers: &[(TemplateId, ElemId, RefId)]) -> Result<()> {
+    /// Linking's first step (ADR 0029, ADR 0032): every element that read
+    /// another's facts (`record_read`: a referent's type, a clone's
+    /// original) and whose referent is now a box is boxed in place,
+    /// whichever was planned first, to a fixpoint: a copy of a copy of a
+    /// box is boxed too, and a container copy whose clones read what is
+    /// under a box, with its clones.
+    fn box_readers_of_boxes(&mut self, readers: &[Read]) -> Result<()> {
         loop {
             let mut boxed_one = false;
             for &(t, e, p) in readers {

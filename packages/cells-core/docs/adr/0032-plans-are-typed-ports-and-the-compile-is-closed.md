@@ -1,6 +1,6 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Steps 1 to 6 of the Migration are done;
+Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done;
 see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
@@ -637,6 +637,24 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
    a fixpoint; `restart` and the abstract build's element-naming
    failure become reads. Test: `tests/diagnostics.rs` unchanged, and the
    compile count in its restart tests is one.
+
+   Done, for the compile's own reads. One recorder (`record_read`) takes
+   every cross-element read: an extend's or constraint's of its
+   referent's type (as `referent_type` recorded before), a container
+   copy's of what it clones, and now each clone's of its original, which
+   `clone_children` records with the clone's `CopyOf` plan. Linking's
+   fixpoint (`box_readers_of_boxes`) boxes every reader of a box, a
+   clone silently (it has no node; its original's error explains it),
+   so `box_in_place` no longer restarts the compile when a cloned
+   subtree is boxed: the copy and its clones are boxed when linking, and
+   the restart tests count one compile. `Settled::cloned` is gone. What
+   stays: a failure no element can carry (a synthetic element's, an
+   unread attribute on a node with no element) and sealing's failures
+   still end the compile at the stage boundary, and the abstract
+   build's element-naming failure still boxes the element from the
+   start of a new compile; these become in-place boxes when step 8 makes
+   the abstract build a pass of the compile, where the fixpoint already
+   runs. The golden diff changes by no document.
 8. **The abstract build as analysis.** Stamp templates in the abstract,
    label edges, join branches, count collections; the four records
    become port attributes; `build/abstract_build.rs` and the view go.
