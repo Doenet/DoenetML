@@ -1,6 +1,6 @@
 # A planner is a function of its record
 
-Status: accepted 2026-11-04. Steps 1 to 3 are done (see Migration). Builds on ADR
+Status: accepted 2026-11-04. Steps 1 to 4 are done (see Migration). Builds on ADR
 0016 (components are defined without knowing the core), ADR 0029 (a
 planner reads no other element's plan) and ADR 0032 (decision 3, a
 planner is a function from typed attributes to a wiring), and finishes
@@ -389,6 +389,14 @@ Each step lands alone, with the golden diff unchanged.
    boolean's cross-type alias kept by the compile beside `extends_as`.
    Test: `tests/extend.rs` and the copy-rule tests in
    `compile/planning/copies.rs` unchanged.
+
+   *Done.* As landed: what remained after step 3 was the flag.
+   `flags: [not_extendable]` on conditionalContent and select; the
+   compile refuses their extend before dispatching to the machinery,
+   with the message the choice wrapper raised. Point's `base` reads
+   went in step 1, and the text, textInput and boolean branches in
+   step 3. No planner in `components/` names `extend`. The golden diff
+   is identical.
 5. **Constraint targets declared.** `constrain_target` on circle, line,
    segment and function; the point's match removed. Test: the point's
    and circle's specs unchanged; a test-only type with no declaration is

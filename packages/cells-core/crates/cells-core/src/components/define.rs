@@ -258,6 +258,7 @@ pub(super) const fn definition(
             symbolic: false,
             internal: false,
             owned: false,
+            not_extendable: false,
             located: false,
         },
         renders: super::Renders::Always,
@@ -297,6 +298,11 @@ impl ComponentDef {
     /// See [`super::Flags::owned`].
     pub(super) const fn owned(mut self) -> Self {
         self.flags.owned = true;
+        self
+    }
+    /// See [`super::Flags::not_extendable`].
+    pub(super) const fn not_extendable(mut self) -> Self {
+        self.flags.not_extendable = true;
         self
     }
     /// See [`super::ComponentDef::machinery`].

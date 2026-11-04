@@ -437,7 +437,9 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   `FunctionIterates`, `Collect`; ADR 0034): the compile calls it. A type
   only what owns it plans (an `<award>` by its `<answer>`, a constraint in
   its point's record) says `flags: [owned]` and `owner: Answer`, and the
-  compile refuses one standing free.
+  compile refuses one standing free. A type that cannot be extended says
+  `flags: [not_extendable]`, and the compile refuses the extend; no
+  planner sees `extend` (its record is the merge).
 - Declare the attributes the planner reads, each with its kind
   (`attributes { center: Point, radius: Scalar, through: Points(3) }`,
   ADR 0032), and read them typed from the element's record

@@ -478,6 +478,10 @@ pub struct Flags {
     /// constraint in its point's record): the compile refuses one that
     /// stands free (ADR 0034).
     pub owned: bool,
+    /// Cannot be extended: the compile refuses an `extend` of one before
+    /// planning (ADR 0034). A choice's interface names are referenced
+    /// instead.
+    pub not_extendable: bool,
     /// Every value it holds is a location: a point's coordinates, a
     /// circle's center and radius, a polygon's vertices. `fixLocation`
     /// holds it as `fixed` does (ADR 0022).

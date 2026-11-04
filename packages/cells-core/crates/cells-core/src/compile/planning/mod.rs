@@ -134,9 +134,17 @@ impl Compiler<'_> {
             }
             ElemShape::ExtendProp(p) => self.plan_extend_prop(t, e, p),
             ElemShape::ContainerCopy(p) => self.plan_container_copy(t, e, p),
+            // A type that cannot be extended (a choice) is refused before
+            // anything plans it (ADR 0034).
+            ElemShape::ByType(Some(_)) if component_type.def().flags.not_extendable => {
+                Err(Error::Banned(format!(
+                    "extend on a <{}>: reference its interface names instead",
+                    component_type.tag()
+                )))
+            }
             ElemShape::ByType(_) if component_type.def().flags.owned => self.plan_owned(t, e),
-            ElemShape::ByType(extend) if let Some(m) = component_type.def().machinery => {
-                self.plan_machinery(t, e, m, extend)
+            ElemShape::ByType(_) if let Some(m) = component_type.def().machinery => {
+                self.plan_machinery(t, e, m)
             }
             ElemShape::ByType(extend) => match Self::planner(component_type) {
                 Planner::Props => {
@@ -189,26 +197,10 @@ impl Compiler<'_> {
 
     /// An element of a type that names machinery (`machinery:`, ADR 0034):
     /// the machinery plans it.
-    fn plan_machinery(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-        m: Machinery,
-        extend: Option<RefId>,
-    ) -> Result<()> {
+    fn plan_machinery(&mut self, t: TemplateId, e: ElemId, m: Machinery) -> Result<()> {
         match m {
             Machinery::Answer => self.plan_answer(t, e),
-            Machinery::Choice => {
-                // A choice cannot be extended: its interface names are
-                // referenced instead.
-                if extend.is_some() {
-                    let tag = self.outlined(t).elems[e.index()].planned_as.tag();
-                    return Err(Error::Banned(format!(
-                        "extend on a <{tag}>: reference its interface names instead"
-                    )));
-                }
-                self.plan_choice(t, e)
-            }
+            Machinery::Choice => self.plan_choice(t, e),
             Machinery::RepeatFor => {
                 self.plan_iteration_names(t, e);
                 self.plan_repeat_for(t, e)
@@ -366,5 +358,25 @@ mod tests {
                 doc.diagnostics()
             );
         }
+    }
+
+    /// A type that cannot be extended (`flags: [not_extendable]`) is
+    /// refused before anything plans it.
+    #[test]
+    fn an_extend_of_a_choice_is_refused() {
+        let doc = load(document([
+            el("select")
+                .name("s")
+                .child(el("option").child(el("number").text("1"))),
+            el("select").name("t").attr("extend", mac("s")),
+        ]))
+        .unwrap();
+        assert!(
+            doc.diagnostics()
+                .iter()
+                .any(|d| d.message.contains("extend on a <select>")),
+            "{:?}",
+            doc.diagnostics()
+        );
     }
 }
