@@ -1,6 +1,6 @@
 # A planner is a function of its record
 
-Status: accepted 2026-11-04. Step 1 is done (see Migration). Builds on ADR
+Status: accepted 2026-11-04. Steps 1 and 2 are done (see Migration). Builds on ADR
 0016 (components are defined without knowing the core), ADR 0029 (a
 planner reads no other element's plan) and ADR 0032 (decision 3, a
 planner is a function from typed attributes to a wiring), and finishes
@@ -345,6 +345,22 @@ Each step lands alone, with the golden diff unchanged.
    records, or as tables; the `by_planner` list in `plan_attrs` goes.
    Test: each type's spec unchanged; `plan_attrs` matches `ByPlanner`
    only to refuse it.
+
+   *Done.* As landed: mathInput, choiceInput, selectFromSequence and
+   section are `Plan` types; repeatForSequence is a table, and the
+   compile plans the hidden elements of any table type's repeat body
+   (`plan_iteration_names`). Three more attribute kinds: `Content` (a
+   value as children are one: a mathInput's `prefill`), `LiteralFlag`
+   (a section's `aggregateScores`, refused when not literal) and, for a
+   keyword, a raw identifier (`r#type`). The record carries the tag the
+   element is written with (`division`). A choiceInput's choices are a
+   group of its `Rendered` children (`choices: [Choice]`), built as
+   components and counted from its record; text among a type's groups
+   is refused. A container copy of a `Plan` type is planned through
+   `plan_with_extend`. `plan_attrs` refuses a `by_planner` prop; only
+   `plan_function_iterates` asks for them blank (`plan_table`), and a
+   test finds none in a table type (`<case>`, built by its choice,
+   aside until step 3). The golden diff is identical.
 3. **Machinery named, owned types flagged, `Whole` gone.** `machinery:`
    and `flags: [owned]` in `component!`; the thin wrappers removed;
    `Planner` is `Props | Plan(fn)`. Test: `tests/diagnostics.rs`'s

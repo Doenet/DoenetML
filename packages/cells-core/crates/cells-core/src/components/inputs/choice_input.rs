@@ -1,8 +1,8 @@
 //! `<choiceInput>`: its definition and its planner (ADR 0016).
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::dast::NodeKind;
 use crate::error::{Error, Result};
 
 component! {
@@ -21,36 +21,35 @@ component! {
         // `ChoiceIndex` over `preliminaryIndex`, with the number of choices.
         selectedIndex: by_planner { interactive, rendered },
     }
-    planner: PropsThen(plan),
+    attributes {
+        selectedIndex: Value,
+        selectMultiple: On,
+    }
+    // Its choices are built as components, and counted here.
+    children: Rendered {
+        choices: [Choice],
+    },
+    planner: Plan(plan),
 }
 
 pub const SELECTED_INDEX: usize = Props::AT.selectedIndex;
 
 /// Its choices must be `<choice>` elements; `selectMultiple` is refused.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<()> {
-    let d = ctx.dast();
-    let el = ctx.node();
-    if ctx.attr_on(el, "selectMultiple") {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+    let attrs = Attrs::of(ctx.record());
+    if attrs.selectMultiple {
         return Err(Error::Unsupported("<choiceInput selectMultiple>".into()));
     }
-    let mut n_choices = 0;
-    for &n in d.children(el) {
-        match d.kind(n) {
-            NodeKind::Text if d.str(n).trim().is_empty() => {}
-            NodeKind::Other => {}
-            NodeKind::Element if d.str(n) == "choice" => n_choices += 1,
-            _ => {
-                return Err(Error::Unsupported(
-                    "the children of <choiceInput> must be <choice> elements".into(),
-                ));
-            }
-        }
-    }
     let at = Props::PORTS;
-    props[at.selectedIndex] = Some(Source::computed_k(
-        OpSpec::ChoiceIndex,
-        at.preliminaryIndex,
-        n_choices as f64,
-    ));
-    Ok(())
+    let mut wiring = ElemWiring::of(ComponentType::ChoiceInput);
+    wiring.set_public(Props {
+        preliminaryIndex: attrs.selectedIndex.unwrap_or(Source::given(0.0)).into(),
+        selectedIndex: Source::computed_k(
+            OpSpec::ChoiceIndex,
+            at.preliminaryIndex,
+            attrs.choices.len() as f64,
+        )
+        .into(),
+    });
+    Ok(wiring)
 }

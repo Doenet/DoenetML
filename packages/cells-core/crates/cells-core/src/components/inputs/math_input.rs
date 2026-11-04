@@ -1,8 +1,8 @@
 //! `<mathInput>`: its definition and its planner (ADR 0016).
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::dast::NodeKind;
 use crate::error::{Error, Result};
 use crate::program::SymKind;
 
@@ -24,8 +24,12 @@ component! {
         value: children { attribute: prefill, bind: bindValueTo, interactive, rendered },
         expr: by_planner { interactive, rendered },
     }
+    attributes {
+        prefill: Content,
+        bindValueTo: Ref,
+    }
     children: Value,
-    planner: PropsThen(plan),
+    planner: Plan(plan),
 }
 
 pub const VALUE: usize = Props::AT.value;
@@ -36,39 +40,43 @@ pub const EXPR: usize = Props::AT.expr;
 /// holding the prefill (or its children's text) and `value` evaluates it.
 /// A `prefill="$n"` is not a binding: the expression starts as `$n`'s
 /// value when the input is first built.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<()> {
-    let d = ctx.dast();
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::PORTS;
-    let el = ctx.node();
-    if d.attr(el, "bindValueTo").is_none()
-        && d.children(el).iter().all(|&n| ctx.is_not_content(n))
-        && let Some(a) = d.attr(el, "prefill")
-        && ctx.single_macro(a).is_some()
-        && let Some(Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole)))) = props[at.value]
-    {
-        props[at.expr] = Some(Source::Leaf(Leaf::Scope(ScopeConst::Seed(p))));
-        props[at.value] = Some(Source::computed(
-            OpSpec::Sym(SymKind::Evaluate),
-            vec![at.expr],
-        ));
-        return Ok(());
-    }
-    let nodes = match d.attr(el, "prefill") {
-        Some(a) => d.attr_children(a),
-        None => d.children(el),
+    let attrs = Attrs::of(ctx.record());
+    let blank = matches!(attrs.children.value, ChildValue::Blank);
+    let mut wiring = ElemWiring::of(ComponentType::MathInput);
+    // `value` as a table prop of `children { attribute: prefill, bind:
+    // bindValueTo }` is planned.
+    let value = match (attrs.bindValueTo, &attrs.prefill) {
+        (Some(p), _) => Source::reference(p),
+        (None, _) if !blank => ctx.value_of(&attrs.children)?,
+        (None, Some(prefill)) => ctx.value_of(prefill)?,
+        (None, None) => Source::given(ComponentType::MathInput.prop_defs()[VALUE].default),
     };
-    let bound = matches!(props[at.value], Some(Source::Flow(Flow::Alias(_))))
-        || nodes.iter().any(|&n| d.kind(n) == NodeKind::Macro);
-    if bound {
-        props[at.expr] = Some(Source::absent());
-        return Ok(());
+    let evaluated = || Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![at.expr]);
+    if attrs.bindValueTo.is_none()
+        && blank
+        && let Some(ChildValue::Reference(p)) = attrs.prefill.as_ref().map(|v| &v.value)
+    {
+        wiring.set_public(Props {
+            value: evaluated().into(),
+            expr: Source::Leaf(Leaf::Scope(ScopeConst::Seed(*p))).into(),
+        });
+        return Ok(wiring);
     }
-    let text: String = nodes
-        .iter()
-        .filter(|&&n| d.kind(n) == NodeKind::Text)
-        .map(|&n| d.str(n))
-        .collect();
-    let text = text.trim();
+    let text_of = attrs.prefill.unwrap_or(attrs.children);
+    let bound = matches!(value, Source::Flow(Flow::Alias(_))) || text_of.references > 0;
+    if bound {
+        wiring.set_public(Props {
+            value: value.into(),
+            expr: Wire::absent(),
+        });
+        return Ok(wiring);
+    }
+    let text = match &text_of.value {
+        ChildValue::Text { text, .. } => text.trim(),
+        _ => "",
+    };
     let tree = if text.is_empty() {
         None
     } else {
@@ -82,10 +90,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<
                 })?,
         )
     };
-    props[at.expr] = Some(Source::Leaf(Leaf::GivenMath(tree)));
-    props[at.value] = Some(Source::computed(
-        OpSpec::Sym(SymKind::Evaluate),
-        vec![at.expr],
-    ));
-    Ok(())
+    wiring.set_public(Props {
+        value: evaluated().into(),
+        expr: Source::Leaf(Leaf::GivenMath(tree)).into(),
+    });
+    Ok(wiring)
 }

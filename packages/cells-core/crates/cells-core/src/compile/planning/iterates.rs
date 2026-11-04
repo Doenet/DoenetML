@@ -31,7 +31,7 @@ impl<'a> Compiler<'a> {
     /// lowered to numeric operators. The function's text is re-planned from
     /// the body, so its references resolve from the `<functionIterates>`.
     pub(super) fn plan_function_iterates(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        self.plan_attrs(t, e, None)?;
+        self.plan_table(t, e, None, true)?;
         let ports = function_iterates::Props::PORTS;
         self.tables[t.index()].plans[e.index()].props[ports.allIteratesWithInitial.index()] =
             Source::own(ports.count);

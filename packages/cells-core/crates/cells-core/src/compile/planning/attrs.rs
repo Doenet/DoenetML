@@ -6,12 +6,25 @@ use crate::compile::*;
 
 impl<'a> Compiler<'a> {
     /// The prop sources of a type described by `PropFrom`: attributes,
-    /// bindings, computed chains, children.
+    /// bindings, computed chains, children. A `by_planner` prop is refused:
+    /// a type with one is planned by a function.
     pub(in crate::compile) fn plan_attrs(
         &mut self,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
+    ) -> Result<()> {
+        self.plan_table(t, e, extend, false)
+    }
+
+    /// `plan_attrs` for machinery that plans the `by_planner` props itself
+    /// after the table (`plan_function_iterates`): they are left absent.
+    pub(in crate::compile) fn plan_table(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        extend: Option<RefId>,
+        by_machinery: bool,
     ) -> Result<()> {
         let d = self.dast;
         let Elem {
@@ -82,46 +95,46 @@ impl<'a> Compiler<'a> {
                         },
                         None => default(def.default, pi),
                     },
-                    ChildValue::Reference(p) => Source::reference(*p),
-                    // A literal child (`<number>3</number>`, an input's
-                    // initial state) is a value slot: the classing (ADR
-                    // 0018) makes it essential when an input or an action
-                    // can reach it, a constant otherwise.
-                    ChildValue::Text { text, .. } if literal_value(text.trim()).is_some() => {
-                        literal_value(text.trim()).expect("a literal")
-                    }
-                    // Not a single literal or reference: math text.
-                    ChildValue::Text { .. } | ChildValue::Math => {
-                        Source::math(self.plan_math(t, scope, &children.nodes)?)
-                    }
+                    _ => self.plan_value_children(t, scope, &children)?,
                 },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
-                // Set below, by the type's `PropsThen` planner.
-                (None, PropFrom::ByPlanner)
-                    if matches!(
-                        component_type,
-                        ComponentType::Document
-                            | ComponentType::Section
-                            | ComponentType::MathInput
-                            | ComponentType::ChoiceInput
-                            | ComponentType::FunctionIterates
-                            | ComponentType::SelectFromSequence
-                    ) =>
-                {
-                    Source::absent()
+                // A table says what every prop is; only a function
+                // plans a `by_planner` prop, or machinery (`by_machinery`).
+                (None, PropFrom::ByPlanner) if by_machinery => Source::absent(),
+                (None, PropFrom::ByPlanner) => {
+                    return Err(Error::Internal(format!(
+                        "<{}>'s `{}` is by_planner, and its type is planned from its table",
+                        component_type.tag(),
+                        def.name
+                    )));
                 }
-                (None, PropFrom::ByPlanner) => unreachable!("`Plan` types take plan_with_extend"),
             };
             props[Port::table(pi)] = Some(source);
         }
-        if let Planner::PropsThen(then) = Self::planner(component_type) {
-            let _s = crate::trace::tally("props then");
-            let record = self.parsed().record(t, e)?;
-            then(&mut PlanCtx::new(self, t, e, record, None), &mut props)?;
-        }
         self.tables[t.index()].plans[e.index()].props = props.finish();
         Ok(())
+    }
+
+    /// Children or an attribute read as a value (`ValueChildren`), not
+    /// blank: a reference, a literal, or math text. A literal (`<number>3
+    /// </number>`, an input's initial state) is a value slot: the classing
+    /// (ADR 0018) makes it essential when an input or an action can reach
+    /// it, a constant otherwise.
+    pub(in crate::compile) fn plan_value_children(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        v: &ValueChildren,
+    ) -> Result<Source> {
+        Ok(match &v.value {
+            ChildValue::Reference(p) => Source::reference(*p),
+            ChildValue::Text { text, .. } if literal_value(text.trim()).is_some() => {
+                literal_value(text.trim()).expect("a literal")
+            }
+            // Not a single literal or reference: math text.
+            _ => Source::math(self.plan_math(t, scope, &v.nodes)?),
+        })
     }
 
     /// The canonical string id of `text`: the DAST's if it has one (its

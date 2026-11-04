@@ -2,6 +2,7 @@
 //! (ADR 0016).
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::error::{Error, Result};
 
@@ -34,7 +35,13 @@ component! {
         includeParentNumber: by_planner { rendered },
         label: by_planner { rendered },
     }
-    planner: PropsThen(plan),
+    attributes {
+        weight: Value,
+        r#type: Text,
+        aggregateScores: LiteralFlag,
+        includeParentNumber: LiteralFlag,
+    }
+    planner: Plan(plan),
 }
 
 /// A tag that makes a `Section`, and its defaults (the current core's
@@ -102,15 +109,15 @@ pub const LABEL: usize = Props::AT.label;
 /// A section's `aggregateScores`, `includeParentNumber` and `label`:
 /// literals, defaulted by tag as in the current core, since they decide
 /// how credit and numbers are wired.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<()> {
-    let d = ctx.dast();
-    let el = ctx.node();
-    let tag = match d.str(el) {
-        "division" => d
-            .attr(el, "type")
-            .and_then(|a| ctx.attr_text(a))
-            .map(|t| t.trim().to_string())
-            .unwrap_or_default(),
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+    let attrs = Attrs::of(ctx.record());
+    let tag = match ctx.record().tag() {
+        "division" => attrs
+            .r#type
+            .as_deref()
+            .unwrap_or_default()
+            .trim()
+            .to_string(),
         tag => tag.to_string(),
     };
     let (label, section_tag) = SECTION_TAGS
@@ -118,26 +125,36 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<
         .enumerate()
         .find(|(_, s)| s.tag == tag)
         .ok_or_else(|| Error::UnsupportedTag(format!("division type=\"{tag}\"")))?;
-    let flag = |name: &str, default: bool| -> Result<f64> {
-        match d.attr(el, name) {
-            None => Ok(if default { 1.0 } else { 0.0 }),
-            Some(a) if ctx.attr_text(a).is_some() => {
-                Ok(if ctx.attr_flag(el, name) { 1.0 } else { 0.0 })
-            }
-            Some(_) => Err(Error::Unsupported(format!(
+    let flag = |name: &str, value: Option<Option<bool>>, default: bool| -> Result<f64> {
+        match value {
+            None => Ok(f64::from(default)),
+            Some(Some(on)) => Ok(f64::from(on)),
+            Some(None) => Err(Error::Unsupported(format!(
                 "'{name}' on a <{tag}> must be a literal: it decides how the section is wired"
             ))),
         }
     };
-    let at = Props::PORTS;
-    props[at.aggregateScores] = Some(Source::constant(flag(
+    let aggregate = flag(
         "aggregateScores",
+        attrs.aggregateScores,
         section_tag.aggregates_scores,
-    )?));
-    props[at.includeParentNumber] = Some(Source::constant(flag(
+    )?;
+    let include = flag(
         "includeParentNumber",
+        attrs.includeParentNumber,
         section_tag.includes_parent_number,
-    )?));
-    props[at.label] = Some(Source::constant(label as f64));
-    Ok(())
+    )?;
+    let mut wiring = ElemWiring::of(ComponentType::Section);
+    let table = |port: Port| Wire::from_table(ComponentType::Section, port);
+    let at = Props::PORTS;
+    wiring.set_public(Props {
+        creditAchieved: table(at.creditAchieved),
+        percentCreditAchieved: table(at.percentCreditAchieved),
+        weight: attrs.weight.unwrap_or(Source::given(1.0)).into(),
+        aggregateScores: Wire::constant(aggregate),
+        number: table(at.number),
+        includeParentNumber: Wire::constant(include),
+        label: Wire::constant(label as f64),
+    });
+    Ok(wiring)
 }

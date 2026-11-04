@@ -1,6 +1,7 @@
 //! `<selectFromSequence>`: its definition and its planner (ADR 0016).
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::error::{Error, Result};
 
@@ -15,47 +16,52 @@ component! {
     props {
         value: by_planner,
     }
-    planner: PropsThen(plan),
+    attributes {
+        from: Literal(1.0),
+        to: Literal(NO_VALUE),
+        step: Literal(1.0),
+        numToSelect: Literal(1.0),
+        r#type: Text,
+        exclude: Written,
+        excludeCombinations: Written,
+        sortResults: Written,
+        withReplacement: Written,
+    }
+    children: None,
+    planner: Plan(plan),
 }
 
 pub const VALUE: usize = Props::AT.value;
 
 /// Its `value` is one of `from, from + step, ..., to`, picked per instance
 /// at expansion.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<()> {
-    let d = ctx.dast();
-    let el = ctx.node();
-    let num = |name: &str, default: f64| -> Result<f64> {
-        match d.attr(el, name) {
-            None => Ok(default),
-            Some(a) => ctx.literal_number(a, name),
-        }
-    };
-    for banned in [
-        "exclude",
-        "excludeCombinations",
-        "sortResults",
-        "withReplacement",
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+    let attrs = Attrs::of(ctx.record());
+    for (banned, written) in [
+        ("exclude", attrs.exclude),
+        ("excludeCombinations", attrs.excludeCombinations),
+        ("sortResults", attrs.sortResults),
+        ("withReplacement", attrs.withReplacement),
     ] {
-        if d.attr(el, banned).is_some() {
+        if written {
             return Err(Error::Unsupported(format!("<selectFromSequence {banned}>")));
         }
     }
-    if let Some(a) = d.attr(el, "type")
-        && ctx.attr_text(a).unwrap_or_default().trim() != "number"
+    if let Some(ty) = &attrs.r#type
+        && ty.trim() != "number"
     {
         return Err(Error::Unsupported(
             "<selectFromSequence> of letters or math".into(),
         ));
     }
-    if num("numToSelect", 1.0)? != 1.0 {
+    if attrs.numToSelect? != 1.0 {
         return Err(Error::Unsupported(
             "<selectFromSequence numToSelect>".into(),
         ));
     }
-    let from = num("from", 1.0)?;
-    let step = num("step", 1.0)?;
-    let to = num("to", NO_VALUE)?;
+    let from = attrs.from?;
+    let step = attrs.step?;
+    let to = attrs.to?;
     if to.is_nan() || step == 0.0 {
         return Err(Error::Unsupported(
             "<selectFromSequence> needs literal from, to and a nonzero step".into(),
@@ -67,10 +73,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut TableProps) -> Result<
             "<selectFromSequence> with an empty sequence".into(),
         ));
     }
-    props[Props::PORTS.value] = Some(Source::Leaf(Leaf::Scope(ScopeConst::SequencePick {
-        from,
-        step,
-        count: count as u32,
-    })));
-    Ok(())
+    let mut wiring = ElemWiring::of(ComponentType::SelectFromSequence);
+    wiring.set_public(Props {
+        value: Source::Leaf(Leaf::Scope(ScopeConst::SequencePick {
+            from,
+            step,
+            count: count as u32,
+        }))
+        .into(),
+    });
+    Ok(wiring)
 }

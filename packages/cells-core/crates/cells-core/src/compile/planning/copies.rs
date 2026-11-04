@@ -48,15 +48,20 @@ impl<'a> Compiler<'a> {
     }
 
     /// `<graph extend="$g" name="g2"/>`: the copy's props alias the
-    /// original's. Its children, clones, it has from outlining
-    /// (`expand_container_copy`).
+    /// original's, or, for a type planned by a function (a section), are
+    /// planned with the copy rules around it. Its children, clones, it has
+    /// from outlining (`expand_container_copy`).
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<()> {
-        self.plan_attrs(t, e, Some(p))
+        let component_type = self.outlined(t).elems[e.index()].planned_as;
+        match Self::planner(component_type) {
+            Planner::Plan(plan) => self.plan_with_extend(t, e, Some(p), plan),
+            _ => self.plan_attrs(t, e, Some(p)),
+        }
     }
 
     /// Plan a bare copy (an `extend` with no attribute or child of its own,

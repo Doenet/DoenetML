@@ -4,9 +4,6 @@
 use super::ctx::PlanCtx;
 use crate::compile::*;
 
-/// Adjusts the props `plan_attrs` planned from the table, each by its
-/// port (`Props::PORTS`).
-pub(crate) type PropsFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>, &mut TableProps) -> Result<()>;
 /// Returns the element's plan, its attributes merged over those of the
 /// element it extends; `plan_with_extend` applies the copy rules around
 /// it.
@@ -22,8 +19,6 @@ pub(crate) type WholeFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<()>;
 pub(crate) enum Planner {
     /// From the type's prop table (`plan_attrs`).
     Props,
-    /// From the prop table, then adjusted by the function.
-    PropsThen(PropsFn),
     /// By the function, which returns the plan; `plan_with_extend` applies
     /// the copy rules and the list's length around it, and the function
     /// reads the element's children itself. (`fixed`, for every kind, is

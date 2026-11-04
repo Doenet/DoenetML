@@ -24,6 +24,10 @@ pub(crate) enum AttrValue {
     /// `Literal`: the number, or the error reading it met, for the
     /// planner to meet when it reads it.
     Literal(Result<f64>),
+    /// `LiteralFlag`: the flag, or none when it is no literal.
+    LiteralFlag(Option<bool>),
+    /// `Content`.
+    Content(ValueChildren),
     Text(String),
     Math(Box<[NodeId]>),
     Ref(RefId),
@@ -58,6 +62,8 @@ pub(crate) struct Record {
     /// Which values the element wrote itself.
     own: Vec<bool>,
     children: Children,
+    /// The tag the element is written with (`division` for a section).
+    tag: String,
 }
 
 /// An element's children as its type reads them (`children:`), parsed:
@@ -91,6 +97,8 @@ pub(crate) struct ValueChildren {
     pub(crate) value: ChildValue,
     /// The tag of the first element among them, which a value cannot hold.
     pub(crate) element: Option<String>,
+    /// How many references they hold.
+    pub(crate) references: usize,
 }
 
 /// What a value's children are, from their text and references (an
@@ -115,6 +123,7 @@ impl ValueChildren {
             nodes: Box::new([]),
             value: ChildValue::Blank,
             element: None,
+            references: 0,
         }
     }
 }
@@ -188,6 +197,28 @@ impl Record {
             AttrValue::Literal(v) => v.clone(),
             _ => Ok(default),
         }
+    }
+
+    /// A `LiteralFlag`: none when absent, `Some(None)` when it is no
+    /// literal.
+    pub(crate) fn literal_flag(&self, attr: Attr) -> Option<Option<bool>> {
+        match self.get(attr) {
+            AttrValue::LiteralFlag(v) => Some(*v),
+            _ => None,
+        }
+    }
+
+    /// A `Content`: the value, none when absent.
+    pub(crate) fn content(&self, attr: Attr) -> Option<ValueChildren> {
+        match self.get(attr) {
+            AttrValue::Content(v) => Some(v.clone()),
+            _ => None,
+        }
+    }
+
+    /// The tag the element is written with.
+    pub(crate) fn tag(&self) -> &str {
+        &self.tag
     }
 
     pub(crate) fn text(&self, attr: Attr) -> Option<String> {
@@ -284,6 +315,13 @@ impl Record {
                     }
                 }
                 AttrValue::Ref(p) => refs(cp, p),
+                AttrValue::Content(v) => match &mut v.value {
+                    ChildValue::Reference(p) => refs(cp, p),
+                    // Math text names nodes planned where the referent
+                    // sits: through a path, the copy takes none.
+                    ChildValue::Math => *v = ValueChildren::blank(),
+                    _ => {}
+                },
                 _ => {}
             }
         }
@@ -350,6 +388,7 @@ impl Compiler<'_> {
                 values: vec![AttrValue::Absent; decls.len()],
                 own: vec![false; decls.len()],
                 children: Children::default(),
+                tag: String::new(),
             });
         }
         self.parse_node_record(t, scope, node, planned_as)
@@ -371,6 +410,7 @@ impl Compiler<'_> {
             values: Vec::with_capacity(decls.len()),
             own: Vec::with_capacity(decls.len()),
             children: Children::default(),
+            tag: self.dast.str(node).to_string(),
         };
         for decl in decls {
             let value = self.parse_attr(t, scope, node, decl)?;
@@ -432,9 +472,17 @@ impl Compiler<'_> {
         }
         children.content = match decl.kind {
             _ if content.is_empty() => Content::Absent,
+            // A type that reads only groups reads no text or reference.
+            ChildrenKind::None | ChildrenKind::Rendered => {
+                let names: Vec<&str> = decl.groups.iter().map(|g| g.name).collect();
+                return Err(Error::Unsupported(format!(
+                    "the children of <{}> must be among its {}",
+                    d.str(node),
+                    names.join(" or ")
+                )));
+            }
             ChildrenKind::Math => Content::Math(content.into()),
             ChildrenKind::Value => Content::Value(self.parse_value_children(t, scope, content)?),
-            ChildrenKind::None | ChildrenKind::Rendered => Content::Absent,
         };
         Ok(children)
     }
@@ -504,6 +552,7 @@ impl Compiler<'_> {
             nodes: nodes.into(),
             value,
             element,
+            references: macros,
         })
     }
 
@@ -555,6 +604,15 @@ impl Compiler<'_> {
                     .unwrap_or(default),
             ),
             AttrKind::Literal { .. } => AttrValue::Literal(self.literal_attr(a, decl.name)),
+            AttrKind::LiteralFlag => AttrValue::LiteralFlag(
+                self.attr_text(a)
+                    .is_some()
+                    .then(|| self.attr_flag(node, decl.name)),
+            ),
+            AttrKind::Content => {
+                let nodes = d.attr_children(a).to_vec();
+                AttrValue::Content(self.parse_value_children(t, scope, nodes)?)
+            }
             AttrKind::Text => match self.attr_text(a) {
                 Some(text) => AttrValue::Text(text),
                 None => AttrValue::Absent,
@@ -723,6 +781,7 @@ mod tests {
                 values: vec![AttrValue::Literal(Ok(v))],
                 own: vec![true],
                 children: Children::default(),
+                tag: String::new(),
             },
         };
         let record = |content: Content, members: Vec<Member>| Record {
@@ -732,6 +791,7 @@ mod tests {
                 content,
                 groups: vec![members],
             },
+            tag: String::new(),
         };
         let nodes = |n: u32| Content::Math(vec![NodeId::from_index(n as usize)].into());
         let theirs = record(nodes(1), vec![member(2.0)]);

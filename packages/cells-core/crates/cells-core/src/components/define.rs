@@ -408,6 +408,20 @@ pub(crate) const fn attr_index(attrs: &[super::AttrDecl], name: &str) -> u8 {
     panic!("no such attribute")
 }
 
+/// An attribute's name as a block writes it, a keyword as a raw
+/// identifier (`r#type` is `type`).
+pub(crate) const fn raw_name(name: &'static str) -> &'static str {
+    let bytes = name.as_bytes();
+    if bytes.len() > 2 && bytes[0] == b'r' && bytes[1] == b'#' {
+        match std::str::from_utf8(bytes.split_at(2).1) {
+            Ok(s) => s,
+            Err(_) => panic!("an attribute name is UTF-8"),
+        }
+    } else {
+        name
+    }
+}
+
 /// The position of the group `name` among `groups`, for a type's typed
 /// record. A name not declared fails to compile.
 pub(crate) const fn group_index(groups: &[super::ChildGroup], name: &str) -> usize {
@@ -741,7 +755,7 @@ macro_rules! component {
         /// compile parses into the element's record (ADR 0032).
         const ATTRS: &[$crate::components::AttrDecl] = &[$(
             $crate::components::AttrDecl {
-                name: stringify!($aname),
+                name: $crate::components::define::raw_name(stringify!($aname)),
                 kind: $crate::components::define::component!(@kind $akind $(($($akarg)*))?),
             }
         ),*];
@@ -758,10 +772,10 @@ macro_rules! component {
             $(
                 pub(crate) const $aname: $crate::compile::api::Attr =
                     $crate::compile::api::Attr::declared(
-                        stringify!($aname),
+                        $crate::components::define::raw_name(stringify!($aname)),
                         $crate::components::define::attr_index(
                             super::ATTRS,
-                            stringify!($aname),
+                            $crate::components::define::raw_name(stringify!($aname)),
                         ),
                     );
             )*
@@ -839,13 +853,15 @@ macro_rules! component {
     (@kind Literal($d:expr)) => { $crate::components::AttrKind::Literal { default: $d } };
     (@kind On) => { $crate::components::AttrKind::On };
     (@kind Written) => { $crate::components::AttrKind::Written };
+    (@kind LiteralFlag) => { $crate::components::AttrKind::LiteralFlag };
+    (@kind Content) => { $crate::components::AttrKind::Content };
     (@kind Text) => { $crate::components::AttrKind::Text };
     (@kind Math) => { $crate::components::AttrKind::Math };
     (@kind Ref) => { $crate::components::AttrKind::Ref };
     (@kind $other:ident $(($($karg:tt)*))?) => {
         compile_error!(concat!(
             "component!: attribute kind `", stringify!($other),
-            "` is not one of Scalar, Value, Point, Points, Points(max), Flag(default), Bool(default), Number(default), Literal(default), On, Written, Text, Math, Ref"
+            "` is not one of Scalar, Value, Point, Points, Points(max), Flag(default), Bool(default), Number(default), Literal(default), On, Written, LiteralFlag, Content, Text, Math, Ref"
         ))
     };
     (@field Scalar) => { Option<$crate::compile::api::Source> };
@@ -858,6 +874,8 @@ macro_rules! component {
     (@field Literal($d:expr)) => { $crate::error::Result<f64> };
     (@field On) => { bool };
     (@field Written) => { bool };
+    (@field LiteralFlag) => { Option<Option<bool>> };
+    (@field Content) => { Option<$crate::compile::api::ValueChildren> };
     (@field Text) => { Option<String> };
     (@field Math) => { Option<Box<[$crate::dast::NodeId]>> };
     (@field Ref) => { Option<$crate::compile::plan::RefId> };
@@ -871,6 +889,8 @@ macro_rules! component {
     (@get Literal($d:expr), $r:ident, $a:expr) => { $r.literal($a, $d) };
     (@get On, $r:ident, $a:expr) => { $r.bool($a, false) };
     (@get Written, $r:ident, $a:expr) => { $r.bool($a, false) };
+    (@get LiteralFlag, $r:ident, $a:expr) => { $r.literal_flag($a) };
+    (@get Content, $r:ident, $a:expr) => { $r.content($a) };
     (@get Text, $r:ident, $a:expr) => { $r.text($a) };
     (@get Math, $r:ident, $a:expr) => { $r.math($a) };
     (@get Ref, $r:ident, $a:expr) => { $r.reference($a) };

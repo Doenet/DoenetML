@@ -142,31 +142,9 @@ impl<'a> PlanCtx<'_, 'a> {
             .then_some(Source::alias(Arg::Elem(scope, port)))
     }
 
-    /// The text of attribute `a`, if it holds no reference.
-    pub(crate) fn attr_text(&self, a: u32) -> Option<String> {
-        self.c.attr_text(a)
-    }
-
-    /// A flag attribute of `node`: present and empty or `true`.
-    pub(crate) fn attr_flag(&self, node: NodeId, name: &str) -> bool {
-        self.c.attr_flag(node, name)
-    }
-
-    /// An on/off attribute of `node` that may also take a value: present
-    /// and not `false` or `none`.
-    pub(crate) fn attr_on(&self, node: NodeId, name: &str) -> bool {
-        self.c.attr_on(node, name)
-    }
-
     /// The one reference attribute `a` holds and nothing else, if so.
     pub(crate) fn single_macro(&self, a: u32) -> Option<NodeId> {
         self.c.single_macro(a)
-    }
-
-    /// Whether a child node is no content of the element: layout or
-    /// presentation (`is_blank`, `is_presentation_child`).
-    pub(crate) fn is_not_content(&self, n: NodeId) -> bool {
-        self.c.is_not_content(n)
     }
 
     // Planning.
@@ -183,6 +161,13 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn tuple(&mut self, nodes: &[NodeId]) -> Result<[Source; 2]> {
         let scope = self.scope_for(nodes);
         self.c.plan_tuple(self.t, scope, nodes)
+    }
+
+    /// Children or an attribute read as a value, not blank: a reference,
+    /// a literal, or math text, as a table prop of `children` is planned.
+    pub(crate) fn value_of(&mut self, v: &ValueChildren) -> Result<Source> {
+        let scope = self.scope_for(&v.nodes);
+        self.c.plan_value_children(self.t, scope, v)
     }
 
     /// A `$ref` node as a reference.
@@ -294,12 +279,6 @@ impl<'a> PlanCtx<'_, 'a> {
         )
     }
 
-    /// Attribute `a` as a literal number; a reference is refused, since a
-    /// load-time choice depends only on the seed and literals (ADR 0009).
-    pub(crate) fn literal_number(&self, a: u32, name: &str) -> Result<f64> {
-        self.c.literal_attr(a, name)
-    }
-
     /// The canonical string id of `text` (`Compiler::intern_literal`).
     pub(crate) fn intern(&mut self, text: &str) -> StrId {
         self.c.intern_literal(text)
@@ -401,12 +380,6 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn plan_repeat_for(&mut self) -> Result<()> {
         self.c.plan_iteration_names(self.t, self.e);
         self.c.plan_repeat_for(self.t, self.e)
-    }
-
-    /// Plans the hidden elements a repeat's `valueName` and `indexName`
-    /// make (`compile/planning/iterates.rs`).
-    pub(crate) fn plan_iteration_names(&mut self) {
-        self.c.plan_iteration_names(self.t, self.e)
     }
 
     /// Plans a function's iterates as a repeat (`compile/planning/iterates.rs`).

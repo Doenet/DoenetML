@@ -415,8 +415,6 @@ planner of its own as the block's last section:
   (`extend`), `fixed` and its list's length applied around it
   (`plan_with_extend`, `compile/planning/copies.rs`); the points, lines and circle
   are planned this way,
-- `PropsThen(plan)` to adjust the plan the prop table produces (each prop
-  by its port, `props[Props::PORTS.expr]`),
 - `Whole(plan)` to plan the element entirely.
 
 Such a type lives in its own file, block and planner together (for

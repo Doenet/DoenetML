@@ -255,6 +255,13 @@ pub enum AttrKind {
     /// Whether the attribute is written at all, whatever it holds: one a
     /// type refuses.
     Written,
+    /// A literal on/off attribute that decides the wiring: present and
+    /// empty or `true`, read as written; one holding a reference is no
+    /// literal, which the planner refuses.
+    LiteralFlag,
+    /// A value as children are one (`ChildValue`): a literal, one
+    /// reference, or math text (a `<mathInput>`'s `prefill`).
+    Content,
     /// Literal text, none when it holds a reference.
     Text,
     /// Math text, kept as the nodes it is written in for the planner to
@@ -1133,6 +1140,29 @@ mod tests {
             found.is_empty(),
             "name a port (`Props::PORTS`, `wiring.item(k)`, `wiring.hidden(..)`) instead of computing a position:\n{}",
             found.join("\n")
+        );
+    }
+
+    /// A type planned from its table has no `by_planner` prop (ADR 0034):
+    /// the table says what every prop is, and `plan_attrs` refuses one it
+    /// cannot. A prop only a function or machinery plans needs one.
+    #[test]
+    fn a_table_type_plans_every_prop() {
+        let found: Vec<String> = ComponentType::ALL
+            .iter()
+            .filter(|ty| matches!(ty.def().planner, crate::compile::api::Planner::Props))
+            // Built by its choice's expansion, never planned.
+            .filter(|&&ty| ty != ComponentType::Case)
+            .flat_map(|ty| {
+                ty.prop_defs()
+                    .iter()
+                    .filter(|d| d.from == super::PropFrom::ByPlanner)
+                    .map(move |d| format!("{}.{}", ty.tag(), d.name))
+            })
+            .collect();
+        assert!(
+            found.is_empty(),
+            "by_planner props of table types: {found:?}"
         );
     }
 

@@ -135,7 +135,15 @@ impl Compiler<'_> {
             ElemShape::ExtendProp(p) => self.plan_extend_prop(t, e, p),
             ElemShape::ContainerCopy(p) => self.plan_container_copy(t, e, p),
             ElemShape::ByType(extend) => match Self::planner(component_type) {
-                Planner::Props | Planner::PropsThen(_) => self.plan_attrs(t, e, extend),
+                Planner::Props => {
+                    self.plan_attrs(t, e, extend)?;
+                    // A repeat's `valueName` and `indexName` make hidden
+                    // elements in its body, which its table cannot say.
+                    if matches!(self.outlined(t).elems[e.index()].body, Body::Repeat { .. }) {
+                        self.plan_iteration_names(t, e);
+                    }
+                    Ok(())
+                }
                 Planner::Plan(plan) => self.plan_with_extend(t, e, extend, plan),
                 Planner::Whole(plan) => {
                     let record = self.parsed().record(t, e)?;

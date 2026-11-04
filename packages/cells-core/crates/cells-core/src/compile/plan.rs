@@ -1177,6 +1177,7 @@ impl Wire {
         let i = port.index();
         match component_type.prop_defs()[i].from {
             PropFrom::Computed { op, args } => Source::from_def(op, &args).into(),
+            PropFrom::Aggregate(a) => Source::aggregate(a).into(),
             _ => unreachable!(
                 "{} is not computed by the table",
                 component_type.prop_defs()[i].name
