@@ -27,6 +27,13 @@ impl<'a> Compiler<'a> {
             None => Source::given(v),
         };
         let mut props = TableProps::of(component_type);
+        // The element's own children, as its type reads them (ADR 0034):
+        // what a `PropFrom::Children` prop is planned from.
+        let children = if component_type.def().children.kind == ChildrenKind::Value {
+            self.parsed().record(t, e)?.child_value()
+        } else {
+            ValueChildren::blank()
+        };
         for (pi, def) in component_type.prop_defs().iter().enumerate() {
             let _p = crate::trace::tally(match def.from {
                 PropFrom::Attribute => "attribute",
@@ -66,39 +73,28 @@ impl<'a> Compiler<'a> {
                     None => Source::own(Port::table(alias as usize)),
                 },
                 (None, PropFrom::Computed { op, args }) => Source::from_def(op, &args),
-                (None, PropFrom::Children) => {
-                    // A `<label>` child is presentation, not the value.
-                    let content: Vec<NodeId> = d
-                        .children(el)
-                        .iter()
-                        .copied()
-                        .filter(|&n| !self.is_presentation_child(n))
-                        .collect();
-                    let blank = content.iter().all(|&n| self.is_blank(n));
+                (None, PropFrom::Children) => match &children.value {
                     // A mathInput's `prefill` stands in for blank children.
-                    let from_attr = def.attr.and_then(|a| d.attr(el, a));
-                    if blank {
-                        match from_attr {
-                            Some(a) => match self.try_value(t, scope, d.attr_children(a), None)? {
-                                Some(p) => p,
-                                None => {
-                                    Source::math(self.plan_math(t, scope, d.attr_children(a))?)
-                                }
-                            },
-                            None => default(def.default, pi),
-                        }
-                    } else {
-                        match self.try_value(t, scope, &content, None)? {
-                            // A literal child (`<number>3</number>`, an input's
-                            // initial state) is a value slot: the classing
-                            // (ADR 0018) makes it essential when an input or an
-                            // action can reach it, a constant otherwise.
+                    ChildValue::Blank => match def.attr.and_then(|a| d.attr(el, a)) {
+                        Some(a) => match self.try_value(t, scope, d.attr_children(a), None)? {
                             Some(p) => p,
-                            // Not a single literal or reference: math text.
-                            None => Source::math(self.plan_math(t, scope, &content)?),
-                        }
+                            None => Source::math(self.plan_math(t, scope, d.attr_children(a))?),
+                        },
+                        None => default(def.default, pi),
+                    },
+                    ChildValue::Reference(p) => Source::reference(*p),
+                    // A literal child (`<number>3</number>`, an input's
+                    // initial state) is a value slot: the classing (ADR
+                    // 0018) makes it essential when an input or an action
+                    // can reach it, a constant otherwise.
+                    ChildValue::Text { text, .. } if literal_value(text.trim()).is_some() => {
+                        literal_value(text.trim()).expect("a literal")
                     }
-                }
+                    // Not a single literal or reference: math text.
+                    ChildValue::Text { .. } | ChildValue::Math => {
+                        Source::math(self.plan_math(t, scope, &children.nodes)?)
+                    }
+                },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
                 // Set below, by the type's `PropsThen` planner.
@@ -379,17 +375,6 @@ impl<'a> Compiler<'a> {
                 self.dast.attr_children(a),
             )?)),
         }
-    }
-
-    /// The children that make up math text: text and `$ref`s, not blanks
-    /// or elements (constraints).
-    pub(in crate::compile) fn math_children(&self, node: NodeId) -> Vec<NodeId> {
-        let d = self.dast;
-        d.children(node)
-            .iter()
-            .copied()
-            .filter(|&n| !self.is_blank(n) && d.kind(n) != NodeKind::Element)
-            .collect()
     }
 
     /// Replace cell leaves that name a `<math>` element of this template

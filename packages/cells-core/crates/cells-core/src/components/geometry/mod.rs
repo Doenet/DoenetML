@@ -27,6 +27,40 @@ pub use crate::limits::{MAX_RIGID_VERTICES, MAX_VERTICES};
 pub(crate) const DEFAULT_FIRST_POINT: [f64; 2] = [1.0, 0.0];
 pub(crate) const DEFAULT_SECOND_POINT: [f64; 2] = [0.0, 0.0];
 
+pub mod constrain_to {
+    use super::*;
+
+    component! {
+        /// `<constrainTo>$c</constrainTo>` among a point's constraints: the
+        /// point is projected onto what the reference names. Only ever a
+        /// member of a point's `constraints` group, read in the point's
+        /// record (ADR 0034).
+        tags: ["constrainTo"],
+        flags: [internal],
+        children: Value,
+        planner: Props,
+    }
+}
+
+pub mod constrain_to_grid {
+    use super::*;
+
+    component! {
+        /// `<constrainToGrid dx dy xoffset yoffset>` among a point's
+        /// constraints: the point snaps to the grid. Only ever a member of a
+        /// point's `constraints` group, read in the point's record.
+        tags: ["constrainToGrid"],
+        flags: [internal],
+        attributes {
+            dx: Literal(1.0),
+            dy: Literal(1.0),
+            xoffset: Literal(0.0),
+            yoffset: Literal(0.0),
+        }
+        planner: Props,
+    }
+}
+
 pub mod point_list {
     use super::*;
 

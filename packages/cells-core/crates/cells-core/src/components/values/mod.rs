@@ -30,6 +30,7 @@ pub mod number {
         props {
             value: children { rendered },
         }
+        children: Value,
         planner: Props,
     }
 
@@ -103,6 +104,7 @@ pub mod clamp_number {
             atLeastLower: computed(OpSpec::Max, [unclamped, lowerValue]),
             value: computed(OpSpec::Min, [atLeastLower, upperValue]) { rendered },
         }
+        children: Value,
         planner: Props,
     }
 }

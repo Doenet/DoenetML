@@ -272,17 +272,11 @@ impl Compiler<'_> {
                 self.outlined_mut(t).elems[e.index()].children = kids;
             }
             ComponentType::When => {}
-            // A number's children are its value, not rendered children; a
-            // `Plan` type's planner reads its children itself (a line's
-            // equation, a point's constraints). Its presentational
-            // children (`<label>`) are components all the same, for the
-            // renderer to read (ADR 0024).
-            _ if matches!(Self::planner(component_type), Planner::Plan(_))
-                || component_type
-                    .prop_defs()
-                    .iter()
-                    .any(|p| p.from == PropFrom::Children) =>
-            {
+            // Children the type reads (`children:`, ADR 0034) are parsed
+            // into its record, not built: a number's value, a point's
+            // constraints. Its presentational children (`<label>`) are
+            // components all the same, for the renderer to read (ADR 0024).
+            _ if !component_type.def().children.built() => {
                 let presentational: Vec<NodeId> = d
                     .children(el)
                     .iter()

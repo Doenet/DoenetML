@@ -20,6 +20,12 @@ component! {
         expr: children { rendered },
         value: children { rendered },
     }
+    attributes {
+        expand: On,
+        simplify: On,
+    }
+    // Parsed as the type outlining settled (`compile/parse.rs`), not here.
+    children: Math,
     planner: Whole(plan),
 }
 
@@ -73,10 +79,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             ctx.set_props(super::tuple::props_of(entries));
         }
         ParsedMath::Expr(id) => {
-            let el = ctx.node();
-            let post = if ctx.attr_on(el, "expand") {
+            let attrs = Attrs::of(ctx.record());
+            let post = if attrs.expand {
                 Post::Expand
-            } else if ctx.attr_on(el, "simplify") {
+            } else if attrs.simplify {
                 Post::Simplify
             } else {
                 Post::None

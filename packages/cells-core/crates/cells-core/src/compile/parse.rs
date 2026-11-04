@@ -59,10 +59,10 @@ impl Compiler<'_> {
         parsed
     }
 
-    /// Parsing (ADR 0032): every element's attribute record, each
-    /// attribute its planner's type declares parsed where the element
-    /// sits; what its planner reads of its attributes, and what a copy
-    /// of it merges its own under.
+    /// Parsing (ADR 0032, ADR 0034): every element's record, each
+    /// attribute its type declares and its children as the type reads
+    /// them parsed where the element sits; what its planner reads, and
+    /// what a copy of it merges its own under.
     pub(in crate::compile) fn parse_records(
         &mut self,
         to_plan: &[(TemplateId, ElemId)],
@@ -72,12 +72,8 @@ impl Compiler<'_> {
             if self.is_box(t, e) || self.outlined(t).elems[e.index()].cloned {
                 continue;
             }
-            if self.outlined(t).elems[e.index()]
-                .planned_as
-                .def()
-                .attributes
-                .is_empty()
-            {
+            let def = self.outlined(t).elems[e.index()].planned_as.def();
+            if def.attributes.is_empty() && def.children.built() {
                 continue;
             }
             let record = self.parse_record(t, e);

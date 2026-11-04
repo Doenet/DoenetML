@@ -56,6 +56,7 @@ component! {
         allowRotation: Bool(true),
         allowTranslation: Bool(true),
     }
+    children: None,
     planner: Plan(plan),
 }
 

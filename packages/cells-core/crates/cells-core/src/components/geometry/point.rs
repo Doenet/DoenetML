@@ -5,7 +5,6 @@
 use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::dast::{NodeId, NodeKind};
 use crate::error::{Error, Result};
 use crate::program::{SymKind, VecOp};
 use crate::tick::snap::Shape;
@@ -31,6 +30,9 @@ component! {
         y: Scalar,
         hide: Flag(false),
     }
+    children: Math {
+        constraints: [ConstrainTo, ConstrainToGrid],
+    },
     planner: Plan(plan),
 }
 
@@ -57,11 +59,7 @@ pub(crate) fn props_of(x: Source, y: Source) -> Vec<Source> {
 /// Plans a point: coordinates from `coords`, from `x`/`y`, or from
 /// `(a, b)` children; a constraint child wraps them in a projection.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let d = ctx.dast();
-    let (el, base) = (ctx.node(), ctx.base());
     let mut wiring = ElemWiring::of(ComponentType::Point);
-    let own_children = ctx.math_children(el);
-    let base_children = base.map(|b| ctx.math_children(b)).unwrap_or_default();
     let attrs = Attrs::of(ctx.record());
     // A coordinate the children give is a given leaf of the children,
     // the element's own or its referent's, which a copy then shares.
@@ -69,19 +67,21 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let [x, y] = if let Some(coords) = attrs.coords {
         let p = coords.point()?;
         Wire::point(&p, attr::coords, 0)
-    } else if attrs.x.is_some()
-        || attrs.y.is_some()
-        || (own_children.is_empty() && base_children.is_empty())
-    {
-        // A coordinate the element does not give comes from the
-        // referent's `(a, b)` children when it has them and the element
-        // has none of its own (an extend writing one coordinate), else
-        // it is the element's own state at 0.
-        let from_referent = if own_children.is_empty() && !base_children.is_empty() {
-            let p = GivenPoint::Tuple(ctx.tuple(&base_children)?);
-            Wire::point_given(&p, children_leaf).map(Some)
-        } else {
-            [None, None]
+    } else if let (None, None, Some(nodes)) = (&attrs.x, &attrs.y, &attrs.children) {
+        // The point's `(a, b)` children, which a copy then shares.
+        let p = GivenPoint::Tuple(ctx.tuple(nodes)?);
+        Wire::point_given(&p, children_leaf)
+    } else {
+        // A coordinate the element does not give comes from its `(a, b)`
+        // children when it has them (an extend writing one coordinate of
+        // a point written as children), else it is the element's own
+        // state at 0.
+        let from_children = match &attrs.children {
+            Some(nodes) => {
+                let p = GivenPoint::Tuple(ctx.tuple(nodes)?);
+                Wire::point_given(&p, children_leaf).map(Some)
+            }
+            None => [None, None],
         };
         let coord = |name: Attr, source: Option<Source>, inherited: Option<Wire>| -> Wire {
             match source {
@@ -89,46 +89,17 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 None => inherited.unwrap_or_else(|| Wire::given_by(name, 0.0)),
             }
         };
-        let [bx, by] = from_referent;
-        [coord(attr::x, attrs.x, bx), coord(attr::y, attrs.y, by)]
-    } else {
-        // The point's own children, else its referent's, which a copy
-        // then shares.
-        let nodes = if own_children.is_empty() {
-            base_children
-        } else {
-            own_children
-        };
-        let p = GivenPoint::Tuple(ctx.tuple(&nodes)?);
-        Wire::point_given(&p, children_leaf)
+        let [cx, cy] = from_children;
+        [coord(attr::x, attrs.x, cx), coord(attr::y, attrs.y, cy)]
     };
     // `hide` is a 0/1 cell: a bare or literal flag, or a bound cell; a
     // copy inherits the original's.
     let hide = Wire::scalar(attrs.hide, GivenId::Attr(attr::hide, 0));
-    // Constraints may sit directly under the point or in <constraints>.
-    let mut constraints: Vec<NodeId> = Vec::new();
-    for node in std::iter::once(el).chain(base) {
-        for &n in d.children(node) {
-            if d.kind(n) == NodeKind::Element && !ctx.is_presentation_child(n) {
-                if d.str(n) == "constraints" {
-                    constraints.extend(
-                        d.children(n)
-                            .iter()
-                            .copied()
-                            .filter(|&c| d.kind(c) == NodeKind::Element),
-                    );
-                } else {
-                    constraints.push(n);
-                }
-            }
-        }
-        if !constraints.is_empty() {
-            break;
-        }
-    }
-    let [x, y] = match constraints.as_slice() {
+    // Constraints sit directly under the point or in <constraints>, the
+    // element's own or, when it has none, its referent's.
+    let [x, y] = match attrs.constraints.as_slice() {
         [] => [x, y],
-        [c] => constrain(ctx, &mut wiring, [x, y], *c)?,
+        [c] => constrain(ctx, &mut wiring, [x, y], c)?,
         _ => {
             return Err(Error::Unsupported(
                 "more than one constraint on a point".into(),
@@ -146,25 +117,19 @@ fn constrain(
     ctx: &mut PlanCtx<'_, '_>,
     wiring: &mut ElemWiring,
     [x, y]: [Wire; 2],
-    c: NodeId,
+    c: &Member,
 ) -> Result<[Wire; 2]> {
-    let d = ctx.dast();
     let raw_x = wiring.hidden_wire(x);
     let raw_y = wiring.hidden_wire(y);
     let at = Props::PORTS;
-    match d.str(c) {
-        "constrainToGrid" => {
-            let num = |name: &str, default: f64| -> Result<f64> {
-                match d.attr(c, name) {
-                    None => Ok(default),
-                    Some(a) => ctx
-                        .attr_text(a)
-                        .and_then(|s| s.trim().parse::<f64>().ok())
-                        .ok_or_else(|| Error::BadLiteralParam(name.into())),
-                }
+    match c.component_type {
+        ComponentType::ConstrainToGrid => {
+            let grid = super::constrain_to_grid::Attrs::of(&c.record);
+            let num = |v: Result<f64>, name: &str| -> Result<f64> {
+                v.map_err(|_| Error::BadLiteralParam(name.into()))
             };
-            let (dx, dy) = (num("dx", 1.0)?, num("dy", 1.0)?);
-            let (xo, yo) = (num("xoffset", 0.0)?, num("yoffset", 0.0)?);
+            let (dx, dy) = (num(grid.dx, "dx")?, num(grid.dy, "dy")?);
+            let (xo, yo) = (num(grid.xoffset, "xoffset")?, num(grid.yoffset, "yoffset")?);
             let snap = |wiring: &mut ElemWiring, raw: Port, step: f64, offset: f64| -> Wire {
                 let mut cur = raw;
                 if offset != 0.0 {
@@ -186,14 +151,13 @@ fn constrain(
             let y = snap(wiring, raw_y, dy, yo);
             Ok([x, y])
         }
-        "constrainTo" => {
-            let m = d
-                .children(c)
-                .iter()
-                .copied()
-                .find(|&n| d.kind(n) == NodeKind::Macro)
-                .ok_or_else(|| Error::Unsupported("<constrainTo> without a reference".into()))?;
-            let p = ctx.reference(m)?;
+        _ => {
+            let ChildValue::Reference(p) = super::constrain_to::Attrs::of(&c.record).children.value
+            else {
+                return Err(Error::Unsupported(
+                    "<constrainTo> without a reference".into(),
+                ));
+            };
             let target = ctx.reference_type(p)?.ok_or_else(|| {
                 Error::Unsupported("<constrainTo> must name a component in the same scope".into())
             })?;
@@ -236,6 +200,5 @@ fn constrain(
                 ))),
             }
         }
-        other => Err(Error::Unsupported(format!("<{other}> constraint"))),
     }
 }

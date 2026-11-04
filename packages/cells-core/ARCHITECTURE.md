@@ -450,14 +450,26 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   the referent's. A value the planner introduces that no attribute gives
   is a parameter (`params { DIST }`, `wiring.param(param::DIST, 1.0)`);
   one the children give is `GivenId::Children(k)`.
+- Declare how the type reads its children (`children: Value`, ADR 0034):
+  `None` (read and built as nothing, a shape's), `Math` (math text, as
+  written: a `<math>`'s, a point's `(a, b)`), `Value` (a blank, a literal,
+  one reference or math text: a `<number>`'s, a `<text>`'s), or, the
+  default, `Rendered` (built as components). Groups of element children
+  follow the kind (`children: Math { constraints: [ConstrainTo,
+  ConstrainToGrid] }`): each member is parsed into a record of its own, as
+  its type declares, written directly under the element or inside a
+  wrapper named as the group is (`<constraints>`). The compile parses them
+  into the record beside the attributes, and the planner reads them typed
+  (`attrs.children`, `attrs.constraints`), never the source.
 - A `<label>` or `<shortDescription>` child is a component of the element
-  on every type, for the renderer to read (ADR 0024); a planner reading
-  its element children passes over them (`ctx.is_presentation_child`).
+  on every type, for the renderer to read (ADR 0024); the parse of the
+  children passes over it.
 - What an extend omits comes from its referent, planned where the
-  referent sits (ADR 0023): the record is merged (ADR 0032), and
-  `ctx.tuple` and the rest pick the referent's scope for the referent's
-  children, so a planner reading `ctx.base()`'s children need not think
-  about it.
+  referent sits (ADR 0023): the record is merged (ADR 0032), its children
+  part by part (the referent's math text when the element has none, the
+  referent's members of a group the element has none of), and `ctx.tuple`
+  and the rest pick the referent's scope for the referent's math text, so
+  a planner need not think about it.
 - A type a bare reference reads as a value says so in its block
   (`reads_as: Math` on `<mathInput>`, ADR 0025); the build then makes a
   `<math>` aliasing the input's props for `$mi`, and `<math

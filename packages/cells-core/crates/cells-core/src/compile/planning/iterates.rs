@@ -172,23 +172,12 @@ impl<'a> Compiler<'a> {
     /// A `<function>`'s `variables`, split at spaces and commas; `x` when
     /// absent.
     pub(super) fn function_variables(&self, fnode: NodeId) -> Vec<String> {
-        let vars: Vec<String> = self
-            .compiled
-            .dast
-            .attr(fnode, "variables")
-            .and_then(|a| self.attr_text(a))
-            .map(|s| {
-                s.split(|c: char| c.is_whitespace() || c == ',')
-                    .filter(|v| !v.is_empty())
-                    .map(str::to_string)
-                    .collect()
-            })
-            .unwrap_or_default();
-        if vars.is_empty() {
-            vec!["x".to_string()]
-        } else {
-            vars
-        }
+        crate::components::values::curve::variables(
+            self.compiled
+                .dast
+                .attr(fnode, "variables")
+                .and_then(|a| self.attr_text(a)),
+        )
     }
 
     /// The hidden iteration elements outlining made in repeat `e`'s body

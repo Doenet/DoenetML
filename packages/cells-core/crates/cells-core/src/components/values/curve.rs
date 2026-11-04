@@ -5,7 +5,6 @@ use crate::compile::api::*;
 use crate::components::define::*;
 use crate::components::prop::graph;
 use crate::components::{ComponentDef, ComponentType};
-use crate::dast::NodeId;
 use crate::error::Result;
 use crate::program::{Post, SymKind};
 
@@ -30,6 +29,10 @@ component! {
         // with it when `curve` is 1 (`sampled`).
         samples: by_planner { rendered, sampled: curve },
     }
+    attributes {
+        variables: Text,
+    }
+    children: Math,
     planner: Whole(plan),
 }
 
@@ -43,10 +46,28 @@ pub const XMAX: usize = Props::AT.xmax;
 pub const CURVE: usize = Props::AT.curve;
 pub const SAMPLES: usize = Props::AT.samples;
 
-/// Whether a `<function>` with text `mt` takes several variables or
-/// returns a tuple.
-fn is_vector_function(ctx: &PlanCtx<'_, '_>, mt: &MathText) -> bool {
-    ctx.function_variables(ctx.node()).len() > 1
+/// A `<function>`'s `variables`, split at spaces and commas; `x` when
+/// absent.
+pub(crate) fn variables(text: Option<String>) -> Vec<String> {
+    let vars: Vec<String> = text
+        .map(|s| {
+            s.split(|c: char| c.is_whitespace() || c == ',')
+                .filter(|v| !v.is_empty())
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default();
+    if vars.is_empty() {
+        vec!["x".to_string()]
+    } else {
+        vars
+    }
+}
+
+/// Whether a `<function>` with `variables` and text `mt` takes several
+/// variables or returns a tuple.
+fn is_vector_function(variables: Option<String>, mt: &MathText) -> bool {
+    self::variables(variables).len() > 1
         || tuple_entries(mt.tokens()).is_some_and(|entries| entries.len() > 1)
 }
 
@@ -54,11 +75,12 @@ fn is_vector_function(ctx: &PlanCtx<'_, '_>, mt: &MathText) -> bool {
 /// the graph it sits in, else [-10, 10].
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let component_type = ctx.component_type();
-    let nodes: Vec<NodeId> = ctx.dast().children(ctx.node()).to_vec();
+    let attrs = Attrs::of(ctx.record());
+    let nodes = attrs.children.unwrap_or_default();
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(component_type);
     let mt = ctx.math_text(&nodes)?;
-    if component_type == ComponentType::Function && is_vector_function(ctx, &mt) {
+    if component_type == ComponentType::Function && is_vector_function(attrs.variables, &mt) {
         // Not a curve and not a math cell: a function of several
         // variables, or one returning a tuple, is only iterated
         // (`plan_function_iterates` reads its text).

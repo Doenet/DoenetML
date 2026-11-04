@@ -59,6 +59,7 @@ component! {
         radius: Scalar,
         through: Points(3),
     }
+    children: None,
     planner: Plan(plan),
 }
 

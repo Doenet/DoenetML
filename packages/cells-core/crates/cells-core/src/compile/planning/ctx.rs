@@ -31,7 +31,6 @@ pub(crate) struct PlanCtx<'c, 'a> {
 /// The `extend` referent of a `Plan` type planned with overrides: an
 /// element of the same template.
 struct Base {
-    node: NodeId,
     /// Where its children are planned.
     scope: ElemId,
     /// Every node under it: what a planner reads from it rather than from
@@ -66,7 +65,6 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
                 }
             }
             Base {
-                node,
                 scope: name_scope,
                 subtree,
             }
@@ -99,10 +97,6 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
-    fn base_node(&self) -> Option<NodeId> {
-        self.referent.as_ref().map(|b| b.node)
-    }
-
     /// The element's attribute record (ADR 0032): every attribute its
     /// type declares, parsed, the element's own or its referent's. A
     /// planner reads it as its type's `Attrs` (`Attrs::of(ctx.record())`).
@@ -125,12 +119,6 @@ impl<'a> PlanCtx<'_, 'a> {
     /// The element's component type.
     pub(crate) fn component_type(&self) -> ComponentType {
         self.elem().component_type
-    }
-
-    /// The node of the element a `Plan` type extends, which supplies the
-    /// children the element omits (its attributes are in the record).
-    pub(crate) fn base(&self) -> Option<NodeId> {
-        self.base_node()
     }
 
     /// The reference in the element's `extend`, if any.
@@ -175,44 +163,10 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.single_macro(a)
     }
 
-    /// Whether a child node is layout: whitespace or a comment.
-    pub(crate) fn is_blank(&self, n: NodeId) -> bool {
-        self.c.is_blank(n)
-    }
-
-    /// Whether a child node is presentation a renderer reads (a `<label>`),
-    /// which a planner reading element children passes over (ADR 0024).
-    pub(crate) fn is_presentation_child(&self, n: NodeId) -> bool {
-        self.c.is_presentation_child(n)
-    }
-
     /// Whether a child node is no content of the element: layout or
     /// presentation (`is_blank`, `is_presentation_child`).
     pub(crate) fn is_not_content(&self, n: NodeId) -> bool {
         self.c.is_not_content(n)
-    }
-
-    /// A node's children that make up math text: text and `$ref`s, not
-    /// blanks or elements.
-    pub(crate) fn math_children(&self, node: NodeId) -> Vec<NodeId> {
-        self.c.math_children(node)
-    }
-
-    /// The element's own children as math text, if it has any.
-    pub(crate) fn child_math(&self) -> Option<Vec<NodeId>> {
-        Some(self.math_children(self.node())).filter(|n| !n.is_empty())
-    }
-
-    /// The `extend` referent's children as math text, if it has any. A
-    /// planner decides when they stand for the element's own.
-    pub(crate) fn referent_child_math(&self) -> Option<Vec<NodeId>> {
-        Some(self.math_children(self.base_node()?)).filter(|n| !n.is_empty())
-    }
-
-    /// A `<function>`'s `variables`, split at spaces and commas; `x` when
-    /// absent.
-    pub(crate) fn function_variables(&self, node: NodeId) -> Vec<String> {
-        self.c.function_variables(node)
     }
 
     // Planning.

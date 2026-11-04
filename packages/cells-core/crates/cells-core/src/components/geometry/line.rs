@@ -53,6 +53,7 @@ component! {
         // A missing point's coordinates.
         ESS1X, ESS1Y, ESS2X, ESS2Y,
     }
+    children: Math,
     planner: Plan(plan),
 }
 
@@ -84,18 +85,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let through = attrs.through.clone();
     let by_direction =
         attrs.slope.is_some() || attrs.parallelTo.is_some() || attrs.perpendicularTo.is_some();
-    // The equation is the attribute, or the element's own math, or its
-    // referent's when nothing else says how the line is made.
-    let equation = attrs
-        .equation
-        .clone()
-        .map(|nodes| nodes.to_vec())
-        .or_else(|| ctx.child_math())
-        .or_else(|| {
-            (through.is_empty() && !by_direction)
-                .then(|| ctx.referent_child_math())
-                .flatten()
-        });
+    // The equation is the attribute, or the children's math (the
+    // element's own, or its referent's) when nothing else says how the
+    // line is made.
+    let equation = attrs.equation.clone().or_else(|| {
+        (through.is_empty() && !by_direction)
+            .then(|| attrs.children.clone())
+            .flatten()
+    });
     if through.len() > 2 {
         return Err(Error::Unsupported(
             "a line through more than two points".into(),

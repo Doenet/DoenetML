@@ -56,6 +56,7 @@ component! {
         // A missing vertex's coordinates.
         ESS1X, ESS1Y, ESS2X, ESS2Y, ESS3X, ESS3Y,
     }
+    children: None,
     planner: Plan(plan),
 }
 

@@ -165,6 +165,8 @@ component_types! {
     Response => values::response::DEFINITION,
     TextInput => inputs::text_input::DEFINITION,
     Triangle => geometry::triangle::DEFINITION,
+    ConstrainTo => geometry::constrain_to::DEFINITION,
+    ConstrainToGrid => geometry::constrain_to_grid::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -206,6 +208,9 @@ pub struct ComponentDef {
     /// (`attributes { .. }`, ADR 0032): what the compile parses into the
     /// element's record before the planner runs.
     pub attributes: &'static [AttrDecl],
+    /// How the type reads its children (`children:`, ADR 0034): what the
+    /// compile parses them into, beside the attributes.
+    pub children: ChildrenDecl,
     /// The parameters the type's planner introduces that no attribute
     /// gives (`params { .. }`): named given leaves a copy shares.
     pub params: &'static [&'static str],
@@ -240,6 +245,16 @@ pub enum AttrKind {
     Bool { default: bool },
     /// A literal number, `default` when absent or not a number.
     Number { default: f64 },
+    /// A literal number, `default` when absent; a reference or text that
+    /// is no number is an error the planner meets when it reads it (a
+    /// load-time choice depends only on the seed and literals, ADR 0009).
+    Literal { default: f64 },
+    /// A literal on/off attribute that may also take a value: present and
+    /// not `false` or `none` (`simplify`, `simplify="full"`).
+    On,
+    /// Whether the attribute is written at all, whatever it holds: one a
+    /// type refuses.
+    Written,
     /// Literal text, none when it holds a reference.
     Text,
     /// Math text, kept as the nodes it is written in for the planner to
@@ -254,6 +269,60 @@ pub enum AttrKind {
 pub struct AttrDecl {
     pub name: &'static str,
     pub kind: AttrKind,
+}
+
+/// How a type reads its children (`children:`, ADR 0034, decision 2):
+/// what the compile parses them into, in the element's record, before
+/// the planner runs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ChildrenKind {
+    /// Read by nothing and built as nothing: only presentation (a
+    /// `<label>`) is built, for a renderer (ADR 0024). A shape's.
+    None,
+    /// Math text: the text and references, kept as the nodes they are
+    /// written in for the planner to parse as it needs (a `<math>`'s, a
+    /// `<function>`'s, a `<point>`'s `(a, b)`).
+    Math,
+    /// A value: a blank, a literal, one reference, or math text (a
+    /// `<number>`'s, a `<text>`'s, an input's initial state), the one
+    /// reference planned.
+    Value,
+    /// Content a renderer shows: every child is built as a component, and
+    /// nothing reads them as a value. What a type that declares nothing
+    /// has.
+    Rendered,
+}
+
+/// A group of element children of given types (`constraints:
+/// [ConstrainTo, ConstrainToGrid]`), each parsed into a record of its
+/// own, written directly under the element or inside a wrapper element
+/// named as the group is (`<constraints>`).
+#[derive(Debug, Clone, Copy)]
+pub struct ChildGroup {
+    pub name: &'static str,
+    pub types: &'static [ComponentType],
+}
+
+/// A type's `children:` declaration: its kind, and the groups of element
+/// children it reads beside it.
+#[derive(Debug, Clone, Copy)]
+pub struct ChildrenDecl {
+    pub kind: ChildrenKind,
+    pub groups: &'static [ChildGroup],
+}
+
+impl ChildrenDecl {
+    /// What a type that declares nothing has: rendered children.
+    pub const RENDERED: ChildrenDecl = ChildrenDecl {
+        kind: ChildrenKind::Rendered,
+        groups: &[],
+    };
+
+    /// Whether the children are built as components (rendered content)
+    /// rather than read by the planner, presentation aside.
+    pub fn built(&self) -> bool {
+        self.kind == ChildrenKind::Rendered
+    }
 }
 
 /// A type's one list prop of points: the names the list goes by

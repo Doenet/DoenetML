@@ -24,6 +24,7 @@ component! {
         value: children { attribute: prefill, bind: bindValueTo, interactive, rendered },
         expr: by_planner { interactive, rendered },
     }
+    children: Value,
     planner: PropsThen(plan),
 }
 

@@ -61,7 +61,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
 
-use crate::components::{Collection, ComponentType, PropAt, PropFrom, PropSel, prop};
+use crate::components::{ChildrenKind, Collection, ComponentType, PropAt, PropFrom, PropSel, prop};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
 use crate::diagnostics::Diagnostic;
 use crate::error::{Error, Result};
@@ -114,6 +114,7 @@ use names::*;
 use parse::Parsed;
 use planning::ctx::PlanCtx;
 use planning::planner::Planner;
+use record::{ChildValue, ValueChildren};
 pub(crate) use seal::keys;
 
 /// A compile that planned: what it planned, and the errors of the

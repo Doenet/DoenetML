@@ -3,7 +3,6 @@
 use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::dast::{NodeId, NodeKind};
 use crate::error::{Error, Result};
 
 component! {
@@ -18,6 +17,11 @@ component! {
     props {
         value: children { attribute: prefill, bind: bindValueTo, text, interactive, rendered },
     }
+    attributes {
+        prefill: Text,
+        bindValueTo: Ref,
+    }
+    children: Value,
     planner: Whole(plan),
 }
 
@@ -31,29 +35,17 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     if ctx.extend().is_some() {
         return ctx.plan_from_table();
     }
-    let d = ctx.dast();
-    let el = ctx.node();
-    let nodes: Vec<NodeId> = d
-        .children(el)
-        .iter()
-        .copied()
-        .filter(|&n| !ctx.is_not_content(n))
-        .collect();
-    let value: Wire = match (nodes.as_slice(), d.attr(el, "bindValueTo")) {
-        ([n], _) if d.kind(*n) == NodeKind::Macro => Source::reference(ctx.reference(*n)?).into(),
-        ([], Some(a)) => {
-            let m = ctx.single_macro(a).ok_or_else(|| Error::BadValue {
-                attr: "bindValueTo".into(),
-                text: ctx.attr_text(a).unwrap_or_default(),
-            })?;
-            Source::reference(ctx.reference(m)?).into()
+    let attrs = Attrs::of(ctx.record());
+    let element = attrs.children.element.is_some();
+    let value: Wire = match (attrs.children.value, attrs.bindValueTo) {
+        _ if element => {
+            return Err(Error::Unsupported(
+                "<textInput> with content other than one reference".into(),
+            ));
         }
-        ([], None) => {
-            let text = match d.attr(el, "prefill") {
-                Some(a) => ctx.attr_text(a).unwrap_or_default(),
-                None => String::new(),
-            };
-            let id = ctx.intern(&text);
+        (ChildValue::Reference(p), _) | (ChildValue::Blank, Some(p)) => Source::reference(p).into(),
+        (ChildValue::Blank, None) => {
+            let id = ctx.intern(&attrs.prefill.unwrap_or_default());
             Wire::given_text(GivenId::Children(0), id)
         }
         _ => {

@@ -35,6 +35,7 @@ component! {
         // A missing endpoint's coordinates.
         ESS1X, ESS1Y, ESS2X, ESS2Y,
     }
+    children: None,
     planner: Plan(plan),
 }
 

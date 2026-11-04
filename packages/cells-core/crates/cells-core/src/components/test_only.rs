@@ -54,6 +54,7 @@ pub(crate) mod test_shape {
             hide: by_planner,
         }
         attributes { a: Scalar, b: Scalar, hide: Flag(false) }
+        children: Math,
         planner: Plan(plan),
     }
 
@@ -69,18 +70,16 @@ pub(crate) mod test_shape {
         Ok(wiring)
     }
 
-    /// `a`: its attribute, else the element's children, else its
-    /// referent's, which a copy then shares.
+    /// `a`: its attribute, else the element's children (its referent's
+    /// when it has none), which a copy then shares.
     fn a(ctx: &mut PlanCtx<'_, '_>, attrs: &Attrs) -> Result<Wire> {
         if let Some(source) = attrs.a.clone() {
             return Ok(given(Some(source), attr::a));
         }
-        let nodes = match (ctx.child_math(), ctx.referent_child_math()) {
-            (Some(own), _) => own,
-            (None, Some(referent)) => referent,
-            (None, None) => return Ok(Wire::given_by(attr::a, 0.0)),
-        };
-        Ok(Wire::scalar(ctx.scalar_of(&nodes)?, GivenId::Children(0)))
+        match &attrs.children {
+            Some(nodes) => Ok(Wire::scalar(ctx.scalar_of(nodes)?, GivenId::Children(0))),
+            None => Ok(Wire::given_by(attr::a, 0.0)),
+        }
     }
 
     /// Attribute `name`'s value as the given leaf it gives: a literal is
@@ -115,6 +114,7 @@ pub(crate) mod test_list {
         attribute: points,
         }
         attributes { points: Points }
+        children: None,
         planner: Plan(plan),
     }
 

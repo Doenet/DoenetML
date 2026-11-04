@@ -265,6 +265,7 @@ pub(super) const fn definition(
         presentation: &[],
         reads_as: None,
         attributes: &[],
+        children: super::ChildrenDecl::RENDERED,
         params: &[],
     }
 }
@@ -312,6 +313,11 @@ impl ComponentDef {
     }
     pub(super) const fn attributes(mut self, attributes: &'static [super::AttrDecl]) -> Self {
         self.attributes = attributes;
+        self
+    }
+    /// How the type reads its children (`children:`, ADR 0034).
+    pub(super) const fn children(mut self, children: super::ChildrenDecl) -> Self {
+        self.children = children;
         self
     }
     pub(super) const fn params(mut self, params: &'static [&'static str]) -> Self {
@@ -400,6 +406,19 @@ pub(crate) const fn attr_index(attrs: &[super::AttrDecl], name: &str) -> u8 {
         i += 1;
     }
     panic!("no such attribute")
+}
+
+/// The position of the group `name` among `groups`, for a type's typed
+/// record. A name not declared fails to compile.
+pub(crate) const fn group_index(groups: &[super::ChildGroup], name: &str) -> usize {
+    let mut i = 0;
+    while i < groups.len() {
+        if str_eq(groups[i].name, name) {
+            return i;
+        }
+        i += 1;
+    }
+    panic!("no such group")
 }
 
 /// The position of the prop `name` in `defs`, if it has one: the one
@@ -540,6 +559,8 @@ macro_rules! component {
         $(renders: $renders:ident,)?
         $(reads_as: $ras:ident,)?
         $(presentation { $($prname:ident),* $(,)? })?
+        $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
+        $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
         $(#[$doc])*
@@ -549,7 +570,14 @@ macro_rules! component {
                 $(.renders($crate::components::Renders::$renders))?
                 $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
+                .attributes(ATTRS)
+                .children(CHILDREN)
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
+
+        $crate::components::define::component!(@record
+            [$($($aname : $akind $(($($akarg)*))?),*)?]
+            [$($ckind $([$($gname : [$($gty),*]),*])?)?]
+        );
     };
     (
         $(#[$doc:meta])*
@@ -578,6 +606,7 @@ macro_rules! component {
         $(sticky: $sticky:expr,)?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(params { $($param:ident),* $(,)? })?
+        $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
         $(#[$doc])*
@@ -601,7 +630,8 @@ macro_rules! component {
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 $(.sticky($sticky))?
-                $(.attributes({ $(let _ = stringify!($aname);)* ATTRS }))?
+                .attributes(ATTRS)
+                .children(CHILDREN)
                 $(.params(&[$(stringify!($param)),*]))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
 
@@ -675,53 +705,10 @@ macro_rules! component {
             };
         }
 
-        $(
-            /// The attributes this type's planner reads (`attributes { .. }`),
-            /// each with its kind: what `DEFINITION` declares and the
-            /// compile parses into the element's record (ADR 0032).
-            const ATTRS: &[$crate::components::AttrDecl] = &[$(
-                $crate::components::AttrDecl {
-                    name: stringify!($aname),
-                    kind: $crate::components::define::component!(@kind $akind $(($($akarg)*))?),
-                }
-            ),*];
-
-            /// The attributes this type's planner reads itself
-            /// (`attributes { .. }`), as the planner names them.
-            #[allow(non_upper_case_globals, dead_code)]
-            pub(crate) mod attr {
-                $(
-                    pub(crate) const $aname: $crate::compile::api::Attr =
-                        $crate::compile::api::Attr::declared(
-                            stringify!($aname),
-                            $crate::components::define::attr_index(
-                                super::ATTRS,
-                                stringify!($aname),
-                            ),
-                        );
-                )*
-            }
-
-            /// The type's attributes as the compile parsed them into the
-            /// element's record (ADR 0032): one typed field per declared
-            /// attribute, the element's own value or, under `extend`, its
-            /// referent's.
-            #[allow(non_snake_case, dead_code)]
-            #[derive(Debug)]
-            pub(crate) struct Attrs {
-                $(pub(crate) $aname: $crate::components::define::component!(@field $akind $(($($akarg)*))?),)*
-            }
-
-            #[allow(dead_code)]
-            impl Attrs {
-                /// The record's values, typed.
-                pub(crate) fn of(record: &$crate::compile::api::Record) -> Attrs {
-                    Attrs {
-                        $($aname: $crate::components::define::component!(@get $akind $(($($akarg)*))?, record, attr::$aname),)*
-                    }
-                }
-            }
-        )?
+        $crate::components::define::component!(@record
+            [$($($aname : $akind $(($($akarg)*))?),*)?]
+            [$($ckind $([$($gname : [$($gty),*]),*])?)?]
+        );
 
         $($($(
             const _: () = assert!(
@@ -743,6 +730,99 @@ macro_rules! component {
             );
         )+)*)?
     };
+    // What the attributes and children a type declares make: `ATTRS`,
+    // `CHILDREN`, the `attr` module and the typed record `Attrs`.
+    (@record
+        [$($aname:ident : $akind:ident $(($($akarg:tt)*))?),*]
+        [$($ckind:ident $([$($gname:ident : [$($gty:ident),*]),*])?)?]
+    ) => {
+        /// The attributes this type's planner reads (`attributes { .. }`),
+        /// each with its kind: what `DEFINITION` declares and the
+        /// compile parses into the element's record (ADR 0032).
+        const ATTRS: &[$crate::components::AttrDecl] = &[$(
+            $crate::components::AttrDecl {
+                name: stringify!($aname),
+                kind: $crate::components::define::component!(@kind $akind $(($($akarg)*))?),
+            }
+        ),*];
+
+        /// How this type reads its children (`children:`, ADR 0034):
+        /// what the compile parses them into, beside the attributes.
+        const CHILDREN: $crate::components::ChildrenDecl =
+            $crate::components::define::component!(@children $($ckind $([$($gname : [$($gty),*]),*])?)?);
+
+        /// The attributes this type's planner reads itself
+        /// (`attributes { .. }`), as the planner names them.
+        #[allow(non_upper_case_globals, dead_code)]
+        pub(crate) mod attr {
+            $(
+                pub(crate) const $aname: $crate::compile::api::Attr =
+                    $crate::compile::api::Attr::declared(
+                        stringify!($aname),
+                        $crate::components::define::attr_index(
+                            super::ATTRS,
+                            stringify!($aname),
+                        ),
+                    );
+            )*
+        }
+
+        /// The type's attributes and children as the compile parsed them
+        /// into the element's record (ADR 0032, ADR 0034): one typed
+        /// field per declared attribute, `children` as its kind reads
+        /// them, and one field per group of element children, each the
+        /// element's own value or, under `extend`, its referent's.
+        #[allow(non_snake_case, dead_code)]
+        #[derive(Debug)]
+        pub(crate) struct Attrs {
+            $(pub(crate) $aname: $crate::components::define::component!(@field $akind $(($($akarg)*))?),)*
+            $(
+                pub(crate) children: $crate::components::define::component!(@ctype $ckind),
+                $($(pub(crate) $gname: Vec<$crate::compile::api::Member>,)*)?
+            )?
+        }
+
+        #[allow(dead_code)]
+        impl Attrs {
+            /// The record's values, typed.
+            #[allow(unused_variables)]
+            pub(crate) fn of(record: &$crate::compile::api::Record) -> Attrs {
+                Attrs {
+                    $($aname: $crate::components::define::component!(@get $akind $(($($akarg)*))?, record, attr::$aname),)*
+                    $(
+                        children: $crate::components::define::component!(@cget $ckind, record),
+                        $($($gname: record.group($crate::components::define::group_index(
+                            CHILDREN.groups,
+                            stringify!($gname),
+                        )),)*)?
+                    )?
+                }
+            }
+        }
+    };
+    (@children) => { $crate::components::ChildrenDecl::RENDERED };
+    (@children $ckind:ident $([$($gname:ident : [$($gty:ident),*]),*])?) => {
+        $crate::components::ChildrenDecl {
+            kind: $crate::components::ChildrenKind::$ckind,
+            groups: &[$($($crate::components::ChildGroup {
+                name: stringify!($gname),
+                types: &[$($crate::components::ComponentType::$gty),*],
+            }),*)?],
+        }
+    };
+    (@ctype Math) => { Option<Box<[$crate::dast::NodeId]>> };
+    (@ctype Value) => { $crate::compile::api::ValueChildren };
+    (@ctype None) => { () };
+    (@ctype Rendered) => { () };
+    (@ctype $other:ident) => {
+        compile_error!(concat!(
+            "component!: children kind `", stringify!($other),
+            "` is not one of None, Math, Value, Rendered"
+        ))
+    };
+    (@cget Math, $r:ident) => { $r.child_math() };
+    (@cget Value, $r:ident) => { $r.child_value() };
+    (@cget $other:ident, $r:ident) => { () };
     (@planner) => {
         compile_error!(
             "component! needs `planner: Props`, or `PropsThen(f)`, `Plan(f)` or `Whole(f)`, as its last section"
@@ -756,13 +836,16 @@ macro_rules! component {
     (@kind Flag($d:expr)) => { $crate::components::AttrKind::Flag { default: $d } };
     (@kind Bool($d:expr)) => { $crate::components::AttrKind::Bool { default: $d } };
     (@kind Number($d:expr)) => { $crate::components::AttrKind::Number { default: $d } };
+    (@kind Literal($d:expr)) => { $crate::components::AttrKind::Literal { default: $d } };
+    (@kind On) => { $crate::components::AttrKind::On };
+    (@kind Written) => { $crate::components::AttrKind::Written };
     (@kind Text) => { $crate::components::AttrKind::Text };
     (@kind Math) => { $crate::components::AttrKind::Math };
     (@kind Ref) => { $crate::components::AttrKind::Ref };
     (@kind $other:ident $(($($karg:tt)*))?) => {
         compile_error!(concat!(
             "component!: attribute kind `", stringify!($other),
-            "` is not one of Scalar, Value, Point, Points, Points(max), Flag(default), Bool(default), Number(default), Text, Math, Ref"
+            "` is not one of Scalar, Value, Point, Points, Points(max), Flag(default), Bool(default), Number(default), Literal(default), On, Written, Text, Math, Ref"
         ))
     };
     (@field Scalar) => { Option<$crate::compile::api::Source> };
@@ -772,6 +855,9 @@ macro_rules! component {
     (@field Flag($d:expr)) => { $crate::compile::api::Source };
     (@field Bool($d:expr)) => { bool };
     (@field Number($d:expr)) => { f64 };
+    (@field Literal($d:expr)) => { $crate::error::Result<f64> };
+    (@field On) => { bool };
+    (@field Written) => { bool };
     (@field Text) => { Option<String> };
     (@field Math) => { Option<Box<[$crate::dast::NodeId]>> };
     (@field Ref) => { Option<$crate::compile::plan::RefId> };
@@ -782,6 +868,9 @@ macro_rules! component {
     (@get Flag($d:expr), $r:ident, $a:expr) => { $r.flag($a, $d) };
     (@get Bool($d:expr), $r:ident, $a:expr) => { $r.bool($a, $d) };
     (@get Number($d:expr), $r:ident, $a:expr) => { $r.number($a, $d) };
+    (@get Literal($d:expr), $r:ident, $a:expr) => { $r.literal($a, $d) };
+    (@get On, $r:ident, $a:expr) => { $r.bool($a, false) };
+    (@get Written, $r:ident, $a:expr) => { $r.bool($a, false) };
     (@get Text, $r:ident, $a:expr) => { $r.text($a) };
     (@get Math, $r:ident, $a:expr) => { $r.math($a) };
     (@get Ref, $r:ident, $a:expr) => { $r.reference($a) };

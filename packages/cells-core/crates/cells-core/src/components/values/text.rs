@@ -3,7 +3,6 @@
 use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::dast::{NodeId, NodeKind};
 use crate::error::{Error, Result};
 
 component! {
@@ -16,6 +15,7 @@ component! {
     props {
         value: children { text, rendered },
     }
+    children: Value,
     planner: Whole(plan),
 }
 
@@ -29,25 +29,20 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     if ctx.extend().is_some() {
         return ctx.plan_from_table();
     }
-    let d = ctx.dast();
-    let nodes: Vec<NodeId> = d
-        .children(ctx.node())
-        .iter()
-        .copied()
-        .filter(|&n| !ctx.is_blank(n))
-        .collect();
-    let value = match nodes.as_slice() {
-        [] => Wire::given_text(GivenId::Children(0), ctx.intern("")),
-        [n] if d.kind(*n) == NodeKind::Text => Wire::given_text(GivenId::Children(0), d.str_id(*n)),
-        [n] if d.kind(*n) == NodeKind::Macro => Source::reference(ctx.reference(*n)?).into(),
-        _ => {
-            return Err(Error::Unsupported(
-                "<text> whose content mixes text, references or elements".into(),
-            ));
-        }
+    let children = Attrs::of(ctx.record()).children;
+    let value = match children.value {
+        _ if children.element.is_some() => return Err(mixed()),
+        ChildValue::Blank => Wire::given_text(GivenId::Children(0), ctx.intern("")),
+        ChildValue::Text { id: Some(id), .. } => Wire::given_text(GivenId::Children(0), id),
+        ChildValue::Reference(p) => Source::reference(p).into(),
+        ChildValue::Text { id: None, .. } | ChildValue::Math => return Err(mixed()),
     };
     let mut wiring = ElemWiring::of(ComponentType::Text);
     wiring.set_public(Props { value });
     ctx.set_wiring(wiring);
     Ok(())
+}
+
+fn mixed() -> Error {
+    Error::Unsupported("<text> whose content mixes text, references or elements".into())
 }

@@ -1,6 +1,6 @@
 # A planner is a function of its record
 
-Status: proposed 2026-11-04. No migration step is done. Builds on ADR
+Status: accepted 2026-11-04. Step 1 is done (see Migration). Builds on ADR
 0016 (components are defined without knowing the core), ADR 0029 (a
 planner reads no other element's plan) and ADR 0032 (decision 3, a
 planner is a function from typed attributes to a wiring), and finishes
@@ -318,6 +318,28 @@ Each step lands alone, with the golden diff unchanged.
    from the record. Test: `compile/record.rs` unit tests for each kind,
    own against referent's under the merge; the children-parse tests
    that `plan_attrs` has move to the one parse.
+
+   *Done.* As landed: `children: None | Math | Value | Rendered`, the
+   last the default, optionally followed by groups (`children: Math {
+   constraints: [ConstrainTo, ConstrainToGrid] }`). Whether children
+   are built as components is now read from the declaration, not from
+   the planner kind or a `PropFrom::Children` prop
+   (`ChildrenDecl::built`). A group's members are component types of
+   their own (`<constrainTo>` and `<constrainToGrid>`, `internal` until
+   step 3 gives them `owned`), parsed into records of their own, written
+   directly under the element or in a wrapper named as the group is.
+   `Value` plans its one reference when parsing, where it was written,
+   and `plan_attrs` reads `PropFrom::Children` from it. Three new
+   attribute kinds: `Literal(default)` (a literal number, its error
+   kept for the planner), `On` (`simplify`, `simplify="full"`) and
+   `Written`. Line also reads its children from the record (`children:
+   Math`). Children read through a path (`Referent::Path`) are not
+   merged, as before: their math text names nodes planned where the
+   referent sits. Two edge cases changed: a point with `x` or `y` and
+   `(a, b)` children of its own takes the coordinate it omits from them
+   (it took 0), and a line with children and `through` or a direction
+   is planned from the latter (its children won). The golden diff is
+   identical.
 2. **`Plan` for the `PropsThen` types.** MathInput, choiceInput,
    section, selectFromSequence, repeatForSequence as `Plan` over their
    records, or as tables; the `by_planner` list in `plan_attrs` goes.

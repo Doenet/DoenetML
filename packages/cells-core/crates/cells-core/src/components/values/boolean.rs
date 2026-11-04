@@ -9,7 +9,6 @@
 use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::dast::{NodeId, NodeKind};
 use crate::error::{Error, Result};
 
 component! {
@@ -24,6 +23,7 @@ component! {
     props {
         value: children { rendered },
     }
+    children: Value,
     planner: Whole(plan),
 }
 
@@ -38,45 +38,27 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         // the same position (which expand would type-check).
         return ctx.alias_extended("value");
     }
-    let d = ctx.dast();
-    let nodes: Vec<NodeId> = d
-        .children(ctx.node())
-        .iter()
-        .copied()
-        .filter(|&n| !ctx.is_blank(n))
-        .collect();
-    if let Some(&n) = nodes.iter().find(|&&n| d.kind(n) == NodeKind::Element) {
-        return Err(Error::Unsupported(format!(
-            "a <{}> inside a <boolean>",
-            d.str(n)
-        )));
+    let children = Attrs::of(ctx.record()).children;
+    if let Some(tag) = &children.element {
+        return Err(Error::Unsupported(format!("a <{tag}> inside a <boolean>")));
     }
-    let macros = nodes
-        .iter()
-        .filter(|&&n| d.kind(n) == NodeKind::Macro)
-        .count();
-    let text: String = nodes
-        .iter()
-        .filter(|&&n| d.kind(n) == NodeKind::Text)
-        .map(|&n| d.str(n))
-        .collect();
-    let text = text.trim();
     let mut wiring = ElemWiring::of(ComponentType::Boolean);
     // Literal content is state: `<boolean>false</boolean>` can be set.
-    let literal = match (macros, text.to_ascii_lowercase().as_str()) {
-        (0, "") => Some(0.0),
-        (0, "true") => Some(1.0),
-        (0, "false") => Some(0.0),
-        // A number is true only when it is 1, as in the current core.
-        (0, s) => s.parse::<f64>().ok().map(|v| f64::from(v == 1.0)),
+    let literal = match &children.value {
+        ChildValue::Blank => Some(0.0),
+        ChildValue::Text { text, .. } => match text.trim().to_ascii_lowercase().as_str() {
+            "true" => Some(1.0),
+            "false" => Some(0.0),
+            // A number is true only when it is 1, as in the current core.
+            s => s.parse::<f64>().ok().map(|v| f64::from(v == 1.0)),
+        },
         _ => None,
     };
-    let value = if let Some(v) = literal {
-        Wire::given(GivenId::Children(0), v)
-    } else if macros == 1 && text.is_empty() {
-        Source::reference(ctx.reference(nodes[0])?).into()
-    } else {
-        Wire::own(ctx.condition(&nodes, &mut wiring)?)
+    let value = match (literal, children.value) {
+        (Some(v), _) => Wire::given(GivenId::Children(0), v),
+        (None, ChildValue::Reference(p)) => Source::reference(p).into(),
+        // A condition: comparisons and connectives.
+        (None, _) => Wire::own(ctx.condition(&children.nodes, &mut wiring)?),
     };
     wiring.set_public(Props { value });
     ctx.set_wiring(wiring);
