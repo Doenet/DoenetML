@@ -14,19 +14,18 @@ component! {
     flags: [copyable, located],
     renders: InGraph,
     props {
-        numVertices: by_planner,
+        numVertices: aggregate(Count, Gathered),
     }
     planner: Whole(plan),
 }
 
 pub const NUM_VERTICES: usize = Props::AT.numVertices;
 
-/// Gathers the points under what `vertices` names, as
-/// `<collect componentType="point">` would; `numVertices` is set when it
-/// expands.
 /// What a `<polyline>` collects, which outlining records (ADR 0029).
 pub(crate) const COLLECTED: ComponentType = ComponentType::Point;
 
+/// Gathers the points under what `vertices` names, as
+/// `<collect componentType="point">` would; `numVertices` counts them.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let m = ctx
         .dast()

@@ -353,10 +353,25 @@ template, shared by every instance; essential keys use it.
 **Plan** — What the compile phase records per template: each port's
 *source* (`Source`, ADR 0032: a *leaf*, which is a given value, a constant
 or a scope constant; a *dataflow expression* over ports, which is an
-alias, an operator, a lowered math or a symbolic template; or a *scope
-specialization* choosing between two by the scope the template is stamped
-in) and each reference's *reference plan* (`RefPlan`: a path through names
-and indices). Expansion turns plans into slots per scope.
+alias, an operator, a lowered math, a symbolic template or an aggregate;
+or a *scope specialization* choosing between two by the scope the
+template is stamped in) and each reference's *reference plan* (`RefPlan`:
+a path through names and indices). Expansion turns plans into slots per
+scope.
+
+**Collection** — A set of components around an element, described at
+compile time and materialized by the build (ADR 0032): the scored items
+under it, the sections among its siblings through it, the components of
+a type under what it gathers from. Each reaches through containers,
+repeats and choices, with a *gate* per choice branch (a case's `active`).
+
+**Aggregate** — A port whose source is an operator over a collection's
+ports (`Flow::Aggregate`, declared in a type's table as
+`aggregate(op, collection)`): the document's and a section's credit, a
+section's number, a collect's or a polyline's count. The build
+materializes it from the tree it stamped (`build/expand/aggregate.rs`);
+nothing overrides it, and a copy gets its own. One over a collection that
+crosses a repeat is a counted value.
 
 **Compile** — The once-per-load stage (ADR 0015): the source made into
 templates and plans (*plan*), checked through the abstract build (*check*),

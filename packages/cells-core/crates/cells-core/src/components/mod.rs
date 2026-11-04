@@ -815,6 +815,51 @@ pub enum PropFrom {
     /// reads the whole element: a circle's center from whichever of
     /// `center`, `radius` and `through` the author gave.
     ByPlanner,
+    /// An aggregate over a collection of components around the element
+    /// (ADR 0032, decision 4), which the build materializes from the tree
+    /// it stamped: no planner can wire it, and nothing overrides it.
+    Aggregate(Aggregate),
+}
+
+/// A set of components around an element, described at compile time and
+/// materialized by the build (ADR 0032, decision 4). Each reaches through
+/// containers, repeats and choices, with a *gate* per choice branch (a
+/// case's `active`) where the current core would have no component at
+/// all.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Collection {
+    /// The scored items under the element, in document order: the answers,
+    /// and the sections that aggregate scores, looking through other
+    /// sections and containers but not into `<setup>`.
+    ScoredItems,
+    /// The sections among the element's siblings up to and including it,
+    /// where siblings are counted through the containers the current core
+    /// expands in place (choices, cases, groups, repeats, collects).
+    SectionsThrough,
+    /// The components of the type the element gathers (`Body::Collect`)
+    /// under what it gathers from (`ElemPlan::from`), in document order,
+    /// not entering a match: a collect's, or a polyline's points.
+    Gathered,
+}
+
+/// An operator over a collection's ports.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AggOp {
+    /// The weighted mean of the items' credit, each weight gated; 1 with
+    /// no item (nothing scored, or nothing active).
+    Credit,
+    /// The weighted mean of credit as a percentage.
+    PercentCredit,
+    /// How many items the collection holds.
+    Count,
+}
+
+/// A prop wired from a collection (`PropFrom::Aggregate`): `op` over the
+/// ports of `over`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Aggregate {
+    pub op: AggOp,
+    pub over: Collection,
 }
 
 /// A computed prop's inputs: positions among its component's props, or

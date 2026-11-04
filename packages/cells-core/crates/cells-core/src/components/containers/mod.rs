@@ -13,13 +13,13 @@ pub mod document {
     use super::*;
 
     component! {
-        /// The root. `creditAchieved` and `percentCreditAchieved` are planned
-        /// deferred and wired after expansion (`Deferred`,
-        /// `build/expand/scoring.rs`).
+        /// The root. `creditAchieved` and `percentCreditAchieved` are
+        /// aggregates over the scored items (ADR 0032), materialized by the
+        /// build (`build/expand/aggregate.rs`).
         tags: ["document"],
         props {
-            creditAchieved: by_planner { score },
-            percentCreditAchieved: by_planner,
+            creditAchieved: aggregate(Credit, ScoredItems) { score },
+            percentCreditAchieved: aggregate(PercentCredit, ScoredItems),
         }
         planner: Props,
     }

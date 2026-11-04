@@ -22,8 +22,9 @@
 //! Files: **`expand/`**: `mod.rs` holds the builder's state and stamps
 //! templates; `resolve.rs` follows reference plans, `math.rs` gives math
 //! its source per instance, `choice.rs` picks and wires branches, and
-//! `scoring.rs` wires credit and section numbers. **`emit.rs`** makes cells
-//! and instructions. **`view.rs`** is the structure view, the one interface
+//! `aggregate.rs` materializes aggregates (collects, credit, section
+//! numbers). **`emit.rs`** makes cells and instructions. **`view.rs`** is
+//! the structure view, the one interface
 //! through which expand and emit learn iteration counts, indexed referents,
 //! a collect's count and a select's options. **`abstract_build.rs`** is the
 //! abstract build, the build through a view that folds every iteration into

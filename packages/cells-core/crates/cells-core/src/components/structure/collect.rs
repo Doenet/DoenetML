@@ -6,10 +6,11 @@ use crate::components::define::*;
 use crate::error::{Error, Result};
 
 component! {
-    /// `<collect>`: its children are copies of the collected components.
+    /// `<collect>`: its children are copies of the collected components,
+    /// and `count` how many (an aggregate, ADR 0032).
     tags: ["collect"],
     props {
-        count: attr(0.0),
+        count: aggregate(Count, Gathered),
     }
     presentation { asList }
     planner: Whole(plan),
@@ -28,8 +29,9 @@ pub(crate) fn collected_type(type_text: Option<String>) -> Result<ComponentType>
         .ok_or_else(|| Error::BadCollectType(type_text.trim().into()))
 }
 
-/// What it collects is resolved when it expands: the components of the
-/// type outlining read (`collected_type`) under what `from` names.
+/// What it collects is gathered when it expands: the components of the
+/// type outlining read (`collected_type`) under what `from` names
+/// (`Collection::Gathered`).
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let d = ctx.dast();
     let el = ctx.node();

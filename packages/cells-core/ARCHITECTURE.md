@@ -326,7 +326,7 @@ count, and equals what a load reports.
 0018): the core copies the response into the answer's `submitted` cell and
 counts the submission as one tick, through the same inversion a request
 uses, and credit recomputes through the cells that
-`build/expand/scoring.rs` wired. The props it writes are marked
+`build/expand/aggregate.rs` materialized. The props it writes are marked
 `written_by_action`, not `interactive`, so no renderer can set them.
 `Document::trigger` (`document/request.rs`), a `<triggerSet>`'s press, is
 the other action: it sets each `<updateValue>`'s target.

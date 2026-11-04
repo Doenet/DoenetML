@@ -9,9 +9,9 @@ component! {
     /// `<section>`, `<subsection>`, `<subsubsection>`, `<problem>`,
     /// `<exercise>`, `<example>`: a rendered container that is numbered among
     /// its sibling sections and, when it aggregates scores, holds the weighted
-    /// credit of the answers and sections inside it. Both are wired after
-    /// expansion (`build/expand/scoring.rs`). The parser writes `<section>` as
-    /// `<division type="section">`.
+    /// credit of the answers and sections inside it. Both are aggregates
+    /// (ADR 0032), materialized by the build (`build/expand/aggregate.rs`).
+    /// The parser writes `<section>` as `<division type="section">`.
     tags: [
         "section",
         "division",
@@ -23,14 +23,14 @@ component! {
     ],
     flags: [container],
     props {
-        // `creditAchieved`, `percentCreditAchieved` and `number` are planned
-        // deferred and wired after expansion (`Deferred`); the flags are literals
-        // the builder reads, since they decide the wiring.
-        creditAchieved: by_planner { score },
-        percentCreditAchieved: by_planner,
+        // `creditAchieved`, `percentCreditAchieved` and `number` are
+        // aggregates over the tree; the flags are literals the builder
+        // reads, since they decide the wiring.
+        creditAchieved: aggregate(Credit, ScoredItems) { score },
+        percentCreditAchieved: aggregate(PercentCredit, ScoredItems),
         weight: attr(1.0),
         aggregateScores: by_planner,
-        number: by_planner { rendered },
+        number: aggregate(Count, SectionsThrough) { rendered },
         includeParentNumber: by_planner { rendered },
         label: by_planner { rendered },
     }

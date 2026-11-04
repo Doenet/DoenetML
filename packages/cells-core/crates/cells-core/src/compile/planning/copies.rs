@@ -61,7 +61,7 @@ impl<'a> Compiler<'a> {
 
     /// Plan a bare copy (an `extend` with no attribute or child of its own,
     /// or a cloned child of one): every public prop aliases the referent's
-    /// port of the same position, its deferred props planned as every
+    /// port of the same position, its aggregates planned as every
     /// element's are, and a list is as long as the referent's, which only
     /// the build knows.
     pub(in crate::compile) fn plan_bare_copy(&mut self, t: TemplateId, e: ElemId) {
@@ -72,7 +72,7 @@ impl<'a> Compiler<'a> {
         let mut props: Vec<Source> = (0..component_type.prop_defs().len())
             .map(|i| Source::port_of(extend, i))
             .collect();
-        Deferred::mark(component_type, &mut props);
+        mark_aggregates(component_type, &mut props);
         let plan = &mut self.tables[t.index()].plans[e.index()];
         plan.props = props;
         if component_type.given_coords().is_some() {

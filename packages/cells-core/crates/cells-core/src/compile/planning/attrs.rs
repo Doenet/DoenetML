@@ -34,6 +34,7 @@ impl<'a> Compiler<'a> {
                 PropFrom::Computed { .. } => "computed",
                 PropFrom::Children => "children",
                 PropFrom::ByPlanner => "by planner",
+                PropFrom::Aggregate(_) => "aggregate",
             });
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
@@ -98,8 +99,9 @@ impl<'a> Compiler<'a> {
                         }
                     }
                 }
-                // Set below, by the type's `PropsThen` planner or
-                // `Deferred::mark`.
+                // Wired by the build from the tree (ADR 0032, decision 4).
+                (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
+                // Set below, by the type's `PropsThen` planner.
                 (None, PropFrom::ByPlanner)
                     if matches!(
                         component_type,
@@ -122,10 +124,7 @@ impl<'a> Compiler<'a> {
             let record = self.parsed().record(t, e)?;
             then(&mut PlanCtx::new(self, t, e, record, None), &mut props)?;
         }
-        let _s = crate::trace::tally("mark");
-        let mut props = props.finish();
-        Deferred::mark(component_type, &mut props);
-        self.tables[t.index()].plans[e.index()].props = props;
+        self.tables[t.index()].plans[e.index()].props = props.finish();
         Ok(())
     }
 

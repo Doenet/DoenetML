@@ -217,9 +217,9 @@ impl Types<'_, '_> {
                     PortType::Math
                 }
             },
-            Source::Deferred(_) => PortType::Num,
             Source::Flow(flow) => match flow {
-                Flow::VecOut(..) => PortType::Num,
+                // Credit, a number, a count.
+                Flow::Aggregate(_) | Flow::VecOut(..) => PortType::Num,
                 // Lowered to operators, or NaN: a number either way.
                 Flow::Math(id) | Flow::MathValue(id) => {
                     if check {

@@ -3,7 +3,7 @@
 //! and every reference. Nothing here names an iteration; see `build/mod.rs`.
 
 use super::*;
-use crate::components::ArgFrom;
+use crate::components::{Aggregate, ArgFrom, PropFrom};
 
 crate::index::index_type! {
     /// An element's stable key (ADR 0017), as an index into the compile's
@@ -137,8 +137,8 @@ impl Warned {
 /// Where a port's value comes from, before any iteration exists (ADR
 /// 0032, decision 2): a leaf, a dataflow expression over ports, or a
 /// scope specialization choosing between two by the scope the template is
-/// stamped in. `Deferred` is the one hole the build still fills, until a
-/// deferred prop is an aggregate (step 5).
+/// stamped in. The IR is closed: the build fills no hole, it materializes
+/// the collections an aggregate names (`Flow::Aggregate`).
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
     Leaf(Leaf),
@@ -147,10 +147,6 @@ pub(crate) enum Source {
     /// stamped in, the second elsewhere: chosen per instance, like a
     /// scope constant.
     Specialize(ScopePred, Box<Source>, Box<Source>),
-    /// Wired once the whole tree is built, from what is around the element
-    /// (`build/expand/scoring.rs`, a collect's expansion): no planner can
-    /// wire it, so its wiring says that it is deferred and who fills it.
-    Deferred(Deferred),
 }
 
 /// A value nothing computes: given (essential when a student's action can
@@ -211,6 +207,13 @@ pub(crate) enum Flow {
     /// without cell leaves, an alias of a lone math leaf, else an
     /// `Instantiate` instruction over the leaves.
     SymExpr(ExprId, Post),
+    /// An operator over a collection of components around the element
+    /// (ADR 0032, decision 4): credit over the scored items, a section's
+    /// number among its siblings, a collect's count of what it gathers.
+    /// The build materializes the collection from the tree it stamped
+    /// (`build/expand/aggregate.rs`), and the abstract build finds by
+    /// looking whether it crosses a repeat (a counted value, ADR 0028).
+    Aggregate(Aggregate),
 }
 
 /// A structural predicate of the scope a template is stamped in
@@ -247,13 +250,13 @@ impl Source {
     /// Whether a constant this plan gives is a document constant (ADR
     /// 0028): one made from the source alone, the same in every instance
     /// of its template slot. A match on the leaf and expression types
-    /// alone: a specialization or a deferred port depends on the scope or
-    /// the tree.
+    /// alone: a specialization depends on the scope, an aggregate on the
+    /// tree.
     pub(crate) fn gives_document_constant(&self) -> bool {
         match self {
             Source::Leaf(leaf) => leaf.is_document_constant(),
             Source::Flow(flow) => flow.is_document_constant(),
-            Source::Specialize(..) | Source::Deferred(_) => false,
+            Source::Specialize(..) => false,
         }
     }
 
@@ -278,6 +281,10 @@ impl Source {
     /// A value not given (`NO_VALUE`), as a constant.
     pub(crate) fn absent() -> Self {
         Source::constant(NO_VALUE)
+    }
+    /// An aggregate over a collection (`Flow::Aggregate`).
+    pub(crate) fn aggregate(a: Aggregate) -> Self {
+        Source::Flow(Flow::Aggregate(a))
     }
     pub(crate) fn reference(p: RefId) -> Self {
         Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole)))
@@ -1259,47 +1266,14 @@ impl std::ops::IndexMut<Port> for TableProps {
     }
 }
 
-/// A prop wired from the built tree rather than planned (`Source::Deferred`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum Deferred {
-    /// The document's or a section's `creditAchieved`: the weighted mean of
-    /// the credit of what it scores.
-    Credit,
-    /// Its `percentCreditAchieved`: the credit times 100, a constant when
-    /// the credit is one.
-    PercentCredit,
-    /// A section's `number` among its siblings.
-    SectionNumber,
-    /// A collect's `count`, or a polyline's `numVertices` when it gathers
-    /// its vertices as a collect does: how many it gathered, which may
-    /// follow the counts of the repeats it gathers from.
-    CollectCount,
-}
-
-impl Deferred {
-    /// The deferred prop of `component_type` at position `pi`, if it is one:
-    /// every planner plans it so, whatever else it inherits or copies.
-    pub(crate) fn of(component_type: ComponentType, pi: usize) -> Option<Deferred> {
-        use crate::components::prop::{collect, document, polyline, section};
-        match (component_type, pi) {
-            (ComponentType::Document, document::CREDIT)
-            | (ComponentType::Section, section::CREDIT) => Some(Deferred::Credit),
-            (ComponentType::Document, document::PERCENT_CREDIT)
-            | (ComponentType::Section, section::PERCENT_CREDIT) => Some(Deferred::PercentCredit),
-            (ComponentType::Section, section::NUMBER) => Some(Deferred::SectionNumber),
-            (ComponentType::Collect, collect::COUNT)
-            | (ComponentType::Polyline, polyline::NUM_VERTICES) => Some(Deferred::CollectCount),
-            _ => None,
-        }
-    }
-
-    /// `props`, wiring for an element of `component_type`, with its deferred
-    /// props planned so.
-    pub(crate) fn mark(component_type: ComponentType, props: &mut [Source]) {
-        for (pi, p) in props.iter_mut().enumerate() {
-            if let Some(k) = Deferred::of(component_type, pi) {
-                *p = Source::Deferred(k);
-            }
+/// `props`, wiring for an element of `component_type`, with every prop
+/// the type's table declares an aggregate (`PropFrom::Aggregate`) planned
+/// so, whatever else the element inherits or copies: a copy of a section
+/// is numbered among its own siblings and scores what is inside it.
+pub(crate) fn mark_aggregates(component_type: ComponentType, props: &mut [Source]) {
+    for (def, p) in component_type.prop_defs().iter().zip(props.iter_mut()) {
+        if let PropFrom::Aggregate(a) = def.from {
+            *p = Source::aggregate(a);
         }
     }
 }
@@ -1638,6 +1612,7 @@ impl Compiled {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::components::{AggOp, Collection};
 
     /// What a plan gives is classed by its kind alone (ADR 0032, step 3):
     /// every leaf but a scope constant is a document constant when it is a
@@ -1694,6 +1669,10 @@ mod tests {
             !Source::Specialize(ScopePred::FirstIteration, one.clone(), one)
                 .gives_document_constant()
         );
-        assert!(!Source::Deferred(Deferred::Credit).gives_document_constant());
+        let credit = Aggregate {
+            op: AggOp::Credit,
+            over: Collection::ScoredItems,
+        };
+        assert!(!Source::aggregate(credit).gives_document_constant());
     }
 }

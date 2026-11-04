@@ -1,24 +1,39 @@
-//! Credit and section numbers: cells wired from the expanded tree.
+//! Aggregates (ADR 0032, decision 4): the ports whose plan is an operator
+//! over a collection of components around the element (`Flow::Aggregate`),
+//! materialized here from the tree the build stamped, in one place: a
+//! collect's gathered children and their count, the document's and each
+//! section's credit, and each section's number.
 //!
-//! Both follow the current core, where a reactive choice's inactive cases
-//! are not components at all: an answer in an inactive case is not scored
-//! and a section in one takes no number. Here every case is built, so each
-//! inactive case contributes through a *gate*, the product of the `active`
-//! cells of the cases around it. A flip changes gates, then credits and
-//! numbers, on an ordinary tick. `hide` gates nothing, as in the current
-//! core.
+//! Credit and numbers follow the current core, where a reactive choice's
+//! inactive cases are not components at all: an answer in an inactive
+//! case is not scored and a section in one takes no number. Here every
+//! case is built, so each inactive case contributes through a *gate*, the
+//! product of the `active` cells of the cases around it. A flip changes
+//! gates, then credits and numbers, on an ordinary tick. `hide` gates
+//! nothing, as in the current core.
 //!
-//! **Credit.** The document and each section that aggregates scores hold
-//! the weighted mean of their scored items' credit: the answers and
-//! aggregating sections inside them, looking through sections that do not
-//! aggregate (whose own credit is 0). An item's weight is multiplied by its
-//! gate. With no weight (nothing scored, or nothing active) the credit is 1.
+//! **Credit** (`Collection::ScoredItems`). The document and each section
+//! that aggregates scores hold the weighted mean of their scored items'
+//! credit: the answers and aggregating sections inside them, looking
+//! through sections that do not aggregate (whose own credit is 0). An
+//! item's weight is multiplied by its gate. With no weight (nothing
+//! scored, or nothing active) the credit is 1.
 //!
-//! **Numbers.** A section's `number` is 1 plus the gates of the sections
-//! before it among its siblings, where siblings are counted through the
-//! containers the current core expands in place (choices, cases, groups,
-//! repeats, collects). A full number such as 2.1 is read from the `number`
-//! cells of the section and its section ancestors (`Document::section_number`).
+//! **Numbers** (`Collection::SectionsThrough`). A section's `number` is 1
+//! plus the gates of the sections before it among its siblings, where
+//! siblings are counted through the containers the current core expands
+//! in place (choices, cases, groups, repeats, collects). A full number such
+//! as 2.1 is read from the `number` cells of the section and its section
+//! ancestors (`Document::section_number`).
+//!
+//! **Gathered** (`Collection::Gathered`). A collect's children are copies
+//! of the components of its type under what it gathers from, and its
+//! count is how many; a polyline gathers its points the same way.
+//!
+//! A collection that crosses a repeat has another size at another count:
+//! the aggregate is then a *counted value* (ADR 0028), which the abstract
+//! build, whose one iteration stands for every count, finds by looking and
+//! records (`is_counted`); every other build reads the record.
 
 use super::*;
 
@@ -26,6 +41,7 @@ use super::*;
 /// `MAX_VEC_IN` inputs.
 use crate::limits::SCORE_CHUNK as CHUNK;
 
+use crate::components::AggOp;
 use crate::components::prop::{answer, document, section};
 use section::{AGGREGATE, CREDIT, NUMBER, PERCENT_CREDIT, WEIGHT};
 
@@ -33,11 +49,13 @@ use section::{AGGREGATE, CREDIT, NUMBER, PERCENT_CREDIT, WEIGHT};
 const _: () = assert!(document::CREDIT == CREDIT && document::PERCENT_CREDIT == PERCENT_CREDIT);
 
 impl<'c> Builder<'c> {
-    /// Wire the document's and every section's `creditAchieved` and
-    /// `percentCreditAchieved`, and every section's `number`: the slots
-    /// their plans defer (`Source::Deferred`). Runs after every other
-    /// prop has its source.
-    pub(in crate::build) fn scoring_sources(&mut self) {
+    /// Materialize the document's and every section's `creditAchieved`
+    /// and `percentCreditAchieved`, and every section's `number`: the
+    /// aggregates over the scored items and the sibling sections. Runs
+    /// after every other prop has its source; a collect's count is
+    /// materialized when it expands (`expand_collect`), since placing a
+    /// reference into it needs its items.
+    pub(in crate::build) fn aggregate_sources(&mut self) {
         let root = self.root;
         self.set_credit(root);
         for c in CompIdx::below(self.components.len()) {
@@ -73,17 +91,17 @@ impl<'c> Builder<'c> {
         }
         match self.mean_credit(c, items) {
             Some(mean) => {
-                self.fill_deferred(s, Deferred::Credit, BuiltSource::Alias(mean));
+                self.fill_aggregate(s, AggOp::Credit, BuiltSource::Alias(mean));
                 let hundred = self.const_slot(100.0);
                 let percent = self.op_source(OpSpec::Mul, &[s, hundred]);
-                self.fill_deferred(p, Deferred::PercentCredit, percent);
+                self.fill_aggregate(p, AggOp::PercentCredit, percent);
             }
             None => {
                 // Nothing to score: full credit.
                 let credit = self.counted(s, 1.0, false);
-                self.fill_deferred(s, Deferred::Credit, credit);
+                self.fill_aggregate(s, AggOp::Credit, credit);
                 let percent = self.counted(p, 100.0, false);
-                self.fill_deferred(p, Deferred::PercentCredit, percent);
+                self.fill_aggregate(p, AggOp::PercentCredit, percent);
             }
         }
     }
@@ -92,12 +110,8 @@ impl<'c> Builder<'c> {
     /// document with nothing to score costs no instruction.
     fn set_constant_credit(&mut self, c: CompIdx, credit: f64) {
         let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
-        self.fill_deferred(s, Deferred::Credit, BuiltSource::Const(credit));
-        self.fill_deferred(
-            p,
-            Deferred::PercentCredit,
-            BuiltSource::Const(100.0 * credit),
-        );
+        self.fill_aggregate(s, AggOp::Credit, BuiltSource::Const(credit));
+        self.fill_aggregate(p, AggOp::PercentCredit, BuiltSource::Const(100.0 * credit));
     }
 
     fn aggregates(&self, section: CompIdx) -> bool {
@@ -240,7 +254,7 @@ impl<'c> Builder<'c> {
                         }
                     };
                     counter.numbered.push(s);
-                    self.fill_deferred(s, Deferred::SectionNumber, number);
+                    self.fill_aggregate(s, AggOp::Count, number);
                     match gate {
                         None => counter.known += 1.0,
                         Some(g) => {
@@ -259,6 +273,119 @@ impl<'c> Builder<'c> {
                 _ => self.number_sections(k, None, &mut Counter::default()),
             }
         }
+    }
+
+    /// Expand a collect (a polyline): its children are copies of what it
+    /// gathers (`Collection::Gathered`), and its count is how many, an
+    /// aggregate it materializes here since a reference into the collect
+    /// is placed before the other aggregates are wired.
+    pub(in crate::build) fn expand_collect(&mut self, comp: CompIdx) -> Result<()> {
+        let inst = self.instances[self.comp_instance[comp.index()] as usize];
+        let tpl = &self.compiled.templates[inst.template.index()];
+        let Body::Collect { component_type } = tpl.row(inst.elem).body else {
+            unreachable!()
+        };
+        let from = tpl
+            .plan(inst.elem)
+            .from
+            .expect("planning gave a collect its `from`");
+        let (target, _) = self.resolve(from, inst.scope)?;
+        let mut found = Vec::new();
+        match target {
+            Resolved::Comp(c) => self.collect_descendants(c, component_type, &mut found),
+            Resolved::Iter(repeat, s) => {
+                for c in self.iteration_components(repeat, s) {
+                    if self.components.component_type[c.index()] == component_type {
+                        found.push(c);
+                    } else {
+                        self.collect_descendants(c, component_type, &mut found);
+                    }
+                }
+            }
+            Resolved::Missing => {}
+        }
+        let mut copies = Vec::with_capacity(found.len());
+        for &c in &found {
+            // Created without a type so `copy_into` allocates the slots once.
+            let copy = self.new_component(
+                ComponentType::Document,
+                StrId::NONE,
+                comp,
+                NodeId::NONE,
+                inst.scope,
+                0,
+            );
+            self.copy_into(copy, c);
+            copies.push(copy);
+        }
+        let entries: Vec<ChildEntry> = copies.iter().map(|&c| ChildEntry::comp(c)).collect();
+        self.set_children(comp, &entries);
+        let s0 = self.slot(comp, prop::collect::COUNT);
+        let counts = match self.view.collect_count() {
+            CollectCount::Gathered => Vec::new(),
+            CollectCount::RepeatCounts => self.gathered_counts(&found),
+        };
+        // With no gathered original in an iteration, the number gathered is
+        // a constant at every count. Otherwise it is a counted value: the
+        // abstract build stands it in by its repeats' counts, and every
+        // other build holds the number it gathered (ADR 0028).
+        let count = if counts.is_empty() {
+            let count = self.counted(s0, copies.len() as f64, false);
+            if matches!(count, BuiltSource::Op(..)) {
+                self.follows_counts.insert(comp);
+            }
+            count
+        } else {
+            self.is_counted(s0, true);
+            self.follows_counts.insert(comp);
+            self.reads(&counts, inst.scope)
+        };
+        self.fill_aggregate(s0, AggOp::Count, count);
+        self.collected.insert(comp, copies);
+        Ok(())
+    }
+
+    /// The count slots of the repeats whose iterations hold one of `found`.
+    fn gathered_counts(&self, found: &[CompIdx]) -> Vec<SlotId> {
+        let mut counts: Vec<SlotId> = Vec::new();
+        for &c in found {
+            for r in self.enclosing_repeats(self.components.scope[c.index()]) {
+                let pi = self.components.component_type[r.index()]
+                    .count_prop()
+                    .expect("a repeat has a count");
+                let s = self.slot(r, pi);
+                if !counts.contains(&s) {
+                    counts.push(s);
+                }
+            }
+        }
+        counts
+    }
+
+    /// Wire `s`, a slot its plan aggregates by `op` (`Flow::Aggregate`),
+    /// once the tree is built: only such a slot, and only once, so no
+    /// source the planner set is ever replaced.
+    fn fill_aggregate(&mut self, s: SlotId, op: AggOp, source: BuiltSource) {
+        let comp = self.slot_comp[s.index()];
+        let aggregate = comp != CompIdx::NONE && {
+            let i = self.comp_instance[comp.index()];
+            i != NONE && {
+                let inst = self.instances[i as usize];
+                let pi = s.index() - self.slot_base[comp.index()].index();
+                matches!(
+                    self.compiled.templates[inst.template.index()].plan(inst.elem)
+                        .props
+                        .get(pi),
+                    Some(Source::Flow(Flow::Aggregate(a))) if a.op == op
+                )
+            }
+        };
+        assert!(
+            aggregate && matches!(self.sources[s.index()], BuiltSource::Unset),
+            "{} is not a slot left to wire as {op:?}",
+            self.slot_label(s)
+        );
+        self.sources[s.index()] = source;
     }
 }
 

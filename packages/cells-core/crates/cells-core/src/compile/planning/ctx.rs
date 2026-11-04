@@ -412,7 +412,8 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Makes the element's children copies of the components under what
     /// `from` names of the type outlining recorded it collects (ADR 0029),
-    /// found when it expands; its props are set then too.
+    /// gathered when it expands (`Collection::Gathered`); its count is an
+    /// aggregate over them.
     pub(crate) fn collect(&mut self, from: RefId) {
         let own_type = self.elem().component_type;
         debug_assert!(
@@ -420,7 +421,7 @@ impl<'a> PlanCtx<'_, 'a> {
             "outlining made a collecting element a collect"
         );
         let mut props = vec![Source::absent(); own_type.prop_defs().len()];
-        Deferred::mark(own_type, &mut props);
+        mark_aggregates(own_type, &mut props);
         let plan = &mut self.c.tables[self.t.index()].plans[self.e.index()];
         plan.from = Some(from);
         plan.props = props;

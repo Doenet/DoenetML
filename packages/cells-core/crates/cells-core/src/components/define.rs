@@ -3,7 +3,9 @@
 //! by `props`, the definition's builders, and `at` for a prop's position
 //! by name).
 
-use super::{ArgFrom, Args, ComponentDef, Flags, MAX_ARGS, PropDef, PropFrom};
+use super::{
+    AggOp, Aggregate, ArgFrom, Args, Collection, ComponentDef, Flags, MAX_ARGS, PropDef, PropFrom,
+};
 pub(super) use crate::compile::api::NO_VALUE;
 pub(super) use crate::program::OpSpec;
 
@@ -35,6 +37,7 @@ enum DeclaredSource {
     Computed(OpSpec, &'static [DeclaredArg]),
     AttributeOr(&'static str),
     ByPlanner,
+    Aggregate(Aggregate),
 }
 
 /// A prop with nothing set: what every prop starts from.
@@ -97,6 +100,31 @@ pub(super) const fn computed(name: &'static str, op: OpSpec, args: &'static [Dec
 /// by one attribute, the children or an operator.
 pub(super) const fn by_planner(name: &'static str) -> Prop {
     prop_from(name, f64::NAN, DeclaredSource::ByPlanner)
+}
+
+/// `op` over the collection `over` (ADR 0032, decision 4), wired by the
+/// build from the tree it stamped. An operator fits its collection: credit
+/// is a mean over scored items, a count is of sections or of what the
+/// element gathers.
+pub(super) const fn aggregate(name: &'static str, op: AggOp, over: Collection) -> Prop {
+    assert!(
+        matches!(
+            (op, over),
+            (
+                AggOp::Credit | AggOp::PercentCredit,
+                Collection::ScoredItems
+            ) | (
+                AggOp::Count,
+                Collection::SectionsThrough | Collection::Gathered
+            )
+        ),
+        "an aggregate's operator does not fit its collection"
+    );
+    prop_from(
+        name,
+        f64::NAN,
+        DeclaredSource::Aggregate(Aggregate { op, over }),
+    )
 }
 
 impl Prop {
@@ -179,6 +207,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             DeclaredSource::Attribute => PropFrom::Attribute,
             DeclaredSource::Children => PropFrom::Children,
             DeclaredSource::ByPlanner => PropFrom::ByPlanner,
+            DeclaredSource::Aggregate(a) => PropFrom::Aggregate(a),
             DeclaredSource::AttributeOr(or) => PropFrom::AttributeOr {
                 alias: at(&out, or) as u8,
             },
@@ -464,7 +493,8 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// and a misspelling does not compile.
 ///
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
-/// `attr(default)`, `attr_or(other)` or `computed(op, [args])`, where an
+/// `attr(default)`, `attr_or(other)`, `computed(op, [args])` or
+/// `aggregate(op, collection)` (ADR 0032, decision 4), where an
 /// arg is a prop or a literal in parentheses (`[radius, (2.0)]`),
 /// optionally followed by `{ attribute: a, bind: b, ref_prop: p, text,
 /// interactive, written_by_action, rendered, score, read_by_action,
@@ -787,6 +817,13 @@ macro_rules! component {
     (@prop attr_or $name:ident ($or:ident)) => {
         $crate::components::define::attr_or(stringify!($name), stringify!($or))
     };
+    (@prop aggregate $name:ident ($op:ident, $over:ident)) => {
+        $crate::components::define::aggregate(
+            stringify!($name),
+            $crate::components::AggOp::$op,
+            $crate::components::Collection::$over,
+        )
+    };
     (@prop computed $name:ident ($op:expr, [$($arg:tt),+ $(,)?])) => {{
         $($crate::components::define::component!(@has_arg $name $arg);)+
         $crate::components::define::computed(
@@ -810,7 +847,7 @@ macro_rules! component {
     (@prop $other:ident $name:ident $($rest:tt)*) => {
         compile_error!(concat!(
             "component!: prop `", stringify!($name), "` has source `", stringify!($other),
-            "`; a source is by_planner, children, attr(default), attr_or(other) or computed(op, [args])"
+            "`; a source is by_planner, children, attr(default), attr_or(other), computed(op, [args]) or aggregate(op, collection)"
         ))
     };
 }

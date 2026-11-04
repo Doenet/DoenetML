@@ -6,10 +6,10 @@
 use super::*;
 use crate::components::{PropAt, PropSel};
 
+mod aggregate;
 mod choice;
 mod math;
 mod resolve;
-mod scoring;
 
 // ---------------------------------------------------------------------------
 // Expansion state
@@ -779,7 +779,7 @@ impl<'c> Builder<'c> {
                 return Err(e);
             }
         }
-        self.scoring_sources();
+        self.aggregate_sources();
         self.hold_all()
     }
 
@@ -1060,89 +1060,6 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
-    pub(in crate::build) fn expand_collect(&mut self, comp: CompIdx) -> Result<()> {
-        let inst = self.instances[self.comp_instance[comp.index()] as usize];
-        let tpl = &self.compiled.templates[inst.template.index()];
-        let Body::Collect { component_type } = tpl.row(inst.elem).body else {
-            unreachable!()
-        };
-        let from = tpl
-            .plan(inst.elem)
-            .from
-            .expect("planning gave a collect its `from`");
-        let (target, _) = self.resolve(from, inst.scope)?;
-        let mut found = Vec::new();
-        match target {
-            Resolved::Comp(c) => self.collect_descendants(c, component_type, &mut found),
-            Resolved::Iter(repeat, s) => {
-                for c in self.iteration_components(repeat, s) {
-                    if self.components.component_type[c.index()] == component_type {
-                        found.push(c);
-                    } else {
-                        self.collect_descendants(c, component_type, &mut found);
-                    }
-                }
-            }
-            Resolved::Missing => {}
-        }
-        let mut copies = Vec::with_capacity(found.len());
-        for &c in &found {
-            // Created without a type so `copy_into` allocates the slots once.
-            let copy = self.new_component(
-                ComponentType::Document,
-                StrId::NONE,
-                comp,
-                NodeId::NONE,
-                inst.scope,
-                0,
-            );
-            self.copy_into(copy, c);
-            copies.push(copy);
-        }
-        let entries: Vec<ChildEntry> = copies.iter().map(|&c| ChildEntry::comp(c)).collect();
-        self.set_children(comp, &entries);
-        let s0 = self.slot(comp, prop::collect::COUNT);
-        let counts = match self.view.collect_count() {
-            CollectCount::Gathered => Vec::new(),
-            CollectCount::RepeatCounts => self.gathered_counts(&found),
-        };
-        // With no gathered original in an iteration, the number gathered is
-        // a constant at every count. Otherwise it is a counted value: the
-        // abstract build stands it in by its repeats' counts, and every
-        // other build holds the number it gathered (ADR 0028).
-        let count = if counts.is_empty() {
-            let count = self.counted(s0, copies.len() as f64, false);
-            if matches!(count, BuiltSource::Op(..)) {
-                self.follows_counts.insert(comp);
-            }
-            count
-        } else {
-            self.is_counted(s0, true);
-            self.follows_counts.insert(comp);
-            self.reads(&counts, inst.scope)
-        };
-        self.fill_deferred(s0, Deferred::CollectCount, count);
-        self.collected.insert(comp, copies);
-        Ok(())
-    }
-
-    /// The count slots of the repeats whose iterations hold one of `found`.
-    fn gathered_counts(&self, found: &[CompIdx]) -> Vec<SlotId> {
-        let mut counts: Vec<SlotId> = Vec::new();
-        for &c in found {
-            for r in self.enclosing_repeats(self.components.scope[c.index()]) {
-                let pi = self.components.component_type[r.index()]
-                    .count_prop()
-                    .expect("a repeat has a count");
-                let s = self.slot(r, pi);
-                if !counts.contains(&s) {
-                    counts.push(s);
-                }
-            }
-        }
-        counts
-    }
-
     /// A source in `scope` over `inputs` whose value nothing reads: it
     /// stands for a value that depends on them in a way the view leaves
     /// open (a collect's count over its repeats' counts, an option a later
@@ -1318,10 +1235,10 @@ impl<'c> Builder<'c> {
             // so plans are read in place while sources are written.
             let c: &'c Compiled = self.compiled;
             let plan = &c.templates[inst.template.index()].plan(inst.elem).props[pi];
-            if matches!(plan, Source::Deferred(_)) {
-                continue; // wired from the tree (`fill_deferred`)
+            if matches!(plan, Source::Flow(Flow::Aggregate(_))) {
+                continue; // materialized from the tree (`fill_aggregate`)
             }
-            // Nothing but a deferred plan is given its source elsewhere: a
+            // Nothing but an aggregate is given its source elsewhere: a
             // slot's source is what its plan says.
             assert!(
                 matches!(self.sources[s.index()], BuiltSource::Unset),
@@ -1362,8 +1279,6 @@ impl<'c> Builder<'c> {
         let component_type = self.components.component_type[comp.index()];
         let c: &'c Compiled = self.compiled;
         Ok(match plan {
-            // Left unset: wired from the tree by `fill_deferred`.
-            Source::Deferred(_) => BuiltSource::Unset,
             Source::Specialize(..) => unreachable!("a nested specialization"),
             Source::Leaf(leaf) => match leaf {
                 Leaf::Given(v) => BuiltSource::Given(*v),
@@ -1455,39 +1370,10 @@ impl<'c> Builder<'c> {
                     }
                 }
                 Flow::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
+                // Left unset: materialized from the tree (`fill_aggregate`).
+                Flow::Aggregate(_) => BuiltSource::Unset,
             },
         })
-    }
-
-    /// Wire `s`, a slot its plan defers as `kind` (`Source::Deferred`),
-    /// once the tree is built: only such a slot, and only once, so no
-    /// source the planner set is ever replaced.
-    pub(in crate::build) fn fill_deferred(
-        &mut self,
-        s: SlotId,
-        kind: Deferred,
-        source: BuiltSource,
-    ) {
-        let comp = self.slot_comp[s.index()];
-        let deferred = comp != CompIdx::NONE && {
-            let i = self.comp_instance[comp.index()];
-            i != NONE && {
-                let inst = self.instances[i as usize];
-                let pi = s.index() - self.slot_base[comp.index()].index();
-                matches!(
-                    self.compiled.templates[inst.template.index()].plan(inst.elem)
-                        .props
-                        .get(pi),
-                    Some(Source::Deferred(k)) if *k == kind
-                )
-            }
-        };
-        assert!(
-            deferred && matches!(self.sources[s.index()], BuiltSource::Unset),
-            "{} is not a slot left to wire as {kind:?}",
-            self.slot_label(s)
-        );
-        self.sources[s.index()] = source;
     }
 
     /// An operator source over `inputs` (at most 255).

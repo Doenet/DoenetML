@@ -195,11 +195,11 @@ impl Compiler<'_> {
     }
 
     /// Plans the synthesized root of a DAST that was not normalized: it has
-    /// no source, so only its deferred props, which every root's are.
+    /// no source, so only its aggregates, which every root's props are.
     fn plan_synthetic(&mut self, t: TemplateId, e: ElemId) {
         let component_type = self.outlined(t).elems[e.index()].component_type;
         let mut props = vec![Source::absent(); component_type.prop_defs().len()];
-        Deferred::mark(component_type, &mut props);
+        mark_aggregates(component_type, &mut props);
         self.tables[t.index()].plans[e.index()].props = props;
     }
 

@@ -1,6 +1,6 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Steps 1 to 4 of the Migration are done;
+Status: proposed 2026-11-03. Steps 1 to 5 of the Migration are done;
 see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
@@ -580,6 +580,28 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
    goes. The abstract build finds counted values by the collections it
    crosses. Test: `tests/scoring.rs`, `tests/repeat.rs` and the counted
    record on every golden document unchanged.
+
+   Done, in this form. A type's table declares an aggregate as a prop
+   source, `aggregate(op, collection)` (`PropFrom::Aggregate`), with the
+   operator (`AggOp`: `Credit`, `PercentCredit`, `Count`) and the
+   collection (`Collection`: `ScoredItems`, `SectionsThrough`, which a
+   section's number counts, and `Gathered`, the components of the type
+   a collect or polyline gathers under what `ElemPlan::from` names, so
+   the collection is the row's body and the plan's `from` together
+   rather than a reference carried in the port). The planner's wiring
+   is `Flow::Aggregate`, set from the table wherever an element's props
+   are planned, a bare copy's included, so nothing overrides it; the
+   build materializes every aggregate in `build/expand/aggregate.rs`
+   (`expand_collect` for the gathered items and their count, since a
+   reference into a collect is placed before the other aggregates are
+   wired, then `aggregate_sources` for credit and numbers), and finds a
+   counted value by the repeats the collection's items sit in, as
+   before. `Deferred` and `Deferred::of` are gone. A percent is listed
+   as an operator of its own so the build keeps wiring it from the
+   credit cell, which keeps the golden set identical; `Body::Collect`'s
+   special cases in `plan_ref` and the type pass's `collected` walk stay
+   for step 6, where `Item` on a collection replaces them. The golden
+   diff changes by no document.
 6. **Paths to ports.** The step language, resolution to a port at
    compile, `RefProp::Named` gone, `Item` on collections, and dynamic
    indices as choose. Test: every reference in the golden set resolves
