@@ -45,16 +45,16 @@ component! {
     }
     sticky: Shape::Closed,
     attributes {
-        vertices,
-        rigid,
-        preserveSimilarity,
-        rotationCenter,
-        rotateAround,
-        rotationVertex,
-        minShrink,
-        allowDilation,
-        allowRotation,
-        allowTranslation,
+        vertices: Points,
+        rigid: Bool(false),
+        preserveSimilarity: Bool(false),
+        rotationCenter: Point,
+        rotateAround: Text,
+        rotationVertex: Number(1.0),
+        minShrink: Number(0.1),
+        allowDilation: Bool(true),
+        allowRotation: Bool(true),
+        allowTranslation: Bool(true),
     }
     planner: Plan(plan),
 }
@@ -79,7 +79,8 @@ pub(super) fn plan_vertices(
     component_type: ComponentType,
     defaults: &[DefaultPoint],
 ) -> Result<ElemWiring> {
-    let mut vertices = ctx.points(attr::vertices)?;
+    let attrs = Attrs::of(ctx.record());
+    let mut vertices = attrs.vertices;
     if !defaults.is_empty() {
         vertices.truncate(defaults.len());
     }
@@ -87,10 +88,8 @@ pub(super) fn plan_vertices(
     // A vertex as given, else its default.
     let vertex = |k: usize| -> [Wire; 2] {
         match vertices.get(k) {
-            Some(v) => Wire::point(v, shared_point_state(k), attr::vertices),
-            None => {
-                Wire::point_or_default(None, shared_point_state(k), attr::vertices, defaults[k])
-            }
+            Some(v) => Wire::point(v, attr::vertices, k),
+            None => Wire::point_or_default(None, attr::vertices, k, defaults[k]),
         }
     };
     if n > super::MAX_VERTICES {
@@ -101,43 +100,30 @@ pub(super) fn plan_vertices(
     }
     // The vertices are the list (ADR 0016), as many as given.
     let mut wiring = ElemWiring::with_list(component_type, n);
-    let flag = |ctx: &PlanCtx<'_, '_>, name: Attr, default: bool| -> bool {
-        match ctx.attr(name) {
-            None => default,
-            Some(a) => {
-                let text = ctx.attr_text(a).unwrap_or_default();
-                let text = text.trim();
-                text.is_empty() || text.eq_ignore_ascii_case("true")
-            }
-        }
-    };
-    let rigid = flag(ctx, attr::rigid, false);
-    let similar = flag(ctx, attr::preserveSimilarity, false);
-    let pivot_point = match ctx.attr(attr::rotationCenter) {
-        Some(a)
-            if flag(ctx, attr::rotateAround, false)
-                || ctx
-                    .text(attr::rotateAround)
-                    .is_some_and(|r| r.trim() == "point") =>
-        {
-            Some(ctx.point_at(a)?)
-        }
+    let rigid = attrs.rigid;
+    let similar = attrs.preserveSimilarity;
+    // `rotateAround` as a flag (bare, or `true`) or as the word `point`.
+    let rotate_around = attrs.rotateAround.unwrap_or_default();
+    let rotate_around = rotate_around.trim();
+    let rotates_about_point = rotate_around.is_empty()
+        || rotate_around.eq_ignore_ascii_case("true")
+        || rotate_around == "point";
+    let pivot_point = match attrs.rotationCenter {
+        Some(p) if rotates_about_point => Some(p.point()?),
         _ => None,
     };
     // How far a pure dilation may shrink the shape: the `Shape`
     // instruction's last input.
-    let min_shrink = ctx
-        .text(attr::minShrink)
-        .and_then(|s| s.trim().parse::<f64>().ok())
-        .unwrap_or(0.1);
+    let min_shrink = attrs.minShrink;
     let rigid_opts = if rigid || similar {
-        let rotate_around = ctx.text(attr::rotateAround).unwrap_or_default();
-        let pivot = match rotate_around.trim() {
+        let pivot = match rotate_around {
             "vertex" => {
-                let k = ctx
-                    .text(attr::rotationVertex)
-                    .and_then(|s| s.trim().parse::<usize>().ok())
-                    .unwrap_or(1);
+                let k = attrs.rotationVertex;
+                let k = if k.is_finite() && k >= 1.0 {
+                    k as usize
+                } else {
+                    1
+                };
                 Pivot::Vertex(byte(k.saturating_sub(1)))
             }
             "point" if pivot_point.is_some() => Pivot::Point,
@@ -146,9 +132,9 @@ pub(super) fn plan_vertices(
         Some(RigidOpts {
             // `rigid` forbids dilation; `preserveSimilarity` allows it
             // unless `allowDilation` says otherwise.
-            dilate: !rigid && flag(ctx, attr::allowDilation, true),
-            rotate: flag(ctx, attr::allowRotation, true),
-            translate: flag(ctx, attr::allowTranslation, true),
+            dilate: !rigid && attrs.allowDilation,
+            rotate: attrs.allowRotation,
+            translate: attrs.allowTranslation,
             pivot,
         })
     } else {
@@ -167,11 +153,7 @@ pub(super) fn plan_vertices(
             let mut args = Vec::with_capacity(2 * n + 2);
             for k in 0..n {
                 let [x, y] = match vertices.get(k) {
-                    Some(v) => wiring.hidden_point_with_shared_state(
-                        v,
-                        shared_point_state(k),
-                        attr::vertices,
-                    ),
+                    Some(v) => wiring.hidden_point_of(v, attr::vertices, k),
                     None => vertex(k).map(|w| wiring.hidden_wire(w)),
                 };
                 args.push(x);

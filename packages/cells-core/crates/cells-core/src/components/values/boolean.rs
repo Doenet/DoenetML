@@ -24,10 +24,6 @@ component! {
     props {
         value: children { rendered },
     }
-    shared_state {
-        // The value, when it is the boolean's own state.
-        VALUE,
-    }
     planner: Whole(plan),
 }
 
@@ -38,8 +34,8 @@ pub const VALUE: usize = Props::AT.value;
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     if ctx.extend().is_some() {
         // `<boolean extend="$bi"/>` shares the referent's value whatever
-        // its type, so it is an alias, not an `Inherit` (which expand
-        // would type-check).
+        // its type, so it is an alias of that value, not of the port of
+        // the same position (which expand would type-check).
         return ctx.alias_extended("value");
     }
     let d = ctx.dast();
@@ -76,7 +72,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         _ => None,
     };
     let value = if let Some(v) = literal {
-        Wire::given(shared_state::VALUE, v)
+        Wire::given(GivenId::Children(0), v)
     } else if macros == 1 && text.is_empty() {
         Source::reference(ctx.reference(nodes[0])?).into()
     } else {

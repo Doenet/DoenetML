@@ -1299,7 +1299,6 @@ impl<'c> Builder<'c> {
         {
             return Ok(());
         }
-        let extend_label = self.label.clone();
         let n_props = self.compiled.templates[inst.template.index()]
             .plan(inst.elem)
             .props
@@ -1334,16 +1333,16 @@ impl<'c> Builder<'c> {
                 // iteration.
                 Source::Specialize(ScopePred::FirstIteration, first, rest) => {
                     match self.view.plans(self.scopes[inst.scope].2) {
-                        Plans::First => self.plan_source(first, inst, pi, extend, &extend_label)?,
-                        Plans::Rest => self.plan_source(rest, inst, pi, extend, &extend_label)?,
+                        Plans::First => self.plan_source(first, inst, pi)?,
+                        Plans::Rest => self.plan_source(rest, inst, pi)?,
                         Plans::Both => {
-                            let rest = self.plan_source(rest, inst, pi, extend, &extend_label)?;
+                            let rest = self.plan_source(rest, inst, pi)?;
                             self.later_sources.push((s, rest));
-                            self.plan_source(first, inst, pi, extend, &extend_label)?
+                            self.plan_source(first, inst, pi)?
                         }
                     }
                 }
-                plan => self.plan_source(plan, inst, pi, extend, &extend_label)?,
+                plan => self.plan_source(plan, inst, pi)?,
             };
             if self.view.folds_iterations()
                 && matches!(source, BuiltSource::Const(_) | BuiltSource::Given(_))
@@ -1356,17 +1355,8 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
-    /// The source one plan gives prop `pi` of instance `inst`; `extend` is
-    /// the `extend` referent and `extend_label` the label of the
-    /// reference to it.
-    fn plan_source(
-        &mut self,
-        plan: &'c Source,
-        inst: Instance,
-        pi: usize,
-        extend: Option<CompIdx>,
-        extend_label: &[Coord],
-    ) -> Result<BuiltSource> {
+    /// The source one plan gives prop `pi` of instance `inst`.
+    fn plan_source(&mut self, plan: &'c Source, inst: Instance, pi: usize) -> Result<BuiltSource> {
         let comp = inst.comp;
         let s = self.slot(comp, pi);
         let component_type = self.components.component_type[comp.index()];
@@ -1375,14 +1365,6 @@ impl<'c> Builder<'c> {
             // Left unset: wired from the tree by `fill_deferred`.
             Source::Deferred(_) => BuiltSource::Unset,
             Source::Specialize(..) => unreachable!("a nested specialization"),
-            Source::Inherit => {
-                let Some(referent) = extend else {
-                    return Ok(BuiltSource::Alias(self.missing_slot()));
-                };
-                let t = self.slot(referent, pi);
-                self.record_label_as(s, t, extend_label);
-                BuiltSource::Alias(t)
-            }
             Source::Leaf(leaf) => match leaf {
                 Leaf::Given(v) => BuiltSource::Given(*v),
                 Leaf::GivenText(id) => BuiltSource::Given(id.map_or(f64::NAN, StrId::to_value)),
@@ -1554,7 +1536,7 @@ fn slot_off_of(b: &Builder<'_>, inst: Instance) -> u32 {
 }
 
 /// Inheritance as the build makes it (ADR 0016, Migration step 8), against
-/// the test-only components: an `Inherit` prop aliases its referent's slot
+/// the test-only components: a bare copy's prop aliases its referent's port
 /// in every instance, a copy of a list holds as many points as its
 /// referent, and a held copy reads its referent through a cell of its own.
 #[cfg(test)]

@@ -28,9 +28,9 @@ pub(in crate::compile) struct Seal<'a> {
     pub(in crate::compile) choices: &'a [ChoiceDef],
     /// What sealing finds of each choice, as it finds it.
     pub(in crate::compile) choice_seals: Vec<ChoiceSeal>,
-    /// By (template, element), a geometry element's shared state
-    /// (`Compiler::shared_state`), which a key names a hidden port by.
-    pub(in crate::compile) shared_state: &'a HashMap<(u32, u32), HashMap<SharedState, Port>>,
+    /// By (template, element), which port holds each given leaf
+    /// (`Planned::given`), which a key names a hidden port by.
+    pub(in crate::compile) given: &'a HashMap<(u32, u32), HashMap<GivenId, Port>>,
 }
 
 impl<'a> Seal<'a> {
@@ -145,7 +145,7 @@ impl Compiler<'_> {
             tables: &self.tables,
             choices: &settled.choices,
             choice_seals: Vec::new(),
-            shared_state: &planned.shared_state,
+            given: &planned.given,
         }
         .run()
     }

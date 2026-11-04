@@ -18,10 +18,6 @@ component! {
     props {
         value: children { attribute: prefill, bind: bindValueTo, text, interactive, rendered },
     }
-    shared_state {
-        // The value, when it is the input's own state.
-        VALUE,
-    }
     planner: Whole(plan),
 }
 
@@ -58,7 +54,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
                 None => String::new(),
             };
             let id = ctx.intern(&text);
-            Wire::given_text(shared_state::VALUE, id)
+            Wire::given_text(GivenId::Children(0), id)
         }
         _ => {
             return Err(Error::Unsupported(

@@ -26,14 +26,10 @@ component! {
     }
     sticky: Shape::Point,
     attributes {
-        coords,
-        x,
-        y,
-        hide,
-    }
-    shared_state {
-        // The coordinates, when they are the point's own state.
-        X, Y,
+        coords: Point,
+        x: Scalar,
+        y: Scalar,
+        hide: Flag(false),
     }
     planner: Plan(plan),
 }
@@ -66,12 +62,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let mut wiring = ElemWiring::of(ComponentType::Point);
     let own_children = ctx.math_children(el);
     let base_children = base.map(|b| ctx.math_children(b)).unwrap_or_default();
-    let coords_state = [shared_state::X, shared_state::Y];
-    let [x, y] = if let Some(a) = ctx.attr(attr::coords) {
-        let p = ctx.point_at(a)?;
-        Wire::point(&p, coords_state, attr::coords)
-    } else if ctx.has(attr::x)
-        || ctx.has(attr::y)
+    let attrs = Attrs::of(ctx.record());
+    // A coordinate the children give is a given leaf of the children,
+    // the element's own or its referent's, which a copy then shares.
+    let children_leaf = |j: usize| GivenId::Children(j as u32);
+    let [x, y] = if let Some(coords) = attrs.coords {
+        let p = coords.point()?;
+        Wire::point(&p, attr::coords, 0)
+    } else if attrs.x.is_some()
+        || attrs.y.is_some()
         || (own_children.is_empty() && base_children.is_empty())
     {
         // A coordinate the element does not give comes from the
@@ -80,36 +79,32 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         // it is the element's own state at 0.
         let from_referent = if own_children.is_empty() && !base_children.is_empty() {
             let p = GivenPoint::Tuple(ctx.tuple(&base_children)?);
-            Wire::point(&p, coords_state, Given::Referent).map(Some)
+            Wire::point_given(&p, children_leaf).map(Some)
         } else {
             [None, None]
         };
-        let mut coord = |name: Attr, state: SharedState, inherited: Option<Wire>| -> Result<Wire> {
-            Ok(match ctx.scalar(name)? {
-                Some(Source::Leaf(Leaf::Given(v))) => Wire::given_from(state, name, v),
-                Some(source) => source.into(),
-                None => inherited.unwrap_or_else(|| Wire::given(state, 0.0)),
-            })
+        let coord = |name: Attr, source: Option<Source>, inherited: Option<Wire>| -> Wire {
+            match source {
+                Some(source) => Wire::scalar(source, GivenId::Attr(name, 0)),
+                None => inherited.unwrap_or_else(|| Wire::given_by(name, 0.0)),
+            }
         };
         let [bx, by] = from_referent;
-        [
-            coord(attr::x, coords_state[0], bx)?,
-            coord(attr::y, coords_state[1], by)?,
-        ]
+        [coord(attr::x, attrs.x, bx), coord(attr::y, attrs.y, by)]
     } else {
         // The point's own children, else its referent's, which a copy
         // then shares.
-        let (nodes, given) = if own_children.is_empty() {
-            (base_children, Given::Referent)
+        let nodes = if own_children.is_empty() {
+            base_children
         } else {
-            (own_children, Given::Children)
+            own_children
         };
         let p = GivenPoint::Tuple(ctx.tuple(&nodes)?);
-        Wire::point(&p, coords_state, given)
+        Wire::point_given(&p, children_leaf)
     };
     // `hide` is a 0/1 cell: a bare or literal flag, or a bound cell; a
     // copy inherits the original's.
-    let hide = ctx.flag(attr::hide, false)?;
+    let hide = Wire::scalar(attrs.hide, GivenId::Attr(attr::hide, 0));
     // Constraints may sit directly under the point or in <constraints>.
     let mut constraints: Vec<NodeId> = Vec::new();
     for node in std::iter::once(el).chain(base) {
@@ -140,11 +135,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             ));
         }
     };
-    wiring.set_public(Props {
-        x,
-        y,
-        hide: hide.into(),
-    });
+    wiring.set_public(Props { x, y, hide });
     Ok(wiring)
 }
 

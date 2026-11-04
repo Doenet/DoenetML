@@ -75,35 +75,46 @@ fn an_inherited_constraint_keeps_the_referents_binding() {
     assert_eq!(v(&doc, "B.L", "x"), 1.0);
 }
 
-/// An extend whose referent is reached by an index or sits in another
-/// repeat or choice has nothing in this scope to take the rest from: with
-/// attributes or children of its own it is refused, rather than planned
-/// from its own attributes alone with defaults for the rest.
+/// An extend whose referent is reached by an index, or sits in another
+/// repeat or choice, takes what it does not write from the referent's
+/// record, rebased through the path (ADR 0032, decision 3): a reference
+/// in an inherited attribute means what it means at the referent, in the
+/// iteration the path names, and a given leaf the extend does not write
+/// is shared with that iteration's. ADR 0023 refused this.
 #[test]
-fn overrides_on_an_extend_across_a_scope_are_refused() {
-    let doc = load(
+fn overrides_on_an_extend_across_a_scope_take_the_referents_values() {
+    let mut doc = load(
         r#"<repeatForSequence name="r" from="1" to="3" valueName="v">
              <point name="P" x="$v" y="0"/>
+             <point name="L" x="1" y="0"/>
            </repeatForSequence>
            <point name="Q" extend="$r[2].P" y="5"/>
-           <point name="S" extend="$r[2].P"/>"#,
+           <point name="S" extend="$r[2].P"/>
+           <point name="M" extend="$r[3].L" y="5"/>"#,
     )
     .unwrap();
-    let errors: Vec<_> = doc
-        .diagnostics()
-        .iter()
-        .filter(|d| d.kind == DiagnosticKind::Error)
-        .collect();
-    assert_eq!(errors.len(), 1, "{:?}", doc.diagnostics());
-    // The plan prints the path without its index.
     assert!(
-        errors[0].message.contains("extend of '$r.P'"),
-        "{}",
-        errors[0].message
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
     );
-    assert_eq!(doc.value("Q", "x"), None, "Q is boxed");
+    // `x="$v"` inherited from `r[2].P` is iteration 2's `v`.
+    assert_eq!((v(&doc, "Q", "x"), v(&doc, "Q", "y")), (2.0, 5.0));
     // The bare extend aliases the iteration's point.
     assert_eq!(v(&doc, "S", "x"), 2.0);
+    // A given leaf the extend does not write is shared with the
+    // iteration's: a write on either side reaches the other, and no
+    // other iteration.
+    assert_eq!((v(&doc, "M", "x"), v(&doc, "M", "y")), (1.0, 5.0));
+    assert!(set(&mut doc, "M", "x", 7.0).dropped.is_empty());
+    assert_eq!((v(&doc, "r[3].L", "x"), v(&doc, "r[1].L", "x")), (7.0, 1.0));
+    set(&mut doc, "r[3].L", "x", 3.0);
+    assert_eq!(v(&doc, "M", "x"), 3.0);
+    // `y` is the extend's own.
+    set(&mut doc, "M", "y", 6.0);
+    assert_eq!((v(&doc, "r[3].L", "y"), v(&doc, "M", "y")), (0.0, 6.0));
 }
 
 // Children written inside a container extend are appended after the

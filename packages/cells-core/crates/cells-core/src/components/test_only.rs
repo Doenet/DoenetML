@@ -53,47 +53,43 @@ pub(crate) mod test_shape {
             sum: computed(OpSpec::Add, [a, b]),
             hide: by_planner,
         }
-        attributes { a, b, hide }
-        shared_state { A, B }
+        attributes { a: Scalar, b: Scalar, hide: Flag(false) }
         planner: Plan(plan),
     }
 
     pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+        let attrs = Attrs::of(ctx.record());
         let mut wiring = ElemWiring::of(ComponentType::TestShape);
         wiring.set_public(Props {
-            a: a(ctx)?,
-            b: given(ctx, shared_state::B, attr::b)?,
+            a: a(ctx, &attrs)?,
+            b: given(attrs.b, attr::b),
             sum: Wire::from_table(ComponentType::TestShape, Props::PORTS.sum),
-            hide: ctx.flag(attr::hide, false)?.into(),
+            hide: Wire::scalar(attrs.hide, GivenId::Attr(attr::hide, 0)),
         });
         Ok(wiring)
     }
 
     /// `a`: its attribute, else the element's children, else its
     /// referent's, which a copy then shares.
-    fn a(ctx: &mut PlanCtx<'_, '_>) -> Result<Wire> {
-        if ctx.has(attr::a) {
-            return given(ctx, shared_state::A, attr::a);
+    fn a(ctx: &mut PlanCtx<'_, '_>, attrs: &Attrs) -> Result<Wire> {
+        if let Some(source) = attrs.a.clone() {
+            return Ok(given(Some(source), attr::a));
         }
-        let (nodes, from) = match (ctx.child_math(), ctx.referent_child_math()) {
-            (Some(own), _) => (own, Given::Children),
-            (None, Some(referent)) => (referent, Given::Referent),
-            (None, None) => return Ok(Wire::given(shared_state::A, 0.0)),
+        let nodes = match (ctx.child_math(), ctx.referent_child_math()) {
+            (Some(own), _) => own,
+            (None, Some(referent)) => referent,
+            (None, None) => return Ok(Wire::given_by(attr::a, 0.0)),
         };
-        Ok(match ctx.scalar_of(&nodes)? {
-            Source::Leaf(Leaf::Given(v)) => Wire::given_from(shared_state::A, from, v),
-            other => other.into(),
-        })
+        Ok(Wire::scalar(ctx.scalar_of(&nodes)?, GivenId::Children(0)))
     }
 
-    /// The attribute `name` as the shared state `state`: a literal is its
-    /// value, anything else is what it computes, and none is 0.
-    fn given(ctx: &mut PlanCtx<'_, '_>, state: SharedState, name: Attr) -> Result<Wire> {
-        Ok(match ctx.scalar(name)? {
-            Some(Source::Leaf(Leaf::Given(v))) => Wire::given_from(state, name, v),
-            Some(other) => other.into(),
-            None => Wire::given(state, 0.0),
-        })
+    /// Attribute `name`'s value as the given leaf it gives: a literal is
+    /// its value, anything else is what it computes, and none is 0.
+    fn given(source: Option<Source>, name: Attr) -> Wire {
+        match source {
+            Some(source) => Wire::scalar(source, GivenId::Attr(name, 0)),
+            None => Wire::given_by(name, 0.0),
+        }
     }
 }
 
@@ -118,12 +114,12 @@ pub(crate) mod test_list {
             coords: [px, py],
         attribute: points,
         }
-        attributes { points }
+        attributes { points: Points }
         planner: Plan(plan),
     }
 
     pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-        let points = ctx.points(attr::points)?;
+        let points = Attrs::of(ctx.record()).points;
         let mut wiring = ElemWiring::with_list(ComponentType::TestList, points.len());
         wiring.set_public(Props {
             numPoints: Wire::constant(points.len() as f64),
@@ -132,7 +128,7 @@ pub(crate) mod test_list {
             points
                 .iter()
                 .enumerate()
-                .map(|(k, p)| Wire::point(p, shared_point_state(k), attr::points))
+                .map(|(k, p)| Wire::point(p, attr::points, k))
                 .collect(),
         );
         Ok(wiring)

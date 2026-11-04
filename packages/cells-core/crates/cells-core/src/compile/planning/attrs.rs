@@ -21,13 +21,10 @@ impl<'a> Compiler<'a> {
             ..
         } = self.outlined(t).elems[e.index()];
         // Without an attribute a prop is the type's default, or under
-        // `extend` the referent's prop.
-        let default = |v: f64| {
-            if extend.is_some() {
-                Source::Inherit
-            } else {
-                Source::given(v)
-            }
+        // `extend` the referent's port of the same position (ADR 0032).
+        let default = |v: f64, pi: usize| match extend {
+            Some(p) => Source::port_of(p, pi),
+            None => Source::given(v),
         };
         let mut props = TableProps::of(component_type);
         for (pi, def) in component_type.prop_defs().iter().enumerate() {
@@ -59,7 +56,7 @@ impl<'a> Compiler<'a> {
                         d.attr_children(a),
                         def.ref_prop,
                     )?,
-                    None => default(def.default),
+                    None => default(def.default, pi),
                 },
                 (None, PropFrom::AttributeOr { alias }) => match d.attr(el, def.attr_name()) {
                     Some(a) => {
@@ -87,7 +84,7 @@ impl<'a> Compiler<'a> {
                                     Source::math(self.plan_math(t, scope, d.attr_children(a))?)
                                 }
                             },
-                            None => default(def.default),
+                            None => default(def.default, pi),
                         }
                     } else {
                         match self.try_value(t, scope, &content, None)? {
@@ -122,7 +119,8 @@ impl<'a> Compiler<'a> {
         }
         if let Planner::PropsThen(then) = Self::planner(component_type) {
             let _s = crate::trace::tally("props then");
-            then(&mut PlanCtx::new(self, t, e, None), &mut props)?;
+            let record = self.parsed().record(t, e)?;
+            then(&mut PlanCtx::new(self, t, e, record, None), &mut props)?;
         }
         let _s = crate::trace::tally("mark");
         let mut props = props.finish();

@@ -102,12 +102,15 @@ pub(crate) enum Arg {
 }
 
 /// Which cell of a reference's target: the single cell, coordinate `j` of a
-/// point-valued prop, or coordinate `j` of item `i` of a list prop.
+/// point-valued prop, coordinate `j` of item `i` of a list prop, or port
+/// `k` of the element the path names, whatever prop it is (a copy's port
+/// aliasing its referent's across a scope, ADR 0032).
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Sel {
     Whole,
     Coord(u8),
     Item(u8, u8),
+    Port(u8),
 }
 
 /// A value not given (yet): an attribute's default when it has no value
@@ -134,9 +137,8 @@ impl Warned {
 /// Where a port's value comes from, before any iteration exists (ADR
 /// 0032, decision 2): a leaf, a dataflow expression over ports, or a
 /// scope specialization choosing between two by the scope the template is
-/// stamped in. `Inherit` and `Deferred` are the two holes the build still
-/// fills, until an extend is a merge (step 4) and a deferred prop an
-/// aggregate (step 5).
+/// stamped in. `Deferred` is the one hole the build still fills, until a
+/// deferred prop is an aggregate (step 5).
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
     Leaf(Leaf),
@@ -145,8 +147,6 @@ pub(crate) enum Source {
     /// stamped in, the second elsewhere: chosen per instance, like a
     /// scope constant.
     Specialize(ScopePred, Box<Source>, Box<Source>),
-    /// The matching port of the `extend` referent.
-    Inherit,
     /// Wired once the whole tree is built, from what is around the element
     /// (`build/expand/scoring.rs`, a collect's expansion): no planner can
     /// wire it, so its wiring says that it is deferred and who fills it.
@@ -247,14 +247,20 @@ impl Source {
     /// Whether a constant this plan gives is a document constant (ADR
     /// 0028): one made from the source alone, the same in every instance
     /// of its template slot. A match on the leaf and expression types
-    /// alone: a specialization, an inherited or a deferred port depends on
-    /// the scope or the tree.
+    /// alone: a specialization or a deferred port depends on the scope or
+    /// the tree.
     pub(crate) fn gives_document_constant(&self) -> bool {
         match self {
             Source::Leaf(leaf) => leaf.is_document_constant(),
             Source::Flow(flow) => flow.is_document_constant(),
-            Source::Specialize(..) | Source::Inherit | Source::Deferred(_) => false,
+            Source::Specialize(..) | Source::Deferred(_) => false,
         }
+    }
+
+    /// Port `k` of the element `p` names, whatever prop it is: a copy's
+    /// port aliasing its referent's (ADR 0032).
+    pub(crate) fn port_of(p: RefId, k: usize) -> Self {
+        Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Port(byte(k)))))
     }
 
     /// A given value (ADR 0028).
@@ -1005,131 +1011,128 @@ impl Compiled {
     }
 }
 
-/// The name of a piece of essential state a copy shares with its
-/// original unless it overrides it (`plan_with_extend`): the copy's port
-/// holding shared state `R` aliases the original's port holding `R`. A copy
-/// extends an element of its own type only, so a name need only be
-/// unique within its type. Every one is a constant: a component's own,
-/// declared beside its props (`shared_state { .. }` in `component!`), or a
-/// list's points' ([`shared_point_state`]), so a planner cannot misspell
-/// one.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct SharedState(&'static str, u32);
-
-impl SharedState {
-    /// Shared state a component declares (`shared_state { .. }`); only
-    /// `component!` calls this.
-    #[doc(hidden)]
-    pub(crate) const fn declared(name: &'static str) -> SharedState {
-        SharedState(name, 0)
-    }
-
-    /// Its name, for `component!`'s check that no declared name is the
-    /// one `shared_point_state` uses.
-    #[doc(hidden)]
-    pub(crate) const fn name(self) -> &'static str {
-        self.0
-    }
-
-    /// What saved state names a hidden port holding it by (ADR 0017): its
-    /// name, and its position for a list's points (`pt3`).
-    pub(crate) fn key(self) -> String {
-        if self.1 == 0 {
-            self.0.to_string()
-        } else {
-            format!("{}{}", self.0, self.1)
-        }
-    }
-}
-
 /// An attribute a component's planner reads, as its `attributes { .. }`
 /// declares it (`component!`): only the macro makes one, as a constant of
 /// the component's `attr` module (`attr::radius`), so a planner can name
 /// only an attribute its type declares, and a misspelling does not
-/// compile.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Attr(&'static str);
+/// compile. Its position among the type's declarations is where the
+/// element's record holds it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Attr(&'static str, u8);
 
 impl Attr {
     /// An attribute a component declares; only `component!` calls this.
     #[doc(hidden)]
-    pub(crate) const fn declared(name: &'static str) -> Attr {
-        Attr(name)
+    pub(crate) const fn declared(name: &'static str, index: u8) -> Attr {
+        Attr(name, index)
     }
 
     /// Its name, as the source spells it (ignoring case).
     pub(crate) const fn name(self) -> &'static str {
         self.0
     }
-}
 
-/// Where the value of a piece of essential state was given, which decides
-/// whether a copy with overrides keeps it or shares its referent's
-/// (`plan_with_extend`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum Given {
-    /// By the attribute, the element's own or, when it omits it, its
-    /// referent's: a copy that gives the attribute keeps the value.
-    Attr(Attr),
-    /// By the element's own children: a copy keeps the value.
-    Children,
-    /// By the referent's children, which the element stands on when it
-    /// has none of its own: a copy shares the value.
-    Referent,
-}
-
-impl From<Attr> for Given {
-    fn from(a: Attr) -> Self {
-        Given::Attr(a)
+    /// Its position among its type's declarations (`Record`).
+    pub(crate) const fn index(self) -> usize {
+        self.1 as usize
     }
 }
 
-/// A point a planner uses when the author gives none: the shared state
-/// its coordinates are, and their value. Both are a component's to say (the line's and
-/// segment's values are in `components/geometry/mod.rs`).
-pub(crate) type DefaultPoint = ([SharedState; 2], [f64; 2]);
+/// A parameter a planner introduces that no attribute gives (`params {
+/// .. }` in `component!`, ADR 0032): a named given leaf with a default,
+/// which a copy shares with its original (a line's distance along its
+/// direction). Only the macro makes one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Param(&'static str);
 
-/// One port's source and, when it is essential state that a copy shares,
-/// which shared state it is and where its value was given: what a typed
-/// plan's fields hold (`component!`'s `Props`), so shared state is always named on
-/// the port that holds it.
+impl Param {
+    /// A parameter a component declares; only `component!` calls this.
+    #[doc(hidden)]
+    pub(crate) const fn declared(name: &'static str) -> Param {
+        Param(name)
+    }
+
+    pub(crate) const fn name(self) -> &'static str {
+        self.0
+    }
+}
+
+/// What gave a given leaf its value (ADR 0032, decision 3): an attribute
+/// (its `k`-th leaf: a point's two coordinates, a list's points), the
+/// element's children, or a parameter the planner introduced. A copy
+/// shares every given leaf whose attribute it did not override by
+/// aliasing it to the referent's port holding the same identity
+/// (`plan_with_extend`, `link_given_leaves`), and a hidden port holding
+/// one is saved by its identity's name (ADR 0017, `Keys`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) enum GivenId {
+    Attr(Attr, u32),
+    /// The `k`-th leaf of what the children give (a point's `(a, b)`).
+    Children(u32),
+    Param(Param),
+}
+
+impl GivenId {
+    /// What saved state names a hidden port holding it by (ADR 0017): the
+    /// attribute's or the parameter's name, and the leaf's position after
+    /// the first (`_through3`), under a `_` so it is never a prop's name
+    /// (a circle's given radius beside its `radius` prop).
+    pub(crate) fn key(self) -> String {
+        match self {
+            GivenId::Attr(a, 0) => format!("_{}", a.name()),
+            GivenId::Attr(a, k) => format!("_{}{k}", a.name()),
+            GivenId::Children(0) => "_children".to_string(),
+            GivenId::Children(k) => format!("_children{k}"),
+            GivenId::Param(p) => format!("_{}", p.name()),
+        }
+    }
+}
+
+/// A point a planner uses when the author gives none: the parameters its
+/// coordinates are, and their value. Both are a component's to say (the
+/// line's and segment's values are in `components/geometry/mod.rs`).
+pub(crate) type DefaultPoint = ([Param; 2], [f64; 2]);
+
+/// One port's source and, when it is a given leaf, what gave it: what a
+/// typed plan's fields hold (`component!`'s `Props`), so a given leaf is
+/// always identified on the port that holds it.
 #[derive(Debug, Clone)]
 pub(crate) struct Wire {
     pub(crate) source: Source,
-    state: Option<(SharedState, Option<Given>)>,
+    given: Option<GivenId>,
 }
 
 impl From<Source> for Wire {
     fn from(source: Source) -> Self {
         Wire {
             source,
-            state: None,
+            given: None,
         }
     }
 }
 
 impl Wire {
-    /// A given value, shared as `state`, initially `v`: state when a
+    /// A given value `v`, the `k`-th leaf of what `id` gives: state when a
     /// student's action can write it (ADR 0018).
-    pub(crate) fn given(state: SharedState, v: f64) -> Self {
+    pub(crate) fn given(id: GivenId, v: f64) -> Self {
         Wire {
             source: Source::given(v),
-            state: Some((state, None)),
+            given: Some(id),
         }
     }
-    /// A given value, shared as `state`, initially `v`, given as `given`
-    /// says: a copy that gives it itself does not share it.
-    pub(crate) fn given_from(state: SharedState, given: impl Into<Given>, v: f64) -> Self {
-        Wire {
-            source: Source::given(v),
-            state: Some((state, Some(given.into()))),
-        }
+    /// A given value `v` of attribute `attr` (its first leaf).
+    pub(crate) fn given_by(attr: Attr, v: f64) -> Self {
+        Wire::given(GivenId::Attr(attr, 0), v)
     }
-    /// A given text value, shared as `state`, initially the string `id`.
-    pub(crate) fn given_text(state: SharedState, id: StrId) -> Self {
+    /// A parameter at its default `v`.
+    pub(crate) fn param(param: Param, v: f64) -> Self {
+        Wire::given(GivenId::Param(param), v)
+    }
+    /// A given text value, given by `attr`, initially the string `id`.
+    pub(crate) fn given_text(id: GivenId, text: StrId) -> Self {
         Wire {
-            source: Source::Leaf(Leaf::GivenText(Some(id))),
-            state: Some((state, None)),
+            source: Source::Leaf(Leaf::GivenText(Some(text))),
+            given: Some(id),
         }
     }
     /// A constant (ADR 0028), not NaN: a value not given is
@@ -1169,29 +1172,37 @@ impl Wire {
             ),
         }
     }
-    /// A given point as `point` plans it, else the essential default with
-    /// its shared state.
-    pub(crate) fn point_or_default(
-        p: Option<&GivenPoint>,
-        shared_state: [SharedState; 2],
-        given: impl Into<Given>,
-        (default_shared_state, default): DefaultPoint,
-    ) -> [Self; 2] {
-        match p {
-            Some(p) => Self::point(p, shared_state, given),
-            None => std::array::from_fn(|j| Self::given(default_shared_state[j], default[j])),
+    /// A scalar as its source plans it: a literal is a given leaf of `id`,
+    /// anything else what it computes.
+    pub(crate) fn scalar(source: Source, id: GivenId) -> Self {
+        match source {
+            Source::Leaf(Leaf::Given(v)) => Wire::given(id, v),
+            other => other.into(),
         }
     }
-    /// A point's two coordinates: a literal coordinate is essential state
-    /// with its shared state, given as `given` says.
-    pub(crate) fn point(
-        p: &GivenPoint,
-        shared_state: [SharedState; 2],
-        given: impl Into<Given>,
+    /// A given point as `point` plans it, else the default with its
+    /// parameters.
+    pub(crate) fn point_or_default(
+        p: Option<&GivenPoint>,
+        attr: Attr,
+        k: usize,
+        (params, default): DefaultPoint,
     ) -> [Self; 2] {
-        let given = given.into();
+        match p {
+            Some(p) => Self::point(p, attr, k),
+            None => std::array::from_fn(|j| Self::param(params[j], default[j])),
+        }
+    }
+    /// The `k`-th point of attribute `attr`: a literal coordinate is a
+    /// given leaf of the attribute, the `2k + j`-th.
+    pub(crate) fn point(p: &GivenPoint, attr: Attr, k: usize) -> [Self; 2] {
+        Self::point_given(p, |j| GivenId::Attr(attr, (2 * k + j) as u32))
+    }
+    /// A point's two coordinates, a literal coordinate a given leaf whose
+    /// identity `id` names by coordinate.
+    pub(crate) fn point_given(p: &GivenPoint, id: impl Fn(usize) -> GivenId) -> [Self; 2] {
         std::array::from_fn(|j| match p.coord(j) {
-            Source::Leaf(Leaf::Given(v)) => Wire::given_from(shared_state[j], given, v),
+            Source::Leaf(Leaf::Given(v)) => Wire::given(id(j), v),
             other => other.into(),
         })
     }
@@ -1210,11 +1221,8 @@ pub(crate) struct ElemWiring {
     /// How many points the list holds, two ports each after the table's
     /// props.
     n_points: usize,
-    /// Which port holds each piece of shared state.
-    shared_state: HashMap<SharedState, Port>,
-    /// Where a piece of shared state's value was given, if it was; a copy
-    /// that gives it itself does not share it.
-    shared_state_given: HashMap<SharedState, Given>,
+    /// Which port holds each given leaf, by what gave it.
+    given: HashMap<GivenId, Port>,
 }
 
 /// The props of an element planned from its type's table (`plan_attrs`),
@@ -1305,8 +1313,7 @@ impl ElemWiring {
             component_type,
             props: vec![None; n_table],
             n_points: 0,
-            shared_state: HashMap::new(),
-            shared_state_given: HashMap::new(),
+            given: HashMap::new(),
         }
     }
 
@@ -1349,54 +1356,34 @@ impl ElemWiring {
         self.props.push(Some(source));
         Port::table(self.props.len() - 1)
     }
-    /// Two hidden ports holding a point's coordinates, a literal coordinate
-    /// as essential state with its shared state, given as `given` says.
-    pub(crate) fn hidden_point_with_shared_state(
-        &mut self,
-        p: &GivenPoint,
-        shared_state: [SharedState; 2],
-        given: impl Into<Given>,
-    ) -> [Port; 2] {
-        let given = given.into();
-        std::array::from_fn(|j| match p.coord(j) {
-            Source::Leaf(Leaf::Given(v)) => {
-                self.shared_state_given.insert(shared_state[j], given);
-                self.given(shared_state[j], v)
-            }
-            other => self.hidden(other),
-        })
+    /// Two hidden ports holding the `k`-th point of attribute `attr`, a
+    /// literal coordinate a given leaf of it.
+    pub(crate) fn hidden_point_of(&mut self, p: &GivenPoint, attr: Attr, k: usize) -> [Port; 2] {
+        Wire::point(p, attr, k).map(|w| self.hidden_wire(w))
     }
     /// Two hidden ports holding a point's coordinates.
     pub(crate) fn hidden_point(&mut self, p: &GivenPoint) -> [Port; 2] {
         [self.hidden(p.coord(0)), self.hidden(p.coord(1))]
     }
-    /// A hidden port planned as `p`, holding its shared state if any.
+    /// A hidden port planned as `p`, holding its given leaf if any.
     pub(crate) fn hidden_wire(&mut self, p: Wire) -> Port {
         let port = self.hidden(p.source);
-        if let Some((state, given)) = p.state {
-            self.add_shared_state(port, state, given);
+        if let Some(id) = p.given {
+            self.given.insert(id, port);
         }
         port
     }
-    /// A hidden port holding a given value, shared state `state`.
-    pub(crate) fn given(&mut self, state: SharedState, value: f64) -> Port {
-        let port = self.hidden(Source::given(value));
-        self.shared_state.insert(state, port);
-        port
-    }
-    fn add_shared_state(&mut self, port: Port, state: SharedState, given: Option<Given>) {
-        self.shared_state.insert(state, port);
-        if let Some(g) = given {
-            self.shared_state_given.insert(state, g);
-        }
+    /// A hidden port holding parameter `param` at `value`.
+    pub(crate) fn param(&mut self, param: Param, value: f64) -> Port {
+        self.hidden_wire(Wire::param(param, value))
     }
     /// Every table prop's port, from a typed plan's fields in table order
-    /// (`Props::into_iter`), with their shared state.
+    /// (`Props::into_iter`), with their given leaves.
     pub(crate) fn set_public(&mut self, props: impl IntoIterator<Item = Wire>) {
         for (i, p) in props.into_iter().enumerate() {
             self.props[i] = Some(p.source);
-            if let Some((state, given)) = p.state {
-                self.add_shared_state(Port::table(i), state, given);
+            if let Some(id) = p.given {
+                self.given.insert(id, Port::table(i));
             }
         }
     }
@@ -1405,7 +1392,7 @@ impl ElemWiring {
         self.set_public(props.into_iter().map(Wire::from));
     }
     /// The list's points, which fill the public ports after the table's
-    /// props (`item`), with their shared state.
+    /// props (`item`), with their given leaves.
     pub(crate) fn set_list(&mut self, points: Vec<[Wire; 2]>) {
         assert_eq!(
             points.len(),
@@ -1416,8 +1403,8 @@ impl ElemWiring {
             let ports = self.item(k);
             for (port, p) in ports.into_iter().zip(point) {
                 self.props[port.index()] = Some(p.source);
-                if let Some((state, given)) = p.state {
-                    self.add_shared_state(port, state, given);
+                if let Some(id) = p.given {
+                    self.given.insert(id, port);
                 }
             }
         }
@@ -1460,12 +1447,10 @@ impl ElemWiring {
         })
     }
 
-    /// Which port holds each piece of shared state, and where each piece's
-    /// value was given, if it was (`plan_with_extend`).
-    pub(in crate::compile) fn shared_state(
-        &self,
-    ) -> (&HashMap<SharedState, Port>, &HashMap<SharedState, Given>) {
-        (&self.shared_state, &self.shared_state_given)
+    /// Which port holds each given leaf, by what gave it
+    /// (`plan_with_extend`).
+    pub(in crate::compile) fn given(&self) -> &HashMap<GivenId, Port> {
+        &self.given
     }
 
     /// Whether `port` is planned as a given value.
@@ -1489,13 +1474,6 @@ impl ElemWiring {
             .collect();
         (props, list)
     }
-}
-
-/// The shared state of the k-th (0-based) literal point of a point list,
-/// for as many points as a list holds.
-pub(crate) fn shared_point_state(k: usize) -> [SharedState; 2] {
-    let k = u32::try_from(2 * k).expect("fewer points than a u32 counts");
-    [SharedState("pt", k), SharedState("pt", k + 1)]
 }
 
 /// One point of a point-list attribute (`through`, `vertices`, `endpoints`).
@@ -1716,7 +1694,6 @@ mod tests {
             !Source::Specialize(ScopePred::FirstIteration, one.clone(), one)
                 .gives_document_constant()
         );
-        assert!(!Source::Inherit.gives_document_constant());
         assert!(!Source::Deferred(Deferred::Credit).gives_document_constant());
     }
 }

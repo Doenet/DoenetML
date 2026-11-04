@@ -1,6 +1,6 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Steps 1 to 3 of the Migration are done;
+Status: proposed 2026-11-03. Steps 1 to 4 of the Migration are done;
 see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
@@ -547,6 +547,34 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
    overrides across a scope that ADR
    0023 refused, now giving the referent's values. Changes the golden
    diff only by documents that loaded with that refusal.
+   Done, with these bounds. The `attributes` section carries kinds
+   (`Scalar`, `Value`, `Point`, `Points(max)`, `Flag(default)`,
+   `Bool(default)`, `Number(default)`, `Text`, `Math`, `Ref`); the
+   compile parses every declared attribute into the element's record in
+   a parse stage after the maths (`compile/record.rs`), and the planner
+   reads the record typed (`Attrs::of(ctx.record())`). The merge rule is
+   `Record::merged_over`; a referent in another template has its record
+   rebased through the extend's path (`compile/rebase.rs`), which
+   composes the referent's reference plans with the path and names an
+   iteration index the referent's paths carry as the path names it. A
+   given leaf is identified by what gave it (`GivenId`: an attribute's
+   leaf, the children's, or a parameter from `params { .. }`), and a
+   copy shares every one whose attribute it did not write, across a
+   scope through `Sel::Port` on the path. `SharedState`, `Given`,
+   `shared_point_state` and `Inherit` are gone: a bare copy's or a table
+   type's un-overridden prop aliases the referent's port by position.
+   What stays, for later steps: the tie between a copy's port and the
+   referent's is still made when linking, keyed by the identity, since a
+   port is not yet carried by name through the compile (step 7's
+   recorder is where a planner could read the referent's wiring);
+   `PlanCtx` still reads the referent's children for a planner, until
+   children are declared; an undeclared attribute is still refused by
+   the recorded reads of ADR 0021, since the table-planned types and
+   the compile's own machinery (answers, choices, repeats) read theirs
+   outside any declaration; and the hold attributes stay the one table
+   of `compile/planning/fix.rs`, with `hide` keeping its scope, so no
+   attribute is marked `inherited` yet. The golden diff changes by no
+   document.
 5. **Collections and aggregates.** `Collection` and `Aggregate` in the
    IR; credit, numbers, collect and polyline through them; `Deferred`
    goes. The abstract build finds counted values by the collections it

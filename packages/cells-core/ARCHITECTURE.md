@@ -422,24 +422,26 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
 - A type built on shared machinery (answers, selects) has a thin planner
   that names that machinery and keeps its own decisions, such as what it
   refuses, in its file (`values/answer.rs`, `structure/select.rs`).
-- Declare the type's *shared state*, which a copy shares with its original
-  unless it overrides it, in the block (`shared_state { CX, CY, R }`; see
-  `CONTEXT.md`).
-- Declare the attributes the planner reads itself (`attributes { center,
-  radius, through }`) and name them by their handles (`attr::radius`):
-  `ctx.scalar(attr::radius)` to read one, and
-  `Wire::given_from(shared_state::R, attr::radius, v)` to say it gave
-  a piece of shared state, which a copy giving the same attribute keeps
-  as its own. State from the element's own children is `Given::Children`,
-  from its referent's `Given::Referent`.
+- Declare the attributes the planner reads, each with its kind
+  (`attributes { center: Point, radius: Scalar, through: Points(3) }`,
+  ADR 0032), and read them typed from the element's record
+  (`let attrs = Attrs::of(ctx.record())`), never from the source: the
+  compile parsed them before planning, the element's own or its `extend`
+  referent's, each where its writer sits. Say what gave a given leaf
+  (`Wire::given_by(attr::radius, v)`, `Wire::point(p, attr::through, k)`,
+  `Wire::scalar(source, GivenId::Attr(attr::x, 0))`), so a copy giving
+  the same attribute keeps it as its own and one not giving it shares
+  the referent's. A value the planner introduces that no attribute gives
+  is a parameter (`params { DIST }`, `wiring.param(param::DIST, 1.0)`);
+  one the children give is `GivenId::Children(k)`.
 - A `<label>` or `<shortDescription>` child is a component of the element
   on every type, for the renderer to read (ADR 0024); a planner reading
   its element children passes over them (`ctx.is_presentation_child`).
 - What an extend omits comes from its referent, planned where the
-  referent sits (ADR 0023): `ctx.attr`, `ctx.scalar`, `ctx.flag`,
+  referent sits (ADR 0023): the record is merged (ADR 0032), and
   `ctx.tuple` and the rest pick the referent's scope for the referent's
-  attributes and children, so a planner reading `ctx.base()`'s children
-  need not think about it.
+  children, so a planner reading `ctx.base()`'s children need not think
+  about it.
 - A type a bare reference reads as a value says so in its block
   (`reads_as: Math` on `<mathInput>`, ADR 0025); the build then makes a
   `<math>` aliasing the input's props for `$mi`, and `<math

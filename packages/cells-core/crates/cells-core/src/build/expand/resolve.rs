@@ -52,6 +52,20 @@ impl<'c> Builder<'c> {
                     None => self.missing_slot(),
                 }
             }
+            // A port of the element the path names, whatever prop it is:
+            // a copy's port aliasing its referent's (ADR 0032).
+            Arg::Ref(p, Sel::Port(k)) => {
+                let (target, _) = self.resolve(p, scope)?;
+                match target {
+                    Resolved::Missing => self.missing_slot(),
+                    target => {
+                        let c = self.single_component(target, p)?;
+                        let t = self.slot(c, k as usize);
+                        self.record_label(from, t);
+                        t
+                    }
+                }
+            }
         })
     }
 

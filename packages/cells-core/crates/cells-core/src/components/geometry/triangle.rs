@@ -41,18 +41,18 @@ component! {
     }
     sticky: Shape::Closed,
     attributes {
-        vertices,
-        rigid,
-        preserveSimilarity,
-        rotationCenter,
-        rotateAround,
-        rotationVertex,
-        minShrink,
-        allowDilation,
-        allowRotation,
-        allowTranslation,
+        vertices: Points,
+        rigid: Bool(false),
+        preserveSimilarity: Bool(false),
+        rotationCenter: Point,
+        rotateAround: Text,
+        rotationVertex: Number(1.0),
+        minShrink: Number(0.1),
+        allowDilation: Bool(true),
+        allowRotation: Bool(true),
+        allowTranslation: Bool(true),
     }
-    shared_state {
+    params {
         // A missing vertex's coordinates.
         ESS1X, ESS1Y, ESS2X, ESS2Y, ESS3X, ESS3Y,
     }
@@ -70,7 +70,7 @@ const _: () = assert!(
 /// Plans a triangle: a polygon whose three vertices default as the current
 /// core's do.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    use shared_state::*;
+    use param::*;
     plan_vertices(
         ctx,
         ComponentType::Triangle,

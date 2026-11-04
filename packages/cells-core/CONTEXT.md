@@ -56,13 +56,22 @@ references so its documents resolve unchanged (`$c.centerX1` is
 `$c.centerX`).
 _Avoid_: alias (an alias is two state variables sharing one cell)
 
-**Shared state** — Essential state a copy shares with its original unless
-it overrides it: a circle's center and radius when they are its own
-state. Each piece has a name (`SharedState`) declared with its component's
-props; the copy's port holding a name aliases the original's port holding
-the same name. A copy extends only its own type, so a name need be unique
-only within its type.
-_Avoid_: role
+**Given leaf** — A port whose value is given rather than computed (ADR
+0032): an attribute's literal, the children's, a parameter's default.
+What gave it is its identity (`GivenId`: the attribute and which of its
+leaves, the children, or the parameter), and a copy shares every given
+leaf whose attribute it did not write with its referent: the copy's port
+aliases the referent's port holding the same identity, across scopes too.
+A hidden port holding one is saved by the identity's name (`_radius`).
+_Avoid_: shared state (what the identity replaced: a name a planner had
+to declare and put on every leaf)
+
+**Record** — An element's declared attributes as the compile parsed them
+(ADR 0032), each in the scope it was written in, before anything is
+planned: what its planner reads, typed (`Attrs`), instead of the source.
+An extend with overrides is planned from its own record merged under
+its referent's, the referent's rebased through the path when the
+referent sits in another template.
 
 **List prop** — A component type's one prop of points, read alike however
 they are stored (`$c.throughPoints`, `$c.throughPoint2`, `$l.points[2].x`).

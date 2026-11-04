@@ -1,7 +1,7 @@
 //! Linking (ADR 0029, ADR 0030): what planning leaves for once every
 //! element is planned. Readers of boxed referents are boxed, elements with
-//! an attribute nothing read are boxed (`unread.rs`), and shared state is
-//! tied between the elements left.
+//! an attribute nothing read are boxed (`unread.rs`), and the given
+//! leaves copies share are tied between the elements left.
 
 mod unread;
 
@@ -13,7 +13,7 @@ impl Compiler<'_> {
     /// element with an attribute nothing read is boxed, every attribute
     /// having been read by now (`box_unread_attributes`), and its readers
     /// in turn; then shared state is tied between the elements left
-    /// (`link_shared_state`).
+    /// (`link_given_leaves`).
     pub(in crate::compile) fn link(
         &mut self,
         planned: &mut Planned,
@@ -30,7 +30,7 @@ impl Compiler<'_> {
         box_readers(self)?;
         crate::trace::span("unread attributes").run(|| self.box_unread_attributes());
         box_readers(self)?;
-        crate::trace::span("shared state").run(|| self.link_shared_state(planned));
+        crate::trace::span("given leaves").run(|| self.link_given_leaves(planned));
         Ok(())
     }
 
@@ -60,22 +60,30 @@ impl Compiler<'_> {
         }
     }
 
-    /// Linking (ADR 0029): each piece of state a copy shares
-    /// aliases the referent's port for it, now that every element is
-    /// planned. A copy or referent that is a box shares nothing, and a
-    /// copy keeps its own given value for state its referent has none of.
-    pub(in crate::compile) fn link_shared_state(&mut self, planned: &mut Planned) {
+    /// Linking (ADR 0029, ADR 0032): each given leaf a copy shares aliases
+    /// the referent's port holding it, now that every element is planned.
+    /// A copy or referent that is a box shares nothing, and a copy keeps
+    /// its own given value for a leaf its referent has none of.
+    pub(in crate::compile) fn link_given_leaves(&mut self, planned: &mut Planned) {
         for s in std::mem::take(&mut planned.shares) {
-            if self.is_box(s.t, s.e) || self.is_box(s.t, s.referent) {
+            let (rt, re) = match s.referent {
+                Referent::Here(r) => (s.t, r),
+                Referent::Path(_, rt, re) => (rt, re),
+            };
+            if self.is_box(s.t, s.e) || self.is_box(rt, re) {
                 continue;
             }
-            if let Some(&bs) = planned
-                .shared_state
-                .get(&(s.t.get(), s.referent.get()))
-                .and_then(|m| m.get(&s.state))
+            if let Some(&port) = planned
+                .given
+                .get(&(rt.get(), re.get()))
+                .and_then(|m| m.get(&s.id))
             {
+                let arg = match s.referent {
+                    Referent::Here(r) => Arg::Elem(r, port),
+                    Referent::Path(p, ..) => Arg::Ref(p, Sel::Port(port.index() as u8)),
+                };
                 self.tables[s.t.index()].plans[s.e.index()].props[s.port.index()] =
-                    Source::alias(Arg::Elem(s.referent, bs));
+                    Source::alias(arg);
             }
         }
     }

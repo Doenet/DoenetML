@@ -19,18 +19,23 @@ pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
     t: TemplateId,
     e: ElemId,
-    /// The `extend` referent, which supplies what the element omits.
-    base: Option<Base>,
+    /// The element's attribute record (ADR 0032): its own, merged under
+    /// its `extend` referent's for a `Plan` type with overrides.
+    record: record::Record,
+    /// The `extend` referent of a `Plan` type planned with overrides, in
+    /// this template, which supplies the children the element omits until
+    /// children are declared (ADR 0032, decision 3).
+    referent: Option<Base>,
 }
 
 /// The `extend` referent of a `Plan` type planned with overrides: an
 /// element of the same template.
 struct Base {
     node: NodeId,
-    /// Where its attributes and children are planned.
+    /// Where its children are planned.
     scope: ElemId,
-    /// Every node under it, attributes' values included: what a planner
-    /// reads from it rather than from the element.
+    /// Every node under it: what a planner reads from it rather than from
+    /// the element.
     subtree: HashSet<NodeId>,
 }
 
@@ -39,9 +44,10 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         c: &'c mut Compiler<'a>,
         t: TemplateId,
         e: ElemId,
-        base: Option<ElemId>,
+        record: record::Record,
+        referent: Option<ElemId>,
     ) -> Self {
-        let base = base.map(|b| {
+        let referent = referent.map(|b| {
             let Elem {
                 node, name_scope, ..
             } = *c.elem(t, b);
@@ -65,7 +71,13 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
                 subtree,
             }
         });
-        PlanCtx { c, t, e, base }
+        PlanCtx {
+            c,
+            t,
+            e,
+            record,
+            referent,
+        }
     }
 }
 
@@ -79,25 +91,23 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// Where nodes are planned: the referent's scope for nodes under the
-    /// referent, else the element's.
+    /// referent (its children), else the element's.
     fn scope_for(&self, nodes: &[NodeId]) -> ElemId {
-        match (&self.base, nodes.first()) {
+        match (&self.referent, nodes.first()) {
             (Some(b), Some(n)) if b.subtree.contains(n) => b.scope,
             _ => self.scope(),
         }
     }
 
-    /// Where attribute `a` is planned: the referent's scope when it is the
-    /// referent's attribute.
-    fn scope_for_attr(&self, a: u32) -> ElemId {
-        match &self.base {
-            Some(b) if self.c.dast.attrs(b.node).contains(&a) => b.scope,
-            _ => self.scope(),
-        }
+    fn base_node(&self) -> Option<NodeId> {
+        self.referent.as_ref().map(|b| b.node)
     }
 
-    fn base_node(&self) -> Option<NodeId> {
-        self.base.as_ref().map(|b| b.node)
+    /// The element's attribute record (ADR 0032): every attribute its
+    /// type declares, parsed, the element's own or its referent's. A
+    /// planner reads it as its type's `Attrs` (`Attrs::of(ctx.record())`).
+    pub(crate) fn record(&self) -> &record::Record {
+        &self.record
     }
 
     // The element and its source.
@@ -118,7 +128,7 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// The node of the element a `Plan` type extends, which supplies the
-    /// attributes and children the element omits.
+    /// children the element omits (its attributes are in the record).
     pub(crate) fn base(&self) -> Option<NodeId> {
         self.base_node()
     }
@@ -144,25 +154,6 @@ impl<'a> PlanCtx<'_, 'a> {
             .then_some(Source::alias(Arg::Elem(scope, port)))
     }
 
-    // Attributes.
-
-    /// An attribute the type declares (`attributes { .. }`): the
-    /// element's own, else its `extend` referent's for a `Plan` type.
-    pub(crate) fn attr(&self, name: Attr) -> Option<u32> {
-        self.c
-            .attr_or_inherited(self.node(), self.base_node(), name.name())
-    }
-
-    /// Whether the attribute is given.
-    pub(crate) fn has(&self, name: Attr) -> bool {
-        self.attr(name).is_some()
-    }
-
-    /// An attribute's text, if it is given and holds no reference.
-    pub(crate) fn text(&self, name: Attr) -> Option<String> {
-        self.attr(name).and_then(|a| self.c.attr_text(a))
-    }
-
     /// The text of attribute `a`, if it holds no reference.
     pub(crate) fn attr_text(&self, a: u32) -> Option<String> {
         self.c.attr_text(a)
@@ -182,13 +173,6 @@ impl<'a> PlanCtx<'_, 'a> {
     /// The one reference attribute `a` holds and nothing else, if so.
     pub(crate) fn single_macro(&self, a: u32) -> Option<NodeId> {
         self.c.single_macro(a)
-    }
-
-    /// Whether the attribute is one reference and nothing else
-    /// (`center="$p"`).
-    pub(crate) fn is_reference(&self, name: Attr) -> bool {
-        self.attr(name)
-            .is_some_and(|a| self.c.single_macro(a).is_some())
     }
 
     /// Whether a child node is layout: whitespace or a comment.
@@ -214,12 +198,6 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.math_children(node)
     }
 
-    /// An attribute's math text, if given.
-    pub(crate) fn math(&self, name: Attr) -> Option<Vec<NodeId>> {
-        self.attr(name)
-            .map(|a| self.c.dast.attr_children(a).to_vec())
-    }
-
     /// The element's own children as math text, if it has any.
     pub(crate) fn child_math(&self) -> Option<Vec<NodeId>> {
         Some(self.math_children(self.node())).filter(|n| !n.is_empty())
@@ -239,56 +217,12 @@ impl<'a> PlanCtx<'_, 'a> {
 
     // Planning.
 
-    /// A point-valued attribute, a reference (`center="$p"`) or a tuple
-    /// (`center="(1, 2)"`), if given.
-    pub(crate) fn point(&mut self, name: Attr) -> Result<Option<GivenPoint>> {
-        let Some(a) = self.attr(name) else {
-            return Ok(None);
-        };
-        self.point_at(a).map(Some)
-    }
-
-    /// Attribute `a` as a point.
-    pub(crate) fn point_at(&mut self, a: u32) -> Result<GivenPoint> {
-        let scope = self.scope_for_attr(a);
-        self.c.plan_point_attr(self.t, scope, a)
-    }
-
-    /// A scalar attribute, a literal, a reference or math, if given.
-    pub(crate) fn scalar(&mut self, name: Attr) -> Result<Option<Source>> {
-        let Some(a) = self.attr(name) else {
-            return Ok(None);
-        };
-        let nodes = self.c.dast.attr_children(a);
-        self.scalar_of(nodes).map(Some)
-    }
-
-    /// Nodes as a scalar: a literal, a reference or math.
+    /// Nodes as a scalar: a literal, a reference or math (a test
+    /// component's children; a real type's children are declared later).
+    #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) fn scalar_of(&mut self, nodes: &[NodeId]) -> Result<Source> {
         let scope = self.scope_for(nodes);
         self.c.plan_scalar(self.t, scope, nodes)
-    }
-
-    /// A 0/1 flag attribute (`hide`), as a copy inherits it
-    /// (`Compiler::plan_flag`): the element's own, else its referent's, else
-    /// `default`.
-    pub(crate) fn flag(&mut self, name: Attr, default: bool) -> Result<Source> {
-        let scope = self.scope();
-        let node = self.node();
-        let base = self.base.as_ref().map(|b| (b.node, b.scope));
-        self.c
-            .plan_flag(self.t, scope, node, base, name.name(), default)
-    }
-
-    /// The points of a point-list attribute (`through="$a (1, 2)"`), none
-    /// if it is not given.
-    pub(crate) fn points(&mut self, name: Attr) -> Result<Vec<GivenPoint>> {
-        let Some(a) = self.attr(name) else {
-            return Ok(Vec::new());
-        };
-        let scope = self.scope_for_attr(a);
-        let node = self.node();
-        self.c.plan_point_list(self.t, scope, node, a)
     }
 
     /// Math text that is a pair, `(a, b)`, as its two coordinates.

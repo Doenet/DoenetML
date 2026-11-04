@@ -211,15 +211,15 @@ impl super::Seal<'_> {
             },
             "two elements share a key"
         );
-        // A hidden port holding shared state is saved by its name; a
-        // public one by the prop's.
-        for (&(t, e), state) in self.shared_state {
+        // A hidden port holding a given leaf is saved by what gave it; a
+        // public one by the prop's name.
+        for (&(t, e), given) in self.given {
             let id = elem_keys[t as usize][e as usize];
             let n_public = keys.n_public[id.index()];
-            for (s, &port) in state {
+            for (g, &port) in given {
                 if port.index() as u32 >= n_public {
                     keys.hidden
-                        .insert((id, port.index() as u32), s.key().into());
+                        .insert((id, port.index() as u32), g.key().into());
                 }
             }
         }
@@ -428,10 +428,14 @@ mod tests {
             assert_eq!(keys.prop_key(c, port).as_deref(), Some(name));
             assert_eq!(keys.prop_named(c, name), Some(port));
         }
-        // The radius is in a hidden port, past the public ones.
-        let r = keys.prop_named(c, "R").expect("a hidden port holding R");
+        // The given radius is in a hidden port, past the public ones,
+        // named by the attribute that gives it, apart from the `radius`
+        // prop (ADR 0032).
+        let r = keys
+            .prop_named(c, "_radius")
+            .expect("a hidden port holding the given radius");
         assert!(r >= n_table + 2, "hidden ports follow the public ones: {r}");
-        assert_eq!(keys.prop_key(c, r).as_deref(), Some("R"));
+        assert_eq!(keys.prop_key(c, r).as_deref(), Some("_radius"));
         // A name no port has, and a list point past the list's end, name
         // nothing.
         assert_eq!(keys.prop_named(c, "nothing"), None);

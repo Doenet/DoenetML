@@ -202,6 +202,13 @@ pub struct ComponentDef {
     pub reads_as: Option<ComponentType>,
     /// How an element of the type is planned.
     pub(crate) planner: crate::compile::api::Planner,
+    /// The attributes the type's planner reads, each with its kind
+    /// (`attributes { .. }`, ADR 0032): what the compile parses into the
+    /// element's record before the planner runs.
+    pub attributes: &'static [AttrDecl],
+    /// The parameters the type's planner introduces that no attribute
+    /// gives (`params { .. }`): named given leaves a copy shares.
+    pub params: &'static [&'static str],
     /// Attributes of this type a renderer reads from the literal attributes
     /// and the core does not (`presentation { .. }`), accepted by the check
     /// beside `PRESENTATION_ATTRS`.
@@ -209,6 +216,44 @@ pub struct ComponentDef {
     /// How a member of a sticky group attracts and snaps: its shape, and
     /// where its points are.
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
+}
+
+/// What an attribute a planner reads holds (ADR 0032, decision 3): how
+/// the compile parses it into the element's record, and what the typed
+/// field of the type's `Attrs` is.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AttrKind {
+    /// A number, a reference or math (`radius="2"`, `x="$n"`,
+    /// `slope="2 $m"`): a source.
+    Scalar,
+    /// A literal number or one reference, as a table prop's attribute is
+    /// read (`plan_value`): a source, or an error for math.
+    Value,
+    /// A point: one reference, or a tuple `(a, b)`.
+    Point,
+    /// A list of points, at most `max` when given.
+    Points { max: Option<usize> },
+    /// An on/off attribute that may be bound (`hide="$h"`): a 0/1 source,
+    /// `default` without one.
+    Flag { default: bool },
+    /// A literal on/off attribute: present and empty or `true`.
+    Bool { default: bool },
+    /// A literal number, `default` when absent or not a number.
+    Number { default: f64 },
+    /// Literal text, none when it holds a reference.
+    Text,
+    /// Math text, kept as the nodes it is written in for the planner to
+    /// parse as it needs (a line's equation).
+    Math,
+    /// One reference and nothing else.
+    Ref,
+}
+
+/// One attribute a type's planner reads (`ComponentDef::attributes`).
+#[derive(Debug, Clone, Copy)]
+pub struct AttrDecl {
+    pub name: &'static str,
+    pub kind: AttrKind,
 }
 
 /// A type's one list prop of points: the names the list goes by

@@ -235,6 +235,8 @@ pub(super) const fn definition(
         planner: crate::compile::api::Planner::Props,
         presentation: &[],
         reads_as: None,
+        attributes: &[],
+        params: &[],
     }
 }
 
@@ -277,6 +279,14 @@ impl ComponentDef {
     }
     pub(super) const fn planner(mut self, planner: crate::compile::api::Planner) -> Self {
         self.planner = planner;
+        self
+    }
+    pub(super) const fn attributes(mut self, attributes: &'static [super::AttrDecl]) -> Self {
+        self.attributes = attributes;
+        self
+    }
+    pub(super) const fn params(mut self, params: &'static [&'static str]) -> Self {
+        self.params = params;
         self
     }
     pub(super) const fn default_prop(mut self, prop: &'static str) -> Self {
@@ -350,6 +360,19 @@ impl ComponentDef {
     }
 }
 
+/// The position of attribute `name` among `attrs`, for a type's `attr`
+/// constants. A name not declared fails to compile.
+pub(crate) const fn attr_index(attrs: &[super::AttrDecl], name: &str) -> u8 {
+    let mut i = 0;
+    while i < attrs.len() {
+        if str_eq(attrs[i].name, name) {
+            return i as u8;
+        }
+        i += 1;
+    }
+    panic!("no such attribute")
+}
+
 /// The position of the prop `name` in `defs`, if it has one: the one
 /// lookup by name, usable in `const`.
 pub(crate) const fn find(defs: &[PropDef], name: &str) -> Option<usize> {
@@ -394,10 +417,10 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 }
 
 /// A component type's whole definition in one block: its tags, flags,
-/// props, combined props, list, alternate names, attributes, shared state
+/// props, combined props, list, alternate names, attributes, parameters
 /// and planner. It makes the row `DEFINITION`, which `component_types!`
-/// registers, the table `PROPS`, and the typed plan `Props` with its
-/// `shared_state`. Each prop is named once, as an identifier, so a
+/// registers, the table `PROPS`, the typed plan `Props` and the typed
+/// record `Attrs`. Each prop is named once, as an identifier, so a
 /// combined prop or a computed prop naming one the table lacks fails to
 /// compile. The sections come in the order below; only `tags`, `props`
 /// and `planner` are required.
@@ -414,11 +437,11 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// how a planner names one in its wiring; and `Props::<usize>::AT` holds
 /// every prop's position, for what reads a built component by position.
 ///
-/// `shared_state { .. }` names the pieces of essential state a copy with
-/// overrides shares with its original unless it overrides them
-/// (`compile::plan::SharedState`), as constants of a `shared_state` module
-/// beside the props. A copy extends only its own type, so a type's names
-/// need differ only from one another, as constants of one module must.
+/// `params { .. }` names the parameters the planner introduces that no
+/// attribute gives (`compile::plan::Param`, ADR 0032): named given leaves
+/// with a default (a line's distance along its direction), which a copy
+/// shares with its original, as constants of a `param` module beside the
+/// props.
 ///
 /// `presentation { .. }` names the attributes of this type that a renderer
 /// reads from the document's literal attributes (a `<ref>`'s `to`), which
@@ -426,13 +449,19 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// every type may carry, they are the attributes the check accepts
 /// without a planner reading them (`compile/check.rs`).
 ///
-/// `attributes { .. }` names the attributes the type's planner reads
-/// itself, beyond its table's: a module `attr` holds one
+/// `attributes { .. }` declares the attributes the type's planner reads,
+/// each with its kind (ADR 0032): `center: Point`, `radius: Scalar`,
+/// `through: Points(3)`, `hide: Flag(false)`, `rigid: Bool(false)`,
+/// `minShrink: Number(0.1)`, `rotateAround: Text`, `equation: Math`,
+/// `function: Ref`. The compile
+/// parses them into the element's record before the planner runs, and the
+/// planner reads them typed, as the struct `Attrs` (`Attrs::of(ctx.record())`),
+/// with one field per attribute. A module `attr` holds one
 /// `compile::api::Attr` per name (`attr::radius`), which is how a planner
-/// names an attribute (`ctx.scalar(attr::radius)`), and where a piece of
-/// shared state's value was given (`Wire::given_from(shared_state::R,
-/// attr::radius, v)`). Only the macro makes an `Attr`, so a planner names
-/// only attributes its type declares, and a misspelling does not compile.
+/// says what gave a given leaf (`Wire::given_by(attr::radius, v)`), so a
+/// copy giving the same attribute keeps it as its own. Only the macro
+/// makes an `Attr`, so a planner names only attributes its type declares,
+/// and a misspelling does not compile.
 ///
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
 /// `attr(default)`, `attr_or(other)` or `computed(op, [args])`, where an
@@ -517,8 +546,8 @@ macro_rules! component {
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
         $(presentation { $($prname:ident),* $(,)? })?
         $(sticky: $sticky:expr,)?
-        $(attributes { $($aname:ident),* $(,)? })?
-        $(shared_state { $($state:ident),* $(,)? })?
+        $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
+        $(params { $($param:ident),* $(,)? })?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
         $(#[$doc])*
@@ -542,6 +571,8 @@ macro_rules! component {
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 $(.sticky($sticky))?
+                $(.attributes({ $(let _ = stringify!($aname);)* ATTRS }))?
+                $(.params(&[$(stringify!($param)),*]))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
 
         const PROPS: &[$crate::components::PropDef] = &$crate::components::define::props([
@@ -552,25 +583,16 @@ macro_rules! component {
         ]);
 
         $(
-            /// The essential state a copy of this type shares with its
-            /// original unless it overrides it.
-            pub(crate) mod shared_state {
+            /// The parameters this type's planner introduces that no
+            /// attribute gives (`params { .. }`): named given leaves,
+            /// which a copy shares with its original (ADR 0032).
+            #[allow(non_upper_case_globals, dead_code)]
+            pub(crate) mod param {
                 $(
-                    pub(crate) const $state: $crate::compile::api::SharedState =
-                        $crate::compile::api::SharedState::declared(stringify!($state));
+                    pub(crate) const $param: $crate::compile::api::Param =
+                        $crate::compile::api::Param::declared(stringify!($param));
                 )*
             }
-
-            // `shared_point_state` names a list's points `pt`; a declared
-            // name is the constant's own, so two always differ.
-            const _: () = {
-                $(
-                    assert!(
-                        !$crate::components::define::str_eq(shared_state::$state.name(), "pt"),
-                        "shared state must not be named pt"
-                    );
-                )*
-            };
         )?
 
         /// One field per prop of the table, in its order. A type may use
@@ -624,14 +646,50 @@ macro_rules! component {
         }
 
         $(
+            /// The attributes this type's planner reads (`attributes { .. }`),
+            /// each with its kind: what `DEFINITION` declares and the
+            /// compile parses into the element's record (ADR 0032).
+            const ATTRS: &[$crate::components::AttrDecl] = &[$(
+                $crate::components::AttrDecl {
+                    name: stringify!($aname),
+                    kind: $crate::components::define::component!(@kind $akind $(($($akarg)*))?),
+                }
+            ),*];
+
             /// The attributes this type's planner reads itself
             /// (`attributes { .. }`), as the planner names them.
             #[allow(non_upper_case_globals, dead_code)]
             pub(crate) mod attr {
                 $(
                     pub(crate) const $aname: $crate::compile::api::Attr =
-                        $crate::compile::api::Attr::declared(stringify!($aname));
+                        $crate::compile::api::Attr::declared(
+                            stringify!($aname),
+                            $crate::components::define::attr_index(
+                                super::ATTRS,
+                                stringify!($aname),
+                            ),
+                        );
                 )*
+            }
+
+            /// The type's attributes as the compile parsed them into the
+            /// element's record (ADR 0032): one typed field per declared
+            /// attribute, the element's own value or, under `extend`, its
+            /// referent's.
+            #[allow(non_snake_case, dead_code)]
+            #[derive(Debug)]
+            pub(crate) struct Attrs {
+                $(pub(crate) $aname: $crate::components::define::component!(@field $akind $(($($akarg)*))?),)*
+            }
+
+            #[allow(dead_code)]
+            impl Attrs {
+                /// The record's values, typed.
+                pub(crate) fn of(record: &$crate::compile::api::Record) -> Attrs {
+                    Attrs {
+                        $($aname: $crate::components::define::component!(@get $akind $(($($akarg)*))?, record, attr::$aname),)*
+                    }
+                }
             }
         )?
 
@@ -660,6 +718,43 @@ macro_rules! component {
             "component! needs `planner: Props`, or `PropsThen(f)`, `Plan(f)` or `Whole(f)`, as its last section"
         )
     };
+    (@kind Scalar) => { $crate::components::AttrKind::Scalar };
+    (@kind Value) => { $crate::components::AttrKind::Value };
+    (@kind Point) => { $crate::components::AttrKind::Point };
+    (@kind Points) => { $crate::components::AttrKind::Points { max: None } };
+    (@kind Points($max:expr)) => { $crate::components::AttrKind::Points { max: Some($max) } };
+    (@kind Flag($d:expr)) => { $crate::components::AttrKind::Flag { default: $d } };
+    (@kind Bool($d:expr)) => { $crate::components::AttrKind::Bool { default: $d } };
+    (@kind Number($d:expr)) => { $crate::components::AttrKind::Number { default: $d } };
+    (@kind Text) => { $crate::components::AttrKind::Text };
+    (@kind Math) => { $crate::components::AttrKind::Math };
+    (@kind Ref) => { $crate::components::AttrKind::Ref };
+    (@kind $other:ident $(($($karg:tt)*))?) => {
+        compile_error!(concat!(
+            "component!: attribute kind `", stringify!($other),
+            "` is not one of Scalar, Value, Point, Points, Points(max), Flag(default), Bool(default), Number(default), Text, Math, Ref"
+        ))
+    };
+    (@field Scalar) => { Option<$crate::compile::api::Source> };
+    (@field Value) => { Option<$crate::compile::api::Source> };
+    (@field Point) => { Option<$crate::compile::api::PointAttr> };
+    (@field Points $(($max:expr))?) => { Vec<$crate::compile::api::GivenPoint> };
+    (@field Flag($d:expr)) => { $crate::compile::api::Source };
+    (@field Bool($d:expr)) => { bool };
+    (@field Number($d:expr)) => { f64 };
+    (@field Text) => { Option<String> };
+    (@field Math) => { Option<Box<[$crate::dast::NodeId]>> };
+    (@field Ref) => { Option<$crate::compile::plan::RefId> };
+    (@get Scalar, $r:ident, $a:expr) => { $r.scalar($a) };
+    (@get Value, $r:ident, $a:expr) => { $r.scalar($a) };
+    (@get Point, $r:ident, $a:expr) => { $r.point($a) };
+    (@get Points $(($max:expr))?, $r:ident, $a:expr) => { $r.points($a) };
+    (@get Flag($d:expr), $r:ident, $a:expr) => { $r.flag($a, $d) };
+    (@get Bool($d:expr), $r:ident, $a:expr) => { $r.bool($a, $d) };
+    (@get Number($d:expr), $r:ident, $a:expr) => { $r.number($a, $d) };
+    (@get Text, $r:ident, $a:expr) => { $r.text($a) };
+    (@get Math, $r:ident, $a:expr) => { $r.math($a) };
+    (@get Ref, $r:ident, $a:expr) => { $r.reference($a) };
     (@planner $kind:ident) => { $crate::compile::api::Planner::$kind };
     (@planner $kind:ident ($f:path)) => { $crate::compile::api::Planner::$kind($f) };
     (@list_points table [$([$x:ident, $y:ident]),+]) => {

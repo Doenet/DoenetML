@@ -11,6 +11,9 @@ use crate::compile::*;
 pub(in crate::compile) struct Parsed {
     /// By (template, element).
     maths: HashMap<(u32, u32), Result<ParsedMath>>,
+    /// Every element's attribute record (ADR 0032, `record.rs`), by
+    /// (template, element), or the error parsing it met.
+    records: HashMap<(u32, u32), Result<record::Record>>,
 }
 
 impl Parsed {
@@ -18,6 +21,16 @@ impl Parsed {
     /// element that is no math, or one boxed before it was parsed.
     pub(in crate::compile) fn math(&self, t: TemplateId, e: ElemId) -> Option<&Result<ParsedMath>> {
         self.maths.get(&(t.get(), e.get()))
+    }
+
+    /// Element `e`'s record, or the error parsing it met; an empty record
+    /// for an element not parsed (a box, a clone).
+    pub(in crate::compile) fn record(&self, t: TemplateId, e: ElemId) -> Result<record::Record> {
+        match self.records.get(&(t.get(), e.get())) {
+            Some(Ok(r)) => Ok(r.clone()),
+            Some(Err(e)) => Err(e.clone()),
+            None => Ok(record::Record::default()),
+        }
     }
 }
 
@@ -44,5 +57,31 @@ impl Compiler<'_> {
             parsed.maths.insert((t.get(), e.get()), math);
         }
         parsed
+    }
+
+    /// Parsing (ADR 0032): every element's attribute record, each
+    /// attribute its planner's type declares parsed where the element
+    /// sits; what its planner reads of its attributes, and what a copy
+    /// of it merges its own under.
+    pub(in crate::compile) fn parse_records(
+        &mut self,
+        to_plan: &[(TemplateId, ElemId)],
+        parsed: &mut Parsed,
+    ) {
+        for &(t, e) in to_plan {
+            if self.is_box(t, e) || self.outlined(t).elems[e.index()].cloned {
+                continue;
+            }
+            if self.outlined(t).elems[e.index()]
+                .planned_as
+                .def()
+                .attributes
+                .is_empty()
+            {
+                continue;
+            }
+            let record = self.parse_record(t, e);
+            parsed.records.insert((t.get(), e.get()), record);
+        }
     }
 }

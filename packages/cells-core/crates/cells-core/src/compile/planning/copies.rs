@@ -60,12 +60,18 @@ impl<'a> Compiler<'a> {
     }
 
     /// Plan a bare copy (an `extend` with no attribute or child of its own,
-    /// or a cloned child of one): every public prop aliases the referent's,
-    /// its deferred props planned as every element's are, and a list is as
-    /// long as the referent's, which only the build knows.
+    /// or a cloned child of one): every public prop aliases the referent's
+    /// port of the same position, its deferred props planned as every
+    /// element's are, and a list is as long as the referent's, which only
+    /// the build knows.
     pub(in crate::compile) fn plan_bare_copy(&mut self, t: TemplateId, e: ElemId) {
         let component_type = self.outlined(t).elems[e.index()].component_type;
-        let mut props = vec![Source::Inherit; component_type.prop_defs().len()];
+        let extend = self.tables[t.index()].plans[e.index()]
+            .extend
+            .expect("a bare copy extends");
+        let mut props: Vec<Source> = (0..component_type.prop_defs().len())
+            .map(|i| Source::port_of(extend, i))
+            .collect();
         Deferred::mark(component_type, &mut props);
         let plan = &mut self.tables[t.index()].plans[e.index()];
         plan.props = props;
@@ -74,9 +80,39 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    /// The referent of `extend` `p` of an element of template `t`, when
+    /// the templates name one element: in this template, or in another
+    /// reached by the path, with the path to rebase its record through.
+    pub(in crate::compile) fn extend_referent(
+        &mut self,
+        t: TemplateId,
+        p: RefId,
+    ) -> Option<Referent> {
+        if let Some(r) = self.plan_elem_target(t, p) {
+            return (self.outlined(t).elems[r.index()].node != NodeId::NONE)
+                .then_some(Referent::Here(r));
+        }
+        let (ty, last) = self.ref_target(t, p).ok()?;
+        let (rt, re) = last?;
+        // The path ends at the element (not at a collect an index steps
+        // into), which is one the author wrote.
+        let plan = &self.compiled.refs[p.index()];
+        let ends_at_elem = matches!(plan.steps.last(), Some(Step::Elem(_))) && plan.prop.is_none();
+        (ends_at_elem
+            && ty.is_some()
+            && self.outlined(rt).elems[re.index()].node != NodeId::NONE
+            && (rt != t || true))
+            .then_some(Referent::Path(p, rt, re))
+    }
+
     /// Runs a `Plan` type's planner (`plan`, from `planner`) with the copy
-    /// rules around it: a bare copy aliases every prop, and a copy with its
-    /// own attributes merges them over the referent's.
+    /// rules around it (ADR 0032, decision 3): a bare copy aliases every
+    /// prop; a copy with its own attributes or children is planned from
+    /// its record merged under the referent's, each value where its
+    /// writer sits (ADR 0023), the referent's rebased through the path
+    /// when the referent sits in another template; and every given leaf
+    /// the copy did not give itself is shared with the referent's port
+    /// holding it (`link_given_leaves`).
     pub(in crate::compile) fn plan_with_extend(
         &mut self,
         t: TemplateId,
@@ -98,36 +134,51 @@ impl<'a> Compiler<'a> {
             self.plan_bare_copy(t, e);
             return Ok(());
         }
-        // Merged attributes: the referent's node supplies what the copy
-        // omits, each planned where its writer sits (ADR 0023).
-        let base_elem = extend
-            .and_then(|p| self.plan_elem_target(t, p))
-            .filter(|&r| self.outlined(t).elems[r.index()].node != NodeId::NONE);
-        if let (Some(p), None) = (extend, base_elem) {
-            // Reached by an index, through another repeat or choice, or
-            // an element the compile made: nothing here to take the rest
-            // from, and planning the element from its own attributes
-            // alone would give it defaults in silence.
-            return Err(Error::Unsupported(format!(
-                "attributes or children on an extend of '${}', which is not an element of this scope; a bare extend of it works",
-                self.compiled.ref_display(p)
-            )));
-        }
-        let wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;
-        // Essential state the copy did not override is the original's: the
+        let mut record = self.parsed().record(t, e)?;
+        let referent = match extend {
+            Some(p) => {
+                let r = self.extend_referent(t, p).ok_or_else(|| {
+                    Error::Unsupported(format!(
+                        "attributes or children on an extend of '${}', which names no element; a bare extend of it works",
+                        self.compiled.ref_display(p)
+                    ))
+                })?;
+                let (rt, re) = match r {
+                    Referent::Here(re) => (t, re),
+                    Referent::Path(_, rt, re) => (rt, re),
+                };
+                // A referent whose record did not parse is boxed by its
+                // own error; the copy is boxed as its reader (ADR 0027).
+                let theirs = self
+                    .parsed()
+                    .record(rt, re)
+                    .map_err(|_| Error::BoxedReferent(self.compiled.ref_display(p)))?;
+                let theirs = match r {
+                    Referent::Here(_) => theirs,
+                    Referent::Path(p, ..) => self.rebase_record(p, theirs),
+                };
+                record = record.merged_over(&theirs);
+                Some(r)
+            }
+            None => None,
+        };
+        let here = match referent {
+            Some(Referent::Here(r)) => Some(r),
+            _ => None,
+        };
+        let wiring = plan(&mut PlanCtx::new(self, t, e, record, here))?;
+        // A given leaf the copy did not give itself is the referent's: the
         // current core's copies share their essential state variables. The
         // copy names what it shares, and linking ties it to the port the
-        // referent's planning gives it (`link_shared_state`, ADR 0029).
-        let (shared_state, shared_state_given) = wiring.shared_state();
-        if let Some(r) = base_elem {
-            for (state, &port) in shared_state {
-                // Shared state the copy gave itself is its own.
-                let own = match shared_state_given.get(state) {
-                    Some(Given::Attr(a)) => {
+        // referent's planning gives it (`link_given_leaves`, ADR 0029).
+        if let Some(r) = referent {
+            for (&id, &port) in wiring.given() {
+                let own = match id {
+                    GivenId::Attr(a, _) => {
                         own_attrs.iter().any(|o| o.eq_ignore_ascii_case(a.name()))
                     }
-                    Some(Given::Children) => true,
-                    Some(Given::Referent) | None => false,
+                    GivenId::Children(_) => has_children,
+                    GivenId::Param(_) => false,
                 };
                 if own || !wiring.is_given(port) {
                     continue;
@@ -137,77 +188,20 @@ impl<'a> Compiler<'a> {
                     e,
                     port,
                     referent: r,
-                    state: *state,
+                    id,
                 });
             }
         }
-        if !shared_state.is_empty() {
+        if !wiring.given().is_empty() {
             self.planning()
-                .shared_state
-                .insert((t.get(), e.get()), shared_state.clone());
+                .given
+                .insert((t.get(), e.get()), wiring.given().clone());
         }
         let (props, list) = wiring.finish();
         let plan = &mut self.tables[t.index()].plans[e.index()];
         plan.props = props;
         plan.list = list;
         Ok(())
-    }
-
-    /// A 0/1 flag attribute of a `Plan` type (`hide`), as a copy inherits
-    /// it: a reference is bound; a literal (a bare attribute is true) is
-    /// the element's own value when it gives the attribute, else its
-    /// referent's; with no attribute at all, a copy's is its referent's
-    /// slot and an element's is `default`.
-    pub(in crate::compile) fn plan_flag(
-        &mut self,
-        t: TemplateId,
-        scope: ElemId,
-        el: NodeId,
-        base: Option<(NodeId, ElemId)>,
-        name: &str,
-        default: bool,
-    ) -> Result<Source> {
-        let d = self.dast;
-        let base_node = base.map(|(b, _)| b);
-        Ok(match self.attr_or_inherited(el, base_node, name) {
-            Some(a) if self.single_macro(a).is_some() => {
-                // The referent's reference is planned where the referent
-                // sits (ADR 0023).
-                let scope = match base {
-                    Some((_, bs)) if d.attr(el, name).is_none() => bs,
-                    _ => scope,
-                };
-                self.plan_scalar(t, scope, d.attr_children(a))?
-            }
-            Some(_) => {
-                // The copy's own attribute wins: `hide="false"` reveals a
-                // copy of a hidden point, as in the current core.
-                let owner = match base_node {
-                    Some(b) if d.attr(el, name).is_none() => b,
-                    _ => el,
-                };
-                Source::given(if self.attr_flag(owner, name) {
-                    1.0
-                } else {
-                    0.0
-                })
-            }
-            None if base.is_some() => Source::Inherit,
-            None => Source::given(if default { 1.0 } else { 0.0 }),
-        })
-    }
-
-    /// Attribute of the element, or of the `extend` referent when the
-    /// element does not give it (a copy with overrides).
-    pub(in crate::compile) fn attr_or_inherited(
-        &self,
-        el: NodeId,
-        base: Option<NodeId>,
-        name: &str,
-    ) -> Option<u32> {
-        let d = self.dast;
-        d.attr(el, name)
-            .or_else(|| base.and_then(|b| d.attr(b, name)))
     }
 }
 

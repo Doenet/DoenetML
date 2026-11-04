@@ -81,6 +81,8 @@ mod outline;
 mod parse;
 pub(crate) mod plan;
 mod planning;
+pub(crate) mod rebase;
+pub(crate) mod record;
 mod refs;
 mod seal;
 mod source;
@@ -247,13 +249,14 @@ pub(in crate::compile) struct Settled {
 /// plans themselves in the templates.
 #[derive(Default)]
 pub(in crate::compile) struct Planned {
-    /// What copies share of their referents' state (`plan_with_extend`).
-    /// R: link (`link_shared_state`).
+    /// What copies share of their referents' given leaves
+    /// (`plan_with_extend`). R: link (`link_given_leaves`).
     shares: Vec<Share>,
-    /// By (template, element), a geometry element's shared state: which
-    /// port holds each piece of essential state, which a copy shares with
-    /// its original. R: link (`link_shared_state`), seal (`assign_keys`).
-    shared_state: HashMap<(u32, u32), HashMap<SharedState, Port>>,
+    /// By (template, element), which port holds each given leaf of an
+    /// element planned by a `Plan` type's planner, by what gave it (ADR
+    /// 0032): what a copy shares with its original. R: link
+    /// (`link_given_leaves`), seal (`assign_keys`).
+    given: HashMap<(u32, u32), HashMap<GivenId, Port>>,
     /// Every element whose plan read the type of what a reference names
     /// (`referent_type`), with the reference. R: link
     /// (`box_readers_of_boxes`), which boxes one whose referent is a box.
@@ -275,15 +278,24 @@ pub(in crate::compile) struct Outlining {
     expanded: HashSet<(u32, u32)>,
 }
 
-/// A piece of essential state copy `e` shares with its referent (ADR
-/// 0023): port `port` of the copy is to alias the referent's port for
-/// `state`, which only the referent's planning knows.
+/// A given leaf copy `e` shares with its referent (ADR 0023, ADR 0032):
+/// port `port` of the copy is to alias the referent's port holding the
+/// leaf `id` gave, which only the referent's planning knows. The referent
+/// is an element of the same template, or reached by a path from `e`'s.
 pub(in crate::compile) struct Share {
     t: TemplateId,
     e: ElemId,
     port: Port,
-    referent: ElemId,
-    state: SharedState,
+    referent: Referent,
+    id: GivenId,
+}
+
+/// What an extend names, as linking ties a share to it: an element of the
+/// copy's template, or a path to one in another (`ElemPlan::extend`).
+#[derive(Clone, Copy)]
+pub(in crate::compile) enum Referent {
+    Here(ElemId),
+    Path(RefId, TemplateId, ElemId),
 }
 
 /// An input an answer's when reads, as `input_named` keys it: how many
@@ -362,7 +374,9 @@ impl Compiler<'_> {
         // The element set is outlining's (ADR 0030, ADR 0031): planning and
         // linking make none.
         let outlined = cp.elem_count();
-        let parsed: Parsed = crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
+        let mut parsed: Parsed =
+            crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
+        crate::trace::span("parse records").run(|| cp.parse_records(&to_plan, &mut parsed));
         cp.parsed = Some(&parsed);
         let mut planned = crate::trace::span("plan all").run(|| cp.plan_all(to_plan, macros));
         cp.restart_if_needed()?;

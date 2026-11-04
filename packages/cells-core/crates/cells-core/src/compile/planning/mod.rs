@@ -137,7 +137,10 @@ impl Compiler<'_> {
             ElemShape::ByType(extend) => match Self::planner(component_type) {
                 Planner::Props | Planner::PropsThen(_) => self.plan_attrs(t, e, extend),
                 Planner::Plan(plan) => self.plan_with_extend(t, e, extend, plan),
-                Planner::Whole(plan) => plan(&mut PlanCtx::new(self, t, e, None)),
+                Planner::Whole(plan) => {
+                    let record = self.parsed().record(t, e)?;
+                    plan(&mut PlanCtx::new(self, t, e, record, None))
+                }
             },
         }
     }

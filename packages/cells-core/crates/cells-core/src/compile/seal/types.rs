@@ -269,7 +269,6 @@ impl Types<'_, '_> {
                 }
                 Flow::Alias(arg) => self.arg_type(t, e, pi, *arg, check)?,
             },
-            Source::Inherit => self.inherited(t, e, pi),
             Source::Specialize(_, first, rest) => self
                 .source_type(t, e, pi, first, check)?
                 .join(self.source_type(t, e, pi, rest, check)?),
@@ -306,29 +305,19 @@ impl Types<'_, '_> {
             }
             // A list's points are numbers.
             Arg::Ref(_, Sel::Item(..)) => PortType::Num,
-        })
-    }
-
-    /// Element `e`'s inherited port `pi`: the port of the same position of
-    /// what it extends (the build's `Source::Inherit`), the join over the
-    /// referents its `extend` may name; a referent that is missing reads
-    /// as a number.
-    fn inherited(&self, t: TemplateId, e: ElemId, pi: usize) -> PortType {
-        let plan = self.seal.view(t).plan(e);
-        let Some(p) = plan.extend else {
-            return PortType::Num;
-        };
-        let Target { at, .. } = self.walk(t, p);
-        let mut ty = PortType::Num;
-        if let Walk::Elems(cands) = at {
-            for (ct, ce) in cands {
-                let n = self.seal.view(ct).plan(ce).props.len();
-                if pi < n {
-                    ty = ty.join(self.port(ct, ce, pi));
-                }
+            // Port `k` of the element the path names: its type there.
+            Arg::Ref(p, Sel::Port(k)) => {
+                let Target { at, .. } = self.walk(t, p);
+                let cands = match at {
+                    Walk::Elems(cands) => cands,
+                    Walk::Scope(templates) => self.single_components(&templates),
+                    Walk::Points | Walk::Missing => Vec::new(),
+                };
+                cands.into_iter().fold(PortType::Num, |ty, (ct, ce)| {
+                    ty.join(self.port(ct, ce, k as usize))
+                })
             }
-        }
-        ty
+        })
     }
 
     /// Whether the handle of a `<math>` of template `t` with expression
