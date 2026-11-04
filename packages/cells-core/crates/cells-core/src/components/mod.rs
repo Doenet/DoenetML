@@ -211,6 +211,12 @@ pub struct ComponentDef {
     /// How the type reads its children (`children:`, ADR 0034): what the
     /// compile parses them into, beside the attributes.
     pub children: ChildrenDecl,
+    /// The machinery several types share that plans an element of the
+    /// type (`machinery:`, ADR 0034): the compile calls it, and no
+    /// function of the type's.
+    pub machinery: Option<Machinery>,
+    /// What owns an `owned` type, for the refusal of a free one.
+    pub owner: Option<ComponentType>,
     /// The parameters the type's planner introduces that no attribute
     /// gives (`params { .. }`): named given leaves a copy shares.
     pub params: &'static [&'static str],
@@ -298,6 +304,23 @@ pub enum ChildrenKind {
     /// nothing reads them as a value. What a type that declares nothing
     /// has.
     Rendered,
+}
+
+/// Machinery several types share, which plans an element of a type that
+/// names it (`machinery:`, ADR 0034).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Machinery {
+    /// An answer, its inputs, awards and whens (`compile/planning/answer.rs`).
+    Answer,
+    /// A choice, reactive or at load (`compile/planning/choice.rs`).
+    Choice,
+    /// A repeat over a list (`compile/planning/iterates.rs`).
+    RepeatFor,
+    /// A function's iterates, built as a repeat (`compile/planning/iterates.rs`).
+    FunctionIterates,
+    /// Copies of the components under what an attribute names, of the type
+    /// outlining recorded (`<collect from>`, `<polyline vertices>`).
+    Collect,
 }
 
 /// A group of element children of given types (`constraints:
@@ -451,6 +474,10 @@ pub struct Flags {
     pub symbolic: bool,
     /// Made by the builder, never by a tag in the source.
     pub internal: bool,
+    /// Planned only by what owns it (an `<award>` by its `<answer>`, a
+    /// constraint in its point's record): the compile refuses one that
+    /// stands free (ADR 0034).
+    pub owned: bool,
     /// Every value it holds is a location: a point's coordinates, a
     /// circle's center and radius, a polygon's vertices. `fixLocation`
     /// holds it as `fixed` does (ADR 0022).
@@ -1151,8 +1178,8 @@ mod tests {
         let found: Vec<String> = ComponentType::ALL
             .iter()
             .filter(|ty| matches!(ty.def().planner, crate::compile::api::Planner::Props))
-            // Built by its choice's expansion, never planned.
-            .filter(|&&ty| ty != ComponentType::Case)
+            // What owns it, or machinery, plans it.
+            .filter(|ty| !ty.def().flags.owned && ty.def().machinery.is_none())
             .flat_map(|ty| {
                 ty.prop_defs()
                     .iter()
@@ -1238,7 +1265,8 @@ mod tests {
         let mut missing = Vec::new();
         let mut listed_with_spec = Vec::new();
         for &(component_type, defined_in) in super::DEFINED_IN {
-            if component_type.def().flags.internal {
+            // Specified with what owns it, or never written.
+            if component_type.def().flags.internal || component_type.def().flags.owned {
                 continue;
             }
             // `geometry::circle::DEFINITION` is `geometry/circle.rs`.

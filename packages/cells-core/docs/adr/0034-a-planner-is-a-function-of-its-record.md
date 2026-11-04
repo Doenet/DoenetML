@@ -1,6 +1,6 @@
 # A planner is a function of its record
 
-Status: accepted 2026-11-04. Steps 1 and 2 are done (see Migration). Builds on ADR
+Status: accepted 2026-11-04. Steps 1 to 3 are done (see Migration). Builds on ADR
 0016 (components are defined without knowing the core), ADR 0029 (a
 planner reads no other element's plan) and ADR 0032 (decision 3, a
 planner is a function from typed attributes to a wiring), and finishes
@@ -365,6 +365,25 @@ Each step lands alone, with the golden diff unchanged.
    and `flags: [owned]` in `component!`; the thin wrappers removed;
    `Planner` is `Props | Plan(fn)`. Test: `tests/diagnostics.rs`'s
    refusals (an award outside an answer, a free response) unchanged.
+
+   *Done.* As landed: `machinery:` and `owner:` sections in
+   `component!`, and the `owned` flag; a block naming machinery, or
+   owned, writes no `planner:` (it is `Props`, never run). The compile
+   dispatches before the planner kind (`plan_owned`, `plan_machinery`
+   in `compile/planning/mod.rs`); the collect wrapper's reads of `from`
+   and `vertices` moved there. The owned types are award, when,
+   response, tuple, point list, `_error`, case and the two constraints
+   (which are no longer `internal`: a free one is refused naming its
+   owner, not an unknown tag). The refusal names the owner (`an <award>
+   outside an <answer>`); a free `<pointList>` keeps its own. Since
+   `Whole` went here, text, textInput, boolean, math and curve became
+   `Plan` types in this step, which brought forward part of step 4:
+   their `extend` branches went, a text or textInput extending another
+   is planned by `plan_with_extend`, and `<boolean extend="$x"/>` reads
+   `x`'s `value` by the rule beside `extends_as` (`plan_extend` in
+   `compile/refs.rs`). The choice's refusal of `extend` moved into the
+   machinery's dispatch until step 4's flag. The golden diff is
+   identical.
 4. **`extend` out of planners.** `flags: [not_extendable]`; the text,
    textInput and boolean branches and point's `base` reads removed;
    boolean's cross-type alias kept by the compile beside `extends_as`.

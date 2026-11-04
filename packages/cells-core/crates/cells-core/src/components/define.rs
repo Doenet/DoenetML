@@ -257,6 +257,7 @@ pub(super) const fn definition(
             container: false,
             symbolic: false,
             internal: false,
+            owned: false,
             located: false,
         },
         renders: super::Renders::Always,
@@ -266,6 +267,8 @@ pub(super) const fn definition(
         reads_as: None,
         attributes: &[],
         children: super::ChildrenDecl::RENDERED,
+        machinery: None,
+        owner: None,
         params: &[],
     }
 }
@@ -289,6 +292,21 @@ impl ComponentDef {
     /// Made by the builder, never by a tag in the source.
     pub(super) const fn internal(mut self) -> Self {
         self.flags.internal = true;
+        self
+    }
+    /// See [`super::Flags::owned`].
+    pub(super) const fn owned(mut self) -> Self {
+        self.flags.owned = true;
+        self
+    }
+    /// See [`super::ComponentDef::machinery`].
+    pub(super) const fn machinery(mut self, machinery: super::Machinery) -> Self {
+        self.machinery = Some(machinery);
+        self
+    }
+    /// See [`super::ComponentDef::owner`].
+    pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
+        self.owner = Some(owner);
         self
     }
     /// See [`super::Flags::located`].
@@ -575,6 +593,8 @@ macro_rules! component {
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
+        $(machinery: $mach:ident,)?
+        $(owner: $owner:ident,)?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
         $(#[$doc])*
@@ -586,6 +606,8 @@ macro_rules! component {
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
                 .children(CHILDREN)
+                $(.machinery($crate::components::Machinery::$mach))?
+                $(.owner($crate::components::ComponentType::$owner))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
 
         $crate::components::define::component!(@record
@@ -621,6 +643,8 @@ macro_rules! component {
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(params { $($param:ident),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
+        $(machinery: $mach:ident,)?
+        $(owner: $owner:ident,)?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
         $(#[$doc])*
@@ -647,6 +671,8 @@ macro_rules! component {
                 .attributes(ATTRS)
                 .children(CHILDREN)
                 $(.params(&[$(stringify!($param)),*]))?
+                $(.machinery($crate::components::Machinery::$mach))?
+                $(.owner($crate::components::ComponentType::$owner))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
 
         const PROPS: &[$crate::components::PropDef] = &$crate::components::define::props([
@@ -837,11 +863,8 @@ macro_rules! component {
     (@cget Math, $r:ident) => { $r.child_math() };
     (@cget Value, $r:ident) => { $r.child_value() };
     (@cget $other:ident, $r:ident) => { () };
-    (@planner) => {
-        compile_error!(
-            "component! needs `planner: Props`, or `PropsThen(f)`, `Plan(f)` or `Whole(f)`, as its last section"
-        )
-    };
+    // A type that names machinery, or is owned, plans nothing itself.
+    (@planner) => { $crate::compile::api::Planner::Props };
     (@kind Scalar) => { $crate::components::AttrKind::Scalar };
     (@kind Value) => { $crate::components::AttrKind::Value };
     (@kind Point) => { $crate::components::AttrKind::Point };

@@ -46,6 +46,11 @@ const _: () = assert!(Y == X + 1, "a point's y must follow its x");
 /// A point's props from its two coordinates, as a `<math>` that is a pair
 /// or a copy of a point's coordinates has them; `hide` is the default.
 pub(crate) fn props_of(x: Source, y: Source) -> Vec<Source> {
+    wiring_of(x, y).finish().0
+}
+
+/// A point's wiring from its two coordinates (`props_of`).
+pub(crate) fn wiring_of(x: Source, y: Source) -> ElemWiring {
     let mut wiring = ElemWiring::of(ComponentType::Point);
     let hide = ComponentType::Point.prop_defs()[HIDE].default;
     wiring.set_public(Props {
@@ -53,7 +58,7 @@ pub(crate) fn props_of(x: Source, y: Source) -> Vec<Source> {
         y: y.into(),
         hide: Source::given(hide).into(),
     });
-    wiring.finish().0
+    wiring
 }
 
 /// Plans a point: coordinates from `coords`, from `x`/`y`, or from

@@ -106,11 +106,6 @@ impl<'a> PlanCtx<'_, 'a> {
 
     // The element and its source.
 
-    /// The source, read-only.
-    pub(crate) fn dast(&self) -> &'a Dast {
-        self.c.dast
-    }
-
     /// The element's node.
     pub(crate) fn node(&self) -> NodeId {
         self.elem().node
@@ -121,30 +116,12 @@ impl<'a> PlanCtx<'_, 'a> {
         self.elem().component_type
     }
 
-    /// The reference in the element's `extend`, if any.
-    pub(crate) fn extend(&self) -> Option<RefId> {
-        self.c.tables[self.t.index()].plans[self.e.index()].extend
-    }
-
-    /// Whether the element has been planned already (an award by its
-    /// answer).
-    pub(crate) fn is_planned(&self) -> bool {
-        !self.c.tables[self.t.index()].plans[self.e.index()]
-            .props
-            .is_empty()
-    }
-
     /// The prop at `port` (`graph::Props::PORTS`) of the graph the
     /// element sits in directly, if it sits in one.
     pub(crate) fn enclosing_graph_prop(&self, port: Port) -> Option<Source> {
         let scope = self.scope();
         (scope != ROOT_SCOPE && self.c.elem(self.t, scope).component_type == ComponentType::Graph)
             .then_some(Source::alias(Arg::Elem(scope, port)))
-    }
-
-    /// The one reference attribute `a` holds and nothing else, if so.
-    pub(crate) fn single_macro(&self, a: u32) -> Option<NodeId> {
-        self.c.single_macro(a)
     }
 
     // Planning.
@@ -168,27 +145,6 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn value_of(&mut self, v: &ValueChildren) -> Result<Source> {
         let scope = self.scope_for(&v.nodes);
         self.c.plan_value_children(self.t, scope, v)
-    }
-
-    /// A `$ref` node as a reference.
-    pub(crate) fn reference(&mut self, node: NodeId) -> Result<RefId> {
-        let scope = self.scope_for(&[node]);
-        self.c.plan_ref(self.t, scope, node)
-    }
-
-    /// Whether a reference names a prop (`$p.x`) rather than an element.
-    pub(crate) fn names_prop(&self, p: RefId) -> bool {
-        self.c.compiled.refs[p.index()].prop.is_some()
-    }
-
-    /// Makes a reference that names no prop name `prop` (`$b` reads as
-    /// `$b.value`); an error when what it names has no such prop.
-    pub(crate) fn name_prop_if_none(&mut self, p: RefId, prop: &'static str) -> Result<()> {
-        if self.c.compiled.refs[p.index()].prop.is_none() {
-            let named = self.c.prop_named(self.t, p, prop)?;
-            self.c.compiled.refs[p.index()].prop = named;
-        }
-        Ok(())
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
@@ -305,26 +261,6 @@ impl<'a> PlanCtx<'_, 'a> {
 
     // The element's wiring.
 
-    /// Plans the element from its type's table alone, as a copy of what
-    /// it extends where it extends one.
-    pub(crate) fn plan_from_table(&mut self) -> Result<()> {
-        let extend = self.extend();
-        self.c.plan_attrs(self.t, self.e, extend)
-    }
-
-    /// Sets the element's props from its wiring.
-    pub(crate) fn set_wiring(&mut self, wiring: ElemWiring) {
-        let (props, list) = wiring.finish();
-        let plan = &mut self.c.tables[self.t.index()].plans[self.e.index()];
-        plan.props = props;
-        plan.list = list;
-    }
-
-    /// Sets the element's props.
-    pub(crate) fn set_props(&mut self, props: Vec<Source>) {
-        self.c.tables[self.t.index()].plans[self.e.index()].props = props;
-    }
-
     /// The element's `<math>` text as it was parsed (ADR 0029), or the
     /// error parsing it met.
     pub(crate) fn parsed_math(&self) -> Result<ParsedMath> {
@@ -334,56 +270,5 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
-    /// Makes the element an alias of the value its `extend` names, which
-    /// it no longer extends (`<boolean extend="$bi"/>`).
-    pub(crate) fn alias_extended(&mut self, prop: &'static str) -> Result<()> {
-        let p = self.extend().expect("the element extends another");
-        self.name_prop_if_none(p, prop)?;
-        let plan = &mut self.c.tables[self.t.index()].plans[self.e.index()];
-        plan.extend = None;
-        plan.props = vec![Source::reference(p)];
-        Ok(())
-    }
-
-    /// Makes the element's children copies of the components under what
-    /// `from` names of the type outlining recorded it collects (ADR 0029),
-    /// gathered when it expands (`Collection::Gathered`); its count is an
-    /// aggregate over them.
-    pub(crate) fn collect(&mut self, from: RefId) {
-        let own_type = self.elem().component_type;
-        debug_assert!(
-            matches!(self.elem().body, Body::Collect { .. }),
-            "outlining made a collecting element a collect"
-        );
-        let mut props = vec![Source::absent(); own_type.prop_defs().len()];
-        mark_aggregates(own_type, &mut props);
-        let plan = &mut self.c.tables[self.t.index()].plans[self.e.index()];
-        plan.from = Some(from);
-        plan.props = props;
-    }
-
     // Machinery several components build on.
-
-    /// Plans an answer, its inputs, awards and whens, and the responses
-    /// they compare (`compile/planning/answer.rs`).
-    pub(crate) fn plan_answer(&mut self) -> Result<()> {
-        self.c.plan_answer(self.t, self.e)
-    }
-
-    /// Plans a choice, reactive or at load: its cases' conditions, or a
-    /// select's `hide` (`compile/planning/choice.rs`).
-    pub(crate) fn plan_choice(&mut self) -> Result<()> {
-        self.c.plan_choice(self.t, self.e)
-    }
-
-    /// Plans a repeat over a list (`compile/planning/iterates.rs`).
-    pub(crate) fn plan_repeat_for(&mut self) -> Result<()> {
-        self.c.plan_iteration_names(self.t, self.e);
-        self.c.plan_repeat_for(self.t, self.e)
-    }
-
-    /// Plans a function's iterates as a repeat (`compile/planning/iterates.rs`).
-    pub(crate) fn plan_function_iterates(&mut self) -> Result<()> {
-        self.c.plan_function_iterates(self.t, self.e)
-    }
 }

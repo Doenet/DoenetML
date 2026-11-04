@@ -2,8 +2,6 @@
 //! and layout containers: types that hold other components. Document and section also hold credit.
 
 use super::define::*;
-use crate::compile::api::PlanCtx;
-use crate::error::Result;
 
 pub mod section;
 
@@ -83,13 +81,7 @@ pub mod error {
         /// document (ADR 0013): no props; its DAST node names its diagnostic in
         /// the document's list. Made by the build, never by a tag.
         tags: ["_error"],
-        flags: [internal],
-        planner: Whole(plan),
-    }
-
-    /// An error element is made planned by the build (`add_elem`).
-    pub(crate) fn plan(_: &mut PlanCtx<'_, '_>) -> Result<()> {
-        Ok(())
+        flags: [internal, owned],
     }
 }
 

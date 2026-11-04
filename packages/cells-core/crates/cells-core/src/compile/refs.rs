@@ -826,13 +826,24 @@ impl Compiler<'_> {
             && self.compiled.refs[p.index()].prop.is_none()
             && let Ok(Some(rt)) = self.ref_target_type(t, p)
             && rt != component_type
-            && ComponentType::extends_as(rt, component_type)
-            && let Some(dp) = rt.default_prop()
         {
-            let r = &mut self.compiled.refs[p.index()];
-            r.prop = RefProp::named(rt, dp);
-            let base = std::mem::replace(&mut r.display, RefDisplay::Written);
-            r.display = RefDisplay::Prop(Box::new(base), dp);
+            // `<boolean extend="$x"/>` reads `x`'s `value` whatever its
+            // type: the coercion of a referent's value to a boolean (until
+            // ADR 0032's table of coercions lands, here, not in a planner).
+            let dp = if component_type == ComponentType::Boolean {
+                Some("value")
+            } else if ComponentType::extends_as(rt, component_type) {
+                rt.default_prop()
+            } else {
+                None
+            };
+            if let Some(dp) = dp {
+                let named = self.prop_named(t, p, dp)?;
+                let r = &mut self.compiled.refs[p.index()];
+                r.prop = named;
+                let base = std::mem::replace(&mut r.display, RefDisplay::Written);
+                r.display = RefDisplay::Prop(Box::new(base), dp);
+            }
         }
         debug_assert!(self.outlining.is_some(), "only outlining plans an extend");
         self.outlined_mut(t).elems[e.index()].extend = Some(p);

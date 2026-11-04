@@ -22,19 +22,15 @@ component! {
         bindValueTo: Ref,
     }
     children: Value,
-    planner: Whole(plan),
+    planner: Plan(plan),
 }
 
 pub const VALUE: usize = Props::AT.value;
 
 /// `value` aliases what a lone `$ref` child names, else what
 /// `bindValueTo` names (a child wins, as in DoenetML); otherwise it is an
-/// essential cell holding the id of its `prefill` text (or of ""). A text
-/// input that extends another is planned from its prop table.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    if ctx.extend().is_some() {
-        return ctx.plan_from_table();
-    }
+/// essential cell holding the id of its `prefill` text (or of "").
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());
     let element = attrs.children.element.is_some();
     let value: Wire = match (attrs.children.value, attrs.bindValueTo) {
@@ -56,6 +52,5 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     };
     let mut wiring = ElemWiring::of(ComponentType::TextInput);
     wiring.set_public(Props { value });
-    ctx.set_wiring(wiring);
-    Ok(())
+    Ok(wiring)
 }

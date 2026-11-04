@@ -1,6 +1,5 @@
 //! `<collect>`: its definition and its planner (ADR 0016).
 
-use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::error::{Error, Result};
@@ -13,7 +12,7 @@ component! {
         count: aggregate(Count, Gathered),
     }
     presentation { asList }
-    planner: Whole(plan),
+    machinery: Collect,
 }
 
 pub const COUNT: usize = Props::AT.count;
@@ -27,22 +26,4 @@ pub(crate) fn collected_type(type_text: Option<String>) -> Result<ComponentType>
     ComponentType::from_tag(type_text.trim())
         .filter(|k| k.copyable())
         .ok_or_else(|| Error::BadCollectType(type_text.trim().into()))
-}
-
-/// What it collects is gathered when it expands: the components of the
-/// type outlining read (`collected_type`) under what `from` names
-/// (`Collection::Gathered`).
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    let d = ctx.dast();
-    let el = ctx.node();
-    let from = d
-        .attr(el, "from")
-        .and_then(|a| ctx.single_macro(a))
-        .ok_or(Error::BadCollect)?;
-    let p = ctx.reference(from)?;
-    if ctx.names_prop(p) {
-        return Err(Error::BadCollect);
-    }
-    ctx.collect(p);
-    Ok(())
 }

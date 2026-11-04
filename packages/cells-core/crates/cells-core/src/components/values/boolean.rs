@@ -24,20 +24,15 @@ component! {
         value: children { rendered },
     }
     children: Value,
-    planner: Whole(plan),
+    planner: Plan(plan),
 }
 
 pub const VALUE: usize = Props::AT.value;
 
-/// A boolean that extends another component aliases its value;
-/// otherwise its content is planned.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    if ctx.extend().is_some() {
-        // `<boolean extend="$bi"/>` shares the referent's value whatever
-        // its type, so it is an alias of that value, not of the port of
-        // the same position (which expand would type-check).
-        return ctx.alias_extended("value");
-    }
+/// Its content: a literal, one reference, or a condition. (A boolean
+/// extending a component of another type reads its `value`, which
+/// outlining settles: `Compiler::plan_extend`.)
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let children = Attrs::of(ctx.record()).children;
     if let Some(tag) = &children.element {
         return Err(Error::Unsupported(format!("a <{tag}> inside a <boolean>")));
@@ -61,6 +56,5 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         (None, _) => Wire::own(ctx.condition(&children.nodes, &mut wiring)?),
     };
     wiring.set_public(Props { value });
-    ctx.set_wiring(wiring);
-    Ok(())
+    Ok(wiring)
 }

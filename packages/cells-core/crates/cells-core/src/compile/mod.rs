@@ -61,7 +61,9 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
 
-use crate::components::{ChildrenKind, Collection, ComponentType, PropAt, PropFrom, PropSel, prop};
+use crate::components::{
+    ChildrenKind, Collection, ComponentType, Machinery, PropAt, PropFrom, PropSel, prop,
+};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
 use crate::diagnostics::Diagnostic;
 use crate::error::{Error, Result};

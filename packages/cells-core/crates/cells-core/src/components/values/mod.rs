@@ -7,8 +7,6 @@
 //! (ADR 0016); tuple and response, which no tag makes, refuse here.
 
 use super::define::*;
-use crate::compile::api::PlanCtx;
-use crate::error::{Error, Result};
 use crate::program::SymKind;
 
 pub mod answer;
@@ -65,7 +63,7 @@ pub mod response {
         /// inside a `<when>` resolves here, so credit changes only on submit.
         /// Made by the builder.
         tags: ["response"],
-        flags: [internal],
+        flags: [internal, owned],
         renders: Never,
         default_prop: value,
         props {
@@ -74,17 +72,12 @@ pub mod response {
             submitted: by_planner { written_by_action },
             value: by_planner,
         }
-        planner: Whole(plan),
+        owner: Answer,
     }
 
     pub const RESPONSE: usize = Props::AT.response;
     pub const SUBMITTED: usize = Props::AT.submitted;
     pub const VALUE: usize = Props::AT.value;
-
-    /// A response is made by an answer's planner, never by a tag.
-    pub(crate) fn plan(_: &mut PlanCtx<'_, '_>) -> Result<()> {
-        Err(Error::Unsupported("extending a response".into()))
-    }
 }
 
 pub mod clamp_number {
@@ -124,7 +117,7 @@ pub mod tuple {
         /// entries, unused ones NaN. `coords` combines the entries, so `$t[2]`
         /// is `x2`.
         tags: ["tuple"],
-        flags: [copyable, internal],
+        flags: [copyable, internal, owned],
         default_prop: coords,
         props {
             n: by_planner { rendered },
@@ -140,7 +133,6 @@ pub mod tuple {
         combined_props {
             coords: [x1, x2, x3, x4, x5, x6, x7, x8],
         }
-        planner: Whole(plan),
     }
 
     // One entry for each of the `MAX_TUPLE` a tuple holds.
@@ -156,6 +148,11 @@ pub mod tuple {
     /// A tuple's props: its entry count, its entries, and NaN in the
     /// entries past them.
     pub(crate) fn props_of(entries: Vec<Source>) -> Vec<Source> {
+        wiring_of(entries).finish().0
+    }
+
+    /// A tuple's wiring (`props_of`).
+    pub(crate) fn wiring_of(entries: Vec<Source>) -> ElemWiring {
         debug_assert!(entries.len() <= MAX_TUPLE, "checked against MAX_TUPLE");
         let n = Wire::constant(entries.len() as f64);
         let mut entries = entries
@@ -175,12 +172,7 @@ pub mod tuple {
             x7: next(),
             x8: next(),
         });
-        wiring.finish().0
-    }
-
-    /// A tuple is made from a `<math>` or by the builder, never by a tag.
-    pub(crate) fn plan(_: &mut PlanCtx<'_, '_>) -> Result<()> {
-        Err(Error::Unsupported("extending a tuple".into()))
+        wiring
     }
 }
 

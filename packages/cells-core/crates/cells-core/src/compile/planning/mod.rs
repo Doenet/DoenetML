@@ -134,6 +134,10 @@ impl Compiler<'_> {
             }
             ElemShape::ExtendProp(p) => self.plan_extend_prop(t, e, p),
             ElemShape::ContainerCopy(p) => self.plan_container_copy(t, e, p),
+            ElemShape::ByType(_) if component_type.def().flags.owned => self.plan_owned(t, e),
+            ElemShape::ByType(extend) if let Some(m) = component_type.def().machinery => {
+                self.plan_machinery(t, e, m, extend)
+            }
             ElemShape::ByType(extend) => match Self::planner(component_type) {
                 Planner::Props => {
                     self.plan_attrs(t, e, extend)?;
@@ -145,12 +149,120 @@ impl Compiler<'_> {
                     Ok(())
                 }
                 Planner::Plan(plan) => self.plan_with_extend(t, e, extend, plan),
-                Planner::Whole(plan) => {
-                    let record = self.parsed().record(t, e)?;
-                    plan(&mut PlanCtx::new(self, t, e, record, None))
-                }
             },
         }
+    }
+
+    /// An element of an owned type (`flags: [owned]`): planned already by
+    /// what owns it (an award by its answer), or refused, standing free.
+    fn plan_owned(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        if !self.tables[t.index()].plans[e.index()].props.is_empty() {
+            return Ok(());
+        }
+        let component_type = self.outlined(t).elems[e.index()].planned_as;
+        let a = |tag: &str| {
+            if tag.starts_with(['a', 'e', 'i', 'o', 'u']) {
+                "an"
+            } else {
+                "a"
+            }
+        };
+        let tag = component_type.tag();
+        // A `<pointList>` only exists as `extend="$shape.points"`, which
+        // `elem_shape` takes before planning by type.
+        if component_type == ComponentType::PointList {
+            return Err(Error::BadValue {
+                attr: "extend".into(),
+                text: "<pointList> needs extend=\"$shape.points\"".into(),
+            });
+        }
+        Err(Error::Unsupported(match component_type.def().owner {
+            Some(owner) => format!(
+                "{} <{tag}> outside {} <{}>",
+                a(tag),
+                a(owner.tag()),
+                owner.tag()
+            ),
+            None => format!("{} <{tag}>, which only what owns it makes", a(tag)),
+        }))
+    }
+
+    /// An element of a type that names machinery (`machinery:`, ADR 0034):
+    /// the machinery plans it.
+    fn plan_machinery(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        m: Machinery,
+        extend: Option<RefId>,
+    ) -> Result<()> {
+        match m {
+            Machinery::Answer => self.plan_answer(t, e),
+            Machinery::Choice => {
+                // A choice cannot be extended: its interface names are
+                // referenced instead.
+                if extend.is_some() {
+                    let tag = self.outlined(t).elems[e.index()].planned_as.tag();
+                    return Err(Error::Banned(format!(
+                        "extend on a <{tag}>: reference its interface names instead"
+                    )));
+                }
+                self.plan_choice(t, e)
+            }
+            Machinery::RepeatFor => {
+                self.plan_iteration_names(t, e);
+                self.plan_repeat_for(t, e)
+            }
+            Machinery::FunctionIterates => self.plan_function_iterates(t, e),
+            Machinery::Collect => self.plan_collect(t, e),
+        }
+    }
+
+    /// Makes the element's children copies of the components under what
+    /// its `from` (a `<polyline>`'s `vertices`) names, of the type
+    /// outlining recorded it collects (ADR 0029), gathered when it expands
+    /// (`Collection::Gathered`); its count is an aggregate over them.
+    fn plan_collect(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        let Elem {
+            node,
+            name_scope: scope,
+            component_type: own_type,
+            ..
+        } = self.outlined(t).elems[e.index()];
+        let polyline = own_type == ComponentType::Polyline;
+        let (attr, refused) = if polyline {
+            (
+                "vertices",
+                Error::Unsupported("<polyline> needs vertices=\"$name\"".into()),
+            )
+        } else {
+            ("from", Error::BadCollect)
+        };
+        let m = self
+            .dast
+            .attr(node, attr)
+            .and_then(|a| self.single_macro(a))
+            .ok_or(refused)?;
+        let p = self.plan_ref(t, scope, m)?;
+        if self.compiled.refs[p.index()].prop.is_some() {
+            return Err(if polyline {
+                Error::Unsupported(
+                    "<polyline vertices> must name a component holding points".into(),
+                )
+            } else {
+                Error::BadCollect
+            });
+        }
+        debug_assert!(
+            matches!(self.outlined(t).elems[e.index()].body, Body::Collect { .. }),
+            "outlining made a collecting element a collect"
+        );
+        let mut props = vec![Source::absent(); own_type.prop_defs().len()];
+        mark_aggregates(own_type, &mut props);
+        let plan = &mut self.tables[t.index()].plans[e.index()];
+        plan.from = Some(p);
+        plan.props = props;
+        Ok(())
     }
 
     /// Which way an element is planned, decided from its `extend` attribute
@@ -229,5 +341,30 @@ impl Compiler<'_> {
             node: NodeId::NONE,
         });
         RefId::from_index(self.compiled.refs.len() - 1)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::testing::dast::{document, el, load, mac};
+
+    /// An owned type standing free is refused, naming what owns it (ADR
+    /// 0034): a constraint outside a point, an award outside an answer.
+    #[test]
+    fn a_free_owned_element_is_refused() {
+        for (free, said) in [
+            (
+                el("constrainTo").child(mac("c")),
+                "a <constrainTo> outside a <point>",
+            ),
+            (el("award").text("1"), "an <award> outside an <answer>"),
+        ] {
+            let doc = load(document([el("circle").name("c"), free])).unwrap();
+            assert!(
+                doc.diagnostics().iter().any(|d| d.message.contains(said)),
+                "{said}: {:?}",
+                doc.diagnostics()
+            );
+        }
     }
 }

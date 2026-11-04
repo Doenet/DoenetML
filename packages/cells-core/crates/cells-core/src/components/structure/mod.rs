@@ -3,8 +3,6 @@
 //! rather than hold a value.
 
 use super::define::*;
-use crate::compile::api::PlanCtx;
-use crate::error::{Error, Result};
 
 pub mod collect;
 pub mod conditional_content;
@@ -12,18 +10,6 @@ pub mod function_iterates;
 pub mod repeat_for;
 pub mod select;
 pub mod select_from_sequence;
-
-/// Plans a choice, `<conditionalContent>` or `<select>`. A choice cannot
-/// be extended: its interface names are referenced instead.
-fn plan_choice(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    if ctx.extend().is_some() {
-        return Err(Error::Banned(format!(
-            "extend on a <{}>: reference its interface names instead",
-            ctx.component_type().tag()
-        )));
-    }
-    ctx.plan_choice()
-}
 
 pub mod repeat_for_sequence {
     use super::*;
@@ -97,10 +83,11 @@ pub mod case {
         /// chosen one. Its children are the branch's content. A renderer shows
         /// the children of an active case only.
         tags: ["case"],
+        flags: [owned],
         props {
             active: by_planner { rendered },
         }
-        planner: Props,
+        owner: ConditionalContent,
     }
 
     pub const ACTIVE: usize = Props::AT.active;

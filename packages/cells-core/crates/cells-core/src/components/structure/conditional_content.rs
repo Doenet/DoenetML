@@ -2,9 +2,7 @@
 //! planner (ADR 0016). How a choice is planned is the machinery in
 //! `compile/planning/choice.rs`.
 
-use crate::compile::api::*;
 use crate::components::define::*;
-use crate::error::Result;
 
 component! {
     /// `<conditionalContent>`, a reactive choice (ADR 0009). Its `choice` cell
@@ -17,13 +15,8 @@ component! {
         choice: by_planner,
         hide: by_planner { rendered },
     }
-    planner: Whole(plan),
+    machinery: Choice,
 }
 
 pub const CHOICE: usize = Props::AT.choice;
 pub const HIDE: usize = Props::AT.hide;
-
-/// Plans the choice of the case whose condition holds.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    super::plan_choice(ctx)
-}

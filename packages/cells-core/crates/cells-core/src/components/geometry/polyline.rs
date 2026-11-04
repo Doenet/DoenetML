@@ -1,9 +1,7 @@
 //! `<polyline>`: its definition and its planner (ADR 0016).
 
-use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::error::{Error, Result};
 
 component! {
     /// `<polyline vertices="$r">`: its children are copies of the points
@@ -16,28 +14,10 @@ component! {
     props {
         numVertices: aggregate(Count, Gathered),
     }
-    planner: Whole(plan),
+    machinery: Collect,
 }
 
 pub const NUM_VERTICES: usize = Props::AT.numVertices;
 
 /// What a `<polyline>` collects, which outlining records (ADR 0029).
 pub(crate) const COLLECTED: ComponentType = ComponentType::Point;
-
-/// Gathers the points under what `vertices` names, as
-/// `<collect componentType="point">` would; `numVertices` counts them.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    let m = ctx
-        .dast()
-        .attr(ctx.node(), "vertices")
-        .and_then(|a| ctx.single_macro(a))
-        .ok_or_else(|| Error::Unsupported("<polyline> needs vertices=\"$name\"".into()))?;
-    let p = ctx.reference(m)?;
-    if ctx.names_prop(p) {
-        return Err(Error::Unsupported(
-            "<polyline vertices> must name a component holding points".into(),
-        ));
-    }
-    ctx.collect(p);
-    Ok(())
-}

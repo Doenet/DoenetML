@@ -26,7 +26,7 @@ component! {
     }
     // Parsed as the type outlining settled (`compile/parse.rs`), not here.
     children: Math,
-    planner: Whole(plan),
+    planner: Plan(plan),
 }
 
 pub const EXPR: usize = Props::AT.expr;
@@ -34,12 +34,17 @@ pub const VALUE: usize = Props::AT.value;
 
 /// A math's props: its expression, with `post` applied, and its value.
 pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<Source> {
+    wiring_of(id, post).finish().0
+}
+
+/// A math's wiring: its expression, with `post` applied, and its value.
+fn wiring_of(id: ExprId, post: Post) -> ElemWiring {
     let mut wiring = ElemWiring::of(ComponentType::Math);
     wiring.set_public(Props {
         expr: Source::Flow(Flow::MathHandle(id, post)).into(),
         value: Source::Flow(Flow::MathValue(id)).into(),
     });
-    wiring.finish().0
+    wiring
 }
 
 /// The type a `<math>` is, from its text alone: a tuple of two,
@@ -58,14 +63,14 @@ pub(crate) fn settled_type(toks: &[Token]) -> ComponentType {
 /// Plans a `<math>` as the type outlining settled, from the text parsing
 /// parsed: a point's or a tuple's entries, or a math cell, simplified or
 /// expanded as its attributes say.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    match ctx.parsed_math()? {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+    Ok(match ctx.parsed_math()? {
         ParsedMath::Entries(entries) if ctx.component_type() == ComponentType::Point => {
             let [x, y] = entries[..] else {
                 unreachable!("a point is a tuple of two")
             };
             let (x, y) = (ctx.plan_expr(x), ctx.plan_expr(y));
-            ctx.set_props(super::super::geometry::point::props_of(x, y));
+            super::super::geometry::point::wiring_of(x, y)
         }
         ParsedMath::Entries(entries) => {
             if entries.len() > super::MAX_TUPLE {
@@ -76,7 +81,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
                 )));
             }
             let entries = entries.into_iter().map(|id| ctx.plan_expr(id)).collect();
-            ctx.set_props(super::tuple::props_of(entries));
+            super::tuple::wiring_of(entries)
         }
         ParsedMath::Expr(id) => {
             let attrs = Attrs::of(ctx.record());
@@ -87,8 +92,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             } else {
                 Post::None
             };
-            ctx.set_props(props_of(id, post));
+            wiring_of(id, post)
         }
-    }
-    Ok(())
+    })
 }

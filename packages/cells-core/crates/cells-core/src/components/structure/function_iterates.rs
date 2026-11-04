@@ -2,9 +2,7 @@
 //! its iterates are built as a repeat is the machinery in
 //! `compile/planning/iterates.rs`.
 
-use crate::compile::api::*;
 use crate::components::define::*;
-use crate::error::Result;
 use crate::program::VecOp;
 
 component! {
@@ -24,14 +22,9 @@ component! {
         count: computed(OpSpec::Add, [iterates, (1.0)]),
         allIteratesWithInitial: by_planner,
     }
-    planner: Whole(plan),
+    machinery: FunctionIterates,
 }
 
 pub const ITERATES: usize = Props::AT.iterates;
 pub const COUNT: usize = Props::AT.count;
 pub const ALL: usize = Props::AT.allIteratesWithInitial;
-
-/// The count chain from the prop table, then each iteration's tuple.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    ctx.plan_function_iterates()
-}

@@ -33,7 +33,7 @@ component! {
         variables: Text,
     }
     children: Math,
-    planner: Whole(plan),
+    planner: Plan(plan),
 }
 
 /// `<derivative>$f</derivative>`: d/dx of a function or math, sampled
@@ -73,7 +73,7 @@ fn is_vector_function(variables: Option<String>, mt: &MathText) -> bool {
 
 /// A math cell `expr` and, as a curve, its samples over the x-range of
 /// the graph it sits in, else [-10, 10].
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let component_type = ctx.component_type();
     let attrs = Attrs::of(ctx.record());
     let nodes = attrs.children.unwrap_or_default();
@@ -91,8 +91,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             curve: Wire::constant(0.0),
             samples: Wire::absent(),
         });
-        ctx.set_wiring(wiring);
-        return Ok(());
+        return Ok(wiring);
     }
     let id = ctx.sym_math(&nodes, &mt)?;
     let expr = if component_type == ComponentType::Function {
@@ -118,6 +117,5 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             vec![at.expr, at.xmin, at.xmax],
         ),
     });
-    ctx.set_wiring(wiring);
-    Ok(())
+    Ok(wiring)
 }

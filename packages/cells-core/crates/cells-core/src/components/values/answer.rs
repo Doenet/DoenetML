@@ -4,7 +4,6 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::error::Result;
 
 component! {
     /// `<answer>`: `submitted` is an essential math cell that a submit request
@@ -29,7 +28,7 @@ component! {
         // resolves.
         creditAchieved: credit,
     }
-    planner: Whole(plan),
+    machinery: Answer,
 }
 
 pub const RESPONSE: usize = Props::AT.response;
@@ -38,8 +37,3 @@ pub const SUBMITTED: usize = Props::AT.submitted;
 pub const CREDIT: usize = Props::AT.credit;
 pub const WEIGHT: usize = Props::AT.weight;
 pub const NUM_SUBMISSIONS: usize = Props::AT.numSubmissions;
-
-/// Plans the answer with its inputs, awards and whens.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    ctx.plan_answer()
-}

@@ -415,7 +415,6 @@ planner of its own as the block's last section:
   (`extend`), `fixed` and its list's length applied around it
   (`plan_with_extend`, `compile/planning/copies.rs`); the points, lines and circle
   are planned this way,
-- `Whole(plan)` to plan the element entirely.
 
 Such a type lives in its own file, block and planner together (for
 example `values/text.rs`, registered as `values::text::DEFINITION`).
@@ -433,9 +432,12 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   (`wiring.hidden(..)`). A planner never computes a position: `Props::AT`,
   the table's positions, is for what reads a built component (the build,
   the document), and a test holds `components/` to it.
-- A type built on shared machinery (answers, selects) has a thin planner
-  that names that machinery and keeps its own decisions, such as what it
-  refuses, in its file (`values/answer.rs`, `structure/select.rs`).
+- A type built on shared machinery names it in its block and has no
+  planner (`machinery: Answer`, `Choice`, `RepeatFor`,
+  `FunctionIterates`, `Collect`; ADR 0034): the compile calls it. A type
+  only what owns it plans (an `<award>` by its `<answer>`, a constraint in
+  its point's record) says `flags: [owned]` and `owner: Answer`, and the
+  compile refuses one standing free.
 - Declare the attributes the planner reads, each with its kind
   (`attributes { center: Point, radius: Scalar, through: Points(3) }`,
   ADR 0032), and read them typed from the element's record

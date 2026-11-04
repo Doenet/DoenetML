@@ -8,24 +8,21 @@ use crate::compile::*;
 /// element it extends; `plan_with_extend` applies the copy rules around
 /// it.
 pub(crate) type PlanFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemWiring>;
-/// Plans the whole element.
-pub(crate) type WholeFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<()>;
 
 /// How an element is planned once the cases that do not depend on its type
-/// (clones, synthesized elements, `extend` of a prop or of a container) are
-/// ruled out. Every planner but `Props` is a function in the type's file
+/// (clones, synthesized elements, `extend` of a prop or of a container), an
+/// owned type and machinery (`machinery:`) are ruled out (ADR 0034): from
+/// the table, or by a function of the element's record in the type's file
 /// under `components/` (ADR 0016).
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Planner {
     /// From the type's prop table (`plan_attrs`).
     Props,
-    /// By the function, which returns the plan; `plan_with_extend` applies
-    /// the copy rules and the list's length around it, and the function
-    /// reads the element's children itself. (`fixed`, for every kind, is
-    /// `plan_elem`'s: `compile/planning/fix.rs`.)
+    /// By the function, which returns the plan from the element's record;
+    /// `plan_with_extend` applies the copy rules and the list's length
+    /// around it. (`fixed`, for every kind, is `plan_elem`'s:
+    /// `compile/planning/fix.rs`.)
     Plan(PlanFn),
-    /// By the function alone, which writes the plan itself.
-    Whole(WholeFn),
 }
 
 impl Compiler<'_> {

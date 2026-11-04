@@ -6,8 +6,6 @@
 //! exists as `extend="$shape.points"`.
 
 use super::define::*;
-use crate::compile::api::PlanCtx;
-use crate::error::{Error, Result};
 
 pub mod circle;
 pub mod line;
@@ -36,9 +34,9 @@ pub mod constrain_to {
         /// member of a point's `constraints` group, read in the point's
         /// record (ADR 0034).
         tags: ["constrainTo"],
-        flags: [internal],
+        flags: [owned],
         children: Value,
-        planner: Props,
+        owner: Point,
     }
 }
 
@@ -50,14 +48,14 @@ pub mod constrain_to_grid {
         /// constraints: the point snaps to the grid. Only ever a member of a
         /// point's `constraints` group, read in the point's record.
         tags: ["constrainToGrid"],
-        flags: [internal],
+        flags: [owned],
         attributes {
             dx: Literal(1.0),
             dy: Literal(1.0),
             xoffset: Literal(0.0),
             yoffset: Literal(0.0),
         }
-        planner: Props,
+        owner: Point,
     }
 }
 
@@ -67,16 +65,9 @@ pub mod point_list {
     component! {
         /// `<pointList extend="$l.points">`: its children are points aliasing
         /// the items of a list prop.
+        /// It only exists as `extend="$shape.points"`, which the compile
+        /// takes before planning by type; one that does not is refused.
         tags: ["pointList"],
-        planner: Whole(plan),
-    }
-
-    /// A `<pointList>` only exists as `extend="$shape.points"`, which the
-    /// compile takes before asking for a planner.
-    pub(crate) fn plan(_: &mut PlanCtx<'_, '_>) -> Result<()> {
-        Err(Error::BadValue {
-            attr: "extend".into(),
-            text: "<pointList> needs extend=\"$shape.points\"".into(),
-        })
+        flags: [owned],
     }
 }

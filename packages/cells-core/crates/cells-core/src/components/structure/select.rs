@@ -1,9 +1,7 @@
 //! `<select>`: its definition and its planner (ADR 0016). How a choice
 //! is planned is the machinery in `compile/planning/choice.rs`.
 
-use crate::compile::api::*;
 use crate::components::define::*;
-use crate::error::Result;
 
 component! {
     /// `<select>`, a load-time choice: its children are the content of the
@@ -13,10 +11,5 @@ component! {
         hide: by_planner { rendered },
     }
     presentation { asList }
-    planner: Whole(plan),
-}
-
-/// Plans the options picked at load.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    super::plan_choice(ctx)
+    machinery: Choice,
 }
