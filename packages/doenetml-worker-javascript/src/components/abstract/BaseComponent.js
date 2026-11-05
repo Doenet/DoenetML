@@ -111,6 +111,14 @@ export default class BaseComponent {
 
         if (serializedComponent.state) {
             this.essentialState = deepClone(serializedComponent.state);
+            // What it was made with, before a reader's change or a value
+            // drawn at random was kept, which a `copy` of it starts from
+            // (`withoutReaderState` in `serialize`, D33)
+            if (Object.keys(serializedComponent.state).length > 0) {
+                this.initialEssentialState = deepClone(
+                    serializedComponent.state,
+                );
+            }
         }
 
         this.doenetAttributes = {};
@@ -1730,14 +1738,14 @@ export default class BaseComponent {
         // as one made before it is not given it. A component inside the copy
         // keeps it, as one made before it does (`EssentialValueWriter`).
         // A `copy` (`withoutReaderState`) starts as written content does,
-        // with none: its source's essential state holds what the reader did
-        // and what was drawn at random (D33).
-        if (
-            !parameters.withoutReaderState &&
-            this.essentialState &&
-            Object.keys(this.essentialState).length > 0
-        ) {
-            serializedComponent.state = deepClone(this.essentialState);
+        // from the essential state its source was made with
+        // (`initialEssentialState`), not what the reader did since or what
+        // was drawn at random (D33).
+        const essentialState = parameters.withoutReaderState
+            ? this.initialEssentialState
+            : this.essentialState;
+        if (essentialState && Object.keys(essentialState).length > 0) {
+            serializedComponent.state = deepClone(essentialState);
             for (const varName in serializedComponent.state) {
                 if (
                     !parameters.serializingDescendant &&
@@ -1811,9 +1819,18 @@ export default class BaseComponent {
             }
         }
 
+        // A component made from a property or a list entry has no DoenetML
+        // of its own: what it holds is the value, which a `copy` takes too
+        // (CPY-5, `snapshotListEntrySource`)
+        const holdsValue =
+            parameters.copyAll &&
+            (this.shadows?.propVariable !== undefined ||
+                (this.shadows &&
+                    this.doenetAttributes.listEntrySource !== undefined));
         if (
             parameters.copyEssentialState ||
-            (parameters.copyEssentialStateIfShadow && this.shadows)
+            (parameters.copyEssentialStateIfShadow && this.shadows) ||
+            holdsValue
         ) {
             for (let varName in this.state) {
                 let stateVar = this.state[varName];

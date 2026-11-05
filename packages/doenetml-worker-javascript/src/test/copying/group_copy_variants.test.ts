@@ -42,7 +42,7 @@ describe("Unlinked group copies of random choices @group3", async () => {
     it("a group copy keeps random values nested inside a div and an inner group", async () => {
         const doenetML = `
 <group name="g"><div><group><p><selectFromSequence name="n" from="1" to="1000"/></p></group></div></group>
-<group copy="$g" name="g2"/>
+<group copyWithState="$g" name="g2"/>
 `;
         for (const requestedVariantIndex of variantIndices) {
             const [n, n2] = await selectedValues({
@@ -57,7 +57,7 @@ describe("Unlinked group copies of random choices @group3", async () => {
     it("a group copy keeps random values nested in groups inside divs", async () => {
         const doenetML = `
 <group name="g"><div><group><div><group><selectFromSequence name="n" from="1" to="1000"/></group></div></group></div></group>
-<group copy="$g" name="g2"/>
+<group copyWithState="$g" name="g2"/>
 `;
         for (const requestedVariantIndex of variantIndices) {
             const [n, n2] = await selectedValues({
@@ -91,7 +91,7 @@ describe("Unlinked group copies of random choices @group3", async () => {
         ]) {
             for (const requestedVariantIndex of variantIndices) {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
-                    doenetML: `${doenetML}<group copy="$g" name="g2"/>`,
+                    doenetML: `${doenetML}<group copyWithState="$g" name="g2"/>`,
                     requestedVariantIndex,
                 });
                 const stateVariables = await core.returnAllStateVariables(
@@ -115,14 +115,14 @@ describe("Unlinked group copies of random choices @group3", async () => {
         const nestedOption = `<option><p>${select}</p></option>`;
         const nestedSelect = `<select>${nestedOption}${nestedOption}</select>`;
         for (const doenetML of [
-            `<group name="g"><div>${select}</div></group><group copy="$g"/>`,
-            `<group name="g"><div><div>${select}</div></div></group><group copy="$g"/>`,
-            `<group name="g"><div><repeatForSequence from="1" to="1">${select}</repeatForSequence></div></group><group copy="$g"/>`,
+            `<group name="g"><div>${select}</div></group><group copyWithState="$g"/>`,
+            `<group name="g"><div><div>${select}</div></div></group><group copyWithState="$g"/>`,
+            `<group name="g"><div><repeatForSequence from="1" to="1">${select}</repeatForSequence></div></group><group copyWithState="$g"/>`,
             // a select in the chosen option of another one
-            `<group name="g"><div>${nestedSelect}</div></group><group copy="$g"/>`,
-            `<group name="g">${nestedSelect}</group><group copy="$g"/>`,
+            `<group name="g"><div>${nestedSelect}</div></group><group copyWithState="$g"/>`,
+            `<group name="g">${nestedSelect}</group><group copyWithState="$g"/>`,
             nestedSelect.replace("<select>", `<select name="s">`) +
-                `<select copy="$s"/>`,
+                `<select copyWithState="$s"/>`,
         ]) {
             for (const requestedVariantIndex of variantIndices) {
                 const { core } = await createTestCore({
@@ -151,8 +151,8 @@ describe("Unlinked group copies of random choices @group3", async () => {
     it("a random child added to a group copy gets its own value", async () => {
         const doenetML = `
 <p name="a"><group name="g"><selectFromSequence name="x" from="1" to="1000"/> <selectFromSequence name="y" from="1" to="1000"/></group></p>
-<p name="b"><group copy="$g" name="g2"> <selectFromSequence name="z" from="1" to="1000"/></group></p>
-<p name="c"><group copy="$g2" name="g3"/></p>
+<p name="b"><group copyWithState="$g" name="g2"> <selectFromSequence name="z" from="1" to="1000"/></group></p>
+<p name="c"><group copyWithState="$g2" name="g3"/></p>
 `;
         const names = [
             "g.x",
@@ -202,7 +202,7 @@ describe("Unlinked group copies of random choices @group3", async () => {
         // a seed of its own, as its case draws from its seed.
         const doenetML = `
 <conditionalContent name="c" condition="true"><selectFromSequence name="n" from="1" to="1000"/></conditionalContent>
-<conditionalContent copy="$c" name="c2"/>
+<conditionalContent copyWithState="$c" name="c2"/>
 `;
         for (const requestedVariantIndex of variantIndices) {
             const [n, n2] = await selectedValues({
@@ -217,7 +217,7 @@ describe("Unlinked group copies of random choices @group3", async () => {
     it("a random child added to a group copy keeps its value through a reload", async () => {
         const doenetML = `
 <p><group name="g"><selectFromSequence name="x" from="1" to="1000"/> <mathInput name="mi" prefill="1"/></group></p>
-<p><group copy="$g" name="g2"> <selectFromSequence name="z" from="1" to="1000"/></group></p>
+<p><group copyWithState="$g" name="g2"> <selectFromSequence name="z" from="1" to="1000"/></group></p>
 `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
@@ -274,7 +274,7 @@ describe("Unlinked group copies of random choices @group3", async () => {
       <p name="p2">Enter <selectFromSequence name="n" />. <answer name="ans">$n</answer></p>
     </group>
     <group extend="$g" name="g2" />
-    <group copy="$g" name="g3" />
+    <group copyWithState="$g" name="g3" />
 `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
@@ -329,7 +329,7 @@ describe("Random choices in repeats @group3", async () => {
     it("a group copy keeps random values in groups in a repeat inside a div", async () => {
         const doenetML = `
 <group name="g"><div><repeatForSequence name="r" from="1" to="2"><group><selectFromSequence name="n" from="1" to="1000"/></group></repeatForSequence></div></group>
-<group copy="$g" name="g2"/>
+<group copyWithState="$g" name="g2"/>
 `;
         for (const requestedVariantIndex of variantIndices) {
             const [n1, n2, m1, m2] = await selectedValues({
@@ -344,7 +344,7 @@ describe("Random choices in repeats @group3", async () => {
     it("a group copy keeps random values in groups in nested repeats", async () => {
         const doenetML = `
 <group name="g"><div><repeatForSequence name="r" from="1" to="2"><repeatForSequence name="q" from="1" to="2"><group><selectFromSequence name="n" from="1" to="1000"/></group></repeatForSequence></repeatForSequence></div></group>
-<group copy="$g" name="g2"/>
+<group copyWithState="$g" name="g2"/>
 `;
         const paths = [
             "r[1].q[1].n",
@@ -370,9 +370,9 @@ describe("Random choices in repeats @group3", async () => {
     it("an unlinked copy of a repeat keeps random values in groups", async () => {
         for (const repeat of [
             `<repeatForSequence name="r" from="1" to="2"><group><selectFromSequence name="n" from="1" to="1000"/></group></repeatForSequence>
-<repeatForSequence copy="$r" name="r2"/>`,
+<repeatForSequence copyWithState="$r" name="r2"/>`,
             `<repeat name="r" for="1 2"><group><selectFromSequence name="n" from="1" to="1000"/></group></repeat>
-<repeat copy="$r" name="r2"/>`,
+<repeat copyWithState="$r" name="r2"/>`,
         ]) {
             for (const requestedVariantIndex of variantIndices) {
                 const [n1, n2, m1, m2] = await selectedValues({
@@ -392,7 +392,7 @@ describe("Random choices in repeats @group3", async () => {
         // from its seed differently than its source did
         const doenetML = `
 <repeat name="r" for="a b c" valueName="v"><selectFromSequence name="n" from="1" to="1000"/></repeat>
-<repeat copy="$r" name="r2"/>
+<repeat copyWithState="$r" name="r2"/>
 `;
         for (const requestedVariantIndex of variantIndices) {
             const values = await selectedValues({
@@ -426,12 +426,12 @@ describe("Random choices in repeats @group3", async () => {
             [
                 (template: string) =>
                     `<repeat name="r" for="1 2">${template}</repeat>`,
-                `<repeat copy="$r" name="r2">${added}</repeat>`,
+                `<repeat copyWithState="$r" name="r2">${added}</repeat>`,
             ],
             [
                 (template: string) =>
                     `<repeatForSequence name="r" from="1" to="2">${template}</repeatForSequence>`,
-                `<repeatForSequence copy="$r" name="r2">${added}</repeatForSequence>`,
+                `<repeatForSequence copyWithState="$r" name="r2">${added}</repeatForSequence>`,
             ],
         ] as const) {
             const names = [
@@ -534,13 +534,13 @@ describe("Random choices in repeats @group3", async () => {
         ];
         for (const doenetML of [
             `<repeat name="r" for="1 2"><repeat name="i" for="a b">${sfs}</repeat></repeat>
-<repeat copy="$r" name="r2"/>`,
+<repeat copyWithState="$r" name="r2"/>`,
             `<repeat name="r" for="1 2"><repeat name="i" for="a b"><group>${sfs}</group></repeat></repeat>
-<repeat copy="$r" name="r2"/>`,
+<repeat copyWithState="$r" name="r2"/>`,
             `<repeat name="r" for="1 2"><group><repeat name="i" for="a b">${sfs}</repeat></group></repeat>
-<repeat copy="$r" name="r2"/>`,
+<repeat copyWithState="$r" name="r2"/>`,
             `<repeatForSequence name="r" from="1" to="2"><repeat name="i" for="a b">${sfs}</repeat></repeatForSequence>
-<repeatForSequence copy="$r" name="r2"/>`,
+<repeatForSequence copyWithState="$r" name="r2"/>`,
         ]) {
             const sourceValues: number[] = [];
             for (const requestedVariantIndex of variantIndices) {
@@ -599,14 +599,14 @@ describe("Random choices in repeats @group3", async () => {
         for (const [doenetML, source, copy, names] of [
             [
                 `<group name="g"><repeat name="r" for="1 2"><repeat name="i" for="a b">${sfs}</repeat></repeat></group>
-<group copy="$g" name="g2"/>`,
+<group copyWithState="$g" name="g2"/>`,
                 "g.r",
                 "g2.r",
                 paths,
             ],
             [
                 `<repeat name="r" for="1 2"><repeat name="i" for="a b"><repeat name="k" for="x y">${sfs}</repeat></repeat></repeat>
-<repeat copy="$r" name="r2"/>`,
+<repeat copyWithState="$r" name="r2"/>`,
                 "r",
                 "r2",
                 [
@@ -618,7 +618,7 @@ describe("Random choices in repeats @group3", async () => {
             ],
             [
                 `<repeat name="r" for="1 2"><selectFromSequence name="m" from="1" to="9" numToSelect="2"/><repeat name="i" for="$m">${sfs}</repeat></repeat>
-<repeat copy="$r" name="r2"/>`,
+<repeat copyWithState="$r" name="r2"/>`,
                 "r",
                 "r2",
                 ["[1].m", "[2].m", ...paths],

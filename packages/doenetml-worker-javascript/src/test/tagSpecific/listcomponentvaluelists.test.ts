@@ -1133,9 +1133,9 @@ describe("Value lists as list components @group4", async () => {
     <mathInput name="mp" bindValueTo="$pl[2]" />
     <booleanInput name="b" />
     <conditionalContent name="cc" condition="$b">
-      <p name="p"><mathList copy="$ml" /> | <textList copy="$tl" /> | <pointList copy="$pl" /></p>
+      <p name="p"><mathList copyWithState="$ml" /> | <textList copyWithState="$tl" /> | <pointList copyWithState="$pl" /></p>
     </conditionalContent>
-    <p name="atLoad"><mathList copy="$ml" /></p>
+    <p name="atLoad"><mathList copyWithState="$ml" /></p>
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
@@ -1738,11 +1738,11 @@ describe("Value lists as list components @group4", async () => {
     <pointList name="ev" extend="$poly.vertices" />
     <booleanInput name="b" />
     <conditionalContent name="cc" condition="$b">
-      <p name="pe"><mathList name="ce" copy="$e" /></p>
-      <p name="pee"><mathList copy="$ee" /></p>
-      <p name="pcce"><mathList copy="$ce" /></p>
-      <p name="pex"><mathList copy="$ex" /></p>
-      <p name="pev"><pointList copy="$ev" /></p>
+      <p name="pe"><mathList name="ce" copyWithState="$e" /></p>
+      <p name="pee"><mathList copyWithState="$ee" /></p>
+      <p name="pcce"><mathList copyWithState="$ce" /></p>
+      <p name="pex"><mathList copyWithState="$ex" /></p>
+      <p name="pev"><pointList copyWithState="$ev" /></p>
     </conditionalContent>
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
@@ -1823,7 +1823,7 @@ describe("Value lists as list components @group4", async () => {
         const doenetML = `
     <setup><repeat name="r" for="1 2" valueName="v"><math>2$v</math></repeat></setup>
     <p name="pe"><mathList name="e" extend="$r" /></p>
-    <p name="pc"><mathList name="c" copy="$e" /></p>
+    <p name="pc"><mathList name="c" copyWithState="$e" /></p>
     <mathInput name="ic" bindValueTo="$c[1]" />
     <mathInput name="ie" bindValueTo="$e[2]" />
     `;

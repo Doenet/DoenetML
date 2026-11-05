@@ -2126,7 +2126,7 @@ describe("Unlinked Copying Tests @group4", async () => {
 
     <graph name="graph2">
         <conditionalContent condition="$copy">
-            <group copy="$gr" />
+            <group copyWithState="$gr" />
         </conditionalContent>
     </graph>
   `,
@@ -2151,7 +2151,7 @@ describe("Unlinked Copying Tests @group4", async () => {
 
     <callAction name="takeSnapshot" target="$graph2" actionName="addChildren">
         <label>Take snapshot</label>
-        <group copy="$gr" />
+        <group copyWithState="$gr" />
     </callAction>
     <updateValue triggerWith="$takeSnapshot" target="$takeSnapshot.disabled" newValue="true" type="boolean" />
 
@@ -2172,7 +2172,7 @@ describe("Unlinked Copying Tests @group4", async () => {
     <graph name="graph1">
         <setup><sequence name="s" length="2" /></setup>
         <repeat name="mp" for="$s" valueName="i">
-            <point>(1, <number copy="$i" />)</point>
+            <point>(1, <number copyWithState="$i" />)</point>
         </repeat>
         <setup>
           <point extend="$mp[1]" name="P" />
@@ -2187,7 +2187,7 @@ describe("Unlinked Copying Tests @group4", async () => {
 
     <graph name="graph2">
         <conditionalContent name="cc" condition="$copy">
-            <repeat copy="$mp" />
+            <repeat copyWithState="$mp" />
         </conditionalContent>
     </graph>
   `,
@@ -2207,7 +2207,7 @@ describe("Unlinked Copying Tests @group4", async () => {
             doenetML: `
     <graph name="graph1">
         <repeatForSequence name="mp" length="2" valueName="i">
-            <point>(1, <number copy="$i" />)</point>
+            <point>(1, <number copyWithState="$i" />)</point>
         </repeatForSequence>
         <setup>
           <point extend="$mp[1]" name="P" />
@@ -2217,7 +2217,7 @@ describe("Unlinked Copying Tests @group4", async () => {
 
     <callAction name="takeSnapshot" target="$graph2" actionName="addChildren">
         <label>Take snapshot</label>
-        <repeatForSequence copy="$mp" />
+        <repeatForSequence copyWithState="$mp" />
     </callAction>
     <updateValue triggerWith="$takeSnapshot" target="$takeSnapshot.disabled" newValue="true" type="boolean" />
 
@@ -2241,7 +2241,7 @@ describe("Unlinked Copying Tests @group4", async () => {
     <graph name="graph1">
         <group name="gr">
             <repeatForSequence name="mp" length="2" valueName="i">
-                <point>(1, <number copy="$i" />)</point>
+                <point>(1, <number copyWithState="$i" />)</point>
             </repeatForSequence>
             <setup>
                 <point extend="$mp[1]" name="P" />
@@ -2258,7 +2258,7 @@ describe("Unlinked Copying Tests @group4", async () => {
 
     <graph name="graph2">
         <conditionalContent condition="$copy">
-            <group copy="$gr" />
+            <group copyWithState="$gr" />
         </conditionalContent>
     </graph>
   `,

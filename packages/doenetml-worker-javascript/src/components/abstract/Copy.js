@@ -155,6 +155,25 @@ export default class Copy extends CompositeComponent {
         }
     }
 
+    /**
+     * A `copy` serialized with its variant (`copyVariants`), as a container
+     * holding it is copied with `copyWithState`, carries the seed it gave
+     * what it made (`seedFreshCopy`), so the copy made again draws the same.
+     */
+    async serialize(parameters = {}) {
+        const serialized = await super.serialize(parameters);
+        if (parameters.copyVariants && this.freshCopySeed !== undefined) {
+            serialized.variants = {
+                ...serialized.variants,
+                desiredVariant: {
+                    ...serialized.variants?.desiredVariant,
+                    seed: this.freshCopySeed,
+                },
+            };
+        }
+        return serialized;
+    }
+
     static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {
             return [];
@@ -2252,6 +2271,13 @@ export default class Copy extends CompositeComponent {
             stateIdInfo.num = sourceStateIdInfo.num;
             serializedReplacements = res.components;
             nComponents = res.nComponents;
+            if (!link && !withState) {
+                seedFreshCopy({
+                    component,
+                    replacements: serializedReplacements,
+                    componentInfoObjects,
+                });
+            }
         } catch (e) {
             // When the error is "Encountered X", it means this Copy is a descendant of its
             // own source component (a self-referential copy, e.g., `$a` inside `a`'s label).
@@ -7560,6 +7586,41 @@ const PARTS_OF_CHOOSING_TAGS = {
 };
 
 /**
+ * Give the random components of what a `copy` (`component`) made of its
+ * source (`replacements`) seeds of their own, as written content's are, in
+ * place of its source's choices (D33, D17). Each is seeded from the copy's
+ * seed (`freshCopySeed`), which is made from the variant's seed and where
+ * the copy is (its `stateId`), so two copies of one source differ, and each
+ * is the same for a given variant and through a reload. A random component
+ * nested in another takes its seed from that one, as written content's does.
+ */
+function seedFreshCopy({ component, replacements, componentInfoObjects }) {
+    const seed =
+        component.variants?.desiredVariant?.seed ??
+        `${component.sharedParameters?.variantSeed ?? ""}|${component.stateId}`;
+    component.freshCopySeed = seed;
+    let num = 0;
+    function visit(serialized) {
+        for (const child of serialized ?? []) {
+            if (typeof child !== "object" || child === null) {
+                continue;
+            }
+            if (
+                child.componentType in
+                componentInfoObjects.componentTypesCreatingVariants
+            ) {
+                child.variants ??= {};
+                child.variants.desiredVariant ??= { seed: `${seed}|${num}` };
+                num++;
+                continue;
+            }
+            visit(child.children);
+        }
+    }
+    visit(replacements);
+}
+
+/**
  * For a `copyWithState` of a `<module>` (`replacement`), keep the choices it
  * carries where a module attribute written on it (`attributeNames`, among
  * those its `<moduleAttributes>` declares) reaches an attribute that decides
@@ -7746,8 +7807,15 @@ async function copyWithStateChangesChoicesErrors({
         replacementClass.childrenDetermineChoices === "whenShuffled"
             ? Boolean(await source?.stateValues?.shuffleOrder)
             : Boolean(replacementClass.childrenDetermineChoices);
+    // A pretzel's problems are wrapped in an arranger of its own
+    // (`pretzelSugar`), made whether or not any are written.
+    const writtenChildren = (children ?? []).flatMap((child) =>
+        child?.componentType === "_pretzelArranger"
+            ? (child.children ?? [])
+            : [child],
+    );
     const addedChild = childrenDetermineChoices
-        ? (children ?? []).find(
+        ? writtenChildren.find(
               (child) => typeof child === "object" && child !== null,
           )
         : undefined;

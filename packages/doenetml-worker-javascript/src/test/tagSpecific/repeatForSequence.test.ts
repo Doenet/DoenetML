@@ -2433,7 +2433,7 @@ describe("RepeatForSequence tag tests @group3", async () => {
     <repeatForSequence valueName="v" length="$n" name="r">
         <graph>
             <point name="P">
-                (<number copy="$n" />, <number copy="$v" />)
+                (<number copyWithState="$n" />, <number copyWithState="$v" />)
             </point>
         </graph>
     </repeatForSequence>

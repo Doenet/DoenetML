@@ -411,6 +411,9 @@ export class StatePersistence {
                 typeChange?.key === madeTypeChange?.key &&
                 typeChange?.diagnostic?.message ===
                     madeTypeChange?.diagnostic?.message &&
+                // nor one made from another case of a `<conditionalContent>`,
+                // which a `copy`, holding no snapshot, shows only here
+                madeFrom?.caseIndex === component.unlinkedMadeFrom?.caseIndex &&
                 // nor one that would decide an index warning otherwise
                 // (`reportIndexIntoScalarAsMade`), which what it shows need
                 // not reveal, as of a blank value
