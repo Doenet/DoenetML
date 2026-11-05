@@ -4,7 +4,11 @@ import { Dependency } from "../../core/dependencies/Dependency";
 import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
 import { PASSED } from "../../core/dependencies/circularCheckMarks";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { movePoint, updateMathInputValue } from "../utils/actions";
+import {
+    movePoint,
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -102,9 +106,41 @@ describe("Circular reference tests @group2", async () => {
 });
 
 /**
+ * Where an error is reported, as `code line:column-column`, and what the
+ * paragraph `p` beside the cycle shows: the rest of the document renders
+ * (DIAG-5).
+ */
+async function errorsAndRest(doenetML: string) {
+    const { core, resolvePathToNodeIdx } = await createTestCore({
+        doenetML: `${doenetML}<p name="p">rest</p>`,
+    });
+    const stateVariables = await core.returnAllStateVariables(false, true);
+    return {
+        core,
+        resolvePathToNodeIdx,
+        errors: errorsAt(core),
+        rest: stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+    };
+}
+
+function errorsAt(core: any) {
+    return getDiagnosticsByType(core).errors.map(
+        (error) =>
+            `${error.code} ${error.position?.start.line}:${error.position?.start.column}-${error.position?.end.column}`,
+    );
+}
+
+/**
  * Cycles that run through children and `extend` rather than through an
- * attribute. They close in the resolve-blocker graph the moment the last
- * reference is set up, and the report must name the authored components.
+ * attribute. A reference that depends on itself through what is written is
+ * found when the document loads, from the references the resolver resolved
+ * (`utils/dast/referenceCycles.ts`): it is an error, `doenet-e0005`, at
+ * where the reference is written, one at each reference on the cycle, and
+ * the rest of the document renders (D14, NAME-7, DIAG-4, DIAG-5).
+ *
+ * A cycle through an attribute or a property is not found then. It closes in
+ * the resolve-blocker graph the moment the last reference is set up, and the
+ * report must name the authored components.
  *
  * The no-cycle cases guard the other side: the check memoizes what it has
  * searched and drops the memo of everything upstream of a changed edge, and
@@ -115,55 +151,44 @@ describe("Circular references through children and extend @group2", async () => 
     const circularError = "Circular dependency involving these components";
 
     it("a text that contains a reference to itself", async () => {
-        // The whole message, to its period: the `$t` is a value reference,
-        // which is not something the author wrote, and is not listed after
-        // the text.
-        await expect(
-            createTestCore({ doenetML: `<text name="t">$t</text>` }),
-        ).rejects.toThrow(`${circularError}: <text> (line 1).`);
+        const { errors, rest } = await errorsAndRest(
+            `<text name="t">$t</text>`,
+        );
+        expect(errors).eqls(["doenet-e0005 1:16-18"]);
+        expect(rest).eq("rest");
     });
 
     it("two texts that reference each other", async () => {
-        await expect(
-            createTestCore({
-                doenetML: `
+        const { errors, rest, core } = await errorsAndRest(`
     <text name="t1">$t2</text>
     <text name="t2">$t1</text>
-    `,
-            }),
-        ).rejects.toThrow(
-            new RegExp(
-                `${circularError}:.*<text> \\(line 2\\).*<text> \\(line 3\\)`,
-                "s",
-            ),
-        );
+    `);
+        expect(errors).eqls(["doenet-e0005 2:21-24", "doenet-e0005 3:21-24"]);
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => error.message),
+        ).eqls([
+            "Circular dependency detected involving `<text>` component.",
+            "Circular dependency detected involving `<text>` component.",
+        ]);
+        expect(rest).eq("rest");
     });
 
     it("a number and a math that reference each other", async () => {
-        await expect(
-            createTestCore({
-                doenetML: `
+        const { errors, rest } = await errorsAndRest(`
     <number name="a">$m</number>
     <math name="m">$a+1</math>
-    `,
-            }),
-        ).rejects.toThrow(
-            new RegExp(
-                `${circularError}:.*<number> \\(line 2\\).*<math> \\(line 3\\)`,
-                "s",
-            ),
-        );
+    `);
+        expect(errors).eqls(["doenet-e0005 2:22-24", "doenet-e0005 3:20-22"]);
+        expect(rest).eq("rest");
     });
 
     it("two maths that extend each other", async () => {
-        await expect(
-            createTestCore({
-                doenetML: `
+        const { errors, rest } = await errorsAndRest(`
     <math extend="$b1" name="b2" />
     <math extend="$b2" name="b1" />
-    `,
-            }),
-        ).rejects.toThrow(circularError);
+    `);
+        expect(errors).eqls(["doenet-e0005 2:5-36", "doenet-e0005 3:5-36"]);
+        expect(rest).eq("rest");
     });
 
     it("a mathInput prefilled with its own value", async () => {
@@ -230,6 +255,166 @@ describe("Circular references through children and extend @group2", async () => 
 });
 
 /**
+ * Reference cycles are decided when the document loads, from what is written
+ * in every branch, so the same errors are there before and after a reader
+ * changes which branch is shown (DIAG-7, D38). Doenet/DoenetML#2439 and the
+ * state-variable cycles of #2463.
+ */
+describe("Reference cycles decided at load @group2", async () => {
+    // B29
+    it("a math that indexes itself", async () => {
+        const { errors, rest } = await errorsAndRest(
+            `<math name="m">(1, $m[2])</math>`,
+        );
+        expect(errors).eqls(["doenet-e0005 1:20-25"]);
+        expect(rest).eq("rest");
+    });
+
+    it("a math that extends itself", async () => {
+        const { errors, rest, core } = await errorsAndRest(
+            `<math name="z" extend="$z"/>`,
+        );
+        expect(errors).eqls(["doenet-e0005 1:1-29"]);
+        expect(getDiagnosticsByType(core).errors[0].message).eq(
+            "Circular dependency detected involving `<math>` component.",
+        );
+        expect(rest).eq("rest");
+    });
+
+    it("two maths that read each other", async () => {
+        const { errors, rest } = await errorsAndRest(
+            `<math name="z1">$z2</math><math name="z2">$z1</math>`,
+        );
+        expect(errors).eqls(["doenet-e0005 1:17-20", "doenet-e0005 1:43-46"]);
+        expect(rest).eq("rest");
+    });
+
+    it("a reference to a component on a cycle reports nothing more", async () => {
+        const { errors, rest } = await errorsAndRest(
+            `<math name="z1">$z2</math><math name="z2">$z1</math><math name="w">$z1</math>`,
+        );
+        expect(errors).eqls(["doenet-e0005 1:17-20", "doenet-e0005 1:43-46"]);
+        expect(rest).eq("rest");
+    });
+
+    // B32: before, the extends gave nothing at load, and switching the case
+    // on reported `doenet-e0005` at one of them and an uncoded error.
+    for (const withElse of [false, true]) {
+        it(`two conditionalContents extending each other${withElse ? ", with an else" : ""}`, async () => {
+            const otherwise = (value: number) =>
+                withElse ? `<else><math>${value}</math></else>` : "";
+            const { errors, rest, core, resolvePathToNodeIdx } =
+                await errorsAndRest(`<booleanInput name="b"/>
+<conditionalContent name="c1"><case condition="$b"><math extend="$c2"/></case>${otherwise(1)}</conditionalContent>
+<conditionalContent name="c2"><case condition="$b"><math extend="$c1"/></case>${otherwise(2)}</conditionalContent>
+`);
+            const atLoad = ["doenet-e0005 2:52-72", "doenet-e0005 3:52-72"];
+            expect(errors).eqls(atLoad);
+            expect(rest).eq("rest");
+
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            expect(errorsAt(core)).eqls(atLoad);
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            expect(errorsAt(core)).eqls(atLoad);
+        });
+    }
+
+    it("a cycle in a case not shown yet is reported at load", async () => {
+        const { errors, rest, core, resolvePathToNodeIdx } =
+            await errorsAndRest(`<booleanInput name="b"/>
+<conditionalContent><case condition="$b"><text name="t1">$t2</text><text name="t2">$t1</text></case></conditionalContent>
+`);
+        const atLoad = ["doenet-e0005 2:58-61", "doenet-e0005 2:84-87"];
+        expect(errors).eqls(atLoad);
+        expect(rest).eq("rest");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(errorsAt(core)).eqls(atLoad);
+    });
+
+    it("a cycle through a reference in a case not shown yet is reported at load", async () => {
+        const { errors, rest, core, resolvePathToNodeIdx } =
+            await errorsAndRest(`<mathInput name="i" prefill="1"/>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>
+`);
+        const atLoad = ["doenet-e0005 4:40-42"];
+        expect(errors).eqls(atLoad);
+        expect(rest).eq("rest");
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(errorsAt(core)).eqls(atLoad);
+    });
+
+    it("a cycle in a repeat's template is reported once, at load", async () => {
+        const { errors, rest, core, resolvePathToNodeIdx } =
+            await errorsAndRest(`<mathInput name="n" prefill="0"/>
+<repeatForSequence length="$n"><math name="a">$b</math><math name="b">$a</math></repeatForSequence>
+`);
+        const atLoad = ["doenet-e0005 2:47-49", "doenet-e0005 2:71-73"];
+        expect(errors).eqls(atLoad);
+        expect(rest).eq("rest");
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect(errorsAt(core)).eqls(atLoad);
+    });
+
+    // The edges the load-time check does not draw, as they may read nothing
+    // of what is written where the reference is.
+    const notCycles: [string, string][] = [
+        [
+            "a point's label reading the point",
+            `<point name="P"><label>$P</label>(1,2)</point>`,
+        ],
+        [
+            "a property of the component it is in",
+            `<point name="P">(1, 2)<label>$P.x</label></point>`,
+        ],
+        [
+            "an index into the group it is in",
+            `<group name="g"><math name="a">1</math><math name="b">$g[1]+1</math></group>`,
+        ],
+        [
+            "a reference to a sibling in a repeat's template",
+            `<repeat for="1 2" valueName="v"><math name="a">$v</math><math name="b">$a+1</math></repeat>`,
+        ],
+        [
+            "a chain",
+            `<math name="a">1</math><math name="b">$a+1</math><math name="c">$b+$a</math>`,
+        ],
+    ];
+    for (const [description, doenetML] of notCycles) {
+        it(`${description} is not a cycle`, async () => {
+            const { errors, rest } = await errorsAndRest(doenetML);
+            expect(errors).eqls([]);
+            expect(rest).eq("rest");
+        });
+    }
+});
+
+/**
  * The edges from a memoized variable to a variable that is not memoized.
  * Edges to a name the target does not have are left out: the
  * `variablesOptional` filter records them on neither side, so no reset could
@@ -279,9 +464,10 @@ function memoizedAboveUnmemoized(handler: any) {
 
 /**
  * The state-variable cycle check, driven directly. A cycle in a document
- * closes in the resolve-blocker graph first, since the target of the edge
- * that closes it cannot have resolved, so the cyclic documents above are all
- * rejected by that check; this one reports a cycle only on the update path,
+ * that the load-time check does not break closes in the resolve-blocker
+ * graph first, since the target of the edge that closes it cannot have
+ * resolved, so the cyclic documents above that throw are all rejected by
+ * that check; this one reports a cycle only on the update path,
  * when a dependency is re-pointed at a variable that has already resolved,
  * and no document is known that reaches it. Except for one case that
  * inspects the memos a real load leaves, these cases add edges to the
@@ -687,6 +873,11 @@ describe("State-variable cycle check driven directly @group2", async () => {
  * found during load does: the request that raised it is rejected with the
  * cycle's message, so is every later request, and the viewer is told to show
  * the message in place of the document.
+ *
+ * A cycle through references in what is written, in a case shown or not, is
+ * found when the document loads (`utils/dast/referenceCycles.ts`), so these
+ * documents close theirs through a property (`$n.value`), which that check
+ * does not follow.
  */
 describe("Circular references created after load @group2", async () => {
     const circularError = "Circular dependency involving these components";
@@ -726,7 +917,7 @@ describe("Circular references created after load @group2", async () => {
 <mathInput name="i" prefill="1"/>
 <number name="n">
   <conditionalContent condition="$i=1">1</conditionalContent>
-  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+  <conditionalContent condition="$i=2">$n.value+1</conditionalContent>
 </number>`);
         const iIdx = await resolvePathToNodeIdx("i");
 
@@ -754,10 +945,10 @@ describe("Circular references created after load @group2", async () => {
         });
     });
 
-    it("a self-extending component switched on stops the document", async () => {
+    it("a text reading its own value switched on stops the document", async () => {
         const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b"/>
-<conditionalContent condition="$b"><text name="t" extend="$t"/></conditionalContent>`);
+<conditionalContent condition="$b"><text name="t">$t.value</text></conditionalContent>`);
         const bIdx = await resolvePathToNodeIdx("b");
 
         const result = await core.requestAction({
@@ -788,7 +979,7 @@ describe("Circular references created after load @group2", async () => {
 <mathInput name="i" prefill="1"/>
 <number name="n">
   <conditionalContent condition="$i=1">1</conditionalContent>
-  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+  <conditionalContent condition="$i=2">$n.value+1</conditionalContent>
 </number>`);
         const iIdx = await resolvePathToNodeIdx("i");
 
@@ -827,7 +1018,7 @@ describe("Circular references created after load @group2", async () => {
 <p name="p"><mathInput name="i" prefill="1"/></p>
 <number name="n">
   <conditionalContent condition="$i=1">1</conditionalContent>
-  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+  <conditionalContent condition="$i=2">$n.value+1</conditionalContent>
 </number>`);
             const iIdx = await resolvePathToNodeIdx("i");
 
@@ -872,7 +1063,7 @@ describe("Circular references created after load @group2", async () => {
 <mathInput name="i" prefill="1"/>
 <number name="n">
   <conditionalContent condition="$i=1">1</conditionalContent>
-  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+  <conditionalContent condition="$i=2">$n.value+1</conditionalContent>
 </number>`);
             const iIdx = await resolvePathToNodeIdx("i");
             async function enter(value: string) {
@@ -918,7 +1109,7 @@ describe("Circular references created after load @group2", async () => {
             const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b1"/>
 <booleanInput name="b"/>
-<conditionalContent condition="$b"><text name="t" extend="$t"/></conditionalContent>`);
+<conditionalContent condition="$b"><text name="t">$t.value</text></conditionalContent>`);
             const b1Idx = await resolvePathToNodeIdx("b1");
             const bIdx = await resolvePathToNodeIdx("b");
 
@@ -956,7 +1147,7 @@ describe("Circular references created after load @group2", async () => {
 <p name="p"><mathInput name="i" prefill="1"/></p>
 <number name="n">
   <conditionalContent condition="$i=1">1</conditionalContent>
-  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+  <conditionalContent condition="$i=2">$n.value+1</conditionalContent>
 </number>`);
             const iIdx = await resolvePathToNodeIdx("i");
 

@@ -2712,6 +2712,33 @@ export default class Copy extends CompositeComponent {
                 };
             }
 
+            // What it names is not shown now, as when its index named
+            // nothing when the document loaded (`doenet-i0054`), so the
+            // info is the same whether it was withheld then or since.
+            reportTypeChange(
+                workspace,
+                await indexNamesNothing({
+                    component,
+                    componentInfoObjects,
+                    workspace,
+                }),
+            );
+
+            if (
+                component.attributes._createComponentOfType?.primitive &&
+                component.replacements.length === 1 &&
+                component.replacements[0].isMissing &&
+                !(component.replacementsToWithhold > 0)
+            ) {
+                // Already the missing tag it is while what it names is not
+                // active (D37), which `verifyReplacementsMatchSpecifiedType`
+                // made in place of its withheld replacement. Withheld and
+                // made again, it would change its parent's children on every
+                // update, which can update the copy again, without end
+                // (Doenet/DoenetML#2430).
+                return { replacementChanges: [], diagnostics, nComponents };
+            }
+
             let nReplacements = component.replacements.length;
             if (nReplacements > 0) {
                 if (component.replacementsToWithhold !== nReplacements) {

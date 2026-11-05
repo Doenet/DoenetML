@@ -924,6 +924,63 @@ describe("Lists held by what searches for them @group4", () => {
         ).toEqual([]);
     });
 
+    // Doenet/DoenetML#2430: with no expression attributes, the extend was
+    // made missing again on every update while the iteration was withheld,
+    // which updated the iteration again, until it was reported as circular
+    // (`doenet-e0005`) and stayed `NaN`.
+    it("an extend of a value of a withheld iteration is missing while it is withheld, then shows it again", async () => {
+        const doenetML = `
+<mathInput name="mi" prefill="2" />
+<repeatForSequence name="r" from="1" to="$mi" valueName="v">
+  <numberList name="q">$v 9</numberList>
+  <indexOf name="io" target="$q">9 1 2</indexOf>
+</repeatForSequence>
+<number name="x" extend="$r[2].io[1]" />
+`;
+        for (const enabled of [true, false]) {
+            setExpressionAttributesEnabled(enabled);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            setExpressionAttributesEnabled(true);
+            const xIdx = await resolvePathToNodeIdx("x");
+            const steps: { value: unknown; missing: boolean }[] = [];
+            const diagnostics: string[][] = [];
+            for (const latex of [undefined, "1", "2"]) {
+                if (latex !== undefined) {
+                    await updateMathInputValue({
+                        latex,
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                }
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                steps.push({
+                    value: stateVariables[xIdx].stateValues.value,
+                    missing: Boolean(core.core!._components[xIdx].isMissing),
+                });
+                diagnostics.push(
+                    core
+                        .core!.diagnostics.filter(
+                            (d: any) => d.type !== "accessibility",
+                        )
+                        .map((d: any) => `${d.type} ${d.code}`),
+                );
+            }
+            // missing while the iteration is withheld (D37), with the info
+            // an index that names nothing gives, as when it loads withheld
+            expect(steps).toEqual([
+                { value: 3, missing: false },
+                { value: NaN, missing: true },
+                { value: 3, missing: false },
+            ]);
+            expect(diagnostics).toEqual([[], ["info doenet-i0054"], []]);
+        }
+    });
+
     it("copies of what holds the list keep the list it names", async () => {
         const [values] = await compare({
             doenetML: `
