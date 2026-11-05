@@ -613,6 +613,12 @@ export async function verifyReplacementsMatchSpecifiedType({
                     }
 
                     if (stateVarObj) {
+                        // Not missing: it holds what the array entry holds
+                        // once it has a value, and a write reaches the
+                        // entry. Missing, it would be a blank where a copy of
+                        // an award's feedback, which the award has none of
+                        // yet, is hidden.
+                        replacements[0].doenetAttributes = {};
                         replacements[0].downstreamDependencies = {
                             [replacementSource.componentIdx]: [
                                 {

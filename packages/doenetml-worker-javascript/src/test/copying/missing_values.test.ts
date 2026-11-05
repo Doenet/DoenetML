@@ -375,12 +375,15 @@ describe("Missing values and missing tags (D37) @group2", () => {
         ]);
     });
 
-    it("keeps a tag of a choice input's selected value missing until a choice is made", async () => {
+    it("shows a choice input's selected value once a choice is made", async () => {
+        // The tag is linked to the entry, so a write reaches it; it is not
+        // missing before a choice (a known gap), so that a copy of an award's
+        // feedback stays hidden while the award has none.
         const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
     <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
     <p name="p">[<text extend="$ci.selectedValue"/>][$ci.selectedValue]</p>
     `);
-        expect(text).eq("[＿][＿]");
+        expect(text).eq("[][＿]");
         await updateSelectedIndices({
             selectedIndices: [2],
             componentIdx: await resolvePathToNodeIdx("ci"),
