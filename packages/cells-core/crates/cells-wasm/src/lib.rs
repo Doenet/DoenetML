@@ -119,7 +119,7 @@ impl Core {
 
     /// Parse what a student typed into the engine: the value to request on
     /// a mathInput's `expr` cell.
-    pub fn parse_math(&self, text: &str) -> Result<f64, JsError> {
+    pub fn parse_math(&mut self, text: &str) -> Result<f64, JsError> {
         self.doc.parse_math(text).map_err(|e| JsError::new(&e))
     }
 

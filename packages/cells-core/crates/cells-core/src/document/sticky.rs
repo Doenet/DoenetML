@@ -29,7 +29,7 @@ pub struct StickyTable {
     gates: Vec<Vec<CellIdx>>,
 }
 
-impl Document {
+impl Built {
     /// The sticky groups of a freshly built document. A group whose points
     /// are exactly an earlier group's (a copy of the group) is left out:
     /// snapping twice is not snapping once.

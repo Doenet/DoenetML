@@ -52,7 +52,7 @@ impl SymState {
 }
 
 /// What running a program writes besides its cells: its symbolic
-/// instructions' state and the session's engine they call.
+/// instructions' state and the document's engine they call.
 pub struct SymRun<'a> {
     pub state: &'a mut SymState,
     pub engine: &'a mut Engine,

@@ -116,7 +116,7 @@ pub fn invert_requests(
 /// applied: invert, overlay the essential writes on a copy, and evaluate
 /// forward the instructions that read a changed value, up to the last
 /// requested cell. The cells are not written; a symbolic instruction's
-/// memo and the session's engine may be.
+/// memo and the document's engine may be.
 pub fn realize(
     program: &Program,
     sym: &mut SymRun,

@@ -511,8 +511,6 @@ impl<'c> Builder<'c> {
             parked,
             touched,
             runtime_strings: self.session.runtime_strings.clone(),
-            engine: self.session.engine.clone(),
-            math_constants: self.session.math_constants.clone(),
             pool,
             last_build: (self.components.component_type.len(), self.sources.len()),
         };

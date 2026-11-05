@@ -8,7 +8,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use cells_core::build::{ScopeId, TemplateSlot, build};
-use cells_core::session::{Counts, Session};
+use cells_core::session::{Counts, MathStore, Session};
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::{Compiled, Document, LoadOptions, ValueType};
 
@@ -99,9 +99,10 @@ fn build_at(compiled: &Arc<Compiled>, session: &mut Session, c: u32) -> Option<D
             stamped.set(scope, node, n);
         }
         let s = Session::new(session.seed);
-        let mut doc = build(compiled, &s, &stamped, false)
+        let mut math = MathStore::default();
+        let mut doc = build(compiled, &s, &mut math, &stamped, false)
             .ok()?
-            .schedule(compiled.clone())
+            .schedule(compiled.clone(), math)
             .ok()?;
         doc.recompute();
         let mut settled = true;

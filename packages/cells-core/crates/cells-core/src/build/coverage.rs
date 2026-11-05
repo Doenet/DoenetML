@@ -24,8 +24,8 @@ pub struct AbstractEdges {
 /// The abstract build's dependencies for `compiled`.
 pub fn abstract_edges(compiled: &Compiled) -> std::result::Result<AbstractEdges, String> {
     let session = Session::new(0);
-    let mut engine = Engine::new();
-    let b = staged(compiled.view(), &session, &mut engine, &View::Abstract)?;
+    let mut math = MathStore::default();
+    let b = staged(compiled.view(), &session, &mut math, &View::Abstract)?;
     let depth = b.scope_depths();
     let mut deps: HashMap<Key, Vec<(Key, Vec<Coord>)>> = HashMap::new();
     for u in SlotId::below(b.sources.len()) {
@@ -50,9 +50,9 @@ pub fn uncovered(
     session: &Session,
     counts: &Counts,
 ) -> std::result::Result<Vec<String>, String> {
-    let mut engine = Engine::new();
+    let mut math = MathStore::default();
     let view = View::Stamped { counts };
-    let b = staged(compiled.view(), session, &mut engine, &view)?;
+    let b = staged(compiled.view(), session, &mut math, &view)?;
     let depth = b.scope_depths();
     let mut out = Vec::new();
     for u in SlotId::below(b.sources.len()) {
@@ -82,10 +82,10 @@ pub fn uncovered(
 fn staged<'c>(
     compiled: CompiledRef<'c>,
     session: &'c Session,
-    engine: &'c mut Engine,
+    math: &'c mut MathStore,
     view: &'c View<'c>,
 ) -> std::result::Result<Builder<'c>, String> {
-    let mut b = Builder::new(compiled, session, false, engine, view);
+    let mut b = Builder::new(compiled, session, false, math, view);
     b.expand_all().map_err(|e| e.to_string())?;
     b.resolve_all().map_err(|e| e.to_string())?;
     Ok(b)

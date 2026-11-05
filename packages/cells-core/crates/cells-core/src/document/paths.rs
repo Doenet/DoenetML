@@ -4,7 +4,7 @@
 
 use super::*;
 
-impl Document {
+impl Built {
     /// Resolve a dotted path as the current core's tests write it
     /// (`"g.Ps[2]"`, `"circle1"`, `"r[3].p"`): a name is visible from the
     /// scope of its nearest named ancestor outward; `[k]` picks the k-th

@@ -16,10 +16,10 @@ use std::sync::Arc;
 use cells_core::build::{BuildError, Repeat, ScopeId, SlotClass, TemplateSlot, build};
 use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
-use cells_core::session::{Counts, Session};
+use cells_core::session::{Counts, MathStore, Session};
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::testing::{AbstractEdges, abstract_edges, par_map, uncovered};
-use cells_core::{Compiled, Document, Error, LoadOptions, Request};
+use cells_core::{Built, Compiled, Document, Error, LoadOptions, Request};
 
 const SEEDS: [u64; 4] = [0, 1, 2, 3];
 const COUNTS: std::ops::RangeInclusive<u32> = 0..=4;
@@ -341,8 +341,10 @@ fn stamp(what: &str, load: &Load, forced: &dyn Fn(NodeId) -> Option<u32>) {
                 stamped.set(scope, node, n);
             }
             covered(what, edges, compiled, &session, &stamped);
-            let doc = build(compiled, &session, &stamped, false)
-                .and_then(|built| built.schedule(compiled.clone()));
+            // A fresh session, so fresh math: no value carries a handle.
+            let mut math = MathStore::default();
+            let doc = build(compiled, &session, &mut math, &stamped, false)
+                .and_then(|built| built.schedule(compiled.clone(), math));
             let mut doc = match doc {
                 Ok(doc) => doc,
                 // A cycle included: the compile finds every one.
@@ -515,8 +517,9 @@ fn every_write_lands_on_a_cell_the_record_makes_essential() {
         let what = format!("{name}, seed {seed}, count {c:?}");
         let (session, stamped) = settle_at(on, seed, c);
         let at = |compiled: &Arc<Compiled>| {
-            let mut doc = build(compiled, &session, &stamped, false)
-                .and_then(|b| b.schedule(compiled.clone()))
+            let mut math = MathStore::default();
+            let mut doc = build(compiled, &session, &mut math, &stamped, false)
+                .and_then(|b| b.schedule(compiled.clone(), math))
                 .unwrap_or_else(|e| panic!("{what}: {e}"));
             doc.recompute();
             doc
@@ -550,8 +553,9 @@ fn settle_at(compiled: &Arc<Compiled>, seed: u64, c: Option<u32>) -> (Session, C
         for (&(scope, node), &n) in &counts {
             stamped.set(scope, node, n);
         }
-        let mut doc = build(compiled, &session, &stamped, false)
-            .and_then(|b| b.schedule(compiled.clone()))
+        let mut math = MathStore::default();
+        let mut doc = build(compiled, &session, &mut math, &stamped, false)
+            .and_then(|b| b.schedule(compiled.clone(), math))
             .unwrap();
         doc.recompute();
         let mut settled = true;
@@ -647,10 +651,12 @@ fn a_constant_is_the_same_in_every_build() {
             // (template, template slot) -> (scope first seen in, value) of
             // a document constant.
             let mut document: HashMap<(u32, TemplateSlot), (ScopeId, f64)> = HashMap::new();
-            // One session throughout: scope ids are stable within it.
+            // One session throughout: scope ids are stable within it. One
+            // math with it: its values are handles into it.
             let mut session = Session::new(seed);
+            let mut math = MathStore::default();
             for c in COUNTS.chain(COUNTS.rev()) {
-                for built in builds_at(&compiled, &mut session, c) {
+                for built in builds_at(&compiled, &mut session, &mut math, c) {
                     for &(key, class) in &built.structure.slot_classes {
                         let (at, first) = *seen.entry(key).or_insert((c, class));
                         if !same_class(first, class) {
@@ -714,15 +720,21 @@ fn same_value(x: f64, y: f64) -> bool {
 }
 
 /// Every build, settled or not, on the way to stamping every repeat with
-/// `c` iterations, each reading the session the one before returned.
-fn builds_at(compiled: &Arc<Compiled>, session: &mut Session, c: u32) -> Vec<Document> {
+/// `c` iterations, each reading the session the one before returned and
+/// lent `math`, which the session's values are handles into.
+fn builds_at(
+    compiled: &Arc<Compiled>,
+    session: &mut Session,
+    math: &mut MathStore,
+    c: u32,
+) -> Vec<Built> {
     let mut out = Vec::new();
     let mut counts = Counts::default();
     for _ in 0..MAX_PASSES {
-        let doc = build(compiled, session, &counts, false)
-            .and_then(|built| built.schedule(compiled.clone()))
+        let (doc, next) = build(compiled, session, math, &counts, false)
+            .and_then(|built| built.schedule_built())
             .expect("a build of a document that loaded");
-        *session = doc.session.clone();
+        *session = next;
         let mut settled = true;
         for r in &doc.structure.repeats {
             if r.iterations != c {

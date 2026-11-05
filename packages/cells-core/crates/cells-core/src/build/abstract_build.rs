@@ -57,9 +57,11 @@ fn with_abstract<T>(
     checks: bool,
     read: impl FnOnce(&mut Builder<'_>, &Defined) -> T,
 ) -> std::result::Result<T, Failure> {
+    // A session and math of its own: no handle it makes reaches a
+    // document.
     let session = Session::new(0);
-    let mut engine = session.engine.borrow_mut();
-    let mut b = Builder::new(compiled, &session, false, &mut engine, &View::Abstract);
+    let mut math = MathStore::default();
+    let mut b = Builder::new(compiled, &session, false, &mut math, &View::Abstract);
     b.stage(checks)?;
     let slot_cells = crate::trace::span("define").run(|| b.define())?;
     let defined = Defined::by_walk(&b, slot_cells);

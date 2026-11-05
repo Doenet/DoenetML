@@ -130,7 +130,12 @@ pub(in crate::build) struct Builder<'c> {
     /// Seed seeded cells again whatever the session carries: a later pass
     /// of a load, before any student has changed a value.
     pub(in crate::build) reseed: bool,
+    /// The document's engine, lent for the build, which may add to it.
     pub(in crate::build) engine: &'c mut Engine,
+    /// The handle of each constant expression of the source, lent with
+    /// the engine it is a handle into.
+    pub(in crate::build) math_constants:
+        &'c mut HashMap<(ExprId, crate::program::Post), crate::sym::Handle>,
     /// Templates of `Instantiate` instructions, cell leaves holding slots
     /// until emit rebinds them to cells and imports them.
     pub(in crate::build) sym_templates: Vec<Tree<SlotId>>,
@@ -233,9 +238,10 @@ impl<'c> Builder<'c> {
         c: CompiledRef<'c>,
         session: &'c Session,
         reseed: bool,
-        engine: &'c mut Engine,
+        math: &'c mut MathStore,
         view: &'c View<'c>,
     ) -> Self {
+        let MathStore { engine, constants } = math;
         // Size the columns by what every template stamped once makes (all
         // of a document without repeats), or by the previous build with an
         // eighth to spare when there was one. In wasm, capacity reserved and
@@ -257,6 +263,7 @@ impl<'c> Builder<'c> {
             session,
             reseed,
             engine,
+            math_constants: constants,
             sym_templates: Vec::new(),
             typed_slots: Vec::new(),
             components: ComponentTable {

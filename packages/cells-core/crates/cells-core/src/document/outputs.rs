@@ -5,7 +5,7 @@
 
 use super::*;
 
-impl Document {
+impl Built {
     /// Per component, whether it is rendered: the document is, and a
     /// component is when its parent is and its type's rule allows it
     /// where it is, `InGraph` only with a `<graph>` above it.

@@ -1,18 +1,18 @@
 //! The session: what a student's session accumulates and every build of
 //! the document reads, so state survives a rebuild. A build reads the
 //! session and returns the next one, so a failed rebuild leaves the
-//! document as it was.
+//! document as it was. The math the session's values are handles into is
+//! a [`MathStore`], which the document owns beside it and lends to each
+//! build.
 
-use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
-use std::rc::Rc;
 use std::sync::Arc;
 
 use crate::build::{ScopeId, ScopeTable, TemplateSlot};
 use crate::compile::expr::ExprId;
 use crate::compile::plan::ElemKey;
 use crate::dast::NodeId;
-use crate::document::Document;
+use crate::document::Built;
 use crate::program::Post;
 use crate::sym::{Engine, Handle};
 
@@ -41,19 +41,28 @@ pub struct Session {
     /// Strings interned since load, appended after every build's own
     /// table.
     pub runtime_strings: Vec<String>,
-    /// The symbolic engine every math value of the session is a handle
-    /// into. It only grows, so a handle stays valid for the session.
-    pub engine: Rc<RefCell<Engine>>,
-    /// The handle in `engine` of each constant expression of the source
-    /// (a math text with no cell leaves), its `Post` applied, by
-    /// (expression, post).
-    pub(crate) math_constants: Rc<RefCell<HashMap<(ExprId, Post), Handle>>>,
     /// The constant pool: the document constants every build has made, one
     /// cell per distinct value, at the front of every build's cells. It
     /// only grows, so a document constant's cell is the same in every build.
     pub(crate) pool: Arc<Pool>,
     /// How many components and slots the last build made.
     pub(crate) last_build: (usize, usize),
+}
+
+/// The math a session's values are handles into: the symbolic engine and
+/// the handle of each constant expression of the source. The document
+/// owns it and lends it to each build (`&mut`), which may add to it. Both
+/// only grow, so a handle stays valid for the session, and a failed
+/// rebuild, which may have added to it, leaves every handle the document
+/// holds valid.
+#[derive(Debug, Clone, Default)]
+pub struct MathStore {
+    /// The symbolic engine every math value is a handle into.
+    pub engine: Engine,
+    /// The handle in `engine` of each constant expression of the source
+    /// (a math text with no cell leaves), its `Post` applied, by
+    /// (expression, post).
+    pub(crate) constants: HashMap<(ExprId, Post), Handle>,
 }
 
 impl Session {
@@ -169,12 +178,12 @@ pub(crate) fn same(a: f64, b: f64) -> bool {
 pub struct Counts(HashMap<(ScopeId, NodeId), u32>);
 
 impl Counts {
-    /// What `doc`'s count cells ask for, over the counts its session
+    /// What `built`'s count cells ask for, over the counts `session`
     /// keeps for repeats it no longer has.
-    pub fn of(doc: &Document) -> Counts {
-        let mut counts = (*doc.session.counts).clone();
-        for r in &doc.structure.repeats {
-            counts.0.insert((r.scope, r.node), doc.repeat_count(r));
+    pub fn of(built: &Built, session: &Session) -> Counts {
+        let mut counts = (*session.counts).clone();
+        for r in &built.structure.repeats {
+            counts.0.insert((r.scope, r.node), built.repeat_count(r));
         }
         counts
     }

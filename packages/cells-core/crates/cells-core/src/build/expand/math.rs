@@ -34,7 +34,7 @@ impl<'c> Builder<'c> {
         // A constant expression is the same in every instance and every
         // build: made once per load (ADR 0028).
         let constant = (expr, post);
-        if let Some(&h) = self.session.math_constants.borrow().get(&constant) {
+        if let Some(&h) = self.math_constants.get(&constant) {
             return Ok(BuiltSource::Const(h.to_value()));
         }
         let parsed;
@@ -83,7 +83,7 @@ impl<'c> Builder<'c> {
     /// and kept for every later instance and build.
     fn math_constant(&mut self, constant: (ExprId, Post), h: crate::sym::Handle) -> BuiltSource {
         let h = self.post(h, constant.1);
-        self.session.math_constants.borrow_mut().insert(constant, h);
+        self.math_constants.insert(constant, h);
         BuiltSource::Const(h.to_value())
     }
 

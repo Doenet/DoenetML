@@ -173,7 +173,7 @@ pub enum Child<'a> {
     Text(&'a str),
 }
 
-impl Document {
+impl Built {
     pub fn n_components(&self) -> usize {
         self.components.len()
     }
@@ -209,57 +209,6 @@ impl Document {
     /// `component_type.prop_defs()` order, then two per point of its list.
     pub fn comp_cells(&self, c: CompIdx) -> &[CellIdx] {
         self.components.comp_cells(c)
-    }
-
-    /// The text a component shows, as the current core's `text` state
-    /// variable reads it: text children and inline values, through the
-    /// active case of a reactive choice only.
-    pub fn rendered_text(&self, c: CompIdx) -> String {
-        let mut out = String::new();
-        self.push_text(c, &mut out);
-        out
-    }
-
-    fn push_text(&self, c: CompIdx, out: &mut String) {
-        let value = |prop: &str| {
-            self.prop_cells(c, prop)
-                .map(|cells| self.cells[cells[0].index()])
-        };
-        match self.component_type(c) {
-            ComponentType::Text => {
-                out.push_str(&self.text_value(self.comp_cells(c)[prop::text::VALUE]))
-            }
-            ComponentType::TextInput => {
-                out.push_str(&self.text_value(self.comp_cells(c)[prop::text_input::VALUE]))
-            }
-            ComponentType::Number | ComponentType::NumberInput | ComponentType::Slider => {
-                out.push_str(&format_number(value("value").unwrap_or(f64::NAN)))
-            }
-            ComponentType::Boolean => out.push_str(if value("value") == Some(1.0) {
-                "true"
-            } else {
-                "false"
-            }),
-            ComponentType::Math | ComponentType::MathInput => {
-                let expr = self.prop_cells(c, "expr").map(|cells| cells[0]);
-                match expr {
-                    Some(e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
-                    _ => out.push_str(&format_number(value("value").unwrap_or(f64::NAN))),
-                }
-            }
-            ComponentType::Case
-                if self.cells[self.comp_cells(c)[prop::case::ACTIVE].index()] != 1.0 => {}
-            ComponentType::ConditionalContent | ComponentType::Select
-                if value("hide").is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
-            _ => {
-                for ch in self.children(c) {
-                    match ch {
-                        Child::Text(t) => out.push_str(t),
-                        Child::Component(k) => self.push_text(k, out),
-                    }
-                }
-            }
-        }
     }
 
     /// The string a `<text>` value cell holds (its string id), or "".
@@ -312,13 +261,66 @@ impl Document {
     pub fn value(&self, name: &str, prop: &str) -> Option<f64> {
         self.cell(name, prop).map(|c| self.cells[c.index()])
     }
+}
+
+impl Document {
+    /// The text a component shows, as the current core's `text` state
+    /// variable reads it: text children and inline values, through the
+    /// active case of a reactive choice only.
+    pub fn rendered_text(&self, c: CompIdx) -> String {
+        let mut out = String::new();
+        self.push_text(c, &mut out);
+        out
+    }
+
+    fn push_text(&self, c: CompIdx, out: &mut String) {
+        let value = |prop: &str| {
+            self.prop_cells(c, prop)
+                .map(|cells| self.cells[cells[0].index()])
+        };
+        match self.component_type(c) {
+            ComponentType::Text => {
+                out.push_str(&self.text_value(self.comp_cells(c)[prop::text::VALUE]))
+            }
+            ComponentType::TextInput => {
+                out.push_str(&self.text_value(self.comp_cells(c)[prop::text_input::VALUE]))
+            }
+            ComponentType::Number | ComponentType::NumberInput | ComponentType::Slider => {
+                out.push_str(&format_number(value("value").unwrap_or(f64::NAN)))
+            }
+            ComponentType::Boolean => out.push_str(if value("value") == Some(1.0) {
+                "true"
+            } else {
+                "false"
+            }),
+            ComponentType::Math | ComponentType::MathInput => {
+                let expr = self.prop_cells(c, "expr").map(|cells| cells[0]);
+                match expr {
+                    Some(e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
+                    _ => out.push_str(&format_number(value("value").unwrap_or(f64::NAN))),
+                }
+            }
+            ComponentType::Case
+                if self.cells[self.comp_cells(c)[prop::case::ACTIVE].index()] != 1.0 => {}
+            ComponentType::ConditionalContent | ComponentType::Select
+                if value("hide").is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
+            _ => {
+                for ch in self.children(c) {
+                    match ch {
+                        Child::Text(t) => out.push_str(t),
+                        Child::Component(k) => self.push_text(k, out),
+                    }
+                }
+            }
+        }
+    }
 
     pub fn memory_estimate(&self) -> MemoryEstimate {
         MemoryEstimate {
             cells: self.cells.capacity() * 8,
             program: self.program.instrs.capacity() * std::mem::size_of::<crate::program::Instr>()
                 + self.program.producer.capacity() * 4
-                + self.session.engine.borrow().heap_bytes(),
+                + self.math.engine.heap_bytes(),
             components: self.components.heap_bytes() + self.interactive.capacity() * 8,
             strings: self.strings.heap_bytes(),
             structure: self.session.heap_bytes()

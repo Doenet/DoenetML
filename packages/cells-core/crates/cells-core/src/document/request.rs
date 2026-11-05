@@ -100,17 +100,17 @@ impl Document {
             }
         }
         self.snap_sticky(&mut accepted, &mut finite_groups);
-        let engine = self.session.engine.clone();
-        let mut engine = engine.borrow_mut();
         let essentials = self.essentials();
+        // The build's symbolic state and the document's engine, which are
+        // separate fields, so both are lent at once.
         let mut sym = SymRun {
-            state: &mut self.sym,
-            engine: &mut engine,
+            state: &mut self.built.sym,
+            engine: &mut self.math.engine,
         };
         let inv = invert_requests(
-            &self.program,
+            &self.built.program,
             &mut sym,
-            &self.cells,
+            &self.built.cells,
             essentials.clone(),
             &accepted,
             &finite_groups,
@@ -124,32 +124,40 @@ impl Document {
         let mut newly_touched = Vec::new();
         for &(cell, _) in &inv.writes {
             if essentials.contains(&cell.index()) {
-                let at = self.structure.essential_slots[cell.index() - essentials.start];
+                let at = self.built.structure.essential_slots[cell.index() - essentials.start];
                 if Arc::make_mut(&mut self.session.touched).insert(at) {
                     newly_touched.push(at);
                 }
             }
         }
         for (cell, value) in inv.writes {
-            let old = self.cells[cell.index()];
+            let old = self.built.cells[cell.index()];
             if value != old && !(value.is_nan() && old.is_nan()) {
-                self.cells[cell.index()] = value;
+                self.built.cells[cell.index()] = value;
                 before.push((cell, old));
                 tick.changed.push(cell);
             }
         }
         if !tick.changed.is_empty() {
             match self.recompute {
-                Recompute::Full => {
-                    self.program
-                        .run_all_tracking(&mut sym, &mut self.cells, &mut tick.changed)
-                }
+                Recompute::Full => self.built.program.run_all_tracking(
+                    &mut sym,
+                    &mut self.built.cells,
+                    &mut tick.changed,
+                ),
                 Recompute::DirtyClosure => self
+                    .built
                     .dirty
-                    .get_or_insert_with(|| DirtyClosure::new(&self.program, self.cells.len()))
-                    .recompute(&self.program, &mut sym, &mut self.cells, &mut tick.changed),
+                    .get_or_insert_with(|| {
+                        DirtyClosure::new(&self.built.program, self.built.cells.len())
+                    })
+                    .recompute(
+                        &self.built.program,
+                        &mut sym,
+                        &mut self.built.cells,
+                        &mut tick.changed,
+                    ),
             }
-            drop(engine);
             if !self.structure_settled() {
                 match self.rebuild() {
                     Ok(passes) => {
@@ -163,7 +171,7 @@ impl Document {
                         // shows a count its iterations do not match, and
                         // report every request of the tick as dropped.
                         for &(cell, old) in &before {
-                            self.cells[cell.index()] = old;
+                            self.built.cells[cell.index()] = old;
                         }
                         let touched = Arc::make_mut(&mut self.session.touched);
                         for at in &newly_touched {

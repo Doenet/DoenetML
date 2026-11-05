@@ -353,8 +353,9 @@ after each.
 
 Settled while implementing phase 1:
 
-- The handles are kept in the session (`Session::math_constants`), not
-  in `Compiled`: a handle is a position in the session's engine, and the
+- The handles are kept in the session (`Session::math_constants`; since
+  ADR 0015's amendment of 2026-11-05, `MathStore::constants`, which the
+  document owns beside the session), not in `Compiled`: a handle is a position in the session's engine, and the
   abstract build builds with an engine of its own
   (`build/abstract_build.rs`), so a handle the compile kept would name
   nothing in the document's engine. The cache is shared with every build's

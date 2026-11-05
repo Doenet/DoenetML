@@ -35,7 +35,7 @@ use crate::limits::byte;
 use crate::program::VecOp;
 use crate::program::{Instr, OpSpec, Post, SymKind};
 use crate::program::{Operands, Program, ValueType};
-use crate::session::{Counts, Session};
+use crate::session::{Counts, MathStore, Session};
 
 mod abstract_build;
 #[cfg(feature = "testing")]
@@ -172,12 +172,12 @@ impl From<BuildError> for Error {
 pub fn build(
     compiled: &Compiled,
     session: &Session,
+    math: &mut MathStore,
     counts: &Counts,
     reseed: bool,
 ) -> std::result::Result<BuildOutput, BuildError> {
     let view = View::Stamped { counts };
-    let mut engine = session.engine.borrow_mut();
-    let mut b = Builder::new(compiled.view(), session, reseed, &mut engine, &view);
+    let mut b = Builder::new(compiled.view(), session, reseed, math, &view);
     let built = (|| {
         b.stage(false)?;
         let slot_cells = crate::trace::span("define").run(|| b.define())?;
@@ -281,8 +281,28 @@ pub(crate) struct Live {
 }
 
 impl BuildOutput {
-    /// Schedule the program into a document.
-    pub fn schedule(self, compiled: Arc<Compiled>) -> std::result::Result<Document, BuildError> {
+    /// Schedule the program into a document of `compiled` that owns
+    /// `math`, the math this build was lent.
+    pub fn schedule(
+        self,
+        compiled: Arc<Compiled>,
+        math: MathStore,
+    ) -> std::result::Result<Document, BuildError> {
+        let (built, session) = self.schedule_built()?;
+        Ok(Document::new(
+            built,
+            session,
+            math,
+            crate::document::Loaded::of(compiled),
+        ))
+    }
+
+    /// Schedule the program: what the build made, as a document holds it,
+    /// and the session the build returned. For a caller that keeps the
+    /// math it lent the build itself, rather than in a document.
+    pub fn schedule_built(
+        self,
+    ) -> std::result::Result<(crate::document::Built, Session), BuildError> {
         let n = self.cells.len();
         let program = match Program::schedule(self.instrs, n, self.operands) {
             Ok(mut p) => {
@@ -296,7 +316,7 @@ impl BuildOutput {
                 return Err(BuildError::Unchecked(cycle.to_string()));
             }
         };
-        Ok(Document::new(
+        let built = crate::document::Built::new(
             self.cells,
             self.n_essential,
             self.n_const,
@@ -306,9 +326,9 @@ impl BuildOutput {
             self.strings,
             self.root,
             self.structure,
-            self.session,
-            compiled,
+            &self.session,
             self.live,
-        ))
+        );
+        Ok((built, self.session))
     }
 }

@@ -168,7 +168,7 @@ impl Document {
             };
             match live {
                 Some(cell) => {
-                    self.cells[cell.index()] = value;
+                    self.built.cells[cell.index()] = value;
                     // What was saved was touched, and stays so.
                     let at = self.structure.essential_slots[cell.index() - self.n_const];
                     Arc::make_mut(&mut self.session.touched).insert(at);

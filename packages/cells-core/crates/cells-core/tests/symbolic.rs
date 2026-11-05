@@ -168,7 +168,7 @@ fn a_copy_of_a_symbolic_math_shares_its_cell() {
 }
 
 fn engine_len(doc: &Document) -> usize {
-    doc.session.engine.borrow().len()
+    doc.math.engine.len()
 }
 
 // The `Evaluate` inverse (`tick/invert.rs`) makes the requested number's
@@ -230,15 +230,14 @@ fn a_lookahead_writes_no_cell_and_the_tick_after_it_agrees() {
             (cell(doc, "q", "y"), 0.0),
         ];
         let mut realized = Vec::new();
-        let engine = doc.session.engine.clone();
         let essentials = doc.essentials();
         realize(
-            &doc.program,
+            &doc.built.program,
             &mut SymRun {
-                state: &mut doc.sym,
-                engine: &mut engine.borrow_mut(),
+                state: &mut doc.built.sym,
+                engine: &mut doc.math.engine,
             },
-            &doc.cells,
+            &doc.built.cells,
             essentials,
             &asked,
             &mut realized,
