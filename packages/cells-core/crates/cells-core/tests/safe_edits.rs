@@ -23,7 +23,7 @@ use cells_core::build::signature::Signature;
 use cells_core::components::ComponentType;
 use cells_core::dast::Dast;
 use cells_core::testing::test_utils::{dast_json, repo_root};
-use cells_core::testing::{compile, inputs};
+use cells_core::testing::{compile, inputs, par_map};
 use cells_core::{Document, LoadOptions, Request, ValueType, compare_signatures, input_signature};
 
 /// Documents with inputs of every kind, beside the golden set.
@@ -104,14 +104,16 @@ fn every_edit_called_safe_restores_every_students_work() {
     for p in &paths {
         docs.push((stem(p), std::fs::read_to_string(p).unwrap()));
     }
-    let (mut compared, mut safe, mut sessions) = (0, 0, 0);
-    let mut holes = Vec::new();
-    for (name, src) in &docs {
+    // One job per document: its edits come from its own generator, in
+    // order.
+    let per_doc = par_map(&docs, |(name, src)| {
+        let (mut compared, mut safe, mut sessions) = (0, 0, 0);
+        let mut holes = Vec::new();
         let Some(old) = Version::new(src) else {
-            continue;
+            return (compared, safe, sessions, holes);
         };
         if old.load(0).is_none() {
-            continue;
+            return (compared, safe, sessions, holes);
         }
         let mut rng = Rng(name.bytes().map(u64::from).sum());
         for (what, edited) in edits(src, &mut rng) {
@@ -133,6 +135,15 @@ fn every_edit_called_safe_restores_every_students_work() {
                 }
             }
         }
+        (compared, safe, sessions, holes)
+    });
+    let (mut compared, mut safe, mut sessions) = (0, 0, 0);
+    let mut holes = Vec::new();
+    for (c, s, n, h) in per_doc {
+        compared += c;
+        safe += s;
+        sessions += n;
+        holes.extend(h);
     }
     assert!(
         holes.is_empty(),

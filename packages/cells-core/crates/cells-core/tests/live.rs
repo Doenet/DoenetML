@@ -10,7 +10,7 @@ use std::path::Path;
 
 use cells_core::components::ComponentType;
 use cells_core::testing::test_utils::{dast_json, load, repo_root};
-use cells_core::testing::{live_cells_agree, request_unchecked};
+use cells_core::testing::{live_cells_agree, par_map, request_unchecked};
 use cells_core::{Document, LoadOptions, Request};
 
 /// (name, source) of the golden set and `sir.doenet`.
@@ -30,6 +30,23 @@ fn documents() -> Vec<(String, String)> {
             let name = Path::new(p).file_stem().unwrap().to_string_lossy();
             (name.into_owned(), std::fs::read_to_string(p).unwrap())
         })
+        .collect()
+}
+
+const SEEDS: [u64; 4] = [0, 1, 2, 3];
+
+/// `f` of every document at every seed, on every core (`par_map`): each
+/// document's results in seed order, by document. A document's seeds are
+/// independent loads, so each is a job of its own.
+fn at_every_seed<R: Send>(f: impl Fn(&str, &str, u64) -> R + Sync) -> Vec<(String, Vec<R>)> {
+    let docs = documents();
+    let jobs: Vec<(&str, &str, u64)> = docs
+        .iter()
+        .flat_map(|(name, src)| SEEDS.map(|seed| (name.as_str(), src.as_str(), seed)))
+        .collect();
+    let mut results = par_map(&jobs, |&(name, src, seed)| f(name, src, seed)).into_iter();
+    docs.into_iter()
+        .map(|(name, _)| (name, results.by_ref().take(SEEDS.len()).collect()))
         .collect()
 }
 
@@ -202,29 +219,32 @@ fn census() {
 #[test]
 fn the_record_holds_every_build() {
     let mut held = 0;
-    for (name, src) in documents() {
-        let mut extra = 0;
-        for seed in [0, 1, 2, 3] {
-            let mut doc = load_seeded(&src, seed, true);
-            extra += check(&doc, &format!("{name}, seed {seed}"));
-            held += relations_hold(&mut doc, &format!("{name}, seed {seed}"));
-            for k in 0..=4 {
-                let requests: Vec<Request> = count_cells(&doc)
-                    .into_iter()
-                    .map(|cell| Request {
-                        cell,
-                        value: k as f64,
-                    })
-                    .collect();
-                if requests.is_empty() {
-                    break;
-                }
-                request_unchecked(&mut doc, &requests);
-                let at = format!("{name}, seed {seed}, count {k}");
-                extra += check(&doc, &at);
-                held += relations_hold(&mut doc, &at);
+    let per_seed = at_every_seed(|name, src, seed| {
+        let (mut extra, mut held) = (0, 0);
+        let mut doc = load_seeded(src, seed, true);
+        extra += check(&doc, &format!("{name}, seed {seed}"));
+        held += relations_hold(&mut doc, &format!("{name}, seed {seed}"));
+        for k in 0..=4 {
+            let requests: Vec<Request> = count_cells(&doc)
+                .into_iter()
+                .map(|cell| Request {
+                    cell,
+                    value: k as f64,
+                })
+                .collect();
+            if requests.is_empty() {
+                break;
             }
+            request_unchecked(&mut doc, &requests);
+            let at = format!("{name}, seed {seed}, count {k}");
+            extra += check(&doc, &at);
+            held += relations_hold(&mut doc, &at);
         }
+        (extra, held)
+    });
+    for (name, seeds) in per_seed {
+        let extra: usize = seeds.iter().map(|&(extra, _)| extra).sum();
+        held += seeds.iter().map(|&(_, held)| held).sum::<usize>();
         eprintln!("{name:>10}: the record keeps {extra} cells the builds' walks do not");
     }
     // `fixed.doenet` holds cells by a literal `fixed`, so the second half
@@ -339,43 +359,67 @@ fn act_on_both(full: &mut Document, pruned: &mut Document, at: &str) {
     }
 }
 
+/// Two loads of every document at every seed, `a` and `b`, given the same
+/// requests and actions with every repeat at 0 to 4 iterations, hold the
+/// same value in every live cell. Returns the instructions each load
+/// started with, per document and seed.
+fn loads_agree(
+    a: impl Fn(u64) -> LoadOptions + Sync,
+    b: impl Fn(u64) -> LoadOptions + Sync,
+) -> Vec<(usize, usize)> {
+    let load = |src: &str, options: LoadOptions| {
+        Document::load(dast_json(src).as_bytes(), options)
+            .unwrap()
+            .0
+    };
+    let per_seed = at_every_seed(|name, src, seed| {
+        let mut x = load(src, a(seed));
+        let mut y = load(src, b(seed));
+        let instrs = (x.program.instrs.len(), y.program.instrs.len());
+        if let Err(e) = live_cells_agree(&x, &y) {
+            panic!("{name}, seed {seed}, after the load: {e}");
+        }
+        act_on_both(&mut x, &mut y, &format!("{name}, seed {seed}"));
+        for k in 0..=4 {
+            let requests = |doc: &Document| -> Vec<Request> {
+                count_cells(doc)
+                    .into_iter()
+                    .map(|cell| Request {
+                        cell,
+                        value: k as f64,
+                    })
+                    .collect()
+            };
+            let (rx, ry) = (requests(&x), requests(&y));
+            if ry.is_empty() {
+                break;
+            }
+            request_unchecked(&mut x, &rx);
+            request_unchecked(&mut y, &ry);
+            let at = format!("{name}, seed {seed}, count {k}");
+            if let Err(e) = live_cells_agree(&x, &y) {
+                panic!("{at}: {e}");
+            }
+            act_on_both(&mut x, &mut y, &at);
+        }
+        instrs
+    });
+    per_seed.into_iter().flat_map(|(_, seeds)| seeds).collect()
+}
+
 /// Pruning changes no value anything reads: at four seeds and every
 /// repeat at 0 to 4 iterations, a pruned load and an unpruned one, given
 /// the same requests and actions, hold the same value in every live cell.
 #[test]
 fn pruning_keeps_every_live_value() {
-    for (name, src) in documents() {
-        for seed in [0, 1, 2, 3] {
-            let mut full = load_seeded(&src, seed, false);
-            let mut pruned = load_seeded(&src, seed, true);
-            if let Err(e) = live_cells_agree(&full, &pruned) {
-                panic!("{name}, seed {seed}, after the load: {e}");
-            }
-            act_on_both(&mut full, &mut pruned, &format!("{name}, seed {seed}"));
-            for k in 0..=4 {
-                let requests = |doc: &Document| -> Vec<Request> {
-                    count_cells(doc)
-                        .into_iter()
-                        .map(|cell| Request {
-                            cell,
-                            value: k as f64,
-                        })
-                        .collect()
-                };
-                let (rf, rp) = (requests(&full), requests(&pruned));
-                if rp.is_empty() {
-                    break;
-                }
-                request_unchecked(&mut full, &rf);
-                request_unchecked(&mut pruned, &rp);
-                let at = format!("{name}, seed {seed}, count {k}");
-                if let Err(e) = live_cells_agree(&full, &pruned) {
-                    panic!("{at}: {e}");
-                }
-                act_on_both(&mut full, &mut pruned, &at);
-            }
+    let prune = |prune| {
+        move |seed| LoadOptions {
+            seed,
+            prune,
+            ..Default::default()
         }
-    }
+    };
+    loads_agree(prune(false), prune(true));
 }
 
 /// Folding changes no value either (ADR 0028): a load that folds every
@@ -384,48 +428,14 @@ fn pruning_keeps_every_live_value() {
 /// iterations, hold the same value in every live cell.
 #[test]
 fn folding_keeps_every_live_value() {
-    let load = |src: &str, seed: u64, fold: bool| {
-        let options = LoadOptions {
+    let fold = |fold| {
+        move |seed| LoadOptions {
             seed,
             fold,
             ..Default::default()
-        };
-        Document::load(dast_json(src).as_bytes(), options)
-            .unwrap()
-            .0
-    };
-    for (name, src) in documents() {
-        for seed in [0, 1, 2, 3] {
-            let mut unfolded = load(&src, seed, false);
-            let mut folded = load(&src, seed, true);
-            if let Err(e) = live_cells_agree(&unfolded, &folded) {
-                panic!("{name}, seed {seed}, after the load: {e}");
-            }
-            act_on_both(&mut unfolded, &mut folded, &format!("{name}, seed {seed}"));
-            for k in 0..=4 {
-                let requests = |doc: &Document| -> Vec<Request> {
-                    count_cells(doc)
-                        .into_iter()
-                        .map(|cell| Request {
-                            cell,
-                            value: k as f64,
-                        })
-                        .collect()
-                };
-                let (ru, rf) = (requests(&unfolded), requests(&folded));
-                if rf.is_empty() {
-                    break;
-                }
-                request_unchecked(&mut unfolded, &ru);
-                request_unchecked(&mut folded, &rf);
-                let at = format!("{name}, seed {seed}, count {k}");
-                if let Err(e) = live_cells_agree(&unfolded, &folded) {
-                    panic!("{at}: {e}");
-                }
-                act_on_both(&mut unfolded, &mut folded, &at);
-            }
         }
-    }
+    };
+    loads_agree(fold(false), fold(true));
 }
 
 /// Sharing changes no value either (ADR 0033): a load that merges equal
@@ -434,50 +444,17 @@ fn folding_keeps_every_live_value() {
 /// iterations, hold the same value in every live cell.
 #[test]
 fn sharing_keeps_every_live_value() {
-    let load = |src: &str, seed: u64, share: bool| {
-        let options = LoadOptions {
+    let share = |share| {
+        move |seed| LoadOptions {
             seed,
             share,
             ..Default::default()
-        };
-        Document::load(dast_json(src).as_bytes(), options)
-            .unwrap()
-            .0
-    };
-    let mut merged = 0;
-    for (name, src) in documents() {
-        for seed in [0, 1, 2, 3] {
-            let mut unshared = load(&src, seed, false);
-            let mut shared = load(&src, seed, true);
-            merged += unshared.program.instrs.len() - shared.program.instrs.len();
-            if let Err(e) = live_cells_agree(&unshared, &shared) {
-                panic!("{name}, seed {seed}, after the load: {e}");
-            }
-            act_on_both(&mut unshared, &mut shared, &format!("{name}, seed {seed}"));
-            for k in 0..=4 {
-                let requests = |doc: &Document| -> Vec<Request> {
-                    count_cells(doc)
-                        .into_iter()
-                        .map(|cell| Request {
-                            cell,
-                            value: k as f64,
-                        })
-                        .collect()
-                };
-                let (ru, rs) = (requests(&unshared), requests(&shared));
-                if rs.is_empty() {
-                    break;
-                }
-                request_unchecked(&mut unshared, &ru);
-                request_unchecked(&mut shared, &rs);
-                let at = format!("{name}, seed {seed}, count {k}");
-                if let Err(e) = live_cells_agree(&unshared, &shared) {
-                    panic!("{at}: {e}");
-                }
-                act_on_both(&mut unshared, &mut shared, &at);
-            }
         }
-    }
+    };
+    let merged: usize = loads_agree(share(false), share(true))
+        .into_iter()
+        .map(|(unshared, shared)| unshared - shared)
+        .sum();
     // Not vacuous: the golden set's copies share instructions.
     assert!(merged > 0, "no load merged an instruction");
 }

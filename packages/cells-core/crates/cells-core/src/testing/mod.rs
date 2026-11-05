@@ -12,6 +12,49 @@ pub mod test_utils;
 
 pub use crate::build::coverage::{AbstractEdges, abstract_edges, uncovered};
 
+/// `f` of every item, computed on as many threads as the machine has
+/// cores, in the items' order: for a test that sweeps documents, seeds and
+/// counts, which would otherwise run on one core while the others wait.
+/// Each thread takes the next item as it finishes one, so one slow item
+/// (`sir.doenet`) does not hold up the rest. A panic stops every thread
+/// taking new items and is raised again here, the first by item order,
+/// once they have stopped.
+pub fn par_map<'a, T: Sync, R: Send>(items: &'a [T], f: impl Fn(&'a T) -> R + Sync) -> Vec<R> {
+    use std::panic::{AssertUnwindSafe, catch_unwind, resume_unwind};
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+
+    let threads = std::thread::available_parallelism()
+        .map_or(1, |n| n.get())
+        .min(items.len());
+    let next = AtomicUsize::new(0);
+    let failed = AtomicBool::new(false);
+    let mut done: Vec<(usize, std::thread::Result<R>)> = std::thread::scope(|s| {
+        let workers: Vec<_> = (0..threads)
+            .map(|_| {
+                s.spawn(|| {
+                    let mut out = Vec::new();
+                    while !failed.load(Ordering::Relaxed) {
+                        let i = next.fetch_add(1, Ordering::Relaxed);
+                        let Some(item) = items.get(i) else { break };
+                        let r = catch_unwind(AssertUnwindSafe(|| f(item)));
+                        failed.fetch_or(r.is_err(), Ordering::Relaxed);
+                        out.push((i, r));
+                    }
+                    out
+                })
+            })
+            .collect();
+        workers
+            .into_iter()
+            .flat_map(|w| w.join().expect("a worker catches its panics"))
+            .collect()
+    });
+    done.sort_by_key(|&(i, _)| i);
+    done.into_iter()
+        .map(|(_, r)| r.unwrap_or_else(|panic| resume_unwind(panic)))
+        .collect()
+}
+
 /// The compile of `dast`, checked as a load checks it. It depends on the
 /// source alone (ADR 0014): no seed reaches it.
 pub fn compile(
@@ -244,4 +287,35 @@ pub fn live_cells_agree(full: &crate::Document, pruned: &crate::Document) -> Res
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::par_map;
+
+    #[test]
+    fn par_map_keeps_the_items_order() {
+        let items: Vec<u64> = (0..200).collect();
+        // Uneven work, so the threads finish out of order.
+        let out = par_map(&items, |&i| {
+            std::thread::sleep(std::time::Duration::from_micros((200 - i) * 20));
+            i * i
+        });
+        assert_eq!(out, items.iter().map(|i| i * i).collect::<Vec<_>>());
+        assert!(par_map(&[] as &[u64], |&i| i).is_empty());
+    }
+
+    #[test]
+    fn par_map_raises_the_first_panic_by_item_order() {
+        let items: Vec<u32> = (0..64).collect();
+        let panic = std::panic::catch_unwind(|| {
+            par_map(&items, |&i| {
+                if i == 10 || i == 40 {
+                    panic!("item {i}");
+                }
+            })
+        })
+        .unwrap_err();
+        assert_eq!(panic.downcast_ref::<String>().unwrap(), "item 10");
+    }
 }

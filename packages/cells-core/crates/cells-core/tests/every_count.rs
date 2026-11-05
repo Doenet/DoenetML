@@ -35,7 +35,7 @@ use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::session::{Counts, Session};
 use cells_core::testing::test_utils::{dast_json, repo_root};
-use cells_core::testing::{AbstractEdges, abstract_edges, uncovered};
+use cells_core::testing::{AbstractEdges, abstract_edges, par_map, uncovered};
 use cells_core::{Compiled, Document, Error, LoadOptions, Request};
 
 const SEEDS: [u64; 4] = [0, 1, 2, 3];
@@ -169,12 +169,43 @@ const STRUCTURE_VALUES: &[(&str, &str)] = &[
 fn no_count_closes_a_loop_the_load_did_not_reject() {
     let docs = documents();
     assert!(docs.len() >= 12, "the golden set is missing");
-    let mut checked = 0;
-    for (name, bytes) in &docs {
-        checked += check(name, bytes) as usize;
-    }
+    let loads: Vec<Load<'_>> = par_map(&docs, |(name, bytes)| loads(name, bytes))
+        .into_iter()
+        .flatten()
+        .collect();
     // The golden set alone has documents with repeats.
-    assert!(checked > 0, "no document with a repeat loaded");
+    assert!(!loads.is_empty(), "no document with a repeat loaded");
+    // A stamping reads the load's compile, which no request changes, so
+    // the stampings of every load are independent of each other and of
+    // the requests below.
+    let stampings: Vec<(&Load, Option<NodeId>, u32)> = loads
+        .iter()
+        .flat_map(|l| {
+            // Each repeat forced alone, then every repeat at once.
+            let forced = l.nodes.iter().map(|&n| Some(n)).chain([None]);
+            forced.flat_map(move |node| COUNTS.map(move |c| (l, node, c)))
+        })
+        .collect();
+    par_map(&stampings, |&(l, node, c)| {
+        let what = l.at(node, c);
+        match node {
+            Some(node) => stamp(&what, l, &|n| (n == node).then_some(c)),
+            None => stamp(&what, l, &|_| Some(c)),
+        }
+    });
+    // The requests of one load follow each other, each from where the
+    // last left the document.
+    par_map(&loads, |l| {
+        let mut doc = l.load();
+        for &node in &l.nodes {
+            for c in COUNTS {
+                drive(&l.at(Some(node), c), &mut doc, &|n| n == node, c);
+            }
+        }
+        for c in COUNTS {
+            drive(&l.at(None, c), &mut doc, &|_| true, c);
+        }
+    });
 }
 
 /// (name, DAST bytes) of every document under test.
@@ -232,8 +263,41 @@ fn stem(p: &Path) -> String {
     p.file_stem().unwrap().to_string_lossy().into_owned()
 }
 
-/// Check one document at every seed; whether it had a repeat to vary.
-fn check(name: &str, bytes: &[u8]) -> bool {
+/// A document with a repeat that loads at one seed, and what its sweep
+/// needs: the load's compile, every element built like a repeat, and the
+/// abstract build. Not the document, which stays on its thread.
+struct Load<'a> {
+    name: String,
+    bytes: &'a [u8],
+    seed: u64,
+    compiled: Arc<Compiled>,
+    edges: AbstractEdges,
+    nodes: BTreeSet<NodeId>,
+}
+
+impl Load<'_> {
+    /// The document as loaded.
+    fn load(&self) -> Document {
+        let options = LoadOptions {
+            seed: self.seed,
+            ..Default::default()
+        };
+        Document::load(self.bytes, options).unwrap().0
+    }
+
+    /// Where a check is: the repeat node forced to `c`, or every repeat.
+    fn at(&self, node: Option<NodeId>, c: u32) -> String {
+        let (name, seed) = (&self.name, self.seed);
+        match node {
+            Some(node) => format!("{name}, seed {seed}, repeat node {node} at {c}"),
+            None => format!("{name}, seed {seed}, every repeat at {c}"),
+        }
+    }
+}
+
+/// The loads of one document, one at every seed it draws with; none when
+/// it has no repeat to vary, or does not load.
+fn loads<'a>(name: &str, bytes: &'a [u8]) -> Vec<Load<'a>> {
     let dast = Arc::new(cells_core::dast::load(bytes).unwrap());
     let types = element_types(&dast);
     // Every element built like a repeat, instantiated at load or not.
@@ -243,19 +307,20 @@ fn check(name: &str, bytes: &[u8]) -> bool {
         .map(|&(n, _)| n)
         .collect();
     if nodes.is_empty() {
-        return false; // the structure never changes, and the check never runs
+        return Vec::new(); // the structure never changes, and the check never runs
     }
     // Without a load-time choice, every seed builds the same document.
     let draws = types
         .iter()
         .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
     let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
+    let mut out = Vec::new();
     for &seed in seeds {
         let options = LoadOptions {
             seed,
             ..Default::default()
         };
-        let Ok((mut doc, _)) = Document::load(bytes, options) else {
+        let Ok((doc, _)) = Document::load(bytes, options) else {
             continue; // the promise is about documents that load
         };
         let compiled = doc
@@ -265,21 +330,16 @@ fn check(name: &str, bytes: &[u8]) -> bool {
             .expect("a document with a repeat");
         let edges =
             abstract_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
-        let at = |what: &str| format!("{name}, seed {seed}, {what}");
-        for &node in &nodes {
-            for c in COUNTS {
-                let what = at(&format!("repeat node {node} at {c}"));
-                stamp(&what, seed, &doc, &edges, &|n| (n == node).then_some(c));
-                drive(&what, &mut doc, &|n| n == node, c);
-            }
-        }
-        for c in COUNTS {
-            let what = at(&format!("every repeat at {c}"));
-            stamp(&what, seed, &doc, &edges, &|_| Some(c));
-            drive(&what, &mut doc, &|_| true, c);
-        }
+        out.push(Load {
+            name: name.to_string(),
+            bytes,
+            seed,
+            compiled,
+            edges,
+            nodes: nodes.clone(),
+        });
     }
-    true
+    out
 }
 
 /// Build with every repeat `forced` names stamped at that count and the
@@ -287,13 +347,8 @@ fn check(name: &str, bytes: &[u8]) -> bool {
 /// settle from there, scheduling each build: the stamped graph must have
 /// no cycle at any of those counts, and the counts must settle. A build
 /// fails only with `BuildError::Unchecked`, which is never allowed.
-fn stamp(
-    what: &str,
-    seed: u64,
-    loaded: &Document,
-    edges: &AbstractEdges,
-    forced: &dyn Fn(NodeId) -> Option<u32>,
-) {
+fn stamp(what: &str, load: &Load, forced: &dyn Fn(NodeId) -> Option<u32>) {
+    let (seed, compiled, edges) = (load.seed, &load.compiled, &load.edges);
     let mut counts: HashMap<(ScopeId, NodeId), u32> = HashMap::new();
     for free in [false, true] {
         let mut settled = false;
@@ -303,13 +358,8 @@ fn stamp(
             for (&(scope, node), &n) in &counts {
                 stamped.set(scope, node, n);
             }
-            let compiled = loaded
-                .loaded
-                .compiled
-                .clone()
-                .expect("a document with a repeat");
-            covered(what, edges, &compiled, &session, &stamped);
-            let doc = build(&compiled, &session, &stamped, false)
+            covered(what, edges, compiled, &session, &stamped);
+            let doc = build(compiled, &session, &stamped, false)
                 .and_then(|built| built.schedule(compiled.clone()));
             let mut doc = match doc {
                 Ok(doc) => doc,
@@ -408,14 +458,14 @@ fn covered(
 // covered too: a select's draw is what the abstract build stands for there.
 #[test]
 fn the_abstract_build_covers_every_build_of_a_document_without_repeats() {
-    let mut checked = 0;
-    for (name, bytes) in documents() {
-        let dast = cells_core::dast::load(&bytes).unwrap();
+    let docs = documents();
+    let checked = par_map(&docs, |(name, bytes)| {
+        let dast = cells_core::dast::load(bytes).unwrap();
         let Ok(compiled) = cells_core::testing::compile(&dast) else {
-            continue;
+            return false;
         };
         if has_repeats(&dast) {
-            continue; // `stamp` covers these at every count
+            return false; // `stamp` covers these at every count
         }
         let edges =
             abstract_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
@@ -429,9 +479,9 @@ fn the_abstract_build_covers_every_build_of_a_document_without_repeats() {
                 &Counts::default(),
             );
         }
-        checked += 1;
-    }
-    assert!(checked > 0);
+        true
+    });
+    assert!(checked.contains(&true));
 }
 
 fn has_repeats(dast: &Dast) -> bool {
@@ -456,7 +506,9 @@ fn has_repeats(dast: &Dast) -> bool {
 fn every_write_lands_on_a_cell_the_record_makes_essential() {
     let docs = documents();
     assert!(docs.len() >= 12, "the golden set is missing");
-    for (name, bytes) in &docs {
+    // Per document: its compiles, classed and not, which no seed reaches,
+    // and the seeds and counts to build at.
+    let compiles = par_map(&docs, |(name, bytes)| {
         let dast = cells_core::dast::load(bytes).unwrap();
         let types = element_types(&dast);
         let draws = types
@@ -468,40 +520,48 @@ fn every_write_lands_on_a_cell_the_record_makes_essential() {
         } else {
             vec![None]
         };
-        for &seed in seeds {
-            let Ok(on) = cells_core::testing::compile(&dast) else {
-                continue; // the promise is about documents that load
-            };
-            let off = cells_core::testing::compile_unclassified(&dast).unwrap();
-            for &c in &counts {
-                let what = format!("{name}, seed {seed}, count {c:?}");
-                let (session, stamped) = settle_at(&on, seed, c);
-                let at = |compiled: &Arc<Compiled>| {
-                    let mut doc = build(compiled, &session, &stamped, false)
-                        .and_then(|b| b.schedule(compiled.clone()))
-                        .unwrap_or_else(|e| panic!("{what}: {e}"));
-                    doc.recompute();
-                    doc
-                };
-                let checked = at(&on);
-                let essential: BTreeSet<(ScopeId, u32)> =
-                    checked.structure.essential_slots.iter().copied().collect();
-                for key in &checked.structure.walked_essential_slots {
-                    assert!(
-                        essential.contains(key),
-                        "{what}: {key:?} is writable in this build's own walk, not in the record"
-                    );
-                }
-                let unclassified = at(&off);
-                for (action, key) in writes(&unclassified) {
-                    assert!(
-                        essential.contains(&key),
-                        "{what}: {action} writes {key:?}, which the record makes fixed"
-                    );
-                }
-            }
+        let Ok(on) = cells_core::testing::compile(&dast) else {
+            return None; // the promise is about documents that load
+        };
+        let off = cells_core::testing::compile_unclassified(&dast).unwrap();
+        Some((name, on, off, seeds, counts))
+    });
+    let builds: Vec<_> = compiles
+        .iter()
+        .flatten()
+        .flat_map(|(name, on, off, seeds, counts)| {
+            seeds
+                .iter()
+                .flat_map(move |&seed| counts.iter().map(move |&c| (name, on, off, seed, c)))
+        })
+        .collect();
+    par_map(&builds, |&(name, on, off, seed, c)| {
+        let what = format!("{name}, seed {seed}, count {c:?}");
+        let (session, stamped) = settle_at(on, seed, c);
+        let at = |compiled: &Arc<Compiled>| {
+            let mut doc = build(compiled, &session, &stamped, false)
+                .and_then(|b| b.schedule(compiled.clone()))
+                .unwrap_or_else(|e| panic!("{what}: {e}"));
+            doc.recompute();
+            doc
+        };
+        let checked = at(on);
+        let essential: BTreeSet<(ScopeId, u32)> =
+            checked.structure.essential_slots.iter().copied().collect();
+        for key in &checked.structure.walked_essential_slots {
+            assert!(
+                essential.contains(key),
+                "{what}: {key:?} is writable in this build's own walk, not in the record"
+            );
         }
-    }
+        let unclassified = at(off);
+        for (action, key) in writes(&unclassified) {
+            assert!(
+                essential.contains(&key),
+                "{what}: {action} writes {key:?}, which the record makes fixed"
+            );
+        }
+    });
 }
 
 /// The session and counts of a build with every repeat at `c` (None: as
@@ -583,11 +643,11 @@ fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
 fn a_constant_is_the_same_in_every_build() {
     let docs = documents();
     assert!(docs.len() >= 12, "the golden set is missing");
-    let mut failures = Vec::new();
-    for (name, bytes) in &docs {
+    let mut failures = par_map(&docs, |(name, bytes)| {
+        let mut failures = Vec::new();
         let dast = cells_core::dast::load(bytes).unwrap();
         if !has_repeats(&dast) {
-            continue; // one structure, one build
+            return failures; // one structure, one build
         }
         let types = element_types(&dast);
         let draws = types
@@ -643,7 +703,9 @@ fn a_constant_is_the_same_in_every_build() {
                 }
             }
         }
-    }
+        failures
+    })
+    .concat();
     failures.dedup_by(|a, b| a.split(" is ").next() == b.split(" is ").next());
     assert!(
         failures.is_empty(),
