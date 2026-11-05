@@ -75,7 +75,7 @@ impl crate::sym::Leaf for SlotId {
     }
 }
 
-use abstract_build::Coord;
+use abstract_build::{Coord, Label};
 use expand::*;
 use view::{CollectCount, Options, Plans, View};
 

@@ -270,7 +270,7 @@ impl<'c> Builder<'c> {
             .plan(inst.elem)
             .from
             .expect("planning gave a collect its `from`");
-        let (target, _) = self.resolve(from, inst.scope)?;
+        let (target, _, _) = self.resolve(from, inst.scope)?;
         let mut found = Vec::new();
         match target {
             Resolved::Comp(c) => self.collect_descendants(c, component_type, &mut found),

@@ -93,7 +93,7 @@ pub(in crate::build) enum Resolved {
     /// the index cell's.
     Chosen {
         index: SlotId,
-        label: Vec<Coord>,
+        label: Label,
         items: Vec<Resolved>,
     },
 }
@@ -219,11 +219,9 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) instantiated: HashMap<(ExprId, ScopeId), ExprId>,
     /// Each node of the build's arena lowered, to its slot.
     pub(in crate::build) lowered: HashMap<ExprId, SlotId>,
-    /// When the view folds iterations: the label of the last reference
-    /// resolved, and those of reference edges (from slot, to slot) that are
-    /// not the identity.
-    pub(in crate::build) label: Vec<Coord>,
-    pub(in crate::build) labels: HashMap<(SlotId, SlotId), Vec<Coord>>,
+    /// When the view folds iterations: the labels of reference edges
+    /// (from slot, to slot) that are not the identity.
+    pub(in crate::build) labels: HashMap<(SlotId, SlotId), Label>,
     /// The node of the element whose expansion or resolution failed; none
     /// when the failure has no element.
     pub(in crate::build) failed_node: Option<NodeId>,
@@ -315,7 +313,6 @@ impl<'c> Builder<'c> {
             share_math: false,
             instantiated: HashMap::new(),
             lowered: HashMap::new(),
-            label: Vec::new(),
             labels: HashMap::new(),
             failed_node: None,
             diagnostics: Vec::new(),
@@ -840,7 +837,7 @@ impl<'c> Builder<'c> {
                     let mut flags = Vec::with_capacity(refs.len());
                     for &p in refs {
                         match self.resolve_one(p, inst.scope) {
-                            Ok(s) => flags.push(s),
+                            Ok((s, _)) => flags.push(s),
                             Err(e) => {
                                 self.fail_at_comp(inst.comp);
                                 return Err(e);
@@ -905,7 +902,7 @@ impl<'c> Builder<'c> {
         plan: RefId,
         scope: ScopeId,
     ) -> Result<()> {
-        let (target, prop) = self.resolve(plan, scope)?;
+        let (target, prop, label) = self.resolve(plan, scope)?;
         let through_iteration = matches!(target, Resolved::Iter(..));
         match (target, prop) {
             (Resolved::Missing, _) => {
@@ -915,7 +912,8 @@ impl<'c> Builder<'c> {
                 self.sources[s.index()] = BuiltSource::Alias(self.missing_slot());
             }
             (target, Some(prop)) => {
-                let targets = self.targets_of(target, Some(prop), plan, Some(1), scope)?;
+                let (targets, label) =
+                    self.targets_of(target, Some(prop), plan, Some(1), scope, label)?;
                 // A string id shows as a text.
                 let is_text = self.value_type(targets[0]) == ValueType::Text;
                 let (component_type, value) = if is_text {
@@ -927,7 +925,7 @@ impl<'c> Builder<'c> {
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, value);
                 self.sources[s.index()] = BuiltSource::Alias(targets[0]);
-                self.record_label(s, targets[0]);
+                self.record_label(s, targets[0], &label);
             }
             (target, None) => {
                 let referent = self.single_component(target, plan)?;
@@ -949,12 +947,12 @@ impl<'c> Builder<'c> {
                 // iteration (`$r[1]`) it is the input, as the current
                 // core has it (REF-1a).
                 if let (false, Some(as_type)) = (through_iteration, component_type.reads_as()) {
-                    self.value_copy_into(idx, referent, as_type);
+                    self.value_copy_into(idx, referent, as_type, &label);
                     return Ok(());
                 }
                 self.copy_into(idx, referent);
                 for pi in 0..self.n_public(referent) {
-                    self.record_label(self.slot(idx, pi), self.slot(referent, pi));
+                    self.record_label(self.slot(idx, pi), self.slot(referent, pi), &label);
                 }
             }
         }
@@ -964,8 +962,15 @@ impl<'c> Builder<'c> {
     /// Make `idx` an `as_type` holding `referent`'s value: each
     /// of its props aliases the referent's prop of the same name (a math's
     /// `value` and `expr` from a mathInput's), and one the referent lacks
-    /// is the missing value.
-    fn value_copy_into(&mut self, idx: CompIdx, referent: CompIdx, as_type: ComponentType) {
+    /// is the missing value. Each alias's edge carries `label`, the
+    /// reference's.
+    fn value_copy_into(
+        &mut self,
+        idx: CompIdx,
+        referent: CompIdx,
+        as_type: ComponentType,
+        label: &[Coord],
+    ) {
         self.components.component_type[idx.index()] = as_type;
         self.components.referent[idx.index()] = referent;
         let defs = as_type.prop_defs();
@@ -977,7 +982,7 @@ impl<'c> Builder<'c> {
             self.sources[s.index()] = match rt.prop_index(def.name) {
                 Some(rp) if rp < self.n_public(referent) => {
                     let target = self.slot(referent, rp);
-                    self.record_label(s, target);
+                    self.record_label(s, target, label);
                     BuiltSource::Alias(target)
                 }
                 _ => BuiltSource::Alias(self.missing_slot()),
@@ -1005,11 +1010,11 @@ impl<'c> Builder<'c> {
         &mut self,
         plan: RefId,
         scope: ScopeId,
-    ) -> Result<Vec<[SlotId; 2]>> {
-        let (target, prop) = self.resolve(plan, scope)?;
+    ) -> Result<(Vec<[SlotId; 2]>, Label)> {
+        let (target, prop, label) = self.resolve(plan, scope)?;
         // An index past the count names no items.
         if matches!(target, Resolved::Missing) {
-            return Ok(Vec::new());
+            return Ok((Vec::new(), label));
         }
         let comp = self.single_component(target, plan)?;
         let component_type = self.components.component_type[comp.index()];
@@ -1018,12 +1023,13 @@ impl<'c> Builder<'c> {
         let sel = prop.sel_on(component_type);
         if sel == Some(PropSel::At(PropAt::List)) {
             let n = self.n_public(comp);
-            return Ok((1..=component_type.list_len(n))
+            let items = (1..=component_type.list_len(n))
                 .map(|k| {
                     let at = |j| self.slot(comp, component_type.list_slot(n, k, j).unwrap());
                     [at(0), at(1)]
                 })
-                .collect());
+                .collect();
+            return Ok((items, label));
         }
         if sel != Some(PropSel::TableList) {
             return Err(Error::UnknownProp {
@@ -1031,11 +1037,12 @@ impl<'c> Builder<'c> {
                 prop: prop.name().into_owned(),
             });
         }
-        Ok(component_type
+        let items = component_type
             .table_point_positions()
             .iter()
             .map(|&[x, y]| [self.slot(comp, x as usize), self.slot(comp, y as usize)])
-            .collect())
+            .collect();
+        Ok((items, label))
     }
 
     /// Give a point list its children: one synthesized point per item of
@@ -1048,7 +1055,7 @@ impl<'c> Builder<'c> {
         let mut kids = Vec::new();
         match (plan.from, plan.extend) {
             (Some(from), _) => {
-                let items = self.resolve_items(from, inst.scope)?;
+                let (items, label) = self.resolve_items(from, inst.scope)?;
                 for [x, y] in items {
                     let n = ComponentType::Point.prop_defs().len();
                     let pt = self.new_component(
@@ -1066,15 +1073,15 @@ impl<'c> Builder<'c> {
                     );
                     self.sources[sx.index()] = BuiltSource::Alias(x);
                     self.sources[sy.index()] = BuiltSource::Alias(y);
-                    self.record_label(sx, x);
-                    self.record_label(sy, y);
+                    self.record_label(sx, x, &label);
+                    self.record_label(sy, y, &label);
                     // Not state: a synthesized point has no essential key.
                     self.sources[sh.index()] = BuiltSource::Const(0.0);
                     kids.push(ChildEntry::comp(pt));
                 }
             }
             (_, Some(p)) => {
-                let (target, _) = self.resolve(p, inst.scope)?;
+                let (target, _, _) = self.resolve(p, inst.scope)?;
                 // An index past the count copies nothing.
                 let referent = match target {
                     Resolved::Missing => CompIdx::NONE,
@@ -1191,8 +1198,7 @@ impl<'c> Builder<'c> {
             Some(p) => self.extend_referent(p, inst.scope, component_type)?,
             None => None,
         };
-        let label = self.label.clone();
-        let Some(referent) = referent else {
+        let Some((referent, label)) = referent else {
             self.n_public[inst.comp.index()] = component_type.prop_defs().len() as u32;
             self.allocate_slots(inst.comp, n_props);
             return Ok(());
@@ -1209,21 +1215,23 @@ impl<'c> Builder<'c> {
         self.n_public[inst.comp.index()] = n as u32;
         for pi in 0..n {
             let (s, t) = (self.slot(inst.comp, pi), self.slot(referent, pi));
-            self.record_label_as(s, t, &label);
+            self.record_label(s, t, &label);
         }
         Ok(())
     }
 
     /// The component an `extend` plan names from `scope`, of the copy's
-    /// own type: None for an index past the count, when the copy holds the
-    /// missing value wherever it would inherit.
+    /// own type, and the reference's label: None for an index past the
+    /// count, when the copy holds the missing value wherever it would
+    /// inherit.
     fn extend_referent(
         &mut self,
         p: RefId,
         scope: ScopeId,
         component_type: ComponentType,
-    ) -> Result<Option<CompIdx>> {
-        let referent = match self.resolve(p, scope)?.0 {
+    ) -> Result<Option<(CompIdx, Label)>> {
+        let (target, _, label) = self.resolve(p, scope)?;
+        let referent = match target {
             Resolved::Missing => return Ok(None),
             target => self.single_component(target, p)?,
         };
@@ -1235,7 +1243,7 @@ impl<'c> Builder<'c> {
                 component_type: component_type.tag().into(),
             });
         }
-        Ok(Some(referent))
+        Ok(Some((referent, label)))
     }
 
     /// Sources for every prop of one instantiated element.
@@ -1253,7 +1261,7 @@ impl<'c> Builder<'c> {
             None => None,
         };
         // What a renderer reads through the reference (ADR 0024).
-        if let Some(referent) = extend {
+        if let Some((referent, _)) = extend {
             self.components.referent[comp.index()] = referent;
         }
         // A copy of a type with a list was made whole by `place_list_copy`.
@@ -1358,7 +1366,7 @@ impl<'c> Builder<'c> {
                     BuiltSource::Const(from + step * k.min(count - 1) as f64)
                 }
                 Leaf::Scope(ScopeConst::Seed(p)) => {
-                    let from = self
+                    let (from, _) = self
                         .resolve_one(*p, inst.scope)
                         .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
                     self.seeds.push((s, from));

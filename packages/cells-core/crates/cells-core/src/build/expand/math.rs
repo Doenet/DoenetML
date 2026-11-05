@@ -121,17 +121,18 @@ impl<'c> Builder<'c> {
     /// The slot a `$ref` inside math names, and whether it holds an
     /// expression (then the slot is the referent's math cell).
     fn leaf_slot(&mut self, plan: RefId, scope: ScopeId) -> Result<(SlotId, bool)> {
-        let slot = self.math_ref(plan, scope)?;
+        let (slot, label) = self.math_ref(plan, scope)?;
         let (slot, math) = match self.math_target(slot) {
             Some(m) => (m, true),
             None => (slot, false),
         };
-        Ok((self.leaf(slot, scope), math))
+        Ok((self.leaf(slot, &label, scope), math))
     }
 
-    /// The slot a `$ref` inside math names: one cell, and not a string id.
-    fn math_ref(&mut self, plan: RefId, scope: ScopeId) -> Result<SlotId> {
-        let slot = self.resolve_one(plan, scope).map_err(|e| match e {
+    /// The slot a `$ref` inside math names (one cell, and not a string id),
+    /// and the reference's label.
+    fn math_ref(&mut self, plan: RefId, scope: ScopeId) -> Result<(SlotId, Label)> {
+        let (slot, label) = self.resolve_one(plan, scope).map_err(|e| match e {
             Error::ArityMismatch { .. } => Error::BadMath {
                 text: self.compiled.ref_display(plan),
                 reason: "a reference inside math must name one cell".into(),
@@ -144,7 +145,7 @@ impl<'c> Builder<'c> {
                 "a text value (${display}) inside math"
             )));
         }
-        Ok(slot)
+        Ok((slot, label))
     }
 
     /// When `slot` is a prop that stands for an expression (a symbolic
@@ -261,8 +262,8 @@ impl<'c> Builder<'c> {
             Expr::Num(v) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
             Expr::Cell(plan) => {
-                let slot = self.math_ref(plan, scope)?;
-                Expr::Cell(self.leaf(slot, scope))
+                let (slot, label) = self.math_ref(plan, scope)?;
+                Expr::Cell(self.leaf(slot, &label, scope))
             }
             Expr::Add(a, b)
             | Expr::Sub(a, b)

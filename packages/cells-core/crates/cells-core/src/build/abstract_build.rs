@@ -27,6 +27,12 @@ pub(in crate::build) enum Coord {
     Reset,
 }
 
+/// A reference's label: one `Coord` per level of nesting of its target,
+/// what the edge from its reader carries when the view folds iterations.
+/// Empty when it does not, and the identity when every coordinate is
+/// `Keep(0)`.
+pub(in crate::build) type Label = Vec<Coord>;
+
 /// The abstract build: the compile expanded and resolved once through the
 /// abstract view, its graph tested for loops at any count, and defined.
 /// It reads a session of its own and makes no program (ADR 0035): what it
