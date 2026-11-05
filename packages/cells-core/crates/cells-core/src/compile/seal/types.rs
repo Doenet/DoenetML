@@ -77,9 +77,9 @@ impl Seal<'_> {
                 for (pi, src) in plan.props.iter().enumerate() {
                     let slot = pass.offs[t.index()].0[e.index()].offset(pi);
                     owner[t.index()][slot.index()] = (e, pi);
-                    pass.reads.borrow_mut().clear();
+                    pass.reads.clear();
                     let ty = pass.source_type(t, e, pi, src, false)?;
-                    for &(rt, rs) in pass.reads.borrow().iter() {
+                    for &(rt, rs) in &pass.reads {
                         readers[rt.index()][rs.index()].push((t, slot));
                     }
                     if pass.raise(t, slot, ty) {
@@ -94,7 +94,7 @@ impl Seal<'_> {
                 let src = &self.view(t).plan(e).props[pi];
                 // Its reads were recorded the first time; they do not
                 // change.
-                pass.reads.borrow_mut().clear();
+                pass.reads.clear();
                 let ty = pass.source_type(t, e, pi, src, false)?;
                 if pass.raise(t, slot, ty) {
                     work.push((t, slot));
@@ -117,28 +117,31 @@ impl Seal<'_> {
 }
 
 /// The pass's state: the seal it reads, the slot offsets, the types so
-/// far, and what the walks found, which is found once.
+/// far, and what the walks found, which is found once. What it reads of
+/// the seal is borrowed for the seal's lifetimes (`'s`, `'a`), never for a
+/// borrow of the pass, so a method holds a row or a plan while it records
+/// a read or fills a cache through `&mut self`.
 struct Types<'s, 'a> {
     seal: &'s Seal<'a>,
     offs: &'s [(Vec<TemplateSlot>, u32)],
     types: &'s mut Vec<Vec<PortType>>,
     /// Where each reference lands, by (template, plan).
-    walks: std::cell::RefCell<HashMap<(TemplateId, RefId), (Walk, bool)>>,
+    walks: HashMap<(TemplateId, RefId), (Walk, bool)>,
     /// What each collect gathers, by (template, element).
-    collects: std::cell::RefCell<HashMap<(TemplateId, ElemId), Collected>>,
+    collects: HashMap<(TemplateId, ElemId), Collected>,
     /// Whether each math text has a free symbol, by expression.
-    has_symbol: std::cell::RefCell<HashMap<ExprId, bool>>,
+    has_symbol: HashMap<ExprId, bool>,
     /// The ports read while typing one port, as (template, template
     /// slot): its dependencies, which the worklist follows.
-    reads: std::cell::RefCell<Vec<(TemplateId, TemplateSlot)>>,
+    reads: Vec<(TemplateId, TemplateSlot)>,
 }
 
-impl Types<'_, '_> {
+impl<'s, 'a> Types<'s, 'a> {
     /// The type of port `pi` of element `e` of template `t`, as settled so
     /// far; recorded as a read of the port being typed.
-    fn port(&self, t: TemplateId, e: ElemId, pi: usize) -> PortType {
+    fn port(&mut self, t: TemplateId, e: ElemId, pi: usize) -> PortType {
         let slot = self.offs[t.index()].0[e.index()].offset(pi);
-        self.reads.borrow_mut().push((t, slot));
+        self.reads.push((t, slot));
         self.types[t.index()]
             .get(slot.index())
             .copied()
@@ -159,7 +162,7 @@ impl Types<'_, '_> {
     }
 
     /// The row of element `e` of template `t`.
-    fn row(&self, t: TemplateId, e: ElemId) -> &Elem {
+    fn row(&self, t: TemplateId, e: ElemId) -> &'a Elem {
         self.seal.view(t).row(e)
     }
 
@@ -179,7 +182,7 @@ impl Types<'_, '_> {
     /// What `src`, port `pi` of element `e` of template `t`, holds; with
     /// `check`, the shape checks too, which raise what the build would.
     fn source_type(
-        &self,
+        &mut self,
         t: TemplateId,
         e: ElemId,
         pi: usize,
@@ -262,7 +265,7 @@ impl Types<'_, '_> {
     /// What an argument of port `pi` of element `e`'s plan reads; `pi`
     /// names the prop an arity error is about.
     fn arg_type(
-        &self,
+        &mut self,
         t: TemplateId,
         e: ElemId,
         pi: usize,
@@ -307,9 +310,9 @@ impl Types<'_, '_> {
     /// Whether the handle of a `<math>` of template `t` with expression
     /// `id` is a math cell: its text has a free symbol, or a leaf that
     /// stands for an expression (`stands_for_expression`).
-    fn symbolic(&self, t: TemplateId, id: ExprId) -> std::result::Result<bool, Failure> {
+    fn symbolic(&mut self, t: TemplateId, id: ExprId) -> std::result::Result<bool, Failure> {
         let arena = &self.seal.plans.arena;
-        let has_symbol = *self.has_symbol.borrow_mut().entry(id).or_insert_with(|| {
+        let has_symbol = *self.has_symbol.entry(id).or_insert_with(|| {
             let mut syms = Vec::new();
             arena.symbols(id, &mut syms);
             !syms.is_empty()
@@ -327,7 +330,7 @@ impl Types<'_, '_> {
     /// symbolic math's, math input's or
     /// function's `expr` or `value`, or an answer's or response's
     /// expression props when what it submits is one.
-    fn math_leaf(&self, t: TemplateId, p: RefId) -> bool {
+    fn math_leaf(&mut self, t: TemplateId, p: RefId) -> bool {
         let Ok(cells) = self.ref_cells(t, ElemId::NONE, p, false) else {
             return false;
         };
@@ -339,8 +342,8 @@ impl Types<'_, '_> {
             let Some(def) = ty.prop_defs().get(pi) else {
                 return false;
             };
-            let port_named = |name: &str| ty.prop_index(name).map(|i| self.port(ct, ce, i));
-            let is_math = |name: &str| port_named(name) == Some(PortType::Math);
+            let mut port_named = |name: &str| ty.prop_index(name).map(|i| self.port(ct, ce, i));
+            let mut is_math = |name: &str| port_named(name) == Some(PortType::Math);
             match (ty, def.name) {
                 (ComponentType::Answer, "response" | "correct" | "submitted") => {
                     is_math("submitted")
@@ -361,7 +364,7 @@ impl Types<'_, '_> {
     /// The leaves of math text `id` of element `e`, checked as the build
     /// binds them: each names one cell, and none is text.
     fn check_leaves(
-        &self,
+        &mut self,
         t: TemplateId,
         e: ElemId,
         id: ExprId,
@@ -387,7 +390,7 @@ impl Types<'_, '_> {
     /// The type of the one cell `p` names, checked to be one where the
     /// abstract build is sure to land.
     fn one_cell(
-        &self,
+        &mut self,
         t: TemplateId,
         e: ElemId,
         p: RefId,
@@ -450,7 +453,7 @@ impl Types<'_, '_> {
     /// table props. With `check`, a whole pick's components are checked to
     /// hold one kind of value.
     fn ref_cells(
-        &self,
+        &mut self,
         t: TemplateId,
         e: ElemId,
         p: RefId,
@@ -569,22 +572,20 @@ impl Types<'_, '_> {
 
     /// Where reference `p`, planned from template `t`, lands, as far as
     /// the templates tell, over every iteration, item and branch at once.
-    fn walk(&self, t: TemplateId, p: RefId) -> Target {
+    fn walk(&mut self, t: TemplateId, p: RefId) -> Target {
         let key = (t, p);
-        if let Some((at, lands)) = self.walks.borrow().get(&key) {
+        if let Some((at, lands)) = self.walks.get(&key) {
             return Target {
                 at: at.clone(),
                 lands: *lands,
             };
         }
         let target = self.walk_uncached(t, p);
-        self.walks
-            .borrow_mut()
-            .insert(key, (target.at.clone(), target.lands));
+        self.walks.insert(key, (target.at.clone(), target.lands));
         target
     }
 
-    fn walk_uncached(&self, t: TemplateId, p: RefId) -> Target {
+    fn walk_uncached(&mut self, t: TemplateId, p: RefId) -> Target {
         let plan = &self.seal.plans.refs[p.index()];
         let mut t = t;
         for _ in 0..plan.hops {
@@ -690,18 +691,18 @@ impl Types<'_, '_> {
     /// templates tell: the elements of `component_type` under what it
     /// gathers from, not recursing into a match; and whether any sits in a
     /// repeat's body.
-    fn collected(&self, t: TemplateId, e: ElemId, component_type: ComponentType) -> Collected {
+    fn collected(&mut self, t: TemplateId, e: ElemId, component_type: ComponentType) -> Collected {
         let key = (t, e);
-        if let Some(found) = self.collects.borrow().get(&key) {
+        if let Some(found) = self.collects.get(&key) {
             return found.clone();
         }
         let found = self.collected_uncached(t, e, component_type);
-        self.collects.borrow_mut().insert(key, found.clone());
+        self.collects.insert(key, found.clone());
         found
     }
 
     fn collected_uncached(
-        &self,
+        &mut self,
         t: TemplateId,
         e: ElemId,
         component_type: ComponentType,
@@ -736,7 +737,7 @@ impl Types<'_, '_> {
     /// own children when `e` is None).
     #[allow(clippy::too_many_arguments)]
     fn gather(
-        &self,
+        &mut self,
         t: TemplateId,
         e: Option<ElemId>,
         component_type: ComponentType,
@@ -813,7 +814,7 @@ impl Types<'_, '_> {
     /// Every interface name a reference uses holds one kind of value per
     /// prop in every branch, and so does the one component of every option
     /// a whole pick names.
-    fn check_interfaces(&self) -> std::result::Result<(), Failure> {
+    fn check_interfaces(&mut self) -> std::result::Result<(), Failure> {
         for (ci, def) in self.seal.choices.iter().enumerate() {
             let (t, e) = def.at;
             if self.seal.view(t).is_box(e) {
@@ -840,7 +841,7 @@ impl Types<'_, '_> {
     /// for, hold one kind of value per prop: text in every branch or in
     /// none. A math cell and a number join to a math cell.
     fn members_agree(
-        &self,
+        &mut self,
         t: TemplateId,
         e: ElemId,
         component_type: ComponentType,
