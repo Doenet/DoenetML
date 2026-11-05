@@ -94,7 +94,7 @@ impl<'c> Stamp<'c> {
                 At::Comp(_) => {
                     let def = &self.c.plans.choices[cid.index()];
                     let u = def.used_at[id].index();
-                    At::Comp(Comp::StandIn(self.iface[&(*cid, u)]))
+                    At::Comp(Comp::Made(self.iface[&(*cid, u)]))
                 }
                 _ => At::Missing,
             },
@@ -103,7 +103,9 @@ impl<'c> Stamp<'c> {
                     At::Comp(c) => c,
                     _ => return At::Missing,
                 };
-                match step {
+                // The entries the index reads, and whether one entry
+                // stands for entries that differ at other counts.
+                let (entries, varies): (Vec<At>, bool) = match step {
                     Step::Iter(_) => {
                         let Comp::Elem(rt, re) = c else {
                             return At::Missing;
@@ -117,35 +119,64 @@ impl<'c> Stamp<'c> {
                             let entered = self.g.depth[rt.index()] + 1;
                             label.push(index_coord(ip, src_depth, entered));
                         }
-                        let iteration = At::Iter(template);
-                        if ip.is_dynamic() {
-                            let [IndexTerm::Cell(cell)] = ip.terms[..] else {
-                                unreachable!("a dynamic index is one cell")
-                            };
-                            // The index cell's own walk, with its own label.
-                            let (index, label) = self.resolve_one(cell, t);
-                            return At::Chosen {
-                                index,
-                                label,
-                                items: vec![iteration],
-                            };
-                        }
-                        iteration
+                        (vec![At::Iter(template)], true)
                     }
-                    Step::Item(Collection::Picks, _) => self.pick(c, to_iface, label, push),
+                    Step::Item(Collection::Picks, _) => return self.pick(c, to_iface, label, push),
                     Step::Item(Collection::Gathered, _) => {
-                        self.g.gaps.insert(Gap::Gathered);
-                        At::Missing
+                        let Comp::Elem(ct, ce) = c else {
+                            return At::Missing;
+                        };
+                        let Some((items, follows)) = self.collected.get(&(ct, ce)).cloned() else {
+                            return At::Missing;
+                        };
+                        (items.into_iter().map(At::Comp).collect(), follows)
                     }
                     Step::Item(Collection::ListPoints, _) => {
-                        self.g.gaps.insert(Gap::ListPoints);
-                        At::Missing
+                        let points = self.children(c).into_iter().map(At::Comp).collect();
+                        (points, false)
                     }
                     Step::Item(..) => unreachable!("planning indexes no other collection"),
                     _ => unreachable!(),
+                };
+                if ip.is_dynamic() {
+                    let [IndexTerm::Cell(cell)] = ip.terms[..] else {
+                        unreachable!("a dynamic index is one cell")
+                    };
+                    // The index cell's own walk, with its own label.
+                    let (index, label) = self.resolve_one(cell, t);
+                    return At::Chosen {
+                        index,
+                        label,
+                        items: entries,
+                    };
+                }
+                let k = self.index_value(ip, t);
+                match abstract_index(entries.len(), k, varies) {
+                    Some(j) => entries[j].clone(),
+                    None => At::Missing,
                 }
             }
         }
+    }
+
+    /// The value of a literal index read from template `t`: its literals
+    /// and the positions of the iterations it names.
+    fn index_value(&self, ip: &IndexPlan, t: TemplateId) -> i64 {
+        let mut total = 0;
+        for term in &ip.terms {
+            total += match term {
+                IndexTerm::Const(c) => *c,
+                IndexTerm::Iter(hops) => {
+                    let mut s = t;
+                    for _ in 0..*hops {
+                        s = self.g.parent[s.index()].expect("an index's hops stay in the document");
+                    }
+                    self.position(s)
+                }
+                IndexTerm::Cell(_) => unreachable!("a cell index is a choose"),
+            };
+        }
+        total
     }
 
     /// `$s[k]` on select `c`, every option built: the select itself before
@@ -164,7 +195,7 @@ impl<'c> Stamp<'c> {
             return At::Missing;
         };
         if let Some(&w) = self.picks.get(&cid) {
-            return At::Comp(Comp::StandIn(w));
+            return At::Comp(Comp::Made(w));
         }
         let branches = self.c.plans.choices[cid.index()].branches.clone();
         let mut members = Vec::with_capacity(branches.len());
@@ -177,34 +208,21 @@ impl<'c> Stamp<'c> {
         let Some(&first) = members.first() else {
             return At::Missing;
         };
-        let w = self.stand_in(self.component_type(first), t, members, None);
+        let w = self.stand_in(self.component_type(first), t, members);
+        self.stand_in_reads(w, None);
         self.picks.insert(cid, w);
-        At::Comp(Comp::StandIn(w))
+        At::Comp(Comp::Made(w))
     }
 
     /// The one component a walk names as a whole: an iteration's or an
-    /// option's only component. None for what the stamping left out.
+    /// option's only component. None when it names none.
     pub(super) fn single_component(&mut self, at: At) -> Option<Comp> {
         match at {
             At::Comp(c) => Some(c),
-            At::Iter(s) => {
-                let tpl = &self.c.plans.templates[s.index()];
-                let mut comps = Vec::new();
-                for child in &tpl.children {
-                    match child {
-                        Child::Elem(e) => comps.push(Comp::Elem(s, *e)),
-                        Child::Macro(_) => {
-                            self.g.gaps.insert(Gap::RefChild);
-                            return None;
-                        }
-                        Child::Text(_) => {}
-                    }
-                }
-                match comps[..] {
-                    [one] => Some(one),
-                    _ => None,
-                }
-            }
+            At::Iter(s) => match self.root_children(s)[..] {
+                [one] => Some(one),
+                _ => None,
+            },
             At::Missing | At::Chosen { .. } => None,
         }
     }
@@ -235,7 +253,7 @@ impl<'c> Stamp<'c> {
     /// default, read from template `t`, and the label of a read of them:
     /// the walk's, or none through a cell index, a choose over each item's
     /// whose reads of the items carry it.
-    fn targets_of(
+    pub(super) fn targets_of(
         &mut self,
         at: At,
         prop: Option<RefProp>,
@@ -293,20 +311,66 @@ impl<'c> Stamp<'c> {
             })
             .collect();
         let n = columns.iter().map(Vec::len).max().unwrap_or(1);
-        let mut out = Vec::with_capacity(n);
-        for j in 0..n {
-            let choose = self.node(t, NodeKind::Read);
-            if let Some(index) = index {
-                self.read_as(choose, index, &index_label);
-            }
-            for col in &columns {
-                if let Some(Some(item)) = col.get(j) {
-                    self.read_as(choose, *item, &walk_label);
+        (0..n)
+            .map(|j| {
+                let nodes: Vec<Option<GraphNode>> = columns
+                    .iter()
+                    .map(|col| col.get(j).copied().flatten())
+                    .collect();
+                Some(self.choose_over(index, &index_label, &nodes, &walk_label, t))
+            })
+            .collect()
+    }
+
+    /// A choose in template `t` among `items` by `index`, read with
+    /// `index_label`, each item with `item_label`. More items than one
+    /// choose reads are read in chunks, a choose over the chunks by the
+    /// index's chunk number.
+    fn choose_over(
+        &mut self,
+        index: Option<GraphNode>,
+        index_label: &[Coord],
+        items: &[Option<GraphNode>],
+        item_label: &[Coord],
+        t: TemplateId,
+    ) -> GraphNode {
+        const CAP: usize = crate::limits::MAX_VEC_IN - 1;
+        // A node reading `inputs`, each with its label.
+        let reading = |s: &mut Self, inputs: &[(Option<GraphNode>, &[Coord])]| {
+            let n = s.node(t, NodeKind::Read);
+            for &(input, label) in inputs {
+                if let Some(input) = input {
+                    s.read_as(n, input, label);
                 }
             }
-            out.push(Some(choose));
+            n
+        };
+        if items.len() <= CAP {
+            let mut inputs = vec![(index, index_label)];
+            inputs.extend(items.iter().map(|&item| (item, item_label)));
+            return reading(self, &inputs);
         }
-        out
+        let mut chunks = Vec::with_capacity(items.len().div_ceil(CAP));
+        for (ci, chunk) in items.chunks(CAP).enumerate() {
+            let local = if ci == 0 {
+                index
+            } else {
+                Some(reading(self, &[(index, index_label)]))
+            };
+            chunks.push(Some(self.choose_over(
+                local,
+                index_label,
+                chunk,
+                item_label,
+                t,
+            )));
+        }
+        // The chunk the index falls in: floor((index - 1) / CAP) + 1.
+        let less = reading(self, &[(index, index_label)]);
+        let q = reading(self, &[(Some(less), &[])]);
+        let f = reading(self, &[(Some(q), &[])]);
+        let which = reading(self, &[(Some(f), &[])]);
+        self.choose_over(Some(which), &[], &chunks, &[], t)
     }
 
     /// The coordinate nodes of each item of a list prop plan `p` names
@@ -356,5 +420,16 @@ impl<'c> Stamp<'c> {
                 ]
             })
             .collect()
+    }
+}
+
+/// Which of `len` stamped entries index `k` (1-based) names in the
+/// abstract view, or None for the missing referent: an index past entries
+/// that stand for others lands in them.
+fn abstract_index(len: usize, k: i64, varies: bool) -> Option<usize> {
+    if varies && len > 0 {
+        Some((k.max(1) as usize - 1).min(len - 1))
+    } else {
+        (k >= 1 && k as u64 <= len as u64).then(|| (k - 1) as usize)
     }
 }

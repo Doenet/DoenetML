@@ -11,7 +11,7 @@
 //! label the real iterations satisfy.
 
 use super::*;
-use crate::compile::graph::{Gap, GraphNode, NodeKind, TemplateGraph, template_graph};
+use crate::compile::graph::{GraphNode, NodeKind, TemplateGraph, template_graph};
 
 /// A slot of an element: (template, element, position among its slots).
 type Key = (TemplateId, ElemId, u32);
@@ -193,14 +193,15 @@ fn compose(to_a: &[Coord], a_to_v: &[Coord]) -> Vec<Coord> {
 /// composed through every other node.
 #[derive(Debug)]
 pub struct GraphAgreement {
-    /// What the template graph left out.
-    pub gaps: Vec<Gap>,
     /// Dependencies the template graph has and the abstract build does
     /// not, described: never any.
     pub extra: Vec<String>,
     /// Dependencies the abstract build has and the template graph does
-    /// not, described: none when nothing was left out.
+    /// not, described: never any.
     pub missing: Vec<String>,
+    /// How many dependencies the abstract build has between element
+    /// slots: how many were compared.
+    pub compared: usize,
 }
 
 /// The template graph of `compiled` against its abstract build.
@@ -253,8 +254,9 @@ pub fn template_graph_agreement(
         out.sort();
         out
     };
+    let compared = abstract_deps.values().map(Vec::len).sum();
     Ok(GraphAgreement {
-        gaps: g.gaps.iter().copied().collect(),
+        compared,
         extra: lacks(&graph_deps, &abstract_deps),
         missing: lacks(&abstract_deps, &graph_deps),
     })

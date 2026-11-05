@@ -155,12 +155,15 @@ Runs once per load and depends on the source alone.
 
   The check is moving off the abstract build (ADR 0032, step 8). The
   **template graph** (`compile/graph/`) stamps every live template once
-  from the plans alone, as the abstract view does: a node per port and per
-  value the stamping makes beside them (an interface's stand-in, a leaf
-  inside math, a gate), a read per dependency, labelled as the abstract
-  build labels it. Nothing reads it yet; `tests/template_graph.rs` checks
-  it against the abstract build's graph, and what it cannot stamp yet is a
-  `Gap` it names.
+  from the plans alone, as the abstract view does, in resolve's order: a
+  node per port of every element and of every component the abstract
+  build makes beside them (a stand-in, a case, a `$ref` child, a
+  collect's copy, a point list's point), and per value a read goes
+  through (a leaf inside math, a choose, a gate), with a read per
+  dependency, labelled as the abstract build labels it. Nothing reads it
+  yet; `tests/template_graph.rs` checks that it has the abstract build's
+  dependencies between element ports, with their labels, on every
+  document.
 
 Each stage keeps its own table (ADR 0031): a template is outlining's part
 (`Outlined`, read-only once outlining is done), boxing's and planning's

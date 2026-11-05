@@ -1,21 +1,21 @@
 //! The compile's template graph (ADR 0032, step 8) against the abstract
-//! build's graph: between element ports, the template graph has no
-//! dependency the abstract build lacks, with the same label, on every
-//! document; and on a document it stamps whole, every one the abstract
-//! build has.
+//! build's graph: between element ports, through every other node, the
+//! two have the same dependencies with the same labels, on every document
+//! that compiles, and every document of its own compiles and compares
+//! some.
 //!
 //! The documents are every golden document, `sir.doenet`, every generated
 //! fixture (skipped when absent) and [`DOCUMENTS`].
 
-use std::collections::BTreeMap;
 use std::path::Path;
 
 use cells_core::testing::test_utils::{dast_json, repo_root};
-use cells_core::testing::{Gap, par_map, template_graph_agreement};
+use cells_core::testing::{par_map, template_graph_agreement};
 
 /// Documents for what the golden set has little of: references into and
-/// across iterations, by a cell, through interfaces and whole picks, and a
-/// first-iteration specialization.
+/// across iterations, by a cell, through interfaces and whole picks, a
+/// first-iteration specialization, scores under cases, repeats and copies,
+/// `$ref` children, collects, point lists, holds and copies of a list type.
 const DOCUMENTS: &[(&str, &str)] = &[
     (
         "neighbors",
@@ -128,6 +128,51 @@ const DOCUMENTS: &[(&str, &str)] = &[
         </graph>"#,
     ),
     (
+        "list-points",
+        r#"<graph>
+          <polygon name="pg" vertices="(0,0) (1,0) (0,1)"/>
+          <pointList name="l" extend="$pg.vertices"/>
+          <point name="q" extend="$l[3]"/>
+          <pointList name="m" extend="$l"/>
+        </graph>
+        <number name="j">$q.y</number>"#,
+    ),
+    (
+        "ref-child-iterations",
+        r#"<numberInput name="n" value="2"/>
+        <repeatForSequence name="r" length="$n">$x</repeatForSequence>
+        <number name="x">3</number>
+        <number name="y" extend="$r[1]"/>
+        <p>$r[1]</p>"#,
+    ),
+    (
+        // An indexed `$ref` child is placed after the collects, which
+        // gather it as the placeholder it still is: nothing.
+        "indexed-ref-child-uncollected",
+        r#"<numberInput name="n" value="2"/>
+        <repeatForSequence name="r" length="$n" indexName="i">
+          <number name="x">$i</number>
+          <group name="g">$r[$i-1].x</group>
+          <collect name="c" from="$g" componentType="number"/>
+          <number name="y">$c[1] + 1</number>
+        </repeatForSequence>"#,
+    ),
+    (
+        "scored-copies",
+        r#"<section name="s" aggregateScores>
+          <group name="g"><mathInput name="m"/><answer name="a" response="$m">1</answer></group>
+          <p>$a</p>
+          <collect name="c" from="$g" componentType="answer"/>
+        </section>"#,
+    ),
+    (
+        "held-alike",
+        r#"<number name="v">3</number>
+        <number name="w" extend="$v" fixed="true"/>
+        <number name="u" extend="$v" fixed="true"/>
+        <number name="x" extend="$w" fixed="true"/>"#,
+    ),
+    (
         "points",
         r#"<graph>
           <point name="p">(1,2)</point>
@@ -136,28 +181,6 @@ const DOCUMENTS: &[(&str, &str)] = &[
         </graph>
         <number name="k">$l.slope</number>"#,
     ),
-];
-
-/// Documents the template graph must stamp whole: every one above but
-/// those that need what it leaves out, and the golden documents without a
-/// hold, a copy of a list or a collect's count.
-const WHOLE: &[&str] = &[
-    "neighbors",
-    "nested",
-    "iterate",
-    "conditional",
-    "picks",
-    "scored",
-    "scored-repeat",
-    "ref-children",
-    "point-list",
-    "points",
-    "choices",
-    "circles",
-    "lines",
-    "scoring",
-    "slider",
-    "symbolic",
 ];
 
 #[test]
@@ -176,31 +199,23 @@ fn the_template_graph_agrees_with_the_abstract_build() {
             .unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
         Some((name.clone(), agreement))
     });
-    let mut whole = Vec::new();
-    let mut by_gap: BTreeMap<Gap, Vec<String>> = BTreeMap::new();
     let mut failures = Vec::new();
+    let mut compared = Vec::new();
     for (name, a) in results.into_iter().flatten() {
+        if a.compared > 0 {
+            compared.push(name.clone());
+        }
         for line in &a.extra {
             failures.push(format!("{name}: the template graph has more: {line}"));
         }
-        if a.gaps.is_empty() {
-            whole.push(name.clone());
-            for line in &a.missing {
-                failures.push(format!("{name}: the template graph lacks: {line}"));
-            }
-        }
-        for gap in a.gaps {
-            by_gap.entry(gap).or_default().push(name.clone());
+        for line in &a.missing {
+            failures.push(format!("{name}: the template graph lacks: {line}"));
         }
     }
-    eprintln!("stamped whole: {} documents", whole.len());
-    for name in WHOLE {
-        if !whole.iter().any(|w| w == name) {
-            failures.push(format!("{name}: not stamped whole"));
+    for (name, _) in DOCUMENTS.iter().chain([&("many-items", "")]) {
+        if !compared.iter().any(|c| c == name) {
+            failures.push(format!("{name}: compiled to nothing to compare"));
         }
-    }
-    for (gap, names) in &by_gap {
-        eprintln!("{gap:?}: {} documents ({})", names.len(), names.join(", "));
     }
     assert!(
         failures.is_empty(),
@@ -233,6 +248,15 @@ fn documents() -> Vec<(String, Vec<u8>)> {
                 .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
         )
         .collect();
+    // More items than one choose reads, by a cell: chooses in chunks.
+    let many: String = (1..=70).map(|k| format!("<number>{k}</number>")).collect();
+    let src = format!(
+        r#"<group name="g">{many}</group>
+        <collect name="c" from="$g" componentType="number"/>
+        <numberInput name="n" value="1"/>
+        <number name="y">$c[$n] + $c[65]</number>"#
+    );
+    out.push(("many-items".to_string(), dast_json(&src).into_bytes()));
     let mut generated: Vec<_> = std::fs::read_dir(root.join("fixtures"))
         .unwrap()
         .flatten()

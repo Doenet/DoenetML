@@ -1,8 +1,7 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
 Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done,
-the first part of step 8 is done and its second started; see
-Migration. Builds on
+and the first two parts of step 8; see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -703,36 +702,43 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
       and it covers every stamped build at every count and seed
       (`tests/every_count.rs`'s `admits`).
 
-      Started, in this form. `compile/graph/` stamps every live template
+      Done, in this form. `compile/graph/` stamps every live template
       once from the plans (`template_graph`): a node per port of every
-      live element, per port of an interface's or a whole pick's
-      stand-in, per reference leaf inside math, per choose over a dynamic
-      index, and per value an aggregate reads (an answer's credit, a
-      case's gate, a mean). A read keeps the label of the reference that
-      made it when that is not the identity (`TemplateGraph::labels`);
-      any other read keeps the levels its two ends' templates share and
-      resets the rest, as `edge_label` does, so the two graphs compose a
-      path's label the same way. References are walked as resolve walks
-      them in the abstract view (`compile/graph/walk.rs`), and credit
-      and section numbers are stamped over the tree of the stamped
-      templates, a conditional content's cases and their gates included,
-      with a `$ref` child typed as `place` types it
-      (`compile/graph/aggregate.rs`). `Coord` and `index_coord` moved to
-      the compile, and the abstract build reads them there. What the
-      stamping cannot make yet is a `Gap`, whose reads it leaves out: a
-      collect's or polyline's count, an index into what it gathers or
-      into a point list's points, a copy of a type with a list, an
-      element `fixed` holds, and a `$ref` child where a whole reference
-      or a score would count it. `tests/template_graph.rs` checks it on
-      the golden set, `sir.doenet`, every fixture and documents of its
-      own: on every document it has no dependency between element ports
-      that the abstract build lacks, with the same label, and on every
-      document with no gap it has every one, 63 documents with the
-      fixtures generated; the documents it names (`WHOLE`) must have no
-      gap. A document stamped whole is covered by the template graph
-      wherever it is covered by the abstract build's, which
-      `tests/every_count.rs` checks at every count and seed. What is
-      left of this part is the gaps. The golden diff is unchanged.
+      live element and of every component the abstract build makes
+      beside them (an interface's or a whole pick's stand-in, a case, a
+      `$ref` child, a collect's copy, a point list's point, kept in one
+      table, `TemplateGraph::made`), and per value a read goes through
+      (a reference leaf inside math, a choose over a dynamic index,
+      chunked as the build chunks it, an answer's credit, a case's gate,
+      a mean). A read keeps the label of the reference that made it when
+      that is not the identity (`TemplateGraph::labels`); any other read
+      keeps the levels its two ends' templates share and resets the
+      rest, as `edge_label` does, so the two graphs compose a path's
+      label the same way. The stamping runs in resolve's order, since
+      what a later step sees is what an earlier one made: copies of a
+      list type take their referent's ports, `$ref` children with no
+      index are placed, collects gather and count, point lists get their
+      points, indexed `$ref` children are placed, then the choices'
+      stand-ins, every port's reads, the aggregates and the holds
+      (`compile/graph/expand.rs`). References are walked as resolve
+      walks them in the abstract view (`compile/graph/walk.rs`), a
+      walk returning its label as resolve's does, and credit and section
+      numbers are stamped over the stamped tree, where a copy of an
+      answer scores through its own ports (`compile/graph/aggregate.rs`).
+      `Coord`, `Label` and `index_coord` moved to the compile, and the
+      abstract build reads them there. `tests/template_graph.rs` checks
+      it on the golden set, `sir.doenet`, every fixture and documents of
+      its own, one for each construct above: on every document that
+      compiles, the two graphs have the same dependencies between
+      element ports, with the same labels, and each document of its own
+      compares some. Breaking any one construct's reads fails it. One
+      thing it cannot see is a `$ref` child's own label: only an indexed
+      one has a label that is not the identity, and an element reaches
+      an indexed one only through a whole reference, which resets, or a
+      collect, which runs before it is placed and gathers nothing (a
+      document of its own pins that order). Since the abstract build's
+      graph covers every stamped build (`tests/every_count.rs`), so does
+      the template graph. The golden diff is unchanged.
    3. **The cycle and count checks over the graph.** The Tarjan walk
       with its Bellman-Ford per component (ADR 0012), the loop on the
       graph of repeats and the structural depth are passes of the

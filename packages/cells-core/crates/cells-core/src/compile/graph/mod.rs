@@ -1,17 +1,22 @@
 //! The template graph (ADR 0032, step 8): every live template stamped once
 //! in the abstract, from the closed IR alone, as the abstract build stamps
-//! it. A node per port of every live element, and per value the stamping
-//! makes beside them (an interface's stand-in, a whole pick's, a reference
-//! leaf inside math, a choose over a dynamic index); an edge per read, with
-//! the label of the reference that made it, one coordinate per level of
-//! nesting of its target. An edge with no label of its own keeps the
-//! levels its two ends share and resets the rest.
+//! it. A node per port of every live element and of every component the
+//! stamping makes beside them (an interface's stand-in, a whole pick's, a
+//! case, a `$ref` child, a collect's copy, a point list's point), and per
+//! value a read goes through (a leaf inside math, a choose over a dynamic
+//! index, a gate); an edge per read, with the label of the reference that
+//! made it, one coordinate per level of nesting of its target. An edge
+//! with no label of its own keeps the levels its two ends share and resets
+//! the rest.
 //!
 //! One iteration of each repeat stands for every iteration, every option
 //! of a select and every case of a conditional content is stamped, and an
 //! index lands in the one iteration it reads, as in the abstract view
-//! (`build/view.rs`). A construct the stamping cannot make yet is a
-//! [`Gap`]: the graph leaves out the reads it would make, and says so.
+//! (`build/view.rs`). The stamping runs in resolve's order
+//! (`Builder::resolve_all`), since what a later step sees depends on what
+//! an earlier one made: copies of a list type, `$ref` children with no
+//! index, collects, point lists, indexed `$ref` children, the choices'
+//! stand-ins, every port's reads, the aggregates, and last the holds.
 //!
 //! Nothing reads the graph yet; `build/coverage.rs` tests it against the
 //! abstract build's.
@@ -19,12 +24,13 @@
 // Read only by the tests until the check reads it (ADR 0032, step 8, part 3).
 #![cfg_attr(not(feature = "testing"), allow(dead_code))]
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::HashMap;
 
 use super::*;
 use crate::components::{Collection, PropAt, PropSel};
 
 mod aggregate;
+mod expand;
 mod walk;
 
 crate::index::index_type! {
@@ -74,35 +80,14 @@ pub(crate) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32) -> Coord
     }
 }
 
-/// A construct the template graph cannot stamp yet: the reads it would
-/// make are left out.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Gap {
-    /// An aggregate over what a collect or polyline gathers: its count.
-    Aggregate,
-    /// An index into what a collect or polyline gathers.
-    Gathered,
-    /// An index into a point list's points.
-    ListPoints,
-    /// A copy of a type with a list, whose ports are as many as its
-    /// referent has.
-    ListCopy,
-    /// An element `fixed` holds, whose aliases of another element become
-    /// cells of its own.
-    Hold,
-    /// A `$ref` child among the components of an iteration or an option,
-    /// which a whole reference to it would count.
-    RefChild,
-}
-
 /// What a node of the template graph is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum NodeKind {
     /// Port `port` of element `elem` of the node's template.
     Port { elem: ElemId, port: u32 },
-    /// Port `port` of a stand-in (`TemplateGraph::stand_ins`).
-    StandIn { stand_in: u32, port: u32 },
-    /// A value the stamping makes for a read: a leaf inside math, a choose.
+    /// Port `port` of a made component (`TemplateGraph::made`).
+    Made { made: u32, port: u32 },
+    /// A value a read goes through: a leaf inside math, a choose, a gate.
     Read,
 }
 
@@ -114,24 +99,38 @@ pub(crate) struct Node {
     pub(crate) kind: NodeKind,
 }
 
-/// A component the stamping makes that no template element is: what reads
-/// an interface name of a choice in every branch, or a whole pick of a
-/// select in every option.
+/// What a made component is, which says what its ports hold.
 #[derive(Debug, Clone)]
-pub(crate) struct StandIn {
+pub(crate) enum MadeKind {
+    /// What reads an interface name of a choice in every branch, or a
+    /// whole pick of a select in every option: each port holds what any
+    /// member holds at its position.
+    StandIn { members: Vec<Comp> },
+    /// A `$ref` child, a collect's copy of what it gathered, or a point
+    /// list's point: each port holds what it aliases, if anything.
+    Alias,
+    /// One case of a conditional content: `active` while it is chosen.
+    Case,
+}
+
+/// A component the stamping makes that no template element is.
+#[derive(Debug, Clone)]
+pub(crate) struct Made {
     pub(crate) component_type: ComponentType,
     pub(crate) template: TemplateId,
     pub(crate) base: GraphNode,
     pub(crate) n_public: usize,
-    pub(crate) members: Vec<Comp>,
+    pub(crate) kind: MadeKind,
+    /// Its children: a case's branch.
+    pub(crate) children: Vec<Comp>,
 }
 
 /// A component as the stamping knows it: an element of a template, or a
-/// stand-in.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// made one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum Comp {
     Elem(TemplateId, ElemId),
-    StandIn(u32),
+    Made(u32),
 }
 
 /// The template graph.
@@ -141,21 +140,19 @@ pub(crate) struct TemplateGraph {
     /// What each node reads.
     pub(crate) reads: Vec<Vec<GraphNode>>,
     /// The labels of reads that are not the identity, by (reader, read).
-    pub(crate) labels: HashMap<(GraphNode, GraphNode), Vec<Coord>>,
-    /// Each element's first port, per template; NONE for an element not
-    /// stamped.
+    pub(crate) labels: HashMap<(GraphNode, GraphNode), Label>,
+    /// Each element's first port, per template; NONE for an element with
+    /// no ports yet.
     pub(crate) ports: Vec<Vec<GraphNode>>,
     /// How many ports each element has, per template.
     pub(crate) n_ports: Vec<Vec<u32>>,
-    pub(crate) stand_ins: Vec<StandIn>,
+    pub(crate) made: Vec<Made>,
     /// Each template's parent template; None for the document's.
     pub(crate) parent: Vec<Option<TemplateId>>,
     /// Each template's depth: how many iterations and branches enclose it.
     pub(crate) depth: Vec<u32>,
     /// Whether each template is stamped.
     pub(crate) stamped: Vec<bool>,
-    /// What the stamping left out.
-    pub(crate) gaps: BTreeSet<Gap>,
 }
 
 impl TemplateGraph {
@@ -167,7 +164,7 @@ impl TemplateGraph {
 
     /// The label of the read `u -> v`: its own, else the levels the two
     /// ends' templates share kept and the rest of `v`'s reset.
-    pub(crate) fn label(&self, u: GraphNode, v: GraphNode) -> Vec<Coord> {
+    pub(crate) fn label(&self, u: GraphNode, v: GraphNode) -> Label {
         if let Some(l) = self.labels.get(&(u, v)) {
             return l.clone();
         }
@@ -231,14 +228,18 @@ pub(crate) fn template_graph(c: CompiledRef<'_>) -> TemplateGraph {
         iface: HashMap::new(),
         picks: HashMap::new(),
         cases: HashMap::new(),
+        ref_children: HashMap::new(),
+        instances: Vec::new(),
+        pending: Vec::new(),
+        collects: Vec::new(),
+        point_lists: Vec::new(),
+        elem_children: HashMap::new(),
+        collected: HashMap::new(),
+        list_copies: HashMap::new(),
+        aliases: HashMap::new(),
     };
     s.stamp(TemplateId::new(0));
-    for t in TemplateId::below(n) {
-        if s.g.stamped[t.index()] {
-            s.sources(t);
-        }
-    }
-    s.aggregates();
+    s.resolve_all();
     s.g
 }
 
@@ -250,8 +251,28 @@ pub(super) struct Stamp<'c> {
     pub(super) iface: HashMap<(ChoiceId, usize), u32>,
     /// Each whole pick's stand-in, by select.
     pub(super) picks: HashMap<ChoiceId, u32>,
-    /// Each case's `active`, by (template, conditional content, position).
-    pub(super) cases: HashMap<(TemplateId, ElemId, usize), GraphNode>,
+    /// Each conditional content's cases, by (template, element).
+    pub(super) cases: HashMap<(TemplateId, ElemId), Vec<u32>>,
+    /// Each `$ref` child's component, by (template, child).
+    pub(super) ref_children: HashMap<(TemplateId, RefChildId), u32>,
+    /// Every live element, in the order the abstract build stamps it.
+    pub(super) instances: Vec<(TemplateId, ElemId)>,
+    /// The `$ref` children to place, in the order made, each with whether
+    /// its path carries an index.
+    pub(super) pending: Vec<(TemplateId, RefChildId, bool)>,
+    /// The collects and point lists to expand, in the order stamped.
+    pub(super) collects: Vec<(TemplateId, ElemId)>,
+    pub(super) point_lists: Vec<(TemplateId, ElemId)>,
+    /// A collect's or point list's children, once expanded.
+    pub(super) elem_children: HashMap<(TemplateId, ElemId), Vec<Comp>>,
+    /// What each expanded collect gathered (its copies) and whether its
+    /// count follows the counts of repeats.
+    pub(super) collected: HashMap<(TemplateId, ElemId), (Vec<Comp>, bool)>,
+    /// Each copy of a list type that took its referent's ports, with how
+    /// many are public.
+    pub(super) list_copies: HashMap<(TemplateId, ElemId), usize>,
+    /// What each port whose source is an alias aliases, for the holds.
+    pub(super) aliases: HashMap<GraphNode, GraphNode>,
 }
 
 impl<'c> Stamp<'c> {
@@ -276,58 +297,137 @@ impl<'c> Stamp<'c> {
         }
     }
 
-    /// Stamp template `t`'s live elements' ports, then the templates their
-    /// bodies stamp, and each choice's interface stand-ins.
+    /// Ports for element `e` of template `t`: `n` new nodes.
+    pub(super) fn element_ports(&mut self, t: TemplateId, e: ElemId, n: usize) {
+        let base = GraphNode::from_index(self.g.nodes.len());
+        for port in 0..n {
+            self.node(
+                t,
+                NodeKind::Port {
+                    elem: e,
+                    port: port as u32,
+                },
+            );
+        }
+        self.g.ports[t.index()][e.index()] = base;
+        self.g.n_ports[t.index()][e.index()] = n as u32;
+    }
+
+    /// A made component of `component_type` in template `t` with `n`
+    /// ports, each reading nothing yet.
+    pub(super) fn make(
+        &mut self,
+        component_type: ComponentType,
+        t: TemplateId,
+        n: usize,
+        kind: MadeKind,
+    ) -> u32 {
+        let m = self.g.made.len() as u32;
+        let base = GraphNode::from_index(self.g.nodes.len());
+        for port in 0..n {
+            self.node(
+                t,
+                NodeKind::Made {
+                    made: m,
+                    port: port as u32,
+                },
+            );
+        }
+        self.g.made.push(Made {
+            component_type,
+            template: t,
+            base,
+            n_public: n,
+            kind,
+            children: Vec::new(),
+        });
+        m
+    }
+
+    /// Stamp template `t`: its live elements' ports, then per element the
+    /// templates its body stamps, a choice's cases and stand-ins, and its
+    /// `$ref` children; then the template's own `$ref` children.
     fn stamp(&mut self, t: TemplateId) {
         self.g.stamped[t.index()] = true;
-        let tpl = self.c.plans.templates[t.index()].view();
+        let c = self.c;
+        let tpl = c.plans.templates[t.index()].view();
         for e in ElemId::below(tpl.elems.len()) {
             if tpl.is_dead(e) {
                 continue;
             }
             let (row, plan) = (tpl.row(e), tpl.plan(e));
+            // A copy of a type with a list takes its ports, as many as its
+            // referent has, when its referent is known (`place_list_copies`).
             let n = match plan.list {
-                ListLen::AsReferent => {
-                    self.g.gaps.insert(Gap::ListCopy);
-                    0
-                }
+                ListLen::AsReferent => 0,
                 _ => plan.props.len().max(row.component_type.prop_defs().len()),
             };
-            let base = GraphNode::from_index(self.g.nodes.len());
-            for port in 0..n {
-                self.node(
-                    t,
-                    NodeKind::Port {
-                        elem: e,
-                        port: port as u32,
-                    },
-                );
-            }
-            self.g.ports[t.index()][e.index()] = base;
-            self.g.n_ports[t.index()][e.index()] = n as u32;
+            self.element_ports(t, e, n);
+            self.instances.push((t, e));
         }
         for e in ElemId::below(tpl.elems.len()) {
             if tpl.is_dead(e) {
                 continue;
             }
-            match tpl.row(e).body {
+            let row = tpl.row(e);
+            match row.body {
                 Body::Repeat { template } => self.stamp(template),
-                Body::Choice(cid) => {
-                    let def = &self.c.plans.choices[cid.index()];
-                    for &b in &def.branches {
-                        self.stamp(b);
-                    }
-                    self.interface(t, e, cid);
+                Body::Choice(cid) => self.choice(t, e, cid),
+                Body::Collect { .. } => self.collects.push((t, e)),
+                _ if row.component_type == ComponentType::PointList => {
+                    self.point_lists.push((t, e))
                 }
-                _ => {}
+                Body::Plain => self.ref_children_of(t, &row.children),
+            }
+        }
+        self.ref_children_of(t, &tpl.children);
+    }
+
+    /// The `$ref` children among `children` of template `t`: each a
+    /// component placed once its reference resolves, or a box.
+    fn ref_children_of(&mut self, t: TemplateId, children: &[Child]) {
+        for child in children {
+            let Child::Macro(id) = child else { continue };
+            let tpl = &self.c.plans.templates[t.index()];
+            let has_index = tpl.ref_children[id.index()].has_index;
+            let (component_type, placed) = match tpl.tables.ref_child_plans[id.index()] {
+                // Of no type until it resolves; a document stands in.
+                RefChildPlan::Ref(_) => (ComponentType::Document, false),
+                RefChildPlan::Boxed | RefChildPlan::Unplanned => (ComponentType::Error, true),
+            };
+            let m = self.make(component_type, t, 0, MadeKind::Alias);
+            self.ref_children.insert((t, *id), m);
+            if !placed {
+                self.pending.push((t, *id, has_index));
             }
         }
     }
 
-    /// The stand-ins of choice `cid`, element `e` of template `t`: one per
-    /// interface name a reference uses, reading that name's element in
-    /// every branch, and for a conditional content its choice.
-    fn interface(&mut self, t: TemplateId, e: ElemId, cid: ChoiceId) {
+    /// Choice `cid`, element `e` of template `t`: every branch stamped, a
+    /// conditional content's cases, and a stand-in per interface name a
+    /// reference uses, which reads that name's element in every branch
+    /// once every port exists (`choice_sources`).
+    fn choice(&mut self, t: TemplateId, e: ElemId, cid: ChoiceId) {
+        let def = &self.c.plans.choices[cid.index()];
+        let (reactive, branches) = (def.reactive, def.branches.clone());
+        let mut cases = Vec::new();
+        for b in branches {
+            if reactive {
+                let n = ComponentType::Case.prop_defs().len();
+                let case = self.make(ComponentType::Case, t, n, MadeKind::Case);
+                let active = self.slot(Comp::Made(case), prop::case::ACTIVE);
+                let choice = self.g.port(t, e, prop::conditional_content::CHOICE);
+                self.read(active, choice);
+                cases.push(case);
+                self.stamp(b);
+                self.g.made[case as usize].children = self.root_children(b);
+            } else {
+                self.stamp(b);
+            }
+        }
+        if reactive {
+            self.cases.insert((t, e), cases);
+        }
         let def = &self.c.plans.choices[cid.index()];
         for (u, name) in def.used.iter().enumerate() {
             let (component_type, elems) = &def.iface[name];
@@ -338,39 +438,36 @@ impl<'c> Stamp<'c> {
                 .filter(|&(&b, &m)| !self.c.plans.templates[b.index()].is_dead(m))
                 .map(|(&b, &m)| Comp::Elem(b, m))
                 .collect();
-            let choice = def
-                .reactive
-                .then(|| self.g.port(t, e, prop::conditional_content::CHOICE));
-            let w = self.stand_in(*component_type, t, members, choice);
+            let w = self.stand_in(*component_type, t, members);
             self.iface.insert((cid, u), w);
         }
     }
 
     /// A stand-in of `component_type` in template `t` for `members`, with
-    /// as many ports as the most any of them has public; each port reads
-    /// the members' port at its position (and `choice`).
+    /// as many ports as the most any of them has public, reading nothing
+    /// yet.
     pub(super) fn stand_in(
         &mut self,
         component_type: ComponentType,
         t: TemplateId,
         members: Vec<Comp>,
-        choice: Option<GraphNode>,
     ) -> u32 {
         let n = members
             .iter()
             .map(|&m| self.n_public(m))
             .max()
             .unwrap_or(component_type.prop_defs().len());
-        let w = self.g.stand_ins.len() as u32;
-        let base = GraphNode::from_index(self.g.nodes.len());
-        for port in 0..n {
-            let s = self.node(
-                t,
-                NodeKind::StandIn {
-                    stand_in: w,
-                    port: port as u32,
-                },
-            );
+        self.make(component_type, t, n, MadeKind::StandIn { members })
+    }
+
+    /// Stand-in `w` reads its members' port at each position, and
+    /// `choice` when one is given.
+    pub(super) fn stand_in_reads(&mut self, w: u32, choice: Option<GraphNode>) {
+        let MadeKind::StandIn { members } = self.g.made[w as usize].kind.clone() else {
+            unreachable!("a stand-in")
+        };
+        for port in 0..self.g.made[w as usize].n_public {
+            let s = self.slot(Comp::Made(w), port);
             if let Some(choice) = choice {
                 self.read(s, choice);
             }
@@ -381,39 +478,72 @@ impl<'c> Stamp<'c> {
                 }
             }
         }
-        self.g.stand_ins.push(StandIn {
-            component_type,
-            template: t,
-            base,
-            n_public: n,
-            members,
-        });
-        w
     }
 
-    /// The reads of every port of template `t`'s live elements.
-    fn sources(&mut self, t: TemplateId) {
+    /// Everything after stamping, in resolve's order.
+    fn resolve_all(&mut self) {
+        for i in 0..self.instances.len() {
+            let (t, e) = self.instances[i];
+            self.place_list_copy(t, e, &mut Vec::new());
+        }
+        let pending = std::mem::take(&mut self.pending);
+        for &(t, id, _) in pending.iter().filter(|p| !p.2) {
+            self.place(t, id);
+        }
+        for i in 0..self.collects.len() {
+            let (t, e) = self.collects[i];
+            self.expand_collect(t, e);
+        }
+        for i in 0..self.point_lists.len() {
+            let (t, e) = self.point_lists[i];
+            self.expand_point_list(t, e);
+        }
+        for &(t, id, _) in pending.iter().filter(|p| p.2) {
+            self.place(t, id);
+        }
+        self.choice_sources();
+        for i in 0..self.instances.len() {
+            let (t, e) = self.instances[i];
+            self.sources(t, e);
+        }
+        self.aggregates();
+        self.holds();
+    }
+
+    /// The reads of the stand-ins of every choice: a conditional content's
+    /// read its choice too.
+    fn choice_sources(&mut self) {
+        let mut stand_ins: Vec<_> = self.iface.iter().map(|(&k, &w)| (k, w)).collect();
+        stand_ins.sort();
+        for ((cid, _), w) in stand_ins {
+            let def = &self.c.plans.choices[cid.index()];
+            let (t, e) = def.at;
+            let choice = def
+                .reactive
+                .then(|| self.g.port(t, e, prop::conditional_content::CHOICE));
+            self.stand_in_reads(w, choice);
+        }
+    }
+
+    /// The reads of every port of element `e` of template `t`; none for a
+    /// copy of a list type that took its referent's.
+    fn sources(&mut self, t: TemplateId, e: ElemId) {
+        if self.list_copies.contains_key(&(t, e)) {
+            return;
+        }
         let c = self.c;
-        let tpl = c.plans.templates[t.index()].view();
-        for e in ElemId::below(tpl.elems.len()) {
-            if tpl.is_dead(e) || self.g.n_ports[t.index()][e.index()] == 0 {
-                continue;
-            }
-            let plan = tpl.plan(e);
-            if !matches!(plan.hold, Hold::Off) {
-                self.g.gaps.insert(Gap::Hold);
-                continue;
-            }
-            for (pi, src) in plan.props.iter().enumerate() {
-                let from = self.g.port(t, e, pi);
-                match src {
-                    // A later source's reads are the port's too, made first.
-                    Source::Specialize(_, first, rest) => {
-                        self.source(t, e, pi, from, rest);
-                        self.source(t, e, pi, from, first);
-                    }
-                    src => self.source(t, e, pi, from, src),
+        let plan = c.plans.templates[t.index()].plan(e);
+        for (pi, src) in plan.props.iter().enumerate() {
+            let from = self.g.port(t, e, pi);
+            match src {
+                // A later source's reads are the port's too, made first;
+                // its alias is not the port's.
+                Source::Specialize(_, first, rest) => {
+                    self.source(t, e, pi, from, rest);
+                    self.aliases.remove(&from);
+                    self.source(t, e, pi, from, first);
                 }
+                src => self.source(t, e, pi, from, src),
             }
         }
     }
@@ -427,7 +557,11 @@ impl<'c> Stamp<'c> {
             Source::Leaf(_) => {}
             Source::Specialize(..) => unreachable!("a nested specialization"),
             Source::Flow(flow) => match flow {
-                Flow::Alias(arg) => self.arg(t, e, from, *arg),
+                Flow::Alias(arg) => {
+                    if let Some(target) = self.arg(t, e, from, *arg) {
+                        self.aliases.insert(from, target);
+                    }
+                }
                 Flow::Op(_, args) => {
                     for &a in args {
                         self.arg(t, e, from, a);
@@ -456,14 +590,10 @@ impl<'c> Stamp<'c> {
                     }
                 }
                 Flow::SymExpr(id, _) => self.leaves(t, from, *id, true),
-                // Credit and numbers read the stamped tree, once every
-                // port has its reads (`aggregates`).
-                Flow::Aggregate(a) => match a.over {
-                    Collection::ScoredItems | Collection::SectionsThrough => {}
-                    _ => {
-                        self.g.gaps.insert(Gap::Aggregate);
-                    }
-                },
+                // A collect's count is its expansion's (`expand_collect`);
+                // credit and numbers read the stamped tree once every port
+                // has its reads (`aggregates`).
+                Flow::Aggregate(_) => {}
             },
         }
     }
@@ -490,8 +620,8 @@ impl<'c> Stamp<'c> {
     }
 
     /// The reads of argument `arg` of element `e` of template `t`, as node
-    /// `from`.
-    fn arg(&mut self, t: TemplateId, e: ElemId, from: GraphNode, arg: Arg) {
+    /// `from`; what it reads, if anything.
+    fn arg(&mut self, t: TemplateId, e: ElemId, from: GraphNode, arg: Arg) -> Option<GraphNode> {
         let (target, label) = match arg {
             Arg::Own(port) => (Some(self.g.port(t, e, port.index())), Label::new()),
             Arg::Elem(x, port) => (Some(self.g.port(t, x, port.index())), Label::new()),
@@ -515,6 +645,7 @@ impl<'c> Stamp<'c> {
         if let Some(target) = target {
             self.read_as(from, target, &label);
         }
+        target
     }
 
     // ---- components ---------------------------------------------------------
@@ -523,7 +654,7 @@ impl<'c> Stamp<'c> {
     pub(super) fn component_type(&self, c: Comp) -> ComponentType {
         match c {
             Comp::Elem(t, e) => self.c.plans.templates[t.index()].row(e).component_type,
-            Comp::StandIn(w) => self.g.stand_ins[w as usize].component_type,
+            Comp::Made(m) => self.g.made[m as usize].component_type,
         }
     }
 
@@ -531,13 +662,16 @@ impl<'c> Stamp<'c> {
     pub(super) fn n_public(&self, c: Comp) -> usize {
         match c {
             Comp::Elem(t, e) => {
+                if let Some(&n) = self.list_copies.get(&(t, e)) {
+                    return n;
+                }
                 let tpl = &self.c.plans.templates[t.index()];
                 let ty = tpl.row(e).component_type;
                 tpl.plan(e)
                     .n_public(ty)
                     .unwrap_or_else(|| ty.prop_defs().len())
             }
-            Comp::StandIn(w) => self.g.stand_ins[w as usize].n_public,
+            Comp::Made(m) => self.g.made[m as usize].n_public,
         }
     }
 
@@ -545,7 +679,10 @@ impl<'c> Stamp<'c> {
     pub(super) fn slot(&self, c: Comp, port: usize) -> GraphNode {
         match c {
             Comp::Elem(t, e) => self.g.port(t, e, port),
-            Comp::StandIn(w) => self.g.stand_ins[w as usize].base.offset(port),
+            Comp::Made(m) => {
+                debug_assert!(port < self.g.made[m as usize].n_public);
+                self.g.made[m as usize].base.offset(port)
+            }
         }
     }
 
@@ -553,50 +690,129 @@ impl<'c> Stamp<'c> {
     pub(super) fn template_of(&self, c: Comp) -> TemplateId {
         match c {
             Comp::Elem(t, _) => t,
-            Comp::StandIn(w) => self.g.stand_ins[w as usize].template,
+            Comp::Made(m) => self.g.made[m as usize].template,
         }
     }
 
     /// The component and port of node `n`, when it is a component's.
-    fn comp_of(&self, n: GraphNode) -> Option<(Comp, usize)> {
+    pub(super) fn comp_of(&self, n: GraphNode) -> Option<(Comp, usize)> {
         let node = self.g.nodes[n.index()];
         match node.kind {
             NodeKind::Port { elem, port } => Some((Comp::Elem(node.template, elem), port as usize)),
-            NodeKind::StandIn { stand_in, port } => Some((Comp::StandIn(stand_in), port as usize)),
+            NodeKind::Made { made, port } => Some((Comp::Made(made), port as usize)),
             NodeKind::Read => None,
         }
     }
 
+    /// The children of component `c` as the abstract build stamped them,
+    /// at this point of the stamping: an iteration's, every option's, a
+    /// conditional content's cases, a case's branch, a collect's copies or
+    /// a point list's points once expanded, or an element's own.
+    pub(super) fn children(&self, c: Comp) -> Vec<Comp> {
+        let Comp::Elem(t, e) = c else {
+            let Comp::Made(m) = c else { unreachable!() };
+            return self.g.made[m as usize].children.clone();
+        };
+        let row = self.c.plans.templates[t.index()].row(e);
+        match &row.body {
+            Body::Repeat { template } => self.root_children(*template),
+            Body::Choice(cid) => {
+                let def = &self.c.plans.choices[cid.index()];
+                if def.reactive {
+                    self.cases[&(t, e)].iter().map(|&m| Comp::Made(m)).collect()
+                } else {
+                    def.branches
+                        .iter()
+                        .flat_map(|&b| self.root_children(b))
+                        .collect()
+                }
+            }
+            Body::Collect { .. } => self.elem_children.get(&(t, e)).cloned().unwrap_or_default(),
+            _ if row.component_type == ComponentType::PointList => {
+                self.elem_children.get(&(t, e)).cloned().unwrap_or_default()
+            }
+            Body::Plain => self.child_comps(t, &row.children),
+        }
+    }
+
+    /// Template `t`'s own children: an iteration's, an option's, a case's.
+    pub(super) fn root_children(&self, t: TemplateId) -> Vec<Comp> {
+        self.child_comps(t, &self.c.plans.templates[t.index()].children)
+    }
+
+    /// The components among `children` of template `t`.
+    fn child_comps(&self, t: TemplateId, children: &[Child]) -> Vec<Comp> {
+        children
+            .iter()
+            .filter_map(|ch| match ch {
+                Child::Elem(x) => Some(Comp::Elem(t, *x)),
+                Child::Macro(id) => Some(Comp::Made(self.ref_children[&(t, *id)])),
+                Child::Text(_) => None,
+            })
+            .collect()
+    }
+
     /// The type of port `pi` of element `e` of template `t`, as the type
     /// pass settled it.
-    fn port_type(&self, t: TemplateId, e: ElemId, pi: usize) -> PortType {
+    pub(super) fn port_type(&self, t: TemplateId, e: ElemId, pi: usize) -> PortType {
         let off = self.c.plans.templates[t.index()].sealed.elems[e.index()].slot_off;
         self.c.plans.port_type(t.index(), off.offset(pi))
     }
 
-    /// What node `n` holds: its port's type; a stand-in's what its members
-    /// hold at its position, a text or a math when one does.
-    fn value_type(&self, n: GraphNode) -> PortType {
+    /// What node `n` holds: an element port's type, or past the ports its
+    /// element reserves what it aliases; a stand-in's what its members
+    /// hold at its position, a text or a math when one does; a made
+    /// alias's what it aliases.
+    pub(super) fn value_type(&self, n: GraphNode) -> PortType {
+        self.value_type_within(n, 32)
+    }
+
+    fn value_type_within(&self, n: GraphNode, depth: u32) -> PortType {
+        if depth == 0 {
+            return PortType::Num;
+        }
+        let alias = |s: &Self| match s.g.reads[n.index()][..] {
+            [one] => s.value_type_within(one, depth - 1),
+            _ => PortType::Num,
+        };
         match self.comp_of(n) {
-            Some((Comp::Elem(t, e), pi)) => self.port_type(t, e, pi),
-            Some((Comp::StandIn(w), pi)) => {
-                let mut kind = PortType::Num;
-                for &m in &self.g.stand_ins[w as usize].members {
-                    if pi < self.n_public(m) {
-                        match self.value_type(self.slot(m, pi)) {
-                            PortType::Num => {}
-                            k => kind = k,
+            Some((Comp::Elem(t, e), pi)) => {
+                let tpl = &self.c.plans.templates[t.index()];
+                let reserved = tpl
+                    .plan(e)
+                    .props
+                    .len()
+                    .max(tpl.row(e).component_type.prop_defs().len());
+                if pi < reserved {
+                    self.port_type(t, e, pi)
+                } else {
+                    // A copy of a list type's point past the ports its
+                    // element reserves: what it aliases.
+                    alias(self)
+                }
+            }
+            Some((Comp::Made(m), pi)) => match &self.g.made[m as usize].kind {
+                MadeKind::StandIn { members } => {
+                    let mut kind = PortType::Num;
+                    for &member in members {
+                        if pi < self.n_public(member) {
+                            match self.value_type_within(self.slot(member, pi), depth - 1) {
+                                PortType::Num => {}
+                                k => kind = k,
+                            }
                         }
                     }
+                    kind
                 }
-                kind
-            }
+                MadeKind::Alias => alias(self),
+                MadeKind::Case => PortType::Num,
+            },
             None => PortType::Num,
         }
     }
 
     /// Whether component `c`'s `expr` is a math cell.
-    fn is_symbolic(&self, c: Comp) -> bool {
+    pub(super) fn is_symbolic(&self, c: Comp) -> bool {
         match self.component_type(c).prop_index("expr") {
             Some(pi) if pi < self.n_public(c) => {
                 self.value_type(self.slot(c, pi)) == PortType::Math

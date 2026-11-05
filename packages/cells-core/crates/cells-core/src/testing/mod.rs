@@ -12,7 +12,6 @@ pub mod test_utils;
 pub use crate::build::coverage::{
     AbstractEdges, GraphAgreement, abstract_edges, template_graph_agreement, uncovered,
 };
-pub use crate::compile::graph::Gap;
 
 /// `f` of every item, computed on as many threads as the machine has
 /// cores, returned in the items' order. A panic stops every thread taking
