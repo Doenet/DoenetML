@@ -2061,6 +2061,82 @@ ${moduleDefinition}
                     .stateValues.value,
             ).eq(-6);
         });
+
+        // An outer composite or list is found the same way as an outer
+        // `<number>`, and the copied module attribute of the same name is not
+        // (#2403).
+        for (const [kind, outer] of [
+            ["number", `<number name="xmin">-3</number>`],
+            ["group", `<group name="xmin"><number>-3</number></group>`],
+            ["sequence", `<sequence name="xmin" from="-3" to="-3" />`],
+            ["mathList", `<mathList name="xmin">-3</mathList>`],
+        ]) {
+            it(`attribute value named the same as the attribute, naming an outer ${kind}`, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        ${outer}
+    </setup>
+    <module copy="$g" xmin="$xmin" name="m2" />
+</problem>
+`,
+                });
+
+                const diagnostics = getDiagnosticsByType(core);
+                expect(diagnostics.errors).eqls([]);
+                expect(diagnostics.warnings).eqls([]);
+                await expectModuleText({
+                    core,
+                    resolvePathToNodeIdx,
+                    path: "prob.m2.p",
+                    text: "-3, 10",
+                });
+            });
+        }
+
+        // The module's definition is written beside the copy, so its own
+        // `xmin` is written in the same scope as the outer `xmin`, as a
+        // `<group>`'s child would be. A bare `$xmin` there names both, in an
+        // attribute on the copy as anywhere else in that scope. The copied
+        // `xmin` takes no part: it is not written there (#2403).
+        it("attribute value is ambiguous when the module's definition is written beside the outer component, as anywhere in that scope", async () => {
+            for (const outer of [
+                `<number name="xmin">-3</number>`,
+                `<group name="xmin"><number>-3</number></group>`,
+                `<sequence name="xmin" from="-3" to="-3" />`,
+            ]) {
+                const doenetML = `
+<setup>${outer}</setup>
+<module name="g">
+    <moduleAttributes><number name="xmin">-10</number></moduleAttributes>
+    <p name="p">$xmin</p>
+</module>
+<module copy="$g" name="m" xmin="$xmin"/>
+<p name="beside">$xmin</p>
+`;
+                const { core } = await createTestCore({ doenetML });
+
+                const warnings = getDiagnosticsByType(core).warnings;
+                expect(
+                    warnings.map((w) => [
+                        w.code,
+                        doenetML.substring(
+                            w.position!.start.offset!,
+                            w.position!.end.offset!,
+                        ),
+                        doenetML
+                            .substring(0, w.position!.start.offset!)
+                            .split("\n").length,
+                    ]),
+                    outer,
+                ).eqls([
+                    ["doenet-w0105", "$xmin", 7],
+                    ["doenet-w0105", "$xmin", 8],
+                ]);
+            }
+        });
     });
 
     describe("point in a repeat over a module-attribute list of random values", async () => {
