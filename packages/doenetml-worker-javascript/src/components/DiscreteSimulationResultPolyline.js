@@ -423,6 +423,15 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                             let x1 = variables.x1?.evaluate_to_constant();
                             let x2 = variables.x2?.evaluate_to_constant();
 
+                            // A point with a non-numeric coordinate has no
+                            // nearest point; leave it where it is. See the
+                            // note on `<polygon>`'s `nearestPoint` for why the
+                            // guard was added and why it stays now that the
+                            // engine answers `NaN` rather than `null`.
+                            if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
+                                return {};
+                            }
+
                             let prevPtx, prevPty;
                             let nextPtx = numericalVertices[0][0];
                             let nextPty = numericalVertices[0][1];
@@ -566,6 +575,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
 
     async polylineClicked({
         actionId,
+        gestureId,
         name,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -575,6 +585,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                 triggeringAction: "click",
                 componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -583,6 +594,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
 
     async polylineFocused({
         actionId,
+        gestureId,
         name,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -592,6 +604,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                 triggeringAction: "focus",
                 componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

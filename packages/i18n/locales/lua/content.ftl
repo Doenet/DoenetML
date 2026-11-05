@@ -69,7 +69,6 @@ color =
     .purple = purupure
     .pink = roze
     .brown = maro
-
 line-width =
     .thick =
         { $gender ->
@@ -85,13 +84,11 @@ line-width =
             [c7] cikese
            *[c9] nkese
         }
-
 # Written as an invariable «ne …» phrase, so that it agrees with nothing and
 # can close the description; `style-stroke` puts it last for that reason.
 line-style =
     .dashed = ne tutupa
     .dotted = ne tuntonga
-
 fill-style =
     .horizontal = milongo milaale
     .vertical = milongo mimane
@@ -99,7 +96,6 @@ fill-style =
     .backdiagonal = milongo miendakane ku lubadi lukuabo
     .dots = tuntonga
     .diamonds = madiama
-
 noun =
     .line = mulongo
     .line-segment = citupa cia mulongo
@@ -119,7 +115,6 @@ noun =
     .diamond = diama
     .cross = kulusu
     .plus = cimanyinu cia dibueja
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -127,7 +122,6 @@ noun-regular-polygon =
         [tail] cidi ne mpanga { $numSides }
        *[head] cimfuanyi cia mpanga mifuanangane
     }
-
 # The noun class. `c9` is the default and the class a loanword joins, which is
 # what an author's own `markerStyleWord` is as far as this catalog is
 # concerned.
@@ -151,7 +145,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «ne …» phrase and closes the description, so it moves
@@ -166,13 +159,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] muwule
@@ -180,13 +171,11 @@ style-filled-word =
         [c7] ciwule
        *[c9] nwule
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ne { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ne { $pattern }
@@ -194,7 +183,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ne { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «mukalu» is class 3 and leads its own describing words, so they agree with it
 # rather than with the shape it surrounds. Ciluba has no article and joins this
 # clause with the invariable «ne», so all four branches read alike.
@@ -205,35 +193,28 @@ style-border-clause =
         [and-article] ne mukalu { $border }
        *[with] ne mukalu { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = kacidi ciwule
-
 style-text =
     { $parts ->
         [background] { $color } ku nyima { $background }
        *[plain] { $color }
     }
-
 style-background-none = katuena ne cintu
-
 
 ## Boolean words
 
 boolean-true = bulelela
 boolean-false = dishima
 
-
 ## Answer buttons
 
 answer-submit-label = Tangila Mudimu
 answer-submit-label-no-correctness = Tuma Diandamuna
-
 
 ## Sectional blocks
 
@@ -258,7 +239,6 @@ section-name =
     .solution = Disungula
     .task = Mudimu
     .theorem = Teoreme
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -268,9 +248,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Cimanyinu
-
 
 ## Tables and figures
 
@@ -281,7 +259,6 @@ table-name =
         [unnumbered-title] Tabelo{ ": " }
        *[unnumbered] Tabelo
     }
-
 figure-name =
     { $parts ->
         [numbered] Cimfuanyi { $enumeration }
@@ -290,24 +267,18 @@ figure-name =
        *[unnumbered] Cimfuanyi
     }
 
-
 ## Paginator controls
 
 paginator-previous = Cidi kumpala
 paginator-next = Cidi kunyima
 paginator-page = Dibeji
-
 paginator-page-status = { $pageLabel } { $currentPage } munkatshi mua { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = anyi
-
 piecewise-condition-if = bikala
-
 piecewise-condition-otherwise = miaba mikuabo yonso
-
 
 ## Chemistry
 ##
@@ -320,6 +291,5 @@ piecewise-condition-otherwise = miaba mikuabo yonso
 ## and `locales/ktu` give from the same ministry.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Cimanyinu cia Shimi Kacidi Cimpe
 chemistry-invalid-ionic-compound = Disangisha dia Ayoni Kadidi Dimpe

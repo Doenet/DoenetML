@@ -59,15 +59,13 @@ describe("IntervalList tag tests @group4", async () => {
     `,
         });
 
-        let text1 = "( 2345, 3.523 ), ( 0.5, 5.252 * 10⁻¹³ ), ( 0, 0 )";
-        let text2 =
-            "( 2345, 3.523 ), ( 0.5000, 5.252 * 10⁻¹³ ), ( 0.000, 0.000 )";
-        let text3 = "( 2345.154, 3.523 ), ( 0.5, 0 ), ( 0, 0 )";
-        let text4 = "( 2345.154, 3.523 ), ( 0.500, 0.000 ), ( 0.000, 0.000 )";
-        let text5 =
-            "( 2345.1535, 3.5234 ), ( 0.5, 5.25 * 10⁻¹³ ), ( 6 * 10⁻²¹, 0 )";
+        let text1 = "(2345, 3.523), (0.5, 5.252 * 10⁻¹³), (0, 0)";
+        let text2 = "(2345, 3.523), (0.5000, 5.252 * 10⁻¹³), (0.000, 0.000)";
+        let text3 = "(2345.154, 3.523), (0.5, 0), (0, 0)";
+        let text4 = "(2345.154, 3.523), (0.500, 0.000), (0.000, 0.000)";
+        let text5 = "(2345.1535, 3.5234), (0.5, 5.25 * 10⁻¹³), (6 * 10⁻²¹, 0)";
         let text6 =
-            "( 2345.1535, 3.5234 ), ( 0.5000, 5.25 * 10⁻¹³ ), ( 6.00 * 10⁻²¹, 0.0000 )";
+            "(2345.1535, 3.5234), (0.5000, 5.25 * 10⁻¹³), (6.00 * 10⁻²¹, 0.0000)";
 
         for (const post of ["", "a", "b"]) {
             const preOptions = post === "" ? [""] : ["", "sec2.", "sec3."];
@@ -159,7 +157,8 @@ describe("IntervalList tag tests @group4", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        // all but copied list become ordered
+        // all become ordered, the copied list too: a copy keeps the
+        // `unordered="$unordered"` its source wrote, as pasted DoenetML would
         expect(
             stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
         ).eq(false);
@@ -171,11 +170,11 @@ describe("IntervalList tag tests @group4", async () => {
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
                 .text,
-        ).eq("false, false, true");
+        ).eq("false, false, false");
     });
 });

@@ -5,6 +5,7 @@ import {
     appliedFunctionSymbolsDefault,
     textToMathFactory,
     numberToMathExpression,
+    isNumericConstant,
 } from "./math";
 import { createInputStringFromChildren } from "./parseMath";
 
@@ -127,6 +128,7 @@ export function returnChildrenByCodeStateVariableDefinitions() {
                     "fractionSatisfied",
                     "unordered",
                     "inUnorderedList",
+                    "valueMissing",
                 ],
                 variablesOptional: true,
             },
@@ -149,7 +151,18 @@ export function returnChildrenByCodeStateVariableDefinitions() {
                 // a math, text, or boolean
                 let code = codePre + subnum;
 
-                if (
+                if (child.stateValues.valueMissing) {
+                    // A value reference with nothing to read (an index past
+                    // the end of a list, a `<choiceInput>`'s `selectedIndex`
+                    // before a choice) is a blank math, whatever type it
+                    // presents as, as the copy it replaced made one here. Its
+                    // own empty value (`NaN`, `""`, `false`) would compare
+                    // equal to another missing value and to a blank input.
+                    mathChildrenByCode[code] = {
+                        componentType: "math",
+                        stateValues: { value: me.fromAst("\uff3f") },
+                    };
+                } else if (
                     componentInfoObjects.isInheritedComponentType({
                         inheritedComponentType: child.componentType,
                         baseComponentType: "math",
@@ -1185,7 +1198,7 @@ export function evaluateLogic({
     let numberOperands = mathOperands.map((x) =>
         x.simplify().evaluate_to_constant(),
     );
-    if (numberOperands.some((x) => Number.isNaN(x))) {
+    if (!numberOperands.every(isNumericConstant)) {
         return 0;
     }
 

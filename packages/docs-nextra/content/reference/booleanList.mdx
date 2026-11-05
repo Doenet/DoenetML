@@ -1,0 +1,162 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<booleanList>{:dn}`
+
+<ComponentDisplay name='booleanList'/>
+
+`<booleanList>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types)
+component that stores a list of boolean values, each like a [`<boolean>{:dn}`](boolean.mdx).
+
+When creating a `<booleanList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas.
+
+<AttrPropDisplay name='booleanList'/>
+
+
+## Examples
+
+### Example: Accessing an item in a `<booleanList>{:dn}`
+
+
+```doenet-example
+<p>A list of boolean values: 
+  <booleanList name="correctResponses">
+    true true false true false
+  </booleanList>
+</p>
+<p>The second item in the list is a <alert>$correctResponses[2]</alert>.</p>
+```
+
+
+
+Individual boolean values are listed directly between the opening 
+and closing `<booleanList>{:dn}` tags, with spaces (not commas) to separate list items.
+
+The individual list items can be accessed with 
+the index of the desired item.
+
+
+
+---
+
+### Example: `<booleanList>{:dn}` from user-input
+
+
+```doenet-editor-horiz
+<p>Check each box if you agree:</p>
+  <ol>
+    <li> 
+      <booleanInput name="tf1">
+        <label>All food goes better with hot sauce</label>
+      </booleanInput>
+    </li>
+    <li> 
+      <booleanInput name="tf2">
+        <label>Fall is the best season</label>
+      </booleanInput>
+    </li>
+    <li> 
+      <booleanInput name="tf3">
+        <label>Coffee is better than tea</label>
+      </booleanInput>
+    </li>
+  </ol>
+
+<p>Your list of responses is: 
+  <booleanList name="tfList">$tf1 $tf2 $tf3</booleanList>
+</p>
+
+<p>The third item in the list is a <alert>$tfList[3]
+</alert> and the first item is a <alert>$tf1</alert>.</p>
+```
+
+The user is prompted to provide three agree/disagree type responses with 
+the `<booleanInput/>{:dn}` component. 
+These are gathered into a `<booleanList>{:dn}`.
+
+## Attribute Examples
+
+### Attribute Example: unordered
+
+
+```doenet-editor-horiz
+Check two of the boxes, in any order:
+<p>
+  <booleanInput name="b1"><shortDescription>Checkbox 1 of 4</shortDescription></booleanInput>
+  <booleanInput name="b2"><shortDescription>Checkbox 2 of 4</shortDescription></booleanInput>
+  <booleanInput name="b3"><shortDescription>Checkbox 3 of 4</shortDescription></booleanInput>
+  <booleanInput name="b4"><shortDescription>Checkbox 4 of 4</shortDescription></booleanInput>
+</p>
+
+<answer>
+  <award>
+    <when>
+      <booleanList unordered="true">
+        $b1 $b2 $b3 $b4
+      </booleanList> = 
+      <booleanList>1 1 0 0</booleanList>
+    </when>
+  </award>
+</answer>  
+```
+
+
+The `unordered` attribute is specified in order to make 
+comparisons between boolean lists without regard to order.
+The `<booleanList>{:dn}` component is ordered by default.
+
+
+
+---
+
+### Attribute Example: maxNumber
+
+
+```doenet-example
+  <p>Specify <attr>maxNumber</attr> for the <tag>booleanList</tag>: 
+    <mathInput name="n"><shortDescription>max number for the boolean list</shortDescription></mathInput></p>
+  <p>List = 
+  <booleanList name="list" maxNumber="$n">
+   0 1 0 1 1 1 0 0 1 1 0 0
+  </booleanList>
+  </p>
+```
+
+
+
+Use the `maxNumber` attribute to limit the number of boolean values 
+rendered by the `<booleanList>{:dn}`.
+
+## Property Examples
+
+### Property Example: numComponents
+
+
+```doenet-example
+  <booleanList name="bList">0 1 0 1 1 1 0 0 1</booleanList>
+  <p><c>numComponents</c> = $bList.numComponents</p>
+```
+
+
+
+The `numComponents` property renders the number of boolean values stored in the list.
+
+
+
+---
+
+### Property Example: numValues
+
+
+```doenet-example
+  <booleanList name="bList">0 1 0 1 1 1 0 0 1</booleanList>
+  <p><c>numValues</c> = $bList.numValues</p>
+```
+
+
+
+The `numValues` property is an alias for `numComponents`: it also renders the number of boolean values stored in the list (respecting the `maxNumber` cap, if set).
+

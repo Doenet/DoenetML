@@ -90,7 +90,6 @@ color =
             [background-clause] ყავისფერ
            *[standalone] ყავისფერი
         }
-
 # Only a colour is ever looked up in `background-clause`, so a width and a dash
 # pattern reach just the nominative and the instrumental, where they read alike.
 # No select is written here: the dative form these words would take there is
@@ -98,11 +97,9 @@ color =
 line-width =
     .thick = სქელი
     .thin = თხელი
-
 line-style =
     .dashed = წყვეტილი
     .dotted = წერტილოვანი
-
 # Instrumental plurals — the case that renders as "with" in English. The ending
 # carries the sense, so nothing is written in front of them where they are
 # placed.
@@ -113,7 +110,6 @@ fill-style =
     .backdiagonal = უკუდიაგონალური ხაზებით
     .dots = წერტილებით
     .diamonds = რომბებით
-
 noun =
     .line = წრფე
     .line-segment = მონაკვეთი
@@ -133,7 +129,6 @@ noun =
     .diamond = რომბი
     .cross = ჯვარი
     .plus = პლუსი
-
 # Georgian builds the word from the side count in front of the noun, so the
 # whole of it is one head and there is no tail.
 noun-regular-polygon =
@@ -141,12 +136,10 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] წესიერი { $numSides }-კუთხედი
     }
-
 # Georgian has no grammatical gender, so every noun answers the same and the
 # answer goes unused. What this catalog agrees for is case, which `$role`
 # carries.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -160,23 +153,19 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # A participle, which stands here in the nominative and takes neither argument.
 style-filled-word = შევსებული
-
 # `{ $pattern }` is already instrumental, so no connective is written.
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $color } { $filled } { $noun } { $pattern }
@@ -184,7 +173,6 @@ style-filled-with-noun =
         [pattern-tail] { $color } { $filled } { $noun } { $nounTail } { $pattern }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «ჩარჩოთი» is the instrumental of «ჩარჩო», and it is the ending rather than a
 # preposition that says "with" — so the clause opens on the border's own
 # adjectives, which the instrumental leaves in their nominative shape. Georgian
@@ -196,15 +184,12 @@ style-border-clause =
         [and-article] და { $border } ჩარჩოთი
        *[with] { $border } ჩარჩოთი
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } შევსება { $pattern }
        *[plain] { $color } შევსება
     }
-
 style-unfilled = შეუვსებელი
-
 # «ფონზე» is the dative of «ფონი» plus the postposition -ზე, and it is the
 # dative that truncates the colour in front of it. The text colour beside it is
 # nominative, agreeing with «ტექსტი».
@@ -213,21 +198,17 @@ style-text =
         [background] { $background } ფონზე { $color }
        *[plain] { $color }
     }
-
 style-background-none = არ არის
-
 
 ## Boolean words
 
 boolean-true = ჭეშმარიტი
 boolean-false = მცდარი
 
-
 ## Answer buttons
 
 answer-submit-label = შემოწმება
 answer-submit-label-no-correctness = პასუხის გაგზავნა
-
 
 ## Sectional blocks
 
@@ -252,7 +233,6 @@ section-name =
     .solution = ამოხსნა
     .task = დავალება
     .theorem = თეორემა
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -262,9 +242,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = მინიშნება
-
 
 ## Tables and figures
 
@@ -275,7 +253,6 @@ table-name =
         [unnumbered-title] ცხრილი{ ". " }
        *[unnumbered] ცხრილი
     }
-
 figure-name =
     { $parts ->
         [numbered] ნახაზი { $enumeration }
@@ -284,22 +261,18 @@ figure-name =
        *[unnumbered] ნახაზი
     }
 
-
 ## Paginator controls
 
 paginator-previous = წინა
 paginator-next = შემდეგი
 paginator-page = გვერდი
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ან
 piecewise-condition-if = თუ
 piecewise-condition-otherwise = წინააღმდეგ შემთხვევაში
-
 
 ## Chemistry
 
@@ -422,7 +395,6 @@ element-name =
     .lv = ლივერმორიუმი
     .ts = ტენესინი
     .og = ოგანესონი
-
 element-anion-name =
     .h = ჰიდრიდი
     .c = კარბიდი
@@ -436,8 +408,6 @@ element-anion-name =
     .i = იოდიდი
     .at = ასტატიდი
     .ts = ტენესიდი
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = არასწორი ქიმიური სიმბოლო
 chemistry-invalid-ionic-compound = არასწორი იონური ნაერთი

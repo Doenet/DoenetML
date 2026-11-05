@@ -40,15 +40,12 @@ color =
     .purple = ನೇರಳೆ
     .pink = ಗುಲಾಬಿ
     .brown = ಕಂದು
-
 line-width =
     .thick = ದಪ್ಪ
     .thin = ತೆಳು
-
 line-style =
     .dashed = ತುಂಡು ಗೆರೆಯ
     .dotted = ಚುಕ್ಕಿಯ
-
 # Noun phrases: they stand in front of the «ಜೊತೆಗೆ» the composition messages
 # supply, and modify nothing.
 fill-style =
@@ -58,7 +55,6 @@ fill-style =
     .backdiagonal = ವಿರುದ್ಧ ಕರ್ಣ ಗೆರೆಗಳು
     .dots = ಚುಕ್ಕಿಗಳು
     .diamonds = ವಜ್ರಾಕೃತಿಗಳು
-
 noun =
     .line = ಸರಳರೇಖೆ
     .line-segment = ರೇಖಾಖಂಡ
@@ -78,7 +74,6 @@ noun =
     .diamond = ವಜ್ರಾಕೃತಿ
     .cross = ಅಡ್ಡಗುರುತು
     .plus = ಕೂಡಿಸು ಗುರುತು
-
 # The side count precedes the noun, as every modifier in Kannada does, so it
 # folds into the head and there is no tail.
 noun-regular-polygon =
@@ -86,12 +81,10 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } ಬಾಹುಗಳ ಸಮ ಬಹುಭುಜಾಕೃತಿ
     }
-
 # Kannada marks gender on verbs and pronouns, not on the adjectives in these
 # phrases, so every noun answers the same and the answer goes unused — as in
 # English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,21 +98,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = ತುಂಬಿದ
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern } ಜೊತೆಗೆ
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } { $pattern } ಜೊತೆಗೆ
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern } ಜೊತೆಗೆ
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «ಅಂಚು» is a fixed word, so the comitative is written onto it directly, and
 # «ಮತ್ತು» opens the further clause where English opens it with "and". Kannada
 # has no article, so the two `-article` branches read like the ones without.
@@ -138,15 +126,12 @@ style-border-clause =
         [and-article] ಮತ್ತು { $border } ಅಂಚಿನೊಂದಿಗೆ
        *[with] { $border } ಅಂಚಿನೊಂದಿಗೆ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ತುಂಬದ
-
 # «ಹಿನ್ನೆಲೆ» takes the locative -ಯಲ್ಲಿ, so the background leads and the text
 # colour follows it.
 style-text =
@@ -154,21 +139,17 @@ style-text =
         [background] { $background } ಹಿನ್ನೆಲೆಯಲ್ಲಿ { $color }
        *[plain] { $color }
     }
-
 style-background-none = ಯಾವುದೂ ಇಲ್ಲ
-
 
 ## Boolean words
 
 boolean-true = ನಿಜ
 boolean-false = ಸುಳ್ಳು
 
-
 ## Answer buttons
 
 answer-submit-label = ಪರಿಶೀಲಿಸು
 answer-submit-label-no-correctness = ಉತ್ತರ ಸಲ್ಲಿಸು
-
 
 ## Sectional blocks
 
@@ -193,7 +174,6 @@ section-name =
     .solution = ಪರಿಹಾರ
     .task = ಕಾರ್ಯ
     .theorem = ಪ್ರಮೇಯ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -203,9 +183,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ಸುಳಿವು
-
 
 ## Tables and figures
 
@@ -216,7 +194,6 @@ table-name =
         [unnumbered-title] ಕೋಷ್ಟಕ{ ": " }
        *[unnumbered] ಕೋಷ್ಟಕ
     }
-
 figure-name =
     { $parts ->
         [numbered] ಚಿತ್ರ { $enumeration }
@@ -225,17 +202,14 @@ figure-name =
        *[unnumbered] ಚಿತ್ರ
     }
 
-
 ## Paginator controls
 
 paginator-previous = ಹಿಂದಿನದು
 paginator-next = ಮುಂದಿನದು
 paginator-page = ಪುಟ
-
 # The total leads, marked with the locative -ರಲ್ಲಿ, which is how Kannada says
 # "3 of 5".
 paginator-page-status = { $numPages } ರಲ್ಲಿ { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
@@ -243,8 +217,8 @@ piecewise-condition-or = ಅಥವಾ
 piecewise-condition-if = ಒಂದು ವೇಳೆ
 piecewise-condition-otherwise = ಇಲ್ಲದಿದ್ದರೆ
 
-
 ## Chemistry
+
 
 # `element-name` and `element-anion-name` are deliberately omitted, and the 130
 # keys fall back to English.
@@ -263,6 +237,5 @@ piecewise-condition-otherwise = ಇಲ್ಲದಿದ್ದರೆ
 # letters this close to these, supplies the names its textbooks use.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ಅಮಾನ್ಯ ರಾಸಾಯನಿಕ ಸಂಕೇತ
 chemistry-invalid-ionic-compound = ಅಮಾನ್ಯ ಅಯಾನಿಕ ಸಂಯುಕ್ತ

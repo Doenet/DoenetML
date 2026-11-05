@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml-iframe",
     "type": "module",
     "description": "A renderer for DoenetML contained in an iframe",
-    "version": "0.7.24",
+    "version": "0.7.27",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -21,9 +21,21 @@
             "import": "./dist/component/*"
         }
     },
+    "//": [
+        "`build` is a wireit script, not `npm run a && npm run b && npm run c`.",
+        "Chaining npm runs starts a separate wireit invocation per link, and each",
+        "one resolves the shared dependency chain (../doenetml, and through it",
+        "../math and ../utils) on its own. Wireit serialises a given script only",
+        "against itself, so one invocation would clean and rebuild",
+        "packages/math/dist while a vite build in a sibling invocation was reading",
+        "it — surfacing as `Failed to resolve entry for package \"math-expressions\"`",
+        "or `\"@doenet/utils\"` from whichever build lost the race. That is what broke",
+        "Build Docs in CI, and the victim moved from run to run. Keeping this one",
+        "graph lets wireit order the whole thing."
+    ],
     "scripts": {
         "dev": "npm run build:iframe-viewer && npm run build:iframe-editor && vite",
-        "build": "npm run build:iframe-viewer && npm run build:iframe-editor && npm run build:component",
+        "build": "wireit",
         "build:component": "wireit",
         "build:iframe-viewer": "wireit",
         "build:iframe-editor": "wireit",
@@ -33,26 +45,53 @@
         "test-cypress-all": "cypress run --component -b 'chrome' --config video=false --headless"
     },
     "wireit": {
+        "build": {
+            "dependencies": [
+                "build:component"
+            ]
+        },
         "build:iframe-viewer": {
             "command": "vite -c vite.config-iframe-viewer.ts build",
             "files": [
                 "src/iframe-viewer-index.ts",
+                "src/standalone-load-failure.ts",
                 "vite.config-iframe-viewer.ts",
                 "tsconfig.json"
             ],
             "output": [
                 "dist/iframe-viewer/*"
+            ],
+            "//": [
+                "The iife entry imports nothing from `@doenet/doenetml`, but the",
+                "`dts()` plugin has no `include` of its own, so it type-checks",
+                "everything `tsconfig.json` includes — which reaches `src/index.tsx`",
+                "and through it `@doenet/doenetml`, `@doenet/utils` and the",
+                "`math-expressions` seam. `../doenetml:build` has `clean: true` and",
+                "transitively rebuilds `packages/math/dist`, so without this edge",
+                "wireit is free to run the two concurrently and this build resolves",
+                "against a dist that is mid-clean. That is the same race the note at",
+                "the top of this file describes; collapsing the chained `npm run`",
+                "into one graph was necessary but not sufficient, because siblings",
+                "in a `dependencies` list run in parallel."
+            ],
+            "dependencies": [
+                "../doenetml:build"
             ]
         },
         "build:iframe-editor": {
             "command": "vite -c vite.config-iframe-editor.ts build",
             "files": [
                 "src/iframe-editor-index.ts",
+                "src/standalone-load-failure.ts",
                 "vite.config-iframe-editor.ts",
                 "tsconfig.json"
             ],
             "output": [
                 "dist/iframe-editor/*"
+            ],
+            "//": "Ordered against `../doenetml:build` for the reason given on build:iframe-viewer.",
+            "dependencies": [
+                "../doenetml:build"
             ]
         },
         "build:component": {
@@ -70,7 +109,9 @@
                 "dist/component/*"
             ],
             "dependencies": [
-                "../doenetml:build"
+                "../doenetml:build",
+                "build:iframe-viewer",
+                "build:iframe-editor"
             ]
         }
     },

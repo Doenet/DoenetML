@@ -46,7 +46,6 @@ color =
         }
     .pink = rosa
     .brown = marrón
-
 line-width =
     .thick =
         { $gender ->
@@ -58,7 +57,6 @@ line-width =
             [f] delgada
            *[m] delgado
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -70,7 +68,6 @@ line-style =
             [f] punteada
            *[m] punteado
         }
-
 # Noun phrases: they follow «con» and agree with nothing.
 fill-style =
     .horizontal = líneas horizontales
@@ -79,7 +76,6 @@ fill-style =
     .backdiagonal = líneas diagonales inversas
     .dots = puntos
     .diamonds = rombos
-
 noun =
     .line = línea
     .line-segment = segmento
@@ -99,7 +95,6 @@ noun =
     .diamond = rombo
     .cross = cruz
     .plus = signo más
-
 # The noun splits: «polígono regular» takes the adjectives and «de 5 lados»
 # closes the phrase behind them. Were the complement to come first, the
 # adjectives would be stranded away from the noun they agree with («polígono
@@ -109,7 +104,6 @@ noun-regular-polygon =
         [tail] de { $numSides } lados
        *[head] polígono regular
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (the noun
 # `noun-regular-polygon` composes) or the head of a phrase the description
 # never names: `border`, `fill`, `text`, `background`. All of those are
@@ -128,7 +122,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -141,7 +134,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun comes first and the adjectives after it: «línea discontinua gruesa
 # roja». The noun's complement, where there is one, closes the phrase:
 # «polígono regular grueso rojo de 5 lados».
@@ -150,19 +142,16 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] rellena
        *[m] relleno
     }
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } con { $pattern }
        *[plain] { $color } { $filled }
     }
-
 # Here the complement sits against the noun rather than at the end, as it does
 # in `style-with-noun`: «relleno de …» reads as «lleno de …», so «relleno de 5
 # lados» would say something else. «Polígono regular de 5 lados azul relleno».
@@ -173,7 +162,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $color } { $filled } con { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # «borde» is masculine, so the border's adjectives agree with it rather than
 # with the shape it surrounds.
 style-border-clause =
@@ -183,24 +171,19 @@ style-border-clause =
         [and-article] y un borde { $border }
        *[with] con borde { $border }
     }
-
 # «de color» avoids having to agree the color with a plural pattern.
 style-fill =
     { $parts ->
         [pattern] { $pattern } de color { $color }
        *[plain] { $color }
     }
-
 style-unfilled = sin relleno
-
 style-text =
     { $parts ->
         [background] { $color } con un fondo { $background }
        *[plain] { $color }
     }
-
 style-background-none = ninguno
-
 
 ## Boolean words
 ##
@@ -210,12 +193,10 @@ style-background-none = ninguno
 boolean-true = verdadero
 boolean-false = falso
 
-
 ## Answer buttons
 
 answer-submit-label = Revisar
 answer-submit-label-no-correctness = Enviar respuesta
-
 
 ## Sectional blocks
 
@@ -240,7 +221,6 @@ section-name =
     .solution = Solución
     .task = Tarea
     .theorem = Teorema
-
 # Spanish separates the title with a period after a bare number, as English
 # does, and with a colon when the word leads.
 section-title-prefix =
@@ -252,9 +232,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Pista
-
 
 ## Tables and figures
 
@@ -265,7 +243,6 @@ table-name =
         [unnumbered-title] Tabla{ ": " }
        *[unnumbered] Tabla
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -274,22 +251,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Anterior
 paginator-next = Siguiente
 paginator-page = Página
-
 paginator-page-status = { $pageLabel } { $currentPage } de { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = si
 piecewise-condition-otherwise = en otro caso
-
 
 ## Chemistry
 ##
@@ -415,7 +388,6 @@ element-name =
     .lv = Livermorio
     .ts = Teneso
     .og = Oganesón
-
 element-anion-name =
     .h = Hidruro
     .c = Carburo
@@ -429,8 +401,6 @@ element-anion-name =
     .i = Yoduro
     .at = Astaturo
     .ts = Tenesuro
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Símbolo químico no válido
 chemistry-invalid-ionic-compound = Compuesto iónico no válido

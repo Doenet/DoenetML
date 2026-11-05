@@ -38,10 +38,10 @@ describe("Label tag tests @group2", async () => {
         let l2 = "Hello";
         let l3Latex = "\\left(x_2 y_{2.1},\\frac{y^2}{z^{2.1}}\\right)";
         let l3Value = `\\(${l3Latex}\\)`;
-        let l3Text = "( x₂ y_2.1, (y²)/(z^2.1) )";
+        let l3Text = "(x₂ y_2.1, y²/z^2.1)";
         let l4Latex = "\\left( a_{2} b_{2.1}, \\frac{b^{2}}{c^{2.1}} \\right)";
         let l4Value = `\\(${l4Latex}\\)`;
-        let l4Text = "( a₂ b_2.1, (b²)/(c^2.1) )";
+        let l4Text = "(a₂ b_2.1, b²/c^2.1)";
         let l5 = "1";
         let l6Latex = "2";
         let l6Value = `\\(${l6Latex}\\)`;
@@ -359,11 +359,7 @@ describe("Label tag tests @group2", async () => {
             ).eq(latex);
         }
 
-        await check_items(
-            "\\(\\frac{x^{2}}{2}\\)",
-            "(x²)/2",
-            "\\frac{x^{2}}{2}",
-        );
+        await check_items("\\(\\frac{x^{2}}{2}\\)", "x²/2", "\\frac{x^{2}}{2}");
 
         // update value
         // (textInput ends up converting value to text beforehand )
@@ -381,7 +377,7 @@ describe("Label tag tests @group2", async () => {
         });
         await check_items(
             "\\(\\left( x, y \\right)\\)",
-            "( x, y )",
+            "(x, y)",
             "\\left( x, y \\right)",
         );
 
@@ -413,10 +409,13 @@ describe("Label tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("latex2"),
             core,
         });
+        // The space before `dx` is the engine's; legacy dropped it. Both render
+        // the same integral, and a thin space before the differential is the
+        // conventional typography, so the expectation follows the engine.
         await check_items(
-            "\\(\\int_{a}^{b} f\\left(x\\right)dx\\)",
+            "\\(\\int_{a}^{b} f\\left(x\\right) dx\\)",
             "∫_a^b f(x) dx",
-            "\\int_{a}^{b} f\\left(x\\right)dx",
+            "\\int_{a}^{b} f\\left(x\\right) dx",
         );
     });
 
@@ -494,7 +493,7 @@ describe("Label tag tests @group2", async () => {
         }
 
         // Note: doesn't normalize latex
-        await check_items("\\(x^2/2\\)", "(x²)/2", "x^2/2");
+        await check_items("\\(x^2/2\\)", "x²/2", "x^2/2");
 
         // update value
         // (textInput ends up converting value to text beforehand )
@@ -512,7 +511,7 @@ describe("Label tag tests @group2", async () => {
         });
         await check_items(
             "\\(\\left( x, y \\right)\\)",
-            "( x, y )",
+            "(x, y)",
             "\\left( x, y \\right)",
         );
 
@@ -626,7 +625,7 @@ describe("Label tag tests @group2", async () => {
             ).eq(latex);
         }
 
-        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+        await check_items("Hello \\(x^2/2\\)", "Hello x²/2", "Hello x^2/2");
 
         // cannot update value
         await updateTextInputValue({
@@ -634,7 +633,7 @@ describe("Label tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("value1"),
             core,
         });
-        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+        await check_items("Hello \\(x^2/2\\)", "Hello x²/2", "Hello x^2/2");
 
         // cannot update text
         await updateTextInputValue({
@@ -642,7 +641,7 @@ describe("Label tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("text1"),
             core,
         });
-        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+        await check_items("Hello \\(x^2/2\\)", "Hello x²/2", "Hello x^2/2");
 
         // cannot update latex
         await updateTextInputValue({
@@ -650,7 +649,7 @@ describe("Label tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("latex1"),
             core,
         });
-        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+        await check_items("Hello \\(x^2/2\\)", "Hello x²/2", "Hello x^2/2");
 
         // cannot update value 2
         await updateTextInputValue({
@@ -658,7 +657,7 @@ describe("Label tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("value2"),
             core,
         });
-        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+        await check_items("Hello \\(x^2/2\\)", "Hello x²/2", "Hello x^2/2");
 
         // cannot update text 2
         await updateTextInputValue({
@@ -666,7 +665,7 @@ describe("Label tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("text2"),
             core,
         });
-        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+        await check_items("Hello \\(x^2/2\\)", "Hello x²/2", "Hello x^2/2");
 
         // cannot update latex 2
         await updateTextInputValue({
@@ -674,7 +673,7 @@ describe("Label tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("latex2"),
             core,
         });
-        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+        await check_items("Hello \\(x^2/2\\)", "Hello x²/2", "Hello x^2/2");
     });
 
     it("label in graph", async () => {
@@ -1911,5 +1910,58 @@ describe("Label tag tests @group2", async () => {
                 ),
             ),
         ).eq(true);
+    });
+
+    it("components render the label child that their label comes from", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<booleanInput name="bi"><label>x <delete>A</delete></label></booleanInput>
+<textInput name="ti">hello<label><insert>B</insert></label></textInput>
+<choiceInput name="ci"><choice>a</choice><label><em>C</em></label></choiceInput>
+<slider name="s"><label><delete>D</delete></label></slider>
+<callAction name="ca" actionName="nothing"><label><delete>E</delete></label></callAction>
+<updateValue name="uv"><label><delete>F</delete></label></updateValue>
+<triggerSet name="ts"><label><delete>G</delete></label></triggerSet>
+<booleanInput name="noLabel" />
+<answer name="ans"><label><delete>H</delete></label>x</answer>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        // The label string drops the markup
+        expect((await sv("bi")).label).eq("x A");
+
+        expect((await sv("bi")).labelChildInd).eq(0);
+        expect((await sv("bi")).childIndicesToRender).eqls([0]);
+        expect((await sv("ti")).labelChildInd).eq(1);
+        expect((await sv("ti")).childIndicesToRender).eqls([1]);
+        expect((await sv("ci")).labelChildInd).eq(1);
+        expect((await sv("ci")).childIndicesToRender).eqls([0, 1]);
+        for (const name of ["s", "ca", "uv", "ts"]) {
+            expect((await sv(name)).labelChildInd).eq(0);
+            expect((await sv(name)).childIndicesToRender).eqls([0]);
+        }
+        expect((await sv("noLabel")).labelChildInd).eq(-1);
+        expect((await sv("noLabel")).childIndicesToRender).eqls([]);
+
+        for (const name of ["bi", "ti", "ci", "s", "ca", "uv", "ts"]) {
+            expect((await sv(name)).labelFromParent).eq(false);
+        }
+
+        // The answer renders its label, and the input it created from sugar
+        // takes its label from the answer
+        const ans = await sv("ans");
+        const ansChildren =
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren;
+        expect(ansChildren[ans.labelChildInd].componentType).eq("label");
+        expect(ans.childIndicesToRender).toContain(ans.labelChildInd);
+        const inputIdx = ansChildren[ans.inputChildIndices[0]].componentIdx;
+        const input = stateVariables[inputIdx].stateValues;
+        expect(input.label).eq("H");
+        expect(input.labelFromParent).eq(true);
+        expect(input.labelChildInd).eq(-1);
     });
 });

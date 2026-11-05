@@ -7,7 +7,10 @@ import {
     DastRoot,
 } from "./types";
 import { codedDastError } from "./coded-dast-error";
-import { visit } from "./pretty-printer/normalize/utils/visit";
+import {
+    visit,
+    visitIncludingPathIndices,
+} from "./pretty-printer/normalize/utils/visit";
 import { isDastElement } from "./types-util";
 import { toXml } from "./dast-to-xml/dast-util-to-xml";
 import { lezerToDast } from "./lezer-to-dast";
@@ -79,8 +82,12 @@ export async function expandExternalReferences(
                 });
             };
 
-            // Find any `extend` or `copy` attributes that begin with `doenet:` in the dast and append the results to `promiseStack`
-            visit(tree, findExternalReferenceAttribute);
+            // Find any `extend` or `copy` attributes that begin with `doenet:` in the dast and append the results to `promiseStack`.
+            // Index contents are included: an element written between a
+            // reference's brackets is nobody's child, so a plain `visit` walks
+            // straight past `$list[<number copy="doenet:abc" />]` and the
+            // document it names is never fetched.
+            visitIncludingPathIndices(tree, findExternalReferenceAttribute);
 
             // Process any DoenetML returned by the promises in `promiseStack`,
             // add any matching results to to the parent,
@@ -304,8 +311,10 @@ function mergeExternalChildIntoParent(
     findExternalReferenceAttribute(parent);
 
     // We haven't yet checked the children of `child`, so check those elements (and their descendants) now.
+    // Index contents again, for the same reason as the first scan: fetched
+    // content can itself hold `$list[<number copy="doenet:…" />]`.
     for (const newChild of child.children) {
-        visit(newChild, findExternalReferenceAttribute);
+        visitIncludingPathIndices(newChild, findExternalReferenceAttribute);
     }
 
     // Step 4. merge in the new children coming from `child`

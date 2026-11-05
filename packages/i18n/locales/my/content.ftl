@@ -37,15 +37,12 @@ color =
     .purple = ခရမ်းရောင်
     .pink = ပန်းရောင်
     .brown = အညိုရောင်
-
 line-width =
     .thick = ထူသော
     .thin = ပါးသော
-
 line-style =
     .dashed = မျဉ်းပြတ်
     .dotted = အစက်ချ
-
 # Noun phrases rather than adjectives: ဖြင့် ("with") takes them bare.
 fill-style =
     .horizontal = အလျားလိုက်မျဉ်းများ
@@ -54,7 +51,6 @@ fill-style =
     .backdiagonal = ပြောင်းပြန်ထောင့်ဖြတ်မျဉ်းများ
     .dots = အစက်များ
     .diamonds = စိန်ပုံများ
-
 noun =
     .line = မျဉ်း
     .line-segment = မျဉ်းပိုင်း
@@ -74,7 +70,6 @@ noun =
     .diamond = စိန်ပုံ
     .cross = ကြက်ခြေခတ်
     .plus = အပေါင်းလက္ခဏာ
-
 # The side count attaches to the noun that follows, so the whole phrase is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -82,11 +77,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] အနား { $numSides } ခုပါ ပုံမှန်ဗဟုဂံ
     }
-
 # Burmese has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -100,15 +93,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = ဖြည့်ထားသော
-
 # ဖြင့် ("with") follows the pattern it applies to, so the clause English
 # appends comes to the front here.
 style-filled =
@@ -116,7 +106,6 @@ style-filled =
         [pattern] { $pattern }ဖြင့် { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern }ဖြင့် { $filled } { $color } { $noun }
@@ -124,7 +113,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern }ဖြင့် { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # ဖြင့် is a postposition, so it follows ဘောင် rather than preceding it as
 # English's `with` does. Burmese has no article, which leaves the `-article`
 # branches reading like the others.
@@ -135,15 +123,12 @@ style-border-clause =
         [and-article] နှင့် { $border } ဘောင်ဖြင့်
        *[with] { $border } ဘောင်ဖြင့်
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = အဖြည့်မရှိသော
-
 # ပေါ်တွင် ("on") follows နောက်ခံ, and the colour word in front of it is
 # untouched by that.
 style-text =
@@ -151,21 +136,17 @@ style-text =
         [background] { $background } နောက်ခံပေါ်တွင် { $color }
        *[plain] { $color }
     }
-
 style-background-none = မရှိပါ
-
 
 ## Boolean words
 
 boolean-true = မှန်
 boolean-false = မှား
 
-
 ## Answer buttons
 
 answer-submit-label = စစ်ဆေးရန်
 answer-submit-label-no-correctness = အဖြေ တင်သွင်းရန်
-
 
 ## Sectional blocks
 
@@ -190,7 +171,6 @@ section-name =
     .solution = အဖြေရှာနည်း
     .task = လုပ်ငန်းတာဝန်
     .theorem = သီအိုရမ်
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -200,9 +180,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = အရိပ်အမြွက်
-
 
 ## Tables and figures
 
@@ -213,7 +191,6 @@ table-name =
         [unnumbered-title] ဇယား{ ": " }
        *[unnumbered] ဇယား
     }
-
 figure-name =
     { $parts ->
         [numbered] ပုံ { $enumeration }
@@ -222,28 +199,23 @@ figure-name =
        *[unnumbered] ပုံ
     }
 
-
 ## Paginator controls
 
 paginator-previous = ယခင်
 paginator-next = နောက်
 paginator-page = စာမျက်နှာ
-
 # «X ထဲမှ Y» — "Y out of X" — puts the total first, so the two counts change
 # places.
 paginator-page-status = { $numPages } ထဲမှ { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = သို့မဟုတ်
-
 piecewise-condition-if = အကယ်၍
-
 piecewise-condition-otherwise = ထိုမှတပါး
 
-
 ## Chemistry
+
 
 # `element-name` and `element-anion-name` are deliberately omitted, and those
 # 130 keys fall back to English.
@@ -257,6 +229,5 @@ piecewise-condition-otherwise = ထိုမှတပါး
 # Nepali already make, and for the same reason.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = မမှန်ကန်သော ဓာတုသင်္ကေတ
 chemistry-invalid-ionic-compound = မမှန်ကန်သော အိုင်သွန်ဒြပ်ပေါင်း

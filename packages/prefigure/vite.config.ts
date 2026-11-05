@@ -5,7 +5,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
-import { suppressLogPlugin } from "../../scripts/vite-plugins";
+import {
+    ignoreWireitCachesPlugin,
+    suppressLogPlugin,
+} from "../../scripts/vite-plugins";
 
 const PYODIDE_EXCLUDE = [
     "!**/*.{md,html}",
@@ -21,6 +24,7 @@ export default defineConfig({
     },
     optimizeDeps: { exclude: ["pyodide"] },
     plugins: [
+        ignoreWireitCachesPlugin(),
         dts({ rollupTypes: true }),
         vitePluginPyodide(),
         viteStaticCopy({

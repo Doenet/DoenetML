@@ -4,6 +4,7 @@ import {
     clickPoint,
     focusPoint,
     movePoint,
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
     updateSelectedIndices,
@@ -13,6 +14,7 @@ import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 import { superSubscriptsToUnicode } from "../../utils/math";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { componentOrListEntry } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -414,20 +416,6 @@ describe("Point tag tests @group4", async () => {
             await check_items(7, -5);
         }
     }
-
-    it("test invertible due to modifyIndirectly", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-  <graph>
-    <point name="P">
-        (0.5<math name="m1">2</math><math name="m2" modifyIndirectly="false">3</math>, <math name="y">1</math>)
-    </point>
-  </graph>
-  `,
-        });
-
-        await test_invertible(core, resolvePathToNodeIdx);
-    });
 
     it("test invertible due to fixed", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
@@ -3675,8 +3663,11 @@ describe("Point tag tests @group4", async () => {
             await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
+        // The sequence is a list component, which stays a child however
+        // many entries it has, and the math reads its entries as children.
         expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
+            await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
         expect(
@@ -3694,10 +3685,7 @@ describe("Point tag tests @group4", async () => {
             core,
         });
 
-        let math3 =
-            core.core!.components![await resolvePathToNodeIdx("seq")]
-                .replacements[0].adapterUsed;
-        let math3Name = math3.componentIdx;
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(x1.definingChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             await resolvePathToNodeIdx("seq"),
@@ -3705,7 +3693,7 @@ describe("Point tag tests @group4", async () => {
         ]);
         expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
-            math3Name,
+            await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
         expect(
@@ -4581,7 +4569,7 @@ describe("Point tag tests @group4", async () => {
             );
             let coordsString = xString.join(", ");
             if (nDim > 1) {
-                coordsString = `( ${coordsString} )`;
+                coordsString = `(${coordsString})`;
             }
 
             const stateVariables = await core.returnAllStateVariables(
@@ -4615,9 +4603,14 @@ describe("Point tag tests @group4", async () => {
                 ).eq(nDim);
 
                 expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`coordsAll[${i}]`)
-                    ].stateValues.text,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `coordsAll[${i}]`,
+                        )
+                    ).stateValues.text,
                 ).eq(coordsString);
             }
 
@@ -4670,10 +4663,12 @@ describe("Point tag tests @group4", async () => {
                         .stateValues.text,
                 ).eq(`y-coordinates: ${Array(3).fill(xString[1]).join(", ")}`);
             } else {
+                // Collected as a list of points, which share one number of
+                // dimensions, a coordinate past them is blank (#2162).
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`pAllY`)]
                         .stateValues.text,
-                ).eq(`y-coordinates: `);
+                ).eq(`y-coordinates: ${Array(3).fill("＿").join(", ")}`);
             }
             if (nDim > 2) {
                 expect(
@@ -4681,10 +4676,12 @@ describe("Point tag tests @group4", async () => {
                         .stateValues.text,
                 ).eq(`z-coordinates: ${Array(3).fill(xString[2]).join(", ")}`);
             } else {
+                // Collected as a list of points, which share one number of
+                // dimensions, a coordinate past them is blank (#2162).
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`pAllZ`)]
                         .stateValues.text,
-                ).eq(`z-coordinates: `);
+                ).eq(`z-coordinates: ${Array(3).fill("＿").join(", ")}`);
             }
 
             expect(
@@ -5551,58 +5548,58 @@ describe("Point tag tests @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pP")].stateValues.text,
-        ).eq("( 32, 0.067, 5 )");
+        ).eq("(32, 0.067, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pQ")].stateValues.text,
-        ).eq("( 32.25, 0.07, 5 )");
+        ).eq("(32.25, 0.07, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
-        ).eq("( 32.25, 0.0673, 5.00 )");
+        ).eq("(32.25, 0.0673, 5.00)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Pcoords")].stateValues
                 .text,
-        ).eq("( 32, 0.067, 5 )");
+        ).eq("(32, 0.067, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Qcoords")].stateValues
                 .text,
-        ).eq("( 32.25, 0.07, 5 )");
+        ).eq("(32.25, 0.07, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Rcoords")].stateValues
                 .text,
-        ).eq("( 32.25, 0.0673, 5.00 )");
+        ).eq("(32.25, 0.0673, 5.00)");
         expect(
             stateVariables[await resolvePathToNodeIdx("PcoordsDec4")]
                 .stateValues.text,
-        ).eq("( 32.2526, 0.0673, 5 )");
+        ).eq("(32.2526, 0.0673, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("QcoordsDig4")]
                 .stateValues.text,
-        ).eq("( 32.25, 0.06729, 5 )");
+        ).eq("(32.25, 0.06729, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("RcoordsDig2")]
                 .stateValues.text,
-        ).eq("( 32, 0.067, 5.0 )");
+        ).eq("(32, 0.067, 5.0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("PcoordsPad")].stateValues
                 .text,
-        ).eq("( 32, 0.067, 5.0 )");
+        ).eq("(32, 0.067, 5.0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("QcoordsPad")].stateValues
                 .text,
-        ).eq("( 32.25, 0.07, 5.00 )");
+        ).eq("(32.25, 0.07, 5.00)");
         expect(
             stateVariables[await resolvePathToNodeIdx("RcoordsNoPad")]
                 .stateValues.text,
-        ).eq("( 32.25, 0.0673, 5 )");
+        ).eq("(32.25, 0.0673, 5)");
         // TODO: fix display digits propagation for math lists
         // expect(
-        //     stateVariables[await resolvePathToNodeIdx("Pxs[1]")].stateValues.text,
+        //     (await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, "Pxs[1]")).stateValues.text,
         // ).eq("32");
         // expect(
-        //     stateVariables[await resolvePathToNodeIdx("Pxs[2]")].stateValues.text,
+        //     (await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, "Pxs[2]")).stateValues.text,
         // ).eq("0.067");
         // expect(
-        //     stateVariables[await resolvePathToNodeIdx("Pxs[3]")].stateValues.text,
+        //     (await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, "Pxs[3]")).stateValues.text,
         // ).eq("5");
         expect(
             stateVariables[await resolvePathToNodeIdx("Qx1")].stateValues.text,
@@ -5616,27 +5613,27 @@ describe("Point tag tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("Pmath")].stateValues
                 .text,
-        ).eq("( 32, 0.067, 5 )");
+        ).eq("(32, 0.067, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Qmath")].stateValues
                 .text,
-        ).eq("( 32.25, 0.07, 5 )");
+        ).eq("(32.25, 0.07, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Rmath")].stateValues
                 .text,
-        ).eq("( 32.25, 0.0673, 5.00 )");
+        ).eq("(32.25, 0.0673, 5.00)");
         expect(
             stateVariables[await resolvePathToNodeIdx("PmathDec4")].stateValues
                 .text,
-        ).eq("( 32.2526, 0.0673, 5 )");
+        ).eq("(32.2526, 0.0673, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("QmathDig4")].stateValues
                 .text,
-        ).eq("( 32.25, 0.06729, 5 )");
+        ).eq("(32.25, 0.06729, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("RmathDig2")].stateValues
                 .text,
-        ).eq("( 32, 0.067, 5.0 )");
+        ).eq("(32, 0.067, 5.0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Px1number")].stateValues
                 .text,
@@ -5670,25 +5667,25 @@ describe("Point tag tests @group4", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1")].stateValues.text,
-        ).eq("( 34.24502348, 245.238234 )");
+        ).eq("(34.24502348, 245.238234)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1Dig4")].stateValues
                 .text,
-        ).eq("( 34.25, 245.2 )");
+        ).eq("(34.25, 245.2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1Dig4a")].stateValues
                 .text,
-        ).eq("( 34.25, 245.2 )");
+        ).eq("(34.25, 245.2)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1Dec6")].stateValues
                 .text,
-        ).eq("( 34.24502, 245.23823 )");
+        ).eq("(34.24502, 245.23823)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1Dec6a")].stateValues
                 .text,
-        ).eq("( 34.24502, 245.23823 )");
+        ).eq("(34.24502, 245.23823)");
     });
 
     it("warnings from attractTo and constrainTo", async () => {
@@ -6419,6 +6416,289 @@ describe("Point tag tests @group4", async () => {
         await check_items(params);
     });
 
+    it("fixLocation written on an extend or copy of a point takes precedence", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="F" fixLocation>(5,6)</point>
+      <point name="H">(1,1)</point>
+    </graph>
+    <graph>
+      <point name="XF" extend="$F" fixLocation="false" />
+      <point name="CF" copy="$F" fixLocation="false" />
+      <point name="XH" extend="$H" fixLocation />
+      <point name="XF2" extend="$F" />
+      <point name="CF2" copy="$F" />
+    </graph>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["F", "H", "XF", "CF", "XH", "XF2", "CF2"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        expect(fixLocations).eqls({
+            F: true,
+            H: false,
+            XF: false,
+            CF: false,
+            XH: true,
+            XF2: true,
+            CF2: true,
+        });
+
+        const positions = {
+            F: [5, 6],
+            H: [1, 1],
+            XF: [5, 6],
+            CF: [5, 6],
+            XH: [1, 1],
+            XF2: [5, 6],
+            CF2: [5, 6],
+        };
+        await check_items(positions);
+
+        // The unlinked copy is its own point, so it moves.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CF"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        positions.CF = [9, 9];
+        await check_items(positions);
+
+        // A drag of the extend lands on `F`, whose `fixLocation` refuses it,
+        // as `fixed="false"` on an extend of a fixed point does.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("XF"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+
+        // The extend of `H` has its own `fixLocation`.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("XH"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+    });
+
+    it("fixLocation written on a copy or extend takes precedence over an enclosing group's", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="Q">(1,2)</point>
+    </graph>
+    <group fixLocation>
+      <graph>
+        <point name="GC" copy="$Q" fixLocation="false" />
+        <point name="GX" extend="$Q" fixLocation="false" />
+        <point name="GP" copy="$Q" />
+        <point name="GD" fixLocation="false">(3,4)</point>
+      </graph>
+    </group>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["Q", "GC", "GX", "GP", "GD"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        // As on `GD`, written directly, the copy's and extend's own
+        // `fixLocation="false"` wins over the group's. A copy with none
+        // inherits the group's.
+        expect(fixLocations).eqls({
+            Q: false,
+            GC: false,
+            GX: false,
+            GP: true,
+            GD: false,
+        });
+
+        const positions = {
+            Q: [1, 2],
+            GC: [1, 2],
+            GX: [1, 2],
+            GP: [1, 2],
+            GD: [3, 4],
+        };
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GC"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        positions.GC = [5, 6];
+        await check_items(positions);
+
+        // A drag of the extend lands on `Q`, which is not location-fixed.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GX"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        positions.Q = [7, 8];
+        positions.GX = [7, 8];
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GP"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+    });
+
+    it("fixLocation written on an extend or copy of a list entry takes precedence", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <pointList name="L" fixLocation>(1,2) (3,4)</pointList>
+      <point name="E" extend="$L[1]" />
+    </graph>
+    <graph>
+      <point name="CE" copy="$E" fixLocation="false" />
+      <point name="XE" extend="$E" fixLocation="false" />
+      <point name="CL" copy="$L[1]" fixLocation="false" />
+      <point name="XL" extend="$L[1]" fixLocation="false" />
+      <point name="CE2" copy="$E" />
+      <point name="XL2" extend="$L[1]" />
+    </graph>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["E", "CE", "XE", "CL", "XL", "CE2", "XL2"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        expect(fixLocations).eqls({
+            E: true,
+            CE: false,
+            XE: false,
+            CL: false,
+            XL: false,
+            CE2: true,
+            XL2: true,
+        });
+
+        const positions = {
+            E: [1, 2],
+            CE: [1, 2],
+            XE: [1, 2],
+            CL: [1, 2],
+            XL: [1, 2],
+            CE2: [1, 2],
+            XL2: [1, 2],
+        };
+        await check_items(positions);
+
+        // The unlinked copies are their own points, so they move.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CE"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        positions.CE = [9, 9];
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CL"),
+            x: 8,
+            y: 8,
+            core,
+        });
+        positions.CL = [8, 8];
+        await check_items(positions);
+
+        // A drag of an extend lands on the list's entry, whose
+        // `fixLocation` refuses it.
+        for (const name of ["XE", "XL"]) {
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx(name),
+                x: 7,
+                y: 7,
+                core,
+            });
+            await check_items(positions);
+        }
+
+        // A copy with no `fixLocation` of its own keeps the list's.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CE2"),
+            x: 7,
+            y: 7,
+            core,
+        });
+        await check_items(positions);
+    });
+
     it("fix location or fixed is communicated so know math from point can't be changed", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -6733,7 +7013,12 @@ describe("Point tag tests @group4", async () => {
             ).eqls(y2);
         }
 
-        let x1 = me.fromText("sqrt(-1)").tree;
+        // The engine folds a numeric radicand to its principal value, so the
+        // stored coordinate is `i` rather than the unevaluated `sqrt(-1)` the
+        // author typed. Spelled out rather than taken from
+        // `me.fromText("sqrt(-1)").simplify()`, which would put the engine on
+        // both sides of the comparison and pass for any answer it gave.
+        let x1 = "i";
         let y1 = 1;
         let x2 = 1;
         let y2 = x1;
@@ -7056,14 +7341,15 @@ describe("Point tag tests @group4", async () => {
         );
     });
 
-    it("self-reference inside a non-sensical context like <answer> still errors", async () => {
-        // Components like <answer> are not in the recognized rendering-context
-        // list and don't make sense inside a <label>. The circular-dependency
-        // error is the expected outcome in such cases.
+    it("self-reference inside a nonsensical context like <section> still errors", async () => {
+        // Components like <section> are not in the recognized rendering-context
+        // list and don't make sense inside a <label>. The reference there is
+        // a copy of the point inside its own label, and the
+        // circular-dependency error is the expected outcome in such cases.
         const { core } = await createTestCore({
             doenetML: `
 <point name="a">(2,3)
-  <label><answer>$a</answer></label>
+  <label><section>$a</section></label>
 </point>
 `,
         });
@@ -7073,5 +7359,174 @@ describe("Point tag tests @group4", async () => {
         expect(diagnostics.errors[0].message).contain(
             "Circular dependency detected",
         );
+    });
+
+    it("self-reference as an <answer>'s award compares the point's coordinates", async () => {
+        // The award reads the point through its `coords` adapter, so the
+        // reference reads `a.coords` (a value reference, Doenet/DoenetML#2128)
+        // rather than copying the point into its own label: no cycle.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="a">(2,3)
+  <label><answer name="ans">$a</answer></label>
+</point>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const mathInputIdx =
+            stateVariables[ansIdx].stateValues.inputChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "(2,3)",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("a"),
+            x: 5,
+            y: -1,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(0);
+    });
+
+    // A constrained point whose position is essential used to be unloadable
+    // once it had been dragged (#1939). Persistence strips the math-expression
+    // class from `unconstrainedXs` on the way out, so the position comes back
+    // as a bare number; the constraint machinery reads that variable directly
+    // and called a math-expression method on it, which threw during initial
+    // dependency resolution and so took the whole document with it. Because the
+    // bad value was already saved, every later load failed the same way and the
+    // reader could not recover.
+    //
+    // `movePoint` is the action the graph renderer dispatches on a drag, and
+    // the second core is given exactly the state the first one handed its host.
+    async function dragThenReload(doenetML: string) {
+        const first = await createTestCore({ doenetML });
+        const pIdx = await first.resolvePathToNodeIdx("P");
+        await movePoint({
+            componentIdx: pIdx,
+            x: 1.7,
+            y: 0.4,
+            core: first.core,
+        });
+
+        const movedTo = (await first.core.returnAllStateVariables(false, true))[
+            pIdx
+        ].stateValues.xs.map((x: any) => x.evaluate_to_constant());
+
+        await first.core.saveImmediately();
+        const savedState = first.scoreState.state as string;
+        expect(
+            savedState,
+            "nothing was saved, so the reload proves nothing",
+        ).toContain("unconstrainedXs");
+
+        const second = await createTestCore({
+            doenetML,
+            initialState: savedState,
+        });
+        const reloadedTo = (
+            await second.core.returnAllStateVariables(false, true)
+        )[await second.resolvePathToNodeIdx("P")].stateValues.xs.map((x: any) =>
+            x.evaluate_to_constant(),
+        );
+
+        return { movedTo, reloadedTo };
+    }
+
+    it("a dragged point constrained to a function survives a reload", async () => {
+        const { movedTo, reloadedTo } = await dragThenReload(`
+<graph>
+  <function name="f">-0.25*x^3+1.5*x+1</function>
+  <point name="P"><constrainTo>$f</constrainTo></point>
+</graph>
+`);
+
+        // Dragging to x=1.7 puts the point on the curve, not where the pointer
+        // went, and the reload has to land in the same place.
+        expect(movedTo[0]).closeTo(1.7, 1e-12);
+        expect(movedTo[1]).closeTo(2.32175, 1e-12);
+        expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
+        expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
+    });
+
+    it("a dragged point attracted to a function survives a reload", async () => {
+        // `attractTo` reaches the same nearest-point code by a different route,
+        // and unlike `constrainTo` it leaves the point where it was dragged.
+        const { movedTo, reloadedTo } = await dragThenReload(`
+<graph>
+  <function name="f">-0.25*x^3+1.5*x+1</function>
+  <point name="P"><attractTo>$f</attractTo></point>
+</graph>
+`);
+
+        // The drag is pinned to a literal as well as compared with the reload:
+        // `set` also runs on the ordinary drag path, so a hook that mangled the
+        // position on both paths alike would satisfy the comparison on its own.
+        expect(movedTo[0]).closeTo(1.7, 1e-12);
+        expect(movedTo[1]).closeTo(0.4, 1e-12);
+        expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
+        expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
+    });
+
+    it("a dragged endpoint constrained to a function survives a reload", async () => {
+        // `<endpoint>` extends `<point>`, so it inherits both the essential
+        // location variable and the fix.
+        const doenetML = `
+<graph>
+  <function name="f">-0.25*x^3+1.5*x+1</function>
+  <lineSegment name="ls">
+    <endpoint name="e1"><constrainTo>$f</constrainTo></endpoint>
+    <endpoint name="e2">(2,0)</endpoint>
+  </lineSegment>
+</graph>
+`;
+        const first = await createTestCore({ doenetML });
+        const e1 = await first.resolvePathToNodeIdx("e1");
+        await movePoint({ componentIdx: e1, x: 1.7, y: 0.4, core: first.core });
+        await first.core.saveImmediately();
+
+        const second = await createTestCore({
+            doenetML,
+            initialState: first.scoreState.state as string,
+        });
+        const reloaded = (
+            await second.core.returnAllStateVariables(false, true)
+        )[await second.resolvePathToNodeIdx("e1")].stateValues.xs.map(
+            (x: any) => x.evaluate_to_constant(),
+        );
+
+        expect(reloaded[0]).closeTo(1.7, 1e-12);
+        expect(reloaded[1]).closeTo(2.32175, 1e-12);
+    });
+
+    it("a dragged equilibriumPoint constrained to a function survives a reload", async () => {
+        // The other component that extends `<point>` and so reaches the same
+        // essential location variable. It is checked separately from
+        // `<endpoint>` because an author writes it on its own, not as part of
+        // another component.
+        const { movedTo, reloadedTo } = await dragThenReload(`
+<graph>
+  <function name="f">-0.25*x^3+1.5*x+1</function>
+  <equilibriumPoint name="P"><constrainTo>$f</constrainTo></equilibriumPoint>
+</graph>
+`);
+
+        expect(movedTo[0]).closeTo(1.7, 1e-12);
+        expect(movedTo[1]).closeTo(2.32175, 1e-12);
+        expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
+        expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
     });
 });

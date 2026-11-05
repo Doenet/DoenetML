@@ -67,17 +67,14 @@ color =
     .purple = violee
     .pink = roozu
     .brown = maroŋ
-
 line-width =
     .thick = beeri
     .thin = kayna
-
 # Written as «nda …» phrases rather than as bare qualifiers, so that they close
 # the description. `style-stroke` puts them last.
 line-style =
     .dashed = nda dumbu-dumbu
     .dotted = nda alaama-alaama
-
 fill-style =
     .horizontal = kar-yaŋ kaŋ ga kani
     .vertical = kar-yaŋ kaŋ ga kay
@@ -85,7 +82,6 @@ fill-style =
     .backdiagonal = kar-yaŋ kaŋ ga daŋ banda kambu fo ra
     .dots = alaama-yaŋ
     .diamonds = diyaman-yaŋ
-
 noun =
     .line = kar
     .line-segment = kar dumbu
@@ -105,7 +101,6 @@ noun =
     .diamond = diyaman
     .cross = gurumey
     .plus = tontoni alaama
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words, so it goes in the tail.
 noun-regular-polygon =
@@ -113,12 +108,10 @@ noun-regular-polygon =
         [tail] kaŋ gonda kambu { $numSides }
        *[head] poligon saawa
     }
-
 # Zarma has no noun class and no gender, so every noun answers the same and the
 # answer goes unused — the shape `locales/en`, `locales/men` and `locales/pcm`
 # have.
 noun-gender = afo
-
 
 ## Style composition
 
@@ -134,21 +127,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = toonante
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } nda { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } nda { $pattern }
@@ -156,7 +145,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } nda { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «hirri» is the border and leads its own describing words. Zarma has no
 # article and joins this clause with the invariable «nda», so all four branches
 # read alike.
@@ -167,35 +155,28 @@ style-border-clause =
         [and-article] nda hirri { $border }
        *[with] nda hirri { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = mana too
-
 style-text =
     { $parts ->
         [background] { $color } nda banda { $background }
        *[plain] { $color }
     }
-
 style-background-none = hay kulu si
-
 
 ## Boolean words
 
 boolean-true = cimi
 boolean-false = tangari
 
-
 ## Answer buttons
 
 answer-submit-label = Guna Goyo
 answer-submit-label-no-correctness = Samba Tuuruyaŋ
-
 
 ## Sectional blocks
 
@@ -220,7 +201,6 @@ section-name =
     .solution = Feeriji
     .task = Goy
     .theorem = Teorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -230,9 +210,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Faada
-
 
 ## Tables and figures
 
@@ -243,7 +221,6 @@ table-name =
         [unnumbered-title] Tablo{ ": " }
        *[unnumbered] Tablo
     }
-
 figure-name =
     { $parts ->
         [numbered] Biiyaŋ { $enumeration }
@@ -252,25 +229,18 @@ figure-name =
        *[unnumbered] Biiyaŋ
     }
 
-
 ## Paginator controls
 
 paginator-previous = Kaŋ bisa
 paginator-next = Kaŋ ga kaa
-
 paginator-page = Moo
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = wala
-
 piecewise-condition-if = da
-
 piecewise-condition-otherwise = hari fo kulu ra
-
 
 ## Chemistry
 ##
@@ -283,6 +253,5 @@ piecewise-condition-otherwise = hari fo kulu ra
 ## ministry, and `locales/kg`, `locales/fon` and `locales/kbp` from theirs.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simi Alaama Kaŋ Si Boori
 chemistry-invalid-ionic-compound = Iyon Margayaŋ Kaŋ Si Boori

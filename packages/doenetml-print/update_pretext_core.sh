@@ -6,7 +6,14 @@ DEST_DIR="$SCRIPT_DIR/pretext_core"
 TMP_ROOT="$SCRIPT_DIR/tmp"
 TMP_DIR=""
 SUBDIRECTORIES=("pretext" "xsl" "css")
-EXTRA_FILES=("COPYING")
+# `copy_html_js` copies the Material Symbols icon font into every HTML build; the rest
+# of fonts/ is for PDF and LaTeX output.
+EXTRA_FILES=(
+    "COPYING"
+    "fonts/material-symbols-outlined.css"
+    "fonts/material-symbols-outlined.woff2"
+    "fonts/LICENSE-MaterialSymbols.txt"
+)
 DOWNLOADED_BRANCH=""
 CURRENT_COMMIT=""
 
@@ -81,6 +88,7 @@ for file in "${EXTRA_FILES[@]}"; do
         exit 1
     fi
 
+    mkdir -p "$(dirname "$DEST_DIR/$file")"
     cp -f "$extracted_file" "$DEST_DIR/$file"
 done
 

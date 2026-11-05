@@ -26,6 +26,22 @@ const LAZY_LOCALES = SUPPORTED_LOCALES.map((info) => info.locale)
     .sort();
 
 /**
+ * The one code-split catalog the two tests below actually load.
+ *
+ * Named rather than taken off the front of {@link LAZY_LOCALES}, because that
+ * front moves: it is whichever tag sorts first, so seeding a language earlier
+ * in the alphabet silently changes which catalog these tests read — `ace` was
+ * the subject until `ab` arrived, with nothing in either diff to say so. A
+ * named one keeps the subject where a reader can see it, and turns a catalog
+ * that has stopped shipping all four namespaces into a failure that names the
+ * catalog rather than one that names the registry.
+ *
+ * Spanish because it is the reference translation elsewhere in this package
+ * and is complete. The assertion below is what keeps the name honest.
+ */
+const LAZY_LOCALE = "es";
+
+/**
  * A loader map standing in for the shipped one, returning marker text rather
  * than a real catalog, so the negotiation and caching rules can be tested
  * without depending on which translations happen to exist or what they say.
@@ -59,14 +75,14 @@ describe("the lazy loader registry", () => {
         // Both lists being empty would satisfy the equality above and leave
         // the two tests below with no locale to reach for. Every translation
         // is code-split today; one is enough for any of this to mean
-        // something.
-        expect(LAZY_LOCALES.length).toBeGreaterThan(0);
+        // something — and it has to be the one they name.
+        expect(LAZY_LOCALES).toContain(LAZY_LOCALE);
     });
 
     describe("a code-split locale", () => {
         it("loads a catalog per namespace, each with something in it", async () => {
             const catalogs =
-                await LAZY_LOCALE_LOADERS[LAZY_LOCALES[0]](CATALOG_NAMESPACES);
+                await LAZY_LOCALE_LOADERS[LAZY_LOCALE](CATALOG_NAMESPACES);
             expect(Object.keys(catalogs).sort()).toEqual(
                 [...CATALOG_NAMESPACES].sort(),
             );
@@ -77,7 +93,7 @@ describe("the lazy loader registry", () => {
 
         it("loads only the namespaces the asking context renders", async () => {
             const catalogs =
-                await LAZY_LOCALE_LOADERS[LAZY_LOCALES[0]](WORKER_NAMESPACES);
+                await LAZY_LOCALE_LOADERS[LAZY_LOCALE](WORKER_NAMESPACES);
             expect(Object.keys(catalogs)).toEqual(["content"]);
         });
     });

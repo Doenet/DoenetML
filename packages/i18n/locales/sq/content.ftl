@@ -92,7 +92,6 @@ color =
     .purple = vjollcë
     .pink = rozë
     .brown = kafe
-
 line-width =
     .thick =
         { $role ->
@@ -116,7 +115,6 @@ line-width =
                    *[m] i hollë
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -140,7 +138,6 @@ line-style =
                    *[m] i pikëzuar
                 }
         }
-
 # Bare plural noun phrases. The «me» that governs them is written where they
 # are placed, since the same words follow it in both messages that use them.
 fill-style =
@@ -150,7 +147,6 @@ fill-style =
     .backdiagonal = vija diagonale të kundërta
     .dots = pika
     .diamonds = rombe
-
 noun =
     .line = drejtëz
     .line-segment = segment
@@ -170,7 +166,6 @@ noun =
     .diamond = romb
     .cross = kryq
     .plus = plus
-
 # Albanian counts the sides after the noun, but so does everything else that
 # describes it, so the count can stay inside the head and there is no tail.
 noun-regular-polygon =
@@ -178,7 +173,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] shumëkëndësh i rregullt me { $numSides } brinjë
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (shumëkëndësh, m)
 # or the head of a phrase the description never names: `border` (kufi, m),
 # `fill` (mbushje, f), `text` (tekst, m), `background` (sfond, m).
@@ -195,7 +189,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -208,14 +201,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun comes first in Albanian, so this is the English order reversed.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $nounTail } { $description }
        *[noun] { $noun } { $description }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -223,13 +214,11 @@ style-filled-word =
         [f] e mbushur
        *[m] i mbushur
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } me { $pattern }
        *[plain] { $filled } { $color }
     }
-
 # The noun leads and every describing word follows it, so the shape's name sits
 # in front of `{ $filled }` rather than after it.
 style-filled-with-noun =
@@ -239,7 +228,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } me { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «kufi» is masculine, and behind «me» its describing words take the accusative
 # article «të» whatever gender the shape they surround is. Albanian has no
 # indefinite article, so the two `-article` branches read like the two without.
@@ -250,7 +238,6 @@ style-border-clause =
         [and-article] dhe kufi { $border }
        *[with] me kufi { $border }
     }
-
 # Supplies «mbushje» — feminine, which is the gender `noun-gender` already
 # answers for `fill` — for the colour to agree with, and leads with it.
 style-fill =
@@ -258,29 +245,23 @@ style-fill =
         [pattern] mbushje { $color } me { $pattern }
        *[plain] mbushje { $color }
     }
-
 style-unfilled = i pambushur
-
 style-text =
     { $parts ->
         [background] { $color } me sfond { $background }
        *[plain] { $color }
     }
-
 style-background-none = asnjë
-
 
 ## Boolean words
 
 boolean-true = e vërtetë
 boolean-false = e rreme
 
-
 ## Answer buttons
 
 answer-submit-label = Kontrollo
 answer-submit-label-no-correctness = Dërgo përgjigjen
-
 
 ## Sectional blocks
 
@@ -305,7 +286,6 @@ section-name =
     .solution = Zgjidhje
     .task = Detyrë
     .theorem = Teoremë
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -315,9 +295,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ndihmesë
-
 
 ## Tables and figures
 
@@ -328,7 +306,6 @@ table-name =
         [unnumbered-title] Tabela{ ": " }
        *[unnumbered] Tabela
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -337,22 +314,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = E mëparshmja
 paginator-next = Tjetra
 paginator-page = Faqja
-
 paginator-page-status = { $pageLabel } { $currentPage } nga { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ose
 piecewise-condition-if = nëse
 piecewise-condition-otherwise = përndryshe
-
 
 ## Chemistry
 
@@ -475,7 +448,6 @@ element-name =
     .lv = Livermorium
     .ts = Tenesin
     .og = Oganeson
-
 element-anion-name =
     .h = Hidrur
     .c = Karbur
@@ -489,8 +461,6 @@ element-anion-name =
     .i = Jodur
     .at = Astatur
     .ts = Tenesur
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol kimik i pavlefshëm
 chemistry-invalid-ionic-compound = Përbërje jonike e pavlefshme

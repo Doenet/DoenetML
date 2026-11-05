@@ -44,17 +44,14 @@ color =
     .purple = beredum
     .pink = pinki
     .brown = dɔteɛ
-
 line-width =
     .thick = kɛseɛ
     .thin = ketewa
-
 # Written as «a ɛwɔ …» relative phrases rather than as adjectives, so that they
 # can close the description. `style-stroke` puts them last for that reason.
 line-style =
     .dashed = a ɛwɔ ntwaa
     .dotted = a ɛwɔ nsɛnkyerɛnne
-
 fill-style =
     .horizontal = nsensanee a ɛdeda hɔ
     .vertical = nsensanee a ɛgyina
@@ -62,7 +59,6 @@ fill-style =
     .backdiagonal = nsensanee a ɛkyea kɔ akyire
     .dots = nsɛnkyerɛnne
     .diamonds = daemɔn
-
 noun =
     .line = nsensanee
     .line-segment = nsensanee fã
@@ -82,7 +78,6 @@ noun =
     .diamond = daemɔn
     .cross = mmeamudua
     .plus = kabom sɛnkyerɛnne
-
 # The side count follows the adjectives, behind «a ɛwɔ», because Twi closes a
 # noun phrase with a relative rather than opening one: «ahinapii pɛpɛɛpɛ kɔkɔɔ
 # a ɛwɔ ahina 5».
@@ -91,9 +86,7 @@ noun-regular-polygon =
         [tail] a ɛwɔ ahina { $numSides }
        *[head] ahinapii pɛpɛɛpɛ
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -107,21 +100,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = a wɔahyɛ mu ma
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } a ɛwɔ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } a ɛwɔ { $pattern }
@@ -129,7 +118,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } a ɛwɔ { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Twi has no article and joins the complement with the invariable «a ɛwɔ», so
 # all four branches read alike.
 style-border-clause =
@@ -139,35 +127,28 @@ style-border-clause =
         [and-article] a ɛwɔ ano { $border }
        *[with] a ɛwɔ ano { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = a wɔnhyɛɛ mu ma
-
 style-text =
     { $parts ->
         [background] { $color } wɔ akyire { $background } so
        *[plain] { $color }
     }
-
 style-background-none = biara nni hɔ
-
 
 ## Boolean words
 
 boolean-true = nokware
 boolean-false = atorɔ
 
-
 ## Answer buttons
 
 answer-submit-label = Hwɛ Adwuma No
 answer-submit-label-no-correctness = Fa Mmuaeɛ No Kɔ
-
 
 ## Sectional blocks
 
@@ -192,7 +173,6 @@ section-name =
     .solution = Nsɛmmuaeɛ
     .task = Adwuma
     .theorem = Teɔrɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -202,9 +182,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Akwankyerɛ
-
 
 ## Tables and figures
 
@@ -215,7 +193,6 @@ table-name =
         [unnumbered-title] Tabo{ ": " }
        *[unnumbered] Tabo
     }
-
 figure-name =
     { $parts ->
         [numbered] Mfoni { $enumeration }
@@ -224,22 +201,18 @@ figure-name =
        *[unnumbered] Mfoni
     }
 
-
 ## Paginator controls
 
 paginator-previous = Deɛ ɛdi kan
 paginator-next = Deɛ ɛdi soɔ
 paginator-page = Kratafa
-
 paginator-page-status = { $pageLabel } { $currentPage } wɔ { $numPages } mu
-
 
 ## Piecewise functions
 
 piecewise-condition-or = anaasɛ
 piecewise-condition-if = sɛ
 piecewise-condition-otherwise = sɛ ɛnte saa a
-
 
 ## Chemistry
 
@@ -249,6 +222,5 @@ piecewise-condition-otherwise = sɛ ɛnte saa a
 # English already, and the seed has no settled Twi list to reproduce. A speaker
 # adding one should add it here.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kemikal Sɛnkyerɛnne A Ɛnteɛ
 chemistry-invalid-ionic-compound = Ayɔn Nkabom A Ɛnteɛ

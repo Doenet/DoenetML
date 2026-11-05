@@ -32,15 +32,12 @@ color =
     .purple = ወይን ጠጅ
     .pink = ሮዝ
     .brown = ቡናማ
-
 line-width =
     .thick = ወፍራም
     .thin = ቀጭን
-
 line-style =
     .dashed = ሰረዝ ያለው
     .dotted = ነጥብ ያለው
-
 # Noun phrases: they come in front of «ያለው» and agree with nothing.
 fill-style =
     .horizontal = አግድም መስመሮች
@@ -49,7 +46,6 @@ fill-style =
     .backdiagonal = ተቃራኒ ሰያፍ መስመሮች
     .dots = ነጥቦች
     .diamonds = አልማዞች
-
 noun =
     .line = መስመር
     .line-segment = የመስመር ክፍል
@@ -69,7 +65,6 @@ noun =
     .diamond = አልማዝ
     .cross = መስቀል
     .plus = የመደመር ምልክት
-
 # Amharic keeps the side count in front of the noun, so the whole thing is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -77,11 +72,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } ጎን ያለው ወጥ ብዙ ጎን
     }
-
 # Amharic's adjectives here do not vary by gender, so every noun answers the
 # same and the answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -95,21 +88,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = የተሞላ
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } ያለው { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } ያለው { $color } { $filled } { $noun }
@@ -117,7 +106,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } ያለው { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «ያለው» carries the "with a … border" sense itself, so Amharic needs no
 # article and the `-article` branches read the same as the ones without.
 style-border-clause =
@@ -127,35 +115,28 @@ style-border-clause =
         [and-article] እና { $border } ጠርዝ ያለው
        *[with] { $border } ጠርዝ ያለው
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ያልተሞላ
-
 style-text =
     { $parts ->
         [background] { $color } በ{ $background } ዳራ ላይ
        *[plain] { $color }
     }
-
 style-background-none = የለም
-
 
 ## Boolean words
 
 boolean-true = እውነት
 boolean-false = ሐሰት
 
-
 ## Answer buttons
 
 answer-submit-label = አረጋግጥ
 answer-submit-label-no-correctness = መልስ ላክ
-
 
 ## Sectional blocks
 
@@ -180,7 +161,6 @@ section-name =
     .solution = መፍትሔ
     .task = ተግባር
     .theorem = ሒሳባዊ ሕግ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -190,9 +170,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ፍንጭ
-
 
 ## Tables and figures
 
@@ -203,7 +181,6 @@ table-name =
         [unnumbered-title] ሠንጠረዥ{ ": " }
        *[unnumbered] ሠንጠረዥ
     }
-
 figure-name =
     { $parts ->
         [numbered] ሥዕል { $enumeration }
@@ -212,15 +189,12 @@ figure-name =
        *[unnumbered] ሥዕል
     }
 
-
 ## Paginator controls
 
 paginator-previous = ቀዳሚ
 paginator-next = ቀጣይ
 paginator-page = ገጽ
-
 paginator-page-status = { $pageLabel } { $currentPage } ከ{ $numPages }
-
 
 ## Piecewise functions
 
@@ -228,8 +202,8 @@ piecewise-condition-or = ወይም
 piecewise-condition-if = ከሆነ
 piecewise-condition-otherwise = ካልሆነ
 
-
 ## Chemistry
+
 
 # `element-name` and `element-anion-name` are deliberately omitted, and those
 # 130 keys fall back to English.
@@ -242,6 +216,5 @@ piecewise-condition-otherwise = ካልሆነ
 # This is the same choice Somali and Hmong Njua make, and for the same reason.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ልክ ያልሆነ የኬሚካል ምልክት
 chemistry-invalid-ionic-compound = ልክ ያልሆነ አዮኒክ ውህድ

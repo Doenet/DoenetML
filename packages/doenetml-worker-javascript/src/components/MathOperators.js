@@ -3,6 +3,13 @@ import MathBaseOperator from "./abstract/MathBaseOperator";
 import MathBaseOperatorOneInput from "./abstract/MathBaseOperatorOneInput";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { isNumericConstant } from "../utils/math";
+import {
+    absInverse,
+    absValue,
+    roundInverse,
+    roundValue,
+} from "../utils/valueFunctions/mathOperators";
 const { mod, median } = me.math;
 
 export class Sum extends MathBaseOperator {
@@ -164,6 +171,19 @@ function clamp({ value, lowerValue, upperValue }) {
     let numericValue = value;
     if (numericValue instanceof me.class) {
         numericValue = numericValue.evaluate_to_constant();
+    }
+    // There is nothing to clamp when the input has no numeric value — a free
+    // variable, a blank, a complex value — so the result is not a number. This
+    // is why `null` was the wrong marker for the engine to use: with it,
+    // `Math.max(lower, Math.min(upper, null))` was the lower bound when that
+    // was positive and **0** when it was negative, either way a real-looking
+    // answer for an input that has none.
+    //
+    // `±Infinity` is *not* in that class and must reach the clamp: bounding an
+    // unbounded value at the bound is exactly what a clamp is for, which is why
+    // the test is `isNumericConstant` and not `Number.isFinite`.
+    if (!isNumericConstant(numericValue)) {
+        return me.fromAst(NaN);
     }
     return me.fromAst(Math.max(lowerValue, Math.min(upperValue, numericValue)));
 }
@@ -330,23 +350,11 @@ export class Round extends MathBaseOperatorOneInput {
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
-                    mathOperator: function (value) {
-                        // first convert all numbers and constants (such as pi) to floating point numbers
-                        let valueWithNumbers = value.evaluate_numbers({
-                            max_digits: Infinity,
-                            evaluate_functions: true,
-                        });
-
-                        if (dependencyValues.numDigits !== null) {
-                            return valueWithNumbers.round_numbers_to_precision(
-                                dependencyValues.numDigits,
-                            );
-                        } else {
-                            return valueWithNumbers.round_numbers_to_decimals(
-                                dependencyValues.numDecimals,
-                            );
-                        }
-                    },
+                    mathOperator: (value) =>
+                        roundValue(value, {
+                            numDecimals: dependencyValues.numDecimals,
+                            numDigits: dependencyValues.numDigits,
+                        }),
                 },
             }),
         };
@@ -355,7 +363,7 @@ export class Round extends MathBaseOperatorOneInput {
             returnDependencies: () => ({}),
             definition: () => ({
                 setValue: {
-                    inverseMathOperator: (value) => value,
+                    inverseMathOperator: roundInverse,
                 },
             }),
         };
@@ -590,18 +598,7 @@ export class Abs extends MathBaseOperatorOneInput {
             returnDependencies: () => ({}),
             definition: () => ({
                 setValue: {
-                    mathOperator: function (value) {
-                        // TODO: is this the right behavior?
-                        // or should <abs>log(5)</abs> yield |log(5)|?
-                        let numericValue = value.evaluate_to_constant();
-
-                        // if don't have a number, just return symbolic absolute value
-                        if (!Number.isFinite(numericValue)) {
-                            return me.fromAst(["apply", "abs", value.tree]);
-                        }
-
-                        return me.fromAst(Math.abs(numericValue));
-                    },
+                    mathOperator: absValue,
                 },
             }),
         };
@@ -610,22 +607,7 @@ export class Abs extends MathBaseOperatorOneInput {
             returnDependencies: () => ({}),
             definition: () => ({
                 setValue: {
-                    inverseMathOperator: function (value) {
-                        let desiredValue = value;
-                        let valueNumeric = value.evaluate_to_constant();
-                        if (Number.isFinite(valueNumeric)) {
-                            if (valueNumeric < 0) {
-                                desiredValue = me.fromAst(0);
-                            }
-                        } else if (
-                            Array.isArray(value.tree) &&
-                            value.tree[0] === "apply" &&
-                            value.tree[1] === "abs"
-                        ) {
-                            desiredValue = me.fromAst(value.tree[2]);
-                        }
-                        return desiredValue;
-                    },
+                    inverseMathOperator: absInverse,
                 },
             }),
         };

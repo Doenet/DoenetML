@@ -2,6 +2,7 @@ import me from "math-expressions";
 
 import { EmptySet, RealLine } from "../math/subset-of-reals";
 import { buildSubsetFromMathExpression } from "../math/subset-of-reals-operations";
+import { isNumericConstant } from "../math/mathexpressions";
 
 interface DomainResult {
     minx: number;
@@ -38,25 +39,36 @@ export function find_effective_domain({
     let openMin = true,
         openMax = true;
 
-    if (domain !== null) {
-        let domain1 = domain[0];
-        if (domain1 !== undefined) {
-            minx = me
-                .fromAst(domain1.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (!Number.isFinite(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !domain1.tree[2][1];
-            }
-            maxx = me
-                .fromAst(domain1.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (!Number.isFinite(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !domain1.tree[2][2];
-            }
+    // Read and tested exactly as `find_effective_domains_piecewise_children`
+    // below reads and tests it, so the two entry points cannot disagree about
+    // what "no domain" is. They used to: this one threw on a `domain` of
+    // `undefined` and on a `domain[0]` of `null`, where that one returns the
+    // unbounded default for both. No caller passes either today — every call
+    // site in `function.ts` defaults the parameter to `null`, and the array
+    // itself only ever holds an interval or a hole — but a crash is the wrong
+    // answer to "no domain" whichever way it arrives.
+    const domain1 = domain?.[0];
+    if (domain1) {
+        // `isNumericConstant`, not `Number.isFinite`: an endpoint that
+        // *evaluates to* ±∞ is a real endpoint and is kept as written,
+        // where one that cannot be evaluated at all — `null` from the
+        // engine, or NaN — falls back to the unbounded side. The two
+        // differ only for a literally infinite endpoint, and only in
+        // `truncateToFiniteDomain` mode, since the normalization below
+        // forces `openMin`/`openMax` false at ±∞ otherwise. This is also
+        // exactly the test the nine copies of this block in `function.ts`
+        // used before they were replaced by calls to this function.
+        minx = me.fromAst(domain1.tree[1][1]).evaluate_to_constant() as number;
+        if (!isNumericConstant(minx)) {
+            minx = -Infinity;
+        } else {
+            openMin = !domain1.tree[2][1];
+        }
+        maxx = me.fromAst(domain1.tree[1][2]).evaluate_to_constant() as number;
+        if (!isNumericConstant(maxx)) {
+            maxx = Infinity;
+        } else {
+            openMax = !domain1.tree[2][2];
         }
     }
 
@@ -94,14 +106,32 @@ export function find_effective_domains_piecewise_children({
 }): any[] {
     let domainUnused;
 
-    if (domain) {
-        let domainMin = me.fromAst(domain[0].tree[1][1]).evaluate_to_constant();
-        let domainMax = me.fromAst(domain[0].tree[1][2]).evaluate_to_constant();
+    // As in `find_effective_domain`, the array may be present but say nothing:
+    // a `<function>`'s `domain` is an array state variable of one interval per
+    // input, and a child that reports no domain at all leaves every entry
+    // empty. The array is still truthy, so `domain[0]` has to be tested in its
+    // own right — a piecewise function whose pieces have symbolic domains
+    // reports `domain: null`, and the `<function>` wrapping it (which is what a
+    // field's sugar builds around `$g`) turned that into `[undefined,
+    // undefined]` and threw here, taking the whole document down.
+    const domain1 = domain?.[0];
 
-        if (Number.isNaN(domainMin) || Number.isNaN(domainMax)) {
+    if (domain1) {
+        let domainMin = me.fromAst(domain1.tree[1][1]).evaluate_to_constant();
+        let domainMax = me.fromAst(domain1.tree[1][2]).evaluate_to_constant();
+
+        // `isNumericConstant`, not `Number.isNaN`: the engine briefly
+        // reported an endpoint it cannot evaluate — a symbolic one — as
+        // `null`, where legacy reported `NaN`. `Number.isNaN(null)` is
+        // `false`, so a symbolic endpoint stopped falling back to the real
+        // line and was handed to `buildSubsetFromMathExpression` instead. The
+        // engine answers `NaN` again; the helper stays because it also rejects
+        // the `Complex` arm. `±Infinity` still passes: an unbounded domain is
+        // a real interval.
+        if (!isNumericConstant(domainMin) || !isNumericConstant(domainMax)) {
             domainUnused = RealLine();
         } else {
-            domainUnused = buildSubsetFromMathExpression(domain[0]);
+            domainUnused = buildSubsetFromMathExpression(domain1);
         }
     } else {
         domainUnused = RealLine();

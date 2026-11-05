@@ -3,41 +3,49 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import {
-    WASM_CORE_SCRIPT,
+    WASM_CORE_FILE,
     catalogsInScript,
     collectCatalogProbes,
-    countBigBlobs,
+    coreWasmProblems,
+    countInlinedBinaries,
     findProblems,
     loadBudgets,
     servedCatalogProblems,
 } from "./check-bundle-size.mjs";
 
 const STANDALONE = "dist/doenet-standalone.js";
+const WORKER_SCRIPT = "dist/doenetml-worker/index.js";
 
 /** Budgets in the shape `loadBudgets` returns: `[relativePath, budget]` pairs. */
 const BUDGETS = [
     [STANDALONE, { maxBytes: 1000 }],
-    [WASM_CORE_SCRIPT, { maxBytes: 1000 }],
+    [WORKER_SCRIPT, { maxBytes: 1000 }],
 ];
 
 /**
- * One emitted script. `blobs` is the count of inlined wasm copies it holds,
- * `catalogs` the locales whose served catalog turned up inside it.
+ * One emitted script. `blobs` is the count of inlined DoenetML-core copies it
+ * holds, `catalogs` the locales whose served catalog turned up inside it.
  */
-function script(size, blobs = 0, catalogs = []) {
+function script(size, blobs = 0, catalogs = [], mathCores = 0, otherBlobs = 0) {
     return {
         size,
         wasmUris: blobs,
-        bigBlobs: blobs,
+        // The three buckets `countInlinedBinaries` sorts a big blob into, and
+        // their total. Built the way it builds them, so a test cannot describe
+        // a script the scanner could never emit.
+        doenetCores: blobs,
+        mathCores,
+        otherBlobs,
+        bigBlobs: blobs + mathCores + otherBlobs,
         inlinedCatalogs: catalogs,
     };
 }
 
-/** A healthy build: the core inlined once, in the worker, both within budget. */
+/** A healthy build: no script carries an inlined binary, both within budget. */
 function healthyBuild() {
     return new Map([
         [STANDALONE, script(500)],
-        [WASM_CORE_SCRIPT, script(900, 1)],
+        [WORKER_SCRIPT, script(900)],
     ]);
 }
 
@@ -45,23 +53,84 @@ function problemsFor(scripts, budgets = BUDGETS) {
     return findProblems(budgets, scripts).problems;
 }
 
-describe("countBigBlobs", () => {
-    it("ignores base64 runs below the threshold", () => {
-        expect(countBigBlobs("a".repeat(999_999))).toBe(0);
+describe("countInlinedBinaries", () => {
+    /** Not wasm: no magic number, so this is the "unexplained" bucket. */
+    const blob = "a".repeat(1_000_000);
+    /** A bare wasm payload: base64 of `\0asm…`, as `wasm-bytes.ts` emits it. */
+    const wasmBlob = "AGFzbQ" + "a".repeat(1_000_000);
+
+    it("attributes a data-URI payload to the DoenetML core", () => {
+        const text = `x="data:application/wasm;base64,${blob}"`;
+        expect(countInlinedBinaries(text)).toEqual({
+            wasmUriBlobs: 1,
+            bareWasmBlobs: 0,
+            otherBlobs: 0,
+        });
     });
 
-    it("counts a run that reaches the threshold, including at end of input", () => {
-        expect(countBigBlobs("a".repeat(1_000_000))).toBe(1);
-        expect(countBigBlobs(`"${"a".repeat(1_000_000)}"`)).toBe(1);
+    // The regression this classification exists for. Sorting "no data-URI
+    // prefix" straight into the math core made every inlined font, image and
+    // bundled worker look like the one blob that is legal in a script, so the
+    // unexplained-inline check could never fire.
+    it("does not mistake a large non-wasm blob for the math core", () => {
+        expect(countInlinedBinaries(`const FONT="${blob}"`)).toEqual({
+            wasmUriBlobs: 0,
+            bareWasmBlobs: 0,
+            otherBlobs: 1,
+        });
+    });
+
+    it("separates all three when they are present together", () => {
+        const text =
+            `a="data:application/wasm;base64,${blob}",` +
+            `b="${wasmBlob}",c="${blob}"`;
+        expect(countInlinedBinaries(text)).toEqual({
+            wasmUriBlobs: 1,
+            bareWasmBlobs: 1,
+            otherBlobs: 1,
+        });
+    });
+
+    // The magic only identifies a payload that starts the run. A data URI puts
+    // it after the prefix, which the first branch already claims.
+    it("does not read the magic out of the middle of a run", () => {
+        expect(countInlinedBinaries(`x="aa${wasmBlob}"`)).toEqual({
+            wasmUriBlobs: 0,
+            bareWasmBlobs: 0,
+            otherBlobs: 1,
+        });
+    });
+
+    it("ignores runs below the threshold", () => {
+        expect(countInlinedBinaries("a".repeat(999_999))).toEqual({
+            wasmUriBlobs: 0,
+            bareWasmBlobs: 0,
+            otherBlobs: 0,
+        });
+    });
+
+    it("counts a run that reaches the threshold at end of input", () => {
+        expect(countInlinedBinaries("a".repeat(1_000_000))).toEqual({
+            wasmUriBlobs: 0,
+            bareWasmBlobs: 0,
+            otherBlobs: 1,
+        });
     });
 
     it("counts each run separately, since a quote breaks the run", () => {
-        const blob = "a".repeat(1_000_000);
-        expect(countBigBlobs(`"${blob}","${blob}"`)).toBe(2);
+        expect(countInlinedBinaries(`"${wasmBlob}","${wasmBlob}"`)).toEqual({
+            wasmUriBlobs: 0,
+            bareWasmBlobs: 2,
+            otherBlobs: 0,
+        });
     });
 
     it("does not treat non-base64 characters as part of a run", () => {
-        expect(countBigBlobs("-".repeat(2_000_000))).toBe(0);
+        expect(countInlinedBinaries("-".repeat(2_000_000))).toEqual({
+            wasmUriBlobs: 0,
+            bareWasmBlobs: 0,
+            otherBlobs: 0,
+        });
     });
 });
 
@@ -78,7 +147,7 @@ describe("findProblems", () => {
         ]);
     });
 
-    it("tells you to build when a budgeted file is missing, without blaming the core", () => {
+    it("tells you to build when a budgeted file is missing", () => {
         const problems = problemsFor(new Map());
         expect(problems).toHaveLength(2);
         for (const problem of problems) {
@@ -86,11 +155,23 @@ describe("findProblems", () => {
         }
     });
 
-    it("rejects a second copy of the core in the standalone bundle", () => {
+    it("rejects a copy of the core inlined into the standalone bundle", () => {
         const scripts = healthyBuild();
         scripts.set(STANDALONE, script(500, 1));
         expect(problemsFor(scripts)).toEqual([
-            expect.stringContaining("should carry no inlined binary"),
+            expect.stringContaining(
+                "should carry no copy of the Rust document core",
+            ),
+        ]);
+    });
+
+    it("rejects a copy of the core inlined back into the worker script", () => {
+        const scripts = healthyBuild();
+        scripts.set(WORKER_SCRIPT, script(900, 1));
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining(
+                "should carry no copy of the Rust document core",
+            ),
         ]);
     });
 
@@ -102,69 +183,14 @@ describe("findProblems", () => {
         ]);
     });
 
-    it("rejects the core moving out of the worker, not just being duplicated", () => {
+    // An inline that is neither core — a data-URI font, an image, a bundled
+    // worker. Banned in every script, and reported on its own terms rather
+    // than as a stray copy of a core.
+    it("rejects a large inlined blob that is neither core", () => {
         const scripts = healthyBuild();
-        scripts.set(STANDALONE, script(500, 1));
-        scripts.set(WASM_CORE_SCRIPT, script(900, 0));
-        expect(problemsFor(scripts)).toEqual(
-            expect.arrayContaining([
-                expect.stringContaining(
-                    "should carry the Rust core exactly once",
-                ),
-                expect.stringContaining("should carry no inlined binary"),
-            ]),
-        );
-    });
-
-    it("rejects the core no longer being inlined at all", () => {
-        const scripts = healthyBuild();
-        scripts.set(WASM_CORE_SCRIPT, script(900, 0));
+        scripts.set(STANDALONE, script(500, 0, [], 0, 1));
         expect(problemsFor(scripts)).toEqual([
-            expect.stringContaining("should carry the Rust core exactly once"),
-        ]);
-    });
-
-    it("rejects the core-carrying script disappearing from a build that ran", () => {
-        const scripts = new Map([[STANDALONE, script(500)]]);
-        const problems = problemsFor(scripts, [
-            [STANDALONE, { maxBytes: 1000 }],
-        ]);
-        expect(problems).toEqual([
-            expect.stringContaining("nothing carries the Rust core"),
-        ]);
-    });
-
-    // The scenario a version bump could produce: the build ran, but the core
-    // landed under a name nobody budgeted. Saying "build the package" here
-    // would send the reader after a build they already have.
-    it("blames a moved core on the move, not on a missing build", () => {
-        const scripts = new Map([
-            [STANDALONE, script(500)],
-            ["dist/doenetml-worker/index.mjs", script(900, 1)],
-        ]);
-        const problems = problemsFor(scripts);
-        expect(problems).toEqual(
-            expect.arrayContaining([
-                expect.stringContaining("nothing carries the Rust core"),
-                expect.stringContaining("dist/doenetml-worker/index.mjs"),
-            ]),
-        );
-        for (const problem of problems) {
-            expect(problem).not.toContain("build the package");
-        }
-    });
-
-    // Unlike every other case here, the two counts disagree — which is the
-    // only way to tell the `wasmUris || bigBlobs` check from an `&&`.
-    it("rejects a large inlined blob that is not wasm", () => {
-        const scripts = healthyBuild();
-        scripts.set(STANDALONE, {
-            ...script(500),
-            wasmUris: 0,
-            bigBlobs: 1,
-        });
-        expect(problemsFor(scripts)).toEqual([
-            expect.stringContaining("should carry no inlined binary"),
+            expect.stringContaining("neither"),
         ]);
     });
 
@@ -178,6 +204,39 @@ describe("findProblems", () => {
         ]);
     });
 
+    it("applies a `*` budget to each chunk whose hashed name matches it", () => {
+        const scripts = healthyBuild();
+        scripts.set("dist/chunks/index-DEADBEEF.js", script(500));
+        scripts.set("dist/chunks/index-CAFEF00D.js", script(1001));
+        const budgets = [
+            ...BUDGETS,
+            ["dist/chunks/index-*.js", { maxBytes: 1000 }],
+        ];
+        const { report, problems } = findProblems(budgets, scripts);
+        expect(problems).toEqual([
+            expect.stringContaining("dist/chunks/index-CAFEF00D.js is"),
+        ]);
+        // Both matches are reported under the budget, not as unbudgeted.
+        expect(report.join("\n")).toContain(
+            "dist/chunks/index-DEADBEEF.js\n      0.00 MiB of 0.00 MiB budget",
+        );
+    });
+
+    it("does not let a `*` cross a directory separator", () => {
+        const scripts = healthyBuild();
+        scripts.set("dist/chunks/deep/index-DEADBEEF.js", script(1001));
+        const budgets = [
+            ...BUDGETS,
+            ["dist/chunks/index-*.js", { maxBytes: 1000 }],
+        ];
+        const { problems } = findProblems(budgets, scripts);
+        // The nested chunk is unbudgeted, so nothing fails; the glob budget
+        // itself reports its key as missing.
+        expect(problems).toEqual([
+            expect.stringContaining("dist/chunks/index-*.js does not exist"),
+        ]);
+    });
+
     it("lists an unbudgeted chunk without failing on it", () => {
         const scripts = healthyBuild();
         scripts.set("dist/coordinator.js", script(11_000));
@@ -185,6 +244,29 @@ describe("findProblems", () => {
         expect(problems).toEqual([]);
         expect(report.join("\n")).toContain("dist/coordinator.js");
         expect(report.join("\n")).toContain("no budget");
+    });
+});
+
+describe("coreWasmProblems", () => {
+    it("accepts an emitted .wasm with the right magic bytes", () => {
+        expect(
+            coreWasmProblems({ size: 4_000_000, hasWasmMagic: true }),
+        ).toEqual([]);
+    });
+
+    it("rejects a missing .wasm", () => {
+        expect(coreWasmProblems(null)).toEqual([
+            expect.stringContaining(WASM_CORE_FILE),
+        ]);
+        expect(coreWasmProblems(null)).toEqual([
+            expect.stringContaining("was not emitted"),
+        ]);
+    });
+
+    it("rejects a file that is not WebAssembly", () => {
+        expect(coreWasmProblems({ size: 1234, hasWasmMagic: false })).toEqual([
+            expect.stringContaining("magic bytes"),
+        ]);
     });
 });
 
@@ -230,17 +312,18 @@ describe("loadBudgets", () => {
 describe("the committed bundle-budgets.json", () => {
     // Everything above runs against synthetic budgets. This is the one check
     // of the real file, and of the one way its contents can drift out of step
-    // with the script: `WASM_CORE_SCRIPT` and the budget keys are two records
-    // of the same path, so relocating the worker output means updating both.
-    // Updating only one does fail the check itself — as a budgeted file that
-    // does not exist, or as a wasm blob in an unexpected script — but only
-    // after a full build, and describing the symptom rather than the cause.
-    // This says it in a second, from the committed files alone.
-    it("puts a ceiling on the script that carries the core", () => {
+    // with the script: `WASM_CORE_FILE` and the budgeted worker script are
+    // two records of the same directory, so relocating the worker output
+    // means updating both. Updating only one does fail the check itself —
+    // as a budgeted file that does not exist, or as a missing core `.wasm`
+    // — but only after a full build, and describing the symptom rather than
+    // the cause. This says it in a second, from the committed files alone.
+    it("puts a ceiling on the worker script the core is served beside", () => {
         const budgets = loadBudgets();
-        expect(budgets.map(([relative]) => relative)).toContain(
-            WASM_CORE_SCRIPT,
-        );
+        const budgeted = budgets.map(([relative]) => relative);
+        expect(budgeted).toContain(WORKER_SCRIPT);
+        // ... and the two records of the worker directory agree.
+        expect(path.dirname(WASM_CORE_FILE)).toBe(path.dirname(WORKER_SCRIPT));
     });
 });
 
@@ -422,5 +505,39 @@ describe("servedCatalogProblems", () => {
         const problems = servedCatalogProblems(["en", "es"], null);
         expect(problems).toHaveLength(1);
         expect(problems[0]).toContain("dist/locales/ was not emitted");
+    });
+});
+
+describe("the math core's placement", () => {
+    it("accepts one copy in the standalone bundle, where the DoenetML core is banned", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, script(500, 0, [], 1));
+        expect(problemsFor(scripts)).toEqual([]);
+    });
+
+    it("accepts one copy in the worker script too", () => {
+        const scripts = healthyBuild();
+        scripts.set(WORKER_SCRIPT, script(900, 0, [], 1));
+        expect(problemsFor(scripts)).toEqual([]);
+    });
+
+    it("rejects a second copy — the duplication this guard exists to catch", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, script(500, 0, [], 2));
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining(
+                "carries 2 copies of the @doenet/math core",
+            ),
+        ]);
+    });
+
+    it("still rejects the DoenetML core leaking in, even beside a legal math core", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, script(500, 1, [], 1));
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining(
+                "should carry no copy of the Rust document core",
+            ),
+        ]);
     });
 });

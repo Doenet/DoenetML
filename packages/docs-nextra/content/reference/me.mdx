@@ -1,0 +1,122 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<me>{:dn}`
+
+<ComponentDisplay name='me'/>
+
+`<me>{:dn}` is a [Display Math](../concepts/essentialConcepts#component-types)
+component that renders the math expression centered within the page. 
+
+`<me>{:dn}` can be used with [`<men>{:dn}`](men.mdx) to number the equation, and can also be used with 
+mathematical expression created by [`<m>{:dn}`](m.mdx)and [`<md>{:dn}`](md.mdx)/[`<mdn>{:dn}`](mdn.mdx).
+
+<AttrPropDisplay name='me'/>
+
+## Examples
+
+### Example: `<me>{:dn}` nested within a paragraph
+
+
+```doenet-editor-horiz
+<p>Given the following equations relating polar and Cartesian coordinate systems,
+  <me>x = r \cos \theta</me>
+  <me>y = r \sin \theta</me>
+determine the Cartesian form of the polar equation:
+  <me>r \cos \theta = 1</me>
+</p>
+```
+
+
+
+In the example above, the `<me>{:dn}` component is used to render centered mathematical content within a paragraph.
+
+
+
+---
+
+### Example: `<me>{:dn}` with named mathematical content
+
+
+```doenet-editor-horiz
+<setup>
+<number name="g">9.81</number>
+<number name="radiusEarth">6.371*10^6</number>
+<number name="rocketHeight">200</number>
+<function 
+  variables="R h" 
+  name="v_0">
+    sqrt((2$g R h)/(R + h))
+</function>
+</setup>
+
+<p>The rocket's initial velocity is given by
+  <me>v_0 = $v_0,</me>
+which, when <m>R = $radiusEarth</m> meters and <m>h = $rocketHeight</m> meters,
+is found to be
+  <me>v_0 = 
+    <math 
+      displayDecimals="2">
+        $$v_0($radiusEarth, $rocketHeight)
+    </math>\; m/s
+  </me>
+</p>
+```
+
+
+
+ In the example above, the named mathematical `<function>{:dn}` is referenced 
+ within the `<me>{:dn}` component using the `$functionName` notation. This function 
+ is also later evalutated with a `<math>{:dn}` nested inside the second `<me>{:dn}` 
+ component using the function evaluation notation `$$functionName(x)` 
+ (note that you could also use the `<evaluate>{:dn}` component here.)
+
+
+---
+
+### Example: filling in the parts of an integral
+
+
+```doenet-editor-horiz
+<me>
+  \int_{<mathInput name="lower" minWidth="20">
+    <shortDescription>the lower limit</shortDescription>
+  </mathInput>}^{<mathInput name="upper" minWidth="20">
+    <shortDescription>the upper limit</shortDescription>
+  </mathInput>}
+  <mathInput name="integrand">
+    <shortDescription>the function being integrated</shortDescription>
+  </mathInput>
+  \, d<mathInput name="variable" minWidth="20">
+    <shortDescription>the variable of integration</shortDescription>
+  </mathInput>
+  =
+  \int_{$lower}^{$upper} $integrand \, d$variable
+</me>
+```
+
+
+A `<textInput/>{:dn}`, a `<mathInput/>{:dn}`, or an inline
+`<choiceInput/>{:dn}` written inside an `<me>{:dn}` is rendered *in place*,
+inside the typeset expression — including in a subscript or a superscript, so
+the reader can fill in the bounds of an integral where the bounds go. Wrap the
+input in braces, as `_{...}` and `^{...}`, the way you would any other
+subscript or superscript.
+
+A field is drawn at its ordinary size wherever it sits, so it stays comfortable
+to type in even where the mathematics around it is small. Give the ones holding
+a single symbol a small `minWidth` so they do not leave a wide gap. The
+right-hand side here refers to the four fields, so the integral is typeset in
+the usual way as its parts are filled in.
+
+Each field here is given a `<shortDescription>{:dn}`, because this is a case
+where the expression cannot name them well on its own — see
+[`<m>{:dn}`](m.mdx) for when one is worth writing.
+
+The same restrictions apply as inside `<m>{:dn}`: a non-`inline`
+`<choiceInput/>{:dn}`, an `expanded` `<textInput/>{:dn}` or one given a
+relative width (in `%` or `em`), and any input in an expression drawn on a
+`<graph>{:dn}` cannot be placed inside the expression. Those inputs are not
+shown, and a warning explains the problem.

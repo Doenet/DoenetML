@@ -45,6 +45,45 @@ function normalizeKey(value: unknown): string {
         .replace(/[^a-z0-9]+/g, "");
 }
 
+/**
+ * Maps a Doenet `positionFromAnchor` to a PreFigure `<label>` `alignment`.
+ *
+ * Both name the side of the anchor the text sits on, so `upperRight` is
+ * PreFigure's `ne`. `center`, and any value not in the map, centers the text
+ * on the anchor (`c`), as the Doenet renderer does.
+ */
+export function prefigureAlignmentForAnchorPosition(position: unknown): string {
+    return (
+        prefigurePointAlignmentByLabelPosition[normalizeKey(position)] ?? "c"
+    );
+}
+
+/**
+ * Attribute that makes a PreFigure label follow the page's light/dark text
+ * color. Append it to every element whose text PreFigure renders as a native
+ * SVG `<text>`: `<point>`, `<line>`, `<label>`, `<xlabel>`, `<ylabel>`.
+ *
+ * PreFigure sets a label `<text>`'s `fill` only when the source XML carries an
+ * explicit `color` attribute (true of both the Python `prefig` compiler and the
+ * Rust `prefig-wasm` port — see their respective `label.py`/`label.rs`).
+ * Without it `fill` is left unset, which per the SVG spec means opaque black
+ * rather than "inherit the page's CSS color", so plain-text labels vanish
+ * against a dark canvas.
+ *
+ * Emitting it unconditionally rather than only in dark mode keeps both themes
+ * correct with one code path, since `currentColor` already resolves to whatever
+ * the surrounding document uses. It is also safe on labels that turn out to
+ * hold math: PreFigure copies a label's `color` down to its `<m>` children,
+ * where it becomes a CSS `color` on the MathJax container — a no-op, because
+ * MathJax's SVG output fills with `currentColor` anyway. (That is also why
+ * math labels never had this bug.)
+ *
+ * Contrast `darkModeAxisStrokeAttr` in `common.ts`, which must stay
+ * dark-mode-conditional: it recolors axis strokes that are already visible in
+ * light mode, rather than filling in a missing value.
+ */
+export const THEME_AWARE_LABEL_COLOR_ATTR = 'color="currentColor"';
+
 // Reserved inset used during label overflow scoring to reduce visible clipping
 // at graph bounds. Shared by point and line-family label placement.
 const LABEL_EDGE_PADDING_RATIO = 0.02;
@@ -776,7 +815,7 @@ export function pointLabelAttributes({
         return null;
     }
 
-    const attrs = [];
+    const attrs = [THEME_AWARE_LABEL_COLOR_ATTR];
     const rawPosition = stateValues?.labelPosition;
     if (rawPosition) {
         const rawXs = stateValues?.numericalXs;
@@ -1031,7 +1070,7 @@ export function getLabelForLine({
         };
     }
 
-    const labelAttrs = [];
+    const labelAttrs = [THEME_AWARE_LABEL_COLOR_ATTR];
     const rawPosition = stateValues?.labelPosition;
     const normalizedPosition = normalizeKey(rawPosition ?? "");
 

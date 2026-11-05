@@ -1,4 +1,6 @@
 import {
+    asFiniteNumber,
+    emptyGroup,
     escapeXml,
     extractFinitePointPair,
     formatNumber,
@@ -8,7 +10,9 @@ import {
     getLabelForLine,
     lineLabelLocationValue,
     orientEndpointsForLineLabel,
+    THEME_AWARE_LABEL_COLOR_ATTR,
 } from "../label";
+import { wholePixelThicknessAttributes } from "../style";
 import type { ConverterArgs, Point } from "../types";
 
 /**
@@ -61,10 +65,22 @@ export function convertVectorToPrefigure({
         `at="${escapeXml(handle)}"`,
         `tail="${escapeXml(tailText)}"`,
         `v="${escapeXml(`(${dx},${dy})`)}"`,
-        ...styleAttrs,
+        ...wholePixelThicknessAttributes(
+            styleAttrs,
+            sv.selectedStyle?.lineWidth,
+        ),
     ];
 
-    const vectorXml = `<vector ${attrs.join(" ")} />`;
+    // At a line width of 0 the JSXGraph renderer draws neither shaft nor
+    // arrowhead, which it sizes by the line width, but still draws the label.
+    // PreFigure divides by an arrow's line width, losing the vector and all
+    // drawn after it, so the vector is an empty group, keeping its handle for
+    // an annotation, and the label is drawn as usual.
+    const lineWidth = asFiniteNumber(sv.selectedStyle?.lineWidth);
+    const vectorXml =
+        lineWidth !== null && lineWidth <= 0
+            ? emptyGroup(handle)
+            : `<vector ${attrs.join(" ")} />`;
 
     if (!label) {
         return vectorXml;
@@ -84,7 +100,7 @@ export function convertVectorToPrefigure({
 
     // TODO: Map vector labelPosition to PreFigure label alignment once we have
     // parity requirements for vector-native label placement.
-    const labelXml = `<label p="${escapeXml(anchorText)}" alignment="north">${label}</label>`;
+    const labelXml = `<label p="${escapeXml(anchorText)}" alignment="north" ${THEME_AWARE_LABEL_COLOR_ATTR}>${label}</label>`;
 
     return `${vectorXml}${labelXml}`;
 }

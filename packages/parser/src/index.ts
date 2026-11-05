@@ -7,6 +7,7 @@ export * from "./detect-version";
 export * from "./document-lang";
 export {
     visit,
+    visitIncludingPathIndices,
     EXIT,
     CONTINUE,
     SKIP,

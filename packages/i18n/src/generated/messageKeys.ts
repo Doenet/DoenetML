@@ -69,6 +69,14 @@ export type MessageKey =
     | "something-went-wrong"
     | "renderer-load-failed"
     | "core-start-failed"
+    | "core-start-failed-busy"
+    | "core-start-failed-retry"
+    | "core-start-failed-busy-retry"
+    | "core-start-failed-document"
+    | "document-stopped"
+    | "core-start-retry"
+    | "saved-state-unavailable"
+    | "saved-state-from-older-version"
     | "color.black"
     | "color.white"
     | "color.gray"
@@ -149,6 +157,7 @@ export type MessageKey =
     | "section-name.theorem"
     | "section-title-prefix"
     | "hint-title"
+    | "chart-unlabeled-series"
     | "table-name"
     | "figure-name"
     | "paginator-previous"
@@ -291,6 +300,11 @@ export type MessageKey =
     | "ion-name-oxidation-state"
     | "chemistry-invalid-symbol"
     | "chemistry-invalid-ionic-compound"
+    | "math-embedded-input-blank"
+    | "math-embedded-input-blank-ordinal"
+    | "chart-box-summary"
+    | "chart-box-outlier"
+    | "chart-histogram-bin"
     | "line-segment-attributes-ignored-with-endpoints"
     | "line-segment-attributes-ignored-with-endpoint-and-midpoint"
     | "line-segment-midpoint-offset-without-midpoint"
@@ -314,6 +328,7 @@ export type MessageKey =
     | "pretzel-circuit-first-index"
     | "string-children-need-type"
     | "invalid-type-defaulting-to-math"
+    | "invalid-type-ignored"
     | "string-not-valid-component-to-arrange"
     | "invalid-type-defaulting-to-number"
     | "invalid-variable-value"
@@ -391,6 +406,11 @@ export type MessageKey =
     | "collect-no-source"
     | "collect-invalid-component-type"
     | "reference-index-unavailable"
+    | "reference-index-selects-nothing"
+    | "reference-index-use-property"
+    | "reference-index-past-instances"
+    | "reference-name-missing-in-branch"
+    | "reference-name-types-differ-in-branches"
     | "component-action-unavailable"
     | "data-frame-inconsistent-row-lengths"
     | "data-frame-duplicate-column-names"
@@ -398,13 +418,17 @@ export type MessageKey =
     | "answer-award-depends-on-own-response"
     | "answer-max-num-attempts-in-section-wide-check-work"
     | "nested-section-wide-check-work-max-num-attempts"
+    | "cascade-title-not-shown"
     | "answer-attributes-need-symbolic-equality"
     | "answer-invalid-type"
     | "module-attribute-child-needs-name"
     | "module-attribute-name-already-defined"
+    | "module-attribute-refers-to-itself"
     | "conditional-content-condition-ignored"
     | "slider-markers-type-mismatch"
     | "pretzel-problem-needs-statement-and-answer"
+    | "pretzel-problem-copy-not-supported"
+    | "pretzel-extend-changes-ignored"
     | "pretzel-circuit-first-problem-distractor"
     | "attribute-invalid-values"
     | "attribute-must-be-references"
@@ -435,7 +459,13 @@ export type MessageKey =
     | "prefigure-curve-unsupported-definition-type"
     | "prefigure-region-flip-functions-unsupported"
     | "prefigure-region-non-formula-child"
+    | "prefigure-formula-unsupported"
     | "prefigure-label-position-unsupported"
+    | "prefigure-field-non-formula-function"
+    | "prefigure-field-function-undefined"
+    | "prefigure-slope-field-mark-length-ignored"
+    | "prefigure-vector-field-normalize-unequal-scales"
+    | "prefigure-field-line-style-ignored"
     | "prefigure-fill-style-unsupported"
     | "prefigure-line-style-unknown"
     | "prefigure-marker-style-mapped-to-diamond"
@@ -448,9 +478,27 @@ export type MessageKey =
     | "composite-circular-dependency"
     | "reference-no-referent"
     | "reference-multiple-referents"
+    | "reference-index-not-a-number"
+    | "extend-attribute-ignored"
+    | "extend-children-ignored"
+    | "extend-attribute-changes-content"
+    | "extend-children-change-content"
+    | "extend-choice-input-choices"
+    | "extend-choice-input-shuffle-order"
+    | "extend-module-attribute"
+    | "extend-part-of-choosing-tag"
+    | "type-change-unrelated"
+    | "type-change-input-from-value"
+    | "type-change-from-container"
+    | "type-change-composite-not-one"
+    | "type-change-composite-types-differ"
+    | "type-change-composite-type-unknown"
+    | "type-change-index-names-nothing"
+    | "type-change-value-not-convertible"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
+    | "attribute-value-invalid-ignoring"
     | "doenetml-version-not-found"
     | "parse-invalid-doenetml"
     | "parse-tag-missing-close-tag"
@@ -469,8 +517,10 @@ export type MessageKey =
     | "parse-close-tag-without-open-tag"
     | "parse-close-tag-mismatched"
     | "parser-node-unconvertible"
+    | "index-element-not-used-as-index"
     | "name-attribute-invalid"
     | "component-name-invalid-start"
+    | "attribute-name-invalid-start"
     | "answer-video-watched-missing-video"
     | "answer-video-watched-video-not-reference"
     | "answer-name-not-single-text"
@@ -482,6 +532,8 @@ export type MessageKey =
     | "deprecated-attribute-ignored"
     | "deprecated-attribute-to-child"
     | "deprecated-attribute-value-renamed"
+    | "deprecated-attribute-modify-indirectly"
+    | "deprecated-index-selects-child"
     | "pluralize-english-only"
     | "schema-element-unrecognized"
     | "schema-element-not-allowed-at-root"
@@ -510,6 +562,48 @@ export type MessageKey =
     | "select-prime-numbers-excluded-too-many-combinations"
     | "select-random-combination-fluke"
     | "select-random-value-fluke"
+    | "math-embedded-input-shape-unsuitable"
+    | "sample-gaussian-parameters-invalid"
+    | "sample-lognormal-parameters-invalid"
+    | "sample-normal-mixture-parameters-invalid"
+    | "sample-hypergeometric-parameters-invalid"
+    | "sample-hypergeometric-draws-too-many"
+    | "sample-binomial-parameters-invalid"
+    | "sample-binomial-trials-too-many"
+    | "sample-poisson-mean-invalid"
+    | "sample-poisson-mean-too-large"
+    | "sample-distribution-slow"
+    | "index-operator-missing-target"
+    | "index-operator-no-values"
+    | "index-operator-values-not-sorted"
+    | "sample-multivariate-parameters-invalid"
+    | "sample-multivariate-draws-too-many"
+    | "sample-multivariate-type-not-specified"
+    | "tally-values-outside-categories"
+    | "chart-histogram-values-outside-bins"
+    | "tally-repeated-category"
+    | "bin-counts-missing-bins"
+    | "bin-counts-too-few-cut-points"
+    | "bin-counts-values-not-numeric"
+    | "bin-counts-cut-points-decreasing"
+    | "bar-chart-values-not-drawable"
+    | "bar-chart-bar-width-invalid"
+    | "chart-type-not-specified"
+    | "chart-values-outside-series"
+    | "chart-points-not-drawable"
+    | "chart-pie-values-not-drawable"
+    | "chart-pie-negative-values"
+    | "chart-pie-total-not-positive"
+    | "chart-pie-one-series"
+    | "chart-pie-axis-name-ignored"
+    | "chart-box-values-not-drawable"
+    | "chart-box-categories-ignored"
+    | "chart-histogram-values-not-drawable"
+    | "chart-histogram-one-series"
+    | "chart-histogram-bin-count-invalid"
+    | "chart-histogram-cut-points-invalid"
+    | "chart-histogram-categories-ignored"
+    | "chart-histogram-bar-width-ignored"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -573,7 +667,13 @@ export type MessageKey =
     | "help-reset-list"
     | "help-added-on-input"
     | "help-removed-on-input"
-    | "help-reset-overrides";
+    | "help-reset-overrides"
+    | "help-accepted-sizes"
+    | "help-size-units"
+    | "help-size-units-absolute"
+    | "help-size-units-preset"
+    | "help-size-units-relative"
+    | "help-size-snaps-to-preset";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -639,6 +739,14 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "something-went-wrong",
     "renderer-load-failed",
     "core-start-failed",
+    "core-start-failed-busy",
+    "core-start-failed-retry",
+    "core-start-failed-busy-retry",
+    "core-start-failed-document",
+    "document-stopped",
+    "core-start-retry",
+    "saved-state-unavailable",
+    "saved-state-from-older-version",
     "color.black",
     "color.white",
     "color.gray",
@@ -719,6 +827,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "section-name.theorem",
     "section-title-prefix",
     "hint-title",
+    "chart-unlabeled-series",
     "table-name",
     "figure-name",
     "paginator-previous",
@@ -861,6 +970,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "ion-name-oxidation-state",
     "chemistry-invalid-symbol",
     "chemistry-invalid-ionic-compound",
+    "math-embedded-input-blank",
+    "math-embedded-input-blank-ordinal",
+    "chart-box-summary",
+    "chart-box-outlier",
+    "chart-histogram-bin",
     "line-segment-attributes-ignored-with-endpoints",
     "line-segment-attributes-ignored-with-endpoint-and-midpoint",
     "line-segment-midpoint-offset-without-midpoint",
@@ -884,6 +998,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "pretzel-circuit-first-index",
     "string-children-need-type",
     "invalid-type-defaulting-to-math",
+    "invalid-type-ignored",
     "string-not-valid-component-to-arrange",
     "invalid-type-defaulting-to-number",
     "invalid-variable-value",
@@ -961,6 +1076,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "collect-no-source",
     "collect-invalid-component-type",
     "reference-index-unavailable",
+    "reference-index-selects-nothing",
+    "reference-index-use-property",
+    "reference-index-past-instances",
+    "reference-name-missing-in-branch",
+    "reference-name-types-differ-in-branches",
     "component-action-unavailable",
     "data-frame-inconsistent-row-lengths",
     "data-frame-duplicate-column-names",
@@ -968,13 +1088,17 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "answer-award-depends-on-own-response",
     "answer-max-num-attempts-in-section-wide-check-work",
     "nested-section-wide-check-work-max-num-attempts",
+    "cascade-title-not-shown",
     "answer-attributes-need-symbolic-equality",
     "answer-invalid-type",
     "module-attribute-child-needs-name",
     "module-attribute-name-already-defined",
+    "module-attribute-refers-to-itself",
     "conditional-content-condition-ignored",
     "slider-markers-type-mismatch",
     "pretzel-problem-needs-statement-and-answer",
+    "pretzel-problem-copy-not-supported",
+    "pretzel-extend-changes-ignored",
     "pretzel-circuit-first-problem-distractor",
     "attribute-invalid-values",
     "attribute-must-be-references",
@@ -1005,7 +1129,13 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "prefigure-curve-unsupported-definition-type",
     "prefigure-region-flip-functions-unsupported",
     "prefigure-region-non-formula-child",
+    "prefigure-formula-unsupported",
     "prefigure-label-position-unsupported",
+    "prefigure-field-non-formula-function",
+    "prefigure-field-function-undefined",
+    "prefigure-slope-field-mark-length-ignored",
+    "prefigure-vector-field-normalize-unequal-scales",
+    "prefigure-field-line-style-ignored",
     "prefigure-fill-style-unsupported",
     "prefigure-line-style-unknown",
     "prefigure-marker-style-mapped-to-diamond",
@@ -1018,9 +1148,27 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "composite-circular-dependency",
     "reference-no-referent",
     "reference-multiple-referents",
+    "reference-index-not-a-number",
+    "extend-attribute-ignored",
+    "extend-children-ignored",
+    "extend-attribute-changes-content",
+    "extend-children-change-content",
+    "extend-choice-input-choices",
+    "extend-choice-input-shuffle-order",
+    "extend-module-attribute",
+    "extend-part-of-choosing-tag",
+    "type-change-unrelated",
+    "type-change-input-from-value",
+    "type-change-from-container",
+    "type-change-composite-not-one",
+    "type-change-composite-types-differ",
+    "type-change-composite-type-unknown",
+    "type-change-index-names-nothing",
+    "type-change-value-not-convertible",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",
+    "attribute-value-invalid-ignoring",
     "doenetml-version-not-found",
     "parse-invalid-doenetml",
     "parse-tag-missing-close-tag",
@@ -1039,8 +1187,10 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "parse-close-tag-without-open-tag",
     "parse-close-tag-mismatched",
     "parser-node-unconvertible",
+    "index-element-not-used-as-index",
     "name-attribute-invalid",
     "component-name-invalid-start",
+    "attribute-name-invalid-start",
     "answer-video-watched-missing-video",
     "answer-video-watched-video-not-reference",
     "answer-name-not-single-text",
@@ -1052,6 +1202,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "deprecated-attribute-ignored",
     "deprecated-attribute-to-child",
     "deprecated-attribute-value-renamed",
+    "deprecated-attribute-modify-indirectly",
+    "deprecated-index-selects-child",
     "pluralize-english-only",
     "schema-element-unrecognized",
     "schema-element-not-allowed-at-root",
@@ -1080,6 +1232,48 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "select-prime-numbers-excluded-too-many-combinations",
     "select-random-combination-fluke",
     "select-random-value-fluke",
+    "math-embedded-input-shape-unsuitable",
+    "sample-gaussian-parameters-invalid",
+    "sample-lognormal-parameters-invalid",
+    "sample-normal-mixture-parameters-invalid",
+    "sample-hypergeometric-parameters-invalid",
+    "sample-hypergeometric-draws-too-many",
+    "sample-binomial-parameters-invalid",
+    "sample-binomial-trials-too-many",
+    "sample-poisson-mean-invalid",
+    "sample-poisson-mean-too-large",
+    "sample-distribution-slow",
+    "index-operator-missing-target",
+    "index-operator-no-values",
+    "index-operator-values-not-sorted",
+    "sample-multivariate-parameters-invalid",
+    "sample-multivariate-draws-too-many",
+    "sample-multivariate-type-not-specified",
+    "tally-values-outside-categories",
+    "chart-histogram-values-outside-bins",
+    "tally-repeated-category",
+    "bin-counts-missing-bins",
+    "bin-counts-too-few-cut-points",
+    "bin-counts-values-not-numeric",
+    "bin-counts-cut-points-decreasing",
+    "bar-chart-values-not-drawable",
+    "bar-chart-bar-width-invalid",
+    "chart-type-not-specified",
+    "chart-values-outside-series",
+    "chart-points-not-drawable",
+    "chart-pie-values-not-drawable",
+    "chart-pie-negative-values",
+    "chart-pie-total-not-positive",
+    "chart-pie-one-series",
+    "chart-pie-axis-name-ignored",
+    "chart-box-values-not-drawable",
+    "chart-box-categories-ignored",
+    "chart-histogram-values-not-drawable",
+    "chart-histogram-one-series",
+    "chart-histogram-bin-count-invalid",
+    "chart-histogram-cut-points-invalid",
+    "chart-histogram-categories-ignored",
+    "chart-histogram-bar-width-ignored",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",
@@ -1144,4 +1338,10 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "help-added-on-input",
     "help-removed-on-input",
     "help-reset-overrides",
+    "help-accepted-sizes",
+    "help-size-units",
+    "help-size-units-absolute",
+    "help-size-units-preset",
+    "help-size-units-relative",
+    "help-size-snaps-to-preset",
 ];

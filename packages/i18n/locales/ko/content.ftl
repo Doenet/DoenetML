@@ -30,15 +30,12 @@ color =
     .purple = 보라색
     .pink = 분홍색
     .brown = 갈색
-
 line-width =
     .thick = 굵은
     .thin = 가는
-
 line-style =
     .dashed = 파선
     .dotted = 점선
-
 # Noun phrases: they precede 무늬가 있는 and modify nothing.
 fill-style =
     .horizontal = 가로줄
@@ -47,7 +44,6 @@ fill-style =
     .backdiagonal = 역대각선
     .dots = 점
     .diamonds = 마름모
-
 noun =
     .line = 직선
     .line-segment = 선분
@@ -67,7 +63,6 @@ noun =
     .diamond = 마름모
     .cross = 십자
     .plus = 더하기 기호
-
 # Korean puts the side count inside the noun itself — 정5각형 — so the whole
 # thing is one head and there is no tail.
 noun-regular-polygon =
@@ -75,11 +70,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] 정{ $numSides }각형
     }
-
 # Korean has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -95,21 +88,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = 채워진
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } 무늬가 있는 { $color }으로 { $filled }
        *[plain] { $color }으로 { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } 무늬가 있는 { $color }으로 { $filled } { $noun }
@@ -117,7 +106,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } 무늬가 있는 { $color }으로 { $filled } { $noun } { $nounTail }
        *[plain] { $color }으로 { $filled } { $noun }
     }
-
 # Korean needs no article, so the `-article` branches read the same as the ones
 # without.
 style-border-clause =
@@ -127,35 +115,28 @@ style-border-clause =
         [and-article] 그리고 { $border } 테두리
        *[with] { $border } 테두리가 있는
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = 채워지지 않은
-
 style-text =
     { $parts ->
         [background] { $color }, 배경은 { $background }
        *[plain] { $color }
     }
-
 style-background-none = 없음
-
 
 ## Boolean words
 
 boolean-true = 참
 boolean-false = 거짓
 
-
 ## Answer buttons
 
 answer-submit-label = 정답 확인
 answer-submit-label-no-correctness = 답안 제출
-
 
 ## Sectional blocks
 
@@ -180,7 +161,6 @@ section-name =
     .solution = 풀이
     .task = 과제
     .theorem = 정리
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -190,9 +170,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = 힌트
-
 
 ## Tables and figures
 
@@ -203,7 +181,6 @@ table-name =
         [unnumbered-title] 표{ ": " }
        *[unnumbered] 표
     }
-
 figure-name =
     { $parts ->
         [numbered] 그림 { $enumeration }
@@ -212,15 +189,12 @@ figure-name =
        *[unnumbered] 그림
     }
 
-
 ## Paginator controls
 
 paginator-previous = 이전
 paginator-next = 다음
 paginator-page = 페이지
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
@@ -229,7 +203,6 @@ piecewise-condition-or = 또는
 # that can come first — 만약 rather than the clause-final 일 때.
 piecewise-condition-if = 만약
 piecewise-condition-otherwise = 그 외의 경우
-
 
 ## Chemistry
 
@@ -354,7 +327,6 @@ element-name =
     .lv = 리버모륨
     .ts = 테네신
     .og = 오가네손
-
 element-anion-name =
     .h = 수소화물
     .c = 탄화물
@@ -368,8 +340,6 @@ element-anion-name =
     .i = 아이오딘화물
     .at = 아스타틴화물
     .ts = 테네신화물
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = 잘못된 화학 기호
 chemistry-invalid-ionic-compound = 잘못된 이온 화합물

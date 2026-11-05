@@ -51,11 +51,9 @@ color =
     .purple = pɔpul
     .pink = pink
     .brown = braun
-
 line-width =
     .thick = tik
     .thin = tin
-
 # Reduplication used attributively, the same move `locales/pcm` makes. A «we de
 # brok-brok» clause would be the more literal rendering and is wrong here: the
 # description is *followed* by the noun, so a relative clause would sit in front
@@ -63,7 +61,6 @@ line-width =
 line-style =
     .dashed = brok-brok
     .dotted = dɔt-dɔt
-
 fill-style =
     .horizontal = layn dɛn we lidɔm
     .vertical = layn dɛn we tinap
@@ -71,7 +68,6 @@ fill-style =
     .backdiagonal = layn dɛn we slant di ɔda say
     .dots = dɔt dɛn
     .diamonds = dayamɔn dɛn
-
 noun =
     .line = layn
     .line-segment = pis pan layn
@@ -91,7 +87,6 @@ noun =
     .diamond = dayamɔn
     .cross = krɔs
     .plus = plɔs mak
-
 # The side count is a relative clause and closes the noun phrase behind the
 # describing words, so it goes in the tail.
 noun-regular-polygon =
@@ -99,11 +94,9 @@ noun-regular-polygon =
         [tail] we gɛt { $numSides } say
        *[head] pɔligɔn we ɔl di say dɛn na wan
     }
-
 # Krio has no noun class and no gender, so every noun answers the same and the
 # answer goes unused.
 noun-gender = wan
-
 
 ## Style composition
 
@@ -120,24 +113,20 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # «dɔn ful» — the completive `dɔn` rather than an English passive. There is no
 # adjective here to inflect; the whole word is a verb phrase, as it is in
 # `locales/pcm`.
 style-filled-word = dɔn ful
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } wit { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } wit { $pattern }
@@ -145,7 +134,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } wit { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Krio has no indefinite article where English wants one here, so the
 # `-article` branches read the same as their bare counterparts. The «wit» /
 # «ɛn» distinction — first clause against a further one — is real and survives.
@@ -156,23 +144,18 @@ style-border-clause =
         [and-article] ɛn { $border } bɔda
        *[with] wit { $border } bɔda
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = i nɔ ful
-
 style-text =
     { $parts ->
         [background] { $color } wit { $background } bakgrɔn
        *[plain] { $color }
     }
-
 style-background-none = natin
-
 
 ## Boolean words
 ##
@@ -182,12 +165,10 @@ style-background-none = natin
 boolean-true = na tru
 boolean-false = na lay
 
-
 ## Answer buttons
 
 answer-submit-label = Chɛk Wok
 answer-submit-label-no-correctness = Sɛn Ansa
-
 
 ## Sectional blocks
 
@@ -212,7 +193,6 @@ section-name =
     .solution = Ansa fɔ di prɔblɛm
     .task = Wok
     .theorem = Tiɔrɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -222,9 +202,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Klu
-
 
 ## Tables and figures
 
@@ -235,7 +213,6 @@ table-name =
         [unnumbered-title] Tebul{ ": " }
        *[unnumbered] Tebul
     }
-
 figure-name =
     { $parts ->
         [numbered] Piksho { $enumeration }
@@ -244,25 +221,18 @@ figure-name =
        *[unnumbered] Piksho
     }
 
-
 ## Paginator controls
 
 paginator-previous = Di wan we dɔn pas
 paginator-next = Nɛks
-
 paginator-page = Pej
-
 paginator-page-status = { $pageLabel } { $currentPage } pan { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ɔ
-
 piecewise-condition-if = if
-
 piecewise-condition-otherwise = if i nɔ so
-
 
 ## Chemistry
 ##
@@ -276,6 +246,5 @@ piecewise-condition-otherwise = if i nɔ so
 ## back all but identical to `locales/en`.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kɛmistri Simbɔl We Nɔ Kɔrɛkt
 chemistry-invalid-ionic-compound = Ayɔnik Kɔmpaun We Nɔ Kɔrɛkt

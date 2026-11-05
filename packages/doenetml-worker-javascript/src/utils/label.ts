@@ -213,6 +213,72 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
     };
 }
 
+/**
+ * Return the definition of `labelChildInd`: the index, among all children,
+ * of the `<label>` child whose value becomes the component's `label`, or -1
+ * if there is none. A component whose renderer shows its label outside a
+ * graph includes this child in `childIndicesToRender`, so the renderer can
+ * show the label's markup (e.g., `<em>` or `<delete>`), which the `label`
+ * string drops.
+ */
+export function returnLabelChildIndDefinition() {
+    return {
+        labelChildInd: {
+            forRenderer: true,
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+            }),
+            definition({
+                dependencyValues,
+            }: {
+                dependencyValues: { allChildren: { componentType: string }[] };
+            }) {
+                const labelChildInd = dependencyValues.allChildren
+                    .map((child) => child.componentType)
+                    .lastIndexOf("label");
+                return { setValue: { labelChildInd } };
+            },
+        },
+    };
+}
+
+/**
+ * For a component (with `renderChildren` set) whose only child to render is
+ * its `<label>`: return the definitions of `labelChildInd` and of
+ * `childIndicesToRender`, which renders just that child.
+ */
+export function returnRenderOnlyLabelChildDefinitions() {
+    return {
+        ...returnLabelChildIndDefinition(),
+        childIndicesToRender: {
+            returnDependencies: () => ({
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
+            }),
+            definition({
+                dependencyValues,
+            }: {
+                dependencyValues: { labelChildInd: number };
+            }) {
+                return {
+                    setValue: {
+                        childIndicesToRender:
+                            dependencyValues.labelChildInd === -1
+                                ? []
+                                : [dependencyValues.labelChildInd],
+                    },
+                };
+            },
+            markStale: () => ({ updateRenderedChildren: true }),
+        },
+    };
+}
+
 // TODO: lots of work if want to convert state variable definitions to Typescript
 export function returnLabelStateVariableDefinitions({
     getLabelFromParentIfSugared = false,
@@ -291,8 +357,16 @@ export function returnLabelStateVariableDefinitions({
                 variableName: "labelHasLatex",
                 forRenderer: true,
             },
+            {
+                // Whether `label` was taken from the parent that created this
+                // component from sugar (e.g., an `<answer>` that created its
+                // input). The parent holds the `<label>` child then, so it is
+                // the one that can render the label's markup.
+                variableName: "labelFromParent",
+                forRenderer: true,
+            },
         ],
-        returnDependencies: () => {
+        returnDependencies: function (this: any) {
             const dependencies: Record<string, any> = {
                 labelChild: {
                     dependencyType: "child",
@@ -329,6 +403,30 @@ export function returnLabelStateVariableDefinitions({
                 },
             };
 
+            // A component made from an entry of a list of points or vectors
+            // (`$c[1]` in a graph) is labeled as the entry's source is
+            // (`listEntrySourceDoenetAttributes` in `Copy.js`).
+            const listEntrySource =
+                this.svComponent?.doenetAttributes?.listEntrySource;
+            if (listEntrySource?.variables.label) {
+                dependencies.listEntryLabel = {
+                    dependencyType: "stateVariable",
+                    componentIdx: listEntrySource.componentIdx,
+                    variableName: listEntrySource.variables.label,
+                    variablesOptional: true,
+                };
+                dependencies.listEntryLabelHasLatex = {
+                    dependencyType: "stateVariable",
+                    componentIdx: listEntrySource.componentIdx,
+                    variableName: listEntrySource.variables.labelHasLatex,
+                    variablesOptional: true,
+                };
+                dependencies.listEntryIndex = {
+                    dependencyType: "value",
+                    value: listEntrySource.index,
+                };
+            }
+
             if (getLabelFromParentIfSugared) {
                 dependencies.createdFromSugar = {
                     dependencyType: "doenetAttribute",
@@ -364,6 +462,7 @@ export function returnLabelStateVariableDefinitions({
                         setValue: {
                             label: "",
                             labelHasLatex: false,
+                            labelFromParent: false,
                         },
                     };
                 } else if (labelChild.stateValues.hasLatex) {
@@ -372,6 +471,7 @@ export function returnLabelStateVariableDefinitions({
                             setValue: {
                                 label: "",
                                 labelHasLatex: false,
+                                labelFromParent: false,
                             },
                         };
                     } else {
@@ -379,6 +479,7 @@ export function returnLabelStateVariableDefinitions({
                             setValue: {
                                 label: labelChild.stateValues.value,
                                 labelHasLatex: true,
+                                labelFromParent: false,
                             },
                         };
                     }
@@ -387,6 +488,7 @@ export function returnLabelStateVariableDefinitions({
                         setValue: {
                             label: labelChild.stateValues.value.trim(),
                             labelHasLatex: false,
+                            labelFromParent: false,
                         },
                     };
                 }
@@ -395,7 +497,7 @@ export function returnLabelStateVariableDefinitions({
                     useEssentialOrDefaultValue: {
                         label: true,
                     },
-                    setValue: { labelHasLatex: false },
+                    setValue: { labelHasLatex: false, labelFromParent: false },
                 };
             } else if (
                 dependencyValues.labelIsName &&
@@ -423,6 +525,7 @@ export function returnLabelStateVariableDefinitions({
                         setValue: {
                             label: "",
                             labelHasLatex: false,
+                            labelFromParent: false,
                         },
                     };
                 }
@@ -450,6 +553,25 @@ export function returnLabelStateVariableDefinitions({
                     setValue: {
                         label,
                         labelHasLatex: false,
+                        labelFromParent: false,
+                    },
+                };
+            } else if (
+                typeof dependencyValues.listEntryLabel?.[
+                    dependencyValues.listEntryIndex
+                ] === "string"
+            ) {
+                return {
+                    setValue: {
+                        label: dependencyValues.listEntryLabel[
+                            dependencyValues.listEntryIndex
+                        ],
+                        labelHasLatex: Boolean(
+                            dependencyValues.listEntryLabelHasLatex?.[
+                                dependencyValues.listEntryIndex
+                            ],
+                        ),
+                        labelFromParent: false,
                     },
                 };
             } else if (
@@ -463,6 +585,7 @@ export function returnLabelStateVariableDefinitions({
                             dependencyValues.shadowSource.stateValues
                                 .labelHasLatex,
                         ),
+                        labelFromParent: false,
                     },
                 };
             } else if (
@@ -477,6 +600,7 @@ export function returnLabelStateVariableDefinitions({
                             dependencyValues.unlinkedCopySource.stateValues
                                 .labelHasLatex,
                         ),
+                        labelFromParent: false,
                     },
                 };
             } else if (
@@ -488,12 +612,13 @@ export function returnLabelStateVariableDefinitions({
                     setValue: {
                         label: dependencyValues.parentLabel,
                         labelHasLatex: dependencyValues.parentLabelHasLatex,
+                        labelFromParent: true,
                     },
                 };
             } else {
                 return {
                     useEssentialOrDefaultValue: { label: true },
-                    setValue: { labelHasLatex: false },
+                    setValue: { labelHasLatex: false, labelFromParent: false },
                 };
             }
         },
@@ -527,6 +652,22 @@ export function returnLabelStateVariableDefinitions({
                 dependencyValues.labelIsName &&
                 dependencyValues.labelIsNameAttr
             ) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "label",
+                            value: desiredStateVariableValues.label,
+                        },
+                    ],
+                };
+            } else if (
+                typeof dependencyValues.listEntryLabel?.[
+                    dependencyValues.listEntryIndex
+                ] === "string"
+            ) {
+                // the entry's label is not written; the component takes
+                // the label as its own
                 return {
                     success: true,
                     instructions: [

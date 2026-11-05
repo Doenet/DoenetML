@@ -168,6 +168,39 @@ export async function deriveChildResultsFromDefiningChildren({
                         componentType: attributeForComponentType,
                     },
                 };
+            } else if (
+                childGroupResults.unmatchedChildren.every(
+                    (child: any) =>
+                        typeof child !== "string" &&
+                        // A child with no `componentType` at all is not an
+                        // internal component but a malformed one, which the
+                        // author did write and does need to hear about.
+                        typeof child.componentType === "string" &&
+                        child.componentType.startsWith("_"),
+                )
+            ) {
+                // Nothing to say: an author never writes a `_copy` or an
+                // `_error`, so naming one as an invalid child sends them
+                // looking for markup that is not theirs. Clear any record a
+                // previous derive of this same parent left, so that "nothing to
+                // say" means the map says nothing — every other branch of this
+                // function either writes the entry or deletes it, and a branch
+                // that did neither would let a stale message through.
+                //
+                // This arises when a composite child has not been given its
+                // chance to expand. Every component is first derived with
+                // `expandComposites: false`, and a composite is deliberately
+                // not matched against `_base` so that it must expand first, so
+                // the record below is made for every tree and then retracted by
+                // the re-derive that `expandCompositesOfDescendants` triggers.
+                // That pass reaches a component's attributes and children, but
+                // an index's contents hang off `refResolution.originalPath`,
+                // which is neither — so for those the record was never
+                // retracted and arrived at the end of the load beside the
+                // genuine diagnostic. Where a composite *does* expand, what
+                // gets reported is its expansion (`<graph>`, `<p>`) rather than
+                // the `_copy`, which is why suppressing this loses nothing.
+                delete core.unmatchedChildren[parent.componentIdx];
             } else {
                 core.unmatchedChildren[parent.componentIdx] = {
                     code: "doenet-w0107",
@@ -229,11 +262,68 @@ export async function matchChildrenToChildGroups({
 
     let unmatchedChildren: any[] = [];
 
+    delete parent.listChildPresentedTypes;
+    delete parent.listChildrenMatchedWhole;
+
     for (let [ind, child] of parent.activeChildren.entries() as Iterable<
         [number, any]
     >) {
+        // A list component stands in for its entries: it is matched as one
+        // of them, or as what one of them adapts to.
+        const listEntryType =
+            typeof child === "object"
+                ? child.constructor?.listEntryComponentType
+                : undefined;
+        // A parent that takes lists of the list's type (a `<matrix>` takes
+        // its `<matrixRow>`s) takes the list itself.
+        const ownGroup =
+            listEntryType !== undefined
+                ? findChildGroupNamingListType({
+                      core,
+                      componentType: child.componentType,
+                      parentClass: parent.constructor,
+                  })
+                : undefined;
+        if (ownGroup !== undefined) {
+            parent.childMatchesByGroup[ownGroup].push(ind);
+            if (!parent.listChildrenMatchedWhole) {
+                parent.listChildrenMatchedWhole = new Set();
+            }
+            parent.listChildrenMatchedWhole.add(ind);
+            continue;
+        }
+        if (listEntryType !== undefined) {
+            const listResult = findChildGroupForListEntries({
+                core,
+                entryType: listEntryType,
+                parentClass: parent.constructor,
+            });
+            if (listResult.success) {
+                parent.childMatchesByGroup[listResult.group!].push(ind);
+                if (!parent.listChildPresentedTypes) {
+                    parent.listChildPresentedTypes = {};
+                }
+                parent.listChildPresentedTypes[ind] = {
+                    componentType: listResult.componentType,
+                    adapterVariable: listResult.adapterVariable,
+                };
+                continue;
+            }
+        }
+
+        // A value reference (`_ref`) stands in for a component of its
+        // presented type. `Copy.js` chose that type so that a group takes it
+        // directly, and the reference has no adapters of its own, so it is
+        // matched without them.
+        const presentedType =
+            typeof child === "object"
+                ? child.presentedComponentType
+                : undefined;
+
         let childType =
-            typeof child !== "object" ? typeof child : child.componentType;
+            typeof child !== "object"
+                ? typeof child
+                : (presentedType ?? child.componentType);
 
         if (childType === undefined) {
             success = false;
@@ -241,11 +331,32 @@ export async function matchChildrenToChildGroups({
             continue;
         }
 
-        let result = findChildGroup({
-            core,
-            childType,
-            parentClass: parent.constructor,
-        });
+        let result: {
+            success: boolean;
+            group?: string;
+            adapterIndUsed?: number;
+        };
+        if (presentedType !== undefined) {
+            result = findChildGroupNoAdapters({
+                core,
+                componentType: childType,
+                parentClass: parent.constructor,
+            });
+            if (!result.success) {
+                result = findChildGroupNoAdapters({
+                    core,
+                    componentType: childType,
+                    parentClass: parent.constructor,
+                    afterAdapters: true,
+                });
+            }
+        } else {
+            result = findChildGroup({
+                core,
+                childType,
+                parentClass: parent.constructor,
+            });
+        }
 
         if (result.success) {
             parent.childMatchesByGroup[result.group!].push(ind);
@@ -332,6 +443,111 @@ export function findChildGroup({
     });
 }
 
+/**
+ * The child group of `parentClass` that names a type of list component that
+ * `componentType` is (`componentTypes: ["numberList"]`), so takes such a
+ * list whole rather than its entries; `undefined` when there is none.
+ */
+function findChildGroupNamingListType({
+    core,
+    componentType,
+    parentClass,
+}: {
+    core: Core;
+    componentType: string;
+    parentClass: any;
+}): string | undefined {
+    for (const group of parentClass.childGroups) {
+        for (const typeFromGroup of group.componentTypes) {
+            if (
+                core.componentInfoObjects.allComponentClasses[typeFromGroup]
+                    ?.listEntryComponentType !== undefined &&
+                core.componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: componentType,
+                    baseComponentType: typeFromGroup,
+                })
+            ) {
+                return group.group;
+            }
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Find the child group of `parentClass` that takes the entries of a list
+ * component, each of `entryType`. An entry is matched as its own type, or
+ * as the type of one of its adapters, as `findChildGroup` matches a
+ * component; no adapter component is made, and the entry instead presents as
+ * the adapter's type and reads `adapterVariable` as its `value`.
+ */
+export function findChildGroupForListEntries({
+    core,
+    entryType,
+    parentClass,
+}: {
+    core: Core;
+    entryType: string;
+    parentClass: any;
+}): {
+    success: boolean;
+    group?: string;
+    componentType?: string;
+    adapterVariable?: string;
+} {
+    let result = findChildGroupNoAdapters({
+        core,
+        componentType: entryType,
+        parentClass,
+    });
+    if (result.success) {
+        return { ...result, componentType: entryType };
+    }
+
+    const entryClass = core.componentInfoObjects.allComponentClasses[entryType];
+
+    for (let n = 0; n < entryClass.numAdapters; n++) {
+        const adapter = entryClass.adapters[n];
+        if (
+            typeof adapter !== "string" &&
+            adapter.substituteForPrimaryStateVariable
+        ) {
+            continue;
+        }
+        const adapterType = entryClass.getAdapterComponentType(
+            n,
+            core.componentInfoObjects.publicStateVariableInfo,
+        );
+        result = findChildGroupNoAdapters({
+            core,
+            componentType: adapterType,
+            parentClass,
+        });
+        if (result.success) {
+            return {
+                ...result,
+                componentType: adapterType,
+                adapterVariable:
+                    typeof adapter === "string"
+                        ? adapter
+                        : adapter.stateVariable,
+            };
+        }
+    }
+
+    result = findChildGroupNoAdapters({
+        core,
+        componentType: entryType,
+        parentClass,
+        afterAdapters: true,
+    });
+    if (result.success) {
+        return { ...result, componentType: entryType };
+    }
+
+    return { success: false };
+}
+
 export function findChildGroupNoAdapters({
     core,
     componentType,
@@ -406,6 +622,15 @@ export async function returnActiveChildrenIndicesToRender({
     let childIndicesToRender: number[] | null = null;
     if ("childIndicesToRender" in component.state) {
         childIndicesToRender = await component.stateValues.childIndicesToRender;
+        if (
+            childIndicesToRender &&
+            component.activeChildren.some(isListComponent)
+        ) {
+            childIndicesToRender = await activeIndicesOfExpandedChildren({
+                component,
+                expandedIndices: childIndicesToRender,
+            });
+        }
     }
 
     for (let [ind, child] of component.activeChildren.entries() as Iterable<
@@ -420,10 +645,7 @@ export async function returnActiveChildrenIndicesToRender({
         }
 
         if (typeof child === "object") {
-            if (
-                child.constructor.sendToRendererEvenIfHidden ||
-                !(await child.stateValues.hidden)
-            ) {
+            if (!(await child.stateValues.hidden)) {
                 indicesToRender.push(ind);
             }
         } else {
@@ -455,6 +677,61 @@ export async function returnActiveChildrenIndicesToRender({
 }
 
 /**
+ * The positions among `component.activeChildren` of the children at
+ * `expandedIndices`, which count each list component among them as its
+ * entries, as a child dependency presents them (`expandListChildren`). A
+ * `childIndicesToRender` computed from a child dependency is in those
+ * positions. A list is included if any of its entries is, and a list with
+ * no entries is included, so that it is drawn as nothing at all, as a
+ * composite with no replacements is.
+ */
+async function activeIndicesOfExpandedChildren({
+    component,
+    expandedIndices,
+}: {
+    component: any;
+    expandedIndices: number[];
+}): Promise<number[]> {
+    const expanded = new Set(expandedIndices);
+    const activeIndices: number[] = [];
+    let expandedInd = 0;
+    for (let [ind, child] of component.activeChildren.entries() as Iterable<
+        [number, any]
+    >) {
+        let span = 1;
+        if (isListComponent(child)) {
+            span = await child.stateValues.numEntries;
+            if (
+                span === 0 &&
+                child.replacementOf?.componentType === "_copy" &&
+                component.sharedParameters?.compositesMustHaveAReplacement
+            ) {
+                // the blank child of `ChildDependency.listMustHaveAnEntry`
+                span = 1;
+            }
+        }
+        if (span === 0) {
+            activeIndices.push(ind);
+        }
+        for (let i = 0; i < span; i++) {
+            if (expanded.has(expandedInd + i)) {
+                activeIndices.push(ind);
+                break;
+            }
+        }
+        expandedInd += span;
+    }
+    return activeIndices;
+}
+
+function isListComponent(child: any): boolean {
+    return (
+        typeof child === "object" &&
+        child?.constructor?.listEntryComponentType !== undefined
+    );
+}
+
+/**
  * Replace `parent.activeChildren[childInd]` with the adapter selected
  * by `adapterIndUsed`, creating the adapter component if it doesn't
  * already exist or doesn't match the desired component type.
@@ -479,6 +756,23 @@ export async function substituteAdapter({
     if (originalChild.componentIdx != undefined) {
         newSerializedChild = originalChild.getAdapter(adapterIndUsed);
         newSerializedChild.componentIdx = core._components.length;
+        // An adapter is built here, at run time, long after the walk that
+        // gives every component the document builds an identifier derived
+        // from where it sits in it. Without an id of its own it falls back to
+        // its build index, which moves whenever anything ahead of it does --
+        // and an adapter does hold a reader's work. A `<boolean>` written in
+        // a `<graph>` is adapted to a `<text>`, and a `<text>` in a graph is
+        // dragged by the reader; its `anchor` is theirs, is saved, and under
+        // a build index came back on nothing at all after an edit above it
+        // (Doenet/DoenetML#1944).
+        //
+        // What identifies an adapter is the component it adapts and which of
+        // that component's adapters was used -- both of which a rebuild
+        // reproduces, because the adapted component is itself keyed by the
+        // document. `@@adapt<n>` cannot collide with a document-derived path:
+        // an attribute segment is `@<name>`, and the only other `@@` form is
+        // a reference path's index, whose segment is digits and dots.
+        newSerializedChild.stateId = `${originalChild.stateId}@@adapt${adapterIndUsed}`;
         core._components[core._components.length] = undefined;
     } else {
         // XXX: how does this work with the new componentIdx approach?

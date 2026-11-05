@@ -79,7 +79,6 @@ color =
             [n] brún
            *[c] brune
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -91,7 +90,6 @@ line-width =
             [n] tin
            *[c] tinne
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -99,7 +97,6 @@ line-style =
            *[c] streepte
         }
     .dotted = stippele
-
 # Plural noun phrases, which is what follows «mei» in `style-filled`. A plural
 # adjective always takes `-e`, so these agree with nothing.
 fill-style =
@@ -109,7 +106,6 @@ fill-style =
     .backdiagonal = omkearde diagonale linen
     .dots = stippen
     .diamonds = ruten
-
 noun =
     .line = line
     .line-segment = linestik
@@ -129,13 +125,11 @@ noun =
     .diamond = ruut
     .cross = krús
     .plus = plus
-
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
        *[head] regelmjittige { $numSides }-hoek
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (which is
 # `{ $numSides }-hoek`, common) or the head of a phrase the description never
 # names: `border` (râne, common), `fill` (folling, common), `text` (tekst,
@@ -150,7 +144,6 @@ noun-gender =
        *[other] c
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -163,25 +156,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [n] follet
        *[c] follete
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } mei { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } mei { $pattern }
@@ -189,7 +178,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } mei { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «râne» is common, so the border's adjectives agree with it rather than with
 # the shape it surrounds. Frisian has an indefinite article, «in», so the two
 # `-article` branches really do differ from the two without.
@@ -200,35 +188,28 @@ style-border-clause =
         [and-article] en in { $border } râne
        *[with] mei { $border } râne
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } folling mei { $pattern }
        *[plain] { $color } folling
     }
-
 style-unfilled = net follet
-
 style-text =
     { $parts ->
         [background] { $color } op in { $background } eftergrûn
        *[plain] { $color }
     }
-
 style-background-none = gjin
-
 
 ## Boolean words
 
 boolean-true = wier
 boolean-false = falsk
 
-
 ## Answer buttons
 
 answer-submit-label = Kontrolearje
 answer-submit-label-no-correctness = Antwurd ynstjoere
-
 
 ## Sectional blocks
 
@@ -253,7 +234,6 @@ section-name =
     .solution = Oplossing
     .task = Taak
     .theorem = Stelling
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -263,9 +243,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Oanwizing
-
 
 ## Tables and figures
 
@@ -276,7 +254,6 @@ table-name =
         [unnumbered-title] Tabel{ ": " }
        *[unnumbered] Tabel
     }
-
 figure-name =
     { $parts ->
         [numbered] Figuer { $enumeration }
@@ -285,22 +262,18 @@ figure-name =
        *[unnumbered] Figuer
     }
 
-
 ## Paginator controls
 
 paginator-previous = Foarige
 paginator-next = Folgjende
 paginator-page = Side
-
 paginator-page-status = { $pageLabel } { $currentPage } fan { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = of
 piecewise-condition-if = as
 piecewise-condition-otherwise = oars
-
 
 ## Chemistry
 ##
@@ -311,6 +284,5 @@ piecewise-condition-otherwise = oars
 ## reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Unjildich chemysk symboal
 chemistry-invalid-ionic-compound = Unjildige ioanyske ferbining

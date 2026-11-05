@@ -125,7 +125,6 @@ color =
         }
     .pink = roz
     .brown = maro
-
 line-width =
     .thick =
         { $role ->
@@ -139,7 +138,6 @@ line-width =
                 }
         }
     .thin = subțire
-
 line-style =
     .dashed =
         { $role ->
@@ -163,7 +161,6 @@ line-style =
                    *[m] punctat
                 }
         }
-
 fill-style =
     .horizontal = linii orizontale
     .vertical = linii verticale
@@ -171,7 +168,6 @@ fill-style =
     .backdiagonal = linii diagonale inverse
     .dots = puncte
     .diamonds = romburi
-
 noun =
     .line = dreaptă
     .line-segment = segment
@@ -191,7 +187,6 @@ noun =
     .diamond = romb
     .cross = cruce
     .plus = plus
-
 # The side count is a counted noun, so it takes «de» above nineteen — «cu 20 de
 # laturi» against «cu 19 laturi». `$numSides` is a real number, so the catalog
 # can select on it and get that right without the code knowing the rule.
@@ -205,7 +200,6 @@ noun-regular-polygon =
             }
        *[head] poligon regulat
     }
-
 # A neuter noun agrees like a masculine in the singular, and every description
 # here is singular, so `n` is never answered. `$noun` can also be
 # `regular-polygon` (poligon, n) or a head the description never names:
@@ -225,7 +219,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -238,7 +231,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun comes first and the adjectives follow it, which is the whole of
 # Romanian's reordering.
 style-with-noun =
@@ -246,7 +238,6 @@ style-with-noun =
         [noun-tail] { $noun } { $nounTail } { $description }
        *[noun] { $noun } { $description }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -254,13 +245,11 @@ style-filled-word =
         [f] umplută
        *[m] umplut
     }
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } cu { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } cu { $pattern }
@@ -268,7 +257,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $color } { $filled } cu { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # «un» is a word of its own and stands before the noun, so unlike the definite
 # article it can be written here — and the distinction English draws between
 # the `-article` branches and the others survives into Romanian.
@@ -279,36 +267,29 @@ style-border-clause =
         [and-article] și un chenar { $border }
        *[with] cu chenar { $border }
     }
-
 # The pattern is the noun and the colour describes it, so the colour follows.
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = neumplut
-
 style-text =
     { $parts ->
         [background] { $color } pe fundal { $background }
        *[plain] { $color }
     }
-
 style-background-none = niciunul
-
 
 ## Boolean words
 
 boolean-true = adevărat
 boolean-false = fals
 
-
 ## Answer buttons
 
 answer-submit-label = Verifică
 answer-submit-label-no-correctness = Trimite răspunsul
-
 
 ## Sectional blocks
 ##
@@ -337,7 +318,6 @@ section-name =
     .solution = Soluția
     .task = Sarcina
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -347,9 +327,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Indiciu
-
 
 ## Tables and figures
 
@@ -360,7 +338,6 @@ table-name =
         [unnumbered-title] Tabelul{ ": " }
        *[unnumbered] Tabelul
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -369,22 +346,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Anterioară
 paginator-next = Următoare
 paginator-page = Pagina
-
 paginator-page-status = { $pageLabel } { $currentPage } din { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = sau
 piecewise-condition-if = dacă
 piecewise-condition-otherwise = altfel
-
 
 ## Chemistry
 
@@ -507,7 +480,6 @@ element-name =
     .lv = Livermoriu
     .ts = Tenesiu
     .og = Oganesson
-
 element-anion-name =
     .h = Hidrură
     .c = Carbură
@@ -521,8 +493,6 @@ element-anion-name =
     .i = Iodură
     .at = Astatură
     .ts = Tenesură
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol chimic nevalid
 chemistry-invalid-ionic-compound = Compus ionic nevalid

@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- Host page for the mid-flush boot-failure e2e (the coordinator's
+     `bootFailed` handler, `parking` branch).
+
+     The knobs conspire to land the failure while a park flush is in
+     flight:
+
+     - `data-boot-watchdog-ms="1000"`: the silent boot is promoted to
+       `live` after 1 s, long before its realm gives up (the activity's own
+       handshake watchdog is 7 s — see
+       coordination-activity-parking-race-if.html).
+     - `data-max-live-viewers="1"` + a spacer: scrolling to the healthy
+       activity puts the promoted one over budget and off-screen, so it
+       begins parking after the short park delay.
+     - The activity's realm never answers a flush, and
+       `data-flush-timeout-ms="90000"` is far above every spec timeout —
+       so a park that completes promptly can only mean `bootFailed`
+       cancelled the doomed flush, not that the flush was answered or
+       timed out. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Coordinated activities with a failure landing mid-flush</title>
+        <script
+            src="/standalone/coordinator.js"
+            data-max-live-viewers="1"
+            data-max-concurrent-boots="1"
+            data-park-delay-ms="300"
+            data-visible-margin="100px"
+            data-flush-timeout-ms="90000"
+            data-boot-watchdog-ms="1000"
+        ></script>
+    </head>
+    <body>
+        <h1>Coordinated activities with a failure landing mid-flush</h1>
+        <iframe
+            id="actSlowFail"
+            src="/coordination-activity-parking-race-if.html"
+            width="800"
+            height="500"
+            style="border: 1px solid gray"
+        ></iframe>
+        <div style="height: 2500px">spacer</div>
+        <iframe
+            id="actHealthy"
+            src="/coordination-activity-2-if.html"
+            width="800"
+            height="500"
+            style="border: 1px solid gray"
+        ></iframe>
+    </body>
+</html>

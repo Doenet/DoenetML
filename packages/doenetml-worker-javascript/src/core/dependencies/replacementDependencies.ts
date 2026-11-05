@@ -50,6 +50,8 @@ export class ReplacementDependency extends Dependency {
         // then we won't returns its replacements but instead return the composite itself.
         this.stopIfHaveProp = this.definition.stopIfHaveProp;
 
+        this.stopAtListComposites = this.definition.stopAtListComposites;
+
         this.includeWithheldReplacements =
             this.definition.includeWithheldReplacements;
 
@@ -191,6 +193,7 @@ export class ReplacementDependency extends Dependency {
                 core: this.dependencyHandler.core,
                 replacements,
                 recurseNonStandardComposites: this.recurseNonStandardComposites,
+                stopAtListComposites: this.stopAtListComposites,
                 includeWithheldReplacements: this.includeWithheldReplacements,
                 stopIfHaveProp: this.stopIfHaveProp,
             });

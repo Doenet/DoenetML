@@ -37,15 +37,12 @@ color =
     .purple = สีม่วง
     .pink = สีชมพู
     .brown = สีน้ำตาล
-
 line-width =
     .thick = หนา
     .thin = บาง
-
 line-style =
     .dashed = ประ
     .dotted = จุด
-
 # Noun phrases: they follow «พร้อม» and modify nothing.
 fill-style =
     .horizontal = เส้นแนวนอน
@@ -54,7 +51,6 @@ fill-style =
     .backdiagonal = เส้นทแยงมุมกลับด้าน
     .dots = จุด
     .diamonds = รูปข้าวหลามตัด
-
 noun =
     .line = เส้นตรง
     .line-segment = ส่วนของเส้นตรง
@@ -74,7 +70,6 @@ noun =
     .diamond = รูปข้าวหลามตัด
     .cross = เครื่องหมายกากบาท
     .plus = เครื่องหมายบวก
-
 # The side count sits immediately after the noun and before any adjective —
 # «รูปหลายเหลี่ยมด้านเท่า 5 ด้าน» — so it folds into the head and there is no
 # tail. Putting it after the adjectives would separate «ด้าน» from the number
@@ -84,11 +79,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] รูปหลายเหลี่ยมด้านเท่า { $numSides } ด้าน
     }
-
 # Thai has no grammatical gender, so every noun answers the same and the answer
 # goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -102,14 +95,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «เส้นตรงหนาประสีแดง».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun }{ $description }{ $nounTail }
        *[noun] { $noun }{ $description }
     }
-
 # «ระบาย» carries no สี of its own: every colour word above already begins
 # with one, and both messages below place `$filled` immediately in front of
 # `$color` in every variant, so the composition produces «ระบายสีน้ำเงิน» with
@@ -119,13 +110,11 @@ style-with-noun =
 # without one there. `style-unfilled` stands on its own and keeps the full
 # «ไม่ระบายสี».
 style-filled-word = ระบาย
-
 style-filled =
     { $parts ->
         [pattern] { $filled }{ $color } พร้อม{ $pattern }
        *[plain] { $filled }{ $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun }{ $filled }{ $color } พร้อม{ $pattern }
@@ -133,7 +122,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun }{ $nounTail }{ $filled }{ $color } พร้อม{ $pattern }
        *[plain] { $noun }{ $filled }{ $color }
     }
-
 # «ขอบ» leads its own adjectives, the same way every noun here does. Thai needs
 # no article, so the `-article` branches read like the ones without.
 style-border-clause =
@@ -143,36 +131,29 @@ style-border-clause =
         [and-article] และขอบ{ $border }
        *[with] พร้อมขอบ{ $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern }{ $color }
        *[plain] { $color }
     }
-
 style-unfilled = ไม่ระบายสี
-
 style-text =
     { $parts ->
         [background] { $color }บนพื้นหลัง{ $background }
        *[plain] { $color }
     }
-
 style-background-none = ไม่มี
-
 
 ## Boolean words
 
 boolean-true = จริง
 boolean-false = เท็จ
 
-
 ## Answer buttons
 
 answer-submit-label = ตรวจคำตอบ
 answer-submit-label-no-correctness = ส่งคำตอบ
-
 
 ## Sectional blocks
 
@@ -197,7 +178,6 @@ section-name =
     .solution = เฉลย
     .task = ภารกิจ
     .theorem = ทฤษฎีบท
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -207,9 +187,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = คำใบ้
-
 
 ## Tables and figures
 
@@ -220,7 +198,6 @@ table-name =
         [unnumbered-title] ตาราง{ ": " }
        *[unnumbered] ตาราง
     }
-
 figure-name =
     { $parts ->
         [numbered] รูป { $enumeration }
@@ -229,22 +206,18 @@ figure-name =
        *[unnumbered] รูป
     }
 
-
 ## Paginator controls
 
 paginator-previous = ก่อนหน้า
 paginator-next = ถัดไป
 paginator-page = หน้า
-
 paginator-page-status = { $pageLabel } { $currentPage } จาก { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = หรือ
 piecewise-condition-if = เมื่อ
 piecewise-condition-otherwise = กรณีอื่น
-
 
 ## Chemistry
 
@@ -372,7 +345,6 @@ element-name =
     .lv = ลิเวอร์มอเรียม
     .ts = เทนเนสซีน
     .og = ออกาเนสซอน
-
 element-anion-name =
     .h = ไฮไดรด์
     .c = คาร์ไบด์
@@ -386,8 +358,6 @@ element-anion-name =
     .i = ไอโอไดด์
     .at = แอสทาไทด์
     .ts = เทนเนสไซด์
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = สัญลักษณ์เคมีไม่ถูกต้อง
 chemistry-invalid-ionic-compound = สารประกอบไอออนิกไม่ถูกต้อง

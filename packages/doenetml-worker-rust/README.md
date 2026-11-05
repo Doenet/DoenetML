@@ -2,6 +2,12 @@
 
 This folder contains the Rust implementation of DoenetML Core.
 
+### Parity with the JavaScript core
+
+`@doenet/rust-parity` (`packages/rust-parity`) builds a dashboard of what the
+Rust core implements compared with the JavaScript core. Its Rust input is
+`cargo run -p doenetml-core --example component_inventory`.
+
 ### Benchmarking
 
 To run the benchmarks with `criterion` run

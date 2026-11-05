@@ -5,14 +5,15 @@ import {
     callAction,
     moveLine,
     movePoint,
+    updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
-vi.mock("hyperformula");
 
 function isUndefinedOrInactive(comp) {
     expect(
@@ -2400,5 +2401,314 @@ describe("Unlinked Copying Tests @group4", async () => {
                 await resolvePathToNodeIdx("r[2].P")
             ].stateValues.xs.map((v) => v.tree),
         ).eqls([8, 7]);
+    });
+
+    it("a copy of a reference is what the reference is linked to, pasted", async () => {
+        // a copy of `r` is the DoenetML of `m` pasted, with what `r` writes
+        // itself: `hide="$h"` keeps following `h`, and a later change to
+        // `m` does not reach it
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <math name="m" hide="$h" displayDigits="2">1.2345</math>
+    <math extend="$m" name="r" />
+    <math copy="$r" name="c" />
+    <math extend="$m" displayDigits="4" name="r2" />
+    <p><math copy="$r2" name="c2" /></p>
+    <p name="p"><math extend="$m" name="inner" /></p>
+    <p copy="$p" name="cp" />
+    `,
+        });
+        async function check(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, digits] of [
+                ["c", 2],
+                ["c2", 4],
+                ["cp.inner", 2],
+            ] as const) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect(stateValues.hidden, name).eq(hidden);
+                expect(stateValues.displayDigits, name).eq(digits);
+            }
+        }
+        await check(false);
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await check(true);
+    });
+
+    it("a copy of a reference that writes one of a pair of alternatives does not take the other", async () => {
+        // `r` writes `displayDecimals`, so it does not read the
+        // `displayDigits` written on `m`, and `g` writes `variable`, so it
+        // does not read the `variables` written on `f`: neither do their
+        // copies
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m" displayDigits="5">1.23456789</math>
+    <math extend="$m" name="r" displayDecimals="1" />
+    <math copy="$r" name="c" />
+    <function name="f" variables="x y">x+y</function>
+    <function extend="$f" name="g" variable="t" />
+    <function copy="$g" name="h" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        for (const name of ["r", "c"]) {
+            expect((await stateValues(name)).text, name).eq("1.2");
+        }
+        for (const name of ["g", "h"]) {
+            expect(
+                (await stateValues(name)).variables.map((v) => v.tree),
+                name,
+            ).eqls(["t"]);
+        }
+    });
+
+    it("a copy of a reference to a repeat repeats the template with its attributes", async () => {
+        // the copies take the `for` written on `r` and `r2`; the template's
+        // attributes (`displayDigits`, `fixed`) are copied unlinked
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeat name="r" for="1 2" valueName="v">
+      <math name="x" displayDigits="2" fixed>$v+0.123456</math>
+    </repeat>
+    <repeat extend="$r" name="e" />
+    <repeat copy="$e" name="c" />
+    <repeatForSequence name="r2" from="1" to="2" valueName="v">
+      <math name="x" displayDigits="2" fixed>$v+0.123456</math>
+    </repeatForSequence>
+    <repeatForSequence extend="$r2" name="e2" />
+    <repeatForSequence copy="$e2" name="c2" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["e", "c", "e2", "c2"]) {
+            const stateValues =
+                stateVariables[await resolvePathToNodeIdx(`${name}[2].x`)]
+                    .stateValues;
+            expect(stateValues.text, name).eq("2 + 0.12");
+            expect(stateValues.fixed, name).eq(true);
+        }
+    });
+
+    it("an attribute written on a copy replaces its partner on the source, as on an extend", async () => {
+        // `variable` and `variables` (and `derivVariable` and
+        // `derivVariables`, `displayDigits` and `displayDecimals`) are two
+        // ways of writing one setting: one written on a reference replaces
+        // both of its source's
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f" variables="x y">x+y</function>
+    <function name="fe" extend="$f" variable="t" />
+    <function name="fc" copy="$f" variable="t" />
+    <function name="g" variable="t">t^2</function>
+    <function name="gc" copy="$g" variables="u v" />
+    <derivative name="d" derivVariables="x y">$f</derivative>
+    <derivative name="de" extend="$d" derivVariable="y" />
+    <derivative name="dc" copy="$d" derivVariable="y" />
+    <derivative name="dv" variables="x y">x^2y</derivative>
+    <derivative name="dve" extend="$dv" variable="x" />
+    <derivative name="dvc" copy="$dv" variable="x" />
+    <math name="m" displayDigits="5">1.23456789</math>
+    <math name="me" extend="$m" displayDecimals="1" />
+    <math name="mc" copy="$m" displayDecimals="1" />
+    <point name="P" displayDigits="5">(1.23456789, 2)</point>
+    <math name="xe" extend="$P.x" displayDecimals="1" />
+    <math name="xc" copy="$P.x" displayDecimals="1" />
+    <mathList name="ml" displayDigits="5">1.23456789 2</mathList>
+    <math name="le" extend="$ml[1]" displayDecimals="1" />
+    <math name="lc" copy="$ml[1]" displayDecimals="1" />
+    <math name="xu" copy="$P.x" displayDecimals="1" />
+    <math name="lu" copy="$ml[1]" displayDecimals="1" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        const trees = (values: any[]) => values.map((v) => v.tree);
+        for (const name of ["fe", "fc"]) {
+            expect(trees((await stateValues(name)).variables), name).eqls([
+                "t",
+            ]);
+        }
+        for (const name of ["dve", "dvc"]) {
+            expect(trees((await stateValues(name)).variables), name).eqls([
+                "x",
+            ]);
+        }
+        expect(trees((await stateValues("gc")).variables)).eqls(["u", "v"]);
+        for (const name of ["de", "dc"]) {
+            expect(trees((await stateValues(name)).derivVariables), name).eqls([
+                "y",
+            ]);
+        }
+        // also for a prop or an entry of a list, which takes the
+        // source's display settings
+        for (const name of ["me", "mc", "xe", "xc", "xu", "le", "lc", "lu"]) {
+            expect((await stateValues(name)).text, name).eq("1.2");
+        }
+    });
+
+    it("link is not an attribute: it is treated as any unknown attribute, such as blink", async () => {
+        // Whether a component is linked to what it names is said by `extend`
+        // or `copy`. The copy's own settings, such as `_link`, start with `_`,
+        // which an author cannot write, so `link` is just a name, like `blink`
+        // (#2326).
+        async function outcome(attribute: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<point name="P">(1,2)</point>
+<point name="plain" ${attribute}="false">(1,2)</point>
+<point name="c" copy="$P" ${attribute}="true" />
+<point name="e" extend="$P" ${attribute}="false" />
+<module name="m"><moduleAttributes><text name="${attribute}">default</text></moduleAttributes><text name="t">$${attribute}</text></module>
+<module name="mc" copy="$m" ${attribute}="custom" />
+`,
+            });
+
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx("P"),
+                x: 3,
+                y: 4,
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const values: Record<string, string> = {};
+            for (const name of ["c", "e"]) {
+                values[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.coords.toString();
+            }
+            values.mc =
+                stateVariables[
+                    await resolvePathToNodeIdx("mc.t")
+                ].stateValues.text;
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            return {
+                values,
+                errors: diagnosticsByType.errors.map((error) =>
+                    error.message.replaceAll(attribute, "ATTR"),
+                ),
+                warnings: diagnosticsByType.warnings.map((warning) =>
+                    warning.message.replaceAll(attribute, "ATTR"),
+                ),
+            };
+        }
+
+        const link = await outcome("link");
+        expect(link).eqls(await outcome("blink"));
+        expect(link.values).eqls({ c: "(1, 2)", e: "(3, 4)", mc: "custom" });
+        expect(link.errors).eqls([
+            'Invalid attribute "ATTR" for a component of type `<point>`.',
+        ]);
+    });
+
+    it("an attribute starting with _ is rejected, so cannot set a copy's own settings", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="P">(1,2)</point>
+<point name="c" copy="$P" _link="true" />
+`,
+        });
+
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => error.message),
+        ).eqls([
+            'Invalid attribute "_link". Attribute names cannot start with an underscore.',
+        ]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 3,
+            y: 4,
+            core,
+        });
+
+        // still a copy, not linked
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("c")
+            ].stateValues.coords.toString(),
+        ).eq("(1, 2)");
+    });
+
+    it("removeEmptyArrayEntries on an extend of a list, in any case", async () => {
+        // It is the copy's to read, so it is moved off the list onto the copy
+        // whatever case it is written in; it used to be moved only as
+        // `removeEmptyArrayEntries`, and left on the list otherwise, which
+        // does not take it.
+        // The cells without a point are empty entries of `pointsInCells`.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<spreadsheet name="s" minNumRows="2" minNumColumns="2">
+  <row><cell>(1,2)</cell><cell>hello</cell></row>
+  <row><cell>5</cell><cell>(3,4)</cell></row>
+</spreadsheet>
+<pointList name="e0" extend="$s.pointsInCells" />
+<pointList name="e1" extend="$s.pointsInCells" removeEmptyArrayEntries />
+<pointList name="e2" extend="$s.pointsInCells" RemoveEmptyArrayEntries />
+`,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const points = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.points;
+        // one entry per cell, empty or not
+        expect((await points("e0")).length).eq(4);
+        for (const name of ["e1", "e2"]) {
+            expect(
+                (await points(name)).map((point) => point.toString()),
+                name,
+            ).eqls(["1,2", "3,4"]);
+        }
+    });
+
+    it("names inside a copy are reached only through the copy's own name (NAME-3)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="P"><math name="h">x</math></p>
+    <section name="R"><p copy="$P" /></section>
+    <section name="R2"><p copy="$P" name="P2" /></section>
+    <p name="Q1" copy="$P" />
+    <p name="Q2" copy="$Q1" />
+    <math name="bare">$h</math>
+    `,
+        });
+
+        // the copy's `h` has no name of its own outside the copy
+        expect(await resolvePathToNodeIdx("R.h")).eq(-1);
+        expect(await resolvePathToNodeIdx("R2.h")).eq(-1);
+        // through the copy's name, including a copy of a copy
+        for (const path of ["R2.P2.h", "Q1.h", "Q2.h"]) {
+            expect(await resolvePathToNodeIdx(path), path).not.eq(-1);
+            expect(await resolvePathToNodeIdx(path), path).not.eq(
+                await resolvePathToNodeIdx("P.h"),
+            );
+        }
+        // a bare `$h` beside the copies is still the original's, unambiguous
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bare")].stateValues.value
+                .tree,
+        ).eq("x");
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
 });

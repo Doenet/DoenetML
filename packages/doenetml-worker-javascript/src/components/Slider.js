@@ -1,9 +1,10 @@
-import { roundForDisplay } from "../utils/math";
+import { roundForDisplay, isNumericConstant } from "../utils/math";
 import BaseComponent from "./abstract/BaseComponent";
 import me from "math-expressions";
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
 import {
     returnNumberDisplayAttributeComponentShadowing,
@@ -21,6 +22,7 @@ export default class Slider extends BaseComponent {
         });
     }
     static componentType = "slider";
+    static renderChildren = true;
 
     static componentDocs = {
         summary: "An interactive slider input",
@@ -170,6 +172,10 @@ export default class Slider extends BaseComponent {
         let labelDefinitions = returnLabelStateVariableDefinitions();
 
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnRenderOnlyLabelChildDefinitions(),
+        );
 
         Object.assign(
             stateVariableDefinitions,
@@ -849,7 +855,7 @@ async function invertSliderValue({ desiredStateVariableValues, stateValues }) {
     } else {
         if (preliminaryValue instanceof me.class) {
             preliminaryValue = preliminaryValue.evaluate_to_constant();
-            if (Number.isNaN(preliminaryValue)) {
+            if (!isNumericConstant(preliminaryValue)) {
                 return { success: false };
             }
         } else {

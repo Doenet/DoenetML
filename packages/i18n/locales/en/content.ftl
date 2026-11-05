@@ -350,6 +350,20 @@ hint-title = Hint
 ## it sits is the one thing a translation cannot reorder — the same shape
 ## `section-title-prefix` has.
 
+## The name a `<chart>` gives a series that the author did not label.
+##
+## This is not decoration: it is the text a screen reader announces on the
+## level between the chart and its marks, so a reader stopping there is told
+## which group they have reached. A bare number would be indistinguishable
+## from a value or a category, which are what the levels either side of it
+## announce.
+##
+## `$position` arrives as text rather than as a number, for the reason
+## `table-name`'s `$enumeration` does: it identifies the series, so the
+## thousandth one is "series 1000" and not "series 1,000".
+chart-unlabeled-series =
+    series { $position }
+
 table-name =
     { $parts ->
         [numbered] Table { $enumeration }
@@ -576,3 +590,54 @@ ion-name-oxidation-state = { $name } ({ $numeral })
 # message.
 chemistry-invalid-symbol = Invalid Chemical Symbol
 chemistry-invalid-ionic-compound = Invalid Ionic Compound
+
+## Inputs embedded in math
+
+# Names the gap an input fills when it is drawn inside a typeset expression, so
+# that a screen reader reads "x equals blank plus 3" rather than skipping over
+# it. Written into the mathematics itself and never shown on screen, so keep it
+# to a word or two.
+math-embedded-input-blank = blank
+
+# The same, when one expression has more than one gap, so that a reader can tell
+# which one they have reached.
+math-embedded-input-blank-ordinal = blank { $ordinal } of { $total }
+
+# The five-number summary a `<chart type="box">` gives a screen reader on each
+# box it draws.
+#
+# Words rather than five bare numbers. A bar is announced as its category and
+# its value, and a point as its coordinates, because in both the position says
+# which number it is; a box reports five numbers at one position, and nothing
+# but the naming tells them apart. A histogram's bar needs a word for the same
+# reason — see `chart-histogram-bin` below, which names its count.
+#
+# Each number arrives as text, already written the way the chart writes the
+# numbers on its own axis. Passed as a number instead, a translation would
+# format it a second time — grouping it, and rounding it to three fraction
+# digits — so a reader would hear a different figure from the one drawn.
+chart-box-summary =
+    minimum { $minimum }, first quartile { $quartile1 }, median { $median }, third quartile { $quartile3 }, maximum { $maximum }
+
+# The name a `<chart type="box">` gives one observation drawn beyond a whisker.
+#
+# Named rather than announced as a bare number, for the reason the summary
+# above is worded: after the five numbers of the box, a further number on its
+# own says nothing about why it is drawn apart from them.
+chart-box-outlier =
+    outlier { $value }
+
+# What a `<chart type="histogram">` gives a screen reader on each bar it draws:
+# the stretch of the scale the bar covers, and how many observations fell in it.
+#
+# The count is named where the two cut points are not, because the position says
+# what they are — a reader hears them in the order they are drawn in, as the ends
+# of the bar — and says nothing about the third number, which is measured up the
+# other axis.
+#
+# Each number arrives as text, already written the way the chart writes the
+# numbers on its own axis, for the reason the box plot's summary gives: passed
+# as a number, a translation would format it a second time and a reader would
+# hear a different figure from the one drawn.
+chart-histogram-bin =
+    { $from } to { $to }, count { $count }

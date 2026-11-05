@@ -77,7 +77,6 @@ color =
     .purple = ⴰⵕⴳⵡⴰⵏⵉ
     .pink = ⵡⴰⵔⴷⵉ
     .brown = ⵇⴰⵀⵡⵉ
-
 line-width =
     .thick =
         { $gender ->
@@ -89,11 +88,9 @@ line-width =
             [f] ⵜⴰⵔⵇⵇⴰⵇⵜ
            *[m] ⴰⵔⵇⵇⴰⵇ
         }
-
 line-style =
     .dashed = ⵙ ⵜⴳⵣⵓⵎⵉⵏ
     .dotted = ⵙ ⵜⵏⵇⵉⴹⵉⵏ
-
 # Written in the annexed state, because every place these words are placed puts
 # them behind ⵙ; see this file's header.
 fill-style =
@@ -103,7 +100,6 @@ fill-style =
     .backdiagonal = ⵢⵉⵣⵉⵔⵉⴳⵏ ⵉⵥⵍⴰⵢⵏⵉⵏ ⵙ ⵜⴰⵎⴰ ⵢⴰⴹⵏⵉⵏ
     .dots = ⵜⵏⵇⵉⴹⵉⵏ
     .diamonds = ⵜⵍⵎⴰⵙⵉⵏ
-
 noun =
     .line = ⵉⵣⵉⵔⵉⴳ
     .line-segment = ⴰⴳⵣⵓⵎ ⵏ ⵢⵉⵣⵉⵔⵉⴳ
@@ -123,13 +119,11 @@ noun =
     .diamond = ⵜⴰⵍⵎⴰⵙⵜ
     .cross = ⴰⵎⴳⵔⵉⴷ
     .plus = ⴰⵣⴰⵎⵓⵍ ⵏ ⵓⵔⵏⵓ
-
 noun-regular-polygon =
     { $part ->
         [tail] ⵙ { $numSides } ⵏ ⵢⵉⴷⵉⵙⴰⵏ
        *[head] ⴰⵎⴳⴳⵜⵙⴷⵉⵙ ⴰⵎⵛⵜⵓ
     }
-
 noun-gender =
     { $noun ->
         [function] f
@@ -141,7 +135,6 @@ noun-gender =
         [parabola] f
        *[other] m
     }
-
 
 ## Style composition
 
@@ -155,25 +148,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] ⵜⵛⵛⵓⵔ
        *[m] ⵉⵛⵛⵓⵔ
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ⵙ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ⵙ { $pattern }
@@ -181,7 +170,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ⵙ { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] ⵙ ⵜⵎⴰ { $border }
@@ -189,35 +177,28 @@ style-border-clause =
         [and-article] ⴷ ⵜⵎⴰ { $border }
        *[with] ⵙ ⵜⵎⴰ { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } ⵙ { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ⵓⵔ ⵉⵛⵛⵓⵔ
-
 style-text =
     { $parts ->
         [background] { $color } ⵅⴼ ⵓⴳⵉⵍⴰⵍ { $background }
        *[plain] { $color }
     }
-
 style-background-none = ⵓⵔ ⵉⵍⵍⵉ
-
 
 ## Boolean words
 
 boolean-true = ⵜⵉⴷⵜ
 boolean-false = ⵜⴰⴽⵔⴹⵉⵜ
 
-
 ## Answer buttons
 
 answer-submit-label = ⵙⵏⵇⴷ ⵜⴰⵡⵓⵔⵉ
 answer-submit-label-no-correctness = ⴰⵣⵏ ⵜⵉⵔⵉⵔⵉⵜ
-
 
 ## Sectional blocks
 
@@ -242,7 +223,6 @@ section-name =
     .solution = ⵜⵉⴼⵔⴰⵜ
     .task = ⵜⴰⵡⵓⵔⵉ
     .theorem = ⵜⴰⵎⴰⵎⴽⵜ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -252,9 +232,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ⵜⴰⵍⵖⵓⵜ
-
 
 ## Tables and figures
 
@@ -265,7 +243,6 @@ table-name =
         [unnumbered-title] ⵜⴰⴼⵍⵡⵉⵜ{ ": " }
        *[unnumbered] ⵜⴰⴼⵍⵡⵉⵜ
     }
-
 figure-name =
     { $parts ->
         [numbered] ⵜⵓⴳⵏⴰ { $enumeration }
@@ -274,24 +251,18 @@ figure-name =
        *[unnumbered] ⵜⵓⴳⵏⴰ
     }
 
-
 ## Paginator controls
 
 paginator-previous = ⴰⵣⵡⵉⵔ
 paginator-next = ⴰⴹⴼⵉⵔ
 paginator-page = ⴰⵙⴰⵜⵓ
-
 paginator-page-status = { $pageLabel } { $currentPage } ⵣⴳ { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ⵏⵖ
-
 piecewise-condition-if = ⵎⴽ
-
 piecewise-condition-otherwise = ⵏⵖ ⵓⵍⴰ
-
 
 ## Chemistry
 ##
@@ -303,6 +274,5 @@ piecewise-condition-otherwise = ⵏⵖ ⵓⵍⴰ
 ## fallback *is* the curriculum.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ⴰⵣⴰⵎⵓⵍ ⴰⴽⵉⵎⵢⴰⵏ ⴰⵔⴰⵎⵖⵜⵓ
 chemistry-invalid-ionic-compound = ⴰⵙⴷⵓⴽⴽⵍ ⴰⵢⵓⵏⴰⵏ ⴰⵔⴰⵎⵖⵜⵓ

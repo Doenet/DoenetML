@@ -90,7 +90,6 @@ color =
     .purple = violɛ
     .pink = rozɛ
     .brown = marɔ̃
-
 line-width =
     .thick =
         { $gender ->
@@ -102,13 +101,11 @@ line-width =
             [c1] môkekele
            *[c7] ékekele
         }
-
 # Written as an invariable «a bo …» phrase, so that it agrees with nothing
 # and can close the phrase. `style-stroke` puts it last for that reason.
 line-style =
     .dashed = a bo tirɛ
     .dotted = a bo pwɛ̃
-
 fill-style =
     .horizontal = melal ma ne mimbaman
     .vertical = melal ma ne miyembane
@@ -116,7 +113,6 @@ fill-style =
     .backdiagonal = melal ma ne melogolo m'ényiñ
     .dots = bipwɛ̃
     .diamonds = bidiyaman
-
 noun =
     .line = liñ
     .line-segment = morso liñ
@@ -136,7 +132,6 @@ noun =
     .diamond = diyaman
     .cross = kwa
     .plus = plis
-
 # The side count is a relative complement and closes the noun phrase, so it
 # goes in the tail, following `locales/bem`'s shape for the same reason.
 noun-regular-polygon =
@@ -144,7 +139,6 @@ noun-regular-polygon =
         [tail] a ne bibalabala { $numSides }
        *[head] poligon é ne mvegan
     }
-
 # The noun class. `c7` is the default and the class of every loanword.
 noun-gender =
     { $noun ->
@@ -156,7 +150,6 @@ noun-gender =
         [border] c1
        *[other] c7
     }
-
 
 ## Style composition
 
@@ -170,25 +163,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c1] môlôné
        *[c7] élôné
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } a bo { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } a bo { $pattern }
@@ -196,7 +185,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } a bo { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «bɔr» is a loanword and takes no concord, so its describing words agree
 # with nothing and all four branches read alike, on `locales/bem`'s pattern
 # for its invariable «na».
@@ -207,35 +195,28 @@ style-border-clause =
         [and-article] a bo bɔr { $border }
        *[with] a bo bɔr { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = a si lôné ki
-
 style-text =
     { $parts ->
         [background] { $color } a bo fɔ̃ { $background }
        *[plain] { $color }
     }
-
 style-background-none = jôm éziñ te
-
 
 ## Boolean words
 
 boolean-true = mvaé
 boolean-false = abé
 
-
 ## Answer buttons
 
 answer-submit-label = Yene Nkobo
 answer-submit-label-no-correctness = Lôm Nkobo
-
 
 ## Sectional blocks
 
@@ -260,7 +241,6 @@ section-name =
     .solution = Sɔlisiɔ̃
     .task = Ésaé
     .theorem = Téyorɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -270,7 +250,6 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ajô
 
 ## Tables and figures
@@ -282,7 +261,6 @@ table-name =
         [unnumbered-title] Tab{ ": " }
        *[unnumbered] Tab
     }
-
 figure-name =
     { $parts ->
         [numbered] Figɛr { $enumeration }
@@ -291,23 +269,18 @@ figure-name =
        *[unnumbered] Figɛr
     }
 
-
 ## Paginator controls
 
 paginator-previous = Avan
 paginator-next = Apre
 paginator-page = Ibumu
-
 paginator-page-status = { $pageLabel } { $currentPage } asu { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = nge
 piecewise-condition-if = nge
-
 piecewise-condition-otherwise = nge te fe
-
 
 ## Chemistry
 ##
@@ -320,6 +293,5 @@ piecewise-condition-otherwise = nge te fe
 ## table there and the fallback *is* the curriculum.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ébwaé a Kemi É Si Mvaé Ki
 chemistry-invalid-ionic-compound = Nkobo w'Ayɔ̃ Wu Si Mvaé Ki

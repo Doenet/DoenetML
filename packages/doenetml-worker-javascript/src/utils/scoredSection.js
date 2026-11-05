@@ -2,6 +2,284 @@ import { codedDiagnostic } from "./diagnostics";
 import { returnSubmitLabelStateVariableDefinitions } from "./answer";
 
 /**
+ * Builds the `returnDependencies` of a state variable that aggregates one
+ * credit variable over a section's scored descendants.
+ *
+ * A section aggregates several credit variables — `creditAchieved`,
+ * `creditAchievedForProgress`, `creditAchievedIfSubmit` — that differ only in
+ * which variable is read off each descendant, so they all gather their
+ * dependencies here. Each descendant's value arrives as `<variableName><index>`
+ * alongside the `scoredDescendants` that give the indices their meaning; when
+ * the section does not aggregate scores, nothing but `aggregateScores` is
+ * depended on.
+ *
+ * `creditAchievedForCheckWork` is the one credit variable that does not come
+ * through here: it usually takes no dependencies at all, and reads two
+ * variables off a descendant when it does. See
+ * {@link returnCheckWorkCreditStateVariableDefinition}.
+ *
+ * Requires `stateVariablesDeterminingDependencies` of `["aggregateScores",
+ * "scoredDescendants"]` on the state variable using it.
+ *
+ * @param {string} variableName - the credit variable read off each scored descendant
+ * @returns {({ stateValues }: { stateValues: any }) => any} a `returnDependencies` function
+ */
+function returnAggregateCreditDependencies(variableName) {
+    return function ({ stateValues }) {
+        const dependencies = {
+            aggregateScores: {
+                dependencyType: "stateVariable",
+                variableName: "aggregateScores",
+            },
+        };
+
+        if (stateValues.aggregateScores) {
+            dependencies.scoredDescendants = {
+                dependencyType: "stateVariable",
+                variableName: "scoredDescendants",
+            };
+            for (let [
+                ind,
+                descendant,
+            ] of stateValues.scoredDescendants.entries()) {
+                dependencies[variableName + ind] = {
+                    dependencyType: "stateVariable",
+                    componentIdx: descendant.componentIdx,
+                    variableName,
+                };
+            }
+        }
+
+        return dependencies;
+    };
+}
+
+/**
+ * The weight-averaged credit over the scored descendants gathered by
+ * `returnAggregateCreditDependencies(variableName)`.
+ *
+ * @param {object} dependencyValues - the resolved dependencies
+ * @param {string} variableName - the same name passed to the dependency builder
+ * @param {number} [creditWhenNothingScored] - the credit for a section with no
+ *   scored descendants at all, where there is no average to take; full credit
+ *   unless the caller says otherwise
+ * @returns {number} a credit between 0 and 1
+ */
+function aggregateCreditOverScoredDescendants(
+    dependencyValues,
+    variableName,
+    creditWhenNothingScored = 1,
+) {
+    let creditSum = 0;
+    let totalWeight = 0;
+
+    for (let [ind, component] of dependencyValues.scoredDescendants.entries()) {
+        const weight = component.stateValues.weight;
+        creditSum += dependencyValues[variableName + ind] * weight;
+        totalWeight += weight;
+    }
+
+    return totalWeight > 0 ? creditSum / totalWeight : creditWhenNothingScored;
+}
+
+/**
+ * The credit a section-wide check-work button reports, and the credit the
+ * answers under it are colored by.
+ *
+ * This is the weighted mean `creditAchieved` takes, except where a whole region
+ * under the button carries no weight at all: a container whose scored
+ * descendants all have `weight="0"`, whether that container is the section
+ * itself or a subsection of one whose other parts are weighted. There the two
+ * answer different questions. `creditAchieved` asks what the container is
+ * *worth* — nothing carries weight, so nothing can be lost, and the reader is
+ * credited in full, the same rule that credits a reader for a container holding
+ * no answers at all. The button asks whether there is work here still to get
+ * right, and an ungraded answer is still an answer, so with no weight to tell
+ * the descendants apart it weighs them equally. A zero-weight descendant among
+ * weighted ones still contributes nothing, exactly as it does to the score.
+ *
+ * Each descendant's credit arrives as `creditForCheckWork<index>`, carrying its
+ * own `creditAchievedForCheckWork` when it has one — so a zero-weight
+ * subsection passes its equal-weighted credit up in place of the full marks its
+ * score claims — and its `creditAchieved` otherwise (an `<answer>`, or a
+ * container that took the `null` path).
+ *
+ * @param {object} dependencyValues - the resolved dependencies
+ * @returns {number} a credit between 0 and 1
+ */
+function aggregateCreditForCheckWork(dependencyValues) {
+    const descendants = dependencyValues.scoredDescendants;
+
+    const totalWeight = descendants.reduce(
+        (sum, descendant) => sum + descendant.stateValues.weight,
+        0,
+    );
+    // Negated so a `NaN` total takes the same branch a zero one does.
+    const useUnitWeights = !(totalWeight > 0);
+    // There is always at least one descendant to divide by: the caller only
+    // reaches this when `checkWorkCreditNeedsAggregating` said so, and that
+    // rules out an empty section.
+    const weightSum = useUnitWeights ? descendants.length : totalWeight;
+
+    let creditSum = 0;
+
+    for (const [ind, descendant] of descendants.entries()) {
+        const { stateValues } = dependencyValues["creditForCheckWork" + ind];
+        const credit =
+            stateValues.creditAchievedForCheckWork ??
+            stateValues.creditAchieved;
+
+        creditSum +=
+            credit * (useUnitWeights ? 1 : descendant.stateValues.weight);
+    }
+
+    return creditSum / weightSum;
+}
+
+/**
+ * Whether `creditAchievedForCheckWork` has to aggregate over the scored
+ * descendants at all, decided from values that are already resolved so that the
+ * usual case costs nothing.
+ *
+ * Outside the rare shape {@link aggregateCreditForCheckWork} describes, the
+ * value would be exactly `creditAchieved`. Rather than build a fourth
+ * aggregation graph beside the three that already fan out from every scored
+ * container (`creditAchieved`, `creditAchievedForProgress`,
+ * `creditAchievedIfSubmit`), and so add another staleness path to walk on every
+ * submission, those cases take no dependencies and resolve to `null`; the
+ * renderer and `Input.js` read `creditAchievedForCheckWork ?? creditAchieved`
+ * and land on the same number.
+ *
+ * Everything consulted here is already resolved for every scored container —
+ * `creditAchieved` is itself keyed on `aggregateScores` and `scoredDescendants`,
+ * and `showCheckWork` on `suppressAnswerSubmitButtons` — so reaching the `null`
+ * answer costs no more than the test. The one place the chain is entered
+ * despite ordinary weights is a section-wide check work holding an aggregating
+ * subsection, since only that subsection can say whether it is a zero-weight
+ * region; the recursion then stops at the first level that is not.
+ *
+ * @param {object} stateValues - `suppressAnswerSubmitButtons`,
+ *   `scoredDescendants`, and (unless `alwaysAggregate`) `aggregateScores`
+ * @param {boolean} alwaysAggregate - for the document, which has no
+ *   `aggregateScores` to consult
+ * @returns {boolean} whether the aggregating dependencies are needed
+ */
+function checkWorkCreditNeedsAggregating(stateValues, alwaysAggregate) {
+    // Outside a section-wide check work there is no section-wide button and no
+    // section-driven answer coloring, so nothing reads this.
+    if (!stateValues.suppressAnswerSubmitButtons) {
+        return false;
+    }
+
+    // A non-aggregating container nested inside one: `scoredDescendants`
+    // flattens it away in favor of its own scored descendants, so nothing reads
+    // this either.
+    if (!alwaysAggregate && !stateValues.aggregateScores) {
+        return false;
+    }
+
+    const descendants = stateValues.scoredDescendants;
+
+    // Nothing scored: `creditAchieved` already credits it in full, which is the
+    // answer here too.
+    if (descendants.length === 0) {
+        return false;
+    }
+
+    // Something carries weight, so the weighted mean applies — and with every
+    // descendant a leaf, that mean *is* `creditAchieved`. An aggregating
+    // descendant still has to be asked, because it may be a subsection whose own
+    // descendants all carry `weight="0"`.
+    const anyPositiveWeight = descendants.some(
+        (descendant) => descendant.stateValues.weight > 0,
+    );
+    const anyAggregatingDescendant = descendants.some(
+        // The same test `scoredDescendants` uses to tell a container it keeps
+        // from a leaf it cannot look inside.
+        (descendant) => descendant.stateValues.scoredDescendants !== undefined,
+    );
+
+    return !anyPositiveWeight || anyAggregatingDescendant;
+}
+
+/**
+ * The `creditAchievedForCheckWork` state variable: the credit a section-wide
+ * check-work button reports, which is `null` — meaning "read `creditAchieved`
+ * instead" — in every case but the one described on
+ * {@link aggregateCreditForCheckWork}.
+ *
+ * Shared so the document, which always aggregates and so cannot use the
+ * `aggregateScores` the shared set defines, gets the same rule rather than a
+ * second copy of it.
+ *
+ * @param {object} [options]
+ * @param {boolean} [options.alwaysAggregate] - skip the `aggregateScores` check
+ * @returns {object} a state variable definition
+ */
+export function returnCheckWorkCreditStateVariableDefinition({
+    alwaysAggregate = false,
+} = {}) {
+    const stateVariablesDeterminingDependencies = [
+        "suppressAnswerSubmitButtons",
+        "scoredDescendants",
+    ];
+    if (!alwaysAggregate) {
+        stateVariablesDeterminingDependencies.push("aggregateScores");
+    }
+
+    return {
+        forRenderer: true,
+        defaultValue: null,
+        stateVariablesDeterminingDependencies,
+        returnDependencies({ stateValues }) {
+            if (
+                !checkWorkCreditNeedsAggregating(stateValues, alwaysAggregate)
+            ) {
+                return {};
+            }
+
+            const dependencies = {
+                scoredDescendants: {
+                    dependencyType: "stateVariable",
+                    variableName: "scoredDescendants",
+                },
+            };
+
+            for (const [
+                ind,
+                descendant,
+            ] of stateValues.scoredDescendants.entries()) {
+                dependencies["creditForCheckWork" + ind] = {
+                    dependencyType: "multipleStateVariables",
+                    componentIdx: descendant.componentIdx,
+                    variableNames: [
+                        "creditAchievedForCheckWork",
+                        "creditAchieved",
+                    ],
+                    // An `<answer>` has only the latter, which is what its
+                    // check-work credit would be anyway.
+                    variablesOptional: true,
+                };
+            }
+
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            if (dependencyValues.scoredDescendants === undefined) {
+                return { setValue: { creditAchievedForCheckWork: null } };
+            }
+
+            return {
+                setValue: {
+                    creditAchievedForCheckWork:
+                        aggregateCreditForCheckWork(dependencyValues),
+                },
+            };
+        },
+    };
+}
+
+/**
  * Attributes implementing a "scored section": score aggregation plus the
  * "section-wide check work" feature.
  *
@@ -128,8 +406,11 @@ export function returnScoredSectionAttributes() {
  * `numAttemptsLeft`) — which, when exhausted, disables the enclosed answers via
  * their own propagated `numAttemptsLeft`. The aggregation portion includes
  * `scoredDescendants`, `aggregateScores`, `creditAchieved`, and related
- * variables. The document reuses this set but deletes `aggregateScores` and
- * overrides `creditAchieved`; see `Document.js`.
+ * variables — including `creditAchievedForCheckWork`, the credit the
+ * section-wide button reports when weights alone would say the section is
+ * already worth full marks. The document reuses this set but deletes
+ * `aggregateScores` and overrides the credit variables that consult it; see
+ * `Document.js`.
  */
 export function returnScoredSectionStateVariableDefinition() {
     const stateVariableDefinitions = {};
@@ -503,32 +784,7 @@ export function returnScoredSectionStateVariableDefinition() {
             "aggregateScores",
             "scoredDescendants",
         ],
-        returnDependencies({ stateValues }) {
-            let dependencies = {
-                aggregateScores: {
-                    dependencyType: "stateVariable",
-                    variableName: "aggregateScores",
-                },
-            };
-            if (stateValues.aggregateScores) {
-                dependencies.scoredDescendants = {
-                    dependencyType: "stateVariable",
-                    variableName: "scoredDescendants",
-                };
-                for (let [
-                    ind,
-                    descendant,
-                ] of stateValues.scoredDescendants.entries()) {
-                    dependencies["creditAchieved" + ind] = {
-                        dependencyType: "stateVariable",
-                        componentIdx: descendant.componentIdx,
-                        variableName: "creditAchieved",
-                    };
-                }
-            }
-
-            return dependencies;
-        },
+        returnDependencies: returnAggregateCreditDependencies("creditAchieved"),
         definition({ dependencyValues }) {
             if (!dependencyValues.aggregateScores) {
                 return {
@@ -539,29 +795,50 @@ export function returnScoredSectionStateVariableDefinition() {
                 };
             }
 
-            let creditSum = 0;
-            let totalWeight = 0;
+            const creditAchieved = aggregateCreditOverScoredDescendants(
+                dependencyValues,
+                "creditAchieved",
+            );
 
-            for (let [
-                ind,
-                component,
-            ] of dependencyValues.scoredDescendants.entries()) {
-                let weight = component.stateValues.weight;
-                creditSum += dependencyValues["creditAchieved" + ind] * weight;
-                totalWeight += weight;
-            }
-            let creditAchieved;
-            if (totalWeight > 0) {
-                creditAchieved = creditSum / totalWeight;
-            } else {
-                // give full credit if there are no scored items
-                creditAchieved = 1;
-            }
-            let percentCreditAchieved = creditAchieved * 100;
-
-            return { setValue: { creditAchieved, percentCreditAchieved } };
+            return {
+                setValue: {
+                    creditAchieved,
+                    percentCreditAchieved: creditAchieved * 100,
+                },
+            };
         },
     };
+
+    stateVariableDefinitions.creditAchievedForProgress = {
+        description:
+            "Aggregate credit achieved (between 0 and 1) for scored descendants of this section, used when deciding whether the section has been completed. Differs from `creditAchieved` only in that a hand-graded answer counts as fully correct once a non-blank response has been submitted.",
+        defaultValue: 0,
+        stateVariablesDeterminingDependencies: [
+            "aggregateScores",
+            "scoredDescendants",
+        ],
+        returnDependencies: returnAggregateCreditDependencies(
+            "creditAchievedForProgress",
+        ),
+        definition({ dependencyValues }) {
+            if (!dependencyValues.aggregateScores) {
+                return { setValue: { creditAchievedForProgress: 0 } };
+            }
+
+            return {
+                setValue: {
+                    creditAchievedForProgress:
+                        aggregateCreditOverScoredDescendants(
+                            dependencyValues,
+                            "creditAchievedForProgress",
+                        ),
+                },
+            };
+        },
+    };
+
+    stateVariableDefinitions.creditAchievedForCheckWork =
+        returnCheckWorkCreditStateVariableDefinition();
 
     stateVariableDefinitions.creditAchievedIfSubmit = {
         defaultValue: 0,
@@ -569,32 +846,9 @@ export function returnScoredSectionStateVariableDefinition() {
             "aggregateScores",
             "scoredDescendants",
         ],
-        returnDependencies({ stateValues }) {
-            let dependencies = {
-                aggregateScores: {
-                    dependencyType: "stateVariable",
-                    variableName: "aggregateScores",
-                },
-            };
-            if (stateValues.aggregateScores) {
-                dependencies.scoredDescendants = {
-                    dependencyType: "stateVariable",
-                    variableName: "scoredDescendants",
-                };
-                for (let [
-                    ind,
-                    descendant,
-                ] of stateValues.scoredDescendants.entries()) {
-                    dependencies["creditAchievedIfSubmit" + ind] = {
-                        dependencyType: "stateVariable",
-                        componentIdx: descendant.componentIdx,
-                        variableName: "creditAchievedIfSubmit",
-                    };
-                }
-            }
-
-            return dependencies;
-        },
+        returnDependencies: returnAggregateCreditDependencies(
+            "creditAchievedIfSubmit",
+        ),
         definition({ dependencyValues }) {
             if (!dependencyValues.aggregateScores) {
                 return {
@@ -604,21 +858,22 @@ export function returnScoredSectionStateVariableDefinition() {
                 };
             }
 
-            let creditSum = 0;
-            let totalWeight = 0;
-
-            for (let [
-                ind,
-                component,
-            ] of dependencyValues.scoredDescendants.entries()) {
-                let weight = component.stateValues.weight;
-                creditSum +=
-                    dependencyValues["creditAchievedIfSubmit" + ind] * weight;
-                totalWeight += weight;
-            }
-            let creditAchievedIfSubmit = creditSum / totalWeight;
-
-            return { setValue: { creditAchievedIfSubmit } };
+            return {
+                setValue: {
+                    creditAchievedIfSubmit:
+                        aggregateCreditOverScoredDescendants(
+                            dependencyValues,
+                            "creditAchievedIfSubmit",
+                            // A section with nothing scored has always left
+                            // this at NaN — the `0 / 0` of the average it used
+                            // to take inline — where `creditAchieved` gives
+                            // full credit. Passed explicitly so extracting the
+                            // shared helper preserves the behavior rather than
+                            // quietly changing it.
+                            NaN,
+                        ),
+                },
+            };
         },
     };
 

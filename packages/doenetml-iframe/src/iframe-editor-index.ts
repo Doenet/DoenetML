@@ -9,6 +9,7 @@ import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 // iframe stuck on its loading placeholder with no timeout and no error.
 // `test/cypress/component/srcdocSelfContained.cy.ts` guards the invariant.
 import * as Comlink from "comlink";
+import { STANDALONE_LOAD_FAILED_FLAG } from "./standalone-load-failure";
 
 declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
@@ -51,7 +52,7 @@ let lastAugmentedProps: Record<string, any> | null = null;
 // `updateEditorFunctionProps` constantly. The old handler re-invoked
 // `renderDoenetEditorToContainer` on each such change; when that churn
 // overlapped the core worker's boot window the worker never finished booting
-// and the editor showed "The document viewer could not be started." Now an
+// and the editor showed "This document could not be started." Now an
 // identity-only change just swaps the entry here — the editor keeps calling the
 // same stable dispatcher, which dereferences the new closure — so no re-render
 // happens and the boot is left undisturbed.
@@ -153,7 +154,8 @@ function resolveInitialDoenetMLSource(root: Element): string {
 
 // Wait for the @doenet/standalone bundle to finish evaluating and
 // define `window.renderDoenetEditorToContainer`. Returns true on success,
-// false if the function never appears within `timeoutMs`.
+// false if the bundle's `<script>` fails to load or the function never
+// appears within `timeoutMs`.
 //
 // `iframeReady` MUST be gated on this. The two scripts in the srcDoc —
 // the standalone bundle (~32 MB) and this inline editor module — load in
@@ -177,17 +179,50 @@ function resolveInitialDoenetMLSource(root: Element): string {
 // in a fresh iframe, so this ceiling only needs to cover one boot, not
 // a sum across retries.
 async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
-    if (typeof window.renderDoenetEditorToContainer === "function") {
+    // A code-split bundle's entry facade installs a queueing *stub* at this
+    // global before the bundle's eager chunk has evaluated, marked with
+    // `__doenetPendingRenderStub` (see `facadeRenderQueue.ts` in
+    // `@doenet/standalone`, which names this property as part of the bundle's
+    // surface). Waiting the stub out keeps the `iframeReady` handshake — and
+    // the style palettes reported with it — tied to the fully evaluated
+    // bundle, and means the handle returned by
+    // `renderDoenetEditorToContainer` below is always the real one.
+    function bundleReady(): boolean {
+        const render = window.renderDoenetEditorToContainer as
+            | (((...args: unknown[]) => unknown) & {
+                  __doenetPendingRenderStub?: boolean;
+              })
+            | undefined;
+        return (
+            typeof render === "function" && !render.__doenetPendingRenderStub
+        );
+    }
+    if (bundleReady()) {
         return true;
     }
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 50));
-        if (typeof window.renderDoenetEditorToContainer === "function") {
+        if (bundleReady()) {
             return true;
+        }
+        // The bundle's `<script>` failed to load (e.g. a 404 for an
+        // unpublished version): it will never define the function, so stop
+        // waiting and let the caller report the failure to the parent now.
+        if (bundleLoadFailed()) {
+            return false;
         }
     }
     return false;
+}
+
+/** Whether the srcdoc's standalone `<script>` reported a load error. */
+function bundleLoadFailed(): boolean {
+    return Boolean(
+        (window as unknown as Record<string, unknown>)[
+            STANDALONE_LOAD_FAILED_FLAG
+        ],
+    );
 }
 
 Comlink.expose(

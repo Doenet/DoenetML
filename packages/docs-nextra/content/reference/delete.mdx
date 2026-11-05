@@ -1,0 +1,30 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<delete>{:dn}`
+
+<ComponentDisplay name='delete'/>
+
+The `<delete>{:dn}` component is a [Paragraph Markup](../concepts/essentialConcepts#component-types) 
+component which marks the enclosed text as deleted. It is rendered struck through.
+Inline math inside is struck through along with the text; display math and inputs
+inside are not.
+
+Use `<delete>{:dn}` together with [`<insert>{:dn}`](insert) to show an edit: what was 
+removed and what replaced it.
+
+<AttrPropDisplay name='delete'/>
+
+## Examples
+
+### Example: `<delete>{:dn}` and `<insert>{:dn}` showing a correction
+
+```doenet-example
+<p>The derivative of <m>x^3</m> is 
+<delete><m>3x^3</m></delete> <insert><m>3x^2</m></insert>.</p>
+```
+
+The `<delete>{:dn}` component renders the enclosed text struck through, and the 
+`<insert>{:dn}` component renders the replacement underlined.

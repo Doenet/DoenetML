@@ -684,4 +684,43 @@ describe("Slider tag tests @group1", async () => {
                 .label,
         ).eq("my slider");
     });
+
+    it("text slider displays each text value whole", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <slider name="fruit" type="text">
+    <label>choose a fruit</label>
+    <text>apple</text>
+    <text>banana</text>
+    <text>hello world</text>
+  </slider>
+    `,
+        });
+
+        const sliderIdx = await resolvePathToNodeIdx("fruit");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[sliderIdx].stateValues.value).eq("apple");
+        expect(stateVariables[sliderIdx].stateValues.valueForDisplay).eq(
+            "apple",
+        );
+
+        await changeValue({ value: "banana", componentIdx: sliderIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[sliderIdx].stateValues.value).eq("banana");
+        expect(stateVariables[sliderIdx].stateValues.valueForDisplay).eq(
+            "banana",
+        );
+
+        await changeValue({
+            value: "hello world",
+            componentIdx: sliderIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[sliderIdx].stateValues.value).eq("hello world");
+        expect(stateVariables[sliderIdx].stateValues.valueForDisplay).eq(
+            "hello world",
+        );
+    });
 });

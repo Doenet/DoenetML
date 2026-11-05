@@ -1,0 +1,257 @@
+import { Callout } from "nextra/components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+
+# Charting a Simulation
+
+This guide is a set of recipes for turning a random sample into a chart a reader can watch
+change: counting draws into categories, binning them into intervals, summarizing a sample,
+and comparing two samples side by side. It assumes you already know how to write a
+`<chart>{:dn}` — see the [`<chart>{:dn}` reference](../reference/chart) for its attributes
+and properties.
+
+<Callout type="info">
+Every number a chart below draws can be read back: either from the `<tally>{:dn}` or
+`<binCounts>{:dn}` that produced it, or from the chart itself — `$c.binCounts{:dn}`,
+`$series.median{:dn}`. So a sentence, a table or an `<answer>{:dn}` beside the picture can
+say what the picture shows, and stay right when the reader resamples.
+</Callout>
+
+---
+
+## Count draws into named categories
+
+[`<tally>{:dn}`](../reference/tally) counts how many values fall into each category, and
+`<chart>{:dn}` draws the counts. The pieces are: draw the sample, map each draw onto a
+category, count, chart.
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <textList name="labels">North South East West</textList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+  <sampleRandomNumbers name="draws" type="discreteUniform"
+    from="1" to="$total" numSamples="60" />
+  <searchSorted name="which" target="$draws">$cum</searchSorted>
+  <tally name="counts" categories="1 2 3 4">$which</tally>
+</setup>
+
+<chart type="bar" categories="$labels">
+  <shortDescription>Where 60 sampled individuals came from</shortDescription>
+  <yLabel>count</yLabel>
+  $counts
+</chart>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+Five tags hold the whole simulation:
+[`<sampleRandomNumbers>{:dn}`](../reference/sampleRandomNumbers) draws the sample,
+[`<cumulativeSum>{:dn}`](../reference/cumulativeSum) accumulates the subpopulation sizes,
+[`<searchSorted>{:dn}`](../reference/searchSorted) maps every draw onto the subpopulation it
+landed in, [`<tally>{:dn}`](../reference/tally) counts them, and `<chart>{:dn}` draws the
+counts.
+
+Give `<tally>{:dn}` its categories rather than leaving it to discover them. A subpopulation
+that draws nothing then still counts zero and keeps its bar, instead of dropping out and
+shifting the others along — which would make the chart jump every time the reader resamples.
+
+`<callAction>{:dn}` redraws the sample, and everything downstream follows.
+
+---
+
+## Bin a continuous sample into intervals
+
+For a measurement rather than a category, `type="histogram"{:dn}` bins the sample itself:
+its `bins` are the cut points, and each bar is as tall as the number of draws that fall
+between one pair of them.
+
+```doenet-editor-horiz
+<setup>
+  <sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+</setup>
+
+<chart name="h" type="histogram" bins="-4 -3 -2 -1 0 1 2 3 4">
+  <shortDescription>200 draws from a standard normal distribution</shortDescription>
+  <yLabel>count</yLabel>
+  $z
+</chart>
+
+<p>Counts: $h.binCounts</p>
+
+<callAction actionName="resample" target="$z">
+  <label>Draw again</label>
+</callAction>
+```
+
+Write the cut points out rather than leaving them to the chart, and give them room: a bin
+the sample sometimes reaches and sometimes does not still keeps its place, so the picture
+stands still while the reader resamples and only the bars move. Leave `bins` off and the
+chart chooses cut points from the sample it has, which is what you want for a fixed set of
+data and not for one that is redrawn.
+
+`$h.binCounts{:dn}` is what the bars are, and `$h.binEdges{:dn}` the cut points, so the
+histogram does the counting *and* hands the counts back.
+[`<binCounts>{:dn}`](../reference/binCounts) counts the same way when you want the numbers
+without a picture — in a table, or as the values of a bar chart whose bars you want named
+by something other than their cut points.
+
+---
+
+## Compare two samples in one chart
+
+Give the chart a `<series>{:dn}` per sample. Each is counted separately and drawn in its own
+color, and its `<label>{:dn}` names it in the legend.
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+  <textList name="bins">-2.5 -1.5 -0.5 0.5 1.5 2.5</textList>
+  <sampleRandomNumbers name="a" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+  <sampleRandomNumbers name="b" type="gaussian" mean="1" variance="1"
+    numSamples="200" />
+  <binCounts name="ha" bins="$edges">$a</binCounts>
+  <binCounts name="hb" bins="$edges">$b</binCounts>
+</setup>
+
+<chart type="bar" categories="$bins">
+  <title>Two samples, means 0 and 1</title>
+  <shortDescription>200 draws from each of two normal distributions</shortDescription>
+  <yLabel>count</yLabel>
+  <series><label>mean 0</label>$ha</series>
+  <series><label>mean 1</label>$hb</series>
+</chart>
+
+<callAction actionName="resample" target="$a">
+  <label>Draw the first again</label>
+</callAction>
+<callAction actionName="resample" target="$b">
+  <label>Draw the second again</label>
+</callAction>
+```
+
+Both series are binned against the same cut points, which is what makes the bars comparable:
+a bar in one series stands next to the bar for the same interval in the other. Counting the
+samples separately and drawing bars is what puts two of them in one picture — a histogram
+bins and draws one sample, so two of them would be two charts.
+
+Use `layout="stacked"{:dn}` instead when the two samples make up a whole and the total is
+what a reader should read.
+
+---
+
+## Compare two samples by their summaries
+
+A box plot asks a different question of a sample than a histogram does. A histogram shows the
+shape of the distribution; a box plot reduces it to five numbers and draws those — one box
+per `<series>{:dn}`, running from the first quartile to the third with the median across it —
+so two samples side by side are compared by where their middles and their spreads sit.
+
+```doenet-editor-horiz
+<setup>
+  <sampleRandomNumbers name="a" type="gaussian" mean="70" variance="25"
+    numSamples="40" />
+  <sampleRandomNumbers name="b" type="gaussian" mean="75" variance="25"
+    numSamples="40" />
+</setup>
+
+<chart type="box">
+  <title>Two samples, means 70 and 75</title>
+  <shortDescription>Forty draws from each of two normal distributions</shortDescription>
+  <yLabel>score</yLabel>
+  <series name="control"><label>control</label>$a</series>
+  <series name="treated"><label>treated</label>$b</series>
+</chart>
+
+<p>Medians: $control.median and $treated.median. The treated sample's middle half ran from
+$treated.quartile1 to $treated.quartile3.</p>
+
+<callAction actionName="resample" target="$a">
+  <label>Draw the first again</label>
+</callAction>
+<callAction actionName="resample" target="$b">
+  <label>Draw the second again</label>
+</callAction>
+```
+
+Naming each `<series>{:dn}` is what makes its summary readable: `minimum`, `quartile1`,
+`median`, `quartile3`, `maximum` and `outliers` are all reported per series, so the sentence
+under the chart is drawn from the same numbers the boxes are. Resampling moves both.
+
+---
+
+## Chart two sampled variables against each other
+
+A scatter plot needs a pair of numbers per point: the series holds the vertical coordinates
+and its `x` the horizontal ones. Sample one variable, derive the other from it, and the
+relationship between them is what the reader sees.
+
+```doenet-editor-horiz
+<setup>
+  <sampleRandomNumbers name="height" type="uniform" from="150" to="190"
+    numSamples="40" />
+  <sampleRandomNumbers name="noise" type="gaussian" mean="0" variance="16"
+    numSamples="40" />
+  <numberList name="weight">
+    <repeat for="$height" valueName="h" indexName="i">
+      <number>0.9 * $h - 90 + $noise[$i]</number>
+    </repeat>
+  </numberList>
+</setup>
+
+<chart type="scatter">
+  <shortDescription>Weight against height for forty sampled people</shortDescription>
+  <xLabel>height (cm)</xLabel>
+  <yLabel>weight (kg)</yLabel>
+  <series x="$height">$weight</series>
+</chart>
+
+<callAction actionName="resample" target="$height">
+  <label>Draw again</label>
+</callAction>
+```
+
+[`<repeat>{:dn}`](../reference/repeat) is what pairs the two: it walks the sampled heights,
+and `$i{:dn}` reaches the draw of noise that belongs with each. Both lists are the same
+length, so every point has both of its coordinates.
+
+---
+
+## Ask about what the chart shows
+
+Because the counts are numbers the document can read, the same numbers that drew the chart
+can be asked about.
+
+```doenet-editor-horiz
+<setup>
+  <sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+</setup>
+
+<chart name="c" type="histogram" bins="-4 -3 -2 -1 0 1 2 3 4" size="small"
+  displayValues>
+  <shortDescription>200 draws from a standard normal distribution</shortDescription>
+  <yLabel>count</yLabel>
+  $z
+</chart>
+
+<answer>
+  <label>How many of the 200 draws landed between -1 and 1?</label>
+  <number><sum>$c.binCounts[4] $c.binCounts[5]</sum></number>
+</answer>
+
+<p>The tallest bar holds <number><max>$c.binCounts</max></number> draws.</p>
+
+<callAction actionName="resample" target="$z">
+  <label>Draw again</label>
+</callAction>
+```
+
+`$c.binCounts{:dn}` is one number per bar, in the order the bars are drawn, so the answer
+and the sentence are both computed from the picture and stay right when the reader
+resamples. `$c.values{:dn}` is the sample itself, for a summary the bins do not answer.

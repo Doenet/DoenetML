@@ -204,6 +204,37 @@ describe.skipIf(!wasmAvailable)(
             expect(rustResult!.unresolvedPathParts).toEqual([]);
         });
 
+        it("resolves a reference written inside a reference's index brackets", async () => {
+            // An element written between index brackets (#1909) is not a child
+            // of anything, so the adapter's offset table used to have no entry
+            // for it: a cursor inside it found no origin and every reference
+            // written there resolved to null. The control is the same markup
+            // written as an ordinary child, which has always resolved.
+            const inParagraph = (inner: string) =>
+                `<section name="sec"><numberList name="nums">1 2 3</numberList>\n<p>${inner}</p></section>`;
+
+            const results = [];
+            for (const source of [
+                inParagraph(`$nums[<indexOf target="2">$nums.</indexOf>]`),
+                inParagraph(`<indexOf target="2">$nums.</indexOf>`),
+            ]) {
+                const { adapter } = await createCoreAndAdapter(source);
+                const offset = source.lastIndexOf("$nums.") + "$nums.".length;
+                const result = await adapter.createResolver()({
+                    offset,
+                    pathParts: ["nums", ""],
+                });
+                expect(result).not.toBeNull();
+                expect(
+                    (result!.node as any)?.attributes?.name?.children?.[0]
+                        ?.value,
+                ).toBe("nums");
+                expect(result!.unresolvedPathParts).toEqual([]);
+                results.push(result!.node);
+            }
+            expect(results[0]).toEqual(results[1]);
+        });
+
         it("visibleDescendantNames respects ChildrenInvisibleToTheirGrandparents for <repeat>", async () => {
             // "inside" is a child of <repeat>, which is
             // ChildrenInvisibleToTheirGrandparents.  From the section's

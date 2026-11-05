@@ -74,7 +74,6 @@ color =
             [f] bruna
            *[m] brun
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -86,7 +85,6 @@ line-width =
             [f] fina
            *[m] fin
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -98,7 +96,6 @@ line-style =
             [f] puntinada
            *[m] puntinà
         }
-
 # Plural noun phrases, which is what follows «cun» in `style-filled`. They
 # agree with nothing.
 fill-style =
@@ -108,7 +105,6 @@ fill-style =
     .backdiagonal = lingias diagonalas invertidas
     .dots = puncts
     .diamonds = rombs
-
 noun =
     .line = retta
     .line-segment = segment
@@ -128,13 +124,11 @@ noun =
     .diamond = romb
     .cross = crusch
     .plus = plus
-
 noun-regular-polygon =
     { $part ->
         [tail] da { $numSides } lats
        *[head] poligon regular
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (poligon, m) or the
 # head of a phrase the description never names: `border` (urlet, m), `fill`
 # (emplenida, f), `text` (text, m), `background` (fund, m).
@@ -152,7 +146,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -165,7 +158,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun comes first and the adjectives after it, which is the opposite of
 # English. A noun that splits — the regular polygon — puts its complement after
 # the adjectives that agree with its head.
@@ -174,19 +166,16 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] emplenida
        *[m] emplenì
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } cun { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } cun { $pattern }
@@ -194,7 +183,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } cun { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «urlet» is masculine, so the border's adjectives agree with it rather than
 # with the shape it surrounds.
 style-border-clause =
@@ -204,7 +192,6 @@ style-border-clause =
         [and-article] ed in urlet { $border }
        *[with] cun urlet { $border }
     }
-
 # The fill-pattern words are plural nouns, because their other use is the
 # «cun { $pattern }» clause in `style-filled`. So this message supplies a noun
 # for them to hang off — «emplenida», feminine, which is the gender
@@ -214,29 +201,23 @@ style-fill =
         [pattern] emplenida { $color } cun { $pattern }
        *[plain] emplenida { $color }
     }
-
 style-unfilled = betg emplenì
-
 style-text =
     { $parts ->
         [background] { $color } sin in fund { $background }
        *[plain] { $color }
     }
-
 style-background-none = nagin
-
 
 ## Boolean words
 
 boolean-true = ver
 boolean-false = fauss
 
-
 ## Answer buttons
 
 answer-submit-label = Controllar
 answer-submit-label-no-correctness = Trametter la resposta
-
 
 ## Sectional blocks
 
@@ -261,7 +242,6 @@ section-name =
     .solution = Soluziun
     .task = Incaric
     .theorem = Teorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -271,9 +251,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Indicaziun
-
 
 ## Tables and figures
 
@@ -284,7 +262,6 @@ table-name =
         [unnumbered-title] Tabella{ ". " }
        *[unnumbered] Tabella
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -293,22 +270,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Precedent
 paginator-next = Proxim
 paginator-page = Pagina
-
 paginator-page-status = { $pageLabel } { $currentPage } da { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = u
 piecewise-condition-if = sche
 piecewise-condition-otherwise = uschiglio
-
 
 ## Chemistry
 ##
@@ -319,6 +292,5 @@ piecewise-condition-otherwise = uschiglio
 ## Romansh table — there is nothing settled here for a seed to reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol chemic nunvalid
 chemistry-invalid-ionic-compound = Colliaziun ionica nunvalida

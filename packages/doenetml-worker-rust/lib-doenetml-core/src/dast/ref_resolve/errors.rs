@@ -51,3 +51,14 @@ pub fn format_error_message(err: ResolutionError, path: &[FlatPathPart]) -> Stri
         }
     }
 }
+
+/// The diagnostic code of the warning for a reference that failed to resolve
+/// with `err`: `doenet-w0104` for no referent, `doenet-w0105` for more than one.
+/// They are the codes the worker raises when it resolves a reference itself, so
+/// a reference is reported the same way whichever of the two resolves it.
+pub fn resolution_error_code(err: ResolutionError) -> &'static str {
+    match err {
+        ResolutionError::NoReferent => "doenet-w0104",
+        ResolutionError::NonUniqueReferent => "doenet-w0105",
+    }
+}

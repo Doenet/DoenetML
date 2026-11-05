@@ -2,6 +2,7 @@ import { escapeXml, pushWarning } from "./common";
 import type { AnnotationNode } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
 import type { DiagnosticCode } from "@doenet/i18n";
+import { targetIdxOfRefResolution } from "../refTargets";
 
 /**
  * Mutable context shared while building `<annotations>` XML.
@@ -176,14 +177,19 @@ function resolveAnnotationRef(
         });
     }
 
-    const unresolvedPath = firstResolution.unresolvedPath;
-    const targetComponentIdx = Number.isFinite(firstResolution.componentIdx)
-        ? Number(firstResolution.componentIdx)
-        : null;
+    // One entry of a list component (`$pl[2]`) is the index reserved for it
+    // (`targetIdxOfRefResolution`), which the entry's PreFigure element is
+    // keyed by; it is in the graph when its list is.
+    const target = targetIdxOfRefResolution(firstResolution);
+    const targetComponentIdx = Number.isFinite(target) ? Number(target) : null;
 
-    if (targetComponentIdx === null || unresolvedPath !== null) {
+    if (targetComponentIdx === null) {
         return pushInvalidRefWarning(annotation, state);
     }
+    const inGraphIdx =
+        firstResolution.unresolvedPath === null
+            ? targetComponentIdx
+            : firstResolution.listEntry!.listIdx;
 
     if (targetComponentIdx === state.graphComponentIdx) {
         state.usedAnnotationRefs.add("figure");
@@ -203,7 +209,11 @@ function resolveAnnotationRef(
         }
     }
 
-    if (!state.graphDescendantComponentIndices.has(resolvedIdx)) {
+    if (
+        !state.graphDescendantComponentIndices.has(
+            resolvedIdx === targetComponentIdx ? inGraphIdx : resolvedIdx,
+        )
+    ) {
         pushAnnotationWarning({
             diagnostics: state.diagnostics,
             annotation,

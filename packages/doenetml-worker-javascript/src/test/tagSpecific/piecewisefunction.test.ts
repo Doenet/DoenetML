@@ -585,11 +585,11 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pgmin")].stateValues
                 .text,
-        ).eq("Minima of g: ( 0.1, -0.01 )");
+        ).eq("Minima of g: (0.1, -0.01)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pgmax")].stateValues
                 .text,
-        ).eq("Maxima of g: ( 0, 0 )");
+        ).eq("Maxima of g: (0, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pg2min")].stateValues
                 .text,
@@ -597,7 +597,7 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pg2max")].stateValues
                 .text,
-        ).eq("Maxima of g_2: ( 0, 0 )");
+        ).eq("Maxima of g_2: (0, 0)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues.minima
@@ -687,7 +687,7 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("phmin")].stateValues
                 .text,
-        ).eq("Minima of h: ( 0, 0 )");
+        ).eq("Minima of h: (0, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("phmax")].stateValues
                 .text,
@@ -695,11 +695,11 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("ph2min")].stateValues
                 .text,
-        ).eq("Minima of h_2: ( 0, 0 )");
+        ).eq("Minima of h_2: (0, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("ph2max")].stateValues
                 .text,
-        ).eq("Maxima of h_2: ( -0.1, 0.01 )");
+        ).eq("Maxima of h_2: (-0.1, 0.01)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("h")].stateValues.minima
@@ -791,19 +791,19 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pkmin")].stateValues
                 .text,
-        ).eq("Minima of k: ( -2, 0 ), ( -1, 0 ), ( 1, 0 ), ( 2, 0 )");
+        ).eq("Minima of k: (-2, 0), (-1, 0), (1, 0), (2, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pkmax")].stateValues
                 .text,
-        ).eq("Maxima of k: ( 0, 1 )");
+        ).eq("Maxima of k: (0, 1)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pk2min")].stateValues
                 .text,
-        ).eq("Minima of k_2: ( -2, 0 ), ( 2, 0 )");
+        ).eq("Minima of k_2: (-2, 0), (2, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pk2max")].stateValues
                 .text,
-        ).eq("Maxima of k_2: ( -1, 1 ), ( 0, 1 ), ( 1, 1 )");
+        ).eq("Maxima of k_2: (-1, 1), (0, 1), (1, 1)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("k")].stateValues.minima
@@ -1915,5 +1915,101 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(f1Latex).match(/10\^{-12}|10\^{21}/);
         expect(f2Latex).contain("0.000000000007");
         expect(f2Latex).contain("2000000000000000000000");
+    });
+
+    it("a piece's maxima are as exact as its minima", async () => {
+        // The maximum hunt is the minimum hunt on a negated formula, and each
+        // piece of a piecewise function is negated separately. Rebuilding the
+        // negation from `.tree` sends every non-integer coefficient through an
+        // f64 — the engine holds `5.1` exactly, as `51/10` — and
+        // `critical_points` declines a formula with one inexact coefficient,
+        // so the piece's maxima fell back to bracketing while its minima kept
+        // the exact roots. Measured: `9.731226447456773` against the exact
+        // `9.731224303522758`, an error of 2e-6.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <piecewiseFunction name="f">
+      <function domain="(-20,20)">(x+8)(x-8)/((x-2)(x+4)(x-5.1)^2)</function>
+    </piecewiseFunction>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let fState =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues;
+
+        // From `critical_points` on the piece's formula.
+        expect(fState.minima.map((p: number[]) => p[0])).toEqual([
+            -2.28205595296559,
+        ]);
+        let maximaLocations = [
+            -11.681167550861327, 3.2319992003041587, 9.731224303522758,
+        ];
+        expect(fState.maxima.length).eq(maximaLocations.length);
+        for (let [i, loc] of maximaLocations.entries()) {
+            expect(fState.maxima[i][0]).closeTo(loc, 1e-12);
+        }
+    });
+
+    it("evaluates numerically by default", async () => {
+        // A piecewise function has no symbolic form (its `symbolicfs` return
+        // a blank), so it must not be symbolic unless the author asks.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <piecewiseFunction name="f">
+      <function domain="[0,34.9]">0</function>
+      <function domain="[0,36.7]">1</function>
+      <function domain="[0,100]">5</function>
+    </piecewiseFunction>
+
+    <!-- Same function, with domain endpoints computed from a sort -->
+    <sort name="sorted">
+      <number>36.7</number><number>34.9</number><number>100</number>
+    </sort>
+    <piecewiseFunction name="fc">
+      <function domain="[0,$sorted[1]]">0</function>
+      <function domain="[0,$sorted[2]]">1</function>
+      <function domain="[0,$sorted[3]]">5</function>
+    </piecewiseFunction>
+
+    <piecewiseFunction name="fs" symbolic="true">
+      <function domain="[0,34.9]">0</function>
+      <function domain="[0,100]">5</function>
+    </piecewiseFunction>
+
+    <p name="p1">$$f(50)</p>
+    <p name="p2"><evaluate function="$f" input="50"/></p>
+    <number name="n">$$f(50)</number>
+    <function name="g">5-$$f(100-x)</function>
+    <p name="pg">$$g(50)</p>
+
+    <p name="pc1">$$fc(35)</p>
+    <p name="pc2"><evaluate function="$fc" input="50"/></p>
+    <number name="nc">$$fc(10)</number>
+
+    <p name="ps">$$fs(50)</p>
+    <boolean name="fSymbolic">$f.symbolic</boolean>
+    <boolean name="fsSymbolic">$fs.symbolic</boolean>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
+
+        expect((await sv("p1")).text).eq("5");
+        expect((await sv("p2")).text).eq("5");
+        expect((await sv("n")).value).eq(5);
+        expect((await sv("pg")).text).eq("0");
+
+        expect((await sv("pc1")).text).eq("1");
+        expect((await sv("pc2")).text).eq("5");
+        expect((await sv("nc")).value).eq(0);
+
+        // An explicit `symbolic="true"` keeps the blank symbolic evaluation.
+        expect((await sv("ps")).text).eq("＿");
+        expect((await sv("fSymbolic")).value).eq(false);
+        expect((await sv("fsSymbolic")).value).eq(true);
     });
 });

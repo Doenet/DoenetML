@@ -1,0 +1,112 @@
+import me from "math-expressions";
+import { isNumericConstant } from "./math";
+
+/**
+ * Shared machinery for the two families of math operators: the ones that
+ * reduce their children to a single value (`<sum>`, `<min>`, … — see
+ * `abstract/MathBaseOperator`) and the ones that map them to another list
+ * (`<cumulativeSum>`, `<differences>`, … — see
+ * `abstract/MathBaseListOperator`).
+ *
+ * The two families differ only in the shape of their result. They accept the
+ * same children and read them the same way, so both read them from here; that
+ * is what keeps `<cumulativeSum>a b c</cumulativeSum>` splitting its argument
+ * exactly as `<sum>a b c</sum>` does.
+ */
+
+/**
+ * Sugar that splits bare string children on whitespace and wraps each piece in
+ * a `<number>` when it parses as a number and a `<math>` otherwise, so that
+ * `<sum>1 2 x</sum>` has three children rather than one string.
+ */
+export function returnBreakStringsIntoMathsBySpacesSugarInstruction() {
+    function breakStringsIntoMathsBySpaces({
+        matchedChildren,
+        nComponents,
+        stateIdInfo,
+    }) {
+        let newChildren = matchedChildren.reduce(function (a, c) {
+            if (typeof c === "string") {
+                return [
+                    ...a,
+                    ...c
+                        .split(/\s+/)
+                        .filter((s) => s)
+                        .map((s) => ({
+                            type: "serialized",
+                            componentType: Number.isFinite(Number(s))
+                                ? "number"
+                                : "math",
+                            componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
+                            children: [s],
+                            attributes: {},
+                            doenetAttributes: {},
+                            state: {},
+                        })),
+                ];
+            } else {
+                return [...a, c];
+            }
+        }, []);
+
+        return { success: true, newChildren, nComponents };
+    }
+
+    return { replacementFunction: breakStringsIntoMathsBySpaces };
+}
+
+/**
+ * The arguments an operator should be handed, given its math and number
+ * children. When `isNumeric`, every child becomes a plain number (a math child
+ * that is not a constant becomes `NaN`); otherwise every child becomes a
+ * math-expression.
+ */
+export function mathOperatorInputsFromChildren({
+    children,
+    isNumeric,
+    componentInfoObjects,
+}) {
+    return children.map((child) => {
+        const isNumberChild = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: child.componentType,
+            baseComponentType: "number",
+        });
+
+        if (isNumeric) {
+            if (isNumberChild) {
+                return child.stateValues.value;
+            }
+            // The numeric operators are mathjs functions, and they accept
+            // `NaN` while rejecting anything that is not a number:
+            // `median([1,4,5,null])` throws "unexpected type of argument" and
+            // takes the whole document with it, where `median([1,4,5,NaN])`
+            // returns `NaN` and the operator degrades quietly. A `Complex` is
+            // the case this guard catches.
+            const value = child.stateValues.value.evaluate_to_constant();
+            return isNumericConstant(value) ? value : NaN;
+        }
+
+        return isNumberChild
+            ? me.fromAst(child.stateValues.value)
+            : child.stateValues.value;
+    });
+}
+
+/**
+ * The numeric value of each `<number>` or `<math>` child, in order.
+ *
+ * A `<number>` child's value is already a plain number; a `<math>` child's is a
+ * math-expression, and one that is not constant evaluates to `NaN` — which is
+ * what the charts read as a value they cannot draw, rather than as a zero.
+ */
+export function numericValuesFromValueChildren(children) {
+    return children.map((child) => {
+        const value = child?.stateValues.value;
+        return typeof value?.evaluate_to_constant === "function"
+            ? value.evaluate_to_constant()
+            : value;
+    });
+}

@@ -7,8 +7,12 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { DocViewer, type SourcePosition } from "./Viewer/DocViewer";
-export type { SourcePosition } from "./Viewer/DocViewer";
+import {
+    DocViewer,
+    type SourcePosition,
+    type StateReport,
+} from "./Viewer/DocViewer";
+export type { SourcePosition, StateReport } from "./Viewer/DocViewer";
 import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
 import type { ReaderStyleOverrides } from "@doenet/utils";
@@ -21,7 +25,10 @@ import type {
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
-import { EditorViewer } from "./EditorViewer/EditorViewer.js";
+// The lazy wrapper, not `EditorViewer` itself: this import is what keeps the
+// editor stack (codemirror, LSP worker source, pretty printer, schema) out of
+// the eagerly-parsed bundle for viewer-only pages. See `EditorViewerLazy.tsx`.
+import { EditorViewerLazy } from "./EditorViewer/EditorViewerLazy.js";
 import type {
     DoenetEditorHandle,
     ViewerLocation,
@@ -110,6 +117,16 @@ export const LegacyKeyboardTrayContext = React.createContext<
 >({ current: { announced: false, release: null } });
 
 /**
+ * Whether this viewer has a Doenet virtual keyboard to type math with, either
+ * its own or one provided by the page embedding it.
+ *
+ * A math input on a touch device keeps the device's own on-screen keyboard
+ * down so that it does not compete with the Doenet keyboard. Without a Doenet
+ * keyboard, doing so would leave the reader with no keyboard at all.
+ */
+export const VirtualKeyboardAvailableContext = React.createContext(false);
+
+/**
  * this is a hack for react-mathqill
  * error: global is not defined
  */
@@ -131,6 +148,7 @@ export function DoenetViewer({
     generatedVariantCallback: specifiedGeneratedVariantCallback,
     documentStructureCallback,
     initializedCallback,
+    coreStartFailedCallback,
     setDiagnosticsCallback,
     setErrorsAndWarningsCallback,
     forceDisable = false,
@@ -168,16 +186,17 @@ export function DoenetViewer({
     render?: boolean;
     requestedVariantIndex?: number;
     initialState?: Record<string, any> | null;
-    reportScoreAndStateCallback?: (data: {
-        score: number;
-        state: unknown;
-        activityId: string;
-        docId: string;
-    }) => void;
+    reportScoreAndStateCallback?: (data: StateReport) => void;
     setIsInErrorState?: Function;
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
+    /**
+     * The failure counterpart of `initializedCallback` (#1709): called once
+     * when the core could not be started. See `DocViewer` for the full
+     * contract and for why a boot-scheduling host needs it.
+     */
+    coreStartFailedCallback?: Function;
     setDiagnosticsCallback?: (
         diagnostics: DiagnosticRecord[],
         source: string,
@@ -420,6 +439,7 @@ export function DoenetViewer({
             generatedVariantCallback={generatedVariantCallback}
             documentStructureCallback={documentStructureCallback}
             initializedCallback={initializedCallback}
+            coreStartFailedCallback={coreStartFailedCallback}
             setDiagnosticsCallback={effectiveDiagnosticsCallback}
             forceDisable={forceDisable}
             forceShowCorrectness={forceShowCorrectness}
@@ -549,6 +569,12 @@ type DoenetEditorProps = {
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
+    /**
+     * The failure counterpart of the embedded viewer's initialization signal
+     * (#1709). A host that caps how many editors boot at once releases the
+     * slot on initialization; this frees it when the core cannot start.
+     */
+    coreStartFailedCallback?: Function;
     diagnosticsSummaryCallback?: (
         diagnosticsSummary: DiagnosticsSummary,
         doenetML: string,
@@ -618,6 +644,7 @@ export const DoenetEditor = React.forwardRef<
         doenetmlChangeCallback,
         immediateDoenetmlChangeCallback,
         documentStructureCallback,
+        coreStartFailedCallback,
         diagnosticsSummaryCallback,
         id,
         readOnly = false,
@@ -690,7 +717,7 @@ export const DoenetEditor = React.forwardRef<
     );
 
     const editor = (
-        <EditorViewer
+        <EditorViewerLazy
             ref={ref}
             doenetML={doenetML}
             activityId={activityId}
@@ -711,6 +738,7 @@ export const DoenetEditor = React.forwardRef<
             doenetmlChangeCallback={doenetmlChangeCallback}
             immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
             documentStructureCallback={documentStructureCallback}
+            coreStartFailedCallback={coreStartFailedCallback}
             diagnosticsSummaryCallback={diagnosticsSummaryCallback}
             id={id}
             readOnly={readOnly}
@@ -841,12 +869,14 @@ function WrapWithKeyboard({
     ) : null;
 
     return (
-        <FocusedMathInputContext.Provider value={focusedMathInput}>
-            <LegacyKeyboardTrayContext.Provider value={legacyKeyboardTray}>
-                {children}
-                <div className="before-keyboard" />
-                {keyboard}
-            </LegacyKeyboardTrayContext.Provider>
-        </FocusedMathInputContext.Provider>
+        <VirtualKeyboardAvailableContext.Provider value={addVirtualKeyboard}>
+            <FocusedMathInputContext.Provider value={focusedMathInput}>
+                <LegacyKeyboardTrayContext.Provider value={legacyKeyboardTray}>
+                    {children}
+                    <div className="before-keyboard" />
+                    {keyboard}
+                </LegacyKeyboardTrayContext.Provider>
+            </FocusedMathInputContext.Provider>
+        </VirtualKeyboardAvailableContext.Provider>
     );
 }

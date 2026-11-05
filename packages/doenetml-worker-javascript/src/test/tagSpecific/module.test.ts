@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { setRepeatListsEnabled } from "../../utils/dast/repeatLists";
 import { cleanLatex } from "../utils/math";
 import {
     movePoint,
@@ -308,7 +309,7 @@ describe("Module tag tests @group1", async () => {
       <graph>
         <point name="p" x="$u" y="$v" />
       </graph>
-      <math name="vfixed" modifyIndirectly="false" hide>$v</math>
+      <math name="vfixed" fixed hide>$v</math>
       <module copy="$m" x="$u+$vfixed" y="9" name="m2" />
       
     </module>
@@ -617,6 +618,31 @@ describe("Module tag tests @group1", async () => {
                     .stateValues.value.tree,
             ).eq(v);
         }
+    });
+
+    it("module attributes named displayDigits and displayDecimals are independent on a copy", async () => {
+        // a module does not declare the number-display pair, so one of them
+        // written on a copy does not replace the other on its source
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <module name="m">
+      <moduleAttributes>
+        <integer name="displayDigits">7</integer>
+        <integer name="displayDecimals">3</integer>
+      </moduleAttributes>
+      <p name="p">$displayDigits $displayDecimals</p>
+    </module>
+    <module copy="$m" displayDigits="4" name="m2" />
+    <module copy="$m2" displayDecimals="1" name="m3" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2.p")].stateValues.text,
+        ).eq("4 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3.p")].stateValues.text,
+        ).eq("4 1");
     });
 
     it("copy referencesAreResponses with parent target", async () => {
@@ -1412,6 +1438,183 @@ describe("Module tag tests @group1", async () => {
         ).eqls(["vector", 6, 7]);
     });
 
+    it("extend of a module with a single child and no moduleAttributes", async () => {
+        // A `<module>` accepts any attribute, and was handed the `_copy`'s
+        // `createComponentIdx` -- its own index -- which its lone
+        // replacement then took, so nothing was shown (#2227).
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m"><text name="t">hi</text></module>
+        <p name="p1"><module extend="$m" /></p>
+        <p name="p2">$m</p>
+        <p name="p3"><module copy="$m" /></p>
+        <p name="p4"><module extend="$m" name="e" /></p>
+        <p name="p5"><text extend="$e.t" /></p>
+        <p name="p6"><module copy="$m" name="c" /> <module extend="$c" name="ec" /></p>
+    `,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            ).eq("hi");
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p6")].stateValues.text,
+        ).eq("hi hi");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ec.t")].stateValues.text,
+        ).eq("hi");
+    });
+
+    it("copy and extend of a module with an attribute named like an Object property", async () => {
+        // The attribute names are looked up in plain objects, where
+        // `constructor` and `toString` would find `Object.prototype`'s.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m">
+            <moduleAttributes>
+                <text name="constructor">c0</text>
+                <text name="toString">t0</text>
+            </moduleAttributes>
+            <p name="p">$constructor $toString</p>
+        </module>
+        <module name="c" copy="$m" constructor="c1" toString="t1" />
+        <module name="e" extend="$m" constructor="c1" toString="t1" />
+    `,
+        });
+
+        // An extend shows its source's content, so it cannot be given
+        // module attributes (#2404); each is named in an error.
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => error.message),
+        ).eqls(
+            ["constructor", "toString"].map(
+                (attribute) =>
+                    `A \`<module>\` makes its content from its attributes. An \`extend\` shows the same content as \`$m\`, so it can't change \`${attribute}\`. To make the module with a different \`${attribute}\`, use \`copy\`.`,
+            ),
+        );
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m.p")].stateValues.text,
+        ).eq("c0 t0");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c.p")].stateValues.text,
+        ).eq("c1 t1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e")].componentType,
+        ).eq("_error");
+    });
+
+    it("module attribute named like a camel-cased attribute of a module", async () => {
+        // `asList` is a `<module>`'s own attribute, so it cannot name a
+        // module attribute. Compared against the lowercased names in
+        // `ModuleAttributes`, it was missed, and set on the module or a copy,
+        // it threw instead of warning (#2326). An extend takes `asList` for
+        // itself, so the module attribute keeps its default without a warning.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m">
+            <moduleAttributes><text name="asList">d</text></moduleAttributes>
+            <p name="p">$asList</p>
+        </module>
+        <module name="n" asList="x">
+            <moduleAttributes><text name="asList">d</text></moduleAttributes>
+            <p name="p">$asList</p>
+        </module>
+        <module name="c" copy="$m" asList="x" />
+        <module name="e" extend="$m" asList="x" />
+    `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        const message =
+            'The component `<text name="asList">` cannot be used as an attribute for a module because the `<module>` component type already has a "asList" attribute defined.';
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([message, message]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["m.p", "n.p", "c.p", "e.p"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            ).eq("d");
+        }
+    });
+
+    it("module attribute named isResponse", async () => {
+        // `isResponse` is a `<module>`'s own attribute, kept raw, so it never
+        // threw. A module attribute with that name took the value set on the
+        // module. Like any other name a `<module>` already has, it now warns
+        // and keeps its own value.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="n" isResponse="x">
+            <moduleAttributes><text name="isResponse">d</text></moduleAttributes>
+            <p name="p">$isResponse</p>
+        </module>
+    `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            'The component `<text name="isResponse">` cannot be used as an attribute for a module because the `<module>` component type already has a "isResponse" attribute defined.',
+        ]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n.p")].stateValues.text,
+        ).eq("d");
+    });
+
+    it("module attribute named like an attribute the copy used to set", async () => {
+        // `link` is not an attribute of `copy` or `extend`, whose own settings
+        // start with `_`, so it is a module attribute like any other: a copy
+        // takes it, and an extend cannot be given it, as any module
+        // attribute (#2404). A copy used to take it for itself (#2326).
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m"><moduleAttributes><text name="link">default</text></moduleAttributes><text name="t">$link</text></module>
+        <p name="p1"><module copy="$m" link="custom" /></p>
+        <p name="p2"><module extend="$m" link="custom" /></p>
+    `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings).eqls([]);
+        expect(
+            diagnosticsByType.errors.map((error) => [
+                error.code,
+                error.message,
+                error.position?.start.line,
+            ]),
+        ).eqls([
+            [
+                "doenet-e0060",
+                "A `<module>` makes its content from its attributes. An `extend` shows the same content as `$m`, so it can't change `link`. To make the module with a different `link`, use `copy`.",
+                4,
+            ],
+        ]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("custom");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("");
+    });
+
     it("module state inside repeat loaded correctly", async () => {
         const doenetML = `
 <module name="p">
@@ -1488,5 +1691,528 @@ describe("Module tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("r[2].p2.vertex2")]
                 .stateValues.coords.tree,
         ).eqls(["vector", 9, -3]);
+    });
+
+    describe("references in module attributes resolve where the module is written", () => {
+        const moduleDefinition = `
+<setup>
+    <module name="g">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+            <number name="xmax">10</number>
+        </moduleAttributes>
+        <math name="w">100</math>
+        <number name="i">1</number>
+        <p name="p">$xmin, $xmax</p>
+    </module>
+</setup>
+`;
+
+        async function expectModuleText({
+            core,
+            resolvePathToNodeIdx,
+            path,
+            text,
+        }: {
+            core: any;
+            resolvePathToNodeIdx: (path: string) => Promise<number>;
+            path: string;
+            text: string;
+        }) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx(path)].stateValues
+                    .text,
+            ).eq(text);
+        }
+
+        it("attribute value named the same as the attribute", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <math name="xmax">4</math>
+        <math name="xmin" simplify>-$xmax</math>
+    </setup>
+    <mathInput name="mi" bindValueTo="$xmax" />
+    <module copy="$g" xmin="$xmin" xmax="$xmax" name="m2" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "-4, 4",
+            });
+
+            await updateMathInputValue({
+                latex: "7",
+                componentIdx: await resolvePathToNodeIdx("prob.mi"),
+                core,
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "-7, 7",
+            });
+        });
+
+        it("attribute value named the same as another of the module's components", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <number name="xmax">3</number>
+        <number name="w">-5</number>
+    </setup>
+    <module copy="$g" xmin="$w" xmax="$xmax" name="m2" />
+    <module copy="$g" xmin="-$xmax" xmax="$w+20" name="m3" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "-5, 3",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m3.p",
+                text: "-3, 15",
+            });
+        });
+
+        it("reference with an index named the same as the module's components", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <numberList name="xmin">7 8 9</numberList>
+        <number name="i">3</number>
+    </setup>
+    <module copy="$g" xmin="$xmin[$i]" name="m2" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "9, 10",
+            });
+        });
+
+        it("attribute value named the same as the attribute, inside a repeat", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<section name="sec">
+    <repeatForSequence from="1" to="2" valueName="xmin" name="r">
+        <module copy="$g" xmin="$xmin" name="m2" />
+    </repeatForSequence>
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "sec.r[1].m2.p",
+                text: "1, 10",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "sec.r[2].m2.p",
+                text: "2, 10",
+            });
+        });
+
+        it("attribute value named the same as the attribute, in a module inside a module", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<setup>
+    <module name="n">
+        <moduleAttributes>
+            <number name="xmin">-1</number>
+        </moduleAttributes>
+        <module copy="$g" xmin="$xmin" name="inner" />
+    </module>
+</setup>
+<section name="sec">
+    <module copy="$n" name="n1" />
+    <module copy="$n" xmin="-2" name="n2" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "sec.n1.inner.p",
+                text: "-1, 10",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "sec.n2.inner.p",
+                text: "-2, 10",
+            });
+        });
+
+        it("function evaluated in an attribute value named the same as the module's function", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<setup>
+    <module name="g">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+        </moduleAttributes>
+        <function name="f">x+1000</function>
+        <p name="p">$xmin</p>
+    </module>
+</setup>
+<problem name="prob">
+    <function name="f">x^2</function>
+    <module copy="$g" xmin="$$f(3)" name="m2" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "9",
+            });
+        });
+
+        it("copy of a module copy resolves both sets of attributes where they are written", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <number name="xmin">-3</number>
+        <number name="xmax">5</number>
+    </setup>
+    <module copy="$g" xmin="$xmin" name="m2" />
+    <module copy="$m2" xmax="$xmax" name="m3" />
+    <module copy="$m2" xmin="$xmax" name="m4" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "-3, 10",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m3.p",
+                text: "-3, 5",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m4.p",
+                text: "5, 10",
+            });
+        });
+
+        it("attribute written on the module's own definition refers to the module's own attribute", async () => {
+            // As `<p hide="$h"><boolean name="h"/></p>` names its own `h`, `xmin="$xmin"`
+            // names the module's own `xmin`, which would then depend on itself.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<problem name="prob">
+    <setup>
+        <number name="xmin">-3</number>
+    </setup>
+    <module name="g" xmin="$xmin">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+        </moduleAttributes>
+        <p name="p">$xmin</p>
+    </module>
+    <p name="after">rendered</p>
+</problem>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.map((e: any) => e.code)).eqls([
+                "doenet-e0055",
+            ]);
+            expect(diagnosticsByType.errors[0].message).toContain(
+                "The `xmin` attribute of this `<module>` refers to the module's own `xmin`",
+            );
+            expect(diagnosticsByType.warnings).eqls([]);
+
+            // The module attribute keeps its own value, and the rest of the document renders.
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.g.p",
+                text: "-10",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.after",
+                text: "rendered",
+            });
+        });
+
+        it("attribute written on the module's own definition sees what is written inside the module", async () => {
+            // `$a` finds the `a` written inside the module ahead of the one beside it,
+            // as for an attribute on any other component.
+            // With no `xmin` outside the module, `xmin="$xmin"` still names the module's own `xmin`.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<problem name="prob">
+    <number name="a">1</number>
+    <module name="g" xmin="$a">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+        </moduleAttributes>
+        <number name="a">5</number>
+        <p name="p">$xmin</p>
+    </module>
+    <module name="h" xmin="$xmin">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+        </moduleAttributes>
+        <p name="p">$xmin</p>
+    </module>
+</problem>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.map((e: any) => e.code)).eqls([
+                "doenet-e0055",
+            ]);
+            expect(diagnosticsByType.warnings).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.g.p",
+                text: "5",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.h.p",
+                text: "-10",
+            });
+        });
+
+        it("copy of a module attribute keeps resolving where the module is written", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <number name="xmin">-6</number>
+    </setup>
+    <module copy="$g" xmin="$xmin" name="m2" />
+</problem>
+<section name="sec">
+    <setup>
+        <number name="xmin">99</number>
+    </setup>
+    <number extend="$prob.m2.xmin" name="copied" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("sec.copied")]
+                    .stateValues.value,
+            ).eq(-6);
+        });
+    });
+
+    describe("point in a repeat over a module-attribute list of random values", async () => {
+        afterEach(() => setRepeatListsEnabled(true));
+
+        // A point in a repeat whose x is the module attribute's entry at
+        // the repeat index, `$values[$i]`, with the module copied with
+        // `values="$v"` for a random selection or sample `v`.
+        function dotPlotDoenetML(source: string) {
+            return `
+<setup>
+  <module name="m">
+    <moduleAttributes><numberList name="values"/></moduleAttributes>
+    <count name="n">$values</count>
+    <graph name="g">
+      <repeatForSequence from="1" to="$n" indexName="i" name="Ps">
+        <point name="P">($values[$i], 0)</point>
+      </repeatForSequence>
+    </graph>
+  </module>
+</setup>
+${source}
+<module copy="$m" name="mc" values="$v"/>
+`;
+        }
+
+        // The points the graph draws, whether the repeat is a list of points
+        // or a composite of one point per iteration.
+        async function pointsDrawn(core: any, graphIdx: number) {
+            const rendererState =
+                core.core.rendererInstructionBuilder.rendererState;
+            const points: { componentIdx: number; x: number }[] = [];
+            function visit(instructions: any[]) {
+                for (const child of instructions) {
+                    if (typeof child !== "object" || !child) {
+                        continue;
+                    }
+                    const state = rendererState[child.componentIdx];
+                    if (child.componentType === "point") {
+                        points.push({
+                            componentIdx: child.componentIdx,
+                            x: state.stateValues.numericalXs[0],
+                        });
+                    } else if (state?.childrenInstructions) {
+                        visit(state.childrenInstructions);
+                    }
+                }
+            }
+            visit(rendererState[graphIdx].childrenInstructions);
+            return points;
+        }
+
+        async function checkDrags({
+            doenetML,
+            draggable,
+        }: {
+            doenetML: string;
+            draggable: boolean;
+        }) {
+            // with the repeat a list of points, and left a composite
+            for (const asList of [true, false]) {
+                setRepeatListsEnabled(asList);
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                });
+                setRepeatListsEnabled(true);
+
+                expect(
+                    core.core!._components[await resolvePathToNodeIdx("mc.Ps")]
+                        .componentType === "_repeatPointList",
+                ).toBe(asList);
+
+                const graphIdx = await resolvePathToNodeIdx("mc.g");
+                const vIdx = await resolvePathToNodeIdx("v");
+
+                async function getValues() {
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    const xs = (await pointsDrawn(core, graphIdx)).map(
+                        (p) => p.x,
+                    );
+                    return {
+                        x1: xs[0],
+                        x2: xs[1],
+                        v: stateVariables[vIdx].stateValues.numbers,
+                    };
+                }
+
+                async function drag(index: number, x: number) {
+                    const points = await pointsDrawn(core, graphIdx);
+                    await movePoint({
+                        componentIdx: points[index].componentIdx,
+                        x,
+                        y: 0,
+                        core,
+                    });
+                }
+
+                const before = await getValues();
+                expect(before.v).toHaveLength(2);
+                expect(before.x1).eq(before.v[0]);
+                expect(before.x2).eq(before.v[1]);
+
+                await drag(0, 20);
+                let values = await getValues();
+                if (draggable) {
+                    expect(values).toEqual({
+                        x1: 20,
+                        x2: before.x2,
+                        v: [20, before.x2],
+                    });
+                } else {
+                    expect(values).toEqual(before);
+                }
+
+                await drag(1, -3);
+                values = await getValues();
+                if (draggable) {
+                    expect(values).toEqual({ x1: 20, x2: -3, v: [20, -3] });
+                } else {
+                    expect(values).toEqual(before);
+                }
+            }
+        }
+
+        it("selection not fixed", async () => {
+            await checkDrags({
+                doenetML: dotPlotDoenetML(
+                    `<selectRandomNumbers name="v" numToSelect="2" fixed="false"/>`,
+                ),
+                draggable: true,
+            });
+        });
+
+        it("sample not fixed", async () => {
+            await checkDrags({
+                doenetML: dotPlotDoenetML(
+                    `<sampleRandomNumbers name="v" numSamples="2" fixed="false"/>`,
+                ),
+                draggable: true,
+            });
+        });
+
+        it("selection fixed by default", async () => {
+            await checkDrags({
+                doenetML: dotPlotDoenetML(
+                    `<selectRandomNumbers name="v" numToSelect="2"/>`,
+                ),
+                draggable: false,
+            });
+        });
     });
 });

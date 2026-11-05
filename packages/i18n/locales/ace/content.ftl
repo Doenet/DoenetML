@@ -36,15 +36,12 @@ color =
     .purple = unggu
     .pink = mirah muda
     .brown = coklat
-
 line-width =
     .thick = teubai
     .thin = lipéh
-
 line-style =
     .dashed = putôh-putôh
     .dotted = titék-titék
-
 # Noun phrases. Acehnese marks no plural on the noun, so «garéh» is the word for
 # one line and for many alike.
 fill-style =
@@ -54,7 +51,6 @@ fill-style =
     .backdiagonal = garéh mereng meubalék
     .dots = titék
     .diamonds = beulah keutupat
-
 noun =
     .line = garéh
     .line-segment = ruweueng garéh
@@ -74,7 +70,6 @@ noun =
     .diamond = beulah keutupat
     .cross = sileuëng
     .plus = plus
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe.
 noun-regular-polygon =
@@ -82,10 +77,8 @@ noun-regular-polygon =
         [tail] nyang na { $numSides } sagoë
        *[head] poligon beuratura
     }
-
 # One answer for every noun: Acehnese has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -99,22 +92,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives behind it, which is the opposite of English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = peunoh
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ngon { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ngon { $pattern }
@@ -122,7 +111,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } ngon { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Acehnese has no article, so the two `-article` branches say what the other two
 # say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «ngon» against «lom».
@@ -133,35 +121,28 @@ style-border-clause =
         [and-article] lom binèh { $border }
        *[with] ngon binèh { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = hana peunoh
-
 style-text =
     { $parts ->
         [background] { $color } ngon laté { $background }
        *[plain] { $color }
     }
-
 style-background-none = hana
-
 
 ## Boolean words
 
 boolean-true = beutôi
 boolean-false = salah
 
-
 ## Answer buttons
 
 answer-submit-label = Peuréksa buet
 answer-submit-label-no-correctness = Kirém jaweueb
-
 
 ## Sectional blocks
 
@@ -188,7 +169,6 @@ section-name =
     .solution = Peunyeulesaian
     .task = Tugaih
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -198,9 +178,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Peutunyok
-
 
 ## Tables and figures
 
@@ -211,7 +189,6 @@ table-name =
         [unnumbered-title] Tabel{ ": " }
        *[unnumbered] Tabel
     }
-
 figure-name =
     { $parts ->
         [numbered] Gamba { $enumeration }
@@ -220,22 +197,18 @@ figure-name =
        *[unnumbered] Gamba
     }
 
-
 ## Paginator controls
 
 paginator-previous = Sigohlom
 paginator-next = Seulanjut
 paginator-page = Laman
-
 paginator-page-status = { $pageLabel } { $currentPage } nibak { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = atawa
 piecewise-condition-if = meunyo
 piecewise-condition-otherwise = meunyo hana
-
 
 ## Chemistry
 ##
@@ -247,6 +220,5 @@ piecewise-condition-otherwise = meunyo hana
 ## where a speaker should start rather than at the whole 118.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol kimia nyang hana sah
 chemistry-invalid-ionic-compound = Sanyawa ionik nyang hana sah

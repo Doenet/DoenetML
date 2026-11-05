@@ -1,3 +1,22 @@
+//********************************************************************
+// Copyright (C) 2024-2026  Robert A. Beezer
+//
+// This file is part of PreTeXt.
+//
+// PreTeXt is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 or version 3 of the
+// License (at your option).
+//
+// PreTeXt is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+//********************************************************************
+
 @mixin code-text {
   font-family: var(--font-monospace);
   background: var(--code-background);
@@ -6,8 +25,11 @@
 }
 
 @mixin code-inline-spacing {
-  line-height: normal;  //prevent extra "padding" based on line-height
-  padding: 0.0625em .15em;
+  padding: 0 .15em;
+  translate: 0 -1px; // visually align with surrounding text
+  // reduce line-height slightly to reduce vertical size of background
+  // and prevent blocks on consecutive lines from merging together
+  line-height: calc(var(--content-line-height) - 0.15);
 }
 
 // wide programs need to be scrollable
@@ -16,7 +38,7 @@
 }
 
 .code-display {
-  overflow-x: auto;      //scroll if overflowing
+  overflow-x: auto;      // scroll if overflowing
   font-family: var(--font-monospace);
   // code-display appears inside .paras and may need space around it
   margin: 0.5em 0;
@@ -36,7 +58,6 @@
   white-space: pre;
   color: var(--body-text-color);
   background: var(--code-inline-background);
-  border: 1px solid color-mix(in oklab, var(--code-inline-background) 50%, #888);
   border-radius: 0.2em;
   display: inline-block;
   overflow-x: auto;

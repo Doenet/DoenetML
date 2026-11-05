@@ -223,7 +223,7 @@ describe(
                 .trigger("input");
             cy.get('[aria-label="x coordinate for P"]').trigger("pointerup");
 
-            cy.get("#Px").should("have.text", "5");
+            cy.get("#Px").scrollIntoView().should("have.text", "5");
             cy.get('input[aria-label="x value input for P"]').should(
                 "have.value",
                 "5",
@@ -233,7 +233,7 @@ describe(
                 .clear()
                 .type("8{enter}");
 
-            cy.get("#Px").should("have.text", "8");
+            cy.get("#Px").scrollIntoView().should("have.text", "8");
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",
                 "8",
@@ -263,8 +263,8 @@ describe(
             cy.get('[aria-label="coordinates for P"]')
                 .clear()
                 .type("(6,7){enter}");
-            cy.get("#Px").should("have.text", "6");
-            cy.get("#Py").should("have.text", "7");
+            cy.get("#Px").scrollIntoView().should("have.text", "6");
+            cy.get("#Py").scrollIntoView().should("have.text", "7");
 
             cy.get('[aria-label="coordinates for P"]')
                 .clear()
@@ -274,12 +274,12 @@ describe(
                 "aria-invalid",
                 "true",
             );
-            cy.get("#Px").should("have.text", "6");
-            cy.get("#Py").should("have.text", "7");
+            cy.get("#Px").scrollIntoView().should("have.text", "6");
+            cy.get("#Py").scrollIntoView().should("have.text", "7");
 
             cy.get('[aria-label="x input for Q"]').clear().type("2+3{enter}");
-            cy.get("#Qx").should("have.text", "5");
-            cy.get("#Qy").should("have.text", "2");
+            cy.get("#Qx").scrollIntoView().should("have.text", "5");
+            cy.get("#Qy").scrollIntoView().should("have.text", "2");
         });
 
         it("propagates avoidScientificNotation to controls input formatting", () => {
@@ -362,11 +362,11 @@ describe(
             expandControlCardIfCollapsed("L");
             expandControlCardIfCollapsed("V");
 
-            cy.get("#CRadius").should("have.text", "3");
-            cy.get("#RPRadius").should("not.have.text", "NaN");
-            cy.get("#RWidth").should("have.text", "2");
-            cy.get("#LEndpoint1X").should("have.text", "0");
-            cy.get("#VHeadX").should("have.text", "2");
+            cy.get("#CRadius").scrollIntoView().should("have.text", "3");
+            cy.get("#RPRadius").scrollIntoView().should("not.have.text", "NaN");
+            cy.get("#RWidth").scrollIntoView().should("have.text", "2");
+            cy.get("#LEndpoint1X").scrollIntoView().should("have.text", "0");
+            cy.get("#VHeadX").scrollIntoView().should("have.text", "2");
 
             cy.get('[aria-label="center x coordinate for C"]').should("exist");
             cy.get('[aria-label="radius for C"]').should("exist");
@@ -409,12 +409,12 @@ describe(
                 .invoke("val", "5")
                 .trigger("input");
             cy.get('[aria-label="radius for C"]').trigger("pointerup");
-            cy.get("#CRadius").should("have.text", "5");
+            cy.get("#CRadius").scrollIntoView().should("have.text", "5");
             cy.get('[aria-label="radius for C"]').should("have.value", "5");
 
             cy.get('[aria-label="radius input for C"]').clear().type("6");
             cy.get('[aria-label="radius input for C"]').blur();
-            cy.get("#CRadius").should("have.text", "6");
+            cy.get("#CRadius").scrollIntoView().should("have.text", "6");
             cy.get('[aria-label="radius for C"]').should("have.value", "6");
 
             cy.get('[aria-label="center x coordinate for RP"]').trigger(
@@ -429,11 +429,11 @@ describe(
 
             cy.get('[aria-label="radius input for RP"]').clear().type("4");
             cy.get('[aria-label="radius input for RP"]').blur();
-            cy.get("#RPRadius").should("have.text", "4");
+            cy.get("#RPRadius").scrollIntoView().should("have.text", "4");
 
             cy.get('[aria-label="width input for R"]').clear().type("5");
             cy.get('[aria-label="width input for R"]').blur();
-            cy.get("#RWidth").should("have.text", "5");
+            cy.get("#RWidth").scrollIntoView().should("have.text", "5");
 
             cy.get('[aria-label="endpoint 1 x coordinate for L"]').trigger(
                 "pointerdown",
@@ -446,7 +446,7 @@ describe(
                 "pointerup",
                 { pointerId: 1, buttons: 0 },
             );
-            cy.get("#LEndpoint1X").should("have.text", "4");
+            cy.get("#LEndpoint1X").scrollIntoView().should("have.text", "4");
             cy.get('[aria-label="endpoint 1 x coordinate for L"]').should(
                 "have.value",
                 "4",
@@ -459,7 +459,7 @@ describe(
                 .invoke("val", "1")
                 .trigger("input");
             cy.get('[aria-label="displacement x for V"]').trigger("pointerup");
-            cy.get("#VHeadX").should("have.text", "1");
+            cy.get("#VHeadX").scrollIntoView().should("have.text", "1");
             cy.get('[aria-label="displacement x for V"]').should(
                 "have.value",
                 "1",
@@ -620,8 +620,8 @@ describe(
 <number name="TRVertex1X">$TR.vertices[1].x</number>
 `);
 
-            cy.get("#PGVertex1X").should("have.text", "0");
-            cy.get("#TRVertex1X").should("have.text", "2");
+            cy.get("#PGVertex1X").scrollIntoView().should("have.text", "0");
+            cy.get("#TRVertex1X").scrollIntoView().should("have.text", "2");
 
             cy.get('[aria-label="x coordinate for center of PG"]').should(
                 "exist",
@@ -651,8 +651,8 @@ describe(
             cy.get('[aria-label="center x input for TR"]').clear().type("6");
             cy.get('[aria-label="center x input for TR"]').blur();
 
-            cy.get("#PGVertex1X").should("have.text", "3");
-            cy.get("#TRVertex1X").should("have.text", "5");
+            cy.get("#PGVertex1X").scrollIntoView().should("have.text", "3");
+            cy.get("#TRVertex1X").scrollIntoView().should("have.text", "5");
         });
 
         it("renders polygon and triangle center modes with stable fallback numbering", () => {
@@ -745,9 +745,9 @@ describe(
             cy.get('[aria-label="width for R"]').should("exist");
             cy.get('[aria-label="height for R"]').should("exist");
 
-            cy.get("#RVertex1X").should("have.text", "0");
-            cy.get("#RWidth").should("have.text", "2");
-            cy.get("#RHeight").should("have.text", "4");
+            cy.get("#RVertex1X").scrollIntoView().should("have.text", "0");
+            cy.get("#RWidth").scrollIntoView().should("have.text", "2");
+            cy.get("#RHeight").scrollIntoView().should("have.text", "4");
 
             cy.get('[aria-label="center x coordinate for R"]').trigger(
                 "pointerdown",
@@ -766,9 +766,9 @@ describe(
             cy.get('[aria-label="height input for R"]').clear().type("5");
             cy.get('[aria-label="height input for R"]').blur();
 
-            cy.get("#RVertex1X").should("have.text", "0");
-            cy.get("#RWidth").should("have.text", "6");
-            cy.get("#RHeight").should("have.text", "5");
+            cy.get("#RVertex1X").scrollIntoView().should("have.text", "0");
+            cy.get("#RWidth").scrollIntoView().should("have.text", "6");
+            cy.get("#RHeight").scrollIntoView().should("have.text", "5");
         });
 
         it("renders rectangle control modes and preserves fallback numbering", () => {
@@ -833,7 +833,7 @@ describe(
             const radiusSlider = '[aria-label="radius for RP"]';
             const radiusInput = '[aria-label="radius input for RP"]';
 
-            cy.get("#RPRadius").should("not.have.text", "NaN");
+            cy.get("#RPRadius").scrollIntoView().should("not.have.text", "NaN");
 
             cy.get(radiusSlider).trigger("pointerdown", {
                 pointerId: 1,
@@ -850,7 +850,7 @@ describe(
                 force: true,
             });
 
-            cy.get("#RPRadius").should("have.text", "0");
+            cy.get("#RPRadius").scrollIntoView().should("have.text", "0");
             cy.get(radiusInput).should("have.attr", "value", "0");
             cy.get(radiusSlider).should("have.attr", "aria-valuetext", "0");
 
@@ -872,11 +872,13 @@ describe(
 
             // Radius should recover close to the target value. Known drift after
             // collapsing to near-zero is tracked in issue #1019.
-            cy.get("#RPRadius").should(($el) => {
-                const radius = Number($el.text());
-                expect(Number.isFinite(radius)).to.equal(true);
-                expect(radius).to.be.closeTo(3, 0.5);
-            });
+            cy.get("#RPRadius")
+                .scrollIntoView()
+                .should(($el) => {
+                    const radius = Number($el.text());
+                    expect(Number.isFinite(radius)).to.equal(true);
+                    expect(radius).to.be.closeTo(3, 0.5);
+                });
             cy.get(radiusInput)
                 .invoke("val")
                 .then((displayedValue) => {
@@ -896,7 +898,7 @@ describe(
                 force: true,
             });
 
-            cy.get("#RPRadius").should("have.text", "3");
+            cy.get("#RPRadius").scrollIntoView().should("have.text", "3");
             cy.get(radiusInput).should("have.attr", "value", "3");
             cy.get(radiusSlider).should("have.attr", "aria-valuetext", "3");
         });
@@ -918,8 +920,8 @@ describe(
 `);
 
             cy.get("#ready").should("have.text", "ready");
-            cy.get("#VhHeadX").should("have.text", "2");
-            cy.get("#VtTailY").should("have.text", "1");
+            cy.get("#VhHeadX").scrollIntoView().should("have.text", "2");
+            cy.get("#VtTailY").scrollIntoView().should("have.text", "1");
 
             // headOnly vector: head x and head y sliders present, no tail sliders
             cy.get('[aria-label="head x for Vh"]').should("exist");
@@ -939,7 +941,7 @@ describe(
                 .invoke("val", "5")
                 .trigger("input");
             cy.get('[aria-label="head x for Vh"]').trigger("pointerup");
-            cy.get("#VhHeadX").should("have.text", "5");
+            cy.get("#VhHeadX").scrollIntoView().should("have.text", "5");
             cy.get('[aria-label="head x for Vh"]').should("have.value", "5");
 
             // Interact with tail y slider
@@ -948,7 +950,7 @@ describe(
                 .invoke("val", "-2")
                 .trigger("input");
             cy.get('[aria-label="tail y for Vt"]').trigger("pointerup");
-            cy.get("#VtTailY").should("have.text", "-2");
+            cy.get("#VtTailY").scrollIntoView().should("have.text", "-2");
             cy.get('[aria-label="tail y for Vt"]').should("have.value", "-2");
         });
 
@@ -1074,7 +1076,7 @@ describe(
             cy.get('[aria-label="x coordinate for P"]')
                 .invoke("val", "7")
                 .trigger("input");
-            cy.get("#Px").should("have.text", "7");
+            cy.get("#Px").scrollIntoView().should("have.text", "7");
             cy.get('[aria-label="x coordinate for P"]').trigger("pointerup");
         });
 
@@ -1195,7 +1197,7 @@ describe(
             cy.get('[aria-label="y coordinate for Q"]')
                 .invoke("val", "7")
                 .trigger("input");
-            cy.get("#Qy").should("have.text", "7");
+            cy.get("#Qy").scrollIntoView().should("have.text", "7");
             cy.get('[aria-label="y coordinate for Q"]').trigger("pointerup");
         });
 
@@ -1447,8 +1449,8 @@ describe(
                 .invoke("val", "5.6")
                 .trigger("input");
 
-            cy.get("#Qx").should("have.text", "5.6");
-            cy.get("#Qy").should("have.text", "4");
+            cy.get("#Qx").scrollIntoView().should("have.text", "5.6");
+            cy.get("#Qy").scrollIntoView().should("have.text", "4");
             cy.get('[aria-label="x coordinate for Point 1"]').should(
                 "have.value",
                 "5.6",
@@ -1458,8 +1460,8 @@ describe(
                 "pointerup",
                 { pointerId: 1, buttons: 0 },
             );
-            cy.get("#Qx").should("have.text", "5.6");
-            cy.get("#Qy").should("have.text", "4");
+            cy.get("#Qx").scrollIntoView().should("have.text", "5.6");
+            cy.get("#Qy").scrollIntoView().should("have.text", "4");
             cy.get('[aria-label="x coordinate for Point 1"]').should(
                 "have.value",
                 "5.6",
@@ -1489,14 +1491,14 @@ describe(
                 "have.value",
                 "3",
             );
-            cy.get("#Px").should("have.text", "3");
+            cy.get("#Px").scrollIntoView().should("have.text", "3");
 
             cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown");
             cy.get('[aria-label="x coordinate for P"]')
                 .invoke("val", "3.6")
                 .trigger("input");
 
-            cy.get("#Px").should("have.text", "4");
+            cy.get("#Px").scrollIntoView().should("have.text", "4");
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",
                 "3.6",
@@ -1508,8 +1510,8 @@ describe(
                 "have.value",
                 "4",
             );
-            cy.get("#Px").should("have.text", "4");
-            cy.get("#Py").should("have.text", "4");
+            cy.get("#Px").scrollIntoView().should("have.text", "4");
+            cy.get("#Py").scrollIntoView().should("have.text", "4");
         });
 
         it("keeps transient local value on first pointer drag input, then snaps on pointerup", () => {
@@ -1533,7 +1535,7 @@ describe(
                 "have.value",
                 "3",
             );
-            cy.get("#Px").should("have.text", "3");
+            cy.get("#Px").scrollIntoView().should("have.text", "3");
 
             cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown", {
                 pointerId: 1,
@@ -1546,7 +1548,7 @@ describe(
                 .invoke("val", "3.6")
                 .trigger("input", { force: true });
 
-            cy.get("#Px").should("have.text", "4");
+            cy.get("#Px").scrollIntoView().should("have.text", "4");
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",
                 "3.6",
@@ -1562,7 +1564,7 @@ describe(
                 "have.value",
                 "4",
             );
-            cy.get("#Px").should("have.text", "4");
+            cy.get("#Px").scrollIntoView().should("have.text", "4");
         });
 
         it("preserves latest other-axis value across rapid slider interactions", () => {
@@ -1594,7 +1596,7 @@ describe(
                 force: true,
             });
 
-            cy.get("#Px").should("have.text", "4.2");
+            cy.get("#Px").scrollIntoView().should("have.text", "4.2");
 
             cy.get('[aria-label="y coordinate for P"]').trigger("pointerdown", {
                 pointerId: 1,
@@ -1612,8 +1614,8 @@ describe(
                 force: true,
             });
 
-            cy.get("#Px").should("have.text", "4.2");
-            cy.get("#Py").should("have.text", "6.4");
+            cy.get("#Px").scrollIntoView().should("have.text", "4.2");
+            cy.get("#Py").scrollIntoView().should("have.text", "6.4");
         });
 
         it("syncs non-dragged axis while constrained drag is still transient", () => {
@@ -1652,8 +1654,8 @@ describe(
                 .invoke("val", "4")
                 .trigger("input", { force: true });
 
-            cy.get("#Px").should("have.text", "2");
-            cy.get("#Py").should("have.text", "2");
+            cy.get("#Px").scrollIntoView().should("have.text", "2");
+            cy.get("#Py").scrollIntoView().should("have.text", "2");
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",
                 "4",
@@ -1677,8 +1679,8 @@ describe(
                 "have.value",
                 "2",
             );
-            cy.get("#Px").should("have.text", "2");
-            cy.get("#Py").should("have.text", "2");
+            cy.get("#Px").scrollIntoView().should("have.text", "2");
+            cy.get("#Py").scrollIntoView().should("have.text", "2");
         });
 
         it("keyboard arrow keys accumulate as transient and commit final value on blur", () => {
@@ -1739,14 +1741,14 @@ describe(
             });
 
             // Actual point snaps to 1 even during the transient
-            cy.get("#Px").should("have.text", "1");
+            cy.get("#Px").scrollIntoView().should("have.text", "1");
 
             cy.get(xSlider).blur();
 
             // After blur: slider and input both snap to constrained value
             cy.get(xSlider).should("have.value", "1");
             cy.get(xNumberInput).should("have.value", "1");
-            cy.get("#Px").should("have.text", "1");
+            cy.get("#Px").scrollIntoView().should("have.text", "1");
         });
 
         it("keyboard blur on constrained point does not send another movePoint", () => {
@@ -1802,14 +1804,18 @@ describe(
 
                                     cy.get(ySlider).focus();
 
-                                    cy.get("#Px").should(
-                                        "have.text",
-                                        String(pxBeforeBlur),
-                                    );
-                                    cy.get("#Py").should(
-                                        "have.text",
-                                        String(pyBeforeBlur),
-                                    );
+                                    cy.get("#Px")
+                                        .scrollIntoView()
+                                        .should(
+                                            "have.text",
+                                            String(pxBeforeBlur),
+                                        );
+                                    cy.get("#Py")
+                                        .scrollIntoView()
+                                        .should(
+                                            "have.text",
+                                            String(pyBeforeBlur),
+                                        );
                                 });
                         });
                 });
@@ -1827,7 +1833,7 @@ describe(
             const radiusSlider = '[aria-label="radius for C"]';
             const radiusInput = '[aria-label="radius input for C"]';
 
-            cy.get("#Cr").should("have.text", "2");
+            cy.get("#Cr").scrollIntoView().should("have.text", "2");
 
             cy.get(radiusSlider).trigger("pointerdown", {
                 pointerId: 1,
@@ -1844,7 +1850,7 @@ describe(
                 force: true,
             });
 
-            cy.get("#Cr").should("have.text", "0");
+            cy.get("#Cr").scrollIntoView().should("have.text", "0");
             cy.get(radiusSlider).should("have.attr", "value", "0");
 
             // Now drag back to a positive radius and verify the circle recovers
@@ -1863,7 +1869,7 @@ describe(
                 force: true,
             });
 
-            cy.get("#Cr").should("have.text", "3");
+            cy.get("#Cr").scrollIntoView().should("have.text", "3");
             cy.get(radiusSlider).should("have.attr", "value", "3");
             cy.get(radiusInput).should("have.attr", "value", "3");
         });
@@ -1881,7 +1887,7 @@ describe(
             const radiusSlider = '[aria-label="radius for C"]';
             const radiusInput = '[aria-label="radius input for C"]';
 
-            cy.get("#Cr").should("have.text", "3");
+            cy.get("#Cr").scrollIntoView().should("have.text", "3");
             cy.get(radiusSlider).should("have.attr", "value", "3");
 
             cy.get(radiusSlider).trigger("pointerdown", {
@@ -1894,7 +1900,7 @@ describe(
                 force: true,
             });
 
-            cy.get("#Cr").should("have.text", "4");
+            cy.get("#Cr").scrollIntoView().should("have.text", "4");
             cy.get(radiusSlider).should("have.attr", "value", "3.6");
 
             cy.get(radiusSlider).trigger("pointerup", {
@@ -1903,12 +1909,12 @@ describe(
                 force: true,
             });
 
-            cy.get("#Cr").should("have.text", "4");
+            cy.get("#Cr").scrollIntoView().should("have.text", "4");
             cy.get(radiusSlider).should("have.attr", "value", "4");
             cy.get(radiusInput).should("have.attr", "value", "4");
 
             cy.get(radiusInput).clear().type("5.6").blur();
-            cy.get("#Cr").should("have.text", "6");
+            cy.get("#Cr").scrollIntoView().should("have.text", "6");
             cy.get(radiusSlider).should("have.attr", "value", "6");
             cy.get(radiusInput).should("have.attr", "value", "6");
         });
@@ -1931,12 +1937,12 @@ describe(
             keyboardStepRangeRight(radiusSlider);
             keyboardStepRangeRight(radiusSlider);
 
-            cy.get("#Cr").should("have.text", "3");
+            cy.get("#Cr").scrollIntoView().should("have.text", "3");
             cy.get(radiusSlider).should("have.attr", "value", "3.6");
 
             cy.get(centerXSlider).focus();
 
-            cy.get("#Cr").should("have.text", "3");
+            cy.get("#Cr").scrollIntoView().should("have.text", "3");
             cy.get(radiusSlider).should("have.attr", "value", "3");
         });
 
@@ -1953,7 +1959,7 @@ describe(
             const centerXSlider = '[aria-label="center x coordinate for C"]';
             const centerXInput = '[aria-label="center x input for C"]';
 
-            cy.get("#Cx").should("have.text", "3");
+            cy.get("#Cx").scrollIntoView().should("have.text", "3");
             cy.get(centerXSlider).should("have.attr", "value", "3");
 
             cy.get(centerXSlider).trigger("pointerdown", {
@@ -1966,7 +1972,7 @@ describe(
                 .invoke("val", "3.6")
                 .trigger("input", { force: true });
 
-            cy.get("#Cx").should("have.text", "4");
+            cy.get("#Cx").scrollIntoView().should("have.text", "4");
             cy.get(centerXSlider).should("have.attr", "value", "3.6");
 
             cy.get(centerXSlider).trigger("pointerup", {
@@ -1975,12 +1981,12 @@ describe(
                 force: true,
             });
 
-            cy.get("#Cx").should("have.text", "4");
+            cy.get("#Cx").scrollIntoView().should("have.text", "4");
             cy.get(centerXSlider).should("have.attr", "value", "4");
             cy.get(centerXInput).should("have.attr", "value", "4");
 
             cy.get(centerXInput).clear().type("5.6").blur();
-            cy.get("#Cx").should("have.text", "6");
+            cy.get("#Cx").scrollIntoView().should("have.text", "6");
             cy.get(centerXSlider).should("have.attr", "value", "6");
             cy.get(centerXInput).should("have.attr", "value", "6");
         });
@@ -1999,7 +2005,7 @@ describe(
                 '[aria-label="endpoint 1 x coordinate for L"]';
             const endpointXInput = '[aria-label="endpoint 1 x input for L"]';
 
-            cy.get("#Lx").should("have.text", "3");
+            cy.get("#Lx").scrollIntoView().should("have.text", "3");
             cy.get(endpointXSlider).should("have.attr", "value", "3");
 
             cy.get(endpointXSlider).trigger("pointerdown", {
@@ -2012,7 +2018,7 @@ describe(
                 .invoke("val", "3.6")
                 .trigger("input", { force: true });
 
-            cy.get("#Lx").should("have.text", "4");
+            cy.get("#Lx").scrollIntoView().should("have.text", "4");
             cy.get(endpointXSlider).should("have.attr", "value", "3.6");
 
             cy.get(endpointXSlider).trigger("pointerup", {
@@ -2021,12 +2027,12 @@ describe(
                 force: true,
             });
 
-            cy.get("#Lx").should("have.text", "4");
+            cy.get("#Lx").scrollIntoView().should("have.text", "4");
             cy.get(endpointXSlider).should("have.attr", "value", "4");
             cy.get(endpointXInput).should("have.attr", "value", "4");
 
             cy.get(endpointXInput).clear().type("5.6").blur();
-            cy.get("#Lx").should("have.text", "6");
+            cy.get("#Lx").scrollIntoView().should("have.text", "6");
             cy.get(endpointXSlider).should("have.attr", "value", "6");
             cy.get(endpointXInput).should("have.attr", "value", "6");
         });
@@ -2045,7 +2051,7 @@ describe(
             const displacementXInput =
                 '[aria-label="displacement x for V input"]';
 
-            cy.get("#Vdx").should("have.text", "3");
+            cy.get("#Vdx").scrollIntoView().should("have.text", "3");
             cy.get(displacementXSlider).should("have.attr", "value", "3");
 
             cy.get(displacementXSlider).trigger("pointerdown", {
@@ -2058,7 +2064,7 @@ describe(
                 .invoke("val", "3.6")
                 .trigger("input", { force: true });
 
-            cy.get("#Vdx").should("have.text", "4");
+            cy.get("#Vdx").scrollIntoView().should("have.text", "4");
             cy.get(displacementXSlider).should("have.attr", "value", "3.6");
 
             cy.get(displacementXSlider).trigger("pointerup", {
@@ -2067,12 +2073,12 @@ describe(
                 force: true,
             });
 
-            cy.get("#Vdx").should("have.text", "4");
+            cy.get("#Vdx").scrollIntoView().should("have.text", "4");
             cy.get(displacementXSlider).should("have.attr", "value", "4");
             cy.get(displacementXInput).should("have.attr", "value", "4");
 
             cy.get(displacementXInput).clear().type("5.6").blur();
-            cy.get("#Vdx").should("have.text", "6");
+            cy.get("#Vdx").scrollIntoView().should("have.text", "6");
             cy.get(displacementXSlider).should("have.attr", "value", "6");
             cy.get(displacementXInput).should("have.attr", "value", "6");
         });

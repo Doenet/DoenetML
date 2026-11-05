@@ -1,0 +1,62 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<page>{:dn}`
+
+<ComponentDisplay name='page'/>
+
+`<page>{:dn}` marks the content of one printed page. On screen it is an
+unformatted container, like a [`<div>{:dn}`](div). When the document is
+exported to PreTeXt for printing, each `<page>{:dn}` starts on a new sheet of
+paper, and the room left for writing answers (an expanded
+[`<textInput>{:dn}`](textInput)) is stretched or shrunk, in proportion to the
+heights written on the inputs, so that the page fills its sheet.
+
+A `<page>{:dn}` does not start a count of its own: a
+[`<section>{:dn}`](section) or [`<problem>{:dn}`](problem) inside it is
+numbered along with the ones beside the `<page>{:dn}`. Inside a
+[`<problems>{:dn}`](problems), the problems on each page are numbered as items
+of the list, so a set of problems can be printed one per page by putting each
+`<problem>{:dn}` in a `<page>{:dn}` of its own.
+
+A document is printed in pages only when its `<page>{:dn}`s are written at its
+top level, or inside a `<problems>{:dn}`, [`<exercises>{:dn}`](exercises),
+`<div>{:dn}` or [`<cascade>{:dn}`](cascade) there; the title of such a
+`<problems>{:dn}` is not printed. A `<page>{:dn}` inside a
+[`<section>{:dn}`](section) prints as its content, with no page break.
+
+<AttrPropDisplay name='page'/>
+
+
+## Examples
+
+### Example: An exam with one problem per page
+
+
+```doenet-editor-horiz
+<page>
+  <p>Name: <textInput /></p>
+  <p>Show your work in the space provided.</p>
+</page>
+
+<problems>
+  <page>
+    <problem>
+      <p>Solve <m>2x + 3 = 7</m>.</p>
+      <textInput expanded height="3in"><label>Solution</label></textInput>
+    </problem>
+  </page>
+  <page>
+    <problem>
+      <p>Factor <m>x^2 - 5x + 6</m>.</p>
+      <textInput expanded height="2in"><label>Factored form</label></textInput>
+    </problem>
+  </page>
+</problems>
+```
+
+The two problems are numbered 1 and 2, as they would be without the
+`<page>{:dn}`s. Exported to PreTeXt and printed, the introduction, the first
+problem and the second problem are each on a sheet of their own.

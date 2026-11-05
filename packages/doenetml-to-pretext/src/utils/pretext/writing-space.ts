@@ -1,0 +1,620 @@
+/**
+ * An expanded `<textInput>` is a text area where a reader writes a long answer. On paper
+ * that is blank space, which PreTeXt spells as a `workspace` attribute on the block the
+ * space follows. PreTeXt only honors `workspace` inside a printout division, so a printout
+ * is put above every such block: the division holding it becomes a `<handout>`, or, where
+ * the inputs are not all in divisions that can become one, a `<handout>` is wrapped around
+ * the whole document.
+ *
+ * A document with no expanded input is left exactly as it was: wrapping it in a printout
+ * would add a heading, a print-preview bar, and (in LaTeX) its own page geometry.
+ */
+import type {
+    AnnotatedElementRef,
+    FlatDastElement,
+    FlatDastElementContent,
+    FlatDastRoot,
+} from "@doenet/doenetml-worker";
+
+/** The PreTeXt divisions that honor `@workspace`. */
+const PRINTOUTS = new Set(["worksheet", "handout"]);
+
+/** A `componentSize`, as the height of an input is reported. */
+type ComponentSize = { size: number; isAbsolute: boolean };
+
+/** An absolute `componentSize` is measured in pixels. */
+const PIXELS_PER_INCH = 96;
+
+/**
+ * The height an expanded `<textInput>` gets when its own height is not a printable length.
+ * It matches the default of the component's `height` attribute, so that an input that says
+ * nothing about its height gets the same space on paper as it takes on screen.
+ */
+const DEFAULT_HEIGHT_IN_PIXELS = 120;
+
+/**
+ * Wrappers with no room for a paragraph inside them, which the space an input asks for is
+ * therefore placed outside of, at the outermost such wrapper. Two kinds: the `<answer>` an
+ * input is sugared into and the fragment a reference to it renders as, which stand where
+ * their children stand; and the formatting an author writes around a phrase, which holds a
+ * run of text and nothing more.
+ */
+const INLINE_WRAPPERS = new Set([
+    "answer",
+    "_fragment",
+    "em",
+    "alert",
+    "attr",
+    "c",
+    "q",
+    "delete",
+    "insert",
+]);
+
+/**
+ * Elements that export as their children with nothing of their own around them, so what
+ * they hold is what decides whether they stand on their own or are read as part of a run.
+ */
+const TRANSPARENT_CONTAINERS = new Set([
+    "_fragment",
+    "document",
+    "div",
+    "cascade",
+    "paginator",
+    "choice",
+]);
+
+/**
+ * Elements that stand on their own on the page. Anything else is read as part of a run of
+ * text, and a paragraph carrying writing space takes it in rather than leaving it beside a
+ * block, since a list item holds a run of text or a series of blocks and never a mix.
+ *
+ * Naming the blocks is what keeps this list short enough to stay right: far more elements
+ * are read as text than stand on their own, and it is text that is written beside an input.
+ * Either way a name the list has not heard of prints where it was written; only the source
+ * PreTeXt is asked to make sense of, so the list errs towards the commoner reading.
+ */
+const BLOCK_ELEMENTS = new Set([
+    // Text laid out as its own block.
+    "p",
+    "pre",
+    "blockQuote",
+    "blockquote",
+    "poem",
+    // A `<codeEditor>` exports as a `<program>`, but a `<displayDoenetML>` is not here:
+    // it exports as the text it shows, with no element around it.
+    "codeEditor",
+    "program",
+    "console",
+    // Displayed mathematics, as opposed to mathematics inside a sentence.
+    "me",
+    "md",
+    "men",
+    "mdn",
+    // Lists.
+    "ol",
+    "ul",
+    "dl",
+    "li",
+    "list",
+    // Figures, tables and other drawn blocks.
+    "graph",
+    "image",
+    "figure",
+    "video",
+    "audio",
+    "table",
+    "tabular",
+    "spreadsheet",
+    "orbitalDiagram",
+    "sideBySide",
+    "sidebyside",
+    // Blocks that hold a piece of the document.
+    "division",
+    "section",
+    "subsection",
+    "subsubsection",
+    "worksheet",
+    "handout",
+    "page",
+    "problems",
+    "exercises",
+    "title",
+    "introduction",
+    "conclusion",
+    "objectives",
+    "outcomes",
+    "assemblage",
+    "aside",
+    "exercise",
+    "task",
+    // Statements set apart from the text around them.
+    "definition",
+    "example",
+    "problem",
+    "question",
+    "theorem",
+    "proof",
+    "activity",
+    "remark",
+    "note",
+    // The parts of a statement, which PreTeXt reads as parts only when they stand on
+    // their own: a `<solution>` taken into a paragraph escapes the publisher's settings
+    // for solutions, and prints on a page that should hide it.
+    "statement",
+    "solution",
+    "givenAnswer",
+    "hint",
+    "feedback",
+    // Sectioning components that are not exported as a division.
+    "paragraphs",
+    "part",
+    "externalContent",
+    "standinForFutureLayoutTag",
+    // Other blocks.
+    "description",
+    "embed",
+    "chart",
+]);
+
+/**
+ * Give every expanded `<textInput>` in `flatDast` room to write in, inside a printout that
+ * can hold it. `flatDast` is mutated in place.
+ *
+ * Which printout that is, is decided for the document as a whole: either every input sits
+ * in a division that can become one, and each of those divisions is retagged a `<handout>`,
+ * or a single `<handout>` is wrapped around the whole document. Either way a printout
+ * stands above every input, so none is left a `<fillin>` blank for want of one, and a
+ * printout that has no title of its own is given an empty one rather than PreTeXt's
+ * default heading for a handout.
+ */
+export function addWritingSpace(flatDast: FlatDastRoot) {
+    const expandedInputs = flatDast.elements.filter(isExpandedTextInput);
+    if (expandedInputs.length === 0) {
+        return;
+    }
+
+    // Decided once for the document as a whole, so that the printouts never nest: either
+    // every input sits in a division that can become one, or a single handout goes around
+    // the whole document.
+    const parents = buildParentMap(flatDast);
+    // A document already made a printout — a worksheet of pages, say — needs no other.
+    const alreadyInPrintout = expandedInputs.every((input) =>
+        findAncestor(input, parents, (element) => PRINTOUTS.has(element.name)),
+    );
+    const divisions: FlatDastElement[] = [];
+    let perDivision = true;
+    for (const input of expandedInputs) {
+        const division = findAncestor(
+            input,
+            parents,
+            (element) => element.name === "division",
+        );
+        if (division && !containsDivision(division, flatDast)) {
+            divisions.push(division);
+        } else {
+            perDivision = false;
+            break;
+        }
+    }
+
+    /** How much space each paragraph has been asked for, in inches. */
+    const requested = new Map<FlatDastElement, number>();
+    for (const input of expandedInputs) {
+        // Rebuilt each time around, since placing one input's space moves content.
+        const paragraph = paragraphForSpace(
+            input,
+            buildParentMap(flatDast),
+            flatDast,
+        );
+        if (!paragraph) {
+            continue;
+        }
+        // Two expanded inputs in one paragraph get room for both.
+        requested.set(
+            paragraph,
+            (requested.get(paragraph) ?? 0) + heightInInches(input),
+        );
+    }
+    for (const [paragraph, inches] of requested) {
+        setWorkspace(paragraph, inches);
+    }
+
+    if (alreadyInPrintout) {
+        return;
+    }
+    if (perDivision) {
+        for (const division of new Set(divisions)) {
+            const props = mutableProps(division);
+            // `divisionType` is the name of the tag a division exports as.
+            props.divisionType = "handout";
+            // `title` is the id of the division's title, or null where it has none.
+            if (props.title == null) {
+                props.title = emptyTitle(flatDast).data.id;
+            }
+        }
+    } else {
+        makeDocumentPrintout(documentElement(flatDast) ?? flatDast, flatDast);
+    }
+}
+
+function isExpandedTextInput(element: FlatDastElement | undefined) {
+    if (element?.name !== "textInput") {
+        return false;
+    }
+    const props = propsOf(element);
+    // A hidden input asks the reader nothing, so it claims no room.
+    return props.expanded === true && props.hidden !== true;
+}
+
+/**
+ * How much space the input asks for. A height relative to the page (`height="50%"`) says
+ * nothing about a printed page, so it falls back to the default height.
+ */
+function heightInInches(input: FlatDastElement) {
+    const height = propsOf(input).height as ComponentSize | undefined;
+    const pixels =
+        height?.isAbsolute && height.size > 0
+            ? height.size
+            : DEFAULT_HEIGHT_IN_PIXELS;
+    return pixels / PIXELS_PER_INCH;
+}
+
+/**
+ * The paragraph that carries the space `input` asks for, with the input itself taken out of
+ * the document: the space stands where the input stood. PreTeXt puts the space after the
+ * block it is asked for, so an input written inside a paragraph hands the space to that
+ * paragraph.
+ *
+ * An input written outside any paragraph — a hand-graded `<answer>` on a line of its own,
+ * say — gets a paragraph of its own, standing where it stood, so that the space stays where
+ * the reader is meant to write. Where the input is one of a run of inline content — a
+ * question written straight into a list item, say — that new paragraph takes in the run,
+ * because a list item holds either inline content or blocks, never a mix of the two.
+ *
+ * Returns `undefined` when the input sits in no element at all and so has no place to put a
+ * paragraph, leaving it to export as the short `<fillin>` blank.
+ */
+function paragraphForSpace(
+    input: FlatDastElement,
+    parents: Map<number, FlatDastElement>,
+    flatDast: FlatDastRoot,
+) {
+    const enclosing = findAncestor(
+        input,
+        parents,
+        (element) => element.name === "p",
+    );
+    // The label written on the input, where nothing else is left to draw it. An input
+    // sugared into an `<answer>` inherits the answer's label, and the answer stays behind
+    // to draw it; a label written on the input itself goes with the input, so it takes the
+    // input's place and the space follows it.
+    const keptLabel = labelLeftBehind(input, parents);
+
+    if (enclosing) {
+        replaceWithLabel(input, keptLabel, parents);
+        return enclosing;
+    }
+
+    // The input's own slot in the content around it: the outermost wrapper that has no
+    // room for the paragraph, rather than the input itself when there is one.
+    let slot: FlatDastElement = input;
+    let parent = parents.get(slot.data.id);
+    while (parent && INLINE_WRAPPERS.has(parent.name)) {
+        slot = parent;
+        parent = parents.get(slot.data.id);
+    }
+    if (!parent) {
+        return undefined;
+    }
+
+    // Where the slot sits among its siblings, read before the input is taken out, since
+    // taking it out shifts everything after it along.
+    const slotIndex = parent.children.findIndex(
+        (child) => typeof child !== "string" && child.id === slot.data.id,
+    );
+    // What the slot was written among, which decides whether the new paragraph stands
+    // beside its siblings or takes them in.
+    const alongsideBlocks = parent.children.some(
+        (child, index) =>
+            index !== slotIndex && isBlockContent(child, flatDast),
+    );
+    // Only the input goes: a wrapper it was sugared into stays, since that wrapper is what
+    // renders the question's label.
+    const replaced = replaceWithLabel(input, keptLabel, parents);
+
+    const paragraph = addElement(flatDast, "p", []);
+    if (!alongsideBlocks) {
+        paragraph.children = parent.children;
+        parent.children = [refTo(paragraph)];
+    } else if (slot === input && !replaced) {
+        // Nothing is left of the slot, so the paragraph simply takes its place.
+        parent.children.splice(slotIndex, 0, refTo(paragraph));
+    } else {
+        paragraph.children = [parent.children[slotIndex]];
+        parent.children[slotIndex] = refTo(paragraph);
+    }
+    return paragraph;
+}
+
+/**
+ * Whether `child` stands on its own on the page: a block, or a reference that renders one.
+ * Written-out text never does.
+ */
+export function isBlockContent(
+    child: FlatDastElementContent,
+    flatDast: FlatDastRoot,
+): boolean {
+    if (typeof child === "string") {
+        return false;
+    }
+    const element = elementOf(child, flatDast);
+    if (!element) {
+        return false;
+    }
+    if (TRANSPARENT_CONTAINERS.has(element.name)) {
+        return element.children.some((c) => isBlockContent(c, flatDast));
+    }
+    if (element.name === "choiceInput") {
+        // A choice input is a list of every choice, unless it is written inline, where it
+        // is the chosen one read as part of the sentence around it.
+        return propsOf(element).inline !== true;
+    }
+    return BLOCK_ELEMENTS.has(element.name);
+}
+
+/** Ask PreTeXt for `inches` of blank space after `paragraph`. */
+function setWorkspace(paragraph: FlatDastElement, inches: number) {
+    const rounded = Math.round(inches * 100) / 100;
+    paragraph.attributes = paragraph.attributes ?? {};
+    paragraph.attributes.workspace = {
+        type: "attribute",
+        name: "workspace",
+        children: [{ type: "text", value: `${rounded}in` }],
+    };
+}
+
+/**
+ * A `<title>` with nothing in it, which heads a printout with nothing at all.
+ *
+ * PreTeXt heads an untitled division with the default title for its kind, and `handout` is
+ * one of the kinds that has one (`has-default-title` in `pretext-common.xsl`), so a printout
+ * left untitled is headed by the bare word "Handout". A `<section>` has no default title, so
+ * a division that is retagged a printout would gain a heading it did not have, and a
+ * document handout would gain one the document never had. An empty title suppresses it:
+ * `title-xref` tests for a title element rather than for its text, so an empty one is used
+ * as written and the default is never reached.
+ */
+function emptyTitle(flatDast: FlatDastRoot) {
+    return addElement(flatDast, "title", []);
+}
+
+/**
+ * Put a `<handout>` (or, when asked, a `<worksheet>`) around the whole document. PreTeXt
+ * honors `@workspace` only under a `<worksheet>` or a `<handout>`
+ * (`sanitize-workspace` in `pretext-common.xsl`), and a
+ * handout may hold divisions, so one around everything serves every input at once and
+ * leaves the sections inside it as they were written.
+ *
+ * The document's own title stays where it is, since the `<article>` PreTeXt builds around
+ * it needs one. The handout is given an empty title rather than a copy of it, since a copy
+ * would print the activity's title a second time — a heading the author did not write, as
+ * much as the default "Handout" an untitled printout is given.
+ */
+export function makeDocumentPrintout(
+    container: FlatDastElement | FlatDastRoot,
+    flatDast: FlatDastRoot,
+    printout: "handout" | "worksheet" = "handout",
+) {
+    const titleRef = container.children.find(
+        (child): child is AnnotatedElementRef =>
+            elementOf(child, flatDast)?.name === "title",
+    );
+    const printoutChildren = container.children.filter(
+        (child) => child !== titleRef,
+    );
+    printoutChildren.unshift(refTo(emptyTitle(flatDast)));
+
+    const element = addElement(flatDast, printout, printoutChildren);
+    container.children = titleRef
+        ? [titleRef, refTo(element)]
+        : [refTo(element)];
+    return element;
+}
+
+/** Append a new element to `flatDast`, giving it the next available id. */
+export function addElement(
+    flatDast: FlatDastRoot,
+    name: string,
+    children: FlatDastElementContent[],
+): FlatDastElement {
+    const element: FlatDastElement = {
+        type: "element",
+        name,
+        attributes: {},
+        children,
+        data: { id: flatDast.elements.length },
+    };
+    flatDast.elements.push(element);
+    return element;
+}
+
+export function refTo(element: FlatDastElement): AnnotatedElementRef {
+    return { id: element.data.id, annotation: "original" };
+}
+
+/** Whether `container` has a division somewhere inside it. */
+function containsDivision(
+    container: FlatDastElement | FlatDastRoot,
+    flatDast: FlatDastRoot,
+): boolean {
+    return container.children.some((child) => {
+        const element = elementOf(child, flatDast);
+        if (!element) {
+            return false;
+        }
+        return (
+            element.name === "division" || containsDivision(element, flatDast)
+        );
+    });
+}
+
+/** The `<document>` element, when the root holds a single one. */
+export function documentElement(flatDast: FlatDastRoot) {
+    if (flatDast.children.length !== 1) {
+        return undefined;
+    }
+    const element = elementOf(flatDast.children[0], flatDast);
+    return element?.name === "document" ? element : undefined;
+}
+
+function findAncestor(
+    element: FlatDastElement,
+    parents: Map<number, FlatDastElement>,
+    predicate: (element: FlatDastElement) => boolean,
+) {
+    let current = parents.get(element.data.id);
+    while (current) {
+        if (predicate(current)) {
+            return current;
+        }
+        current = parents.get(current.data.id);
+    }
+    return undefined;
+}
+
+/** A label to leave behind: its string, and the `<label>` element it comes from, if any. */
+type KeptLabel = { label: string; labelElementId?: number };
+
+/**
+ * The label on `input` that no one else will draw, or `undefined` when there is none.
+ *
+ * An input written inside an `<answer>` inherits the answer's label, and the answer is
+ * still there once the input is gone, so it draws the question and the input must not
+ * repeat it. A label written on the input itself never reaches the answer, so the two
+ * differ — and a stand-alone input has no answer at all. Either way the label would be
+ * lost with the input, so it is kept.
+ */
+function labelLeftBehind(
+    input: FlatDastElement,
+    parents: Map<number, FlatDastElement>,
+): KeptLabel | undefined {
+    const label = propsOf(input).label;
+    if (typeof label !== "string" || !label.trim()) {
+        return undefined;
+    }
+    const answer = findAncestor(
+        input,
+        parents,
+        (element) => element.name === "answer",
+    );
+    const answerLabel = answer ? propsOf(answer).label : undefined;
+    if (
+        typeof answerLabel === "string" &&
+        answerLabel.trim() === label.trim()
+    ) {
+        return undefined;
+    }
+    const labelElementId = propsOf(input).labelElementId;
+    return {
+        label: label.trim(),
+        labelElementId:
+            typeof labelElementId === "number" ? labelElementId : undefined,
+    };
+}
+
+/**
+ * Take `element` out of the document, leaving `label` written where it stood: the
+ * `<label>` element it comes from, so its markup is kept, or else its string. Returns
+ * whether anything was left behind, since a slot that still holds the label is content the
+ * paragraph has to take in rather than stand beside.
+ */
+function replaceWithLabel(
+    element: FlatDastElement,
+    label: KeptLabel | undefined,
+    parents: Map<number, FlatDastElement>,
+): boolean {
+    if (label == null) {
+        removeFromParent(element, parents);
+        return false;
+    }
+    const parent = parents.get(element.data.id);
+    if (!parent) {
+        return false;
+    }
+    const index = parent.children.findIndex(
+        (child) => typeof child !== "string" && child.id === element.data.id,
+    );
+    if (index < 0) {
+        return false;
+    }
+    // A trailing space keeps the label off the blank that follows it.
+    if (label.labelElementId != null) {
+        parent.children.splice(
+            index,
+            1,
+            { id: label.labelElementId, annotation: "original" },
+            " ",
+        );
+    } else {
+        parent.children.splice(index, 1, `${label.label} `);
+    }
+    return true;
+}
+
+function removeFromParent(
+    element: FlatDastElement,
+    parents: Map<number, FlatDastElement>,
+) {
+    const parent = parents.get(element.data.id);
+    if (!parent) {
+        return;
+    }
+    parent.children = parent.children.filter(
+        (child) => typeof child === "string" || child.id !== element.data.id,
+    );
+}
+
+export function buildParentMap(flatDast: FlatDastRoot) {
+    const parents = new Map<number, FlatDastElement>();
+    for (const element of flatDast.elements) {
+        if (!element) {
+            continue;
+        }
+        for (const child of element.children) {
+            if (typeof child !== "string") {
+                parents.set(child.id, element);
+            }
+        }
+    }
+    return parents;
+}
+
+export function elementOf(
+    child: FlatDastElementContent,
+    flatDast: FlatDastRoot,
+) {
+    return typeof child === "string" ? undefined : flatDast.elements[child.id];
+}
+
+/**
+ * The resolved `forRenderer` state values the core hands each element. `ElementData` does
+ * not declare them, so reaching them takes a cast.
+ */
+type DataWithProps = { props?: Record<string, unknown> };
+
+/**
+ * The resolved `forRenderer` state values of `element`. The converter runs the core, so
+ * these — rather than the element's (empty) attributes — say how it was written.
+ */
+export function propsOf(element: FlatDastElement): Record<string, unknown> {
+    return (element.data as DataWithProps).props ?? {};
+}
+
+/** The props of `element`, to write into, created if the element has none. */
+export function mutableProps(
+    element: FlatDastElement,
+): Record<string, unknown> {
+    const data = element.data as DataWithProps;
+    return (data.props ??= {});
+}

@@ -21,19 +21,29 @@
     },
     "scripts": {
         "watch": "vite build --watch",
-        "test": "vitest",
-        "test:group1": "vitest -t '@group1'",
-        "test:group2": "vitest -t '@group2'",
-        "test:group3": "vitest -t '@group3'",
-        "test:group4": "vitest -t '^(?!.*@(?:group1|group2|group3))'",
+        "test:before": "wireit",
+        "test": "npm run test:before && vitest",
+        "test:rust-core": "npm run test:before && DOENET_TEST_CORE=rust vitest",
+        "test:group1": "npm run test:before && vitest -t '@group1'",
+        "test:group2": "npm run test:before && vitest -t '@group2'",
+        "test:group3": "npm run test:before && vitest -t '@group3'",
+        "test:group4": "npm run test:before && vitest -t '^(?!.*@(?:group1|group2|group3))'",
         "build": "wireit"
     },
     "wireit": {
+        "test:before": {
+            "dependencies": [
+                "build:deps",
+                "../debug-hooks:build",
+                "../doenetml-worker-rust:build:rust"
+            ]
+        },
         "build:deps": {
             "dependencies": [
                 "../i18n:build",
                 "../utils:build",
-                "../parser:build"
+                "../parser:build",
+                "../math:build"
             ]
         },
         "build": {
@@ -59,8 +69,9 @@
         "compromise": "^13.11.4",
         "compromise-numbers": "^1.4.0",
         "efrt": "2.7.0",
-        "suffix-thumb": "5.0.2",
-        "grad-school": "0.0.5"
+        "grad-school": "0.0.5",
+        "math-expressions": "file:../math",
+        "suffix-thumb": "5.0.2"
     },
     "devDependencies": {}
 }

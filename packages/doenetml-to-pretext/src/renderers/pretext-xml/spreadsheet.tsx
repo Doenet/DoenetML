@@ -1,5 +1,10 @@
 import React from "react";
 import { BasicComponent } from "../types";
+import {
+    LINE_POINTS,
+    columnPaddingPercent,
+    printedColumnWidths,
+} from "./column-widths";
 
 type SpreadsheetData = {
     props: {
@@ -8,8 +13,33 @@ type SpreadsheetData = {
         rowHeaders: boolean;
         hiddenRows: number[];
         hiddenColumns: number[];
+        cellsInHeader: boolean[][];
+        columnWidths?: ({ size: number; isAbsolute: boolean } | null)[];
+        width?: { size: number; isAbsolute: boolean };
     };
 };
+
+/**
+ * The width, in pixels, of the row-label strip Handsontable draws down the
+ * left of the spreadsheet in the viewer. It is fixed, and the column
+ * percentages are shares of what is left beside it.
+ */
+const ROW_HEADER_PIXELS = 50;
+
+/**
+ * The printed text width, in pixels, assumed for a spreadsheet whose width is
+ * a percentage, so that the row-label strip can be given its share of it.
+ */
+const ASSUMED_PAGE_PIXELS = 600;
+
+/**
+ * The width, in points, of a row number in PreTeXt's default LaTeX font: the
+ * numbers are emphasized, and measure 5.11pt a digit plus 1.35pt of italic
+ * correction (11.57pt for "10", 21.80pt for "1000").
+ */
+function rowNumberPoints(numDigits: number) {
+    return 5.11 * numDigits + 1.35;
+}
 
 export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
     const clonedCellData = node.data.props.cells.map((row) => [...row]);
@@ -17,6 +47,7 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
     const includeRowHeaders = node.data.props.rowHeaders;
     const hiddenRows = node.data.props.hiddenRows;
     const hiddenColumns = node.data.props.hiddenColumns;
+    const cellsInHeader = node.data.props.cellsInHeader;
     // Augment the cell data to add the headers if needed
     if (includeColumnHeaders) {
         clonedCellData.unshift(
@@ -37,8 +68,81 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
         });
     }
 
+    // PreTeXt takes column widths only as percentages, and once one `<col>`
+    // is written it wants one per column, so write a `<col>` for every
+    // column that is drawn (the generated row-number column included) as
+    // soon as any column has a percentage width. A width in pixels has no
+    // PreTeXt equivalent and is dropped, as it is for a `<tabular>`.
+    //
+    // The printed table is meant to look like the one on screen. There the
+    // percentages are shares of the width beside the fixed row-label strip,
+    // so they are scaled into what is left of the page once the generated
+    // row-number column has its share (see `rowHeaderPercent`) and each
+    // column its padding (see `printedColumnWidths`). The row-number column
+    // keeps no width of its own, taking its natural width as the strip does.
+    //
+    // PreTeXt applies a `<col>` width only to a cell holding a `<p>`, which
+    // it sets as a paragraph box of that width; a bare-text cell keeps its
+    // natural width and can push its column wider. So every cell of a column
+    // given a width, other than its generated column label, is wrapped in a
+    // `<p>` below (`paragraphColumns`).
+    const columnWidths = node.data.props.columnWidths ?? [];
+    const hasPretextWidth = columnWidths.some(
+        (width) => width != null && !width.isAbsolute,
+    );
+    const cols: React.ReactNode[] = [];
+    const paragraphColumns = new Set<number>();
+    if (hasPretextWidth) {
+        const numColumns = clonedCellData[0]?.length ?? 0;
+        const drawnColumns: { key: number; percent: number | null }[] = [];
+        for (let colIndex = 0; colIndex < numColumns; colIndex++) {
+            const spreadsheetColIndex = includeRowHeaders
+                ? colIndex
+                : colIndex + 1;
+            if (hiddenColumns.includes(spreadsheetColIndex)) {
+                continue;
+            }
+            const width =
+                spreadsheetColIndex === 0
+                    ? null
+                    : columnWidths[spreadsheetColIndex - 1];
+            drawnColumns.push({
+                key: colIndex,
+                percent: width && !width.isAbsolute ? width.size : null,
+            });
+        }
+        // The percentages are shares of the data area on screen, beside the
+        // row-label strip, so the row-number column's share is set aside.
+        const exported = printedColumnWidths(
+            drawnColumns.map(({ percent }) => percent),
+            {
+                reserved: includeRowHeaders
+                    ? rowHeaderPercent(
+                          node.data.props.width,
+                          node.data.props.cells.length,
+                      )
+                    : 0,
+            },
+        );
+        drawnColumns.forEach(({ key }, i) => {
+            const scaled = exported[i];
+            if (scaled) {
+                paragraphColumns.add(key);
+            }
+            // `createElement` because `col` is also an HTML element, whose
+            // React typing rejects PreTeXt's attributes (see `tabular.tsx`).
+            cols.push(
+                React.createElement("col", {
+                    key,
+                    width: scaled ? `${scaled}%` : undefined,
+                }),
+            );
+        });
+    }
+
     return (
         <tabular>
+            {cols}
             {clonedCellData.map((row, rowIndex) => {
                 const inHeaderRow = includeColumnHeaders && rowIndex === 0;
                 const spreadsheetRowIndex = includeColumnHeaders
@@ -47,7 +151,25 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                 if (hiddenRows.includes(spreadsheetRowIndex)) {
                     return null; // Skip hidden rows
                 }
-                const header = inHeaderRow ? "yes" : undefined;
+                // A `<row header="true">` of the spreadsheet itself, as
+                // distinct from the generated A/B/C strip above. PreTeXt marks
+                // a header row on the row, and permits more than one in a
+                // `<tabular>` — `header` is an optional attribute of every
+                // `row` in the schema, and PreTeXt's own sample article has a
+                // "Two Row Headers" table — so an authored header row says so
+                // the same way the strip does, rather than settling for the
+                // `<em>` that stands in for a header *column* below.
+                //
+                // Necessarily coarser than the grid: `header` belongs to the
+                // row, so a header row narrower than the grid marks its empty
+                // remainder too, where the grid emphasizes only the cells it
+                // has. Row-level is what the author wrote, so it is the better
+                // of the two things PreTeXt can say here.
+                const inAuthoredHeaderRow = Boolean(
+                    cellsInHeader?.[spreadsheetRowIndex - 1]?.some(Boolean),
+                );
+                const header =
+                    inHeaderRow || inAuthoredHeaderRow ? "yes" : undefined;
                 return (
                     <row key={rowIndex} header={header} bottom="minor">
                         {row.map((cell, colIndex) => {
@@ -59,12 +181,22 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                             if (hiddenColumns.includes(spreadsheetColIndex)) {
                                 return null; // Skip hidden columns
                             }
+                            let content: React.ReactNode = cell;
+                            // The generated A/B/C labels are left bare: they
+                            // are too short to widen a column, and PreTeXt's
+                            // LaTeX drops a header row's bold for a paragraph.
+                            if (
+                                paragraphColumns.has(colIndex) &&
+                                !inHeaderRow
+                            ) {
+                                content = <p>{cell}</p>;
+                            } else if (inHeaderColumn) {
+                                // Pretext cannot have both a row and column header, so we have to fake it.
+                                content = <em>{cell}</em>;
+                            }
                             return (
                                 <cell key={colIndex} right="minor">
-                                    {
-                                        // Pretext cannot have both a row and column header, so we have to fake it.
-                                        inHeaderColumn ? <em>{cell}</em> : cell
-                                    }
+                                    {content}
                                 </cell>
                             );
                         })}
@@ -74,6 +206,34 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
         </tabular>
     );
 };
+
+/**
+ * The share of the printed width, as a percentage, to leave the generated
+ * row-number column, so that the columns beside it get the same proportions
+ * of the table they have on screen: the row-label strip's fixed pixels as a
+ * fraction of the spreadsheet's width, or of an assumed page width when the
+ * spreadsheet's width is itself a percentage.
+ *
+ * Never less than the column needs in print, though. LaTeX sets it at its
+ * natural width, its widest number plus the padding around it, whatever
+ * share it was left, so a wide spreadsheet (where 50px is a small share)
+ * would otherwise overrun the line.
+ */
+function rowHeaderPercent(
+    width: { size: number; isAbsolute: boolean } | undefined,
+    numRows: number,
+): number {
+    const totalPixels =
+        width?.isAbsolute && width.size > ROW_HEADER_PIXELS
+            ? width.size
+            : ASSUMED_PAGE_PIXELS;
+    const onScreen = (ROW_HEADER_PIXELS / totalPixels) * 100;
+    const numDigits = String(Math.max(numRows, 1)).length;
+    const inPrint =
+        columnPaddingPercent() +
+        (rowNumberPoints(numDigits) / LINE_POINTS) * 100;
+    return Math.max(onScreen, inPrint);
+}
 
 /**
  * Convert a 0-indexed value into a spreadsheet column label. For example, 0 -> "A", 1 -> "B", ..., 25 -> "Z", 26 -> "AA", etc.

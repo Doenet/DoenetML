@@ -1,0 +1,415 @@
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore } from "../utils/test-core";
+import { updateBooleanInputValue } from "../utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
+
+/**
+ * An `extend` or `copy` of a list is a list holding a copy of the entries
+ * of the list it names, so that it can add entries of its own or be a list
+ * of another type. Both take that list's attributes as an `extend` or
+ * `copy` of any other component takes its source's: those they do not set
+ * themselves. An extend takes `fixed` and `fixLocation` alongside where it
+ * sits; a copy, as the list's DoenetML pasted, takes them as written on the
+ * list, as its own.
+ */
+describe("Attributes of an extend or copy of a list @group4", () => {
+    it("takes the attributes of the list it extends", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" displayDigits="5" hide fixed>1.23456789 2</mathList>
+    <p name="p1"><mathList extend="$ml" name="e1" /></p>
+    <p name="p2"><mathList extend="$ml" name="e2" hide="false" displayDigits="2" fixed="false" /></p>
+    <p name="p3"><mathList extend="$ml" name="e3" hide="false"><math>7.123456</math></mathList></p>
+    <p name="p4"><textList extend="$ml" name="e4" hide="false" /></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await sv("e1")).hidden).eq(true);
+        expect((await sv("e1")).displayDigits).eq(5);
+        expect((await sv("e1")).fixed).eq(true);
+        expect((await sv("p1")).text).eq("");
+
+        // its own attributes decide
+        expect((await sv("e2")).hidden).eq(false);
+        expect((await sv("e2")).displayDigits).eq(2);
+        expect((await sv("e2")).fixed).eq(false);
+        expect((await sv("p2")).text).eq("1.2, 2");
+
+        // an entry it adds is shown with the digits it takes
+        expect((await sv("p3")).text).eq("1.2346, 2, 7.1235");
+        expect((await sv("e3")).fixed).eq(true);
+
+        // as a list of another type
+        expect((await sv("p4")).text).eq("1.2346, 2");
+        expect((await sv("e4")).fixed).eq(true);
+    });
+
+    it("a display setting it takes yields to an entry's own, as the list's does", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" displayDigits="5">1.23456789 <math displayDigits="2">3.456789</math></mathList>
+    <p name="p">$ml</p>
+    <p name="p1"><mathList extend="$ml" /></p>
+    <p name="p2"><mathList extend="$ml" displayDigits="6" /></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const text = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.text;
+        expect(await text("p")).eq("1.2346, 3.5");
+        expect(await text("p1")).eq("1.2346, 3.5");
+        // one written on the extend wins over the entries'
+        expect(await text("p2")).eq("1.23457, 3.45679");
+    });
+
+    it("takes the other attributes of what it extends, a list or not", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" disabled styleNumber="2">1 2</mathList>
+    <mathList extend="$ml" name="e" />
+    <point name="P" hide disabled styleNumber="3">(1,2)</point>
+    <mathList extend="$P" name="eP" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("e")).disabled).eq(true);
+        expect((await sv("e")).styleNumber).eq(2);
+        expect((await sv("eP")).hidden).eq(true);
+        expect((await sv("eP")).disabled).eq(true);
+        expect((await sv("eP")).styleNumber).eq(3);
+    });
+
+    it("is fixed when the list it extends is or where it sits is; a copy has the list's written fixed", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi" />
+    <numberList name="nl" fixed="$bi" fixLocation="$bi">1 2</numberList>
+    <numberList name="nf" fixed="false">1 2</numberList>
+    <numberList extend="$nl" name="e" />
+    <p fixed><numberList extend="$nf" name="ep" /></p>
+    <group fixLocation><numberList extend="$nf" name="eg" /></group>
+    <numberList copy="$nl" name="c" />
+    <p fixed><numberList copy="$nl" name="cp" /></p>
+    `,
+        });
+        async function check(expected: Record<string, [boolean, boolean]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name in expected) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect([stateValues.fixed, stateValues.fixLocation], name).eqls(
+                    expected[name],
+                );
+            }
+        }
+
+        await check({
+            e: [false, false],
+            ep: [true, false],
+            eg: [false, true],
+            // the `fixed="$bi"` pasted on `cp` decides over its paragraph
+            c: [false, false],
+            cp: [false, false],
+        });
+
+        // the extend follows its list, and the copies the `$bi` written on it
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        await check({
+            e: [true, true],
+            c: [true, true],
+            cp: [true, true],
+        });
+    });
+
+    it("a copy of a fixed list is fixed, and shows its entries as they were", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" fixed displayDigits="5">1.23456789 2</mathList>
+    <p name="p"><mathList copy="$ml" name="c" /></p>
+    <p fixed="false"><mathList copy="$ml" name="c2" /></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("c")).fixed).eq(true);
+        expect((await sv("c2")).fixed).eq(true);
+        expect((await sv("p")).text).eq("1.2346, 2");
+    });
+
+    it("a copy of a list made in a repeat or an extend of a group is fixed with the list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" fixed>1 2</mathList>
+    <repeat for="1 2" name="r"><mathList copy="$ml" name="c" /></repeat>
+    <group name="g"><p fixed="false"><mathList copy="$ml" name="c" /></p></group>
+    <group extend="$g" name="g2" />
+    <group extend="$g2" name="g4" />
+    <group copy="$g" name="g3" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of [
+            "r[1].c",
+            "r[2].c",
+            "g.c",
+            "g2.c",
+            "g4.c",
+            "g3.c",
+        ]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .fixed,
+                name,
+            ).eq(true);
+        }
+    });
+
+    it("a copy of an extend of a list is what the extend is linked to, pasted", async () => {
+        // a copy of `le` takes the attributes written on `ml` that `le` does
+        // not write itself, `hide="$h"` following `h`, as a copy of an
+        // extend of a math does; of an extend as a list of a point, those a
+        // list has
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" prefill="true" />
+    <mathList name="ml" hide="$h" unordered displayDigits="2">1.2345 2</mathList>
+    <mathList extend="$ml" name="le" />
+    <mathList copy="$le" name="c" />
+    <mathList extend="$ml" name="le2" unordered="false" />
+    <mathList copy="$le2" name="c2" />
+    <point name="P" hide labelIsName>(1,2)</point>
+    <mathList extend="$P" name="eP" />
+    <mathList copy="$eP" name="cP" />
+    `,
+        });
+        async function check(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["le", "c", "le2", "c2"]) {
+                expect((await sv(name)).hidden, name).eq(hidden);
+                expect((await sv(name)).displayDigits, name).eq(2);
+            }
+            expect((await sv("c")).unordered).eq(true);
+            expect((await sv("c2")).unordered).eq(false);
+            expect((await sv("cP")).hidden).eq(true);
+        }
+        await check(true);
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await check(false);
+    });
+
+    it("a copy of a copy of a list is the list pasted, as a copy of a copy of a math is", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" prefill="true" />
+    <mathList name="ml" hide="$h" fixed unordered displayDigits="2">1.2345 2</mathList>
+    <mathList copy="$ml" name="c" />
+    <mathList copy="$c" name="cc" />
+    <mathList extend="$cc" name="ecc" />
+    <pointList name="pl" fixed>(1,2) (3,4)</pointList>
+    <pointList copy="$pl" name="cpl" />
+    <pointList copy="$cpl" name="ccpl" />
+    <point copy="$ccpl[1]" name="P" />
+    `,
+        });
+        async function check(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["c", "cc", "ecc"]) {
+                expect((await sv(name)).hidden, name).eq(hidden);
+                expect((await sv(name)).fixed, name).eq(true);
+                expect((await sv(name)).unordered, name).eq(true);
+                expect((await sv(name)).displayDigits, name).eq(2);
+            }
+            for (const name of ["cpl", "ccpl", "P"]) {
+                expect((await sv(name)).fixed, name).eq(true);
+            }
+        }
+        await check(true);
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await check(false);
+    });
+
+    it("a copy as a list of a group takes the group's attributes, as an extend does", async () => {
+        // the copy holds copies of the group's children, but takes the
+        // attributes of the group, not of its first child
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <group name="g"><math hide displayDigits="2">1.2345</math><math>2.3456</math></group>
+    <mathList extend="$g" name="e" />
+    <mathList copy="$g" name="c" />
+    <mathList copy="$c" name="cc" />
+    <group name="gh" hide><math>1</math></group>
+    <mathList extend="$gh" name="eh" />
+    <mathList copy="$gh" name="ch" />
+    <mathList copy="$ch" name="cch" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        for (const name of ["e", "c", "cc"]) {
+            expect((await sv(name)).hidden, name).eq(false);
+            expect((await sv(name)).displayDigits, name).eq(3);
+        }
+        for (const name of ["eh", "ch", "cch"]) {
+            expect((await sv(name)).hidden, name).eq(true);
+        }
+    });
+
+    it("an extend of a list that names itself is reported as circular", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `<mathList name="a" extend="$a">1</mathList>`,
+            }),
+        ).rejects.toThrow("Circular dependency involving these components");
+        await expect(
+            createTestCore({
+                doenetML: `<mathList name="a" extend="$b" /><mathList name="b" extend="$a" />`,
+            }),
+        ).rejects.toThrow("Circular dependency involving these components");
+    });
+    it("a copy of a list takes the list's attributes, as a copy of any component does", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" hide displayDigits="5" styleNumber="2">1.23456789 2</mathList>
+    <math name="m" hide displayDigits="5">1.23456789</math>
+    <p name="p1"><mathList copy="$ml" name="c" /></p>
+    <p name="p2"><mathList copy="$ml" name="cs" hide="false" /></p>
+    <math copy="$m" name="cm" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        // hidden as a copy of a hidden math is
+        expect((await sv("cm")).hidden).eq(true);
+        expect((await sv("c")).hidden).eq(true);
+        expect((await sv("c")).displayDigits).eq(5);
+        expect((await sv("c")).styleNumber).eq(2);
+        expect((await sv("p1")).text).eq("");
+        // its own attribute decides
+        expect((await sv("cs")).hidden).eq(false);
+        expect((await sv("p2")).text).eq("1.2346, 2");
+    });
+
+    it("takes the list's maxNumber and how it parses text, for entries it adds", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" maxNumber="3" splitSymbols="false" functionSymbols="g" parseScientificNotation>a b</mathList>
+    <p name="p1"><mathList extend="$ml" name="e">xy g(x) 1E3</mathList></p>
+    <p name="p2"><mathList extend="$ml" name="eo" maxNumber="5">xy g(x) 1E3</mathList></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const trees = async (name: string) =>
+            stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.maths.map((m: any) => m.tree);
+        // only three entries, and `xy` is one symbol, `g` a function, 1E3 a number
+        expect(await trees("e")).eqls(["a", "b", "xy"]);
+        expect(await trees("eo")).eqls([
+            "a",
+            "b",
+            "xy",
+            ["apply", "g", "x"],
+            1000,
+        ]);
+    });
+    it("a copy of a list is unlinked from it as pasted DoenetML is: a later change to the list's attribute does not reach it, a reference it wrote does", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <mathList name="ml" hide="false" unordered="$h">1 2</mathList>
+    <math name="m" hide="false" unordered="$h">1</math>
+    <mathList copy="$ml" name="c" />
+    <math copy="$m" name="cm" />
+    <mathList extend="$ml" name="e" />
+    <booleanInput name="bl" bindValueTo="$ml.hide" />
+    <booleanInput name="bm" bindValueTo="$m.hide" />
+    `,
+        });
+        async function check(expected: Record<string, [boolean, boolean]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name in expected) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect([stateValues.hidden, stateValues.unordered], name).eqls(
+                    expected[name],
+                );
+            }
+        }
+        const set = async (name: string, value: boolean) =>
+            updateBooleanInputValue({
+                boolean: value,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+
+        await check({
+            ml: [false, false],
+            c: [false, false],
+            e: [false, false],
+            m: [false, false],
+            cm: [false, false],
+        });
+
+        // a write to the source's own attribute reaches the extend, not a copy
+        await set("bl", true);
+        await set("bm", true);
+        await check({
+            ml: [true, false],
+            c: [false, false],
+            e: [true, false],
+            m: [true, false],
+            cm: [false, false],
+        });
+
+        // what the attribute references, every copy keeps following
+        await set("h", true);
+        await check({
+            ml: [true, true],
+            c: [false, true],
+            e: [true, true],
+            m: [true, true],
+            cm: [false, true],
+        });
+    });
+});

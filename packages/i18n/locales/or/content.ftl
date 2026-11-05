@@ -33,15 +33,12 @@ color =
     .purple = ବାଇଗଣୀ
     .pink = ଗୋଲାପୀ
     .brown = ମାଟିଆ
-
 line-width =
     .thick = ମୋଟା
     .thin = ପତଳା
-
 line-style =
     .dashed = ଛିନ୍ନ
     .dotted = ବିନ୍ଦୁଯୁକ୍ତ
-
 # Noun phrases: they stand in front of the «ସହିତ» the composition messages
 # supply, and modify nothing.
 fill-style =
@@ -51,7 +48,6 @@ fill-style =
     .backdiagonal = ବିପରୀତ କର୍ଣ୍ଣ ରେଖା
     .dots = ବିନ୍ଦୁ
     .diamonds = ହୀରା
-
 noun =
     .line = ସରଳରେଖା
     .line-segment = ରେଖାଖଣ୍ଡ
@@ -71,7 +67,6 @@ noun =
     .diamond = ହୀରା
     .cross = କ୍ରସ ଚିହ୍ନ
     .plus = ଯୋଗ ଚିହ୍ନ
-
 # The side count precedes the noun, as every modifier in Odia does, so it folds
 # into the head and there is no tail.
 noun-regular-polygon =
@@ -79,11 +74,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } ବାହୁ ବିଶିଷ୍ଟ ନିୟମିତ ବହୁଭୁଜ
     }
-
 # Odia adjectives take no agreement marking, so every noun answers the same and
 # the answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -97,21 +90,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = ପୂରଣ ହୋଇଥିବା
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern } ସହିତ
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } { $pattern } ସହିତ
@@ -119,7 +108,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern } ସହିତ
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «ଧାର» takes the same postposition, and «ଏବଂ» opens the further clause where
 # English opens it with "and". Odia has no article, so the two `-article`
 # branches read like the ones without.
@@ -130,15 +118,12 @@ style-border-clause =
         [and-article] ଏବଂ { $border } ଧାର ସହିତ
        *[with] { $border } ଧାର ସହିତ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ପୂରଣ ନହୋଇଥିବା
-
 # «ପୃଷ୍ଠଭୂମି» takes the locative -ରେ, so the background leads and the text
 # colour follows it.
 style-text =
@@ -146,21 +131,17 @@ style-text =
         [background] { $background } ପୃଷ୍ଠଭୂମିରେ { $color }
        *[plain] { $color }
     }
-
 style-background-none = କିଛି ନାହିଁ
-
 
 ## Boolean words
 
 boolean-true = ସତ
 boolean-false = ମିଥ୍ୟା
 
-
 ## Answer buttons
 
 answer-submit-label = ଯାଞ୍ଚ କରନ୍ତୁ
 answer-submit-label-no-correctness = ଉତ୍ତର ପଠାନ୍ତୁ
-
 
 ## Sectional blocks
 
@@ -185,7 +166,6 @@ section-name =
     .solution = ସମାଧାନ
     .task = କାର୍ଯ୍ୟ
     .theorem = ଉପପାଦ୍ୟ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -195,9 +175,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ସୂଚନା
-
 
 ## Tables and figures
 
@@ -208,7 +186,6 @@ table-name =
         [unnumbered-title] ସାରଣୀ{ ": " }
        *[unnumbered] ସାରଣୀ
     }
-
 figure-name =
     { $parts ->
         [numbered] ଚିତ୍ର { $enumeration }
@@ -217,23 +194,19 @@ figure-name =
        *[unnumbered] ଚିତ୍ର
     }
 
-
 ## Paginator controls
 
 paginator-previous = ପୂର୍ବବର୍ତ୍ତୀ
 paginator-next = ପରବର୍ତ୍ତୀ
 paginator-page = ପୃଷ୍ଠା
-
 # The total leads, marked with «ମଧ୍ୟରୁ», which is how Odia says "3 of 5".
 paginator-page-status = { $numPages } ମଧ୍ୟରୁ { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = କିମ୍ବା
 piecewise-condition-if = ଯଦି
 piecewise-condition-otherwise = ଅନ୍ୟଥା
-
 
 ## Chemistry
 
@@ -360,7 +333,6 @@ element-name =
     .lv = ଲିଭରମୋରିୟମ
     .ts = ଟେନେସିନ
     .og = ଓଗାନେସନ
-
 element-anion-name =
     .h = ହାଇଡ୍ରାଇଡ
     .c = କାର୍ବାଇଡ
@@ -374,8 +346,6 @@ element-anion-name =
     .i = ଆୟୋଡାଇଡ
     .at = ଆଷ୍ଟାଟାଇଡ
     .ts = ଟେନେସାଇଡ
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ଅବୈଧ ରାସାୟନିକ ସଙ୍କେତ
 chemistry-invalid-ionic-compound = ଅବୈଧ ଆୟୋନିକ ଯୌଗିକ

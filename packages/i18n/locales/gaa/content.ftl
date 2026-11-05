@@ -44,17 +44,14 @@ color =
     .purple = paapul
     .pink = piŋk
     .brown = braun
-
 line-width =
     .thick = agbo
     .thin = bibioo
-
 # Written as invariable «kɛ …» phrases rather than as qualifiers, so that they
 # can close the description. `style-stroke` puts them last.
 line-style =
     .dashed = kɛ dashii
     .dotted = kɛ dɔtsii
-
 fill-style =
     .horizontal = laiŋi ni ekã shi
     .vertical = laiŋi ni edamɔ shi
@@ -62,7 +59,6 @@ fill-style =
     .backdiagonal = laiŋi ni ekpe yɛ gbɛ kroko nɔ
     .dots = dɔtsii
     .diamonds = diamondii
-
 noun =
     .line = laiŋi
     .line-segment = laiŋi fã
@@ -82,7 +78,6 @@ noun =
     .diamond = diamond
     .cross = sɛŋɛ
     .plus = kɛfataa okadi
-
 # The side count follows the qualifiers, behind «ni yɔɔ», because Ga closes a
 # noun phrase with a relative rather than opening one.
 noun-regular-polygon =
@@ -90,11 +85,9 @@ noun-regular-polygon =
         [tail] ni yɔɔ tsɔɔmɔ { $numSides }
        *[head] poligɔn ni damɔ pɛpɛɛpɛ
     }
-
 # No grammatical gender, so this answers one token for every noun and the
 # answer goes unused — the shape `locales/en` has.
 noun-gender = ekome
-
 
 ## Style composition
 
@@ -108,21 +101,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = ni eyi obɔ
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } kɛ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } kɛ { $pattern }
@@ -130,7 +119,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } kɛ { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Ga has no article, and joins this clause with the invariable «kɛ» whatever
 # came before it, so all four branches read alike.
 style-border-clause =
@@ -140,35 +128,28 @@ style-border-clause =
         [and-article] kɛ kɛnkɛn { $border }
        *[with] kɛ kɛnkɛn { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ni eyiii obɔ
-
 style-text =
     { $parts ->
         [background] { $color } kɛ sɛɛgbɛ { $background }
        *[plain] { $color }
     }
-
 style-background-none = nɔ ko bɛ jɛi
-
 
 ## Boolean words
 
 boolean-true = anɔkwale
 boolean-false = amale
 
-
 ## Answer buttons
 
 answer-submit-label = Kwɛmɔ Nitsumɔ
 answer-submit-label-no-correctness = Maje Hetoo
-
 
 ## Sectional blocks
 
@@ -193,7 +174,6 @@ section-name =
     .solution = Tsabaa
     .task = Nitsumɔ
     .theorem = Tiorɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -203,9 +183,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Hiɛtsɔɔmɔ
-
 
 ## Tables and figures
 
@@ -216,7 +194,6 @@ table-name =
         [unnumbered-title] Okpɔlɔ{ ": " }
        *[unnumbered] Okpɔlɔ
     }
-
 figure-name =
     { $parts ->
         [numbered] Mfoniri { $enumeration }
@@ -225,24 +202,18 @@ figure-name =
        *[unnumbered] Mfoniri
     }
 
-
 ## Paginator controls
 
 paginator-previous = Nɔ ni tsɔ hiɛ
 paginator-next = Nɔ ni nyiɛ sɛɛ
 paginator-page = Baafa
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = loo
-
 piecewise-condition-if = kɛji
-
 piecewise-condition-otherwise = hei krokomɛi fɛɛ
-
 
 ## Chemistry
 ##
@@ -255,6 +226,5 @@ piecewise-condition-otherwise = hei krokomɛi fɛɛ
 ## same ministry.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kɛmistri Okadi ni Ejaaa
 chemistry-invalid-ionic-compound = Ayɔn Fatamɔ ni Ejaaa

@@ -460,12 +460,30 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             cy.get(m2cAnchor).should("have.css", "color", "rgb(255, 0, 0)");
             cy.get(m2dAnchor).should("have.css", "color", "rgb(0, 0, 0)");
 
-            cy.get("#m1coords").eq(0).should("have.text", "(0,0)");
-            cy.get("#m2coords").eq(0).should("have.text", "(3,4)");
-            cy.get("#m1acoords").eq(0).should("have.text", "(0,0)");
-            cy.get("#m2acoords").eq(0).should("have.text", "(3,4)");
-            cy.get("#m1bcoords").eq(0).should("have.text", "(0,0)");
-            cy.get("#m2bcoords").eq(0).should("have.text", "(0,0)");
+            cy.get("#m1coords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(0,0)");
+            cy.get("#m2coords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(3,4)");
+            cy.get("#m1acoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(0,0)");
+            cy.get("#m2acoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(3,4)");
+            cy.get("#m1bcoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(0,0)");
+            cy.get("#m2bcoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(0,0)");
 
             cy.log("move first maths");
             cy.window().then(async (win) => {
@@ -481,14 +499,34 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
                 });
             });
 
-            cy.get("#m2coords").should("contain.text", "(4,−5)");
+            cy.get("#m2coords")
+                .scrollIntoView()
+                .should("contain.text", "(4,−5)");
 
-            cy.get("#m1coords").eq(0).should("have.text", "(−2,3)");
-            cy.get("#m2coords").eq(0).should("have.text", "(4,−5)");
-            cy.get("#m1acoords").eq(0).should("have.text", "(−2,3)");
-            cy.get("#m2acoords").eq(0).should("have.text", "(4,−5)");
-            cy.get("#m1bcoords").eq(0).should("have.text", "(0,0)");
-            cy.get("#m2bcoords").eq(0).should("have.text", "(0,0)");
+            cy.get("#m1coords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(−2,3)");
+            cy.get("#m2coords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(4,−5)");
+            cy.get("#m1acoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(−2,3)");
+            cy.get("#m2acoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(4,−5)");
+            cy.get("#m1bcoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(0,0)");
+            cy.get("#m2bcoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(0,0)");
 
             cy.log("move second maths");
             cy.window().then(async (win) => {
@@ -504,14 +542,34 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
                 });
             });
 
-            cy.get("#m2coords").should("contain.text", "(−8,2)");
+            cy.get("#m2coords")
+                .scrollIntoView()
+                .should("contain.text", "(−8,2)");
 
-            cy.get("#m1coords").eq(0).should("have.text", "(7,1)");
-            cy.get("#m2coords").eq(0).should("have.text", "(−8,2)");
-            cy.get("#m1acoords").eq(0).should("have.text", "(7,1)");
-            cy.get("#m2acoords").eq(0).should("have.text", "(−8,2)");
-            cy.get("#m1bcoords").eq(0).should("have.text", "(0,0)");
-            cy.get("#m2bcoords").eq(0).should("have.text", "(0,0)");
+            cy.get("#m1coords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(7,1)");
+            cy.get("#m2coords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(−8,2)");
+            cy.get("#m1acoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(7,1)");
+            cy.get("#m2acoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(−8,2)");
+            cy.get("#m1bcoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(0,0)");
+            cy.get("#m2bcoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(0,0)");
 
             cy.log("move third maths");
             cy.window().then(async (win) => {
@@ -527,14 +585,34 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
                 });
             });
 
-            cy.get("#m2bcoords").should("contain.text", "(−5,−4)");
+            cy.get("#m2bcoords")
+                .scrollIntoView()
+                .should("contain.text", "(−5,−4)");
 
-            cy.get("#m1coords").eq(0).should("have.text", "(7,1)");
-            cy.get("#m2coords").eq(0).should("have.text", "(−8,2)");
-            cy.get("#m1acoords").eq(0).should("have.text", "(7,1)");
-            cy.get("#m2acoords").eq(0).should("have.text", "(−8,2)");
-            cy.get("#m1bcoords").eq(0).should("have.text", "(−6,3)");
-            cy.get("#m2bcoords").eq(0).should("have.text", "(−5,−4)");
+            cy.get("#m1coords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(7,1)");
+            cy.get("#m2coords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(−8,2)");
+            cy.get("#m1acoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(7,1)");
+            cy.get("#m2acoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(−8,2)");
+            cy.get("#m1bcoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(−6,3)");
+            cy.get("#m2bcoords")
+                .eq(0)
+                .scrollIntoView()
+                .should("have.text", "(−5,−4)");
         });
     });
 });

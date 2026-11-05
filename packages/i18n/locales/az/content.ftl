@@ -36,15 +36,12 @@ color =
     .purple = bənövşəyi
     .pink = çəhrayı
     .brown = qəhvəyi
-
 line-width =
     .thick = qalın
     .thin = nazik
-
 line-style =
     .dashed = qırıq-qırıq
     .dotted = nöqtəli
-
 # Noun phrases: they stand in front of «naxışlı» and modify nothing.
 fill-style =
     .horizontal = üfüqi xətt
@@ -53,7 +50,6 @@ fill-style =
     .backdiagonal = əks diaqonal xətt
     .dots = nöqtə
     .diamonds = romb
-
 noun =
     .line = düz xətt
     .line-segment = parça
@@ -73,7 +69,6 @@ noun =
     .diamond = romb
     .cross = çarpaz
     .plus = plus
-
 # Azerbaijani builds the word from the side count in front of the noun, so the
 # whole of it is one head and there is no tail.
 noun-regular-polygon =
@@ -81,11 +76,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] düzgün { $numSides }-bucaqlı
     }
-
 # Azerbaijani has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English and Turkish.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -99,21 +92,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = doldurulmuş
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } naxışlı { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } naxışlı { $color } { $filled } { $noun }
@@ -121,7 +110,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } naxışlı { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «haşiyəli» — "bordered" — carries the "with a border" sense in its own suffix,
 # so neither a preposition nor an article is wanted, and all four branches read
 # alike except for the connective English needs and Azerbaijani does not.
@@ -132,35 +120,28 @@ style-border-clause =
         [and-article] və { $border } haşiyəli
        *[with] { $border } haşiyəli
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } naxışlı { $color } dolğu
        *[plain] { $color } dolğu
     }
-
 style-unfilled = doldurulmamış
-
 style-text =
     { $parts ->
         [background] { $background } fon üzərində { $color }
        *[plain] { $color }
     }
-
 style-background-none = yoxdur
-
 
 ## Boolean words
 
 boolean-true = doğru
 boolean-false = yanlış
 
-
 ## Answer buttons
 
 answer-submit-label = Yoxla
 answer-submit-label-no-correctness = Cavabı göndər
-
 
 ## Sectional blocks
 
@@ -185,7 +166,6 @@ section-name =
     .solution = Həll
     .task = Tapşırıq
     .theorem = Teorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -195,9 +175,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = İpucu
-
 
 ## Tables and figures
 
@@ -208,7 +186,6 @@ table-name =
         [unnumbered-title] Cədvəl{ ": " }
        *[unnumbered] Cədvəl
     }
-
 figure-name =
     { $parts ->
         [numbered] Şəkil { $enumeration }
@@ -217,22 +194,18 @@ figure-name =
        *[unnumbered] Şəkil
     }
 
-
 ## Paginator controls
 
 paginator-previous = Əvvəlki
 paginator-next = Sonrakı
 paginator-page = Səhifə
-
 paginator-page-status = { $numPages } { $pageLabel } içərisindən { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = və ya
 piecewise-condition-if = əgər
 piecewise-condition-otherwise = əks halda
-
 
 ## Chemistry
 
@@ -355,7 +328,6 @@ element-name =
     .lv = Livermorium
     .ts = Tennessin
     .og = Oqanesson
-
 element-anion-name =
     .h = Hidrid
     .c = Karbid
@@ -369,8 +341,6 @@ element-anion-name =
     .i = Yodid
     .at = Astatid
     .ts = Tennessid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Yanlış kimyəvi simvol
 chemistry-invalid-ionic-compound = Yanlış ion birləşməsi

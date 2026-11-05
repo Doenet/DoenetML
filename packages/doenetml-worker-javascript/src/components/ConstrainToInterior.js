@@ -1,4 +1,5 @@
 import { findFiniteNumericalValue } from "../utils/math";
+import { CONSTRAINED_ANCESTOR_TYPES } from "../utils/constraints";
 import ConstraintComponent from "./abstract/ConstraintComponent";
 import { codedDiagnostic } from "../utils/diagnostics";
 
@@ -87,7 +88,7 @@ export default class ConstrainToInterior extends ConstraintComponent {
                 },
                 constraintsAncestor: {
                     dependencyType: "ancestor",
-                    componentType: "_graphical",
+                    componentType: CONSTRAINED_ANCESTOR_TYPES,
                     variableNames: ["scales"],
                     variablesOptional: true,
                 },

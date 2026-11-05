@@ -3,6 +3,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { cellInlinePadding } from "./utils/tabularCellPadding";
 
 interface CellSVs {
     [key: string]: any;
@@ -10,6 +11,7 @@ interface CellSVs {
     _compositeReplacementActiveRange?: any;
     bottomBorder?: any;
     colSpan: number;
+    columnIndex?: number | null;
     halign?: any;
     inHeader: boolean;
     endBorder?: any;
@@ -24,7 +26,13 @@ export default React.memo(function Cell(props: UseDoenetRendererProps) {
     }
 
     let properties: React.TdHTMLAttributes<unknown> = {
-        style: { padding: "3px 10px" },
+        style: {
+            paddingBlock: "3px",
+            paddingInline: cellInlinePadding({
+                columnIndex: SVs.columnIndex,
+                colSpan: SVs.colSpan,
+            }),
+        },
     };
 
     if (SVs.colSpan !== 1) {

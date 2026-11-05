@@ -26,15 +26,12 @@ color =
     .purple = ungu
     .pink = merah muda
     .brown = cokelat
-
 line-width =
     .thick = tebal
     .thin = tipis
-
 line-style =
     .dashed = putus-putus
     .dotted = titik-titik
-
 # Noun phrases: they follow "dengan" and modify nothing.
 fill-style =
     .horizontal = garis mendatar
@@ -43,7 +40,6 @@ fill-style =
     .backdiagonal = garis diagonal terbalik
     .dots = titik
     .diamonds = belah ketupat
-
 noun =
     .line = garis
     .line-segment = ruas garis
@@ -63,7 +59,6 @@ noun =
     .diamond = belah ketupat
     .cross = silang
     .plus = tanda tambah
-
 # `bersisi 5` binds to the noun rather than to the adjectives, so it folds into
 # the head and there is no tail. Placing it after the adjectives would read as
 # though the colour, not the polygon, had five sides.
@@ -72,11 +67,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] poligon beraturan bersisi { $numSides }
     }
-
 # Indonesian has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -90,22 +83,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: "garis tebal putus-putus merah".
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = terisi
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } dengan { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } dengan { $pattern }
@@ -113,7 +102,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $color } { $filled } dengan { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # Indonesian needs no article, so the `-article` branches read the same as the
 # ones without.
 style-border-clause =
@@ -123,36 +111,29 @@ style-border-clause =
         [and-article] dan batas { $border }
        *[with] dengan batas { $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = tidak terisi
-
 style-text =
     { $parts ->
         [background] { $color } dengan latar { $background }
        *[plain] { $color }
     }
-
 style-background-none = tidak ada
-
 
 ## Boolean words
 
 boolean-true = benar
 boolean-false = salah
 
-
 ## Answer buttons
 
 answer-submit-label = Periksa
 answer-submit-label-no-correctness = Kirim jawaban
-
 
 ## Sectional blocks
 
@@ -177,7 +158,6 @@ section-name =
     .solution = Penyelesaian
     .task = Tugas
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -187,9 +167,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Petunjuk
-
 
 ## Tables and figures
 
@@ -200,7 +178,6 @@ table-name =
         [unnumbered-title] Tabel{ ": " }
        *[unnumbered] Tabel
     }
-
 figure-name =
     { $parts ->
         [numbered] Gambar { $enumeration }
@@ -209,22 +186,18 @@ figure-name =
        *[unnumbered] Gambar
     }
 
-
 ## Paginator controls
 
 paginator-previous = Sebelumnya
 paginator-next = Berikutnya
 paginator-page = Halaman
-
 paginator-page-status = { $pageLabel } { $currentPage } dari { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = atau
 piecewise-condition-if = jika
 piecewise-condition-otherwise = selainnya
-
 
 ## Chemistry
 
@@ -347,7 +320,6 @@ element-name =
     .lv = Livermorium
     .ts = Tenesin
     .og = Oganeson
-
 element-anion-name =
     .h = Hidrida
     .c = Karbida
@@ -361,8 +333,6 @@ element-anion-name =
     .i = Iodida
     .at = Astatida
     .ts = Tenesida
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol kimia tidak valid
 chemistry-invalid-ionic-compound = Senyawa ion tidak valid

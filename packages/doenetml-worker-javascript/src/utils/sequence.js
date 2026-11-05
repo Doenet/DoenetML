@@ -6,6 +6,7 @@ import { codedDiagnostic } from "./diagnostics";
 export function returnStandardSequenceAttributes() {
     return {
         type: {
+            highlighted: true,
             createPrimitiveOfType: "string",
             createStateVariable: "type",
             defaultPrimitiveValue: "number",
@@ -29,20 +30,24 @@ export function returnStandardSequenceAttributes() {
             description: "The kind of values in the sequence.",
         },
         from: {
+            highlighted: true,
             createComponentOfType: "_componentWithSelectableType",
             description: "The first value in the sequence.",
         },
         to: {
+            highlighted: true,
             createComponentOfType: "_componentWithSelectableType",
             description:
                 "The last value in the sequence. Used together with from to determine length when length is not specified.",
         },
         step: {
+            highlighted: true,
             createComponentOfType: "math",
             description:
                 "The increment between successive values in the sequence.",
         },
         length: {
+            highlighted: true,
             createComponentOfType: "integer",
             description: "The number of values in the sequence.",
         },
@@ -51,6 +56,31 @@ export function returnStandardSequenceAttributes() {
             description: "Values to exclude from the sequence.",
         },
     };
+}
+
+/**
+ * The type of component a value of a sequence (`<sequence>`,
+ * `<selectFromSequence>`, `<repeatForSequence>`) is, from the sequence's
+ * serialized `type` attribute, read as the attribute itself is
+ * (`validateAttributeValue`: lower-cased and trimmed, and a value the
+ * attribute does not allow, such as `type="text"`, falls back to its
+ * default, `number`), with `letters` making a `text`. `undefined` when the
+ * attribute is not a primitive.
+ */
+export function sequenceEntryComponentType(typeAttribute) {
+    const spec = returnStandardSequenceAttributes().type;
+    let type;
+    if (typeAttribute === undefined) {
+        type = spec.defaultPrimitiveValue;
+    } else if (typeAttribute.type === "primitive") {
+        type = String(typeAttribute.primitive.value).toLowerCase().trim();
+    } else {
+        return undefined;
+    }
+    if (!spec.validValues.some((entry) => entry.value === type)) {
+        type = spec.defaultPrimitiveValue;
+    }
+    return type === "letters" ? "text" : type;
 }
 
 export function returnStandardSequenceStateVariableDefinitions() {
@@ -772,6 +802,18 @@ export function returnSequenceValues(
     }
 
     return sequenceValues;
+}
+
+/**
+ * What a value written to an entry of a sequence stands over: the `from`,
+ * `step`, `type` and `exclude` its values are computed from, as one string,
+ * so that the value is kept while only its length changes and dropped when
+ * its values are computed anew (`listEntryWriteBasisVariable`).
+ */
+export function returnSequenceWriteBasis({ from, step, type, exclude }) {
+    return JSON.stringify([from, step, type, exclude], (key, value) =>
+        typeof value === "object" && value?.tree ? value.tree : value,
+    );
 }
 
 export function returnSequenceValueForIndex({

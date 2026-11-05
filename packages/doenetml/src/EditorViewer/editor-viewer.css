@@ -369,6 +369,9 @@
 .viewer-panel .viewer {
     flex-grow: 1;
     overflow: auto;
+    /* Contain absolutely positioned content (e.g. visually-hidden text) so
+       it scrolls with the viewer instead of extending the page. */
+    position: relative;
     background-color: var(--canvas);
 }
 

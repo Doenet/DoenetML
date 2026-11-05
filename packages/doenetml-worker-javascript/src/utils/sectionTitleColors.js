@@ -344,4 +344,288 @@ export function addSectionTitleColorContrastDiagnostic({
     }
 }
 
+/**
+ * The attributes that set the colors of a section's heading bar in each of its
+ * completion states, and whether the completed color waits for a grade.
+ *
+ * Shared by every sectioning component and by `<cascade>`, which is not one but
+ * sets these for the steps it reveals: a section reads its colors off its
+ * immediate parent when it sets none of its own (see
+ * {@link returnSectionTitleStateColorStateVariableDefinitions}).
+ *
+ * @returns {object} attribute definitions keyed by attribute name
+ */
+export function returnSectionTitleStateColorAttributes() {
+    const attributes = {};
+
+    attributes.completedColor = {
+        createComponentOfType: "text",
+        createStateVariable: "completedColor",
+        defaultValue: "var(--lightGreen)",
+        description: "Color used to indicate this section has been completed.",
+    };
+
+    // Whether the heading bar waits for a grade. The completion states are
+    // driven by `creditAchievedForProgress`, which counts a `handGraded`
+    // answer as correct once the reader has responded — a bar that stayed
+    // gray until an instructor got to it would withhold the reward for work
+    // the reader has finished, and they have no way to tell the two apart.
+    // An instructor who wants the bar to mean "graded and correct" sets
+    // this, and the real `creditAchieved` drives the states instead.
+    attributes.completedColorRequiresCredit = {
+        createComponentOfType: "boolean",
+        createStateVariable: "completedColorRequiresCreditPreliminary",
+        // See the note on `showCorrectness` in
+        // `returnScoredSectionAttributes`: this default is shown to authors
+        // but is not what resolves the value, which falls back to the
+        // enclosing section before reaching it.
+        defaultValue: false,
+        description:
+            "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
+    };
+
+    attributes.inProgressColor = {
+        createComponentOfType: "text",
+        createStateVariable: "inProgressColor",
+        defaultValue: "var(--mainGray)",
+        description: "Color used to indicate this section is in progress.",
+    };
+
+    attributes.notStartedColor = {
+        createComponentOfType: "text",
+        createStateVariable: "notStartedColor",
+        defaultValue: "var(--mainGray)",
+        description:
+            "Color used to indicate this section has not been started.",
+    };
+
+    attributes.completedColorDarkMode = {
+        createComponentOfType: "text",
+        createStateVariable: "completedColorDarkMode",
+        // Dark green; white text contrast ≈ 7.9:1 (passes WCAG AA and AAA).
+        defaultValue: "#1a5e20",
+        description:
+            "Color used to indicate this section has been completed (dark mode). " +
+            "If omitted, the dark-mode color is derived from `completedColor` when " +
+            "that attribute is explicitly set; otherwise falls back to a dark green " +
+            "that meets WCAG AA contrast for white text.",
+    };
+
+    attributes.inProgressColorDarkMode = {
+        createComponentOfType: "text",
+        createStateVariable: "inProgressColorDarkMode",
+        // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+        defaultValue: "#3a3a3a",
+        description:
+            "Color used to indicate this section is in progress (dark mode). " +
+            "If omitted, the dark-mode color is derived from `inProgressColor` when " +
+            "that attribute is explicitly set; otherwise falls back to a dark gray " +
+            "that meets WCAG AA contrast for white text.",
+    };
+
+    attributes.notStartedColorDarkMode = {
+        createComponentOfType: "text",
+        createStateVariable: "notStartedColorDarkMode",
+        // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+        defaultValue: "#3a3a3a",
+        description:
+            "Color used to indicate this section has not been started (dark mode). " +
+            "If omitted, the dark-mode color is derived from `notStartedColor` when " +
+            "that attribute is explicitly set; otherwise falls back to a dark gray " +
+            "that meets WCAG AA contrast for white text.",
+    };
+
+    return attributes;
+}
+
+/**
+ * The state variables that resolve a section's heading-bar colors from its own
+ * attributes and its parent's: `completedColorRequiresCredit`, falling back to
+ * the nearest ancestor carrying it, and `sectionTitleStateColors` with its dark
+ * mode and source companions, falling back to the immediate parent.
+ *
+ * Shared by every sectioning component and by `<cascade>`, so that a cascade
+ * passes the colors of the section around it on to its steps, or its own
+ * colors when it sets them, exactly as a section between them would. Pairs
+ * with {@link returnSectionTitleStateColorAttributes}.
+ *
+ * @returns {object} state variable definitions keyed by name
+ */
+export function returnSectionTitleStateColorStateVariableDefinitions() {
+    const stateVariableDefinitions = {};
+
+    stateVariableDefinitions.completedColorRequiresCredit = {
+        description:
+            "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it.",
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
+        returnDependencies: () => ({
+            completedColorRequiresCreditPreliminary: {
+                dependencyType: "stateVariable",
+                variableName: "completedColorRequiresCreditPreliminary",
+            },
+            completedColorRequiresCreditAncestor: {
+                dependencyType: "ancestor",
+                variableNames: ["completedColorRequiresCredit"],
+            },
+        }),
+        definition({ dependencyValues, usedDefault }) {
+            // Set once on an enclosing section and every section within it
+            // follows: an instructor who wants graded coloring wants it for
+            // the whole activity, not one section at a time. The fallback
+            // is to the nearest *ancestor* carrying the variable, the way
+            // `showCorrectness` resolves — unlike the colors themselves,
+            // which read only their immediate parent section.
+            //
+            // Start from the attribute's own value rather than restating
+            // its default here, so the default lives in exactly one place:
+            // the attribute's `defaultValue`. Written the other way the two
+            // could drift apart unnoticed, which is a real risk on a base
+            // class this many components extend and override attributes on.
+            let completedColorRequiresCredit =
+                dependencyValues.completedColorRequiresCreditPreliminary;
+
+            if (
+                usedDefault.completedColorRequiresCreditPreliminary &&
+                dependencyValues.completedColorRequiresCreditAncestor
+            ) {
+                completedColorRequiresCredit =
+                    dependencyValues.completedColorRequiresCreditAncestor
+                        .stateValues.completedColorRequiresCredit;
+            }
+
+            return { setValue: { completedColorRequiresCredit } };
+        },
+    };
+
+    stateVariableDefinitions.sectionTitleStateColors = {
+        additionalStateVariablesDefined: [
+            "sectionTitleStateColorsDarkMode",
+            "sectionTitleStateColorSources",
+            "sectionTitleStateColorSourcesDarkMode",
+        ],
+        returnDependencies: () => ({
+            completedColor: {
+                dependencyType: "stateVariable",
+                variableName: "completedColor",
+            },
+            inProgressColor: {
+                dependencyType: "stateVariable",
+                variableName: "inProgressColor",
+            },
+            notStartedColor: {
+                dependencyType: "stateVariable",
+                variableName: "notStartedColor",
+            },
+            completedColorDarkMode: {
+                dependencyType: "stateVariable",
+                variableName: "completedColorDarkMode",
+            },
+            inProgressColorDarkMode: {
+                dependencyType: "stateVariable",
+                variableName: "inProgressColorDarkMode",
+            },
+            notStartedColorDarkMode: {
+                dependencyType: "stateVariable",
+                variableName: "notStartedColorDarkMode",
+            },
+            parentSectionTitleStateColors: {
+                dependencyType: "parentStateVariable",
+                variableName: "sectionTitleStateColors",
+            },
+            parentSectionTitleStateColorsDarkMode: {
+                dependencyType: "parentStateVariable",
+                variableName: "sectionTitleStateColorsDarkMode",
+            },
+            parentSectionTitleStateColorSources: {
+                dependencyType: "parentStateVariable",
+                variableName: "sectionTitleStateColorSources",
+            },
+            parentSectionTitleStateColorSourcesDarkMode: {
+                dependencyType: "parentStateVariable",
+                variableName: "sectionTitleStateColorSourcesDarkMode",
+            },
+            parentBoxed: {
+                dependencyType: "parentStateVariable",
+                variableName: "boxed",
+            },
+            parentCollapsible: {
+                dependencyType: "parentStateVariable",
+                variableName: "collapsible",
+            },
+        }),
+        definition({ dependencyValues, usedDefault }) {
+            const sectionTitleStateColors = {};
+            const sectionTitleStateColorsDarkMode = {};
+            const sectionTitleStateColorSources = {};
+            const sectionTitleStateColorSourcesDarkMode = {};
+            const parentIsBoxedOrCollapsible = Boolean(
+                dependencyValues.parentBoxed ||
+                dependencyValues.parentCollapsible,
+            );
+
+            const colorNamesByState = {
+                completed: {
+                    light: "completedColor",
+                    dark: "completedColorDarkMode",
+                },
+                inProgress: {
+                    light: "inProgressColor",
+                    dark: "inProgressColorDarkMode",
+                },
+                notStarted: {
+                    light: "notStartedColor",
+                    dark: "notStartedColorDarkMode",
+                },
+            };
+
+            for (const stateKey of sectionTitleStateKeys) {
+                const colorNames = colorNamesByState[stateKey];
+                const lightSpec = resolveSectionTitleLightColorSpec({
+                    dependencyValues,
+                    usedDefault,
+                    ownColorName: colorNames.light,
+                    parentColors:
+                        dependencyValues.parentSectionTitleStateColors,
+                    parentSources:
+                        dependencyValues.parentSectionTitleStateColorSources,
+                    parentIsBoxedOrCollapsible,
+                    stateKey,
+                });
+                sectionTitleStateColors[stateKey] = lightSpec.value;
+                sectionTitleStateColorSources[stateKey] = lightSpec.source;
+
+                const darkSpec = resolveSectionTitleDarkColorSpec({
+                    dependencyValues,
+                    usedDefault,
+                    ownDarkColorName: colorNames.dark,
+                    ownLightColorName: colorNames.light,
+                    parentColorsDarkMode:
+                        dependencyValues.parentSectionTitleStateColorsDarkMode,
+                    parentSourcesDarkMode:
+                        dependencyValues.parentSectionTitleStateColorSourcesDarkMode,
+                    parentIsBoxedOrCollapsible,
+                    stateKey,
+                });
+                sectionTitleStateColorsDarkMode[stateKey] = darkSpec.value;
+                sectionTitleStateColorSourcesDarkMode[stateKey] =
+                    darkSpec.source;
+            }
+
+            return {
+                setValue: {
+                    sectionTitleStateColors,
+                    sectionTitleStateColorsDarkMode,
+                    sectionTitleStateColorSources,
+                    sectionTitleStateColorSourcesDarkMode,
+                },
+            };
+        },
+    };
+
+    return stateVariableDefinitions;
+}
+
 export { CANVAS_DARK_MODE_COLOR, CANVAS_LIGHT_MODE_COLOR };

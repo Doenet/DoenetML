@@ -52,15 +52,12 @@ color =
     .purple = purpelpela
     .pink = pingpela
     .brown = braunpela
-
 line-width =
     .thick = patpela
     .thin = tinpela
-
 line-style =
     .dashed = brukbruk
     .dotted = tikitiki
-
 # Noun phrases. Tok Pisin marks no plural on the noun, so «lain» is the word for
 # one line and for many alike; «ol» before it is the plural and a description
 # does not carry it.
@@ -71,7 +68,6 @@ fill-style =
     .backdiagonal = ol lain i go krungut long narapela sait
     .dots = ol tiki
     .diamonds = ol daimon
-
 noun =
     .line = lain
     .line-segment = hap lain
@@ -91,7 +87,6 @@ noun =
     .diamond = daimon
     .cross = kruse
     .plus = plas
-
 # The side count follows the noun as a complement, because «-pela» adjectives
 # must sit directly in front of it and a counted phrase in front of them would
 # read as a comment on the sides.
@@ -100,10 +95,8 @@ noun-regular-polygon =
         [tail] i gat { $numSides } sait wankain
        *[head] poligon
     }
-
 # One answer for every noun: Tok Pisin has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -117,21 +110,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = pulapela
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } wantaim { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } wantaim { $pattern }
@@ -139,7 +128,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } wantaim { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Tok Pisin has no article, so the two `-article` branches say what the other
 # two say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «wantaim» against «na».
@@ -150,35 +138,28 @@ style-border-clause =
         [and-article] na { $border } arere
        *[with] wantaim { $border } arere
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = i no pulap
-
 style-text =
     { $parts ->
         [background] { $color } wantaim { $background } baksait
        *[plain] { $color }
     }
-
 style-background-none = i no gat
-
 
 ## Boolean words
 
 boolean-true = tru
 boolean-false = giaman
 
-
 ## Answer buttons
 
 answer-submit-label = Skelim wok
 answer-submit-label-no-correctness = Salim bekim
-
 
 ## Sectional blocks
 
@@ -206,7 +187,6 @@ section-name =
     .solution = Rot bilong bekim
     .task = Wok
     .theorem = Tiorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -216,9 +196,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Tok helpim
-
 
 ## Tables and figures
 
@@ -229,7 +207,6 @@ table-name =
         [unnumbered-title] Tebol{ ": " }
        *[unnumbered] Tebol
     }
-
 figure-name =
     { $parts ->
         [numbered] Piksa { $enumeration }
@@ -238,22 +215,18 @@ figure-name =
        *[unnumbered] Piksa
     }
 
-
 ## Paginator controls
 
 paginator-previous = Bipo
 paginator-next = Neks
 paginator-page = Pes
-
 paginator-page-status = { $pageLabel } { $currentPage } bilong { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = sapos
 piecewise-condition-otherwise = sapos nogat
-
 
 ## Chemistry
 ##
@@ -265,6 +238,5 @@ piecewise-condition-otherwise = sapos nogat
 ## than the whole 118, are where a speaker should start.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol kemikol i no stret
 chemistry-invalid-ionic-compound = Kompaun aionik i no stret

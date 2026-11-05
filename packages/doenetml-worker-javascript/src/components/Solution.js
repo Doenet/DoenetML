@@ -23,8 +23,6 @@ export class Solution extends BlockComponent {
     static rendererType = "solution";
     static renderChildren = true;
 
-    static sendToRendererEvenIfHidden = true;
-
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.hide = {

@@ -1,6 +1,6 @@
 /*
  * Verify that every schema component either:
- *   1. Has a corresponding `pages/reference/<docsSlug>.mdx` file, OR
+ *   1. Has a corresponding `content/reference/<docsSlug>.mdx` file, OR
  *   2. Is on the undocumented allow-list (warns), OR
  *   3. Has `componentDocs.docsSlug = null` (intentionally undocumented, silent).
  *
@@ -104,7 +104,7 @@ function main() {
         if (declaredAsOverride) {
             brokenSlugs.push({
                 name: type,
-                reason: `declares docsSlug "${declared}" but pages/reference/${declared}.mdx does not exist`,
+                reason: `declares docsSlug "${declared}" but content/reference/${declared}.mdx does not exist`,
             });
             continue;
         }
@@ -132,7 +132,7 @@ function main() {
         if (docsPages.has(declared)) continue;
         brokenSlugs.push({
             name: `(alias target) ${target}`,
-            reason: `resolves to docsSlug "${declared}" but pages/reference/${declared}.mdx does not exist`,
+            reason: `resolves to docsSlug "${declared}" but content/reference/${declared}.mdx does not exist`,
         });
     }
 
@@ -189,7 +189,7 @@ function main() {
     if (failures.length > 0) {
         console.error(
             `\n[error] ${failures.length} components have no docs page and are not on the allow-list. ` +
-                `Either add a docs page at packages/docs-nextra/pages/reference/<name>.mdx, ` +
+                `Either add a docs page at packages/docs-nextra/content/reference/<name>.mdx, ` +
                 `set componentDocs.docsSlug to point to an existing page, or set ` +
                 `componentDocs.docsSlug = null to mark as intentionally undocumented:`,
         );

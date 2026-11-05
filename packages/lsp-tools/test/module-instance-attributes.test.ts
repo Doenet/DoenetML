@@ -113,7 +113,7 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
         describe("validation: copy/extend resolves to a <module> with <moduleAttributes>", () => {
             it("declared attribute names do not warn", async () => {
                 // Canonical docs example shape from
-                // packages/docs-nextra/pages/reference/module.mdx:20-62.
+                // packages/docs-nextra/content/reference/module.mdx:20-62.
                 const source = `<setup><module name="drawBalloon"><moduleAttributes><point name="center">(0,0)</point><number name="color">2</number><number name="radius">4</number></moduleAttributes></module></setup>
 <module copy="$drawBalloon" center="(-5,0)" color="1" radius="3" />`;
                 expect(await moduleAttrDiagnostics(source, "center")).toEqual(
@@ -424,9 +424,9 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
         });
 
         describe("validation: canonical docs example end-to-end", () => {
-            it("packages/docs-nextra/pages/reference/module.mdx example has no spurious <module> attribute warnings", async () => {
+            it("packages/docs-nextra/content/reference/module.mdx example has no spurious <module> attribute warnings", async () => {
                 // The verbatim example from
-                // packages/docs-nextra/pages/reference/module.mdx:19-60.
+                // packages/docs-nextra/content/reference/module.mdx:19-60.
                 // This is the source the docs ship as the canonical
                 // module-with-author-attributes pattern; issue #1154
                 // was opened because LSP validation flagged

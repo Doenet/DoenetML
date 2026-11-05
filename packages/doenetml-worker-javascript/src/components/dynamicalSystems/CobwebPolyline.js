@@ -5,6 +5,8 @@ import {
 } from "../../utils/numberDisplay";
 import Polyline from "../Polyline";
 import me from "math-expressions";
+import { convertValueToMathExpression } from "@doenet/utils";
+import { evaluateToNumber, toNumberOrNaN } from "../../utils/math";
 
 export default class CobwebPolyline extends Polyline {
     static componentType = "cobwebPolyline";
@@ -130,6 +132,9 @@ export default class CobwebPolyline extends Polyline {
             entryPrefixes: ["initialPointX"],
             defaultValueByArrayKey: () => me.fromAst(0),
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             returnArraySizeDependencies: () => ({}),
             returnArraySize: () => [2],
             returnArrayDependenciesByKey({ arrayKeys }) {
@@ -283,6 +288,9 @@ export default class CobwebPolyline extends Polyline {
             isArray: true,
             numDimensions: 2,
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             entryPrefixes: ["originalVertexX", "originalVertex"],
             returnEntryDimensions: (prefix) =>
                 prefix === "originalVertex" ? 1 : 0,
@@ -605,21 +613,30 @@ export default class CobwebPolyline extends Polyline {
                     let originalVertex, previousVertex;
 
                     try {
+                        // `evaluateToNumber`: the distance below decides
+                        // whether the student's vertex is marked correct, so a
+                        // coordinate with no numeric value has to make that
+                        // distance `NaN` rather than be measured from wherever
+                        // it happens to coerce to.
                         originalVertex = [
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].originalVertexX1.evaluate_to_constant(),
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].originalVertexX2.evaluate_to_constant(),
+                            evaluateToNumber(
+                                dependencyValuesByKey[arrayKey]
+                                    .originalVertexX1,
+                            ),
+                            evaluateToNumber(
+                                dependencyValuesByKey[arrayKey]
+                                    .originalVertexX2,
+                            ),
                         ];
                         previousVertex = [
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].previousVertexX1.evaluate_to_constant(),
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].previousVertexX2.evaluate_to_constant(),
+                            evaluateToNumber(
+                                dependencyValuesByKey[arrayKey]
+                                    .previousVertexX1,
+                            ),
+                            evaluateToNumber(
+                                dependencyValuesByKey[arrayKey]
+                                    .previousVertexX2,
+                            ),
                         ];
                     } catch (e) {
                         vertices[pointInd + ",0"] = me.fromAst(0);
@@ -650,8 +667,17 @@ export default class CobwebPolyline extends Polyline {
                                 globalDependencyValues.attractThreshold ||
                         globalDependencyValues.lockToSolution
                     ) {
-                        vertices[pointInd + ",0"] = me.fromAst(attractPoint[0]);
-                        vertices[pointInd + ",1"] = me.fromAst(attractPoint[1]);
+                        // `evaluate_to_constant()` on a non-numeric vertex, or
+                        // `f` at such a point, can be a `Complex` — and used to
+                        // be `null` — neither of which `fromAst` accepts, and a
+                        // throw out of here would abort the whole update. A
+                        // vertex we cannot place is `NaN`, not a hard error.
+                        vertices[pointInd + ",0"] = me.fromAst(
+                            toNumberOrNaN(attractPoint[0]),
+                        );
+                        vertices[pointInd + ",1"] = me.fromAst(
+                            toNumberOrNaN(attractPoint[1]),
+                        );
                         prelimCorrectVertices[pointInd + ",0"] = true;
                     } else {
                         vertices[pointInd + ",0"] =

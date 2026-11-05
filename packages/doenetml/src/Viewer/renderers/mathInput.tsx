@@ -19,12 +19,14 @@ import {
     DEFAULT_MATH_INPUT_FUNCTION_NAMES,
     hasCoarsePrimaryPointer,
     subscribeToPrimaryPointerType,
+    toNumberOrNaN,
 } from "@doenet/utils";
 import {
     getVirtualKeyboardTrayElement,
     isInVirtualKeyboardTray,
 } from "@doenet/virtual-keyboard";
 import { DescriptionPopover } from "./utils/Description";
+import { useRenderedLabel } from "./utils/inputLabel";
 import * as Ariakit from "@ariakit/react";
 
 import { MathJax } from "better-react-mathjax";
@@ -33,6 +35,7 @@ import "./mathInput.css";
 import {
     FocusedMathInputContext,
     LegacyKeyboardTrayContext,
+    VirtualKeyboardAvailableContext,
 } from "../../doenetml";
 import { useAppSelector } from "../../state";
 import { keyboardSlice } from "../../state/slices/keyboard";
@@ -50,6 +53,8 @@ import {
 } from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
 import { useChromeLangDir, useContentT, useT } from "../../utils/i18n";
+import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
@@ -114,6 +119,7 @@ function useMathInputPreview({
     errorMessageRawRenderer,
     focused,
     previewUpdateDelayMs,
+    placement,
     onEscapeFromPreview,
 }: {
     id: string;
@@ -123,6 +129,8 @@ function useMathInputPreview({
     errorMessageRawRenderer: string | null;
     focused: boolean;
     previewUpdateDelayMs: number;
+    /** Which side of the field the preview opens on. */
+    placement: Ariakit.PopoverStoreProps["placement"];
     onEscapeFromPreview: () => void;
 }) {
     const [interactingWithPreview, setInteractingWithPreview] = useState(false);
@@ -137,7 +145,7 @@ function useMathInputPreview({
 
     const previewRef = useRef<HTMLDivElement | null>(null);
     const previewPopover = Ariakit.usePopoverStore({
-        placement: "right",
+        placement,
     });
 
     const previewId = `${id}-preview`;
@@ -452,6 +460,7 @@ interface MathInputSVs {
 export default function MathInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer<MathInputSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     // The check-work button and the validation state announced on the input
     // both follow the document's language, not the reader's — see
@@ -472,6 +481,28 @@ export default function MathInput(props: UseDoenetRendererProps) {
     );
     const focusedMathInput = useContext(FocusedMathInputContext);
     const legacyKeyboardTray = useContext(LegacyKeyboardTrayContext);
+    const virtualKeyboardAvailable = useContext(
+        VirtualKeyboardAvailableContext,
+    );
+
+    // Inside an expression there is no room for anything but the field itself:
+    // a visible label drawn among the symbols would read as part of the math.
+    // The expression names the field instead, through its short description.
+    // Read here, with the other hooks, so it is read on every render whether
+    // or not the field goes on to draw anything.
+    const inMathSlot = useInMathSlot();
+
+    // Telling the slot when the field is being edited is what has the
+    // expression re-typeset in step with each keystroke. Outside a slot these
+    // are no-ops.
+    const slotEditing = useMathSlotEditing();
+
+    // A label that is itself math is typeset by MathJax, which gives it a tab
+    // stop. Inside a slot the label is out of sight, so that stop would land
+    // on nothing a keyboard user can see; the ref is attached only there.
+    const slotRootRef = useRef<HTMLSpanElement>(null);
+    useMathJaxOutOfTabOrder(slotRootRef);
+
     const [mathField, setMathField] = useState<MathField | null>(null);
     // `EditableMathField`'s `handlers.enter` callback can hold stale captures.
     // Keep the latest MathField instance in a ref for enter handling.
@@ -486,8 +517,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // which is how they ask for the device's keyboard back. Deciding this from
     // the outset, rather than waiting for the tray to open, is what stops the
     // system keyboard from appearing at the first math input a reader taps.
+    // A viewer embedded without a Doenet keyboard leaves the device's in play.
     const coarsePointer = useHasCoarsePrimaryPointer();
-    const suppressSystemKeyboard = coarsePointer && !systemKeyboardRequested;
+    const suppressSystemKeyboard =
+        virtualKeyboardAvailable && coarsePointer && !systemKeyboardRequested;
 
     useEffect(() => {
         const textarea = textareaRef.current;
@@ -554,6 +587,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
         errorMessageRawRenderer: SVs.errorMessageRawRenderer,
         focused,
         previewUpdateDelayMs: PREVIEW_UPDATE_DELAY_MS,
+        // Beside the field is where the rest of the equation is, once the
+        // field is inside one.
+        placement: inMathSlot ? "top" : "right",
         onEscapeFromPreview: () => {
             textareaRef.current?.focus();
         },
@@ -605,6 +641,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const submitActionWithPendingRef = useRef(submitActionWithPending);
     submitActionWithPendingRef.current = submitActionWithPending;
 
+    // For the same reason: `handlers.edit` is bound once, so a size report
+    // from it would otherwise go to the slot this field sat in at that render.
+    const slotEditingRef = useRef(slotEditing);
+    slotEditingRef.current = slotEditing;
+
     const handlePressEnter = React.useCallback(() => {
         if (!mathFieldRef.current) {
             return;
@@ -614,7 +655,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
         });
-
         if (
             showCheckWork.current &&
             validationState.current === "unvalidated"
@@ -669,18 +709,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
         for (const event of virtualKeyboardEvents) {
             if (event.type === "keystroke" && event.command === "Enter") {
-                // The "Enter" key was pressed
-                callAction({
-                    action: actions.updateValue,
-                    baseVariableValue: rendererValue.current,
-                });
-
-                if (
-                    showCheckWork.current &&
-                    validationState.current === "unvalidated"
-                ) {
-                    submitActionWithPendingRef.current();
-                }
+                // The tray's Enter key is the keyboard's Enter key: it
+                // commits and submits, in one place.
+                handlePressEnter();
                 continue;
             }
             switch (event.type) {
@@ -751,6 +782,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     function onFocusChanged(focused: boolean) {
         setFocused(focused);
+        // This is the boundary the expression around this field follows: a
+        // blur that hands focus to the keyboard tray does not come through
+        // here, so the expression keeps re-typesetting in step while the
+        // reader types on the tray, and stops when focus finally leaves.
+        slotEditing.setEditing(focused);
         callAction({
             action: actions.focusChanged,
             args: { focused },
@@ -952,8 +988,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             let anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
 
             if (!Number.isFinite(anchorCoords[0])) {
@@ -1228,6 +1264,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
             </MathJax>
         );
     }
+    if (renderedLabel) {
+        label = renderedLabel;
+    }
 
     let shortDescription = SVs.shortDescription || undefined;
 
@@ -1242,8 +1281,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
             ? `${id}-short-description`
             : undefined;
 
-    // description will be the one non-null child
-    const descriptionChild = children.find((child) => child);
+    // description will be the one non-null child other than the label
+    const descriptionChild = children.find(
+        (child, ind) => child && ind !== SVs.labelChildInd,
+    );
 
     let descriptionId: string | undefined = undefined;
     let description: React.ReactNode | null = null;
@@ -1335,6 +1376,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 },
             }}
             onChange={(mField: any) => {
+                // The field has already been redrawn at its new size.
+                slotEditingRef.current.resized();
                 onChangeHandler(mField.latex());
             }}
             onBlur={handleBlur}
@@ -1368,8 +1411,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -1515,16 +1558,24 @@ export default function MathInput(props: UseDoenetRendererProps) {
         tContent,
     );
 
+    // Inside an expression the label stays in the document, out of sight, so
+    // `aria-labelledby` names the field from it exactly as it does elsewhere —
+    // a label that is itself math is then spoken as MathJax reads it.
     const labelComponent = hasLabel ? (
         <label
             id={labelId}
             htmlFor={inputKey}
-            style={{
-                marginInlineEnd:
-                    SVs.labelPosition === "end" ? undefined : "2px",
-                marginInlineStart:
-                    SVs.labelPosition === "end" ? "2px" : undefined,
-            }}
+            className={inMathSlot ? "visually-hidden" : undefined}
+            style={
+                inMathSlot
+                    ? undefined
+                    : {
+                          marginInlineEnd:
+                              SVs.labelPosition === "end" ? undefined : "2px",
+                          marginInlineStart:
+                              SVs.labelPosition === "end" ? "2px" : undefined,
+                      }
+            }
         >
             {label}
         </label>
@@ -1575,6 +1626,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         <React.Fragment>
             <span
                 id={id}
+                ref={inMathSlot ? slotRootRef : undefined}
                 // `display: inline` keeps the label and input row as ordinary
                 // inline content so the whole input flows with its paragraph:
                 // text before and after the input wraps together with the label

@@ -1,5 +1,8 @@
 import BaseComponent from "./abstract/BaseComponent";
-import { setUpVariantSeedAndRng } from "../utils/variants";
+import {
+    setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 
 export default class Option extends BaseComponent {
     static componentType = "option";
@@ -81,9 +84,8 @@ export default class Option extends BaseComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -141,19 +143,9 @@ export default class Option extends BaseComponent {
         });
     }
 
-    get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
-        let additionalRendererTypes =
-            this.potentialRendererTypesFromSerializedComponents(
-                this.serializedChildren,
-            );
-        for (let rendererType of additionalRendererTypes) {
-            if (!allPotentialRendererTypes.includes(rendererType)) {
-                allPotentialRendererTypes.push(rendererType);
-            }
-        }
-
-        return allPotentialRendererTypes;
+        this.addPotentialRendererTypesFromSerializedChildren(rendererTypes);
     }
 }

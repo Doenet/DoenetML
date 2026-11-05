@@ -516,7 +516,7 @@ describe("BooleanList tag tests @group3", async () => {
         await check_items(maxNum);
     });
 
-    it("booleanList within booleanLists, ignore child hide", async () => {
+    it("booleanList within booleanLists, a hidden child keeps its value but is not shown", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><booleanList hide="true" name="bl1">true true false</booleanList></p>
@@ -539,7 +539,8 @@ describe("BooleanList tag tests @group3", async () => {
             name: "bl2",
             booleans: [false, true, true, false, true, true, true, false],
             pName: "p2",
-            text: "false, true, true, false, true, true, true, false",
+            // the hidden child is not drawn, but keeps its place (D29)
+            text: "false, true, true, false, true, true, false",
         });
 
         await test_booleanList({
@@ -548,7 +549,7 @@ describe("BooleanList tag tests @group3", async () => {
             name: "bl3",
             booleans: [false, true, true, false, true, true],
             pName: "p3",
-            text: "false, true, true, false, true, true",
+            text: "false, true, true, false, true",
         });
     });
 

@@ -277,16 +277,17 @@ describe("section words follow the document locale @group4", () => {
             ).toEqual({ bare: "   ", nbsp: "\u00a0" });
         });
 
-        it("numbers a list item by counting, which arrives as a number", async () => {
-            // The premise of the test below: a section rendered as a list item
-            // takes its number from `countAmongSiblings`, and that reaches
-            // `composeTitlePrefix` as a real number rather than as text.
+        it("numbers a list item by counting its siblings", async () => {
+            // A section rendered as a list item takes its number from
+            // `countAmongSiblings` rather than from its place among the
+            // document's divisions, and hands it to `composeTitlePrefix` as
+            // text, the way every section number reaches it.
             const listed = `<problems asList>
               <problems name="a" includeAutoName includeAutoNumber><p>x</p></problems>
               <problems name="b" includeAutoName includeAutoNumber><p>y</p></problems>
             </problems>`;
             const svs = await stateValuesOf(listed, ["b"]);
-            expect(typeof svs.b.sectionNumber).eq("number");
+            expect(svs.b.sectionNumber).eq("2");
             expect(svs.b.titlePrefix).eq("Problems 2");
         });
 

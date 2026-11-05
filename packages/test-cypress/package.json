@@ -47,7 +47,8 @@
                 "../doenetml:build",
                 "../prefigure:build",
                 "../ui-components:build",
-                "../standalone:build"
+                "../standalone:build",
+                "../math:build"
             ]
         }
     },
@@ -59,6 +60,7 @@
         "@doenet/doenetml-prototype": "*",
         "@doenet/i18n": "*",
         "@doenet/utils": "^*",
+        "math-expressions": "file:../math",
         "vite": "^*"
     },
     "devDependencies": {

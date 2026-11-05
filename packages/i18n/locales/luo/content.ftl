@@ -63,15 +63,12 @@ color =
     .purple = rambulu
     .pink = pinki
     .brown = rabuor
-
 line-width =
     .thick = mabor
     .thin = manyilili
-
 line-style =
     .dashed = mokethore
     .dotted = man-gi tonde
-
 fill-style =
     .horizontal = laini monindo
     .vertical = laini mochung'
@@ -79,7 +76,6 @@ fill-style =
     .backdiagonal = laini mopadore komachielo
     .dots = tonde
     .diamonds = almaz
-
 noun =
     .line = laini
     .line-segment = bath laini
@@ -99,7 +95,6 @@ noun =
     .diamond = almaz
     .cross = msalaba
     .plus = ranyisi mar medo
-
 # The side count is a relative clause and closes the noun phrase behind the
 # adjectives rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -107,10 +102,8 @@ noun-regular-polygon =
         [tail] man-gi bethe { $numSides }
        *[head] kido mopogore maromre
     }
-
 # Nothing selects on it: Dholuo has no gender and no noun classes.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -129,7 +122,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] ma{ $color }
     }
-
 # The noun leads and its adjectives follow, with the noun's own relative
 # complement closing the phrase.
 style-with-noun =
@@ -137,15 +129,12 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = mopong'
-
 style-filled =
     { $parts ->
         [pattern] { $filled } ma{ $color } gi { $pattern }
        *[plain] { $filled } ma{ $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } ma{ $color } gi { $pattern }
@@ -153,7 +142,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } ma{ $color } gi { $pattern }
        *[plain] { $noun } { $filled } ma{ $color }
     }
-
 # Dholuo has no article, so the two `-article` branches read like their
 # neighbours; «gi» joins the clause and does not change shape.
 style-border-clause =
@@ -163,35 +151,28 @@ style-border-clause =
         [and-article] gi giko { $border }
        *[with] gi giko { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } ma{ $color }
        *[plain] ma{ $color }
     }
-
 style-unfilled = ok opong'
-
 style-text =
     { $parts ->
         [background] ma{ $color } e ng'e ma{ $background }
        *[plain] ma{ $color }
     }
-
 style-background-none = onge
-
 
 ## Boolean words
 
 boolean-true = adiera
 boolean-false = miriambo
 
-
 ## Answer buttons
 
 answer-submit-label = Non Tich
 answer-submit-label-no-correctness = Or Duoko
-
 
 ## Sectional blocks
 
@@ -216,7 +197,6 @@ section-name =
     .solution = Yoo mar loso
     .task = Tich
     .theorem = Thiorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -226,9 +206,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ranyisi
-
 
 ## Tables and figures
 
@@ -239,7 +217,6 @@ table-name =
         [unnumbered-title] Tebulo{ ": " }
        *[unnumbered] Tebulo
     }
-
 figure-name =
     { $parts ->
         [numbered] Picha { $enumeration }
@@ -248,24 +225,18 @@ figure-name =
        *[unnumbered] Picha
     }
 
-
 ## Paginator controls
 
 paginator-previous = Mokalo
 paginator-next = Maluwo
 paginator-page = Ich
-
 paginator-page-status = { $pageLabel } { $currentPage } kuom { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = kata
-
 piecewise-condition-if = ka
-
 piecewise-condition-otherwise = ka ok kamano
-
 
 ## Chemistry
 ##
@@ -277,6 +248,5 @@ piecewise-condition-otherwise = ka ok kamano
 ## periodic table there and the fallback *is* the curriculum.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ranyisi mar Kemikal ma Ok Kare
 chemistry-invalid-ionic-compound = Riwruok mar Ayon ma Ok Kare

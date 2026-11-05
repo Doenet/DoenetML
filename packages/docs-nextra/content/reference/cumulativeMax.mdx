@@ -1,0 +1,56 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<cumulativeMax>{:dn}`
+
+<ComponentDisplay name='cumulativeMax'/>
+
+`<cumulativeMax>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
+component that renders the running maximum of its arguments: a list whose $n$th entry
+is the largest of the first $n$ input values.
+
+Where [`<max>{:dn}`](max) reduces a list to a single value, `<cumulativeMax>{:dn}`
+produces a list the same length as its input. The result never decreases.
+
+<AttrPropDisplay name='cumulativeMax'/>
+
+## Examples
+
+### Example: running maximum
+
+
+```doenet-editor-horiz
+<numberList name="nl">3 1 4 1 5 9 2 6</numberList>
+
+<p>Values: $nl</p>
+<p>Running maximum: <cumulativeMax>$nl</cumulativeMax></p>
+```
+
+
+
+Each entry is the largest value seen so far, so the list is non-decreasing and its
+last entry is the `<max>{:dn}` of the whole input.
+
+
+
+---
+
+### Example: a personal best
+
+
+```doenet-editor-horiz
+<numberList name="scores">72 65 88 80 91 79</numberList>
+
+<cumulativeMax name="best">$scores</cumulativeMax>
+
+<p>Scores in order: $scores</p>
+<p>Personal best after each attempt: $best</p>
+<p>Best after four attempts: $best[4]</p>
+```
+
+
+
+Pairing `<cumulativeMax>{:dn}` with the original list shows when a record was set:
+the running maximum changes exactly on those attempts.

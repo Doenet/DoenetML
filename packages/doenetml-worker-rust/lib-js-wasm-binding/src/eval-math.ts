@@ -4,6 +4,7 @@ import {
     serializedComponentsReplacer,
     serializedComponentsReviver,
     normalizeMathExpression,
+    toNumberOrNaN,
 } from "@doenet/utils";
 import { latexToMathFactory, textToMathFactory } from "./math-utils";
 
@@ -236,14 +237,18 @@ export function normalizeMath(
  * Arguments:
  * @mathObject - the stringified math expression
  */
-export function evaluateToNumber(mathObject: string) {
+export function evaluateToNumber(mathObject: string): number {
     let mathExpr = me.fromAst(
         JSON.parse(mathObject, serializedComponentsReviver),
     );
 
-    let newNumber = mathExpr.evaluate_to_constant();
-
-    return newNumber;
+    // `evaluate_to_constant` answers a math.js `Complex` for a constant that
+    // is not real (`evaluate_to_constant("i")` is `{re: 0, im: 1}`), which the
+    // Rust side (`math_via_wasm.rs`, `.as_f64()`) cannot carry — and answered
+    // `null` for "not a constant" while the sentinel was one. `toNumberOrNaN`
+    // is the one place that maps both to `NaN`, which is what this function's
+    // name promises and what its sibling below already returned.
+    return toNumberOrNaN(mathExpr.evaluate_to_constant());
 }
 
 /**
@@ -266,7 +271,5 @@ export function parseTextIntoNumber(text: string): number {
         return NaN;
     }
 
-    let newNumber = expression.evaluate_to_constant();
-
-    return newNumber ?? NaN;
+    return toNumberOrNaN(expression.evaluate_to_constant());
 }

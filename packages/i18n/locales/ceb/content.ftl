@@ -37,15 +37,12 @@ color =
     .purple = purpura
     .pink = rosas
     .brown = tabunon
-
 line-width =
     .thick = baga
     .thin = nipis
-
 line-style =
     .dashed = putol-putol
     .dotted = tuldok-tuldok
-
 # Noun phrases: they follow «uban ang» and modify nothing, so they take no
 # linker.
 fill-style =
@@ -55,7 +52,6 @@ fill-style =
     .backdiagonal = mga linya nga pahilis pabalik
     .dots = mga tuldok
     .diamonds = mga diyamante
-
 noun =
     .line = linya
     .line-segment = bahin sa linya
@@ -75,7 +71,6 @@ noun =
     .diamond = diyamante
     .cross = krus
     .plus = timaan sa dugang
-
 # The side count follows the noun with «nga» and «ka», the numeral linker, and
 # precedes the adjectives, so it folds into the head and there is no tail:
 # «regular nga poligono nga { $numSides } ka kilid».
@@ -84,11 +79,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] regular nga poligono nga { $numSides } ka kilid
     }
-
 # Cebuano has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -104,7 +97,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and the linker introduces its adjectives: «linya nga baga nga
 # putol-putol nga pula».
 style-with-noun =
@@ -112,15 +104,12 @@ style-with-noun =
         [noun-tail] { $noun } nga { $description } { $nounTail }
        *[noun] { $noun } nga { $description }
     }
-
 style-filled-word = puno
-
 style-filled =
     { $parts ->
         [pattern] { $filled } nga { $color } uban ang { $pattern }
        *[plain] { $filled } nga { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } nga { $filled } nga { $color } uban ang { $pattern }
@@ -128,7 +117,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } nga { $filled } nga { $color } uban ang { $pattern }
        *[plain] { $noun } nga { $filled } nga { $color }
     }
-
 # Cebuano needs no article, so the `-article` branches read like the ones
 # without.
 style-border-clause =
@@ -138,36 +126,29 @@ style-border-clause =
         [and-article] ug utlanan nga { $border }
        *[with] uban ang utlanan nga { $border }
     }
-
 # The pattern is a noun and the colour follows it with the linker.
 style-fill =
     { $parts ->
         [pattern] { $pattern } nga { $color }
        *[plain] { $color }
     }
-
 style-unfilled = walay sulod
-
 style-text =
     { $parts ->
         [background] { $color } uban ang luyo nga { $background }
        *[plain] { $color }
     }
-
 style-background-none = wala
-
 
 ## Boolean words
 
 boolean-true = tinuod
 boolean-false = bakak
 
-
 ## Answer buttons
 
 answer-submit-label = Susiha ang Buhat
 answer-submit-label-no-correctness = Ipadala ang Tubag
-
 
 ## Sectional blocks
 
@@ -192,7 +173,6 @@ section-name =
     .solution = Solusyon
     .task = Buluhaton
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -202,9 +182,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Timailhan
-
 
 ## Tables and figures
 
@@ -217,7 +195,6 @@ table-name =
         [unnumbered-title] Talaan{ ": " }
        *[unnumbered] Talaan
     }
-
 figure-name =
     { $parts ->
         [numbered] Hulagway { $enumeration }
@@ -226,22 +203,18 @@ figure-name =
        *[unnumbered] Hulagway
     }
 
-
 ## Paginator controls
 
 paginator-previous = Miagi
 paginator-next = Sunod
 paginator-page = Panid
-
 paginator-page-status = { $pageLabel } { $currentPage } sa { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = kon
 piecewise-condition-otherwise = kon dili
-
 
 ## Chemistry
 ##
@@ -253,6 +226,5 @@ piecewise-condition-otherwise = kon dili
 ## and for the same school system rather than for two different reasons.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Dili Balido nga Simbolo sa Kemikal
 chemistry-invalid-ionic-compound = Dili Balido nga Ionic nga Compound

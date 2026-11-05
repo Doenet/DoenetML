@@ -36,15 +36,12 @@ color =
     .purple = বেগুনি
     .pink = গোলাপি
     .brown = বাদামি
-
 line-width =
     .thick = মোটা
     .thin = সরু
-
 line-style =
     .dashed = ড্যাশযুক্ত
     .dotted = বিন্দুযুক্ত
-
 # Noun phrases rather than adjectives: they are introduced by দিয়ে ("using"),
 # which takes a bare noun, so each one stands on its own below.
 fill-style =
@@ -54,7 +51,6 @@ fill-style =
     .backdiagonal = বিপরীত কর্ণ রেখা
     .dots = বিন্দু
     .diamonds = রম্বস
-
 noun =
     .line = রেখা
     .line-segment = রেখাংশ
@@ -74,7 +70,6 @@ noun =
     .diamond = রম্বস
     .cross = ক্রস
     .plus = যোগ চিহ্ন
-
 # বাহুবিশিষ্ট ("having sides") attaches the count to the noun that follows, so
 # the whole phrase is one head and there is no tail.
 noun-regular-polygon =
@@ -82,11 +77,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } বাহুবিশিষ্ট সুষম বহুভুজ
     }
-
 # Bangla has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -100,15 +93,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = ভরাট
-
 # দিয়ে follows the pattern it applies to, so the clause English appends comes
 # to the front here.
 style-filled =
@@ -116,7 +106,6 @@ style-filled =
         [pattern] { $pattern } দিয়ে { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } দিয়ে { $filled } { $color } { $noun }
@@ -124,7 +113,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } দিয়ে { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # সহ is a postposition, so it follows সীমানা rather than preceding it as
 # English's `with` does. Bangla has no article, which leaves the `-article`
 # branches reading exactly like the ones without.
@@ -135,15 +123,12 @@ style-border-clause =
         [and-article] এবং { $border } সীমানা সহ
        *[with] { $border } সীমানা সহ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ভরাটহীন
-
 # The locative -তে marks পটভূমি, and the colour word in front of it is
 # untouched by that.
 style-text =
@@ -151,21 +136,17 @@ style-text =
         [background] { $background } পটভূমিতে { $color }
        *[plain] { $color }
     }
-
 style-background-none = নেই
-
 
 ## Boolean words
 
 boolean-true = সত্য
 boolean-false = মিথ্যা
 
-
 ## Answer buttons
 
 answer-submit-label = যাচাই করুন
 answer-submit-label-no-correctness = উত্তর জমা দিন
-
 
 ## Sectional blocks
 
@@ -190,7 +171,6 @@ section-name =
     .solution = সমাধান
     .task = কাজ
     .theorem = উপপাদ্য
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -200,9 +180,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ইঙ্গিত
-
 
 ## Tables and figures
 
@@ -213,7 +191,6 @@ table-name =
         [unnumbered-title] সারণি{ ": " }
        *[unnumbered] সারণি
     }
-
 figure-name =
     { $parts ->
         [numbered] চিত্র { $enumeration }
@@ -222,26 +199,20 @@ figure-name =
        *[unnumbered] চিত্র
     }
 
-
 ## Paginator controls
 
 paginator-previous = পূর্ববর্তী
 paginator-next = পরবর্তী
 paginator-page = পৃষ্ঠা
-
 # «X-এর মধ্যে Y» — "Y out of X" — puts the total first, so the two counts
 # change places.
 paginator-page-status = { $numPages }-এর মধ্যে { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = অথবা
-
 piecewise-condition-if = যদি
-
 piecewise-condition-otherwise = অন্যথায়
-
 
 ## Chemistry
 ##
@@ -369,7 +340,6 @@ element-name =
     .lv = লিভারমোরিয়াম
     .ts = টেনেসিন
     .og = ওগানেসন
-
 element-anion-name =
     .h = হাইড্রাইড
     .c = কার্বাইড
@@ -383,8 +353,6 @@ element-anion-name =
     .i = আয়োডাইড
     .at = অ্যাস্টাটাইড
     .ts = টেনেসাইড
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = অবৈধ রাসায়নিক প্রতীক
 chemistry-invalid-ionic-compound = অবৈধ আয়নিক যৌগ

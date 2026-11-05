@@ -1,8 +1,270 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { createNewComponentIndices } from "../utils/componentIndices";
-import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    compareExtractedValues,
+    returnBreakStringsIntoTypeSugarInstruction,
+    returnListValueStateVariableDefinitions,
+} from "../utils/listValues";
+
+/**
+ * The permutation taking `previous` to `current`, or `null` if `current` is
+ * not a reordering of `previous`.
+ *
+ * Entry `k` of the result is the position in `previous` of the component that
+ * belongs at position `k` now, which is the form
+ * `changeType: "rearrangeReplacements"` takes: the replacement built from that
+ * component is at that same position in the composite's replacements.
+ *
+ * A component may legitimately appear twice — `<sort>$a $a</sort>` copies it
+ * once per occurrence — so positions are matched off in order rather than by
+ * lookup, which pairs the first occurrence with the first, the second with the
+ * second, and keeps the result a permutation.
+ */
+function arrangementFromCopiedComponents(previous, current) {
+    if (previous === undefined || previous.length !== current.length) {
+        return null;
+    }
+
+    const positionsByComponent = new Map();
+    for (const [ind, componentIdx] of previous.entries()) {
+        let positions = positionsByComponent.get(componentIdx);
+        if (positions === undefined) {
+            positions = [];
+            positionsByComponent.set(componentIdx, positions);
+        }
+        positions.push(ind);
+    }
+
+    const arrangement = [];
+    const nextOccurrence = new Map();
+
+    for (const componentIdx of current) {
+        const positions = positionsByComponent.get(componentIdx);
+        const occurrence = nextOccurrence.get(componentIdx) ?? 0;
+
+        if (positions === undefined || occurrence >= positions.length) {
+            // A component that was not copied before, or copied fewer times:
+            // the children changed rather than merely moved.
+            return null;
+        }
+
+        arrangement.push(positions[occurrence]);
+        nextOccurrence.set(componentIdx, occurrence + 1);
+    }
+
+    return arrangement;
+}
+
+/**
+ * Whether moving the replacements into `arrangement` is worth doing rather than
+ * rebuilding them.
+ *
+ * What a rearrangement saves is the replacements that *don't* move: those keep
+ * their components, and so does whatever copies the sorted list. A replacement
+ * that does move costs a copy of the list the same rebuild it would have paid
+ * anyway, and the move on top of it.
+ *
+ * So the saving is proportional to how many entries stay where they were, and a
+ * step that reorders nearly everything is better off rebuilt. On forty sorted
+ * points read by a `<p>`, the two paths cost about the same when half the list
+ * moves; below that rearranging wins by progressively more, above it rebuilding
+ * does. A drag carries a value past one neighbor at a time and leaves all but
+ * two entries where they were; typing a value that belongs at the far end is
+ * what reaches the other case.
+ */
+function worthRearranging(arrangement) {
+    let stayed = 0;
+
+    for (const [ind, previousInd] of arrangement.entries()) {
+        if (previousInd === ind) {
+            stayed++;
+        }
+    }
+
+    return stayed * 2 >= arrangement.length;
+}
+
+/**
+ * Whether each of `replacements` is still the copy of the component at the
+ * same position of `componentsCopied`.
+ *
+ * A source can be rebuilt under the same component index, such as
+ * `<math extend="$ans.submittedResponse1" />` when the answer is first
+ * submitted. Deleting the old source also deletes its copy here, so the
+ * indices copied are unchanged but a replacement is gone.
+ */
+function replacementsMatchCopied(replacements, componentsCopied) {
+    return (
+        replacements.length === componentsCopied.length &&
+        componentsCopied.every((componentIdx, ind) =>
+            typeof componentIdx === "string"
+                ? replacements[ind] !== undefined
+                : replacements[ind]?.shadows?.componentIdx === componentIdx,
+        )
+    );
+}
+
+/**
+ * The entry of a list component that `valueObj` of `sortedValues` is, if it
+ * is one: the list, the entry's index, and a key that names the entry. An
+ * entry has no component to copy, so its replacement is a reference to it
+ * (`listEntryReplacement`).
+ */
+function listEntryOfValue(valueObj, components) {
+    if (valueObj.listInd === undefined) {
+        return undefined;
+    }
+    const list = components[valueObj.componentIdx];
+    if (list?.constructor.listEntryComponentType === undefined) {
+        return undefined;
+    }
+    return {
+        list,
+        listInd: valueObj.listInd,
+        key: `${valueObj.componentIdx}|${valueObj.listInd}`,
+    };
+}
+
+/**
+ * The replacement for entry `listInd` of the list component `list`: a
+ * reference to it, as `$list[2]` is, so that it shows the entry's value with
+ * the list's display settings and follows both as they change.
+ */
+export function listEntryReplacement({
+    list,
+    listInd,
+    nComponents,
+    stateIdInfo,
+}) {
+    const index = [{ value: [`${listInd + 1}`] }];
+    return {
+        serializedComponent: {
+            type: "serialized",
+            componentType: "_copy",
+            componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+            attributes: {},
+            doenetAttributes: {},
+            children: [],
+            state: {},
+            extending: {
+                Ref: {
+                    nodeIdx: list.componentIdx,
+                    originalPath: [{ name: "", index }],
+                    unresolvedPath: [{ name: "", index }],
+                    nodesInResolvedPath: [list.componentIdx],
+                },
+            },
+        },
+        nComponents,
+    };
+}
+
+/**
+ * The attributes that decide what `<sort>` and `<sortIndices>` sort by, so
+ * that the two can never disagree about an ordering.
+ */
+export function returnSortAttributes() {
+    let attributes = {};
+
+    attributes.sortVectorsBy = {
+        groupName: "sorting",
+        description: "Whether to sort vectors by component or by magnitude.",
+        createComponentOfType: "text",
+        createStateVariable: "sortVectorsBy",
+        defaultValue: "displacement",
+        public: true,
+        toLowerCase: true,
+        validValues: [
+            {
+                value: "displacement",
+                description: "Sort vectors by their displacement components.",
+            },
+            {
+                value: "tail",
+                description:
+                    "Sort vectors by the position of their tail point.",
+            },
+        ],
+    };
+
+    attributes.sortByComponent = {
+        groupName: "sorting",
+        description:
+            "Index of the component to sort by (when sorting vectors).",
+        createComponentOfType: "integer",
+        createStateVariable: "sortByComponent",
+        defaultValue: "1",
+        public: true,
+    };
+
+    attributes.sortByProp = {
+        createPrimitiveOfType: "string",
+        highlighted: true,
+        groupName: "sorting",
+        description:
+            'Name of a property to sort by (e.g. "x" for sorting points by x-coordinate).',
+    };
+
+    attributes.type = {
+        createPrimitiveOfType: "string",
+        highlighted: true,
+        description:
+            "Component type to sort bare string children as. Omit it and they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
+        validValues: [
+            {
+                value: "number",
+                description: "Read bare strings as numbers, ordered by value.",
+            },
+            {
+                value: "math",
+                description:
+                    "Read bare strings as math expressions, ordered by value.",
+            },
+            {
+                value: "text",
+                description:
+                    "Read bare strings as text, ordered alphabetically.",
+            },
+            {
+                value: "boolean",
+                description:
+                    "Read bare strings as booleans, ordered with false before true.",
+            },
+        ],
+    };
+
+    return attributes;
+}
+
+/**
+ * The values of `listValues` in sorted order, shared by `<sort>` and
+ * `<sortIndices>`.
+ */
+export function returnSortedValuesDefinition() {
+    return {
+        returnDependencies: () => ({
+            listValues: {
+                dependencyType: "stateVariable",
+                variableName: "listValues",
+            },
+            allAreNumeric: {
+                dependencyType: "stateVariable",
+                variableName: "allAreNumeric",
+            },
+        }),
+        definition({ dependencyValues }) {
+            let sortedValues = [...dependencyValues.listValues];
+
+            sortedValues.sort((a, b) =>
+                compareExtractedValues(a, b, dependencyValues.allAreNumeric),
+            );
+
+            return { setValue: { sortedValues } };
+        },
+    };
+}
 
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
@@ -12,7 +274,7 @@ export default class Sort extends CompositeComponent {
     };
     static takesIndex = true;
 
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAnywhere = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
@@ -20,52 +282,13 @@ export default class Sort extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.sortVectorsBy = {
-            description:
-                "Whether to sort vectors by component or by magnitude.",
-            createComponentOfType: "text",
-            createStateVariable: "sortVectorsBy",
-            defaultValue: "displacement",
-            public: true,
-            toLowerCase: true,
-            validValues: [
-                {
-                    value: "displacement",
-                    description:
-                        "Sort vectors by their displacement components.",
-                },
-                {
-                    value: "tail",
-                    description:
-                        "Sort vectors by the position of their tail point.",
-                },
-            ],
-        };
-
-        attributes.sortByComponent = {
-            description:
-                "Index of the component to sort by (when sorting vectors).",
-            createComponentOfType: "integer",
-            createStateVariable: "sortByComponent",
-            defaultValue: "1",
-            public: true,
-        };
-
-        attributes.sortByProp = {
-            createPrimitiveOfType: "string",
-            description:
-                'Name of a property to sort by (e.g. "x" for sorting points by x-coordinate).',
-        };
-
-        attributes.type = {
-            createPrimitiveOfType: "string",
-            description: "Component type to sort children as.",
-        };
+        Object.assign(attributes, returnSortAttributes());
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            highlighted: true,
             description:
                 "Whether to render the items separated by commas (true) or with no separator (false).",
         };
@@ -76,83 +299,9 @@ export default class Sort extends CompositeComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        function breakStringsMacrosIntoTypeBySpaces({
-            matchedChildren,
-            componentAttributes,
-            componentInfoObjects,
-            nComponents,
-        }) {
-            const diagnostics = [];
-            // only if all children are strings or macros
-            if (
-                !matchedChildren.every(
-                    (child) =>
-                        typeof child === "string" ||
-                        (child.extending && "Ref" in child.extending),
-                )
-            ) {
-                return { success: false };
-            }
-
-            let type;
-            if (componentAttributes.type?.value) {
-                type = componentAttributes.type.value;
-            } else {
-                if (
-                    matchedChildren.some((child) => typeof child === "string")
-                ) {
-                    diagnostics.push(
-                        codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0013",
-                            args: { component: "sort" },
-                        }),
-                    );
-                }
-                return { success: false, diagnostics };
-            }
-
-            if (!["math", "text", "number", "boolean"].includes(type)) {
-                console.warn(`Invalid type ${type}`);
-                diagnostics.push(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0014",
-                        args: { type, component: "sort" },
-                    }),
-                );
-                type = "math";
-            }
-
-            // break any string by white space and wrap pieces with type
-            let groupIntoComponentTypesSeparatedBySpaces =
-                returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                    componentType: type,
-                    forceComponentType: true,
-                });
-            let result = groupIntoComponentTypesSeparatedBySpaces({
-                matchedChildren,
-                componentInfoObjects,
-                nComponents,
-            });
-
-            if (result.success) {
-                let newChildren = result.newChildren;
-
-                return {
-                    success: true,
-                    newChildren,
-                    nComponents: result.nComponents,
-                    diagnostics,
-                };
-            } else {
-                return { success: false };
-            }
-        }
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsMacrosIntoTypeBySpaces,
-        });
+        sugarInstructions.push(
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+        );
 
         return sugarInstructions;
     }
@@ -169,254 +318,15 @@ export default class Sort extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.propName = {
-            returnDependencies: () => ({
-                propName: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "sortByProp",
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnListValueStateVariableDefinitions({
+                componentName: this.componentType,
+                supportProps: true,
             }),
-            definition: function ({ dependencyValues }) {
-                return { setValue: { propName: dependencyValues.propName } };
-            },
-        };
+        );
 
-        stateVariableDefinitions.componentIndicesForValues = {
-            returnDependencies: () => ({
-                children: {
-                    dependencyType: "child",
-                    childGroups: ["anything"],
-                    variableNames: ["componentIndicesInList"],
-                    variablesOptional: true,
-                },
-            }),
-            definition({ dependencyValues }) {
-                let componentIndicesForValues = [];
-                const diagnostics = [];
-                for (let child of dependencyValues.children) {
-                    if (typeof child === "string") {
-                        diagnostics.push(
-                            codedDiagnostic({
-                                type: "warning",
-                                code: "doenet-w0015",
-                                args: { value: child, component: "sort" },
-                            }),
-                        );
-                        continue;
-                    }
-                    if (child.stateValues.componentIndicesInList) {
-                        componentIndicesForValues.push(
-                            ...child.stateValues.componentIndicesInList,
-                        );
-                    } else {
-                        componentIndicesForValues.push(child.componentIdx);
-                    }
-                }
-
-                return {
-                    setValue: { componentIndicesForValues },
-                    sendDiagnostics: diagnostics,
-                };
-            },
-        };
-
-        stateVariableDefinitions.sortedValues = {
-            stateVariablesDeterminingDependencies: [
-                "componentIndicesForValues",
-                "sortByComponent",
-                "propName",
-            ],
-            returnDependencies({ stateValues }) {
-                let dependencies = {
-                    sortVectorsBy: {
-                        dependencyType: "stateVariable",
-                        variableName: "sortVectorsBy",
-                    },
-                    sortByComponent: {
-                        dependencyType: "stateVariable",
-                        variableName: "sortByComponent",
-                    },
-                    propName: {
-                        dependencyType: "stateVariable",
-                        variableName: "propName",
-                    },
-                };
-                if (stateValues.propName) {
-                    for (let [
-                        ind,
-                        cIdx,
-                    ] of stateValues.componentIndicesForValues.entries()) {
-                        dependencies[`component${ind}`] = {
-                            dependencyType: "stateVariable",
-                            componentIdx: cIdx,
-                            variableName: stateValues.propName,
-                            variablesOptional: true,
-                            caseInsensitiveVariableMatch: true,
-                            publicStateVariablesOnly: true,
-                            returnAsComponentObject: true,
-                        };
-                    }
-                } else {
-                    for (let [
-                        ind,
-                        cIdx,
-                    ] of stateValues.componentIndicesForValues.entries()) {
-                        dependencies[`component${ind}`] = {
-                            dependencyType: "multipleStateVariables",
-                            componentIdx: cIdx,
-                            variableNames: [
-                                "value",
-                                `x${stateValues.sortByComponent}`,
-                                `tailX${stateValues.sortByComponent}`,
-                            ],
-                            variablesOptional: true,
-                        };
-                    }
-                }
-                return dependencies;
-            },
-            definition({ dependencyValues, componentInfoObjects }) {
-                let allValues = [];
-                let allAreNumeric = true;
-                for (let depName in dependencyValues) {
-                    if (depName.substring(0, 9) !== "component") {
-                        continue;
-                    }
-                    let component = dependencyValues[depName];
-                    if (dependencyValues.propName) {
-                        let value = Object.values(component.stateValues)[0];
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue: Number(value),
-                            textValue: String(value),
-                        });
-                        if (!Number.isFinite(value)) {
-                            allAreNumeric = false;
-                        }
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "number",
-                        })
-                    ) {
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue: component.stateValues.value,
-                            textValue: String(component.stateValues.value),
-                        });
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "text",
-                        })
-                    ) {
-                        let numericalValue = NaN;
-                        let textValue = component.stateValues.value;
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue,
-                            textValue,
-                        });
-                        allAreNumeric = false;
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "math",
-                        })
-                    ) {
-                        let numericalValue =
-                            component.stateValues.value.evaluate_to_constant();
-                        if (Number.isNaN(numericalValue)) {
-                            allAreNumeric = false;
-                        }
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue,
-                            textValue: component.stateValues.value.toString(),
-                        });
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "point",
-                        })
-                    ) {
-                        let compValue =
-                            component.stateValues[
-                                `x${dependencyValues.sortByComponent}`
-                            ];
-                        let numericalValue = NaN;
-                        let textValue = "";
-                        if (compValue) {
-                            numericalValue = compValue.evaluate_to_constant();
-                            if (Number.isNaN(numericalValue)) {
-                                allAreNumeric = false;
-                            }
-                            textValue = compValue.toString();
-                        }
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue,
-                            textValue,
-                        });
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "vector",
-                        })
-                    ) {
-                        let numericalValue = NaN;
-                        let textValue = "";
-                        let compValue =
-                            component.stateValues[
-                                `x${dependencyValues.sortByComponent}`
-                            ];
-                        if (dependencyValues.sortVectorsBy === "displacement") {
-                            compValue =
-                                component.stateValues[
-                                    `x${dependencyValues.sortByComponent}`
-                                ];
-                        } else {
-                            compValue =
-                                component.stateValues[
-                                    `tailX${dependencyValues.sortByComponent}`
-                                ];
-                        }
-                        if (compValue) {
-                            numericalValue = compValue.evaluate_to_constant();
-                            if (Number.isNaN(numericalValue)) {
-                                allAreNumeric = false;
-                            }
-                            textValue = compValue.toString();
-                        }
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue,
-                            textValue,
-                        });
-                    }
-                }
-
-                if (allAreNumeric) {
-                    allValues.sort(
-                        (a, b) => a.numericalValue - b.numericalValue,
-                    );
-                } else {
-                    allValues.sort((a, b) =>
-                        a.textValue > b.textValue
-                            ? 1
-                            : a.textValue < b.textValue
-                              ? -1
-                              : 0,
-                    );
-                }
-
-                return {
-                    setValue: {
-                        sortedValues: allValues,
-                    },
-                };
-            },
-        };
+        stateVariableDefinitions.sortedValues = returnSortedValuesDefinition();
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
@@ -447,8 +357,48 @@ export default class Sort extends CompositeComponent {
 
         let componentsCopied = [];
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        // Without this, `createNewComponentIndices` clears `stateId` and each
+        // replacement falls back to its `componentIdx` -- a position in the
+        // build, which moves whenever anything ahead of this `<sort>` does, so
+        // a reader's value comes back on the wrong replacement
+        // (Doenet/DoenetML#1944). An id minted off the composite's own
+        // document-derived id moves with nothing but the document.
+        //
+        // What it does not survive is a rebuild: every replacement is made
+        // again, and each recreation takes the next numbers from this counter,
+        // so work done on a replacement that a later rebuild recreates is
+        // dropped rather than landing on a different one. Every counter-based
+        // composite behaves that way; it is not what this is fixing.
+        //
+        // Two things rebuild: a changed set of values, and a reorder that
+        // `worthRearranging` turns down. A reorder it accepts is not a
+        // rebuild — `calculateReplacementChanges` moves the replacements it
+        // already has, and their ids travel with them.
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         for (let valueObj of await component.stateValues.sortedValues) {
             let replacementSource;
+
+            const listEntry = listEntryOfValue(valueObj, components);
+            if (listEntry) {
+                const res = listEntryReplacement({
+                    list: listEntry.list,
+                    listInd: listEntry.listInd,
+                    nComponents,
+                    stateIdInfo,
+                });
+                nComponents = res.nComponents;
+                replacements.push(res.serializedComponent);
+                componentsCopied.push(listEntry.key);
+                continue;
+            }
 
             if (valueObj.listInd === undefined) {
                 replacementSource = components[valueObj.componentIdx];
@@ -466,6 +416,7 @@ export default class Sort extends CompositeComponent {
                 const res = createNewComponentIndices(
                     [serializedComponent],
                     nComponents,
+                    stateIdInfo,
                 );
                 nComponents = res.nComponents;
                 replacements.push(res.components[0]);
@@ -480,6 +431,7 @@ export default class Sort extends CompositeComponent {
         });
 
         workspace.componentsCopied = componentsCopied;
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,
@@ -502,6 +454,12 @@ export default class Sort extends CompositeComponent {
         for (let valueObj of await component.stateValues.sortedValues) {
             let replacementSource;
 
+            const listEntry = listEntryOfValue(valueObj, components);
+            if (listEntry) {
+                componentsToCopy.push(listEntry.key);
+                continue;
+            }
+
             if (valueObj.listInd === undefined) {
                 replacementSource = components[valueObj.componentIdx];
             } else {
@@ -515,7 +473,15 @@ export default class Sort extends CompositeComponent {
             }
         }
 
+        // A replacement deleted along with its source can be neither kept nor
+        // moved, so if one is gone, rebuild them all.
+        const replacementsIntact = replacementsMatchCopied(
+            component.replacements,
+            workspace.componentsCopied,
+        );
+
         if (
+            replacementsIntact &&
             componentsToCopy.length == workspace.componentsCopied.length &&
             workspace.componentsCopied.every(
                 (x, i) => x === componentsToCopy[i],
@@ -524,7 +490,39 @@ export default class Sort extends CompositeComponent {
             return { replacementChanges: [], diagnostics, nComponents };
         }
 
-        // for now, just recreated
+        // Sorting the same children into a different order is the common case
+        // — a value changed, or one moved past another — and the replacements
+        // we would build are copies of the same components we already copied,
+        // just in new positions. Rearranging them keeps every replacement
+        // alive, so a dependency that resolved to one of them survives the
+        // change and the core has nothing to delete or create. (A reference
+        // that copies the output, such as `$sorted[2]`, still gets a
+        // replacement of its own built afresh — it just resolves to a
+        // component that is still there.)
+        const arrangement = arrangementFromCopiedComponents(
+            workspace.componentsCopied,
+            componentsToCopy,
+        );
+
+        if (
+            replacementsIntact &&
+            arrangement &&
+            worthRearranging(arrangement)
+        ) {
+            workspace.componentsCopied = componentsToCopy;
+
+            return {
+                replacementChanges: [
+                    { changeType: "rearrangeReplacements", arrangement },
+                ],
+                diagnostics,
+                nComponents,
+            };
+        }
+
+        // Either the children themselves changed, so there is nothing to
+        // reuse, or so few replacements would stay put that moving them costs
+        // more than building them again.
         let replacementResults = await this.createSerializedReplacements({
             component,
             components,

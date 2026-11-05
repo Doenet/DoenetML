@@ -1,216 +1,23 @@
+import {
+    groupCompositeRanges,
+    isBlankGroup,
+    type CompositeGroup,
+    type CompositeRange,
+} from "@doenet/utils";
 import type { FlatDastElement, FlatDastElementContent } from "./CoreWorker";
 
-/**
- * A single entry of a component's `_compositeReplacementActiveRange` state
- * value (built in the JS core's `CompositeExpander` and surfaced on the parent
- * component's renderer state by `RendererInstructionBuilder`).
- *
- * `firstInd`/`lastInd` are indices into the parent's children array in the
- * *child-instruction* index space (i.e. the same space as
- * `rendererState.childrenInstructions`, which includes `null` placeholders for
- * absent children). `potentialListComponents[i]` records whether the
- * replacement at `firstInd + i` is eligible to be an element of a list (an
- * inline component, or any component with `canBeInList`).
- */
-export type CompositeReplacementRange = {
-    compositeIdx: number;
-    compositeName?: string;
-    firstInd: number;
-    lastInd: number;
-    asList: boolean;
-    potentialListComponents?: boolean[];
-};
+export type { CompositeRange as CompositeReplacementRange };
 
 /**
  * A child slot, kept aligned with the child-instruction index space so the
- * `firstInd`/`lastInd` of a `CompositeReplacementRange` index directly into it.
- * `null` mirrors an absent child instruction (e.g. an unrendered branch); it is
- * preserved during processing — exactly as the renderer's
- * `addCommasForCompositeRanges` keeps `null` React children — and dropped only
- * when materializing the final FlatDast children.
+ * `firstInd`/`lastInd` of a composite range index directly into it. `null`
+ * mirrors an absent child instruction (e.g. an unrendered branch) and is
+ * dropped during grouping.
  */
 export type ChildContent = FlatDastElementContent | null;
 
-/**
- * Intermediate tree node produced by {@link processCompositeRanges}. A `content`
- * node is a passthrough string/ref (or `null`); a `group` node is a composite
- * range whose children have already been grouped. `isAsList` records whether the
- * renderer's `addCommasForCompositeRanges` would have inserted commas for this
- * range (`asList && allListComponents && groupedChildCount > 1`).
- */
-type Item =
-    | { kind: "content"; value: ChildContent }
-    | { kind: "group"; isAsList: boolean; compositeIdx: number; items: Item[] };
-
-/**
- * Faithful re-implementation of the grouping performed by
- * `addCommasForCompositeRanges` (in
- * `packages/doenetml/src/Viewer/renderers/utils/composites.tsx`), but producing
- * a tree of {@link Item} nodes instead of React nodes.
- *
- * Mirrors `addCommasForCompositeRangesSub`: it walks the ranges in order,
- * recursively groups nested composite ranges (a composite whose replacements are
- * themselves composites — the outer range comes first in the array), and for
- * each range computes `allListComponents` from the (post-grouping) list
- * eligibility of its items. The `removedInd` reconciliation the renderer needs
- * is intentionally omitted: the FlatDast always reflects the current children,
- * so there is no stale-React-child to skip.
- */
-function processCompositeRanges(
-    contents: ChildContent[],
-    ranges: CompositeReplacementRange[],
-    startInd: number,
-    endInd: number,
-    potentialListComponents: boolean[] | null,
-): { items: Item[]; eligible: boolean[] } {
-    const items: Item[] = [];
-    const eligible: boolean[] = [];
-    let lastChildInd = startInd - 1;
-    let lastChildIndIncludingEmptyComposites = lastChildInd;
-
-    for (let rangeInd = 0; rangeInd < ranges.length; rangeInd++) {
-        const range = ranges[rangeInd];
-        const rangeFirstInd = range.firstInd;
-        const rangeLastInd = range.lastInd;
-
-        if (rangeFirstInd > lastChildInd && rangeLastInd <= endInd) {
-            // Plain children sitting between the previous range and this one.
-            if (lastChildInd + 1 < rangeFirstInd) {
-                for (let i = lastChildInd + 1; i < rangeFirstInd; i++) {
-                    items.push({ kind: "content", value: contents[i] });
-                }
-                if (potentialListComponents) {
-                    for (let i = lastChildInd + 1; i < rangeFirstInd; i++) {
-                        eligible.push(potentialListComponents[i - startInd]);
-                    }
-                }
-            }
-
-            // The outer composite is first in the array, so its nested
-            // composites are exactly the ranges after it. Group them first.
-            const subRanges = ranges.slice(rangeInd + 1);
-            const { items: rawItems, eligible: rawEligible } =
-                processCompositeRanges(
-                    contents,
-                    subRanges,
-                    rangeFirstInd,
-                    rangeLastInd,
-                    range.potentialListComponents ?? null,
-                );
-
-            // Drop null children before deciding list-ness, mirroring
-            // `childrenInRange.filter((x) => x !== null)`.
-            const itemsInRange = rawItems.filter((it) => !isNullContent(it));
-            const eligibleInRange = rawEligible.filter(
-                (_, i) => !isNullContent(rawItems[i]),
-            );
-            const listItemsInRange = itemsInRange.filter(
-                (it) => !isBlankStringContent(it),
-            );
-            const eligibleListItemsInRange = eligibleInRange.filter(
-                (_, i) => !isBlankStringContent(itemsInRange[i]),
-            );
-
-            const allListComponents = eligibleListItemsInRange.every((x) => x);
-            const isAsList =
-                Boolean(range.asList) &&
-                allListComponents &&
-                listItemsInRange.length > 1;
-
-            if (itemsInRange.length > 0) {
-                items.push({
-                    kind: "group",
-                    isAsList,
-                    compositeIdx: range.compositeIdx,
-                    items: itemsInRange,
-                });
-                if (potentialListComponents) {
-                    eligible.push(allListComponents);
-                }
-            }
-
-            lastChildInd = rangeLastInd;
-            // For an empty composite, `rangeLastInd === rangeFirstInd - 1`; keep
-            // the eligibility cursor past the composite so we don't re-add it.
-            lastChildIndIncludingEmptyComposites = Math.max(
-                rangeFirstInd,
-                rangeLastInd,
-            );
-        }
-    }
-
-    // Trailing plain children after the last range.
-    if (lastChildInd < endInd) {
-        for (let i = lastChildInd + 1; i <= endInd; i++) {
-            items.push({ kind: "content", value: contents[i] });
-        }
-        if (potentialListComponents) {
-            for (
-                let i = lastChildIndIncludingEmptyComposites + 1;
-                i <= endInd;
-                i++
-            ) {
-                eligible.push(potentialListComponents[i - startInd]);
-            }
-        }
-    }
-
-    return { items, eligible };
-}
-
-function isNullContent(item: Item | undefined) {
-    return item?.kind === "content" && item.value === null;
-}
-
-function isBlankStringContent(item: Item | undefined) {
-    return (
-        item?.kind === "content" &&
-        typeof item.value === "string" &&
-        item.value.trim() === ""
-    );
-}
-
-function isBlankStringChild(child: FlatDastElementContent) {
+function isBlankChild(child: ChildContent) {
     return typeof child === "string" && child.trim() === "";
-}
-
-/**
- * The prototype's `<asList>` renderer treats each FlatDast child as a list item.
- * Whitespace-only strings in the JS child-instruction stream are separators
- * around authored inline replacements, not their own list items, so keep leading
- * and trailing blanks outside the wrapper when possible and remove inter-item
- * blanks from the wrapper's child list.
- */
-function trimAsListBlankChildren(children: FlatDastElementContent[]): {
-    leadingBlankChildren: FlatDastElementContent[];
-    listChildren: FlatDastElementContent[];
-    trailingBlankChildren: FlatDastElementContent[];
-} {
-    const firstNonBlankInd = children.findIndex((c) => !isBlankStringChild(c));
-
-    if (firstNonBlankInd === -1) {
-        return {
-            leadingBlankChildren: children,
-            listChildren: [],
-            trailingBlankChildren: [],
-        };
-    }
-
-    let lastNonBlankInd = children.length - 1;
-    while (
-        lastNonBlankInd > firstNonBlankInd &&
-        isBlankStringChild(children[lastNonBlankInd])
-    ) {
-        lastNonBlankInd--;
-    }
-
-    return {
-        leadingBlankChildren: children.slice(0, firstNonBlankInd),
-        listChildren: children
-            .slice(firstNonBlankInd, lastNonBlankInd + 1)
-            .filter((c) => !isBlankStringChild(c)),
-        trailingBlankChildren: children.slice(lastNonBlankInd + 1),
-    };
 }
 
 /**
@@ -234,74 +41,91 @@ function makeWrapperElement(
 }
 
 /**
- * Convert the {@link Item} tree into FlatDast children, emitting the wrapper
+ * Turn the grouped children into FlatDast children, emitting the wrapper
  * elements that need to exist in `elements[]`.
  *
- * - An `asList` group always becomes an `<asList>` wrapper (it has more than
- *   one non-blank list item).
+ * - A list group becomes an `<asList>` wrapper holding its items; the grouping
+ *   has settled that there are at least two. The prototype's `<asList>`
+ *   renderer treats every child as an item, so what the grouping keeps in a
+ *   list without its being an item cannot go inside the wrapper: the
+ *   whitespace at either end of the list goes outside it — or nowhere, when an
+ *   enclosing list would take it for an item in turn — and a composite that
+ *   produced only whitespace is left out.
  * - A non-list group is materialized as a single unit only when it must be —
- *   i.e. it has more than one child *and* sits inside an enclosing list, where
- *   the list would otherwise treat each of its children as a separate item. It
- *   is then wrapped in a passthrough `<_fragment>`. Everywhere else (top level,
- *   or a single child) its children are spliced inline, so non-list composites
- *   add no structure and the comma output matches the renderer exactly.
+ *   i.e. it has more than one child *and* sits inside a list, where the list
+ *   would otherwise treat each of its children as a separate item. It is then
+ *   wrapped in a passthrough `<_fragment>`. Everywhere else (top level, or a
+ *   single child) its children are spliced inline, so non-list composites add
+ *   no structure and the comma output matches the renderers exactly.
  */
-function materializeItems(
-    items: Item[],
+function materializeGroups(
+    groups: CompositeGroup<ChildContent>[],
     contextIsList: boolean,
     wrapperElements: FlatDastElement[],
 ): FlatDastElementContent[] {
     const out: FlatDastElementContent[] = [];
 
-    for (const item of items) {
-        if (item.kind === "content") {
-            if (item.value !== null) {
-                out.push(item.value);
+    for (const group of groups) {
+        if (group.kind === "child") {
+            if (group.value !== null) {
+                out.push(group.value);
             }
             continue;
         }
 
-        if (item.isAsList) {
-            const rawChildren = materializeItems(
-                item.items,
-                true,
-                wrapperElements,
+        if (group.asList) {
+            const blank = group.items.map((item) =>
+                isBlankGroup(item, isBlankChild),
             );
-            const {
-                leadingBlankChildren,
-                listChildren,
-                trailingBlankChildren,
-            } = trimAsListBlankChildren(rawChildren);
+            const firstItemInd = blank.indexOf(false);
+            const lastItemInd = blank.lastIndexOf(false);
+            const items = group.items
+                .slice(firstItemInd, lastItemInd + 1)
+                .filter((_, ind) => !blank[firstItemInd + ind]);
 
             if (!contextIsList) {
-                out.push(...leadingBlankChildren);
+                out.push(
+                    ...materializeGroups(
+                        group.items.slice(0, firstItemInd),
+                        false,
+                        wrapperElements,
+                    ),
+                );
             }
             wrapperElements.push(
-                makeWrapperElement(item.compositeIdx, "asList", listChildren),
+                makeWrapperElement(
+                    group.range.compositeIdx,
+                    "asList",
+                    materializeGroups(items, true, wrapperElements),
+                ),
             );
-            out.push({ id: item.compositeIdx, annotation: "original" });
+            out.push({ id: group.range.compositeIdx, annotation: "original" });
             if (!contextIsList) {
-                out.push(...trailingBlankChildren);
+                out.push(
+                    ...materializeGroups(
+                        group.items.slice(lastItemInd + 1),
+                        false,
+                        wrapperElements,
+                    ),
+                );
             }
             continue;
         }
 
-        // Non-list group.
-        const children = materializeItems(item.items, false, wrapperElements);
-        if (children.length === 0) {
-            continue;
-        }
-        if (children.length === 1) {
-            // Already a single unit; no wrapper needed.
-            out.push(children[0]);
-        } else if (contextIsList) {
+        const children = materializeGroups(group.items, false, wrapperElements);
+        if (contextIsList && children.length > 1) {
             // Must be one unit so the enclosing list delimits it correctly.
             wrapperElements.push(
-                makeWrapperElement(item.compositeIdx, "_fragment", children),
+                makeWrapperElement(
+                    group.range.compositeIdx,
+                    "_fragment",
+                    children,
+                ),
             );
-            out.push({ id: item.compositeIdx, annotation: "original" });
+            out.push({ id: group.range.compositeIdx, annotation: "original" });
         } else {
-            // Not inside a list: splice inline, adding no structure.
+            // A single child is already one unit, and outside a list the
+            // children are spliced inline, adding no structure.
             out.push(...children);
         }
     }
@@ -312,7 +136,13 @@ function materializeItems(
 /**
  * Wrap a parent element's children in synthetic `<asList>` (and, where nesting
  * requires it, `<_fragment>`) parents that reproduce exactly the commas the
- * doenetml renderers add via `addCommasForCompositeRanges`.
+ * doenetml renderers add.
+ *
+ * The grouping itself — which children came from which composite, which of
+ * those composites are lists, and what whitespace belongs to a list — is
+ * `groupCompositeRanges`, shared with the renderers, the `text` state
+ * variable, and the string a `<math>` parses, so all four decide the commas the
+ * same way.
  *
  * @param childContents The parent's children aligned with the child-instruction
  *   index space (use `null` for absent child instructions) so the range indices
@@ -320,35 +150,25 @@ function materializeItems(
  * @param compositeReplacementActiveRange The parent's
  *   `_compositeReplacementActiveRange` state value (may be `undefined`/empty).
  * @returns The rewritten children plus any wrapper elements that must be added
- *   to the FlatDast `elements` array. When there are no ranges, `children` is
- *   simply `childContents` with `null`s dropped and `wrapperElements` is empty.
+ *   to the FlatDast `elements` array.
  */
 export function applyCompositeListWrapping(
     childContents: ChildContent[],
-    compositeReplacementActiveRange: CompositeReplacementRange[] | undefined,
+    compositeReplacementActiveRange: CompositeRange[] | undefined,
 ): { children: FlatDastElementContent[]; wrapperElements: FlatDastElement[] } {
-    if (
-        !compositeReplacementActiveRange ||
-        compositeReplacementActiveRange.length === 0
-    ) {
-        return {
-            children: childContents.filter(
-                (c): c is FlatDastElementContent => c !== null,
-            ),
-            wrapperElements: [],
-        };
-    }
-
-    const { items } = processCompositeRanges(
-        childContents,
-        compositeReplacementActiveRange,
-        0,
-        childContents.length - 1,
-        null,
-    );
+    const groups = groupCompositeRanges<ChildContent>({
+        children: childContents,
+        ranges: compositeReplacementActiveRange,
+        isAbsent: (child) => child === null,
+        isBlank: isBlankChild,
+        // A string that ends an item loses its trailing whitespace, as in the
+        // React renderers, so the prototype's comma sits right against it.
+        trimEnd: (child) =>
+            typeof child === "string" ? child.trimEnd() : child,
+    });
 
     const wrapperElements: FlatDastElement[] = [];
-    const children = materializeItems(items, false, wrapperElements);
+    const children = materializeGroups(groups, false, wrapperElements);
 
     return { children, wrapperElements };
 }

@@ -557,7 +557,7 @@ describe("TextList tag tests @group3", async () => {
         await check_items(maxN);
     });
 
-    it("textList within textLists, ignore child hide", async () => {
+    it("textList within textLists, a hidden child keeps its value but is not shown", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><textList hide="true" name="tl1">1 2 3</textList></p>
@@ -580,7 +580,8 @@ describe("TextList tag tests @group3", async () => {
             name: "tl2",
             texts: ["4", "1", "2", "3", "5", "1", "2", "3"],
             pName: "p2",
-            text: "4, 1, 2, 3, 5, 1, 2, 3",
+            // the hidden child is not drawn, but keeps its place (D29)
+            text: "4, 1, 2, 3, 1, 2, 3",
         });
 
         await test_textList({
@@ -589,7 +590,7 @@ describe("TextList tag tests @group3", async () => {
             name: "tl3",
             texts: ["4", "1", "2", "3", "5", "1"],
             pName: "p3",
-            text: "4, 1, 2, 3, 5, 1",
+            text: "4, 1, 2, 3, 1",
         });
     });
 

@@ -17,6 +17,7 @@
 pub mod component;
 pub mod component_enum;
 pub mod doenet;
+pub mod inventory;
 pub mod prelude;
 pub mod special;
 pub mod traits;

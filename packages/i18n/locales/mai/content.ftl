@@ -40,15 +40,12 @@ color =
     .purple = बैंगनी
     .pink = गुलाबी
     .brown = भूर
-
 line-width =
     .thick = मोट
     .thin = पातर
-
 line-style =
     .dashed = टूटल
     .dotted = बिंदुदार
-
 fill-style =
     .horizontal = आड़ी रेखा
     .vertical = ठाढ़ रेखा
@@ -56,7 +53,6 @@ fill-style =
     .backdiagonal = उनटल तिरछी रेखा
     .dots = बिंदु
     .diamonds = समचतुर्भुज
-
 noun =
     .line = रेखा
     .line-segment = रेखाखंड
@@ -76,7 +72,6 @@ noun =
     .diamond = समचतुर्भुज
     .cross = गुणा चिन्ह
     .plus = जोड़ चिन्ह
-
 # «-भुजा वला» takes the count and stands in front of the noun, so nothing
 # follows the adjectives and the tail is empty. The ending has one shape
 # whatever number lands before it.
@@ -85,10 +80,8 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides }-भुजा वला समबहुभुज
     }
-
 # Nothing selects on it, because no word in this catalog agrees with anything.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -102,15 +95,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = भरल
-
 # «सँ» is a postposition and follows what it governs, so the pattern moves to
 # the front of the phrase where English appends it.
 style-filled =
@@ -118,7 +108,6 @@ style-filled =
         [pattern] { $pattern } सँ { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } सँ { $filled } { $color } { $noun }
@@ -126,7 +115,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } सँ { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Maithili has no article, so the two `-article` branches read like their
 # neighbours; «आ» is the conjunction and stands in front.
 style-border-clause =
@@ -136,35 +124,28 @@ style-border-clause =
         [and-article] आ { $border } किनार सहित
        *[with] { $border } किनार सहित
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } सँ { $color } भरनी
        *[plain] { $color } भरनी
     }
-
 style-unfilled = बिनु भरल
-
 style-text =
     { $parts ->
         [background] { $background } पृष्ठभूमि पर { $color }
        *[plain] { $color }
     }
-
 style-background-none = किछु नहि
-
 
 ## Boolean words
 
 boolean-true = सत्य
 boolean-false = असत्य
 
-
 ## Answer buttons
 
 answer-submit-label = जाँचू
 answer-submit-label-no-correctness = उत्तर पठाउ
-
 
 ## Sectional blocks
 
@@ -189,7 +170,6 @@ section-name =
     .solution = हल
     .task = काज
     .theorem = प्रमेय
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -199,9 +179,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = संकेत
-
 
 ## Tables and figures
 
@@ -212,7 +190,6 @@ table-name =
         [unnumbered-title] सारणी{ ": " }
        *[unnumbered] सारणी
     }
-
 figure-name =
     { $parts ->
         [numbered] चित्र { $enumeration }
@@ -221,26 +198,20 @@ figure-name =
        *[unnumbered] चित्र
     }
 
-
 ## Paginator controls
 
 paginator-previous = पछिला
 paginator-next = अगिला
 paginator-page = पृष्ठ
-
 # «X मे सँ Y» — "Y out of X" — puts the total first, so the two counts change
 # places.
 paginator-page-status = { $numPages } मे सँ { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = वा
-
 piecewise-condition-if = जँ
-
 piecewise-condition-otherwise = अन्यथा
-
 
 ## Chemistry
 ##
@@ -256,6 +227,5 @@ piecewise-condition-otherwise = अन्यथा
 ## record, told for the first time with another Indian language as the medium.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = अमान्य रासायनिक चिन्ह
 chemistry-invalid-ionic-compound = अमान्य आयनिक यौगिक

@@ -1,0 +1,152 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+
+# `<m>{:dn}`
+
+<ComponentDisplay name='m'/>
+
+`<m>{:dn}` is a [Display Math](../concepts/essentialConcepts#component-types)
+component that renders inline mathematical content.  The `<m>{:dn}` tag accepts Latex and 
+DoenetML mathematical content as input.
+
+For displaying mathematics alone on a line by itself, see `<me>{:dn}`, `<men>{:dn}` 
+or `<md>{:dn}`,`<mdn>{:dn}` (for aligned mathematics). See also `<math>{:dn}`
+for mathematical manipulations using a computer algebra system.
+
+<AttrPropDisplay name='m'/>
+
+## Examples
+
+### Example: `<m>{:dn}` inside a paragraph
+
+
+```doenet-editor-horiz
+<p>In this example, <m>F=5.27</m> <m>kN</m> applied in the <m>y</m> direction.</p>
+```
+
+
+
+The `<m>{:dn}` component is used to format isolated content within a section of 
+text that has been enclosed within a `<p>{:dn}`, or paragraph component. 
+
+
+
+---
+
+### Example: `<m>{:dn}` in combination with `<math>{:dn}`
+
+
+```doenet-editor-horiz
+<math name="expr">x^2 + y^2</math>
+<p><m>f(x,y) = $expr</m></p>
+```
+
+
+
+An `<m>{:dn}` tag encloses an inline math expression that also contains a 
+reference to a named `<math>{:dn}`.
+
+
+
+---
+
+### Example: `<m>{:dn}` in combination with <tage>mathInput</tage>
+
+
+```doenet-editor-horiz
+<p><mathInput name="mi"><label>Enter a function in <m>x</m></label></mathInput></p>
+<p><m>f(x) = $mi</m></p>
+```
+
+
+
+An `<m>{:dn}` tag encloses an inline math expression that also contains a 
+reference to a named `<mathInput/>{:dn}`. The reference shows what the reader
+has entered; the input itself stays where it is written, above the expression.
+To put the input *into* the expression instead, write it there — see the next
+example.
+
+
+
+---
+
+### Example: a `<mathInput/>{:dn}` inside `<m>{:dn}`
+
+
+```doenet-editor-horiz
+<p><m>x^2 + <mathInput name="b" /> x + 4 = (x + 2)^2</m></p>
+<p>You entered: <m>$b</m></p>
+```
+
+
+A `<mathInput/>{:dn}` written inside an `<m>{:dn}` is rendered *in place*,
+inside the typeset expression, so the reader fills in the blank where it
+belongs rather than beside the mathematics, and writes the answer as
+mathematics — a fraction, a root, an exponent. The expression makes room as
+the answer grows, and closes back up as it shrinks. A `<textInput/>{:dn}` can
+be written there in the same way, when a line of ordinary text will do.
+
+This is the one place an input does not need a `<shortDescription>{:dn}` or a
+`<label>{:dn}`. Everywhere else, an input without one of them is an
+accessibility violation, and the document reports it as one. Inside an
+expression, the expression itself describes the input to a screen reader —
+the input above is described as "x² + blank x + 4 = (x + 2)²" — so nothing is
+reported. A `<label>{:dn}` given anyway still names the input, but is not
+drawn, since there is nowhere inside an equation to put it.
+
+Even so, write a `<shortDescription>{:dn}` when the expression does not read
+as a sentence with the blank in it. Two cases where it will not: when the
+input sits in a subscript or a superscript, which reading aloud does not carry;
+and when an expression holds so many blanks that a reader is left counting
+which one they are on. Where the expression does read plainly — the example
+above, or a blank in a fraction or under a root — it names the input better
+than a description would.
+
+Not every input can be placed inside an expression. A non-`inline`
+`<choiceInput/>{:dn}` or an `expanded` `<textInput/>{:dn}` is too large to sit
+in a line of mathematics, a `<textInput/>{:dn}` given a relative width (in `%`
+or `em`) cannot be added to mathematics, and mathematics drawn on a
+`<graph>{:dn}` has no room for an input. Those inputs are not shown, and a
+warning explains the problem.
+
+
+
+---
+
+### Example: a `<choiceInput/>{:dn}` inside `<m>{:dn}`
+
+
+```doenet-editor-horiz
+<p>The line through <m>(0, 1)</m> and <m>(2, 5)</m> is
+<m>y = <choiceInput inline name="slope">
+  <choice>2</choice><choice>-2</choice><choice>1/2</choice>
+</choiceInput> x + 1</m>.</p>
+<p>You chose: $slope.selectedValue</p>
+```
+
+
+An `inline` `<choiceInput/>{:dn}` sits in the expression as a drop-down list,
+for a blank whose answer is one of a few possibilities. It is described to a
+screen reader as "y = blank x + 1".
+
+
+
+---
+
+### Example: `<m>{:dn}` in combination with `<answer>{:dn}`
+
+
+```doenet-editor-horiz
+<p><answer symbolicEquality><label>Simplify <m>x \cdot x = </m></label>x^2</answer></p>    
+```
+
+
+
+An `<m>{:dn}` tag encloses an inline math expression that precedes 
+an `<answer>{:dn}`. Note that an `<answer>{:dn}` cannot be *defined* within 
+an `<m>{:dn}` component.
+
+

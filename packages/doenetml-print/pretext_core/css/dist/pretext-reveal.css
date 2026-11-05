@@ -10,9 +10,6 @@ ol.decimal {
 ol.lower-alpha {
   list-style-type: lower-alpha;
 }
-ol.lower-alpha-level-1 > li::marker {
-  content: "(" counter(list-item, lower-alpha) ") ";
-}
 ol.upper-alpha {
   list-style-type: upper-alpha;
 }
@@ -79,6 +76,10 @@ ul {
 .asymptote-box {
   position: relative;
 }
+.image-box img,
+img.contained {
+  width: 100%;
+}
 iframe.asymptote,
 .video-box .video,
 .video-box .video-poster {
@@ -134,6 +135,16 @@ pre[class*=language-] {
 }
 dfn {
   font-weight: bold;
+}
+.reveal .tablenotes {
+  margin: 0.5em auto;
+  width: fit-content;
+  display: block;
+  font-size: 80%;
+  list-style: none;
+}
+.reveal .tablenote sup i {
+  color: var(--r-link-color);
 }
 /*! Theme: reveal */
 /*# sourceMappingURL=pretext-reveal.css.map */

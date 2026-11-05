@@ -1,6 +1,7 @@
 import InlineComponent from "./abstract/InlineComponent";
 import { renameStateVariable } from "../utils/stateVariables";
 import me from "math-expressions";
+import { convertValueToMathExpression } from "@doenet/utils";
 import {
     returnSimplifyExpandOnCompareWarning,
     returnStandardAnswerAttributes,
@@ -9,12 +10,65 @@ import {
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnLabelChildIndDefinition,
 } from "../utils/label";
 import { codedDiagnostic } from "../utils/diagnostics";
 import {
     childRendersSomething,
     listItemChildVisibilityDependency,
 } from "../utils/listItemChild";
+
+/**
+ * How far short of 1 a sum of award credits may fall and still count as full
+ * credit. Far larger than the round-off of any realistic number of additions,
+ * and far smaller than any credit an author would write.
+ */
+const CREDIT_ROUNDOFF_TOLERANCE = 1e-12;
+
+/**
+ * The types of response whose values are math-expressions, with the types
+ * that inherit from them (other than a `subsetOfReals`, which inherits from
+ * `math` but holds a subset). A response of any other type (a `text`, a
+ * `label`, …) is kept as it was submitted.
+ */
+const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix", "angle"];
+
+/**
+ * The `set` of `submittedResponses`: an entry written to it, as the value of
+ * the type `submittedResponsesComponentType` records for it.
+ *
+ * A save holds a math-expression as its tree
+ * (`removeFunctionsMathExpressionClass`), so an entry restored from one is a
+ * bare tree until it is made a math-expression again here. Anything reading
+ * the entry directly — `$ans.submittedResponse` in an expression such as
+ * `<feedback condition="$ans.submittedResponse = z">` — needs one. The type is
+ * read from the same write when it carries it, as a restore does, and an
+ * entry with no recorded type is a `math`, as in `arrayDefinitionByKey`. An
+ * entry that is not a bare tree, or whose type neither is in
+ * `MATH_RESPONSE_TYPES` nor inherits from one of them, is returned unchanged.
+ */
+function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
+    // only a bare tree is made a math-expression: a `subsetOfReals`, which
+    // inherits from `math`, holds a subset, and a save restores it as one
+    if (
+        typeof value !== "string" &&
+        typeof value !== "number" &&
+        !Array.isArray(value)
+    ) {
+        return value;
+    }
+    const componentTypes =
+        newValues.submittedResponsesComponentType ??
+        component.essentialState.submittedResponsesComponentType;
+    const componentType = componentTypes?.[arrayKey] ?? "math";
+    const holdsMath = MATH_RESPONSE_TYPES.some((baseComponentType) =>
+        component.componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType,
+        }),
+    );
+    return holdsMath ? convertValueToMathExpression(value) : value;
+}
 
 export default class Answer extends InlineComponent {
     constructor(args) {
@@ -576,7 +630,7 @@ export default class Answer extends InlineComponent {
                                         grandChild.componentType,
                                     baseComponentType: "_composite",
                                 }) &&
-                                !grandChild.attributes?.createComponentOfType
+                                !grandChild.attributes?._createComponentOfType
                                     ?.primitive
                             ) {
                                 mayNeedInput = true;
@@ -617,7 +671,7 @@ export default class Answer extends InlineComponent {
                         inheritedComponentType: child.componentType,
                         baseComponentType: "_composite",
                     }) &&
-                    !child.attributes?.createComponentOfType?.primitive
+                    !child.attributes?._createComponentOfType?.primitive
                 ) {
                     // have a composite without specified componentType
                     childIsWrappable.push(true);
@@ -982,6 +1036,10 @@ export default class Answer extends InlineComponent {
 
         const labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnLabelChildIndDefinition(),
+        );
 
         stateVariableDefinitions.haveAwardThatRequiresInput = {
             returnDependencies: () => ({
@@ -1183,6 +1241,10 @@ export default class Answer extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "descriptionChildInd",
                 },
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 const childIndicesToRender = [
@@ -1193,6 +1255,9 @@ export default class Answer extends InlineComponent {
                     childIndicesToRender.push(
                         dependencyValues.descriptionChildInd,
                     );
+                }
+                if (dependencyValues.labelChildInd !== -1) {
+                    childIndicesToRender.push(dependencyValues.labelChildInd);
                 }
 
                 return {
@@ -1739,6 +1804,9 @@ export default class Answer extends InlineComponent {
                                 "values",
                                 "formula",
                                 "componentType",
+                                // only a value reference (`_ref`) has these
+                                "valueAsResponse",
+                                "componentTypeAsResponse",
                             ],
                             variablesOptional: true,
                             recurseToMatchedChildren: true,
@@ -1837,6 +1905,23 @@ export default class Answer extends InlineComponent {
                 }
 
                 for (let component of responseComponents) {
+                    if (
+                        component.stateValues.componentTypeAsResponse !==
+                        undefined
+                    ) {
+                        // A value reference: the referenced value as it is
+                        // on the referent, not what the reference presents
+                        // (`$n` in a `<math>` is the number), and a blank
+                        // math when it has nothing to read.
+                        currentResponses.push(
+                            component.stateValues.valueAsResponse,
+                        );
+                        componentType.push(
+                            component.stateValues.componentTypeAsResponse,
+                        );
+                        continue;
+                    }
+
                     let ct = component.stateValues.componentType;
                     if (!ct) {
                         ct = component.componentType;
@@ -1850,6 +1935,10 @@ export default class Answer extends InlineComponent {
                         ct = "text";
                     } else if (ct === "booleanList") {
                         ct = "boolean";
+                    } else if (ct === "pointList") {
+                        ct = "point";
+                    } else if (ct === "vectorList") {
+                        ct = "vector";
                     }
 
                     if (Array.isArray(component.stateValues.values)) {
@@ -1973,6 +2062,7 @@ export default class Answer extends InlineComponent {
             entryPrefixes: ["submittedResponse"],
             defaultValueByArrayKey: () => "\uFF3F",
             hasEssential: true,
+            set: submittedResponseOfItsType,
             inverseShadowToSetEntireArray: true,
             doNotCombineInverseArrayInstructions: true,
             returnArraySizeDependencies: () => ({
@@ -2262,10 +2352,16 @@ export default class Answer extends InlineComponent {
                         }
                     }
 
-                    creditAchieved = Math.min(
-                        1,
-                        awardCredits.reduce((a, c) => a + c, 0),
-                    );
+                    const creditSum = awardCredits.reduce((a, c) => a + c, 0);
+
+                    // Credits that should add up to exactly 1, such as six
+                    // awards of credit="1/6", can fall short of it by
+                    // floating-point round-off. Count a total that close to 1
+                    // as full credit.
+                    creditAchieved =
+                        creditSum > 1 - CREDIT_ROUNDOFF_TOLERANCE
+                            ? 1
+                            : creditSum;
                 }
 
                 // remove any trailing null's in awardsUsed

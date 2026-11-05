@@ -36,38 +36,37 @@ import {
 const en: Translator = createTranslator([], {});
 
 /**
- * Spanish handed over exactly as the worker gets it: only English is bundled,
- * so every other language reaches the core as `LocaleData.resources`, loaded on
- * the main thread and sent through `setLocaleData`.
+ * Any other locale on the roster, loaded the way the worker receives it: only
+ * English is bundled, so every translation reaches the core as
+ * `LocaleData.resources`, read on the main thread and sent through
+ * `setLocaleData`.
+ *
+ * Defined once rather than redeclared per `describe`, which is what a dozen
+ * blocks below used to do with byte-identical copies: the shape a catalog is
+ * loaded in is a property of this file, not of the language a block is about.
+ * `readCatalog` is a function declaration and so is in scope here despite
+ * being written below.
  */
-const es: Translator = createTranslatorFromLocaleData(
-    { locale: "es", resources: { es: readCatalog("es", "content") } },
-    "es",
-);
+const forLocale = (locale: string): Translator =>
+    createTranslatorFromLocaleData(
+        { locale, resources: { [locale]: readCatalog(locale, "content") } },
+        locale,
+    );
+
+/** The reference translation, used throughout the tables below. */
+const es: Translator = forLocale("es");
 
 /** The same, for a right-to-left language that agrees its adjectives. */
-const he: Translator = createTranslatorFromLocaleData(
-    { locale: "he", resources: { he: readCatalog("he", "content") } },
-    "he",
-);
+const he: Translator = forLocale("he");
 
 /** One whose adjectives follow the noun rather than preceding it. */
-const ar: Translator = createTranslatorFromLocaleData(
-    { locale: "ar", resources: { ar: readCatalog("ar", "content") } },
-    "ar",
-);
+const ar: Translator = forLocale("ar");
 
 /** One that agrees them *and* inflects them for the position they land in. */
-const ur: Translator = createTranslatorFromLocaleData(
-    { locale: "ur", resources: { ur: readCatalog("ur", "content") } },
-    "ur",
-);
+const ur: Translator = forLocale("ur");
 
 /** One whose case marking shows up in a single gender and a single position. */
-const ps: Translator = createTranslatorFromLocaleData(
-    { locale: "ps", resources: { ps: readCatalog("ps", "content") } },
-    "ps",
-);
+const ps: Translator = forLocale("ps");
 
 /** One of this repository's catalogs, read the way a host would supply it. */
 function readCatalog(locale: string, namespace: string): string {
@@ -81,6 +80,16 @@ function readCatalog(locale: string, namespace: string): string {
         "utf-8",
     );
 }
+
+/**
+ * The three style words most of the tests below describe a shape with, held in
+ * English so that what changes between locales is the catalog and nothing else.
+ */
+const words = {
+    lineWidthWord: "thick",
+    lineStyleWord: "dashed",
+    colorWord: "red",
+};
 
 const line: NounSpec = { key: "line" };
 const circle: NounSpec = { key: "circle" };
@@ -310,13 +319,7 @@ describe("closed shapes", () => {
      * everything else, including 5.
      */
     it("picks the Filipino linker from the side count", () => {
-        const fil: Translator = createTranslatorFromLocaleData(
-            {
-                locale: "fil",
-                resources: { fil: readCatalog("fil", "content") },
-            },
-            "fil",
-        );
+        const fil: Translator = forLocale("fil");
         const sided = (numSides: number) =>
             describeStrokedShape(
                 fil,
@@ -406,11 +409,6 @@ describe("the other descriptions", () => {
 
 describe("Spanish", () => {
     it("puts the noun first and agrees with its gender", () => {
-        const words = {
-            lineWidthWord: "thick",
-            lineStyleWord: "dashed",
-            colorWord: "red",
-        };
         expect(
             describeStrokedShape(es, words, { noun: line, withNoun: true }),
         ).toBe("línea discontinua gruesa roja");
@@ -673,10 +671,7 @@ describe("Pashto", () => {
 });
 
 describe("Tajik", () => {
-    const tg: Translator = createTranslatorFromLocaleData(
-        { locale: "tg", resources: { tg: readCatalog("tg", "content") } },
-        "tg",
-    );
+    const tg: Translator = forLocale("tg");
 
     // Tajik is Persian in Cyrillic, so its adjectives follow the noun and the
     // link between them is the izafat. Persian's is an unwritten vowel after a
@@ -734,10 +729,7 @@ describe("Tajik", () => {
 });
 
 describe("Irish", () => {
-    const ga: Translator = createTranslatorFromLocaleData(
-        { locale: "ga", resources: { ga: readCatalog("ga", "content") } },
-        "ga",
-    );
+    const ga: Translator = forLocale("ga");
 
     // The Celtic answer to agreement: a feminine singular noun does not give
     // its adjectives an ending, it softens the front of them. «líne» is
@@ -745,11 +737,6 @@ describe("Irish", () => {
     // is masculine and leaves the same words alone. `$gender` carries the whole
     // of that, which is why no Celtic catalog writes a `$role` branch.
     it("lenites a feminine noun's adjectives and leaves a masculine one's", () => {
-        const words = {
-            colorWord: "red",
-            lineWidthWord: "thick",
-            lineStyleWord: "dashed",
-        };
         expect(
             describeStrokedShape(ga, words, {
                 noun: { key: "line" },
@@ -800,16 +787,7 @@ describe("Irish", () => {
  * below would collapse onto one prefix.
  */
 describe("Swahili noun classes", () => {
-    const sw: Translator = createTranslatorFromLocaleData(
-        { locale: "sw", resources: { sw: readCatalog("sw", "content") } },
-        "sw",
-    );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
+    const sw: Translator = forLocale("sw");
 
     // One set of style words against four nouns, one from each class a shape
     // lands in. The stems are the same throughout —
@@ -874,16 +852,7 @@ describe("Swahili noun classes", () => {
 });
 
 describe("Ojibwe animacy", () => {
-    const oj: Translator = createTranslatorFromLocaleData(
-        { locale: "oj", resources: { oj: readCatalog("oj", "content") } },
-        "oj",
-    );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
+    const oj: Translator = forLocale("oj");
 
     // The third mechanism `$gender` has been asked to carry, after a gender and
     // a noun class: Ojibwe's is **animate against inanimate**, and the words
@@ -962,18 +931,6 @@ describe("Ojibwe animacy", () => {
 });
 
 describe("the Indigenous Americas batch's word order", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Six of the eight put their adjectives **in front of** the noun, which is
      * English's order — and after six Romance catalogs in the previous batch
@@ -1085,18 +1042,6 @@ describe("the Indigenous Americas batch's word order", () => {
 });
 
 describe("the Austronesian batch's word order", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Fifteen languages of one region and two orders, which is the useful thing
      * to pin: the five Philippine catalogs and Tok Pisin put their adjectives
@@ -1256,16 +1201,7 @@ describe("the Austronesian batch's word order", () => {
 });
 
 describe("Klingon, which builds its phrase out of a relative clause", () => {
-    const tlh: Translator = createTranslatorFromLocaleData(
-        { locale: "tlh", resources: { tlh: readCatalog("tlh", "content") } },
-        "tlh",
-    );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
+    const tlh: Translator = forLocale("tlh");
 
     /**
      * Klingon has no adjectives, and TKD describes putting one verb of quality
@@ -1519,12 +1455,6 @@ describe("a phrase rendered in two positions", () => {
      * and are here to hold the cases where the two positions legitimately read
      * alike.
      */
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const de = forLocale("de");
     const ru = forLocale("ru");
     const pl = forLocale("pl");
@@ -2368,12 +2298,6 @@ describe("the role argument", () => {
  * it behind the adjectives rather than stranding them behind the sides.
  */
 describe("a regular polygon's side count", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const polygon: NounSpec = { key: "regular-polygon", numSides: 5 };
     const words = { colorWord: "red", lineWidthWord: "thick" };
 
@@ -2442,21 +2366,6 @@ describe("a regular polygon's side count", () => {
  * in the same script agree with everything.
  */
 describe("the South Asian batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            {
-                locale,
-                resources: { [locale]: readCatalog(locale, "content") },
-            },
-            locale,
-        );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Sanskrit inflects an adjective for gender, number *and* case, and each
      * clause position governs a different case. What holds the fork together
@@ -2681,18 +2590,6 @@ describe("the South Asian batch", () => {
  * uniform so that an affix could be written beside a placeable at all.
  */
 describe("the African and Berber batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     const described = (locale: string, key: NounKey) =>
         describeStrokedShape(forLocale(locale), words, {
             noun: { key },
@@ -2851,18 +2748,6 @@ describe("the African and Berber batch", () => {
 });
 
 describe("the West and Central African batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     const described = (locale: string, key: NounKey) =>
         describeStrokedShape(forLocale(locale), words, {
             noun: { key },
@@ -2999,18 +2884,6 @@ describe("the West and Central African batch", () => {
 });
 
 describe("the West and Central African batch, continued", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     const described = (locale: string, key: NounKey) =>
         describeStrokedShape(forLocale(locale), words, {
             noun: { key },
@@ -3151,18 +3024,6 @@ describe("the West and Central African batch, continued", () => {
 });
 
 describe("the Angolan, Sierra Leonean and Songhay batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     const described = (locale: string, key: NounKey) =>
         describeStrokedShape(forLocale(locale), words, {
             noun: { key },
@@ -3263,18 +3124,6 @@ describe("the Angolan, Sierra Leonean and Songhay batch", () => {
 });
 
 describe("the Russian Federation's Cyrillic batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Twelve catalogs from five families — Turkic, Mongolic, Uralic, Iranian
      * and Nakh — sharing nothing but a script, and the useful thing to pin is
@@ -3303,9 +3152,9 @@ describe("the Russian Federation's Cyrillic batch", () => {
         ],
         ["xal", "зузан тасрха улан шулун зурас", "зузан тасрха улан"],
         ["udm", "зӧк чигем горд шонер чур", "зӧк чигем горд"],
-        ["kv", "кыз вундалӧм гӧрд веськыд визь", "кыз вундалӧм гӧрд"],
+        ["kpv", "кыз вундалӧм гӧрд веськыд визь", "кыз вундалӧм гӧрд"],
         ["myv", "эчке сезнезь якстере виде линия", "эчке сезнезь якстере"],
-        ["chm", "кӱжгӧ кӱрылтшӧ йошкар вияш линий", "кӱжгӧ кӱрылтшӧ йошкар"],
+        ["mhr", "кӱжгӧ кӱрылтшӧ йошкар вияш линий", "кӱжгӧ кӱрылтшӧ йошкар"],
         ["os", "бæзджын скъуыдтæ сырх раст хахх", "бæзджын скъуыдтæ сырх"],
         ["ce", "дуькъа кагйина цӀен нийса сиз", "дуькъа кагйина цӀен"],
     ];
@@ -3361,10 +3210,7 @@ describe("the Russian Federation's Cyrillic batch", () => {
  * concludes that Chechen agrees nothing.
  */
 describe("Chechen noun classes", () => {
-    const ce: Translator = createTranslatorFromLocaleData(
-        { locale: "ce", resources: { ce: readCatalog("ce", "content") } },
-        "ce",
-    );
+    const ce: Translator = forLocale("ce");
 
     const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
 
@@ -3405,4 +3251,2404 @@ describe("Chechen noun classes", () => {
             describeFill(ce, { fillColorWord: "blue" }, { filled: false }),
         ).toBe("дуьзна доцу");
     });
+});
+
+describe("the Caucasus and Kurdish batch", () => {
+    /**
+     * Fifteen catalogs, and the first batch whose members **do not agree about
+     * where an adjective goes**. Every previous batch could be pinned as one
+     * shape — the Russian Federation's twelve are prenominal to a catalog, and
+     * that row was asserted as an identity. Here ten put the description in
+     * front of the noun and five put it behind, and the five are not a
+     * subfamily anyone would guess from the map: all three Northwest Caucasian
+     * catalogs (`ab`, `ady`, `kbd`), plus both Kurdish ones, which are Iranian
+     * and sit at the other end of the batch.
+     *
+     * Held from both sides — `startsWith` for one group and `endsWith` for the
+     * other — so that the noun is being *appended to* or *prefixed to* a
+     * description rather than woven into it. What this catches is someone
+     * "correcting" a catalog into English's order because the neighbouring
+     * files are in it.
+     *
+     * Each row's two strings pin one rendering exactly; the placement rule is
+     * then checked over {@link placementNouns} against what the catalog
+     * actually renders, so that a file reordered for a single noun fails even
+     * though the row it was pinned on still passes.
+     */
+    const prenominal: [string, string, string][] = [
+        ["av", "кӀудияб бекараб багӀараб мухъ", "кӀудияб бекараб багӀараб"],
+        ["lez", "яцӀу атӀай яру дуьз цӀар", "яцӀу атӀай яру"],
+        [
+            "dar",
+            "халаси кӀапӀбикибси хӀунтӀена линия",
+            "халаси кӀапӀбикибси хӀунтӀена",
+        ],
+        [
+            "lbe",
+            "хъунмасса кьуркьусса ятӀулсса линия",
+            "хъунмасса кьуркьусса ятӀулсса",
+        ],
+        ["tab", "яцӀу штрихрин уьру дюз цӀар", "яцӀу штрихрин уьру"],
+        ["inh", "дуькъа кагдаь цӀе нийса сиз", "дуькъа кагдаь цӀе"],
+        ["krc", "къалын юзюклю къызыл тюз сызыкъ", "къалын юзюклю къызыл"],
+        ["kum", "къалын уьзюклю къызыл тюз сызыкъ", "къалын уьзюклю къызыл"],
+        ["nog", "калын уьзик кызыл туьз сызык", "калын уьзик кызыл"],
+        ["tly", "kuluftə tirəyinə sıə xət", "kuluftə tirəyinə sıə"],
+    ];
+
+    const postnominal: [string, string, string][] = [
+        ["ab", "аҵәаӷәа аҭбаа ахәҭа-хәҭа аҟаԥшь", "аҭбаа ахәҭа-хәҭа аҟаԥшь"],
+        [
+            "ady",
+            "линие занкӀэ Ӏужъу зэпыугъэ плъыжьы",
+            "Ӏужъу зэпыугъэ плъыжьы",
+        ],
+        ["kbd", "линэ занщӀэ Ӏув зэпыуда плъыжь", "Ӏув зэпыуда плъыжь"],
+        ["kmr", "xêz ya stûr ya qutbirr ya sor", "ya stûr ya qutbirr ya sor"],
+        ["ckb", "هێڵی سوور و پچڕپچڕ و ئەستوور", "سوور و پچڕپچڕ و ئەستوور"],
+    ];
+
+    /**
+     * The nouns the placement rule is checked over — one of each shape the
+     * `noun` table names, rather than the single `line` the rows above spell
+     * out. `kmr`'s ezafe makes the spread matter for a second reason: a polygon
+     * is masculine and a line feminine, so these six cover both agreements.
+     */
+    const placementNouns: NounKey[] = [
+        "line",
+        "circle",
+        "square",
+        "polygon",
+        "point",
+        "region",
+    ];
+
+    /**
+     * One row's worth of both claims: the exact rendering for `line`, and the
+     * placement rule over every noun in {@link placementNouns}. The second is
+     * asserted between two *rendered* strings — never between the row's own two
+     * literals, which would only ever restate the table to itself.
+     */
+    const itPlaces = (
+        group: [string, string, string][],
+        where: "in front of" | "behind",
+    ) => {
+        for (const [locale, withNoun, adjectivesOnly] of group) {
+            it(`puts ${locale}'s description ${where} the noun`, () => {
+                const t = forLocale(locale);
+                expect(
+                    describeStrokedShape(t, words, {
+                        noun: { key: "line" },
+                        withNoun: true,
+                    }),
+                ).toBe(withNoun);
+                // The same string with the noun withheld, which is what makes
+                // this a claim about placement rather than about two unrelated
+                // renderings.
+                expect(
+                    describeStrokedShape(t, words, {
+                        noun: { key: "line" },
+                        withNoun: false,
+                    }),
+                ).toBe(adjectivesOnly);
+                for (const key of placementNouns) {
+                    const described = describeStrokedShape(t, words, {
+                        noun: { key },
+                        withNoun: true,
+                    });
+                    const alone = describeStrokedShape(t, words, {
+                        noun: { key },
+                        withNoun: false,
+                    });
+                    expect(
+                        where === "in front of"
+                            ? described.startsWith(alone)
+                            : described.endsWith(alone),
+                        `${locale}/${key}: ${described} / ${alone}`,
+                    ).toBe(true);
+                }
+            });
+        }
+    };
+
+    itPlaces(prenominal, "in front of");
+    itPlaces(postnominal, "behind");
+
+    /**
+     * A regular polygon's side count, and the batch's second split. Thirteen
+     * catalogs fold it into the head — `noun-regular-polygon`'s `[tail]` branch
+     * renders empty, as it does in every catalog of the Russian Federation
+     * batch — while `kbd` and `ckb` cannot, and put it in a trailing
+     * complement instead.
+     *
+     * Both had the same reason and reached it in different scripts. Kabardian
+     * incorporates a numeral into the noun («къуапитху»), which is a word this
+     * catalog cannot build around a formatted `{ $numSides }`, so it writes
+     * «къуапэ 5 иӀэу» after the description; Sorani's noun carries its ezafe
+     * and takes the count in a «بە … ەوە» phrase behind it. That is what
+     * `$part` exists for, and these two are the reason it is not dead weight.
+     */
+    it.each([...prenominal, ...postnominal].map(([locale]) => locale))(
+        "renders %s's side count exactly once, with no stray spacing",
+        (locale) => {
+            const description = describeStrokedShape(forLocale(locale), words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            });
+            // Exactly once, which is what the title claims and what `toContain`
+            // alone would not catch: a catalog that writes the count into the
+            // head and *also* leaves it in the `[tail]` branch renders it
+            // twice, and only splitting on it says so.
+            expect(description.split("5")).toHaveLength(2);
+            expect(description.trimEnd()).toBe(description);
+            expect(description).not.toContain("  ");
+        },
+    );
+
+    /**
+     * Which of the two shapes a catalog chose, asserted where the answer is
+     * visible: in the five catalogs whose adjectives come *last*, a head-only
+     * rendering still ends with the adjectives, while a catalog using the tail
+     * has appended something behind them.
+     *
+     * `ab`, `ady` and `kmr` fold the count into the head and so still end with
+     * the adjectives; `kbd` and `ckb` do not. That is the whole of the split,
+     * held on the group where the string position actually distinguishes it.
+     * The ten prenominal catalogs all fold it in too, but their adjectives
+     * come first, so a trailing complement would be invisible to `endsWith`
+     * and the row above is what covers them.
+     */
+    it.each([
+        ["ab", true],
+        ["ady", true],
+        ["kmr", true],
+        ["kbd", false],
+        ["ckb", false],
+    ])("puts %s's side count in the head: %s", (locale, inHead) => {
+        const t = forLocale(locale);
+        // Taken from the *same* noun, because `kmr`'s ezafe agrees with it:
+        // a polygon is masculine and a line feminine, so comparing across two
+        // nouns would fail on gender rather than on placement.
+        const adjectivesOnly = describeStrokedShape(t, words, {
+            noun: { key: "regular-polygon", numSides: 5 },
+            withNoun: false,
+        });
+        const regular = describeStrokedShape(t, words, {
+            noun: { key: "regular-polygon", numSides: 5 },
+            withNoun: true,
+        });
+        expect(regular.endsWith(adjectivesOnly)).toBe(inHead);
+    });
+});
+
+/**
+ * Ingush noun classes, and the reason this block is not a copy of the Chechen
+ * one above it.
+ *
+ * Ingush and Chechen are the two Vainakh languages and share the в-/й-/б-/д-
+ * class system, so `locales/inh` forks `style-filled-word` exactly as
+ * `locales/ce` does. It also forks **`line-style.dashed`**, which `locales/ce`
+ * leaves flat although «кагйина» is the same kind of participle and the same
+ * `$gender` reaches it — `describeStroke` hands every adjective the noun's
+ * gender, so the branch is live rather than decorative.
+ *
+ * That divergence is a question for a speaker of either language rather than a
+ * bug in either file, and these rows are what would notice if someone flattened
+ * `locales/inh` to match its neighbour without answering it.
+ */
+describe("Ingush noun classes", () => {
+    const inh: Translator = forLocale("inh");
+
+    const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
+
+    // «го» is `d` and «тӀадам» is `b`. The `withNoun: false` half is the one
+    // that could not pass by accident: with the noun withheld, the prefix is
+    // all that distinguishes the two classes.
+    it.each([
+        ["circle", "сийна дизза го", "сийна дизза"],
+        ["point", "сийна бизза тӀадам", "сийна бизза"],
+    ])("agrees the filled participle with «%s»", (key, withNoun, alone) => {
+        expect(
+            describeClosedShape(inh, blueFill, {
+                filled: true,
+                noun: { key: key as NounKey },
+                withNoun: true,
+            }),
+        ).toBe(withNoun);
+        expect(
+            describeClosedShape(inh, blueFill, {
+                filled: true,
+                noun: { key: key as NounKey },
+                withNoun: false,
+            }),
+        ).toBe(alone);
+    });
+
+    /** The second fork, and the one `locales/ce` does not write. */
+    it.each([
+        ["line", "кагдаь цӀе нийса сиз"],
+        ["point", "кагбаь цӀе тӀадам"],
+    ])("agrees the dashed participle with «%s»", (key, expected) => {
+        expect(
+            describeStrokedShape(
+                inh,
+                { lineStyleWord: "dashed", colorWord: "red" },
+                { noun: { key: key as NounKey }, withNoun: true },
+            ),
+        ).toBe(expected);
+    });
+
+    /**
+     * The other side of that divergence, which the row above cannot see. What
+     * makes `locales/inh`'s second fork worth a paragraph is that its sister
+     * catalog does not write it, and nothing said so until here: flattening
+     * `locales/inh` is caught above, but *forking* `locales/ce` to match would
+     * quietly retire the claim instead. Chechen renders «кагйина» for a `d`
+     * noun and a `b` noun alike.
+     */
+    it("has no counterpart in locales/ce, which leaves the same word flat", () => {
+        const ce: Translator = forLocale("ce");
+        const dashed = (key: NounKey) =>
+            describeStrokedShape(
+                ce,
+                { lineStyleWord: "dashed", colorWord: "red" },
+                { noun: { key }, withNoun: false },
+            );
+        expect(dashed("line")).toBe(dashed("point"));
+        expect(dashed("line")).toBe("кагйина цӀен");
+    });
+
+    /**
+     * The same rule that keeps `locales/ce`'s `style-unfilled` flat:
+     * `describeFill` renders it with no arguments, so there is no noun to take
+     * a class from and a `$gender` select could only ever reach its default.
+     */
+    it("says unfilled without agreeing with anything", () => {
+        expect(
+            describeFill(inh, { fillColorWord: "blue" }, { filled: false }),
+        ).toBe("дизза доаца");
+    });
+});
+
+/**
+ * Kurmanji's ezafe, which is the batch's one agreement mechanism that is not a
+ * Caucasian noun class — and the roster's sixth thing `$gender` has been asked
+ * to carry, after a European gender, a Bantu noun class, Ojibwe's animacy,
+ * Fula's suffixed concord and Chechen's class prefix.
+ *
+ * Kurmanji has masculine and feminine nouns, and an attributive adjective
+ * follows its noun linked by an ezafe. The bound ezafe cannot be welded onto
+ * `{ $noun }`, so `locales/kmr` writes the free particle — «ya» after a feminine
+ * noun and «yê» after a masculine one — and repeats it before each further
+ * adjective. A line is feminine and a polygon masculine, so one description
+ * changes in three places and the other does not change at all.
+ */
+describe("Kurmanji ezafe agreement", () => {
+    const kmr: Translator = forLocale("kmr");
+
+    it.each([
+        ["line", "xêz ya stûr ya qutbirr ya sor"],
+        ["circle", "bazine ya stûr ya qutbirr ya sor"],
+        ["square", "çargoşe yê stûr yê qutbirr yê sor"],
+        ["polygon", "pirgoşe yê stûr yê qutbirr yê sor"],
+    ])("links «%s» to its adjectives with the right ezafe", (key, expected) => {
+        expect(
+            describeStrokedShape(kmr, words, {
+                noun: { key: key as NounKey },
+                withNoun: true,
+            }),
+        ).toBe(expected);
+    });
+
+    /**
+     * «dagirtî» is a past participle and does not inflect, so the agreement in
+     * a filled shape is carried by the particle beside it rather than by the
+     * word itself — and `style-unfilled`, rendered with no arguments, has no
+     * particle and no noun and stays bare.
+     */
+    it("carries a filled shape's agreement in the particle, not the participle", () => {
+        const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
+        expect(
+            describeClosedShape(kmr, blueFill, {
+                filled: true,
+                noun: { key: "circle" },
+                withNoun: true,
+            }),
+        ).toBe("bazine ya dagirtî ya şîn");
+        expect(
+            describeFill(kmr, { fillColorWord: "blue" }, { filled: false }),
+        ).toBe("nedagirtî");
+    });
+});
+
+/**
+ * The three catalogs that agree in the language and render one form anyway,
+ * which is the batch's most easily "corrected" property and the reason it is
+ * pinned.
+ *
+ * Avar agrees *more* than Chechen — three singular classes plus a plural, and
+ * every attributive adjective takes the marker as a suffix, where Chechen's
+ * colour and width words take none at all. It still forks nothing, because
+ * every noun this core names is a thing rather than a person and so is class
+ * III: `[v]`, `[j]` and `[l]` branches would be variants nothing could select.
+ * Lak reached the same place from four classes, and Dargwa wrote its select out
+ * with only the `[b]` branch reachable.
+ *
+ * That is the reachability rule `locales/ve`, `locales/ts`, `locales/ki` and
+ * `locales/bem` already apply to their unreached Bantu classes, arriving here
+ * from languages that agree more rather than less. A reader who knows the
+ * family will expect these three to vary by noun, and they must not.
+ */
+describe("Dagestanian agreement that no message can reach", () => {
+    it.each([
+        ["av", "багӀараб"],
+        ["lbe", "ятӀулсса"],
+        ["dar", "хӀунтӀена"],
+    ])(
+        "renders %s's colour word identically for every noun it is given",
+        (locale, expected) => {
+            const t = forLocale(locale);
+            for (const key of ["line", "point", "circle", "region", "text"]) {
+                expect(
+                    describeStrokedShape(
+                        t,
+                        { colorWord: "red" },
+                        { noun: { key: key as NounKey }, withNoun: false },
+                    ),
+                    `${locale}/${key}`,
+                ).toBe(expected);
+            }
+        },
+    );
+
+    /**
+     * Dargwa is the one of the three whose select is actually written, so this
+     * says what the other two say by absence: the `[v]` and `[r]` branches are
+     * unreachable through the public API, and the catalog renders `[b]` for
+     * every noun until a speaker fills the class table in.
+     */
+    it("reaches only Dargwa's b-class branch", () => {
+        const dar = forLocale("dar");
+        const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
+        for (const key of ["circle", "point", "line", "region"]) {
+            expect(
+                describeClosedShape(dar, blueFill, {
+                    filled: true,
+                    noun: { key: key as NounKey },
+                    withNoun: false,
+                }),
+                key,
+            ).toBe("хьанцӀа бицӀибси");
+        }
+    });
+});
+
+describe("the Uralic north batch", () => {
+    /**
+     * Fifteen catalogs, and the batch is the answer to the question the
+     * Caucasus one left open. That batch was the first whose members did not
+     * agree about where an adjective goes — ten in front of the noun, five
+     * behind — which made the obvious next question whether a batch can still
+     * be pinned as one shape at all. This one can: all fifteen are prenominal,
+     * across two scripts, five countries and four branches of Uralic, and the
+     * agreement is not a family effect either, since the Sami catalogs share
+     * it with the Ob-Ugric ones and with Finnic.
+     *
+     * Held the same way as that batch's rows — `startsWith` over
+     * {@link placementNouns} against what the catalog actually renders, rather
+     * than between the row's own two literals, which would only restate the
+     * table to itself. What it catches is a catalog quietly reordered for one
+     * noun while the row it was pinned on still passes.
+     */
+    const prenominal: [string, string, string][] = [
+        ["sma", "asse straejmies rööpses linje", "asse straejmies rööpses"],
+        [
+            "smj",
+            "assje sárggålasj ruoppsis linnjá",
+            "assje sárggålasj ruoppsis",
+        ],
+        ["smn", "assâd sárgálâš ruopsis linjá", "assâd sárgálâš ruopsis"],
+        ["sms", "âsses säʹrǧǧlaž rukses linjj", "âsses säʹrǧǧlaž rukses"],
+        ["sjd", "эhкесь са̄рркма рупсесь линия", "эhкесь са̄рркма рупсесь"],
+        ["vep", "sanged katkaidud rusked suor", "sanged katkaidud rusked"],
+        [
+            "olo",
+            "sangei katkoviivaine ruskei suoru",
+            "sangei katkoviivaine ruskei",
+        ],
+        ["krl", "pakšu katkoviivani ruskie suora", "pakšu katkoviivani ruskie"],
+        ["vro", "paks katkõlinõ verrev sirgõ", "paks katkõlinõ verrev"],
+        [
+            "fit",
+            "paksu katkoviivainen punanen suora",
+            "paksu katkoviivainen punanen",
+        ],
+        ["mdf", "эчке сезнеф якстерь виде линия", "эчке сезнеф якстерь"],
+        ["koi", "кыз вундалӧм гӧрд веськыд визь", "кыз вундалӧм гӧрд"],
+        ["mrj", "кӹжгӹ кӹрӹлтшӹ якшар виквӓш линий", "кӹжгӹ кӹрӹлтшӹ якшар"],
+        ["kca", "вөн сєвӑрман вўрты веськат хӑнши", "вөн сєвӑрман вўрты"],
+        ["mns", "яныг сагрым вигыр линия", "яныг сагрым вигыр"],
+    ];
+
+    /**
+     * The nouns the placement rule is checked over — one of each shape the
+     * `noun` table names, rather than the single `line` the rows above spell
+     * out.
+     */
+    const placementNouns: NounKey[] = [
+        "line",
+        "circle",
+        "square",
+        "polygon",
+        "point",
+        "region",
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s description in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The same string with the noun withheld, which is what makes this
+            // a claim about placement rather than about two unrelated
+            // renderings.
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+            for (const key of placementNouns) {
+                const described = describeStrokedShape(t, words, {
+                    noun: { key },
+                    withNoun: true,
+                });
+                const alone = describeStrokedShape(t, words, {
+                    noun: { key },
+                    withNoun: false,
+                });
+                expect(
+                    described.startsWith(alone),
+                    `${locale}/${key}: ${described} / ${alone}`,
+                ).toBe(true);
+            }
+        });
+    }
+
+    /**
+     * A regular polygon's side count. Unlike the Caucasus batch, which split
+     * two ways over this, all fifteen fold it into the head — every one of
+     * these languages builds a numeral into the noun the way `chm` and `kv`
+     * already do — so `noun-regular-polygon`'s `[tail]` branch renders empty
+     * throughout and `$part` goes unused.
+     *
+     * Splitting on the count is what makes this an assertion rather than a
+     * `toContain`: a catalog that writes the number into the head *and* leaves
+     * it in the tail renders it twice, and only counting the pieces says so.
+     */
+    it.each(prenominal.map(([locale]) => locale))(
+        "renders %s's side count exactly once, with no stray spacing",
+        (locale) => {
+            const description = describeStrokedShape(forLocale(locale), words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            });
+            expect(description.split("5")).toHaveLength(2);
+            expect(description.trimEnd()).toBe(description);
+            expect(description).not.toContain("  ");
+        },
+    );
+
+    /**
+     * None of the fifteen forks on `$gender`, and this is the batch where that
+     * is worth asserting rather than merely stating. No Uralic language has
+     * grammatical gender, so `noun-gender` returns one token in every catalog
+     * here — which means the description of a line and of a circle differ in
+     * the noun and in nothing else. That is what the Ingush and Kurdish
+     * catalogs above do *not* satisfy — each renders two different adjective
+     * shapes across these six nouns — and running the same check over both
+     * groups is what keeps "this language does not agree" a claim about the
+     * file rather than a remark in its header. (Chechen and Avar fork on
+     * `$gender` too, but on branches no noun key reaches; that is the separate
+     * thing "Dagestanian agreement that no message can reach" pins.)
+     */
+    it.each(prenominal.map(([locale]) => locale))(
+        "leaves %s's adjectives unchanged whatever noun follows them",
+        (locale) => {
+            const t = forLocale(locale);
+            const rendered = placementNouns.map((key) =>
+                describeStrokedShape(t, words, {
+                    noun: { key },
+                    withNoun: false,
+                }),
+            );
+            expect(new Set(rendered).size).toBe(1);
+        },
+    );
+
+    /**
+     * The four Finnic catalogs fork on `$role`, and the other eleven do not.
+     *
+     * Each of the four documents the same table in its header — nominative
+     * standalone, adessive (Veps and Livvi: the merged adessive-allative in a
+     * bare `-l`) inside `style-border-clause` — so the border's adjectives have
+     * to *change shape* between the two positions, and the eleven that say they
+     * have no case to inflect for have to leave them alone. Asserting the pair
+     * rather than the ending keeps this a claim about the fork being reached:
+     * a catalog whose branch keys were misspelled would fall to `*[standalone]`
+     * and render the two positions identically, which no header here allows.
+     */
+    const forksOnRole = new Set(["vep", "olo", "krl", "fit"]);
+
+    it.each(prenominal.map(([locale]) => locale))(
+        "inflects %s's border adjectives for the clause exactly when its header says so",
+        (locale) => {
+            const t = forLocale(locale);
+            const standalone = describeBorder(t, words);
+            const embedded = describeClosedShape(
+                t,
+                { ...words, fillColorWord: "blue" },
+                { filled: true, noun: { key: "circle" }, withNoun: true },
+            );
+            expect(embedded.includes(standalone)).toBe(
+                !forksOnRole.has(locale),
+            );
+        },
+    );
+
+    /**
+     * Veps, Livvi, Karelian and Meänkieli put the *background* colour in the
+     * same case as the border's, and leave the text colour beside it in the
+     * nominative — the fourth row of each header's table. Two positions, two
+     * forms, from one colour key.
+     */
+    it.each([...forksOnRole])(
+        "gives %s's background colour the clause form and its text colour the citation form",
+        (locale) => {
+            const t = forLocale(locale);
+            expect(describeColor(t, "red", "text", "text-clause")).toBe(
+                describeColor(t, "red", "text"),
+            );
+            expect(
+                describeColor(t, "red", "background", "background-clause"),
+            ).not.toBe(describeColor(t, "red", "background"));
+        },
+    );
+
+    /**
+     * A postposition needs a noun to be said of, and `$background` renders as a
+     * bare colour word. The five Cyrillic catalogs that phrase the background
+     * with a postposition each supply that noun themselves — «фон» in `koi`,
+     * `mdf`, `mrj` and `mns`, «ԓыпӑс» in `kca` — so the sentence is not the
+     * colour alone standing in front of "on". Pinned because leaving the noun
+     * out renders without any error at all: the message resolves, and only a
+     * reader sees that it says "blue on red".
+     */
+    it.each([
+        ["koi", "фон"],
+        ["mdf", "фон"],
+        ["mrj", "фон"],
+        ["mns", "фон"],
+        ["kca", "ԓыпӑс"],
+    ])("names what %s's background postposition governs", (locale, head) => {
+        const t = forLocale(locale);
+        const sentence = describeText(t, {
+            color: describeColor(t, "red", "text", "text-clause"),
+            background: describeColor(
+                t,
+                "yellow",
+                "background",
+                "background-clause",
+            ),
+        });
+        expect(sentence).toContain(head);
+        // And only in the branch that has a background to name.
+        expect(
+            describeText(t, { color: describeColor(t, "red", "text") }),
+        ).not.toContain(head);
+    });
+
+    /**
+     * `fill-style`'s words carry their own "with" in five of these catalogs —
+     * the comitative in the four Sami ones and in Võro — which is why
+     * `style-filled` writes no preposition in front of them. That ending
+     * belongs to the fill patterns and to nothing else: `line-style`'s words
+     * stand attributively in front of a noun inside `style-stroke`, where a
+     * "with" has nothing to be with. Kildin is what this pins — its `.dotted`
+     * was the comitative «точкагуэйм», byte-identical to its own
+     * `fill-style.dots`, which read as "thick with-dots red line".
+     */
+    it.each([
+        ["sma", "jgujmie"],
+        ["smj", "jn"],
+        ["smn", "guin"],
+        ["sms", "vuiʹm"],
+        ["sjd", "гуэйм"],
+        ["vro", "ga"],
+    ])(
+        "keeps %s's comitative ending out of its stroke adjectives",
+        (locale, ending) => {
+            const t = forLocale(locale);
+            // The dash pattern alone, so that what is checked is the word
+            // itself rather than the phrase it happens to sit in.
+            const stroke = describeStrokedShape(
+                t,
+                { lineStyleWord: "dotted" },
+                { noun: { key: "line" }, withNoun: false },
+            );
+            expect(stroke).not.toContain(ending);
+            // The same ending is present where it belongs, which is what makes
+            // this a claim about placement rather than about the ending being
+            // absent from the catalog.
+            expect(
+                describeFill(
+                    t,
+                    { fillColorWord: "red", fillStyleWord: "dots" },
+                    { filled: true },
+                ),
+            ).toContain(ending);
+        },
+    );
+});
+
+describe("the Oceania batch's word order", () => {
+    /**
+     * Eleven languages of one ocean and two orders — ten postnominal, one
+     * prenominal — which is worth pinning for the reason the Austronesian
+     * block above pins its own split: a region is not a word order, and here
+     * neither is a *family*. Ten Austronesian catalogs put the adjectives
+     * behind the noun, and `bi`, a creole whose lexifier is English, is the
+     * one that puts them in front.
+     *
+     * The linker is the other half of the story. Two catalogs join adjective
+     * to noun with a particle they write out themselves — `chk`'s relative
+     * «mi» repeated before each modifier and `gil`'s singular linker «ae»
+     * likewise — while the Polynesian catalogs use none at all. These strings
+     * are what hold each choice, and each `content.ftl` header says why its
+     * language needs the particle a neighbour does without.
+     *
+     * A few rows still render an English loan where a dictionary gave the
+     * catalog nothing — `kos` and `gil` say so in their own headers — and the
+     * words that *are* the language are pinned here beside the ones that are
+     * not, so that replacing a loan is a visible diff rather than a silent
+     * improvement.
+     */
+    const postnominal: [string, string, string][] = [
+        ["mh", "laain m̧ijel m̧ōttanm̧ōttan būrōrō", "m̧ijel m̧ōttanm̧ōttan būrōrō"],
+        ["chk", "nain mi wattee mi tass mi ppar", "wattee mi tass mi ppar"],
+        ["pon", "lain mosul lepilep weitahta", "mosul lepilep weitahta"],
+        ["kos", "line matoltol kotkot srusra", "matoltol kotkot srusra"],
+        [
+            "gil",
+            "te line ae bubura ae dashed ae uraura",
+            "bubura ae dashed ae uraura",
+        ],
+        ["niu", "laini matolu motumotu kula", "matolu motumotu kula"],
+        ["tkl", "laina mafiafia motumotu kula", "mafiafia motumotu kula"],
+        ["tvl", "laina matolu motumotu kula", "matolu motumotu kula"],
+        [
+            "rar",
+            "rārangi mātotoru motumotu muramura",
+            "mātotoru motumotu muramura",
+        ],
+        ["wls", "laina matolu motumotu kula", "matolu motumotu kula"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun is prepended whole, with nothing of it reaching in
+            // among the adjectives — including for the catalogs that put a
+            // linker between the two, whose particle belongs to the adjective
+            // run rather than to the noun.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    const prenominal: [string, string, string][] = [
+        ["bi", "tik brokbrok red laen", "tik brokbrok red"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * The side count, where the batch stops agreeing with itself — and the
+     * disagreement runs *inside* a subfamily rather than between them, which
+     * no earlier batch's did.
+     *
+     * Eight of the eleven make the count a following clause and so reach
+     * `[noun-tail]` — «e 5 ona tafa», «e 5 tapa tōna», «me pali 5», «mi 5
+     * peekin» and the rest — while `mh`, `gil` and `tkl` fold it into the head
+     * and leave `[tail]` empty. `tkl` is the sharp one: it is Tuvaluan's
+     * closest relative in the batch, and its own header warns that the two are
+     * expected to look alike, yet it heads the count («poligoni tutuha e 5 ona
+     * itu …») where `tvl` tails it, so its adjectives trail the whole phrase.
+     * `locales/tkl` and `locales/tvl` each state their choice, and these rows
+     * are why a reviewer
+     * can tell the difference is deliberate rather than an oversight in one of
+     * them.
+     *
+     * `kos` and `gil` still hold an English «regular polygon» where their
+     * dictionaries gave them no term, which is what the declared lexical debt
+     * looks like at this call site.
+     */
+    it.each([
+        ["mh", "polygon jejjet 5 kona m̧ijel m̧ōttanm̧ōttan būrōrō"],
+        [
+            "chk",
+            "poriikon mi wewe fengen mi wattee mi tass mi ppar mi 5 peekin",
+        ],
+        ["pon", "poliken pahrek mosul lepilep weitahta me pali 5"],
+        ["kos", "regular polygon matoltol kotkot srusra ma oasr siska 5"],
+        ["gil", "te regular polygon ae 5 itera ae bubura ae dashed ae uraura"],
+        ["niu", "polikone tatai matolu motumotu kula mo e 5 e tapa"],
+        ["tkl", "poligoni tutuha e 5 ona itu mafiafia motumotu kula"],
+        ["tvl", "poligona tutusa matolu motumotu kula e 5 ona tafa"],
+        ["rar", "polygon ʻaiteite mātotoru motumotu muramura e 5 tapa tōna"],
+        ["wls", "poligone tatau matolu motumotu kula ʻe tapa 5"],
+        ["bi", "tik brokbrok red poligon we i gat 5 saed we oli sem mak"],
+    ])(
+        "places the side count where %s's grammar puts it",
+        (locale, expected) => {
+            expect(
+                describeStrokedShape(forLocale(locale), words, {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                }),
+            ).toBe(expected);
+        },
+    );
+
+    /**
+     * The same phrase again with the shape filled, which is where a catalog
+     * can quietly disagree with itself. `style-with-noun` and
+     * `style-filled-with-noun` are two separate messages, so a catalog that
+     * reaches `[noun-tail]` has to place the tail the same way in both, or the
+     * same polygon is assembled two ways in one language depending on nothing
+     * but whether it is filled. `locales/pon` and `locales/kos` each said in
+     * their headers that the tail closes the phrase and then placed it right
+     * after the noun in the filled message; these rows are what holds the two
+     * messages together.
+     *
+     * The fill pattern is asserted alongside, because `[pattern-tail]` is the
+     * one branch carrying the tail *and* a trailing clause, and so the one
+     * where an ordering mistake can survive the plain case.
+     */
+    it.each([
+        [
+            "mh",
+            "polygon jejjet 5 kona obrak būļu",
+            "polygon jejjet 5 kona obrak būļu kōn taim̧ōn ko",
+        ],
+        [
+            "chk",
+            "poriikon mi wewe fengen mi ur mi puruu mi 5 peekin",
+            "poriikon mi wewe fengen mi ur mi puruu mi 5 peekin fiti taimon",
+        ],
+        [
+            "pon",
+            "poliken pahrek audaud pluh me pali 5",
+            "poliken pahrek audaud pluh me pali 5 iangahki taimen",
+        ],
+        [
+            "kos",
+            "regular polygon sessesla folfol ma oasr siska 5",
+            "regular polygon sessesla folfol ma oasr siska 5 ke diamond",
+        ],
+        [
+            "gil",
+            "te regular polygon ae 5 itera ae kanoaki ae buruu",
+            "te regular polygon ae 5 itera ae kanoaki ae buruu ma taian diamond",
+        ],
+        [
+            "niu",
+            "polikone tatai puke lanu moana mo e 5 e tapa",
+            "polikone tatai puke lanu moana mo e 5 e tapa mo e tau taimane",
+        ],
+        [
+            "tkl",
+            "poligoni tutuha e 5 ona itu fakatumu lanu moana",
+            "poligoni tutuha e 5 ona itu fakatumu lanu moana ma te taimane",
+        ],
+        [
+            "tvl",
+            "poligona tutusa fakafonu lanu moana e 5 ona tafa",
+            "poligona tutusa fakafonu lanu moana e 5 ona tafa mo taimane",
+        ],
+        [
+            "rar",
+            "polygon ʻaiteite kī ninamu e 5 tapa tōna",
+            "polygon ʻaiteite kī ninamu e 5 tapa tōna ma taimana",
+        ],
+        [
+            "wls",
+            "poligone tatau fonu lanumoana ʻe tapa 5",
+            "poligone tatau fonu lanumoana ʻe tapa 5 mo te taimane",
+        ],
+        [
+            "bi",
+            "fulap blu poligon we i gat 5 saed we oli sem mak",
+            "fulap blu poligon we i gat 5 saed we oli sem mak wetem ol daemon",
+        ],
+    ])(
+        "places the side count the same way in %s's filled phrase",
+        (locale, plain, withPattern) => {
+            const filled = {
+                lineWidthWord: "",
+                lineStyleWord: "",
+                colorWord: "blue",
+                fillColorWord: "blue",
+                fillStyleWord: "",
+            };
+            const noun = { key: "regular-polygon", numSides: 5 } as const;
+            expect(
+                describeClosedShape(forLocale(locale), filled, {
+                    filled: true,
+                    noun,
+                    withNoun: true,
+                }),
+            ).toBe(plain);
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    { ...filled, fillStyleWord: "diamonds" },
+                    { filled: true, noun, withNoun: true },
+                ),
+            ).toBe(withPattern);
+        },
+    );
+});
+
+describe("the European regional batch's word order", () => {
+    /**
+     * Fifteen languages of one continent and two orders — and, for the first
+     * time in this file, **the split is exactly the family split**. All five
+     * Germanic catalogs and all five Slavic ones put the adjectives in front
+     * of the noun; all five Romance ones put them behind.
+     *
+     * That is worth pinning precisely because every earlier batch found the
+     * opposite. The Austronesian block above records a word-order split
+     * *inside* one family; the Oceania block records `locales/bi` disagreeing
+     * with ten neighbours it shares a region with, and `locales/tkl`
+     * disagreeing with its own closest relative. Here the families predict the
+     * answer, and these strings are what would notice if a later correction
+     * quietly moved a catalog across the line its family sits on.
+     *
+     * The words themselves are the other half. Several of these catalogs sit
+     * under a roofing language a machine will fall into — `sco` under English,
+     * `gsw` and `ksh` under German, `li` under Dutch, `szl` and `csb` under
+     * Polish — so a catalog whose adjectives were quietly replaced by the
+     * roofing language's would still pass a structural check. Pinning the
+     * words makes that a visible diff.
+     */
+    const prenominal: [string, string, string][] = [
+        ["nn", "tjukk stipla raud linje", "tjukk stipla raud"],
+        ["sco", "thick strokit reid line", "thick strokit reid"],
+        ["gsw", "dicki gstrichleti roti Linie", "dicki gstrichleti roti"],
+        ["ksh", "decke jestreichelte rude Linie", "decke jestreichelte rude"],
+        ["li", "dikke gestreepde roej lien", "dikke gestreepde roej"],
+        [
+            "hsb",
+            "tołsta smužkowana čerwjena runica",
+            "tołsta smužkowana čerwjena",
+        ],
+        [
+            "dsb",
+            "tłusta smužkowana cerwjena rownica",
+            "tłusta smužkowana cerwjena",
+        ],
+        [
+            "csb",
+            "grubô kreskòwónô czerwionô linia",
+            "grubô kreskòwónô czerwionô",
+        ],
+        [
+            "szl",
+            "grubŏ kryskowanŏ czerwōnŏ linijŏ",
+            "grubŏ kryskowanŏ czerwōnŏ",
+        ],
+        ["rue", "груба чаркова червена лінїя", "груба чаркова червена"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun closes the phrase, with nothing of it reaching in among
+            // the adjectives.
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    const postnominal: [string, string, string][] = [
+        ["fur", "linie grosse trateade rosse", "grosse trateade rosse"],
+        ["vec", "linea grossa trateada rossa", "grossa trateada rossa"],
+        ["lij", "linia gròssa trattezâ rossa", "gròssa trattezâ rossa"],
+        ["pms", "linia gròssa trategià rossa", "gròssa trategià rossa"],
+        ["nap", "linea grossa trattiata rossa", "grossa trattiata rossa"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives behind the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The bare description is the same words without the noun, which is
+            // what says the order above is the composition message's doing and
+            // not the adjectives'. The noun is prepended whole, with nothing of
+            // it reaching in among the adjectives.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * The side count, and the second place the family line predicts the
+     * answer: the ten Romance and Slavic catalogs carry it as a `[tail]`
+     * behind the adjectives and the five Germanic ones fold it into the head.
+     *
+     * A catalog that reaches `[noun-tail]` has to place the tail the same way
+     * in `style-with-noun` and in `style-filled-with-noun`, or the same
+     * polygon is assembled two ways in one language depending on whether it is
+     * filled — the drift `locales/pon` and `locales/kos` were corrected for.
+     * Each row therefore renders the same polygon through **both** messages:
+     * the third column is `style-with-noun`'s unfilled phrase and the first two
+     * are `style-filled-with-noun`'s. Rendering only the filled one would leave
+     * the drift invisible, since `[noun-tail]` lives in the other message
+     * entirely.
+     */
+    it.each([
+        [
+            "nn",
+            "fylt blå regelmessig 5-kant",
+            "fylt blå regelmessig 5-kant med rombar",
+            "tjukk stipla raud regelmessig 5-kant",
+        ],
+        [
+            "sco",
+            "fillt blae regular 5-sidit polygon",
+            "fillt blae regular 5-sidit polygon wi diamonds",
+            "thick strokit reid regular 5-sidit polygon",
+        ],
+        [
+            "gsw",
+            "gfüllts blaus regelmässigs 5-Eck",
+            "gfüllts blaus regelmässigs 5-Eck mit Ruute",
+            "dicks gstrichlets rots regelmässigs 5-Eck",
+        ],
+        [
+            "ksh",
+            "jeföllt blau rääjelmäßig 5-Eck",
+            "jeföllt blau rääjelmäßig 5-Eck met Ruute",
+            "deck jestreichelt rud rääjelmäßig 5-Eck",
+        ],
+        [
+            "li",
+            "gevölde blauwe regelmaotige 5-hook",
+            "gevölde blauwe regelmaotige 5-hook mit roete",
+            "dikke gestreepde roej regelmaotige 5-hook",
+        ],
+        [
+            "fur",
+            "poligon regolâr di 5 bandis plen blu",
+            "poligon regolâr di 5 bandis plen blu cun rombis",
+            "poligon regolâr di 5 bandis gruès trateât ros",
+        ],
+        [
+            "vec",
+            "poligono regolar de 5 bande pien blu",
+            "poligono regolar de 5 bande pien blu co ronbi",
+            "poligono regolar de 5 bande grosso trateà rosso",
+        ],
+        [
+            "lij",
+            "polìgono regolare de 5 lati pin bleu",
+            "polìgono regolare de 5 lati pin bleu con rombi",
+            "polìgono regolare de 5 lati gròsso trattezòu rosso",
+        ],
+        [
+            "pms",
+            "polìgon regolar ëd 5 lati pien bleu",
+            "polìgon regolar ëd 5 lati pien bleu con romb",
+            "polìgon regolar ëd 5 lati gròss trategià ross",
+        ],
+        [
+            "nap",
+            "polìgono regolare 'e 5 late chino blu",
+            "polìgono regolare 'e 5 late chino blu cu rumme",
+            "polìgono regolare 'e 5 late gruosso trattiato russo",
+        ],
+        [
+            "hsb",
+            "pjelnjeny módry prawidłowny wjeleróžk z 5 bokami",
+            "pjelnjeny módry prawidłowny wjeleróžk z 5 bokami z romby",
+            "tołsty smužkowany čerwjeny prawidłowny wjeleróžk z 5 bokami",
+        ],
+        [
+            "dsb",
+            "połnjony módry pšawidłowny wjelerožk z 5 bokami",
+            "połnjony módry pšawidłowny wjelerožk z 5 bokami z romby",
+            "tłusty smužkowany cerwjeny pšawidłowny wjelerožk z 5 bokami",
+        ],
+        [
+            "csb",
+            "wëpełniony mòdri regularny wielobòk ò 5 bòkach",
+            "wëpełniony mòdri regularny wielobòk ò 5 bòkach z rombë",
+            "gruby kreskòwóny czerwiony regularny wielobòk ò 5 bòkach",
+        ],
+        [
+            "szl",
+            "wypołniōny modry regularny wielokōnt ô 5 bokach",
+            "wypołniōny modry regularny wielokōnt ô 5 bokach z rōmby",
+            "gruby kryskowany czerwōny regularny wielokōnt ô 5 bokach",
+        ],
+        [
+            "rue",
+            "выповненый синїй правилный многоуголник о 5 боках",
+            "выповненый синїй правилный многоуголник о 5 боках з ромбы",
+            "грубый чарковый червеный правилный многоуголник о 5 боках",
+        ],
+    ])(
+        "places the side count the same way in %s's two phrases",
+        (locale, plain, withPattern, stroked) => {
+            const filled = {
+                lineWidthWord: "",
+                lineStyleWord: "",
+                colorWord: "blue",
+                fillColorWord: "blue",
+                fillStyleWord: "",
+            };
+            const noun = { key: "regular-polygon", numSides: 5 } as const;
+            expect(
+                describeClosedShape(forLocale(locale), filled, {
+                    filled: true,
+                    noun,
+                    withNoun: true,
+                }),
+            ).toBe(plain);
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    { ...filled, fillStyleWord: "diamonds" },
+                    { filled: true, noun, withNoun: true },
+                ),
+            ).toBe(withPattern);
+            // `[noun-tail]` lives in `style-with-noun`, which nothing above
+            // reaches: the unfilled phrase has to place the tail the same way.
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    {
+                        lineWidthWord: "thick",
+                        lineStyleWord: "dashed",
+                        colorWord: "red",
+                        fillColorWord: "",
+                        fillStyleWord: "",
+                    },
+                    { filled: false, noun, withNoun: true },
+                ),
+            ).toBe(stroked);
+        },
+    );
+});
+
+describe("the Silk Road batch's word order", () => {
+    /**
+     * Fifteen languages of one corridor and two orders, and the line between
+     * them is neither geography nor family — it is **whether a language builds
+     * its noun phrase with an ezafe**.
+     *
+     * Eleven catalogs put the modifiers in front of the noun. Five of those
+     * are Turkic (`crh`, `gag`, `kaa`, `kjh`, `alt`), which is expected: every
+     * Turkic language is left-branching, and each of those five headers says
+     * so in the same words. The other six are the interesting ones. `dng` is
+     * Sinitic and joins modifier to noun with the attributive particle
+     * «ди» — a word of its own, never welded to a placeable. `sgh` and `wbl`
+     * are Iranian and prenominal anyway: `locales/sgh`'s header calls this
+     * "the one place this is not Tajik", since Shughni stacks adjectives where
+     * Tajik would reach for the izafat. `bal` is Iranian too, and its header
+     * says the prenominal order carries the attributive `-ēn` on the
+     * **adjective**, which is why nothing in that file is welded to `$noun`
+     * either.
+     *
+     * `mzn` and `glk` are the pair worth reading the headers for. Both are
+     * Caspian, both are **head-final**, and both are written almost entirely in
+     * Persian vocabulary — so each file looks like `fa` word for word and is
+     * its exact reverse in arrangement. `locales/mzn`'s header states it
+     * outright: `style-with-noun` reads `{ $description } { $noun }`, "the
+     * English order, arrived at from the other direction, and the exact reverse
+     * of what `fa` writes". The `fa` row below is asserted beside them so the
+     * reversal is visible rather than asserted in prose.
+     *
+     * Four catalogs put the modifiers after the noun, and all four are ezafe
+     * languages: `ttt` (Muslim Tat, repeating «-i» before every modifier),
+     * `lrc` (Northern Luri, whose header calls the language head-initial and
+     * reverses English's adjective order to match), `haz` (Hazaragi, a Persian
+     * variety, with the ezafe an unwritten vowel after a consonant) and `zza`
+     * (Zazaki, whose ezafe is a bound vowel that cannot be welded onto
+     * `{ $noun }` — so every entry in its `noun` table is written with the
+     * ezafe already on it).
+     */
+    const prenominal: [string, string, string][] = [
+        [
+            "crh",
+            "qal\u0131n kesikli q\u0131rm\u0131z\u0131 do\u011fru",
+            "qal\u0131n kesikli q\u0131rm\u0131z\u0131",
+        ],
+        [
+            "gag",
+            "kal\u0131n kesikli k\u0131rm\u0131z\u0131 dooru",
+            "kal\u0131n kesikli k\u0131rm\u0131z\u0131",
+        ],
+        [
+            "kaa",
+            "qal\u0131\u0144 \u00fazik-\u00fazik q\u0131z\u0131l tuwr\u0131 s\u0131z\u0131q",
+            "qal\u0131\u0144 \u00fazik-\u00fazik q\u0131z\u0131l",
+        ],
+        [
+            "kjh",
+            "\u0447\u043e\u043e\u043d \u04f1\u0437\u0456\u043a-\u04f1\u0437\u0456\u043a \u0445\u044b\u0437\u044b\u043b \u0442\u04f1\u0441 \u0441\u044b\u0437\u044b\u0445",
+            "\u0447\u043e\u043e\u043d \u04f1\u0437\u0456\u043a-\u04f1\u0437\u0456\u043a \u0445\u044b\u0437\u044b\u043b",
+        ],
+        [
+            "alt",
+            "\u0458\u043e\u043e\u043d \u04f1\u0437\u04f1\u043a-\u04f1\u0437\u04f1\u043a \u043a\u044b\u0437\u044b\u043b \u0442\u04f1\u0441 \u0441\u044b\u0437\u044b\u043a",
+            "\u0458\u043e\u043e\u043d \u04f1\u0437\u04f1\u043a-\u04f1\u0437\u04f1\u043a \u043a\u044b\u0437\u044b\u043b",
+        ],
+        [
+            "mzn",
+            "\u06a9\u064f\u0644\u0641\u062a \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0650\u0631\u062e \u062e\u0637",
+            "\u06a9\u064f\u0644\u0641\u062a \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0650\u0631\u062e",
+        ],
+        [
+            "glk",
+            "\u0636\u062e\u06cc\u0645 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0648\u0631\u062e \u062e\u0637",
+            "\u0636\u062e\u06cc\u0645 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0648\u0631\u062e",
+        ],
+        [
+            "dng",
+            "\u0446\u0443 \u043f\u0443\u043d\u043a\u0442\u0438\u0440\u043d\u044b\u0439 \u0445\u0443\u043d \u0434\u0438 \u0441\u044f\u043d",
+            "\u0446\u0443 \u043f\u0443\u043d\u043a\u0442\u0438\u0440\u043d\u044b\u0439 \u0445\u0443\u043d",
+        ],
+        [
+            "sgh",
+            "\u0493\u0430\u0444\u0441 \u0445\u0430\u0442-\u0445\u0430\u0442 \u0441\u0443\u0440\u0445 \u0445\u0430\u0442",
+            "\u0493\u0430\u0444\u0441 \u0445\u0430\u0442-\u0445\u0430\u0442 \u0441\u0443\u0440\u0445",
+        ],
+        ["wbl", "mota dash-dor surkh khat", "mota dash-dor surkh"],
+        [
+            "bal",
+            "\u0633\u062a\u0628\u0631\u06cc\u06ba \u062e\u0637 \u0686\u06cc\u0646\u06cc\u06ba \u0633\u06c1\u0631\u06cc\u06ba \u062e\u0637",
+            "\u0633\u062a\u0628\u0631\u06cc\u06ba \u062e\u0637 \u0686\u06cc\u0646\u06cc\u06ba \u0633\u06c1\u0631\u06cc\u06ba",
+        ],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun is appended whole, with nothing of it reaching in among
+            // the adjectives — including for `dng`, whose «ди» belongs to the
+            // join rather than to either side.
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    const postnominal: [string, string, string][] = [
+        [
+            "ttt",
+            "x\u0259tt-i kuluft-i k\u0259sik-i s\u00fcrx",
+            "kuluft-i k\u0259sik-i s\u00fcrx",
+        ],
+        [
+            "lrc",
+            "\u062e\u0637 \u0633\u0648\u0631 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0636\u062e\u06cc\u0645",
+            "\u0633\u0648\u0631 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0636\u062e\u06cc\u0645",
+        ],
+        [
+            "haz",
+            "\u062e\u0637 \u0633\u0631\u062e \u062e\u0637\u200c\u062e\u0637 \u0633\u062a\u0628\u0631",
+            "\u0633\u0631\u062e \u062e\u0637\u200c\u062e\u0637 \u0633\u062a\u0628\u0631",
+        ],
+        [
+            "zza",
+            "xeto s\u00fbr qutbirr st\u00fbr",
+            "s\u00fbr qutbirr st\u00fbr",
+        ],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The ezafe rides on the noun rather than on the adjective run, so
+            // the description is still the tail of the phrase verbatim — which
+            // is what would break if a catalog started welding a linker onto
+            // `{ $description }`.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * Mazanderani and Gilaki against the Persian they borrow their words from.
+     * Every content word in these three phrases is Persian or a Caspian
+     * cognate of one, and the three arrangements are not the same: `fa` leads
+     * with «خط» and trails the adjectives, `mzn` and `glk` stack the
+     * adjectives first and end on «خط». A reviewer replacing Persian loans with
+     * native words in either catalog must not also "fix" the order back toward
+     * `fa`, and this is the row that says so.
+     */
+    it("reverses Persian's order in the two Caspian catalogs", () => {
+        const persian = describeStrokedShape(forLocale("fa"), words, {
+            noun: { key: "line" },
+            withNoun: true,
+        });
+        expect(persian).toBe(
+            "\u062e\u0637 \u0642\u0631\u0645\u0632 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0636\u062e\u06cc\u0645",
+        );
+        // Persian leads with the noun; both Caspian catalogs end with it.
+        for (const locale of ["mzn", "glk"]) {
+            const phrase = describeStrokedShape(forLocale(locale), words, {
+                noun: { key: "line" },
+                withNoun: true,
+            });
+            expect(phrase.startsWith("خط")).toBe(false);
+            expect(phrase.endsWith("خط")).toBe(true);
+        }
+        expect(persian.startsWith("خط")).toBe(true);
+    });
+
+    /**
+     * The side count, where the batch splits along a *different* line than the
+     * adjectives do — which is the fact this block exists to catch.
+     *
+     * Eleven catalogs leave `[noun-tail]` empty and fold the count into the
+     * head: «düzgün 5 köşeli poligon», «{ $numSides } бян ди правильный
+     * многоугольник», «{ $numSides }-tarafa regular polygon». Several headers
+     * say so in as many words — `locales/kaa`'s and `locales/kjh`'s both
+     * explain that the count "goes in front of the noun with the rest of the
+     * modifiers, so the whole phrase is one head", and `locales/wbl`'s says
+     * "`[noun-tail]` is unused".
+     *
+     * Four use the tail — and they are **not** the four postnominal catalogs.
+     * `bal` stacks its adjectives in front and still tails the count («گون 5
+     * پہلوان»), while `ttt` trails its adjectives and still heads the count
+     * («poliqoni münəzzəm ba 5 tərəf»). So the two choices are independent, and
+     * a change to one catalog's adjective order must not be assumed to imply
+     * the other.
+     *
+     * `wbl` still renders an English «regular polygon» where its dictionary
+     * gave it no term, and `dng` a **Russian** «правильный многоугольник»
+     * inside a Dungan frame — the loan language differs with the catalog, and
+     * both headers declare the debt — so the loans are pinned
+     * here beside the words that are the language, and replacing one is a
+     * visible diff.
+     */
+    it.each([
+        [
+            "crh",
+            "qal\u0131n kesikli q\u0131rm\u0131z\u0131 d\u00fczg\u00fcn 5 k\u00f6\u015feli poligon",
+        ],
+        [
+            "gag",
+            "kal\u0131n kesikli k\u0131rm\u0131z\u0131 5 k\u00f6\u0219eli d\u00fczg\u00fcn poligon",
+        ],
+        [
+            "kaa",
+            "qal\u0131\u0144 \u00fazik-\u00fazik q\u0131z\u0131l dur\u0131s 5 m\u00fayeshlik",
+        ],
+        [
+            "kjh",
+            "\u0447\u043e\u043e\u043d \u04f1\u0437\u0456\u043a-\u04f1\u0437\u0456\u043a \u0445\u044b\u0437\u044b\u043b \u0442\u0438\u04a3 5 \u043f\u0443\u043b\u0443\u04a3\u043d\u044b\u0433",
+        ],
+        [
+            "alt",
+            "\u0458\u043e\u043e\u043d \u04f1\u0437\u04f1\u043a-\u04f1\u0437\u04f1\u043a \u043a\u044b\u0437\u044b\u043b \u0442\u04f1\u04a5\u0435\u0439 5 \u043c\u04f1\u0439\u04f1\u0448\u0442\u04f1",
+        ],
+        [
+            "mzn",
+            "\u06a9\u064f\u0644\u0641\u062a \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0650\u0631\u062e 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+        ],
+        [
+            "glk",
+            "\u0636\u062e\u06cc\u0645 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0648\u0631\u062e 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+        ],
+        [
+            "dng",
+            "\u0446\u0443 \u043f\u0443\u043d\u043a\u0442\u0438\u0440\u043d\u044b\u0439 \u0445\u0443\u043d \u0434\u0438 5 \u0431\u044f\u043d \u0434\u0438 \u043f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0439 \u043c\u043d\u043e\u0433\u043e\u0443\u0433\u043e\u043b\u044c\u043d\u0438\u043a",
+        ],
+        [
+            "sgh",
+            "\u0493\u0430\u0444\u0441 \u0445\u0430\u0442-\u0445\u0430\u0442 \u0441\u0443\u0440\u0445 5-\u0442\u0430\u0440\u0430\u0444\u0430 \u043c\u0443\u043d\u0442\u0430\u0437\u0430\u043c \u0431\u0438\u0441\u0451\u0440\u043a\u0443\u043d\u04b7\u0430",
+        ],
+        ["wbl", "mota dash-dor surkh 5-tarafa regular polygon"],
+        [
+            "bal",
+            "\u0633\u062a\u0628\u0631\u06cc\u06ba \u062e\u0637 \u0686\u06cc\u0646\u06cc\u06ba \u0633\u06c1\u0631\u06cc\u06ba \u0628\u0627\u0642\u0627\u0639\u062f\u06c1 \u0686\u0646\u062f \u067e\u06c1\u0644\u0648 \u06af\u0648\u0646 5 \u067e\u06c1\u0644\u0648\u0627\u0646",
+        ],
+        [
+            "ttt",
+            "poliqoni m\u00fcn\u0259zz\u0259m ba 5 t\u0259r\u0259f-i kuluft-i k\u0259sik-i s\u00fcrx",
+        ],
+        [
+            "lrc",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645 \u0633\u0648\u0631 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0636\u062e\u06cc\u0645 \u0628\u0627 5 \u062a\u0627 \u0636\u0644\u0639",
+        ],
+        [
+            "haz",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc\u0650 \u0645\u0646\u0638\u0645 \u0633\u0631\u062e \u062e\u0637\u200c\u062e\u0637 \u0633\u062a\u0628\u0631 \u0642\u062f 5 \u0636\u0644\u0639",
+        ],
+        [
+            "zza",
+            "zafgo\u015feyo muntezem s\u00fbr qutbirr st\u00fbr bi 5 kenaran",
+        ],
+    ])(
+        "places the side count where %s's grammar puts it",
+        (locale, expected) => {
+            expect(
+                describeStrokedShape(forLocale(locale), words, {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                }),
+            ).toBe(expected);
+        },
+    );
+
+    /**
+     * The same phrase again with the shape filled, which is where a catalog can
+     * quietly disagree with itself: `style-with-noun` and
+     * `style-filled-with-noun` are two separate messages, so a catalog that
+     * reaches `[noun-tail]` has to place the tail the same way in both, or one
+     * polygon is assembled two ways in one language depending on nothing but
+     * whether it is filled.
+     *
+     * The fill pattern is asserted alongside, because `[pattern-tail]` is the
+     * one branch carrying the tail *and* a trailing clause, and so the one
+     * where an ordering mistake can survive the plain case. The pattern clause
+     * splits along a line of its own: six catalogs lead with it — the five
+     * Turkic ones and `glk` — because their pattern word is a postposition
+     * governing «{ $pattern }» («биле» in `alt`, «неӊ» in `kjh`, «menen» in
+     * `kaa`), and the remaining nine trail it, `sgh` and `dng` after a comma.
+     * So a catalog's pattern placement follows neither its adjective order nor
+     * its `[noun-tail]` use.
+     */
+    it.each([
+        [
+            "crh",
+            "mavi tol\u011fan d\u00fczg\u00fcn 5 k\u00f6\u015feli poligon",
+            "romb\u00e7\u0131qlar desenli mavi tol\u011fan d\u00fczg\u00fcn 5 k\u00f6\u015feli poligon",
+        ],
+        [
+            "gag",
+            "mavi dolu 5 k\u00f6\u0219eli d\u00fczg\u00fcn poligon",
+            "romblar desenli mavi dolu 5 k\u00f6\u0219eli d\u00fczg\u00fcn poligon",
+        ],
+        [
+            "kaa",
+            "k\u00f3k boyal\u01f5an dur\u0131s 5 m\u00fayeshlik",
+            "romblar menen k\u00f3k boyal\u01f5an dur\u0131s 5 m\u00fayeshlik",
+        ],
+        [
+            "kjh",
+            "\u043a\u04e7\u043a \u0431\u0443\u0434\u0430\u043b\u0493\u0430\u043d \u0442\u0438\u04a3 5 \u043f\u0443\u043b\u0443\u04a3\u043d\u044b\u0433",
+            "\u0440\u043e\u043c\u0431\u0442\u0430\u0440 \u043d\u0435\u04a3 \u043a\u04e7\u043a \u0431\u0443\u0434\u0430\u043b\u0493\u0430\u043d \u0442\u0438\u04a3 5 \u043f\u0443\u043b\u0443\u04a3\u043d\u044b\u0433",
+        ],
+        [
+            "alt",
+            "\u043a\u04e7\u043a \u0431\u0443\u0434\u0430\u043b\u0433\u0430\u043d \u0442\u04f1\u04a5\u0435\u0439 5 \u043c\u04f1\u0439\u04f1\u0448\u0442\u04f1",
+            "\u0440\u043e\u043c\u0431\u0442\u043e\u0440 \u0431\u0438\u043b\u0435 \u043a\u04e7\u043a \u0431\u0443\u0434\u0430\u043b\u0433\u0430\u043d \u0442\u04f1\u04a5\u0435\u0439 5 \u043c\u04f1\u0439\u04f1\u0448\u0442\u04f1",
+        ],
+        [
+            "mzn",
+            "\u062a\u0648\u067e\u0631 \u0622\u0628\u06cc 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+            "\u062a\u0648\u067e\u0631 \u0622\u0628\u06cc 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645 \u0628\u0627 \u0644\u0648\u0632\u06cc\u200c\u0648\u0646 \u0646\u0642\u0634",
+        ],
+        [
+            "glk",
+            "\u0622\u0628\u06cc \u062a\u0648\u067e\u0631 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+            "\u0644\u0648\u0632\u06cc\u200c\u0627\u0646 \u0647\u0645\u0631\u0627\u0647 \u0622\u0628\u06cc \u062a\u0648\u067e\u0631 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+        ],
+        [
+            "dng",
+            "\u0442\u044f\u043d\u043c\u0430\u043d \u043b\u0430\u043d \u0434\u0438 5 \u0431\u044f\u043d \u0434\u0438 \u043f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0439 \u043c\u043d\u043e\u0433\u043e\u0443\u0433\u043e\u043b\u044c\u043d\u0438\u043a",
+            "\u0442\u044f\u043d\u043c\u0430\u043d \u043b\u0430\u043d \u0434\u0438 5 \u0431\u044f\u043d \u0434\u0438 \u043f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0439 \u043c\u043d\u043e\u0433\u043e\u0443\u0433\u043e\u043b\u044c\u043d\u0438\u043a, \u044e\u04a3 \u0440\u043e\u043c\u0431 \u0442\u044f\u043d \u0434\u0438",
+        ],
+        [
+            "sgh",
+            "\u043f\u0443\u0440\u0448\u0443\u0434\u0430 \u043a\u0430\u0431\u0443\u0434 5-\u0442\u0430\u0440\u0430\u0444\u0430 \u043c\u0443\u043d\u0442\u0430\u0437\u0430\u043c \u0431\u0438\u0441\u0451\u0440\u043a\u0443\u043d\u04b7\u0430",
+            "\u043f\u0443\u0440\u0448\u0443\u0434\u0430 \u043a\u0430\u0431\u0443\u0434 5-\u0442\u0430\u0440\u0430\u0444\u0430 \u043c\u0443\u043d\u0442\u0430\u0437\u0430\u043c \u0431\u0438\u0441\u0451\u0440\u043a\u0443\u043d\u04b7\u0430, \u0431\u043e \u043d\u0430\u049b\u0448\u0438 \u0440\u043e\u043c\u0431\u04b3\u043e",
+        ],
+        [
+            "wbl",
+            "pur nila 5-tarafa regular polygon",
+            "pur nila 5-tarafa regular polygon ba diamond",
+        ],
+        [
+            "bal",
+            "\u067e\u064f\u0631\u06cc\u06ba \u06a9\u0628\u0648\u062f\u06cc\u06ba \u0628\u0627\u0642\u0627\u0639\u062f\u06c1 \u0686\u0646\u062f \u067e\u06c1\u0644\u0648 \u06af\u0648\u0646 5 \u067e\u06c1\u0644\u0648\u0627\u0646",
+            "\u067e\u064f\u0631\u06cc\u06ba \u06a9\u0628\u0648\u062f\u06cc\u06ba \u0628\u0627\u0642\u0627\u0639\u062f\u06c1 \u0686\u0646\u062f \u067e\u06c1\u0644\u0648 \u06af\u0648\u0646 5 \u067e\u06c1\u0644\u0648\u0627\u0646 \u06af\u0648\u0646 \u0627\u0644\u0645\u0627\u0633",
+        ],
+        [
+            "ttt",
+            "poliqoni m\u00fcn\u0259zz\u0259m ba 5 t\u0259r\u0259f-i pur-i kabud",
+            "poliqoni m\u00fcn\u0259zz\u0259m ba 5 t\u0259r\u0259f-i pur-i kabud ba rombho",
+        ],
+        [
+            "lrc",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645 \u0622\u0628\u06cc \u062a\u0648\u067e\u0631 \u0628\u0627 5 \u062a\u0627 \u0636\u0644\u0639",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645 \u0622\u0628\u06cc \u062a\u0648\u067e\u0631 \u0628\u0627 5 \u062a\u0627 \u0636\u0644\u0639 \u0628\u0627 \u0646\u0642\u0634 \u0644\u0648\u0632\u06cc\u200c\u06cc\u0644",
+        ],
+        [
+            "haz",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc\u0650 \u0645\u0646\u0638\u0645 \u0622\u0628\u06cc \u067e\u064f\u0631 \u0642\u062f 5 \u0636\u0644\u0639",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc\u0650 \u0645\u0646\u0638\u0645 \u0622\u0628\u06cc \u067e\u064f\u0631 \u0642\u062f 5 \u0636\u0644\u0639 \u0642\u062f \u0627\u0644\u0645\u0627\u0633\u200c\u0647\u0627",
+        ],
+        [
+            "zza",
+            "zafgo\u015feyo muntezem kewe p\u0131rr bi 5 kenaran",
+            "zafgo\u015feyo muntezem kewe p\u0131rr bi 5 kenaran bi elmas\u00ee",
+        ],
+    ])(
+        "places the side count the same way in %s's filled phrase",
+        (locale, plain, withPattern) => {
+            const filled = {
+                lineWidthWord: "",
+                lineStyleWord: "",
+                colorWord: "blue",
+                fillColorWord: "blue",
+                fillStyleWord: "",
+            };
+            const noun = { key: "regular-polygon", numSides: 5 } as const;
+            expect(
+                describeClosedShape(forLocale(locale), filled, {
+                    filled: true,
+                    noun,
+                    withNoun: true,
+                }),
+            ).toBe(plain);
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    { ...filled, fillStyleWord: "diamonds" },
+                    { filled: true, noun, withNoun: true },
+                ),
+            ).toBe(withPattern);
+        },
+    );
+});
+
+describe("the Americas batch's word order", () => {
+    /**
+     * Fifteen languages of two hemispheres and two orders, and the line
+     * between them is drawn by the **lexifier** rather than by geography or
+     * family: an English- or Dutch-lexifier creole puts its modifiers in front
+     * of the noun and a French-lexifier one puts them behind, because that is
+     * where each lexifier puts them and the creoles kept the order they were
+     * built from. Seven catalogs fall on each side, with `iu` in neither.
+     *
+     * The seven prenominal ones are the English- and Dutch-lexifier creoles —
+     * `jam`, `bzj`, `srn`, and the two Maroon creoles `djk` and `srm` — plus
+     * `yua` and `kek`, which are Mayan and prenominal on their own account.
+     *
+     * The seven postnominal ones split three ways over *why*, and the split is
+     * worth keeping straight because only two of the three are about a
+     * lexifier. The three French-lexifier creoles (`gcf`, `acf`, `gcr`) take
+     * the order from French. `cab` and `miq` take it from Garifuna and Mískito
+     * themselves. `pap` is the one that would have been guessed wrong from its
+     * neighbours: it sits with the French-lexifier creoles rather than with
+     * the English- and Dutch-lexifier ones beside it in Suriname and Curaçao,
+     * because its own vocabulary is Iberian and an Iberian adjective follows
+     * its noun. `kl` is the seventh and is not a lexifier case at all —
+     * Kalaallisut builds the phrase by suffixing, so what comes out is a noun
+     * followed by agreeing participles, «titarneq silissooq
+     * avissaartorsimasoq aappaluttoq», and its header says so.
+     *
+     * The `acf` row is the one to read beside `gcf`: those two differ here by
+     * a single sound, the etymological French /r/ that Saint Lucian writes
+     * «w» — «tiwè» against «tirè» — which is that catalog's central
+     * orthographic commitment, visible in one word.
+     *
+     * `iu` is in neither table, and that is a fact about coverage rather than
+     * about Inuktitut. `locales/iu` omits `noun` and the width and dash words
+     * whole rather than writing roman-letter loans for them, so the phrase it
+     * produces is mostly English fallback with a syllabic colour word at the
+     * end. Asserting an order over a phrase three quarters of which is English
+     * would be asserting English's order.
+     */
+    const prenominal: [string, string, string][] = [
+        ["yua", "pim rayaʼan chak línea", "pim rayaʼan chak"],
+        ["kek", "pim jachbʼil kaq raqal", "pim jachbʼil kaq"],
+        ["srn", "deki strepistrepi redi lin", "deki strepistrepi redi"],
+        ["jam", "tik dash-dash red lain", "tik dash-dash red"],
+        ["bzj", "tik dash-dash red lain", "tik dash-dash red"],
+        ["djk", "deki koti-koti lebi lin", "deki koti-koti lebi"],
+        ["srm", "dëkë koti-koti lebi lin", "dëkë koti-koti lebi"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun is appended whole, with nothing of it reaching in among
+            // the adjectives — which is what would break if a catalog started
+            // welding a determiner or a linker onto `{ $noun }`.
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * `jam` and `bzj` produce the same four words here, which is worth seeing
+     * rather than being surprised by later: both are English-lexifier creoles
+     * written in a phonemic orthography, and «tik dash-dash red lain» is what
+     * both spell. Their boolean words coincide too — «chruu», «faals» — for
+     * the same reason.
+     *
+     * They are not one catalog copied twice, which is the thing worth
+     * catching: two fifths of the values they both define here differ, and
+     * over all four namespaces, counted off the syntax tree in
+     * `catalogLint.test.ts`, it is 342 of 389. So what is asserted is not that
+     * these two disagree somewhere — it is that they disagree at a rate a
+     * duplicate could not.
+     */
+    it("has jam and bzj converge on this phrase without being one catalog", () => {
+        const jam = prenominal.find(([locale]) => locale === "jam")!;
+        const bzj = prenominal.find(([locale]) => locale === "bzj")!;
+        expect(jam[1]).toBe(bzj[1]);
+
+        /** `id = value` pairs of one catalog, comments and blank lines dropped. */
+        const values = (locale: string): Map<string, string> => {
+            const pairs = new Map<string, string>();
+            for (const line of readCatalog(locale, "content").split("\n")) {
+                if (line.trimStart().startsWith("#")) {
+                    continue;
+                }
+                const match = line.match(/^\s*(\.?[a-z0-9-]+)\s*=\s*(\S.*)$/);
+                if (match) {
+                    pairs.set(match[1], match[2]);
+                }
+            }
+            return pairs;
+        };
+        const jamValues = values("jam");
+        const bzjValues = values("bzj");
+        const shared = [...jamValues.keys()].filter((key) =>
+            bzjValues.has(key),
+        );
+        const differing = shared.filter(
+            (key) => jamValues.get(key) !== bzjValues.get(key),
+        );
+        expect(shared.length).toBeGreaterThan(50);
+        expect(differing.length / shared.length).toBeGreaterThan(1 / 3);
+    });
+
+    const postnominal: [string, string, string][] = [
+        ["pap", "liña diki di strepi kòrá", "diki di strepi kòrá"],
+        ["cab", "línia grúesu rayadu funati", "grúesu rayadu funati"],
+        ["miq", "lain tara raya nani pauni", "tara raya nani pauni"],
+        ["gcf", "liy épé an tirè wouj", "épé an tirè wouj"],
+        ["acf", "liy épé an tiwè wouj", "épé an tiwè wouj"],
+        ["gcr", "liy épé an tirè wouj", "épé an tirè wouj"],
+        [
+            "kl",
+            "titarneq silissooq avissaartorsimasoq aappaluttoq",
+            "silissooq avissaartorsimasoq aappaluttoq",
+        ],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // Nothing rides on the noun, so the description is still the tail
+            // of the phrase verbatim. The three French-lexifier creoles all
+            // postpose their definite determiner, and this is what would break
+            // if one of them started attaching it to `{ $noun }` here.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * The two French-lexifier catalogs that differ by the /r/ rule, held
+     * against each other rather than only against their own strings. `gcf` and
+     * `gcr` produce the same phrase here — the two languages agree on all four
+     * of these words — so the assertion that separates them is `acf`'s «w»,
+     * which is that catalog's central orthographic commitment.
+     */
+    it("writes acf's etymological r as w where gcf and gcr keep it", () => {
+        const [, gcfPhrase] = postnominal.find(([l]) => l === "gcf")!;
+        const [, acfPhrase] = postnominal.find(([l]) => l === "acf")!;
+        const [, gcrPhrase] = postnominal.find(([l]) => l === "gcr")!;
+        expect(gcfPhrase).toBe(gcrPhrase);
+        expect(acfPhrase).not.toBe(gcfPhrase);
+        expect(acfPhrase.replace("tiwè", "tirè")).toBe(gcfPhrase);
+    });
+});
+
+describe("the Southeast Asian batch's word order", () => {
+    /**
+     * Fifteen languages of maritime and mainland Southeast Asia, and the line
+     * between the two orders is neither family nor script — it is a **border**.
+     * Eleven catalogs put the modifiers behind the noun and four put them in
+     * front, and the four are exactly the four catalogs of the Philippines.
+     *
+     * That is a sharper claim than "Austronesian splits", because eleven of the
+     * fifteen are Austronesian and they fall on both sides of it. The eight
+     * catalogs of Indonesia and Malaysian Borneo are head-initial like the
+     * Malay their technical register comes from; the three Philippine
+     * non-creoles take the modifier-first order English happens to share, and
+     * they do so across three different branches of Austronesian rather than
+     * one — Pangasinan is a Northern Luzon language, not a Central Philippine
+     * one, so this is not a subgroup either;
+     * and the three Myanmar-script catalogs land with the first group for
+     * reasons of their own — Tai, Austroasiatic and Sino-Tibetan all being
+     * head-initial in the noun phrase.
+     *
+     * `cbk` is the row worth reading twice. Chavacano's vocabulary is Spanish
+     * and its order is not: «grueso cortao rojo linea» is the reverse of
+     * Spanish's «línea roja», and `locales/cbk`'s header names this as the
+     * thing a reviewer is most likely to "correct" wrongly. A creole's word
+     * order follows its substrate rather than its lexifier, and this is the
+     * row that says so.
+     *
+     * The **linker** is the other half, and it cuts differently again. Three
+     * Philippine catalogs write one out — `tsg`'s «nga» and `pag`'s and
+     * `mrw`'s «a», repeated before every modifier — while `cbk`, alone among
+     * the four, writes none at all. `bbc` writes one too and writes it
+     * *postnominally*, the attributive relator «na», which no other catalog on
+     * its side of the split uses. The remaining ten juxtapose with nothing.
+     * Each linker is a free word in every position, so none of them is welded
+     * to a placeable and the README's affix rule is not reached here.
+     *
+     * Finally, the convergences are real and are not agreement. Eight catalogs
+     * write «garis» and six of those write «putus-putus»: that is one
+     * Indonesian word reaching six languages through one school system, not
+     * six languages arriving at it. `bug` and `mak` are pinned beside them
+     * precisely because they do *not* — «pettu-pettu» and «tappolo-polo» —
+     * and seven of the eight supply a red of their own where `nia` still
+     * falls back to Indonesian «merah» — the only two colour words
+     * `locales/nia` attempts in Nias are black and white, and its header calls
+     * the missing red a gap in the seed rather than a fact about the language.
+     * Replacing a loan should be a visible diff here rather than a silent
+     * improvement.
+     */
+    const postnominal: [string, string, string][] = [
+        [
+            "bug",
+            "garis tebal pettu-pettu macella'",
+            "tebal pettu-pettu macella'",
+        ],
+        ["mak", "garis kapala' tappolo-polo eja", "kapala' tappolo-polo eja"],
+        ["bjn", "garis kandal putus-putus habang", "kandal putus-putus habang"],
+        ["gor", "garis tebal putus-putus meela", "tebal putus-putus meela"],
+        ["nia", "garis tebal putus-putus merah", "tebal putus-putus merah"],
+        ["bbc", "garis na hapal putus-putus rara", "hapal putus-putus rara"],
+        ["iba", "garis tebal putus-putus mirah", "tebal putus-putus mirah"],
+        ["dtp", "garis tebal putus-putus aragang", "tebal putus-putus aragang"],
+        ["shn", "သဵၼ်ႈ သီလႅင် ၶၢတ်ႇ ၼႃ", "သီလႅင် ၶၢတ်ႇ ၼႃ"],
+        ["mnw", "မျဉ်း အနီ အပြတ် ထူ", "အနီ အပြတ် ထူ"],
+        ["ksw", "မျဉ်း ဂီၤ အပြတ် ဖးထီၣ်", "ဂီၤ အပြတ် ဖးထီၣ်"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: true }),
+            ).toBe(withNoun);
+            // The description is the tail of the phrase verbatim, which is what
+            // would break if a catalog started welding `bbc`'s «na» — the one
+            // linker on this side of the split — onto `{ $description }`.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: false }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    const prenominal: [string, string, string][] = [
+        [
+            "tsg",
+            "makapal nga pinutu'-putu' nga pula nga linya",
+            "makapal nga pinutu'-putu' nga pula",
+        ],
+        [
+            "pag",
+            "makapal a putol-putol a ambalanga a linya",
+            "makapal a putol-putol a ambalanga",
+        ],
+        ["cbk", "grueso cortao rojo linea", "grueso cortao rojo"],
+        [
+            "mrw",
+            "makapal a dashed a mariga a linya",
+            "makapal a dashed a mariga",
+        ],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: true }),
+            ).toBe(withNoun);
+            // The linker belongs to `style-with-noun` rather than to the
+            // adjective run, so the run still starts the phrase and still
+            // stands alone without a trailing «nga» or «a».
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: false }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    it("puts all four of the Philippine catalogs on the prenominal side", () => {
+        expect(prenominal.map(([locale]) => locale).sort()).toEqual([
+            "cbk",
+            "mrw",
+            "pag",
+            "tsg",
+        ]);
+        expect(postnominal).toHaveLength(11);
+    });
+
+    /**
+     * Chavacano against the Spanish it takes its words from. Every content word
+     * in «grueso cortao rojo linea» is Spanish or a Chavacano reflex of one,
+     * and the arrangement is Spanish's exact reverse: `es` leads with «línea»
+     * and trails the adjectives. This is `mzn`/`glk`-against-`fa` from the
+     * Silk Road batch met in a creole, and the row exists so that a reviewer
+     * replacing a loan cannot also "fix" the order back toward Spanish without
+     * failing a test.
+     */
+    it("reverses Spanish's order in the Spanish-lexifier creole", () => {
+        const spanish = describeStrokedShape(es, words, {
+            noun: line,
+            withNoun: true,
+        });
+        const chavacano = describeStrokedShape(forLocale("cbk"), words, {
+            noun: line,
+            withNoun: true,
+        });
+        expect(spanish.startsWith("línea")).toBe(true);
+        expect(chavacano.startsWith("linea")).toBe(false);
+        expect(chavacano.endsWith("linea")).toBe(true);
+    });
+
+    /**
+     * The side count, where this batch does **not** split — which is the point
+     * of asserting it, since the Silk Road batch split on exactly this and
+     * along a different line than its adjectives did.
+     *
+     * In all fifteen the count sits **behind** the noun whatever the
+     * adjectives do — «poligon biasa iya 5 sisina», «poligono que tiene 5
+     * lado», «regular polygon 5 ၸဵင်ႇ» — so the four prenominal catalogs put
+     * their modifiers in front of a noun that still carries its count behind
+     * it.
+     *
+     * Which of `style-with-noun`'s two variants gets there is a separate
+     * question, and on that the batch does split, three against twelve.
+     * `noun-regular-polygon`'s `[tail]` is written only in `pag`, `cbk` and
+     * `mrw` — «ya walaay { $numSides } a gilig», «que tiene { $numSides }
+     * lado», «a aden a { $numSides } a kilid iyan» — and only those three
+     * therefore select `[noun-tail]`. The other twelve leave `[tail]` empty
+     * exactly as `locales/en` does, fold the count into `[head]`, and select
+     * `[noun]`. Both shapes put the count in the same place, which is why the
+     * assertion below is on the rendered phrase rather than on the variant.
+     */
+    it.each([
+        ["bug", "poligon biasa iya 5 sisina tebal pettu-pettu macella'"],
+        ["mak", "poligon biasa 5 sisina kapala' tappolo-polo eja"],
+        ["bjn", "poligon baraturan basisi 5 kandal putus-putus habang"],
+        ["gor", "poligon beraturan u o sisi 5 tebal putus-putus meela"],
+        ["nia", "poligon beraturan si so 5 sisi tebal putus-putus merah"],
+        ["bbc", "poligon biasa marsisi 5 na hapal putus-putus rara"],
+        ["iba", "poligon rata besisi 5 tebal putus-putus mirah"],
+        ["dtp", "poligon sekata bersisi 5 tebal putus-putus aragang"],
+        [
+            "tsg",
+            "makapal nga pinutu'-putu' nga pula nga regular nga polygon nga taga 5 sisi",
+        ],
+        [
+            "pag",
+            "makapal a putol-putol a ambalanga a regular a poligono ya walaay 5 a gilig",
+        ],
+        ["cbk", "grueso cortao rojo regular poligono que tiene 5 lado"],
+        [
+            "mrw",
+            "makapal a dashed a mariga a regular polygon a aden a 5 a kilid iyan",
+        ],
+        ["shn", "regular polygon 5 ၸဵင်ႇ သီလႅင် ၶၢတ်ႇ ၼႃ"],
+        ["mnw", "regular polygon 5 ထောင့် အနီ အပြတ် ထူ"],
+        ["ksw", "regular polygon လၢအအိၣ်ဒီး 5 ထောင့် ဂီၤ အပြတ် ဖးထီၣ်"],
+    ])("tails %s's side count behind the noun", (locale, expected) => {
+        const phrase = describeClosedShape(forLocale(locale), words, {
+            noun: { key: "regular-polygon", numSides: 5 },
+            withNoun: true,
+        });
+        expect(phrase).toBe(expected);
+        // The count reaches the reader in all fifteen, whichever of the two
+        // variants carries it — a catalog that dropped `{ $numSides }` from
+        // whichever branch it uses would still match the shape of the phrase
+        // above but not this.
+        expect(phrase).toContain("5");
+    });
+
+    /**
+     * Two convergences that are one word rather than two agreements, pinned so
+     * that replacing either loan is a visible diff.
+     *
+     * Six of the eight Indonesian and Malaysian catalogs write «putus-putus»
+     * for the dash pattern, and all eight write «garis» for the line. That is
+     * the Malaysian and Indonesian school vocabulary reaching six languages,
+     * and `locales/dtp`'s header says as much about its `noun` table sharing
+     * `iba`'s: a fact about two education ministries, not about six
+     * languages.
+     * `bug` and `mak` are the control — adjacent, related, and sharing neither.
+     */
+    it("keeps bug and mak out of the Indonesian dash-pattern convergence", () => {
+        const dashOf = (locale: string) =>
+            describeStrokedShape(forLocale(locale), words, {
+                noun: line,
+                withNoun: false,
+            }).split(" ")[1];
+        for (const locale of ["bjn", "gor", "nia", "bbc", "iba", "dtp"]) {
+            expect(dashOf(locale)).toBe("putus-putus");
+        }
+        expect(dashOf("bug")).toBe("pettu-pettu");
+        expect(dashOf("mak")).toBe("tappolo-polo");
+    });
+});
+
+describe("the second South Asian batch's word order", () => {
+    /**
+     * Fifteen languages of South Asia and its diaspora, and this batch's split
+     * is the Southeast Asian one's arithmetic reversed: thirteen catalogs put
+     * the modifiers in front of the noun and two put them behind. Thirteen to
+     * two is not itself interesting — most of South Asia is left-branching, and
+     * the nine Indo-Aryan catalogs here inherit Hindi's order along with much of
+     * their technical vocabulary.
+     *
+     * What is interesting is *which* two, because the line does not fall where
+     * a reader would draw it. `kha` (Khasi) and `lus` (Mizo) are the two, and
+     * `grt` (Garo) — seeded in the same batch, spoken in the same state as
+     * Khasi, and Tibeto-Burman like Mizo — is on the other side. So neither
+     * family nor geography predicts the split: Meghalaya writes it both ways,
+     * and Garo and Mizo, the batch's two Tibeto-Burman catalogs of Northeast
+     * India, disagree with each other. Khasi is
+     * Austroasiatic and head-initial like its relatives further east; Mizo puts
+     * its attributives behind the noun; Garo's `-gipa` attributive precedes it.
+     * Three neighbours, three answers.
+     *
+     * The other row worth reading twice is `brh` (Brahui), which is Dravidian
+     * and sits among twelve Indo-Aryan and Tibeto-Burman catalogs writing the
+     * same order as all of them. Head-final order is areal here rather than
+     * genetic, which is the same lesson `cbk` taught from the opposite
+     * direction in the Southeast Asian batch: a phrase's order follows the
+     * neighbourhood, not the family tree or the lexicon.
+     *
+     * `tcy` (Tulu) is Dravidian too and prenominal for the same areal reason,
+     * so the two Dravidian catalogs of this batch agree with the Indo-Aryan
+     * ones and with each other while Garo and Mizo do not agree with each other.
+     *
+     * Every one of the fifteen keeps English's internal sequence of the three
+     * adjectives — width, dash pattern, colour — so what moves in a
+     * postnominal catalog is the noun alone. Nothing here is welded to a
+     * placeable: none of the fifteen writes a linker between modifier and noun
+     * at all, which is why this batch never reaches the README's affix rule
+     * that `pag`'s and `tsg`'s ligatures came so close to.
+     */
+    const prenominal: [string, string][] = [
+        ["awa", "मोट खंडित लाल"],
+        ["hne", "मोट खंडित लाल"],
+        ["mag", "मोट खंडित लाल"],
+        ["mwr", "मोटो खंडित लाल"],
+        ["gbm", "मोटु खंडित लाल"],
+        ["kfy", "मोटो खंडित लाल"],
+        ["new", "बाक्लो धर्के ह्याउँ"],
+        ["syl", "মোটা দাগ-দাগ লাল"],
+        ["tcy", "ದಪ್ಪ ತುಂಡು ತುಂಡುದ ಕೆಂಪು"],
+        ["grt", "dal·gipa dashgipa gitchak"],
+        ["skr", "موٹی منقطع لال"],
+        ["brh", "دبیز خط چین سرخ"],
+        ["hif", "mota dash waala laal"],
+    ];
+
+    const nounOf: Record<string, string> = {
+        awa: "रेखा",
+        hne: "रेखा",
+        mag: "रेखा",
+        mwr: "रेखा",
+        gbm: "रेखा",
+        kfy: "रेखा",
+        new: "रेखा",
+        syl: "রেখা",
+        tcy: "ಗೆರೆ",
+        grt: "lain",
+        skr: "لکیر",
+        brh: "خط",
+        hif: "lakiir",
+        // The two postnominal catalogs' nouns, used below to assert that the
+        // noun is what moved: the full phrase must be exactly the noun, a
+        // space, and the bare description.
+        kha: "lain",
+        lus: "line",
+    };
+
+    for (const [locale, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: false }),
+            ).toBe(adjectivesOnly);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: true }),
+            ).toBe(`${adjectivesOnly} ${nounOf[locale]}`);
+        });
+    }
+
+    const postnominal: [string, string, string][] = [
+        ["kha", "lain bakhraw badash basaw", "bakhraw badash basaw"],
+        ["lus", "line lian dash-nei sen", "lian dash-nei sen"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            const rendered = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: true,
+            });
+            const renderedBare = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: false,
+            });
+            expect(rendered).toBe(withNoun);
+            expect(renderedBare).toBe(adjectivesOnly);
+            // The bare description is the tail of the full phrase verbatim:
+            // the noun moved to the front and nothing else moved with it.
+            // Asserted on what the catalog rendered, not on the two literals
+            // above, so a catalog that reordered an adjective while keeping
+            // both expectations self-consistent would still fail here.
+            expect(rendered).toBe(`${nounOf[locale]} ${renderedBare}`);
+        });
+    }
+
+    /**
+     * The one catalog of the fifteen that agrees its adjectives, held from both
+     * sides. Saraiki keeps Indo-Aryan's marked adjective classes, so `موٹی`
+     * is feminine before the feminine `لکیر` and `موٹا` masculine before a
+     * masculine noun — the fork English ignores, selected on `noun-gender`'s
+     * own answer. The other fourteen write one invariant form: Brahui and Tulu
+     * have no adjective agreement to lose, Fiji Hindi levelled Hindi's away,
+     * and in the rest it is a stated gap in the seed rather than a claim about
+     * the language.
+     */
+    it("agrees skr's adjectives with the noun and no other catalog's", () => {
+        const skr = forLocale("skr");
+        const feminine = describeStrokedShape(skr, words, {
+            noun: line,
+            withNoun: true,
+        });
+        const masculine = describeStrokedShape(skr, words, {
+            noun: { key: "point" },
+            withNoun: true,
+        });
+        expect(feminine).toContain("موٹی");
+        expect(masculine).toContain("موٹا");
+
+        for (const locale of ["brh", "hif", "tcy", "awa"]) {
+            const t = forLocale(locale);
+            const width = (noun: NounKey) =>
+                describeStrokedShape(t, words, {
+                    noun: { key: noun },
+                    withNoun: true,
+                }).split(" ")[0];
+            expect(width("line")).toBe(width("point"));
+        }
+    });
+});
+
+describe("the second European batch's word order", () => {
+    /**
+     * Fifteen more languages of Europe, and the batch that splits **twelve
+     * against three**, with the postnominal side the large one — as it was for
+     * the Oceania batch's ten of eleven, and unlike either batch since.
+     *
+     * The line falls exactly on the family boundary, which is why it is worth
+     * writing down rather than assuming. The ten Romance catalogs (`an`,
+     * `ext`, `lad`, `mwl`, `wa`, `frp`, `nrf`, `lmo`, `egl`, `lld`) and the
+     * two Celtic ones (`kw`, `gv`) put the adjectives behind the noun; the two
+     * Germanic catalogs (`bar`, `frr`) and the one Indo-Aryan one (`rom`) put
+     * them in front. Romani is the row that makes the point:
+     * it is the batch's only Indo-Aryan language, it has been spoken in Europe
+     * for six hundred years, and it still writes the order `locales/hi` and
+     * `locales/mr` write rather than the order of every Romance neighbour
+     * around it. Where the South Asian batch found word order following the
+     * neighbourhood rather than the family tree, this batch finds the
+     * opposite, and both are true — areal pressure reaches a phrase's order
+     * sometimes and not always, and a seed that assumed either way round would
+     * have been wrong once.
+     *
+     * Twelve of the fifteen keep English's internal sequence of the three
+     * adjectives — width, dash pattern, colour — so what moves is the noun
+     * alone. `wa`, `frp` and `nrf` are the three that do not, and say so in
+     * their headers: all three render the dash pattern as an invariable
+     * prepositional phrase («a trets», «à traits») rather than as an
+     * adjective, and a prepositional phrase cannot sit between two adjectives,
+     * so those three read width – colour – pattern.
+     */
+    const postnominal: [string, string, string][] = [
+        ["an", "linia gorda discontinua roya", "gorda discontinua roya"],
+        ["ext", "linia gorda descontinua colorá", "gorda descontinua colorá"],
+        [
+            "lad",
+            "linya gruesa deskontinua kolorada",
+            "gruesa deskontinua kolorada",
+        ],
+        [
+            "mwl",
+            "lhinha grossa traceijada burmeilha",
+            "grossa traceijada burmeilha",
+        ],
+        ["wa", "roye spesse rodje a trets", "spesse rodje a trets"],
+        ["frp", "legne èpèssa roja a trèts", "èpèssa roja a trèts"],
+        ["nrf", "ligne êpaisse rouoge à traits", "êpaisse rouoge à traits"],
+        ["lmo", "linea grossa trattegiada rossa", "grossa trattegiada rossa"],
+        ["egl", "lénnia gròsa trategèda róssa", "gròsa trategèda róssa"],
+        ["lld", "linia grossa tratejada cuecia", "grossa tratejada cuecia"],
+        ["kw", "linen dew derrys rudh", "dew derrys rudh"],
+        ["gv", "linney chiu vrisht yiarg", "chiu vrisht yiarg"],
+    ];
+
+    const nounOf: Record<string, string> = {
+        an: "linia",
+        ext: "linia",
+        lad: "linya",
+        mwl: "lhinha",
+        wa: "roye",
+        frp: "legne",
+        nrf: "ligne",
+        lmo: "linea",
+        egl: "lénnia",
+        lld: "linia",
+        kw: "linen",
+        gv: "linney",
+        // The three prenominal catalogs' nouns, used below to assert that the
+        // noun is what moved.
+        bar: "Linie",
+        frr: "line",
+        rom: "linia",
+    };
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            const rendered = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: true,
+            });
+            const renderedBare = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: false,
+            });
+            expect(rendered).toBe(withNoun);
+            expect(renderedBare).toBe(adjectivesOnly);
+            // The bare description is the tail of the full phrase verbatim:
+            // the noun moved to the front and nothing else moved with it.
+            expect(rendered).toBe(`${nounOf[locale]} ${renderedBare}`);
+        });
+    }
+
+    const prenominal: [string, string][] = [
+        ["bar", "dicke gstrichlte rode"],
+        ["frr", "dik struket rüüdj"],
+        ["rom", "thuli phagli loli"],
+    ];
+
+    for (const [locale, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: false }),
+            ).toBe(adjectivesOnly);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: true }),
+            ).toBe(`${adjectivesOnly} ${nounOf[locale]}`);
+        });
+    }
+
+    /**
+     * Fourteen of the fifteen agree their adjectives with the noun's gender —
+     * the Romance ten by ending, `bar` and `rom` by ending, and `kw` and `gv`
+     * by something the roster had not seen before.
+     *
+     * The comparison is made between the *rendered* descriptions of a feminine
+     * noun and a masculine one, not against a pair of literals, so a catalog
+     * that changed one adjective while keeping both spellings self-consistent
+     * would still be caught.
+     */
+    it.each([
+        "an",
+        "ext",
+        "lad",
+        "mwl",
+        "wa",
+        "frp",
+        "nrf",
+        "lmo",
+        "egl",
+        "lld",
+        "kw",
+        "gv",
+        "bar",
+        "rom",
+    ])("agrees %s's adjectives with the noun's gender", (locale) => {
+        const t = forLocale(locale);
+        const describe_ = (noun: NounKey) =>
+            describeStrokedShape(t, words, {
+                noun: { key: noun },
+                withNoun: false,
+            });
+        expect(describe_("line")).not.toBe(describe_("point"));
+    });
+
+    /**
+     * **The two Celtic catalogs agree by initial mutation**, which is the
+     * reason the assertion above compares whole phrases rather than first
+     * words.
+     *
+     * Cornish lenites after a feminine singular noun, so «tew» — thick —
+     * becomes «dew»: the same word, one letter different, at the front rather
+     * than the end. Manx does the same to «brisht», which becomes «vrisht».
+     * The mechanism itself is not new to the roster — `cy`, `ga`, `br` and
+     * `gd` were all seeded with it — but every catalog that marks gender with
+     * an *ending* would survive a test that only read a word's first letters,
+     * and every mutating catalog before `gv` would survive one that only read
+     * the width word.
+     *
+     * Manx is the reason neither shortcut is taken: its *first* adjective,
+     * «chiu», is the
+     * same in both genders, and the mutation shows up only on the two behind
+     * it — «brisht» → «vrisht» and «jiarg» → «yiarg». A batch that checked
+     * agreement by looking at the width word alone — which is what the second
+     * South Asian batch's block does, correctly, for its own catalogs — would
+     * have called `locales/gv` invariant.
+     */
+    it("agrees the two Celtic catalogs at the front of the word, not the end", () => {
+        const kw = forLocale("kw");
+        const feminine = describeStrokedShape(kw, words, {
+            noun: line,
+            withNoun: false,
+        });
+        const masculine = describeStrokedShape(kw, words, {
+            noun: { key: "point" },
+            withNoun: false,
+        });
+        expect(feminine).toBe("dew derrys rudh");
+        expect(masculine).toBe("tew terrys rudh");
+        // Same length, same tail, different first letters: a mutation rather
+        // than a suffix.
+        expect(feminine.length).toBe(masculine.length);
+        expect(feminine.slice(1, 3)).toBe(masculine.slice(1, 3));
+
+        const gv = forLocale("gv");
+        expect(
+            describeStrokedShape(gv, words, { noun: line, withNoun: false }),
+        ).toBe("chiu vrisht yiarg");
+        expect(
+            describeStrokedShape(gv, words, {
+                noun: { key: "point" },
+                withNoun: false,
+            }),
+        ).toBe("chiu brisht jiarg");
+    });
+
+    /**
+     * Northern Frisian is the one catalog of the fifteen that does not agree,
+     * and — unusually for this seeding effort — that is a fact about the
+     * language rather than a gap in the seed. Mooring's attributive adjective
+     * takes no ending in the indefinite singular for either gender, and no
+     * description this software builds is definite or plural. `locales/frr`
+     * still answers `noun-gender` with Mooring's real two genders, so a
+     * reviewer who finds a context that does inflect has the fork's selector
+     * already in place.
+     */
+    it("writes frr's adjectives invariant, which is Mooring and not a gap", () => {
+        const frr = forLocale("frr");
+        const describe_ = (noun: NounKey) =>
+            describeStrokedShape(frr, words, {
+                noun: { key: noun },
+                withNoun: false,
+            });
+        expect(describe_("line")).toBe("dik struket rüüdj");
+        expect(describe_("point")).toBe(describe_("line"));
+    });
+});
+
+describe("the East African pair's word order", () => {
+    /**
+     * Two catalogs rather than the fifteen the batch set out with, and both
+     * are Bantu languages of Uganda: Chiga (`cgg`) and Soga (`xog`). The
+     * other thirteen are recorded on #1655 with the coverage each honestly
+     * reached; see the README's batch section.
+     *
+     * Both put the describing words **after** the noun, so what leads the
+     * phrase is the noun and the bare description is the phrase's tail — the
+     * shape `style-with-noun` has to be read against, and the same one `kl`
+     * and the Romance catalogs produce.
+     *
+     * Neither keeps English's internal sequence of the three adjectives.
+     * English orders them width – pattern – colour; both of these render the
+     * dash pattern as an **associative phrase** («na tucweka», «n'obutundu» —
+     * *with pieces*, *with dots*) rather than as an adjective, and an
+     * associative phrase cannot sit between two adjectives, so both read
+     * width – colour – pattern. That is the same constraint `wa`, `frp` and
+     * `nrf` hit from the other side of the continent, and it is a fact about
+     * where a phrase can go rather than a choice either seed made.
+     *
+     * The two differ in how much of the phrase carries concord, which is why
+     * asserting both is worth more than asserting either. Rukiga agrees only
+     * the first adjective with the noun's class and leaves the colour to the
+     * associative («omurongo muhango w'omutukura»); Lusoga agrees every
+     * adjective in the string («olunyiriri olunene olumyufu»), so class 11's
+     * `olu-` appears three times in one phrase.
+     */
+    const postnominal: [string, string, string][] = [
+        [
+            "cgg",
+            "omurongo muhango w'omutukura na tucweka",
+            "muhango w'omutukura na tucweka",
+        ],
+        [
+            "xog",
+            "olunyiriri olunene olumyufu n'obutundu",
+            "olunene olumyufu n'obutundu",
+        ],
+    ];
+
+    /**
+     * The noun each phrase leads with, written **with its initial vowel** —
+     * the augment. That is the thing a seed drops when it reaches for a
+     * dictionary stem, and both catalogs' headers say so: «murongo» and
+     * «lunyiriri» would render, lint clean and be wrong.
+     */
+    const nounOf: Record<string, string> = {
+        cgg: "omurongo",
+        xog: "olunyiriri",
+    };
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s describing words after the noun`, () => {
+            const t = forLocale(locale);
+            const rendered = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: true,
+            });
+            const renderedBare = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: false,
+            });
+            expect(rendered).toBe(withNoun);
+            expect(renderedBare).toBe(adjectivesOnly);
+            // The bare description is the tail of the full phrase verbatim:
+            // the noun moved to the front and nothing else moved with it.
+            expect(rendered).toBe(`${nounOf[locale]} ${renderedBare}`);
+        });
+    }
 });

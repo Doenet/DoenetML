@@ -1,5 +1,6 @@
 import { DastAttribute, DastElement } from "../../types";
 import { isDastElement } from "../../types-util";
+import { isWrittenWithExtend } from "./utils/extend";
 
 /**
  * Depending on the children, perform one of two transformations.
@@ -33,6 +34,10 @@ import { isDastElement } from "../../types-util";
  *   <case><group>Bye</group></case>
  * </conditionalContent>
  * ```
+ *
+ * A `<conditionalContent extend>` is left as written, so that a `condition`
+ * or children written on it are reported as what they are, and a bare one has
+ * no generated `<case>` (`isWrittenWithExtend`).
  */
 export function conditionalContentSugar(node: DastElement) {
     if (node.name !== "conditionalContent") {
@@ -40,6 +45,10 @@ export function conditionalContentSugar(node: DastElement) {
         throw Error(
             "Conditional content sugar can only be applied to a `<conditionalContent>`",
         );
+    }
+
+    if (isWrittenWithExtend(node)) {
+        return;
     }
 
     let nCaseChildren = 0;

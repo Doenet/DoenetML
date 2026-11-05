@@ -1,0 +1,787 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<chart>{:dn}`
+
+<ComponentDisplay name='chart'/>
+
+`<chart>{:dn}` draws data, and `type` picks which chart is drawn — there is no default, so
+every chart names one. To chart several groups of data together, give the chart a
+`<series>{:dn}` child per group.
+
+<AttrPropDisplay name='chart'/>
+
+## Chart types
+
+Each type reads its data a little differently, and what a `<series>{:dn}` holds is what
+changes. The title, the legend and the sizing are written the same way whichever chart is
+drawn.
+
+### `type="bar"`
+
+One bar per value, standing on a baseline of zero, under a horizontal axis of category
+names. A series holds one value per category.
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="North South East West" displayValues size="small">
+  <shortDescription>Population by region</shortDescription>
+  <yLabel>people</yLabel>
+  41 63 18 78
+</chart>
+
+<chart type="bar" categories="small medium large" size="small" legendPosition="upperRight">
+  <shortDescription>Orders by size in two months</shortDescription>
+  <yLabel>orders</yLabel>
+  <series><label>March</label>8 15 6</series>
+  <series><label>April</label>11 13 9</series>
+</chart>
+```
+
+
+
+
+
+### `type="line"`
+
+A path through each series' values, in the order given. A series holds one value per
+category, or a value per `x` when it has one.
+
+
+```doenet-editor-horiz
+<chart type="line" categories="Mon Tue Wed Thu Fri" size="small">
+  <shortDescription>Visitors per weekday</shortDescription>
+  <yLabel>visitors</yLabel>
+  12 19 15 22 30
+</chart>
+
+<chart type="line" size="small">
+  <shortDescription>Position against time</shortDescription>
+  <xLabel>seconds</xLabel>
+  <yLabel>meters</yLabel>
+  <series x="0 0.5 1 1.5 2">0 1.2 4.9 11 19.6</series>
+</chart>
+```
+
+
+
+Without an `x` the points sit under `categories`, evenly spaced; with an `x` they sit at
+the positions it gives and the axis carries numbers. Values are never re-ordered — a path that doubles back is drawn as one.
+
+
+
+### `type="scatter"`
+
+One point per value, drawn at the `x` beside it. A series holds the vertical coordinates
+and its `x` the horizontal ones.
+
+
+```doenet-editor-horiz
+<chart type="scatter" size="small">
+  <shortDescription>Weight against height for two groups</shortDescription>
+  <xLabel>height</xLabel>
+  <yLabel>weight</yLabel>
+  <series x="1.5 1.6 1.7 1.8"><label>control</label>55 62 70 79</series>
+  <series x="1.5 1.6 1.7 1.8"><label>treated</label>58 66 72 84</series>
+</chart>
+```
+
+
+
+### `type="pie"`
+
+One slice per value, each one that value's share of the total. The slices run clockwise from
+twelve o'clock in the order the values are given, and `categories` names them. A pie draws
+one series.
+
+
+```doenet-editor-horiz
+<chart type="pie" categories="North South East West" size="small">
+  <shortDescription>Population by region</shortDescription>
+  41 63 18 78
+</chart>
+
+<chart type="pie" categories="Wind Coal Solar" size="small" legend="false" displayValues>
+  <shortDescription>Generation by source</shortDescription>
+  40 35 25
+</chart>
+```
+
+
+
+The slice names go in the legend, and around the rim instead when there is no legend to hold
+them. `displayValues` writes each value out at the rim as well, beside its slice's name when
+that is there too — as `Wind (40)` in the second chart. Each slice takes a color of its own,
+where every other type colors by series.
+
+
+
+### `type="box"`
+
+A box plot per series, side by side. A series holds raw observations — a column of
+measurements — rather than one value per category, and the box drawn from it runs from the
+first quartile to the third with the median across it.
+
+
+```doenet-editor-horiz
+<chart type="box" size="small">
+  <shortDescription>Scores in one section</shortDescription>
+  <yLabel>score</yLabel>
+  52 61 63 68 70 71 75 78 84 91
+</chart>
+
+<chart type="box" size="small">
+  <shortDescription>Scores in two sections</shortDescription>
+  <yLabel>score</yLabel>
+  <series><label>9am</label>52 61 63 68 70 71 75 78 84 91</series>
+  <series><label>1pm</label>44 55 58 60 62 65 66 70 72 96</series>
+</chart>
+```
+
+
+
+Each series is one position on the axis, named under its box by its own `<label>{:dn}` — or
+by its position, as the single box above is, where there is no label to name it. The
+whiskers reach the furthest observation within one and a half interquartile ranges of the
+box, and an observation past that is drawn as a point of its own — the 96 in the second
+section. The vertical axis is the data's, so it need not include zero.
+
+Each `<series>{:dn}` also reports its own summary — `minimum`, `quartile1`, `median`,
+`quartile3`, `maximum` and `outliers` — computed the same way `<summaryStatistics>{:dn}`
+computes them, so a table beside the picture agrees with it.
+
+
+
+### `type="histogram"`
+
+One bar per bin, adjacent with no gap, over a numeric axis of cut points. A series holds raw
+observations, and each bar is as tall as the number of them that fall in its bin. A
+histogram draws one series.
+
+
+```doenet-editor-horiz
+<chart type="histogram" size="small">
+  <shortDescription>Heights of twenty seedlings</shortDescription>
+  <xLabel>height (cm)</xLabel>
+  <yLabel>how many</yLabel>
+  4 5 5 6 6 6 7 7 7 7 8 8 8 9 9 10 11 12 12 13
+</chart>
+
+<chart type="histogram" size="small" bins="0 5 10 15">
+  <shortDescription>The same heights in bands of five</shortDescription>
+  <xLabel>height (cm)</xLabel>
+  <yLabel>how many</yLabel>
+  4 5 5 6 6 6 7 7 7 7 8 8 8 9 9 10 11 12 12 13
+</chart>
+```
+
+
+
+Write no `bins` and the cut points are chosen from the data, at a width that keeps them
+round numbers; write a number and the range is divided into that many equal bins; write two
+or more numbers and they are the cut points themselves, as in the second chart above. The
+horizontal axis is labeled at the cut points, and a value falling exactly on one is counted
+in the bin above it unless `closed="right"` says otherwise; a value on the outermost cut
+point is counted either way.
+
+The chart reports the bins it drew: `binEdges` is the cut points in order and `binCounts` is
+how many fell in each, so a sentence, a table or an `<answer>{:dn}` can be written beside the
+picture. [`<binCounts>{:dn}`](binCounts) counts the same data the same way, for the counts
+without a picture.
+
+
+
+## Examples
+
+### Example: a bar chart of counts
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="North South East West" displayValues>
+  <shortDescription>Population by region</shortDescription>
+  <yLabel>people</yLabel>
+  41 63 18 78
+</chart>
+```
+
+
+
+The values are written as plain numbers, separated by spaces. `<number>{:dn}` and
+`<math>{:dn}` children work too, as does a reference to anything that produces numbers,
+which is how a chart of computed values is written. `displayValues` prints each bar's
+value above it.
+
+Every bar carries its category and value as an annotation, so a screen reader can walk the
+chart rather than merely announce it, and a `<shortDescription>{:dn}` becomes the
+description of the figure as a whole.
+
+
+
+---
+
+### Example: several series in one chart
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="North South East West">
+  <title>Population by region</title>
+  <shortDescription>Population by region, 2024 against 2025</shortDescription>
+  <yLabel>people</yLabel>
+  <series><label>2024</label>41 63 18 78</series>
+  <series><label>2025</label>45 60 22 80</series>
+</chart>
+```
+
+
+
+Each `<series>{:dn}` is one group of the data, drawn in its own color. Its children are the
+values — bare numbers, `<number>{:dn}` and `<math>{:dn}` children, a
+[`<numberList>{:dn}`](numberList), or a reference to something that produces numbers — and
+its `<label>{:dn}` names it in the legend, which appears as soon as a series has one.
+Series take consecutive style numbers unless one is given a `styleNumber` of its own, so
+the groups come out in different colors without being asked to. A screen reader walks the
+chart series by series, then mark by mark within a series.
+
+A series may also carry an `x`, which gives its values horizontal coordinates and puts the
+chart on a numeric axis instead of the categories. `type="scatter"{:dn}` is normally drawn
+that way, and `type="line"{:dn}` may be; both fall back to the categories when no series
+carries an `x`.
+
+A chart written with bare values and no `<series>{:dn}` has one unnamed series holding them
+all, which is why the simpler charts here need no series at all.
+
+A `<title>{:dn}` is drawn above the chart and travels with the picture, so it is still
+there if the chart is printed or exported.
+
+
+
+---
+
+### Example: a bar chart of a simulation
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+  <textList name="bins">-2.5 -1.5 -0.5 0.5 1.5 2.5</textList>
+  <sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+  <binCounts name="h" bins="$edges">$z</binCounts>
+</setup>
+
+<chart type="bar" categories="$bins">
+  <shortDescription>200 draws from a standard normal distribution</shortDescription>
+  <yLabel>count</yLabel>
+  $h
+</chart>
+
+<callAction actionName="resample" target="$z">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+[`<binCounts>{:dn}`](binCounts) turns a sample into counts per interval and `<chart>{:dn}`
+draws them; [`<tally>{:dn}`](tally) does the same for named categories. Building a whole
+sampling simulation this way is walked through in
+[Charting a Simulation](../guides/charting-a-simulation).
+
+---
+
+### Example: a box plot beside the numbers behind it
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="scores">52 61 63 68 70 71 75 78 84 91</numberList>
+</setup>
+
+<chart type="box" size="small">
+  <shortDescription>Scores in one section</shortDescription>
+  <yLabel>score</yLabel>
+  <series name="section">$scores</series>
+</chart>
+
+<summaryStatistics statisticsToDisplay="fiveNumberSummary">$scores</summaryStatistics>
+
+<p>The middle half of the section scored between $section.quartile1 and
+$section.quartile3.</p>
+```
+
+
+
+A box plot and a [`<summaryStatistics>{:dn}`](summaryStatistics) of the same numbers report
+the same five, so the table and the picture can stand side by side. Naming the
+`<series>{:dn}` is what makes each of them readable into a sentence.
+
+### Example: a histogram and the counts behind it
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="times">
+    3.1 3.4 3.8 4.0 4.2 4.2 4.4 4.5 4.5 4.6
+    4.7 4.9 5.1 5.2 5.4 5.8 6.1 6.4 7.2 7.9
+  </numberList>
+</setup>
+
+<chart name="race" type="histogram" size="small" bins="3 4 5 6 7 8" displayValues>
+  <shortDescription>Finishing times of twenty runners</shortDescription>
+  <xLabel>minutes</xLabel>
+  <yLabel>runners</yLabel>
+  $times
+</chart>
+
+<p>The bins run from $race.binEdges[1] to $race.binEdges[6] minutes, and hold
+$race.binCounts runners.</p>
+
+<answer>
+  <label>How many runners finished in under five minutes?</label>
+  <number><sum>$race.binCounts[1] $race.binCounts[2]</sum></number>
+</answer>
+```
+
+
+
+The counts are numbers the document can read, which is what lets the same bins be drawn,
+described in a sentence and asked about without being written out three times.
+
+---
+
+## Attribute Examples
+
+### Attribute Example: type
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="A B C" size="small">
+  <shortDescription>Three values as bars</shortDescription>
+  4 9 2
+</chart>
+
+<chart type="line" categories="A B C" size="small">
+  <shortDescription>The same three values as a line</shortDescription>
+  4 9 2
+</chart>
+
+<chart categories="A B C" size="small">
+  <shortDescription>The same values again, with no type</shortDescription>
+  4 9 2
+</chart>
+```
+
+
+
+`type` picks the mark the data is drawn with, not the data itself: all three charts above
+hold the same three values. Two of them are the same numbers under different marks, which
+is the whole of what this attribute does — everything else about a chart is written the
+same way whichever type is named.
+
+There is no default, so the third draws nothing and says so.
+
+Every type is listed under [Chart types](#chart-types), with what a series holds for each.
+
+
+
+---
+
+### Attribute Example: categories
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="North South East West" size="small">
+  <shortDescription>Population by region, its bars named</shortDescription>
+  41 63 18 78
+</chart>
+
+<chart type="bar" size="small">
+  <shortDescription>The same four values with no categories</shortDescription>
+  41 63 18 78
+</chart>
+```
+
+
+
+Each bar takes the category in the matching position; without `categories`, the bars are
+numbered 1, 2, 3, 4. A category is a label and nothing else — the bars are evenly spaced
+whatever it says, so `categories="1 5 6"` writes 1, 5, 6 under three equally spaced bars
+rather than placing them at those positions.
+
+With several series, the categories run along the axis and the series are what the legend
+names, so a chart of four categories and two series has four category names and two series
+labels.
+
+A bar chart and a pie name their positions this way, and so do a line or scatter chart whose
+series carry no `x` — with an `x` those are placed by measurement instead, and have no
+positions to name. Neither do the two types whose series holds raw observations: a box plot's
+positions are its series, named by their own labels, and a histogram's are its bins, named by
+the cut points they run between.
+
+
+
+---
+
+### Attribute Example: bins, closed
+
+
+```doenet-editor-horiz
+<chart name="auto" type="histogram" size="small">
+  <shortDescription>Bins chosen from the data</shortDescription>
+  1 2 2 3 3 3 4 4 5 8
+</chart>
+<p>Chosen: $auto.binEdges</p>
+
+<chart name="five" type="histogram" size="small" bins="5">
+  <shortDescription>The same data in five equal bins</shortDescription>
+  1 2 2 3 3 3 4 4 5 8
+</chart>
+<p>With <c>bins="5"</c>: $five.binEdges</p>
+
+<chart name="cut" type="histogram" size="small" bins="0 3 6 9">
+  <shortDescription>The same data at cut points written out</shortDescription>
+  1 2 2 3 3 3 4 4 5 8
+</chart>
+<p>With <c>bins="0 3 6 9"</c>: $cut.binEdges, holding $cut.binCounts</p>
+```
+
+
+
+One number is a number of equal-width bins and is used exactly; two or more are the cut
+points themselves, so `n + 1` of them make `n` bins. Written neither way, the bins are
+chosen from the data: as many as the sample size suggests, at a width that keeps the cut
+points round numbers.
+
+`closed` says which end of a bin includes its cut point — `left` by default, so a bin runs
+`[a, b)` and a value on a cut point is counted in the bin above it, and `closed="right"`
+makes it `(a, b]`. Each outermost cut point belongs to its own bin either way, so an
+observation sitting exactly on the first or the last of them is counted. This is how
+[`<binCounts>{:dn}`](binCounts) reads the same attribute, and both count the same data the
+same way.
+
+Only a histogram divides its data, so these are the histogram's alone.
+
+
+
+---
+
+### Attribute Example: layout
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="A B C" size="small" displayValues>
+  <shortDescription>Two series side by side</shortDescription>
+  <series><label>first</label>4 9 2</series>
+  <series><label>second</label>6 5 7</series>
+</chart>
+
+<chart type="bar" categories="A B C" size="small" layout="stacked" displayValues>
+  <shortDescription>The same two series stacked</shortDescription>
+  <series><label>first</label>4 9 2</series>
+  <series><label>second</label>6 5 7</series>
+</chart>
+```
+
+
+
+Side by side by default, so the bars can be compared both across categories and across
+series. `layout="stacked"` puts them one above another instead, so each category's total is
+what you read; negative values stack downward from the baseline rather than through the
+positive ones. A chart of one series looks the same either way.
+
+`displayValues` labels each series separately in both, so a stacked bar reads as its
+parts: the second chart's middle bar is 9 and 5 rather than 14. Give a stacked chart
+segments too thin to label and the numbers will run together, since each is drawn at the
+top of its own segment.
+
+`layout` is a bar chart's alone: it says how several series share one category's slot, and
+no other type puts two series in the same place.
+
+
+
+---
+
+### Attribute Example: legend, legendPosition
+
+
+```doenet-editor-horiz
+<chart type="scatter" size="small">
+  <shortDescription>Two groups of measurements, the legend beside the chart</shortDescription>
+  <series x="1 2 3"><label>before</label>4 9 7</series>
+  <series x="1 2 3"><label>after</label>6 11 10</series>
+</chart>
+
+<chart type="scatter" size="small" legendPosition="outsideBottom">
+  <shortDescription>The same legend below the chart</shortDescription>
+  <series x="1 2 3"><label>before</label>4 9 7</series>
+  <series x="1 2 3"><label>after</label>6 11 10</series>
+</chart>
+
+<chart type="scatter" size="small" legendPosition="upperRight">
+  <shortDescription>The same legend inside the plot</shortDescription>
+  <series x="1 2 3"><label>before</label>4 9 7</series>
+  <series x="1 2 3"><label>after</label>6 11 10</series>
+</chart>
+```
+
+
+
+A legend appears as soon as a series has a `<label>{:dn}`, so a chart whose series are
+unnamed never grows one — a legend names the series, and there is nothing to put in one
+until they are named. `legend="false"` suppresses it even when they are.
+
+`legendPosition` says where it goes. By default it sits **outside** the plot, to the right,
+in a margin widened to hold it — so it never covers the data, at the cost of some of the
+chart's width. `outsideBottom` puts it below the horizontal axis instead, spending height
+rather than width, which suits long series labels or a wide chart.
+
+The four inside corners — `upperRight`, `upperLeft`, `lowerRight`, `lowerLeft` — spend
+neither, and are worth reaching for when the chart has a corner to spare. They can cover a
+mark, as the third chart above does: room has to be made for one, either by a bound that
+pushes the data clear of that corner or by choosing a corner the data does not reach.
+
+On a pie the legend names the *slices* rather than the series, since a pie's colors tell its
+slices apart. `legend="false"` there moves the names out to the rim, so they are
+always somewhere:
+
+
+```doenet-editor-horiz
+<chart type="pie" categories="Renewables Coal Nuclear" size="small">
+  <shortDescription>Generation by source, named in the legend</shortDescription>
+  40 35 25
+</chart>
+
+<chart type="pie" categories="Renewables Coal Nuclear" size="small" legend="false">
+  <shortDescription>The same three slices, named around the rim</shortDescription>
+  40 35 25
+</chart>
+```
+
+
+
+`$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for a suppressed
+legend and for one with nothing to name — series that carry no label, or named series with
+no value that could be drawn. On a pie there is something to name as soon as a slice is
+drawn.
+
+A bar, line, scatter or histogram chart's legend names its series, and a pie's names its
+slices. A box plot draws none: its series are already named on the axis, under the box drawn
+from each.
+
+
+
+---
+
+### Attribute Example: yMin, yMax
+
+
+```doenet-editor-horiz
+<chart name="auto" type="bar" categories="A B C" size="small">
+  <shortDescription>An axis chosen from the data</shortDescription>
+  4 9 2
+</chart>
+<p>Automatic: $auto.yMin to $auto.yMax</p>
+
+<chart name="capped" type="bar" categories="A B C" size="small" yMax="20">
+  <shortDescription>The same bars under a fixed top</shortDescription>
+  4 9 2
+</chart>
+<p>With <c>yMax="20"</c>: $capped.yMin to $capped.yMax</p>
+
+<chart name="cut" type="bar" categories="A B C" size="small" yMin="5">
+  <shortDescription>An axis starting above zero</shortDescription>
+  4 9 2
+</chart>
+<p>With <c>yMin="5"</c>: $cut.yMin to $cut.yMax</p>
+```
+
+
+
+The axis scales itself to the data, and either bound may be replaced on its own. Bars are
+measured from zero whatever the axis shows, so the third chart cuts them off at the
+bottom of the frame, and the two bars that end below 5 disappear entirely, leaving only
+the one of height 9.
+
+Left to choose for itself, a bar chart's vertical axis includes zero, because its bars are
+measured from it, and so does a histogram's, whose bars are counts — a `yMin` above zero
+crops them, as the third chart above shows. A line, scatter or box chart's is not anchored to
+zero at all: its marks are measured from nothing, so the axis scales to the data alone. A pie
+has no axes and reads neither bound.
+
+
+
+---
+
+### Attribute Example: xMin, xMax
+
+
+```doenet-editor-horiz
+<chart name="auto" type="scatter" size="small">
+  <shortDescription>An axis chosen from the data</shortDescription>
+  <series x="1 2 3">4 9 2</series>
+</chart>
+<p>Automatic: $auto.xMin to $auto.xMax</p>
+
+<chart name="wide" type="scatter" size="small" xMin="-5" xMax="15">
+  <shortDescription>The same points on a wider axis</shortDescription>
+  <series x="1 2 3">4 9 2</series>
+</chart>
+<p>With <c>xMin="-5" xMax="15"</c>: $wide.xMin to $wide.xMax</p>
+```
+
+
+
+The horizontal counterpart of `yMin` and `yMax`, and only for a chart whose horizontal axis
+carries numbers — a histogram, and a line or scatter chart whose series carry an `x`. On a
+categorical axis the positions are 1, 2, 3 whatever the categories say, so there is nothing
+to bound: a bar chart, a box plot, and a line or scatter chart no series of which carries an
+`x`, report nothing for them.
+
+
+
+---
+
+### Attribute Example: markers
+
+
+```doenet-editor-horiz
+<chart type="line" size="small">
+  <shortDescription>A short series with its points marked</shortDescription>
+  <series x="1 2 3 4 5">4 9 2 7 3</series>
+</chart>
+
+<chart type="line" size="small" markers="false">
+  <shortDescription>The same series drawn as a line alone</shortDescription>
+  <series x="1 2 3 4 5">4 9 2 7 3</series>
+</chart>
+```
+
+
+
+A marker is drawn at each of a line chart's points unless `markers="false"` says otherwise,
+which suits a series long enough for the markers to merge into the line. A scatter plot is
+its markers, so it always draws them and ignores this.
+
+The markers are also what a screen reader walks: each one carries its own annotation, and
+with them off the line carries a single annotation for the whole series instead.
+
+
+
+---
+
+### Attribute Example: size, aspectRatio, barWidth
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="A B C" size="small">
+  <shortDescription>Default shape</shortDescription>
+  4 9 2
+</chart>
+
+<chart type="bar" categories="A B C" size="small" aspectRatio="1">
+  <shortDescription>As tall as it is wide</shortDescription>
+  4 9 2
+</chart>
+
+<chart type="bar" categories="A B C" size="small" barWidth="0.4">
+  <shortDescription>Narrow bars</shortDescription>
+  4 9 2
+</chart>
+```
+
+
+
+`size` sets the width and `aspectRatio` the width over the height, whichever chart is
+drawn. `barWidth` is bar-only: it says how much of its slot each category fills, and the
+series of a category divide that between them. A histogram's bars are adjacent, with no gap
+to widen into, and a box's width is fixed. A `width` may be given instead of a `size`,
+and picks the nearest preset rather than being used exactly, so `width="400px"` draws the
+same chart as `size="medium"`.
+
+
+
+---
+
+## Property Examples
+
+### Property Example: values, categories, numSeries, yMin, yMax
+
+
+```doenet-editor-horiz
+<chart name="counts" type="bar" categories="A B C" size="small">
+  <shortDescription>Three values</shortDescription>
+  4 9 2
+</chart>
+
+<p>Values: $counts.values</p>
+<p>Categories: $counts.categories</p>
+<p>Series: $counts.numSeries</p>
+<p>Total: <sum>$counts.values</sum></p>
+<p>The axis runs from $counts.yMin to $counts.yMax.</p>
+```
+
+
+
+`values` is every value in the chart, series by series, so a chart of one series reports
+exactly what it was given; naming a `<series>{:dn}` is how one group is read on its own.
+
+`yMin`, `yMax`, `xMin`, `xMax`, `barWidth` and `aspectRatio` report what the chart was
+drawn with rather than what was asked for, so `$counts.yMax` is the top of the axis you can
+see even though nothing above set one. `xMin` and `xMax` report nothing for a chart whose
+horizontal axis carries category names rather than numbers, and a pie reports nothing for
+any of the four: it has no axes to read a value off.
+
+### Property Example: a series' own summary
+
+
+```doenet-editor-horiz
+<chart type="box" size="small">
+  <shortDescription>Two sections' scores</shortDescription>
+  <yLabel>score</yLabel>
+  <series name="morning"><label>9am</label>52 61 63 68 70 71 75 78 84 91</series>
+  <series name="afternoon"><label>1pm</label>44 55 58 60 62 65 66 70 72 96</series>
+</chart>
+
+<p>Morning median: $morning.median, afternoon median: $afternoon.median.</p>
+<p>The afternoon section's middle half ran from $afternoon.quartile1 to
+$afternoon.quartile3.</p>
+<p>Drawn apart from the rest: $afternoon.outliers</p>
+```
+
+
+
+Every `<series>{:dn}` reports `minimum`, `quartile1`, `median`, `quartile3`, `maximum` and
+`outliers` about the values it holds, whichever chart was drawn from them, so a sentence
+beside the picture can say what the picture shows. `outliers` is the observations a box plot
+draws as points beyond its whiskers.
+
+### Property Example: binEdges, binCounts
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="scores">
+    52 61 63 68 70 71 75 78 84 91 55 58 60 62 65 66 70 72 88 94
+  </numberList>
+</setup>
+
+<chart name="h" type="histogram" size="small">
+  <shortDescription>Twenty scores</shortDescription>
+  <xLabel>score</xLabel>
+  <yLabel>how many</yLabel>
+  $scores
+</chart>
+
+<p>Cut points: $h.binEdges</p>
+<p>Counts: $h.binCounts</p>
+<p>The tallest bin holds <number><max>$h.binCounts</max></number> of the
+<number><count>$scores</count></number> scores.</p>
+```
+
+
+
+A histogram reports the bins it drew, whether the cut points were written out or chosen from
+the data, so a document can state them without repeating them. `binEdges` has one more entry
+than `binCounts`: `n + 1` cut points make `n` bins.

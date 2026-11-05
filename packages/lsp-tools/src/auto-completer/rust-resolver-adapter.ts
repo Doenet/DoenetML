@@ -452,6 +452,29 @@ export class RustResolverAdapter {
                 for (const child of node.children) {
                     collectElements(child as DastNodes);
                 }
+                return;
+            }
+            if (node.type === "macro" || node.type === "function") {
+                // An element a reference owns — written between its index
+                // brackets (#1909) or as one of a function reference's
+                // arguments — is a child of nothing, so the recursion above
+                // misses it. The core does give it an idx, and without this the
+                // editor cannot map that idx back to any markup, which is what
+                // makes `$myList[<indexOf name="x"/>]` unaddressable.
+                for (const pathPart of node.path) {
+                    for (const propIndex of pathPart.index) {
+                        for (const child of propIndex.value) {
+                            collectElements(child as DastNodes);
+                        }
+                    }
+                }
+                if (node.type === "function" && node.input) {
+                    for (const argument of node.input) {
+                        for (const child of argument) {
+                            collectElements(child as DastNodes);
+                        }
+                    }
+                }
             }
         };
         for (const child of this._sourceObj.dast.children) {

@@ -1,0 +1,276 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+
+# `<row>{:dn}` (in a table)
+
+<ComponentDisplay name='row'/>
+
+`<row>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component that functions as a container element for the individual [`<cell>{:dn}`](cell.mdx) elements of a [`<tabular>{:dn}`](tabular.mdx) or a [`<spreadsheet>{:dn}`](spreadsheet.mdx).
+
+`<row>{:dn}` is also accepted inside a [`<matrix>{:dn}`](matrix.mdx), where it
+defines a row of math values; see [`<row>{:dn}` (in a matrix)](row_matrix) for
+that flavor.
+
+<AttrPropDisplay name='row'/>
+
+
+## Examples
+
+### Example: a `<row>{:dn}` inside a `<tabular>{:dn}`
+
+
+```doenet-editor-horiz
+<table>
+  <tabular>
+    <row>
+      <cell>1</cell>
+      <cell>2</cell>
+      <cell>3</cell>
+    </row>
+    <row>
+      <cell>A</cell>
+      <cell>B</cell>
+      <cell>C</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+The basic, unformatted structure of a `<table>{:dn}` is illustrated. Individual rows are contained
+within a `<tabular>{:dn}`, and individual cells are contained within a `<row>{:dn}`.
+
+
+
+---
+
+### Example: a `<row>{:dn}` inside a `<spreadsheet>{:dn}`
+
+
+```doenet-editor-horiz
+<spreadsheet>
+  <row>
+    <cell>Name</cell>
+    <cell>Score</cell>
+  </row>
+  <row>
+    <cell>Alice</cell>
+    <cell>85</cell>
+  </row>
+  <row>
+    <cell>Bob</cell>
+    <cell>92</cell>
+  </row>
+</spreadsheet>
+```
+
+
+`<row>{:dn}` also populates a [`<spreadsheet>{:dn}`](spreadsheet) row by row.
+Compare with [`<column>{:dn}`](column_table), which populates a spreadsheet
+column by column.
+
+
+
+## Attribute Examples
+
+### Attribute Example: header
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor">
+      <row header="true">
+        <cell>Name</cell>
+        <cell>Occupation</cell>
+      </row>
+      <row>
+        <cell>Jeremiah</cell>
+        <cell>Bullfrog</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `header` attribute defines a `<row>{:dn}` with header styling. It applies inside a
+[`<spreadsheet>{:dn}`](spreadsheet) as well, where the cells of a header row are drawn in bold.
+
+
+
+---
+
+### Attribute Example: halign
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor">
+      <row halign="start">
+        <cell>1</cell>
+        <cell>2</cell>
+      </row>
+      <row halign="center">
+        <cell>3</cell>
+        <cell>4</cell>
+      </row>
+      <row halign="end">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `halign` attribute defines the horizontal alignment of content within 
+each `<cell>{:dn}` for the given `<row>{:dn}`. The available options 
+are `start` (default), `center`, `end`, and `justify`. `start` and `end` follow
+the writing direction: `start` is the left edge in a left-to-right document and
+the right edge in a right-to-left one.
+
+
+
+---
+
+### Attribute Example: valign
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor"
+    height="300">
+      <row valign="top">
+        <cell>1</cell>
+        <cell>2</cell>
+      </row>
+      <row valign="center">
+        <cell>3</cell>
+        <cell>4</cell>
+      </row>
+      <row valign="bottom">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `valign` attribute defines the vertical alignment of content within 
+each `<cell>{:dn}` for the given `<row>{:dn}`. The available options 
+are `top`, `middle` (default), and `bottom`.
+
+
+
+---
+
+### Attribute Example: startBorder
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor"
+    height="300">
+      <row startBorder="none">
+        <cell>1</cell>
+        <cell>2</cell>
+      </row>
+      <row>
+        <cell>3</cell>
+        <cell>4</cell>
+      </row>
+      <row startBorder="medium">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+      <row startBorder="major">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `startBorder` attribute defines the weight for the border on the leading edge
+of content within each `<cell>{:dn}` for the given `<row>{:dn}` — its left edge in
+a left-to-right document, its right edge in a right-to-left one. The available
+options are `none` (default), `minor`, `medium`, and `major`.
+
+
+Note that the `startBorder` attribute can also be specified in the `<tabular>{:dn}`, which 
+then applies to the entire table. If specified in both locations, the specification 
+within the individual `<row>{:dn}` takes precedence.
+
+
+
+---
+
+### Attribute Example: bottomBorder
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor"
+    height="300">
+      <row bottomBorder="none">
+        <cell>1</cell>
+        <cell>2</cell>
+      </row>
+      <row>
+        <cell>3</cell>
+        <cell>4</cell>
+      </row>
+      <row bottomBorder="medium">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+      <row bottomBorder="major">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `bottomBorder` attribute defines the weight for the bottom border element of 
+content within each `<cell>{:dn}` for the given `<row>{:dn}`. The available 
+options are `none` (default), `minor`, `medium`, and `major`.
+
+
+Note that the `bottomBorder` attribute can also be specified in the `<tabular>{:dn}`, which 
+then applies to the entire table. If specified in both locations, the 
+specification within the individual `<row>{:dn}` takes precedence.
+
+

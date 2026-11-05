@@ -53,17 +53,14 @@ color =
     .purple = wulenfinman
     .pink = wulenɲɛman
     .brown = bɔgɔman
-
 line-width =
     .thick = bonman
     .thin = misɛnman
-
 # Written as «ni …» phrases rather than as qualifiers, so that they take no
 # `-man` and can close the description. `style-stroke` puts them last.
 line-style =
     .dashed = ni tirɛw ye
     .dotted = ni pɔnw ye
-
 fill-style =
     .horizontal = layini dalenw
     .vertical = layini lɔlenw
@@ -71,7 +68,6 @@ fill-style =
     .backdiagonal = layini jɛngɛlen kɔfɛtaw
     .dots = pɔnw
     .diamonds = losanziw
-
 noun =
     .line = layini
     .line-segment = layini tilayɔrɔ
@@ -91,7 +87,6 @@ noun =
     .diamond = losanzi
     .cross = kuruwa
     .plus = fara-taamasere
-
 # The side count follows the qualifiers, behind «min kɛrɛ … ye», because Dyula
 # closes a noun phrase with a relative rather than opening one.
 noun-regular-polygon =
@@ -99,11 +94,9 @@ noun-regular-polygon =
         [tail] min kɛrɛ { $numSides } ye
        *[head] poligɔni bɛnnen
     }
-
 # No grammatical gender, so this answers one token for every noun and the
 # answer goes unused — the shape `locales/en` has.
 noun-gender = kelen
-
 
 ## Style composition
 
@@ -117,21 +110,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = falenman
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ni { $pattern } ye
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ni { $pattern } ye
@@ -139,7 +128,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ni { $pattern } ye
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Dyula has no article, and joins this clause with «ni … ye» whatever came
 # before it, so all four branches read alike.
 style-border-clause =
@@ -149,35 +137,28 @@ style-border-clause =
         [and-article] ni dankan { $border } ye
        *[with] ni dankan { $border } ye
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = falenbali
-
 style-text =
     { $parts ->
         [background] { $color } ni kɔfɛla { $background } ye
        *[plain] { $color }
     }
-
 style-background-none = foyi tɛ yen
-
 
 ## Boolean words
 
 boolean-true = tiɲɛ
 boolean-false = nkalon
 
-
 ## Answer buttons
 
 answer-submit-label = Baara Lajɛ
 answer-submit-label-no-correctness = Jaabi Ci
-
 
 ## Sectional blocks
 
@@ -202,7 +183,6 @@ section-name =
     .solution = Fura
     .task = Baara
     .theorem = Teyorɛmu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -212,9 +192,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Nɔnabɔli
-
 
 ## Tables and figures
 
@@ -225,7 +203,6 @@ table-name =
         [unnumbered-title] Tabalo{ ": " }
        *[unnumbered] Tabalo
     }
-
 figure-name =
     { $parts ->
         [numbered] Ja { $enumeration }
@@ -234,24 +211,18 @@ figure-name =
        *[unnumbered] Ja
     }
 
-
 ## Paginator controls
 
 paginator-previous = Tɛmɛnen
 paginator-next = Nata
 paginator-page = Ɲɛ
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = walima
-
 piecewise-condition-if = ni
-
 piecewise-condition-otherwise = yɔrɔ tɔw bɛɛ la
-
 
 ## Chemistry
 ##
@@ -264,6 +235,5 @@ piecewise-condition-otherwise = yɔrɔ tɔw bɛɛ la
 ## border away and `locales/mos` gives inside one of the same two countries.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simi Taamasere Jugu
 chemistry-invalid-ionic-compound = Ayɔn Ɲagaminen Jugu

@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import {
+    createTestCore as createTestCoreWithoutListEntries,
+    ResolvePathToNodeIdx,
+} from "../utils/test-core";
+import { withListEntriesAsComponents } from "../utils/list-entries";
 import { cleanLatex } from "../utils/math";
 import {
     moveMath,
@@ -13,6 +17,16 @@ import { PublicDoenetMLCore } from "../../CoreWorker";
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+// The entries of point and vector lists, which are not components, are read
+// and dragged here as components (`vs[2]`), as they were written for.
+async function createTestCore(
+    ...args: Parameters<typeof createTestCoreWithoutListEntries>
+) {
+    return withListEntriesAsComponents(
+        await createTestCoreWithoutListEntries(...args),
+    );
+}
 
 describe("Displayed math tag tests @group1", async () => {
     it("inline and display", async () => {
@@ -540,6 +554,34 @@ describe("Displayed math tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("mdn2")].stateValues.text,
         ).eq("q = sin(x)\\\\\ncos(x) = z");
+    });
+
+    it("align equations with a literal ampersand", async () => {
+        // The rows are aligned with `&` rather than `\amp`. Both are ways of
+        // writing the same display, so both must give the same text.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <md name="md1">
+      <mrow>q &amp;= \\sin(x)</mrow>
+      <mrow>\\cos(x) &amp;= z</mrow>
+    </md>
+    <mdn name="mdn1">
+      <mrow>q &amp;= \\sin(x)</mrow>
+      <mrow>\\cos(x) &amp;= z</mrow>
+    </mdn>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("md1")].stateValues.latex,
+        ).eq("\\notag q & = \\sin(x)\\\\\\notag \\cos(x) & = z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("md1")].stateValues.text,
+        ).eq("q = sin(x)\\\\\ncos(x) = z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mdn1")].stateValues.text,
+        ).eq("q = sin(x) (1)\\\\\ncos(x) = z (2)");
     });
 
     it("dynamic numbered aligned equations", async () => {

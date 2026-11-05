@@ -5,10 +5,19 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
     componentType,
     forceComponentType = false,
     includeNonMacros = false,
+    keepTextGroup,
 }: {
     componentType: string;
     forceComponentType?: boolean;
     includeNonMacros?: boolean;
+    /**
+     * Whether a group made only of text stays text, for a list that reads
+     * its text itself (`AuthoredValueList`), instead of being wrapped in
+     * `componentType`. The groups that stay text are kept in one string,
+     * separated by spaces, which the list splits again
+     * (`splitBySpacesOutsideParens`).
+     */
+    keepTextGroup?: (text: string) => boolean;
 }) {
     return function ({
         matchedChildren,
@@ -54,6 +63,24 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
                         newChildren.push(comp);
                         addedSingleMatch = true;
                     }
+                }
+            }
+
+            if (
+                !addedSingleMatch &&
+                keepTextGroup &&
+                pieces.length > 0 &&
+                pieces.every((piece) => typeof piece === "string")
+            ) {
+                const text = (pieces as string[]).join("");
+                if (keepTextGroup(text)) {
+                    const last = newChildren[newChildren.length - 1];
+                    if (typeof last === "string") {
+                        newChildren[newChildren.length - 1] = `${last} ${text}`;
+                    } else {
+                        newChildren.push(text);
+                    }
+                    addedSingleMatch = true;
                 }
             }
 
@@ -135,4 +162,35 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
             nComponents,
         };
     };
+}
+
+/**
+ * The pieces of `text` separated by spaces outside parentheses, as
+ * `returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens` groups them:
+ * `"x (a, b) y+1"` is `["x", "(a, b)", "y+1"]`.
+ */
+export function splitBySpacesOutsideParens(text: string): string[] {
+    const pieces: string[] = [];
+    let nParens = 0;
+    let current = "";
+    for (const char of text) {
+        if (char === "(") {
+            nParens++;
+        } else if (char === ")") {
+            if (nParens > 0) {
+                nParens--;
+            }
+        } else if (nParens === 0 && /\s/.test(char)) {
+            if (current !== "") {
+                pieces.push(current);
+            }
+            current = "";
+            continue;
+        }
+        current += char;
+    }
+    if (current !== "") {
+        pieces.push(current);
+    }
+    return pieces;
 }

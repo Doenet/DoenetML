@@ -8,16 +8,18 @@ This package uses Pyodide to run the XSL version of pretext against the converte
 
 ## Building
 
-Before building, refresh the bundled PreTeXt core files to the latest upstream commit:
+The PreTeXt core files are vendored in [pretext_core/](pretext_core/), at the upstream commit
+recorded in `pretext_core/CURRENT_COMMIT`, so a build does not download anything. To upgrade
+them to the latest upstream commit, run:
 
 ```bash
 ./update_pretext_core.sh
 ```
 
-This script downloads the latest PreTeXt repository archive (master, with fallback to main), 
-then updates [pretext_core/](pretext_core/).
+This script downloads the latest PreTeXt repository archive (master, with fallback to main),
+then updates [pretext_core/](pretext_core/). Commit everything it changes there.
 
-After updating PreTeXt core files, run package builds from the repository root:
+Run package builds from the repository root:
 
 ```bash
 npm run build --workspace=@doenet/doenetml-print

@@ -3,6 +3,7 @@ import {
     type DiagnosticArgs,
     type DiagnosticCode,
 } from "@doenet/i18n";
+import { diagnosticCodeFrom } from "./diagnostics";
 
 /**
  * The error a `<select>`, `<selectFromSequence>` or `<selectPrimeNumbers>`
@@ -105,5 +106,62 @@ export function selectionResult(
     return {
         setEssentialValue: { ...error, ...selection },
         setValue: { ...error, ...selection },
+    };
+}
+
+/**
+ * The state variable `selectErrorReported` of a select that is a list
+ * component (`<selectFromSequence>`, `<selectPrimeNumbers>`), which reports
+ * the select's error, when it has one, as an error diagnostic.
+ *
+ * Such a select has no replacement to be the error box. A definition that
+ * sends an error while the document is built has one put after its component
+ * instead (`addQueuedErrorComponentsFromStateVariables`), so this is
+ * evaluated as the select is created (`mustEvaluate`). A reference to the
+ * select, which shadows its error, does not report it again.
+ */
+export function returnSelectErrorReportDefinition() {
+    return {
+        mustEvaluate: true,
+        returnDependencies: () => ({
+            errorMessage: {
+                dependencyType: "stateVariable",
+                variableName: "errorMessage",
+            },
+            errorDiagnostic: {
+                dependencyType: "stateVariable",
+                variableName: "errorDiagnostic",
+            },
+            shadowSource: {
+                dependencyType: "shadowSource",
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: {
+                errorMessage: string | null;
+                errorDiagnostic: unknown;
+                shadowSource: unknown;
+            };
+        }) {
+            const report =
+                Boolean(dependencyValues.errorMessage) &&
+                dependencyValues.shadowSource === null;
+            return {
+                setValue: { selectErrorReported: report },
+                sendDiagnostics: report
+                    ? [
+                          {
+                              type: "error",
+                              message: dependencyValues.errorMessage,
+                              ...diagnosticCodeFrom(
+                                  dependencyValues.errorDiagnostic,
+                              ),
+                          },
+                      ]
+                    : [],
+            };
+        },
     };
 }

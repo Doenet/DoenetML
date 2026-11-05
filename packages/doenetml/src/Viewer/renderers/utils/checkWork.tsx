@@ -16,6 +16,21 @@ export type ValidationState =
     "unvalidated" | "correct" | "incorrect" | "partialcorrect";
 
 /**
+ * The credit this button reports, which is not always the credit the component
+ * is worth: a section-wide check work over a region carrying no weight is worth
+ * full marks, because nothing in it can lose any, while the button is being
+ * asked whether the answers are right.
+ *
+ * The core hands such a section a separate `creditAchievedForCheckWork` and
+ * hands `null` to every other section (see `scoredSection.js` in the worker), so
+ * the fallback here is the usual path rather than the exception. An `<answer>`
+ * or an input does not carry the variable at all, and falls back the same way.
+ */
+function checkWorkCredit(SVs: Record<string, any>): number {
+    return SVs.creditAchievedForCheckWork ?? SVs.creditAchieved;
+}
+
+/**
  * Calculate if the current response of an answer blank has already been validated,
  * and, if so, the correctness of the response.
  *
@@ -26,15 +41,44 @@ export function calculateValidationState(
 ): ValidationState {
     let validationState: ValidationState = "unvalidated";
     if (SVs.justSubmitted || SVs.numAttemptsLeft < 1) {
-        if (SVs.creditAchieved === 1) {
+        const creditAchieved = checkWorkCredit(SVs);
+        if (creditAchieved === 1) {
             validationState = "correct";
-        } else if (SVs.creditAchieved === 0) {
+        } else if (creditAchieved === 0) {
             validationState = "incorrect";
         } else {
             validationState = "partialcorrect";
         }
     }
     return validationState;
+}
+
+/**
+ * Whether the check-work button should carry its label, rather than being the
+ * compact icon-only one — the `showText` argument of
+ * `createCheckWorkComponent`.
+ *
+ * Which size is the default depends on the shape of what the button sits with,
+ * so the caller passes that in as `fullByDefault`. An input that takes a block
+ * of its own — an expanded `<textInput>`, a `<choiceInput>` that is not
+ * `inline`, an `<answer>` with no input field at all — has a line beneath it to
+ * put a labelled button on, so the full button is its default. A word-sized
+ * input flows in a sentence, where a labelled button beside it would crowd the
+ * line, so the compact one is the default there.
+ *
+ * `forceFullCheckWorkButton` overrides either default. `forceSmallCheckWorkButton`
+ * overrides only the full one — an input whose default is already the small
+ * button has nothing to ask for — and loses to `forceFullCheckWorkButton` when
+ * both are given, which is the precedence the `<answer>` reference documents.
+ */
+export function wantsFullCheckWorkButton(
+    SVs: Record<string, any>,
+    fullByDefault: boolean,
+): boolean {
+    return fullByDefault
+        ? Boolean(SVs.forceFullCheckWorkButton) ||
+              !SVs.forceSmallCheckWorkButton
+        : Boolean(SVs.forceFullCheckWorkButton);
 }
 
 /**
@@ -152,7 +196,7 @@ export function createCheckWorkComponent(
             );
         } else {
             // partially correct
-            const percent = Math.round(SVs.creditAchieved * 100);
+            const percent = Math.round(checkWorkCredit(SVs) * 100);
             const partialText = SVs.creditIsReducedByAttempt
                 ? t("answer-percent-credit", { percent }, `${percent}% Credit`)
                 : t(

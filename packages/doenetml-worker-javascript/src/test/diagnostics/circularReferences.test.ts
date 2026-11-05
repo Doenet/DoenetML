@@ -1,0 +1,1478 @@
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore } from "../utils/test-core";
+import { Dependency } from "../../core/dependencies/Dependency";
+import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
+import { PASSED } from "../../core/dependencies/circularCheckMarks";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import { movePoint, updateMathInputValue } from "../utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
+
+/**
+ * Doenet/DoenetML#1665: an attribute written in terms of the values its own
+ * component has yet to produce cannot be evaluated until the component is
+ * expanded, and the component cannot be expanded until the attribute is
+ * evaluated. Doenet recognized the cycle all along, but the error was raised
+ * from a blocker registration nobody awaited, so it was dropped and resolution
+ * went on around the cycle until the worker ran out of memory. Each case below
+ * exhausted the heap before the fix.
+ *
+ * The shapes are gathered here rather than spread over the component suites
+ * because none of them is about the component: they all fail at the same step
+ * of reference resolution.
+ */
+describe("Circular reference tests @group2", async () => {
+    const circularError = "Circular dependency involving these components";
+
+    const selfReferentialAttributes: [string, string][] = [
+        [
+            "selectFromSequence exclude (the reported case)",
+            `<selectFromSequence name="a" from="1" to="10" numToSelect="2" exclude="2$a[1]"/>`,
+        ],
+        [
+            "selectFromSequence from",
+            `<selectFromSequence name="a" from="$a[1]" to="10" numToSelect="2"/>`,
+        ],
+        [
+            "selectFromSequence numToSelect",
+            `<selectFromSequence name="a" from="1" to="10" numToSelect="$a[1]"/>`,
+        ],
+        ["sequence step", `<sequence name="a" from="1" to="10" step="$a[1]"/>`],
+        ["sequence length", `<sequence name="a" from="1" length="$a[1]"/>`],
+        [
+            "select numToSelect",
+            `<select name="a" numToSelect="$a[1]"><option><math>1</math></option><option><math>2</math></option></select>`,
+        ],
+        [
+            "repeat for",
+            `<repeat name="r" valueName="v" for="$r[1]"><number>$v</number></repeat>`,
+        ],
+        [
+            "conditionalContent condition",
+            `<conditionalContent name="c" condition="$c[1] > 0"><number>1</number></conditionalContent>`,
+        ],
+    ];
+
+    for (const [description, doenetML] of selfReferentialAttributes) {
+        it(`${description} is reported as circular`, async () => {
+            await expect(createTestCore({ doenetML })).rejects.toThrow(
+                circularError,
+            );
+        });
+    }
+
+    // The message is worth checking on one case: reporting the cycle is only
+    // useful if it says where to look. It also names the components the
+    // attribute expanded into, which are an implementation detail, as is the
+    // order the cycle is listed in, so only the authored component is
+    // asserted.
+    it("the report names the component the attribute is on", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `<selectFromSequence name="a" from="1" to="10" numToSelect="2" exclude="2$a[1]"/>`,
+            }),
+        ).rejects.toThrow(
+            new RegExp(
+                `^${circularError}: .*<selectFromSequence> \\(line 1\\)`,
+            ),
+        );
+    });
+
+    // Two components, each excluding a value the other has yet to produce:
+    // the same cycle, drawn across a pair rather than closed on one component.
+    // Both ends should be named, which is what distinguishes this from the
+    // cases above.
+    it("mutually referential excludes are reported as circular", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `
+    <selectFromSequence name="a" from="1" to="10" exclude="$b[1]"/>
+    <selectFromSequence name="b" from="1" to="10" exclude="$a[1]"/>
+    `,
+            }),
+        ).rejects.toThrow(
+            new RegExp(
+                `${circularError}:.*<selectFromSequence> \\(line 2\\).*<selectFromSequence> \\(line 3\\)`,
+                "s",
+            ),
+        );
+    });
+});
+
+/**
+ * Cycles that run through children and `extend` rather than through an
+ * attribute. They close in the resolve-blocker graph the moment the last
+ * reference is set up, and the report must name the authored components.
+ *
+ * The no-cycle cases guard the other side: the check memoizes what it has
+ * searched and drops the memo of everything upstream of a changed edge, and
+ * a reference that is set up before its target has any dependencies of its
+ * own must still be searched once the target gets them.
+ */
+describe("Circular references through children and extend @group2", async () => {
+    const circularError = "Circular dependency involving these components";
+
+    it("a text that contains a reference to itself", async () => {
+        // The whole message, to its period: the `$t` is a value reference,
+        // which is not something the author wrote, and is not listed after
+        // the text.
+        await expect(
+            createTestCore({ doenetML: `<text name="t">$t</text>` }),
+        ).rejects.toThrow(`${circularError}: <text> (line 1).`);
+    });
+
+    it("two texts that reference each other", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `
+    <text name="t1">$t2</text>
+    <text name="t2">$t1</text>
+    `,
+            }),
+        ).rejects.toThrow(
+            new RegExp(
+                `${circularError}:.*<text> \\(line 2\\).*<text> \\(line 3\\)`,
+                "s",
+            ),
+        );
+    });
+
+    it("a number and a math that reference each other", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `
+    <number name="a">$m</number>
+    <math name="m">$a+1</math>
+    `,
+            }),
+        ).rejects.toThrow(
+            new RegExp(
+                `${circularError}:.*<number> \\(line 2\\).*<math> \\(line 3\\)`,
+                "s",
+            ),
+        );
+    });
+
+    it("two maths that extend each other", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `
+    <math extend="$b1" name="b2" />
+    <math extend="$b2" name="b1" />
+    `,
+            }),
+        ).rejects.toThrow(circularError);
+    });
+
+    it("a mathInput prefilled with its own value", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `<mathInput name="mi" prefill="$mi.value" />`,
+            }),
+        ).rejects.toThrow(`${circularError}:`);
+    });
+
+    it("a long chain of references is not a cycle", async () => {
+        const length = 60;
+        let doenetML = `<number name="n1">1</number>`;
+        for (let i = 2; i <= length; i++) {
+            doenetML += `<number name="n${i}">$n${i - 1}+1</number>`;
+        }
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        // The memos cover only the load; they are dropped once it is done
+        // (and regrow for whatever a later evaluation sets up). The blocker
+        // order is rebuilt then, keeping positions only for the items of the
+        // few blockers still outstanding.
+        const dependencies = core.core.dependencies;
+        expect(dependencies.circularCheckMarks.size).eq(0);
+        const outstanding = new Set<string>();
+        for (const [type, entries] of dependencies.resolveBlockers
+            .neededToResolve) {
+            for (const [code, blockers] of entries) {
+                outstanding.add(`${type}:${code}`);
+                for (const blockerType in blockers) {
+                    for (const blockerCode of blockers[blockerType]) {
+                        outstanding.add(`${blockerType}:${blockerCode}`);
+                    }
+                }
+            }
+        }
+        expect(outstanding.size).toBeLessThan(10);
+        expect(dependencies.blockerOrder.size).eq(outstanding.size);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`n${length}`)].stateValues
+                .value,
+        ).eq(length);
+    });
+
+    it("a reference reached along two paths is not a cycle", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="a">1</number>
+    <number name="b">$a+1</number>
+    <number name="c">$a+2</number>
+    <number name="d">$b+$c</number>
+    <number name="e">$d+$a</number>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e")].stateValues.value,
+        ).eq(6);
+    });
+});
+
+/**
+ * The edges from a memoized variable to a variable that is not memoized.
+ * Edges to a name the target does not have are left out: the
+ * `variablesOptional` filter records them on neither side, so no reset could
+ * climb through them anyway. So are edges to the placeholder a dependency on
+ * components alone records.
+ */
+function memoizedAboveUnmemoized(handler: any) {
+    const unmarkedBelow: string[] = [];
+    let passed = 0;
+    for (const [componentIdx, marks] of handler.circularCheckMarks._marks) {
+        for (const [varName, mark] of marks) {
+            if (mark !== PASSED) {
+                continue;
+            }
+            passed++;
+            const downDeps =
+                handler.downstreamDependencies[componentIdx]?.[varName];
+            for (const dependencyName in downDeps) {
+                const dep = downDeps[dependencyName];
+                const indices = dep.downstreamComponentIndices;
+                const mappedNames =
+                    dep.mappedDownstreamVariableNamesByComponent;
+                if (!indices || !mappedNames) {
+                    continue;
+                }
+                for (let ind = 0; ind < indices.length; ind++) {
+                    for (const name of mappedNames[ind]) {
+                        if (
+                            name !== dep.downstreamVariableNameIfNoVariables &&
+                            handler._components[indices[ind]]?.state?.[name] &&
+                            handler.circularCheckMarks.get(
+                                indices[ind],
+                                name,
+                            ) !== PASSED
+                        ) {
+                            unmarkedBelow.push(
+                                `${componentIdx}|${varName} -> ${indices[ind]}|${name}`,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return { passed, unmarkedBelow };
+}
+
+/**
+ * The state-variable cycle check, driven directly. A cycle in a document
+ * closes in the resolve-blocker graph first, since the target of the edge
+ * that closes it cannot have resolved, so the cyclic documents above are all
+ * rejected by that check; this one reports a cycle only on the update path,
+ * when a dependency is re-pointed at a variable that has already resolved,
+ * and no document is known that reaches it. Except for one case that
+ * inspects the memos a real load leaves, these cases add edges to the
+ * handler's tables the way `Dependency.addDownstreamComponent` records them,
+ * with the memo reset it performs. The cases that add edges with
+ * `addDependencyAndCheck` (on one or several variables) or at random then run
+ * `Dependency.checkForCircular` itself on a stand-in dependency; the others
+ * call the check the way it does.
+ */
+describe("State-variable cycle check driven directly @group2", async () => {
+    const circularError = "Circular dependency involving these components";
+
+    // Four numbers on four lines, so the report's line numbers say which
+    // components it names and in what order.
+    async function handlerWithFourNumbers() {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<number name="a">1</number>
+<number name="b">2</number>
+<number name="c">3</number>
+<number name="d">4</number>`,
+        });
+        const dependencies = core.core.dependencies;
+        const idx: Record<string, number> = {};
+        for (const name of ["a", "b", "c", "d"]) {
+            idx[name] = await resolvePathToNodeIdx(name);
+        }
+
+        /** An edge from `from` to `to` in a variable `v` of each. */
+        function addEdge(from: string, to: string) {
+            const dep = {
+                dependencyName: `${from}_to_${to}`,
+                upstreamComponentIdx: idx[from],
+                upstreamVariableNames: ["v"],
+                downstreamComponentIndices: [idx[to]],
+                mappedDownstreamVariableNamesByComponent: [["v"]],
+            };
+            const down = (dependencies.downstreamDependencies[idx[from]] ??=
+                {});
+            (down.v ??= {})[dep.dependencyName] = dep;
+            const up = (dependencies.upstreamDependencies[idx[to]] ??= {});
+            up.v = (up.v ?? []).concat(dep);
+            dependencies.resetCircularCheckPassed(idx[from], "v");
+        }
+
+        function check(name: string) {
+            dependencies.checkForCircularDependency({
+                componentIdx: idx[name],
+                varName: "v",
+            });
+        }
+
+        const search = vi.spyOn(dependencies, "checkForCircularDependency");
+
+        /**
+         * A dependency of `v` of `from` set up as `Dependency` sets one up:
+         * each edge, to each named variable of each target in turn,
+         * recorded, then the memo reset if the edge can close a cycle, and
+         * otherwise its target marked as passed. Then
+         * `Dependency.checkForCircular` runs, as it does after a dependency
+         * is set up. Returns whether it searched.
+         */
+        function addDependencyAndCheck(
+            from: string,
+            targets: [to: string, varNames: string[]][],
+        ) {
+            const dep = {
+                dependencyName: `${from}_to_${targets
+                    .map(([to, varNames]) => `${to}.${varNames.join(".")}`)
+                    .join("_")}`,
+                dependencyHandler: dependencies,
+                upstreamComponentIdx: idx[from],
+                upstreamVariableNames: ["v"],
+                downstreamComponentIndices: targets.map(([to]) => idx[to]),
+                mappedDownstreamVariableNamesByComponent: targets.map(
+                    ([, varNames]) => varNames,
+                ),
+            };
+            const down = (dependencies.downstreamDependencies[idx[from]] ??=
+                {});
+            (down.v ??= {})[dep.dependencyName] = dep;
+            for (const [to, varNames] of targets) {
+                const up = (dependencies.upstreamDependencies[idx[to]] ??= {});
+                for (const varName of varNames) {
+                    up[varName] = (up[varName] ?? []).concat(dep);
+                    if (dependencies.edgeCanCloseCycle(dep, idx[to], varName)) {
+                        dependencies.resetCircularCheckPassed(idx[from], "v");
+                    } else {
+                        dependencies.markLeafPassed(idx[to], varName);
+                    }
+                }
+            }
+            const searchesBefore = search.mock.calls.length;
+            Dependency.prototype.checkForCircular.call(dep);
+            return search.mock.calls.length > searchesBefore;
+        }
+
+        /** `addDependencyAndCheck` with one edge, to `v` of `to`. */
+        function addEdgeAndCheck(from: string, to: string) {
+            return addDependencyAndCheck(from, [[to, ["v"]]]);
+        }
+
+        return {
+            dependencies,
+            idx,
+            addEdge,
+            addEdgeAndCheck,
+            addDependencyAndCheck,
+            check,
+        };
+    }
+
+    it("an edge to a variable with no dependencies is not searched", async () => {
+        const { addEdgeAndCheck } = await handlerWithFourNumbers();
+        expect(addEdgeAndCheck("a", "b")).toBe(false);
+        expect(addEdgeAndCheck("b", "c")).toBe(false);
+        // c now depends on nothing, but b does, so this one is searched
+        expect(addEdgeAndCheck("d", "b")).toBe(true);
+    });
+
+    // A dependency on several variables is searched if any one of its
+    // edges can close a cycle, wherever that edge comes among them.
+    it("a dependency on several variables is searched if any edge can close a cycle", async () => {
+        const { addEdgeAndCheck, addDependencyAndCheck } =
+            await handlerWithFourNumbers();
+        addEdgeAndCheck("b", "c");
+        // `w` of every number and `v` of `c` and `d` depend on nothing
+        expect(
+            addDependencyAndCheck("a", [
+                ["c", ["v", "w"]],
+                ["d", ["v"]],
+            ]),
+        ).toBe(false);
+        // only the second target can close a cycle
+        expect(
+            addDependencyAndCheck("d", [
+                ["c", ["v"]],
+                ["b", ["v"]],
+            ]),
+        ).toBe(true);
+        // only the second variable of the target can close a cycle
+        expect(addDependencyAndCheck("a", [["d", ["w", "v"]]])).toBe(true);
+        // only the first target can close a cycle
+        expect(
+            addDependencyAndCheck("a", [
+                ["b", ["v"]],
+                ["c", ["v"]],
+            ]),
+        ).toBe(true);
+    });
+
+    it("a cycle closed by a later edge of a dependency is found", async () => {
+        const { addEdgeAndCheck, addDependencyAndCheck } =
+            await handlerWithFourNumbers();
+        addEdgeAndCheck("a", "d");
+        expect(() =>
+            addDependencyAndCheck("d", [
+                ["b", ["v"]],
+                ["c", ["w", "v"]],
+                ["a", ["w", "v"]],
+            ]),
+        ).toThrow(circularError);
+    });
+
+    it("a variable depending on itself is always searched", async () => {
+        const { dependencies, idx, addEdgeAndCheck } =
+            await handlerWithFourNumbers();
+        // Even before the dependency is recorded below `a`, when `a` still
+        // depends on nothing.
+        expect(
+            dependencies.edgeCanCloseCycle(
+                { upstreamComponentIdx: idx.a, upstreamVariableNames: ["v"] },
+                idx.a,
+                "v",
+            ),
+        ).toBe(true);
+        expect(() => addEdgeAndCheck("a", "a")).toThrow(
+            `${circularError}: <number> (line 1).`,
+        );
+    });
+
+    // The skip relies on the edge that later leads out of the skipped
+    // variable: its reset reaches back through the skipped edge, and its
+    // search goes forward from there, so a cycle through it is still found.
+    // Against a plain reachability search, over random edges between 40
+    // variables, added the way `Dependency` adds them and removed with no
+    // reset at all: an added edge must be reported exactly when it closes a
+    // cycle, and a search from anywhere must pass while there is none.
+    it("agrees with a brute-force search over random edges", async () => {
+        const { dependencies, idx } = await handlerWithFourNumbers();
+        const nodes: [number, string][] = [];
+        for (const name of ["a", "b", "c", "d"]) {
+            for (let k = 0; k < 10; k++) {
+                nodes.push([idx[name], `x${k}`]);
+            }
+        }
+        const key = ([c, v]: [number, string]) => `${c}|${v}`;
+        const edges = new Map<string, any>();
+
+        const reaches = (from: string, to: string) => {
+            const seen = new Set<string>();
+            const stack = [from];
+            while (stack.length > 0) {
+                const node = stack.pop()!;
+                if (node === to) {
+                    return true;
+                }
+                if (seen.has(node)) {
+                    continue;
+                }
+                seen.add(node);
+                for (const [edgeKey] of edges) {
+                    const [a, b] = edgeKey.split(">");
+                    if (a === node) {
+                        stack.push(b);
+                    }
+                }
+            }
+            return false;
+        };
+
+        const addEdge = (from: [number, string], to: [number, string]) => {
+            const dep = {
+                dependencyName: `${key(from)}>${key(to)}`,
+                dependencyHandler: dependencies,
+                upstreamComponentIdx: from[0],
+                upstreamVariableNames: [from[1]],
+                downstreamComponentIndices: [to[0]],
+                mappedDownstreamVariableNamesByComponent: [[to[1]]],
+            };
+            const down = (dependencies.downstreamDependencies[from[0]] ??= {});
+            (down[from[1]] ??= {})[dep.dependencyName] = dep;
+            const up = (dependencies.upstreamDependencies[to[0]] ??= {});
+            up[to[1]] = (up[to[1]] ?? []).concat(dep);
+            edges.set(dep.dependencyName, dep);
+            if (dependencies.edgeCanCloseCycle(dep, to[0], to[1])) {
+                dependencies.resetCircularCheckPassed(from[0], from[1]);
+            } else {
+                dependencies.markLeafPassed(to[0], to[1]);
+            }
+            Dependency.prototype.checkForCircular.call(dep);
+        };
+
+        const removeEdge = (name: string) => {
+            const dep = edges.get(name);
+            edges.delete(name);
+            const from = dep.upstreamComponentIdx;
+            const fromVar = dep.upstreamVariableNames[0];
+            const to = dep.downstreamComponentIndices[0];
+            const toVar = dep.mappedDownstreamVariableNamesByComponent[0][0];
+            delete dependencies.downstreamDependencies[from][fromVar][name];
+            dependencies.upstreamDependencies[to][toVar] =
+                dependencies.upstreamDependencies[to][toVar].filter(
+                    (d: any) => d !== dep,
+                );
+        };
+
+        let seed = 2132;
+        const random = () => {
+            seed = (seed * 1103515245 + 12345) % 2 ** 31;
+            return seed / 2 ** 31;
+        };
+        const pick = () => nodes[Math.floor(random() * nodes.length)];
+
+        let cyclesFound = 0;
+        for (let step = 0; step < 3000; step++) {
+            const r = random();
+            // About as many removals as additions, which keeps the graph
+            // sparse enough that many targets depend on nothing.
+            if (edges.size > 0 && r < 0.4) {
+                const names = [...edges.keys()];
+                removeEdge(names[Math.floor(random() * names.length)]);
+            } else if (r < 0.55) {
+                const node = pick();
+                expect(() =>
+                    dependencies.checkForCircularDependency({
+                        componentIdx: node[0],
+                        varName: node[1],
+                    }),
+                ).not.toThrow();
+            } else {
+                const from = pick();
+                const to = pick();
+                const name = `${key(from)}>${key(to)}`;
+                if (edges.has(name)) {
+                    continue;
+                }
+                const closesCycle =
+                    key(from) === key(to) || reaches(key(to), key(from));
+                let threw = false;
+                try {
+                    addEdge(from, to);
+                } catch (e) {
+                    threw = true;
+                }
+                expect(threw, `adding ${name}`).toBe(closesCycle);
+                if (threw) {
+                    // A cycle ends the document; take the edge back out and
+                    // start the memos afresh to go on.
+                    cyclesFound++;
+                    removeEdge(name);
+                    dependencies.circularCheckMarks.clear();
+                }
+            }
+        }
+        expect(cyclesFound).toBeGreaterThan(10);
+    });
+
+    it("a cycle closed through a variable that had no dependencies is found", async () => {
+        const { addEdgeAndCheck, check } = await handlerWithFourNumbers();
+        addEdgeAndCheck("a", "b");
+        check("a"); // memoizes a and b as passed
+        addEdgeAndCheck("b", "c"); // skipped: c depends on nothing
+        expect(() => addEdgeAndCheck("c", "a")).toThrow(circularError);
+    });
+
+    // The handler tests above add edges themselves; this one checks what
+    // `Dependency` leaves behind over a real load. Each edge it skips must
+    // leave its target marked, or a memoized variable would sit above an
+    // unmemoized one and a later reset would stop short of it.
+    it("leaves no memoized variable above an unmemoized one after a load", async () => {
+        const found: { passed: number; unmarkedBelow: string[] }[] = [];
+        const clear = DependencyHandler.prototype.clearCircularCheckMemos;
+        const spy = vi
+            .spyOn(DependencyHandler.prototype, "clearCircularCheckMemos")
+            .mockImplementation(function (this: DependencyHandler) {
+                found.push(memoizedAboveUnmemoized(this));
+                return clear.call(this);
+            });
+        try {
+            await createTestCore({
+                doenetML: `<mathinput name="n" prefill="3"/>
+<graph>
+  <point name="P">(1,2)</point>
+  <line through="$P (3,4)"/>
+  <circle center="$P" radius="$P.x"/>
+</graph>
+<repeatForSequence from="1" to="$n" valueName="v">
+  <math simplify>$v^2+$n</math><point>($v, $v^2)</point>
+</repeatForSequence>`,
+            });
+        } finally {
+            spy.mockRestore();
+        }
+        expect(found).toHaveLength(1);
+        expect(found[0].passed).toBeGreaterThan(0);
+        expect(found[0].unmarkedBelow).toEqual([]);
+    });
+
+    it("reports the path that closes a cycle, once", async () => {
+        const { addEdge, check } = await handlerWithFourNumbers();
+        addEdge("d", "a");
+        addEdge("a", "b");
+        addEdge("b", "c");
+        expect(() => check("d")).not.toThrow();
+
+        addEdge("c", "a");
+        // The path runs from the variable searched to the one that closed
+        // the cycle: c, a, b.
+        expect(() => check("c")).toThrow(
+            `${circularError}: <number> (line 3), <number> (line 1), <number> (line 2).`,
+        );
+        // The variables on that path keep their memo, so the cycle is not
+        // reported again, by a search at the same variable or from above it.
+        expect(() => check("c")).not.toThrow();
+        expect(() => check("d")).not.toThrow();
+    });
+
+    it("a reset below a cycle re-arms the report up to the top", async () => {
+        const { dependencies, idx, addEdge, check } =
+            await handlerWithFourNumbers();
+        addEdge("d", "a");
+        addEdge("a", "b");
+        addEdge("b", "c");
+        addEdge("c", "a");
+        expect(() => check("c")).toThrow(circularError);
+        expect(() => check("d")).not.toThrow();
+
+        // What a dependency change below c does: drop c's memo and every
+        // memo upstream of it, d's included.
+        dependencies.resetCircularCheckPassed(idx.c, "v");
+        expect(() => check("d")).toThrow(
+            `${circularError}: <number> (line 4), <number> (line 1), <number> (line 2), <number> (line 3).`,
+        );
+    });
+
+    it("a variable that depends on itself", async () => {
+        const { addEdge, check } = await handlerWithFourNumbers();
+        addEdge("a", "a");
+        expect(() => check("a")).toThrow(
+            `${circularError}: <number> (line 1).`,
+        );
+    });
+});
+
+/**
+ * Doenet/DoenetML#2137: a cycle that comes into existence after load. The
+ * blocker check found it all along and threw, but the request queue caught
+ * the error, the action reported a failure with an empty message, and the
+ * core carried on with a cycle in its graph: the next evaluation that reached
+ * it recursed until the worker ran out of memory.
+ *
+ * A circular dependency raised by an update now stops the document, as one
+ * found during load does: the request that raised it is rejected with the
+ * cycle's message, so is every later request, and the viewer is told to show
+ * the message in place of the document.
+ */
+describe("Circular references created after load @group2", async () => {
+    const circularError = "Circular dependency involving these components";
+
+    async function loadAndWatch(doenetML: string) {
+        const result = await createTestCore({ doenetML });
+        const stopped: string[] = [];
+        result.core.core!.updateRenderersCallback = (args: any) => {
+            if (args.documentStopped !== undefined) {
+                stopped.push(args.documentStopped);
+            }
+        };
+        return { ...result, stopped };
+    }
+
+    async function expectDocumentStopped({
+        core,
+        stopped,
+        laterAction,
+    }: {
+        core: Awaited<ReturnType<typeof createTestCore>>["core"];
+        stopped: string[];
+        laterAction: Parameters<typeof core.requestAction>[0];
+    }) {
+        expect(stopped).toHaveLength(1);
+        expect(stopped[0]).toContain(circularError);
+
+        // A later request is not run: running it is what used to exhaust the
+        // heap.
+        const later = await core.requestAction(laterAction);
+        expect(later.success).toBe(false);
+        expect(later.errMsg).toBe(stopped[0]);
+    }
+
+    it("a dependency re-pointed into a cycle stops the document", async () => {
+        const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<mathInput name="i" prefill="1"/>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+        const iIdx = await resolvePathToNodeIdx("i");
+
+        await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateRawValue",
+            args: { rawRendererValue: "2" },
+        });
+        const result = await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateValue",
+            args: {},
+        });
+        expect(result.success).toBe(false);
+        expect(result.errMsg).toContain(circularError);
+
+        await expectDocumentStopped({
+            core,
+            stopped,
+            laterAction: {
+                componentIdx: iIdx,
+                actionName: "updateRawValue",
+                args: { rawRendererValue: "1" },
+            },
+        });
+    });
+
+    it("a self-extending component switched on stops the document", async () => {
+        const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<booleanInput name="b"/>
+<conditionalContent condition="$b"><text name="t" extend="$t"/></conditionalContent>`);
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        const result = await core.requestAction({
+            componentIdx: bIdx,
+            actionName: "updateBoolean",
+            args: { boolean: true },
+        });
+        expect(result.success).toBe(false);
+        expect(result.errMsg).toContain(circularError);
+
+        await expectDocumentStopped({
+            core,
+            stopped,
+            laterAction: {
+                componentIdx: bIdx,
+                actionName: "updateBoolean",
+                args: { boolean: false },
+            },
+        });
+    });
+
+    // `returnAllStateVariables` is reached outside the queue: `DocViewer`
+    // installs it as a `window` function on every page. Evaluating `n` after
+    // the stop is the recursion that ran the worker out of memory, so without
+    // the check this test kills the vitest worker.
+    it("a state dump of a stopped document is refused without evaluating", async () => {
+        const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<mathInput name="i" prefill="1"/>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+        const iIdx = await resolvePathToNodeIdx("i");
+
+        // a running document dumps its state as before
+        await expect(
+            core.returnAllStateVariables(false, true),
+        ).resolves.toBeTruthy();
+
+        await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateRawValue",
+            args: { rawRendererValue: "2" },
+        });
+        await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateValue",
+            args: {},
+        });
+        expect(stopped).toHaveLength(1);
+
+        await expect(core.returnAllStateVariables(false, true)).rejects.toThrow(
+            stopped[0],
+        );
+    });
+
+    it("a stopped document evaluates nothing from outside the queue", async () => {
+        // The input's keystroke schedules the debounced save, which fires
+        // after the stop. Building the save evaluates `n`, which recursed
+        // until the worker ran out of memory (vitest reports the worker
+        // exiting unexpectedly). Terminating sends the visibility recorded
+        // below as an event, which the stopped queue rejects; a terminate
+        // that throws reads to the viewer as a wedged core.
+        vi.useFakeTimers();
+        try {
+            const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<p name="p"><mathInput name="i" prefill="1"/></p>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+            const iIdx = await resolvePathToNodeIdx("i");
+
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("p"),
+                actionName: "recordVisibilityChange",
+                args: { isVisible: true },
+            });
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateRawValue",
+                args: { rawRendererValue: "2" },
+            });
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(stopped).toHaveLength(1);
+
+            await vi.advanceTimersByTimeAsync(5000);
+            await core.saveImmediately();
+            await core.terminate();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("a save built before the stop is still delivered on terminate", async () => {
+        // The second keystroke's save is built while the 60-second throttle
+        // holds it back. The stop skips building any new save, but the held
+        // one evaluates nothing to deliver, and `terminate` sends it.
+        vi.useFakeTimers();
+        try {
+            const {
+                core,
+                resolvePathToNodeIdx,
+                stopped,
+                lastStateReport,
+                pendingReports,
+            } = await loadAndWatch(`
+<mathInput name="i" prefill="1"/>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+            const iIdx = await resolvePathToNodeIdx("i");
+            async function enter(value: string) {
+                await core.requestAction({
+                    componentIdx: iIdx,
+                    actionName: "updateRawValue",
+                    args: { rawRendererValue: value },
+                });
+                await core.requestAction({
+                    componentIdx: iIdx,
+                    actionName: "updateValue",
+                    args: {},
+                });
+            }
+
+            await enter("3");
+            await vi.advanceTimersByTimeAsync(1500);
+            await enter("5");
+            await vi.advanceTimersByTimeAsync(1500);
+            const held = pendingReports.at(-1)?.state;
+            expect(held).toBeDefined();
+            expect(lastStateReport.payload).not.toEqual(held);
+
+            await enter("2");
+            expect(stopped).toHaveLength(1);
+
+            await core.terminate();
+            expect(lastStateReport.payload).toEqual(held);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("an event queued behind the stopping update is dropped quietly", async () => {
+        // The first update queues its "selected" event when it finishes, by
+        // which time the second update is ahead of it in the queue. The
+        // second raises the cycle, and the stop rejects the queued event,
+        // which nobody awaits.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        try {
+            const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<booleanInput name="b1"/>
+<booleanInput name="b"/>
+<conditionalContent condition="$b"><text name="t" extend="$t"/></conditionalContent>`);
+            const b1Idx = await resolvePathToNodeIdx("b1");
+            const bIdx = await resolvePathToNodeIdx("b");
+
+            const first = core.requestAction({
+                componentIdx: b1Idx,
+                actionName: "updateBoolean",
+                args: { boolean: true },
+            });
+            const second = core.requestAction({
+                componentIdx: bIdx,
+                actionName: "updateBoolean",
+                args: { boolean: true },
+            });
+            expect((await first).success).not.toBe(false);
+            expect((await second).success).toBe(false);
+            expect(stopped).toHaveLength(1);
+
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            expect(unhandled).toEqual([]);
+        } finally {
+            process.off("unhandledRejection", onUnhandled);
+        }
+    });
+
+    it("hiding a stopped document sends its visibility quietly", async () => {
+        // The browser tab is hidden after the stop: the core suspends
+        // visibility measuring, which sends the visibility recorded below as
+        // an event that the stopped queue rejects. Nobody awaits it.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        vi.useFakeTimers();
+        try {
+            const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<p name="p"><mathInput name="i" prefill="1"/></p>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+            const iIdx = await resolvePathToNodeIdx("i");
+
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("p"),
+                actionName: "recordVisibilityChange",
+                args: { isVisible: true },
+            });
+            await vi.advanceTimersByTimeAsync(5000);
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateRawValue",
+                args: { rawRendererValue: "2" },
+            });
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(stopped).toHaveLength(1);
+
+            core.handleVisibilityChange(false);
+            await vi.advanceTimersByTimeAsync(100);
+        } finally {
+            vi.useRealTimers();
+        }
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            expect(unhandled).toEqual([]);
+        } finally {
+            process.off("unhandledRejection", onUnhandled);
+        }
+    });
+
+    it("hiding a running document logs a failed visibility suspend", async () => {
+        // The rejection the stop produces is dropped (above); any other
+        // failure of the unawaited suspend is logged, not left unhandled.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        const logged: unknown[][] = [];
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation((...args) => {
+                logged.push(args);
+            });
+        try {
+            const { core } = await loadAndWatch(`<p>hello</p>`);
+            const failure = new Error("suspend failed");
+            (core.core as any).visibilityTracker.suspendVisibilityMeasuring =
+                async () => {
+                    throw failure;
+                };
+
+            core.handleVisibilityChange(false);
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            expect(unhandled).toEqual([]);
+            expect(logged).toEqual([
+                ["Error in visibility suspend on hide:", failure],
+            ]);
+        } finally {
+            errorSpy.mockRestore();
+            process.off("unhandledRejection", onUnhandled);
+        }
+    });
+
+    it("the same switch with no cycle leaves the document running", async () => {
+        const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<booleanInput name="b"/>
+<conditionalContent condition="$b"><text name="t">hello</text></conditionalContent>`);
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        const result = await core.requestAction({
+            componentIdx: bIdx,
+            actionName: "updateBoolean",
+            args: { boolean: true },
+        });
+        expect(result.success).not.toBe(false);
+        expect(stopped).toHaveLength(0);
+    });
+});
+
+/**
+ * Doenet/DoenetML#2405: a reference inside the component it names (`$S` in
+ * `S`) is replaced by the circular-dependency error, or, where the source's
+ * value can stand in (a point's coordinates in a `<label>`), by that value.
+ * Neither shadows the source, and a copy of `S` holds a counterpart of the
+ * reference that names the copy. Updating that reference remade it on every
+ * pass, as its replacement did not shadow its source, and remaking it
+ * changed the copy it is in, which marked it to be updated again, until the
+ * document stopped with an internal error. It should load as `S` alone does.
+ */
+describe("A copy of a component that references itself @group2", async () => {
+    async function textsAndErrors(doenetML: string, paths: string[]) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: Record<string, string> = {};
+        for (const path of paths) {
+            texts[path] =
+                stateVariables[
+                    await resolvePathToNodeIdx(path)
+                ].stateValues.text;
+        }
+        const errorCodes = getDiagnosticsByType(core).errors.map((e) => e.code);
+        return { texts, errorCodes };
+    }
+
+    const section = `<section name="S"><title>T</title><p name="q">hi [$S]</p></section>`;
+
+    it("the section alone reports the reference as circular", async () => {
+        const { texts, errorCodes } = await textsAndErrors(section, ["S.q"]);
+        expect(texts).eqls({ "S.q": "hi []" });
+        expect(errorCodes).eqls(["doenet-e0005"]);
+    });
+
+    it("a copy of the section loads and shows what the section shows", async () => {
+        const { texts, errorCodes } = await textsAndErrors(
+            `${section}
+<section name="S2" copy="$S"/>
+<p name="after">after</p>`,
+            ["S.q", "S2.q", "after"],
+        );
+        expect(texts).eqls({
+            "S.q": "hi []",
+            "S2.q": "hi []",
+            after: "after",
+        });
+        expect(errorCodes).eqls(["doenet-e0005"]);
+    });
+
+    it("a copy of a copy of the section loads", async () => {
+        const { texts, errorCodes } = await textsAndErrors(
+            `${section}
+<section name="S2" copy="$S"/>
+<section name="S3" copy="$S2"/>`,
+            ["S.q", "S2.q", "S3.q"],
+        );
+        expect(texts).eqls({
+            "S.q": "hi []",
+            "S2.q": "hi []",
+            "S3.q": "hi []",
+        });
+        expect(errorCodes).eqls(["doenet-e0005"]);
+    });
+
+    it("an extend of the section loads", async () => {
+        const { texts, errorCodes } = await textsAndErrors(
+            `${section}
+<section name="S2" extend="$S"/>`,
+            ["S.q", "S2.q"],
+        );
+        expect(texts).eqls({ "S.q": "hi []", "S2.q": "hi []" });
+        expect(errorCodes).eqls(["doenet-e0005"]);
+    });
+
+    it("a copy of a section whose title references it loads", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<section name="S"><title>T $S</title><p>hi</p></section>
+<section name="S2" copy="$S"/>`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("S")].stateValues.title,
+        ).eq("T ");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("S2")].stateValues.title,
+        ).eq("T ");
+        expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
+            "doenet-e0005",
+        ]);
+    });
+
+    // The same reference names the section, then another component, then
+    // the section again: a change of source remakes the copy's counterpart
+    // of the reference each time.
+    it("a copy of a group whose reference switches between the group and another component loads", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="n" prefill="1"/>
+<group name="g"><text>one</text><p name="q">hi [$g[$n]]</p></group>
+<group name="g2" copy="$g"/>
+<p name="after">after</p>`,
+        });
+        const nIdx = await resolvePathToNodeIdx("n");
+
+        async function texts() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: string[] = [];
+            for (const path of ["g.q", "g2.q", "after"]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(path)].stateValues
+                        .text,
+                );
+            }
+            return result;
+        }
+
+        expect(await texts()).eqls(["hi [one]", "hi [one]", "after"]);
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        await updateMathInputValue({ latex: "2", componentIdx: nIdx, core });
+        expect(await texts()).eqls(["hi []", "hi []", "after"]);
+        expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
+            "doenet-e0005",
+        ]);
+
+        await updateMathInputValue({ latex: "1", componentIdx: nIdx, core });
+        expect(await texts()).eqls(["hi [one]", "hi [one]", "after"]);
+    });
+
+    // In a label, the reference falls back to the point's value, which is
+    // not circular. The copy's label names the copy, so it follows the copy
+    // when it moves, and not the point it was copied from.
+    it("a copy of a point whose label references it loads, and its label follows it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<graph><point name="P"><label>a $P</label></point>
+<point name="P2" copy="$P"/></graph>`,
+        });
+        const PIdx = await resolvePathToNodeIdx("P");
+        const P2Idx = await resolvePathToNodeIdx("P2");
+
+        async function labels() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return [
+                stateVariables[PIdx].stateValues.label,
+                stateVariables[P2Idx].stateValues.label,
+            ];
+        }
+
+        const origin = "a \\(\\left( 0, 0 \\right)\\)";
+        expect(await labels()).eqls([origin, origin]);
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        await movePoint({ componentIdx: P2Idx, x: 3, y: 4, core });
+        expect(await labels()).eqls([origin, "a \\(\\left( 3, 4 \\right)\\)"]);
+
+        await movePoint({ componentIdx: PIdx, x: -1, y: 2, core });
+        expect(await labels()).eqls([
+            "a \\(\\left( -1, 2 \\right)\\)",
+            "a \\(\\left( 3, 4 \\right)\\)",
+        ]);
+    });
+});
+
+/**
+ * Doenet/DoenetML#2418: composites that keep queuing each other to be
+ * updated, through a cycle the dependency graph does not see, stopped the
+ * whole document with an internal error after 100 passes. The copy in
+ * Doenet/DoenetML#2405 was one before Doenet/DoenetML#2412; the stub below
+ * undoes that fix, so the copy inside `S2` is remade on every pass again.
+ * The copy should be reported as circular and stopped, and the rest of the
+ * document should load.
+ */
+describe("Composites whose replacements never settle @group2", async () => {
+    async function withLoopingCopy<T>(run: () => Promise<T>) {
+        const Copy = (await import("../../components/abstract/Copy")).default;
+        const original = Copy.calculateReplacementChanges;
+        const spy = vi
+            .spyOn(Copy, "calculateReplacementChanges")
+            .mockImplementation(async function (this: any, args: any) {
+                // Forget that the copy is inside its source, so it is
+                // remade, as it was before Doenet/DoenetML#2412.
+                args.workspace.sourceContainsCopyBySource = [];
+                return original.call(this, args);
+            });
+        try {
+            return await run();
+        } finally {
+            spy.mockRestore();
+        }
+    }
+
+    it("are reported as circular and stopped, and the rest of the document loads", async () => {
+        await withLoopingCopy(async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<section name="S"><title>T</title><p name="q">hi [$S]</p></section>
+<section name="S2" copy="$S"/>
+<p name="after">after</p>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const texts: string[] = [];
+            for (const path of ["S.q", "S2.q", "after"]) {
+                texts.push(
+                    stateVariables[await resolvePathToNodeIdx(path)].stateValues
+                        .text,
+                );
+            }
+            expect(texts).eqls(["hi []", "hi []", "after"]);
+
+            // The copy of `$S` inside `S2`, which kept being remade.
+            const stopped = Object.values(core.core!._components)
+                .filter((c: any) => c?.isInErrorState)
+                .map((c: any) => [c.componentType, c.position?.start.line]);
+            expect(stopped).eqls([["_copy", 1]]);
+
+            // Reported with the same code, at the same place, as `$S` in `S`
+            // is, so the two records are one.
+            expect(
+                getDiagnosticsByType(core).errors.map((e) => [
+                    e.code,
+                    e.message,
+                    e.position?.start.line,
+                ]),
+            ).eqls([["doenet-e0005", "Circular dependency detected.", 1]]);
+        });
+    });
+
+    // `S3` copies `S2`, so its copy is remade on every pass too, but only
+    // because the copy inside `S2` is; it queues nothing that comes back to
+    // it. It should be left running, and not reported as circular.
+    it("leaves out a composite that is only downstream of the loop", async () => {
+        await withLoopingCopy(async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<section name="S"><title>T</title><p name="q">hi [$S]</p></section>
+<section name="S2" copy="$S"/>
+<section name="S3" copy="$S2"/>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("S3.q")].stateValues
+                    .text,
+            ).eq("hi []");
+
+            // Only the copies of `$S` inside `S2` and inside `S3`, which
+            // keep remaking themselves, not the copy that makes `S3`.
+            const stopped = Object.values(core.core!._components)
+                .filter((c: any) => c?.isInErrorState)
+                .map((c: any) => [c.componentType, c.position?.start.line]);
+            expect(stopped).eqls([
+                ["_copy", 1],
+                ["_copy", 1],
+            ]);
+            expect(
+                getDiagnosticsByType(core).errors.map((e) => [
+                    e.code,
+                    e.position?.start.line,
+                ]),
+            ).eqls([["doenet-e0005", 1]]);
+        });
+    });
+});
+
+describe("Composites that queue each other in turn @group2", async () => {
+    it("are both reported and stopped", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="mi" prefill="1"/>
+<conditionalContent name="a" condition="$mi > 1"><p>big</p></conditionalContent>
+<conditionalContent name="b" condition="$mi > 1"><p>big</p></conditionalContent>`,
+        });
+        const miIdx = await resolvePathToNodeIdx("mi");
+        const aIdx = await resolvePathToNodeIdx("a");
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        const ConditionalContent = (
+            await import("../../components/ConditionalContent")
+        ).default;
+        const original = ConditionalContent.calculateReplacementChanges;
+        const spy = vi
+            .spyOn(ConditionalContent, "calculateReplacementChanges")
+            .mockImplementation(async function (this: any, args: any) {
+                // Each asks for the other to be updated.
+                core.core!.updateInfo.compositesToUpdateReplacements.add(
+                    args.component.componentIdx === aIdx ? bIdx : aIdx,
+                );
+                return original.call(this, args);
+            });
+        try {
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: miIdx,
+                core,
+            });
+        } finally {
+            spy.mockRestore();
+        }
+
+        expect([
+            core.core!._components[aIdx].isInErrorState,
+            core.core!._components[bIdx].isInErrorState,
+        ]).eqls([true, true]);
+        expect(
+            getDiagnosticsByType(core).errors.map((e) => [
+                e.code,
+                e.position?.start.line,
+            ]),
+        ).eqls([
+            ["doenet-e0005", 2],
+            ["doenet-e0005", 3],
+        ]);
+    });
+});
+
+describe("A composite that queues itself on every pass @group2", async () => {
+    it("is reported as circular at its own position and stopped, and the document keeps working", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="mi" prefill="1"/>
+<conditionalContent name="cc" condition="$mi > 1"><p>big</p></conditionalContent>
+<p name="echo">$mi</p>`,
+        });
+        const miIdx = await resolvePathToNodeIdx("mi");
+        const ccIdx = await resolvePathToNodeIdx("cc");
+        const echoIdx = await resolvePathToNodeIdx("echo");
+
+        const ConditionalContent = (
+            await import("../../components/ConditionalContent")
+        ).default;
+        const original = ConditionalContent.calculateReplacementChanges;
+        let nCalls = 0;
+        const spy = vi
+            .spyOn(ConditionalContent, "calculateReplacementChanges")
+            .mockImplementation(async function (this: any, args: any) {
+                nCalls++;
+                // Ask to be updated again, without end.
+                core.core!.updateInfo.compositesToUpdateReplacements.add(
+                    args.component.componentIdx,
+                );
+                return original.call(this, args);
+            });
+        try {
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: miIdx,
+                core,
+            });
+        } finally {
+            spy.mockRestore();
+        }
+
+        // Stopped after 100 passes, not made to run without end.
+        expect(nCalls).greaterThan(100);
+        expect(nCalls).lessThan(200);
+        expect(core.core!._components[ccIdx].isInErrorState).eq(true);
+        expect(
+            getDiagnosticsByType(core).errors.map((e) => [
+                e.code,
+                e.message,
+                e.position?.start.line,
+            ]),
+        ).eqls([
+            [
+                "doenet-e0005",
+                "Circular dependency detected involving `<conditionalContent>` component.",
+                2,
+            ],
+        ]);
+
+        // The rest of the document still responds.
+        await updateMathInputValue({ latex: "3", componentIdx: miIdx, core });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[echoIdx].stateValues.text).eq("3");
+    });
+});
+
+describe("Composites in a loop that none can be singled out of @group2", async () => {
+    it("stop the update with an error that names them", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="mi" prefill="1"/>
+<conditionalContent name="cc" condition="$mi > 1"><p>big</p></conditionalContent>`,
+        });
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        const ConditionalContent = (
+            await import("../../components/ConditionalContent")
+        ).default;
+        const original = ConditionalContent.calculateReplacementChanges;
+        const queueSpy = vi
+            .spyOn(ConditionalContent, "calculateReplacementChanges")
+            .mockImplementation(async function (this: any, args: any) {
+                core.core!.updateInfo.compositesToUpdateReplacements.add(
+                    args.component.componentIdx,
+                );
+                return original.call(this, args);
+            });
+        // As if no composite had been queued in every recent pass, which is
+        // what happens when the components looping are not composites.
+        const loopingSpy = vi
+            .spyOn(core.core!.essentialValueWriter, "loopingComposites")
+            .mockReturnValue([]);
+        // The update that hits the loop is stopped, and the error is
+        // logged rather than returned to the action.
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        let nLoopingCalls: number;
+        let logged: string[];
+        try {
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: miIdx,
+                core,
+            }).catch(() => {});
+        } finally {
+            nLoopingCalls = loopingSpy.mock.calls.length;
+            logged = errorSpy.mock.calls.map((args) => String(args[0]));
+            queueSpy.mockRestore();
+            loopingSpy.mockRestore();
+            errorSpy.mockRestore();
+        }
+
+        expect(nLoopingCalls).eq(1);
+        expect(logged).toContain(
+            "Error: Seem to have an infinite loop while calculating replacement changes. Circular dependency involving these components: <conditionalContent> (line 2).",
+        );
+    });
+});

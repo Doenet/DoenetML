@@ -18,7 +18,11 @@ import {
     roundForDisplay,
     stripLatex,
 } from "../utils/math";
-import { returnMathVectorMatrixStateVariableDefinitions } from "../utils/mathVectorMatrixStateVariables";
+import {
+    returnMathVectorMatrixStateVariableDefinitions,
+    returnValueEntriesStateVariableDefinitions,
+    VALUE_ENTRIES,
+} from "../utils/mathVectorMatrixStateVariables";
 import {
     buildInputResponseEvent,
     defineSubmitAnswerExternalAction,
@@ -48,7 +52,15 @@ export default class MathInput extends Input {
         summary: "An interactive math input",
     };
     static variableForImplicitProp = "value";
-    static variableForIndexAsProp = "vector";
+    // An index selects the entries of the value, as for a `<math>` (D27).
+    static variableForIndexAsProp = VALUE_ENTRIES;
+
+    // A math input changes width *and* height on nearly every keystroke, while
+    // the caret is inside it, so unlike the other inputs its box cannot simply
+    // be measured once. The renderer re-typesets around it as it grows, keeping
+    // the field itself in place, which is what makes it drawable inside an
+    // expression.
+    static canBeEmbeddedInMath = true;
 
     static processWhenJustUpdatedForNewComponent = true;
 
@@ -787,6 +799,71 @@ export default class MathInput extends Input {
             },
         };
 
+        stateVariableDefinitions.latex = {
+            description: "The current input rendered as a LaTeX string.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "latex",
+            },
+            returnDependencies: () => ({
+                valueForDisplay: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueForDisplay",
+                },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
+                hideNaN: {
+                    dependencyType: "stateVariable",
+                    variableName: "hideNaN",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                // The committed value, formatted as `.text` is, so this is
+                // stable while the reader types; `rawRendererValue` is the
+                // editing buffer and changes with every keystroke.
+                //
+                // An input written inside an `<m>` contributes this to the
+                // expression's `latex`, which is why an empty one has to come
+                // back empty rather than as a placeholder: `<m>` puts its own
+                // blank there, the one a PreTeXt export turns into a `<fillin>`.
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
+                params.showBlanks = false;
+
+                let latex;
+                try {
+                    latex = dependencyValues.valueForDisplay.toLatex(params);
+                } catch (e) {
+                    latex = "";
+                }
+
+                if (dependencyValues.hideNaN && latex === "NaN") {
+                    latex = "";
+                }
+
+                return { setValue: { latex } };
+            },
+        };
+
         stateVariableDefinitions.dontUpdateRawValueInDefinition = {
             defaultValue: false,
             hasEssential: true,
@@ -1140,6 +1217,7 @@ export default class MathInput extends Input {
         Object.assign(
             stateVariableDefinitions,
             returnMathVectorMatrixStateVariableDefinitions(),
+            returnValueEntriesStateVariableDefinitions(),
         );
 
         return stateVariableDefinitions;
@@ -1152,9 +1230,6 @@ export default class MathInput extends Input {
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.disabled)) {
-            // we set transient to true so that each keystroke does not
-            // add a row to the database
-
             return await this.coreFunctions.performUpdate({
                 updateInstructions: [
                     {
@@ -1168,7 +1243,16 @@ export default class MathInput extends Input {
                         componentIdx: this.componentIdx,
                     },
                 ],
-                transient: true,
+                // Deliberately NOT `transient`. That flag means "a step of a
+                // continuous interaction, whose downstream may settle after the
+                // interaction rather than during it", and a keystroke's downstream has
+                // to keep up: an `<answer>`'s check-work button must drop "Incorrect"
+                // on the first character of a correction, and a `$input.immediateValue`
+                // echo would otherwise freeze for the length of a typing burst.
+                // A keystroke was marked transient until Doenet/DoenetML#1990, to keep
+                // it out of the saved state -- but that guard (`if (!transient)` around
+                // saving) went away in Doenet/DoenetML#1035 and saving is debounced
+                // instead, so the flag had no reader left here.
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1281,6 +1365,7 @@ export default class MathInput extends Input {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

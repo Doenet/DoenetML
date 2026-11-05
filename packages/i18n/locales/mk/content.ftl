@@ -91,7 +91,6 @@ color =
             [n] кафеаво
            *[m] кафеав
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -105,7 +104,6 @@ line-width =
             [n] тенко
            *[m] тенок
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -119,7 +117,6 @@ line-style =
             [n] точкесто
            *[m] точкест
         }
-
 # Bare plural noun phrases. Macedonian puts nothing on a noun behind «со», so
 # the words that follow that preposition in `style-filled` are the same ones
 # that stand alone in `style-fill`.
@@ -130,7 +127,6 @@ fill-style =
     .backdiagonal = обратни дијагонални линии
     .dots = точки
     .diamonds = ромбови
-
 noun =
     .line = права
     .line-segment = отсечка
@@ -150,7 +146,6 @@ noun =
     .diamond = ромб
     .cross = крст
     .plus = плус
-
 # Macedonian keeps the side count in front of the noun, so the whole of it is
 # one head and there is no tail.
 noun-regular-polygon =
@@ -158,7 +153,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] правилен { $numSides }-аголник
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (многуаголник, m)
 # or the head of a phrase the description never names: `border` (граница, f),
 # `fill` (исполнување, n), `text` (текст, m), `background` (позадина, f).
@@ -180,7 +174,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -193,26 +186,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [f] исполнета
         [n] исполнето
        *[m] исполнет
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } со { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } со { $pattern }
@@ -220,7 +209,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } со { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «граница» is feminine, so the border's adjectives agree with it rather than
 # with the shape it surrounds. The article is a suffix and is not used here, so
 # the two `-article` branches read like the two without.
@@ -231,7 +219,6 @@ style-border-clause =
         [and-article] и { $border } граница
        *[with] со { $border } граница
     }
-
 # The fill-pattern words need a noun to hang off when they stand on their own,
 # so this supplies «исполнување» — neuter, which is the gender `noun-gender`
 # already answers for `fill`.
@@ -240,9 +227,7 @@ style-fill =
         [pattern] { $color } исполнување со { $pattern }
        *[plain] { $color } исполнување
     }
-
 style-unfilled = неисполнет
-
 # «текст» is masculine and «позадина» feminine, so the two colours here take
 # two different endings — from `noun-gender` alone, with no `$role` involved.
 style-text =
@@ -250,21 +235,17 @@ style-text =
         [background] { $color } на { $background } позадина
        *[plain] { $color }
     }
-
 style-background-none = нема
-
 
 ## Boolean words
 
 boolean-true = точно
 boolean-false = неточно
 
-
 ## Answer buttons
 
 answer-submit-label = Провери
 answer-submit-label-no-correctness = Испрати одговор
-
 
 ## Sectional blocks
 
@@ -289,7 +270,6 @@ section-name =
     .solution = Решение
     .task = Задача
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -299,9 +279,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Совет
-
 
 ## Tables and figures
 
@@ -312,7 +290,6 @@ table-name =
         [unnumbered-title] Табела{ ". " }
        *[unnumbered] Табела
     }
-
 figure-name =
     { $parts ->
         [numbered] Слика { $enumeration }
@@ -321,22 +298,18 @@ figure-name =
        *[unnumbered] Слика
     }
 
-
 ## Paginator controls
 
 paginator-previous = Претходна
 paginator-next = Следна
 paginator-page = Страница
-
 paginator-page-status = { $pageLabel } { $currentPage } од { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = или
 piecewise-condition-if = ако
 piecewise-condition-otherwise = инаку
-
 
 ## Chemistry
 
@@ -459,7 +432,6 @@ element-name =
     .lv = Ливермориум
     .ts = Тенесин
     .og = Оганесон
-
 element-anion-name =
     .h = Хидрид
     .c = Карбид
@@ -473,8 +445,6 @@ element-anion-name =
     .i = Јодид
     .at = Астатид
     .ts = Тенесид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Невалиден хемиски симбол
 chemistry-invalid-ionic-compound = Невалидно јонско соединение

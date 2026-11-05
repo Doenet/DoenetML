@@ -53,7 +53,6 @@ color =
     .purple = ወይናይ
     .pink = ሮዛ
     .brown = ቡናዊ
-
 line-width =
     .thick =
         { $gender ->
@@ -65,14 +64,12 @@ line-width =
             [f] ቀጣን
            *[m] ቀጢን
         }
-
 # Written as «ብ …» phrases rather than as adjectives, so that they agree with
 # nothing. They close the description, which is why `style-stroke` moves them
 # behind the colour.
 line-style =
     .dashed = ብስንጥቕ
     .dotted = ብነጥብታት
-
 fill-style =
     .horizontal = ደቀኛ መስመራት
     .vertical = ቀጥ ዝበሉ መስመራት
@@ -80,7 +77,6 @@ fill-style =
     .backdiagonal = ንድሕሪት ዝሰየፉ መስመራት
     .dots = ነጥብታት
     .diamonds = ኣልማዛት
-
 noun =
     .line = መስመር
     .line-segment = ክፍሊ መስመር
@@ -100,7 +96,6 @@ noun =
     .diamond = ኣልማዝ
     .cross = መስቀል
     .plus = ምልክት ምድማር
-
 # Tigrinya folds the side count into the head, in front of the noun, the way
 # English does — «5 ጎድኒ ዘለዎ ስሩዕ ፖሊጎን» — so there is no tail.
 noun-regular-polygon =
@@ -108,7 +103,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } ጎድኒ ዘለዎ ስሩዕ ፖሊጎን
     }
-
 noun-gender =
     { $noun ->
         [point] f
@@ -119,7 +113,6 @@ noun-gender =
         [background] f
        *[other] m
     }
-
 
 ## Style composition
 
@@ -133,26 +126,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The adjectives lead and the noun follows, as in English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [f] ምልእቲ
        *[m] ምሉእ
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ምስ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } ምስ { $pattern }
@@ -160,7 +149,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } ምስ { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «ዶብ» is masculine and leads its own adjectives, so the border's words agree
 # with it and not with the shape it surrounds. Tigrinya has no indefinite
 # article, so the two `-article` branches read like the two without.
@@ -171,35 +159,28 @@ style-border-clause =
         [and-article] ከምኡ'ውን { $border } ዶብ
        *[with] ምስ { $border } ዶብ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ዘይመልአ
-
 style-text =
     { $parts ->
         [background] { $color } ምስ { $background } ድሕረ-ባይታ
        *[plain] { $color }
     }
-
 style-background-none = የልቦን
-
 
 ## Boolean words
 
 boolean-true = ሓቂ
 boolean-false = ሓሶት
 
-
 ## Answer buttons
 
 answer-submit-label = ስራሕ ኣረጋግጽ
 answer-submit-label-no-correctness = መልሲ ልኣኽ
-
 
 ## Sectional blocks
 
@@ -224,7 +205,6 @@ section-name =
     .solution = መፍትሒ
     .task = ዕማም
     .theorem = ቲዮረም
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -234,9 +214,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ፍንጪ
-
 
 ## Tables and figures
 
@@ -247,7 +225,6 @@ table-name =
         [unnumbered-title] ሰንጠረዥ{ ": " }
        *[unnumbered] ሰንጠረዥ
     }
-
 figure-name =
     { $parts ->
         [numbered] ስእሊ { $enumeration }
@@ -256,22 +233,18 @@ figure-name =
        *[unnumbered] ስእሊ
     }
 
-
 ## Paginator controls
 
 paginator-previous = ዝሓለፈ
 paginator-next = ዝቕጽል
 paginator-page = ገጽ
-
 paginator-page-status = { $pageLabel } { $currentPage } ካብ { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ወይ
 piecewise-condition-if = እንተ
 piecewise-condition-otherwise = እንተዘይኮይኑ
-
 
 ## Chemistry
 
@@ -283,6 +256,5 @@ piecewise-condition-otherwise = እንተዘይኮይኑ
 # check against the English beside it, would be worse than the English. A
 # speaker adding a list should add it here.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ዘይቅቡል ኬሚካላዊ ምልክት
 chemistry-invalid-ionic-compound = ዘይቅቡል ኣዮናዊ ውህደት

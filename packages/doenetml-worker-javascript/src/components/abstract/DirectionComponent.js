@@ -13,6 +13,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../../utils/numberDisplay";
 import BaseComponent from "./BaseComponent";
+import { evaluateToNumber, markUnspecifiedComponents } from "../../utils/math";
 
 export default class DirectionComponent extends BaseComponent {
     static componentType = "_directionComponent";
@@ -311,9 +312,19 @@ export default class DirectionComponent extends BaseComponent {
                     // try to preserve the magnitude of unnormalizedDirection
                     let unnormalizedMagnitude = 0;
                     for (let dim = 0; dim < arraySize[0]; dim++) {
-                        let comp = globalDependencyValues.unnormalizedDirection
-                            .get_component(dim)
-                            .evaluate_to_constant();
+                        // `evaluate_to_constant()` used to report a component
+                        // with no numeric value — a symbolic direction — as
+                        // `null`, and `null * null` is `0`, so the sum stayed
+                        // finite and the magnitude came out `0`: every desired
+                        // component was then multiplied by zero. `NaN` is what
+                        // the fallback below tests for; the engine answers it
+                        // directly now, and this keeps the `Complex` arm on the
+                        // same spelling.
+                        let comp = evaluateToNumber(
+                            globalDependencyValues.unnormalizedDirection.get_component(
+                                dim,
+                            ),
+                        );
                         unnormalizedMagnitude += comp * comp;
                     }
                     if (Number.isFinite(unnormalizedMagnitude)) {
@@ -334,7 +345,15 @@ export default class DirectionComponent extends BaseComponent {
                     desiredDirection.length = arraySize[0] + 1;
                     instructions.push({
                         setDependency: "unnormalizedDirection",
-                        desiredValue: me.fromAst(desiredDirection),
+                        // Only the components this instruction actually set are
+                        // filled in above; the rest are holes, which `fromAst`
+                        // rejects outright once `JSON.stringify` turns them
+                        // into `null`. Marking them is what lets
+                        // `preprocessMathInverseDefinition` fill them back in,
+                        // exactly as the `Ray`/`Vector` shadow paths do.
+                        desiredValue: me.fromAst(
+                            markUnspecifiedComponents(desiredDirection),
+                        ),
                     });
                 }
 

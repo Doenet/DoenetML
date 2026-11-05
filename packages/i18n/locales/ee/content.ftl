@@ -42,17 +42,14 @@ color =
     .purple = pɔpul
     .pink = piŋk
     .brown = anyigbatɔ
-
 line-width =
     .thick = lolo
     .thin = sue
-
 # Written as «kple …» phrases rather than as adjectives, so that they can close
 # the description. `style-stroke` puts them last for that reason.
 line-style =
     .dashed = kple fli kakɛwo
     .dotted = kple dzesi sueawo
-
 fill-style =
     .horizontal = fli mlɔamlɔwo
     .vertical = fli tsitrewo
@@ -60,7 +57,6 @@ fill-style =
     .backdiagonal = fli dzeŋgɔ megbetɔwo
     .dots = dzesi sueawo
     .diamonds = adzagbawo
-
 noun =
     .line = fli
     .line-segment = fli akpa
@@ -80,7 +76,6 @@ noun =
     .diamond = adzagba
     .cross = atitsoga
     .plus = tsɔkpe dzesi
-
 # The side count follows the adjectives, behind «si le», because Ewe closes a
 # noun phrase with a relative rather than opening one: «axa geɖe sɔsɔ dzĩ si le
 # axa 5».
@@ -89,9 +84,7 @@ noun-regular-polygon =
         [tail] si le axa { $numSides }
        *[head] axa geɖe sɔsɔ
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,21 +98,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = si me yɔ
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } kple { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } kple { $pattern }
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } kple { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Ewe has no article and joins the complement with the invariable «kple», so
 # all four branches read alike.
 style-border-clause =
@@ -137,35 +125,28 @@ style-border-clause =
         [and-article] kple liƒo { $border }
        *[with] kple liƒo { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = si me meyɔ o
-
 style-text =
     { $parts ->
         [background] { $color } le megbenu { $background } dzi
        *[plain] { $color }
     }
-
 style-background-none = ɖeke meli o
-
 
 ## Boolean words
 
 boolean-true = nyateƒe
 boolean-false = alakpa
 
-
 ## Answer buttons
 
 answer-submit-label = Do Dɔa Kpɔ
 answer-submit-label-no-correctness = Ɖo Ŋuɖoɖoa Ɖa
-
 
 ## Sectional blocks
 
@@ -190,7 +171,6 @@ section-name =
     .solution = Kuxikakaɖeŋu
     .task = Dɔ
     .theorem = Teorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -200,9 +180,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Mɔfiame
-
 
 ## Tables and figures
 
@@ -213,7 +191,6 @@ table-name =
         [unnumbered-title] Kplɔ̃{ ": " }
        *[unnumbered] Kplɔ̃
     }
-
 figure-name =
     { $parts ->
         [numbered] Nɔnɔmetata { $enumeration }
@@ -222,22 +199,18 @@ figure-name =
        *[unnumbered] Nɔnɔmetata
     }
 
-
 ## Paginator controls
 
 paginator-previous = Do ŋgɔ
 paginator-next = Emegbetɔ
 paginator-page = Axa
-
 paginator-page-status = { $pageLabel } { $currentPage } le { $numPages } dome
-
 
 ## Piecewise functions
 
 piecewise-condition-or = alo
 piecewise-condition-if = ne
 piecewise-condition-otherwise = ne menye nenema o
-
 
 ## Chemistry
 
@@ -248,6 +221,5 @@ piecewise-condition-otherwise = ne menye nenema o
 # seed that guessed would have to guess twice, once for each school system. A
 # speaker adding a list should add it here.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kemikal Dzesi Si Mesɔ O
 chemistry-invalid-ionic-compound = Ion Nutsotso Si Mesɔ O

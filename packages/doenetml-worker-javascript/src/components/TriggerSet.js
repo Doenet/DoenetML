@@ -6,6 +6,7 @@ import {
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
 import {
     addStandardTriggeringStateVariableDefinitions,
@@ -32,6 +33,7 @@ export default class triggerSet extends InlineComponent {
             "Groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition",
     };
     static rendererType = "button";
+    static renderChildren = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -89,6 +91,10 @@ export default class triggerSet extends InlineComponent {
 
         let labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnRenderOnlyLabelChildDefinitions(),
+        );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
@@ -104,6 +110,7 @@ export default class triggerSet extends InlineComponent {
                 updateValueAndCallActionChildren: {
                     dependencyType: "child",
                     childGroups: ["updateValuesCallActions"],
+                    variableNames: ["disabled"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -124,8 +131,25 @@ export default class triggerSet extends InlineComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        for (let child of await this.stateValues
-            .updateValueAndActionsToTrigger) {
+        // A disabled trigger set runs none of its children, whether its button
+        // was clicked or it was triggered, and triggers none of the actions
+        // chained to it. In read-only mode, where everything is disabled, the
+        // actions still run as before: updates are blocked there anyway, and
+        // the actions read-only mode allows, such as revealing a hint or
+        // changing a page, still go through.
+        if (!this.flags.readOnly && (await this.stateValues.disabled)) {
+            return;
+        }
+
+        // Which children are disabled is decided before any of them runs, so
+        // that a child that disables this trigger set, or a later sibling,
+        // does not stop the rest partway. A disabled child is skipped while
+        // its siblings still run; the others are told not to check again.
+        const childrenToRun = (
+            await this.stateValues.updateValueAndActionsToTrigger
+        ).filter((child) => this.flags.readOnly || !child.stateValues.disabled);
+
+        for (let child of childrenToRun) {
             if (
                 this.componentInfoObjects.isInheritedComponentType({
                     inheritedComponentType: child.componentType,
@@ -139,6 +163,7 @@ export default class triggerSet extends InlineComponent {
                         actionId,
                         sourceInformation,
                         skipRendererUpdate: true,
+                        disabledCheckedByTriggerSet: true,
                     },
                 });
             } else if (
@@ -154,6 +179,7 @@ export default class triggerSet extends InlineComponent {
                         actionId,
                         sourceInformation,
                         skipRendererUpdate: true,
+                        disabledCheckedByTriggerSet: true,
                     },
                 });
             }
@@ -200,6 +226,7 @@ export default class triggerSet extends InlineComponent {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

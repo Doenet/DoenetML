@@ -6,7 +6,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { JXGBoard } from "./jsxgraph-distrib/types";
 import Prefigure from "./prefigure";
 import GraphControlsRoot from "./graphControls/GraphControlsRoot";
-import GraphFrame from "./GraphFrame";
+import GraphFrame, { GraphFrameSVs } from "./GraphFrame";
 import JSXGraphRenderer from "./JSXGraphRenderer";
 import { normalizeGraphControlsMode } from "./graphControls/model";
 
@@ -19,9 +19,8 @@ export const BoardContext = createContext<JXGBoard | null>(null);
  * keeps it open for the many additional fields consumed by helpers that
  * accept `Record<string, any>`.
  */
-export interface GraphSVs {
+export interface GraphSVs extends GraphFrameSVs {
     [key: string]: any;
-    hidden: boolean;
     haveGraphParent: boolean;
     descriptionChildInd: number;
     addControls: string;
@@ -30,13 +29,6 @@ export interface GraphSVs {
     renderInlineForListItem?: boolean;
     effectiveRenderer?: string;
     renderer?: string;
-    width: { size: string; isAbsolute: boolean };
-    aspectRatio: string | number;
-    displayMode: string;
-    horizontalAlign?: string;
-    showBorder: boolean;
-    shortDescription?: string;
-    decorative: boolean;
     showNavigation?: boolean;
     fixAxes?: boolean;
     xMin: number;

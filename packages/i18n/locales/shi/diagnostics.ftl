@@ -328,6 +328,17 @@ collect-invalid-component-type = ⵓⵔ ⵉⵣⴹⴰⵕ ⴰⴷ ⵉⵙⴷⵓⴽ�
 
 reference-index-unavailable = ⵓⵔ ⵉⵣⴹⴰⵕ ⴰⴷ ⵉⵎⵎⵍ ⴰⵎⴹⴰⵏ `{ $reference }`
 
+# An index past what a repeat, a select or a collect made. One noun, ⴰⴼⵔⴷⵉⵙ
+# (a component), for iterations, picks and items alike, counted behind ⵏ.
+
+reference-index-past-instances =
+    { $count ->
+        [0] `{ $reference }`: `<{ $component }>` ⵓⵔ ⴷⴰⵔⵙ ⴰⴼⵔⴷⵉⵙ.
+        [one] `{ $reference }`: `<{ $component }>` ⴷⴰⵔⵙ { $count } ⵏ ⵓⴼⵔⴷⵉⵙ ⵖⴰⵙ.
+        [few] `{ $reference }`: `<{ $component }>` ⴷⴰⵔⵙ { $count } ⵏ ⵢⵉⴼⵔⴷⵉⵙⵏ ⵖⴰⵙ.
+       *[other] `{ $reference }`: `<{ $component }>` ⴷⴰⵔⵙ { $count } ⵏ ⵢⵉⴼⵔⴷⵉⵙⵏ ⵖⴰⵙ.
+    }
+
 ## `<callAction>`
 
 component-action-unavailable = ⵓⵔ ⵉⵣⴹⴰⵕ ⴰⴷ ⵉⵖⵔ { $action } ⴳ ⵓⴼⵔⴷⵉⵙ `{ $reference }`

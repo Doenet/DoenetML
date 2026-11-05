@@ -29,7 +29,7 @@ Or load from CDN:
 
 ```html
 <script type="module">
-  import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.6.7/prefigure.js';
+  import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.7.6/prefigure.js';
   await prefigure.initPrefigure();
   const result = await prefigure.compilePrefigure(diagramXml, { mode: 'svg' });
 </script>
@@ -168,6 +168,24 @@ see which upstream version they are running. Follow these steps when bumping:
 npm run build -w @doenet/prefigure
 npm run browser-runtime -w @doenet/prefigure
 ```
+
+10. **Approve the publish.** Merging is not enough on its own. `publish-prefigure.yml`
+    triggers automatically once CI succeeds on `main` and works out that
+    `packages/prefigure/package.json` carries a version npm does not have — but its
+    publishing job declares `environment: production`, so it stops at `status=waiting`
+    until a reviewer for that environment approves it. Until then the version is
+    absent from npm and the CDN URL bumped in step 3 returns 404, so
+    `prefigure.tsx` logs `warmup failed … Failed to fetch dynamically imported
+    module` and every diagram falls back to the build service. Find the waiting run
+    under [Actions → Publish Prefigure](https://github.com/Doenet/DoenetML/actions/workflows/publish-prefigure.yml)
+    and approve it; check what it is waiting on with:
+
+    ```bash
+    gh api repos/Doenet/DoenetML/actions/runs/<run_id>/pending_deployments
+    ```
+
+    Publishing then purges the jsDelivr cache, which takes minutes rather than
+    seconds — the URL can 404 for a short while after approval.
 
 ### Upgrade Pyodide runtime packages
 

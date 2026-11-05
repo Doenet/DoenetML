@@ -1,22 +1,42 @@
 import { describe, expect, it } from "vitest";
 
+import fs from "node:fs";
+import path from "node:path";
+
 import { directionOf, stripBidiIsolates } from "../src/direction";
 import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 /**
- * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Kashmiri and
- * Dhivehi — the seven #1614 existed to make renderable, the one the European
- * regional and minority batch added, the two the South Asian batch added, and
- * the whole of it as of today.
+ * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Kashmiri,
+ * Dhivehi, Central Kurdish and the Silk Road batch's five — the seven #1614
+ * existed to make renderable, the one (`yi`) the early European regional and
+ * minority batch added — not the later fifteen-catalog European regional
+ * batch, which added none — the two the South Asian batch added, the one the
+ * Caucasus and Kurdish batch added, the five below, and the whole of it as of
+ * today.
  *
  * Written out rather than derived, so that the two tests below can hold it
  * from opposite sides: one says these tags are right-to-left whether or not a
  * catalog exists, the other says the roster contains exactly these and no
- * other right-to-left locale. None of the last three needed anything from
- * `direction.ts` — `yi`, `ks` and `dv` were all listed there already, and
- * Thaana was already in `RTL_SCRIPTS` — so this line is the only place seeding
- * them had to be recorded.
+ * other right-to-left locale. None of the last four needed anything from
+ * `direction.ts` — `yi`, `ks`, `dv` and `ckb` were all listed there already,
+ * and Thaana was already in `RTL_SCRIPTS` — so this line is the only place
+ * seeding them had to be recorded.
+ *
+ * The Silk Road batch adds five at once — five Iranian languages written in
+ * the Perso-Arabic script, four of them beside `locales/fa` and taking much of
+ * their technical vocabulary from it, while `locales/bal` takes its letters
+ * and its loans from Urdu instead. That takes the roster's right-to-left
+ * catalogs from eleven to sixteen. A right-to-left language that is neither
+ * Arabic nor Persian is nothing new here: `ug` is Turkic, `yi` Germanic and
+ * `ckb` Iranian but not Persian.
+ *
+ * `ku` is deliberately not here and is the pair worth reading beside `ckb`:
+ * two catalogs of one macrolanguage, one Latin and left-to-right, the other
+ * Perso-Arabic and right-to-left. Direction is a fact about a script rather
+ * than about a language, which is why `direction.ts` keys on the script and
+ * why `ku` needed no entry there either.
  */
 const RTL_LANGUAGES = [
     "ar",
@@ -29,6 +49,33 @@ const RTL_LANGUAGES = [
     "yi",
     "ks",
     "dv",
+    "ckb",
+    // The Silk Road batch's five, which take the roster's right-to-left
+    // catalogs from eleven to sixteen and split two ways over what
+    // `direction.ts` had to learn. `mzn`, `glk` and `lrc` were already in its
+    // `RTL_LANGUAGES` — listed there long before a catalog existed, because
+    // `lang` answers for any tag — so seeding them cost that file nothing. `bal` and `haz` are
+    // new to it, and they are new for the *fallback* path only: both maximize
+    // to `-Arab`, so the script rule already answered them, and the entries
+    // matter on the path where a tag cannot be parsed at all.
+    "mzn",
+    "glk",
+    "lrc",
+    "bal",
+    "haz",
+    // The second South Asian batch's two, which take the roster's
+    // right-to-left catalogs from sixteen to eighteen. Both are Perso-Arabic
+    // and both are new to `RTL_LANGUAGES` in `direction.ts`, on the same terms
+    // `bal` and `haz` were: each maximizes to `-Arab`, so the script rule
+    // already answered a parseable tag, and the entry earns its keep only on
+    // the fallback path where nothing could be parsed.
+    //
+    // `brh` is the pair worth reading beside `skr`: Brahui is Dravidian and
+    // Saraiki Indo-Aryan, and they run the same way because they are written
+    // in the same script. That is the `ug`/`yi`/`ckb` point reaching a family
+    // the roster's right-to-left half had never included.
+    "skr",
+    "brh",
 ];
 
 describe("directionOf", () => {
@@ -89,6 +136,31 @@ describe("directionOf", () => {
         expect(directionOf("en_US")).toBe("ltr");
     });
 
+    /**
+     * The path `bal` and `haz` were added to {@link RTL_LANGUAGES} for, and
+     * the only path on which those two entries are load-bearing.
+     *
+     * Both tags maximize to `-Arab`, so every parseable spelling of them is
+     * already answered by the script rule one branch earlier — which means a
+     * test written against `bal` or `haz-AF` would pass with the entries
+     * deleted. A tag `Intl.Locale` throws on never reaches `maximize()` at
+     * all, and the raw-subtag fallback has nothing but the language subtag to
+     * go on. These rows are therefore what fails if either entry is removed.
+     */
+    it("reads the batch's two new fallback languages off an unparseable tag", () => {
+        expect(directionOf("bal_PK")).toBe("rtl");
+        expect(directionOf("haz_AF")).toBe("rtl");
+        // The same tags in a spelling `Intl.Locale` accepts are answered by
+        // the script rule instead, so these hold either way — which is the
+        // reason the rows above exist rather than only these.
+        expect(directionOf("bal")).toBe("rtl");
+        expect(directionOf("haz")).toBe("rtl");
+        // And a Latin-script neighbour of each, to show the fallback is
+        // reading the language rather than defaulting everything to `rtl`.
+        expect(directionOf("crh_UA")).toBe("ltr");
+        expect(directionOf("zza_TR")).toBe("ltr");
+    });
+
     it("defaults to left-to-right for nonsense and for nothing at all", () => {
         expect(directionOf("")).toBe("ltr");
         expect(directionOf("   ")).toBe("ltr");
@@ -120,5 +192,114 @@ describe("stripBidiIsolates", () => {
         expect(stripBidiIsolates("Max credit available: 80%")).toBe(
             "Max credit available: 80%",
         );
+    });
+});
+
+/**
+ * Direction against the characters the catalogs are actually written in.
+ *
+ * Every test above asks `directionOf` about a tag. This one asks the files:
+ * for each locale on the roster it reads the *values* of the messages — not
+ * the ids, which are ASCII in every catalog, and not the header comments,
+ * which are written in English and quote words in the language — counts the
+ * letters belonging to right-to-left scripts against the letters belonging to
+ * left-to-right ones, and requires the majority to agree with what
+ * `directionOf` reports for the locale.
+ *
+ * This is the check that catches the failure no tag-level test can see: a
+ * catalog whose language CLDR considers right-to-left, written here in a
+ * left-to-right script, or the reverse. `lad` was exactly that and is the
+ * reason this test exists — see below.
+ */
+describe("a catalog's script and its locale's direction", () => {
+    const localesDir = path.join(__dirname, "..", "locales");
+
+    /** Hebrew, Arabic and the other right-to-left blocks this roster uses. */
+    const RTL_LETTERS = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g;
+    /** Latin, Greek, Cyrillic and the left-to-right blocks it uses. */
+    const LTR_LETTERS =
+        /[A-Za-z\u00C0-\u024F\u0370-\u052F\u0900-\u0DFF\u1000-\u109F\u10A0-\u10FF\u1200-\u137F\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]/g;
+
+    /**
+     * One line of a value with its placeables and select syntax removed. Both
+     * are ASCII in every catalog, so leaving them in would count Latin letters
+     * — `count`, `other` — into catalogs written in another script entirely.
+     * The second pattern catches the closing brace of a selector head such as
+     * `{ $count ->`, whose brace closes lines later.
+     */
+    const strip = (text: string) =>
+        text.replace(/\{[^}]*(\}|$)/g, "").replace(/^\s*\}\s*$/, "");
+
+    /**
+     * The letters of the text a reader would see, and of nothing else: the
+     * right-hand side of every `=` and the body of every select variant —
+     * `[one] …`, `*[other] …` — with comment lines dropped. Variants matter:
+     * in several catalogs most of the counted messages live inside a select,
+     * so reading only `=` lines would sample a fraction of the visible text.
+     */
+    function renderedLetters(locale: string): { rtl: number; ltr: number } {
+        const values: string[] = [];
+        for (const namespace of [
+            "chrome",
+            "content",
+            "diagnostics",
+            "editor",
+        ]) {
+            const file = path.join(localesDir, locale, `${namespace}.ftl`);
+            if (!fs.existsSync(file)) {
+                continue;
+            }
+            for (const line of fs.readFileSync(file, "utf-8").split("\n")) {
+                if (line.trim().startsWith("#") || line.trim() === "") {
+                    continue;
+                }
+                const variant = line.match(/^\s*\*?\[[^\]]*\](.*)$/);
+                if (variant) {
+                    values.push(strip(variant[1]));
+                    continue;
+                }
+                const equals = line.indexOf("=");
+                if (equals < 0) {
+                    // A continuation line of a multi-line value, which is
+                    // rendered text like any other.
+                    values.push(strip(line));
+                    continue;
+                }
+                values.push(strip(line.slice(equals + 1)));
+            }
+        }
+        const text = values.join("\n");
+        return {
+            rtl: (text.match(RTL_LETTERS) ?? []).length,
+            ltr: (text.match(LTR_LETTERS) ?? []).length,
+        };
+    }
+
+    it.each(SUPPORTED_LOCALES.map((info) => info.locale))(
+        "writes %s in a script matching the direction reported for it",
+        (locale) => {
+            const { rtl, ltr } = renderedLetters(locale);
+            expect(rtl + ltr).toBeGreaterThan(0);
+            expect(rtl > ltr ? "rtl" : "ltr").toBe(directionOf(locale));
+        },
+    );
+
+    /**
+     * Ladino, held explicitly, because it is the one catalog on the roster
+     * whose script disagrees with CLDR's guess and the reason
+     * `CATALOG_SCRIPTS` exists in `direction.ts`.
+     *
+     * `lad` maximizes to `lad-Hebr`: Judeo-Spanish was written in Hebrew
+     * letters for four centuries and CLDR records that. `locales/lad` is
+     * written in the Latin Aki Yerushalayim orthography, which is what a
+     * Ladino reader meets today. Without the override the viewer would lay a
+     * Latin catalog out right to left — the property above is what would have
+     * failed, and these three rows say why.
+     */
+    it("lays Ladino out left to right, against CLDR's likely script", () => {
+        expect(new Intl.Locale("lad").maximize().script).toBe("Hebr");
+        expect(directionOf("lad")).toBe("ltr");
+        // A host that names the historic script means it and gets it.
+        expect(directionOf("lad-Hebr")).toBe("rtl");
     });
 });

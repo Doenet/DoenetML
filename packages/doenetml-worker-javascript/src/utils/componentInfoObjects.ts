@@ -37,7 +37,7 @@ export type ComponentInfoObjects = {
     /** A record of information about the public state variables of a component, keyed by component type */
     publicStateVariableInfo: Record<string, StateVariableInfo>;
     /** A generalization of `isInheritedComponentType` that checks if either a component's componentType
-     * or its `createComponentOfType` attribute represent a component that is inherited from `specifiedCType`.
+     * or its `_createComponentOfType` attribute represent a component that is inherited from `specifiedCType`.
      */
     componentIsSpecifiedType: (
         comp: {
@@ -90,6 +90,11 @@ type StateVariableDescription = {
         string | { componentType: string; isAttributeNamed: string }
     )[][];
     entryPrefixes: string[];
+    /**
+     * The name the state variable's essential value is kept under, where it
+     * is not the state variable's own (`essentialVarName` on its state def).
+     */
+    essentialVarName?: string;
     /**
      * Resting value the runtime falls back to when nothing else (attribute,
      * child, parent) sets this state variable. Populated by
@@ -277,7 +282,7 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
         });
 
     /** A generalization of `isInheritedComponentType` that checks if either a component's componentType
-     * or its `createComponentOfType` attribute represent a component that is inherited from `specifiedCType`.
+     * or its `_createComponentOfType` attribute represent a component that is inherited from `specifiedCType`.
      */
     const componentIsSpecifiedType = (
         comp: {
@@ -291,9 +296,9 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
         specifiedCType: string,
     ) =>
         componentTypeIsSpecifiedType(comp.componentType, specifiedCType) ||
-        (comp.attributes?.createComponentOfType?.primitive !== undefined &&
+        (comp.attributes?._createComponentOfType?.primitive !== undefined &&
             componentTypeIsSpecifiedType(
-                comp.attributes?.createComponentOfType?.primitive.value,
+                comp.attributes?._createComponentOfType?.primitive.value,
                 specifiedCType,
             ));
 

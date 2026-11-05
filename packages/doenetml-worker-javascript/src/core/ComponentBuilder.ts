@@ -1,3 +1,4 @@
+import { expressionAttributeDefinitions } from "../utils/expressionAttribute";
 import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentIdx } from "@doenet/utils";
@@ -13,6 +14,7 @@ import {
 import { addComponentsToResolver } from "./ResolverAdapter";
 import { createStateVariableDefinitions } from "./StateVariableDefinitionFactory";
 import { initializeComponentStateVariables } from "./StateVariableInitializer";
+import { CircularDependencyError } from "./dependencies/CircularDependencyError";
 import {
     convertToErrorComponent,
     errorComponentState,
@@ -113,11 +115,28 @@ export async function addComponents({
             parentIdx: parentIdx!,
         });
     }
+    // Wall-clock phase timings of the initial document build, published as
+    // `core.loadPhaseTimings` for the performance harness
+    // (Doenet/DoenetML#2026, #2126). Diagnostic only.
+    // Only the initial build reads the clock; a later structural add skips it.
+    const phaseTimings: Record<string, number> = {};
+    const loadStart = initialAdd ? performance.now() : 0;
+    let phaseStart = loadStart;
+    /** Add the time since the previous mark to `phaseTimings[name]`. */
+    function markPhase(name: string) {
+        if (!initialAdd) {
+            return;
+        }
+        const now = performance.now();
+        phaseTimings[name] = (phaseTimings[name] ?? 0) + now - phaseStart;
+        phaseStart = now;
+    }
     let createResult = await createIsolatedComponents({
         core,
         serializedComponents,
         ancestors,
     });
+    markPhase("createIsolatedComponents");
     if (!initialAdd) {
         core.parameterStack.pop();
     }
@@ -136,16 +155,21 @@ export async function addComponents({
         }
         core.document = newComponents[0];
 
-        await _expandAllCompositesBothPasses(core);
+        phaseStart = performance.now();
+        await _expandAllCompositesBothPasses(core, phaseTimings);
+        phaseStart = performance.now();
         await _drainStateVariablesToEvaluate(core);
+        markPhase("drainStateVariablesToEvaluate");
 
         await addQueuedErrorComponentsFromStateVariables({ core });
 
         await core.replacementChangesFromCompositesToUpdate();
+        markPhase("errorsAndReplacementChanges");
 
         let results = await core.initializeRenderedComponentInstruction(
             core.document,
         );
+        markPhase("initializeRenderedComponentInstruction");
 
         if (core.errorComponentsToAdd.length > 0) {
             await addQueuedErrorComponentsFromStateVariables({ core });
@@ -153,10 +177,12 @@ export async function addComponents({
             // Adding queued _error components can touch composites and alter
             // what needs to be rendered from the document root.
             await core.replacementChangesFromCompositesToUpdate();
+            markPhase("errorsAndReplacementChanges");
 
             results = await core.initializeRenderedComponentInstruction(
                 core.document,
             );
+            markPhase("initializeRenderedComponentInstruction");
         }
 
         core.documentRendererInstructions = results.componentToRender;
@@ -187,9 +213,15 @@ export async function addComponents({
         // if so, make replacement changes and update renderer instructions again
         // TODO: should we check for child results earlier so we don't have to check them
         // when updating renderer instructions?
+        markPhase("callUpdateRenderers");
         await _drainCompositesToUpdateReplacements(core);
+        markPhase("drainCompositesToUpdateReplacements");
 
         await core.processStateVariableTriggers(true);
+        markPhase("processStateVariableTriggers");
+
+        phaseTimings.total = performance.now() - loadStart;
+        core.loadPhaseTimings = phaseTimings;
     } else {
         if (parent === undefined) {
             throw Error("Must specify parent when adding components.");
@@ -300,6 +332,9 @@ export async function createIsolatedComponents({
                     serializedComponent.componentType
                 ];
         }
+
+        componentClass =
+            componentClass.classForSerializedComponent(serializedComponent);
 
         if (!serializedComponent.doenetAttributes) {
             serializedComponent.doenetAttributes = {};
@@ -516,7 +551,7 @@ export async function createChildrenThenComponent({
                 } catch (e: any) {
                     console.error(e);
                     if (e.message.includes("Circular dependency")) {
-                        throw Error(
+                        throw new CircularDependencyError(
                             core.dependencies.getCircularDependencyMessage([
                                 serializedComponent,
                             ]),
@@ -636,7 +671,7 @@ export async function createChildrenThenComponent({
         for (const idxStr in serializedComponent.downstreamDependencies) {
             const idx = Number(idxStr);
             if (idx === componentIdx) {
-                throw Error(
+                throw new CircularDependencyError(
                     core.dependencies.getCircularDependencyMessage([
                         serializedComponent,
                     ]),
@@ -646,7 +681,7 @@ export async function createChildrenThenComponent({
                 prescribedDependencies[idx] =
                     serializedComponent.downstreamDependencies[idx];
             } else {
-                throw Error(
+                throw new CircularDependencyError(
                     core.dependencies.getCircularDependencyMessage([
                         serializedComponent,
                     ]),
@@ -771,6 +806,17 @@ export async function createChildrenThenComponent({
         expandComposites: false,
     });
 
+    // the state variables of each attribute held as text and references
+    // (`expressionAttribute.js`), which are the component's own
+    for (const attribute of Object.values<any>(newComponent.attributes ?? {})) {
+        if (attribute?.type === "expression") {
+            Object.assign(
+                newComponent.state,
+                expressionAttributeDefinitions(attribute),
+            );
+        }
+    }
+
     await initializeComponentStateVariables({ core, component: newComponent });
 
     // Per-state-variable dependencies are built on demand at first
@@ -831,6 +877,22 @@ export async function checkForStateVariablesUpdatesForNewComponent({
     let comp = core._components[componentIdx];
     const stateId = comp.stateId;
     if (stateId in core.updateInfo.stateVariableUpdatesForMissingComponents) {
+        // A list component (`ValueListComponent`) saves the values written
+        // to its entries in an array sized by its values, so restoring them
+        // evaluates the values. A sampler that is told its values were just
+        // restored keeps them rather than drawing again, so it is told
+        // before they are evaluated.
+        if (
+            comp.constructor.processWhenJustUpdatedForNewComponent &&
+            comp.constructor.listEntryComponentType !== undefined
+        ) {
+            for (const vName in core.updateInfo
+                .stateVariableUpdatesForMissingComponents[stateId]) {
+                if (comp.state[vName]) {
+                    comp.state[vName].justUpdatedForNewComponent = true;
+                }
+            }
+        }
         let result = await core.processNewStateVariableValues(
             {
                 [componentIdx]:
@@ -1011,9 +1073,22 @@ export async function addQueuedErrorComponentsFromStateVariables({
  * pending. Both branches of `addComponents` need this sequence after
  * mutating the tree.
  */
-async function _expandAllCompositesBothPasses(core: Core) {
+async function _expandAllCompositesBothPasses(
+    core: Core,
+    phaseTimings?: Record<string, number>,
+) {
+    const t0 = phaseTimings ? performance.now() : 0;
     await expandAllComposites({ core, component: core.document });
+    const t1 = phaseTimings ? performance.now() : 0;
     await expandAllComposites({ core, component: core.document, force: true });
+    if (phaseTimings) {
+        phaseTimings["expandAllComposites.pass1"] =
+            (phaseTimings["expandAllComposites.pass1"] ?? 0) + t1 - t0;
+        phaseTimings["expandAllComposites.pass2"] =
+            (phaseTimings["expandAllComposites.pass2"] ?? 0) +
+            performance.now() -
+            t1;
+    }
 }
 
 /**

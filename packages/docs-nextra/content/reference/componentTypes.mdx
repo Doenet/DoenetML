@@ -1,0 +1,357 @@
+# Index by Component Type
+
+## Paragraph markup components
+These components can be placed within a `<p>` tag to change the rendered appearance of the enclosed text.
+
+<ComponentTable components={[
+    "alert",
+    "attr",
+    "c",
+    "delete",
+    "ellipsis",
+    "em",
+    "footnote",
+    "insert",
+    "lorem",
+    "lq",
+    "lsq",
+    "mdash",
+    "nbsp",
+    "ndash",
+    "pluralize",
+    "pre",
+    "q",
+    "rq",
+    "rsq",
+    "sq",
+    "tag",
+    "tagc",
+    "tage",
+    "term",
+]} />
+
+<a id="sectionalComponents"></a>
+## Sectional components
+Sectional components are blocks of content that serve as containers for other components. Some of these accept a custom `<title>` and/or auto-generate a title with a number when no `<title>` is supplied. General content that is not typically included inside a paragraph is also included here.
+
+<ComponentTable components={[
+    "activity",
+    "aside",
+    "blockQuote",
+    "br",
+    "caption",
+    "cascade",
+    "cascadeMessage",
+    "cell",
+    "cellBlock",
+    "chart",
+    "codeEditor",
+    "col",
+    "column (in a table)",
+    "conclusion",
+    "definition",
+    "displayDoenetML",
+    "div",
+    "document",
+    "example",
+    "exercise",
+    "exercises",
+    "figure",
+    "givenAnswer",
+    "hint",
+    "hr",
+    "image",
+    "introduction",
+    "li",
+    "note",
+    "objectives",
+    "ol",
+    "p",
+    "paginator",
+    "paragraphs",
+    "part",
+    "pretzel",
+    "problem",
+    "problems",
+    "proof",
+    "question",
+    "row (in a table)",
+    "sbsGroup",
+    "section",
+    "setup",
+    "sideBySide",
+    "solution",
+    "span",
+    "stack",
+    "statement",
+    "subsection",
+    "subsubsection",
+    "table",
+    "tabular",
+    "task",
+    "theorem",
+    "title",
+    "ul",
+]} />
+
+<a id="inputComponents"></a>
+## Input components
+Input components collect responses from students or users of your DoenetML activity. Response values are stored for author/instructor retrieval if the activity is assigned.
+
+<ComponentTable components={[
+    "booleanInput",
+    "choice",
+    "choiceInput",
+    "fractionInput",
+    "mathInput",
+    "matrixInput",
+    "orbitalDiagramInput",
+    "slider",
+    "spreadsheet",
+    "subsetOfRealsInput",
+    "textInput",
+]} />
+
+<a id="graphicalComponents"></a>
+## Graphical components
+Graphical components are any objects that can be placed on a `<graph>`. The following components are not considered Graphical Components, but they may be placed on a graph when given an `anchor` attribute for location:
+* `<textInput/>`
+* `<math>`
+* `<m>` (or any Mathematical Display component)
+* `<image/>`
+* `<booleanInput/>`
+
+<ComponentTable components={[
+    "angle",
+    "annotation",
+    "annotations",
+    "attractTo",
+    "attractToConstraint",
+    "attractToGrid",
+    "bestFitLine",
+    "bezierControls",
+    "circle",
+    "cobwebPolyline",
+    "constrainTo",
+    "constrainToGraph",
+    "constrainToGrid",
+    "constrainToInterior",
+    "constraintUnion",
+    "controlVectors",
+    "curve",
+    "endpoint",
+    "equilibriumCurve",
+    "equilibriumLine",
+    "equilibriumPoint",
+    "function",
+    "graph",
+    "intersection",
+    "label",
+    "legend",
+    "line",
+    "lineSegment",
+    "parabola",
+    "pegboard",
+    "piecewiseFunction",
+    "point",
+    "pointList",
+    "polygon",
+    "polyline",
+    "ray",
+    "rectangle",
+    "regionBetweenCurves",
+    "regionBetweenCurveXAxis",
+    "regionHalfPlane",
+    "regularPolygon",
+    "slopeField",
+    "stickyGroup",
+    "triangle",
+    "vector",
+    "vectorField",
+    "vectorList",
+    "xLabel",
+    "yLabel",
+]} />
+
+<a id="displayMathComponents"></a>
+## Display Math components
+Display math components take arguments written in LaTeX. No computations or simplifications can be performed with these components, as they do not have access to the CAS.
+
+Additionally, Evaluation Components (such as `<answer>`) cannot be nested within Display Math Components. Input Components can be nested: a `<textInput/>`, a `<mathInput/>`, or an inline `<choiceInput/>` written inside one is drawn in place, inside the typeset expression.
+
+<ComponentTable components={["m", "md", "mdn", "me", "men", "mrow"]} />
+
+<a id="mathComponents"></a>
+## Math components
+Mathematical content can be defined and rendered with Math Components. These components can be simplified and used in computations.
+
+<ComponentTable components={[
+    "column (in a matrix)",
+    "coords",
+    "derivative",
+    "function",
+    "integer",
+    "interval",
+    "intervalList",
+    "math",
+    "mathList",
+    "matrix",
+    "number",
+    "numberList",
+    "odeSystem",
+    "periodicSet",
+    "rightHandSide",
+    "row (in a matrix)",
+    "sampleMultivariateRandomNumber",
+    "samplePrimeNumbers",
+    "sampleRandomNumbers",
+    "selectFromSequence",
+    "selectPrimeNumbers",
+    "selectRandomNumbers",
+    "sequence",
+    "setSmallToZero",
+    "sign",
+    "subsetOfReals",
+    "tupleList",
+]} />
+
+<a id="mathOperatorComponents"></a>
+## Math operator components
+Math Operator components perform computations or take actions on the math components they reference or the values they enclose.
+
+<ComponentTable components={[
+    "abs",
+    "binCounts",
+    "ceil",
+    "clampFunction",
+    "clampNumber",
+    "convertSetToList",
+    "count",
+    "cumulativeMax",
+    "cumulativeMin",
+    "cumulativeProduct",
+    "cumulativeSum",
+    "differences",
+    "eigenDecomposition",
+    "evaluate",
+    "floor",
+    "functionIterates",
+    "gcd",
+    "intComma",
+    "lcm",
+    "max",
+    "mean",
+    "median",
+    "min",
+    "mod",
+    "product",
+    "round",
+    "solveEquations",
+    "standardDeviation",
+    "sum",
+    "variance",
+    "wrapFunctionPeriodic",
+    "wrapNumberPeriodic",
+]} />
+
+<a id="generalOperatorComponents"></a>
+## General operator components
+These components perform actions on Math components as well as other component types.
+
+<ComponentTable components={[
+    "animateFromSequence",
+    "argMax",
+    "argMin",
+    "asList",
+    "callAction",
+    "case",
+    "collect",
+    "conditionalContent",
+    "extractMath",
+    "extractMathOperator",
+    "feedbackDefinition",
+    "group",
+    "indexOf",
+    "module",
+    "moduleAttributes",
+    "option",
+    "paginator",
+    "paginatorControls",
+    "ref",
+    "repeat",
+    "repeatForSequence",
+    "searchSorted",
+    "select",
+    "shuffle",
+    "sort",
+    "sortIndices",
+    "split",
+    "styleDefinition",
+    "substitute",
+    "summaryStatistics",
+    "tally",
+    "triggerSet",
+    "updateValue",
+    "variantControl",
+    "video",
+]} />
+
+<a id="logicComponents"></a>
+## Logic components
+Logic components define boolean conditions or are used in logical expressions.
+
+<ComponentTable components={[
+    "and",
+    "boolean",
+    "booleanInput",
+    "booleanList",
+    "else",
+    "iff",
+    "implies",
+    "isBetween",
+    "isInteger",
+    "isNumber",
+    "not",
+    "or",
+    "xor",
+]} />
+
+<a id="evaluationComponents"></a>
+## Evaluation components
+These components are used in answer validation, evaluation, or the awarding of credit.
+
+<ComponentTable components={[
+    "answer",
+    "award",
+    "considerAsResponses",
+    "feedback",
+    "hasSameFactoring",
+    "matchesPattern",
+    "when",
+]} />
+
+<a id="textComponents"></a>
+## Text components
+Text components are values containing strings that are not necessarily embedded in paragraphs.
+
+<ComponentTable components={[
+    "description",
+    "latex",
+    "pluralize",
+    "shortDescription",
+    "text",
+    "textList",
+]} />
+
+<a id="subjectSpecificComponents"></a>
+## Subject-specific components
+These components are classified based on their relevance to a particular subject.
+
+<ComponentTable components={[
+    "atom",
+    "electronConfiguration",
+    "ion",
+    "ionicCompound",
+    "orbitalDiagram",
+    "orbitalDiagramInput",
+]} />

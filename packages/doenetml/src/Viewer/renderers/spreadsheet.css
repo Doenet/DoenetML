@@ -1,0 +1,13 @@
+/*
+ * A cell of a `<row header="true">` inside a `<spreadsheet>`. `<tabular>` marks
+ * one by rendering a `<th>`, which is bold on its own; Handsontable draws every
+ * data cell as a `<td>`, so a spreadsheet has to say it here. What makes the
+ * cell a header to a screen reader is set in `spreadsheet.tsx`, not here.
+ *
+ * Weight only: anything a theme also sets on a data cell — a background, say —
+ * loses to `.handsontable tr.ht__row_even td` at this specificity and silently
+ * does nothing.
+ */
+.handsontable td.doenet-spreadsheet-header-cell {
+    font-weight: 700;
+}

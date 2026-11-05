@@ -23,10 +23,23 @@ impl Resolver {
                             Ref::Unique(idx) => {
                                 (key.clone(), Ref::Unique(old_to_new_indices[*idx]))
                             }
+                            Ref::Branches(idx) => {
+                                (key.clone(), Ref::Branches(old_to_new_indices[*idx]))
+                            }
                             Ref::Ambiguous(vec_idx) => (
                                 key.clone(),
                                 Ref::Ambiguous(
-                                    vec_idx.iter().map(|idx| old_to_new_indices[*idx]).collect(),
+                                    vec_idx
+                                        .iter()
+                                        .map(|ref_| match ref_ {
+                                            Ref::Branches(idx) => {
+                                                Ref::Branches(old_to_new_indices[*idx])
+                                            }
+                                            ref_ => Ref::Unique(
+                                                old_to_new_indices[ref_.single_idx().unwrap()],
+                                            ),
+                                        })
+                                        .collect(),
                                 ),
                             ),
                         })
@@ -43,8 +56,11 @@ impl Resolver {
                     NodeResolverData {
                         node_parent: NodeParent::None,
                         name_map,
+                        copied_names: node_data.copied_names.clone(),
                         index_resolutions,
+                        index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
+                        branch_kind: node_data.branch_kind,
                     }
                 } else {
                     NodeResolverData {
@@ -53,12 +69,17 @@ impl Resolver {
                             NodeParent::Node(idx) => NodeParent::Node(old_to_new_indices[idx]),
                         },
                         name_map,
+                        copied_names: node_data.copied_names.clone(),
                         index_resolutions,
+                        index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
+                        branch_kind: node_data.branch_kind,
                     }
                 }
             })
             .collect();
         self.node_resolver_data = new_node_resolver_data;
+        // Cached root names are indexed by the old indices
+        self.root_name_cache = Default::default();
     }
 }

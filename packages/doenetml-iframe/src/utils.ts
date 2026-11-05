@@ -6,6 +6,7 @@ import type {
 import viewerIframeJsSource from "../dist/iframe-viewer/iframe-viewer-index.iife.js?raw";
 // @ts-ignore
 import editorIframeJsSource from "../dist/iframe-editor/iframe-editor-index.iife.js?raw";
+import { STANDALONE_LOAD_FAILED_FLAG } from "./standalone-load-failure";
 
 export type DoenetViewerProps = Omit<
     React.ComponentProps<typeof DoenetViewerOrig>,
@@ -62,10 +63,16 @@ export function setIframeBodyBackground(
     body.setAttribute(BODY_BACKGROUND_ATTRIBUTE, bodyBackgroundMode(darkMode));
 }
 
+/**
+ * The `onerror` handler on the standalone bundle's `<script>` flags a failed
+ * fetch (e.g. a 404 for an `xmlns`-detected version that was never
+ * published) so the boot script can report it to the parent at once rather
+ * than after its poll for the bundle times out. See `standalone-load-failure.ts`.
+ */
 function createIframeHead(standaloneUrl: string, cssUrl: string) {
     return `
     <head>
-        <script type="module" src="${standaloneUrl}"></script>
+        <script type="module" src="${standaloneUrl}" onerror="window.${STANDALONE_LOAD_FAILED_FLAG} = true"></script>
         <link rel="stylesheet" href="${cssUrl}">
         ${BODY_BACKGROUND_STYLE_BLOCK}
     </head>`;
@@ -102,6 +109,18 @@ function createBootScript(
 }
 
 /**
+ * The two ways a viewer's boot can conclude, both of which must free that
+ * viewer's boot slot: the document initialized, or the core could not be
+ * started at all (#1709). Without the latter a failed boot holds its slot
+ * until `BOOT_SLOT_WATCHDOG_MS` (90 s), starving the queue on exactly the
+ * pages where boots are already failing.
+ */
+export const BOOT_CONCLUDING_CALLBACKS = [
+    "initializedCallback",
+    "coreStartFailedCallback",
+] as const;
+
+/**
  * Create HTML for a single page document that renders the given DoenetML.
  */
 export function createHtmlForDoenetViewer(
@@ -119,11 +138,14 @@ export function createHtmlForDoenetViewer(
     // Since for some callbacks, we have different behavior whether or not it was specified,
     // we pass an extra variable of the props that were specified.
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
-    // The wrapper may supply its own composed `initializedCallback` (the
-    // windowed-mounting boot-slot release) even when the host didn't specify
-    // one; list it so the in-iframe entry adopts the proxy when sent.
-    if (!doenetViewerPropsSpecified.includes("initializedCallback")) {
-        doenetViewerPropsSpecified.push("initializedCallback");
+    // The wrapper may supply its own composed boot-concluding callbacks (the
+    // windowed-mounting boot-slot release, on success and on failure alike)
+    // even when the host specified neither; list them so the in-iframe entry
+    // adopts the proxies when sent.
+    for (const key of BOOT_CONCLUDING_CALLBACKS) {
+        if (!doenetViewerPropsSpecified.includes(key)) {
+            doenetViewerPropsSpecified.push(key);
+        }
     }
 
     // TODO: rather than load the Doenet logo from doenet.org, serve it directly

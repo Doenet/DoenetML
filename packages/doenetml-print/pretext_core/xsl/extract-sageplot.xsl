@@ -1,22 +1,22 @@
 <?xml version='1.0'?> 
 
 <!--********************************************************************
-Copyright 2014-2016 Robert A. Beezer
+Copyright (C) 2014-2026  Robert A. Beezer
 
-This file is part of MathBook XML.
+This file is part of PreTeXt.
 
-MathBook XML is free software: you can redistribute it and/or modify
+PreTeXt is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 or version 3 of the
 License (at your option).
 
-MathBook XML is distributed in the hope that it will be useful,
+PreTeXt is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
+along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************-->
 
 <!-- This stylesheet locates <sageplot> elements     -->
@@ -88,7 +88,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 <xsl:text>3d</xsl:text>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:message>PTX:ERROR:   a "sageplot" has a @variant attribute ("<xsl:value-of select="@variant"/>") for "<xsl:value-of select="$filebase"/>" whose value is not "2d" nor "3d".  The default ("2d") is being used, which could be incorrect</xsl:message>
+                <xsl:message>PTX:FALLBACK:   a "sageplot" has a @variant attribute ("<xsl:value-of select="@variant"/>") for "<xsl:value-of select="$filebase"/>" whose value is not "2d" nor "3d".  The default ("2d") is being used, which could be incorrect</xsl:message>
                 <xsl:text>2d</xsl:text>
             </xsl:otherwise>
         </xsl:choose>
@@ -122,9 +122,12 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         </xsl:call-template>
     </xsl:variable>
     <!-- NB: 2D PNG is not preferable, but needed for EPUB sent to Kindle -->
+    <!-- NB: 2D EPS serves journals requiring it; Sage's matplotlib        -->
+    <!-- machinery saves any 2D plot by the requested file extension       -->
     <xsl:variable name="b-legal-combination" select="($variant = '2d' and $sageplot.fileformat = 'pdf')
                                                  or  ($variant = '2d' and $sageplot.fileformat = 'svg')
                                                  or  ($variant = '2d' and $sageplot.fileformat = 'png')
+                                                 or  ($variant = '2d' and $sageplot.fileformat = 'eps')
                                                  or  ($variant = '3d' and $sageplot.fileformat = 'png')
                                                  or  ($variant = '3d' and $sageplot.fileformat = 'html')"/>
     <!-- Only certain combinations are supported and only certain       -->

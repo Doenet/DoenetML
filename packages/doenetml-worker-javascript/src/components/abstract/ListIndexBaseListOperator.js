@@ -1,0 +1,211 @@
+import ValueListComponent from "./ValueListComponent";
+import me from "math-expressions";
+import {
+    returnBreakStringsIntoTypeSugarInstruction,
+    returnListValueStateVariableDefinitions,
+} from "../../utils/listValues";
+import {
+    diagnosticsForNoIndices,
+    locateEachTarget,
+    returnComparableTargetsStateVariableDefinition,
+    returnListTypeAttribute,
+    returnTargetAttribute,
+} from "../../utils/listIndexOperators";
+
+/**
+ * Base class for the index-returning operators that search the list for a
+ * value the author supplies: `<indexOf>` and `<searchSorted>`.
+ *
+ * These take a *list* of targets and report one 1-based index per target, in
+ * the manner of `np.searchsorted(a, v)` with an array `v` and R's `match()`.
+ * One target in, one index out, so the common scalar reading still works; a
+ * hundred targets in, a hundred indices out of one operator rather than a
+ * hundred operators, and the hundred indices are one array.
+ *
+ * Returning a list is what makes these list components (`ValueListComponent`)
+ * rather than `<math>` components, as `MathBaseListOperator` is, rather than
+ * `ListIndexBaseOperator`, which stays the home of the operators that report a
+ * single position and need no target — `<argMin>` and `<argMax>`.
+ *
+ * A parent sees one `<math>` per index, which is what makes `$which[2]`,
+ * `<sum>$which</sum>` and `<numberList>$which</numberList>` all work on the
+ * result, and a single-target operator still reads as one math wherever one
+ * is expected — including as a path index, so `$pop[$which]` keeps working.
+ *
+ * The entries are maths rather than the numbers of `<sortIndices>`: an index
+ * is an integer either way, but these operators rendered as
+ * `<math>` before they returned a list, and their `<argMin>` / `<argMax>` /
+ * `<count>` siblings still do, so `<math>` keeps one family rendering one way.
+ *
+ * Like `<sort>`, these accept anything with a comparable value, not only maths
+ * and numbers: finding the position of a name in a `<textList>` is at least as
+ * common as finding a value in a `<numberList>`. The shared extraction in
+ * `utils/listValues` is what keeps those comparisons identical to `<sort>`'s.
+ *
+ * Indices are 1-based, matching `$list[1]`, and `0` means "no such element" —
+ * consistent with `$list[0]` being empty.
+ *
+ * Subclasses supply `locate`, which receives `{ values, target, numeric }` for
+ * one target and returns `{ index, reason? }`, and may supply
+ * `validateValues` to state a precondition on the list as a whole.
+ */
+export default class ListIndexBaseListOperator extends ValueListComponent {
+    static componentType = "_listIndexListOperator";
+
+    static listEntryComponentType = "math";
+
+    static listEntryValuesVariable = "operatorResults";
+
+    // Since the operator treats each child as a separate argument,
+    // composites with no replacement should be ignored.
+    static descendantCompositesMustHaveAReplacement = false;
+
+    // The reference pages show this text, and the two operators do not mean
+    // the same thing by `target`: `<indexOf>` looks its target up in the list,
+    // which is the wording below, while `<searchSorted>` places a target that
+    // need not be in the list at all and overrides it.
+    static targetDescription = "The value, or list of values, to look for.";
+
+    // A precondition on the list the operator is given, checked once per
+    // comparison, before the first target that uses that comparison is
+    // searched. Given `{ values, numeric }`, it returns a reason to decline —
+    // one of the reasons `diagnosticsForNoIndex` knows — or nothing to
+    // proceed. `<indexOf>` searches any list at all, so the default asks
+    // nothing; `<searchSorted>` overrides it, because a position within an
+    // unordered list is not a position at all.
+    static validateValues = null;
+
+    // Whether the subclass declares an `allowUnsorted` attribute, which waives
+    // the precondition above: what the attribute then promises about the answer is
+    // the subclass's to keep, in `locate`. `<indexOf>` searches any list at
+    // all and has nothing to waive.
+    static supportsAllowUnsorted = false;
+
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
+
+        // `createStateVariable` matters here in a way it does not for the
+        // scalar operators. The `target` attribute is a
+        // `_componentListWithSelectableType`, whose own `type` falls back to a
+        // `parentStateVariable` named `type` — so without a `type` state
+        // variable on the operator, `<indexOf type="text" target="Cal">` would
+        // convert its target with the default numeric reading and compare NaN.
+        attributes.type = {
+            ...returnListTypeAttribute({ readsTarget: true }),
+            createStateVariable: "type",
+            defaultValue: null,
+        };
+
+        attributes.target = returnTargetAttribute(this.targetDescription);
+
+        return attributes;
+    }
+
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
+    static returnSugarInstructions() {
+        let sugarInstructions = super.returnSugarInstructions();
+
+        sugarInstructions.push(
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+        );
+
+        return sugarInstructions;
+    }
+
+    static returnChildGroups() {
+        return [
+            {
+                group: "anything",
+                componentTypes: ["_base"],
+            },
+        ];
+    }
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // `this` is the class here, so a subclass names itself in its own
+        // diagnostics, and supplies its own precondition; inside a
+        // `definition` it would not be.
+        const componentType = this.componentType;
+        const validateValues = this.validateValues;
+        const supportsAllowUnsorted = this.supportsAllowUnsorted;
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListValueStateVariableDefinitions({
+                componentName: this.componentType,
+                supportProps: false,
+            }),
+            returnComparableTargetsStateVariableDefinition(),
+        );
+
+        // Overridden by subclasses. Searches `values` for one `target` and
+        // returns `{ index, reason? }`; `reason` explains a zero so the base
+        // can raise the right diagnostic.
+        stateVariableDefinitions.locate = {
+            returnDependencies: () => ({}),
+            definition: () => ({
+                setValue: { locate: () => ({ index: 0 }) },
+            }),
+        };
+
+        stateVariableDefinitions.operatorResults = {
+            returnDependencies: () => ({
+                listValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "listValues",
+                },
+                allAreNumeric: {
+                    dependencyType: "stateVariable",
+                    variableName: "allAreNumeric",
+                },
+                comparableTargets: {
+                    dependencyType: "stateVariable",
+                    variableName: "comparableTargets",
+                },
+                locate: {
+                    dependencyType: "stateVariable",
+                    variableName: "locate",
+                },
+                // Declared only by a subclass that offers an `allowUnsorted`
+                // attribute, since the rest have no such state variable.
+                ...(supportsAllowUnsorted
+                    ? {
+                          allowUnsorted: {
+                              dependencyType: "stateVariable",
+                              variableName: "allowUnsorted",
+                          },
+                      }
+                    : {}),
+            }),
+            definition({ dependencyValues }) {
+                const results = locateEachTarget({
+                    values: dependencyValues.listValues,
+                    targets: dependencyValues.comparableTargets,
+                    numeric: dependencyValues.allAreNumeric,
+                    locate: dependencyValues.locate,
+                    validateValues: dependencyValues.allowUnsorted
+                        ? null
+                        : validateValues,
+                });
+
+                return {
+                    setValue: {
+                        operatorResults: results.map((result) =>
+                            me.fromAst(result.index),
+                        ),
+                    },
+                    sendDiagnostics: diagnosticsForNoIndices(
+                        results,
+                        componentType,
+                    ),
+                };
+            },
+        };
+
+        return stateVariableDefinitions;
+    }
+}

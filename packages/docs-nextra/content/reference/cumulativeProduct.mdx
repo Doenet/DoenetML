@@ -1,0 +1,68 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<cumulativeProduct>{:dn}`
+
+<ComponentDisplay name='cumulativeProduct'/>
+
+`<cumulativeProduct>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
+component that renders the running product of its arguments: a list whose $n$th entry
+is the product of the first $n$ input values.
+
+It is to [`<product>{:dn}`](product) what [`<cumulativeSum>{:dn}`](cumulativeSum) is to
+[`<sum>{:dn}`](sum).
+
+<AttrPropDisplay name='cumulativeProduct'/>
+
+## Examples
+
+### Example: factorials
+
+
+```doenet-editor-horiz
+<cumulativeProduct><sequence from="1" to="6" /></cumulativeProduct>
+```
+
+
+
+The running product of $1, 2, \ldots, 6$ is the list of factorials
+$1!, 2!, \ldots, 6!$.
+
+
+
+---
+
+### Example: compounding growth
+
+
+```doenet-editor-horiz
+<numberList name="growth">1.05 1.03 1.08 0.97</numberList>
+
+<cumulativeProduct name="total" displayDigits="4">$growth</cumulativeProduct>
+
+<p>Cumulative growth factors: $total</p>
+<p>Overall: $total[4]</p>
+```
+
+
+
+Each entry gives the total growth factor through that period.
+
+
+
+---
+
+### Example: symbolic products
+
+
+```doenet-editor-horiz
+<mathList name="terms">a b c</mathList>
+
+<p><cumulativeProduct>$terms</cumulativeProduct></p>
+```
+
+
+
+With non-numeric inputs the products are built symbolically.

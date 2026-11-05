@@ -1,7 +1,7 @@
 {
     "name": "@doenet/docs-cypress",
     "type": "module",
-    "description": "Cypress accessibility tests for the DoenetML documentation site",
+    "description": "Cypress accessibility and search tests for the DoenetML documentation site",
     "version": "*",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",

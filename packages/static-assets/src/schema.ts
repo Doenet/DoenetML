@@ -31,6 +31,47 @@ export function isMathDefaultValue(val: unknown): val is MathDefaultValue {
 }
 
 /**
+ * Internal shape a `componentSize` default value carries in the schema — the
+ * runtime's own `{ size, isAbsolute }` pair, where `isAbsolute` picks between
+ * pixels and a percentage. It is not a value an author can write: nobody types
+ * `height="{"size":120,"isAbsolute":true}"`. Renderers detect it with
+ * `isComponentSizeValue` and print it with `formatComponentSize`, which gives
+ * back exactly the text an author would put in the attribute.
+ *
+ * `size` is a number or a string of digits: the worker's component classes
+ * declare these defaults by hand, and a few write the number as a string
+ * (`<codeEditor>`'s `width` is `{ size: "100", isAbsolute: false }`). Both
+ * spellings mean the same size, so both are recognized — a guard that took
+ * only numbers would leave those attributes printing their raw JSON.
+ */
+export type ComponentSizeValue = {
+    size: number | string;
+    isAbsolute: boolean;
+};
+
+export function isComponentSizeValue(val: unknown): val is ComponentSizeValue {
+    if (
+        typeof val !== "object" ||
+        val === null ||
+        typeof (val as { isAbsolute?: unknown }).isAbsolute !== "boolean"
+    ) {
+        return false;
+    }
+    const size = (val as { size?: unknown }).size;
+    return (
+        typeof size === "number" ||
+        (typeof size === "string" && size.trim() !== "" && !isNaN(Number(size)))
+    );
+}
+
+/**
+ * Render a `componentSize` as an author would write it: `120px` or `50%`.
+ */
+export function formatComponentSize(value: ComponentSizeValue): string {
+    return `${value.size}${value.isAbsolute ? "px" : "%"}`;
+}
+
+/**
  * Per-dimension entry shape emitted by `get-schema.ts:singlePropFromDescription`
  * for each slot of an array property — the public mirror of the generator's
  * local `ArrayElementDescription`. `type` is optional for the same reason as
@@ -68,6 +109,16 @@ export type SchemaProperty = {
     indexAliases?: readonly (readonly string[])[];
     description: string;
     fromAttribute?: boolean;
+    /**
+     * Docs-only: functional group this property belongs to in the reference
+     * docs (e.g. `"number-display"`). See `AttributeDefinition.groupName`.
+     */
+    groupName?: string;
+    /**
+     * Docs-only: when `true`, surface this property in the docs "Highlighted"
+     * section. See `AttributeDefinition.highlighted`.
+     */
+    highlighted?: boolean;
 };
 
 export { doenetSchema };

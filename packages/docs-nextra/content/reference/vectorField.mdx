@@ -1,0 +1,216 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<vectorField/>{:dn}`
+
+<ComponentDisplay name='vectorField'/>
+
+`<vectorField/>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types) component
+that draws a two-dimensional vector field as arrows on a lattice covering the visible region of an
+enclosing `<graph>{:dn}`.
+
+The field comes from a function with **two outputs**, given inside the component either as a bare
+expression — `<vectorField>(y, -x)</vectorField>{:dn}` — or as a `<function>{:dn}` child. A bare
+expression is read as a function of <m>x</m> and <m>y</m>; use the `variables` attribute to name
+them differently. A `<function>{:dn}` child is used exactly as written, since it names its own
+variables. Like [`<slopeField/>`](slopeField), the field re-tiles as the user pans or zooms, and
+its arrows keep a constant on-screen length whatever the axis scaling.
+
+Each arrow's **tail** sits on the lattice point it was sampled at, so it shows the vector at that
+point. This differs from `<slopeField/>{:dn}`, whose marks are centered on their lattice points
+because a tangent direction has no head or tail to distinguish.
+
+<AttrPropDisplay name='vectorField'/>
+
+
+## Examples
+
+### Example: A rotational field
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>The vector field (y, -x), which circulates clockwise about the origin</shortDescription>
+  <vectorField>(y, -x)</vectorField>
+</graph>
+```
+
+By default arrow length is proportional to the magnitude of the vector, so the arrows grow with
+distance from the origin. The longest arrow currently on screen is drawn at `markLength`, and the
+rest in proportion to it, so panning or zooming to a region of larger vectors rescales them all
+rather than letting them run off the graph.
+
+
+---
+
+### Example: Direction only
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>The same rotational field with every arrow the same length</shortDescription>
+  <vectorField normalize>(y, -x)</vectorField>
+</graph>
+```
+
+With `normalize`, every arrow is drawn the same length. This is the better choice when the shape of
+the flow matters more than its speed, or when magnitudes vary so widely that the small arrows
+vanish.
+
+
+---
+
+### Example: A gradient field
+
+```doenet-editor-horiz
+<setup>
+  <function name="G" variables="x y">(2x, 2y)</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>The gradient field of x squared plus y squared, pointing away from the origin</shortDescription>
+  <vectorField>$G</vectorField>
+</graph>
+```
+
+The gradient of <m>x^2 + y^2</m> points radially outward, everywhere perpendicular to the circular
+level curves. Here the field is defined as a separate `<function>{:dn}` and referenced inside the
+component, which is the alternative to writing the expression out.
+
+
+---
+
+### Example: Drawn with PreFigure
+
+```doenet-editor-horiz
+<graph size="small" renderer="prefigure" xmin="-5" xmax="5" ymin="-5" ymax="5">
+  <shortDescription>The vector field (y, -x), drawn by PreFigure</shortDescription>
+  <vectorField name="vf">(y, -x)</vectorField>
+  <annotations>
+    <annotation text="The vector field (y, -x)">
+      <annotation ref="$vf" text="Arrows circle the origin clockwise, longer farther out." />
+    </annotation>
+  </annotations>
+</graph>
+```
+
+In a graph with `renderer="prefigure"`, the field is drawn as PreFigure's own vector field, so an
+[`<annotation>{:dn}`](annotation) can describe it as a single object. PreFigure draws the field once,
+at the graph's axis limits, on the same lattice: `dx`, `dy`, `xoffset`, `yoffset` and `maxMarks`
+mean what they mean above, and a lattice point outside the function's `domain` gets no arrow. The
+longest arrow is `markLength` pixels long, and with `normalize` every arrow is.
+
+A few things are drawn differently:
+
+- With `normalize`, every arrow has the same length only when the axes are equally scaled. On
+  unequally scaled axes the arrows' lengths vary with their direction, and a warning says so.
+- Every arrowhead is the same size, about that of the head on an arrow `markLength` long, but never
+  narrower than twice the line width. Without `normalize`, shorter arrows therefore have larger heads
+  than in the interactive graph, and an arrow shorter than 2 pixels is left out. On a thick line a
+  head can fill most of an arrow; a longer `markLength` leaves room for the shaft.
+- The line width is rounded to a whole pixel, at least 1, and a field with a line width of 0 draws
+  nothing.
+- Arrows are solid and fully opaque. A dashed or dotted `lineStyle` is ignored, with a warning. The
+  style's line opacity is ignored too, without one.
+- The function must be given by a formula. A function defined in some other way draws nothing, with a
+  warning. So does a formula using something PreFigure cannot evaluate, as a curve's does.
+- PreFigure may draw no field at all when a function such as `sqrt` or `log` is undefined at a
+  lattice point, when `exp` overflows, or when the field divides a constant by a function such as
+  `sin(x)` where it is zero: `(1, 1/sin(x))` or `(1, csc(x))` at <m>x = 0</m>, for example. (Dividing
+  by `x` itself, or dividing `x` by `sin(y)`, where the divisor is 0 loses only that arrow.) Give the
+  `<function>{:dn}` a `domain` that avoids those points, and they are left out. A warning names the
+  first such lattice point.
+
+## Attribute Examples
+
+### Attribute Example: variables
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A rotational vector field written in u and v</shortDescription>
+  <vectorField variables="u v" normalize>(v, -u)</vectorField>
+</graph>
+```
+
+`variables` names the inputs of a bare expression, in order: the horizontal axis first, then the
+vertical. It defaults to `x y`, so an equation written in those letters needs nothing. It has no
+effect on a `<function>{:dn}` child, which names its own variables — writing both warns, since
+one of them cannot be doing anything.
+
+The names may themselves be references, exactly as on a `<function>{:dn}`, so a student can choose
+them:
+
+```doenet-editor-horiz
+<p>Name the variables: <mathInput name="v1">q</mathInput> <mathInput name="v2">r</mathInput></p>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A field whose variable names are set by two math inputs</shortDescription>
+  <vectorField variables="$v1 $v2" normalize>(r, -q)</vectorField>
+</graph>
+```
+
+The field is <m>(r, -q)</m> whichever axis each letter names, so swapping the two boxes — `r` in the
+first, `q` in the second — turns the clockwise rotation <m>(y, -x)</m> into <m>(x, -y)</m>, which
+flows away from the vertical axis instead of circling the origin.
+
+
+---
+
+### Attribute Example: dx, dy
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A rotational vector field sampled on a finer lattice, drawn with thin arrows</shortDescription>
+  <vectorField dx="0.5" dy="0.5" markLength="14" lineWidth="2" normalize>(y, -x)</vectorField>
+</graph>
+```
+
+`dx` and `dy` set the lattice spacing, one unit each by default. A finer lattice usually wants a
+shorter `markLength`, and a thinner `lineWidth`: a field is drawn in the component's selected style,
+and the default style's line is 4 pixels wide, which is more than an arrow this short needs even
+before the lattice is crowded. `styleNumber="2"` gives a thinner line as well, and recolors it.
+
+
+---
+
+### Attribute Example: markLength
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A rotational vector field drawn with long arrows</shortDescription>
+  <vectorField markLength="40">(y, -x)</vectorField>
+</graph>
+```
+
+`markLength` is measured in pixels, and defaults to 24. When arrows scale with magnitude it sets the
+length of the longest arrow on screen; with `normalize` it sets the length of every arrow.
+
+
+---
+
+### Attribute Example: maxMarks
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A dense vector field limited to at most 150 arrows</shortDescription>
+  <vectorField dx="0.25" dy="0.25" markLength="8" maxMarks="150" normalize>(y, -x)</vectorField>
+</graph>
+```
+
+`maxMarks` bounds how many arrows are drawn, and defaults to 2500. Rather than refusing to draw when
+the lattice would exceed it, the field keeps every <m>n</m>-th lattice line.
+
+
+## Property Examples
+
+### Property Example: dx, dy, normalize
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A named vector field whose settings are reported as text</shortDescription>
+  <vectorField name="vf" dx="2" dy="2" normalize>(y, -x)</vectorField>
+</graph>
+
+<p><c>dx, dy</c> = $vf.dx, $vf.dy</p>
+<p><c>normalize</c> = $vf.normalize</p>
+```
+
+Each attribute of `<vectorField/>{:dn}` is also available as a property of a named vector field.

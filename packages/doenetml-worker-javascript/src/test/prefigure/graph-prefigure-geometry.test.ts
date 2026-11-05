@@ -127,7 +127,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line at="line_0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" label-location="0.95" alignment="s">A</line></coordinates><annotations></annotations></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line at="line_0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" color="currentColor" label-location="0.95" alignment="s">A</line></coordinates><annotations></annotations></diagram>"`,
         );
     });
 
@@ -1062,6 +1062,47 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`v="(-7,-3)"`);
     });
 
+    it("renderer=prefigure rounds a vector's line width to a whole pixel", async () => {
+        // PreFigure reads an arrow's line width as an integer and divides by
+        // it, so `2.5` or `0` would drop the vector and all that follows it.
+        const prefigureXML = await getPrefigureXML(
+            withStyleDefinitions(
+                '    <styleDefinition styleNumber="5" lineWidth="1.4" />',
+                prefigureGraph(`
+  <vector tail="(0,0)" head="(3,2)" lineWidth="2.5" />
+  <vector tail="(0,0)" head="(2,-3)" lineWidth="0" />
+  <vector tail="(0,0)" head="(-2,3)" lineWidth="0.4" />
+  <vector tail="(0,0)" head="(-3,-2)" styleNumber="5" />
+  <vector tail="(0,0)" head="(1,1)" />
+  <line through="(1,2) (3,4)" lineWidth="2.5" />`),
+            ),
+        );
+
+        const thicknesses = (tag: string) =>
+            [...prefigureXML.matchAll(new RegExp(`<${tag} [^>]*>`, "g"))].map(
+                (m) => m[0].match(/ thickness="([^"]*)"/)?.[1],
+            );
+        expect(thicknesses("vector")).toEqual(["3", "1", "1", "4"]);
+        // A line width of 0 draws nothing, as in the JSXGraph renderer.
+        expect(prefigureXML).toContain('<group at="vector_1" />');
+        // A line has no arrowhead, so its width is passed through.
+        expect(thicknesses("line")).toEqual(["2.5"]);
+    });
+
+    it("renderer=prefigure draws only the label of a vector with a line width of 0", async () => {
+        // The JSXGraph renderer sizes the shaft and arrowhead by the line
+        // width, so at 0 it draws neither, but it still draws the label.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<vector tail="(0,0)" head="(4,0)" lineWidth="0"><label>v</label></vector>',
+            ),
+        );
+
+        expect(prefigureXML).toContain('<group at="vector_0" />');
+        expect(prefigureXML).not.toContain("<vector ");
+        expect(prefigureXML).toMatch(/<label p="\(2,0\)"[^>]*>v<\/label>/);
+    });
+
     it("renderer=prefigure maps vector label and labelPosition", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
@@ -1083,7 +1124,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector at="vector_0" tail="(0,0)" v="(3,3)" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates><annotations></annotations></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector at="vector_0" tail="(0,0)" v="(3,3)" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" /><label p="(2.85,2.85)" alignment="north" color="currentColor">V</label></coordinates><annotations></annotations></diagram>"`,
         );
     });
 
@@ -1106,10 +1147,10 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(
-            `<label p="(2.85,2.85)" alignment="north">UR</label>`,
+            `<label p="(2.85,2.85)" alignment="north" color="currentColor">UR</label>`,
         );
         expect(prefigureXML).toContain(
-            `<label p="(0.15,0.15)" alignment="north">LL</label>`,
+            `<label p="(0.15,0.15)" alignment="north" color="currentColor">LL</label>`,
         );
     });
 
@@ -1268,7 +1309,10 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`stroke="#1f5dff"`);
         expect(prefigureXML).toContain(`thickness="4"`);
         expect(prefigureXML).toContain(`fill="#1f5dff"`);
-        expect(prefigureXML).toContain(`<label anchor="`);
+        // The label carries a theme-aware color so it stays visible in dark mode.
+        expect(prefigureXML).toMatch(
+            /<label anchor="[^"]*" color="currentColor">/,
+        );
         expect(prefigureXML).toContain(`\\theta`);
     });
 
@@ -1298,6 +1342,61 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`domain="(-12,12)"`);
         expect(prefigureXML).toContain(`stroke="orange"`);
         expect(prefigureXML).toContain(`thickness="6"`);
+    });
+
+    it("renderer=prefigure translates pi, absolute value, and inverse trig for PreFigure", async () => {
+        const doenetML = prefigureGraph(
+            "<function>sin(pi x)</function><function>|x|</function><function>arcsin(x/10)</function><function>arctan(x)</function>",
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=sin(pi*x)"`);
+        expect(prefigureXML).toContain(`function="curve_1_f(x)=abs(x)"`);
+        expect(prefigureXML).toContain(`function="curve_2_f(x)=asin(x/10)"`);
+        expect(prefigureXML).toContain(`function="curve_3_f(x)=atan(x)"`);
+        expect(prefigureXML).not.toContain("π");
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
+    });
+
+    it("renderer=prefigure keeps asin, erf, max, atan2, and two-argument log and round formulas", async () => {
+        const doenetML = prefigureGraph(
+            "<function>asin(x/10)</function><function>erf(x)</function><function>max(x, 0)</function><function>atan2(x, 2)</function><function>acot(x)</function><function>log(x, 2)</function><function>round(x, 1)</function>",
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=asin(x/10)"`);
+        expect(prefigureXML).toContain(`function="curve_1_f(x)=erf(x)"`);
+        expect(prefigureXML).toContain(`function="curve_2_f(x)=max(x, 0)"`);
+        expect(prefigureXML).toContain(`function="curve_3_f(x)=atan2(x, 2)"`);
+        expect(prefigureXML).toContain(
+            `function="curve_4_f(x)=atan2(copysign(1, x), abs(x))"`,
+        );
+        expect(prefigureXML).toContain(`function="curve_5_f(x)=log(x, 2)"`);
+        expect(prefigureXML).toContain(
+            `function="curve_6_f(x)=copysign(floor(abs(x)*10^1 + 0.5)/10^1, x)"`,
+        );
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
+    });
+
+    it("renderer=prefigure warns and skips a function whose formula PreFigure cannot evaluate", async () => {
+        const doenetML = prefigureGraph(
+            "<function>sign(x)</function><function>x^2</function>",
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain("sign");
+        expect(prefigureXML).toContain(`=x^2"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes("cannot evaluate 'sign' in this formula"),
+            ),
+        ).eq(true);
     });
 
     it("renderer=prefigure uses curve parameter bounds instead of child function domain", async () => {
@@ -1653,7 +1752,10 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(pieceCount).toBeGreaterThan(1);
         expect(prefigureXML).toContain(`<group at="curve_0">`);
         expect(prefigureXML).toContain(`function="curve_0_0_r(`);
-        expect(prefigureXML).toContain(`(x^3)/10`);
+        // The engine prints this without the JS library's defensive
+        // parentheses; `^` binds tighter than `/` in prefigure's syntax too,
+        // so `x^3/10` is the same curve.
+        expect(prefigureXML).toContain(`x^3/10`);
         expect(prefigureXML).toContain(`domain="`);
         expect(prefigureXML).not.toContain(`fill="`);
         expect(prefigureXML).not.toContain(`fill-opacity="`);
@@ -1760,6 +1862,60 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         ).eq(true);
     });
 
+    it("renderer=prefigure regionBetweenCurves translates pi and absolute value", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<regionBetweenCurves boundaryValues="-1 1"><function>|x|</function><function>cos(pi x)</function></regionBetweenCurves>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f1(x)=abs(x)</definition>`,
+        );
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f2(x)=cos(pi*x)</definition>`,
+        );
+    });
+
+    it("renderer=prefigure renames a function variable that would shadow a function it calls", async () => {
+        const doenetML = prefigureGraph(
+            '<function variable="gamma">gamma!</function><regionBetweenCurves boundaryValues="0 2"><function variable="gamma">gamma!</function><function>x</function></regionBetweenCurves>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(
+            `function="curve_1_f(gamma_)=gamma(gamma_ + 1)"`,
+        );
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f1(x)=gamma(x + 1)</definition>`,
+        );
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
+    });
+
+    it("renderer=prefigure regionBetweenCurves warns about a formula PreFigure cannot evaluate", async () => {
+        const doenetML = prefigureGraph(
+            '<regionBetweenCurves boundaryValues="0 2"><function>sign(x)</function><function>x</function></regionBetweenCurves>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<area-between-curves`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        const messages = diagnosticsByType.warnings.map((x) => x.message);
+        expect(
+            messages.some(
+                (m) =>
+                    m.includes("<regionBetweenCurves>") &&
+                    m.includes("cannot evaluate 'sign' in this formula"),
+            ),
+        ).eq(true);
+        expect(messages.some((m) => m.includes("only formula-typed child"))).eq(
+            false,
+        );
+    });
+
     it("renderer=prefigure regionBetweenCurves skips silently with only one child function", async () => {
         const doenetML = prefigureGraph(
             '<regionBetweenCurves boundaryValues="0 2"><function>x^2</function></regionBetweenCurves>',
@@ -1813,6 +1969,16 @@ describe("point label alignment overflow @group4", () => {
             labelPosition: "upperright",
         });
         expect(prefigureXML).toContain(`alignment="ne"`);
+    });
+
+    it("point label is emitted with a theme-aware color so it stays visible in dark mode", async () => {
+        const prefigureXML = await pointLabelXml({
+            xs: "0 0",
+            labelPosition: "upperright",
+        });
+        // The color must sit on the <point> element itself, since that is the
+        // element PreFigure renders the label text from.
+        expect(prefigureXML).toMatch(/<point [^>]*color="currentColor"/);
     });
 
     it("near top-right — primary ne overflows, fallback used", async () => {

@@ -1,5 +1,8 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
+import { TEXT_FILLIN_CHARACTERS } from "./fillin-width";
+import { useInputLabel } from "./use-input-label";
+import { InParagraphContext } from "./paragraph-context";
 
 type ChoiceInputData = {
     props: {
@@ -8,6 +11,7 @@ type ChoiceInputData = {
         selectedIndices: number[];
         selectMultiple: boolean;
         label: string;
+        labelElementId?: number;
         inline: boolean;
     };
 };
@@ -22,8 +26,11 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
         choicesHidden,
         selectedIndices,
         label,
+        labelElementId,
         inline,
     } = node.data.props;
+    const displayLabel = useInputLabel(label, labelElementId);
+    const inParagraph = React.useContext(InParagraphContext);
     const childrenArray: React.ReactNode[] = Array.isArray(children)
         ? children
         : [children];
@@ -36,7 +43,7 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
             .filter((child) => child != null);
         return (
             <React.Fragment>
-                {label}{" "}
+                {displayLabel}
                 {selectedChoices.length > 0 ? (
                     selectedChoices.length === 1 ? (
                         <em>{selectedChoices[0]}</em>
@@ -49,7 +56,7 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
                         ))
                     )
                 ) : (
-                    <fillin characters={5} />
+                    <fillin characters={TEXT_FILLIN_CHARACTERS} />
                 )}
             </React.Fragment>
         );
@@ -79,12 +86,23 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
         })
         .filter((child) => child != null);
 
-    return (
+    const list = (
         <ol>
             {sortedChoices.map((child, i) => (
                 <li key={i}>{child}</li>
             ))}
         </ol>
+    );
+    if (displayLabel == null) {
+        return list;
+    }
+    // The label heads the list: in a paragraph of its own, or, where the list is already
+    // inside a paragraph, written into that one.
+    return (
+        <React.Fragment>
+            {inParagraph ? displayLabel : <p>{displayLabel}</p>}
+            {list}
+        </React.Fragment>
     );
 };
 

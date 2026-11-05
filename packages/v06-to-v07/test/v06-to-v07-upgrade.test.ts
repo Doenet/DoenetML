@@ -62,14 +62,26 @@ describe("v06 to v07 update", () => {
     });
 
     it("macro path slashes get turned into dots", async () => {
+        // The `.d` inside the index stays text, and the reference before it keeps its
+        // parentheses so that it does. v0.6 wrote a prop access *inside* the
+        // parentheses — `$(b/c.d)` parses with `accessedProp: d` — while `$(b/c).d`
+        // parses as a macro followed by the literal text `.d`, with no prop access
+        // anywhere. This used to convert to `$b.c.d`, a prop access the author never
+        // wrote, because printing dropped the parentheses and let the text run back
+        // into the path.
         source = `$(foo/bar[3][4][$(b/c).d].baz)`;
-        correctSource = `$foo.bar[3][4][$b.c.d].baz`;
+        correctSource = `$foo.bar[3][4][$(b.c).d].baz`;
         expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Written the way v0.6 meant it, the prop access survives as one.
+        expect(await updateSyntax(`$(foo/bar[3][4][$(b/c.d)].baz)`)).toEqual(
+            `$foo.bar[3][4][$b.c.d].baz`,
+        );
     });
 
     it("macro path slashes get turned into dots in attributes", async () => {
         source = `<p foo="$(foo/bar[3][4][$(b/c).d].baz)" />`;
-        correctSource = `<p foo="$foo.bar[3][4][$b.c.d].baz" />`;
+        correctSource = `<p foo="$foo.bar[3][4][$(b.c).d].baz" />`;
         expect(
             await updateSyntax(source, {
                 doNotUpgradeAttributeSyntax: true,
@@ -80,7 +92,7 @@ describe("v06 to v07 update", () => {
 
     it("copy source slashes get turned into dots", async () => {
         source = `<copy source="foo/bar[3][4][$(b/c).d].baz"/>`;
-        correctSource = `<copy source="foo.bar[3][4][$b.c.d].baz" />`;
+        correctSource = `<copy source="foo.bar[3][4][$(b.c).d].baz" />`;
         expect(
             await updateSyntax(source, {
                 doNotUpgradeCopyTags: true,
@@ -100,7 +112,7 @@ describe("v06 to v07 update", () => {
 
         expect(res.vfile.messages).toMatchInlineSnapshot(`
           [
-            [1:1-1:1: There is no equivalent to the $(../x) syntax; a best-guess was made when converting $(x/../bar)],
+            [1:8-1:19: There is no equivalent to the $(../x) syntax; a best-guess was made when converting $(x/../bar)],
           ]
         `);
 
@@ -116,7 +128,7 @@ describe("v06 to v07 update", () => {
 
         expect(res.vfile.messages).toMatchInlineSnapshot(`
           [
-            [1:1-1:1: There is no equivalent to the $(../x) syntax; a best-guess was made when converting $(x/../../bar)],
+            [1:8-1:22: There is no equivalent to the $(../x) syntax; a best-guess was made when converting $(x/../../bar)],
           ]
         `);
     });
@@ -213,9 +225,11 @@ describe("v06 to v07 update", () => {
         correctSource = `<collect componentType="point" name="points" from="$panel" /> $points[1] $points[4]`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
-        // References to the old `assignNames` get updated
-        source = `<p name="p"><collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" /></p> $p.q1 $q4`;
-        correctSource = `<p name="p"><collect componentType="point" name="points" from="$panel" /></p> $p.points[1] $points[4]`;
+        // A reference from outside the namespace gets updated at the part that names the
+        // assigned component. v0.6 addressed that with a slash — dot notation there would
+        // have been a prop of `p`, which is a different thing entirely.
+        source = `<p name="p" newNamespace><collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" /></p> $(p/q1) $(p/q4)`;
+        correctSource = `<p name="p"><collect componentType="point" name="points" from="$panel" /></p> $p.points[1] $p.points[4]`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
@@ -238,6 +252,67 @@ describe("v06 to v07 update", () => {
         <setup><collect from="$a" componentType="math" name="collect_list" /></setup><mathList name="list" extend="$collect_list.value" />
 `;
         expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("collect with assignNames but no name", async () => {
+        // The assigned names used to be turned into indices of the `<collect>`'s own
+        // `name`, so a `<collect>` that had none stopped the conversion outright. The
+        // first assigned name now becomes the name, as on any other composite.
+        source = `<collect componentTypes="point" source="panel" assignNames="q1 q2" /> $q1 $q2`;
+        correctSource = `<collect componentType="point" from="$panel" name="q1" /> $q1[1] $q1[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<collect componentTypes="point" source="panel" prop="x" assignNames="x1 x2" /> $x1 $x2`;
+        correctSource = `<setup><collect componentType="point" from="$panel" name="collect_x1" /></setup><mathList name="x1" extend="$collect_x1.x" /> $x1[1] $x1[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("a blank or padded name is replaced by the name the references use", async () => {
+        // The name a reference is converted to comes from the `name` attribute's
+        // *trimmed* value, and from the assigned names when the attribute is blank, so
+        // the attribute itself has to be written back or it names something else.
+        source = `<select name=" p " assignNames="a b" numToSelect="2">x y</select> $a $b`;
+        correctSource = `<select name="p" numToSelect="2">x y</select> $p[1] $p[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<select name="" assignNames="a b" numToSelect="2">x y</select> $a $b`;
+        correctSource = `<select name="a" numToSelect="2">x y</select> $a[1] $a[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // The `<collect prop>` path builds the hoisted collect's name out of this one,
+        // so an untrimmed name there produced `$collect_ c .x`, which is not a reference.
+        source = `<collect componentTypes="point" source="panel" prop="x" name=" c " assignNames="a b" /> $a $b`;
+        correctSource = `<setup><collect componentType="point" from="$panel" name="collect_c" /></setup><mathList name="c" extend="$collect_c.x" /> $c[1] $c[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("leaves a prop access alone", async () => {
+        // In v0.6, dot notation reached public state variables and nothing else, so a
+        // part written after a `.` never named a component `assignNames` created. Here
+        // `x` and `y` are assigned names *and* the props of a point: `$p.y` was the
+        // point's y-coordinate, and rewriting it would read something else entirely.
+        source = `<selectFromSequence assignNames="x y" numToSelect="2" from="1" to="10" /><point name="p">(3,4)</point><p>$p.x $p.y</p>`;
+        let result = await updateSyntaxFromV06toV07(source);
+        expect(result.xml).toEqual(
+            `<selectFromSequence name="x" numToSelect="2" from="1" to="10" /><point name="p">(3,4)</point><p>$p.x $p.y</p>`,
+        );
+
+        // The same holds when nothing has a prop of that name: v0.6 dot notation could
+        // only ever have been a prop, so the reference was already broken and repairing
+        // it is not the converter's job.
+        source = `<p name="p"><collect componentTypes="point" name="points" source="panel" assignNames="q1 q2" /></p> $p.q1`;
+        result = await updateSyntaxFromV06toV07(source);
+        expect(result.xml).toEqual(
+            `<p name="p"><collect componentType="point" name="points" from="$panel" /></p> $p.q1`,
+        );
+
+        // A v0.6 namespace segment names a component rather than a prop, so the part
+        // after the slash is converted — and the `.value` after it is still left alone.
+        source = `<graph name="g" newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /></graph><p>$(g/a) $(g/b.value)</p>`;
+        result = await updateSyntaxFromV06toV07(source);
+        expect(result.xml).toEqual(
+            `<graph name="g"><selectFromSequence name="a" numToSelect="2" from="1" to="5" /></graph><p>$g.a[1] $g.a[2].value</p>`,
+        );
     });
 
     it("correct capitalization of componentTypes attribute", async () => {
@@ -326,6 +401,91 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
+    it("assignNames on a macro in an attribute names its copy", async () => {
+        source = `<number name="a">3</number><point x="$(a{assignNames='b' link='false'})" /> $b`;
+        correctSource = `<setup><number copy="$a" name="b" /></setup><number name="a">3</number><point x="$b" /> $b`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Named inside a namespace, the copy goes inside it, so `$(s/b)` finds it.
+        source = `<number name="a">3</number><section name="s" newNamespace><point x="$(a{assignNames='b'})" /></section> $(s/b)`;
+        correctSource = `<number name="a">3</number><section name="s"><setup><number extend="$a" name="b" /></setup><point x="$b" /></section> $s.b`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // A generated name steers clear of a name assigned later on.
+        source = `<number name="a">3</number><point x="$(a{link='false'})" y="$(a{assignNames='ref1'})" /> $ref1`;
+        correctSource = `<setup><number copy="$a" name="ref2" /><number extend="$a" name="ref1" /></setup><number name="a">3</number><point x="$ref2" y="$ref1" /> $ref1`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("puts the copy for a macro in an attribute inside the module it is in", async () => {
+        // Each instance of a module has its own attribute values, so the copy has to be
+        // inside for `$initialValue` to mean the instance's own, not the default.
+        source = `<module name="m"><setup><customAttribute componentType="number" attribute="initialValue" defaultValue="0" assignNames="initialValue" /></setup><point x="$(initialValue{link='false'})" /></module>`;
+        correctSource = `<module name="m"><setup><number copy="$initialValue" name="ref1" /></setup><moduleAttributes><number name="initialValue">0</number></moduleAttributes><point x="$ref1" /></module>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("puts the copy for a macro in an attribute inside the repeat it is in", async () => {
+        // Each iteration needs its own copy of its own `$v`.
+        source = `<map><template><point x="$(v{link='false'})" /></template><sources alias="v"><sequence from="1" to="2" /></sources></map>`;
+        correctSource = `<repeatForSequence from="1" to="2" valueName="v"><setup><number copy="$v" name="ref1" /></setup><point x="$ref1" /></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // A copy the author named goes there too, and each iteration has its own.
+        source = `<map><template><point x="$(v{name='b' link='false'})" /><p>$b</p></template><sources alias="v"><sequence from="1" to="2" /></sources></map>`;
+        correctSource = `<repeatForSequence from="1" to="2" valueName="v"><setup><number copy="$v" name="b" /></setup><point x="$b" /><p>$b</p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // An attribute of the repeat itself is evaluated outside it.
+        source = `<number name="n">3</number><map><template><p>$v</p></template><sources alias="v"><sequence from="1" to="$(n{link='false'})" /></sources></map>`;
+        correctSource = `<setup><number copy="$n" name="ref1" /></setup><number name="n">3</number><repeatForSequence from="1" to="$ref1" valueName="v"><p>$v</p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("copy of a whole array prop keeps every entry", async () => {
+        const poly = `<polygon name="poly" vertices="(1,2) (3,4)" />`;
+
+        // `<point extend="$poly.vertices" />` would be a single point.
+        source = `${poly}<copy prop="vertices" source="poly" />`;
+        correctSource = `${poly}$poly.vertices`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // With something more to say, it becomes the matching list.
+        source = `${poly}<copy prop="vertices" source="poly" assignNames="vs" />`;
+        correctSource = `${poly}<pointList extend="$poly.vertices" name="vs" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `${poly}<copy prop="vertices" source="poly" link="false" />`;
+        correctSource = `${poly}<pointList copy="$poly.vertices" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // `link="true"` is what the bare reference does anyway.
+        source = `${poly}<copy prop="vertices" source="poly" link="true" />`;
+        correctSource = `${poly}$poly.vertices`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<point name="P">(1,2)</point>$(P.xs{displayDigits="3"})`;
+        correctSource = `<point name="P">(1,2)</point><mathList displayDigits="3" extend="$P.xs" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // A single entry is still a single component.
+        source = `${poly}<copy prop="vertex2" source="poly" />`;
+        correctSource = `${poly}<point extend="$poly.vertex2" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // There is no `<functionList>`, so a named copy of several functions stays a
+        // `<copy>`, with its `prop`, and is reported.
+        const curve = `<curve name="c"><function>x</function><function>x^2</function></curve>`;
+        source = `${curve}<copy prop="fs" source="c" assignNames="g" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `${curve}<copy prop="fs" source="c" name="g" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
     it("can convert function macros", async () => {
         source = `$$f(2)`;
         correctSource = `$$f(2)`;
@@ -401,7 +561,199 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
-    it.skip("map with assignNames and no name gets converted to a repeatForSequence", async () => {
+    it("map over references iterates over them directly", async () => {
+        const cobweb = `<graph><cobwebPolyline name="c" function="x(4-x)" /></graph>`;
+
+        // A copy of a whole list goes straight into `for`, and the `valueName`
+        // then has the type of the list's entries.
+        source = `${cobweb}<map><template><p>$(x{displayDigits="5"}) $(i{displayDigits="2"})</p></template><sources alias="x" indexAlias="i"><copy prop="iterateValues" source="c" /></sources></map>`;
+        correctSource = `${cobweb}<repeat for="$c.iterateValues" valueName="x" indexName="i"><p><math displayDigits="5" extend="$x" /> <number displayDigits="2" extend="$i" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Several references, written bare or as a copy of a component. The values are
+        // all maths, so the alias is one too.
+        source = `<mathList name="l">1 2</mathList><math name="m">3</math><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><copy source="l" /> $m</sources></map>`;
+        correctSource = `<mathList name="l">1 2</mathList><math name="m">3</math><repeat for="$l $m" valueName="x"><p><math displayDigits="5" extend="$x" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Values of different types leave the alias untyped.
+        source = `<mathList name="l">1 2</mathList><text name="t">a</text><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><copy source="l" /> $t</sources></map>`;
+        correctSource = `<mathList name="l">1 2</mathList><text name="t">a</text><repeat for="$l $t" valueName="x"><p><copy displayDigits="5" source="$x" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // The entries of a single list have its item type.
+        source = `<mathList name="l">1 2</mathList><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><copy source="l" /></sources></map>`;
+        correctSource = `<mathList name="l">1 2</mathList><repeat for="$l" valueName="x"><p><math displayDigits="5" extend="$x" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Written components still need the group.
+        source = `<map><template><p>$x</p></template><sources alias="x"><math>1</math>$y</sources></map>`;
+        correctSource = `<setup><group name="group"><math>1</math>$y</group></setup><repeat for="$group" valueName="x"><p>$x</p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // So does a copy that says more than what it refers to.
+        source = `<mathList name="l">1 2</mathList><map><template><p>$x</p></template><sources alias="x"><copy source="l" displayDigits="2" /></sources></map>`;
+        correctSource = `<mathList name="l">1 2</mathList><setup><group name="group"><mathList extend="$l" displayDigits="2" /></group></setup><repeat for="$group" valueName="x"><p>$x</p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // A generated group that something else refers to has to stay.
+        source = `<mathList name="l">1 2</mathList><map><template><p>$x</p></template><sources alias="x">$l</sources></map><p>$group</p>`;
+        correctSource = `<mathList name="l">1 2</mathList><setup><group name="group">$l</group></setup><repeat for="$group" valueName="x"><p>$x</p></repeat><p>$group</p>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Without resolving copies, sources that were bare references still fold in.
+        source = `<map><template><p>$x</p></template><sources alias="x">$c.iterateValues</sources></map>`;
+        correctSource = `<repeat for="$c.iterateValues" valueName="x"><p>$x</p></repeat>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("a repeatForSequence alias has the type of the sequence", async () => {
+        source = `<map><template><p>$(x{displayDigits="3"})</p></template><sources alias="x"><sequence from="1" to="2" /></sources></map>`;
+        correctSource = `<repeatForSequence from="1" to="2" valueName="x"><p><number displayDigits="3" extend="$x" /></p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<map><template><p>$(x{displayDigits="3"})</p></template><sources alias="x"><sequence type="math" from="x" length="2" /></sources></map>`;
+        correctSource = `<repeatForSequence type="math" from="x" length="2" valueName="x"><p><math displayDigits="3" extend="$x" /></p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<map><template><p>$(x{hide="false"})</p></template><sources alias="x"><sequence type="letters" from="a" to="c" /></sources></map>`;
+        correctSource = `<repeatForSequence type="letters" from="a" to="c" valueName="x"><p><text hide="false" extend="$x" /></p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("propIndex and componentIndex become indices in the reference", async () => {
+        const poly = `<polygon name="poly" vertices="(1,2) (3,4)" />`;
+        source = `${poly}<copy prop="vertices" source="poly" propIndex="2" />`;
+        correctSource = `${poly}<point extend="$poly.vertices[2]" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // One index per dimension, separated by spaces or commas, and possibly
+        // references.
+        source = `${poly}<copy prop="vertices" source="poly" propIndex="2 1" /><copy prop="vertices" source="poly" propIndex="$n, 2" link="false" /><number name="n">1</number>`;
+        correctSource = `${poly}<math extend="$poly.vertices[2][1]" /><math copy="$poly.vertices[$n][2]" /><number name="n">1</number>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Empty entries add no index. An empty `componentIndex` is left as written.
+        source = `${poly}<copy prop="vertices" source="poly" propIndex="" /><copy prop="vertices" source="poly" propIndex="2," />`;
+        correctSource = `${poly}$poly.vertices<point extend="$poly.vertices[2]" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+        source = `<group name="g"><math>a</math></group><copy source="g" componentIndex="" />`;
+        correctSource = `<group name="g"><math>a</math></group><group extend="$g" componentIndex="" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<group name="g"><math>a</math><point>(1,2)</point></group><copy source="g" componentIndex="2" /><copy source="g" componentIndex="2" prop="x" />`;
+        correctSource = `<group name="g"><math>a</math><point>(1,2)</point></group><point extend="$g[2]" /><math extend="$g[2].x" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // A propIndex on a prop that is not an array meant nothing, and the copy is
+        // left as it was, attributes and all.
+        source = `<point name="P">(1,2)</point><copy prop="x" source="P" propIndex="1" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(source);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("a map over nested sources resolves the inner map through the outer alias", async () => {
+        // The inner map's sources copy a prop of the outer map's value, which has a
+        // type only once the outer map's sources are settled.
+        source = `<point name="P">(1,2)</point><point name="Q">(3,4)</point><map><template><map><template><p>$(y{displayDigits="3"})</p></template><sources alias="y"><copy prop="xs" source="x" /></sources></map></template><sources alias="x"><copy source="P" /><copy source="Q" /></sources></map>`;
+        correctSource = `<point name="P">(1,2)</point><point name="Q">(3,4)</point><repeat for="$P $Q" valueName="x"><repeat for="$x.xs" valueName="y"><p><math displayDigits="3" extend="$y" /></p></repeat></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("a map over written components of one type types its alias", async () => {
+        source = `<map><template><point x="$(v{link='false'})" /></template><sources alias="v"><number>3</number><number>5</number></sources></map>`;
+        correctSource = `<setup><group name="group"><number>3</number><number>5</number></group></setup><repeat for="$group" valueName="v"><setup><number copy="$v" name="ref1" /></setup><point x="$ref1" /></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("a map with several sources becomes nested repeats", async () => {
+        // v0.6 went through every combination, the first `<sources>` slowest.
+        source = `<map><template><p>$x$y$i$j</p></template><sources alias="x" indexAlias="i"><sequence from="1" to="2" /></sources><sources alias="y" indexAlias="j"><number>7</number><number>8</number></sources></map>`;
+        correctSource = `<setup><group name="group"><number>7</number><number>8</number></group></setup><repeatForSequence from="1" to="2" valueName="x" indexName="i"><repeat for="$group" valueName="y" indexName="j"><p>$x$y$i$j</p></repeat></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // The name goes on the outer repeat, where indexing it means something else.
+        source = `<map name="m"><template><p>$x$y</p></template><sources alias="x"><sequence from="1" to="2" /></sources><sources alias="y"><sequence from="3" to="4" /></sources></map>`;
+        let res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<repeatForSequence from="1" to="2" name="m" valueName="x"><repeatForSequence from="3" to="4" valueName="y"><p>$x$y</p></repeatForSequence></repeatForSequence>`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "map/multiple-sources-name",
+        ]);
+
+        // Stepping through the sources together, or numbering the combinations in
+        // one list, has no v0.7 form: the map is left for the author.
+        for (const attrs of [
+            `behavior="parallel"`,
+            `Behavior="Parallel"`,
+            `assignNames="a b c d"`,
+        ]) {
+            source = `<map ${attrs}><template><p>$x$y</p></template><sources alias="x"><sequence from="1" to="2" /></sources><sources alias="y"><sequence from="3" to="4" /></sources></map>`;
+            res = await updateSyntaxFromV06toV07(source);
+            expect(res.xml).toEqual(source);
+            expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+                "map/multiple-sources",
+            ]);
+        }
+    });
+
+    it("a sequence among other sources is kept with them", async () => {
+        // Converting only the sequence would drop the `<number>`.
+        source = `<map><template><p>$v</p></template><sources alias="v"><sequence from="1" to="2" /><number>9</number></sources></map>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<setup><group name="group"><sequence from="1" to="2" /><number>9</number></group></setup><repeat for="$group" valueName="v"><p>$v</p></repeat>`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("a map's alias and indexAlias are found however they are capitalized", async () => {
+        source = `<map><template><p>$v$i</p></template><sources alias="v" indexalias="i"><number>1</number></sources></map><map><template><p>$w$j</p></template><sources ALIAS="w" IndexAlias="j"><sequence from="1" to="2" /></sources></map>`;
+        correctSource = `<setup><group name="group"><number>1</number></group></setup><repeat for="$group" valueName="v" indexName="i"><p>$v$i</p></repeat><repeatForSequence from="1" to="2" valueName="w" indexName="j"><p>$w$j</p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // So is the type of a sequence, which says the alias's type.
+        source = `<map><template><p>$(v{displayDigits='3'})</p></template><sources alias="v"><sequence Type="math" from="x" length="2" /></sources></map>`;
+        correctSource = `<repeatForSequence Type="math" from="x" length="2" valueName="v"><p><math displayDigits="3" extend="$v" /></p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("a map inside another map's sources reports an unresolved copy once", async () => {
+        source = `<map><template><p>$y</p></template><sources alias="y"><map><template><p>$x</p></template><sources alias="x"><number>1</number><copy source="nada" /></sources></map></sources></map>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(
+            res.vfile.messages.filter(
+                (m) => m.ruleId === "copy/unresolved-referent",
+            ),
+        ).toHaveLength(1);
+    });
+
+    it("a map before a module's setup leaves the module's attributes alone", async () => {
+        source = `<module name="m"><map><template><p>$v</p></template><sources alias="v"><number>1</number></sources></map><setup><customAttribute componentType="number" attribute="iv" defaultValue="0" assignNames="iv" /></setup><p>$iv</p></module>`;
+        correctSource = `<module name="m"><setup><group name="group"><number>1</number></group></setup><repeat for="$group" valueName="v"><p>$v</p></repeat><moduleAttributes><number name="iv">0</number></moduleAttributes><p>$iv</p></module>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("a repeat alias hides a component of the same name", async () => {
+        // `$x` in the template is the repeat's value, not the `<text>` outside.
+        source = `<text name="x">hi</text><mathList name="l">1 2</mathList><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><copy source="l" /></sources></map>`;
+        correctSource = `<text name="x">hi</text><mathList name="l">1 2</mathList><repeat for="$l" valueName="x"><p><math displayDigits="5" extend="$x" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // It still does when its type can't be told: the `<boolean>` outside would
+        // turn each value into `true`.
+        source = `<boolean name="x">true</boolean><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><math>1.123456</math><text>a</text></sources></map>`;
+        correctSource = `<boolean name="x">true</boolean><setup><group name="group"><math>1.123456</math><text>a</text></group></setup><repeat for="$group" valueName="x"><p><copy displayDigits="5" source="$x" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("map with assignNames and no name gets converted to a repeatForSequence", async () => {
         source = `
         <map assignNames="a b">
             <template newNamespace><math name="m">$v^2</math><number name="n">$i^2</number></template>
@@ -414,6 +766,20 @@ describe("v06 to v07 update", () => {
         <repeatForSequence from="3" to="4" name="a" valueName="v" indexName="i"><math name="m">$v^2</math><number name="n">$i^2</number></repeatForSequence>
         $a[1].m $a[1].n $a[2].m $a[2].n`;
         expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("leaves references alone when a map cannot be converted", async () => {
+        // Without a `<sources>` the `<map>` is left for a human, `assignNames` and all,
+        // so its assigned names must not be rewritten into indices of a name that
+        // nothing ends up carrying.
+        source = `<map assignNames="a b"><template><p>x</p></template></map> $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(source);
+        expect(res.vfile.messages.map((m) => m.reason)).toEqual([
+            "Map element must have both a template and sources children to be converted",
+        ]);
     });
 
     it("module gets converted to its new format", async () => {
@@ -432,39 +798,305 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
-    it.skip("selectFromSequence with assignNames gets converted", async () => {
+    it("selectFromSequence with assignNames gets converted", async () => {
         source = `<selectFromSequence assignNames="n" /> $n`;
         correctSource = `<selectFromSequence name="n" /> $n`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
-    it.skip("selectFromSequence selecting 2 with assignNames gets converted", async () => {
+    it("selectFromSequence selecting 2 with assignNames gets converted", async () => {
         source = `<selectFromSequence assignNames="n m" numToSelect="2" /> $n $m`;
         correctSource = `<selectFromSequence name="n" numToSelect="2" /> $n[1] $n[2]`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
-    it.skip("selectFromSequence with assignNames and name", async () => {
+    it("selectFromSequence with assignNames and name", async () => {
         source = `<selectFromSequence assignNames="n m" name="s" numToSelect="2" /> $n $m $s`;
         correctSource = `<selectFromSequence name="s" numToSelect="2" /> $s[1] $s[2] $s`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
-    it.skip("select with assignNames gets converted", async () => {
+    it("select with assignNames gets converted", async () => {
         source = `<select assignNames="n" >a b c d</select> $n`;
-        correctSource = `<select name="n" >a b c d</select> $n`;
+        correctSource = `<select name="n">a b c d</select> $n`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
-    it.skip("select selecting 2 with assignNames gets converted", async () => {
+    it("select selecting 2 with assignNames gets converted", async () => {
         source = `<select assignNames="n m" numToSelect="2" >a b c d</select> $n $m`;
-        correctSource = `<select name="n" numToSelect="2" >a b c d</select> $n[1] $n[2]`;
+        correctSource = `<select name="n" numToSelect="2">a b c d</select> $n[1] $n[2]`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
-    it.skip("select with assignNames and name", async () => {
+    it("select with assignNames and name", async () => {
         source = `<select name="s" assignNames="n m" numToSelect="2" >a b c d</select> $n $m $s`;
-        correctSource = `<select name="s" numToSelect="2" >a b c d</select> $s[1] $s[2] $s`;
+        correctSource = `<select name="s" numToSelect="2">a b c d</select> $s[1] $s[2] $s`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("conditionalContent assignNames becomes indices under the selected case", async () => {
+        // `<case>` is a transparent wrapper in v0.7 and only the selected one produces a
+        // replacement, so every name sits under the single index `[1]`.
+        source = `<conditionalContent assignNames="(a b)"><case condition="$c"><math name="m">x</math><number>2</number></case><else><math>y</math><number>3</number></else></conditionalContent> $a $b`;
+        correctSource = `<conditionalContent name="a"><case condition="$c"><math name="m">x</math><number>2</number></case><else><math>y</math><number>3</number></else></conditionalContent> $a[1][1] $a[1][2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("select with options and nested assignNames", async () => {
+        source = `<select assignNames="(a b) (c d)" numToSelect="2"><option><math>x</math><number>1</number></option><option><math>y</math><number>2</number></option></select> $a $b $c $d`;
+        correctSource = `<select name="a" numToSelect="2"><option><math>x</math><number>1</number></option><option><math>y</math><number>2</number></option></select> $a[1][1] $a[1][2] $a[2][1] $a[2][2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("sort with assignNames does not take the single-name shortcut", async () => {
+        // `<sort>` produces one replacement per input, so `assignNames` always becomes
+        // indices even when only one name is given — which is the case the shortcut
+        // would wrongly claim, so test it with one name.
+        source = `<sort assignNames="a"><point>(1,2)</point></sort> $a`;
+        correctSource = `<sort name="a"><point>(1,2)</point></sort> $a[1]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("sort with several assigned names becomes indices", async () => {
+        source = `<sort assignNames="a b c"><point>(1,2)</point></sort> $a $b $c`;
+        correctSource = `<sort name="a"><point>(1,2)</point></sort> $a[1] $a[2] $a[3]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("references inside attribute values get renamed", async () => {
+        source = `<selectFromSequence assignNames="a c" name="s" numToSelect="2" /><selectFromSequence assignNames="b" from="-6abs($a)" to="6abs($a)" /> $b`;
+        correctSource = `<selectFromSequence name="s" numToSelect="2" /><selectFromSequence name="b" from="-6abs($s[1])" to="6abs($s[1])" /> $b`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("references inside macro indices and function macro arguments get renamed", async () => {
+        source = `<selectFromSequence assignNames="p q" numToSelect="2" /> $list[$p]`;
+        correctSource = `<selectFromSequence name="p" numToSelect="2" /> $list[$p[1]]`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+
+        source = `<selectFromSequence assignNames="p q" numToSelect="2" /> $$f($p)`;
+        correctSource = `<selectFromSequence name="p" numToSelect="2" /> $$f($p[1])`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("references in a dollar-less source attribute get renamed", async () => {
+        source = `<selectFromSequence assignNames="p q" numToSelect="2" /><copy source="p" />`;
+        correctSource = `<selectFromSequence name="p" numToSelect="2" /><copy source="p[1]" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("indices already written by the author are preserved", async () => {
+        source = `<selectFromSequence assignNames="a b" numToSelect="2" /> $a[2]`;
+        correctSource = `<selectFromSequence name="a" numToSelect="2" /> $a[1][2]`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("unbalanced parentheses in assignNames are reported and left alone", async () => {
+        source = `<select assignNames="(a b" numToSelect="2">x y</select> $a`;
+        correctSource = `<select numToSelect="2">x y</select> $a`;
+
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "assign-names/unbalanced-parens",
+        ]);
+    });
+
+    it("warns when a branch mixes plain text with components", async () => {
+        // v0.6 skipped bare text when handing out names; v0.7 counts it as a
+        // replacement, so the indices shift and the author needs to check them.
+        source = `<conditionalContent assignNames="(a b)"><case condition="$c">text <math name="m">x</math><number>2</number></case></conditionalContent> $a $b`;
+        correctSource = `<conditionalContent name="a"><case condition="$c">text <math name="m">x</math><number>2</number></case></conditionalContent> $a[1][2] $a[1][3]`;
+
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "assign-names/primitive-skew",
+        ]);
+    });
+
+    it("map with nested assignNames and no name gets converted", async () => {
+        source = `<map assignNames="(p1 s1) (p2 s2)"><template newNamespace><math name="m">$v</math><number name="n">$i</number></template><sources alias="v"><sequence from="1" to="2" /></sources></map> $p1 $s1 $p2 $s2`;
+        correctSource = `<repeatForSequence from="1" to="2" name="p1" valueName="v"><math name="m">$v</math><number name="n">$i</number></repeatForSequence> $p1[1][1] $p1[1][2] $p1[2][1] $p1[2][2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("module setup keeps everything that is not a customAttribute", async () => {
+        source = `<module name="m"><setup><customAttribute componentType="number" attribute="a" assignNames="a" defaultValue="1" /><number name="twice">2$a</number></setup><number name="t">$twice</number></module>`;
+        correctSource = `<module name="m"><moduleAttributes><number name="a">1</number></moduleAttributes><setup><number name="twice">2$a</number></setup><number name="t">$twice</number></module>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("resolves a copy whose source became an indexed reference", async () => {
+        // Rewriting `assignNames` turns `source="p"` into `source="p[1]"`, and the
+        // referent's type is the type of that one replacement, not of the composite.
+        source = `<selectFromSequence assignNames="p q" numToSelect="2" from="1" to="10" /><copy source="p" name="k" />`;
+        correctSource = `<selectFromSequence name="p" numToSelect="2" from="1" to="10" /><number extend="$p[1]" name="k" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<select assignNames="a b" numToSelect="2">x y z</select><copy source="b" name="k" />`;
+        correctSource = `<select name="a" numToSelect="2">x y z</select><group extend="$a[2]" name="k" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("two composites cannot both claim the same assigned name", async () => {
+        // v0.7 rejects a duplicate `name`, so only the first composite gets to reuse the
+        // shared token; the second falls back to a generated name.
+        source = `<selectFromSequence assignNames="a b" numToSelect="2" /><select assignNames="a c" numToSelect="2">x y</select> $a $b $c`;
+        correctSource = `<selectFromSequence name="a" numToSelect="2" /><select name="select" numToSelect="2">x y</select> $a[1] $a[2] $select[2]`;
+
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "assign-names/duplicate-name",
+        ]);
+    });
+
+    it("two composites taking the single-name shortcut cannot share a name", async () => {
+        // Both of these would otherwise become `name="a"`, which v0.7 rejects. The first
+        // keeps the name (so `$a` still resolves to it) and the second is renamed.
+        source = `<selectFromSequence assignNames="a" from="1" to="5" /><selectFromSequence assignNames="a" from="1" to="5" /> $a`;
+        correctSource = `<selectFromSequence name="a" from="1" to="5" /><selectFromSequence name="selectFromSequence" from="1" to="5" /> $a`;
+
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "assign-names/duplicate-name",
+        ]);
+    });
+
+    it("does not let a later composite steal a name the shortcut already used", async () => {
+        source = `<selectFromSequence assignNames="a" from="1" to="5" /><selectFromSequence assignNames="a b" numToSelect="2" /> $a $b`;
+        correctSource = `<selectFromSequence name="a" from="1" to="5" /><selectFromSequence name="selectFromSequence" numToSelect="2" /> $a $selectFromSequence[2]`;
+
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "assign-names/duplicate-name",
+        ]);
+    });
+
+    it("drops an assignNames value that names nothing", async () => {
+        for (const value of ["", "()", "( )"]) {
+            const res = await updateSyntaxFromV06toV07(
+                `<selectFromSequence assignNames="${value}" from="1" to="5" />`,
+                { doNotUpgradeCopyTags: true },
+            );
+            expect(toXml(res.dast)).toEqual(
+                `<selectFromSequence from="1" to="5" />`,
+            );
+            expect(res.vfile.messages).toEqual([]);
+        }
+    });
+
+    it("flags a composite whose own attribute refers to the name it is given", async () => {
+        // `$aa` resolved to nothing in v0.6; with the name on the element it is circular.
+        source = `<selectFromSequence assignNames="aa" from="-4" to="4" exclude="$aa" /> $aa`;
+        correctSource = `<selectFromSequence name="aa" from="-4" to="4" exclude="$aa" /> $aa`;
+
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "assign-names/self-reference",
+        ]);
+    });
+
+    it("still converts a document whose <copy> tags cannot be resolved", async () => {
+        // The document cannot be loaded (the reference is circular), but everything that
+        // does not need the document loaded should still be converted.
+        source = `<selectFromSequence assignNames="aa" from="-4" to="4" exclude="$aa" /><copy source="aa" />`;
+
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<selectFromSequence name="aa"`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "copy/could-not-load-document",
+        );
+    });
+
+    it("converts the other copies when a copy sits inside what it copies", async () => {
+        // The copy of `t` inside `t` is circular as a reference, but not as the inert
+        // `<copy>` it is while the referents are looked up, so it costs only itself.
+        source = `<text name="t">a <copy source="t" /></text><copy source="m" /><math name="m">x</math>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<text name="t">a <copy source="t" /></text><math extend="$m" /><math name="m">x</math>`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("keeps a round's conversions when the next round's document does not load", async () => {
+        // Converting the copy of `b` inside `a` closes the loop `a` -> `b` -> `a`, so the
+        // second round cannot load the document. The first round's conversion stands,
+        // and the copy it could not resolve is reported as unresolved.
+        source = `<math name="a">1+<copy source="b" /></math><math name="b">2+$a</math><copy source="a" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<math name="a">1+<math extend="$b" /></math><math name="b">2+$a</math><copy source="a" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("leaves slashes alone in a source attribute that is a URL", async () => {
+        // `source` names a component on `<copy>`/`<collect>`/`<extract>`, but it is a URL
+        // on `<image>` and `<video>`, where the slashes are path separators.
+        for (const src of [
+            `<image source="images/plot.png" />`,
+            `<video source="clips/intro.mp4" />`,
+        ]) {
+            expect(
+                await updateSyntax(src, { doNotUpgradeCopyTags: true }),
+            ).toEqual(src);
+        }
+    });
+
+    it("resolves ../ in a source attribute the same way as in a macro", async () => {
+        source = `<copy source="x/../f" />`;
+        correctSource = `<copy source="f" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages).toHaveLength(1);
+    });
+
+    it("list item props become indices on the list", async () => {
+        // v0.6 reached a list's contents through `maths`/`math2`; v0.7 indexes the list.
+        source = `<mathList name="eq">1 2 3</mathList><p>$eq.maths</p><p>$eq.math2</p>`;
+        correctSource = `<mathList name="eq">1 2 3</mathList><p>$eq</p><p>$eq[2]</p>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<mathList name="eq">1 2 3</mathList><copy prop="maths" source="eq" name="k" />`;
+        correctSource = `<mathList name="eq">1 2 3</mathList><mathList extend="$eq" name="k" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<mathList name="eq">1 2 3</mathList><copy prop="math2" source="eq" name="k" />`;
+        correctSource = `<mathList name="eq">1 2 3</mathList><math extend="$eq[2]" name="k" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<mathList name="eq">1 2 3</mathList><math name="m" copySource="eq" copyProp="math1" />`;
+        correctSource = `<mathList name="eq">1 2 3</mathList><math name="m" extend="$eq[1]" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
@@ -504,5 +1136,1276 @@ describe("v06 to v07 update", () => {
             <feedbackDefinition />
         </setup>`;
         expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+});
+
+describe("v0.6-only element capitalization", () => {
+    it("normalizes elements that v0.7 no longer has", async () => {
+        // These names are not in the v0.7 component list, so they used to be left alone
+        // and the plugins that match on them silently did nothing.
+        const { xml } = await updateSyntaxFromV06toV07(
+            `<Map assignNames="a b" name="m"><Template newNamespace><math name="q">$v</math></Template><Sources alias="v"><sequence from="1" to="2" /></Sources></Map> $a`,
+        );
+        expect(xml).toEqual(
+            `<repeatForSequence from="1" to="2" name="m" valueName="v"><math name="q">$v</math></repeatForSequence> $m[1]`,
+        );
+    });
+
+    it("normalizes a capitalized constraints wrapper", async () => {
+        const { xml } = await updateSyntaxFromV06toV07(
+            `<point>(3,4)<Constraints><constrainToGrid /></Constraints></point>`,
+        );
+        expect(xml).toEqual(`<point>(3,4)<constrainToGrid /></point>`);
+    });
+});
+
+describe("regressions found by review", () => {
+    let source: string;
+    let correctSource: string;
+
+    it("converts a function macro nested in another's arguments inside an attribute", async () => {
+        // The ordinary traversal never enters an attribute, so these were left in v0.6
+        // shape — and later passes then tripped over them.
+        source = `<p a="$$f($$(g/h)(2))" />`;
+        correctSource = `<p a="$$f($$g.h(2))" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+
+        // ...and a reference inside those arguments is still renamed.
+        source = `<selectFromSequence assignNames="q r" numToSelect="2" /><p a="$$f($$(g/h)($q))" />`;
+        correctSource = `<selectFromSequence name="q" numToSelect="2" /><p a="$$f($$g.h($q[1]))" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("keeps references to a hyphenated assigned name", async () => {
+        source = `<selectFromSequence assignNames="foo-bar baz" numToSelect="2" /> $(foo-bar) $baz`;
+        correctSource = `<selectFromSequence name="foo-bar" numToSelect="2" /> $(foo-bar[1]) $(foo-bar[2])`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("turns an image's description into the accessibility text v0.7 requires", async () => {
+        // v0.6 rendered `description` as the image's `alt`; dropping it would lose the
+        // alternative text for every converted image.
+        source = `<image description="a plot of x squared" source="x.png" />`;
+        correctSource = `<image source="x.png"><shortDescription>a plot of x squared</shortDescription></image>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+});
+
+describe("regressions found by the second review", () => {
+    let source: string;
+    let correctSource: string;
+
+    it("converts a function macro inside a macro's index", async () => {
+        source = `<p a="$list[$$(g/h)(2)]" />`;
+        correctSource = `<p a="$list[$$g.h(2)]" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("leaves a namespace segment that happens to be named like a list prop", async () => {
+        // `$(g/maths)` names a component; only a prop access is a list's contents.
+        source = `<p>$(g/maths)</p>`;
+        correctSource = `<p>$g.maths</p>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("never names an element after an internal component type", async () => {
+        // `1p` is not a legal name, so the point becomes an `_error` — and a `<copy>` of
+        // it used to be renamed to `<_error>`, which is not an element anyone can write.
+        source = `<point name="1p">(1,2)</point><copy source="1p" name="k" />`;
+        const { xml } = await updateSyntaxFromV06toV07(source);
+        expect(xml).not.toContain("<_error");
+        expect(xml).toContain(`<copy source="1p" name="k" />`);
+    });
+
+    it("renames and resolves a hyphenated name in a dollar-less source", async () => {
+        source = `<selectFromSequence assignNames="foo-bar baz" numToSelect="2" from="1" to="9" /><copy source="foo-bar" name="k" />`;
+        correctSource = `<selectFromSequence name="foo-bar" numToSelect="2" from="1" to="9" /><number extend="$(foo-bar[1])" name="k" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+});
+
+describe("regressions found by the third review", () => {
+    let source: string;
+    let correctSource: string;
+
+    it("renames a reference written inside a dollar-less source's index", async () => {
+        source = `<selectFromSequence assignNames="a b" numToSelect="2" /><copy source="g/list[$a]" />`;
+        correctSource = `<selectFromSequence name="a" numToSelect="2" /><copy source="g.list[$a[1]]" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("reports a leading ../ as well as one in the middle", async () => {
+        // There is nothing to drop, but the reference still ends up somewhere the author
+        // did not write.
+        const res = await updateSyntaxFromV06toV07(`<copy source="../f" />`, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(`<copy source="f" />`);
+        expect(res.vfile.messages).toHaveLength(1);
+    });
+
+    it("does not promote an assigned name that v0.7 would reject", async () => {
+        source = `<selectFromSequence assignNames="1abc" /> $1abc`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).not.toContain(`name="1abc"`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/invalid-name",
+        );
+    });
+
+    it("keeps a copy's own name when the assigned name matches it", async () => {
+        source = `<math name="m">5</math><copy source="m" name="a" assignNames="a" /> $a`;
+        correctSource = `<math name="m">5</math><copy source="m" name="a" /> $a`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("normalizes a padded name a copy already had", async () => {
+        source = `<math name="m">5</math><copy source="m" name=" a " assignNames="b" /> $b`;
+        correctSource = `<math name="m">5</math><copy source="m" name="a" /> $a`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+});
+
+describe("regressions found by the fourth review", () => {
+    let source: string;
+    let correctSource: string;
+
+    it("converts a parent path inside a function macro", async () => {
+        // The diagnostic for `..` was built from the already-converted macro, which the
+        // v0.6 serializer cannot read — so this threw instead of converting.
+        source = `<p>$$(../f)(2)</p>`;
+        correctSource = `<p>$$f(2)</p>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages).toHaveLength(1);
+    });
+
+    it("keeps a numbered list prop when the name needs parentheses", async () => {
+        // Dropping `prop` before the index was in place widened the copy from one item
+        // to the whole list.
+        source = `<mathList name="foo-bar">1 2 3</mathList><copy source="foo-bar" prop="math2" name="k" />`;
+        correctSource = `<mathList name="foo-bar">1 2 3</mathList><copy source="foo-bar[2]" name="k" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("writes a reference list token in the form that can express it", async () => {
+        // `$a-b` is a subtraction and `$g/a` is `$g` followed by text, so neither is the
+        // reference the attribute needs.
+        source = `<answer><award sourcesAreResponses="a-b"><when>1=1</when></award></answer>`;
+        correctSource = `<answer><award referencesAreResponses="$(a-b)"><when>1=1</when></award></answer>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+
+        source = `<answer><award sourcesAreResponses="g/a"><when>1=1</when></award></answer>`;
+        correctSource = `<answer><award referencesAreResponses="$g.a"><when>1=1</when></award></answer>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+});
+
+describe("regressions found by the fifth review", () => {
+    let source: string;
+    let correctSource: string;
+
+    it("tells apart the same assigned name in two namespaces", async () => {
+        // v0.6 let both of these be called `a`, and a reference said which it meant by
+        // writing the namespace. Only one can keep the bare name once the namespaces are
+        // gone, so each reference has to follow the one it was reaching into.
+        source = `<graph name="g1" newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /></graph><graph name="g2" newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /></graph><p>$(g1/a) $(g2/a) $(g2/b)</p>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(
+            `<p>$g1.a[1] $g2.selectFromSequence[1] $g2.selectFromSequence[2]</p>`,
+        );
+        // Two namespaces using one name is not a clash, so nothing is reported.
+        expect(res.vfile.messages.map((m) => m.ruleId)).not.toContain(
+            "assign-names/duplicate-name",
+        );
+    });
+
+    it("still reports two composites assigning one name in the same place", async () => {
+        source = `<selectFromSequence assignNames="a b" numToSelect="2" /><selectFromSequence assignNames="a c" numToSelect="2" /> $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        // The first keeps the name and the references; the second gets its own.
+        expect(toXml(res.dast)).toContain(`$a[1] $a[2]`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/duplicate-name",
+        );
+    });
+
+    it("does not read a copy's own attributes as module parameters", async () => {
+        // `link` belongs to the `<copy>`, so it says nothing about the external target.
+        source = `<copy uri="doenet:cid=abc" link="false" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(source);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/unknown-component-type",
+        );
+    });
+
+    it("normalizes a reference token that already has a dollar sign", async () => {
+        source = `<answer><award sourcesAreResponses="$g/a"><when>1=1</when></award></answer>`;
+        correctSource = `<answer><award referencesAreResponses="$g.a"><when>1=1</when></award></answer>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("does not move a reference when a copy's own name is already taken", async () => {
+        source = `<point name="a">(1,2)</point><copy source="m" name="c" assignNames="a" /> $a`;
+        correctSource = `<point name="a">(1,2)</point><copy source="m" name="c" /> $a`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+});
+
+describe("regressions found by the sixth review", () => {
+    let source: string;
+    let correctSource: string;
+
+    it("only treats a namespace as a namespace boundary", async () => {
+        // `<p name="wrapper">` is named but was never a namespace, so the v0.6 reference
+        // is `$(g/a)` and the scope recorded for the composite has to say the same.
+        source = `<graph name="g" newNamespace><p name="wrapper"><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /></p></graph><p>$(g/a)</p>`;
+        correctSource = `<graph name="g"><p name="wrapper"><selectFromSequence name="a" numToSelect="2" from="1" to="5" /></p></graph><p>$g.a[1]</p>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("resolves a reference within its own namespace", async () => {
+        // Neither `$a` names a namespace, so only where each is written says which
+        // composite it meant.
+        source = `<graph name="g1" newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /><p>$a</p></graph><graph name="g2" newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /><p>$a</p></graph>`;
+        const xml = await updateSyntax(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(xml).toContain(`<p>$a[1]</p></graph>`);
+        expect(xml).toContain(`<p>$selectFromSequence[1]</p></graph>`);
+    });
+
+    it("does not read a copy's own attributes as module parameters", async () => {
+        // `numComponents` belongs to v0.6's `<copy>`, so it says nothing about the target.
+        source = `<copy uri="doenet:cid=abc" numComponents="2" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(source);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/unknown-component-type",
+        );
+    });
+});
+
+describe("regressions found by the seventh review", () => {
+    let source: string;
+
+    it("keeps two unnamed namespaces apart", async () => {
+        // A `<template newNamespace>` has no name, so nothing can reach into it from
+        // outside — but it still keeps its contents apart from a sibling's, and a
+        // reference written inside one means that one.
+        source = `<map name="m1"><template newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /><p>$a</p></template><sources alias="v"><sequence from="1" to="2" /></sources></map><map name="m2"><template newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /><p>$a</p></template><sources alias="w"><sequence from="1" to="2" /></sources></map>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        // Each map's local reference resolves to its own composite.
+        expect(xml).toContain(
+            `<selectFromSequence name="a" numToSelect="2" from="1" to="5" /><p>$a[1]</p>`,
+        );
+        expect(xml).toContain(
+            `<selectFromSequence name="selectFromSequence" numToSelect="2" from="1" to="5" /><p>$selectFromSequence[1]</p>`,
+        );
+        // Two namespaces using one name was always legal, so nothing is reported.
+        expect(res.vfile.messages.map((m) => m.ruleId)).not.toContain(
+            "assign-names/duplicate-name",
+        );
+    });
+
+    it("finds a self reference nested inside an attribute", async () => {
+        source = `<selectFromSequence assignNames="a" from="1" to="9" exclude="$$f($a)" /> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/self-reference",
+        );
+    });
+});
+
+describe("regressions found by the eighth review", () => {
+    let source: string;
+
+    it("keeps `prop` on a <copy> whose referent cannot be resolved", async () => {
+        // The referent type decides what the `<copy>` becomes, so when it cannot be
+        // found the tag is left alone and reported. Dropping `prop` on the way past
+        // would quietly turn "the x of it" into "all of it".
+        source = `<copy source="missing" prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`prop="x"`);
+        expect(xml).toContain(`<copy`);
+        expect(res.vfile.messages.length).toBeGreaterThan(0);
+    });
+
+    it("removes `prop` once the referent does resolve", async () => {
+        source = `<point name="P">(1,2)</point><copy source="P" prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain(`prop=`);
+        expect(xml).toContain(`extend="$P.x"`);
+    });
+
+    it("does not invent a name for an assignNames that names nothing", async () => {
+        // `assignNames="()"` parses successfully but hands out no names, so the
+        // `<map>` has nothing to be called.
+        source = `<map assignNames="()"><template><p>hi</p></template><sources alias="v"><sequence from="1" to="2" /></sources></map>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain("name=");
+        expect(xml).toContain("<repeatForSequence");
+    });
+
+    it("counts a map template's bare text when mapping nested positions", async () => {
+        // v0.6 skipped the text when handing `a` out, so `a` was the `<math>`; v0.7
+        // counts the text as a replacement, which puts the `<math>` second.
+        source = `<map assignNames="(a)"><template>text <math>x</math></template><sources alias="v"><sequence from="1" to="2" /></sources></map> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`$a[1][2]`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/primitive-skew",
+        );
+    });
+
+    it("leaves an all-element map template at the identity mapping", async () => {
+        source = `<map assignNames="(a b)"><template><math>x</math><math>y</math></template><sources alias="v"><sequence from="1" to="2" /></sources></map> $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`$a[1][1] $a[1][2]`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).not.toContain(
+            "assign-names/primitive-skew",
+        );
+    });
+});
+
+describe("regressions found by the ninth review", () => {
+    let source: string;
+
+    it('treats newNamespace="false" as no namespace at all', async () => {
+        // v0.6 read `newNamespace` as a primitive boolean, so only a bare attribute or
+        // the literal `true` made a namespace. Scoping the inner assignment to a
+        // boundary that never existed would stop the outer `$a` from matching it.
+        source = `<p newNamespace="false"><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /></p> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`$a[1]`);
+    });
+
+    it("still honours a bare newNamespace", async () => {
+        // The reference has to sit *outside* the namespace to tell the two apart: one
+        // written inside resolves to the local composite either way.
+        source = `<p newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /></p> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        // `$a` never reached into the namespace, so it is left alone.
+        expect(toXml(res.dast)).toContain(`</p> $a`);
+        expect(toXml(res.dast)).not.toContain(`$a[1]`);
+    });
+
+    it("collapses `..` in a macro nested inside another macro's index", async () => {
+        // Converting the outer macro copies the macros in its indices, so collapsing
+        // only the outer result left the copy that reaches the tree with its `..`.
+        source = `<p a="$list[$(x/../b)]" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain("..");
+        expect(xml).toEqual(`<p a="$list[$b]" />`);
+    });
+
+    it("collapses `..` in a macro nested inside a macro attribute", async () => {
+        source = `<p a="$list{fixed=$(x/../b)}" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(`<p a="$list{fixed=$b}" />`);
+    });
+
+    it("reports each `..` exactly once", async () => {
+        source = `<p a="$list[$(x/../b)]" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(
+            res.vfile.messages.filter((m) => (m.reason || "").includes("../x")),
+        ).toHaveLength(1);
+    });
+
+    it("says `link` by choosing between copy and extend", async () => {
+        // v0.7 has no `link`: `extend` is always linked and `copy` never is.
+        source = `<copy uri="doenet:cid=abc" vmin="-1" link="false" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module copy="doenet:cid=abc" vmin="-1"`);
+        expect(xml).not.toContain(`link=`);
+    });
+
+    it('uses extend for link="true"', async () => {
+        source = `<copy uri="doenet:cid=abc" vmin="-1" link="true" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module extend="doenet:cid=abc" vmin="-1"`);
+        expect(xml).not.toContain(`link=`);
+    });
+
+    it("drops a v0.6 copy control rather than reinterpreting it as a module attribute", async () => {
+        source = `<copy uri="doenet:cid=abc" vmin="-1" assignNamesSkip="1" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module`);
+        expect(xml).toContain(`vmin="-1"`);
+        expect(xml).not.toContain(`assignNamesSkip`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/dropped-copy-controls",
+        );
+    });
+
+    it("leaves an external copy alone when it narrows what it copies", async () => {
+        source = `<copy uri="doenet:cid=abc" vmin="-1" prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<copy`);
+        expect(xml).toContain(`prop="x"`);
+        expect(xml).not.toContain(`<module`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/narrowed",
+        );
+    });
+
+    it("copies rather than extends a module, which v0.6 never linked", async () => {
+        // v0.6's default for `link` was "linked, unless this copies by cid/uri or the
+        // target is a module", so a module copy has to become `copy`, not `extend`.
+        source = `<setup><module name="m"><p>hi</p></module></setup><copy source="m" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module copy="$m" />`);
+        expect(xml).not.toContain(`extend=`);
+    });
+
+    it("extends a non-module referent, which v0.6 did link", async () => {
+        source = `<point name="P">(1,2)</point><copy source="P" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<point extend="$P" />`);
+    });
+
+    it("copies rather than extends a module reached through copySource", async () => {
+        source = `<setup><module name="m"><p>hi</p></module></setup><module copySource="m" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module copy="$m" />`);
+        expect(xml).not.toContain(`extend=`);
+    });
+
+    it("still converts an ordinary parameterized external copy", async () => {
+        source = `<copy uri="doenet:cid=abc" vmin="-1" assignNames="a" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(
+            `<module copy="doenet:cid=abc" vmin="-1" name="a"`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).not.toContain(
+            "external-copy/dropped-copy-controls",
+        );
+    });
+});
+
+describe("regressions found by the tenth review", () => {
+    let source: string;
+
+    it("does not let copySource and a composite both take one name", async () => {
+        // The `copySource` path promoted its assigned name to `name` without claiming
+        // it, so a later `assignNames` took the same one and v0.7 saw two components
+        // called `a`.
+        source = `<math name="m">x</math><math copySource="m" assignNames="a" /><selectFromSequence assignNames="a" from="1" to="5" /> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml.match(/name="a"/g) ?? []).toHaveLength(1);
+        // ...and it is the copy that keeps it, not the composite that came later.
+        expect(xml).toContain(`<math extend="$m" name="a" />`);
+        expect(xml).toContain(`<selectFromSequence name="selectFromSequence"`);
+    });
+
+    it("points a reference at the copySource element that took its name", async () => {
+        source = `<math name="m">x</math><math copySource="m" assignNames="a" /> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<math extend="$m" name="a" />`);
+        expect(xml).toContain(`$a`);
+    });
+
+    it("keeps an assigned name that collides only in another namespace", async () => {
+        // v0.6 resolved `$a` inside `g2` to `g2`'s own `a` — the copy — and only
+        // outside it to the point. A whole-document collision check gave the copy a
+        // generated name but registered nothing, stranding the inner reference.
+        source = `<group name="g1"><point name="a">(1,2)</point></group><group name="g2" newNamespace><copy source="../g1" assignNames="a" /> $a</group>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        // The point keeps the bare name, the copy takes a generated one, and the
+        // reference inside g2 follows the copy rather than the point.
+        expect(xml).toContain(`<point name="a">(1,2)</point>`);
+        expect(xml).toContain(
+            `<group name="g2"><copy source="g1" name="copy" /> $copy</group>`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).not.toContain(
+            "copy/name-already-taken",
+        );
+    });
+
+    it("does not point a copy's own source at the copy", async () => {
+        // `source` says what is copied and `assignNames` names the result, so the two
+        // are different components even when they are spelled the same. Redirecting
+        // the source would make the copy copy itself.
+        source = `<math name="x0">-5</math><exercise name="ex" newNamespace><copy source="../x0" assignNames="x0" /><p>$x0</p></exercise>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(
+            `<copy source="x0" name="copy" /><p>$copy</p>`,
+        );
+    });
+
+    it("still refuses a name held by a component in the same namespace", async () => {
+        source = `<point name="a">(1,2)</point><copy source="a" assignNames="a" /> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "copy/name-already-taken",
+        );
+    });
+});
+
+describe("regressions found by the eleventh review", () => {
+    let source: string;
+
+    it("does not point a macro-valued source at the copy itself", async () => {
+        // The self-reference guard reached only the raw-text `source`; a `source`
+        // holding a real macro went through the macro pass and was redirected.
+        source = `<math name="x0">-5</math><exercise name="ex" newNamespace><copy source="$x0" assignNames="x0" /><p>$x0</p></exercise>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(
+            `<copy source="$x0" name="copy" /><p>$copy</p>`,
+        );
+    });
+
+    it("still rewrites a reference among the element's own children", async () => {
+        // Ownership stops at the element boundary: this `$a` is inside the composite,
+        // not written on it, so it is rewritten as usual.
+        source = `<conditionalContent assignNames="(a b)"><case condition="true"><text>x</text><text>y</text></case></conditionalContent> $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`$a[1][1] $a[1][2]`);
+    });
+
+    it("reports an unusable assigned name as such", async () => {
+        source = `<copy source="m" assignNames="1abc" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const ruleIds = res.vfile.messages.map((m) => m.ruleId);
+        expect(ruleIds).toContain("assign-names/invalid-name");
+        expect(ruleIds).not.toContain("copy/name-already-taken");
+    });
+
+    it("keeps a hyphenated name readable in a collect's from", async () => {
+        // `$foo-bar` is `$foo` minus `bar`; only `$(foo-bar)` names the component.
+        source = `<group name="foo-bar"><point name="p">(1,2)</point></group><collect componentTypes="point" source="foo-bar" name="pts" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`from="$(foo-bar)"`);
+    });
+
+    it("trims a collect's name before building the hoisted list", async () => {
+        source = `<collect componentTypes="point" source="g" name=" c " prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`name="collect_c"`);
+        expect(xml).toContain(`<mathList name="c" extend="$collect_c.x" />`);
+    });
+
+    it("generates a list name when the collect's name is unusable", async () => {
+        source = `<collect componentTypes="point" source="g" name="" prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain(`name=""`);
+        // Exact, so a list extending the *wrong* collect cannot pass.
+        expect(xml).toContain(
+            `<mathList name="list" extend="$collect_list.x" />`,
+        );
+    });
+});
+
+describe("regressions found by the twelfth review", () => {
+    let source: string;
+
+    it("converts a function macro nested in another's arguments inside an index", async () => {
+        // Converting the index builds a new function node, so its arguments have to be
+        // converted as part of that rather than left for a later worklist pass.
+        source = `<p a="$list[$$f($$(g/h)(2))]" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(`<p a="$list[$$f($$g.h(2))]" />`);
+    });
+
+    it("converts a function macro nested in another's arguments inside a macro attribute", async () => {
+        source = `<p a="$list{fixed=$$f($$(g/h)(2))}" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(`<p a="$list{fixed=$$f($$g.h(2))}" />`);
+    });
+
+    it("keeps `prop` on an external copy that was left for manual conversion", async () => {
+        // The copy narrows what it copies, so `upgradeCopyElements` leaves it alone;
+        // stripping its prop here would widen a tag the diagnostics call untouched.
+        source = `<copy uri="doenet:cid=x" vmin="1" prop="maths" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`prop="maths"`);
+        expect(xml).toContain(`<copy`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/narrowed",
+        );
+    });
+
+    it("still drops an all-items prop from a copy it converts", async () => {
+        source = `<copy source="x" prop="maths" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(`<copy source="x" />`);
+    });
+});
+
+describe("regressions found by the thirteenth review", () => {
+    let source: string;
+
+    it("does not let a rename rewrite a collect's hoisted prop", async () => {
+        // `applyAssignNameRenames` runs after the collect is hoisted, so without the
+        // prop-access mark the `y` in `$collect_vals.y` matched the assigned name `y`
+        // and became that composite's index.
+        source = `<selectFromSequence assignNames="x y" numToSelect="2" from="1" to="5" /><collect componentTypes="point" source="g" name="vals" prop="y" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(
+            `<mathList name="vals" extend="$collect_vals.y" />`,
+        );
+        expect(xml).not.toContain(`$collect_vals.x`);
+    });
+
+    it("leaves an unconverted external copy out of local referent resolution", async () => {
+        // The copy narrows what it copies, so it keeps its `uri` and is reported rather
+        // than converted. Resolving its `source` here would rename the element and
+        // strand the `uri` on it.
+        source = `<math name="m">z</math><copy uri="doenet:cid=x" source="m" vmin="1" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(
+            `<copy uri="doenet:cid=x" source="m" vmin="1" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/narrowed",
+        );
+    });
+
+    it("still resolves an ordinary local copy", async () => {
+        source = `<math name="m">z</math><copy source="m" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<math extend="$m" />`);
+    });
+});
+
+describe("regressions found by the fourteenth review", () => {
+    let source: string;
+
+    it("rejects a dynamic index on a non-final path segment", async () => {
+        // Dropping the indices to resolve `g.m` finds a real component, but not the
+        // one `g[$i].m` asks for, so its type must not be used.
+        source = `<number name="i">1</number><group name="g"><math name="m">x</math></group><copy source="g[$i].m" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<copy source="g[$i].m" />`);
+        expect(
+            res.vfile.messages.some((m) =>
+                (m.reason || "").includes(
+                    `"g[$i].m" because it has unresolved`,
+                ),
+            ),
+        ).toBe(true);
+    });
+
+    it("still rejects a dynamic index on the final segment", async () => {
+        source = `<number name="i">1</number><group name="g"><math name="m">x</math></group><copy source="g[$i]" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<copy source="g[$i]" />`);
+        expect(
+            res.vfile.messages.some((m) =>
+                (m.reason || "").includes(`"g[$i]" because it has unresolved`),
+            ),
+        ).toBe(true);
+    });
+
+    it("still resolves a literal index the core can follow", async () => {
+        source = `<selectFromSequence name="s" numToSelect="2" from="1" to="5" /><copy source="s[1]" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<number extend="$s[1]" />`);
+    });
+
+    it("resolves an entry of a list component by the type of its entries", async () => {
+        // A `<sequence>` or a sampler is one component whose values a parent sees as
+        // children, so `s[2]` is no node of its own; its type is that of the entries.
+        source = `<sequence name="s" type="letters" from="a" to="c" /><copy source="s[2]" name="k" /><copy source="s" name="k2" />`;
+        let res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toEqual(
+            `<sequence name="s" type="letters" from="a" to="c" /><text extend="$s[2]" name="k" /><sequence extend="$s" name="k2" />`,
+        );
+
+        source = `<sequence name="s" from="1" to="3" /><map><template><p>$(x{displayDigits="3"})</p></template><sources alias="x">$s</sources></map>`;
+        res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toEqual(
+            `<sequence name="s" from="1" to="3" /><repeat for="$s" valueName="x"><p><number displayDigits="3" extend="$x" /></p></repeat>`,
+        );
+    });
+
+    it("still resolves an index-free path through a group", async () => {
+        source = `<group name="g"><math name="m">x</math></group><copy source="g.m" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<math extend="$g.m" />`);
+    });
+});
+
+describe("regressions found by the fifteenth review", () => {
+    let source: string;
+
+    it("leaves a prop written in a raw source attribute alone", async () => {
+        // v0.6 dot notation reached a prop and never a component, but serializing the
+        // source back to text made `p.y` indistinguishable from `p/y`, so the `y`
+        // matched an assigned name and became that composite's index.
+        source = `<selectFromSequence assignNames="x y" numToSelect="2" from="1" to="5" /><point name="p">(1,2)</point><copy source="p.y" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<copy source="p.y" />`);
+        expect(xml).not.toContain(`p.x[2]`);
+    });
+
+    it("still rewrites a namespace segment written with a slash", async () => {
+        source = `<selectFromSequence assignNames="x y" numToSelect="2" from="1" to="5" /><copy source="p/y" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`<copy source="p.x[2]" />`);
+    });
+
+    it("drops a nested empty assignNames without inventing a name", async () => {
+        // `(())` parses successfully but holds no leaf name at any depth.
+        source = `<selectFromSequence assignNames="(())" numToSelect="2" from="1" to="5" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(
+            `<selectFromSequence numToSelect="2" from="1" to="5" />`,
+        );
+    });
+
+    it("still names a composite whose only name is nested", async () => {
+        source = `<selectFromSequence assignNames="((a))" numToSelect="2" from="1" to="5" /> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`name="a"`);
+    });
+});
+
+describe("regressions found by the sixteenth review", () => {
+    let source: string;
+
+    it("converts assignNames written inside a reference's attributes", async () => {
+        // This copy does not exist as an element until `upgradeAttributeSyntax` makes
+        // one, long after the shared assign-name pass has run, so its `assignNames`
+        // survived into the output — which v0.7 rejects — and `$a` went nowhere.
+        source = `<math name="x">1</math>$x{assignNames="a"} $a`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<math name="a" extend="$x" />`);
+        expect(xml).not.toContain(`assignNames`);
+    });
+
+    it("reports an attribute-syntax assigned name it could not keep", async () => {
+        // References were rewritten before this plugin ran, so a name that has to give
+        // way cannot be repaired automatically.
+        source = `<math name="a">0</math><math name="x">1</math>$x{assignNames="a"}`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).not.toContain(`assignNames`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/late-attribute-assignment",
+        );
+    });
+
+    it("converts a numbered list prop written into a raw source", async () => {
+        source = `<mathList name="eq"><math>1</math><math>2</math></mathList><copy source="eq.math2" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<math extend="$eq[2]" />`);
+    });
+
+    it("converts an all-items list prop written into a raw source", async () => {
+        source = `<mathList name="eq"><math>1</math><math>2</math></mathList><copy source="eq.maths" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<mathList extend="$eq" />`);
+    });
+
+    it("leaves a namespace segment named like a list prop alone", async () => {
+        // `$(g/maths)` names a component; only a prop access may be folded into an index.
+        source = `<group name="g" newNamespace><math name="maths">1</math></group><copy source="g/maths" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`<copy source="g.maths" />`);
+    });
+});
+
+describe("regressions found by the read-only review pass", () => {
+    let source: string;
+
+    it("does not throw on a prop a reference cannot express", async () => {
+        source = `<collect componentTypes="point" source="p" prop="x y" assignNames="q1" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "collect/unparsable-prop",
+        );
+        // The fallback is deliberately not a valid reference — it is there to be found
+        // and fixed by hand, so pin it rather than let it drift.
+        expect(toXml(res.dast)).toContain(
+            `<mathList name="q1" extend="$collect_q1.x y" />`,
+        );
+    });
+
+    it("does not adopt an existing name v0.7 cannot use", async () => {
+        // The hoisting step rebuilds a name from this one, and would reject it
+        // independently — leaving the references pointing at nothing.
+        source = `<collect componentTypes="point" source="p" name="1bad" prop="x" assignNames="q1 q2" /><p>$q1 $q2</p>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<mathList name="q1" extend="$collect_q1.x" />`);
+        expect(xml).toContain(`<p>$q1[1] $q1[2]</p>`);
+        // ...and the name that was dropped is reported rather than vanishing.
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/invalid-name",
+        );
+    });
+
+    it("converts a source with surrounding whitespace", async () => {
+        source = `<math name="m">5</math><copy source="m " name="k" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<math extend="$m" name="k" />`);
+    });
+
+    it("reads `prop` however it was capitalized", async () => {
+        // v0.6 attribute names were case-insensitive and nothing normalizes `prop`.
+        source = `<point name="p" /><copy source="p" Prop="x" name="k" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<math extend="$p.x" name="k" />`);
+        expect(xml).not.toContain(`Prop=`);
+    });
+
+    it("reads `link` as the boolean v0.6 made it", async () => {
+        // Only a valueless attribute or the literal `true` was true, so `link="0"` is
+        // false and the result is an unlinked copy.
+        const zero = await updateSyntaxFromV06toV07(
+            `<math name="m">5</math><copy source="m" link="0" name="k" />`,
+        );
+        expect(toXml(zero.dast)).toContain(`<math copy="$m" name="k" />`);
+        const yes = await updateSyntaxFromV06toV07(
+            `<math name="m">5</math><copy source="m" link="true" name="k" />`,
+        );
+        expect(toXml(yes.dast)).toContain(`<math extend="$m" name="k" />`);
+    });
+
+    it("keeps `<extract>`'s prop, since nothing converts the tag", async () => {
+        source = `<mathList name="ml"><math>1</math></mathList><extract source="ml" prop="maths" name="e" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`prop="maths"`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "no-v07-equivalent/extract",
+        );
+    });
+
+    it("converts assignNames on `<lorem>`", async () => {
+        source = `<lorem assignNames="a b" generateParagraphs="2" /><p>$a</p>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<lorem name="a"`);
+        expect(xml).toContain(`<p>$a[1]</p>`);
+    });
+
+    it("reports a name a `<map>` overwrites", async () => {
+        source = `<map assignNames="(a)"><template><point>($x,0)</point></template><sources alias="x"><sequence name="s" from="1" to="3"/></sources></map><p>$a $s</p>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "map/name-overwritten",
+        );
+    });
+
+    it("does not give two assigned names the same index", async () => {
+        // `b` named nothing in v0.6 — the branch has one component — so it must stay
+        // unregistered rather than land on the index `a` already owns.
+        source = `<conditionalContent assignNames="(a b)" condition="true"><case condition="true">hi <math>x</math></case></conditionalContent> $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`$a[1][2] $b`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/names-nothing",
+        );
+    });
+});
+
+describe("regressions found by the second review pass", () => {
+    let source: string;
+
+    it("reads a `<collect>`'s `prop` however it was capitalized", async () => {
+        // The `<copy>` site was made case-insensitive but this one was not, so the
+        // hoist never happened and the references pointed at the collected components
+        // rather than at the prop that was asked for.
+        source = `<collect componentTypes="point" source="p1" Prop="x" assignNames="a b" />$a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<mathList name="a" extend="$collect_a.x" />`);
+        expect(xml).not.toContain(`Prop=`);
+    });
+
+    it("reports every name under a dropped group, not just a bare one", async () => {
+        // `(a b)` sits at a position the branch does not fill, so neither name was
+        // registered — and neither was reported, because only a string piece was.
+        source = `<conditionalContent assignNames="(q (a b))"><case condition="true">text<p>1</p></case></conditionalContent>$q $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const reported = res.vfile.messages
+            .filter((m) => m.ruleId === "assign-names/names-nothing")
+            .map((m) => m.reason);
+        expect(reported).toHaveLength(2);
+        expect(reported.join(" ")).toContain(`"a"`);
+        expect(reported.join(" ")).toContain(`"b"`);
+    });
+
+    it("names the element the author wrote when a `<template>` name is lost", async () => {
+        source = `<map assignNames="a b"><template name="tmplname" newNamespace><p>x</p></template><sources alias="n"><math>1</math><math>2</math></sources></map>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const message = res.vfile.messages.find(
+            (m) => m.ruleId === "map/name-overwritten",
+        );
+        expect(message?.reason).toContain(`<template name="tmplname">`);
+    });
+
+    it("refuses an existing name v0.7 cannot use on a `<copy>` too", async () => {
+        // `chooseCompositeName` rejects such a name for every other composite; the copy
+        // path adopted it and pointed the references at a string v0.7 cannot parse.
+        source = `<point name="p1" /><copy source="p1" name="2bad" assignNames="a" />$a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain(`2bad`);
+        expect(xml).toContain(`$a`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/invalid-name",
+        );
+    });
+
+    it("converts a copy of a component that itself holds a copy", async () => {
+        // The referent's type is read from the document as v0.7 loads it, and a `<math>`
+        // still holding a v0.6 `<copy>` loaded as an error, so the outer copy was left.
+        source = `<number name="n">3</number><math name="e">1-2*<copy source="n" /></math><math name="a"><copy source="e" /></math>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<number name="n">3</number><math name="e">1-2*<number extend="$n" /></math><math name="a"><math extend="$e" /></math>`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("converts a copy of a named copy", async () => {
+        source = `<math name="m">x</math><copy source="m" name="c1" /><copy source="c1" name="c2" /><copy source="c2" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<math name="m">x</math><math extend="$m" name="c1" /><math extend="$c1" name="c2" /><math extend="$c2" />`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("reports a copy that stays unresolved once, however many rounds it took", async () => {
+        source = `<math name="m">x</math><math name="e"><copy source="m" /></math><copy source="e" /><copy source="nothing" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toContain(`<math extend="$e" />`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("converts a copy inside the component it copies", async () => {
+        // The inner `<copy>` made `p` load as an error, so it could never be typed.
+        source = `<point name="p" x="1" y="2"><label>$p.x{displayDecimals="2"}</label></point>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<point name="p" x="1" y="2"><label><math displayDecimals="2" extend="$p.x" /></label></point>`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("types a copy of a component the document did not create", async () => {
+        // The lookup only has the components it created, and a `<case>` whose condition
+        // is false creates nothing.
+        source = `<conditionalContent condition="false"><math name="m">x</math><copy source="m" /><copy source="g.P" prop="x" /><graph name="g"><point name="P">(1,2)</point></graph></conditionalContent>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<conditionalContent condition="false"><math name="m">x</math><math extend="$m" /><math extend="$g.P.x" /><graph name="g"><point name="P">(1,2)</point></graph></conditionalContent>`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("does not guess between two components with the same name", async () => {
+        source = `<conditionalContent condition="false"><section><math name="m">x</math></section><section><text name="m">y</text></section><copy source="m" /></conditionalContent>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toContain(`<copy source="m" />`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("types a copy by a name in a repeat only from inside that repeat", async () => {
+        // Each iteration has its own `a`, so `$a` finds one only from inside the repeat;
+        // from outside it finds nothing, and that is for the author to see.
+        source = `<map><template newNamespace><math name="a">$v+1</math><copy source="a" /></template><sources alias="v"><number>1</number></sources></map><copy source="a" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<setup><group name="group"><number>1</number></group></setup><repeat for="$group" valueName="v"><math name="a">$v+1</math><math extend="$a" /></repeat><copy source="a" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("turns a copy of a prop with no single type into a bare reference", async () => {
+        // An `<answer>`'s `submittedResponse` can be any type, so no element can stand
+        // for it; a `<copy>` that says nothing else is the v0.6 `$a.submittedResponse`.
+        source = `<answer name="a">x</answer><copy source="a" prop="submittedResponse" /><copy source="a" prop="submittedResponse" link="true" />`;
+        let res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<answer name="a">x</answer>$a.submittedResponse$a.submittedResponse`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+
+        // Anything more needs an element, and a reference is always linked.
+        for (const extra of [`displayDigits="2"`, `link="false"`]) {
+            source = `<answer name="a">x</answer><copy source="a" prop="submittedResponse" ${extra} />`;
+            res = await updateSyntaxFromV06toV07(source);
+            expect(res.xml).toContain(
+                `<copy source="a" prop="submittedResponse"`,
+            );
+            expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+                "copy/unresolved-referent",
+            ]);
+        }
+    });
+
+    it("leaves a copy of a name the document does not have", async () => {
+        // v0.6 showed nothing for it; a reference to nothing shows the reference.
+        source = `<copy source="nothing" prop="feedbacks" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(source);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("spells a copied prop the way v0.7 does", async () => {
+        // v0.6 matched prop names however they were capitalized.
+        source = `<point name="p">(1,2)</point><copy prop="X" source="p" /><copy source="p" prop="COORDS" /><polygon name="g" vertices="(0,0) (1,0) (0,1)" /><copy source="g" prop="VERTEX2" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<point name="p">(1,2)</point><math extend="$p.x" /><coords extend="$p.coords" /><polygon name="g" vertices="(0,0) (1,0) (0,1)" /><point extend="$g.vertex2" />`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("types a `<collect>` of a prop with no fixed type by the list it is in", async () => {
+        // A `<choiceInput>`'s `selectedValue` and `values` have no fixed type: the first
+        // used to become a `mathList` and the second threw, losing the whole document.
+        for (const prop of ["selectedValue", "values"]) {
+            source = `<textlist name="t"><collect componentTypes="choiceinput" prop="${prop}" source="s" /></textlist>`;
+            const res = await updateSyntaxFromV06toV07(source, {
+                doNotUpgradeCopyTags: true,
+            });
+            expect(res.xml).toContain(
+                `<textList name="list" extend="$collect_list.${prop}" />`,
+            );
+            expect(res.vfile.messages).toEqual([]);
+        }
+        // With no list around it there is still nothing to go on.
+        source = `<collect componentTypes="choiceinput" prop="values" source="s" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.xml).toContain(`<mathList`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "collect/unknown-prop-type",
+        ]);
+        // A prop that does not exist is not something the list can answer, and the
+        // author has to hear about it.
+        source = `<textList><collect componentTypes="choiceInput" prop="selectedvalu" source="s" /></textList>`;
+        const invalid = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(invalid.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "collect/unknown-prop-type",
+        ]);
+        expect(invalid.vfile.messages[0].reason).toContain(
+            `"selectedvalu" is not a valid prop name`,
+        );
+    });
+
+    it("spells a `<collect>`'s prop as v0.7 spells it", async () => {
+        // v0.6 matched prop names however they were capitalized; v0.7 does not.
+        source = `<textList name="t"><collect componentTypes="CHOICEINPUT" PROP="selectedvalue" source="s" /></textList><collect componentTypes="polygon" prop="VERTEX2" source="g" name="v" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.xml).toContain(
+            `<textList name="list" extend="$collect_list.selectedValue" />`,
+        );
+        expect(res.xml).toContain(
+            `<pointList name="v" extend="$collect_v.vertex2" />`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("types a reference into what an external copy loads", async () => {
+        // Without the external document, `cobweb.correct` is a prop of a `<module>` that
+        // does not exist.
+        const documents: Record<string, string> = {
+            applet: `<module><setup><customAttribute componentType="number" name="x0" defaultValue="0" /></setup><boolean name="correct">$x0 = 1</boolean></module>`,
+        };
+        source = `<copy uri="doenet:activityId=applet" x0="1" assignNames="cobweb" /><copy source="cobweb.correct" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            fetchExternalDoenetML: async (uri) => {
+                const id = uri.replace(/^doenet:/, "");
+                if (!(id in documents)) {
+                    throw Error(`No document "${uri}"`);
+                }
+                return documents[id];
+            },
+        });
+        expect(res.xml).toEqual(
+            `<module copy="doenet:applet" x0="1" name="cobweb" /><boolean extend="$cobweb.correct" />`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("gives every diagnostic a rule name", async () => {
+        // The changeset says problems are reported with a rule name so they can be
+        // grouped; seven messages had none.
+        source = `<map assignNames="a"><sources alias="n"><math>1</math></sources></map><p>$(../x)</p>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.vfile.messages.length).toBeGreaterThan(0);
+        expect(res.vfile.messages.every((m) => m.ruleId)).toBe(true);
     });
 });

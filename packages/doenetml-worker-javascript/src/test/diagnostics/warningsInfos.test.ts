@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
+    movePoint,
     updateMathInputValue,
     updateTextInputValue,
     updateValue,
@@ -47,6 +48,38 @@ describe("Warning Tests @group4", async () => {
                 ),
             ),
         ).eq(true);
+    });
+
+    it("Deprecated modifyIndirectly attribute is ignored, suggesting fixed", async () => {
+        // `modifyIndirectly="false"` refused the writes that reached the
+        // input through the point. It is dropped, so dragging the point now
+        // changes the input; `fixed` on the point is what refuses them.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="mi" prefill="1" modifyIndirectly="false" />
+<graph><point name="P">($mi, 2)</point></graph>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).eq(
+            "[deprecation] Attribute `modifyIndirectly` on `<mathInput>` is deprecated and ignored. To keep the components that use this value from changing it, add `fixed` to them. To keep users from changing an input, use `disabled`.",
+        );
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 5,
+            y: 2,
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
+        ).eq(5);
     });
 
     it("Deprecated odeSystem renderMode attribute", async () => {
@@ -605,15 +638,20 @@ describe("Warning Tests @group4", async () => {
         );
         expect(diagnosticsByType.infos[5].position.start.line).eq(4);
 
-        expect(diagnosticsByType.infos[6].message).contain(
-            "Invalid value `try2` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[6].position.start.line).eq(5);
-
-        expect(diagnosticsByType.infos[7].message).contain(
-            "Invalid value `try2` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[7].position.start.line).eq(9);
+        // One write reaches both `m2` and the `m6` that extends it, and each
+        // reports the value it was given. Which of the two is evaluated
+        // first depends on the order the update touches them, so the pair
+        // is checked without an order.
+        const infosByLine = (indices: number[]) =>
+            indices
+                .map((i) => diagnosticsByType.infos[i].position.start.line)
+                .sort((a, b) => a - b);
+        for (const i of [6, 7]) {
+            expect(diagnosticsByType.infos[i].message).contain(
+                "Invalid value `try2` for attribute `format`",
+            );
+        }
+        expect(infosByLine([6, 7])).eqls([5, 9]);
 
         expect(diagnosticsByType.infos[8].message).contain(
             "Invalid value `try3` for attribute `format`",
@@ -630,15 +668,12 @@ describe("Warning Tests @group4", async () => {
         );
         expect(diagnosticsByType.infos[10].position.start.line).eq(8);
 
-        expect(diagnosticsByType.infos[11].message).contain(
-            "Invalid value `try6` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[11].position.start.line).eq(5);
-
-        expect(diagnosticsByType.infos[12].message).contain(
-            "Invalid value `try6` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[12].position.start.line).eq(9);
+        for (const i of [11, 12]) {
+            expect(diagnosticsByType.infos[i].message).contain(
+                "Invalid value `try6` for attribute `format`",
+            );
+        }
+        expect(infosByLine([11, 12])).eqls([5, 9]);
 
         expect(diagnosticsByType.infos[13].message).contain(
             "Invalid value `try7` for attribute `format`",
@@ -874,15 +909,17 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Insufficient dimensions for domain for function.",
+            "Invalid format for attribute domain of `<function>`",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(20);
         expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.end.column).eq(34);
 
+        // The list the domain makes reports the text it cannot read as it
+        // reads it, before the function finds it has no interval.
         expect(diagnosticsByType.warnings[1].message).contain(
-            "Invalid format for attribute domain of `<function>`",
+            "Insufficient dimensions for domain for function.",
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(20);
@@ -892,8 +929,10 @@ describe("Warning Tests @group4", async () => {
 
     it("Correctly get reference text when extend with an index", async () => {
         // Note: since extending with an index, the reference cannot be resolved in the first pass before core is initialized.
-        // Instead, the warning is generated after core can determine what replacements the group has.
+        // Instead, the diagnostic is generated after core can determine what replacements the group has.
         // This tests that the correct text is used for the reference in that case, where the text has to be rebuilt from the source and position info.
+        // A tag always makes that tag (D36): while its index names nothing,
+        // it is `<text/>`, with an info.
         let { core } = await createTestCore({
             doenetML: `
 <group name="g"></group>
@@ -904,16 +943,16 @@ describe("Warning Tests @group4", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(1);
-        expect(diagnosticsByType.infos.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(1);
 
-        expect(diagnosticsByType.warnings[0].message).contain(
-            "No referent found for reference: `$g[1]`",
+        expect(diagnosticsByType.infos[0].message).eq(
+            "`$g[1]` names nothing now, so this `<text>` has the value of `<text/>` until it does.",
         );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(24);
+        expect(diagnosticsByType.infos[0].position.start.line).eq(3);
+        expect(diagnosticsByType.infos[0].position.start.column).eq(1);
+        expect(diagnosticsByType.infos[0].position.end.line).eq(3);
+        expect(diagnosticsByType.infos[0].position.end.column).eq(24);
     });
 
     it("Warn if simplifyOnCompare or expandOnCompare are specified with symbolicEquality set to false", async () => {
@@ -1057,6 +1096,343 @@ describe("Warning Tests @group4", async () => {
                     info.message.includes("must be an integer"),
             ),
         ).eq(true);
+    });
+
+    it("reports a warning about markup in index brackets once, however deeply nested", async () => {
+        // A reference resolution carries the same index nodes on both its
+        // `originalPath` and its `unresolvedPath`, and the load-time pipeline
+        // expands both, so anything reported about markup between index
+        // brackets used to arrive once per path — twice one level in, four
+        // times two levels in.
+        const documents = [
+            `<p>$(x)[<number>1</number>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<p>$(x)[<number>1</number>]</p>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<p>$myList[<p>$(x)[<number>1</number>]</p>]</p>]</p>`,
+        ];
+        for (const doenetML of documents) {
+            const { core } = await createTestCore({ doenetML });
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(
+                diagnosticsByType.warnings.filter(
+                    (warning) => warning.code === "doenet-w0162",
+                ).length,
+                doenetML,
+            ).eq(1);
+            // Whatever else each document earns, no two of them are the same
+            // message in the same place.
+            const keys = diagnosticsByType.warnings.map((warning) =>
+                JSON.stringify([
+                    warning.message,
+                    warning.position?.start?.offset,
+                ]),
+            );
+            expect(new Set(keys).size, doenetML).eq(keys.length);
+        }
+    });
+
+    it("says nothing about invalid children an author did not write", async () => {
+        // An element in index brackets that normalization turns into an
+        // `_error` used to draw a second warning beside the genuine one:
+        // "Invalid children for `<_error>`: Found invalid children: `<_copy>`".
+        // Neither component is anything the author wrote.
+        const documents = [
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<indexOf type="text" tolerance="1e-6" target="100">$myList</indexOf>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<number bogusAttr="1">$k</number>]</p>`,
+            // Reported against `<setup>` rather than `<_error>`, from the alias
+            // components `<repeat>` synthesizes, but the same cause.
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<indexOf target="2"><repeat for="1 2" valueName="v"><number>$v</number></repeat></indexOf>]</p>`,
+        ];
+        for (const doenetML of documents) {
+            const { core } = await createTestCore({ doenetML });
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(
+                diagnosticsByType.warnings.filter(
+                    (warning) => warning.code === "doenet-w0107",
+                ),
+                doenetML,
+            ).eqls([]);
+        }
+
+        // The first document's genuine error is still reported, and the same
+        // markup written in ordinary content behaves the same way — which is
+        // what made the extra message specific to an index in the first place.
+        for (const doenetML of [
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<indexOf type="text" tolerance="1e-6" target="100">$myList</indexOf>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p><indexOf type="text" tolerance="1e-6" target="100">$myList</indexOf></p>`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length, doenetML).eq(1);
+            expect(diagnosticsByType.errors[0].message).contain(
+                `Invalid attribute "tolerance"`,
+            );
+        }
+    });
+
+    it("an extend that would change what a tag makes is an error, located on it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<sequence name="s" from="1" to="3" />
+<p name="p1"><sequence extend="$s" to="5" step="2" /></p>
+<repeatForSequence from="1" to="2" valueName="v" name="r"><number>$v</number></repeatForSequence>
+<p name="p2"><repeatForSequence extend="$r" to="4"><text>x</text></repeatForSequence></p>
+<repeat for="a b" valueName="w" name="r2"><text>$w</text></repeat>
+<p name="p3"><repeat extend="$r2" for="c d e"><text>y</text></repeat></p>
+<select name="sel"><option><text>c</text></option></select>
+<p name="p4"><select extend="$sel" numToSelect="1" /></p>
+<p name="p5">after</p>
+            `,
+        });
+
+        // Each extend shows an error in place of the content; the rest of
+        // the document, its sources among it, renders.
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["", "", "", "", "after"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings).eqls([]);
+        expect(diagnosticsByType.errors.map((error) => error.message)).eqls([
+            "A `<sequence>` makes its content from `to`. An `extend` shows the same content as `$s`, so it can't change `to`. To show the content of `$s` again, remove `to`. To make a new `<sequence>` with a different `to`, use `copy`.",
+            "A `<sequence>` makes its content from `step`. An `extend` shows the same content as `$s`, so it can't change `step`. To show the content of `$s` again, remove `step`. To make a new `<sequence>` with a different `step`, use `copy`.",
+            "A `<repeatForSequence>` makes its content from `to`. An `extend` shows the same content as `$r`, so it can't change `to`. To show the content of `$r` again, remove `to`. To make a new `<repeatForSequence>` with a different `to`, use `copy`.",
+            "Children written inside an `extend` of a `<repeatForSequence>` would be a new template, but an extend shows the same content as `$r`. To repeat a different template, use `copy`.",
+            "A `<repeat>` makes its content from `for`. An `extend` shows the same content as `$r2`, so it can't change `for`. To show the content of `$r2` again, remove `for`. To make a new `<repeat>` with a different `for`, use `copy`.",
+            "Children written inside an `extend` of a `<repeat>` would be a new template, but an extend shows the same content as `$r2`. To repeat a different template, use `copy`.",
+            "A `<select>` makes its content from `numToSelect`. An `extend` shows the same content as `$sel`, so it can't change `numToSelect`. To show the content of `$sel` again, remove `numToSelect`. To make a new `<select>` with a different `numToSelect`, use `copy`.",
+        ]);
+        expect(diagnosticsByType.errors.map((error) => error.code)).eqls([
+            "doenet-e0056",
+            "doenet-e0056",
+            "doenet-e0056",
+            "doenet-e0057",
+            "doenet-e0056",
+            "doenet-e0057",
+            "doenet-e0056",
+        ]);
+        // Each points at the extend it is about.
+        expect(
+            diagnosticsByType.errors.map((error) => error.position?.start.line),
+        ).eqls([3, 3, 5, 5, 7, 7, 9]);
+    });
+
+    it("an extend cannot be given a type other than its source's", async () => {
+        // `type` picks the class a list's values are made for, so it decides
+        // what the sequence makes.
+        const { core } = await createTestCore({
+            doenetML: `
+<sequence name="s" from="1" to="3"/>
+<p name="p1"><sequence extend="$s" type="letters"/></p>
+<sequence name="t" type="letters" from="a" to="c"/>
+<p name="p2"><sequence extend="$t" type="number"/></p>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.map((error) => error.message)).eqls([
+            "A `<sequence>` makes its content from `type`. An `extend` shows the same content as `$s`, so it can't change `type`. To show the content of `$s` again, remove `type`. To make a new `<sequence>` with a different `type`, use `copy`.",
+            "A `<sequence>` makes its content from `type`. An `extend` shows the same content as `$t`, so it can't change `type`. To show the content of `$t` again, remove `type`. To make a new `<sequence>` with a different `type`, use `copy`.",
+        ]);
+    });
+
+    it("says nothing about what an extend applies, or about a copy", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<sequence name="s" type="math" from="1.2345" to="3.2345" />
+<p name="p1"><sequence extend="$s" asList="false" displayDigits="2" hide="false" fixed /></p>
+<p name="p2"><sequence copy="$s" to="5.2345" /></p>
+<repeatForSequence from="1" to="2" valueName="v" name="r"><number>$v</number></repeatForSequence>
+<p name="p3"><repeatForSequence extend="$r" asList="false">  </repeatForSequence></p>
+<group name="g"><text>a</text></group>
+<p name="p4"><group extend="$g"><text>x</text></group></p>
+<p name="p5"><number extend="$s[2]" displayDigits="3" /></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls([
+            "1.22.23.2",
+            "1.23, 2.23, 3.23, 4.23, 5.23",
+            "12",
+            "ax",
+            "2.23",
+        ]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+    });
+
+    it("applies rendered on an extend of a group or module, without a warning", async () => {
+        // A `<group>`, and a `<module>`, makes its replacements again on its
+        // extend, so it reads `rendered` there.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<group name="g"><text>a</text></group>
+<group name="h" rendered="false"><text>b</text></group>
+<p name="p1"><group extend="$h" rendered="true"/></p>
+<p name="p2"><group extend="$h"/></p>
+<p name="p3"><group extend="$g" rendered="false"><text>x</text></group></p>
+<module name="n" rendered="false"><moduleAttributes><text name="a">q</text></moduleAttributes><text>c</text></module>
+<p name="p4"><module extend="$n" rendered="true"/></p>
+<p name="p5"><module extend="$n"/></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["b", "", "a", "c", ""]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+    });
+
+    it("a module parameter named as a number-display attribute on an extend is an error", async () => {
+        // A `<module>` does not declare `displayDigits`, so here it is a
+        // parameter of the module, which its extend cannot change, as any
+        // other.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<module name="m"><moduleAttributes><text name="displayDigits">hi</text></moduleAttributes><text>$displayDigits</text></module>
+<p name="p1"><module extend="$m" displayDigits="bye" /></p>
+<p name="p2"><module copy="$m" displayDigits="bye" /></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["", "bye"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.map((error) => error.message)).eqls([
+            "A `<module>` makes its content from its attributes. An `extend` shows the same content as `$m`, so it can't change `displayDigits`. To make the module with a different `displayDigits`, use `copy`.",
+        ]);
+        expect(
+            diagnosticsByType.errors.map((error) => error.position?.start.line),
+        ).eqls([3]);
+    });
+
+    it("reports only the attributes an author wrote on an extend of a module", async () => {
+        // A `<module>` accepts any attribute, but is not handed the `_copy`'s
+        // own (`createComponentIdx`, `copyInChildren`, …), so only `a` is
+        // reported.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<module name="m"><moduleAttributes><text name="a">hi</text></moduleAttributes><text>$a</text></module>
+<p name="p1"><module extend="$m" /></p>
+<p name="p2"><module extend="$m" a="bye" /></p>
+<p name="p3"><module copy="$m" a="bye" /></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["hi", "", "bye"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.map((error) => error.message)).eqls([
+            "A `<module>` makes its content from its attributes. An `extend` shows the same content as `$m`, so it can't change `a`. To make the module with a different `a`, use `copy`.",
+        ]);
+        expect(
+            diagnosticsByType.errors.map((error) => error.position?.start.line),
+        ).eqls([4]);
+    });
+
+    it("reports an extend's error once, wherever it is and however its source updates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="n" prefill="3" />
+<sequence name="s" from="1" to="$n" />
+<sequence name="e" extend="$s" />
+<p name="p1"><sequence extend="$e" to="5" /></p>
+<repeatForSequence from="1" to="2" name="outer"><p><sequence extend="$s" to="6" /></p></repeatForSequence>
+<p name="p2">$e</p>
+            `,
+        });
+
+        async function check_items(text: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
+            ).eq("");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                    .text,
+            ).eq(text);
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.warnings.length).eq(0);
+            expect(
+                diagnosticsByType.errors.map((error) => [
+                    error.message,
+                    error.position?.start.line,
+                ]),
+            ).eqls([
+                [
+                    "A `<sequence>` makes its content from `to`. An `extend` shows the same content as `$e`, so it can't change `to`. To show the content of `$e` again, remove `to`. To make a new `<sequence>` with a different `to`, use `copy`.",
+                    5,
+                ],
+                [
+                    "A `<sequence>` makes its content from `to`. An `extend` shows the same content as `$s`, so it can't change `to`. To show the content of `$s` again, remove `to`. To make a new `<sequence>` with a different `to`, use `copy`.",
+                    6,
+                ],
+            ]);
+        }
+
+        await check_items("1, 2, 3");
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items("1, 2, 3, 4");
     });
 
     it("non-numeric requested variant index produces an info", async () => {

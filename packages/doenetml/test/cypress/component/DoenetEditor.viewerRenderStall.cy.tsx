@@ -133,8 +133,12 @@ describe("DoenetEditor viewer render stall (Doenet/DoenetApps#2957)", () => {
         // Editor unaffected.
         cy.get(".cm-editor", { timeout: 20000 }).should("exist");
 
-        // A visible error is surfaced (2 attempts × 2s watchdog ≈ 4s).
-        cy.contains(/reload the page/i, { timeout: 20000 }).should("exist");
+        // A visible error is surfaced (2 attempts × 2s watchdog ≈ 4s). The
+        // first failure's copy leaves the reload advice out — it comes with a
+        // retry button instead (#1712) — so match what every flavor says.
+        cy.contains(/could not be started/i, { timeout: 20000 }).should(
+            "exist",
+        );
 
         // And it is an error, not a silently-rendered empty viewer.
         cy.get(".doenet-viewer").should("not.exist");

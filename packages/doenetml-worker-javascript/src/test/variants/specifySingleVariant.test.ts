@@ -1,16 +1,42 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 import {
     submitAnswer,
+    updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
 import { numberToLetters } from "@doenet/utils";
 import me from "math-expressions";
+import {
+    componentOrListEntry,
+    childrenAsPresented,
+} from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+/**
+ * The selected values of the `<selectFromSequence>`s of the page loaded in
+ * `core`, and the variant the page generated, JSON round-tripped as a host
+ * that saves it would pass it back.
+ */
+async function selectedValues(core: PublicDoenetMLCore) {
+    const stateVariables = await core.returnAllStateVariables(false, true);
+    const values = Object.values(stateVariables)
+        .filter((component) => component.componentType === "selectFromSequence")
+        .map((component) => component.stateValues.selectedValues);
+    const generatedVariantInfo = JSON.parse(
+        JSON.stringify(
+            Object.values(stateVariables).find(
+                (component) => component.componentType === "document",
+            )!.stateValues.generatedVariantInfo,
+        ),
+    );
+    return { values, generatedVariantInfo };
+}
 
 describe("Specifying single variant tests @group1", async () => {
     async function run_select_from_sequence_test({
@@ -76,8 +102,14 @@ describe("Specifying single variant tests @group1", async () => {
                 true,
             );
             expect(
-                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                    .value,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "n[1]",
+                    )
+                ).stateValues.value,
             ).eq(n);
             expect(
                 stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -146,10 +178,14 @@ describe("Specifying single variant tests @group1", async () => {
             requestedVariantIndex: 1,
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
-        nBySeed[seeds[0]] =
-            stateVariables[
-                await resolvePathToNodeIdx("n[1]")
-            ].stateValues.value;
+        nBySeed[seeds[0]] = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n[1]",
+            )
+        ).stateValues.value;
         await check_variant(1, nBySeed[seeds[0]], seeds, variantNames);
 
         // Number doesn't change with update
@@ -195,10 +231,14 @@ describe("Specifying single variant tests @group1", async () => {
             requestedVariantIndex: 2,
         }));
         stateVariables = await core.returnAllStateVariables(false, true);
-        nBySeed[seeds[1]] =
-            stateVariables[
-                await resolvePathToNodeIdx("n[1]")
-            ].stateValues.value;
+        nBySeed[seeds[1]] = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n[1]",
+            )
+        ).stateValues.value;
         expect(nBySeed[seeds[1]]).not.eq(nBySeed[seeds[0]]);
         await check_variant(2, nBySeed[seeds[1]], seeds, variantNames);
 
@@ -244,10 +284,14 @@ describe("Specifying single variant tests @group1", async () => {
                 requestedVariantIndex: 3 + 77 * numVariants,
             }));
             stateVariables = await core.returnAllStateVariables(false, true);
-            nBySeed[seeds[2]] =
-                stateVariables[
-                    await resolvePathToNodeIdx("n[1]")
-                ].stateValues.value;
+            nBySeed[seeds[2]] = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value;
             expect(nBySeed[seeds[2]]).not.eq(nBySeed[seeds[0]]);
             expect(nBySeed[seeds[2]]).not.eq(nBySeed[seeds[1]]);
             await check_variant(3, nBySeed[seeds[2]], seeds, variantNames);
@@ -258,10 +302,14 @@ describe("Specifying single variant tests @group1", async () => {
                 requestedVariantIndex: 4 + -3261 * numVariants,
             }));
             stateVariables = await core.returnAllStateVariables(false, true);
-            nBySeed[seeds[3]] =
-                stateVariables[
-                    await resolvePathToNodeIdx("n[1]")
-                ].stateValues.value;
+            nBySeed[seeds[3]] = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value;
             expect(nBySeed[seeds[3]]).not.eq(nBySeed[seeds[0]]);
             expect(nBySeed[seeds[3]]).not.eq(nBySeed[seeds[1]]);
             expect(nBySeed[seeds[3]]).not.eq(nBySeed[seeds[2]]);
@@ -503,7 +551,8 @@ describe("Specifying single variant tests @group1", async () => {
           <option><selectFromSequence from="-1000" to="-900" /></option>
         </select>
       </p></option>
-      <option><p name="p">Chosen letter: <selectFromSequence type="letters" to="g" name="item" /></p></option>
+      <!-- item is a select in every option, so $s.item names it (#2450) -->
+      <option><p name="p">Chosen letter: <select name="item"><option><selectFromSequence type="letters" to="g" /></option></select></p></option>
       <option><p name="p">Variable: <select type="text" name="item">u v w x z y</select></p></option>
     </select>
     <p>Enter item $s.item as text: <answer name="ans"><textInput name="ti"/><award><text>$(s.item)</text></award></answer></p>
@@ -532,9 +581,11 @@ describe("Specifying single variant tests @group1", async () => {
             let variantInd = firstStringsToInd[p.activeChildren[0].trim()];
             expect(variantInd).not.eq(undefined);
 
-            let secondValue =
-                stateVariables[p.activeChildren[1].componentIdx].stateValues
-                    .value;
+            let secondValue = childrenAsPresented(
+                core,
+                stateVariables,
+                p.componentIdx,
+            )[1].stateValues.value;
 
             if (variantInd === 0) {
                 let i = [
@@ -657,8 +708,11 @@ describe("Specifying single variant tests @group1", async () => {
 
                     variantInds.push(variantInd);
 
-                    let p =
-                        stateVariables[problem.activeChildren[4].componentIdx];
+                    let p = childrenAsPresented(
+                        core,
+                        stateVariables,
+                        problem.componentIdx,
+                    )[4];
 
                     if (variantInd === 1) {
                         expect(p.activeChildren[0].trim()).eq("Word:");
@@ -670,8 +724,11 @@ describe("Specifying single variant tests @group1", async () => {
                                 "drab",
                                 "excoriated",
                             ].indexOf(
-                                stateVariables[p.activeChildren[1].componentIdx]
-                                    .stateValues.value,
+                                childrenAsPresented(
+                                    core,
+                                    stateVariables,
+                                    p.componentIdx,
+                                )[1].stateValues.value,
                             ) + 1;
                         expect(problemVariantInd).not.eq(0);
                         if (
@@ -686,9 +743,11 @@ describe("Specifying single variant tests @group1", async () => {
                         );
                     } else {
                         expect(p.activeChildren[0].trim()).eq("Number:");
-                        let num =
-                            stateVariables[p.activeChildren[1].componentIdx]
-                                .stateValues.value;
+                        let num = childrenAsPresented(
+                            core,
+                            stateVariables,
+                            p.componentIdx,
+                        )[1].stateValues.value;
                         expect(Number.isInteger(num)).eq(true);
                         expect(num >= 1 && num <= 10).eq(true);
 
@@ -703,9 +762,11 @@ describe("Specifying single variant tests @group1", async () => {
                         }
                     }
 
-                    let secondValue =
-                        stateVariables[p.activeChildren[1].componentIdx]
-                            .stateValues.value;
+                    let secondValue = childrenAsPresented(
+                        core,
+                        stateVariables,
+                        p.componentIdx,
+                    )[1].stateValues.value;
                     secondValues.push(secondValue);
                 }
 
@@ -984,12 +1045,22 @@ describe("Specifying single variant tests @group1", async () => {
                 false,
                 true,
             );
-            let m =
-                stateVariables[await resolvePathToNodeIdx("s1[1]")].stateValues
-                    .value;
-            let n =
-                stateVariables[await resolvePathToNodeIdx("s2[1]")].stateValues
-                    .value;
+            let m = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s1[1]",
+                )
+            ).stateValues.value;
+            let n = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s2[1]",
+                )
+            ).stateValues.value;
 
             await updateMathInputValue({
                 latex: `${m}`,
@@ -1103,17 +1174,32 @@ describe("Specifying single variant tests @group1", async () => {
                 true,
             );
 
-            let m =
-                stateVariables[await resolvePathToNodeIdx("s1[1]")].stateValues
-                    .value;
+            let m = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s1[1]",
+                )
+            ).stateValues.value;
 
-            let x2 =
-                stateVariables[await resolvePathToNodeIdx("s2[2]")].stateValues
-                    .value;
+            let x2 = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s2[2]",
+                )
+            ).stateValues.value;
 
-            let l1 =
-                stateVariables[await resolvePathToNodeIdx("s3[1]")].stateValues
-                    .value;
+            let l1 = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s3[1]",
+                )
+            ).stateValues.value;
 
             await updateMathInputValue({
                 latex: `${m}`,
@@ -1275,8 +1361,14 @@ describe("Specifying single variant tests @group1", async () => {
                     .inputChildren[0].componentIdx;
 
             expect(
-                stateVariables[await resolvePathToNodeIdx("fruit[1][1]")]
-                    .stateValues.value,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "fruit[1][1]",
+                    )
+                ).stateValues.value,
             ).eq(fruit);
             expect(
                 stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1410,12 +1502,22 @@ describe("Specifying single variant tests @group1", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let n =
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value;
-        let a =
-            stateVariables[await resolvePathToNodeIdx("a[1][1]")].stateValues
-                .value.tree;
+        let n = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n[1]",
+            )
+        ).stateValues.value;
+        let a = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "a[1][1]",
+            )
+        ).stateValues.value.tree;
 
         let doenetML2 =
             variantControl +
@@ -1433,12 +1535,24 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(n);
         expect(
-            stateVariables[await resolvePathToNodeIdx("a[1][1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "a[1][1]",
+                )
+            ).stateValues.value.tree,
         ).eq(a);
 
         let doenetML3 =
@@ -1454,26 +1568,56 @@ describe("Specifying single variant tests @group1", async () => {
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let n2 =
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value;
+        let n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n[1]",
+            )
+        ).stateValues.value;
         expect(n2).not.eq(n);
         n = n2;
-        a =
-            stateVariables[await resolvePathToNodeIdx("a[1][1]")].stateValues
-                .value.tree;
-        let w1 =
-            stateVariables[await resolvePathToNodeIdx("w[1]")].stateValues
-                .value;
-        let w2 =
-            stateVariables[await resolvePathToNodeIdx("w[2]")].stateValues
-                .value;
-        let w3 =
-            stateVariables[await resolvePathToNodeIdx("w[3]")].stateValues
-                .value;
-        let m =
-            stateVariables[await resolvePathToNodeIdx("m[1]")].stateValues
-                .value;
+        a = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "a[1][1]",
+            )
+        ).stateValues.value.tree;
+        let w1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "w[1]",
+            )
+        ).stateValues.value;
+        let w2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "w[2]",
+            )
+        ).stateValues.value;
+        let w3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "w[3]",
+            )
+        ).stateValues.value;
+        let m = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "m[1]",
+            )
+        ).stateValues.value;
 
         let doenetML4 =
             variantControl +
@@ -1493,28 +1637,64 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(n);
         expect(
-            stateVariables[await resolvePathToNodeIdx("a[1][1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "a[1][1]",
+                )
+            ).stateValues.value.tree,
         ).eq(a);
         expect(
-            stateVariables[await resolvePathToNodeIdx("w[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "w[1]",
+                )
+            ).stateValues.value,
         ).eq(w1);
         expect(
-            stateVariables[await resolvePathToNodeIdx("w[2]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "w[2]",
+                )
+            ).stateValues.value,
         ).eq(w2);
         expect(
-            stateVariables[await resolvePathToNodeIdx("w[3]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "w[3]",
+                )
+            ).stateValues.value,
         ).eq(w3);
         expect(
-            stateVariables[await resolvePathToNodeIdx("m[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "m[1]",
+                )
+            ).stateValues.value,
         ).eq(m);
     });
 
@@ -1543,8 +1723,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         values.push(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         );
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1589,8 +1775,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         values.push(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         );
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1637,8 +1829,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1682,8 +1880,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[1]);
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1729,8 +1933,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1778,8 +1988,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[1]);
 
         expect(
@@ -1833,8 +2049,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1885,8 +2107,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[1]);
 
         expect(
@@ -2014,5 +2242,158 @@ describe("Specifying single variant tests @group1", async () => {
             variantsFromProblem: true,
             documentAndProblemVariantsDiffer: true,
         });
+    });
+
+    it("a repeat inside an item of a shuffle keeps its values when loaded again with the variant it generated", async () => {
+        // A host loads a saved page again by passing back, as
+        // `requestedVariant`, the variant the page generated. The shuffle
+        // must record the variant of the repeat it hands that variant back
+        // to, not that of its copy of the repeat it shows, whose seed is not
+        // the one the repeat drew (Doenet/DoenetML#2346). With a repeat in
+        // each item, it must also record its items' variants in the order it
+        // hands them back (Doenet/DoenetML#2352).
+        const repeats = [
+            `<repeatForSequence from="1" to="2"><selectFromSequence from="1" to="1000"/></repeatForSequence>`,
+            `<repeat for="1 2"><selectFromSequence from="1" to="1000"/></repeat>`,
+            `<repeatForSequence from="1" to="2"><group><selectFromSequence from="1" to="1000"/></group></repeatForSequence>`,
+        ];
+
+        for (const repeat of repeats) {
+            for (const container of ["shuffle", "group"]) {
+                for (const otherItem of ["x", repeat]) {
+                    const doenetML = `<${container}><p>${repeat}</p><p>${otherItem}</p></${container}>`;
+                    for (
+                        let variantIndex = 1;
+                        variantIndex <= 3;
+                        variantIndex++
+                    ) {
+                        const first = await selectedValues(
+                            (
+                                await createTestCore({
+                                    doenetML,
+                                    requestedVariantIndex: variantIndex,
+                                })
+                            ).core,
+                        );
+
+                        // The iterations of one or two repeats, and, for a
+                        // shuffle, its copies.
+                        const numValues = otherItem === "x" ? 2 : 4;
+                        expect(first.values.length).eq(
+                            container === "shuffle" ? 2 * numValues : numValues,
+                        );
+
+                        // Load again with the generated variant, and then again
+                        // with the variant generated by that load.
+                        let generatedVariantInfo = first.generatedVariantInfo;
+                        for (let reload = 1; reload <= 2; reload++) {
+                            const again = await selectedValues(
+                                (
+                                    await createTestCore({
+                                        doenetML,
+                                        requestedVariant: generatedVariantInfo,
+                                    })
+                                ).core,
+                            );
+                            expect(again.values).eqls(first.values);
+                            generatedVariantInfo = again.generatedVariantInfo;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    it("an iteration added to a repeat after it is loaded again with the variant it generated draws the values it drew before", async () => {
+        // The repeat gets back the seed it drew, so an iteration added later
+        // draws the seed it drew on the first load, also in an item of a
+        // shuffle (Doenet/DoenetML#2346).
+        const repeats = [
+            `<repeatForSequence from="1" to="$mi"><selectFromSequence from="1" to="1000"/></repeatForSequence>`,
+            `<repeat for="$seq" valueName="v"><selectFromSequence from="1" to="1000"/></repeat>`,
+        ];
+
+        for (const repeat of repeats) {
+            for (const container of ["group", "shuffle"]) {
+                const doenetML = `<mathInput name="mi" prefill="2"/><sequence name="seq" to="$mi" hide/><${container}><p>${repeat}</p><p>x</p></${container}>`;
+                for (let variantIndex = 1; variantIndex <= 3; variantIndex++) {
+                    const {
+                        core: firstCore,
+                        resolvePathToNodeIdx: firstResolve,
+                    } = await createTestCore({
+                        doenetML,
+                        requestedVariantIndex: variantIndex,
+                    });
+                    const first = await selectedValues(firstCore);
+                    await updateMathInputValue({
+                        latex: "3",
+                        componentIdx: await firstResolve("mi"),
+                        core: firstCore,
+                    });
+                    const firstGrown = (await selectedValues(firstCore)).values;
+                    // For a shuffle, its copies too.
+                    expect(firstGrown.length).eq(
+                        container === "shuffle" ? 6 : 3,
+                    );
+
+                    const { core, resolvePathToNodeIdx } = await createTestCore(
+                        {
+                            doenetML,
+                            requestedVariant: first.generatedVariantInfo,
+                        },
+                    );
+                    expect((await selectedValues(core)).values).eqls(
+                        first.values,
+                    );
+                    await updateMathInputValue({
+                        latex: "3",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    expect((await selectedValues(core)).values).eqls(
+                        firstGrown,
+                    );
+                }
+            }
+        }
+    });
+
+    it("a repeat that recreates its iterations after it is loaded again with the variant it generated draws the values it drew before", async () => {
+        // When the repeat recreates its iterations (here, because the
+        // components it iterates over are replaced), they draw new values from
+        // the repeat's seed, the same ones they drew when recreated on the
+        // first load.
+        const doenetML = `<booleanInput name="b"/>
+        <conditionalContent name="cc"><case condition="$b"><number>3</number><number>4</number></case><else><number>1</number><number>2</number></else></conditionalContent>
+        <group><p><repeat for="$cc"><selectFromSequence from="1" to="1000"/></repeat></p></group>`;
+
+        for (let variantIndex = 1; variantIndex <= 3; variantIndex++) {
+            const { core: firstCore, resolvePathToNodeIdx: firstResolve } =
+                await createTestCore({
+                    doenetML,
+                    requestedVariantIndex: variantIndex,
+                });
+            const first = await selectedValues(firstCore);
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await firstResolve("b"),
+                core: firstCore,
+            });
+            const firstRecreated = (await selectedValues(firstCore)).values;
+            expect(firstRecreated.length).eq(2);
+            expect(firstRecreated).not.eqls(first.values);
+
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariant: first.generatedVariantInfo,
+            });
+            expect((await selectedValues(core)).values).eqls(first.values);
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            expect((await selectedValues(core)).values).eqls(firstRecreated);
+        }
     });
 });

@@ -56,6 +56,7 @@
             "command": "cd test/utils && vite build -c vite.dast-to-flat-dast.config.ts",
             "files": [
                 "src/**/*.ts",
+                "src/**/*.tsx",
                 "test/utils/dast-to-flat-dast.ts",
                 "test/utils/vite.dast-to-flat-dast.config.ts"
             ],
@@ -101,7 +102,8 @@
             "dependencies": [
                 "../doenetml-worker:build",
                 "../parser:build",
-                "../codemirror:build"
+                "../codemirror:build",
+                "../math:build"
             ]
         }
     },
@@ -113,6 +115,7 @@
         "tabWidth": 4
     },
     "dependencies": {
+        "math-expressions": "file:../math",
         "xast-util-from-xml": "^4.0.0"
     }
 }

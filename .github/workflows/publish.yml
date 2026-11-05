@@ -40,7 +40,8 @@ jobs:
             github.event.workflow_run.head_branch == 'main') ||
             (github.event_name == 'workflow_dispatch' && inputs.channel == 'dev')
         permissions:
-            actions: read
+            # `write` to start the purge workflow at the end.
+            actions: write
             id-token: write
             contents: read
         steps:
@@ -64,6 +65,11 @@ jobs:
               run: npm ci
 
             - name: Verify CI succeeded for target commit
+              # `verify-ci.mjs` now waits out a CI run that is still going
+              # rather than failing on it, under a 60-minute budget of its own.
+              # This is the backstop on that wait, so a hanging API read cannot
+              # hold the runner indefinitely.
+              timeout-minutes: 70
               env:
                   GITHUB_TOKEN: ${{ github.token }}
                   REPO: ${{ github.repository }}
@@ -88,14 +94,37 @@ jobs:
                   VITE_PREFIGURE_MODULE_URL: "https://cdn.jsdelivr.net/npm/@doenet/prefigure@latest/prefigure.js"
 
             - name: Publish dev release
+              id: publish-npm
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
               run: npm run publish -- --tag dev
               env:
                   WIREIT_CACHE: "local"
 
-            - name: Purge jsDelivr cache
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              run: bash .github/scripts/purge-jsdelivr.sh dev
+            # The purge itself runs in `purge-jsdelivr-dev.yml`, which this
+            # starts and does not wait for. It has to wait for npm to finish
+            # processing the publish before purging, and for
+            # @doenet/standalone that has taken well over an hour; see that file.
+            #
+            # Gated on the publish having *run*, not on it having succeeded:
+            # `npm run publish` is four independent workspace publishes and npm
+            # does not stop at the first one that fails, so a failed step tells
+            # you nothing about whether @doenet/standalone went out. Skipping
+            # the purge on that signal would leave `dev` on the CDN a release
+            # behind for 12 hours because some unrelated package failed. The
+            # registry wait in the purge is the real gate: it refuses to purge
+            # until npm serves this version under the tag.
+            - name: Start jsDelivr purge
+              if: >-
+                  !cancelled() &&
+                  (steps.publish-npm.outcome == 'success' ||
+                   steps.publish-npm.outcome == 'failure')
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  REF: ${{ github.ref_name }}
+              run: |
+                  VERSION="$(node -p "require('./packages/standalone/package.json').version")"
+                  gh workflow run purge-jsdelivr-dev.yml --ref "${REF}" -f version="${VERSION}"
+                  echo "Started purge-jsdelivr-dev.yml on ${REF} for @doenet/standalone@${VERSION}."
 
     # VS Code extension pre-releases are *not* published here.  Publishing one
     # per successful CI run on main meant a Marketplace release per merge, most
@@ -137,6 +166,11 @@ jobs:
               run: npm ci
 
             - name: Verify CI succeeded for target commit
+              # `verify-ci.mjs` now waits out a CI run that is still going
+              # rather than failing on it, under a 60-minute budget of its own.
+              # This is the backstop on that wait, so a hanging API read cannot
+              # hold the runner indefinitely.
+              timeout-minutes: 70
               env:
                   GITHUB_TOKEN: ${{ github.token }}
                   REPO: ${{ github.repository }}
@@ -186,14 +220,11 @@ jobs:
                   WIREIT_CACHE: "local"
 
             - name: Publish production release
+              id: publish-npm
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
               run: npm run publish
               env:
                   WIREIT_CACHE: "local"
-
-            - name: Purge jsDelivr cache
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              run: bash .github/scripts/purge-jsdelivr.sh latest
 
             - name: Publish VS Code extension
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
@@ -216,3 +247,79 @@ jobs:
                   npm run publish:openvsx -w @doenet/vscode-extension
               env:
                   OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+            # Last, and deliberately so. The purge waits for npm to finish
+            # processing the publish and then for jsDelivr to fetch it before it
+            # fires, which takes minutes rather than seconds (see
+            # `jsdelivr-purge-lib.sh`), and it now fails the job when the tag
+            # will not move. Neither should stand between a
+            # published npm release and the extension registries: those do not
+            # depend on the CDN, and a purge that has to be re-run should not
+            # take the Marketplace publish with it.
+            #
+            # The condition is what keeps that from cutting the other way. Being
+            # last, this step would otherwise be skipped whenever a step above
+            # failed — leaving `latest` on the CDN a release behind for 12 hours
+            # because an extension registry was down. `!cancelled()` runs it
+            # anyway, and it is tied to the npm publish instead.
+            #
+            # Tied to that step having *run*, though, not to it having
+            # succeeded. `npm run publish` is four independent workspace
+            # publishes and npm does not stop at the first one that fails, so a
+            # failed step is equally consistent with @doenet/standalone — the
+            # only package this purges — having published fine while
+            # `v06-to-v07` did not. Naming the two outcomes the step can have
+            # when it ran leaves out the case that genuinely has nothing to
+            # purge: the dry run, where it does not run at all. Whether
+            # standalone did publish is then decided where it can be — by the
+            # registry wait inside the script, which refuses to purge until npm
+            # serves this version under the tag, and fails the step if it never
+            # does.
+            #
+            # `timeout-minutes` is the backstop on the script's own waiting —
+            # 20 minutes of registry wait, 15 of CDN wait and roughly 8 of
+            # sleeps between purge retries, which is now spent once per
+            # floating URL rather than once in total. That is about 52 minutes
+            # of waiting in the worst case, which no longer fits under 50, so
+            # the backstop is 60: a wedged request still cannot hold the
+            # runner, and a slow-but-succeeding second purge is not cut off
+            # partway by the backstop meant for a wedged one.
+            #
+            # Two floating URLs move on a production release, not one. `latest`
+            # is the dist-tag; the line range is what a host pins when it sets
+            # `doenetmlVersion="0.7"`, which jsDelivr resolves as an npm semver
+            # range and caches for 12 hours like any other floating URL. It has
+            # never been purged, so those hosts have been served the previous
+            # release for up to half a day after each one. The line is derived
+            # from the release rather than written down, so it follows the
+            # version without anyone having to remember to change it.
+            - name: Purge jsDelivr cache
+              if: >-
+                  !cancelled() &&
+                  (steps.publish-npm.outcome == 'success' ||
+                   steps.publish-npm.outcome == 'failure')
+              timeout-minutes: 60
+              env:
+                  RELEASE_VERSION: ${{ steps.release-tag.outputs.version }}
+              run: |
+                  # No line range tracks a prerelease: `@0.7` is the npm range
+                  # `>=0.7.0 <0.8.0`, and a semver range never matches a
+                  # version with a prerelease part, so `0.8.0-beta1` is served
+                  # by no range URL and has nothing cached under one. Asking
+                  # for it anyway would verify the range against a version it
+                  # cannot serve and fail a release that is perfectly fine, so
+                  # a prerelease gets the dist-tag alone — the same reason the
+                  # dev channel passes no extra spec.
+                  #
+                  # Build metadata is stripped before looking for the `-`, so
+                  # that the test means "has a prerelease part" and not "has a
+                  # hyphen": `1.0.0+build-1` carries one inside its `+` suffix
+                  # and is a plain release that `1.0` does serve.
+                  if [[ "${RELEASE_VERSION%%+*}" == *-* ]]; then
+                      echo "${RELEASE_VERSION} is a prerelease; no line range resolves to it. Purging the 'latest' dist-tag only."
+                      bash .github/scripts/purge-jsdelivr.sh latest
+                  else
+                      LINE="$(echo "${RELEASE_VERSION}" | cut -d. -f1,2)"
+                      echo "Purging the 'latest' dist-tag and the '${LINE}' line range."
+                      bash .github/scripts/purge-jsdelivr.sh latest "" "${LINE}"
+                  fi

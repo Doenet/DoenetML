@@ -1,5 +1,5 @@
 import { escapeXml, formatNumber, formatPoint } from "../common";
-import { labelMarkup } from "../label";
+import { labelMarkup, THEME_AWARE_LABEL_COLOR_ATTR } from "../label";
 import { styleAttributes } from "../style";
 import type { ConverterArgs, Point } from "../types";
 
@@ -169,6 +169,6 @@ export function convertAngleToPrefigure({
         return arcXml;
     }
 
-    const labelXml = `<label anchor="${escapeXml(labelAnchorText)}">${label}</label>`;
+    const labelXml = `<label anchor="${escapeXml(labelAnchorText)}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${label}</label>`;
     return `${arcXml}${labelXml}`;
 }

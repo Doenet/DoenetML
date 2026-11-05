@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 
 <!--********************************************************************
-Copyright 2022 Robert A. Beezer
+Copyright (C) 2022-2026  Robert A. Beezer
 
 This file is part of PreTeXt.
 
@@ -323,6 +323,207 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
   </xsl:call-template>
 </xsl:variable>
 
+
+<!--========================================================================-->
+<!-- test file-extension -->
+<xsl:variable name="file-extension-bare">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="file-extension">
+      <xsl:with-param name="filename" select="'movie.mp4'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="'mp4'"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'file-extension-bare'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="file-extension-none">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="file-extension">
+      <xsl:with-param name="filename" select="'movie'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="''"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'file-extension-none'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="file-extension-uppercase">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="file-extension">
+      <xsl:with-param name="filename" select="'MOVIE.MP4'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="'mp4'"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'file-extension-uppercase'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="file-extension-relative-path">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="file-extension">
+      <xsl:with-param name="filename" select="'video/movie.webm'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="'webm'"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'file-extension-relative-path'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="file-extension-relative-none">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="file-extension">
+      <xsl:with-param name="filename" select="'video/ups-visitor-guide-360'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="''"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'file-extension-relative-none'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="file-extension-query-string">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="file-extension">
+      <xsl:with-param name="filename" select="'movie.mp4?start=16'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="'mp4'"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'file-extension-query-string'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="file-extension-url">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="file-extension">
+      <xsl:with-param name="filename" select="'https://media.w3.org/2010/05/sintel/trailer.mp4'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="'mp4'"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'file-extension-url'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="file-extension-url-none">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="file-extension">
+      <xsl:with-param name="filename" select="'https://media.w3.org/2010/05/sintel/trailer'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="''"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'file-extension-url-none'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="file-extension-url-dotted-directory">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="file-extension">
+      <xsl:with-param name="filename" select="'https://example.org/v1.2/movie.webm'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="'webm'"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'file-extension-url-dotted-directory'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<!--========================================================================-->
+<!-- test css-string-escape -->
+<xsl:variable name="css-string-escape-plain">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="css-string-escape">
+      <xsl:with-param name="text" select="'(a)'"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="'(a)'"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'css-string-escape-plain'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="css-string-escape-empty">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="css-string-escape">
+      <xsl:with-param name="text" select="''"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected" select="''"/>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'css-string-escape-empty'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="css-string-escape-apostrophe">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="css-string-escape">
+      <xsl:with-param name="text">don't</xsl:with-param>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected">don\'t</xsl:with-param>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'css-string-escape-apostrophe'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="css-string-escape-backslash">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="css-string-escape">
+      <xsl:with-param name="text">a\b</xsl:with-param>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected">a\\b</xsl:with-param>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'css-string-escape-backslash'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<!-- less-than becomes its code point with a delimiting space, so -->
+<!-- escaped text can never close an enclosing "style" element    -->
+<xsl:variable name="css-string-escape-less-than">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="css-string-escape">
+      <xsl:with-param name="text">a&lt;b</xsl:with-param>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected">a\3c b</xsl:with-param>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'css-string-escape-less-than'"/>
+  </xsl:call-template>
+</xsl:variable>
+
+<xsl:variable name="css-string-escape-hostile">
+  <xsl:variable name="test-val">
+    <xsl:call-template name="css-string-escape">
+      <xsl:with-param name="text">'a\&lt;/style></xsl:with-param>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:call-template name="assert-equal">
+    <xsl:with-param name="expected">\'a\\\3c /style></xsl:with-param>
+    <xsl:with-param name="actual" select="$test-val"/>
+    <xsl:with-param name="test-name" select="'css-string-escape-hostile'"/>
+  </xsl:call-template>
+</xsl:variable>
 
 <!--========================================================================-->
 

@@ -176,6 +176,12 @@ type EditorViewerProps = {
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
+    /**
+     * Forwarded to the embedded `DocViewer` (#1709): the failure
+     * counterpart of its initialization signal, so a host that schedules
+     * this editor's boot can free the slot when the core cannot start.
+     */
+    coreStartFailedCallback?: Function;
     diagnosticsSummaryCallback?: (
         diagnosticsSummary: DiagnosticsSummary,
         doenetML: string,
@@ -269,6 +275,7 @@ export const EditorViewer = React.forwardRef<
         doenetmlChangeCallback,
         immediateDoenetmlChangeCallback,
         documentStructureCallback,
+        coreStartFailedCallback,
         diagnosticsSummaryCallback,
         id: specifiedId,
         readOnly = false,
@@ -1405,6 +1412,7 @@ export const EditorViewer = React.forwardRef<
                     documentStructureCallback={
                         documentStructureThenChangeCallback
                     }
+                    coreStartFailedCallback={coreStartFailedCallback}
                     doenetViewerUrl={doenetViewerUrl}
                     doenetImagesUrl={doenetImagesUrl}
                     darkMode={darkMode}

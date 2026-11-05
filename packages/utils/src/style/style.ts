@@ -10,6 +10,7 @@ import {
     setStyleValue,
     unwrapStyleDefinition,
     type RawStyleDefinition,
+    type ResolvedStyleDefinition,
     type StyleAttributes,
     type StyleDefinition,
     type StyleDefinitionKey,
@@ -1536,6 +1537,81 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
 }
 
 /**
+ * The `<styleDefinition>` a `styleNumber` names, still wrapped: each value
+ * carries the source position it was written at.
+ *
+ * Wrapped rather than resolved because `selectedStyle` below merges the host
+ * component's own style attributes on top of it, and that merge is written
+ * against those positions. `selectStyleForStyleNumber` is the same lookup with
+ * them dropped, for a caller that only wants the style.
+ *
+ * `ancestorWithStyle` is the dependency value as the core supplies it, which is
+ * absent on a component with no styling ancestor — hence the default
+ * definitions and the optional chaining.
+ */
+function styleDefinitionForStyleNumber({
+    styleNumber,
+    ancestorWithStyle,
+}: {
+    styleNumber: number;
+    ancestorWithStyle: any;
+}): StyleDefinition {
+    const styleDefinitions =
+        ancestorWithStyle?.stateValues?.styleDefinitions ??
+        returnDefaultStyleDefinitions();
+
+    let selectedStyle = styleDefinitions[styleNumber];
+
+    if (selectedStyle === undefined) {
+        // With a palette active, out-of-range style numbers cycle
+        // through the palette instead of falling back to the
+        // generic default style. A reader-selected palette (which
+        // replaced the merged map wholesale) takes precedence over
+        // the authored selection for the cycle size — essential
+        // when a reader picks a smaller palette like `grayscale`.
+        const effectivePaletteName =
+            resolveReaderPaletteName(
+                ancestorWithStyle?.stateValues?.readerStyleOverrides,
+            ) ?? ancestorWithStyle?.stateValues?.activeStylePaletteName;
+        if (effectivePaletteName != null) {
+            selectedStyle =
+                styleDefinitions[
+                    cycleStyleNumberForPalette(
+                        styleNumber,
+                        effectivePaletteName,
+                    )
+                ];
+        }
+    }
+
+    if (selectedStyle === undefined) {
+        selectedStyle = cloneDefaultStyleWithMissingColorWords();
+    }
+
+    return selectedStyle;
+}
+
+/**
+ * The resolved style a `styleNumber` names — the same shape the `selectedStyle`
+ * state variable holds, with every supported key present and the source
+ * positions dropped.
+ *
+ * For a component that needs a *run* of styles rather than the one its own
+ * `styleNumber` names: a pie chart's slices are what a reader tells apart, so
+ * they take one style each. Sharing the lookup with `selectedStyle` is what
+ * keeps a style number meaning the same thing wherever it is read, including
+ * the palette cycling an out-of-range number goes through.
+ */
+export function selectStyleForStyleNumber(options: {
+    styleNumber: number;
+    ancestorWithStyle: any;
+}): ResolvedStyleDefinition {
+    return resolveStyleDefinition(
+        unwrapStyleDefinition(styleDefinitionForStyleNumber(options)),
+    );
+}
+
+/**
  * State-variable definition that resolves the currently selected style object.
  *
  * When `overrideAttributeNames` is supplied, the returned `selectedStyle` also
@@ -1595,44 +1671,10 @@ export function returnSelectedStyleStateVariableDefinition(
             }: {
                 dependencyValues: any;
             }) {
-                let styleDefinitions =
-                    dependencyValues.ancestorWithStyle.stateValues
-                        .styleDefinitions;
-                if (!styleDefinitions) {
-                    styleDefinitions = returnDefaultStyleDefinitions();
-                }
-
-                let selectedStyle =
-                    styleDefinitions[dependencyValues.styleNumber];
-
-                if (selectedStyle === undefined) {
-                    // With a palette active, out-of-range style numbers cycle
-                    // through the palette instead of falling back to the
-                    // generic default style. A reader-selected palette (which
-                    // replaced the merged map wholesale) takes precedence over
-                    // the authored selection for the cycle size — essential
-                    // when a reader picks a smaller palette like `grayscale`.
-                    const effectivePaletteName =
-                        resolveReaderPaletteName(
-                            dependencyValues.ancestorWithStyle?.stateValues
-                                .readerStyleOverrides,
-                        ) ??
-                        dependencyValues.ancestorWithStyle?.stateValues
-                            .activeStylePaletteName;
-                    if (effectivePaletteName != null) {
-                        selectedStyle =
-                            styleDefinitions[
-                                cycleStyleNumberForPalette(
-                                    dependencyValues.styleNumber,
-                                    effectivePaletteName,
-                                )
-                            ];
-                    }
-                }
-
-                if (selectedStyle === undefined) {
-                    selectedStyle = cloneDefaultStyleWithMissingColorWords();
-                }
+                let selectedStyle = styleDefinitionForStyleNumber({
+                    styleNumber: dependencyValues.styleNumber,
+                    ancestorWithStyle: dependencyValues.ancestorWithStyle,
+                });
 
                 if (overrideAttributeNames.length > 0) {
                     const overrideStyleDef: StyleDefinition = {};

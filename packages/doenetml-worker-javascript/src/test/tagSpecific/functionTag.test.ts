@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import {
+    createTestCore as createTestCoreWithoutListEntries,
+    ResolvePathToNodeIdx,
+} from "../utils/test-core";
+import { withListEntriesAsComponents } from "../utils/list-entries";
+import { componentOrListEntry } from "../utils/list-entries";
 import { cleanLatex } from "../utils/math";
 import {
     movePoint,
@@ -14,6 +19,16 @@ import { getDiagnosticsByType } from "../utils/diagnostics";
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+// The entries of point and vector lists, which are not components, are read
+// and dragged here as components (`vs[2]`), as they were written for.
+async function createTestCore(
+    ...args: Parameters<typeof createTestCoreWithoutListEntries>
+) {
+    return withListEntriesAsComponents(
+        await createTestCoreWithoutListEntries(...args),
+    );
+}
 
 function constantFromAst(tree) {
     //@ts-ignore
@@ -3082,9 +3097,23 @@ describe("Function tag tests @group4", async () => {
         // values of extrema computed in Sage
         let minimumLocations = [-2.29152990292159];
 
-        // XXX: this is a spurious minimum that is now being picked up due to numerical issues.
-        // See issue #940
-        minimumLocations.push(4.999999948194912);
+        // Issue #940 — the spurious minimum at 4.999999948194912, an artifact
+        // of bracketing next to the double pole at x = 5 — is gone. A pole is
+        // now recognized as such: `critical_points` gives the *complete* real
+        // root set of f' for a rational derivative, so a cell that brackets a
+        // sign change while holding none of those roots is a pole, and
+        // `utils/extrema.js` declines to refine into it.
+        //
+        // That is independent of where the grid falls, which the earlier
+        // NaN-at-the-sample explanation was not: the default domain is
+        // [-100, 100] over 1000 intervals, so `dx = 0.2` and `-100 + 525·0.2`
+        // is bit-exactly 5 — the sample landed *on* the pole and read `NaN`,
+        // and that alone was what suppressed the extremum. The off-grid case is
+        // the next test.
+        //
+        // Seeding from `critical_points` is what keeps the four real extrema
+        // exact: -11.66601734921, -2.29152990292, 3.18454272065,
+        // 9.77300453148, the Sage values below and nothing near 5.
         let minima = minimumLocations.map((x) => [x, f(x)]);
         let maximumLocations = [
             -11.6660173492088, 3.18454272065031, 9.77300453148004,
@@ -3101,6 +3130,138 @@ describe("Function tag tests @group4", async () => {
             globalinfSmallerThan: -1e5,
             haveGlobalMin: true,
         });
+    });
+
+    it("extrema of rational function with a pole between grid samples", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f">
+      (x+8)(x-8)/((x-2)(x+4)(x-5.1)^2)
+    </function>
+    <function name="g">
+      -(x+8)(x-8)/((x-2)(x+4)(x-5.1)^2)
+    </function>
+    `,
+        });
+
+        let f =
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
+                .numericalf.value;
+
+        // The same shape as the test above with the double pole moved to 5.1,
+        // which is *not* a grid point: on the default [-100, 100] over 1000
+        // intervals every sample near it is finite, the two straddling cells
+        // each see f' flip sign, and `fzero` used to refine into the pole and
+        // report a minimum at 5.100000624836199. Recognizing the pole from the
+        // exact root set removes it here too, which is the general property —
+        // the on-grid test above cannot distinguish it from the accident of a
+        // sample landing on the pole.
+        //
+        // Locations from `critical_points` (checked against a sign scan of f'):
+        let minimumLocations = [-2.28205595296559];
+        let minima = minimumLocations.map((x) => [x, f(x)]);
+        let maximumLocations = [
+            -11.681167550861327, 3.2319992003041587, 9.731224303522758,
+        ];
+        let maxima = maximumLocations.map((x) => [x, f(x)]);
+
+        await check_extrema({
+            core,
+            resolvePathToNodeIdx,
+            maxima,
+            minima,
+            globalsupLargerThan: 1e5,
+            haveGlobalMax: true,
+            globalinfSmallerThan: -1e5,
+            haveGlobalMin: true,
+        });
+
+        // `check_extrema`'s 1e-3 tolerance cannot tell an exact root from a
+        // refined one, so pin that half separately: these locations come
+        // straight from `critical_points`, not from `fzero`.
+        let fState = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("f")
+        ].stateValues;
+        expect(fState.minima[0][0]).closeTo(minimumLocations[0], 1e-12);
+        for (let [i, loc] of maximumLocations.entries()) {
+            expect(fState.maxima[i][0]).closeTo(loc, 1e-12);
+        }
+
+        // `-f` must be the mirror image, and it exercises a second seam: the
+        // maximum hunt is the minimum hunt on a negated formula, and negating
+        // by rebuilding from `.tree` sent `5.1` through an f64, which made
+        // `critical_points` decline and put the pole rejection out of reach on
+        // that side only. That reported a spurious *maximum* at
+        // 5.100000370673212.
+        let g =
+            await core.core!.components![await resolvePathToNodeIdx("g")].state
+                .numericalf.value;
+        await check_extrema({
+            core,
+            resolvePathToNodeIdx,
+            fName: "g",
+            maxima: minimumLocations.map((x) => [x, g(x)]),
+            minima: maximumLocations.map((x) => [x, g(x)]),
+            globalsupLargerThan: 1e5,
+            haveGlobalMax: true,
+            globalinfSmallerThan: -1e5,
+            haveGlobalMin: true,
+        });
+    });
+
+    it("extrema of rational function with a root and a pole in one grid cell", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f">
+      (x-5)^2/(x-5.1)^2
+    </function>
+    <function name="g">
+      -(x-5)^2/(x-5.1)^2
+    </function>
+    `,
+        });
+
+        // The pole test above asks whether *the cell* holds one of the exact
+        // roots of f'. That is not enough on its own, and this is the shape it
+        // misses: the only root of f' in [-100, 100] is 5, which sits on the
+        // left edge of the cell [5.0, 5.2] — and the pole at 5.1 is in the same
+        // cell. The cell test is satisfied there, so `fminbr` still descended
+        // into the pole and reported a maximum of 3.01e10 at 5.100000576002722.
+        //
+        // Asking the question of the converged *point* instead closes it: a
+        // reported minimum has to be at one of the known roots, within
+        // `fminbr`'s own convergence width. Which leaves the genuine double
+        // root at 5, exactly.
+        let f =
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
+                .numericalf.value;
+
+        await check_extrema({
+            core,
+            resolvePathToNodeIdx,
+            minima: [[5, f(5)]],
+            maxima: [],
+            globalsupLargerThan: 1e5,
+            haveGlobalMax: true,
+            globalinf: 0,
+            haveGlobalMin: true,
+            globalinfLocation: 5,
+        });
+
+        let fState = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("f")
+        ].stateValues;
+        expect(fState.minima.length).eq(1);
+        expect(fState.minima[0][0]).closeTo(5, 1e-12);
+        expect(fState.maxima.length).eq(0);
+
+        // …and the mirror image, so the negated path is covered too.
+        let gState = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("g")
+        ].stateValues;
+        expect(gState.maxima.length).eq(1);
+        expect(gState.maxima[0][0]).closeTo(5, 1e-12);
+        expect(gState.minima.length).eq(0);
     });
 
     it("intervals of extrema are not counted", async () => {
@@ -3600,7 +3761,7 @@ describe("Function tag tests @group4", async () => {
 
     it("extrema at domain endpoints, function from formula, unlinked copy", async () => {
         // Note: checking to see if rounding attributes are properly copied
-        // for wrapped array state variables when link="false"
+        // for wrapped array state variables of an unlinked copy
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" domain="(-pi,2pi)" displayDecimals="5" displaySmallAsZero="10^(-6)">cos(x)</function>
@@ -3644,7 +3805,7 @@ describe("Function tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(pName)].stateValues
                     .text,
-            ).eq(`( 0, 1 ), ( ${piString}, -1 )`);
+            ).eq(`(0, 1), (${piString}, -1)`);
         }
 
         for (const pName of [
@@ -3662,7 +3823,7 @@ describe("Function tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx(pName)].stateValues
                     .text,
             ).eq(
-                `( -${piString}, 0 ), ( 0, 2 ), ( ${piString}, 0 ), ( ${twoPiString}, 2 )`,
+                `(-${piString}, 0), (0, 2), (${piString}, 0), (${twoPiString}, 2)`,
             );
         }
     });
@@ -5399,31 +5560,33 @@ describe("Function tag tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing1")].stateValues
                 .text,
-        ).eq("g1 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g1 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing2")].stateValues
                 .text,
-        ).eq("g2 domain: ( 3, 4 ), ( 5, 6 )");
+        ).eq("g2 domain: (3, 4), (5, 6)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing3")].stateValues
                 .text,
-        ).eq("g3 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g3 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing4")].stateValues
                 .text,
-        ).eq("g4 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g4 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing5")].stateValues
                 .text,
-        ).eq("g5 domain: ( 3, 4 ), ( 5, 6 )");
+        ).eq("g5 domain: (3, 4), (5, 6)");
 
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(7);
 
+        // The domain written as `(` is reported by the list it makes, as it
+        // reads it, before the function finds it has no interval.
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
+            `Invalid format for attribute domain of \`<function>\``,
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(25);
@@ -5431,52 +5594,52 @@ describe("Function tag tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(35);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            `Invalid format for domain for function`,
-        );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(4);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(4);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(41);
-
-        expect(diagnosticsByType.warnings[2].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
-        expect(diagnosticsByType.warnings[2].position.start.line).eq(5);
-        expect(diagnosticsByType.warnings[2].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[2].position.end.line).eq(5);
-        expect(diagnosticsByType.warnings[2].position.end.column).eq(34);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(35);
 
-        expect(diagnosticsByType.warnings[3].message).contain(
-            `Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.`,
-        );
-        expect(diagnosticsByType.warnings[3].position.start.line).eq(14);
-        expect(diagnosticsByType.warnings[3].position.start.column).eq(39);
-        expect(diagnosticsByType.warnings[3].position.end.line).eq(14);
-        expect(diagnosticsByType.warnings[3].position.end.column).eq(53);
-
-        expect(diagnosticsByType.warnings[4].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             `Invalid format for domain for function`,
         );
-        expect(diagnosticsByType.warnings[4].position.start.line).eq(16);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(41);
+
+        expect(diagnosticsByType.warnings[3].message).contain(
+            `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
+        );
+        expect(diagnosticsByType.warnings[3].position.start.line).eq(5);
+        expect(diagnosticsByType.warnings[3].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[3].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[3].position.end.column).eq(34);
+
+        expect(diagnosticsByType.warnings[4].message).contain(
+            `Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.`,
+        );
+        expect(diagnosticsByType.warnings[4].position.start.line).eq(14);
         expect(diagnosticsByType.warnings[4].position.start.column).eq(39);
-        expect(diagnosticsByType.warnings[4].position.end.line).eq(16);
-        expect(diagnosticsByType.warnings[4].position.end.column).eq(61);
+        expect(diagnosticsByType.warnings[4].position.end.line).eq(14);
+        expect(diagnosticsByType.warnings[4].position.end.column).eq(53);
 
         expect(diagnosticsByType.warnings[5].message).contain(
-            `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 2 inputs.`,
+            `Invalid format for domain for function`,
         );
-        expect(diagnosticsByType.warnings[5].position.start.line).eq(17);
+        expect(diagnosticsByType.warnings[5].position.start.line).eq(16);
         expect(diagnosticsByType.warnings[5].position.start.column).eq(39);
-        expect(diagnosticsByType.warnings[5].position.end.line).eq(17);
-        expect(diagnosticsByType.warnings[5].position.end.column).eq(48);
+        expect(diagnosticsByType.warnings[5].position.end.line).eq(16);
+        expect(diagnosticsByType.warnings[5].position.end.column).eq(61);
 
         expect(diagnosticsByType.warnings[6].message).contain(
-            `Invalid format for attribute domain of \`<function>\``,
+            `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 2 inputs.`,
         );
-        expect(diagnosticsByType.warnings[6].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[6].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[6].position.end.line).eq(3);
-        expect(diagnosticsByType.warnings[6].position.end.column).eq(35);
+        expect(diagnosticsByType.warnings[6].position.start.line).eq(17);
+        expect(diagnosticsByType.warnings[6].position.start.column).eq(39);
+        expect(diagnosticsByType.warnings[6].position.end.line).eq(17);
+        expect(diagnosticsByType.warnings[6].position.end.column).eq(48);
     });
 
     it("copy function and overwrite numInputs", async () => {
@@ -5657,58 +5820,112 @@ describe("Function tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("8");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-4");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("9");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("4");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mn1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mn1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mx1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mx1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ex1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ex1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
 
@@ -5741,58 +5958,112 @@ describe("Function tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mn1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mn1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mx1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mx1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ex1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ex1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
     }
@@ -7429,5 +7700,292 @@ describe("Function tag tests @group4", async () => {
         expect(f1Latex).match(/10\^{-12}|10\^{21}|10\^21/);
         expect(f2Latex).contain("0.000000000007");
         expect(f2Latex).contain("2000000000000000000000");
+    });
+
+    it("radical functions evaluate numerically, including at negative inputs", async () => {
+        // `numericalfs` is the plotting and extremum-finding path, and it is
+        // not the path a `<number>$$f(-8)</number>` takes — that one
+        // substitutes and evaluates symbolically, and answered correctly even
+        // while this one did not. `nthroot` reached the engine's compiled
+        // evaluator under a name math.js does not have, which is not a compile
+        // error: it threw on every sample, so a `<function>` written that way
+        // drew nothing at all, at any input. Fixed in the engine
+        // (`functionConversions` in `tree-to-mathjs.ts`); asserted here because
+        // this is the surface an author sees.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="fnth">nthroot(x,3)</function>
+  <function name="fcbrt">cbrt(x)</function>
+  <function name="fsqrt">nthroot(x,2)</function>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const numericalf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .numericalfs[0];
+
+        const fnth = await numericalf("fnth");
+        const fcbrt = await numericalf("fcbrt");
+        const fsqrt = await numericalf("fsqrt");
+
+        expect(fnth(8)).eq(2);
+        expect(fsqrt(9)).eq(3);
+        expect(fcbrt(8)).eq(2);
+
+        // Odd roots of negatives read on the real branch here too, so the
+        // curve continues through the origin instead of stopping at it.
+        expect(fnth(-8)).eq(-2);
+        expect(fcbrt(-8)).eq(-2);
+
+        // An even root of a negative has no real value: a gap in the plot,
+        // spelled `NaN`. Not `null` and not a complex object — a consumer that
+        // does arithmetic on the result would turn the first into 0.
+        expect(fsqrt(-9)).to.be.NaN;
+    });
+
+    it("global extremum entries have no keys when there is no such extremum", async () => {
+        // A global extremum array has size [2] (location, value) when the
+        // extremum exists and [0] when it doesn't, and its location and
+        // value entries must not ask for keys outside that size
+        // (Doenet/DoenetML#2266).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="ai" prefill="1" />
+<function name="f">$ai x^2</function>
+<p name="p">$f.globalMinimumLocation, $f.globalMinimumValue, $f.globalMaximumLocation, $f.globalMaximumValue</p>
+<p name="p2">$f.globalInfimumLocation, $f.globalInfimumValue, $f.globalSupremumLocation, $f.globalSupremumValue</p>
+`,
+        });
+        const components = core.core!.components!;
+        const p = components[await resolvePathToNodeIdx("p")];
+        const p2 = components[await resolvePathToNodeIdx("p2")];
+        const f = components[await resolvePathToNodeIdx("f")];
+
+        async function check(text: string) {
+            expect(await p.stateValues.text).toBe(text);
+            await p2.stateValues.text;
+            for (const extremum of [
+                "Minimum",
+                "Maximum",
+                "Infimum",
+                "Supremum",
+            ]) {
+                const exists =
+                    (await f.state[`global${extremum}`].arraySize)[0] > 0;
+                expect(
+                    await f.state[`global${extremum}Location`].arrayKeys,
+                ).toEqual(exists ? ["0"] : []);
+                expect(
+                    await f.state[`global${extremum}Value`].arrayKeys,
+                ).toEqual(exists ? ["1"] : []);
+            }
+        }
+
+        await check("0, 0, , ");
+        const aiIdx = await resolvePathToNodeIdx("ai");
+        await updateMathInputValue({ latex: "-1", componentIdx: aiIdx, core });
+        await check(", , 0, 0");
+        await updateMathInputValue({ latex: "2", componentIdx: aiIdx, core });
+        await check("0, 0, , ");
+    });
+
+    it("domain from a function child has one interval per input", async () => {
+        // A function's domain from its function child is taken at its own
+        // inputs, not copied whole, as the child can have more or fewer
+        // inputs (Doenet/DoenetML#2266).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<function name="f" variables="x y z" domain="(0,1) (0,2) (0,3)">x+y+z</function>
+<function name="g" numInputs="2">$f</function>
+<function name="h" variables="x y z w">$f</function>
+<piecewiseFunction name="pw"><function domain="(s,t)">x^2</function></piecewiseFunction>
+<function name="k">$pw</function>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function domainOf(name: string) {
+            return stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.domain.map((interval: any) => interval.tree);
+        }
+        const interval = (a: number, b: number) => [
+            "interval",
+            ["tuple", a, b],
+            ["tuple", false, false],
+        ];
+
+        expect(await domainOf("f")).eqls([
+            interval(0, 1),
+            interval(0, 2),
+            interval(0, 3),
+        ]);
+        expect(await domainOf("g")).eqls([interval(0, 1), interval(0, 2)]);
+        expect(await domainOf("h")).eqls([
+            interval(0, 1),
+            interval(0, 2),
+            interval(0, 3),
+            interval(-Infinity, Infinity),
+        ]);
+        // A piecewise function whose pieces have symbolic bounds has a null
+        // domain, so its input gets the unrestricted domain.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pw")].stateValues.domain,
+        ).eq(null);
+        expect(await domainOf("k")).eqls([interval(-Infinity, Infinity)]);
+    });
+
+    it("inputs beyond a function child's get default variables", async () => {
+        // A function given more inputs than its function child used to have
+        // undefined variables for the extra inputs, so the document failed
+        // to load (Doenet/DoenetML#2382). They now get default names that
+        // differ from the child's variables.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<function name="f">x^2</function>
+<function name="g" numInputs="2">$f</function>
+<function name="f3" variables="x y z">x+y+z</function>
+<function name="g3" numInputs="4">$f3</function>
+<function name="fy" variable="y">y^2</function>
+<function name="gy" numInputs="2">$fy</function>
+<p name="p">$$g(3,5), $$g3(1,2,3,4), $$gy(3,5)</p>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function variablesOf(name: string) {
+            return stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.variables.map((v: any) => v.tree);
+        }
+
+        expect(await variablesOf("g")).eqls(["x", "y"]);
+        expect(await variablesOf("g3")).eqls(["x", "y", "z", ["_", "x", 4]]);
+        expect(await variablesOf("gy")).eqls(["y", ["_", "x", 2]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("9, 6, 9");
+    });
+
+    it("graph a function whose child is a piecewise function with symbolic bounds", async () => {
+        // The function's domain used to be undefined, and a curve graphing
+        // it read the endpoints of that undefined interval, so the document
+        // failed to load. Its domain is now unrestricted, so it is graphed
+        // across the graph, as a function with no domain is.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<piecewiseFunction name="pw"><function domain="(s,t)">x^2</function></piecewiseFunction>
+<graph>
+  <function name="k">$pw</function>
+  <curve name="c"><function>$pw</function></curve>
+</graph>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const c = stateVariables[await resolvePathToNodeIdx("c")].stateValues;
+        expect(c.parMin).eq(-12);
+        expect(c.parMax).eq(12);
+    });
+
+    describe("a formula with no symbolic derivative", () => {
+        // #1876. `<function>`'s sugar wraps every non-label child into one
+        // `<math>`, so a math child beside a child that expands to several
+        // values gives a formula math-expressions cannot differentiate. The
+        // extrema code took the derivative outside the `try` that was already
+        // there for exactly this, so "Operator tuple not implemented for
+        // conversion to mathjs" escaped and the document did not render at all.
+
+        async function build(doenetML: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return { stateVariables, resolvePathToNodeIdx };
+        }
+
+        it("builds a function whose formula cannot be differentiated", async () => {
+            // Every spelling that routes several values through a single
+            // child. Writing the same values out one at a time never did this.
+            for (const secondChild of [
+                `<numberList>3 1 2</numberList>`,
+                `<mathList>3 1 2</mathList>`,
+                `<sequence to="3" />`,
+                `<sort>3 1 2</sort>`,
+                `<shuffle>1 2 3</shuffle>`,
+                `<repeat for="1 2" valueName="v">$v</repeat>`,
+                `<conditionalContent><sort>3 1 2</sort></conditionalContent>`,
+                `<group><numberList>3 1 2</numberList></group>`,
+            ]) {
+                const { stateVariables } = await build(
+                    `<function name="f"><math>1</math>${secondChild}</function>`,
+                );
+                expect(
+                    Object.keys(stateVariables).length,
+                    secondChild,
+                ).toBeGreaterThan(0);
+            }
+        });
+
+        it("reports no extrema rather than no document", async () => {
+            const { stateVariables, resolvePathToNodeIdx } = await build(`
+    <function name="f"><math>1</math><numberList>3 1 2</numberList></function>
+    <p name="p1">$f.minima</p>
+            `);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
+            ).eq("");
+        });
+
+        it("gives a derivative rather than no document", async () => {
+            // Only reachable once the extrema crash above is gone: before that
+            // the document never got far enough to take a derivative.
+            //
+            // `0`, where the legacy JavaScript library gave `\uff3f`. The
+            // formula the sugar builds here is the tuple `(1, 3, 1, 2)`;
+            // `derivative` threw on it before, and `derivativeOfFormula`'s
+            // caller turned that into the blank. The Rust engine differentiates
+            // it instead — as a constant, so `0`. Reported upstream: the answer
+            // for a tuple should be a tuple of zeros, not a scalar. Either way
+            // it is a value rather than a crash, which is what this test is for.
+            const { stateVariables, resolvePathToNodeIdx } = await build(`
+    <function name="f"><math>1</math><numberList>3 1 2</numberList></function>
+    <derivative name="d">$f</derivative>
+    <p name="p1">$d</p>
+            `);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
+            ).eq("0");
+        });
+
+        it("still differentiates the formulas it can", async () => {
+            // The guard must not swallow a derivative that works, including
+            // the vector-valued branch, which takes a different path.
+            for (const [doenetML, expected] of [
+                [
+                    `<function name="f">x^2</function><p name="p1">$f.minimum1</p>`,
+                    "(0, 0)",
+                ],
+                [
+                    `<function name="f" through="(0,0) (1,1) (2,0)" /><p name="p1">$f.numMaxima</p>`,
+                    "1",
+                ],
+                [
+                    `<function name="f" variables="t">(t,t^2)</function><derivative name="d">$f</derivative><p name="p1">$d</p>`,
+                    "(1, 2 t)",
+                ],
+            ] as [string, string][]) {
+                const { stateVariables, resolvePathToNodeIdx } =
+                    await build(doenetML);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                        .text,
+                    doenetML,
+                ).eq(expected);
+            }
+        });
     });
 });

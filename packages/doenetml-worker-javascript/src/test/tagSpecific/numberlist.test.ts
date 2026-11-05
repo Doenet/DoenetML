@@ -691,7 +691,7 @@ describe("NumberList tag tests @group4", async () => {
         await check_items(maxN);
     });
 
-    it("numberList within numberLists, ignore child hide", async () => {
+    it("numberList within numberLists, a hidden child keeps its value but is not shown", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList hide="true" name="nl1">1 2 3</numberList></p>
@@ -714,7 +714,8 @@ describe("NumberList tag tests @group4", async () => {
             name: "nl2",
             numbers: [4, 1, 2, 3, 5, 1, 2, 3],
             pName: "p2",
-            text: "4, 1, 2, 3, 5, 1, 2, 3",
+            // the hidden child is not drawn, but keeps its place (D29)
+            text: "4, 1, 2, 3, 1, 2, 3",
         });
 
         await test_numberList({
@@ -723,7 +724,7 @@ describe("NumberList tag tests @group4", async () => {
             name: "nl3",
             numbers: [4, 1, 2, 3, 5, 1],
             pName: "p3",
-            text: "4, 1, 2, 3, 5, 1",
+            text: "4, 1, 2, 3, 1",
         });
     });
 
@@ -861,7 +862,7 @@ describe("NumberList tag tests @group4", async () => {
         }
     });
 
-    it("numberList and rounding, ignore math and number children attributes", async () => {
+    it("numberList and rounding, children keep the display settings they set", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl1">
@@ -955,17 +956,33 @@ describe("NumberList tag tests @group4", async () => {
             2345.1535268, 3.52343, 5, 0.00000000000000052523,
             0.000000000000000000006,
         ];
-        let text1 = ["2345.15", "3.52", "5", "0", "0"].join(", ");
-        let text2 = ["2345", "3.523", "5", "0", "0"].join(", ");
-        let text3 = ["2345", "3.523", "5.000", "0.000", "0.000"].join(", ");
-        let text4 = ["2345.1535", "3.5234", "5", "0", "0"].join(", ");
-        let text5 = ["2345.1535", "3.5234", "5.0000", "0.0000", "0.0000"].join(
+        // An authored child shows the display settings it sets; the list's
+        // settings fill in the ones it does not.
+        let text1 = ["2345.2", "3.5234", "5.0000", "5.25 * 10^(-16)", "0"].join(
+            ", ",
+        );
+        let text2 = [
+            "2345.2",
+            "3.5234",
+            "5.0000",
+            "5.252 * 10^(-16)",
+            "0",
+        ].join(", ");
+        let text3 = [
+            "2345.2",
+            "3.5234",
+            "5.0000",
+            "5.252 * 10^(-16)",
+            "0.000",
+        ].join(", ");
+        let text4 = ["2345.2", "3.5234", "5.0000", "0", "0"].join(", ");
+        let text5 = ["2345.2", "3.5234", "5.0000", "0.0000", "0.0000"].join(
             ", ",
         );
         let text6 = [
-            "2345",
-            "3.523",
-            "5",
+            "2345.2",
+            "3.5234",
+            "5.0000",
             "5.252 * 10^(-16)",
             "6 * 10^(-21)",
         ].join(", ");
@@ -1035,7 +1052,9 @@ describe("NumberList tag tests @group4", async () => {
 
         let vals = [34.245023482352345, 0.0023823402358234234];
 
-        let text = ["34.25", "0.00238"].join(", ");
+        // the authored child shows its own `displayDigits`, and an `extend`
+        // that sets display settings shows them
+        let text = ["34.25", "0.00238234"].join(", ");
         let textDig6 = ["34.245", "0.00238234"].join(", ");
         let textDec6 = ["34.245023", "0.002382"].join(", ");
 
@@ -1271,7 +1290,8 @@ describe("NumberList tag tests @group4", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        // all but copied list become ordered
+        // all become ordered, the copied list too: a copy keeps the
+        // `unordered="$unordered"` its source wrote, as pasted DoenetML would
         expect(
             stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
         ).eq(false);
@@ -1283,12 +1303,12 @@ describe("NumberList tag tests @group4", async () => {
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
                 .text,
-        ).eq("false, false, true");
+        ).eq("false, false, false");
     });
 
     it("compare unordered number lists, overwrite attribute", async () => {
@@ -1367,7 +1387,7 @@ describe("NumberList tag tests @group4", async () => {
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("b5")].stateValues.value,
-        ).eq(false);
+        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("b6")].stateValues.value,
         ).eq(true);
@@ -1376,11 +1396,11 @@ describe("NumberList tag tests @group4", async () => {
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("b8")].stateValues.value,
-        ).eq(false);
+        ).eq(true);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
                 .text,
-        ).eq("true, true, true, false, true, false");
+        ).eq("true, true, true, true, true, true");
     });
 });

@@ -1,10 +1,11 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true })],
+    plugins: [ignoreWireitCachesPlugin(), dts({ rollupTypes: true })],
     build: {
         minify: false,
         sourcemap: true,
@@ -23,6 +24,13 @@ export default defineConfig({
                 "@fortawesome/free-solid-svg-icons",
                 "@fortawesome/react-fontawesome",
                 "better-react-mathjax",
+                // Resolves to the `@doenet/math` seam, which inlines the Rust
+                // core as ~2.3 MiB of base64. Nothing here imports it today, so
+                // this entry is defensive: this package is embedded by every
+                // application bundle, so a single future import would bake a
+                // private copy of the seam into all of them. Keep it external
+                // and the application bundle resolves it once.
+                "math-expressions",
             ],
             onwarn(warning, warn) {
                 if (warning.code === "MODULE_LEVEL_DIRECTIVE") {

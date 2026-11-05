@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { getSchema } from "../scripts/get-schema";
+import { formatComponentSize, isComponentSizeValue } from "../src/schema";
 
 describe("generated schema help fields", () => {
     const schema = getSchema();
@@ -199,6 +200,43 @@ describe("generated schema help fields", () => {
             type: "math",
             latex: "＿",
         });
+    });
+
+    it("recognizes every componentSize default, however its size is spelled", () => {
+        // The author-facing surfaces (the docs prop tables, the help panel)
+        // print a `componentSize` default through `formatComponentSize` rather
+        // than as the raw `{ size, isAbsolute }` pair, and reach it through
+        // `isComponentSizeValue`. The component classes write these defaults by
+        // hand and do not agree on the spelling — `<codeEditor>`'s width is
+        // `{ size: "100", isAbsolute: false }` where the rest use a number — so
+        // the guard has to accept both, or those attributes fall back to
+        // printing their JSON.
+        const sizeDefaults = schema.elements.flatMap((element) =>
+            element.attributes
+                .filter(
+                    (attribute) =>
+                        attribute.type === "componentSize" &&
+                        attribute.defaultValue != null,
+                )
+                .map((attribute) => ({
+                    where: `<${element.name} ${attribute.name}>`,
+                    defaultValue: attribute.defaultValue,
+                })),
+        );
+        expect(sizeDefaults.length).toBeGreaterThan(0);
+        for (const { where, defaultValue } of sizeDefaults) {
+            expect(
+                isComponentSizeValue(defaultValue),
+                `${where} default is not recognized as a componentSize`,
+            ).toBe(true);
+        }
+
+        expect(formatComponentSize({ size: 120, isAbsolute: true })).toBe(
+            "120px",
+        );
+        expect(formatComponentSize({ size: "100", isAbsolute: false })).toBe(
+            "100%",
+        );
     });
 
     it("uses a schema subarray's own description when set", () => {

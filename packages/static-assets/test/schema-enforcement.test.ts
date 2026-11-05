@@ -188,4 +188,38 @@ describe("schema build enforcement", () => {
         expect(attr.suggestedValuesOnly).toBe(true);
         expect(attr.type).not.toBe("keyword");
     });
+
+    it("throws when a composite carries both schema marks", () => {
+        // The realistic way this happens is inheritance: both marks are
+        // statics, so a composite extending an `allowInSchemaAnywhere` one
+        // picks the mark up silently and gets widened to every container
+        // despite naming a fixed replacement type.
+        const cls = infoObjects.allComponentClasses.split as any;
+        const original = cls.allowInSchemaAnywhere;
+        cls.allowInSchemaAnywhere = true;
+        restore = () => {
+            cls.allowInSchemaAnywhere = original;
+        };
+        expect(() => getSchema(infoObjects)).toThrow(
+            /`split` sets both allowInSchemaAnywhere and allowInSchemaAsComponent \[text\]/,
+        );
+    });
+
+    it("keeps `<sortIndices>` out of containers that don't take a number", () => {
+        // `<sortIndices>` is a list of numbers, which a container sees as
+        // its entries, so it must not follow `<sort>` into containers that
+        // accept arbitrary children of some other type.
+        const schema = getSchema(infoObjects);
+        const parentsOf = (child: string) =>
+            schema.elements
+                .filter((e) => e.children.includes(child))
+                .map((e) => e.name);
+        const sortParents = new Set(parentsOf("sort"));
+        const sortIndicesParents = new Set(parentsOf("sortIndices"));
+        expect(sortIndicesParents.size).toBeLessThan(sortParents.size);
+        // `<image>` takes no numbers; `<sort>` reaches it via the anywhere mark.
+        expect(sortParents.has("image")).toBe(true);
+        expect(sortIndicesParents.has("image")).toBe(false);
+        expect(sortIndicesParents.has("numberList")).toBe(true);
+    });
 });

@@ -95,7 +95,6 @@ color =
     .purple = phephole
     .pink = phinki
     .brown = sootho
-
 line-width =
     .thick =
         { $gender ->
@@ -111,14 +110,12 @@ line-width =
             [c7] se sesesane
            *[c9] e sesane
         }
-
 # Written as an invariable «ka …» phrase rather than as an adjective, so that
 # it agrees with nothing and can close the phrase. `style-stroke` puts it last
 # for that reason.
 line-style =
     .dashed = ka dikgaotšo
     .dotted = ka marontho
-
 # Noun phrases: they follow «ka» or «gomme le» and modify nothing.
 fill-style =
     .horizontal = methaladi ya go rapama
@@ -127,7 +124,6 @@ fill-style =
     .backdiagonal = methaladi ya sekhutlwana se se retologilego
     .dots = marontho
     .diamonds = ditaamane
-
 noun =
     .line = mothaladi
     .line-segment = karolo ya mothaladi
@@ -147,7 +143,6 @@ noun =
     .diamond = taamane
     .cross = sefapano
     .plus = leswao la tlaleletšo
-
 # The side count is a possessive complement — «sa mahlakore a 5» — and closes
 # the noun phrase behind the adjectives rather than opening it, so it goes in
 # the tail.
@@ -156,7 +151,6 @@ noun-regular-polygon =
         [tail] sa mahlakore a { $numSides }
        *[head] sekhutlokhutlo se se lekanego
     }
-
 # The noun class, which is what a concording word agrees with. `c9` is the
 # default and the class of every loanword, including a word an author supplies.
 noun-gender =
@@ -178,7 +172,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «ka …» phrase and closes the description, so it moves
@@ -193,7 +186,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow, with the noun's own possessive
 # complement closing the phrase: «sekhutlokhutlo se se lekanego e khubedu sa
 # mahlakore a 5».
@@ -202,7 +194,6 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] o tladitšwego
@@ -210,13 +201,11 @@ style-filled-word =
         [c7] se tladitšwego
        *[c9] e tladitšwego
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ka { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ka { $pattern }
@@ -224,7 +213,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ka { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «mollwane» is class 3 and leads its own adjectives, so the border's words
 # agree with it rather than with the shape it surrounds. Northern Sotho has no
 # article and joins this clause with the invariable «le», so all four branches
@@ -236,35 +224,28 @@ style-border-clause =
         [and-article] le mollwane { $border }
        *[with] le mollwane { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ga se ya tlala
-
 style-text =
     { $parts ->
         [background] { $color } godimo ga bokamorago { $background }
        *[plain] { $color }
     }
-
 style-background-none = ga go na selo
-
 
 ## Boolean words
 
 boolean-true = therešo
 boolean-false = maaka
 
-
 ## Answer buttons
 
 answer-submit-label = Lekola Mošomo
 answer-submit-label-no-correctness = Romela Karabo
-
 
 ## Sectional blocks
 
@@ -289,7 +270,6 @@ section-name =
     .solution = Tharollo
     .task = Mošomo
     .theorem = Teoreme
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -299,9 +279,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Keletšo
-
 
 ## Tables and figures
 
@@ -312,7 +290,6 @@ table-name =
         [unnumbered-title] Lenaneo{ ": " }
        *[unnumbered] Lenaneo
     }
-
 figure-name =
     { $parts ->
         [numbered] Seswantšho { $enumeration }
@@ -321,24 +298,18 @@ figure-name =
        *[unnumbered] Seswantšho
     }
 
-
 ## Paginator controls
 
 paginator-previous = Pele
 paginator-next = Latelago
 paginator-page = Letlakala
-
 paginator-page-status = { $pageLabel } { $currentPage } go { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = goba
-
 piecewise-condition-if = ge
-
 piecewise-condition-otherwise = go sego bjalo
-
 
 ## Chemistry
 ##
@@ -353,6 +324,5 @@ piecewise-condition-otherwise = go sego bjalo
 ## about the medium of instruction rather than about either language.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Leswao la Khemi le Fošagetšego
 chemistry-invalid-ionic-compound = Motswako wa Ayone o Fošagetšego

@@ -1,0 +1,503 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<selectRandomNumbers/>{:dn}`
+
+<ComponentDisplay name='selectRandomNumbers'/>
+
+`<selectRandomNumbers/>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
+component that generates document variants by selecting random numbers from a specified range of 
+values, from a normal, log-normal, or mixture-of-normals distribution, or from one of 
+the discrete count distributions (hypergeometric, binomial, and Poisson).
+
+The numbers are selected once for each variant and stay the same while the activity is open, 
+so `<selectRandomNumbers/>{:dn}` has no `resample` action. For values a reader can redraw, 
+use [`<sampleRandomNumbers/>{:dn}`](sampleRandomNumbers) instead.
+
+<AttrPropDisplay name='selectRandomNumbers'/>
+
+## Examples
+
+### Example: Default `<selectRandomNumbers/>{:dn}`
+
+
+```doenet-editor-horiz
+<selectRandomNumbers name="s" />
+
+<p>Number selected = $s</p>
+```
+
+
+
+Without any attributes specified, the default selection  `type` is `uniform`, and the default interval is $[0, 1)$.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Example: Assign descriptive names to selections
+
+
+```doenet-editor-horiz
+<setup>
+<selectRandomNumbers name="s" numToSelect="3"/>
+<number name="a" extend="$s[1]"/>
+<number name="b" extend="$s[2]"/>
+<number name="c" extend="$s[3]"/>
+</setup>
+
+<p>a = $a</p>
+<p>b = $b</p>
+<p>c = $c</p>
+```
+
+Three numbers are selected. 
+Selections can be assigned more descriptive names by defining individual components
+which reference the selected values.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+## Attribute Examples
+
+### Attribute Example: numToSelect
+
+
+```doenet-editor-horiz
+<selectRandomNumbers
+  name="s"
+  numToSelect="4"
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
+```
+
+
+
+The `<selectRandomNumbers/>{:dn}` component is used with the `numToSelect` attribute to select multiple 
+random values in the default interval $[0,1)$. The default `type` is `uniform`. 
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Attribute Example: from, to
+
+
+```doenet-editor-horiz
+<selectRandomNumbers
+  name="x" 
+  from="-5" 
+  to="5" 
+  numToSelect="5"
+/>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `<selectRandomNumbers/>{:dn}` component is used with the `from` and the `to` attributes to modify the 
+default selection interval. The default `type` is `uniform`.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+
+---
+
+### Attribute Example: type = "discreteUniform"
+
+
+```doenet-editor-horiz
+<selectRandomNumbers
+  name="x" 
+  type="discreteUniform"
+  from="0" 
+  to="10" 
+  numToSelect="5"
+/>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. 
+The `discreteUniform` selection generates values from an evenly spaced range defined by the 
+attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Attribute Example: exclude
+
+
+```doenet-editor-horiz
+<selectRandomNumbers 
+  name="x" 
+  type="discreteUniform" 
+  from="-4" 
+  to="4" 
+  numToSelect="4" 
+  exclude="0 1 -1"
+/>
+
+<p>
+  <math name="m">
+    $x[1]/$x[2] + $x[3]/$x[4]
+  </math> = 
+  <math 
+    extend="$m" 
+    simplify="numberspreserveorder"/>
+</p>
+```
+
+
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified 
+as `discreteUniform`. Values can be excluded from the specified range used with this type using the `exclude` attribute.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: step
+
+
+```doenet-editor-horiz
+<selectRandomNumbers 
+  name="x" 
+  type="discreteUniform"
+  from="0" 
+  to="20" 
+  step="2"
+  numToSelect="5"
+/>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. 
+The `discreteUniform` selection generates values from an evenly spaced range defined by the 
+attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: type = "gaussian"
+
+
+```doenet-editor-horiz 
+<selectRandomNumbers 
+  name="x" 
+  type="gaussian" 
+  numToSelect="10"
+  displayDigits="4"
+/>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>  
+```
+
+
+
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is 
+specified as `gaussian`. The `gaussian` selection generates standard normal 
+variables (mean 0, variance 1). Alternatively, the `mean` as well as the `variance` 
+or the `standardDeviation` attributes may be defined.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: gaussian with mean and variance
+
+
+```doenet-editor-horiz
+<p>With <attr>mean</attr> and <attr>variance</attr> attribute:
+  <selectRandomNumbers 
+    name="x" 
+    type="gaussian" 
+    mean="10" 
+    variance="2" 
+    numToSelect="10" 
+    displayDigits="4"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>  
+```
+
+
+
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified 
+as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In 
+this example, the `mean` and the `variance` are defined with attributes.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+
+---
+
+### Attribute Example: gaussian with mean and standardDeviation
+
+
+```doenet-editor-horiz
+<p>With <attr>mean</attr> and <attr>standardDeviation</attr> attribute:
+  <selectRandomNumbers 
+    name="x" 
+    type="gaussian" 
+    mean="10" 
+    standardDeviation="2" 
+    numToSelect="10" 
+    displayDigits="4"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>  
+```
+
+
+
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified 
+as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In 
+this example, the `mean` and the `standardDeviation` are defined with attributes.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+
+
+
+---
+
+### Attribute Example: type = "logNormal"
+
+
+```doenet-editor-horiz
+<p>Ten times taken to finish a task, averaging about half an hour:
+  <selectRandomNumbers 
+    name="x" 
+    type="logNormal" 
+    logMean="3.3" 
+    logStandardDeviation="0.5" 
+    numToSelect="10" 
+    displayDigits="4"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `logNormal` type raises $e$ to the power of a normal variable, so every value 
+is positive and the distribution is skewed to the right &mdash; the usual shape for 
+quantities such as incomes, particle sizes, or times to finish a task.
+
+Its parameters describe the normal distribution being exponentiated, not the values 
+themselves, which is why they are named `logMean` and `logStandardDeviation` rather 
+than `mean` and `standardDeviation`. Either `logStandardDeviation` or `logVariance` 
+may be given, as with the `gaussian` type. If unspecified, `logMean` is 0 and 
+`logStandardDeviation` is 1.
+
+Writing $\mu$ for `logMean` and $\sigma$ for `logStandardDeviation`, the reported 
+`mean` is $e^{\mu + \sigma^2/2}$ and the reported `variance` is 
+$(e^{\sigma^2} - 1)\,e^{2\mu + \sigma^2}$. Both grow very fast with $\sigma$, so a 
+large enough one reports `Infinity` for moments beyond what a number can hold, and 
+a value too large to represent comes back as `Infinity` as well. A value too small 
+to represent rounds to 0, which is the only way one can fail to be strictly 
+positive.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: type = "normalMixture"
+
+
+```doenet-editor-horiz
+<p>Ten exam scores from a class with two distinct groups:
+  <selectRandomNumbers 
+    name="x" 
+    type="normalMixture" 
+    means="55 85" 
+    standardDeviations="6 5" 
+    weights="1 2" 
+    numToSelect="10" 
+    displayDigits="3"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `normalMixture` type draws each value from one of several normal 
+distributions: a component is chosen at random, and the value comes from that 
+component alone. It is the usual way to describe a population made of distinct 
+groups, and the usual way to produce a bimodal set of values, which no single 
+`gaussian` can.
+
+The components are described by three lists. `means` gives each component's 
+center, and how many are listed is how many components there are &mdash; it is 
+the one of the three with no default. `standardDeviations` (or `variances`, as 
+with the `gaussian` type) gives each component's spread, and `weights` gives 
+each component's share of the values. Weights are relative and need not add up 
+to 1: `weights="1 2"` above means a third of the values come from the first 
+component and two thirds from the second. A list holding a single value applies 
+to every component, which is how the defaults &mdash; a spread of 1, and equal 
+weights &mdash; are written.
+
+The reported `mean` is the weighted average of the component means. The reported 
+`variance` is the weighted average of the component variances plus a second term 
+for how far the components sit from one another. That second term is zero exactly 
+when every component *carrying weight* shares one center &mdash; a component whose 
+`weights` entry is 0 contributes to neither term &mdash; and is positive 
+otherwise. Writing $p_i$, $\mu_i$ and $\sigma_i$ for the proportion, 
+mean and standard deviation of each component, it is 
+$\sum_i p_i \sigma_i^2 + \sum_i p_i (\mu_i - \mu)^2$, where $\mu$ is the 
+reported mean.
+
+Whether the values come out looking bimodal depends on the components. Two 
+equally weighted components of equal spread separate into two visible humps only 
+once their centers are more than $2\sigma$ apart.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: type = "hypergeometric"
+
+
+```doenet-editor-horiz
+<p>An urn holds 20 marbles, 7 of which are red. 
+  Draw 5 marbles without replacement and count the red ones:
+  <selectRandomNumbers 
+    name="x" 
+    type="hypergeometric" 
+    numTotal="20" 
+    numSuccesses="7" 
+    numDraws="5" 
+    numToSelect="10"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `hypergeometric` type counts the successes obtained when drawing `numDraws` 
+items *without replacement* from a population of `numTotal` items containing 
+`numSuccesses` successes. It is the without-replacement counterpart of the 
+`binomial` type.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: type = "binomial"
+
+
+```doenet-editor-horiz
+<p>Flip a biased coin 10 times and count the heads:
+  <selectRandomNumbers 
+    name="x" 
+    type="binomial" 
+    numTrials="10" 
+    probability="0.3" 
+    numToSelect="10"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `binomial` type counts the successes in `numTrials` independent trials that 
+each succeed with the given `probability`. If unspecified, `numTrials` is 1 and 
+`probability` is 0.5.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: type = "poisson"
+
+
+```doenet-editor-horiz
+<p>Number of calls arriving each hour, averaging 4 per hour:
+  <selectRandomNumbers 
+    name="x" 
+    type="poisson" 
+    mean="4" 
+    numToSelect="10"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `poisson` type is determined entirely by its `mean`, which also equals its 
+variance. Unlike the `gaussian` type, whose `mean` defaults to 0, the `mean` of a 
+`poisson` distribution defaults to 1, since a Poisson distribution with mean 0 
+always returns 0.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+## Limits on the discrete distributions
+
+The three discrete distributions &mdash; `hypergeometric`, `binomial`, and `poisson` 
+&mdash; draw their values one item, trial, or event at a time, so very large 
+parameters would take a long time and leave the page unresponsive while they ran. 
+Parameters that would need more than ten million draws for a single value are 
+therefore treated as unusable, giving `NaN` values and statistics along with a 
+warning explaining what to change. The limit is far above the populations, trial 
+counts, and rates that arise in practice; it is there so that mistyping an extra 
+digit reports a problem instead of freezing the activity. An order of magnitude 
+below that, from a million draws per value, the values are still selected as asked, 
+but a warning notes that selection may be slow. Note that both figures apply to 
+each value individually &mdash; a large `numToSelect` still takes proportionally 
+longer.
+
+`hypergeometric` also has no defaults to fall back on. If any of `numTotal`, 
+`numSuccesses`, or `numDraws` is omitted, or they do not describe a population, 
+every value is `NaN`, as are the reported `mean`, `variance`, and 
+`standardDeviation`.

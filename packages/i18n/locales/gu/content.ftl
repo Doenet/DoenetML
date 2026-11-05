@@ -62,7 +62,6 @@ color =
     .purple = જાંબલી
     .pink = ગુલાબી
     .brown = કથ્થઈ
-
 line-width =
     .thick =
         { $gender ->
@@ -76,7 +75,6 @@ line-width =
             [n] પાતળું
            *[m] પાતળો
         }
-
 # તૂટક ends in a consonant and never changes; ટપકાંવાળો does.
 line-style =
     .dashed = તૂટક
@@ -86,7 +84,6 @@ line-style =
             [n] ટપકાંવાળું
            *[m] ટપકાંવાળો
         }
-
 # Noun phrases: they stand in front of the «સાથે» the composition messages
 # supply, or in front of the «વાળી» in `style-fill`, and agree with nothing
 # themselves.
@@ -97,7 +94,6 @@ fill-style =
     .backdiagonal = સામી ત્રાંસી લીટીઓ
     .dots = ટપકાં
     .diamonds = હીરા
-
 noun =
     .line = રેખા
     .line-segment = રેખાખંડ
@@ -117,7 +113,6 @@ noun =
     .diamond = હીરો
     .cross = ચોકડી
     .plus = સરવાળાનું ચિહ્ન
-
 # The side count precedes the noun, as every modifier in Gujarati does, so it
 # folds into the head and there is no tail.
 noun-regular-polygon =
@@ -125,7 +120,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } બાજુવાળો નિયમિત બહુકોણ
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (બહુકોણ, m) or the
 # head of a phrase: `border` (કિનારી, f), `fill` (ભરણી, f), `text` (લખાણ, n),
 # `background` (પૃષ્ઠભૂમિ, f). English leaves all four unnamed; the composition
@@ -148,7 +142,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -161,13 +154,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Said only of the shape itself, so it agrees with the noun described.
 style-filled-word =
     { $gender ->
@@ -175,13 +166,11 @@ style-filled-word =
         [n] ભરેલું
        *[m] ભરેલો
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern } સાથે
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } { $pattern } સાથે
@@ -189,7 +178,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern } સાથે
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «કિનારી» is feminine, so the border's adjectives agree with it and not with
 # the shape it surrounds. Gujarati has no article, so the two `-article`
 # branches read like the ones without.
@@ -200,7 +188,6 @@ style-border-clause =
         [and-article] અને { $border } કિનારી સાથે
        *[with] { $border } કિનારી સાથે
     }
-
 # The colour arrives agreeing with `fill`, which `noun-gender` answers feminine
 # — but the pattern words are plural nouns of their own gender (હીરા m, ટપકાં
 # n), so putting the colour straight in front of one would disagree with it.
@@ -211,12 +198,10 @@ style-fill =
         [pattern] { $pattern } વાળી { $color } ભરણી
        *[plain] { $color } ભરણી
     }
-
 # The other answer the same variable gives, and it takes no `$gender`, so it
 # names the noun rather than inflecting an adjective for a gender it was not
 # told — as «बिना भराव» does in `hi`.
 style-unfilled = ભરણી વગર
-
 # «પૃષ્ઠભૂમિ» takes the postposition «પર», so the background leads and the text
 # colour follows it.
 style-text =
@@ -224,21 +209,17 @@ style-text =
         [background] { $background } પૃષ્ઠભૂમિ પર { $color }
        *[plain] { $color }
     }
-
 style-background-none = કંઈ નહીં
-
 
 ## Boolean words
 
 boolean-true = સાચું
 boolean-false = ખોટું
 
-
 ## Answer buttons
 
 answer-submit-label = તપાસો
 answer-submit-label-no-correctness = જવાબ મોકલો
-
 
 ## Sectional blocks
 
@@ -263,7 +244,6 @@ section-name =
     .solution = ઉકેલ
     .task = કાર્ય
     .theorem = પ્રમેય
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -273,9 +253,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = સંકેત
-
 
 ## Tables and figures
 
@@ -286,7 +264,6 @@ table-name =
         [unnumbered-title] કોષ્ટક{ ": " }
        *[unnumbered] કોષ્ટક
     }
-
 figure-name =
     { $parts ->
         [numbered] આકૃતિ { $enumeration }
@@ -295,23 +272,19 @@ figure-name =
        *[unnumbered] આકૃતિ
     }
 
-
 ## Paginator controls
 
 paginator-previous = પાછલું
 paginator-next = આગલું
 paginator-page = પાનું
-
 # The total leads, marked with «માંથી», which is how Gujarati says "3 of 5".
 paginator-page-status = { $numPages } માંથી { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = અથવા
 piecewise-condition-if = જો
 piecewise-condition-otherwise = અન્યથા
-
 
 ## Chemistry
 
@@ -438,7 +411,6 @@ element-name =
     .lv = લિવરમોરિયમ
     .ts = ટેનેસિન
     .og = ઓગેનેસન
-
 element-anion-name =
     .h = હાઇડ્રાઇડ
     .c = કાર્બાઇડ
@@ -452,8 +424,6 @@ element-anion-name =
     .i = આયોડાઇડ
     .at = એસ્ટેટાઇડ
     .ts = ટેનેસાઇડ
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = અમાન્ય રાસાયણિક સંજ્ઞા
 chemistry-invalid-ionic-compound = અમાન્ય આયનીય સંયોજન

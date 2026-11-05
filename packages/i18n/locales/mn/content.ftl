@@ -42,15 +42,12 @@ color =
     .purple = нил ягаан
     .pink = ягаан
     .brown = бор
-
 line-width =
     .thick = бүдүүн
     .thin = нарийн
-
 line-style =
     .dashed = тасалдсан
     .dotted = цэгэн
-
 # Noun phrases: they stand in front of «хээтэй» and modify nothing.
 fill-style =
     .horizontal = хэвтээ шугам
@@ -59,7 +56,6 @@ fill-style =
     .backdiagonal = эсрэг диагональ шугам
     .dots = цэг
     .diamonds = ромб
-
 noun =
     .line = шулуун
     .line-segment = хэрчим
@@ -79,7 +75,6 @@ noun =
     .diamond = ромб
     .cross = загалмай
     .plus = нэмэх
-
 # Mongolian builds the word from the side count in front of the noun, so the
 # whole of it is one head and there is no tail.
 noun-regular-polygon =
@@ -87,11 +82,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] зөв { $numSides } өнцөгт
     }
-
 # Mongolian has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English and Turkish.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,21 +98,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = дүүргэлттэй
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } хээтэй { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } хээтэй { $color } { $filled } { $noun }
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } хээтэй { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # The comitative carries the "with" in its own ending, so neither a preposition
 # nor an article is wanted, and all four branches read alike except for the
 # connective English needs and Mongolian does not.
@@ -138,15 +126,12 @@ style-border-clause =
         [and-article] ба { $border } хүрээтэй
        *[with] { $border } хүрээтэй
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } хээтэй { $color } дүүргэлт
        *[plain] { $color } дүүргэлт
     }
-
 style-unfilled = дүүргэлтгүй
-
 # «дэвсгэр дээр» — the postposition follows the noun, and the colour in front of
 # it does not move.
 style-text =
@@ -154,21 +139,17 @@ style-text =
         [background] { $background } дэвсгэр дээр { $color }
        *[plain] { $color }
     }
-
 style-background-none = байхгүй
-
 
 ## Boolean words
 
 boolean-true = үнэн
 boolean-false = худал
 
-
 ## Answer buttons
 
 answer-submit-label = Шалгах
 answer-submit-label-no-correctness = Хариултаа илгээх
-
 
 ## Sectional blocks
 
@@ -193,7 +174,6 @@ section-name =
     .solution = Бодолт
     .task = Даалгавар
     .theorem = Теорем
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -203,9 +183,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Зөвлөмж
-
 
 ## Tables and figures
 
@@ -216,7 +194,6 @@ table-name =
         [unnumbered-title] Хүснэгт{ ". " }
        *[unnumbered] Хүснэгт
     }
-
 figure-name =
     { $parts ->
         [numbered] Зураг { $enumeration }
@@ -225,22 +202,18 @@ figure-name =
        *[unnumbered] Зураг
     }
 
-
 ## Paginator controls
 
 paginator-previous = Өмнөх
 paginator-next = Дараах
 paginator-page = Хуудас
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = эсвэл
 piecewise-condition-if = хэрэв
 piecewise-condition-otherwise = бусад тохиолдолд
-
 
 ## Chemistry
 
@@ -363,7 +336,6 @@ element-name =
     .lv = Ливермори
     .ts = Теннессин
     .og = Оганесон
-
 element-anion-name =
     .h = Гидрид
     .c = Карбид
@@ -377,8 +349,6 @@ element-anion-name =
     .i = Иодид
     .at = Астатид
     .ts = Теннессид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Буруу химийн тэмдэг
 chemistry-invalid-ionic-compound = Буруу ионы нэгдэл

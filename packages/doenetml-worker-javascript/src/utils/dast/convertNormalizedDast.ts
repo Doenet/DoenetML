@@ -8,6 +8,10 @@ import {
     Source,
     UntaggedContent,
 } from "@doenet/doenetml-worker";
+import {
+    convertLiteralAttributes,
+    literalFromAttributeComponent,
+} from "../literalAttribute";
 import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
     AttributeDefinition,
@@ -29,12 +33,126 @@ import { convertToErrorComponent, errorComponentState } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
+import { convertCopiesToValueReferences } from "./valueReferences";
+import { convertToListForms } from "./listForms";
+import { checkTypeChangesAtLoad } from "./typeChangeAtLoad";
+import { convertRepeatsToLists } from "./repeatLists";
+import { convertExpressionAttributes } from "./expressionAttributes";
 import { DiagnosticRecord } from "@doenet/utils";
+import {
+    doenetMLDollarsForReference,
+    doenetMLStringForReference,
+} from "../sourceLocation";
 import {
     codedDiagnostic,
     diagnosticCodeFrom,
     DiagnosticError,
 } from "../diagnostics";
+
+/**
+ * `reference` without the parentheses around its path, as a reference quoted
+ * from its path is (`doenetMLDollarsForReference`): `$(f)` becomes `$f`, and
+ * `$$(f)(2)` becomes `$$f(2)`. A reference without them, or whose parentheses
+ * cannot be matched up, is returned unchanged.
+ *
+ * The path's closing parenthesis is found from the end, because an index can
+ * hold an unmatched parenthesis (`$(f[)])`). A plain reference ends with it,
+ * `{…}` included (`$(f{simplify})`); a function reference ends with it or with
+ * its arguments, which are stepped over (`$$(f)((x), 3)`).
+ */
+function withoutPathParentheses(reference: string): string {
+    const dollars = /^\$\$?(?=\()/.exec(reference)?.[0];
+    if (dollars === undefined || !reference.endsWith(")")) {
+        return reference;
+    }
+    let close = reference.length - 1;
+    if (dollars === "$$") {
+        // Step back over the arguments, if there are any.
+        let depth = 0;
+        let i = close;
+        for (; i >= 0; i--) {
+            if (reference[i] === ")") {
+                depth++;
+            } else if (reference[i] === "(" && --depth === 0) {
+                break;
+            }
+        }
+        if (i < 0) {
+            return reference;
+        }
+        if (i > dollars.length) {
+            close = i - 1;
+        }
+    }
+    if (reference[close] !== ")") {
+        return reference;
+    }
+    return (
+        dollars +
+        reference.slice(dollars.length + 1, close) +
+        reference.slice(close + 1)
+    );
+}
+
+/**
+ * The warning for a reference the resolver could not resolve: `doenet-w0104`
+ * when it names nothing, `doenet-w0105` when it names more than one thing. The
+ * resolver marks the error node with the code, and its English message quotes
+ * the path only up to the first index (`$l` for `$l[0]`); the code's argument
+ * is the whole reference, read from the source here, in the same form the
+ * worker quotes a reference it fails to resolve itself
+ * (`refResolutionDependencies.ts`).
+ */
+function unresolvedReferenceDiagnostic(
+    node: {
+        code?: string;
+        unresolvedPath?: any[] | null;
+        position?: any;
+        sourceDoc?: number;
+    },
+    sources: readonly string[],
+    type: "warning" | "error" = "warning",
+): DiagnosticRecord {
+    // The path has a position for each of its parts, so it spans just the
+    // reference even in the parenthesized form `$(l[0])`. The resolver gives
+    // the path only when the reference names nothing; otherwise the node's own
+    // position spans the reference. A function reference (`$$f(2)`), told
+    // apart by the `$$` before its path, is quoted from the node's position,
+    // which spans its arguments too, as the path does not (#2419). The
+    // position spans any parentheses around the path as well, which are
+    // dropped, as they are from a path.
+    let reference = "";
+    if (node.unresolvedPath && node.unresolvedPath.length > 0) {
+        const path = node.unresolvedPath;
+        const dollars = doenetMLDollarsForReference(path, sources);
+        const text = doenetMLStringForReference(path, sources);
+        if (text && dollars !== "$$") {
+            reference = `${dollars}${text}`;
+        }
+    }
+    if (!reference) {
+        const start = node.position?.start?.offset;
+        const end = node.position?.end?.offset;
+        if (start != undefined && end != undefined) {
+            reference = withoutPathParentheses(
+                sources[node.sourceDoc ?? 0]?.substring(start, end) ?? "",
+            );
+        }
+    }
+
+    return codedDiagnostic({
+        type,
+        // Spread rather than a ternary on the value: the code has to sit
+        // next to `code:` as a literal, or `lint:i18n` reads it as a code
+        // nothing raises.
+        ...(node.code === "doenet-w0105"
+            ? { code: "doenet-w0105" as const }
+            : { code: "doenet-w0104" as const }),
+        args: { reference },
+        position: node.position,
+        sourceDoc: node.sourceDoc,
+    });
+}
 
 /**
  * Transform the normalized dast into the serialized components used
@@ -63,6 +181,13 @@ export async function normalizedDastToSerializedComponents(
      * Convert Elements to a `componentType` matching their name.
      * Convert Errors to a `componentType` of "_error".
      */
+    /**
+     * The `_error`s made for a reference in an `extend` or `copy` attribute
+     * that names nothing, or more than one thing: the tag cannot be made
+     * (D36), so the error is shown in its place.
+     */
+    const errorsInPlaceOfTag = new Set<UnflattenedComponent>();
+
     function unflattenDastNodes(
         indicesOrStrings: UntaggedContent[],
         diagnostics: DiagnosticRecord[],
@@ -76,6 +201,42 @@ export async function normalizedDastToSerializedComponents(
             } else {
                 const node = normalized_root.nodes[idxOrString];
                 if (node.type === "element") {
+                    const children = unflattenDastNodes(
+                        node.children,
+                        diagnostics,
+                    );
+                    const inPlaceOfTag = children.find(
+                        (child): child is UnflattenedComponent =>
+                            typeof child === "object" &&
+                            errorsInPlaceOfTag.has(child),
+                    );
+                    if (inPlaceOfTag) {
+                        // The tag, with what its `extend` or `copy`
+                        // names unresolved, is shown as the error, under
+                        // its own index and name, so a reference to it
+                        // finds the error.
+                        const nameAttribute = node.attributes.find(
+                            (attribute) => attribute.name === "name",
+                        );
+                        unflattenedNodes.push({
+                            ...inPlaceOfTag,
+                            componentIdx: idxOrString,
+                            attributes: nameAttribute
+                                ? {
+                                      name: {
+                                          name: "name",
+                                          children: unflattenDastNodes(
+                                              nameAttribute.children,
+                                              diagnostics,
+                                          ),
+                                          position: nameAttribute.position,
+                                          sourceDoc: nameAttribute.sourceDoc,
+                                      },
+                                  }
+                                : {},
+                        });
+                        continue;
+                    }
                     unflattenedNodes.push({
                         type: "unflattened",
                         componentType: getComponentType(node),
@@ -107,10 +268,7 @@ export async function normalizedDastToSerializedComponents(
                         extending: node.extending
                             ? unFlattenExtending(node.extending, diagnostics)
                             : undefined,
-                        children: unflattenDastNodes(
-                            node.children,
-                            diagnostics,
-                        ),
+                        children,
                         state: {},
                     });
                 } else {
@@ -123,10 +281,11 @@ export async function normalizedDastToSerializedComponents(
                         node.errorType === "warning" ||
                         node.errorType === "info"
                     ) {
-                        // Empty unless the parser named this diagnostic by
-                        // code; the code and its arguments have ridden
-                        // through the Rust flattening on the DAST error node
-                        // (#1549). The English stays the parser's —
+                        // Empty unless the parser, or the Rust resolver for
+                        // a reference it could not resolve, named this
+                        // diagnostic by code; the code and its arguments have
+                        // ridden through the Rust flattening on the DAST
+                        // error node (#1549). The English stays the parser's —
                         // `DocViewer` re-renders it in the reader's language
                         // on the way out.
                         //
@@ -136,17 +295,31 @@ export async function normalizedDastToSerializedComponents(
                         // burn-down never counted it, and a visible spread
                         // would be credit against nothing.
                         const codeAndArgs = diagnosticCodeFrom(node);
-                        diagnostics.push({
-                            type: node.errorType,
-                            message: node.message,
-                            ...codeAndArgs,
-                            position: node.position,
-                            sourceDoc: node.sourceDoc,
-                        });
-                        if (
-                            node.message.includes("No referent") ||
-                            node.message.includes("Multiple referents")
-                        ) {
+                        const isUnresolvedReference =
+                            codeAndArgs.code === "doenet-w0104" ||
+                            codeAndArgs.code === "doenet-w0105";
+                        if (!isUnresolvedReference) {
+                            diagnostics.push({
+                                type: node.errorType,
+                                message: node.message,
+                                ...codeAndArgs,
+                                position: node.position,
+                                sourceDoc: node.sourceDoc,
+                            });
+                        } else {
+                            // A reference the resolver could not resolve. It
+                            // names the code but cannot quote the reference,
+                            // as it does not have the source; quote all of it
+                            // here, as the worker does for a reference it
+                            // resolves itself, so `$l[0]` and `$l[$i]` with
+                            // `i` = 0 read the same (#2407).
+                            diagnostics.push(
+                                unresolvedReferenceDiagnostic(
+                                    node,
+                                    normalized_root.sources,
+                                ),
+                            );
+
                             // Depending on the parent, we still want something to show up for these invalid reference.
                             // Since we already have that logic implemented for copy, we'll just make a copy
                             // with no referent
@@ -169,6 +342,34 @@ export async function normalizedDastToSerializedComponents(
                                 children: [],
                             });
                         }
+                    } else if (
+                        node.code === "doenet-w0104" ||
+                        node.code === "doenet-w0105"
+                    ) {
+                        // A reference in the `extend` or `copy` attribute
+                        // of a tag that names nothing, or more than one
+                        // thing (`ref_expand.rs`). Quoted as a reference
+                        // written as text is, at the error level.
+                        const diagnostic = unresolvedReferenceDiagnostic(
+                            node,
+                            normalized_root.sources,
+                            "error",
+                        );
+                        const error: UnflattenedComponent = {
+                            type: "unflattened",
+                            componentType: "_error",
+                            componentIdx: idxOrString,
+                            attributes: {},
+                            position: node.position,
+                            sourceDoc: node.sourceDoc,
+                            state: errorComponentState(
+                                diagnostic.message,
+                                diagnostic,
+                            ),
+                            children: [],
+                        };
+                        errorsInPlaceOfTag.add(error);
+                        unflattenedNodes.push(error);
                     } else {
                         unflattenedNodes.push({
                             type: "unflattened",
@@ -329,12 +530,286 @@ export async function normalizedDastToSerializedComponents(
     //     nComponents,
     // );
 
+    // After sugar, which makes an `<else>` a `<case>`, and before the list
+    // forms and value references, so that what a reference written as a tag
+    // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
+    const { branchNameWarnings } = checkTypeChangesAtLoad({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+    });
+    // A reference to a name the branches of a `<conditionalContent>` or a
+    // one-pick `<select>` do not all declare with one tag names nothing
+    // (D13, D22), so that what it names never changes type with the active
+    // branch.
+    for (const { copy, code, args } of branchNameWarnings) {
+        const ref: any = (copy.extending as any)?.Ref;
+        const originalPath = ref?.originalPath;
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: code as any,
+                args: {
+                    ...args,
+                    reference: `${doenetMLDollarsForReference(
+                        originalPath,
+                        normalized_root.sources,
+                    )}${doenetMLStringForReference(
+                        originalPath,
+                        normalized_root.sources,
+                    )}`,
+                },
+                position: copy.position,
+                sourceDoc: copy.sourceDoc,
+            }),
+        );
+        if (ref) {
+            copy.extending = {
+                Ref: {
+                    ...ref,
+                    nodeIdx: -1,
+                    unresolvedPath: null,
+                    nodesInResolvedPath: [],
+                },
+            } as any;
+        }
+    }
+
+    // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
+    // the values it reads, and before the value references, so that a
+    // reference among the children of a list made here is one.
+    nComponents = convertToListForms({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        nComponents,
+    }).nComponents;
+
+    // After sugar, so that each reference is judged by the parent it will
+    // have: the `$n` of `<number>$n+1</number>` sits in the `<math>` sugar
+    // made.
+    convertCopiesToValueReferences({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+    });
+
+    // After the value references, which decide whether a repeat's value and
+    // index are lists and make the references that read them value
+    // references, a repeat whose template is one value becomes a list.
+    nComponents = convertRepeatsToLists({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        nComponents,
+    }).nComponents;
+
+    // After everything that reads an attribute component's written text, an
+    // attribute that is only a literal becomes the literal.
+    const document = convertLiteralAttributes(
+        sugarResult.components,
+        componentInfoObjects,
+    )[0] as SerializedComponent;
+
+    // After the literal attributes, an attribute that is text and value
+    // references is held by its component (`expressionAttributes.ts`).
+    convertExpressionAttributes([document], {
+        numResolverNodes: normalized_root.nodes.length,
+        componentInfoObjects,
+    });
+
+    // Last, so that the walk sees the final tree -- after references became
+    // copies, after attributes became components, and after sugar added
+    // whatever it adds.
+    assignDocumentDerivedStateIds(document);
+
     return {
-        document: sugarResult.components[0] as SerializedComponent,
+        document,
         nComponents,
         diagnostics,
         sources: [...normalized_root.sources],
     };
+}
+
+/**
+ * Give every component built from the document an identifier derived from where
+ * it sits in that document, rather than from the order it happened to be built
+ * in.
+ *
+ * Saved reader state is keyed by `stateId`, and `ComponentBuilder` falls back to
+ * `componentIdx.toString()` for anything that arrives without one — which, until
+ * this pass, was the whole authored tree and every component built from an
+ * attribute. A component index is a position in the build, so it moves whenever
+ * anything before it changes, and a reader's saved values then come back on the
+ * wrong components (Doenet/DoenetML#1944, Doenet/DoenetML#1940).
+ *
+ * The path is built from what the author wrote:
+ *
+ * | segment | form | example |
+ * |---|---|---|
+ * | document root | `` (empty) | `` |
+ * | k-th child, unnamed | `/k` | `/0/2` |
+ * | k-th child, named `P` | `/~P` | `/~P` |
+ * | attribute `x` | `@x` | `/~P@x` |
+ * | i-th reference in an attribute | `@x/i` | `/~P@through/0` |
+ * | index component in a reference path | `@@p.i.v` | `/~q@@0.0.0` |
+ *
+ * Two properties matter. **Attributes are keyed by name**, so the swap in #1944
+ * — where `x` and `y` were handed each other's indices — cannot be expressed in
+ * this scheme at all, independently of the iteration order they are visited in.
+ * And **a named element is keyed by its name**, so inserting something earlier
+ * in the document does not move it; an author renaming it does, which is
+ * acceptable because `cid` already discards saved state on any change to the
+ * document text.
+ *
+ * Only components that do not already carry a `stateId` are given one, so the
+ * ids composites mint for their replacements (`<composite stateId>|<n>`) are
+ * left alone — those hang off a composite whose own id this pass has made
+ * stable, so the whole tree becomes anchored to the document.
+ *
+ * This pass sees only what the document builds. The other components Doenet
+ * builds — a composite's replacements, and the adapters `ChildMatcher`
+ * inserts (`<adapted stateId>@@adapt<n>`) — are keyed where they are built, in
+ * each case off a component this pass has already anchored. Between them that
+ * accounts for everything a reader can put work into; nothing holding their
+ * work is left on the `componentIdx` fallback in
+ * `ComponentBuilder`, and `statePersistenceKeying.test.ts` asserts as much.
+ */
+export function assignDocumentDerivedStateIds(document: SerializedComponent) {
+    const assigned = new Set<string>();
+
+    /**
+     * @param fullPath   this component's position, counting every ancestor
+     * @param namedAnchor the path of the nearest ancestor the author named,
+     *   which is what a named component hangs off instead of its position
+     */
+    function assign(
+        component: SerializedComponent | string,
+        fullPath: string,
+        namedAnchor: string,
+    ) {
+        if (typeof component === "string") {
+            return;
+        }
+
+        const name = authorGivenName(component);
+
+        // A named component hangs off the nearest named ancestor, skipping the
+        // positions of any unnamed ones in between: that is what lets an author
+        // wrap it in a `<div>`, or add a paragraph above it, without moving it.
+        // Where the name is not available -- unnamed, or the name is already
+        // taken -- position is the fallback, and a tree position is unique by
+        // construction.
+        let path = fullPath;
+        if (name !== undefined) {
+            const anchored = `${namedAnchor}/~${name}`;
+            // A name the author reused elsewhere under the same anchor cannot
+            // identify this component, so fall back to its position rather than
+            // hand two components the same key.
+            if (!assigned.has(anchored)) {
+                path = anchored;
+            }
+        }
+
+        assigned.add(path);
+        if (component.stateId === undefined) {
+            component.stateId = path;
+        }
+
+        // Descendants hang off this component's name if it has one, so that a
+        // named ancestor shields everything under it from edits above.
+        const anchorForChildren = name !== undefined ? path : namedAnchor;
+
+        for (const [index, child] of component.children.entries()) {
+            if (typeof child === "string") {
+                continue;
+            }
+            assign(child, `${path}/${index}`, anchorForChildren);
+        }
+
+        // Sorted so the recursion order does not depend on the order the
+        // attributes happen to be stored in -- the very thing #1944 was about.
+        // The names are what the ids are built from, so sorting changes no id.
+        for (const attrName of Object.keys(component.attributes).sort()) {
+            const attribute = component.attributes[attrName];
+            if (attribute.type === "component") {
+                assign(
+                    attribute.component,
+                    `${path}@${attrName}`,
+                    anchorForChildren,
+                );
+            } else if (attribute.type === "references") {
+                for (const [
+                    index,
+                    reference,
+                ] of attribute.references.entries()) {
+                    assign(
+                        reference,
+                        `${path}@${attrName}/${index}`,
+                        anchorForChildren,
+                    );
+                }
+            }
+        }
+
+        // Components written inside the index of a reference path -- the `<b/>`
+        // of `$a[<b/>]`. `ComponentBuilder` builds these too, so they need ids
+        // of their own or they fall back to their index.
+        // `unwrapSource` rather than a hand-written unwrap, so a fourth kind of
+        // `Source` could not silently leave a subtree unvisited.
+        const refResolution = component.extending
+            ? unwrapSource(component.extending)
+            : undefined;
+        if (refResolution?.originalPath) {
+            for (const [
+                partIndex,
+                pathPart,
+            ] of refResolution.originalPath.entries()) {
+                for (const [
+                    pieceIndex,
+                    indexPiece,
+                ] of pathPart.index.entries()) {
+                    for (const [
+                        valueIndex,
+                        value,
+                    ] of indexPiece.value.entries()) {
+                        assign(
+                            value,
+                            `${path}@@${partIndex}.${pieceIndex}.${valueIndex}`,
+                            anchorForChildren,
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    assign(document, "", "");
+}
+
+/**
+ * The name the author wrote for `component`, or `undefined` where they wrote
+ * none.
+ *
+ * Not every name in the tree is the author's. `pluginAddCompatibilityNames`
+ * names every element the author left unnamed, `_<componentType><n>`, from a
+ * counter in document order — so anchoring on one would be no more stable than
+ * the position it replaces, and would cost more bytes. They are recognised by
+ * their leading underscore, which is the form that plugin documents. Should an
+ * author write a name of that form themselves, the only consequence is that
+ * the component is keyed by position rather than by name: less robust to an
+ * edit above it, but no less correct.
+ *
+ * What is built after that plugin runs — everything sugar adds, in the parser
+ * and again here — carries no name at all, and falls to position the same way.
+ */
+function authorGivenName(component: SerializedComponent): string | undefined {
+    const nameAttribute = component.attributes?.name;
+    if (
+        nameAttribute?.type === "primitive" &&
+        nameAttribute.primitive.type === "string" &&
+        nameAttribute.primitive.value &&
+        !nameAttribute.primitive.value.startsWith("_")
+    ) {
+        return nameAttribute.primitive.value;
+    }
+    return undefined;
 }
 
 /**
@@ -397,6 +872,7 @@ export function expandUnflattenedToSerializedComponents({
                 componentInfoObjects,
                 nComponents,
                 stateIdInfo,
+                authoredComponentType: component.authoredComponentType,
             });
             let attributes: Record<string, SerializedAttribute> =
                 expandResult.attributes;
@@ -617,12 +1093,18 @@ export function expandAllUnflattenedAttributes({
     componentInfoObjects,
     nComponents,
     stateIdInfo,
+    authoredComponentType,
 }: {
     unflattenedAttributes: Record<string, UnflattenedAttribute>;
     componentClass: DoenetMLComponentClass<any>;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
     stateIdInfo?: { prefix: string; num: number };
+    /**
+     * The tag the author wrote, when the component has since been retyped.
+     * Only a message uses it; validation still answers to `componentClass`.
+     */
+    authoredComponentType?: string;
 }): {
     attributes: Record<string, SerializedAttribute>;
     diagnostics: DiagnosticRecord[];
@@ -678,7 +1160,12 @@ export function expandAllUnflattenedAttributes({
                 code: "doenet-e0004",
                 args: {
                     attribute: attr,
-                    componentType: componentClass.componentType,
+                    // What the author wrote, not what the component was
+                    // retyped to. Naming `<integer>` for a `<number>` written
+                    // between index brackets points at markup that is nowhere
+                    // in their document (#1919).
+                    componentType:
+                        authoredComponentType ?? componentClass.componentType,
                 },
             });
         }
@@ -814,12 +1301,34 @@ export function expandAttribute({
             }
 
             if (attrDef.copyComponentAttributesForCreatedComponent) {
+                // Attribute names are matched case-insensitively everywhere
+                // else (see `attributeLowerCaseMapping` in
+                // `expandAllAttributes`), so the author's spelling can be any
+                // casing. Match it the same way here, or `<tally TYPE="...">`
+                // would leave `type` uncopied while every other reading of the
+                // attribute still saw it — and the created component would be
+                // built to one type while the parent reported another.
+                const lowerCaseMapping: Record<string, string> = {};
+                for (const authorSpelling in allUnflattenedAttributes) {
+                    lowerCaseMapping[authorSpelling.toLowerCase()] =
+                        authorSpelling;
+                }
                 for (let attrName of attrDef.copyComponentAttributesForCreatedComponent) {
-                    if (allUnflattenedAttributes[attrName]) {
+                    const authorSpelling =
+                        lowerCaseMapping[attrName.toLowerCase()];
+                    if (authorSpelling !== undefined) {
                         // XXX: we many need to increment component indices here
-                        unflattenedComponentAttributes[attrName] = JSON.parse(
-                            JSON.stringify(allUnflattenedAttributes[attrName]),
-                        );
+                        unflattenedComponentAttributes[attrName] = {
+                            ...JSON.parse(
+                                JSON.stringify(
+                                    allUnflattenedAttributes[authorSpelling],
+                                ),
+                            ),
+                            // The declared spelling, not the author's, so that
+                            // the copy is indistinguishable from one written
+                            // out on the created component.
+                            name: attrName,
+                        };
                     }
                 }
             }
@@ -1193,10 +1702,18 @@ export function convertUnresolvedAttributesForComponentType({
     const newClass = componentInfoObjects.allComponentClasses[componentType];
     const newAttributesObj = newClass.createAttributesObject();
 
-    let attributeLowerCaseMapping: Record<string, string> = {};
+    // Without a prototype, so that an attribute an author names
+    // `constructor` or `toString` finds nothing rather than `Object`'s.
+    let attributeLowerCaseMapping: Record<string, string> = Object.create(null);
 
     for (let attrName in newAttributesObj) {
         attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
+    }
+
+    const compositeAttributeLowerCaseMapping: Record<string, string> =
+        Object.create(null);
+    for (const attrName in compositeAttributesObj) {
+        compositeAttributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
     }
 
     const newAttributes: Record<string, SerializedAttribute> = {};
@@ -1204,15 +1721,23 @@ export function convertUnresolvedAttributesForComponentType({
     for (const attrNameOrig in attributes) {
         const attribute = attributes[attrNameOrig];
 
-        const attrName =
-            attributeLowerCaseMapping[attrNameOrig.toLocaleLowerCase()];
+        const attrNameLower = attrNameOrig.toLowerCase();
+        const attrName = attributeLowerCaseMapping[attrNameLower];
 
         const attrDef = newAttributesObj[attrName];
 
+        // Look the attribute up by the composite's own name for it, not the
+        // new class's: a class that accepts any attribute (`<module>`) does
+        // not declare the composite's `_createComponentIdx`, and would
+        // otherwise be handed it, along with the rest of a `_copy`'s own
+        // attributes (#2227).
+        const compositeAttrName =
+            compositeAttributeLowerCaseMapping[attrNameLower];
+
         if (
-            attrName in compositeAttributesObj &&
-            !compositeAttributesObj[attrName].leaveRaw &&
-            !dontSkipAttributes.includes(attrName)
+            compositeAttrName !== undefined &&
+            !compositeAttributesObj[compositeAttrName].leaveRaw &&
+            !dontSkipAttributes.includes(compositeAttrName)
         ) {
             // skip any attributes in the composite itself
             // unless specifically marked to not be processed for the composite
@@ -1266,6 +1791,20 @@ export function convertUnresolvedAttributesForComponentType({
 
                     newAttributes[attrName].component = sugarResult
                         .components[0] as SerializedComponent;
+
+                    // an attribute that is only a literal becomes the literal
+                    const literal =
+                        attrName === newClass.addAttributeToResolver
+                            ? undefined
+                            : literalFromAttributeComponent({
+                                  name: attrName,
+                                  component: newAttributes[attrName].component,
+                                  attrDef,
+                                  sourceDoc: newAttributes[attrName].sourceDoc,
+                              });
+                    if (literal) {
+                        newAttributes[attrName] = literal;
+                    }
                 }
             } else {
                 // The attribute is already resolved.
@@ -1277,6 +1816,37 @@ export function convertUnresolvedAttributesForComponentType({
     }
 
     return { attributes: newAttributes, nComponents };
+}
+
+/**
+ * The name of the essential value that a component of type `componentType`
+ * starts from when it is made from a value (an unlinked copy of a property,
+ * an attribute given a value): the essential name of its
+ * `primaryStateVariableForDefinition`, which a point (`coords` for
+ * `coordsShadow`) or vector (`displacement` for `displacementShadow`) keeps
+ * under a name of its own, as `BaseComponent.serialize` writes it.
+ */
+export function primaryEssentialStateVariableOf({
+    componentType,
+    componentInfoObjects,
+}: {
+    componentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+}): string {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[componentType];
+    if (componentClass.primaryEssentialStateVariable) {
+        return componentClass.primaryEssentialStateVariable;
+    }
+    const varName: string | undefined =
+        componentClass.primaryStateVariableForDefinition;
+    if (!varName) {
+        return "value";
+    }
+    return (
+        componentInfoObjects.stateVariableInfo[componentType]
+            ?.stateVariableDescriptions[varName]?.essentialVarName ?? varName
+    );
 }
 
 /**
@@ -1344,7 +1914,12 @@ export function convertAttributeValuesForComponentType({
                     componentType: attrDef.createComponentOfType,
                     attributes: {},
                     doenetAttributes: {},
-                    state: { value: attributeVal },
+                    state: {
+                        [primaryEssentialStateVariableOf({
+                            componentType: attrDef.createComponentOfType,
+                            componentInfoObjects,
+                        })]: attributeVal,
+                    },
                     children: [],
                 },
             };

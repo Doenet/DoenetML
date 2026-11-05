@@ -13,6 +13,7 @@ import {
 import {
     expandAllUnflattenedAttributes,
     expandUnflattenedToSerializedComponents,
+    unwrapSource,
 } from "./convertNormalizedDast";
 import { convertToErrorComponent } from "./errors";
 import { diagnosticCodeFrom } from "../diagnostics";
@@ -26,6 +27,7 @@ export function applySugar({
     serializedComponents,
     parentParametersFromSugar = {},
     parentAttributes = {},
+    parentComponentType,
     componentInfoObjects,
     isAttributeComponent = false,
     nComponents,
@@ -34,6 +36,15 @@ export function applySugar({
     serializedComponents: (string | SerializedComponent)[];
     parentParametersFromSugar?: Record<string, any>;
     parentAttributes?: Record<string, any>;
+    /**
+     * The component type `parentAttributes` came from, so a sugar function
+     * reading an inherited attribute can check it against what that component
+     * actually accepts. `ComponentWithSelectableType` needs this: it reads
+     * `parentAttributes.type`, which is the raw authored string -- sugar runs
+     * before any state variable exists, so the validated value is not there to
+     * read (#1870).
+     */
+    parentComponentType?: string;
     componentInfoObjects: ComponentInfoObjects;
     isAttributeComponent?: boolean;
     nComponents: number;
@@ -112,6 +123,7 @@ export function applySugar({
                         matchedChildren,
                         parentParametersFromSugar,
                         parentAttributes,
+                        parentComponentType,
                         componentAttributes,
                         componentInfoObjects,
                         isAttributeComponent,
@@ -289,6 +301,7 @@ export function applySugar({
                 serializedComponents: newComponent.children,
                 parentParametersFromSugar: newParentParametersFromSugar,
                 parentAttributes: componentAttributes,
+                parentComponentType: componentType,
                 componentInfoObjects,
                 nComponents,
                 stateIdInfo,
@@ -304,6 +317,7 @@ export function applySugar({
                     const res = applySugar({
                         serializedComponents: [attribute.component],
                         parentAttributes: componentAttributes,
+                        parentComponentType: componentType,
                         componentInfoObjects,
                         isAttributeComponent: true,
                         nComponents,
@@ -313,6 +327,36 @@ export function applySugar({
                         .components[0] as SerializedComponent;
                     diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
+                }
+            }
+
+            // What is written between a reference's index brackets. These are
+            // not children of the reference, so nothing above reaches them, but
+            // an element can be written there — `$myList[<indexOf …/>]` (#1909)
+            // — and an `<indexOf>` that never gets its sugar never reads its
+            // own `target`.
+            //
+            // `originalPath` only: `unresolvedPath` is overwritten from the
+            // resolver's own output before anything instantiates it, so sugaring
+            // it would spend component indices on components that never exist.
+            //
+            // `parentAttributes` is deliberately not passed down. An index
+            // component is not a child of the reference, and
+            // `ComponentWithSelectableType`'s sugar reads `parentAttributes.type`.
+            if (newComponent.extending) {
+                for (const pathPart of unwrapSource(newComponent.extending)
+                    .originalPath) {
+                    for (const indexPiece of pathPart.index) {
+                        const res = applySugar({
+                            serializedComponents: indexPiece.value,
+                            componentInfoObjects,
+                            nComponents,
+                            stateIdInfo,
+                        });
+                        indexPiece.value = res.components;
+                        diagnostics.push(...res.diagnostics);
+                        nComponents = res.nComponents;
+                    }
                 }
             }
 

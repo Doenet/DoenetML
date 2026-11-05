@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -2357,6 +2358,56 @@ describe("Function Operator tag tests @group1", async () => {
         }
     });
 
+    it("derivative with more variables than its function keeps the function's domain", async () => {
+        // The derivative's domain takes the function's interval for each
+        // input the function has and the unrestricted interval for the
+        // others. When those others were left undefined, the whole domain
+        // was ignored and `$$d(5,3)` was 10 (Doenet/DoenetML#2266).
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <function name="f" domain="(0,1)">x^2</function>
+      <derivative name="d" variables="x y">$f</derivative>
+      <p name="p">$d.domain</p>
+      <p name="p2">$$d(5,3), $$d(0.5,3)</p>
+      `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("(0, 1), (-∞, ∞)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("＿, 1");
+    });
+
+    it("function operators with more inputs than their function", async () => {
+        // An operator given more inputs than its function child used to have
+        // undefined variables for the extra inputs, so the document failed
+        // to load (Doenet/DoenetML#2382). They now get default names.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <function name="g">x^2</function>
+      <derivative name="d" numInputs="2">$g</derivative>
+      <clampFunction name="c" numInputs="2">$g</clampFunction>
+      <wrapFunctionPeriodic name="w" numInputs="2">$g</wrapFunctionPeriodic>
+      <p name="p">$$d(3,5), $$c(0.5,5), $$w(1.5,5)</p>
+      `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        for (let name of ["d", "c", "w"]) {
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.variables.map((v) => v.tree),
+            ).eqls(["x", "y"]);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("6, 0.25, 0.25");
+    });
+
     it("derivatives of vector-valued functions", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -3569,28 +3620,62 @@ describe("Function Operator tag tests @group1", async () => {
             ).eq(nMinima);
 
             expect(
-                stateVariables[await resolvePathToNodeIdx("min[1]")].stateValues
-                    .text,
-            ).eq(`( ${minima[0][0]}, ${round(minima[0][1], 5)} )`);
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "min[1]",
+                    )
+                ).stateValues.text,
+            ).eq(`(${minima[0][0]}, ${round(minima[0][1], 5)})`);
             expect(
-                stateVariables[await resolvePathToNodeIdx("min2[1]")]
-                    .stateValues.text,
-            ).eq(`( ${minima[0][0]}, ${round(minima[0][1], 5)} )`);
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "min2[1]",
+                    )
+                ).stateValues.text,
+            ).eq(`(${minima[0][0]}, ${round(minima[0][1], 5)})`);
             if (nMinima === 2) {
                 expect(
-                    stateVariables[await resolvePathToNodeIdx("min[2]")]
-                        .stateValues.text,
-                ).eq(`( ${minima[1][0]}, ${round(minima[1][1], 5)} )`);
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            "min[2]",
+                        )
+                    ).stateValues.text,
+                ).eq(`(${minima[1][0]}, ${round(minima[1][1], 5)})`);
                 expect(
-                    stateVariables[await resolvePathToNodeIdx("min2[2]")]
-                        .stateValues.text,
-                ).eq(`( ${minima[1][0]}, ${round(minima[1][1], 5)} )`);
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            "min2[2]",
+                        )
+                    ).stateValues.text,
+                ).eq(`(${minima[1][0]}, ${round(minima[1][1], 5)})`);
             } else {
-                expect(stateVariables[await resolvePathToNodeIdx("min[2]")]).eq(
-                    undefined,
-                );
                 expect(
-                    stateVariables[await resolvePathToNodeIdx("min2[2]")],
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "min[2]",
+                    ),
+                ).eq(undefined);
+                expect(
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "min2[2]",
+                    ),
                 ).eq(undefined);
             }
 
@@ -3604,28 +3689,62 @@ describe("Function Operator tag tests @group1", async () => {
             ).eq(nMaxima);
 
             expect(
-                stateVariables[await resolvePathToNodeIdx("max[1]")].stateValues
-                    .text,
-            ).eq(`( ${maxima[0][0]}, ${round(maxima[0][1], 5)} )`);
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "max[1]",
+                    )
+                ).stateValues.text,
+            ).eq(`(${maxima[0][0]}, ${round(maxima[0][1], 5)})`);
             expect(
-                stateVariables[await resolvePathToNodeIdx("max2[1]")]
-                    .stateValues.text,
-            ).eq(`( ${maxima[0][0]}, ${round(maxima[0][1], 5)} )`);
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "max2[1]",
+                    )
+                ).stateValues.text,
+            ).eq(`(${maxima[0][0]}, ${round(maxima[0][1], 5)})`);
             if (nMaxima === 2) {
                 expect(
-                    stateVariables[await resolvePathToNodeIdx("max[2]")]
-                        .stateValues.text,
-                ).eq(`( ${maxima[1][0]}, ${round(maxima[1][1], 5)} )`);
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            "max[2]",
+                        )
+                    ).stateValues.text,
+                ).eq(`(${maxima[1][0]}, ${round(maxima[1][1], 5)})`);
                 expect(
-                    stateVariables[await resolvePathToNodeIdx("max2[2]")]
-                        .stateValues.text,
-                ).eq(`( ${maxima[1][0]}, ${round(maxima[1][1], 5)} )`);
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            "max2[2]",
+                        )
+                    ).stateValues.text,
+                ).eq(`(${maxima[1][0]}, ${round(maxima[1][1], 5)})`);
             } else {
-                expect(stateVariables[await resolvePathToNodeIdx("max[2]")]).eq(
-                    undefined,
-                );
                 expect(
-                    stateVariables[await resolvePathToNodeIdx("max2[2]")],
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "max[2]",
+                    ),
+                ).eq(undefined);
+                expect(
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "max2[2]",
+                    ),
                 ).eq(undefined);
             }
         }
@@ -3805,34 +3924,70 @@ describe("Function Operator tag tests @group1", async () => {
 
         let max1x = (-5 - 3) / 2;
         expect(
-            stateVariables[await resolvePathToNodeIdx("max[1]")].stateValues
-                .text,
-        ).eq(`( ${max1x}, ${round(fp(max1x), 5)} )`);
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "max[1]",
+                )
+            ).stateValues.text,
+        ).eq(`(${max1x}, ${round(fp(max1x), 5)})`);
         expect(
-            stateVariables[await resolvePathToNodeIdx("max2[1]")].stateValues
-                .text,
-        ).eq(`( ${max1x}, ${round(fp(max1x), 5)} )`);
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "max2[1]",
+                )
+            ).stateValues.text,
+        ).eq(`(${max1x}, ${round(fp(max1x), 5)})`);
 
         let min1x = (-3 + 0) / 2;
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("min[1]")].stateValues
-                .text,
-        ).eq(`( ${min1x}, ${round(fp(min1x), 5)} )`);
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "min[1]",
+                )
+            ).stateValues.text,
+        ).eq(`(${min1x}, ${round(fp(min1x), 5)})`);
         expect(
-            stateVariables[await resolvePathToNodeIdx("min2[1]")].stateValues
-                .text,
-        ).eq(`( ${min1x}, ${round(fp(min1x), 5)} )`);
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "min2[1]",
+                )
+            ).stateValues.text,
+        ).eq(`(${min1x}, ${round(fp(min1x), 5)})`);
 
         let max2x = (0 + 6) / 2;
         expect(
-            stateVariables[await resolvePathToNodeIdx("max[2]")].stateValues
-                .text,
-        ).eq(`( ${max2x}, ${round(fp(max2x), 5)} )`);
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "max[2]",
+                )
+            ).stateValues.text,
+        ).eq(`(${max2x}, ${round(fp(max2x), 5)})`);
         expect(
-            stateVariables[await resolvePathToNodeIdx("max2[2]")].stateValues
-                .text,
-        ).eq(`( ${max2x}, ${round(fp(max2x), 5)} )`);
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "max2[2]",
+                )
+            ).stateValues.text,
+        ).eq(`(${max2x}, ${round(fp(max2x), 5)})`);
     });
 
     it("handle no child", async () => {

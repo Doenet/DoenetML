@@ -72,17 +72,14 @@ color =
     .purple = pɔpul
     .pink = pink
     .brown = braun
-
 line-width =
     .thick = wa
     .thin = kulɔ
-
 # Written as «kɛ …» phrases rather than as bare qualifiers, so that they close
 # the description. `style-stroke` puts them last.
 line-style =
     .dashed = kɛ ngeya-ngeya
     .dotted = kɛ tɔkpɔ-tɔkpɔ
-
 fill-style =
     .horizontal = laingi ti lɔ va
     .vertical = laingi ti lɔ lɔlɔ
@@ -90,7 +87,6 @@ fill-style =
     .backdiagonal = laingi ti lɔ kpandi na gbe wu
     .dots = tɔkpɔ
     .diamonds = dayamɔn
-
 noun =
     .line = laing
     .line-segment = laing gbua
@@ -110,7 +106,6 @@ noun =
     .diamond = dayamɔn
     .cross = krɔs
     .plus = plɔs tɔkpɔi
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words, so it goes in the tail. It is also the one place the definite would
 # have been least awkward — the tail ends in a numeral rather than in a
@@ -121,12 +116,10 @@ noun-regular-polygon =
         [tail] na kɛ gbua { $numSides }
        *[head] pɔligɔn yekpe
     }
-
 # Mende has no noun class and no gender, so every noun answers the same and the
 # answer goes unused — the shape `locales/mnk`, `locales/bm` and `locales/dyu`
 # have, and for the same reason.
 noun-gender = yila
-
 
 ## Style composition
 
@@ -142,7 +135,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and the describing words follow, which is what puts a
 # placeable at the end of the phrase and keeps the definite suffix out of this
 # file. See the header.
@@ -151,15 +143,12 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = gbuani
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } kɛ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } kɛ { $pattern }
@@ -167,7 +156,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } kɛ { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «ngɔwu» is the border and leads its own describing words. Mende has no
 # article and joins this clause with the invariable «kɛ», so all four branches
 # read alike.
@@ -178,35 +166,28 @@ style-border-clause =
         [and-article] kɛ ngɔwu { $border }
        *[with] kɛ ngɔwu { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ii gbuani
-
 style-text =
     { $parts ->
         [background] { $color } kɛ woma { $background }
        *[plain] { $color }
     }
-
 style-background-none = hama gbi ii lɔ
-
 
 ## Boolean words
 
 boolean-true = tonya
 boolean-false = ngunya
 
-
 ## Answer buttons
 
 answer-submit-label = Gbɔɔ Yenge
 answer-submit-label-no-correctness = Ve Njepei
-
 
 ## Sectional blocks
 
@@ -231,7 +212,6 @@ section-name =
     .solution = Hinda gulɔla
     .task = Yenge
     .theorem = Tiɔrɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -241,9 +221,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ngiti
-
 
 ## Tables and figures
 
@@ -254,7 +232,6 @@ table-name =
         [unnumbered-title] Tebul{ ": " }
        *[unnumbered] Tebul
     }
-
 figure-name =
     { $parts ->
         [numbered] Kɛlɛma { $enumeration }
@@ -263,25 +240,18 @@ figure-name =
        *[unnumbered] Kɛlɛma
     }
 
-
 ## Paginator controls
 
 paginator-previous = Na wa ma
 paginator-next = Na wa woma
-
 paginator-page = Pej
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ɔɔ
-
 piecewise-condition-if = ina
-
 piecewise-condition-otherwise = hinda gbi hu na
-
 
 ## Chemistry
 ##
@@ -294,6 +264,5 @@ piecewise-condition-otherwise = hinda gbi hu na
 ## same ministry.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kɛmistri Tɔkpɔi Ii Tonya
 chemistry-invalid-ionic-compound = Ayɔn Gbɔɔla Ii Tonya

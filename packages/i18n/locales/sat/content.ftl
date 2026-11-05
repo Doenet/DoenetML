@@ -49,15 +49,12 @@ color =
     .purple = ᱵᱮᱜᱩᱱᱤ
     .pink = ᱜᱩᱞᱟᱹᱯᱤ
     .brown = ᱠᱷᱟᱭᱨᱤ
-
 line-width =
     .thick = ᱢᱚᱴᱟ
     .thin = ᱯᱟᱛᱞᱟ
-
 line-style =
     .dashed = ᱨᱟᱲᱟᱜ
     .dotted = ᱴᱩᱰᱟᱹᱜᱟᱱ
-
 fill-style =
     .horizontal = ᱜᱤᱛᱤᱡ ᱜᱟᱨᱠᱚ
     .vertical = ᱴᱮᱸᱜᱚᱱ ᱜᱟᱨᱠᱚ
@@ -65,7 +62,6 @@ fill-style =
     .backdiagonal = ᱩᱞᱴᱟ ᱠᱚᱱᱟ ᱜᱟᱨᱠᱚ
     .dots = ᱴᱩᱰᱟᱹᱜᱠᱚ
     .diamonds = ᱥᱚᱢᱪᱟᱛᱩᱨᱵᱷᱩᱡ
-
 noun =
     .line = ᱜᱟᱨ
     .line-segment = ᱜᱟᱨ ᱦᱟᱹᱴᱤᱧ
@@ -85,7 +81,6 @@ noun =
     .diamond = ᱥᱚᱢᱪᱟᱛᱩᱨᱵᱷᱩᱡ
     .cross = ᱜᱩᱬᱟ ᱪᱤᱱᱦᱟᱹ
     .plus = ᱡᱚᱲᱟᱣ ᱪᱤᱱᱦᱟᱹ
-
 # The side count stands in front of the noun with the rest of the modifiers,
 # so the tail is empty.
 noun-regular-polygon =
@@ -93,10 +88,8 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } ᱫᱷᱟᱨᱮᱱ ᱥᱚᱢ ᱵᱚᱦᱩᱵᱷᱩᱡ
     }
-
 # Nothing selects on it: Santali has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -110,15 +103,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = ᱯᱮᱨᱮᱡᱟᱜ
-
 # «ᱛᱮ» is the instrumental postposition and follows what it governs, so the
 # pattern moves to the front of the phrase where English appends it. It has one
 # shape whatever precedes it.
@@ -127,7 +117,6 @@ style-filled =
         [pattern] { $pattern } ᱛᱮ { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } ᱛᱮ { $filled } { $color } { $noun }
@@ -135,7 +124,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } ᱛᱮ { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Santali has no article, so the two `-article` branches read like their
 # neighbours; «ᱟᱨ» is the conjunction and stands in front.
 style-border-clause =
@@ -145,36 +133,29 @@ style-border-clause =
         [and-article] ᱟᱨ { $border } ᱠᱤᱱᱟᱨ ᱥᱟᱶ
        *[with] { $border } ᱠᱤᱱᱟᱨ ᱥᱟᱶ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } ᱛᱮ { $color } ᱯᱮᱨᱮᱡ
        *[plain] { $color } ᱯᱮᱨᱮᱡ
     }
-
 style-unfilled = ᱵᱟᱝ ᱯᱮᱨᱮᱡᱟᱜ
-
 # «ᱨᱮ» is the locative postposition, and has one shape too.
 style-text =
     { $parts ->
         [background] { $background } ᱛᱟᱭᱚᱢ ᱨᱮ { $color }
        *[plain] { $color }
     }
-
 style-background-none = ᱡᱟᱦᱟᱸ ᱵᱟᱝ
-
 
 ## Boolean words
 
 boolean-true = ᱥᱟᱨᱤ
 boolean-false = ᱵᱟᱝ ᱥᱟᱨᱤ
 
-
 ## Answer buttons
 
 answer-submit-label = ᱧᱮᱞ ᱢᱮ
 answer-submit-label-no-correctness = ᱛᱮᱞᱟ ᱠᱩᱞ ᱢᱮ
-
 
 ## Sectional blocks
 
@@ -199,7 +180,6 @@ section-name =
     .solution = ᱛᱮᱭᱟᱨ
     .task = ᱠᱟᱹᱢᱤ
     .theorem = ᱯᱨᱚᱢᱮᱭ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -209,9 +189,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ᱪᱤᱱᱦᱟᱹ
-
 
 ## Tables and figures
 
@@ -222,7 +200,6 @@ table-name =
         [unnumbered-title] ᱥᱟᱨᱬᱤ{ ": " }
        *[unnumbered] ᱥᱟᱨᱬᱤ
     }
-
 figure-name =
     { $parts ->
         [numbered] ᱪᱤᱛᱟᱹᱨ { $enumeration }
@@ -231,26 +208,20 @@ figure-name =
        *[unnumbered] ᱪᱤᱛᱟᱹᱨ
     }
 
-
 ## Paginator controls
 
 paginator-previous = ᱢᱟᱲᱟᱝᱟᱜ
 paginator-next = ᱛᱟᱭᱚᱢᱟᱜ
 paginator-page = ᱥᱟᱦᱴᱟ
-
 # «X ᱠᱷᱚᱱ Y» — "Y out of X" — puts the total first, so the two counts change
 # places.
 paginator-page-status = { $numPages } ᱠᱷᱚᱱ { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = ᱥᱮ
-
 piecewise-condition-if = ᱡᱩᱫᱤ
-
 piecewise-condition-otherwise = ᱵᱟᱝ ᱠᱷᱟᱱ
-
 
 ## Chemistry
 ##
@@ -266,6 +237,5 @@ piecewise-condition-otherwise = ᱵᱟᱝ ᱠᱷᱟᱱ
 ## Indo-Aryan catalogs in this batch record.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ᱵᱟᱝ ᱴᱷᱤᱠ ᱨᱟᱥᱟᱭᱚᱱᱤᱠ ᱪᱤᱱᱦᱟᱹ
 chemistry-invalid-ionic-compound = ᱵᱟᱝ ᱴᱷᱤᱠ ᱟᱭᱚᱱᱤᱠ ᱡᱚᱛᱚ

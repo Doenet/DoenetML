@@ -1,7 +1,108 @@
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
-import { setUpVariantSeedAndRng } from "../utils/variants";
+import {
+    gatherVariantComponents,
+    setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { codedDiagnostic } from "../utils/diagnostics";
+
+/**
+ * Whether a serialized child of the arranger is a `<problem copy>` or
+ * `<problem extend>`: a composite made to stand for one problem.
+ */
+function isProblemCopy({ child, componentInfoObjects }) {
+    return (
+        typeof child === "object" &&
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: child.componentType,
+            baseComponentType: "_composite",
+        }) &&
+        child.attributes._createComponentOfType?.primitive.value === "problem"
+    );
+}
+
+/**
+ * The serialized children that the arranger arranges: its `<problem>`s.
+ */
+function problemChildren(children) {
+    return children.filter((child) => child.componentType === "problem");
+}
+
+/**
+ * The parts of a serialized `<problem>` that the arranger displays: its last
+ * `<statement>` and the content of its last given answer, retagged as a
+ * `span`. Either is `null` if missing. Everything else in the problem, such
+ * as a hint or a `<variantControl>`, is dropped.
+ *
+ * The returned statement and the answer's children are the problem's own
+ * serialized objects, so a desired variant assigned to a variant component
+ * within them carries into the replacements.
+ */
+function arrangedParts(problem) {
+    let statement = null;
+    let givenAnswer = null;
+    for (const child of problem.children) {
+        if (child.componentType === "statement") {
+            statement = child;
+        } else if (child.componentType === "givenAnswer") {
+            const givenAnswerContent = child.children.find(
+                (grandchild) =>
+                    grandchild.componentType === "_postponeRenderContainer",
+            );
+
+            // `givenAnswer` is transformed by `postponeRenderSugar`
+            // in parser normalization so that one child is
+            // `_postponeRenderContainer` (and there can also be
+            // one or more `<title>` children). Pretzel reuses that
+            // same component shape, then intentionally unwraps
+            // it here by cloning the child content and retagging
+            // as `span` for pretzel replacements.
+            if (givenAnswerContent) {
+                givenAnswer = {
+                    ...givenAnswerContent,
+                    componentType: "span",
+                    attributes: {
+                        ...givenAnswerContent.attributes,
+                    },
+                    children: (givenAnswerContent.children ?? []).filter(
+                        (grandchild) =>
+                            grandchild.componentType !== "label" &&
+                            grandchild.componentType !== "shortDescription",
+                    ),
+                };
+
+                // copy componentIdx and name from `givenAnswer`
+                // so references resolve to the givenAnswer content
+                givenAnswer.componentIdx = child.componentIdx;
+                if (child.attributes.name) {
+                    givenAnswer.attributes.name = child.attributes.name;
+                }
+            }
+        }
+    }
+    return { statement, givenAnswer };
+}
+
+/**
+ * The serialized content that the arranger displays from its `<problem>`
+ * children, in problem order. Variants are counted and assigned over the
+ * variant components within this content only, so that every variant
+ * counted is one that is shown.
+ */
+function arrangedContent(children) {
+    const content = [];
+    for (const problem of problemChildren(children)) {
+        const { statement, givenAnswer } = arrangedParts(problem);
+        if (statement) {
+            content.push(statement);
+        }
+        if (givenAnswer) {
+            content.push(givenAnswer);
+        }
+    }
+    return content;
+}
 
 /**
  * Determine which given answer should pair with a displayed problem.
@@ -101,10 +202,14 @@ export default class PretzelArranger extends CompositeComponent {
     };
     static createsVariants = true;
 
-    static serializeReplacementsForChildren = true;
     static replacementsAlreadyInResolver = true;
 
-    static useSerializedChildrenComponentIndices = true;
+    // A copy of the arranger is made from its `<problem>` children, not from
+    // the content it displays, which it could not arrange again. A linked
+    // copy shows its source's replacements, which reuse the statements and
+    // answers of the source's problems, so it gives them the indices of the
+    // corresponding statements and answers of its own problems.
+    static mapShadowedReplacementIndicesThroughSerializedChildren = true;
 
     static createAttributesObject() {
         const attributes = super.createAttributesObject();
@@ -149,14 +254,33 @@ export default class PretzelArranger extends CompositeComponent {
                     doNotProxy: true,
                 },
             }),
-            definition: function ({ dependencyValues }) {
+            definition: function ({ dependencyValues, componentInfoObjects }) {
+                const diagnostics = [];
+
+                // A `<problem copy>` or `<problem extend>` is a composite, not
+                // a problem, so it has no statement or answer for the arranger
+                // to take apart. It is not arranged, and not counted in
+                // `determineNumberOfUniqueVariants`.
+                if (
+                    dependencyValues.serializedChildren.some((child) =>
+                        isProblemCopy({ child, componentInfoObjects }),
+                    )
+                ) {
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0176",
+                        }),
+                    );
+                }
+
                 return {
                     setValue: {
-                        serializedProblemChildren:
-                            dependencyValues.serializedChildren.filter(
-                                (child) => child.componentType === "problem",
-                            ),
+                        serializedProblemChildren: problemChildren(
+                            dependencyValues.serializedChildren,
+                        ),
                     },
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -305,11 +429,13 @@ export default class PretzelArranger extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "problemOrder",
                 },
+                variants: {
+                    dependencyType: "variants",
+                },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -328,7 +454,7 @@ export default class PretzelArranger extends CompositeComponent {
                     indices: dependencyValues.problemOrder,
                 };
 
-                let subvariants = (generatedVariantInfo.subvariants = []);
+                let subvariants = [];
 
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
@@ -342,12 +468,82 @@ export default class PretzelArranger extends CompositeComponent {
                         );
                     }
                 }
+
+                // The descendants come in display order, which follows
+                // `problemOrder`, but `setUpVariant` hands out subvariants in
+                // the order of the displayed content (see `arrangedContent`).
+                // Report them in that order, so that this info, passed back
+                // as a desired variant (as when a saved variant is reloaded),
+                // gives each subvariant to the component that generated it.
+                // Reorder only if that order lists exactly the components
+                // found here. It does not before the arranger is expanded,
+                // when none are found.
+                const arrangedVariantComponentIdxs =
+                    dependencyValues.variants?.arrangedVariantComponentIdxs;
+                const subvariantByIdx = new Map(
+                    subvariants.map((subvariant) => [
+                        subvariant.meta?.createdBy,
+                        subvariant,
+                    ]),
+                );
+                if (
+                    arrangedVariantComponentIdxs?.length ===
+                        subvariants.length &&
+                    arrangedVariantComponentIdxs.every((idx) =>
+                        subvariantByIdx.has(idx),
+                    )
+                ) {
+                    subvariants = arrangedVariantComponentIdxs.map((idx) =>
+                        subvariantByIdx.get(idx),
+                    );
+                }
+                generatedVariantInfo.subvariants = subvariants;
+
                 return {
                     setValue: {
                         generatedVariantInfo,
                         isVariantComponent: true,
                     },
                 };
+            },
+        };
+
+        // The variant of each arranger of a `<pretzel copy>` merged into
+        // this one, by its index: this arranger's seed and order, with the
+        // subvariants of that arranger's problems. Its copy reports it in
+        // the place of that arranger among the children added to it, and,
+        // handed back, it gives the copy's arranger this arrangement again.
+        stateVariableDefinitions.variantsOfMergedComponents = {
+            returnDependencies: () => ({
+                generatedVariantInfo: {
+                    dependencyType: "stateVariable",
+                    variableName: "generatedVariantInfo",
+                },
+                variants: {
+                    dependencyType: "variants",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { seed, indices, subvariants } =
+                    dependencyValues.generatedVariantInfo;
+                const subvariantByIdx = new Map(
+                    subvariants.map((subvariant) => [
+                        subvariant.meta?.createdBy,
+                        subvariant,
+                    ]),
+                );
+                const variantsOfMergedComponents = {};
+                for (const arranger of dependencyValues.variants
+                    ?.mergedArrangers ?? []) {
+                    variantsOfMergedComponents[arranger.componentIdx] = {
+                        seed,
+                        indices,
+                        subvariants: (arranger.variantComponentIdxs ?? []).map(
+                            (idx) => subvariantByIdx.get(idx) ?? {},
+                        ),
+                    };
+                }
+                return { setValue: { variantsOfMergedComponents } };
             },
         };
 
@@ -377,54 +573,10 @@ export default class PretzelArranger extends CompositeComponent {
                     idx,
                     problem,
                 ] of dependencyValues.serializedProblemChildren.entries()) {
-                    let lastStatement = null;
-                    let lastGivenAnswer = null;
-                    for (const child of problem.children) {
-                        if (child.componentType === "statement") {
-                            lastStatement = child;
-                        } else if (child.componentType === "givenAnswer") {
-                            const givenAnswerContent = child.children.find(
-                                (grandchild) =>
-                                    grandchild.componentType ===
-                                    "_postponeRenderContainer",
-                            );
-
-                            // `givenAnswer` is transformed by `postponeRenderSugar`
-                            // in parser normalization so that one child is
-                            // `_postponeRenderContainer` (and there can also be
-                            // one or more `<title>` children). Pretzel reuses that
-                            // same component shape, then intentionally unwraps
-                            // it here by cloning the child content and retagging
-                            // as `span` for pretzel replacements.
-                            if (givenAnswerContent) {
-                                lastGivenAnswer = {
-                                    ...givenAnswerContent,
-                                    componentType: "span",
-                                    attributes: {
-                                        ...givenAnswerContent.attributes,
-                                    },
-                                    children: (
-                                        givenAnswerContent.children ?? []
-                                    ).filter(
-                                        (grandchild) =>
-                                            grandchild.componentType !==
-                                                "label" &&
-                                            grandchild.componentType !==
-                                                "shortDescription",
-                                    ),
-                                };
-
-                                // copy componentIdx and name from `givenAnswer`
-                                // so references resolve to the givenAnswer content
-                                lastGivenAnswer.componentIdx =
-                                    child.componentIdx;
-                                if (child.attributes.name) {
-                                    lastGivenAnswer.attributes.name =
-                                        child.attributes.name;
-                                }
-                            }
-                        }
-                    }
+                    const {
+                        statement: lastStatement,
+                        givenAnswer: lastGivenAnswer,
+                    } = arrangedParts(problem);
 
                     if (lastStatement === null || lastGivenAnswer === null) {
                         validProblems = false;
@@ -628,16 +780,50 @@ export default class PretzelArranger extends CompositeComponent {
         };
     }
 
-    static setUpVariant({
-        serializedComponent,
-        sharedParameters,
-        descendantVariantComponents,
-    }) {
+    static setUpVariant({ serializedComponent, sharedParameters, core }) {
+        // Gather the variant components of the displayed content only, as
+        // `determineNumberOfUniqueVariants` counts them, so that each
+        // subvariant goes to the component it was chosen for.
+        const descendantVariantComponents = gatherVariantComponents({
+            serializedComponents: arrangedContent(serializedComponent.children),
+            componentInfoObjects: core.componentInfoObjects,
+        });
         setUpVariantSeedAndRng({
             serializedComponent,
             sharedParameters,
             descendantVariantComponents,
         });
+
+        // Record that order for `generatedVariantInfo`, which reports the
+        // subvariants in it.
+        serializedComponent.variants ??= {};
+        serializedComponent.variants.arrangedVariantComponentIdxs =
+            descendantVariantComponents.map(
+                (component) => component.componentIdx,
+            );
+
+        // and, for each arranger of a `<pretzel copy>` merged into this one
+        // (`Pretzel.preprocessSerializedChildren`), which of those components
+        // came from its problems
+        const mergedArrangers = serializedComponent.variants.mergedArrangers;
+        if (mergedArrangers) {
+            const children = serializedComponent.children ?? [];
+            serializedComponent.variants.mergedArrangers = mergedArrangers.map(
+                (arranger) => ({
+                    ...arranger,
+                    variantComponentIdxs: gatherVariantComponents({
+                        serializedComponents: arrangedContent(
+                            children.filter((child) =>
+                                arranger.childIdxs.includes(
+                                    child?.componentIdx,
+                                ),
+                            ),
+                        ),
+                        componentInfoObjects: core.componentInfoObjects,
+                    }).map((component) => component.componentIdx),
+                }),
+            );
+        }
     }
 
     static determineNumberOfUniqueVariants({
@@ -653,26 +839,9 @@ export default class PretzelArranger extends CompositeComponent {
         for (let child of serializedComponent.children) {
             if (child.componentType === "problem") {
                 numProblems++;
-            } else if (
-                componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: child.componentType,
-                    baseComponentType: "_composite",
-                }) &&
-                child.attributes.createComponentOfType?.primitive.value ===
-                    "problem"
-            ) {
-                if (child.attributes.numProblems?.primitive !== undefined) {
-                    let newProblems = Number(
-                        child.attributes.numProblems?.primitive.value,
-                    );
-                    if (Number.isInteger(newProblems) && newProblems >= 0) {
-                        numProblems += newProblems;
-                    } else {
-                        return { success: false };
-                    }
-                } else {
-                    numProblems++;
-                }
+            } else if (isProblemCopy({ child, componentInfoObjects })) {
+                // Not arranged (see `serializedProblemChildren`), so not counted.
+                continue;
             } else {
                 return { success: false };
             }
@@ -683,8 +852,20 @@ export default class PretzelArranger extends CompositeComponent {
             mode,
         });
 
+        // Count the variants of the displayed content only: the statement and
+        // answer of each arranged problem. Content that is dropped, such as a
+        // hint, a `<variantControl>`, or the children of a `<problem extend>`,
+        // would otherwise multiply the variants of content that is not shown.
+        // The variant components are counted directly rather than through
+        // their `<problem>`s, as the arranger never creates the problems to
+        // pass their desired variants on.
+        // `super` records its results on `variants`, which the two share.
+        serializedComponent.variants ??= {};
         let result = super.determineNumberOfUniqueVariants({
-            serializedComponent,
+            serializedComponent: {
+                ...serializedComponent,
+                children: arrangedContent(serializedComponent.children),
+            },
             componentInfoObjects,
             infoDiagnostics,
         });

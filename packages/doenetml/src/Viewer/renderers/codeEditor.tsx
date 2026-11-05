@@ -5,7 +5,10 @@ import useDoenetRenderer, {
 // @ts-ignore
 import { sizeToCSS } from "./utils/css";
 import { useInView } from "framer-motion";
-import { EditorViewer } from "../../EditorViewer/EditorViewer";
+// The lazy wrapper, not `EditorViewer` itself: a static import here would
+// hoist the whole editor stack into every bundle that can render a document,
+// defeating the code-splitting boundary. See `EditorViewerLazy.tsx`.
+import { EditorViewerLazy } from "../../EditorViewer/EditorViewerLazy";
 import type { DiagnosticsTabId } from "../../EditorViewer/DiagnosticsResponseTabs";
 import { DocContext } from "../DocViewer";
 
@@ -108,7 +111,7 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
 
     return (
         <div ref={ref}>
-            <EditorViewer
+            <EditorViewerLazy
                 id={id}
                 activityId={id}
                 prefixForIds={id + "::"}

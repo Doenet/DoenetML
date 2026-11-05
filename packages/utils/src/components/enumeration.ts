@@ -9,6 +9,7 @@ const { gcd, lcm } = me.math as { gcd: typeof GcdType; lcm: typeof LcmType };
 // The number of indices to choose for each combination is numberOfIndices.
 // Begins with combinations that contain distinct indices, if possible
 // Returns a maximum of maxNumber
+// Choosing zero indices has one combination, the empty one (#2356)
 export function enumerateSelectionCombinations({
     numberOfIndices,
     numberOfOptions,
@@ -22,6 +23,9 @@ export function enumerateSelectionCombinations({
     withReplacement: boolean;
     skipZero: boolean;
 }): number[][] {
+    if (numberOfIndices <= 0) {
+        return maxNumber >= 1 ? [[]] : [];
+    }
     if (numberOfIndices === 1) {
         let options = [...Array(numberOfOptions).keys()];
         // remove zero

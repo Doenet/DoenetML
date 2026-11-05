@@ -26,25 +26,55 @@ export const upgradeModuleElement: Plugin<[], DastRoot, DastRoot> = () => {
                 // No affected attributes, nothing to do
                 return;
             }
-            const setupNode = node.children.find(
+            const isCustomAttribute = (child: DastElementContent) =>
+                isDastElement(child) && child.name === "customAttribute";
+            const setups = node.children.filter(
                 (child): child is DastElement =>
                     isDastElement(child) && child.name === "setup",
             );
+            // The `<setup>` holding the `<customAttribute>`s need not be the first: a
+            // `<map>` converted ahead of it leaves a `<setup>` of its own in front.
+            const setupNode =
+                setups.find((setup) =>
+                    setup.children.some(isCustomAttribute),
+                ) ?? setups[0];
             if (!setupNode) {
                 // No need to upgrade the syntax
                 return;
             }
-            const nonSetupChildren = node.children.filter(
-                (child) => !isDastElement(child) || child.name !== "setup",
+            const customAttributeNodes = setupNode.children.filter(
+                (child): child is DastElement => isCustomAttribute(child),
+            );
+            // Anything in the `<setup>` that is not a `<customAttribute>` is ordinary
+            // setup content and must survive the conversion.
+            const otherSetupChildren = setupNode.children.filter(
+                (child) => !isCustomAttribute(child),
             );
 
-            const customAttributeNodes = setupNode.children.filter(
-                (child): child is DastElement =>
-                    isDastElement(child) && child.name === "customAttribute",
-            );
             // We will turn `<setup>` into `<moduleAttributes>`; its children will be completely replaced
             setupNode.children = [];
             setupNode.name = "moduleAttributes";
+
+            if (
+                otherSetupChildren.some(
+                    (child) =>
+                        child.type !== "text" || child.value.trim() !== "",
+                )
+            ) {
+                // Put the non-`<customAttribute>` content back into a `<setup>` of its
+                // own, directly after the `<moduleAttributes>`.
+                const newSetup: DastElement = {
+                    type: "element",
+                    name: "setup",
+                    attributes: {},
+                    children: otherSetupChildren,
+                };
+                node.children.splice(
+                    node.children.indexOf(setupNode) + 1,
+                    0,
+                    newSetup,
+                );
+            }
             for (const customAttributeNode of customAttributeNodes) {
                 const name = toXml(
                     customAttributeNode.attributes["assignNames"]?.children,
@@ -59,6 +89,8 @@ export const upgradeModuleElement: Plugin<[], DastRoot, DastRoot> = () => {
                         `Module "customAttribute" is missing a "componentType"; the syntax cannot be upgraded with a "componentType".`,
                         {
                             place: customAttributeNode.position,
+                            ruleId: "module/custom-attribute-without-type",
+                            source: "v06-to-v07",
                         },
                     );
                     continue;

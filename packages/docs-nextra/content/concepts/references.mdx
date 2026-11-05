@@ -1,0 +1,475 @@
+import { Callout } from 'nextra/components'
+import { DoenetEditor } from "../../components"
+
+# References
+
+A **reference** lets one part of your document use a value that is defined
+somewhere else. Instead of repeating content, you give a component a `name`
+and then refer back to it with the `$` symbol. A reference is not a copy you
+edit separately — it points at the original, so when the original changes, the
+reference updates too.
+
+References are the main way components share information in DoenetML. The
+[essential concepts](essentialConcepts#namingConventions) page introduces the
+idea alongside components, attributes, and properties; this page covers writing
+references, how they resolve, and referencing repeated content.
+
+## Writing references
+
+The different ways to write a reference and what each form points at.
+
+### Referencing a component with `$`
+
+To reference a component, first give it a `name`, then write `$` followed by
+that name. The reference inserts the named component at that location.
+
+```doenet-editor-horiz
+<p>The coordinates of p are <point name="p">(3,4)</point>.</p>
+<graph>
+  <shortDescription>A graph with a draggable point named p</shortDescription>
+  $p
+</graph>
+```
+
+Try dragging the point on the graph: the coordinates shown above update to
+match, because `$p` is the same point as `p` — a reference, not a separate
+copy.
+
+Writing `$p` is the same as writing `<point extend="$p"/>{:dn}`, and an
+`extend` is always the same component again: it can have its own name and look
+different, but it can't change what the component makes or what its state can
+hold, and trying to is an error that says what to write instead.
+
+<Callout type="info">
+**DoenetML naming convention:**
+* Can only contain numbers, letters, and underscores
+* Cannot start with an underscore or a number
+* Is case-sensitive
+</Callout>
+
+### Referencing a property with `.`
+
+Every component stores **properties** — computed information you can read back.
+Write `$name.propertyName` to reference one property of a named component. The
+whole expression is a single reference: it points at the `propertyName` property
+of the component named `name`.
+
+```doenet-editor-horiz
+<math name="myMath" splitSymbols="false">xy</math>
+
+<p>Is splitSymbols turned on? $myMath.splitSymbols</p>
+<p>The value of myMath is $myMath</p>
+```
+
+In `$myMath.splitSymbols`, `myMath` selects the component and `splitSymbols`
+selects which of its properties to read. The available properties vary by
+component — see a component's [reference page](../reference/componentIndex) for
+the full list, and the
+[Properties and Lists](../tutorials/intermediateTutorial/iT2-4-properties)
+tutorial for more worked examples.
+
+### Selecting an entry with `[...]`
+
+Write an index in brackets after a reference to select one entry of what it
+references: a coordinate of a point, an entry of a tuple, a row of a matrix, or
+an entry of a list. A second index selects within that entry, such as the entry
+in a given row and column of a matrix.
+
+```doenet-editor-horiz
+<point name="P">(3,4)</point>
+<math name="m">(8,9)</math>
+<matrix name="A"><row>1 2</row><row>3 4</row></matrix>
+<mathList name="l">10 20 30</mathList>
+
+<p>$P[2], $m[1], $A[2], $A[2][1], $l[3]</p>
+```
+
+Here `$P[2]` is `4`, `$m[1]` is `8`, `$A[2]` is the second row of `A` (as a
+1×2 matrix), `$A[2][1]` is `3`, and `$l[3]` is `30`. What an index selects
+depends on the value, not the tag: a `<math>` holding a matrix is indexed by
+row, like a `<matrix>`. A value that is a single expression, such as
+`<number name="n">5</number>`, has no entries, so `$n[1]` references nothing
+and DoenetML reports a warning. The warning follows the value: for `$m[2]` of a
+`<math>` whose value comes from an input, it is there while the value is a
+single expression and goes away once it is a tuple. A `copy`, such as
+`<math copy="$m[2]"/>{:dn}`, doesn't follow its source, so it keeps the warning
+it was made with, as it keeps what it shows. An index past the last
+entry also references nothing, without a warning, since the number of entries
+can change.
+
+### Marking where a name ends with `$(...)`
+
+When a reference is followed immediately by other letters, numbers, or
+underscores, wrap the name in parentheses so DoenetML knows where the name
+ends. For example, `$(a)b` references the component named `a` and then prints a
+literal `b`, whereas `$ab` would look for a component named `ab`.
+
+```doenet-editor-horiz
+<number name="a">5</number>
+
+<p>$(a)b is the value of a followed by the letter b.</p>
+```
+
+### Writing a reference as a different tag
+
+A tag you write makes that tag. `<math extend="$t"/>{:dn}` or
+`<math copy="$t"/>{:dn}` always makes exactly one `<math>`, so `$t + 1`, a
+property of it, and an answer that checks it all read one math. A bare
+reference is different: `$t` takes the shape of what it finds, and may be
+nothing.
+
+When `t` is not a `<math>`, the tag asks for a math made from `t`. That works
+only between related types:
+
+* `<math>`, `<number>`, `<text>` and `<boolean>`, from one another;
+* `<point>`, `<vector>` and `<coords>`, from one another;
+* a `<math>` from a point, vector or coords, as the tuple of its coordinates,
+  and a point, vector or coords from a math whose value is a tuple;
+* a `<math>`, `<number>`, `<text>` or `<boolean>` from an input, as its value:
+  `<math extend="$mi"/>{:dn}` of a `<mathInput>`;
+* a component as what it stands for wherever its own tag can't go, such as an
+  `<angle>` as a `<math>`, or an `<ion>` as the `<text>` of its name.
+
+A `<group>` can be made from anything, and holds it.
+
+```doenet-editor-horiz
+<point name="P">(3,4)</point>
+<group name="g"><number>7</number></group>
+
+<p>As a math: <math extend="$P"/></p>
+<p>As a math: <math extend="$g"/></p>
+```
+
+#### Made from a composite
+
+A tag can be made from a composite, such as a `<group>`, a
+`<conditionalContent>` or a `<select>`, only when the DoenetML guarantees that
+it **always holds exactly one component, of one type** that can become the tag.
+This is decided when the document loads, from what you wrote, not from what
+the composite holds as the document runs:
+
+* a `<conditionalContent>` needs an `<else>`, and each case and the else must
+  hold one component of the same type. Without an `<else>`, it holds nothing
+  while no case is true, so add an `<else>`;
+* a `<select>`, `<selectFromSequence>` or another selector needs `numToSelect`
+  written as `1`, or left out;
+* a `<group>`, `<sort>` or `<shuffle>` needs one component;
+* a `<repeat>`, `<collect>`, `<sequence>` or `<intersection>` can hold any
+  number of components, so it is an error as a single tag, even while it holds
+  one. Index it to use one of them: `<point extend="$i[1]"/>{:dn}`;
+* what each part holds is its tag: a bare `$y` holds `y`'s tag, a bare string
+  is a `<text>`, and a property such as `$P.x` held in the composite is an
+  error, as its type isn't known from the DoenetML.
+
+A list tag, such as `<mathList extend="$c"/>{:dn}`, takes any number of
+components, including none, as long as they are all of one type.
+
+Anything else is an error, shown in place of the tag, whose message says what
+to write instead. To read whatever a composite holds as one value, wrap the
+reference in the tag: `<math>$cc</math>{:dn}`. To use one of several
+components, index what a `<repeat>`, a selector or a `<collect>` makes, such as
+`$r[1]`, or give the one you want a name and refer to it by that name.
+
+```doenet-editor-horiz
+<booleanInput name="b"><label>Show a point</label></booleanInput>
+<conditionalContent name="cc">
+  <case condition="$b"><point>(1,2)</point></case>
+  <else><text>no point</text></else>
+</conditionalContent>
+
+<p>An error: <text extend="$cc"/></p>
+<p>Wrapped: <text>$cc</text></p>
+```
+
+A tag whose reference names nothing, more than one thing, or a property its
+source doesn't have is an error too. Written bare, `$nothing` is a warning and
+shows nothing.
+
+Other errors, each with the form to write instead:
+
+* to use the text of a `<p>` or another container that has one, write `$p.text`;
+* an input is not the same thing as its value: to edit `$m` with an input, write
+  `<mathInput bindValueTo="$m"/>{:dn}`, and to start from its value,
+  `<mathInput prefill="$m"/>{:dn}`.
+
+#### What still changes as the document runs
+
+Two things are decided as the document runs, and neither changes what the tag
+makes:
+
+* **A value that doesn't convert.** `<point extend="$m"/>{:dn}` while `m` is not
+  a tuple, or `<boolean extend="$t"/>{:dn}` while `t` is not true or false, is
+  still a point or a boolean. It has the value an empty one has, such as
+  `(0, 0)`, with an info, until the value converts.
+* **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
+  iterations of `r` is still a math, `＿`, with an info, and is made from the
+  iteration again when the index names one.
+
+While the info lasts there is one, naming the value as it is now, and none for a
+tag in content that isn't there now, such as a case that isn't chosen. A `copy`
+does not follow its source, so it stays as it was made, and so does its info.
+A property, such as `<point extend="$P.x"/>{:dn}`, and the selected value of a
+`<choiceInput>` are not checked against their value.
+
+```doenet-editor-horiz
+<mathInput name="mi" prefill="x"><label>Enter a point, such as (1,2)</label></mathInput>
+<math name="m">$mi</math>
+
+<p>As a point: <point extend="$m"/></p>
+```
+
+## How references are resolved
+
+How DoenetML decides which component a reference points at — and what happens
+when it can't.
+
+### Resolving to the nearest match
+
+A reference looks for its referent starting where it is written and working
+outward through the enclosing components. The **nearest** matching name wins, so
+the same `$n` can mean different things in different places. Below, each `$n`
+finds the `<number name="n">` defined in its own section.
+
+```doenet-editor-horiz
+<section>
+  <title>First</title>
+  <number name="n">10</number>
+  <p>Here, n is $n.</p>
+</section>
+<section>
+  <title>Second</title>
+  <number name="n">20</number>
+  <p>Here, n is $n.</p>
+</section>
+```
+
+### When a reference is ambiguous
+
+If a name matches more than one component and none is nearer than the others,
+the reference is ambiguous, so DoenetML reports a warning rather than guessing
+which one you meant. Here, `$n` written outside both sections could equally
+mean either section's `n`, so it fails.
+
+```doenet-editor-horiz
+<section>
+  <number name="n">10</number>
+</section>
+<section>
+  <number name="n">20</number>
+</section>
+<p>Outside the sections, $n is ambiguous.</p>
+```
+
+Nothing is rendered for `$n`, because DoenetML won't guess which `n` you meant.
+The editor surfaces the problem in the **Warnings** panel — its tab is marked
+with a <svg viewBox="0 0 16 16" width="1em" height="1em" fill="#c25a1a" style={{ display: "inline-block", verticalAlign: "-0.125em" }} role="img" aria-label="warning"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg> icon — reporting
+*Multiple referents found for reference: `$n`*. The same message also appears
+in a tooltip when you hover over `$n` in the editor.
+
+### Disambiguating with a named ancestor
+
+If two components with the same name are in different ancestors, you can create
+unique references to them by giving those ancestors unique names and
+referencing through the ancestor names. Naming the two sections `s1` and `s2`
+lets you reach each `n` unambiguously with `$s1.n` and `$s2.n`.
+
+```doenet-editor-horiz
+<section name="s1">
+  <number name="n">10</number>
+</section>
+<section name="s2">
+  <number name="n">20</number>
+</section>
+<p>The first section's n is $s1.n and the second's is $s2.n.</p>
+```
+
+### Names inside a `<conditionalContent>` or a `<select>`
+
+A name inside a case or the `<else>` of a
+[`<conditionalContent>`](../reference/conditionalContent) is visible outside it,
+as a name inside a `<group>` is. A plain `$x` from outside finds the `x` in the
+case shown now, as `$cc.x` does. Two cases declaring `x` don't make it
+ambiguous, since only one is shown at a time; an `x` beside the
+`<conditionalContent>` does.
+
+The reference works only if **every case declares the name, with the same
+type**, so that what it names never changes type when another case is shown.
+"Every case" means each `<case>` written and the `<else>`, if there is one.
+With no `<else>`, an `x` in every case is enough: while no case is true, `$x`
+names nothing. If a case lacks `x`, or two cases declare it with different
+types, `$x` and `$cc.x` name nothing, with a warning that says which. Written as
+a tag, such as `<math extend="$x"/>{:dn}`, either is an error, and so is a name
+that is missing while no case is true, with no `<else>`. On a tag, a type that
+already is the tag counts as it: with an `<integer name="x">{:dn}` in one case
+and a `<number name="x">{:dn}` in another, `<number extend="$x"/>{:dn}` and
+`<number extend="$x.value"/>{:dn}` work, while `$x` alone does not. A name after it is held
+to the same rule: if every case has a `<group name="h">{:dn}`, `$h.x` works only
+if each of those groups declares `x`, with the same type.
+
+```doenet-editor-horiz
+<booleanInput name="b"><label>Use the first case</label></booleanInput>
+<conditionalContent name="cc">
+  <case condition="$b"><math name="x">1</math></case>
+  <else><math name="x">2</math></else>
+</conditionalContent>
+
+<p>x is $x, and $x + 1 is <math>$x + 1</math>.</p>
+```
+
+A [`<select>`](../reference/select) that picks one option (`numToSelect`
+written as `1`, or left out) works the same way, with every option in place of
+every case. A `<select>` that picks several keeps its names private, as a
+`<repeat>` does: reach a name in one pick with an index, as in `$s[2].x`.
+That works under the same rule: every option must declare `x`, with the same
+type, or `$s[2].x` names nothing, with a warning.
+
+### References in a copy's attributes
+
+A reference in an attribute of a copy resolves as if it were written in a child
+of the copy, as for any other component. It sees the children written inside
+the copy tag, but not the copied content, which is not written there. Below,
+`$h` on `copy1` finds the `h` in the "Copies" section, so `copy1` is hidden.
+In the "Another copy" section, `$h` on `copy3` finds the `h` written inside its
+own tag, so `copy3` is shown.
+To reach a component inside the copied content, reference it through the copy's
+name, as `copy2` does with `$copy2.h`.
+
+```doenet-editor-horiz
+<section name="orig">
+  <title>Original</title>
+  <setup><boolean name="h">false</boolean></setup>
+  <p>Some content.</p>
+</section>
+<section>
+  <title>Copies</title>
+  <setup><boolean name="h">true</boolean></setup>
+  <section copy="$orig" hide="$h" name="copy1" />
+  <section copy="$orig" hide="$copy2.h" name="copy2" />
+</section>
+<section>
+  <title>Another copy</title>
+  <section copy="$orig" hide="$h" name="copy3">
+    <setup><boolean name="h">false</boolean></setup>
+    <p>Content written inside the copy.</p>
+  </section>
+</section>
+```
+
+The same holds for a child written inside a copy tag. A name on its own never
+finds the copied content; it resolves as it would next to the copy. Below, the
+first paragraph added to `copy4` shows the "Copy" section's `t`, and the second
+reaches the copied `t` through the copy's name. (Content of a copy without a
+name can't be reached from inside it, so give the copy a name.)
+
+```doenet-editor-horiz
+<section name="orig">
+  <title>Original</title>
+  <text name="t">copied text</text>
+</section>
+<section>
+  <title>Copy</title>
+  <text name="t">nearby text</text>
+  <section copy="$orig" name="copy4">
+    <p>$t</p>
+    <p>$copy4.t</p>
+  </section>
+</section>
+```
+
+### References inside copied content
+
+A copy is the original's DoenetML pasted where the copy is written, with its
+names still meaning what they meant in the original. A reference inside the
+copied content to a component outside it keeps pointing at that component, even
+if the copy lands next to another component with the same name. Below, the
+copied paragraph still shows the `n` of the "Original" section, not the `n` of
+the section the copy is in.
+
+```doenet-editor-horiz
+<section name="orig">
+  <title>Original</title>
+  <number name="n">1</number>
+  <p name="p">n is $n.</p>
+</section>
+<section>
+  <title>Copy</title>
+  <number name="n">2</number>
+  <p copy="$orig.p" />
+</section>
+```
+
+A reference to a component inside the copied content points at the copy's own
+version of that component. This holds even when the reference goes through the
+name of the component being copied: `$orig.h` written inside `orig` names the
+copy's `h` in a copy of `orig`.
+
+The same holds for a copy of an `extend`, or of part of one. A reference the
+`extend` takes from its original to a component outside what was extended keeps
+pointing at that component, not at a component with the same name where the
+`extend` or the copy is written.
+
+### When a name doesn't exist
+
+If nothing with the referenced name can be found, the reference fails. A common
+cause is a typo in the name.
+
+```doenet-editor-horiz
+<number name="count">5</number>
+
+<p>$total has no referent, because nothing is named "total".</p>
+```
+
+As with an ambiguous reference, `$total` renders nothing and DoenetML reports a
+warning — here, *No referent found for reference: `$total`* — shown in the
+Warnings panel and as a tooltip on hover.
+
+The same warning is given for a property the component doesn't have, such as
+`$count.total`. A property it has, but with no value now, such as `$P.z` of a
+point in two dimensions, shows nothing with no warning.
+
+Written as a tag, such as `<number extend="$total"/>{:dn}`, the same reference
+is an error rather than a warning: a tag always makes that tag, and this one
+can't be made. The error is shown in its place.
+
+## Referencing repeated content
+
+A [`<repeat>`](../reference/repeat) (or
+[`<repeatForSequence>`](../reference/repeatForSequence)) generates several
+copies of its content. Use a bracketed index to reference one iteration, the
+`valueName`/`indexName` bindings to reference the per-iteration values inside
+the repeat, and a `name` on a component in the body to reach that component in a
+chosen iteration.
+
+```doenet-editor-horiz
+<repeatForSequence name="rep" from="1" to="3" valueName="v">
+  <p>$v squared is <math name="squared">$v^2</math>.</p>
+</repeatForSequence>
+
+<p>The value used in the first iteration was $rep[1].v.</p>
+<p>The square computed in the second iteration is $rep[2].squared.</p>
+```
+
+Here `$rep[2]` references the second iteration of the repeat and
+`$rep[2].squared` the `<math name="squared">` defined inside it, while
+`$rep[1].v` references the `valueName` binding `v` from the first iteration.
+
+An index selects an iteration, not one of the components inside it: to reach a
+component in an iteration, give it a name and write the name after the index, as
+`$rep[2].squared` does. When the whole content of a repeat is another repeat, an
+index after an iteration passes on to the inner repeat, so nested repeats take
+one index for each level.
+
+```doenet-editor-horiz
+<repeatForSequence name="table" from="1" to="3" valueName="row">
+  <repeatForSequence from="1" to="4" valueName="col">
+    <number name="product">$row * $col</number>
+  </repeatForSequence>
+</repeatForSequence>
+
+<p>Row 2, column 3: $table[2][3].</p>
+<p>Row 3, column 4: $table[3][4].product.</p>
+```
+
+Here `$table[2][3]` is the third iteration of the inner repeat in the second
+iteration of `table`, and `$table[3][4].product` the `<number name="product">`
+in the fourth iteration of the inner repeat in the third iteration.

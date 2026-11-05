@@ -31,7 +31,8 @@ describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
             samples = stateVariables[
                 await win.resolvePath1("p1")
             ].activeChildren.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
+                // each sampler is a list component of one number
+                (x) => stateVariables[x.componentIdx].stateValues.numbers[0],
             );
 
             expect(samples.length).eq(100);
@@ -61,7 +62,8 @@ describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
             let samples2 = stateVariables[
                 await win.resolvePath1("p1")
             ].activeChildren.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
+                // each sampler is a list component of one number
+                (x) => stateVariables[x.componentIdx].stateValues.numbers[0],
             );
 
             expect(samples2.length).eq(100);
@@ -110,7 +112,8 @@ describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
             samples = stateVariables[
                 await win.resolvePath1("p1")
             ].activeChildren.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
+                // each sampler is a list component of one number
+                (x) => stateVariables[x.componentIdx].stateValues.numbers[0],
             );
 
             expect(samples.length).eq(100);
@@ -151,7 +154,8 @@ describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
             let samples2 = stateVariables[
                 await win.resolvePath1("p1")
             ].activeChildren.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
+                // each sampler is a list component of one number
+                (x) => stateVariables[x.componentIdx].stateValues.numbers[0],
             );
 
             expect(samples2).eqls(samples);

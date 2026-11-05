@@ -3,12 +3,57 @@ import {
     unwrapSource,
 } from "./dast/convertNormalizedDast";
 
+/**
+ * Whether the names inside what `composite` makes are reached through its
+ * name (`$e.h`): it is the `_copy` made for an `extend` (or `copy`) of a list
+ * (`forList`) or of any other component (`_createComponentIdx`). A reference
+ * (`$l`) has no name to reach them through.
+ *
+ * A linked copy of a list made in such a `_copy` keeps the list's named
+ * children (`namesReachedThroughCopy`, `BaseComponent.serialize`). So does
+ * the shadow of a composite's replacements or of a parent's new children,
+ * decided by the `_copy` mediating it (`shadows.compositeIdx`) so that it is
+ * made with the same children as the copy that holds it
+ * (`createComponentIndicesFromSerializedChildren` matches the two).
+ */
+export function namesReachedThroughCopy(composite) {
+    return (
+        composite?.doenetAttributes.forList !== undefined ||
+        composite?.attributes._createComponentIdx !== undefined
+    );
+}
+
+/**
+ * The list form a `<collect>`, `<sort>` or `<shuffle>` of values is made as
+ * (`utils/dast/listForms.ts`), mapped to the tag it is written as.
+ */
+export const TAGS_OF_LIST_FORMS = {
+    _collectList: "collect",
+    _sortList: "sort",
+    _shuffleList: "shuffle",
+};
+
+/**
+ * Whether a replacement of type `replacementType` is a component of
+ * `requiredType`, the type a copy is written as. The list form of a tag
+ * (`TAGS_OF_LIST_FORMS`) is a component of that tag: `<collect
+ * copy="$B.gB.x"/>` of a `<collect>` made a list form is the list form,
+ * even when the document pass (`utils/dast/listForms.ts`) could not see that
+ * `x` is one, as when `x` is made by an `extend` (`gB`).
+ */
+export function replacementIsOfType(replacementType, requiredType) {
+    return (
+        replacementType === requiredType ||
+        (Object.hasOwn(TAGS_OF_LIST_FORMS, replacementType) &&
+            TAGS_OF_LIST_FORMS[replacementType] === requiredType)
+    );
+}
+
 export function postProcessCopy({
     serializedComponents,
     componentIdx,
     addShadowDependencies = true,
     markAsPrimaryShadow = false,
-    identifierPrefix = "",
     unlinkExternalCopies = false,
     copiesByRefIdx = {},
     componentIndicesFound = [],
@@ -29,7 +74,31 @@ export function postProcessCopy({
             componentIndicesFound.push(component.componentIdx);
         }
 
-        if (component.originalIdx != undefined) {
+        if (component.shadowsVariableOf) {
+            // made by a serialization to shadow one state variable of a
+            // component (`ValueRef.serialize`), which a linked copy keeps
+            if (addShadowDependencies) {
+                const {
+                    componentIdx: shadowedIdx,
+                    variableName,
+                    fromImplicitProp,
+                } = component.shadowsVariableOf;
+                const dependency = {
+                    dependencyType: "referenceShadow",
+                    compositeIdx: componentIdx,
+                    propVariable: variableName,
+                };
+                if (fromImplicitProp) {
+                    dependency.fromImplicitProp = true;
+                }
+                component.downstreamDependencies = {
+                    [shadowedIdx]: [dependency],
+                };
+            } else if (component.originalIdx != undefined) {
+                component.unlinkedCopySource = component.originalIdx;
+            }
+            delete component.shadowsVariableOf;
+        } else if (component.originalIdx != undefined) {
             // preserializedNamesFound[component.originalIdx] = component;
 
             if (!component.dontShadowOriginalIndex) {
@@ -45,6 +114,7 @@ export function postProcessCopy({
                             },
                         ],
                     };
+
                     if (init) {
                         downDep[
                             component.originalIdx
@@ -67,9 +137,7 @@ export function postProcessCopy({
             const refResolution = unwrapSource(component.extending);
             const nodeIdx = refResolution.nodeIdx;
             if (nodeIdx == null) {
-                if (!component.attributes.uri) {
-                    throw Error("we need to create a nodeIdx here, then.");
-                }
+                throw Error("we need to create a nodeIdx here, then.");
             } else {
                 if (copiesByRefIdx[nodeIdx] === undefined) {
                     copiesByRefIdx[nodeIdx] = [];
@@ -82,54 +150,68 @@ export function postProcessCopy({
     // recurse after processing all components
     // so that first gather all active aliases
 
+    /** Recurse into components nested one level below this one. */
+    function recurse(nestedComponents) {
+        return postProcessCopy({
+            serializedComponents: nestedComponents,
+            componentIdx,
+            addShadowDependencies,
+            markAsPrimaryShadow,
+            unlinkExternalCopies,
+            copiesByRefIdx,
+            componentIndicesFound,
+            init: false,
+        });
+    }
+
+    /**
+     * The components inside a reference's path indices, such as the `$i` of
+     * `$m[$i]`, were copied along with the reference, so they shadow their
+     * originals just as a copied child does.
+     *
+     * Called for a reference in content — the component itself — and for each
+     * entry of an attribute's `references` (a reference in `target`, `from`,
+     * and the like). Only the indices are recursed into here: an attribute's
+     * reference resolves from its new location, and giving it a
+     * `referenceShadow` of its own would change index-free references that
+     * work today.
+     */
+    function recurseIntoPathIndices(component) {
+        if (!component.extending) {
+            return;
+        }
+        for (const pathPart of unwrapSource(component.extending).originalPath ??
+            []) {
+            for (const index of pathPart.index) {
+                recurse(index.value);
+            }
+        }
+    }
+
     for (let ind in serializedComponents) {
         let component = serializedComponents[ind];
         if (typeof component !== "object") {
             continue;
         }
 
-        postProcessCopy({
-            serializedComponents: component.children,
-            componentIdx,
-            addShadowDependencies,
-            markAsPrimaryShadow,
-            identifierPrefix,
-            unlinkExternalCopies,
-            copiesByRefIdx,
-            componentIndicesFound,
-            init: false,
-        });
+        recurse(component.children);
 
         for (let attrName in component.attributes) {
             let attribute = component.attributes[attrName];
             if (attribute.component) {
-                attribute.component = postProcessCopy({
-                    serializedComponents: [attribute.component],
-                    componentIdx,
-                    addShadowDependencies,
-                    markAsPrimaryShadow,
-                    identifierPrefix,
-                    unlinkExternalCopies,
-                    copiesByRefIdx,
-                    componentIndicesFound,
-                    init: false,
-                })[0];
+                attribute.component = recurse([attribute.component])[0];
+            } else if (attribute.references) {
+                for (const reference of attribute.references) {
+                    recurseIntoPathIndices(reference);
+                }
             }
         }
 
         if (component.replacements) {
-            postProcessCopy({
-                serializedComponents: component.replacements,
-                componentIdx,
-                addShadowDependencies,
-                markAsPrimaryShadow,
-                identifierPrefix,
-                unlinkExternalCopies,
-                copiesByRefIdx,
-                componentIndicesFound,
-                init: false,
-            });
+            recurse(component.replacements);
         }
+
+        recurseIntoPathIndices(component);
     }
 
     if (init && unlinkExternalCopies) {
@@ -139,7 +221,7 @@ export function postProcessCopy({
                     if (!copyComponent.attributes) {
                         copyComponent.attributes = {};
                     }
-                    copyComponent.attributes.link = {
+                    copyComponent.attributes._link = {
                         type: "primitive",
                         primitive: { type: "boolean", value: false },
                     };
@@ -166,8 +248,31 @@ export async function verifyReplacementsMatchSpecifiedType({
     let diagnostics = [];
 
     if (
-        !component.attributes.createComponentOfType?.primitive &&
+        !component.attributes._createComponentOfType?.primitive &&
         !component.sharedParameters.compositesMustHaveAReplacement
+    ) {
+        return {
+            replacements,
+            replacementChanges,
+            diagnostics,
+            nComponents,
+        };
+    }
+
+    // An extend that would change what its source makes shows one error in
+    // its place (`extendChangesContentErrors` in `Copy.js`). It is left as
+    // it is, not made into the type the extend was written as, which would
+    // wrap it in a component of that type given the attributes that are the
+    // error.
+    const newReplacements = replacementChanges
+        ? replacementChanges.length === 1 &&
+          replacementChanges[0].changeType === "add"
+            ? replacementChanges[0].serializedReplacements
+            : undefined
+        : replacements;
+    if (
+        newReplacements?.length === 1 &&
+        newReplacements[0]?.doenetAttributes?.inPlaceOfExtend
     ) {
         return {
             replacements,
@@ -218,7 +323,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     }
 
     if (
-        !component.attributes.createComponentOfType?.primitive &&
+        !component.attributes._createComponentOfType?.primitive &&
         component.sharedParameters.compositesMustHaveAReplacement &&
         replacementTypes.length > 0
     ) {
@@ -235,7 +340,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     }
 
     let requiredComponentType =
-        component.attributes.createComponentOfType?.primitive.value;
+        component.attributes._createComponentOfType?.primitive.value;
 
     let requiredLength = await component.stateValues.numComponentsSpecified;
 
@@ -258,14 +363,16 @@ export async function verifyReplacementsMatchSpecifiedType({
 
     if (
         replacementTypes.length !== requiredLength ||
-        !replacementTypes.every((x) => x === requiredComponentType)
+        !replacementTypes.every((x) =>
+            replacementIsOfType(x, requiredComponentType),
+        )
     ) {
         // console.warn(
-        //     `Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType and numComponents`,
+        //     `Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType`,
         // );
 
         // if only replacement is a group or a _copy
-        // then give the group/_copy the createComponentOfType and numComponentsSpecified
+        // then give the group/_copy the createComponentOfType
         if (
             replacements?.length === 1 &&
             requiredLength === 1 &&
@@ -275,24 +382,20 @@ export async function verifyReplacementsMatchSpecifiedType({
             if (!replacements[0].attributes) {
                 replacements[0].attributes = {};
             }
-            replacements[0].attributes.createComponentOfType = {
+            replacements[0].attributes._createComponentOfType = {
                 type: "primitive",
                 primitive: { type: "string", value: requiredComponentType },
             };
-            replacements[0].attributes.numComponents = {
-                type: "primitive",
-                primitive: { type: "string", value: requiredLength },
-            };
 
-            if (component.attributes.createComponentName?.primitive) {
-                replacements[0].attributes.createComponentName = JSON.parse(
-                    JSON.stringify(component.attributes.createComponentName),
+            if (component.attributes._createComponentName?.primitive) {
+                replacements[0].attributes._createComponentName = JSON.parse(
+                    JSON.stringify(component.attributes._createComponentName),
                 );
                 delete replacements[0].attributes.name;
             }
-            if (component.attributes.createComponentIdx?.primitive) {
-                replacements[0].attributes.createComponentIdx = JSON.parse(
-                    JSON.stringify(component.attributes.createComponentIdx),
+            if (component.attributes._createComponentIdx?.primitive) {
+                replacements[0].attributes._createComponentIdx = JSON.parse(
+                    JSON.stringify(component.attributes._createComponentIdx),
                 );
                 replacements[0].componentIdx = nComponents++;
                 replacements[0].stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
@@ -318,7 +421,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                 component.replacements.length
         ) {
             // if we are changing replacements so that only replacement is a group/_copy
-            // then give the group/_copy the createComponentOfType and numComponentsSpecified
+            // then give the group/_copy the createComponentOfType
 
             const theReplacement =
                 replacementChanges[0].serializedReplacements[0];
@@ -326,24 +429,20 @@ export async function verifyReplacementsMatchSpecifiedType({
             if (!theReplacement.attributes) {
                 theReplacement.attributes = {};
             }
-            theReplacement.attributes.createComponentOfType = {
+            theReplacement.attributes._createComponentOfType = {
                 type: "primitive",
                 primitive: { type: "string", value: requiredComponentType },
             };
-            theReplacement.attributes.numComponents = {
-                type: "primitive",
-                primitive: { type: "string", value: requiredLength },
-            };
 
-            if (component.attributes.createComponentName?.primitive) {
-                theReplacement.attributes.createComponentName = JSON.parse(
-                    JSON.stringify(component.attributes.createComponentName),
+            if (component.attributes._createComponentName?.primitive) {
+                theReplacement.attributes._createComponentName = JSON.parse(
+                    JSON.stringify(component.attributes._createComponentName),
                 );
                 delete theReplacement.attributes.name;
             }
-            if (component.attributes.createComponentIdx?.primitive) {
-                theReplacement.attributes.createComponentIdx = JSON.parse(
-                    JSON.stringify(component.attributes.createComponentIdx),
+            if (component.attributes._createComponentIdx?.primitive) {
+                theReplacement.attributes._createComponentIdx = JSON.parse(
+                    JSON.stringify(component.attributes._createComponentIdx),
                 );
                 theReplacement.componentIdx = nComponents++;
                 theReplacement.stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
@@ -362,19 +461,29 @@ export async function verifyReplacementsMatchSpecifiedType({
         // then wrap each replacement with a blank component we are creating,
         // i.e., add each current replacement as the child of a new component
 
+        // A source that made nothing, such as an iteration a `<repeat>`
+        // withholds while it has fewer, is not counted.
         let wrapExistingReplacements =
             replacementTypes.length === requiredLength &&
             !(replacementsToWithhold > 0) &&
-            workspace.sourceIndices?.length === requiredLength;
+            (workspace.sourceIndices?.length === requiredLength ||
+                (!replacementChanges &&
+                    workspace.sourceIndices?.length > requiredLength &&
+                    workspace.numReplacementsBySource?.filter((n) => n > 0)
+                        .length === requiredLength));
 
         let originalReplacements;
 
         if (wrapExistingReplacements && replacementChanges) {
             // if we have replacement changes, we can wrap only if we are replacing all components
-            // in a single add
+            // in a single add. It may replace more than the copy has now: a
+            // replacement that shadowed a component deleted with it (the
+            // `<number>` of a case no longer active, when `$cc.x` is now
+            // the `<integer>` of another case) is already gone, as for a
+            // group or a `_copy`, above.
             if (
                 replacementChanges.length === 1 &&
-                replacementChanges[0].numberReplacementsToReplace ===
+                replacementChanges[0].numberReplacementsToReplace >=
                     component.replacements.length
             ) {
                 originalReplacements =
@@ -603,6 +712,23 @@ export function calculateReplacementTypesFromChanges(
             if (change.replacementsToWithhold !== undefined) {
                 replacementsToWithhold = change.replacementsToWithhold;
             }
+        } else if (change.changeType === "rearrangeReplacements") {
+            // The same replacements in a new order, so the types travel
+            // with the components and are permuted rather than recalculated.
+            //
+            // Nothing reaches this branch today: `<sort>` is the only source
+            // of the change, and it does not run its changes through
+            // `verifyReplacementsMatchSpecifiedType`. It is here so that this
+            // function covers every change type a composite can emit rather
+            // than silently leaving the types in the old order.
+            const numActive =
+                replacementTypes.length - (replacementsToWithhold ?? 0);
+            const activeTypes = replacementTypes.slice(0, numActive);
+
+            replacementTypes = [
+                ...change.arrangement.map((ind) => activeTypes[ind]),
+                ...replacementTypes.slice(numActive),
+            ];
         }
     }
 
@@ -616,7 +742,7 @@ export function calculateReplacementTypesFromChanges(
 }
 
 /**
- * If there is a single replacement and the copy has `createComponentName` or `createComponentIdx`,
+ * If there is a single replacement and the copy has `_createComponentName` or `_createComponentIdx`,
  * then add the name or component index to the replacement
  */
 export function addAttributesToSingleReplacement(
@@ -626,19 +752,19 @@ export function addAttributesToSingleReplacement(
 ) {
     if (replacements.length === 1 && typeof replacements[0] === "object") {
         // If the replacement is a group or copy that was created by verify replacements
-        // where it received the `createComponentIdx` attribute from the copy already,
+        // where it received the `_createComponentIdx` attribute from the copy already,
         // then don't also give it the name and index
         if (
             replacements[0].componentType === "group" ||
             replacements[0].componentType === "_copy"
         ) {
-            if (replacements[0].attributes?.createComponentIdx != null) {
+            if (replacements[0].attributes?._createComponentIdx != null) {
                 return;
             }
         }
 
         if (
-            component.attributes.createComponentName?.primitive.value !=
+            component.attributes._createComponentName?.primitive.value !=
             undefined
         ) {
             replacements[0].attributes.name = {
@@ -646,18 +772,18 @@ export function addAttributesToSingleReplacement(
                 name: "name",
                 primitive: {
                     type: "string",
-                    value: component.attributes.createComponentName.primitive
+                    value: component.attributes._createComponentName.primitive
                         .value,
                 },
             };
         }
         if (
-            component.attributes.createComponentIdx?.primitive.value !=
+            component.attributes._createComponentIdx?.primitive.value !=
             undefined
         ) {
             const prevComponentIdx = replacements[0].componentIdx;
             const newComponentIdx =
-                component.attributes.createComponentIdx.primitive.value;
+                component.attributes._createComponentIdx.primitive.value;
 
             substituteComponentIdx(
                 replacements,
@@ -670,7 +796,12 @@ export function addAttributesToSingleReplacement(
 
 /**
  * Recurse through all `components` and substitute `newComponentIdx` for `prevComponentIdx`,
- * both for a component's `componentIdx` and also for any `nodeIdx` in an `extending` attribute.
+ * both for a component's `componentIdx` and also for any `nodeIdx` or `nodesInResolvedPath` entry
+ * in an `extending` attribute.
+ *
+ * The `nodesInResolvedPath` entries matter for the origin of a reference in the replacement's attributes,
+ * which is the replacement itself (see `convertRefsToCopies`). Left unsubstituted, that reference would be resolved
+ * from a component that does not exist.
  */
 function substituteComponentIdx(components, prevComponentIdx, newComponentIdx) {
     for (const component of components) {
@@ -687,6 +818,10 @@ function substituteComponentIdx(components, prevComponentIdx, newComponentIdx) {
             if (refResolution.nodeIdx === prevComponentIdx) {
                 refResolution.nodeIdx = newComponentIdx;
             }
+            refResolution.nodesInResolvedPath =
+                refResolution.nodesInResolvedPath.map((idx) =>
+                    idx === prevComponentIdx ? newComponentIdx : idx,
+                );
         }
 
         substituteComponentIdx(
@@ -703,6 +838,17 @@ function substituteComponentIdx(components, prevComponentIdx, newComponentIdx) {
                     prevComponentIdx,
                     newComponentIdx,
                 );
+            } else if (attribute.type === "expression") {
+                // references the component resolves itself, from itself
+                for (const { refResolution } of attribute.slots) {
+                    if (refResolution.nodeIdx === prevComponentIdx) {
+                        refResolution.nodeIdx = newComponentIdx;
+                    }
+                    refResolution.nodesInResolvedPath =
+                        refResolution.nodesInResolvedPath.map((idx) =>
+                            idx === prevComponentIdx ? newComponentIdx : idx,
+                        );
+                }
             }
         }
     }
@@ -731,19 +877,19 @@ export function addAttributesToSingleReplacementChange(
                 replacementChanges[0].serializedReplacements[0];
 
             // If the replacement is a group/_copy that was created by verify replacements
-            // where it received the `createComponentIdx` attribute from the copy already,
+            // where it received the `_createComponentIdx` attribute from the copy already,
             // then don't also give it the name and index
             if (
                 theNewReplacement.componentType === "group" ||
                 theNewReplacement.componentType === "_copy"
             ) {
-                if (theNewReplacement.attributes?.createComponentIdx != null) {
+                if (theNewReplacement.attributes?._createComponentIdx != null) {
                     return;
                 }
             }
 
             if (
-                component.attributes.createComponentName?.primitive.value !=
+                component.attributes._createComponentName?.primitive.value !=
                 undefined
             ) {
                 theNewReplacement.attributes.name = {
@@ -751,17 +897,17 @@ export function addAttributesToSingleReplacementChange(
                     name: "name",
                     primitive: {
                         type: "string",
-                        value: component.attributes.createComponentName
+                        value: component.attributes._createComponentName
                             .primitive.value,
                     },
                 };
             }
             if (
-                component.attributes.createComponentIdx?.primitive.value !=
+                component.attributes._createComponentIdx?.primitive.value !=
                 undefined
             ) {
                 theNewReplacement.componentIdx =
-                    component.attributes.createComponentIdx.primitive.value;
+                    component.attributes._createComponentIdx.primitive.value;
             }
         }
     }

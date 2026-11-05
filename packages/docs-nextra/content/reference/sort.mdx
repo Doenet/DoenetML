@@ -1,0 +1,269 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<sort>{:dn}`
+
+<ComponentDisplay name='sort'/>
+
+`<sort>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types) component that reorders a list of components based on given criteria.
+
+<AttrPropDisplay name='sort'/>
+
+## Examples
+
+### Example: `<sort>{:dn}` a list of numbers
+
+
+```doenet-editor-horiz
+<p>
+  <sort>
+    <number>4</number>
+    <number>pi</number>
+    <number>sqrt(3)</number>
+    <number>11</number>
+</sort>
+</p>
+```
+
+
+
+In this example, `<number>{:dn}` components are sorted in increasing order using 
+the `<sort>{:dn}` component.
+
+
+
+---
+
+### Example: `<sort>{:dn}` numbers from a random selection
+
+
+```doenet-editor-horiz
+<p>
+  <selectRandomNumbers name="numbers" numToSelect="10"/>
+</p>
+<p>
+  <sort>$numbers</sort>
+</p>
+```
+
+
+
+In this example, randomly selected numbers generated with a `<selectRandomNumbers>{:dn}` component 
+are sorted in increasing order using the `<sort>{:dn}` component.
+
+
+
+---
+
+### Example: `<sort>{:dn}` numbers from user-input
+
+
+```doenet-editor-horiz
+<p>Enter three numbers, not in increasing order:
+  <mathInput name="n1"><shortDescription>first number</shortDescription></mathInput>, 
+  <mathInput name="n2"><shortDescription>second number</shortDescription></mathInput>, 
+  <mathInput name="n3"><shortDescription>third number</shortDescription></mathInput>
+</p>
+<p>Your sorted list is: 
+  <sort>$n1 $n2 $n3</sort>
+</p>
+```
+
+
+
+In this example, numbers entered by the user with a `<mathInput>{:dn}` component are 
+referenced by name and are sorted in increasing order using the `<sort>{:dn}` component.
+
+
+
+---
+
+### Example: Alphabetical sorting
+
+
+```doenet-editor-horiz
+<p>Enter three names, not in alphabetical order:
+  <textInput name="n1"><shortDescription>first name</shortDescription></textInput>, 
+  <textInput name="n2"><shortDescription>second name</shortDescription></textInput>, 
+  <textInput name="n3"><shortDescription>third name</shortDescription></textInput>
+</p>
+<p>Your sorted list is: 
+  <sort>$n1 $n2 $n3</sort>
+</p>
+```
+
+
+
+In this example, names entered by the user with a `<textInput>{:dn}` component 
+are referenced by name and are sorted in alphabetical order 
+using the `<sort>{:dn}` component.
+
+
+
+## Attribute Examples
+
+### Attribute Example: type
+
+
+Bare string children are read as what they look like: if every whitespace-separated piece
+names a number the list is numeric, and otherwise it is text. So `<sort>10 2 1</sort>{:dn}`
+sorts by value and `<sort>d a b</sort>{:dn}` sorts alphabetically with nothing declared
+either way, and most documents never need `type` at all. Write it for the cases where the
+look is misleading.
+
+
+**Numerals that are labels rather than quantities.** Zip codes, course numbers and
+rankings are written with digits but are not amounts.
+
+
+```doenet-editor-horiz
+<p>Read as numbers: <sort>02134 55455 07094</sort></p>
+<p>Read as text: <sort type="text">02134 55455 07094</sort></p>
+```
+
+
+The first line drops the leading zeros that make a zip code a zip code. `type="text"` is
+also what puts `10` before `9`, which is the order a list of labels usually wants.
+
+
+**Expressions that should be compared as maths.** Two spellings of one expression are two
+different values as text and a single value as maths.
+
+
+```doenet-editor-horiz
+<p>Read as text: <sort>2x 2*x x</sort></p>
+<p>Read as maths: <sort type="math">2x 2*x x</sort></p>
+```
+
+
+`type="math"` also keeps an expression in the form it was written while still ordering it
+by value: `<sort type="math">1/2 2^3 pi sqrt(4)</sort>{:dn}` puts the four expressions in
+order as they were typed, where without `type` the same four arrive as `0.5, 2, 3.14, 8`.
+
+
+**Booleans.** Without `type` these are just words, and alphabetical order happens to put
+`false` first — so it looks right until the capitalization varies.
+
+
+```doenet-editor-horiz
+<p>Read as text: <sort>True false TRUE</sort></p>
+<p>Read as booleans: <sort type="boolean">True false TRUE</sort></p>
+```
+
+
+There is no case for writing `type="number"`: a piece that names a number is already read
+as one, and one that does not becomes `NaN`. `type` applies only to bare strings — a
+referenced component carries a type of its own and keeps it.
+
+
+
+---
+
+### Attribute Example: sortByComponent
+
+
+```doenet-editor-horiz
+<p>Drag the points!</p>
+
+<p><mathInput name="i" prefill="1">
+  <label>Choose component number to sort by (1 or 2)</label>
+</mathInput></p>
+<p>
+  <sort sortByComponent="$i">
+    $A $B $C $D
+  </sort>
+</p>
+
+<graph size="small">
+  <shortDescription>A graph of four draggable points</shortDescription>
+  <point name="A">(0,5)</point>
+  <point name="B" styleNumber="2">(-2,6)</point>
+  <point name="C" styleNumber="3">(7,-3)</point>
+  <point name="D" styleNumber="4">(-4,2)</point>
+</graph>
+```
+
+
+
+For multi-dimensional object like points, sorting by `sortByComponent="1"` sorts by 
+their first component, i.e., their $x$-component, while using `sortByComponent="2"` results 
+in sorting based on the $y$-component.
+
+
+Values entered outside the dimensions of the object, such as entering a $3$ or a $0$ in 
+for a two-dimensional object, will result in no sorting.
+
+
+
+---
+
+### Attribute Example: sortByProp
+
+
+```doenet-editor-horiz
+Drag the points!
+<graph size="small">
+  <shortDescription>A graph of four draggable points</shortDescription>
+  <point name="A">(0,5)</point>
+  <point name="B" styleNumber="2">(-2,6)</point>
+  <point name="C" styleNumber="3">(7,-3)</point>
+  <point name="D" styleNumber="4">(3,2)</point>
+</graph>
+
+<p>Points sorted by x: 
+  <sort sortByProp="x">
+    $A $B $C $D
+  </sort>
+</p>
+<p>Points sorted by y:
+  <sort sortByProp="y">
+    $A $B $C $D
+  </sort>
+</p>
+```
+
+
+
+Components with numerical properties can be sorted based on an individual property. In this example, the points are sorted in ascending order based on their $x$-coordinates, and then by their $y$-coordinates.
+
+
+
+---
+
+### Attribute Example: sortVectorsBy
+
+
+```doenet-editor-horiz
+Drag the vectors!
+<graph size="small">
+  <shortDescription>A graph of four draggable vectors</shortDescription>
+  <vector name="v1" styleNumber="1">(0,6)</vector>
+  <vector name="v2" tail="(2,2)" displacement="(3,7)" styleNumber="2"/>
+  <vector name="v3" tail="(7,1)" displacement="(-1,-3)" styleNumber="3"/>
+  <vector name="v4" tail="(-2,-2)" displacement="(-3,0)" styleNumber="4"/>
+</graph>
+
+<p>Vectors sorted by tail:
+  <sort sortVectorsBy="tail" >
+    $v1 $v2 $v3 $v4
+  </sort>
+</p>
+<p>Vectors sorted by displacement:
+  <sort sortVectorsBy="displacement" sortByProp="x2">
+    $v1 $v2 $v3 $v4
+  </sort>
+</p>
+```
+
+
+
+Vectors can be sorted based on the location of their `tail` or by their `displacement`.
+
+
+When sorted based on `tail`, Doenet defaults to sorting based on the $x$-coordinate unless specified otherwise using `sortByProp="y"`.
+
+
+When sorted based on `displacement`, Doenet defaults to sorting based on the displacement in the $x$-direction unless specified otherwise using `sortByProp="x2"`, as in this example. This is because vector displacements are individually accessed using the convention: `x1` for the horizontal displacement, and `x2` for the vertical displacement.
+

@@ -46,7 +46,7 @@ Rather than enumerate them — the list grows — invert it. **Exactly six packa
 
 So `@doenet/i18n`, `@doenet/utils`, `@doenet/parser`, `@doenet/ui-components`, `@doenet/static-assets`, `@doenet/lsp-tools`, `@doenet/lsp`, `@doenet/codemirror`, `@doenet/virtual-keyboard`, `@doenet/doenetml-worker`, `@doenet/doenetml-worker-javascript`, `@doenet/debug-hooks` and the rest never appear in a changeset. A change to any of them is a change to `@doenet/doenetml`.
 
-Don't infer "never published" from `"private": true` alone, and don't infer "published" from its absence. Most packages in this repo — including every published one (`@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, `@doenet/v06-to-v07`, `@doenet/prefigure`) — carry `"private": true` at the root and are published anyway, because their Vite build runs `scripts/transform-package-json.ts` to emit a `dist/package.json` with `private: false`.
+Don't infer "never published" from `"private": true` alone, and don't infer "published" from its absence. Most packages in this repo — including every published one (`@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, `@doenet/v06-to-v07`, `@doenet/prefigure`) — carry `"private": true` at the root and are published anyway, because their Vite build runs `scripts/transform-package-json.ts` to emit a `dist/package.json` with no `private` flag at all.
 
 **The two reliable signals**, either of which settles it:
 
@@ -77,7 +77,15 @@ Fixed-group members all version together regardless of whether they're listed, b
 
 ## Bump type
 
-While the repo is < 1.0, default to `patch` for every package in every changeset — even for new API or larger-feeling changes. Revisit this convention once the first 1.0 release is on the horizon.
+**Default to `patch`** — even for new API or larger-feeling changes.
+
+Use `minor` only to **open a new release line**. While the repo is < 1.0 a minor bump is the breaking-change marker: `0.7` → `0.8` is what `1.0` → `2.0` will be later. The first backward-incompatible change after a stable release carries the `minor`; every further breaking change in the same unreleased cycle stays `patch`, because they all ship in the line that first one opened. That is what keeps breaking changes batched into a line instead of each spawning one of its own — and it matters, because each line that opens is a line someone has to maintain.
+
+Say so in the body when a change is breaking, whatever the bump type. `minor` marks the release; the body is what tells a reader which change did it.
+
+Never use `major` before 1.0.
+
+**On a maintenance branch, `patch` is the only bump allowed**, and CI enforces it (`.github/scripts/check-changeset-bumps.mjs` on that branch). This is a cherry-pick hazard rather than an authoring one: a backport brings the original changeset file with it, and the bump type is the one part that stops being true on the way across. A `minor` there would compute the *next* line's version from the wrong branch and collide with `main`. See [`docs/RELEASING.md`](../../../docs/RELEASING.md) for the backport flow.
 
 ## File format
 

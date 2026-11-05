@@ -5,6 +5,7 @@ import { addComponents } from "./ComponentBuilder";
 import { deleteComponents } from "./DeletionEngine";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { reportTimerError, TimerLabels } from "../utils/timerErrors";
+import { listEntryActionNames } from "./RendererInstructionBuilder";
 
 /**
  * Source-side metadata about *how* an update originated. Indexed by
@@ -94,6 +95,27 @@ type PerformUpdateArgs = {
      * not *which* components it covers.
      */
     skipRendererUpdate?: boolean;
+    /**
+     * Mark this as one step of a continuous interaction — a drag still in
+     * progress — rather than its committed result. The update is performed in
+     * full either way; what changes is the renderer fan-out. This update's own
+     * targets are sent immediately and the rest wait until the interaction
+     * goes quiet, so the thing being dragged keeps up even when the move
+     * invalidated much of the document. The commit that ends the interaction
+     * arrives without this flag and flushes the remainder.
+     *
+     * Set by the graph drag handlers (`Point.movePoint` and its siblings
+     * forward the renderer's flag), `Slider.changeValue` (both dragging and
+     * keyboard stepping), and `SubsetOfRealsInput.movePoint` for the points of
+     * a number line. Before this it was accepted and ignored.
+     *
+     * Set it only for a continuous interaction whose downstream may settle
+     * late. A keystroke is not one, however in-progress its value: the
+     * feedback beside an input has to keep up with it, so the inputs that
+     * commit on blur or enter deliberately do not set this. See the comment
+     * at `inputUpdateImmediateValue` in `utils/input.js`.
+     */
+    transient?: boolean;
     sourceInformation?: SourceInformation;
 };
 
@@ -197,6 +219,50 @@ export class UpdateExecutor {
             return { actionId: args!.actionId };
         }
 
+        if (actionName === "recordVisibilityChange" && args) {
+            this.core.recordRenderVisibility(componentIdx!, args);
+        }
+
+        // An entry of a list component is drawn with a renderer of its own
+        // (`RendererInstructionBuilder.rendererIdxForListEntry`), and what
+        // that renderer sends goes to the list, with the entry's index.
+        const listEntry =
+            this.core.rendererInstructionBuilder.listEntryOfRenderer(
+                componentIdx!,
+            );
+        if (listEntry) {
+            // Only an action of a component of the entries' type: the list
+            // has actions of its own (copying its DoenetML) that are not
+            // the entry's.
+            const listActions = listEntry.list?.actions ?? {};
+            const entryActionNames = listEntryActionNames(
+                listEntry.list?.constructor.listEntryComponentType,
+            );
+            const actionNameLower = actionName.toLowerCase();
+            const matched = entryActionNames.find((aName) =>
+                caseInsensitiveMatch
+                    ? aName.toLowerCase() === actionNameLower
+                    : aName === actionName,
+            );
+            const action = matched ? listActions[matched] : undefined;
+            if (action) {
+                if (event) {
+                    this.core.requestRecordEvent(event);
+                }
+                await action({
+                    ...args,
+                    listEntryIndex: listEntry.entryIndex,
+                });
+                return { actionId: args?.actionId };
+            }
+            // A `<callAction>` naming an action the entry does not have, as
+            // for a component below. An action the renderer of an entry
+            // sends that its list does not take is ignored.
+            return caseInsensitiveMatch && listEntry.list
+                ? { actionUnavailable: true }
+                : { actionId: args?.actionId };
+        }
+
         let component = this.core._components[componentIdx!];
         if (component && component.actions) {
             let action = component.actions[actionName];
@@ -278,7 +344,14 @@ export class UpdateExecutor {
      * renderer edit can be confirmed or reverted (see that flag). Then
      * `processStateVariableTriggers` runs, and the final
      * `updateAllChangedRenderers` fan-out runs only when
-     * `skipRendererUpdate` is false. Essential values saved during
+     * `skipRendererUpdate` is false.
+     *
+     * A `transient` update reorders that tail: the update's own targets,
+     * along with everything rendered on a visible graph
+     * (`componentsOnVisibleGraphs`), are sent *before*
+     * `processStateVariableTriggers`, and the remainder is
+     * handed to `scheduleDeferredRendererUpdate` rather than going out with
+     * `updateAllChangedRenderers`. Essential values saved during
      * definitions are merged into the cumulative changes log so they
      * persist on the next save.
      *
@@ -297,6 +370,7 @@ export class UpdateExecutor {
         doNotSave = false,
         canSkipUpdatingRenderer = false,
         skipRendererUpdate = false,
+        transient = false,
         sourceInformation = {},
     }: PerformUpdateArgs) {
         if (diagnostics) {
@@ -333,6 +407,36 @@ export class UpdateExecutor {
         >[] = [];
         let workspace = {};
         let recordComponentSubmissions: any[] = [];
+        // What is written, by `stateId`, until it is merged below: the update
+        // can delete a component written to (a `<conditionalContent>`
+        // switching cases) while keeping its saved state, which must include
+        // these writes (`core.unsavedWrites`). Each update removes only the
+        // entries it recorded, as one run by a trigger finishes inside it.
+        const unsavedWritesRecorded: [string, Record<string, any>][] = [];
+        const recordUnsavedWrites = () => {
+            if (doNotSave) {
+                return;
+            }
+            for (const componentIdxStr in newStateVariableValues) {
+                const stateId =
+                    this.core._components[Number(componentIdxStr)]?.stateId;
+                if (stateId === undefined) {
+                    continue;
+                }
+                let writes = this.core.unsavedWrites.get(stateId);
+                if (!writes) {
+                    writes = [];
+                    this.core.unsavedWrites.set(stateId, writes);
+                }
+                // the values themselves, as merged below once
+                // `executeUpdateStateVariables` has processed them
+                writes.push(newStateVariableValues[componentIdxStr]);
+                unsavedWritesRecorded.push([
+                    stateId,
+                    newStateVariableValues[componentIdxStr],
+                ]);
+            }
+        };
 
         for (let instruction of updateInstructions) {
             this._recordSourceDetails(instruction, sourceInformation);
@@ -382,6 +486,7 @@ export class UpdateExecutor {
                 // state variables updated,
                 // i.e., the subsequent inverse definitions use stateValues
                 // in their calculations that need to be updated
+                recordUnsavedWrites();
                 await this.core.executeUpdateStateVariables(
                     newStateVariableValues,
                 );
@@ -403,6 +508,7 @@ export class UpdateExecutor {
             }
         }
 
+        recordUnsavedWrites();
         await this.core.executeUpdateStateVariables(newStateVariableValues);
 
         newStateVariableValuesProcessed.push(newStateVariableValues);
@@ -423,13 +529,41 @@ export class UpdateExecutor {
             });
         }
 
-        await this.core.processStateVariableTriggers();
+        const targets = updateInstructions
+            .map((instruction) => instruction.componentIdx)
+            .filter(
+                (componentIdx): componentIdx is ComponentIdx =>
+                    componentIdx != undefined,
+            );
 
-        if (!skipRendererUpdate) {
-            await this.core.updateAllChangedRenderers(
+        if (transient && !skipRendererUpdate) {
+            // Put the dragged component, and every visible graph it moves, on
+            // screen before doing anything with the rest of what its move
+            // invalidated.
+            await this.core.updateRenderersForComponents(
+                this.core.componentsOnVisibleGraphs(targets),
                 sourceInformation,
                 actionId,
             );
+        }
+
+        await this.core.processStateVariableTriggers();
+
+        if (!skipRendererUpdate) {
+            if (transient) {
+                this.core.scheduleDeferredRendererUpdate(
+                    sourceInformation,
+                    actionId,
+                );
+            } else {
+                // What the reader can see goes out now; the rest waits for
+                // the idle lane.
+                await this.core.updateOnScreenRenderers(
+                    targets,
+                    sourceInformation,
+                    actionId,
+                );
+            }
         }
 
         if (recordComponentSubmissions.length > 0) {
@@ -470,12 +604,31 @@ export class UpdateExecutor {
         ) {
             for (const stateId in this.core.essentialValuesSavedInDefinition) {
                 const componentIdx = this.core.componentIdxByStateId[stateId];
-                let essentialState =
-                    this.core._components[componentIdx]?.essentialState;
+                const component = this.core._components[componentIdx];
+                let essentialState = component?.essentialState;
+                // A definition that draws from a seed the variant does not
+                // determine -- `<sampleRandomNumbers>` and the other two
+                // date-seeded samplers -- produces values a fresh build does
+                // not reproduce. They exist nowhere but in the saved state, so
+                // they are persisted like the reader's own work rather than
+                // dropped as a definition's (see
+                // `BaseComponent.definitionEssentialValuesAreReproducible`).
+                const reproducible =
+                    (component?.constructor as any)
+                        ?.definitionEssentialValuesAreReproducible !== false;
                 if (essentialState) {
                     for (let varName in this.core
                         .essentialValuesSavedInDefinition[stateId]) {
                         if (essentialState[varName] !== undefined) {
+                            // Recorded, not withheld: a later partial write to
+                            // an array merges into this entry, and this is what
+                            // puts the `mergeObject` base there. What it is not
+                            // is the reader's work, so unless they also write
+                            // to this component it does not get persisted
+                            // (Doenet/DoenetML#1940).
+                            if (reproducible) {
+                                this.core.definitionSetStateIds.add(stateId);
+                            }
                             this.core.essentialValueWriter.mergeIntoCumulative(
                                 stateId,
                                 varName,
@@ -492,8 +645,34 @@ export class UpdateExecutor {
             // merge in new state variables set in update
             for (let newValuesProcessed of newStateVariableValuesProcessed) {
                 for (const componentIdxStr in newValuesProcessed) {
-                    const stateId =
-                        this.core._components[Number(componentIdxStr)].stateId;
+                    const component =
+                        this.core._components[Number(componentIdxStr)];
+                    if (!component) {
+                        // The update deleted this component after writing to
+                        // it — a composite recreating its replacements is the
+                        // ordinary way that happens, and `<sort>` does it
+                        // whenever it rebuilds rather than moving the
+                        // replacements it has. Its saved entry has already been
+                        // dropped by `DeletionEngine`, so there is nothing to
+                        // merge; before this guard the missing `stateId` threw
+                        // here, and because `performAction` catches, the throw
+                        // silently took the rest of `performUpdate` with it —
+                        // the remaining components' writes were never merged,
+                        // and the save this call would have scheduled was not.
+                        // What a reader saw of that: typing into a `<sort>`
+                        // reorders it, the reorder corrects the input to
+                        // whatever now sits in the position it is bound to, and
+                        // that correction is on the far side of the throw. The
+                        // input's saved state stayed at what they typed, so a
+                        // reload showed them a different value from the one
+                        // they had just been looking at.
+                        continue;
+                    }
+                    const stateId = component.stateId;
+                    // What the reader themselves changed, as opposed to what a
+                    // definition computed: this is the set that is persisted
+                    // (Doenet/DoenetML#1940).
+                    this.core.readerTouchedStateIds.add(stateId);
                     for (let varName in newValuesProcessed[componentIdxStr]) {
                         this.core.essentialValueWriter.mergeIntoCumulative(
                             stateId,
@@ -502,6 +681,16 @@ export class UpdateExecutor {
                         );
                     }
                 }
+            }
+        }
+
+        for (const [stateId, values] of unsavedWritesRecorded) {
+            const writes = this.core.unsavedWrites.get(stateId);
+            const remaining = writes?.filter((w) => w !== values) ?? [];
+            if (remaining.length > 0) {
+                this.core.unsavedWrites.set(stateId, remaining);
+            } else {
+                this.core.unsavedWrites.delete(stateId);
             }
         }
 

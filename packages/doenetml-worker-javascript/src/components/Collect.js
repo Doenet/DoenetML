@@ -3,6 +3,18 @@ import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { listEntryReplacement } from "./Sort";
+
+/**
+ * What names a collected item (`collectedComponents`): its component, or,
+ * for an entry of a list component, the list and the entry's index.
+ */
+function collectedKey(collected) {
+    return collected.listInd === undefined
+        ? collected.componentIdx
+        : `${collected.componentIdx}|${collected.listInd}`;
+}
+
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
@@ -12,7 +24,7 @@ export default class Collect extends CompositeComponent {
     };
     static takesIndex = true;
 
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAnywhere = true;
 
     static acceptAnyAttribute = true;
 
@@ -25,7 +37,6 @@ export default class Collect extends CompositeComponent {
         // delete off attributes from base component that should apply to replacements instead
         // (using acceptAnyAttribute)
         delete attributes.disabled;
-        delete attributes.modifyIndirectly;
         delete attributes.fixed;
         delete attributes.styleNumber;
         delete attributes.isResponse;
@@ -242,6 +253,19 @@ export default class Collect extends CompositeComponent {
                     useReplacementsForComposites: true,
                     includeNonActiveChildren: true,
                     recurseToMatchedChildren: false,
+                    // A list of maths is collected by `componentType="math"`,
+                    // as the maths of the composite it replaced were.
+                    matchListsByEntryType: true,
+                    // A value reference drawn with nothing to read
+                    // (`$l[$i]` with `i` past the end) is not collected:
+                    // the copy made for it made no component. A list is
+                    // collected as its entries, one item each.
+                    variableNames: [
+                        "valueMissing",
+                        "numEntries",
+                        "listEntryVariablePrefix",
+                    ],
+                    variablesOptional: true,
                 };
 
                 return {
@@ -250,15 +274,52 @@ export default class Collect extends CompositeComponent {
                         dependencyType: "stateVariable",
                         variableName: "maxNumber",
                     },
+                    componentTypeToCollect: {
+                        dependencyType: "stateVariable",
+                        variableName: "componentTypeToCollect",
+                    },
                 };
             },
-            definition: function ({ dependencyValues }) {
+            definition: function ({ dependencyValues, componentInfoObjects }) {
                 // console.log(`definition of collectedComponents for ${componentIdx}`)
                 // console.log(dependencyValues)
 
-                let collectedComponents = dependencyValues.descendants;
-                if (!collectedComponents) {
-                    collectedComponents = [];
+                let collectedComponents = [];
+                for (const {
+                    componentIdx,
+                    componentType,
+                    stateValues = {},
+                } of dependencyValues.descendants ?? []) {
+                    if (stateValues.valueMissing) {
+                        continue;
+                    }
+                    // A list collected by the type of its entries, not by
+                    // its own type.
+                    const byEntries =
+                        stateValues.listEntryVariablePrefix !== undefined &&
+                        !componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: componentType,
+                            baseComponentType:
+                                dependencyValues.componentTypeToCollect,
+                        });
+                    if (!byEntries) {
+                        collectedComponents.push({
+                            componentIdx,
+                            componentType,
+                        });
+                        continue;
+                    }
+                    for (
+                        let listInd = 0;
+                        listInd < (stateValues.numEntries ?? 0);
+                        listInd++
+                    ) {
+                        collectedComponents.push({
+                            componentIdx,
+                            componentType,
+                            listInd,
+                        });
+                    }
                 }
 
                 if (
@@ -340,6 +401,19 @@ export default class Collect extends CompositeComponent {
 
         let replacements = [];
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        // See the note in `Sort.js`: without a `stateIdInfo` these replacements
+        // are keyed by `componentIdx`, a position in the build, which moves
+        // whenever anything ahead of this `<collect>` does, so saved reader
+        // state can land on the wrong one (Doenet/DoenetML#1944).
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let numReplacementsByCollected = [];
         let numReplacementsSoFar = 0;
         let replacementNamesByCollected = [];
@@ -364,6 +438,7 @@ export default class Collect extends CompositeComponent {
                     numComponentsForSource,
                     publicCaseInsensitiveAliasSubstitutions,
                     nComponents,
+                    stateIdInfo,
                 });
                 diagnostics.push(...results.diagnostics);
                 nComponents = results.nComponents;
@@ -382,10 +457,9 @@ export default class Collect extends CompositeComponent {
         }
 
         workspace.numReplacementsByCollected = numReplacementsByCollected;
-        workspace.collectedNames = collectedComponents.map(
-            (x) => x.componentIdx,
-        );
+        workspace.collectedNames = collectedComponents.map(collectedKey);
         workspace.replacementNamesByCollected = replacementNamesByCollected;
+        workspace.replacementsCreated = stateIdInfo.num;
         return { replacements, diagnostics, nComponents };
     }
 
@@ -398,6 +472,7 @@ export default class Collect extends CompositeComponent {
         compositeAttributesObj,
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
+        stateIdInfo,
         nComponents,
     }) {
         // console.log(`create replacement for collected ${collectedNum}, ${numReplacementsSoFar}`)
@@ -423,32 +498,80 @@ export default class Collect extends CompositeComponent {
             };
         }
 
-        serializedReplacements = [await collectedComponent.serialize()];
+        if (collectedObj.listInd !== undefined) {
+            // An entry of a list component is referenced, as `$l[2]`.
+            const res = listEntryReplacement({
+                list: collectedComponent,
+                listInd: collectedObj.listInd,
+                nComponents,
+                stateIdInfo,
+            });
+            serializedReplacements = [res.serializedComponent];
+            nComponents = res.nComponents;
+        } else {
+            // a value reference drawn in what is searched is collected as a
+            // component of its type (`ValueRef.serialize`)
+            serializedReplacements = [
+                await collectedComponent.serialize({
+                    valueReferenceAsComponent: true,
+                }),
+            ];
 
-        let res = createNewComponentIndices(
-            serializedReplacements,
-            nComponents,
-        );
-        serializedReplacements = res.components;
-        nComponents = res.nComponents;
+            let res = createNewComponentIndices(
+                serializedReplacements,
+                nComponents,
+                stateIdInfo,
+            );
+            serializedReplacements = res.components;
+            nComponents = res.nComponents;
+        }
 
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
             componentIdx: component.componentIdx,
-            identifierPrefix: collectedNum + "|",
         });
+
+        // The `<collect>`'s `styleNumber` fills in for a component that
+        // sets none; it does not override one the component sets
+        // (D29's container model, CTX-5).
+        const collectedAttributes =
+            component.attributes.styleNumber &&
+            (await collectedSetsStyle(
+                collectedComponent,
+                collectedObj,
+                components,
+            ))
+                ? Object.fromEntries(
+                      Object.entries(component.attributes).filter(
+                          ([name]) => name !== "styleNumber",
+                      ),
+                  )
+                : component.attributes;
 
         for (let repl of serializedReplacements) {
             // add attributes
             if (!repl.attributes) {
                 repl.attributes = {};
             }
+            // A reference to an entry (`_copy`) takes any attribute, so it is
+            // given only those the `<collect>` passes on, which its copy of
+            // the entry then takes.
+            const attributes =
+                repl.componentType === "_copy"
+                    ? Object.fromEntries(
+                          Object.entries(collectedAttributes).filter(
+                              ([, attribute]) =>
+                                  attribute.type === "unresolved",
+                          ),
+                      )
+                    : collectedAttributes;
             const res = convertUnresolvedAttributesForComponentType({
-                attributes: component.attributes,
+                attributes,
                 componentType: repl.componentType,
                 componentInfoObjects,
                 compositeAttributesObj,
                 nComponents,
+                stateIdInfo,
             });
 
             const attributesFromComposite = res.attributes;
@@ -481,6 +604,18 @@ export default class Collect extends CompositeComponent {
         let diagnostics = [];
 
         let numReplacementsFoundSoFar = 0;
+
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        // Continues the counter `createSerializedReplacements` left behind, so
+        // a replacement recreated here cannot be minted the id of one that is
+        // still alive.
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
 
         workspace.numReplacementsByCollected = [
             ...workspace.numReplacementsByCollected,
@@ -589,7 +724,7 @@ export default class Collect extends CompositeComponent {
             // check if collected has changed
             if (
                 prevCollectedName === undefined ||
-                collected.componentIdx !== prevCollectedName ||
+                collectedKey(collected) !== prevCollectedName ||
                 recreateRemaining
             ) {
                 let prevNumReplacements = 0;
@@ -615,6 +750,7 @@ export default class Collect extends CompositeComponent {
                     compositeAttributesObj,
                     numComponentsForSource,
                     publicCaseInsensitiveAliasSubstitutions,
+                    stateIdInfo,
                 });
                 diagnostics.push(...results.diagnostics);
                 nComponents = results.nComponents;
@@ -673,10 +809,9 @@ export default class Collect extends CompositeComponent {
         }
 
         workspace.numReplacementsByCollected = numReplacementsByCollected;
-        workspace.collectedNames = collectedComponents.map(
-            (x) => x.componentIdx,
-        );
+        workspace.collectedNames = collectedComponents.map(collectedKey);
         workspace.replacementNamesByCollected = replacementNamesByCollected;
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return { replacementChanges, diagnostics, nComponents };
     }
@@ -692,6 +827,7 @@ export default class Collect extends CompositeComponent {
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
         nComponents,
+        stateIdInfo,
     }) {
         let diagnostics = [];
 
@@ -705,6 +841,7 @@ export default class Collect extends CompositeComponent {
             numComponentsForSource,
             publicCaseInsensitiveAliasSubstitutions,
             nComponents,
+            stateIdInfo,
         });
         diagnostics.push(...results.diagnostics);
         nComponents = results.nComponents;
@@ -726,4 +863,107 @@ export default class Collect extends CompositeComponent {
             nComponents,
         };
     }
+}
+
+/**
+ * Whether what a `<collect>` collects sets its own style, which the
+ * collect's `styleNumber` then does not override (D29's container model,
+ * CTX-5).
+ *
+ * An entry of a list (`listInd`) sets one when its source or its list does
+ * (`entryPresentation`, the list's `styleNumber`). Its source's style counts
+ * even when the source has it from where it sits, since the entry carries
+ * it wherever it is copied (`$pl[1]`). Any other component sets one when
+ * it, or the component it shadows (`$A`, `<point extend="$A"/>`),
+ * has a `styleNumber` attribute whose value is not a default: that is the
+ * style its copy takes. A style it has only from where it sits
+ * (`<graph styleNumber="4">`) is not one: its copy, made elsewhere, would not
+ * have it, so the collect's fills in. It is read when the replacement is
+ * made.
+ */
+async function collectedSetsStyle(
+    collectedComponent,
+    collectedObj,
+    components,
+) {
+    if (collectedObj.listInd !== undefined) {
+        const entryPresentation =
+            await collectedComponent.stateValues.entryPresentation;
+        if (
+            entryPresentation?.[collectedObj.listInd]?.styleNumber !== undefined
+        ) {
+            return true;
+        }
+    }
+    const visited = new Set();
+    let comp = collectedComponent;
+    while (comp && !visited.has(comp.componentIdx)) {
+        visited.add(comp.componentIdx);
+        const attribute = comp.attributes?.styleNumber;
+        // The attribute's value is read from its component, or from the
+        // variable it references (`variableRef`), as the style of an entry
+        // of a list does (`<point extend="$l[1]"/>`). A default there, as
+        // for an entry neither the list nor its source sets a style for,
+        // sets none.
+        if (attribute?.component) {
+            const variable =
+                attribute.component.state[
+                    attribute.component.constructor.stateVariableToBeShadowed ??
+                        "value"
+                ];
+            return !(variable && (await variableUsedDefault(variable)));
+        }
+        if (attribute?.type === "variableRef") {
+            return !(await referencedVariableUsedDefault(
+                components[attribute.componentIdx],
+                attribute.stateVariable,
+            ));
+        }
+        if (attribute && attribute.type !== "unresolved") {
+            return true;
+        }
+        if (!comp.shadows || comp.shadows.propVariable) {
+            return false;
+        }
+        comp = components[comp.shadows.componentIdx];
+    }
+    return false;
+}
+
+async function variableUsedDefault(variable) {
+    await variable.value;
+    return Boolean(variable.usedDefault);
+}
+
+/**
+ * Whether `stateVariable` of `component` holds a default. An entry of an
+ * array not read yet (`entryStyleNumber2`) has no variable of its own, so
+ * it is read from the array (`usedDefaultByArrayKey`).
+ */
+async function referencedVariableUsedDefault(component, stateVariable) {
+    if (!component) {
+        return false;
+    }
+    const variable = component.state[stateVariable];
+    if (variable) {
+        return variableUsedDefault(variable);
+    }
+    const arrayEntryPrefix = Object.keys(component.arrayEntryPrefixes ?? {})
+        .sort((a, b) => b.length - a.length)
+        .find((prefix) => stateVariable.startsWith(prefix));
+    if (arrayEntryPrefix === undefined) {
+        return false;
+    }
+    const array =
+        component.state[component.arrayEntryPrefixes[arrayEntryPrefix]];
+    await array.value;
+    const arrayKeys = array.getArrayKeysFromVarName({
+        arrayEntryPrefix,
+        varEnding: stateVariable.slice(arrayEntryPrefix.length),
+        numDimensions: array.numDimensions,
+    });
+    return (
+        arrayKeys.length > 0 &&
+        arrayKeys.every((arrayKey) => array.usedDefaultByArrayKey?.[arrayKey])
+    );
 }

@@ -4,6 +4,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import "./ref.css";
+import { NoClickTargetContext } from "./utils/ClickTarget";
 
 interface RefSVs {
     [key: string]: any;
@@ -115,7 +116,9 @@ export default React.memo(function Ref(props: UseDoenetRendererProps) {
                 onClick={handleLinkClick}
                 ref={aRef}
             >
-                {linkContent}
+                <NoClickTargetContext.Provider value={true}>
+                    {linkContent}
+                </NoClickTargetContext.Provider>
             </a>
         );
     }

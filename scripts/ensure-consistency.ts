@@ -5,6 +5,7 @@
 import { Project } from "ts-morph";
 import * as glob from "glob";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import chalk from "chalk";
 import os from "os";
 import * as fs from "node:fs/promises";
@@ -19,7 +20,7 @@ if (os.platform() === "win32") {
     );
 }
 
-const PWD = new URL("./", import.meta.url).pathname;
+const PWD = fileURLToPath(new URL("./", import.meta.url));
 const TSCONFIG_FILES = glob
     .sync(path.join(PWD, "..", "packages", "*", "tsconfig.json"))
     .filter((x) => !x.includes("cypress"));

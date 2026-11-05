@@ -14,7 +14,12 @@ import {
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
-import { roundForDisplay } from "../utils/math";
+import {
+    roundForDisplay,
+    markUnspecifiedComponents,
+    isUnspecifiedComponentValue,
+    evaluateToNumber,
+} from "../utils/math";
 import {
     returnConstraintDefinitions,
     returnStickyGroupDefinitions,
@@ -47,6 +52,10 @@ export default class Point extends GraphicalComponent {
     // Instead have a public array state variable of maths for each component
     // and use wrapping components to create points from those
     static primaryStateVariableForDefinition = "coordsShadow";
+
+    // The attributes that define the value an unlinked copy of a reference
+    // to this component computes rather than holds (`BaseComponent.serialize`)
+    static attributesDefiningPrimaryValue = ["xs"];
     static stateVariableToBeShadowed = "coords";
     static variableForIndexAsProp = "xs";
 
@@ -521,6 +530,7 @@ export default class Point extends GraphicalComponent {
             isLocation: true,
             hasEssential: true,
             essentialVarName: "coords",
+            set: convertValueToMathExpression,
             returnDependencies: () => ({}),
             definition: () => ({
                 useEssentialOrDefaultValue: {
@@ -682,6 +692,15 @@ export default class Point extends GraphicalComponent {
             entryPrefixes: ["unconstrainedX"],
             defaultValueByArrayKey: () => me.fromAst(0),
             hasEssential: true,
+            // Restored saved state arrives as a bare tree, not a math
+            // expression: persistence strips the class on the way out, to keep
+            // the saved state small, and nothing on the way back in puts it
+            // back. `set` is the declared place to coerce a value that came
+            // from outside, and without it a reloaded point holds a raw number
+            // here. `xs` converts before publishing a value, so the raw number
+            // is invisible until the constraint machinery reads this variable
+            // directly and calls a math-expression method on it (#1939).
+            set: convertValueToMathExpression,
             returnArraySizeDependencies: () => ({
                 numDimensions: {
                     dependencyType: "stateVariable",
@@ -924,7 +943,9 @@ export default class Point extends GraphicalComponent {
                         desiredCoords = me.fromAst(coordsTree[1]);
                     } else {
                         coordsTree[0] = "vector";
-                        desiredCoords = me.fromAst(coordsTree);
+                        desiredCoords = me.fromAst(
+                            markUnspecifiedComponents(coordsTree),
+                        );
                     }
                     let instruction = {
                         setDependency: coordsDependency,
@@ -1154,7 +1175,7 @@ export default class Point extends GraphicalComponent {
                     for (let i = 0; i < coordsTree.length - 1; i++) {
                         let desiredValue =
                             desiredStateVariableValues.coords.get_component(i);
-                        if (desiredValue.tree !== undefined) {
+                        if (!isUnspecifiedComponentValue(desiredValue)) {
                             desiredXValues[i] = desiredValue;
                         }
                     }
@@ -1265,11 +1286,11 @@ export default class Point extends GraphicalComponent {
                 for (let arrayKey of arrayKeys) {
                     let x = dependencyValuesByKey[arrayKey].x;
                     if (x) {
-                        x =
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].x.evaluate_to_constant();
-                        numericalXs[arrayKey] = Number(x);
+                        // A coordinate with no numeric value, or a complex
+                        // one, has to reach the renderer as `NaN`.
+                        numericalXs[arrayKey] = evaluateToNumber(
+                            dependencyValuesByKey[arrayKey].x,
+                        );
                     } else {
                         numericalXs[arrayKey] = NaN;
                     }
@@ -1434,6 +1455,7 @@ export default class Point extends GraphicalComponent {
 
     async pointClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1443,6 +1465,7 @@ export default class Point extends GraphicalComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -1451,6 +1474,7 @@ export default class Point extends GraphicalComponent {
 
     async pointFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1460,6 +1484,7 @@ export default class Point extends GraphicalComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

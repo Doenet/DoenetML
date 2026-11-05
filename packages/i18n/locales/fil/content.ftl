@@ -48,15 +48,12 @@ color =
     .purple = lila
     .pink = rosas
     .brown = kayumanggi
-
 line-width =
     .thick = makapal
     .thin = manipis
-
 line-style =
     .dashed = putol-putol
     .dotted = tuldok-tuldok
-
 # Noun phrases: they follow «may» and modify nothing.
 fill-style =
     .horizontal = pahigang mga guhit
@@ -65,7 +62,6 @@ fill-style =
     .backdiagonal = kabaligtarang pahilis na mga guhit
     .dots = mga tuldok
     .diamonds = mga rombo
-
 noun =
     .line = guhit
     .line-segment = segment ng guhit
@@ -85,23 +81,21 @@ noun =
     .diamond = rombo
     .cross = ekis
     .plus = tandang plus
-
 # The side count is carried by a `may` phrase that belongs to the noun, so it
 # folds into the head and there is no tail. Putting it after the adjectives
 # would separate «gilid» from the number counting it.
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
-       *[head] regular na polygon na may { $numSides ->
-            [one] { $numSides } gilid
-           *[other] { $numSides } na gilid
-        }
+       *[head]
+            regular na polygon na may { $numSides ->
+                [one] { $numSides } gilid
+               *[other] { $numSides } na gilid
+            }
     }
-
 # Filipino has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -115,22 +109,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The linker joins the whole description to the noun it describes.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } na { $noun } { $nounTail }
        *[noun] { $description } na { $noun }
     }
-
 style-filled-word = puno
-
 style-filled =
     { $parts ->
         [pattern] { $filled } na { $color } na may { $pattern }
        *[plain] { $filled } na { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } na { $color } na { $noun } na may { $pattern }
@@ -138,7 +128,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } na { $color } na { $noun } { $nounTail } na may { $pattern }
        *[plain] { $filled } na { $color } na { $noun }
     }
-
 # «may» is what Filipino uses where English uses "with a", so the two
 # `-article` branches read like the ones without.
 style-border-clause =
@@ -148,35 +137,28 @@ style-border-clause =
         [and-article] at { $border } na hangganan
        *[with] na may { $border } na hangganan
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } na { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = hindi puno
-
 style-text =
     { $parts ->
         [background] { $color } na may { $background } na bakgrawnd
        *[plain] { $color }
     }
-
 style-background-none = wala
-
 
 ## Boolean words
 
 boolean-true = totoo
 boolean-false = mali
 
-
 ## Answer buttons
 
 answer-submit-label = Suriin
 answer-submit-label-no-correctness = Ipasa ang Sagot
-
 
 ## Sectional blocks
 
@@ -201,7 +183,6 @@ section-name =
     .solution = Solusyon
     .task = Tungkulin
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -211,9 +192,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Pahiwatig
-
 
 ## Tables and figures
 
@@ -224,7 +203,6 @@ table-name =
         [unnumbered-title] Talahanayan{ ": " }
        *[unnumbered] Talahanayan
     }
-
 figure-name =
     { $parts ->
         [numbered] Larawan { $enumeration }
@@ -233,15 +211,12 @@ figure-name =
        *[unnumbered] Larawan
     }
 
-
 ## Paginator controls
 
 paginator-previous = Nakaraan
 paginator-next = Susunod
 paginator-page = Pahina
-
 paginator-page-status = { $pageLabel } { $currentPage } ng { $numPages }
-
 
 ## Piecewise functions
 
@@ -249,8 +224,8 @@ piecewise-condition-or = o
 piecewise-condition-if = kung
 piecewise-condition-otherwise = kung hindi
 
-
 ## Chemistry
+
 
 # `element-name` and `element-anion-name` are deliberately omitted, and the 130
 # keys fall back to English.
@@ -265,6 +240,5 @@ piecewise-condition-otherwise = kung hindi
 # already carries, arrived at from the other direction.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Di-wastong Simbolong Kemikal
 chemistry-invalid-ionic-compound = Di-wastong Ionic Compound

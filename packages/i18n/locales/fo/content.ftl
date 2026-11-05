@@ -160,7 +160,6 @@ color =
                    *[m] brúnur
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -186,7 +185,6 @@ line-width =
                    *[m] tunnur
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -212,7 +210,6 @@ line-style =
                    *[m] punktaður
                 }
         }
-
 # Noun phrases in the dative plural, which is the case «við» takes. They agree
 # with nothing.
 fill-style =
@@ -222,7 +219,6 @@ fill-style =
     .backdiagonal = øvutum skálinjum
     .dots = punktum
     .diamonds = rutum
-
 noun =
     .line = linja
     .line-segment = linjustykki
@@ -242,7 +238,6 @@ noun =
     .diamond = ruta
     .cross = kross
     .plus = plus
-
 # Faroese builds the side count into the noun in front of it, so the whole of
 # it is one head and there is no tail.
 noun-regular-polygon =
@@ -250,7 +245,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] regluligur { $numSides }-hyrningur
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon`, whose head is
 # «-hyrningur» and so masculine, or the head of a phrase the description never
 # names: `border` (kantur, m), `fill` (fylling, f), `text` (tekstur, m),
@@ -271,7 +265,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -284,13 +277,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -299,13 +290,11 @@ style-filled-word =
         [n] fylt
        *[m] fyltur
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } við { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } við { $pattern }
@@ -313,7 +302,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } við { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «kantur» is masculine and stands in the dative after «við», so the border's
 # adjectives agree with it and not with the shape it surrounds. Faroese has no
 # indefinite article, so the two `-article` branches read like the two without.
@@ -324,7 +312,6 @@ style-border-clause =
         [and-article] og { $border } kanti
        *[with] við { $border } kanti
     }
-
 # The fill-pattern words are dative plurals, because their other use is the
 # «við { $pattern }» clause above. So this message supplies a noun for them to
 # hang off — «fylling», feminine, which is the gender `noun-gender` already
@@ -334,29 +321,23 @@ style-fill =
         [pattern] { $color } fylling við { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ófylt
-
 style-text =
     { $parts ->
         [background] { $color } á { $background } bakgrund
        *[plain] { $color }
     }
-
 style-background-none = eingin
-
 
 ## Boolean words
 
 boolean-true = satt
 boolean-false = ósatt
 
-
 ## Answer buttons
 
 answer-submit-label = Kanna
 answer-submit-label-no-correctness = Send svar
-
 
 ## Sectional blocks
 
@@ -381,7 +362,6 @@ section-name =
     .solution = Loysn
     .task = Uppgáva
     .theorem = Setningur
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -391,9 +371,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Vísbending
-
 
 ## Tables and figures
 
@@ -404,7 +382,6 @@ table-name =
         [unnumbered-title] Talva{ ": " }
        *[unnumbered] Talva
     }
-
 figure-name =
     { $parts ->
         [numbered] Mynd { $enumeration }
@@ -413,22 +390,18 @@ figure-name =
        *[unnumbered] Mynd
     }
 
-
 ## Paginator controls
 
 paginator-previous = Fyrra
 paginator-next = Næsta
 paginator-page = Síða
-
 paginator-page-status = { $pageLabel } { $currentPage } av { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ella
 piecewise-condition-if = um
 piecewise-condition-otherwise = annars
-
 
 ## Chemistry
 
@@ -551,7 +524,6 @@ element-name =
     .lv = Livermorium
     .ts = Tennessin
     .og = Oganesson
-
 element-anion-name =
     .h = Hydrid
     .c = Karbid
@@ -565,8 +537,6 @@ element-anion-name =
     .i = Jodid
     .at = Astatid
     .ts = Tennessid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ógildugt evnafrøðiligt tekn
 chemistry-invalid-ionic-compound = Ógildugt iónsamband

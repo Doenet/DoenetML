@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
     parse,
+    Resource,
+    serialize,
     type Entry,
     type Message,
     type Pattern,
     type SelectExpression,
+    type Variant,
 } from "@fluent/syntax";
 
 import {
@@ -18,11 +21,17 @@ import {
     numberingSystemOverrides,
     readCatalog,
     remainingLiteralDiagnostics,
+    symbolicVariantKeys,
+    allowedPluralCategories,
+    hasOwnPluralData,
+    pluralVariantKeys,
+    unselectablePluralCategories,
     renderMessageKeysModule,
     renderSupportedLocalesModule,
 } from "../scripts/catalogUtils";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 import { CATALOG_NAMESPACES } from "../src/namespaces";
+import { DEFAULT_LOCALE } from "../src/catalogs";
 
 describe("extractKeys", () => {
     it("reads message ids, attributes, and both together", () => {
@@ -713,4 +722,1050 @@ describe("counted messages", () => {
             expect(offenders, namespace).toEqual([]);
         }
     });
+});
+
+describe("symbolicVariantKeys", () => {
+    it("lists a message's selector keys and leaves the plural ones out", () => {
+        expect(
+            symbolicVariantKeys(`
+picked =
+    { $parts ->
+        [width-color] { $width } { $color }
+       *[color] { $color }
+    }
+counted =
+    { $count ->
+        [one] one
+       *[other] many
+    }
+plain = Nothing to select
+`),
+        ).toEqual(new Map([["picked", ["color", "width-color"]]]));
+    });
+});
+
+/**
+ * A selector key is an interface, not prose.
+ *
+ * `$parts`, `$context`, `$status`, `$role` and the rest are symbols the core
+ * passes in; Fluent matches a variant by comparing them letter for letter, and
+ * falls back to the default when nothing matches. So a translated key does not
+ * fail — it silently unreaches its branch and renders the default for every
+ * input that should have chosen it, which no other check here would notice.
+ * `locales/fit` shipped that in the Uralic north seed, having applied
+ * Meänkieli's `on` → `oon` spelling rule to `[text-on-background]` and
+ * `[text-on-canvas]` along with the sentence around them.
+ *
+ * Plural categories are the deliberate exception and are excluded: CLDR gives
+ * each language its own set, so a catalog resolving `one` and `other` where
+ * English resolves `one`, `two` and `other` is right rather than wrong. Every
+ * other key English selects on must still be there. A catalog may add keys
+ * English does not have — `locales/kmr` and the Dagestanian catalogs nest a
+ * `$gender` select inside a `$parts` one, so their style messages carry an `m`
+ * and an `f` English has no use for — so this is a subset check rather than an
+ * equality one. What it forbids is a branch going missing.
+ */
+describe("every catalog's selector keys", () => {
+    const english = new Map(
+        CATALOG_NAMESPACES.map((namespace) => [
+            namespace,
+            symbolicVariantKeys(readCatalog(DEFAULT_LOCALE, namespace) ?? ""),
+        ]),
+    );
+
+    it.each(listLocales().filter((locale) => locale !== DEFAULT_LOCALE))(
+        "%s translates the prose and not the keys",
+        (locale) => {
+            const offenders: string[] = [];
+            for (const namespace of CATALOG_NAMESPACES) {
+                const source = readCatalog(locale, namespace);
+                if (source === null) {
+                    continue;
+                }
+                for (const [id, keys] of symbolicVariantKeys(source)) {
+                    const expected = english.get(namespace)?.get(id);
+                    if (expected === undefined) {
+                        // A key English does not have is already reported as
+                        // an unknown key by the coverage check above.
+                        continue;
+                    }
+                    const missing = expected.filter(
+                        (key) => !keys.includes(key),
+                    );
+                    if (missing.length > 0) {
+                        offenders.push(
+                            `${namespace}/${id}: no branch for ` +
+                                `[${missing.join("] [")}]`,
+                        );
+                    }
+                }
+            }
+            expect(offenders).toEqual([]);
+        },
+    );
+});
+
+/**
+ * Dead plural branches: a category a catalog writes and its own locale can
+ * never select.
+ *
+ * Such a branch is the quietest defect a catalog can carry. It parses, it
+ * lints, it looks like a translation, and it renders nothing — the default
+ * variant answers every input instead. `locales/km` carried one: Khmer has a
+ * single plural category, its own header said so, and its `attempts-remaining`
+ * and `answer-show-responses` each had a `[one]` branch beside an identical
+ * `*[other]`. Identical, which is exactly why nobody noticed — the output was
+ * right and the branch was unreachable.
+ *
+ * Every seeded batch since the Sami one has hand-written a substring check
+ * against its own locales' sources. These tests replace those with one
+ * property over the whole roster, read off the syntax tree rather than the
+ * text, so a locale added later cannot reintroduce the defect merely by not
+ * having a batch block of its own. The batch blocks keep the half the property
+ * cannot state: which tags have their own CLDR data, and which category each
+ * of them resolves.
+ */
+describe("plural categories a locale cannot select", () => {
+    describe("pluralVariantKeys", () => {
+        it("reads the categories a catalog writes", () => {
+            expect(
+                pluralVariantKeys(
+                    [
+                        "attempts = { $count ->",
+                        "        [one] one",
+                        "        [few] a few",
+                        "       *[other] many",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["few", "one"]);
+        });
+
+        it("leaves numeric literals out, since they match the number itself", () => {
+            // `[0]` stays selectable in a language whose only category is
+            // `other`, which is the distinction that keeps `locales/km`'s zero
+            // branch legal.
+            expect(
+                pluralVariantKeys(
+                    [
+                        "attempts = { $count ->",
+                        "        [0] none",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual([]);
+        });
+
+        it("reads the syntax rather than the text, so a comment may say the word", () => {
+            // Several headers discuss `[two]` in prose while writing none.
+            expect(
+                pluralVariantKeys(
+                    ["# no [two] branch here", "greeting = hello"].join("\n"),
+                ),
+            ).toEqual([]);
+        });
+
+        it("leaves the default variant out, since Fluent always falls back to it", () => {
+            // `*[one]` in a language whose only category is `other` is
+            // selected by every count rather than by none, so it is not the
+            // defect this rule is about.
+            expect(
+                pluralVariantKeys(
+                    [
+                        "attempts = { $count ->",
+                        "        [two] both",
+                        "       *[one] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["two"]);
+            expect(
+                unselectablePluralCategories(
+                    "km",
+                    [
+                        "attempts = { $count ->",
+                        "       *[one] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual([]);
+        });
+
+        it("reads a term and an attribute, not only a message's own value", () => {
+            // Neither is where a count lives today, but both are places a
+            // select may be written, and a rule that skipped them would leave
+            // a hole exactly where nobody would look for one.
+            expect(
+                pluralVariantKeys(
+                    [
+                        "-brand = { $count ->",
+                        "        [two] a pair",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["two"]);
+            expect(
+                pluralVariantKeys(
+                    [
+                        "button = press",
+                        "    .label = { $count ->",
+                        "        [few] a few",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["few"]);
+        });
+
+        it("reads a category name as a category even on a non-count select", () => {
+            // Fluent would match `[few]` on a string selector against the
+            // literal `"few"`, so this branch is not strictly dead. Reading it
+            // as a category anyway keeps this function and
+            // `symbolicVariantKeys` from disagreeing about a key, and no
+            // selector in the roster is affected: the symbolic selects key on
+            // `plain`, `none`, `dark`, `true` and the like.
+            expect(
+                pluralVariantKeys(
+                    [
+                        "message = { $status ->",
+                        "        [few] a few",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["few"]);
+            expect(
+                symbolicVariantKeys(
+                    [
+                        "message = { $status ->",
+                        "        [few] a few",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ).size,
+            ).toBe(0);
+        });
+
+        it("descends into a select nested under another", () => {
+            expect(
+                pluralVariantKeys(
+                    [
+                        "message = { $parts ->",
+                        "       *[plain] { $count ->",
+                        "            [two] both",
+                        "           *[other] some",
+                        "        }",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["two"]);
+        });
+    });
+
+    describe("allowedPluralCategories", () => {
+        it("gives a locale CLDR knows exactly its own categories", () => {
+            expect([...allowedPluralCategories("km")]).toEqual(["other"]);
+            expect([...allowedPluralCategories("hsb")].sort()).toEqual([
+                "few",
+                "one",
+                "other",
+                "two",
+            ]);
+        });
+
+        it("keeps a script subtag from reading as a different language", () => {
+            // `Intl.PluralRules("zh-Hans")` resolves to plain `zh`, which is
+            // its own data and not a fallback — so the naive comparison of
+            // resolved tag against directory name would have called both
+            // Chinese catalogs no-data and let them write `[one]`.
+            expect([...allowedPluralCategories("zh-Hans")]).toEqual(["other"]);
+            expect([...allowedPluralCategories("zh-Hant")]).toEqual(["other"]);
+        });
+
+        it("gives a locale CLDR has no data for `one` and `other` only", () => {
+            // The branches these catalogs are entitled to: English's split
+            // is the one the fallback usually makes, and each of the
+            // ninety-odd catalogs that take it records the trade in its own
+            // header.
+            expect([...allowedPluralCategories("sco")].sort()).toEqual([
+                "one",
+                "other",
+            ]);
+            expect(allowedPluralCategories("szl").has("few")).toBe(false);
+        });
+
+        it("canonicalizes before asking, so a member code inherits its macrolanguage's rules", () => {
+            // ICU folds `kmr` onto `ku`, and Kurmanji genuinely counts by
+            // Kurdish's rules — unlike `kpv` and `mhr`, whose macrolanguages
+            // CLDR has no data for either.
+            expect(new Intl.PluralRules("kmr").resolvedOptions().locale) //
+                .toBe("ku");
+            expect([...allowedPluralCategories("kmr")].sort()).toEqual([
+                "one",
+                "other",
+            ]);
+        });
+
+        it("treats a tag Intl refuses as the no-data case, as the runtime does", () => {
+            // `en_US`, the POSIX spelling a host gets wrong: every `Intl`
+            // constructor throws on it, `intlLocale` hands the bundle
+            // `DEFAULT_LOCALE` instead, and English is then literally what
+            // selects the branch.
+            expect(() => new Intl.Locale("en_US")).toThrow();
+            expect([...allowedPluralCategories("en_US")].sort()).toEqual([
+                "one",
+                "other",
+            ]);
+        });
+
+        it("treats a bare region or script tag as no-data rather than throwing", () => {
+            // A directory named for a region or a script alone is not a
+            // locale, and `Intl` says so. The rule must still answer, and the
+            // conservative answer is the one that lets least through: a
+            // directory named `Hans` may write `[one]` and nothing wider.
+            for (const notALocale of ["Hans", "419"]) {
+                expect(() => new Intl.Locale(notALocale)).toThrow();
+                expect([...allowedPluralCategories(notALocale)].sort()).toEqual(
+                    ["one", "other"],
+                );
+            }
+        });
+    });
+
+    describe("unselectablePluralCategories", () => {
+        it("names a category the locale cannot reach", () => {
+            expect(
+                unselectablePluralCategories(
+                    "km",
+                    [
+                        "attempts = { $count ->",
+                        "        [one] one",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["one"]);
+        });
+
+        it("passes a category the locale does reach", () => {
+            expect(
+                unselectablePluralCategories(
+                    "hsb",
+                    [
+                        "attempts = { $count ->",
+                        "        [two] both",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual([]);
+        });
+    });
+
+    describe("hasOwnPluralData", () => {
+        it("tells the two cases apart, which is what the lint message says", () => {
+            // `km` is CLDR's own answer — one category, and it is Khmer's.
+            // `sco` and `en_US` are not: the categories on offer there belong
+            // to whatever locale the runtime falls back to.
+            expect(hasOwnPluralData("km")).toBe(true);
+            expect(hasOwnPluralData("zh-Hans")).toBe(true);
+            expect(hasOwnPluralData("sco")).toBe(false);
+            expect(hasOwnPluralData("en_US")).toBe(false);
+        });
+    });
+
+    /**
+     * The property itself, over every catalog on the roster. This is what the
+     * per-batch blocks in `chrome.test.ts` were reaching for one batch at a
+     * time.
+     */
+    it("is written by no catalog in the roster", () => {
+        const dead: string[] = [];
+        for (const locale of listLocales()) {
+            for (const namespace of CATALOG_NAMESPACES) {
+                const source = readCatalog(locale, namespace);
+                if (source === null) {
+                    continue;
+                }
+                for (const category of unselectablePluralCategories(
+                    locale,
+                    source,
+                )) {
+                    dead.push(
+                        `locales/${locale}/${namespace}.ftl: [${category}]`,
+                    );
+                }
+            }
+        }
+        expect(dead).toEqual([]);
+    });
+
+    /**
+     * Three headers in the Silk Road batch do not merely name a script — they set
+     * the catalog's letter inventory out **exactly**, and tell a corrector not to
+     * fold a letter into its Russian look-alike. `locales/alt` allows the Russian
+     * letters plus `ј ҥ ӧ ӱ`, `locales/kjh` plus `і ғ ң ӧ ӱ ӌ`, and `locales/dng`
+     * plus `ә җ ң ў ү`.
+     *
+     * That is the rare header claim a test can hold in full, and it is worth
+     * holding, because the failure it catches is invisible: a homoglyph renders
+     * identically and breaks nothing, so it survives review and then defeats every
+     * search a later corrector runs. The seed shipped two — the Tajik `ҷ` (U+04B7)
+     * where Khakas has `ӌ` (U+04CC), and the Latin `ə` (U+0259) beside the
+     * Cyrillic `ә` (U+04D9) `locales/dng` uses everywhere else.
+     *
+     * Only the three catalogs whose headers make the claim are checked. Most
+     * catalogs make no such promise, and some legitimately mix scripts by letter:
+     * Ossetian's `æ` is U+00E6, a Latin letter inside a Cyrillic alphabet, and the
+     * Mansi and Kildin Sami vowels with macrons are Latin too.
+     */
+    describe("the letter inventories three Silk Road headers state exactly", () => {
+        const RUSSIAN = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+
+        /** Letters each catalog's header allows on top of the Russian alphabet. */
+        const EXTRA: Record<string, string> = {
+            alt: "јҥӧӱ",
+            kjh: "іғңӧӱӌ",
+            dng: "әҗңўү",
+        };
+
+        it.each(Object.keys(EXTRA))(
+            "keeps %s to the Russian letters and the ones its header names",
+            (locale) => {
+                const allowed = new Set(
+                    [...`${RUSSIAN}${EXTRA[locale]}`].flatMap((letter) => [
+                        letter,
+                        letter.toUpperCase(),
+                    ]),
+                );
+                const offenders = new Set<string>();
+                for (const namespace of CATALOG_NAMESPACES) {
+                    const source = readCatalog(locale, namespace);
+                    if (source === null) {
+                        continue;
+                    }
+                    for (const line of source.split("\n")) {
+                        // Headers quote the look-alikes they warn against, and
+                        // every catalog writes DoenetML's own identifiers in
+                        // Latin, so only the prose a reader sees is checked.
+                        if (line.trimStart().startsWith("#")) {
+                            continue;
+                        }
+                        for (const letter of line.replace(/`[^`]*`/g, " ")) {
+                            if (
+                                /\p{L}/u.test(letter) &&
+                                !/[\x00-\x7f]/.test(letter)
+                            ) {
+                                if (!allowed.has(letter)) {
+                                    offenders.add(
+                                        `${letter} (U+${letter
+                                            .codePointAt(0)!
+                                            .toString(16)
+                                            .toUpperCase()
+                                            .padStart(4, "0")})`,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+                expect([...offenders]).toEqual([]);
+            },
+        );
+    });
+
+    /**
+     * The Americas batch's headers make a claim of the same checkable kind the
+     * three Silk Road headers do, but about **one character rather than an
+     * alphabet**: `locales/yua` and `locales/kek` state that the glottal stop
+     * and the ejectives are written with U+02BC MODIFIER LETTER APOSTROPHE
+     * throughout, and never with the typographic U+2019 or the ASCII U+0027.
+     *
+     * That is worth holding for the Silk Road block's reason exactly. The
+     * three characters are near-indistinguishable on screen, a text editor
+     * with smart quotes turns one into another without being asked, and the
+     * result breaks no test and defeats every later search — but «tʼaan» and
+     * «t’aan» are different strings, and in Mayan orthography the ejective is
+     * a letter rather than punctuation.
+     *
+     * `locales/iu` gets the other half of the same idea: its header states
+     * that no Inuktitut word is spelled in roman letters, and the roman that
+     * does appear is either DoenetML source or a declared English loan. The
+     * check that fits that claim is not an inventory — the loans are real
+     * roman words — but the absence of the one syllabics character that would
+     * mean the file had drifted into a neighbouring language's inventory.
+     */
+    describe("the character inventories the Americas headers state exactly", () => {
+        /** The message text of a catalog: comment lines and code spans dropped. */
+        const prose = (locale: string): string =>
+            CATALOG_NAMESPACES.map((namespace) =>
+                readCatalog(locale, namespace),
+            )
+                .filter((source): source is string => source !== null)
+                .join("\n")
+                .split("\n")
+                .filter((line) => !line.trimStart().startsWith("#"))
+                .join("\n")
+                .replace(/`[^`]*`/g, " ");
+
+        it.each(["yua", "kek"])(
+            "writes every apostrophe in %s as U+02BC",
+            (locale) => {
+                const text = prose(locale);
+                expect(text).toContain("\u02bc");
+                // The look-alike, named by codepoint so a failure says which
+                // character crept in rather than printing two identical marks.
+                expect(text).not.toContain("\u2019");
+                // U+0027 is deliberately not forbidden: English's own
+                // messages quote enumerated values with straight quotes and
+                // write the derivative as `y'`, and both come through a
+                // translation unchanged. It is the curly one a smart-quote
+                // editor substitutes, and the curly one that would be a
+                // silent respelling of a Mayan letter.
+            },
+        );
+
+        /**
+         * ᐦ (U+1426) is the Cree final `h`. It is not part of the Nunavut
+         * Inuktitut inventory — `locales/iu` writes ᕼ (U+157C) where it needs
+         * an *h* — and its appearance would mean a syllabics string had been
+         * taken from a Cree source. The batch shipped no Cree catalog, which
+         * is exactly why nothing else would catch this.
+         */
+        it("keeps iu's syllabics out of the Cree finals", () => {
+            // ᕼ itself appears only in the headers — the syllabics words
+            // this catalog happens to use need no *h* — so what is asserted
+            // is the absence, which is the half that could rot.
+            expect(prose("iu")).not.toContain("\u1426");
+        });
+
+        /**
+         * `locales/srm`'s headers state that tone is not written, and that the
+         * one accented letter outside its `ë`/`ö` vowels is «á», the preverbal
+         * negator, whose accent marks the word rather than a tone. Any other
+         * acute would mean tone had been half-restored — worse than the stated
+         * absence, because a reader could not tell which words had been done.
+         */
+        it("keeps srm to the one accented letter its header allows", () => {
+            const accented = new Set(
+                [...prose("srm")].filter((letter) =>
+                    /[\u00c0-\u024f]/.test(letter),
+                ),
+            );
+            // Case-folded: «Ë» opens a sentence in several messages, and a
+            // capital is the same letter.
+            expect(
+                [
+                    ...new Set(
+                        [...accented].map((letter) => letter.toLowerCase()),
+                    ),
+                ].sort(),
+            ).toEqual(["á", "ë", "ö"]);
+        });
+    });
+});
+
+/**
+ * Two catalogs can agree without being one catalog, and this batch has both
+ * shapes of that. `jam` and `bzj` are English-lexifier creoles in phonemic
+ * orthographies, so the short everyday words converge — «chruu», «faals»,
+ * «tik dash-dash red lain» — and `gcf` and `gcr` agree word for word on a
+ * styled line. Convergence is the language; a catalog copied to a second tag
+ * is a defect, and the two look alike from a distance.
+ *
+ * What separates them is a *rate*. A copy differs nowhere; these differ in
+ * most of what they both define. The rate over `content.ftl` alone is
+ * asserted in `packages/utils/test/styleDescriptions.test.ts`, beside the
+ * styled-line phrase it is about; what is left here is the whole-catalog
+ * rate, and the French trio, whose agreement is confined to that one phrase.
+ * The floors are floors rather than equalities so that correcting a string
+ * cannot fail the test — only wholesale duplication can.
+ */
+describe("catalogs of one lexifier that are not each other's copy", () => {
+    /** Message id → serialized entry, for every message in one namespace. */
+    const entries = (locale: string, namespace: string) => {
+        const source = readCatalog(locale, namespace);
+        const values = new Map<string, string>();
+        if (source === null) {
+            return values;
+        }
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type === "Message") {
+                values.set(entry.id.name, serialize(new Resource([entry]), {}));
+            }
+        }
+        return values;
+    };
+
+    /** How many of the ids both catalogs define carry different text. */
+    const differing = (a: string, b: string, namespaces: readonly string[]) => {
+        let shared = 0;
+        let differ = 0;
+        for (const namespace of namespaces) {
+            const left = entries(a, namespace);
+            const right = entries(b, namespace);
+            for (const [id, value] of left) {
+                const other = right.get(id);
+                if (other === undefined) {
+                    continue;
+                }
+                shared += 1;
+                differ += value === other ? 0 : 1;
+            }
+        }
+        return { shared, differ };
+    };
+
+    it("keeps jam and bzj apart in most of what both define", () => {
+        const all = differing("jam", "bzj", CATALOG_NAMESPACES);
+        // One lower than they were on each count since
+        // `summary-statistics-caption` was dropped from every catalog but
+        // `en`: its translations all named the data column that
+        // `<summaryStatistics>` no longer has, and the two rendered it
+        // differently, so it counted toward both numbers.
+        expect(all.shared).toBe(388);
+        expect(all.differ).toBeGreaterThanOrEqual(341);
+    });
+
+    /**
+     * The French-lexifier trio, where the styled-line phrase agrees but the
+     * diagnostics do not: `gcr` writes the indefinite «roun» where `gcf`
+     * writes «on», which alone separates most of the file.
+     */
+    it.each([
+        ["gcf", "gcr", 206],
+        ["gcf", "acf", 180],
+        ["acf", "gcr", 205],
+    ] as [string, string, number][])(
+        "keeps %s and %s apart across their diagnostics",
+        (a, b, floor) => {
+            const { shared, differ } = differing(a, b, ["diagnostics"]);
+            expect(shared).toBe(220);
+            expect(differ).toBeGreaterThanOrEqual(floor);
+        },
+    );
+});
+
+/**
+ * A select every branch of which renders the same string is a distinction the
+ * catalog has silently dropped. It parses, it lints, every property above
+ * passes it, and it reads to a skimmer as a locale that carefully wrote out
+ * three forms — but the reader gets one string whatever the count, and the
+ * header claiming the forms differ is now false about its own file.
+ *
+ * The Americas seed shipped five of them and they were the batch's second
+ * semantic defect, after `locales/miq`'s collapsed
+ * `field-function-wrong-num-outputs`. All five were in `kl` and `iu`, which is
+ * where they matter: those two are the batch's catalogs whose plural branches
+ * a runtime can actually select, so a repeated branch is a live branch saying
+ * nothing. They are now written as a single form, which is the honest shape
+ * for a message whose wording does not turn on the count.
+ *
+ * **Identical branches are forbidden; merely non-distinct ones are not.**
+ * `style-border-clause` forks four ways on two distinctions English draws, an
+ * indefinite article and a linker English spells two ways, and six of these
+ * catalogs collapse one of the two: `kl` and `miq` write no article, so
+ * `[with-article]` lands on `[with]`, while `cab`, `srn`, `djk` and `srm` use
+ * one word for both *with* and *and*, so `[with]` lands on `[and]`. Either
+ * way two branches remain. That is a distinction the target language does not
+ * draw, not one the translation lost, so the floor is *some* branch differing
+ * rather than all of them.
+ */
+describe("selects in the Americas batch that still say something", () => {
+    /** The fifteen tags this batch adds, in the order the README lists them. */
+    const AMERICAS_LOCALES = [
+        "kl",
+        "iu",
+        "yua",
+        "kek",
+        "cab",
+        "miq",
+        "pap",
+        "srn",
+        "jam",
+        "gcf",
+        "acf",
+        "gcr",
+        "bzj",
+        "djk",
+        "srm",
+    ];
+
+    /** A variant's key as written — `[one]`, `[0]` — for a failure message. */
+    const variantKey = (variant: Variant): string =>
+        variant.key.type === "Identifier"
+            ? variant.key.name
+            : variant.key.value;
+
+    /** Every select in one catalog, nested ones included. */
+    const selects = (locale: string, namespace: string) => {
+        const source = readCatalog(locale, namespace);
+        const found: SelectExpression[] = [];
+        if (source === null) {
+            return found;
+        }
+        const walk = (pattern: Pattern) => {
+            for (const element of pattern.elements) {
+                if (
+                    element.type === "Placeable" &&
+                    element.expression.type === "SelectExpression"
+                ) {
+                    found.push(element.expression);
+                    for (const variant of element.expression.variants) {
+                        walk(variant.value);
+                    }
+                }
+            }
+        };
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type !== "Message" && entry.type !== "Term") {
+                continue;
+            }
+            for (const pattern of [
+                entry.value,
+                ...entry.attributes.map((attribute) => attribute.value),
+            ]) {
+                if (pattern) {
+                    walk(pattern);
+                }
+            }
+        }
+        return found;
+    };
+
+    /**
+     * A variant's pattern as a comparable string. Written out rather than
+     * handed to `serialize`, which needs a whole `Resource` of real AST nodes
+     * and throws on a synthesized one: text is taken verbatim, and a placeable
+     * is reduced to a canonical token so that two branches differing only in
+     * *which* variable they interpolate still count as different.
+     */
+    const patternText = (pattern: Pattern): string =>
+        pattern.elements
+            .map((element) => {
+                if (element.type === "TextElement") {
+                    return element.value;
+                }
+                const expression = element.expression;
+                if (expression.type === "VariableReference") {
+                    return `{$${expression.id.name}}`;
+                }
+                if (expression.type === "SelectExpression") {
+                    return `{select:${expression.variants
+                        .map(
+                            (variant) =>
+                                `${variantKey(variant)}=${patternText(
+                                    variant.value,
+                                )}`,
+                        )
+                        .join("|")}}`;
+                }
+                if (
+                    expression.type === "StringLiteral" ||
+                    expression.type === "NumberLiteral"
+                ) {
+                    return expression.value;
+                }
+                if (expression.type === "MessageReference") {
+                    return `{${expression.id.name}}`;
+                }
+                if (expression.type === "TermReference") {
+                    return `{-${expression.id.name}}`;
+                }
+                return `{${expression.type}}`;
+            })
+            .join("");
+
+    it.each(AMERICAS_LOCALES)(
+        "leaves no select in %s with every branch the same",
+        (locale) => {
+            const uniform: string[] = [];
+            for (const namespace of CATALOG_NAMESPACES) {
+                for (const select of selects(locale, namespace)) {
+                    const rendered = select.variants.map((variant) =>
+                        patternText(variant.value),
+                    );
+                    if (new Set(rendered).size === 1) {
+                        uniform.push(
+                            `${namespace}: ${select.variants
+                                .map((variant) => variantKey(variant))
+                                .join("/")}`,
+                        );
+                    }
+                }
+            }
+            expect(uniform).toEqual([]);
+        },
+    );
+});
+
+/**
+ * No catalog writes a number in its own script's digits.
+ *
+ * This is the README's "Digits are Latin, separators are not" rule met from the
+ * catalog side. The rule is enforced on every *formatter* — `intlLocale` pins
+ * the numbering system, and `lint:i18n` rejects a catalog passing
+ * `numberingSystem` to a Fluent builtin — but a literal digit typed into a
+ * message value goes through no formatter at all, and there was nothing
+ * checking it.
+ *
+ * The failure it produces is worse than an inconsistency between locales. It is
+ * an inconsistency *inside one sentence*: a message reading "more than 3 points"
+ * with the 3 in Myanmar digits sits beside a `{ $count }` in the next message
+ * rendering in Latin ones, and beside mathematics that is Latin-digit
+ * regardless. `locales/mnw` and `locales/ksw` were seeded with exactly that, six
+ * messages each, and this is the property that found it.
+ *
+ * Every digit range CLDR would otherwise count in is checked rather than only
+ * the ones the roster has languages for, since the next batch is what this is
+ * for.
+ */
+describe("every catalog's digits", () => {
+    /**
+     * The decimal-digit blocks of the scripts this roster writes in, plus the
+     * ones it plausibly will. Latin `0`–`9` is deliberately absent: it is the
+     * answer, not an offender.
+     */
+    const NON_LATIN_DIGITS =
+        /[٠-٩۰-۹०-९০-৯੦-੯૦-૯୦-୯௦-௯౦-౯೦-೯൦-൯๐-๙໐-໙༠-༩၀-၉႐-႙០-៩᥆-᥏᧐-᧙]/u;
+
+    it.each(listLocales())("%s counts in Latin digits", (locale) => {
+        const offenders: string[] = [];
+        for (const namespace of CATALOG_NAMESPACES) {
+            const source = readCatalog(locale, namespace);
+            if (source === null) {
+                continue;
+            }
+            source.split("\n").forEach((line, index) => {
+                // Header prose may name a script's digits to say it does not
+                // use them, which is the opposite of the defect.
+                if (line.trimStart().startsWith("#")) {
+                    return;
+                }
+                if (NON_LATIN_DIGITS.test(line)) {
+                    offenders.push(`${namespace}:${index + 1}: ${line.trim()}`);
+                }
+            });
+        }
+        expect(offenders).toEqual([]);
+    });
+});
+
+/**
+ * The letter inventories the Southeast Asian batch's headers state exactly.
+ *
+ * Twelve of the fifteen catalogs are written in Latin, and the interesting fact
+ * about them is how *little* they need beyond ASCII: seven use nothing at all,
+ * and the other five commit to exactly one or three characters apiece. Each of
+ * those five carries a distinction of the language rather than decoration —
+ * `nia`'s «ö», `mrw`'s schwa «ë», `tsg`'s macrons for a long vowel, the «é»
+ * `bug` and `mak` write for a vowel their Lontara tradition does not
+ * distinguish — and each locale's header names its own and warns against
+ * folding it away. A catalog that acquired a sixth diacritic would have
+ * acquired it by guess.
+ */
+describe("the letter inventories the Southeast Asian headers state exactly", () => {
+    /** Non-ASCII letters each Latin-script catalog's header allows. */
+    const LATIN_EXTRA: Record<string, string> = {
+        bug: "é",
+        mak: "é",
+        bjn: "",
+        gor: "",
+        nia: "ö",
+        bbc: "",
+        iba: "",
+        dtp: "",
+        pag: "",
+        cbk: "",
+        tsg: "āīū",
+        mrw: "ë",
+    };
+
+    /** Every letter a catalog writes outside ASCII, as it appears. */
+    const lettersOutsideAscii = (locale: string): Set<string> => {
+        const found = new Set<string>();
+        for (const namespace of CATALOG_NAMESPACES) {
+            const source = readCatalog(locale, namespace);
+            if (source === null) {
+                continue;
+            }
+            for (const line of source.split("\n")) {
+                // Headers quote the look-alikes they warn against, and every
+                // catalog writes DoenetML's own identifiers in Latin, so only
+                // the prose a reader sees is checked.
+                if (line.trimStart().startsWith("#")) {
+                    continue;
+                }
+                for (const letter of line.replace(/`[^`]*`/g, " ")) {
+                    if (/\p{L}/u.test(letter) && letter.codePointAt(0)! > 127) {
+                        found.add(letter);
+                    }
+                }
+            }
+        }
+        return found;
+    };
+
+    /**
+     * The same, widened to combining marks. The Myanmar script writes its
+     * vowels as marks rather than as letters, so `\p{L}` alone sees none of
+     * `ၢ`, `ႃ` or `ၣ` — the very characters the three headers below make
+     * claims about.
+     */
+    const signsOutsideAscii = (locale: string): Set<string> => {
+        const found = new Set<string>();
+        for (const namespace of CATALOG_NAMESPACES) {
+            const source = readCatalog(locale, namespace);
+            if (source === null) {
+                continue;
+            }
+            for (const line of source.split("\n")) {
+                if (line.trimStart().startsWith("#")) {
+                    continue;
+                }
+                for (const sign of line.replace(/`[^`]*`/g, " ")) {
+                    if (
+                        /[\p{L}\p{M}]/u.test(sign) &&
+                        sign.codePointAt(0)! > 127
+                    ) {
+                        found.add(sign);
+                    }
+                }
+            }
+        }
+        return found;
+    };
+
+    it.each(Object.keys(LATIN_EXTRA))(
+        "keeps %s to ASCII and the letters its header names",
+        (locale) => {
+            const allowed = new Set(
+                [...LATIN_EXTRA[locale]].flatMap((letter) => [
+                    letter,
+                    letter.toUpperCase(),
+                ]),
+            );
+            expect(
+                [...lettersOutsideAscii(locale)].filter(
+                    (letter) => !allowed.has(letter),
+                ),
+            ).toEqual([]);
+        },
+    );
+
+    /**
+     * Seven of the twelve need nothing beyond ASCII at all, asserted as a fact
+     * about those catalogs rather than left implicit in an empty string above.
+     * `cbk` is the one worth naming: printed Chavacano inherits Spanish's
+     * accents, and `locales/cbk` commits to writing none — so an «á» appearing
+     * here later is a change of orthography, not a typo.
+     */
+    it.each(["bjn", "gor", "bbc", "iba", "dtp", "pag", "cbk"])(
+        "writes %s in ASCII letters alone",
+        (locale) => {
+            expect([...lettersOutsideAscii(locale)]).toEqual([]);
+        },
+    );
+
+    /**
+     * The glottal stop, which six of the twelve write and all six write the
+     * same way: **ASCII `'` (U+0027)**, never U+2019 or U+02BC.
+     *
+     * This is the deliberate opposite of `locales/quc`, whose Kʼicheʼ is
+     * written with U+02BC throughout because there the glottal stop is a
+     * *letter* of Mayan orthography. In Buginese, Makasar, Gorontalo, Nias,
+     * Kadazandusun and Tausug the mark is punctuation-shaped in ordinary
+     * print, the surrounding catalogs quote values with straight quotes, and a
+     * curly apostrophe in a value a reader might retype is a hazard rather
+     * than a nicety. Either convention is defensible; what a batch cannot
+     * afford is both.
+     *
+     * The other six Latin catalogs are not listed because they do not write
+     * the sound at all — the only apostrophes in `bjn`, `bbc`, `iba`, `pag`,
+     * `cbk` and `mrw` are the primes of `y'` and `d'` in mathematical prose.
+     */
+    it.each(["bug", "mak", "gor", "nia", "dtp", "tsg"])(
+        "writes %s's glottal stop as ASCII apostrophe",
+        (locale) => {
+            const offenders: string[] = [];
+            for (const namespace of CATALOG_NAMESPACES) {
+                const source = readCatalog(locale, namespace) ?? "";
+                for (const line of source.split("\n")) {
+                    if (line.trimStart().startsWith("#")) {
+                        continue;
+                    }
+                    if (/[’ʼʻ]/.test(line)) {
+                        offenders.push(`${namespace}: ${line.trim()}`);
+                    }
+                }
+            }
+            expect(offenders).toEqual([]);
+        },
+    );
+
+    /**
+     * The three Myanmar-script catalogs, and the two header claims a homoglyph
+     * audit corrected during seeding rather than after review.
+     *
+     * These languages share a script and do not share its letters, and the
+     * failure mode is silent: a Burmese letter standing in for the Shan or
+     * Karen one it resembles renders, lints and reads as text. So each catalog
+     * is held to the letters its own header names, in both directions — the
+     * ones it must have and the ones it must not.
+     */
+    it("holds shn, mnw and ksw to their own letters", () => {
+        const has = (locale: string, sign: string) =>
+            signsOutsideAscii(locale).has(sign);
+
+        // Shan's own consonants, and `ၢ` U+1062 — correct Shan spelling for
+        // /aa/ before a final consonant, which `shn/chrome.ftl` warns against
+        // "correcting" to `ႃ`. Both are present; neither replaces the other.
+        for (const letter of ["ၵ", "ၶ", "ၸ", "ၺ", "ၼ", "ၽ", "ၾ", "ႁ", "ဢ"]) {
+            expect(has("shn", letter)).toBe(true);
+        }
+        expect(has("shn", "ၢ")).toBe(true);
+        expect(has("shn", "ႃ")).toBe(true);
+
+        // Mon's own letters. The header first claimed `ဿ` and `ၝ` and the audit
+        // found neither in the text, so the header was corrected to match the
+        // catalog rather than the catalog padded to match the header.
+        for (const letter of ["ၚ", "ၜ", "ၞ", "ၟ", "ၠ"]) {
+            expect(has("mnw", letter)).toBe(true);
+        }
+        for (const letter of ["ဿ", "ၝ"]) {
+            expect(has("mnw", letter)).toBe(false);
+        }
+
+        // S'gaw Karen's own letters, and the sharper correction: `ၦ` and `ၯ`
+        // are **Pwo** letters, not S'gaw ones, and the seeding brief asked for
+        // them by mistake. The catalog uses neither. The negotiation side of
+        // the same boundary is in `negotiate.test.ts`, where `kjp` (Eastern
+        // Pwo) and `blk` (Pa'o) fall to English rather than to this catalog —
+        // there because `kar` is an ISO 639-5 collection rather than a
+        // macrolanguage, not because of any letter.
+        for (const letter of ["ၢ", "ၣ", "ၤ"]) {
+            expect(has("ksw", letter)).toBe(true);
+        }
+        for (const letter of ["ၦ", "ၯ", "ၡ", "ဢ"]) {
+            expect(has("ksw", letter)).toBe(false);
+        }
+    });
+
+    /**
+     * And the negative control across the three: no catalog here writes a
+     * letter from *outside* the Myanmar block, apart from the Latin the
+     * declared English and Burmese loan registers are written in. A Thai or
+     * Khmer letter would be a seeding accident rather than a language.
+     */
+    it.each(["shn", "mnw", "ksw"])(
+        "keeps %s inside the Myanmar block",
+        (locale) => {
+            const strays = [...signsOutsideAscii(locale)].filter(
+                (sign) => !/[က-႟ꩠ-ꩿ]/u.test(sign),
+            );
+            expect(strays).toEqual([]);
+        },
+    );
 });

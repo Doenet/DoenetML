@@ -1,0 +1,194 @@
+<!-- This already takes a few seconds to load and the tab uses a lot of memory, likely due to all of the graph components, so I stopped putting labels on the graph itself after the top half. -->
+
+<!-- Also, I needed all of the width I can get, so I avoided any ol's or boxed sections.  Might benefit from some demarcation somehow. -->
+
+<!-- I didn't force students to enter fractions in simplest terms, even though I'm displaying that form. It just seemed like too much. But I haven't taught from it, yet, so maybe that will actually be important? -->
+
+<setup>
+  <repeatForSequence name="points" from="1" to="24" valueName="k">
+    <point styleNumber="2" markerStyle="circle" markerSize="4" showCoordsWhenDragging="false">(cos($k/24*2pi),sin($k/24*2pi))
+    </point>
+  </repeatForSequence>
+
+    <integer name="num1a">arccos($P.x)*24/2/pi</integer>
+  <integer name="num2a">(2*pi-arccos($P.x))*24/2/pi</integer>
+
+  <integer name="numP"><conditionalContent><case condition="$P.y< 0">$num2a</case><else>$num1a</else></conditionalContent></integer>
+
+  <integer name="num1">arccos($P2.x)*24/2/pi</integer>
+  <integer name="num2">(2*pi-arccos($P2.x))*24/2/pi</integer>
+
+  <integer name="numP2"><conditionalContent><case condition="$P2.y< 0">$num2</case><else>$num1</else></conditionalContent></integer>
+
+  <!-- There is probably a better way to accomplish this instead of using all these booleans now that I have access to the position of P via numP, but this is what I thought of first, and I'm tapped out on thinking about this at the moment. -->
+    <repeatForSequence name="ptsbool" from="1" to="24" valueName="ka">
+      <boolean>$P=<point>$points[$ka]</point></boolean>
+    </repeatForSequence>
+
+  <boolean name="H3">true</boolean>
+  <boolean name="H4">true</boolean>
+  <boolean name="H5">true</boolean>
+  <boolean name="H6">true</boolean>
+  <boolean name="H7">true</boolean>
+  <boolean name="H8">true</boolean>
+  <boolean name="H9">true</boolean>
+  <boolean name="H10">true</boolean>
+  <boolean name="H11">true</boolean>
+  <boolean name="H12">true</boolean>
+  <!-- <boolean name="H13">false</boolean>
+  <boolean name="H14">false</boolean>
+  <boolean name="H15">false</boolean>
+  <boolean name="H16">false</boolean>
+  <boolean name="H17">false</boolean>
+  <boolean name="H18">false</boolean>
+  <boolean name="H19">false</boolean>
+  <boolean name="H20">false</boolean>
+  <boolean name="H21">false</boolean>
+  <boolean name="H22">false</boolean>
+  <boolean name="H23">false</boolean> -->
+
+  <mathList name="dists">13pi/12 7pi/6 5pi/4 4pi/3 17pi/12 3pi/2 19pi/12 5pi/3 7pi/4 11pi/6 23pi/12</mathList>
+  <mathList unordered name="dists2">13pi/12 7pi/6 5pi/4 4pi/3 17pi/12 3pi/2 19pi/12 5pi/3 7pi/4 11pi/6 23pi/12</mathList>
+
+  <repeatForSequence name="alldists" from="1" to="24" valueName="kz">
+    <math simplify><math simplify>$kz/12</math>pi</math>
+  </repeatForSequence>
+</setup>
+<p>
+  In the following figure there are 24 equally spaced points on the unit circle.  Since the circumference of the unit circle is <m>2\pi</m>, each of the points is <m>\frac{1}{24} \cdot 2\pi = \frac{\pi}{12}</m> units apart (traveled along the circle). Thus, the first point counterclockwise from <m>(1,0)</m> corresponds to the distance <m>d = \frac{\pi}{12}</m> traveled along the unit circle.  The second point is twice as far, and thus <m>d = 2 \cdot \frac{\pi}{12} = \frac{\pi}{6}</m> units along the circle away from <m>(1,0)</m>.
+		
+</p>
+<p>
+  Move the large square point to each of the points in the remainder of the top half of the circle and enter the distance traveled along the circle counterclockwise from the point <m>(1,0)</m> to that location.
+</p>
+<p>
+    When you have entered the correct distance for the selected point and hit enter or clicked outside the box, the distance traveled will appear on the graph near that point.
+  </p>
+
+<sideBySide widths="70% 25%">
+
+<graph xMin="-1.4" xMax="1.4" yMin="-1.4" yMax="1.4" displayXAxisTicks="false" displayYAxisTicks="false" fixAxes grid=".2 .2"><shortDescription>unit circle with 24 equally spaced points</shortDescription>
+  <circle name="unitcir" center="(0,0)" radius="1" draggable="false"/>
+  $points
+  <point name="P" styleNumber="2" showCoordsWhenDragging="false" markerSize="7"><constrainTo>$points</constrainTo>(cos(pi/12),sin(pi/12))</point>
+
+  <curve name="radianarca" variable="t" parMin="0" parMax="arccos($P.x)" styleNumber="2" lineWidth="4" hide="$P.y< 0">
+    (cos(t), sin(t))
+  </curve>
+  <curve name="radianarc2a" variable="t" parMin="0" parMax="2pi-arccos($P.x)" styleNumber="2" lineWidth="4" hide="$P.y>0">
+    (cos(t), sin(t))
+  </curve>
+  
+  <label fixed anchor="(1.19,0.3)"><m>\displaystyle d=\frac{\pi}{12}</m></label>
+  <label name="L2" fixLocation anchor="(1.07,0.55)"><m>\displaystyle d=\frac{\pi}{6}</m></label>
+  <label name="L3" fixLocation anchor="(.82,0.78)" hide="$H3"><m>\displaystyle \frac{\pi}{4}</m></label>
+  <label name="L4" fixLocation anchor="(.6,0.98)" hide="$H4"><m>\displaystyle \frac{\pi}{3}</m></label>
+  <label name="L5" fixLocation anchor="(.3,1.15)" hide="$H5"><m>\displaystyle \frac{5\pi}{12}</m></label>
+  <label name="L6" fixLocation anchor="(.05,1.17)" hide="$H6"><m>\displaystyle \frac{\pi}{2}</m></label>
+  <label name="L7" fixLocation anchor="(-.3,1.15)" hide="$H7"><m>\displaystyle \frac{7\pi}{12}</m></label>
+  <label name="L8" fixLocation anchor="(-.6,1.02)" hide="$H8"><m>\displaystyle \frac{2\pi}{3}</m></label>
+  <label name="L9" fixLocation anchor="(-.8,.81)" hide="$H9"><m>\displaystyle \frac{3\pi}{4}</m></label>
+  <label name="L10" fixLocation anchor="(-.98,.63)" hide="$H10"><m>\displaystyle \frac{5\pi}{6}</m></label>
+  <label name="L11" fixLocation anchor="(-1.15,.35)" hide="$H11"><m>\displaystyle \frac{11\pi}{12}</m></label>
+  <label name="L12" fixLocation anchor="(-1.1,.06)" hide="$H12"><m>\displaystyle \pi</m></label>
+</graph>
+<div>
+  <p>
+    <mathInput name="fracdist"><label><m>d=</m></label></mathInput>
+    <updateValue triggerWhen="$fracdist=1/4 pi and $ptsbool[3] "target="$H3" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=1/3 pi and $ptsbool[4] "target="$H4" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=5/12 pi and $ptsbool[5] "target="$H5" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=1/2 pi and $ptsbool[6] "target="$H6" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=7/12 pi and $ptsbool[7] "target="$H7" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=2/3 pi and $ptsbool[8] "target="$H8" newValue="false"/>
+    
+    <updateValue triggerWhen="$fracdist=3/4 pi and $ptsbool[9] "target="$H9" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=5/6 pi and $ptsbool[10] "target="$H10" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=11/12 pi and $ptsbool[11] "target="$H11" newValue="false"/>
+    <updateValue triggerWhen="$fracdist= pi and $ptsbool[12] "target="$H12" newValue="false"/>
+    <!-- <updateValue triggerWhen="$fracdist=13/12 pi and $ptsbool[13] "target="$H13" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=7/6 pi and $ptsbool[14] "target="$H14" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=5/4 pi and $ptsbool[15] "target="$H15" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=4/3 pi and $ptsbool[16] "target="$H16" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=17/12 pi and $ptsbool[17] "target="$H17" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=3/2 pi and $ptsbool[18] "target="$H18" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=19/12 pi and $ptsbool[19] "target="$H19" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=5/3 pi and $ptsbool[20] "target="$H20" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=7/4 pi and $ptsbool[21] "target="$H21" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=11/6 pi and $ptsbool[22] "target="$H22" newValue="false"/>
+    <updateValue triggerWhen="$fracdist=23/12 pi and $ptsbool[23] "target="$H23" newValue="false"/> -->
+    
+  </p>
+  <p>
+    Hit Check Work when all of the correct distances appear for the top half of the circle and <m>(-1,0)</m>, but not <m>(1,0)</m>.<br/>
+    <answer matchPartial><award><when><boolean>$H3=false</boolean> and <boolean>$H4=false</boolean> and <boolean>$H5=false</boolean> and <boolean>$H6=false</boolean> and <boolean>$H7=false</boolean> and <boolean>$H8=false</boolean> and <boolean>$H9=false</boolean> and <boolean>$H10=false</boolean> and <boolean>$H11=false</boolean>  and <boolean>$H12=false</boolean></when></award></answer>
+  </p>
+</div>
+</sideBySide>
+
+<p>
+Continuing around the circle counterclockwise after <m>(-1,0)</m>, enter the remaining distances <em>in order</em>, stopping just before you get back to the point <m>(1,0)</m>.  Use commas to separate your answers.
+</p>
+<p>
+<answer><mathInput minWidth="350"><shortDescription>values for the distances covered in the bottom half of the unit circle</shortDescription></mathInput><award>$dists</award><award credit="0" name="misordered">$dists2</award></answer>
+</p>
+<feedback condition="$misordered">You have the correct distances, but they're not going in order counterclockwise starting with the first point after <m>(-1,0)</m>.</feedback>
+<p>
+  Which distance along the unit circle corresponds to <m>\frac{1}{4}</m> of a full rotation around? <answer><shortDescription>distance for a quarter of the way around</shortDescription>pi/2</answer>
+</p>
+<p>
+  Which distance along the unit circle corresponds to <m>\frac{5}{8}</m> of a full rotation around? <answer><shortDescription>distance for a quarter of the way around</shortDescription>5pi/4</answer>
+</p>
+<hint>
+  You can divide the circle up into 8 equal pieces and go around 5 of them to answer this question. <br/> 
+  Or, you can recall that the total distance around a circle with radius <m>1</m> is <m>2\pi</m>, and note that <m>\frac{1}{4}\cdot 2\pi=\frac{\pi}{2}</m>.  You can use this same method to calculate the distance along the unit circle which corresponds to <m>\frac{5}{8}</m> of a full rotation. 
+</hint>
+<p>
+  One way to measure angles is connected to the arc length along a circle.   For an angle whose vertex is at <m>(0,0)</m> in the unit circle, we say the angle's measure is <term><m>1</m> radian</term> provided that the angle intercepts an arc of the circle that is <m>1</m> unit in length, as pictured in the following figure.  Note particularly that an angle measuring <m>1</m> radian intercepts an arc of the same length as the circle's radius.				
+</p>
+
+<sideBySide>
+<graph size="small" xMin="-1.3" xMax="1.3" yMin="-1.3" yMax="1.3" displayXAxisTicks="false" displayYAxisTicks="false" fixAxes grid=".2 .2"><shortDescription>unit circle with 1 radian shown</shortDescription>
+  <circle center="(0,0)" radius="1" draggable="false"/>
+  <lineSegment fixed styleNumber="2" lineWidth="4" endpoints="(0,0) (1,0)"/>
+  <lineSegment fixed styleNumber="2" lineWidth="4" endpoints="(0,0) (cos(1),sin(1))"/>
+  <curve variable="t" parMin="0" parMax="1" styleNumber="2" lineWidth="4">
+    (cos(t), sin(t))
+  </curve>
+  <label fixed anchor="(cos(1)/2-.1*sin(1),sin(1)/2+.1*cos(1))"><m>1</m></label>
+  <label fixed anchor="(.5,-.1)"><m>1</m></label>
+  <label fixed anchor="(1,.5)"><m>1</m></label>
+  <label fixed anchor="(.55,.12)"><m>\theta=1</m> radian</label>
+</graph>
+  
+<graph size="small" xMin="-1.3" xMax="1.3" yMin="-1.3" yMax="1.3" displayXAxisTicks="false" displayYAxisTicks="false" fixAxes grid=".2 .2"><shortDescription>unit circle with 24 equally spaced points</shortDescription>
+  <circle name="unitcir2" center="(0,0)" radius="1" draggable="false"/>
+  <lineSegment fixed styleNumber="2" lineWidth="4" endpoints="(0,0) (1,0)"/>
+  <lineSegment name="movingline" fixed styleNumber="2" lineWidth="4" endpoints="(0,0) $P2"></lineSegment>
+  <lineSegment fixed styleNumber="6" lineWidth="2" lineStyle="solid" endpoints="(0,0) (cos(pi/3),sin(pi/3))" hide="$piover3.creditAchieved!=1"></lineSegment>
+  <lineSegment fixed styleNumber="6" lineWidth="4" endpoints="(0,0) (cos(3pi/4),sin(3pi/4))" hide="$pi3over4.creditAchieved!=1"></lineSegment>
+  <point name="P2" styleNumber="2" showCoordsWhenDragging="false">(cos(pi/6),sin(pi/6))<constrainTo>$unitcir2</constrainTo><attractTo>$points</attractTo></point>
+  <curve name="radianarc" variable="t" parMin="0" parMax="arccos($P2.x)" styleNumber="2" lineWidth="4" hide="$P2.y< 0">
+    (cos(t), sin(t))
+  </curve>
+  <curve name="radianarc2" variable="t" parMin="0" parMax="2pi-arccos($P2.x)" styleNumber="2" lineWidth="4" hide="$P2.y>0">
+    (cos(t), sin(t))
+  </curve>
+  <label fixed anchor="($P2.x/2-.1$P2.y,$P2.y/2+.1$P2.x)"><m>1</m></label>
+  <label fixed anchor="(.5,-.1)"><m>1</m></label>
+  <label fixed anchor="(0,1.1)">distance around the circle: <m>\displaystyle $alldists[$numP2]</m></label>
+  <label fixed anchor="(.55,.12)"><m>\theta=$alldists[$numP2]</m> radians</label>
+</graph>
+</sideBySide>
+
+<p>
+  In the graph on the right, drag the square point so that an angle of <m>\displaystyle \frac{\pi}{3}</m> radians is shown. <answer disableAfterCorrect name="piover3"><award><when>$numP2=4</when></award></answer>
+</p>
+<p>
+  In the graph on the right, drag the square point so that an angle of <m>\displaystyle \frac{3\pi}{4}</m> radians is shown. <answer disableAfterCorrect name="pi3over4"><award><when>$numP2=9</when></award></answer>
+</p>
+<p sectionWideCheckWork forceIndividualAnswerColoring>
+  What is the radian measure that corresponds to a <m>90^\circ</m> angle?<br/>
+  <answer><mathInput minWidth="20"><label><m>90^\circ =</m></label></mathInput>pi/2</answer>radians
+</p>
+

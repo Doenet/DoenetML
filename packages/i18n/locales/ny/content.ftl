@@ -126,7 +126,6 @@ color =
             [c7] cha bulawuni
            *[c9] ya bulawuni
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -144,14 +143,12 @@ line-width =
             [c7] chowonda
            *[c9] yowonda
         }
-
 # An invariable «wokhala ndi …» would concord too, so the dash pattern is
 # written as a bare «ndi …» phrase — "with …" — which agrees with nothing and
 # closes the description. `style-stroke` puts it last for that reason.
 line-style =
     .dashed = ndi zigamba
     .dotted = ndi timadontho
-
 fill-style =
     .horizontal = mizere yopingasa
     .vertical = mizere yoyima
@@ -159,7 +156,6 @@ fill-style =
     .backdiagonal = mizere yopendama mbali ina
     .dots = timadontho
     .diamonds = ma daimondi
-
 noun =
     .line = mzere
     .line-segment = chigawo cha mzere
@@ -179,7 +175,6 @@ noun =
     .diamond = daimondi
     .cross = mtanda
     .plus = chizindikiro chowonjezera
-
 # The side count goes in the tail, behind the describing words: Chichewa closes
 # a noun phrase with a «cha …» complement rather than opening one with it.
 noun-regular-polygon =
@@ -187,7 +182,6 @@ noun-regular-polygon =
         [tail] cha mbali { $numSides }
        *[head] chithunzi cholingana
     }
-
 noun-gender =
     { $noun ->
         [line] c3
@@ -207,7 +201,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -220,13 +213,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] wodzazidwa
@@ -235,13 +226,11 @@ style-filled-word =
         [c7] chodzazidwa
        *[c9] yodzazidwa
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ndi { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ndi { $pattern }
@@ -249,7 +238,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ndi { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «malire» is class 6, so the border's words agree with it and not with the
 # shape it surrounds. Chichewa has no article and joins a complement with the
 # invariable «ndi», so all four branches read alike.
@@ -260,35 +248,28 @@ style-border-clause =
         [and-article] ndi malire { $border }
        *[with] ndi malire { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = osadzazidwa
-
 style-text =
     { $parts ->
         [background] { $color } pa mbuyo { $background }
        *[plain] { $color }
     }
-
 style-background-none = palibe
-
 
 ## Boolean words
 
 boolean-true = zoona
 boolean-false = zabodza
 
-
 ## Answer buttons
 
 answer-submit-label = Yang'anani Ntchito
 answer-submit-label-no-correctness = Tumizani Yankho
-
 
 ## Sectional blocks
 
@@ -313,7 +294,6 @@ section-name =
     .solution = Yankho
     .task = Ntchito
     .theorem = Chiphunzitso
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -323,9 +303,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Chithandizo
-
 
 ## Tables and figures
 
@@ -336,7 +314,6 @@ table-name =
         [unnumbered-title] Tebulo{ ": " }
        *[unnumbered] Tebulo
     }
-
 figure-name =
     { $parts ->
         [numbered] Chithunzi { $enumeration }
@@ -345,15 +322,12 @@ figure-name =
        *[unnumbered] Chithunzi
     }
 
-
 ## Paginator controls
 
 paginator-previous = Zapitazo
 paginator-next = Zotsatira
 paginator-page = Tsamba
-
 paginator-page-status = { $pageLabel } { $currentPage } mwa { $numPages }
-
 
 ## Piecewise functions
 
@@ -361,8 +335,8 @@ piecewise-condition-or = kapena
 piecewise-condition-if = ngati
 piecewise-condition-otherwise = kupanda kutero
 
-
 ## Chemistry
+
 
 # Chichewa is one of the catalogs that leaves `element-name` and
 # `element-anion-name` out, so those 130 keys fall back to English. Malawian
@@ -371,6 +345,5 @@ piecewise-condition-otherwise = kupanda kutero
 # own textbook.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Chizindikiro cha Mankhwala Cholakwika
 chemistry-invalid-ionic-compound = Chophatikiza cha Ayoni Cholakwika

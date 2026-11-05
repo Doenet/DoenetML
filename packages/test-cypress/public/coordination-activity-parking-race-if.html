@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- A PreTeXt-style activity page (…-if.html) built for the mid-flush
+     failure race in the coordinator e2e: its core-start failure lands
+     SECONDS after boot, and a park flush sent to it is never answered.
+
+     Two seams, both installed in `onload` (by which point the standalone
+     bundle has evaluated and created `window.doenetGlobalConfig`):
+
+     - `__doenetTestCoreInitHook` hangs the (single) handshake attempt
+       against a LONG 7 s watchdog, so the coordinator's own short boot
+       watchdog promotes the silent boot to `live` first and `bootFailed`
+       arrives only after the promoted activity has had time to start
+       parking.
+
+     - A message listener registered BEFORE the viewer swallows every
+       `SPLICE.flushState` request (listeners on the same target run in
+       registration order, so the viewer's own listener never sees it).
+       This realm behaves like one wedged too deep to run its flush
+       pipeline: an in-flight park flush stays unanswered until either the
+       coordinator's flushTimeoutMs expires or `bootFailed` cancels it. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script
+            onload="onLoad()"
+            type="module"
+            src="/standalone/doenet-standalone.js"
+        ></script>
+        <script>
+            function onLoad() {
+                const config = window.doenetGlobalConfig;
+                config.coreBootMaxAttempts = 1;
+                config.coreHandshakeWatchdogMs = 7000;
+                config.__doenetTestCoreInitHook = function (phase) {
+                    if (phase === "handshake") {
+                        return new Promise(function () {
+                            /* never resolves */
+                        });
+                    }
+                };
+                window.addEventListener("message", function (event) {
+                    if (
+                        event.data &&
+                        typeof event.data === "object" &&
+                        event.data.subject === "SPLICE.flushState"
+                    ) {
+                        event.stopImmediatePropagation();
+                    }
+                });
+                const container = document.querySelector(".doenetml-applet");
+                window.renderDoenetViewerToContainer(container);
+            }
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+<p>This activity fails slowly</p>
+            </script>
+        </div>
+    </body>
+</html>

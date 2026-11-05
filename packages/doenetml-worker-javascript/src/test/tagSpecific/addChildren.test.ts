@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { entriesOrReplacements } from "../utils/list-entries";
 import { createTestCore } from "../utils/test-core";
 import { callAction } from "../utils/actions";
 
@@ -90,8 +91,13 @@ describe("addChildren for non-graph parents @group4", () => {
                 false,
                 true,
             );
-            const col = stateVariables[await resolvePathToNodeIdx("col")];
-            expect(col.replacements?.length ?? 0).eq(n);
+            expect(
+                entriesOrReplacements(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("col"),
+                ).length,
+            ).eq(n);
         }
 
         await check_num_points(1);

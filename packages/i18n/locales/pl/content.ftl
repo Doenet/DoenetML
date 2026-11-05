@@ -172,7 +172,6 @@ color =
                    *[m] brązowy
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -198,7 +197,6 @@ line-width =
                    *[m] cienki
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -224,7 +222,6 @@ line-style =
                    *[m] kropkowany
                 }
         }
-
 # Noun phrases in the accusative plural, which is the case «w» takes when it
 # names a pattern — «w romby», the way Polish describes patterned cloth. The
 # accusative of a non-virile plural is spelled like the nominative, so the same
@@ -237,7 +234,6 @@ fill-style =
     .backdiagonal = odwrotnie ukośne linie
     .dots = kropki
     .diamonds = romby
-
 noun =
     .line = prosta
     .line-segment = odcinek
@@ -257,7 +253,6 @@ noun =
     .diamond = romb
     .cross = krzyżyk
     .plus = plus
-
 # Polish counts the sides after the noun, so the count closes the phrase
 # behind the adjectives: «gruby czerwony wielokąt foremny o 5 bokach».
 noun-regular-polygon =
@@ -265,7 +260,6 @@ noun-regular-polygon =
         [tail] o { $numSides } bokach
        *[head] wielokąt foremny
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (wielokąt, m) or
 # the head of a phrase the description never names: `border` (obramowanie, n),
 # `fill` (wypełnienie, n), `text` (tekst, m), `background` (tło, n).
@@ -283,7 +277,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -296,14 +289,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # Adjectives precede the noun, and the complement closes the phrase.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every
 # description and takes no `$role` branch.
 style-filled-word =
@@ -312,13 +303,11 @@ style-filled-word =
         [n] wypełnione
        *[m] wypełniony
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } w { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } w { $pattern }
@@ -326,7 +315,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } w { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «z» governs the instrumental, which the `border-clause` branch of every
 # adjective supplies. Polish has no article, so the `-article` branches read
 # the same as the ones without.
@@ -342,15 +330,12 @@ style-border-clause =
         [and-article] i z { $border } obramowaniem
        *[with] z { $border } obramowaniem
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = niewypełniony
-
 # «na» governs the locative, which for a neuter noun is spelled like the
 # instrumental — which is why the `background-clause` and `border-clause`
 # branches of every adjective coincide.
@@ -359,21 +344,17 @@ style-text =
         [background] { $color } na { $background } tle
        *[plain] { $color }
     }
-
 style-background-none = brak
-
 
 ## Boolean words
 
 boolean-true = prawda
 boolean-false = fałsz
 
-
 ## Answer buttons
 
 answer-submit-label = Sprawdź
 answer-submit-label-no-correctness = Wyślij odpowiedź
-
 
 ## Sectional blocks
 
@@ -398,7 +379,6 @@ section-name =
     .solution = Rozwiązanie
     .task = Zadanie do wykonania
     .theorem = Twierdzenie
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -408,9 +388,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Wskazówka
-
 
 ## Tables and figures
 
@@ -421,7 +399,6 @@ table-name =
         [unnumbered-title] Tabela{ ": " }
        *[unnumbered] Tabela
     }
-
 figure-name =
     { $parts ->
         [numbered] Rysunek { $enumeration }
@@ -430,22 +407,18 @@ figure-name =
        *[unnumbered] Rysunek
     }
 
-
 ## Paginator controls
 
 paginator-previous = Poprzednia
 paginator-next = Następna
 paginator-page = Strona
-
 paginator-page-status = { $pageLabel } { $currentPage } z { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = lub
 piecewise-condition-if = jeśli
 piecewise-condition-otherwise = w przeciwnym razie
-
 
 ## Chemistry
 
@@ -568,7 +541,6 @@ element-name =
     .lv = Liwermor
     .ts = Tenes
     .og = Oganeson
-
 element-anion-name =
     .h = Wodorek
     .c = Węglik
@@ -582,8 +554,6 @@ element-anion-name =
     .i = Jodek
     .at = Astatek
     .ts = Tenesek
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Nieprawidłowy symbol chemiczny
 chemistry-invalid-ionic-compound = Nieprawidłowy związek jonowy

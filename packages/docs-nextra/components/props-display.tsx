@@ -3,7 +3,12 @@
 import { Link } from "nextra-theme-docs";
 import React, { useMemo, useState } from "react";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import { isMathDefaultValue } from "@doenet/static-assets/schema";
+import {
+    formatComponentSize,
+    isComponentSizeValue,
+    isMathDefaultValue,
+} from "@doenet/static-assets/schema";
+import { SinceBadge } from "./since-badge";
 
 /** Types the rendering code special-cases. */
 export type KnownPropAttrType =
@@ -33,6 +38,10 @@ export type AttrValueInfo = {
     value: string;
     /** Human-readable description of what the value does */
     description?: string;
+    /** Release this value arrived in, or `"unreleased"` when it is in no
+     * release yet. Absent when there is nothing worth saying — a value that
+     * arrived with its attribute is covered by the attribute's own badge. */
+    since?: string;
 };
 
 export type AttrInfo = {
@@ -54,6 +63,10 @@ export type AttrInfo = {
     groupName?: string;
     /** Whether this attribute is hand-picked into the "Highlighted" section. */
     highlighted?: boolean;
+    /** Release this attribute arrived in, or `"unreleased"` when it is in no
+     * release yet. Absent when there is nothing worth saying — an item that
+     * arrived with its element is covered by the element's own badge. */
+    since?: string;
 };
 
 export type PropInfo = {
@@ -71,6 +84,10 @@ export type PropInfo = {
     groupName?: string;
     /** Whether this prop is hand-picked into the "Highlighted" section. */
     highlighted?: boolean;
+    /** Release this property arrived in, or `"unreleased"` when it is in no
+     * release yet. Absent when there is nothing worth saying — an item that
+     * arrived with its element is covered by the element's own badge. */
+    since?: string;
 };
 
 /**
@@ -79,6 +96,17 @@ export type PropInfo = {
  * the worker never requires a change here to render (it just lands at the end).
  */
 const GROUP_ORDER = [
+    "sorting",
+    "sampling-range",
+    "sampling-gaussian",
+    "sampling-lognormal",
+    "sampling-mixture",
+    "sampling-discrete",
+    "sampling-moments",
+    "data",
+    "marks",
+    "axes",
+    "legend",
     "number-display",
     "labels",
     "positioning",
@@ -90,6 +118,17 @@ const GROUP_ORDER = [
 
 /** Human-readable section titles for the known functional groups. */
 const GROUP_LABELS: Record<string, string> = {
+    sorting: "Sort order",
+    "sampling-range": "Uniform and discrete-uniform parameters",
+    "sampling-gaussian": "Gaussian and Poisson parameters",
+    "sampling-lognormal": "Log-normal parameters",
+    "sampling-mixture": "Normal mixture parameters",
+    "sampling-discrete": "Hypergeometric and binomial parameters",
+    "sampling-moments": "Distribution moments",
+    data: "Data",
+    marks: "Marks",
+    axes: "Axes",
+    legend: "Legend",
     "number-display": "Number display",
     labels: "Labels",
     positioning: "Positioning",
@@ -258,9 +297,13 @@ function renderAttrItem(
             className="attr-item"
             id={`${idPrefix}-${attr.name}`}
             key={attr.name}
+            // Repeated from the badge onto the item so a version selector can
+            // dim the whole entry, not just its marker.
+            data-since={attr.since}
         >
             <div>
                 <code className="attr-name attr-name-box">{nameElm}</code>
+                <SinceBadge since={attr.since} />
             </div>
             <p className="attr-detail">
                 {typeLabel ? (
@@ -303,7 +346,7 @@ function renderAttrItem(
                                 attr.defaultValue != null &&
                                 String(attr.defaultValue) === v.value;
                             return (
-                                <tr key={v.value}>
+                                <tr key={v.value} data-since={v.since}>
                                     <td>
                                         <code className="attr-value-chip">
                                             {v.value}
@@ -314,6 +357,7 @@ function renderAttrItem(
                                                 (default)
                                             </span>
                                         ) : null}
+                                        <SinceBadge since={v.since} />
                                     </td>
                                     <td>
                                         {v.description
@@ -344,11 +388,13 @@ function renderPropItem(
             className="prop-item"
             id={`${idPrefix}-${prop.name}`}
             key={prop.name}
+            data-since={prop.since}
         >
             <div>
                 <code className="prop-name-box">
                     ${refName}.<span className="prop-name">{nameElm}</span>
                 </code>
+                <SinceBadge since={prop.since} />
             </div>
             <p className="prop-detail">
                 {typeLabel ? (
@@ -698,6 +744,8 @@ function formatType(typeName?: PropAttrType, isArray?: boolean) {
  * altogether. Math-expression defaults (the `{ type: "math", latex }`
  * sentinel produced by `get-schema.ts`) are rendered through MathJax so the
  * actual expression — not the raw serialized object — appears in the docs.
+ * Size defaults (the runtime's `{ size, isAbsolute }` pair) are printed the
+ * same way an author would write them, `120px` or `50%`, for the same reason.
  */
 function renderDefaultValue(value: unknown): React.ReactNode {
     if (value == null) {
@@ -727,6 +775,11 @@ function renderDefaultValue(value: unknown): React.ReactNode {
     }
     if (typeof value === "boolean" || typeof value === "number") {
         return String(value);
+    }
+    if (isComponentSizeValue(value)) {
+        // The schema carries a size as the runtime's `{ size, isAbsolute }`
+        // pair; show the author the `120px` / `50%` they would actually type.
+        return formatComponentSize(value);
     }
     return JSON.stringify(value);
 }

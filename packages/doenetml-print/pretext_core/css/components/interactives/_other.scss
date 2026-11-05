@@ -1,3 +1,22 @@
+//********************************************************************
+// Copyright (C) 2025-2026  Robert A. Beezer
+//
+// This file is part of PreTeXt.
+//
+// PreTeXt is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 or version 3 of the
+// License (at your option).
+//
+// PreTeXt is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+//********************************************************************
+
 // Misc styles for interactive bits that should only be incldued in a web context
 // (not ebook)
 
@@ -9,6 +28,19 @@
     margin-right: auto;
     display: block;
   }
+}
+
+// A publisher may hold a GeoGebra applet behind a play button, and then
+// GeoGebra draws a preview image in the applet's place.  We supply that
+// image, the same screenshot static output uses, but GeoGebra draws it at
+// whatever size it happens to be rather than at the size of the applet,
+// which for an applet authored larger than the page allows leaves a small
+// picture in a large white box.  So it is told to fill the space instead.
+// A one pixel inset of GeoGebra's own remains, which is what its border
+// wants.
+.geogebra-applet .ggb_preview img {
+  width: 100%;
+  height: 100%;
 }
 
 .interactive__instructions {

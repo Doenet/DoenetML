@@ -6,6 +6,7 @@ import useDoenetRenderer, {
 import { sizeToCSS } from "./utils/css";
 import { ActionButton, ActionButtonGroup } from "@doenet/ui-components";
 import { renderLabelWithLatex } from "./utils/labelWithLatex";
+import { useRenderedLabel } from "./utils/inputLabel";
 import { useT } from "../../utils/i18n";
 import { ltrIslandProps } from "./utils/direction";
 
@@ -195,8 +196,9 @@ interface SliderSVs {
 }
 
 export default React.memo(function Slider(props: UseDoenetRendererProps) {
-    let { id, SVs, actions, ignoreUpdate, rendererName, callAction } =
+    let { id, SVs, actions, children, ignoreUpdate, rendererName, callAction } =
         useDoenetRenderer<SliderSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     const t = useT();
 
@@ -206,7 +208,9 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     const [index, setIndex] = useState(SVs.index);
     const width = sizeToCSS(SVs.width);
 
-    const [transient, setTransient] = useState(false);
+    // Whether the mouse is down on the handle. A ref rather than state, so that
+    // the mouse going up does not itself rerun the resync effect below.
+    const transientRef = useRef(false);
 
     const [inputWidth, setInputWidth] = useState(0);
 
@@ -230,16 +234,27 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
         };
     }, []);
 
-    // Sync local index to Core index when not dragging.
-    // During drag (transient=true), keep optimistic local index.
-    // When drag ends (transient=false), snap to Core-constrained index.
+    // Sync the local index to core's index when an update from core arrives.
+    // During a drag, keep the optimistic local index. After the drag, core's
+    // answer to the final `changeValue` snaps the handle to the value core
+    // settled on, such as a coarser step imposed by a bound slider. Core
+    // resends an action's target even when its value did not change, and
+    // keying on `SVs` rather than `SVs.index` lets that answer snap the handle
+    // when it repeats the index core sent during the drag. Skip an update the
+    // viewer marks `ignoreUpdate`: it repeats the index the slider sent or
+    // predates core processing the slider's action (`updateRendererSVs` in
+    // `state/slices/main.ts` says when). Resyncing on mouseup instead would
+    // show core's stale value whenever core had not answered yet, making the
+    // handle flash back to where it started.
     useEffect(() => {
-        if (!transient) {
+        if (!transientRef.current && !ignoreUpdate) {
             setIndex(SVs.index);
         }
-    }, [SVs.index, transient]);
+    }, [SVs, ignoreUpdate]);
 
-    const changeValue = React.useCallback((v: string, isTransient: boolean) => {
+    // Reads `SVs` at call time, so a value is computed from the slider's
+    // current `from`, `step` and `items`, not the ones it first rendered with.
+    function changeValue(v: string, isTransient: boolean) {
         const index = Number(v);
         if (!(SVs.type === "text")) {
             const value =
@@ -271,7 +286,7 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 baseVariableValue: index,
             });
         }
-    }, []);
+    }
 
     if (SVs.hidden) {
         return null;
@@ -335,10 +350,12 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     // Conditional label and showValue attributes
     let myLabel = null;
     if (SVs.label) {
-        const label = renderLabelWithLatex({
-            label: SVs.label,
-            labelHasLatex: SVs.labelHasLatex,
-        });
+        const label =
+            renderedLabel ??
+            renderLabelWithLatex({
+                label: SVs.label,
+                labelHasLatex: SVs.labelHasLatex,
+            });
         if (SVs.showValue) {
             myLabel = (
                 <>
@@ -423,12 +440,14 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                     onInput={(e) =>
                         changeValue(
                             (e.target as HTMLInputElement).value,
-                            transient,
+                            transientRef.current,
                         )
                     }
-                    onMouseDown={() => setTransient(true)}
+                    onMouseDown={() => {
+                        transientRef.current = true;
+                    }}
                     onMouseUp={(e) => {
-                        setTransient(false);
+                        transientRef.current = false;
                         changeValue(
                             (e.target as HTMLInputElement).value,
                             false,

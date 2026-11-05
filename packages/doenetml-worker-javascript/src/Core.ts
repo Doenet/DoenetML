@@ -1,3 +1,4 @@
+import type { RootNameChanges } from "@doenet/doenetml-worker";
 import ParameterStack from "./ParameterStack";
 import { codedDiagnostic } from "./utils/diagnostics";
 // `Numerics.js` is still JavaScript; cast at the import site once.
@@ -38,6 +39,7 @@ import { DiagnosticsManager } from "./core/DiagnosticsManager";
 import { EssentialValueWriter } from "./core/EssentialValueWriter";
 import { navigateToTarget } from "./core/NavigationHandler";
 import { ProcessQueue } from "./core/ProcessQueue";
+import { refreshRootNames } from "./core/ResolverAdapter";
 import { RendererInstructionBuilder } from "./core/RendererInstructionBuilder";
 import { StalenessPropagator } from "./core/StalenessPropagator";
 import { StatePersistence } from "./core/StatePersistence";
@@ -82,7 +84,7 @@ export interface CoreOptions {
     replaceIndexResolutionsInResolver?: (...args: any[]) => any;
     deleteNodesFromResolver?: (...args: any[]) => any;
     resolvePath?: (...args: any[]) => any;
-    calculateRootNames?: () => { names: Record<ComponentIdx, any> };
+    updateRootNames?: (reportAll: boolean) => RootNameChanges;
     updateRenderersCallback: (...args: any[]) => any;
     reportScoreAndStateCallback: (...args: any[]) => any;
     requestAnimationFrame: (...args: any[]) => any;
@@ -186,8 +188,8 @@ export default class Core {
     replaceIndexResolutionsInResolver?: (...args: any[]) => any;
     deleteNodesFromResolver?: (...args: any[]) => any;
     resolvePath?: (...args: any[]) => any;
-    calculateRootNames?: () => { names: Record<ComponentIdx, any> };
-    rootNames: Record<ComponentIdx, any> | undefined;
+    updateRootNames?: (reportAll: boolean) => RootNameChanges;
+    rootNames: Record<ComponentIdx, string>;
 
     // ─── Host callbacks ───────────────────────────────────────────────────
     updateRenderersCallback: (...args: any[]) => any;
@@ -206,6 +208,45 @@ export default class Core {
     requestedVariant?: Record<string, any>;
     receivedStateVariableChanges: boolean;
     cumulativeStateVariableChanges: any;
+    /**
+     * The `stateId`s a reader's own action has written to, in this session or
+     * a previous one, and the `stateId`s whose entries were merged in from
+     * `essentialValuesSavedInDefinition` — the values ordinary *definitions*
+     * computed, which the reader's first interaction anywhere flushes into
+     * `cumulativeStateVariableChanges` document-wide.
+     *
+     * `StatePersistence` saves an entry unless it is in the second set and not
+     * in the first: what a definition computed and no reader ever touched. That
+     * is what made working one exercise persist state for every other exercise
+     * on a page — none of it the reader's, and all of it recomputed identically
+     * on a fresh load of the same document under the same variant
+     * (Doenet/DoenetML#1940).
+     *
+     * Two sets rather than one, and phrased as "drop what is known to be only a
+     * definition's" rather than "keep what is known to be the reader's", so an
+     * entry that arrives by some route neither set knows about is saved rather
+     * than silently dropped. The failure mode of a bookkeeping slip should not
+     * be losing a reader's work.
+     *
+     * The values stay in `cumulativeStateVariableChanges` either way: a partial
+     * write to an array merges into whatever entry is recorded there, and the
+     * definition path is what puts the `mergeObject` base in place (see
+     * `EssentialValueWriter.mergeIntoCumulative`). The filter is applied on the
+     * way out, in `buildDocStatePayload`, where both of `performUpdate`'s
+     * passes have already run — so a component touched for the first time in
+     * the current update is already accounted for.
+     */
+    readerTouchedStateIds!: Set<string>;
+    definitionSetStateIds!: Set<string>;
+    /**
+     * What an update has written to each `stateId` but not yet merged into
+     * `cumulativeStateVariableChanges`, which it does at its end
+     * (`performUpdate`): the values written, in the order written. A component
+     * deleted before then with its saved state kept (`deleteComponents`'
+     * `keepSavedStateFor`) has them merged as it is deleted, so they are kept
+     * with the rest.
+     */
+    unsavedWrites!: Map<string, Record<string, any>[]>;
     canonicalGeneratedVariantString?: string;
     canonicalDocVariantStrings?: string[];
     coreInfoString?: string;
@@ -243,6 +284,11 @@ export default class Core {
      * evaluation to gate definition arguments during initial document
      * construction. */
     initialAddPhase?: boolean;
+    /** Wall-clock milliseconds of each phase of the initial document build,
+     * keyed by phase name with a `total`, recorded by
+     * `ComponentBuilder.addComponents` on `initialAdd`. Read by the
+     * performance harness (Doenet/DoenetML#2026, #2126); diagnostic only. */
+    loadPhaseTimings?: Record<string, number>;
 
     // ─── Manager instances ────────────────────────────────────────────────
     diagnosticsManager: DiagnosticsManager;
@@ -290,7 +336,7 @@ export default class Core {
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
-        calculateRootNames,
+        updateRootNames,
         updateRenderersCallback,
         reportScoreAndStateCallback,
         requestAnimationFrame,
@@ -314,9 +360,10 @@ export default class Core {
             replaceIndexResolutionsInResolver;
         this.deleteNodesFromResolver = deleteNodesFromResolver;
         this.resolvePath = resolvePath;
-        this.calculateRootNames = calculateRootNames;
+        this.updateRootNames = updateRootNames;
 
-        this.rootNames = this.calculateRootNames?.().names;
+        this.rootNames = {};
+        refreshRootNames(this, true);
 
         this.updateRenderersCallback = updateRenderersCallback;
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;
@@ -331,6 +378,8 @@ export default class Core {
         this.diagnosticsManager = new DiagnosticsManager({
             preliminaryDiagnostics,
         });
+        this.diagnosticsManager.isShown = (componentIdx: number) =>
+            this.isComponentShown(componentIdx);
 
         this.numerics = new (Numerics as any)();
         this.flags = flags;
@@ -379,6 +428,11 @@ export default class Core {
             // reach core through `svComponent.coreFunctions`.
             getStateVariableValue: this.getStateVariableValue, // bound above
             addDiagnostic: this.addDiagnostic.bind(this),
+            // What a save holds of an unlinked copy, by the copy's stateId:
+            // its snapshot, with what decided what it made
+            // (`heldCopySnapshot`, `readHeldCopySnapshot`).
+            savedCopySnapshot: (stateId: string) =>
+                this.cumulativeStateVariableChanges?.__copySnapshots?.[stateId],
         };
 
         this.updateInfo = {
@@ -413,6 +467,19 @@ export default class Core {
             JSON.stringify(stateVariableChanges, serializedComponentsReplacer),
             serializedComponentsReviver,
         );
+
+        // Everything restored from a previous session was saved as the
+        // reader's work, so it stays theirs now — otherwise re-saving would
+        // quietly drop it. `__componentNeedingUpdateValue` is a reserved
+        // sentinel rather than a component's entry (see `UpdateExecutor`), and
+        // `buildDocStatePayload` carries every `__` key across regardless.
+        this.readerTouchedStateIds = new Set(
+            Object.keys(this.cumulativeStateVariableChanges).filter(
+                (stateId) => !stateId.startsWith("__"),
+            ),
+        );
+        this.definitionSetStateIds = new Set();
+        this.unsavedWrites = new Map();
 
         this.requestedVariantIndex = requestedVariantIndex;
         this.requestedVariant = requestedVariant;
@@ -715,6 +782,19 @@ export default class Core {
             .componentsWithChangedChildrenToRender;
     }
 
+    /**
+     * The variables whose change `component`'s renderer is sent, keyed by
+     * name: those of its type (`rendererVariablesByComponentType`), or, for
+     * a value reference (`_ref`), the ones it names, which are none unless
+     * it is drawn (`ValueRef.rendererVariables`).
+     */
+    rendererVariablesOf(component: any): Record<string, any> {
+        return (
+            component.rendererVariables ??
+            this.rendererVariablesByComponentType[component.componentType]
+        );
+    }
+
     get rendererState(): any {
         return this.rendererInstructionBuilder.rendererState;
     }
@@ -757,6 +837,42 @@ export default class Core {
         return this.diagnosticsManager.addDiagnostic(diagnostic);
     }
 
+    /**
+     * Whether component `componentIdx` exists and is not inside content a
+     * composite withholds (`replacementsToWithhold`), as a
+     * `<conditionalContent>` withholds a case that is not chosen: neither it
+     * nor any component it is inside, through parents and the composites
+     * that made them, is withheld.
+     */
+    isComponentShown(componentIdx: number): boolean {
+        let component: any = this._components[componentIdx];
+        if (!component) {
+            return false;
+        }
+        while (component) {
+            let replacement = component;
+            while (replacement.replacementOf) {
+                const composite = replacement.replacementOf;
+                const withheld = composite.replacementsToWithhold ?? 0;
+                if (withheld > 0) {
+                    const ind = composite.replacements.findIndex(
+                        (x: any) =>
+                            x?.componentIdx === replacement.componentIdx,
+                    );
+                    if (ind >= composite.replacements.length - withheld) {
+                        return false;
+                    }
+                }
+                replacement = composite;
+            }
+            component =
+                component.parentIdx === undefined
+                    ? undefined
+                    : this._components[component.parentIdx];
+        }
+        return true;
+    }
+
     getSourceLocationForComponent(component: ComponentInstance): {
         position: any;
         sourceDoc: number | undefined;
@@ -766,6 +882,65 @@ export default class Core {
 
     async updateRendererInstructions(args: any): Promise<any> {
         return this.rendererInstructionBuilder.updateRendererInstructions(args);
+    }
+
+    componentsOnVisibleGraphs(targets: number[]): Set<number> {
+        return this.rendererInstructionBuilder.componentsOnVisibleGraphs(
+            targets,
+        );
+    }
+
+    async updateRenderersForComponents(
+        componentIndices: Iterable<number>,
+        sourceInformation: any = {},
+        actionId?: string,
+    ): Promise<void> {
+        return this.rendererInstructionBuilder.updateRenderersForComponents(
+            componentIndices,
+            sourceInformation,
+            actionId,
+        );
+    }
+
+    scheduleDeferredRendererUpdate(
+        sourceInformation: any = {},
+        actionId?: string,
+    ): void {
+        return this.rendererInstructionBuilder.scheduleDeferredRendererUpdate(
+            sourceInformation,
+            actionId,
+        );
+    }
+
+    async updateOnScreenRenderers(
+        targets: number[],
+        sourceInformation: any = {},
+        actionId?: string,
+    ): Promise<void> {
+        return this.rendererInstructionBuilder.updateOnScreenRenderers(
+            targets,
+            sourceInformation,
+            actionId,
+        );
+    }
+
+    async flushPendingRenderers(): Promise<void> {
+        return this.rendererInstructionBuilder.flushPendingRenderers();
+    }
+
+    /**
+     * Record whether a block is near the viewport, and when it has just come
+     * near, wake the idle lane so anything it was holding there goes out first.
+     */
+    recordRenderVisibility(
+        componentIdx: number,
+        report: { isVisible?: boolean; isNear?: boolean },
+    ): void {
+        if (
+            this.visibilityTracker.recordRenderVisibility(componentIdx, report)
+        ) {
+            this.rendererInstructionBuilder.scheduleIdleRendererFlush();
+        }
     }
 
     async initializeRenderedComponentInstruction(
@@ -1180,7 +1355,46 @@ export default class Core {
         if (documentIsVisible) {
             this.resumeVisibilityMeasuring();
         } else {
-            this.suspendVisibilityMeasuring();
+            // Not awaited, so a failure is logged here. Once the document
+            // has stopped, the queue rejects the visibility event this sends;
+            // that rejection is expected and dropped.
+            this.suspendVisibilityMeasuring().catch((e) => {
+                if (this.processQueue.stoppedByError === null) {
+                    reportTimerError(TimerLabels.visibilityHideSuspend)(e);
+                }
+            });
+        }
+    }
+
+    /**
+     * Rethrow `e` unless a circular dependency has stopped the document (see
+     * `ProcessQueue.executeProcesses`), in which case the request queue
+     * rejects whatever is sent to it and the rejection is expected.
+     */
+    ignoreIfStopped(e: unknown): void {
+        if (this.processQueue.stoppedByError === null) {
+            throw e;
+        }
+    }
+
+    /**
+     * Tell the viewer that an update after load raised a circular dependency
+     * and the document has stopped (see `ProcessQueue.executeProcesses`). The
+     * viewer shows `message` in place of the document, as it shows the cause
+     * of a document that could not be built.
+     */
+    reportDocumentStopped(message: string): void {
+        // The viewer's callback is a proxy across the worker boundary, so it
+        // can fail either way: by throwing or by rejecting.
+        try {
+            Promise.resolve(
+                this.updateRenderersCallback({
+                    updateInstructions: [],
+                    documentStopped: message,
+                }),
+            ).catch((e) => console.error(e));
+        } catch (e) {
+            console.error(e);
         }
     }
 
@@ -1191,12 +1405,36 @@ export default class Core {
             });
         };
 
-        // Suspend visibility measuring so remaining times collected are saved.
-        await this.suspendVisibilityMeasuring();
+        // Once a circular dependency has stopped the document, the request
+        // queue rejects the visibility events and auto-submits sent here.
+        // Both clear their timers before sending, so drop the rejection and
+        // finish the teardown: a terminate that throws reads to the viewer
+        // as a wedged core.
+        const ignoreIfStopped = (e: unknown) => this.ignoreIfStopped(e);
 
-        await this.autoSubmitManager.flush();
+        // Suspend visibility measuring so remaining times collected are saved.
+        await this.suspendVisibilityMeasuring().catch(ignoreIfStopped);
+
+        await this.autoSubmitManager.flush().catch(ignoreIfStopped);
 
         this.processQueue.stopProcessingRequests = true;
+
+        // A drag interrupted by teardown can leave a deferred renderer flush
+        // pending, and any update can leave offscreen components waiting in
+        // the idle lane; the viewer is going away, so drop both rather than
+        // push an update into it.
+        //
+        // The `saveImmediately` below therefore serializes a `rendererState`
+        // that is behind for the components those batches would have
+        // covered, and `DocViewer` skips core's init batch when it restores a
+        // saved one — so those components would come back drawn from the
+        // dropped state until something re-renders them. `coreState` is
+        // complete either way, and this needs `saveRendererState` (off in
+        // every package today) plus teardown before the batches went out, but
+        // it is the reason to look here first if a restored document ever
+        // comes back stale. `skipRendererUpdate` leaves the same kind of gap.
+        this.rendererInstructionBuilder.cancelDeferredRendererUpdate();
+        this.rendererInstructionBuilder.cancelIdleRendererFlush();
 
         if (this.processQueue.processing) {
             for (let i = 0; i < 10; i++) {
@@ -1207,7 +1445,9 @@ export default class Core {
             }
         }
 
-        await this.saveImmediately();
+        // A request still running past the wait can stop the document with
+        // a circular dependency, which rejects the save's queued work
+        await this.saveImmediately().catch(ignoreIfStopped);
     }
 
     // → autoSubmitManager

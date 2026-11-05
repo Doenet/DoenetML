@@ -56,7 +56,6 @@ color =
     .purple = violɛ
     .pink = rozɛ
     .brown = marɔ
-
 line-width =
     .thick =
         { $gender ->
@@ -72,14 +71,12 @@ line-width =
             [c7] ekɛ
            *[c9] ekɛ
         }
-
 # Written as invariable «na …» phrases rather than as adjectives, so that they
 # agree with nothing and can close the description. `style-stroke` puts them
 # last for that reason.
 line-style =
     .dashed = na bantɔkɔ
     .dotted = na bapwɛ
-
 fill-style =
     .horizontal = milɔngɔ ya kolala
     .vertical = milɔngɔ ya kotɛlɛma
@@ -87,7 +84,6 @@ fill-style =
     .backdiagonal = milɔngɔ ya ngwɛ ya nsima
     .dots = bapwɛ
     .diamonds = balozanje
-
 noun =
     .line = molɔngɔ
     .line-segment = eteni ya molɔngɔ
@@ -107,7 +103,6 @@ noun =
     .diamond = lozanje
     .cross = ekulusu
     .plus = elembo ya kobakisa
-
 # The side count goes in the tail, behind the adjectives, because «oyo ezali na
 # mipanzi 5» is a relative clause and Lingala closes a noun phrase with one
 # rather than opening one.
@@ -116,7 +111,6 @@ noun-regular-polygon =
         [tail] oyo ezali na mipanzi { $numSides }
        *[head] poligonɛ ya bokokani
     }
-
 # The noun class, which is what an adjective agrees with. `c9` is the default
 # and the class of every loanword, including a word an author supplies.
 noun-gender =
@@ -133,7 +127,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «na …» phrase and closes the description, so it moves
@@ -148,13 +141,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] motondi
@@ -162,13 +153,11 @@ style-filled-word =
         [c7] etondi
        *[c9] etondi
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } na { $pattern }
@@ -176,7 +165,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «ndelo» leads its own adjectives, so the border's words agree with it and not
 # with the shape it surrounds. Lingala has no article and joins a complement
 # with the invariable «na», so all four branches read alike.
@@ -187,35 +175,28 @@ style-border-clause =
         [and-article] na ndelo { $border }
        *[with] na ndelo { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = etondi te
-
 style-text =
     { $parts ->
         [background] { $color } likolo ya nsima { $background }
        *[plain] { $color }
     }
-
 style-background-none = eloko te
-
 
 ## Boolean words
 
 boolean-true = solo
 boolean-false = lokuta
 
-
 ## Answer buttons
 
 answer-submit-label = Talá Mosala
 answer-submit-label-no-correctness = Tinda Eyano
-
 
 ## Sectional blocks
 
@@ -240,7 +221,6 @@ section-name =
     .solution = Bosili
     .task = Mosala
     .theorem = Teorɛmɛ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -250,9 +230,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Toli
-
 
 ## Tables and figures
 
@@ -263,7 +241,6 @@ table-name =
         [unnumbered-title] Tabelo{ ": " }
        *[unnumbered] Tabelo
     }
-
 figure-name =
     { $parts ->
         [numbered] Elilingi { $enumeration }
@@ -272,22 +249,18 @@ figure-name =
        *[unnumbered] Elilingi
     }
 
-
 ## Paginator controls
 
 paginator-previous = Eleki
 paginator-next = Elandi
 paginator-page = Lokasa
-
 paginator-page-status = { $pageLabel } { $currentPage } na kati ya { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = to
 piecewise-condition-if = soki
 piecewise-condition-otherwise = soki te
-
 
 ## Chemistry
 
@@ -297,6 +270,5 @@ piecewise-condition-otherwise = soki te
 # European language already, and the seed has no settled Lingala list to
 # reproduce. A speaker adding one should add it here.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Elembo ya Shimi Ebongi Te
 chemistry-invalid-ionic-compound = Bosangani ya Ioni Ebongi Te

@@ -5,6 +5,7 @@
 // script, never supplied as a free binding by the srcdoc. See the equivalent
 // import in iframe-editor-index.ts for the cold-boot hang that motivated it.
 import * as Comlink from "comlink";
+import { STANDALONE_LOAD_FAILED_FLAG } from "./standalone-load-failure";
 
 declare const viewerId: string;
 declare const doenetViewerProps: Record<string, any>;
@@ -190,7 +191,8 @@ function resolveDoenetMLSource(root: Element): string {
 
 // Wait for the @doenet/standalone bundle to finish evaluating and
 // define `window.renderDoenetViewerToContainer`. Returns true on
-// success, false if the function never appears within `timeoutMs`.
+// success, false if the bundle's `<script>` fails to load or the function
+// never appears within `timeoutMs`.
 //
 // See the equivalent in iframe-editor-index.ts for the full motivation.
 // The short version: the standalone bundle and this inline module load
@@ -200,17 +202,49 @@ function resolveDoenetMLSource(root: Element): string {
 // `window.renderDoenetViewerToContainer` being defined and throw
 // silently inside the iframe.
 async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
-    if (typeof window.renderDoenetViewerToContainer === "function") {
+    // A code-split bundle's entry facade installs a queueing *stub* at this
+    // global before the bundle's eager chunk has evaluated, marked with
+    // `__doenetPendingRenderStub` (see `facadeRenderQueue.ts` in
+    // `@doenet/standalone`, which names this property as part of the bundle's
+    // surface). Waiting the stub out keeps the `iframeReady` handshake — and
+    // the style palettes reported with it — tied to the fully evaluated
+    // bundle.
+    function bundleReady(): boolean {
+        const render = window.renderDoenetViewerToContainer as
+            | (((...args: unknown[]) => unknown) & {
+                  __doenetPendingRenderStub?: boolean;
+              })
+            | undefined;
+        return (
+            typeof render === "function" && !render.__doenetPendingRenderStub
+        );
+    }
+    if (bundleReady()) {
         return true;
     }
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 50));
-        if (typeof window.renderDoenetViewerToContainer === "function") {
+        if (bundleReady()) {
             return true;
+        }
+        // The bundle's `<script>` failed to load (e.g. a 404 for an
+        // unpublished version): it will never define the function, so stop
+        // waiting and let the caller report the failure to the parent now.
+        if (bundleLoadFailed()) {
+            return false;
         }
     }
     return false;
+}
+
+/** Whether the srcdoc's standalone `<script>` reported a load error. */
+function bundleLoadFailed(): boolean {
+    return Boolean(
+        (window as unknown as Record<string, unknown>)[
+            STANDALONE_LOAD_FAILED_FLAG
+        ],
+    );
 }
 
 Comlink.expose(
@@ -339,8 +373,9 @@ function renderWithLastAugmentedProps() {
  * creation stays synchronous here. `destroy` notifies the parent to release
  * the core (forwarding wedge suspicion for host quarantine).
  *
- * Must run after the standalone bundle has evaluated — the bundle replaces
- * `window.doenetGlobalConfig` — and before anything renders a viewer.
+ * Must run after the standalone bundle has evaluated — so that
+ * `window.doenetGlobalConfig` exists (the bundle creates or adopts it) —
+ * and before anything renders a viewer.
  */
 function installSharedCorePortProvider() {
     let coreCounter = 0;

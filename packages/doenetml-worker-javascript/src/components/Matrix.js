@@ -1,6 +1,7 @@
 import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisplay";
 import MathComponent from "./Math";
 import me from "math-expressions";
+import { convertValueToMathExpression } from "@doenet/utils";
 
 export default class Matrix extends MathComponent {
     static componentType = "matrix";
@@ -14,6 +15,10 @@ export default class Matrix extends MathComponent {
         childAliases: { row: "matrixRow", column: "matrixColumn" },
     };
     static rendererType = "math";
+
+    // An index selects a row, as a 1×n matrix, and a second index an entry:
+    // `$M[i]` is `$M.matrix[i]` (D27).
+    static variableForIndexAsProp = "matrix";
 
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["row", "column"];
@@ -92,20 +97,20 @@ export default class Matrix extends MathComponent {
                     child.componentType = "matrixRow";
                     foundRowsOrColumns = true;
                 } else if (
-                    child.attributes?.createComponentOfType?.primitive.value ===
-                    "column"
+                    child.attributes?._createComponentOfType?.primitive
+                        .value === "column"
                 ) {
                     child.doenetAttributes.createNameFromComponentType =
                         "column";
-                    child.attributes.createComponentOfType.primitive.value =
+                    child.attributes._createComponentOfType.primitive.value =
                         "matrixColumn";
                     foundRowsOrColumns = true;
                 } else if (
-                    child.attributes?.createComponentOfType?.primitive.value ===
-                    "row"
+                    child.attributes?._createComponentOfType?.primitive
+                        .value === "row"
                 ) {
                     child.doenetAttributes.createNameFromComponentType = "row";
-                    child.attributes.createComponentOfType.primitive.value =
+                    child.attributes._createComponentOfType.primitive.value =
                         "matrixRow";
                     foundRowsOrColumns = true;
                 }
@@ -287,6 +292,9 @@ export default class Matrix extends MathComponent {
             isArray: true,
             numDimensions: 2,
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             returnArraySizeDependencies: () => ({
                 matrixSizePre: {
                     dependencyType: "stateVariable",
@@ -501,6 +509,9 @@ export default class Matrix extends MathComponent {
                 },
             }),
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             defaultValue: me.fromAst(["matrix", ["tuple", 0, 0], ["tuple"]]), // 0x0 matrix
             definition({ dependencyValues }) {
                 let matrixValues = ["tuple"];
@@ -563,10 +574,6 @@ export default class Matrix extends MathComponent {
 
         stateVariableDefinitions.canBeModified = {
             returnDependencies: () => ({
-                modifyIndirectly: {
-                    dependencyType: "stateVariable",
-                    variableName: "modifyIndirectly",
-                },
                 fixed: {
                     dependencyType: "stateVariable",
                     variableName: "fixed",
@@ -575,9 +582,7 @@ export default class Matrix extends MathComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        canBeModified:
-                            dependencyValues.modifyIndirectly &&
-                            !dependencyValues.fixed,
+                        canBeModified: !dependencyValues.fixed,
                     },
                 };
             },

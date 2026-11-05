@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import {
     submitAnswer,
+    updateBooleanInputValue,
     updateMathInputValue,
     updateSelectedIndices,
     updateTextInputValue,
@@ -1609,6 +1611,50 @@ describe("Feedback tag tests @group1", async () => {
         );
     });
 
+    it("feedback defined in a choice with negative credit is shown when submitted", async () => {
+        // A negative credit counts as 0, so submitting that choice is recorded
+        // like any other wrong choice and shows its own feedback, rather than
+        // leaving the previous submission's feedback in place.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans">
+      <choiceInput name="ci">
+      <choice feedbackText="meow" credit="0.5">cat</choice>
+      <choice feedbackText="grr" credit="-1">dog</choice>
+      </choiceInput>
+    </answer>
+
+    <feedback extend="$ans.feedback1" name="f1" />
+  `,
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const ciIdx = await resolvePathToNodeIdx("ci");
+        const f1Idx = await resolvePathToNodeIdx("f1");
+
+        for (const [index, text] of [
+            [1, "meow"],
+            [2, "grr"],
+        ] as const) {
+            await updateSelectedIndices({
+                componentIdx: ciIdx,
+                selectedIndices: [index],
+                core,
+            });
+            await submitAnswer({ componentIdx: ansIdx, core });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[ciIdx].stateValues.submittedIndices).eqls([
+                index,
+            ]);
+            expect(stateVariables[f1Idx].stateValues.feedbackText).eq(text);
+            expect(stateVariables[f1Idx].stateValues.hide).eq(false);
+        }
+    });
+
     it("feedback updated with target", async () => {
         let doenetML = `
     <mathInput name="mi" />
@@ -1795,12 +1841,22 @@ describe("Feedback tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("fback2b")].stateValues
                 .hidden,
         ).eq(true);
-        expect(stateVariables[await resolvePathToNodeIdx("rs[1]")]).eq(
-            undefined,
-        );
-        expect(stateVariables[await resolvePathToNodeIdx("rs[2]")]).eq(
-            undefined,
-        );
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "rs[1]",
+            ),
+        ).eq(undefined);
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "rs[2]",
+            ),
+        ).eq(undefined);
 
         await submitAnswer({
             componentIdx: await resolvePathToNodeIdx("ans"),
@@ -1828,12 +1884,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
 
         await updateMathInputValue({
@@ -1863,12 +1931,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(false);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
 
         await submitAnswer({
@@ -1897,12 +1977,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(false);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("y");
 
         await updateMathInputValue({
@@ -1932,12 +2024,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("y");
 
         await submitAnswer({
@@ -1966,12 +2070,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("x");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("y");
 
         await updateMathInputValue({
@@ -2001,12 +2117,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("x");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("y");
 
         await submitAnswer({
@@ -2035,12 +2163,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("x");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
     });
 
@@ -2389,5 +2529,413 @@ describe("Feedback tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("pSub")].stateValues
                 .hidden,
         ).eq(false);
+    });
+
+    // The component children of `comp`, skipping whitespace strings
+    function componentChildren(comp: any, stateVariables: any): any[] {
+        return comp.activeChildren
+            .filter((child: any) => typeof child === "object")
+            .map((child: any) => stateVariables[child.componentIdx]);
+    }
+
+    it("feedback inside shuffle", async () => {
+        // A shuffle renders shadow copies of its children, which have no
+        // prop variable. Such a copy used to crash the whole document.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <div name="d">
+    <shuffle>
+      <p>A</p>
+      <feedback condition="true"><p>shown</p></feedback>
+      <feedback condition="false"><p>hidden</p></feedback>
+    </shuffle>
+  </div>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const feedbacks = componentChildren(
+            stateVariables[await resolvePathToNodeIdx("d")],
+            stateVariables,
+        ).filter((comp) => comp.componentType === "feedback");
+
+        expect(feedbacks.length).eq(2);
+        const textToHidden = Object.fromEntries(
+            feedbacks.map((fb) => [
+                componentChildren(fb, stateVariables)[0].stateValues.text,
+                fb.stateValues.hidden,
+            ]),
+        );
+        expect(textToHidden).eqls({ shown: false, hidden: true });
+    });
+
+    it("feedback on an answer inside a shuffled problem", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <div name="d">
+    <shuffle>
+      <problem>
+        <answer name="a1">x</answer>
+        <feedback condition="$a1.responseHasBeenSubmitted"><p>submitted 1</p></feedback>
+      </problem>
+      <problem>
+        <answer name="a2">y</answer>
+        <feedback condition="$a2.responseHasBeenSubmitted"><p>submitted 2</p></feedback>
+      </problem>
+    </shuffle>
+  </div>
+  `,
+        });
+
+        async function getRendered() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const problems = componentChildren(
+                stateVariables[await resolvePathToNodeIdx("d")],
+                stateVariables,
+            );
+            expect(problems.map((prob) => prob.componentType)).eqls([
+                "problem",
+                "problem",
+            ]);
+            return problems.map((prob) => {
+                const children = componentChildren(prob, stateVariables);
+                const answer = children.find(
+                    (comp) => comp.componentType === "answer",
+                )!;
+                const feedback = children.find(
+                    (comp) => comp.componentType === "feedback",
+                )!;
+                return {
+                    answerIdx: answer.componentIdx,
+                    text: componentChildren(feedback, stateVariables)[0]
+                        .stateValues.text,
+                    hidden: feedback.stateValues.hidden,
+                };
+            });
+        }
+
+        let rendered = await getRendered();
+        expect(rendered.map((r) => r.hidden)).eqls([true, true]);
+
+        // Submit the first rendered problem's answer; only its feedback shows
+        await submitAnswer({ componentIdx: rendered[0].answerIdx, core });
+        rendered = await getRendered();
+        expect(rendered.map((r) => r.hidden)).eqls([false, true]);
+
+        await submitAnswer({ componentIdx: rendered[1].answerIdx, core });
+        rendered = await getRendered();
+        expect(rendered.map((r) => r.hidden)).eqls([false, false]);
+        expect(rendered.map((r) => r.text).sort()).eqls([
+            "submitted 1",
+            "submitted 2",
+        ]);
+    });
+
+    it("feedback copied with extend", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <booleanInput name="bi" />
+  <feedback name="fb" condition="$bi"><p>fb</p></feedback>
+  <feedback extend="$fb" name="fb2" />
+  `,
+        });
+
+        async function check_hidden(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("fb")].stateValues
+                    .hidden,
+            ).eq(hidden);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("fb2")].stateValues
+                    .hidden,
+            ).eq(hidden);
+        }
+
+        await check_hidden(true);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        await check_hidden(false);
+    });
+
+    it("copies of an award's feedback hide when the award has none", async () => {
+        // A copy of `$award.feedback` is not itself a prop shadow, so it
+        // must inherit the hiding from its source rather than showing an
+        // empty feedback.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p><answer name="ans">
+    <mathInput name="mi" />
+    <award name="award1" feedbackText="good"><math>x</math></award>
+    <award credit="0.5"><math>y</math></award>
+  </answer></p>
+  <feedback extend="$award1.feedback" name="f1" />
+  <feedback extend="$f1" name="f2" />
+  <feedback extend="$f2" name="f3" />
+  <p name="p">$f1</p>
+  <div name="d"><shuffle><feedback extend="$f1" /><p>A</p></shuffle></div>
+  `,
+        });
+
+        async function check_hidden(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const copies = [
+                ...["f1", "f2", "f3"].map(
+                    async (name) =>
+                        stateVariables[await resolvePathToNodeIdx(name)],
+                ),
+                ...["p", "d"].map(async (name) =>
+                    componentChildren(
+                        stateVariables[await resolvePathToNodeIdx(name)],
+                        stateVariables,
+                    ).find((comp) => comp.componentType === "feedback"),
+                ),
+            ];
+            for (const comp of await Promise.all(copies)) {
+                expect(comp.stateValues.hidden).eq(hidden);
+            }
+        }
+
+        await check_hidden(true);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        await check_hidden(false);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        await check_hidden(true);
+    });
+
+    it("a shuffled copy of an award's feedback stays as the award's feedback changes", async () => {
+        // When the award gains or loses its feedback, the source feedback is
+        // rebuilt under the same component index, which deletes its shuffled
+        // copy. The shuffle recreates just that copy, in its place.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p><answer name="ans">
+    <mathInput name="mi" />
+    <award name="award1" feedbackText="good"><math>x</math></award>
+  </answer></p>
+  <div name="d"><shuffle>
+    <p>A</p>
+    <feedback extend="$award1.feedback" />
+    <group><feedback extend="$award1.feedback" /></group>
+  </shuffle></div>
+  `,
+        });
+
+        async function getRendered() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return componentChildren(
+                stateVariables[await resolvePathToNodeIdx("d")],
+                stateVariables,
+            ).map((comp) => ({
+                componentIdx: comp.componentIdx,
+                componentType: comp.componentType,
+                hidden: comp.stateValues.hidden,
+                feedbackText: comp.stateValues.feedbackText,
+            }));
+        }
+
+        async function check_feedbacks(feedbackText: string | null) {
+            const rendered = await getRendered();
+            expect(rendered.map((comp) => comp.componentType).sort()).eqls([
+                "feedback",
+                "feedback",
+                "p",
+            ]);
+            for (const comp of rendered) {
+                if (comp.componentType === "feedback") {
+                    expect(comp.hidden).eq(feedbackText === null);
+                    expect(comp.feedbackText).eq(feedbackText);
+                }
+            }
+            return rendered;
+        }
+
+        const initialOrder = (await check_feedbacks(null)).map(
+            (comp) => comp.componentType,
+        );
+        const pIdx = (await getRendered()).find(
+            (comp) => comp.componentType === "p",
+        )!.componentIdx;
+
+        async function submit(latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx("ans"),
+                core,
+            });
+        }
+
+        for (const [latex, feedbackText] of [
+            ["x", "good"],
+            ["y", null],
+            ["x", "good"],
+        ] as const) {
+            await submit(latex);
+            const rendered = await check_feedbacks(feedbackText);
+
+            // The shuffled order is kept, and the `<p>` was not recreated
+            expect(rendered.map((comp) => comp.componentType)).eqls(
+                initialOrder,
+            );
+            expect(
+                rendered.find((comp) => comp.componentType === "p")!
+                    .componentIdx,
+            ).eq(pIdx);
+        }
+    });
+
+    it("a copy of an award's feedback keeps its source's hiding", async () => {
+        // A `copy` does not follow its source, so it keeps the hiding its
+        // source had when it was copied.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p><answer name="ans">
+    <mathInput name="mi" />
+    <award name="award1" feedbackText="good"><math>x</math></award>
+  </answer></p>
+  <feedback extend="$award1.feedback" name="f1" />
+  <feedback copy="$f1" name="f2" />
+  <feedback copy="$f2" name="f3" />
+  <feedback name="shown"><p>Shown</p></feedback>
+  <feedback copy="$shown" name="shown2" />
+  `,
+        });
+
+        async function check_hidden(f1Hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const hidden = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .hidden;
+            expect(await hidden("f1")).eq(f1Hidden);
+            expect(await hidden("f2")).eq(true);
+            expect(await hidden("f3")).eq(true);
+            expect(await hidden("shown")).eq(false);
+            expect(await hidden("shown2")).eq(false);
+        }
+
+        await check_hidden(true);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        await check_hidden(false);
+    });
+
+    it("an index into a shuffle follows its items after a copy is recreated", async () => {
+        // The recreated copy takes the place of the deleted one among the
+        // shuffle's indices, so `$sh[n]` still refers to the nth item shown.
+        // Variant 4 shuffles both feedbacks ahead of the texts.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p><answer name="ans">
+    <mathInput name="mi" />
+    <award name="award1" feedbackText="good"><math>x</math></award>
+  </answer></p>
+  <div name="d"><shuffle name="sh">
+    <text>A</text>
+    <feedback extend="$award1.feedback" />
+    <text>B</text>
+    <feedback extend="$award1.feedback" />
+    <text>C</text>
+  </shuffle></div>
+  <div name="d2"><shuffle name="sh2" extend="$sh" /></div>
+  <div name="r">$sh[1] $sh[2] $sh[3] $sh[4] $sh[5]</div>
+  <div name="r2">$sh2[1] $sh2[2] $sh2[3] $sh2[4] $sh2[5]</div>
+  `,
+            requestedVariantIndex: 4,
+        });
+
+        async function check_indices(feedbackText: string | null) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const describeItems = async (name: string) =>
+                componentChildren(
+                    stateVariables[await resolvePathToNodeIdx(name)],
+                    stateVariables,
+                ).map((comp) =>
+                    comp.componentType === "feedback"
+                        ? comp.stateValues.hidden
+                            ? "hidden"
+                            : comp.stateValues.feedbackText
+                        : comp.stateValues.value,
+                );
+
+            const shown = await describeItems("d");
+            expect(shown.slice(0, 2)).eqls([
+                feedbackText ?? "hidden",
+                feedbackText ?? "hidden",
+            ]);
+            expect(shown.slice(2).sort()).eqls(["A", "B", "C"]);
+            for (const name of ["d2", "r", "r2"]) {
+                expect(await describeItems(name)).eqls(shown);
+            }
+        }
+
+        await check_indices(null);
+
+        for (const [latex, feedbackText] of [
+            ["x", "good"],
+            ["y", null],
+        ] as const) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx("ans"),
+                core,
+            });
+            await check_indices(feedbackText);
+        }
     });
 });

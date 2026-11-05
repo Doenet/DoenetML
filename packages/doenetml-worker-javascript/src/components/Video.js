@@ -20,6 +20,7 @@ export default class Video extends BlockComponent {
             recordVideoCompleted: this.recordVideoCompleted.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
             recordVideoReady: this.recordVideoReady.bind(this),
+            recordVideoSourceChanged: this.recordVideoSourceChanged.bind(this),
             playVideo: this.playVideo.bind(this),
             pauseVideo: this.pauseVideo.bind(this),
             setTime: this.setTime.bind(this),
@@ -756,6 +757,60 @@ export default class Video extends BlockComponent {
             skipRendererUpdate,
             overrideReadOnly: true,
             doNotSave: true, // video actions don't count as changing doc state
+        });
+    }
+
+    /**
+     * The video being shown has been replaced by a different one.
+     *
+     * `time` and `segmentsWatched` describe playback of one particular video,
+     * so neither survives the change: a position of 0:05 in the old video says
+     * nothing about the new one, and seconds watched of the old one over the
+     * new one's duration is a meaningless `fractionWatched`. Carrying `time`
+     * across was also actively harmful — the renderer reads a `time` that
+     * differs from the position it last reported as a seek request, and so
+     * seeked a freshly created player into the middle of a video the viewer
+     * had never played.
+     *
+     * `duration` is deliberately left alone: `recordVideoReady` overwrites it
+     * as soon as the new player reports, and blanking it in the meantime only
+     * makes `fractionWatched` divide by null.
+     *
+     * `state` is left alone too: a video that was playing when the source
+     * changed should keep playing into the new source, which is what the
+     * renderer's teardown relies on.
+     *
+     * No `doNotSave` here. `recordVideoReady` is the only sibling that sets
+     * it (its `duration` is a property of the file, not of the session), and
+     * this reset must not follow it: `setTime` saves
+     * the position it records, so the reset has to be saved as well or the old
+     * video's position is restored on the next load and the renderer seeks the
+     * new video to it -- exactly the bug this action exists to prevent.
+     */
+    async recordVideoSourceChanged({
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        await this.coreFunctions.performUpdate({
+            updateInstructions: [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "time",
+                    value: 0,
+                },
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "segmentsWatched",
+                    value: null,
+                },
+            ],
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+            overrideReadOnly: true,
         });
     }
 

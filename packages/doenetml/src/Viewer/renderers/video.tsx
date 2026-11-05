@@ -55,6 +55,24 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
     // network request to youtube.com.
     const ytReady = useYouTubeApi(Boolean(SVs.youtube));
 
+    // Tell the core when the video itself is replaced, so it can drop the
+    // playback state belonging to the old one (see `recordVideoSourceChanged`).
+    // Declared before the player effect below so the reset is dispatched before
+    // a player for the new source can exist to be seeked.
+    const lastVideoSource = useRef<string | null | undefined>(undefined);
+    useEffect(() => {
+        const videoSource = SVs.youtube ?? SVs.source ?? null;
+        const previous = lastVideoSource.current;
+        lastVideoSource.current = videoSource;
+        // `undefined` is the first render for this component: whatever is in
+        // `time`/`segmentsWatched` came from saved state and describes the
+        // video about to be shown, so a reload still resumes where the viewer
+        // left off.
+        if (previous !== undefined && previous !== videoSource) {
+            callAction({ action: actions.recordVideoSourceChanged });
+        }
+    }, [SVs.youtube, SVs.source]);
+
     useEffect(() => {
         if (!SVs.youtube || !ytReady || !window.YT) {
             return;
@@ -443,7 +461,10 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
             let time = SVs.time ?? 0;
             let duration = player.current.getDuration();
 
-            if (time > duration) {
+            // Until the video's metadata loads, the player reports a duration
+            // of 0; clamping to it would overwrite the viewer's saved position
+            // with 0.
+            if (duration > 0 && time > duration) {
                 time = Math.floor(duration);
                 callAction({
                     action: actions.setTime,
@@ -453,18 +474,23 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                 });
             }
             if (time !== Number(lastSetTimeAction.current)) {
-                if (player.current.getPlayerState() === PlayerState.CUED) {
-                    // if cued, seeking will automatically start the video.
-                    // Pausing it first doesn't seem to work
-                    // so, instead pause it 200 ms after hitting play
-                    // (If pause immediately, then always get a black screen with spinning arrow.
-                    // Pausing after 200 ms sometimes prevents black screen, but it is imperfect.)
-                    // TODO: find a better solution
-                    // See also: https://issuetracker.google.com/issues/77752719
-
-                    player.current.pauseVideo(); // doesn't seem to do anything!
-                    player.current.seekTo(time, true);
-                    setTimeout(() => player.current.pauseVideo(), 200);
+                if (
+                    player.current.getPlayerState() === PlayerState.CUED &&
+                    SVs.state !== "playing"
+                ) {
+                    // Seeking a cued player starts playing it (YouTube
+                    // documents this). Viewers restoring a saved position
+                    // this way were left with a black frame with no poster
+                    // and no controls. A browser blocking that autoplay is
+                    // the likely cause, but it has not been reproduced. Cue
+                    // the video at the offset instead, which keeps the
+                    // player CUED and usable. (Not when it has been told to
+                    // play: re-cueing would cancel that play, and a seek into
+                    // a starting video is what was asked for.)
+                    player.current.cueVideoById({
+                        videoId: SVs.youtube,
+                        startSeconds: time,
+                    });
                 } else {
                     player.current.seekTo(time, true);
                 }

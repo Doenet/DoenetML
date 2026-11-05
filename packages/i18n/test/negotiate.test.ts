@@ -117,12 +117,17 @@ describe("negotiateLocales", () => {
     });
 
     /**
-     * Norwegian's catalog is named `nb`, but `no` is the tag an author is
-     * likeliest to type and one several browsers still send. Nothing in
-     * filtering negotiation connects the two, so the alias is asserted here
-     * against the real roster.
+     * Norwegian's two written standards, which are now two catalogs.
+     *
+     * `nb` is Bokmål and `nn` is Nynorsk; `no` is the macrolanguage over both,
+     * it is the tag an author is likeliest to type and one several browsers
+     * still send, and nothing in filtering negotiation connects it to either.
+     * The alias sends it to `nb`, and that stayed as it was when `locales/nn`
+     * arrived — a reader who says `no` has not said which standard they read,
+     * and Bokmål is what CLDR fills a bare `no` in as. Asserted here against
+     * the real roster so the two halves cannot drift.
      */
-    describe("Norwegian, whose catalog is named for one written standard", () => {
+    describe("Norwegian, whose two written standards are two catalogs", () => {
         it.each(["no", "no-NO", "nb", "nb-NO"])(
             "serves Bokmål to %s",
             (requested) => {
@@ -133,8 +138,11 @@ describe("negotiateLocales", () => {
             },
         );
 
-        it("leaves Nynorsk to fall back to English", () => {
-            expect(negotiateLocales(["nn"], available)).toEqual(["en"]);
+        it.each(["nn", "nn-NO"])("serves Nynorsk to %s", (requested) => {
+            expect(negotiateLocales([requested], available)).toEqual([
+                "nn",
+                "en",
+            ]);
         });
     });
 
@@ -458,12 +466,20 @@ describe("negotiateLocales", () => {
             },
         );
 
-        // Pangasinan is a Philippine language with no catalog that belongs to
-        // no macrolanguage with one, so it falls all the way to English — the
-        // rule working rather than a gap in it.
-        it("leaves Pangasinan on English rather than guessing", () => {
+        // Ibanag is a Philippine language with no catalog that belongs to no
+        // macrolanguage with one, so it falls all the way to English — the rule
+        // working rather than a gap in it.
+        //
+        // Pangasinan stood here until the Southeast Asian batch, and what
+        // replacing it cost is the whole of what seeding `pag` cost this
+        // block: nothing else in the Bikol list changed, because Pangasinan
+        // was never a member of anything. A negative control has to name a
+        // language the roster does not have, so the row moves rather than
+        // being deleted; where `pag` goes now is asserted with the rest of its
+        // batch, in "the Southeast Asian batch" below.
+        it("leaves Ibanag on English rather than guessing", () => {
             expect(
-                negotiateLocales([normalizeLocaleTag("pag")], available),
+                negotiateLocales([normalizeLocaleTag("ibg")], available),
             ).toEqual(["en"]);
         });
     });
@@ -553,6 +569,11 @@ describe("negotiateLocales", () => {
             ["bo-CN", "bo"],
             ["dz-BT", "dz"],
             ["dv-MV", "dv"],
+            // The three tags this batch answers directly, each of which the
+            // block below used to assert fell to English.
+            ["kfy", "kfy"],
+            ["mag", "mag"],
+            ["grt", "grt"],
         ])("reaches %s's catalog as %s", (requested, expected) => {
             expect(
                 negotiateLocales([normalizeLocaleTag(requested)], available),
@@ -560,15 +581,21 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * The near misses. `kfy` (Kumaoni) and `mag` (Magahi) are Indo-Aryan
-         * neighbours of `mai` and `bho` that belong to no macrolanguage with a
-         * catalog; `hoc` (Ho) is Munda like Santali and is not a member of
-         * `sat`; `njz` (Nyishi) and `grt` (Garo) are Tibeto-Burman like Bodo
-         * and are not members of `brx`. All fall to English, which is the
-         * membership rule working rather than a gap in it — the moment
-         * "sounds close to" decides the map, nothing in it is checkable.
+         * The near misses. `hoc` (Ho) is Munda like Santali and is not a member
+         * of `sat`; `njz` (Nyishi) is Tibeto-Burman like Bodo and is not a
+         * member of `brx`. Both fall to English, which is the membership rule
+         * working rather than a gap in it — the moment "sounds close to"
+         * decides the map, nothing in it is checkable.
+         *
+         * This list was three entries longer before the second South Asian
+         * batch, and how the three left it is the point. `kfy` (Kumaoni),
+         * `mag` (Magahi) and `grt` (Garo) were listed here as neighbours of
+         * `mai`, `bho` and `brx` that the map declined to fold onto them; each
+         * now has a catalog of its own and is asserted against it just above.
+         * Nothing about `MACROLANGUAGE_MEMBERS` changed to let them through —
+         * the way off this list is a directory, not an entry in the map.
          */
-        it.each(["kfy", "mag", "hoc", "njz", "grt"])(
+        it.each(["hoc", "njz"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(
@@ -1028,30 +1055,38 @@ describe("negotiateLocales", () => {
      * script without sharing a family: four Turkic, two Mongolic, four Uralic,
      * one Iranian and one Nakh.
      *
-     * Three of the twelve are ISO 639-3 macrolanguages and go in
+     * Three of the twelve arrived as ISO 639-3 macrolanguages in
      * `MACROLANGUAGE_MEMBERS` — `bua`, `kv` and `chm` — which is the largest
-     * number any one batch has added. The other nine are individual languages
-     * that filter unaided, so the batch adds no `LANGUAGE_ALIASES` entry at
-     * all.
+     * number any one batch has added. Only `bua` is still keyed that way: the
+     * Komi and Mari catalogs were later named after the varieties they are
+     * written in, `kpv` and `mhr`, and their macrolanguage codes moved to
+     * `LANGUAGE_ALIASES`. The other nine are individual languages that filter
+     * unaided and need no entry of either kind.
      */
     describe("the Russian Federation batch", () => {
         it.each([
-            // The three macrolanguages. In each, the first member listed is the
-            // one `Intl.getCanonicalLocales` folds on its own and the rest
-            // reach the catalog only because `MACROLANGUAGE_MEMBERS` names
-            // them.
+            // The three macrolanguages the batch brought in. For `bua` the
+            // first member listed is the one `Intl.getCanonicalLocales` folds
+            // on its own and the rest reach the catalog only because
+            // `MACROLANGUAGE_MEMBERS` names them; `kpv` and `mhr` now name
+            // their own catalogs, and `kom` reaches Zyrian because ICU folds
+            // it to `kv` and `LANGUAGE_ALIASES` carries `kv` on to `kpv`.
+            //
+            // `koi` and `mrj` stood beside `kpv` and `mhr` here until the
+            // Uralic north batch gave each of them a catalog and took it out
+            // of its macrolanguage's member list. Their rows moved to that
+            // batch's `describe` below, where they now assert the opposite:
+            // that each reaches *its own* catalog rather than its sibling's.
             ["bxr", "bua"],
             ["bxm", "bua"],
             ["bxu", "bua"],
-            ["kpv", "kv"],
-            ["koi", "kv"],
-            ["mhr", "chm"],
-            ["mrj", "chm"],
+            ["kpv", "kpv"],
+            ["mhr", "mhr"],
             // The ISO 639-3 codes ICU canonicalizes to a 639-1 code on its own.
             ["bak", "ba"],
             ["chv", "cv"],
             ["udm", "udm"],
-            ["kom", "kv"],
+            ["kom", "kpv"],
             ["oss", "os"],
             ["che", "ce"],
             // `sah`, `tyv`, `myv` and `xal` have no 639-1 code of their own, so
@@ -1070,9 +1105,9 @@ describe("negotiateLocales", () => {
             ["bua-RU", "bua"],
             ["xal-RU", "xal"],
             ["udm-RU", "udm"],
-            ["kv-RU", "kv"],
+            ["kv-RU", "kpv"],
             ["myv-RU", "myv"],
-            ["chm-RU", "chm"],
+            ["chm-RU", "mhr"],
             ["os-RU", "os"],
             ["os-GE", "os"],
             ["ce-RU", "ce"],
@@ -1103,21 +1138,158 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * The near misses, and this batch's are unusually sharp because two of
-         * them are the *other half* of a pair whose first half now has a
-         * catalog. `mdf` is Moksha, Erzya's sister: ISO 639-3 gives the two
-         * separate codes and no macrolanguage over them, so `locales/myv` can
-         * do nothing for a Moksha reader and must not pretend to. `krc`, `kum`
-         * and `nog` are Turkic neighbours of `ba` in the Caucasus and the
-         * Volga; `ady`, `kbd` and `av` are Caucasian neighbours of `ce` in
-         * three different families; `sel` is Uralic beside `udm` and `kv`
-         * without belonging to either.
+         * The near miss. `sel` (Selkup) is Uralic beside `udm` and `kv`
+         * without belonging to either, so it falls to English — the membership
+         * rule working rather than a gap in it.
+         *
+         * This list was seven codes longer when it was written: `krc`, `kum`,
+         * `nog`, `ady`, `kbd` and `av` were named here as neighbours of `ba`
+         * and `ce`, and `mdf` as Erzya's sister that `locales/myv` could do
+         * nothing for. All seven have catalogs of their own as of the Caucasus
+         * and Uralic north batches, so their rows moved to those batches'
+         * `describe` blocks below. What they were pinning still holds and is
+         * worth keeping straight: they reach a catalog now because one was
+         * *written* for them, not because anything in `negotiate.ts` learned to
+         * fold a neighbour onto a neighbour.
+         */
+        it("leaves sel on English rather than folding it onto a neighbour", () => {
+            expect(
+                negotiateLocales([normalizeLocaleTag("sel")], available),
+            ).toEqual(["en"]);
+        });
+    });
+
+    /**
+     * The Caucasus and Kurdish batch. Fifteen catalogs, and the negotiation
+     * question it raises that no earlier batch did is what happens when two
+     * members of one macrolanguage both have a catalog and the macrolanguage
+     * itself has none.
+     *
+     * `kmr` is Northern Kurdish (Kurmanji) in Latin and `ckb` is Central
+     * Kurdish (Sorani) in the Perso-Arabic script, and ISO 639-3 makes both
+     * members of the `ku` macrolanguage. The naive entry would fold `ckb` onto
+     * Kurmanji — and would serve a Sorani reader a script they do not read
+     * while their own catalog sat on disk. `MACROLANGUAGE_MEMBERS` therefore
+     * keys on `kmr` and lists only `sdh`, the third member, excluding `ckb`
+     * exactly as `locales/mnk` excludes `bam` and `dyu`.
+     *
+     * Because the Kurmanji catalog is named for the member rather than the
+     * macrolanguage, `LANGUAGE_ALIASES` carries `ku: "kmr"` so the
+     * macrolanguage tag still reaches it — see "a catalog named after a
+     * macrolanguage member" below. The other thirteen catalogs are individual
+     * languages that filter unaided and need no entry of either kind.
+     */
+    describe("the Caucasus and Kurdish batch", () => {
+        it.each([
+            // The macrolanguage tag, which reaches the catalog through
+            // `LANGUAGE_ALIASES`; the catalog's own tag, which ICU
+            // canonicalizes onto `ku` and the same alias catches; and `sdh`,
+            // which reaches the catalog only because the member map names it.
+            ["ku", "kmr"],
+            ["kmr", "kmr"],
+            ["sdh", "kmr"],
+            // …and the member that is deliberately not folded, because it
+            // answers for itself.
+            ["ckb", "ckb"],
+            // The ISO 639-3 codes ICU canonicalizes to a 639-1 code on its own.
+            ["abk", "ab"],
+            ["ava", "av"],
+            ["kur", "kmr"],
+            // The eleven with no 639-1 code, which arrive under the same tag
+            // the directory is named for.
+            ["ady", "ady"],
+            ["kbd", "kbd"],
+            ["dar", "dar"],
+            ["lbe", "lbe"],
+            ["tab", "tab"],
+            ["inh", "inh"],
+            ["lez", "lez"],
+            ["krc", "krc"],
+            ["kum", "kum"],
+            ["nog", "nog"],
+            ["tly", "tly"],
+            // Region tags, which filter without help. `ab` maximizes to
+            // Georgia and `tly` to Azerbaijan rather than to Russia or Iran,
+            // which is CLDR's data rather than an error and costs negotiation
+            // nothing either way.
+            ["ab-GE", "ab"],
+            ["ab-RU", "ab"],
+            ["ady-RU", "ady"],
+            ["kbd-RU", "kbd"],
+            ["av-RU", "av"],
+            ["lez-RU", "lez"],
+            ["lez-AZ", "lez"],
+            ["dar-RU", "dar"],
+            ["lbe-RU", "lbe"],
+            ["tab-RU", "tab"],
+            ["inh-RU", "inh"],
+            ["krc-RU", "krc"],
+            ["kum-RU", "kum"],
+            ["nog-RU", "nog"],
+            ["tly-AZ", "tly"],
+            ["tly-IR", "tly"],
+            ["ku-TR", "kmr"],
+            ["ku-SY", "kmr"],
+            ["ckb-IQ", "ckb"],
+            ["ckb-IR", "ckb"],
+            // Script asymmetries. The twelve Caucasian catalogs are Cyrillic,
+            // `kmr` and `tly` are Latin and `ckb` is Perso-Arabic, so a reader
+            // arriving under the other script of their own language reaches the
+            // catalog and gets the one it is written in — the answer
+            // `locales/pa`, `locales/sr` and `locales/ha` already give, and the
+            // answer to it is a second catalog rather than a rename of this
+            // one.
+            ["ku-Arab", "kmr"],
+            ["tly-Cyrl", "tly"],
+            ["tly-Arab", "tly"],
+            ["ab-Latn", "ab"],
+            ["ckb-Latn", "ckb"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * `sdh` is this batch's script debt, and — like `locales/bua`'s to
+         * `bxu` — it is recorded rather than fixed. Southern Kurdish maximizes
+         * to `sdh-Arab-IR`, so CLDR's own data says such a reader most likely
+         * arrives in the Perso-Arabic script, and what published membership
+         * hands them is Kurmanji in Latin.
+         *
+         * Routing it to `locales/ckb` instead would read better on the page and
+         * would be exactly the judgement `MACROLANGUAGE_MEMBERS` exists to
+         * avoid: Southern Kurdish is not Sorani, and "shares a script with"
+         * is not a membership fact. The answer is a `sdh` catalog.
+         */
+        it("serves Southern Kurdish the Latin catalog although CLDR expects it in Perso-Arabic", () => {
+            expect(new Intl.Locale("sdh").maximize().script).toBe("Arab");
+            expect(negotiateLocales([normalizeLocaleTag("sdh")], available)) //
+                .toEqual(["kmr", "en"]);
+        });
+
+        /**
+         * The near misses. `lki` (Laki) is the sharpest: it is written in the
+         * same script as `ckb`, is often described as a variety of Southern
+         * Kurdish, and ISO 639-3's macrolanguage mapping still gives it a code
+         * outside `kur` — so it falls back, exactly as `alq` does beside `oj`.
+         * `zza` (Zaza) used to sit in this list as the same shape one family
+         * over, and it has left it: the Silk Road batch gave Zazaki a catalog
+         * of its own, so it is now a hit rather than a near miss, asserted
+         * with the rest of that batch below. `lki` stays exactly where it was,
+         * which is the point — Laki did not become reachable because a
+         * neighbour did.
+         *
+         * `agx` (Aghul) is
+         * Lezgic beside `lez` and `tab`, `ddo` (Tsez) is Avar's neighbour in
+         * Dagestan, and `xmf` (Mingrelian) and `sva` (Svan) are Kartvelian
+         * beside `ab` without belonging to any macrolanguage with a catalog.
          *
          * Every one falls to English, which is the membership rule working
-         * rather than a gap in it — Moksha is not Erzya, however close a map
-         * makes them look, and Kabardian is not Chechen at all.
+         * rather than a gap in it — the moment "is spoken next to" decides the
+         * map, nothing in it is checkable any more.
          */
-        it.each(["mdf", "krc", "kum", "nog", "ady", "kbd", "av", "sel"])(
+        it.each(["lki", "agx", "ddo", "xmf", "sva"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(
@@ -1128,6 +1300,1425 @@ describe("negotiateLocales", () => {
                 ).toEqual(["en"]);
             },
         );
+    });
+
+    /**
+     * The Uralic north. Fifteen catalogs — four Sami languages in Latin and a
+     * fifth in Cyrillic, five Finnic, Moksha, Komi-Permyak, Hill Mari, and the
+     * roster's first two Ob-Ugric — and the negotiation question it raises is
+     * the mirror of the Caucasus batch's.
+     *
+     * There, `ckb` was a member that had to be kept *out* of a list it had
+     * never been in. Here `koi` and `mrj` were members already folded onto
+     * `kv` and `chm`, and writing them a catalog each meant **taking them out**
+     * — the first time an entry in `MACROLANGUAGE_MEMBERS` has shrunk. The
+     * fold was the right answer while Komi-Permyak and Hill Mari had nowhere
+     * else to go; the moment they had a file of their own it became the thing
+     * the map exists to prevent, a reader served a neighbouring standard while
+     * their own sat on disk. That left `kv` and `chm` listing a single member
+     * each, `kpv` and `mhr` — the varieties those catalogs are actually
+     * written in — which is why the catalogs were later named after them and
+     * both one-member lists became `LANGUAGE_ALIASES` rows instead; see "a
+     * catalog named after a macrolanguage member" below.
+     */
+    describe("the Uralic north batch", () => {
+        it.each([
+            // The two members that left `MACROLANGUAGE_MEMBERS` in this batch,
+            // and the sister that was pinned on English by the Russian
+            // Federation batch until this one wrote it a catalog.
+            ["koi", "koi"],
+            ["mrj", "mrj"],
+            ["mdf", "mdf"],
+            // …and the macrolanguage tags themselves, which still reach the
+            // neighbouring standard — through `LANGUAGE_ALIASES` now that the
+            // catalogs are named `kpv` and `mhr` rather than `kv` and `chm`.
+            ["kv", "kpv"],
+            ["chm", "mhr"],
+            // The twelve remaining catalogs, none of which has a 639-1 code, so
+            // each arrives under the tag its directory is named for.
+            ["sma", "sma"],
+            ["smj", "smj"],
+            ["smn", "smn"],
+            ["sms", "sms"],
+            ["sjd", "sjd"],
+            ["vep", "vep"],
+            ["olo", "olo"],
+            ["krl", "krl"],
+            ["vro", "vro"],
+            ["fit", "fit"],
+            ["kca", "kca"],
+            ["mns", "mns"],
+            // Region tags, which filter without help. The batch spans five
+            // countries, and six of the catalogs maximize outside Russia —
+            // `sma`, `smj` and `fit` to Sweden, `smn` and `sms` to Finland,
+            // `vro` to Estonia — which is CLDR's data rather than an error and
+            // costs negotiation nothing.
+            ["sma-SE", "sma"],
+            ["sma-NO", "sma"],
+            ["smj-SE", "smj"],
+            ["smj-NO", "smj"],
+            ["smn-FI", "smn"],
+            ["sms-FI", "sms"],
+            ["sjd-RU", "sjd"],
+            ["vep-RU", "vep"],
+            ["olo-RU", "olo"],
+            ["krl-RU", "krl"],
+            ["krl-FI", "krl"],
+            ["vro-EE", "vro"],
+            ["fit-SE", "fit"],
+            ["mdf-RU", "mdf"],
+            ["koi-RU", "koi"],
+            ["mrj-RU", "mrj"],
+            ["kca-RU", "kca"],
+            ["mns-RU", "mns"],
+            // Script asymmetries, and this batch is the one where they cut both
+            // ways: nine of the fifteen are Latin and six Cyrillic, so a reader
+            // arriving under the other script of their own language reaches the
+            // catalog and gets the script it is written in. `vep` and `krl`
+            // were both printed in Cyrillic within living memory and are
+            // written in Latin now, which is why those two rows are here rather
+            // than hypothetical.
+            ["sjd-Latn", "sjd"],
+            ["vep-Cyrl", "vep"],
+            ["krl-Cyrl", "krl"],
+            ["olo-Cyrl", "olo"],
+            ["kca-Latn", "kca"],
+            ["mns-Latn", "mns"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The removal asserted as a removal rather than as a lookup: before
+         * this batch, `koi` and `mrj` were rewritten to `kv` and `chm` — the
+         * tags `locales/kpv` and `locales/mhr` were then named after — by
+         * `applyLanguageAlias` *before* negotiation ever saw them, so a
+         * `locales/koi` on disk would have been unreachable. The rows above
+         * would pass either way if the alias happened to be gone; this one
+         * says why it has to be.
+         */
+        it("stops folding a member the moment it has a catalog of its own", () => {
+            for (const [member, neighbour] of [
+                ["koi", "kpv"],
+                ["mrj", "mhr"],
+            ]) {
+                // Offered *both* catalogs, the member's own wins — which it
+                // cannot do if the tag is rewritten before negotiation.
+                expect(
+                    negotiateLocales([member], [neighbour, member, "en"]),
+                ).toEqual([member, "en"]);
+            }
+        });
+
+        /**
+         * The near misses, and this batch has more of them than any other
+         * because the north is full of languages one code away from a catalog.
+         *
+         * `sje` (Pite Sami), `sju` (Ume Sami) and `sjt` (Ter Sami) are Sami
+         * languages beside four that now have catalogs; `izh` (Ingrian),
+         * `liv` (Livonian) and `vot` (Votic) are Finnic beside five. `fkv`
+         * (Kven) is the sharpest of the seven: it is as close to `fit` as
+         * Meänkieli is to Finnish, is written in a closely related orthography,
+         * and is a separate ISO 639-3 language on the other side of a national
+         * border — so folding it would be a judgement about how close two
+         * varieties are rather than a published fact, which is `lki` beside
+         * `ckb` and `alq` beside `oj`.
+         *
+         * There is no macrolanguage over any of them to fold through: `smi` is
+         * an ISO 639-5 *collection* rather than a macrolanguage, which is why
+         * none of the three Sami misses reaches a Sami catalog.
+         */
+        it.each(["sje", "sju", "sjt", "izh", "liv", "vot", "fkv"])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * `smi` is left to miss for `son`'s reason rather than `nah`'s, and the
+         * difference is CLDR's rather than a preference. `nah` is a collection
+         * this repository does alias, because it names one written standard —
+         * Central Nahuatl — that the group's members can be served with. `smi`
+         * covers ten languages in two scripts across four countries, and CLDR
+         * has no opinion about which: `new Intl.Locale("smi").maximize()` adds
+         * neither script nor region, exactly as `son` fails to. Picking
+         * Northern Sami because it is the largest would be the judgement these
+         * maps exist to avoid.
+         *
+         * Asserted against the absent maximization rather than merely the
+         * absent entry, so a change in ICU data that gave `smi` a region fails
+         * here and invites someone to reconsider.
+         */
+        it("leaves the Sami collection code alone, because CLDR has no opinion about it", () => {
+            const maximized = new Intl.Locale("smi").maximize();
+            expect(maximized.region).toBeUndefined();
+            expect(maximized.script).toBeUndefined();
+            expect(negotiateLocales([normalizeLocaleTag("smi")], available)) //
+                .toEqual(["en"]);
+        });
+    });
+
+    /**
+     * Oceania. Eleven catalogs across Micronesia, Polynesia and Melanesia,
+     * and the negotiation question it raises is neither of the last two
+     * batches'.
+     *
+     * The Caucasus batch had to keep a member *out* of a list; the Uralic
+     * north had to **take two out** of lists they were already in. This batch
+     * touches `MACROLANGUAGE_MEMBERS` not at all, and that is the fact
+     * worth pinning rather than passing over: not one of the eleven is a
+     * macrolanguage, and not one was being folded onto a wider code before
+     * this batch, so every tag reached English on its own account and now
+     * reaches its own catalog. The map is unchanged and the rows below prove
+     * the batch needed nothing from it.
+     *
+     * Two of the eleven — `mh` and `bi` — have ISO 639-1 codes, so a reader
+     * can also arrive under the 639-2/T alpha-3 that
+     * `Intl.getCanonicalLocales` folds for us. Those rows are here because the
+     * folding is ICU's rather than this repository's, and a change in it would
+     * silently cost two catalogs their alpha-3 door.
+     */
+    describe("the Oceania batch", () => {
+        /** The eleven tags this batch adds, in the order the README lists them. */
+        const OCEANIA = [
+            "mh",
+            "chk",
+            "pon",
+            "kos",
+            "gil",
+            "niu",
+            "tkl",
+            "tvl",
+            "rar",
+            "wls",
+            "bi",
+        ];
+
+        it.each([
+            // The nine tags with no 639-1 code, each arriving as the
+            // directory it names.
+            ["chk", "chk"],
+            ["pon", "pon"],
+            ["kos", "kos"],
+            ["gil", "gil"],
+            ["niu", "niu"],
+            ["tkl", "tkl"],
+            ["tvl", "tvl"],
+            ["rar", "rar"],
+            ["wls", "wls"],
+            // …and the two with one.
+            ["mh", "mh"],
+            ["bi", "bi"],
+            // The alpha-3 doors, folded by `Intl.getCanonicalLocales` rather
+            // than by anything here.
+            ["mah", "mh"],
+            ["bis", "bi"],
+            // Region tags, which filter without help. The batch spans nine
+            // countries and territories, and every one of the eleven
+            // maximizes to a region — a completeness no earlier batch had.
+            ["mh-MH", "mh"],
+            ["chk-FM", "chk"],
+            ["pon-FM", "pon"],
+            ["kos-FM", "kos"],
+            ["gil-KI", "gil"],
+            ["niu-NU", "niu"],
+            ["tkl-TK", "tkl"],
+            ["tvl-TV", "tvl"],
+            ["rar-CK", "rar"],
+            ["wls-WF", "wls"],
+            ["bi-VU", "bi"],
+            // Script tags. Every catalog here is Latin — the first batch of
+            // which that is true since the Philippine one — so a `-Latn` is
+            // redundant rather than a disambiguation, and has to cost nothing.
+            ["mh-Latn", "mh"],
+            ["gil-Latn", "gil"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The batch that changed no map, asserted as such. Each of the eleven
+         * reaches its own catalog when the whole roster is on offer *and* when
+         * only English is — the second half being what would fail if some
+         * entry were quietly folding one of these tags onto a neighbour.
+         */
+        it("folds none of the eleven onto another catalog", () => {
+            for (const locale of OCEANIA) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The near misses, and this batch's are sharper than the Uralic
+         * north's because the Pacific's language boundaries do not line up
+         * with its political ones.
+         *
+         * `uli` (Ulithian), `woe` (Woleaian) and `stw` (Satawalese) are
+         * Trukic, the dialect chain `chk` sits at one end of; `mkj`
+         * (Mokilese) is Pohnpeic beside `pon`. `kpg` (Kapingamarangi) and
+         * `nkr` (Nukuoro) are the sharpest of all: they are *Polynesian*
+         * languages spoken inside the Federated States of Micronesia, so
+         * neither the Micronesian catalogs they share a country with nor the
+         * Polynesian ones they share a family with is the right answer, and
+         * nothing published says which. `pkp` (Pukapukan) is a Cook Islands
+         * language beside `rar`, and `locales/rar`'s own header names it as a
+         * language with a code of its own rather than a variety of
+         * Rarotongan. `mrq` (Marquesan) is Eastern Polynesian beside `rar`.
+         * `meu` (Motu) and `ho` (Hiri Motu) sit beside `bi` in Melanesia, and
+         * `pih` (Pitkern) is the other English-lexified creole of the region.
+         *
+         * `fud` (East Futunan) is this batch's `fkv`, and it is sharper than
+         * `fkv` was: it is not merely a sister of a catalogued language, it is
+         * spoken in **the same territory** as `wls`. Wallis and Futuna has two
+         * Polynesian languages and this batch catalogues one of them. Folding
+         * Futunan onto Wallisian because they share a flag would be precisely
+         * the judgement these maps exist to avoid.
+         */
+        it.each([
+            "uli",
+            "woe",
+            "stw",
+            "mkj",
+            "kpg",
+            "nkr",
+            "pkp",
+            "mrq",
+            "meu",
+            "ho",
+            "pih",
+            "fud",
+        ])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * The territory `wls` and `fud` share, and the reason a region can
+         * never stand in for the language here. CLDR maximizes `und-WF` to
+         * **French** — which is true of Wallis and Futuna's administration and
+         * schooling, and is why `locales/wls`'s loans are French-mediated
+         * where `locales/to`'s are English-mediated — so a host that knew only
+         * the territory would reach `fr`, not `wls`. That is CLDR's answer
+         * rather than a wrong one, and this row records it so that nobody
+         * later "fixes" region handling into serving Wallisian to a reader who
+         * only said where they were.
+         */
+        it("maximizes the batch's one shared territory to French, not to either of its languages", () => {
+            expect(new Intl.Locale("und-WF").maximize().language).toBe("fr");
+        });
+
+        /**
+         * `map` is left to miss for `smi`'s reason, one family up. It is the
+         * ISO 639-5 collection over all Austronesian languages — every catalog
+         * in this batch is inside it, and so are `ms`, `tl`-adjacent
+         * catalogs, `mi`, `haw` and a dozen others — and CLDR has no opinion
+         * about which of them a bare `map` means: it maximizes to nothing at
+         * all. A collection covering a tenth of the world's languages is the
+         * clearest possible case for leaving a tag to miss.
+         */
+        it("leaves the Austronesian collection code alone, because CLDR has no opinion about it", () => {
+            const maximized = new Intl.Locale("map").maximize();
+            expect(maximized.region).toBeUndefined();
+            expect(maximized.script).toBeUndefined();
+            expect(negotiateLocales([normalizeLocaleTag("map")], available)) //
+                .toEqual(["en"]);
+        });
+    });
+
+    /**
+     * The European regional batch. Fifteen catalogs across three families, and
+     * like the Oceania batch before it, one that **changes neither map** —
+     * which is worth pinning rather than passing over, because this batch had
+     * the clearest opportunity yet to change one and should not have taken it.
+     *
+     * `nn` is that opportunity. Nynorsk now has a catalog, and
+     * {@link LANGUAGE_ALIASES} still sends `no` to `nb`. A reader who types
+     * `no` has named the macrolanguage over both written standards and has not
+     * said which of the two they read; Bokmål is what CLDR fills a bare `no` in
+     * as, and pointing `no` at the new catalog would be the substitution the
+     * `fat` row is left out for, in the other direction. The rows below hold
+     * both halves: `nn` reaches its own catalog, and `no` still reaches `nb`
+     * with `locales/nn` sitting right there — the second half living in the
+     * Norwegian block above, which is where both standards are asserted.
+     *
+     * Two of the fifteen — `nn` and `li` — have ISO 639-1 codes, so a reader
+     * can also arrive under the alpha-3 (`nno`, `lim`) that
+     * `Intl.getCanonicalLocales` folds. Those rows are pinned because the
+     * folding is ICU's rather than this repository's.
+     */
+    describe("the European regional batch", () => {
+        /** The fifteen tags this batch adds, in the order the README lists them. */
+        const EUROPEAN_REGIONAL = [
+            "nn",
+            "sco",
+            "gsw",
+            "ksh",
+            "li",
+            "fur",
+            "vec",
+            "lij",
+            "pms",
+            "nap",
+            "hsb",
+            "dsb",
+            "csb",
+            "szl",
+            "rue",
+        ];
+
+        it.each<[string, string]>([
+            // Each of the fifteen arriving as the directory it names.
+            ...EUROPEAN_REGIONAL.map((locale): [string, string] => [
+                locale,
+                locale,
+            ]),
+            // The alpha-3 doors for the two with a 639-1 code, folded by
+            // `Intl.getCanonicalLocales` rather than by anything here.
+            ["nno", "nn"],
+            ["lim", "li"],
+            // Region tags, which filter without help.
+            ["nn-NO", "nn"],
+            ["sco-GB", "sco"],
+            ["gsw-CH", "gsw"],
+            ["ksh-DE", "ksh"],
+            ["li-NL", "li"],
+            ["li-BE", "li"],
+            ["fur-IT", "fur"],
+            ["vec-IT", "vec"],
+            ["lij-IT", "lij"],
+            ["pms-IT", "pms"],
+            ["nap-IT", "nap"],
+            ["hsb-DE", "hsb"],
+            ["dsb-DE", "dsb"],
+            ["csb-PL", "csb"],
+            ["szl-PL", "szl"],
+            ["rue-SK", "rue"],
+            ["rue-UA", "rue"],
+            // Script tags. Fourteen of the fifteen are Latin, so a `-Latn` is
+            // redundant rather than a disambiguation and has to cost nothing;
+            // `rue` is the batch's one Cyrillic catalog and `-Cyrl` has to cost
+            // nothing there for the same reason.
+            ["nn-Latn", "nn"],
+            ["szl-Latn", "szl"],
+            ["rue-Cyrl", "rue"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The batch that changed no map, asserted as such. Each of the fifteen
+         * reaches its own catalog when the whole roster is on offer *and*
+         * English when only English is — the second half being what would fail
+         * if some entry were quietly folding one of these tags onto a
+         * neighbour.
+         */
+        it("folds none of the fifteen onto another catalog", () => {
+            for (const locale of EUROPEAN_REGIONAL) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The near misses, and this batch's were the densest the roster had,
+         * because Europe's regional languages sit in continua rather than on
+         * islands.
+         *
+         * This list was seven entries longer before the second European batch,
+         * and how the seven left it is the point — the same lesson `kfy`,
+         * `mag` and `grt` taught when the second South Asian batch seeded
+         * them. `bar` was listed here as a neighbour of `gsw`, `frr` as a
+         * Frisian language beside `li`, `lmo` as an Italian neighbour of
+         * `vec`, `lij` and `pms`, and `mwl`, `ext`, `an` and `wa` as Romance
+         * languages with no catalog here at all. Every one of the seven now
+         * has a catalog of its own and is asserted against it in the batch
+         * below. Nothing about `MACROLANGUAGE_MEMBERS` changed to let them
+         * through: the way off this list is a directory, not an entry in the
+         * map.
+         *
+         * What is left is the same shape it always was. `swg` (Swabian) and
+         * `wae` (Walser) are the remaining neighbours of `gsw`; `wae` is
+         * spoken *inside Switzerland* and is still a language with a code of
+         * its own. `pfl` and `yec` sit beside `ksh` in and around the
+         * Rhineland. `stq` is the Frisian language still without a catalog,
+         * and `vls` and `zea` the Low Franconian ones. `rgn`, `cim` and `mhn`
+         * are Italian neighbours of `vec`, `lij`, `pms`, `nap` and `fur` —
+         * `cim` and `mhn` being Germanic languages spoken inside Italy, so
+         * neither the country's catalogs nor the family's is the right answer.
+         * `rgn` is the sharpest of them now that `egl` has a catalog: the two
+         * are the halves the widely-seen `eml` lumps together, and Romagnol
+         * still does not reach Emilian's directory. `sgs` and `ltg` are the
+         * Baltic pair. `pdc` and `hrx` are German diaspora languages whose
+         * speakers are nowhere near any of these.
+         *
+         * Not one of them is folded, and none should be: the moment membership
+         * becomes a judgement about how close two varieties sound, nothing in
+         * these maps is checkable any more.
+         */
+        it.each([
+            "swg",
+            "wae",
+            "pfl",
+            "yec",
+            "stq",
+            "vls",
+            "zea",
+            "rgn",
+            "cim",
+            "mhn",
+            "sgs",
+            "ltg",
+            "pdc",
+            "hrx",
+        ])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * Alsatian is the batch's `alq`: the nearest miss that is not a miss
+         * at all. `gsw-FR` is Alsatian, and ISO puts it *inside* `gsw` rather
+         * than beside it, so it reaches `locales/gsw` and gets the
+         * Zurich-based koine that catalog is written in. That is the same
+         * trade region-stripping already makes for `es-MX`, and
+         * `locales/gsw`'s own header says which variety it is so a reader can
+         * tell what they were served.
+         */
+        it("serves an Alsatian reader the Swiss German catalog, as ISO groups them", () => {
+            expect(negotiateLocales([normalizeLocaleTag("gsw-FR")], available)) //
+                .toEqual(["gsw", "en"]);
+        });
+
+        /**
+         * `rue` is the batch's one Cyrillic catalog, and CLDR maximizes it to
+         * **Ukraine** — while the codification `locales/rue` is written in is
+         * the Prešov one, standardized in Slovakia. That is CLDR's answer
+         * rather than a wrong one, and it is recorded rather than worked
+         * around: a host that knew only the region would not reach this
+         * catalog through it, and nobody should later "fix" region handling
+         * into assuming otherwise. It is the `und-WF`-maximizes-to-French row
+         * of the Oceania batch, one batch on.
+         */
+        it("maximizes Rusyn to Ukraine, not to the state its codification comes from", () => {
+            expect(new Intl.Locale("rue").maximize().region).toBe("UA");
+            expect(negotiateLocales([normalizeLocaleTag("rue-SK")], available)) //
+                .toEqual(["rue", "en"]);
+        });
+
+        /**
+         * `eml` is left to miss for `map`'s reason. Emilian-Romagnol is the
+         * one tag in this region CLDR has **no data of any kind** for: it
+         * maximizes to nothing at all and `Intl.DisplayNames` has no name for
+         * it in any language. A tag ICU cannot place is the clearest possible
+         * case for leaving it alone rather than guessing which of `lij`, `vec`
+         * or `pms` its reader would rather have.
+         *
+         * The second European batch made this row *harder* rather than
+         * easier, which is why it is asserted again below from the other
+         * side. `locales/egl` now exists, and `eml` is the tag that lumps
+         * Emilian together with Romagnol — so there is now an obvious guess to
+         * make and it is still not made. `eml` covers two languages; a reader
+         * who typed it named both, and Emilian is not the answer to that any
+         * more than Romagnol is.
+         */
+        it("leaves Emilian-Romagnol alone, because CLDR has no opinion about it", () => {
+            const maximized = new Intl.Locale("eml").maximize();
+            expect(maximized.region).toBeUndefined();
+            expect(maximized.script).toBeUndefined();
+            expect(negotiateLocales([normalizeLocaleTag("eml")], available)) //
+                .toEqual(["en"]);
+        });
+    });
+
+    /**
+     * The second European batch. Fifteen more catalogs across the same
+     * continent, and like the first it **changes neither map** — but it is the
+     * first batch whose whole point, from the negotiation side, is the seven
+     * tags it takes *off* an existing test's near-miss list rather than
+     * anything it adds to a map.
+     *
+     * `bar`, `frr`, `lmo`, `mwl`, `ext`, `an` and `wa` were all written into
+     * the first European batch's near-miss list as neighbours the map declined
+     * to fold onto `gsw`, `li`, `vec` and the rest. Each now answers with its
+     * own catalog, and no entry in `MACROLANGUAGE_MEMBERS` or
+     * {@link LANGUAGE_ALIASES} moved to make that happen. That is the whole
+     * shape of the argument the near-miss lists exist to make: a language
+     * reaches a catalog by having one.
+     */
+    describe("the second European batch", () => {
+        const EUROPEAN_REGIONAL_2 = [
+            "an",
+            "ext",
+            "lad",
+            "mwl",
+            "wa",
+            "frp",
+            "nrf",
+            "lmo",
+            "egl",
+            "lld",
+            "kw",
+            "gv",
+            "bar",
+            "frr",
+            "rom",
+        ];
+
+        it.each<[string, string]>([
+            // Each of the fifteen arriving as the directory it names.
+            ...EUROPEAN_REGIONAL_2.map((locale): [string, string] => [
+                locale,
+                locale,
+            ]),
+            // The alpha-3 doors for the four with a 639-1 code, folded by
+            // `Intl.getCanonicalLocales` rather than by anything here.
+            ["cor", "kw"],
+            ["glv", "gv"],
+            ["wln", "wa"],
+            ["arg", "an"],
+            // `rmy` is the row worth reading. Vlax Romani is not an alias this
+            // repository wrote: ICU canonicalizes the member code onto the
+            // macrolanguage, so a host that asks for `rmy` has asked for `rom`
+            // before negotiation sees it. The catalog is named `rom` because
+            // that is the only name reachable, and its header says the written
+            // norm it uses is closest to Vlax — which is what makes the
+            // canonicalization a fair answer rather than a lucky one.
+            ["rmy", "rom"],
+            // Region tags, which filter without help.
+            ["kw-GB", "kw"],
+            ["gv-IM", "gv"],
+            ["wa-BE", "wa"],
+            ["an-ES", "an"],
+            ["ext-ES", "ext"],
+            ["mwl-PT", "mwl"],
+            ["lmo-IT", "lmo"],
+            ["egl-IT", "egl"],
+            ["lld-IT", "lld"],
+            ["bar-AT", "bar"],
+            ["bar-DE", "bar"],
+            ["frr-DE", "frr"],
+            ["rom-RO", "rom"],
+            // Arpitan and Norman are the two tags spread across states, and
+            // both reach the one catalog whichever state is named — `frp` from
+            // France, Switzerland and the Aosta Valley, `nrf` from Jersey and
+            // Guernsey. `locales/nrf` is written in Jèrriais and says so, so a
+            // Guernsey reader is served a neighbouring variety rather than
+            // their own; that is the `gsw-FR` trade, recorded rather than
+            // hidden.
+            ["frp-FR", "frp"],
+            ["frp-CH", "frp"],
+            ["frp-IT", "frp"],
+            ["nrf-JE", "nrf"],
+            ["nrf-GG", "nrf"],
+            // Script tags. All fifteen catalogs are Latin, so a `-Latn` is
+            // redundant rather than a disambiguation and has to cost nothing.
+            // `lad-Latn` is the one that is not redundant — see the block
+            // below — and `rom-Latn` names the script the Romani Union's
+            // standard alphabet uses, against the Cyrillic some varieties are
+            // printed in.
+            ["kw-Latn", "kw"],
+            ["lad-Latn", "lad"],
+            ["rom-Latn", "rom"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The batch that changed no map, asserted as such — the same pair of
+         * halves the first European batch is held by.
+         */
+        it("folds none of the fifteen onto another catalog", () => {
+            for (const locale of EUROPEAN_REGIONAL_2) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The seven this batch removed from the first European batch's
+         * near-miss list, asserted here against their own catalogs. The list
+         * they left is above, still fourteen entries long and still unfolded.
+         */
+        it.each(["bar", "frr", "lmo", "mwl", "ext", "an", "wa"])(
+            "answers %s from its own catalog, where it used to fall to English",
+            (locale) => {
+                expect(
+                    negotiateLocales([normalizeLocaleTag(locale)], available),
+                ).toEqual([locale, "en"]);
+            },
+        );
+
+        /**
+         * `rgn` is the near miss this batch sharpened, and it is left to miss.
+         *
+         * Romagnol and Emilian are the two halves of the `eml` tag, and only
+         * one of them now has a catalog. A Romagnol reader is closer to
+         * `locales/egl` than to anything else on the roster and still gets
+         * English, because "closer than anything else" is not membership —
+         * ISO puts `rgn` and `egl` beside each other rather than one inside
+         * the other, and there is no macrolanguage tag over the pair that
+         * anybody could type meaning Romagnol in particular.
+         */
+        it("leaves Romagnol on English rather than folding it onto Emilian", () => {
+            expect(negotiateLocales([normalizeLocaleTag("rgn")], available)) //
+                .toEqual(["en"]);
+        });
+
+        /**
+         * Ladino's script, which is the one place in this batch where CLDR's
+         * answer and this repository's catalog disagree.
+         *
+         * `lad` maximizes to `lad-Hebr`. Judeo-Spanish was written in Hebrew
+         * letters — square, Rashi and solitreo — for four centuries, so that
+         * is a true fact about the language and a stale one about its readers:
+         * `locales/lad` is written in the Latin Aki Yerushalayim orthography,
+         * which is what a Ladino reader meets today.
+         *
+         * Negotiation is unaffected — script subtags filter, and both `lad`
+         * and `lad-Latn` reach the catalog. What it *did* affect is direction,
+         * which `directionOf` had to be taught, and `direction.test.ts` holds
+         * that half.
+         */
+        it("serves the Latin Ladino catalog for a tag CLDR reads as Hebrew script", () => {
+            expect(new Intl.Locale("lad").maximize().script).toBe("Hebr");
+            expect(negotiateLocales([normalizeLocaleTag("lad")], available)) //
+                .toEqual(["lad", "en"]);
+            expect(negotiateLocales([normalizeLocaleTag("lad-IL")], available)) //
+                .toEqual(["lad", "en"]);
+        });
+    });
+});
+
+/**
+ * The three catalogs named after a member of a macrolanguage rather than after
+ * the macrolanguage, and the ICU behaviour that makes the naming possible only
+ * with a {@link LANGUAGE_ALIASES} row behind it.
+ *
+ * `kmr`, `kpv` and `mhr` are not tags ICU will carry: it canonicalizes each one
+ * straight back onto `ku`, `kv` and `chm`, so `normalizeLocaleTag` has rewritten
+ * a hand-typed `<document lang="kmr">` before negotiation ever runs. A
+ * directory named `kmr` is therefore unreachable under *both* names unless
+ * something maps the macrolanguage forward onto it — which is the opposite of
+ * the `koi`/`mrj` case, where the alias had to be *removed* for the member's
+ * own catalog to win.
+ *
+ * These rows are the ones that fail if someone deletes those three alias
+ * entries as redundant, or if a future ICU stops folding the member codes and
+ * makes them look unnecessary. Both halves are asserted: the canonicalization
+ * itself, so the reason is visible, and the negotiation result, so the
+ * consequence is.
+ */
+describe("a catalog named after a macrolanguage member", () => {
+    const available = ["kmr", "kpv", "mhr", "ckb", "koi", "mrj", "en"];
+
+    it.each([
+        ["kmr", "ku"],
+        ["kpv", "kv"],
+        ["mhr", "chm"],
+    ])(
+        "has its own tag canonicalized onto %s's macrolanguage",
+        (member, macro) => {
+            expect(normalizeLocaleTag(member)).toBe(macro);
+        },
+    );
+
+    it.each([
+        // The member's own tag, which only arrives because the alias catches it
+        // after ICU has rewritten it.
+        ["kmr", "kmr"],
+        ["kpv", "kpv"],
+        ["mhr", "mhr"],
+        // The macrolanguage code, which is what an author is most likely to
+        // type and what a browser is most likely to send.
+        ["ku", "kmr"],
+        ["kv", "kpv"],
+        ["chm", "mhr"],
+    ])("reaches the catalog when asked for as %s", (requested, expected) => {
+        expect(
+            negotiateLocales([normalizeLocaleTag(requested)], available),
+        ).toEqual([expected, "en"]);
+    });
+
+    /**
+     * The sibling each rename was made for. A member with a catalog of its own
+     * still wins over the one named after the macrolanguage — `ckb` beside
+     * Kurmanji, `koi` beside Zyrian, `mrj` beside Meadow Mari — which is the
+     * property that makes naming the directory after the narrower language
+     * honest rather than merely tidier.
+     */
+    it.each([
+        ["ckb", "ckb"],
+        ["koi", "koi"],
+        ["mrj", "mrj"],
+    ])("leaves %s reaching its own catalog", (requested, expected) => {
+        expect(
+            negotiateLocales([normalizeLocaleTag(requested)], available),
+        ).toEqual([expected, "en"]);
+    });
+});
+
+/**
+ * A host's own catalogs beat an alias, which is the property that makes adding
+ * an alias to a tag that already worked a safe change rather than a silent
+ * regression.
+ *
+ * `available` is not only this repository's roster. A host supplies catalogs
+ * through `localeResources`, keyed however it likes, and the documented
+ * contract is that those win. So aliasing has to *add* a fallback rather than
+ * replace the tag: rewriting `ku` to `kmr` before matching would mean a host
+ * catalog keyed `ku` was never compared against anything, and its reader got
+ * English while their translation sat in memory.
+ *
+ * The three catalogs named after a macrolanguage member are where this bites,
+ * because `ku`, `kv` and `chm` are all tags a host may already be keying a
+ * catalog on — but the rows below cover the older aliases too, since the same
+ * hazard has always applied to them.
+ */
+describe("a host catalog keyed on an aliased tag", () => {
+    it.each([
+        // The three tags whose catalogs took their member's name.
+        ["ku", "kmr"],
+        ["kv", "kpv"],
+        ["chm", "mhr"],
+        // The aliases that predate them, which have the same shape.
+        ["no", "nb"],
+        ["tw", "ak"],
+        ["man", "mnk"],
+        // And a macrolanguage member fold, which reaches the same code path.
+        ["quz", "qu"],
+    ])(
+        "prefers the host's own %s catalog over the %s it aliases to",
+        (asked, alias) => {
+            // Supplied under the tag the host asked for, and nothing else: the
+            // host's catalog answers rather than English.
+            expect(negotiateLocales([asked], [asked, "en"])).toEqual([
+                asked,
+                "en",
+            ]);
+            // Supplied under both: the host's own key still wins, with the alias
+            // behind it rather than instead of it.
+            expect(negotiateLocales([asked], [asked, alias, "en"])).toEqual([
+                asked,
+                alias,
+                "en",
+            ]);
+            // Supplied under neither: the alias is what carries the request, which
+            // is the behaviour the alias exists for.
+            expect(negotiateLocales([asked], [alias, "en"])).toEqual([
+                alias,
+                "en",
+            ]);
+        },
+    );
+
+    /**
+     * The limit of what an alias can do, pinned so that it is documented
+     * rather than discovered.
+     *
+     * An alias cannot tell the macrolanguage tag from the member tag, because
+     * by the time negotiation runs there is nothing to tell apart:
+     * `normalizeLocaleTag` has already folded `kmr` to `ku` — ICU's
+     * canonicalization, the very thing these aliases exist to work around — so
+     * `<document lang="kmr">` and `<document lang="ku">` arrive as the same
+     * request. A host supplying catalogs under *both* keys gets the
+     * macrolanguage one either way.
+     *
+     * This is not something the aliases introduced. `kmr` folded to `ku`
+     * before this repository had a `locales/kmr` to fold it onto, and
+     * `resolveDocumentLocale` reported `ku` for an authored `kmr` on `main`
+     * too. Undoing it would mean `normalizeLocaleTag` declining to
+     * canonicalize these three subtags, which changes what a normalized tag
+     * means everywhere and is a separate decision from this one.
+     */
+    it.each([
+        ["kmr", "ku"],
+        ["kpv", "kv"],
+        ["mhr", "chm"],
+    ])(
+        "cannot distinguish an authored %s from the macrolanguage it folds to",
+        (member, macro) => {
+            // The fold happens in the viewer, before negotiation sees it.
+            expect(resolveDocumentLocale(member, undefined)).toBe(macro);
+            expect(resolveDocumentLocale(macro, undefined)).toBe(macro);
+            // So both authored tags produce the same chain, and a host that
+            // offers both keys is answered with the macrolanguage's.
+            const hostOffersBoth = [macro, member, "en"];
+            for (const authored of [member, macro]) {
+                expect(
+                    negotiateLocales(
+                        [resolveDocumentLocale(authored, undefined)],
+                        hostOffersBoth,
+                    ),
+                ).toEqual([macro, member, "en"]);
+            }
+        },
+    );
+
+    /**
+     * The bundled case, spelled out separately because it is the one the
+     * roster actually exercises: this repository ships no `ku`, `kv` or `chm`
+     * directory any more, so a request under the macrolanguage code has only
+     * the alias to reach.
+     */
+    it.each([
+        ["ku", "kmr"],
+        ["kv", "kpv"],
+        ["chm", "mhr"],
+    ])("reaches the bundled %s catalog as %s", (asked, expected) => {
+        expect(
+            negotiateLocales([normalizeLocaleTag(asked)], available),
+        ).toEqual([expected, "en"]);
+    });
+
+    /**
+     * The Silk Road. Fifteen catalogs strung between the Black Sea and the
+     * Pamirs, and the batch that brings back the shape the two before it —
+     * Oceania and the European regional one — both did without: two of the
+     * fifteen are **macrolanguages**, and they are the only entries this batch
+     * added to `MACROLANGUAGE_MEMBERS`, which neither of those two touched at
+     * all.
+     *
+     * `zza` (Zaza) and `bal` (Balochi) each stand over members ICU splits in
+     * half. `Intl.getCanonicalLocales` already folds exactly one member of
+     * each onto the macrolanguage — `diq` onto `zza`, `bcc` onto `bal` — and
+     * leaves the rest unresolvable, which is the same one-of-each split `quz`
+     * and `ojg` showed in earlier batches. So `kiu`, `bgn` and `bgp` reach a
+     * catalog *only* because the map lists them. The rows below assert both
+     * halves separately, because the two mechanisms fail differently: an ICU
+     * data change breaks the first, an edit to `src/negotiate.ts` the second,
+     * and a test that only checked the negotiation result could not tell which
+     * had happened.
+     *
+     * The other thirteen are individual languages that reached English on
+     * their own account before this batch and reach their own catalog now.
+     */
+    describe("the Silk Road batch", () => {
+        /** The fifteen tags this batch adds, in the order the README lists them. */
+        const SILK_ROAD = [
+            "crh",
+            "gag",
+            "ttt",
+            "kaa",
+            "kjh",
+            "alt",
+            "mzn",
+            "glk",
+            "lrc",
+            "bal",
+            "haz",
+            "zza",
+            "dng",
+            "sgh",
+            "wbl",
+        ];
+
+        /**
+         * Every one of the fifteen reaches the directory it names when the
+         * whole roster is on offer, and reaches English when only English is —
+         * the second half being what would fail if some entry were quietly
+         * folding one of these tags onto a neighbour instead of letting it
+         * arrive under its own name.
+         */
+        it("gives each of the fifteen its own catalog and nothing else", () => {
+            for (const locale of SILK_ROAD) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The half ICU does. `diq` and `bcc` never reach
+         * `MACROLANGUAGE_MEMBERS` at all: `normalizeLocaleTag` has already
+         * rewritten them to the macrolanguage before negotiation is consulted,
+         * so their entries in the map are documentation of a fact rather than
+         * the thing that makes them work. Asserting the canonicalization
+         * itself is what tells a later reader which of the two mechanisms is
+         * carrying the row.
+         */
+        it.each([
+            ["diq", "zza"],
+            ["bcc", "bal"],
+        ])(
+            "has ICU fold %s onto %s before negotiation sees it",
+            (member, macro) => {
+                expect(normalizeLocaleTag(member)).toBe(macro);
+                expect(
+                    negotiateLocales([normalizeLocaleTag(member)], available),
+                ) //
+                    .toEqual([macro, "en"]);
+            },
+        );
+
+        /**
+         * The half this repository does. ICU leaves all three of these tags
+         * exactly as typed — `normalizeLocaleTag("kiu")` is still `"kiu"` —
+         * so without their rows in `MACROLANGUAGE_MEMBERS` each would filter
+         * against a language subtag no directory is named for and fall to
+         * English.
+         *
+         * `kiu` is the sharper one: Northern Zazaki (Kirmanckî) is the very
+         * variety `locales/zza` leans toward, so the member ICU cannot resolve
+         * is the one whose speakers the catalog was written for.
+         */
+        it.each([
+            ["kiu", "zza"],
+            ["bgn", "bal"],
+            ["bgp", "bal"],
+        ])(
+            "reaches %s's catalog as %s only because the map lists it",
+            (member, macro) => {
+                expect(normalizeLocaleTag(member)).toBe(member);
+                expect(
+                    negotiateLocales([normalizeLocaleTag(member)], available),
+                ).toEqual([macro, "en"]);
+            },
+        );
+
+        /**
+         * The near misses. The European regional block above has more of them
+         * — Europe's continua leave twenty-one tags to miss against this
+         * corridor's twelve — but these are of a different kind: every catalog
+         * here has a close relative that did *not* get one, often inside its
+         * own subgroup.
+         *
+         * `luz` (Southern Luri) and `bqi` (Bakhtiari) sit beside `lrc`
+         * (Northern Luri) and are the other two Luri codes; ISO 639-3 makes
+         * all three separate languages rather than members of a macrolanguage,
+         * so there is nothing to fold and no published fact saying that a
+         * Bakhtiari reader should be served the Northern Luri catalog.
+         *
+         * `sgy` (Sanglechi), `yah` (Yazghulami), `ydg` (Yidgha), `srh`
+         * (Sarikoli) and `isk` (Ishkashimi) are the other Pamiri languages
+         * beside `sgh` (Shughni), and `khw` (Khowar) is the Dardic neighbour
+         * of `wbl` (Wakhi). Sharing the Pamirs is not sharing a language, and
+         * `srh` is the sharpest of them: it maximizes into China, in the Arabic
+         * script, where `locales/sgh` is Cyrillic for Tajikistan.
+         *
+         * `slr` (Salar), `uum` (Urum) and `cjs` (Shor) are Turkic languages
+         * beside the batch's five Turkic catalogs, and `azb` (South
+         * Azerbaijani) is the one that would be easiest to get wrong: it is
+         * beside `az`, which the roster *does* have, and the two are written in
+         * different scripts — `locales/az` is Latin for the republic, `azb`
+         * maximizes to `azb-Arab-IR` — so folding it would serve an Iranian
+         * reader an alphabet they do not use. `jdt` (Judeo-Tat) is the last of
+         * them and the one `locales/ttt`'s own header names: a separate written
+         * tradition rather than a variety of Muslim Tat, so it is left to fall
+         * to English rather than served that catalog.
+         */
+        it.each([
+            "luz",
+            "bqi",
+            "jdt",
+            "sgy",
+            "yah",
+            "ydg",
+            "srh",
+            "isk",
+            "khw",
+            "slr",
+            "uum",
+            "cjs",
+            "azb",
+        ])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * The collection codes, left to miss for `map`'s and `smi`'s reason.
+         * `trk` (Turkic), `ira` (Iranian) and `tut` (Altaic) are ISO 639-5
+         * *collections* rather than languages — this batch alone is five
+         * languages inside `trk` and eight inside `ira` — and CLDR has no
+         * opinion about which member a bare one of them means: each maximizes
+         * to nothing at all, no script and no region. A tag that names a
+         * family cannot be answered with one family member's catalog, so all
+         * three are left to fall to English.
+         */
+        it.each(["trk", "ira", "tut"])(
+            "leaves the %s collection code alone, because CLDR has no opinion about it",
+            (collection) => {
+                const maximized = new Intl.Locale(collection).maximize();
+                expect(maximized.region).toBeUndefined();
+                expect(maximized.script).toBeUndefined();
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(collection)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        it.each([
+            // Region tags, which filter without help. Every one of the fifteen
+            // maximizes to a region, and the batch spans eleven countries.
+            ["crh-UA", "crh"],
+            ["gag-MD", "gag"],
+            ["ttt-AZ", "ttt"],
+            ["kaa-UZ", "kaa"],
+            ["kjh-RU", "kjh"],
+            ["alt-RU", "alt"],
+            ["mzn-IR", "mzn"],
+            ["glk-IR", "glk"],
+            ["lrc-IR", "lrc"],
+            ["bal-PK", "bal"],
+            ["haz-AF", "haz"],
+            ["zza-TR", "zza"],
+            ["dng-KG", "dng"],
+            ["sgh-TJ", "sgh"],
+            ["wbl-PK", "wbl"],
+            // Wakhi is spoken across four borders and CLDR picks Pakistan;
+            // a reader who says Afghanistan reaches the same catalog, because
+            // the region subtag is filtered away rather than matched.
+            ["wbl-AF", "wbl"],
+            // Script tags. Both scripts reach the one catalog either way, and
+            // the pair below is the asymmetry CLDR's own maximization creates.
+            ["crh-Latn", "crh"],
+            ["crh-Cyrl", "crh"],
+            ["kaa-Latn", "kaa"],
+            ["zza-Latn", "zza"],
+            ["bal-Arab", "bal"],
+            ["wbl-Latn", "wbl"],
+            ["crh-Latn-UA", "crh"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The script asymmetry, which this batch owes twice over in the same
+         * direction — the `locales/ha` and `locales/kr` shape, in a corridor
+         * where two alphabets are official at once rather than one being an
+         * older layer.
+         *
+         * `crh` maximizes to **`crh-Cyrl-UA`** and `kaa` to **`kaa-Cyrl-UZ`**,
+         * so CLDR's own data says the likeliest Crimean Tatar and Karakalpak
+         * readers arrive in Cyrillic. Both catalogs are written in **Latin** —
+         * the 2021 Ukrainian standard and Karakalpakstan's current schoolbook
+         * alphabet respectively — and both headers say so and tell a reviewer
+         * who prefers Cyrillic to transliterate all four files at once rather
+         * than mix alphabets.
+         *
+         * That is a debt the roster records rather than a bug in negotiation:
+         * region and script subtags are filtered away, so a `-Cyrl` request is
+         * served Latin instead of missing, and the answer to it is a second
+         * catalog rather than a change here. The other Cyrillic-maximizing
+         * members of the batch — `kjh`, `alt`, `dng`, `sgh` — have no such
+         * debt, because their catalogs *are* Cyrillic.
+         */
+        it("serves Latin catalogs to the two tags CLDR maximizes into Cyrillic", () => {
+            expect(new Intl.Locale("crh").maximize().script).toBe("Cyrl");
+            expect(new Intl.Locale("kaa").maximize().script).toBe("Cyrl");
+            for (const locale of ["crh", "kaa"]) {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(`${locale}-Cyrl`)],
+                        available,
+                    ),
+                ).toEqual([locale, "en"]);
+            }
+            // …and the four whose catalogs match their maximization, so that
+            // the pair above reads as the exception it is.
+            for (const locale of ["kjh", "alt", "dng", "sgh"]) {
+                expect(new Intl.Locale(locale).maximize().script).toBe("Cyrl");
+            }
+        });
+    });
+    describe("the Southeast Asian batch", () => {
+        /** The fifteen tags this batch adds, in the order the README lists them. */
+        const SOUTHEAST_ASIA = [
+            "bug",
+            "mak",
+            "bjn",
+            "gor",
+            "nia",
+            "bbc",
+            "iba",
+            "dtp",
+            "pag",
+            "cbk",
+            "tsg",
+            "mrw",
+            "shn",
+            "mnw",
+            "ksw",
+        ];
+
+        /**
+         * Every one of the fifteen reaches the directory it names, and reaches
+         * *only* that directory before English.
+         *
+         * The exact chain rather than a `toContain` is the point: a `["bjn",
+         * "ms", "en"]` would pass a containment check and would mean the new
+         * `ms` row had folded a tag of this batch onto Standard Malay behind
+         * its own catalog. That is a live hazard rather than a theoretical one,
+         * since `bjn` really is a member of `msa`.
+         *
+         * The English-only roster is asserted beside it for a different reason:
+         * it is the fallback these fifteen had before this PR, so it pins that
+         * seeding a catalog did not change what happens on a host that ships
+         * none of them.
+         */
+        it("gives each of the fifteen its own catalog and nothing else", () => {
+            for (const locale of SOUTHEAST_ASIA) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The three members of Malay this repository answers for itself, which
+         * is the reason the `ms` row is an exclusion list rather than the
+         * macrolanguage's whole membership.
+         *
+         * `ind` is inert either way — ICU rewrites it to `id` before
+         * negotiation is consulted — so `min` and `bjn` are the two that carry
+         * the point: both are ISO 639-3 members of `msa`, both are left out of
+         * the row on purpose, and listing either would take a Minangkabau or
+         * Banjar reader off the catalog written for them and put them on
+         * Standard Malay. That is the `bam`/`dyu` shape under `mnk`, met in a
+         * thirty-six-member macrolanguage rather than in the handful of
+         * Manding siblings that row lists.
+         */
+        it.each(["min", "bjn"])(
+            "keeps %s on its own catalog rather than folding it onto ms",
+            (member) => {
+                expect(normalizeLocaleTag(member)).toBe(member);
+                expect(negotiateLocales([member], available)).toEqual([
+                    member,
+                    "en",
+                ]);
+            },
+        );
+
+        it("folds ind onto id before the map is consulted at all", () => {
+            expect(normalizeLocaleTag("ind")).toBe("id");
+            expect(negotiateLocales([normalizeLocaleTag("ind")], available)) //
+                .toEqual(["id", "en"]);
+        });
+
+        /**
+         * The rest of the macrolanguage, which reaches `locales/ms` only
+         * because the row exists. `zsm` is the one ICU folds on its own and is
+         * listed for the reason the other already-folded codes in that map are;
+         * the others are left unresolvable by CLDR and would each filter
+         * against a language subtag no directory is named for.
+         *
+         * `max` and `xmm` are the pair worth naming. Both are Malay-lexifier
+         * *trade creoles* rather than varieties of Malay, and the map's own
+         * `ktu`-under-`kg` comment refuses exactly that kind of fold — the
+         * difference being that ISO 639-3 puts these two *inside* `msa` and
+         * puts Kituba outside `kg`. The rule stays published membership rather
+         * than a judgement about how close two varieties are.
+         */
+        it.each([
+            ["zsm", true],
+            ["kxd", false],
+            ["meo", false],
+            ["mfa", false],
+            ["pse", false],
+            ["zlm", false],
+            ["max", false],
+            ["xmm", false],
+            ["msi", false],
+            ["urk", false],
+        ])("reaches ms's catalog as %s", (member, foldedByIcu) => {
+            expect(normalizeLocaleTag(member) === "ms").toBe(foldedByIcu);
+            expect(
+                negotiateLocales([normalizeLocaleTag(member)], available),
+            ).toEqual(["ms", "en"]);
+        });
+
+        /**
+         * The script asymmetry the `ms` row buys, which is `locales/kr`'s with
+         * `kby` and `locales/dje`'s with `tda` reached a third time.
+         *
+         * `mfa` (Pattani Malay) maximizes to **`mfa-Arab-TH`**, so CLDR's own
+         * data says the likeliest Pattani reader arrives in Jawi, and
+         * `locales/ms` is Rumi. Script subtags are filtered away, so the
+         * request is served an alphabet its reader may not use rather than
+         * missing — a debt the roster records, whose answer is a second catalog
+         * rather than a change in the map.
+         */
+        it("serves Rumi to the one member CLDR maximizes into Jawi", () => {
+            expect(new Intl.Locale("mfa").maximize().script).toBe("Arab");
+            expect(
+                negotiateLocales([normalizeLocaleTag("mfa-Arab")], available),
+            ).toEqual(["ms", "en"]);
+        });
+
+        /**
+         * The one fold in this batch that needs no map row at all: ICU
+         * canonicalizes `kzj` (Coastal Kadazan) onto `dtp`, so a Coastal
+         * Kadazan reader reaches the Kadazandusun catalog for free.
+         *
+         * `locales/dtp` is written in the Bundu-Liwan-based standard of Sabah
+         * schooling and its header names `dtb` (Labuk-Kinabatangan Kadazan)
+         * and `drg` (Rungus) as siblings a reader may have to respell from —
+         * «opurak» against Coastal «oputi'». Those
+         * two are deliberately *not* folded: `dtp` is not an ISO 639-3
+         * macrolanguage, so there is no published membership to follow and
+         * adding them would be the judgement `MACROLANGUAGE_MEMBERS` exists to
+         * avoid. `kzj` is different in kind — ICU already decided it.
+         */
+        it("takes kzj to dtp through ICU and leaves dtb and drg to miss", () => {
+            expect(normalizeLocaleTag("kzj")).toBe("dtp");
+            expect(negotiateLocales([normalizeLocaleTag("kzj")], available)) //
+                .toEqual(["dtp", "en"]);
+            for (const sibling of ["dtb", "drg"]) {
+                expect(normalizeLocaleTag(sibling)).toBe(sibling);
+                expect(
+                    negotiateLocales([normalizeLocaleTag(sibling)], available),
+                ).toEqual(["en"]);
+            }
+        });
+
+        /**
+         * The near misses, which in this batch are mostly *siblings inside one
+         * island group* rather than the far-flung relatives the Silk Road block
+         * lists.
+         *
+         * `bbc` (Toba) has four other Batak codes beside it — `btd` Dairi,
+         * `bts` Simalungun, `btx` Karo, `btz` Alas-Kluet — and ISO 639-3 makes
+         * every one a separate language rather than a member of a
+         * macrolanguage, so there is nothing to fold. `bug` and `mak` sit
+         * beside `mdr` (Mandar) in South Sulawesi on the same footing. `mrw`
+         * (Maranao) and `mdh` (Maguindanaon) are the two Danao languages and
+         * only one has a catalog; `krj` (Kinaray-a) and `akl` (Aklanon) are
+         * Bisayan neighbours of `tsg`; and `nij` (Ngaju) is `bjn`'s Bornean
+         * neighbour and, being Barito rather than Malayic, is not in `msa`
+         * either.
+         *
+         * `blk` (Pa'o Karen) and `kjp` (Eastern Pwo) are the Karen languages
+         * beside `ksw`, and they are the sharpest of the group: `kar` is an
+         * ISO 639-5 **collection** code rather than a macrolanguage, so there
+         * is no membership fact that would let either reach the S'gaw catalog,
+         * and `locales/ksw`'s own header records that `ၦ` and `ၯ` are Pwo
+         * letters it does not use.
+         */
+        it.each([
+            "btd",
+            "bts",
+            "btx",
+            "btz",
+            "mdr",
+            "mdh",
+            "krj",
+            "akl",
+            "nij",
+            "blk",
+            "kjp",
+        ])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * The collection codes, left to miss for `map`'s and `smi`'s reason:
+         * ISO 639-5 groups are not languages, no catalog can be written in one,
+         * and `Intl` leaves all three exactly as typed. `btk` (Batak) and
+         * `kar` (Karen) each sit directly over a catalog in this batch, which
+         * is what makes them worth asserting rather than assuming.
+         */
+        it.each(["btk", "kar"])(
+            "leaves the collection code %s on English",
+            (requested) => {
+                expect(normalizeLocaleTag(requested)).toBe(requested);
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * Script and region subtags are filtered away, so the tags a document
+         * or a browser is likely to send reach the same catalog the bare tag
+         * does. The three Myanmar-script catalogs are the ones worth writing
+         * out: all three maximize to `-Mymr-MM`, and all three *are* written in
+         * that script, so unlike `mfa` above they carry no debt.
+         */
+        it.each([
+            ["shn-Mymr", "shn"],
+            ["mnw-Mymr", "mnw"],
+            ["ksw-Mymr", "ksw"],
+            ["shn-Mymr-MM", "shn"],
+            ["bjn-Latn", "bjn"],
+            ["cbk-Latn-PH", "cbk"],
+            ["tsg-Latn", "tsg"],
+            ["iba-Latn-MY", "iba"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        it("has all three Myanmar-script catalogs maximize into the script they are written in", () => {
+            for (const locale of ["shn", "mnw", "ksw"]) {
+                expect(new Intl.Locale(locale).maximize().script).toBe("Mymr");
+            }
+        });
     });
 });
 
@@ -1150,6 +2741,150 @@ describe("resolveDocumentLocale", () => {
     it("normalizes whatever it returns", () => {
         expect(resolveDocumentLocale("ES-mx", undefined)).toBe("es-MX");
         expect(resolveDocumentLocale(undefined, "PT-br")).toBe("pt-BR");
+    });
+
+    /**
+     * The Americas. Fifteen catalogs between Greenland and the Guianas, and
+     * the batch whose one `MACROLANGUAGE_MEMBERS` entry is there to record an
+     * **exclusion** rather than to rescue a member.
+     *
+     * `iu` (Inuktitut) is the only macrolanguage among the fifteen, and ISO
+     * 639-3 gives it exactly two members: `ike` (Eastern Canadian Inuktitut)
+     * and `ikt` (Inuinnaqtun). ICU folds `ike` on its own, so the entry
+     * `iu: ["ike"]` changes no negotiation result at all — it is the shape
+     * `quz`, `ojg` and `gug` already have, a listed member that would have
+     * arrived anyway, written down so the list is the whole of a group rather
+     * than the leftovers of one.
+     *
+     * **`ikt` is left out, and the reason is the script.** Inuinnaqtun is
+     * written in roman letters; every Inuktitut word in `locales/iu` is
+     * written in Canadian Aboriginal syllabics, the roman in that catalog
+     * being DoenetML identifiers and a few declared English loans rather than
+     * prose. Folding `ikt` would hand a reader a catalog whose every
+     * translated sentence is in a script they do not read, which is a worse
+     * answer than the English fallback. That is
+     * a third kind of exclusion from this map: `kbl` under `kr` and `alq`
+     * under `oj` are excluded because published membership does not cover
+     * them, `bam` and `dyu` under `mnk` because they have catalogs of their
+     * own, and `ikt` because the catalog cannot serve a member it does cover.
+     * The rows below assert both halves, because they fail differently — an
+     * ICU data change breaks the first, an edit to `src/negotiate.ts` the
+     * second.
+     *
+     * The other fourteen are individual languages that reached English on
+     * their own account before this batch and reach their own catalog now.
+     * Nine of the fifteen are creoles, and a creole tag is exactly the kind
+     * this map cannot help: a creole is not a member of its lexifier, so
+     * nothing folds `gcf` onto `fr` or `jam` onto `en`, and nothing should.
+     */
+    describe("the Americas batch", () => {
+        /** The fifteen tags this batch adds, in the order the README lists them. */
+        const AMERICAS = [
+            "kl",
+            "iu",
+            "yua",
+            "kek",
+            "cab",
+            "miq",
+            "pap",
+            "srn",
+            "jam",
+            "gcf",
+            "acf",
+            "gcr",
+            "bzj",
+            "djk",
+            "srm",
+        ];
+
+        /**
+         * Every one of the fifteen reaches the directory it names when the
+         * whole roster is on offer, and reaches English when only English is —
+         * the second half being what would fail if some entry were quietly
+         * folding one of these tags onto a neighbour instead of letting it
+         * arrive under its own name.
+         */
+        it("gives each of the fifteen its own catalog and nothing else", () => {
+            for (const locale of AMERICAS) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The half ICU does. `ike` never reaches `MACROLANGUAGE_MEMBERS` at
+         * all: `normalizeLocaleTag` has already rewritten it to `iu` before
+         * negotiation is consulted, so its entry in the map documents a fact
+         * rather than carrying the row.
+         */
+        it("has ICU fold ike onto iu before negotiation sees it", () => {
+            expect(normalizeLocaleTag("ike")).toBe("iu");
+            expect(negotiateLocales([normalizeLocaleTag("ike")], available)) //
+                .toEqual(["iu", "en"]);
+        });
+
+        /**
+         * The exclusion, asserted as a negotiation result rather than as an
+         * absent map entry, so that adding `ikt` to the list fails here
+         * instead of silently changing what an Inuinnaqtun reader is served.
+         * ICU leaves the tag exactly as typed, which is what makes the map the
+         * only thing that could fold it.
+         */
+        it("leaves ikt on English rather than serving it a syllabics catalog", () => {
+            expect(normalizeLocaleTag("ikt")).toBe("ikt");
+            expect(negotiateLocales(["ikt"], available)).toEqual(["en"]);
+        });
+
+        /**
+         * `locales/iu` is syllabics and CLDR agrees: `iu` maximizes to
+         * `iu-Cans-CA`, so a reader arriving under a bare `iu` or under
+         * `iu-Cans` gets a script they can read. `iu-Latn` is the asymmetry
+         * `pa`, `sr` and `ha` already have — a reader in the other script
+         * reaching the catalog written in this one — and the answer to it is a
+         * second catalog rather than a rename of the first.
+         */
+        it("agrees with CLDR that iu is written in syllabics", () => {
+            expect(new Intl.Locale("iu").maximize().script).toBe("Cans");
+            expect(negotiateLocales(["iu-Latn"], available)).toEqual([
+                "iu",
+                "en",
+            ]);
+        });
+
+        /**
+         * The fourteen Latin-script catalogs agree with CLDR about their own
+         * script, so none of them has `iu`'s asymmetry. Asserted as a group
+         * because the interesting case is a future ICU build moving one of
+         * them, not any one row today.
+         */
+        it("has CLDR agree that the other fourteen are written in Latin", () => {
+            for (const locale of AMERICAS.filter((tag) => tag !== "iu")) {
+                expect(new Intl.Locale(locale).maximize().script).toBe("Latn");
+            }
+        });
+
+        /**
+         * A creole is not a member of its lexifier, and nothing here pretends
+         * otherwise: a reader who asks for French is served French even though
+         * three French-lexifier creoles now have catalogs, and the same for
+         * English, Dutch and Spanish. This is what would break if someone
+         * decided a missing lexifier catalog should fall back to a creole, or
+         * the reverse.
+         */
+        it.each([
+            ["fr", "fr"],
+            ["en", "en"],
+            ["nl", "nl"],
+            ["es", "es"],
+        ])(
+            "keeps %s on its own catalog rather than on a creole",
+            (tag, expected) => {
+                expect(negotiateLocales([tag], available)[0]).toBe(expected);
+            },
+        );
     });
 });
 
@@ -1190,4 +2925,88 @@ describe("normalizeLocaleTag", () => {
             negotiateLocales([normalizeLocaleTag("es-mx")], ["es-MX", "en"]),
         ).toEqual(["es-MX", "en"]);
     });
+});
+
+/**
+ * The East African batch, and the thirteen tags it deliberately did not seed.
+ *
+ * Two catalogs ship — `cgg` (Chiga) and `xog` (Soga) — out of fifteen the
+ * batch set out with. The thirteen that did not are recorded on #1655 with
+ * the coverage each honestly reached, and the point of asserting them here is
+ * that **a language without a catalog must reach English**, not a neighbour
+ * that happens to look close on a map. Every one of the thirteen has a near
+ * relative on this roster, and several have a very near one: `sw` sits beside
+ * all of them, `lg` beside `xog`, `nyn` beside `cgg`, `ki` beside `ebu` and
+ * `mer`. None of that folds, and none of it should — the moment membership
+ * becomes a judgement about how close two varieties sound, nothing in these
+ * maps is checkable any more.
+ */
+describe("the East African batch", () => {
+    it.each(["cgg", "xog"])("serves %s its own catalog", (requested) => {
+        expect(
+            negotiateLocales([normalizeLocaleTag(requested)], available),
+        ).toEqual([requested, "en"]);
+    });
+
+    /**
+     * `kln` is not in this list because it is already asserted as a negative
+     * control further up, where it has been since before this batch — the
+     * batch considered Kalenjin, measured it, and left that assertion doing
+     * exactly the job it was written for.
+     */
+    it.each([
+        "kam",
+        "guz",
+        "luy",
+        "mas",
+        "mer",
+        "saq",
+        "dav",
+        "ebu",
+        "teo",
+        "ksb",
+        "vun",
+        "jmc",
+    ])(
+        "leaves %s on English rather than folding it onto a neighbour",
+        (requested) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual(["en"]);
+        },
+    );
+
+    /**
+     * The sharpest pair on that list, and the one someone will be tempted to
+     * "fix". Rukiga and Runyankore share a single written standard, one
+     * dictionary and most of their vocabulary, and `locales/cgg` says so in
+     * its own header. They are still two languages with two codes: folding
+     * either onto the other would answer a reader in a variety they did not
+     * ask for on the strength of a resemblance.
+     *
+     * The `cgg` side is the first assertion in this block. This is the `nyn`
+     * side, which the West and Central African batch already asserted in its
+     * own table — restated here because until this batch there was no `cgg`
+     * catalog for it to be folded onto, so the row could not have failed.
+     */
+    it("keeps Runyankore on its own catalog rather than serving it Rukiga", () => {
+        expect(negotiateLocales([normalizeLocaleTag("nyn")], available)) //
+            .toEqual(["nyn", "en"]);
+    });
+
+    /**
+     * `luy` and `kln` are macrolanguages, and neither gained a
+     * `MACROLANGUAGE_MEMBERS` entry — because neither has a catalog to fold a
+     * member onto. Asserted so that the reason stays visible: the entry is
+     * owed the moment either is seeded, and until then a member reaching
+     * English is correct rather than a gap.
+     */
+    it.each(["bxk", "spy"])(
+        "leaves %s on English while its macrolanguage has no catalog",
+        (requested) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual(["en"]);
+        },
+    );
 });

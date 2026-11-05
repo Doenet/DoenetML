@@ -832,6 +832,123 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
+    // A displayed equation of several rows is a table MathJax centers on the
+    // math axis, which put the item's number beside its middle row. The number
+    // belongs beside the first row, as it is beside a paragraph's first line.
+    // With three rows the middle one is a whole row away from the first, so the
+    // marker's center cannot land in the first row by accident. The labeled
+    // `<mdn>` and an `<me>` that is just an `array` are two other ways to write
+    // such a table.
+    [
+        {
+            name: "md",
+            markup: `<md><mrow>a &= b</mrow><mrow>c &= d</mrow><mrow>e &= f</mrow></md>`,
+        },
+        {
+            name: "mdn",
+            markup: `<mdn><mrow>a &= b</mrow><mrow>c &= d</mrow><mrow>e &= f</mrow></mdn>`,
+        },
+        {
+            name: "me holding an array",
+            markup: `<me>\\begin{array}{c} a \\\\ b \\\\ c \\end{array}</me>`,
+        },
+    ].forEach(({ name, markup }) => {
+        it(`marker sits beside the first row of a leading ${name}`, () => {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+    <ol>
+      <li name="textItem">Plain text item</li>
+      <li name="item">${markup}</li>
+    </ol>
+    `,
+                    },
+                    "*",
+                );
+            });
+
+            verifyListItemMarkerSharesRowWith(
+                "item",
+                `#${cesc("item")} mjx-itable > :first-child`,
+            );
+        });
+    });
+
+    // Aligning a several-row display on its first row applies to the display's
+    // own table only. A matrix inside one of its rows stays centered between
+    // its parentheses.
+    it("a matrix in a row of a leading md stays between its parentheses", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="item"><md>
+        <mrow>f(x) &= \\begin{pmatrix} a \\\\ b \\\\ c \\end{pmatrix}</mrow>
+        <mrow>g &= h</mrow>
+      </md></li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("item")} mjx-mtd mjx-table > mjx-itable`).should(
+            ($matrix) => {
+                const matrixBox = $matrix[0].getBoundingClientRect();
+                const parenBoxes = [
+                    ...$matrix[0].closest("mjx-mtd").querySelectorAll("mjx-mo"),
+                ]
+                    .map((mo) => mo.getBoundingClientRect())
+                    .filter((box) => box.height > matrixBox.height / 2);
+                expect(parenBoxes, "the matrix's parentheses").to.have.length(
+                    2,
+                );
+                for (const parenBox of parenBoxes) {
+                    const matrixCenter = (matrixBox.top + matrixBox.bottom) / 2;
+                    const parenCenter = (parenBox.top + parenBox.bottom) / 2;
+                    expect(
+                        matrixCenter,
+                        "matrix centered between its parentheses",
+                    ).to.be.closeTo(parenCenter, 2);
+                }
+            },
+        );
+    });
+
+    // Only a table that is the whole equation is aligned on its first row.
+    // Beside other math, as in `x = \begin{array}…`, the `x =` stays beside
+    // the array's middle row.
+    it("math beside a leading array stays beside its middle row", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="item"><me>x = \\begin{array}{c} a \\\\ b \\\\ c \\end{array}</me></li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("item")} mjx-math > mjx-mi`).should(($x) => {
+            const rows = [
+                ...$x[0].parentElement.querySelector("mjx-itable").children,
+            ];
+            expect(rows, "the array's rows").to.have.length(3);
+            const xBox = $x[0].getBoundingClientRect();
+            const middleBox = rows[1].getBoundingClientRect();
+            expect(
+                (xBox.top + xBox.bottom) / 2,
+                "x beside the array's middle row",
+            ).to.be.closeTo((middleBox.top + middleBox.bottom) / 2, 2);
+        });
+    });
+
     // `<ul>` and `<ol>` share one `Li` class, so this is a guard against that
     // ever stopping being true rather than a second implementation.
     //

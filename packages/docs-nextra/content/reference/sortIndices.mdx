@@ -1,0 +1,89 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<sortIndices>{:dn}`
+
+<ComponentDisplay name='sortIndices'/>
+
+`<sortIndices>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that renders the **positions** that put its arguments in sorted order, rather
+than the sorted values themselves. The first entry of the result is the index of the
+smallest value, the second is the index of the next smallest, and so on.
+
+It accepts everything [`<sort>{:dn}`](sort) accepts and orders values identically —
+including `sortByProp` for sorting components by one of their properties. The
+difference is only in what it reports.
+
+Its value comes from being combined with indexing: `$other[$perm[1]]{:dn}` reads one
+list in the order determined by another.
+
+<AttrPropDisplay name='sortIndices'/>
+
+## Examples
+
+### Example: the sorting permutation
+
+
+```doenet-editor-horiz
+<numberList name="nl">30 10 20</numberList>
+
+<p>Values: $nl</p>
+<p>Sorted: <sort>$nl</sort></p>
+<p>Indices in sorted order: <sortIndices>$nl</sortIndices></p>
+```
+
+
+
+The smallest value, 10, is in position 2 of the original list, so the result starts
+with 2.
+
+
+
+---
+
+### Example: sorting one list by another
+
+
+```doenet-editor-horiz
+<setup>
+  <textList name="names">Ann Bob Cal Dee</textList>
+  <numberList name="scores">72 91 65 88</numberList>
+</setup>
+
+<sortIndices name="perm">$scores</sortIndices>
+
+<p>Names: $names</p>
+<p>Scores: $scores</p>
+<p>Names in increasing order of score:
+   $names[$perm[1]], $names[$perm[2]], $names[$perm[3]], $names[$perm[4]]</p>
+```
+
+
+
+Sorting one list by the values of another is not expressible with `<sort>{:dn}` alone,
+because `<sort>{:dn}` returns the values it sorted and discards where they came from.
+
+
+
+---
+
+### Example: sorting points by a coordinate
+
+
+```doenet-editor-horiz
+<setup>
+  <point name="A">(5,1)</point>
+  <point name="B">(2,7)</point>
+  <point name="C">(9,3)</point>
+</setup>
+
+<p>Order by <m>x</m>-coordinate:
+   <sortIndices sortByProp="x">$A $B $C</sortIndices></p>
+```
+
+
+
+`sortByProp` works exactly as it does on `<sort>{:dn}`: point $B$ has the smallest
+$x$-coordinate, so it comes first.

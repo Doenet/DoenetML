@@ -5,12 +5,18 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
+import { useRenderedLabel } from "./utils/inputLabel";
+import "./button.css";
 import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
-import { cesc, type ResolvedStyleDefinition } from "@doenet/utils";
+import {
+    cesc,
+    type ResolvedStyleDefinition,
+    toNumberOrNaN,
+} from "@doenet/utils";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
 interface ButtonSVs {
@@ -31,10 +37,23 @@ interface ButtonSVs {
 export default React.memo(function ButtonComponent(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer<ButtonSVs>(
-        props,
-        false,
-    );
+    let { id, SVs, actions, children, callAction } =
+        useDoenetRenderer<ButtonSVs>(props, false);
+    let renderedLabel = useRenderedLabel({
+        SVs,
+        children,
+        inheritTextColor: true,
+    });
+    if (!SVs.label) {
+        // An empty label leaves the default label
+        renderedLabel = null;
+    } else if (renderedLabel) {
+        // `button.css` keeps any math in the label from taking the clicks
+        // meant for the button, as `Button` does for a label with math.
+        renderedLabel = (
+            <span className="doenet-button-label">{renderedLabel}</span>
+        );
+    }
 
     // @ts-ignore
     ButtonComponent.ignoreActionsWithoutCore = (actionName) =>
@@ -340,8 +359,8 @@ export default React.memo(function ButtonComponent(
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -440,15 +459,18 @@ export default React.memo(function ButtonComponent(
     }
 
     return (
-        <div id={id} style={{ margin: "12px 0", display: "inline-block" }}>
+        <div id={id} style={{ display: "inline-block" }}>
             <Button
                 id={id + "_button"}
+                className="doenet-inline-action-button"
                 onClick={() => callAction({ action: actions[SVs.clickAction] })}
                 disabled={SVs.disabled}
-                value={label}
-                valueHasLatex={SVs.labelHasLatex as boolean}
+                value={renderedLabel ? undefined : label}
+                valueHasLatex={!renderedLabel && (SVs.labelHasLatex as boolean)}
                 fillColor={fillColor}
-            />
+            >
+                {renderedLabel}
+            </Button>
         </div>
     );
 });

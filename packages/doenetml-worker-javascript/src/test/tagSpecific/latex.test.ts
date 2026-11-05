@@ -7,7 +7,7 @@ vi.mock("hyperformula");
 
 describe("Latex tag tests @group2", async () => {
     // Regression test for the worker crash described at
-    // packages/docs-nextra/pages/reference/latex.mdx — using a property
+    // packages/docs-nextra/content/reference/latex.mdx — using a property
     // reference such as `$math.latex` as the child of a `<latex>` element
     // previously triggered "Unknown state variable latex of <idx>" because
     // the `<latex>` value-dependency required `latex` on every textLike
@@ -63,7 +63,7 @@ describe("Latex tag tests @group2", async () => {
 
     it("full docs example renders without a worker error", async () => {
         // Reproduces the example at
-        // packages/docs-nextra/pages/reference/latex.mdx
+        // packages/docs-nextra/content/reference/latex.mdx
         // "Compare a <mathInput> value against an expected expression".
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

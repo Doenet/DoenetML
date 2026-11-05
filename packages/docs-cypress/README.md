@@ -1,10 +1,15 @@
 # @doenet/docs-cypress
 
-Cypress accessibility tests for the DoenetML documentation site.
+Cypress tests for the DoenetML documentation site.
 
-Tests use [cypress-axe](https://github.com/component-driven/cypress-axe) to
-run automated WCAG 2.x accessibility checks against live documentation pages
-in both light and dark mode.
+The accessibility tests use
+[cypress-axe](https://github.com/component-driven/cypress-axe) to run automated
+WCAG 2.x checks against live documentation pages in both light and dark mode.
+The search tests query the site's [Pagefind](https://pagefind.app) index.
+
+Both suites are meant to run against the *built* site. The search suite requires
+it: Pagefind's index lives at `out/_pagefind`, which the docs package's
+`postbuild` script generates, and `next dev` never writes `out/`.
 
 ## Running the tests
 
@@ -40,3 +45,4 @@ npx cypress open --config baseUrl=http://localhost:3000
 | File | What it tests |
 |------|---------------|
 | `cypress/e2e/accessibility/docsAccessibility.cy.js` | axe WCAG 2.x rules on key pages in light mode and dark mode; includes a regression test for issue #1368 (attribute pill contrast in dark mode) |
+| `cypress/e2e/search/docsSearch.cy.js` | the Pagefind search box returns results, including for attribute text that only the schema-driven components render (issue #2001) |

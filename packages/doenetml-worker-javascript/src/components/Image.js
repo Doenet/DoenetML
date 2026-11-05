@@ -17,7 +17,8 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
-import { codedDiagnostic } from "../utils/diagnostics";
+import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDescription";
+import { addClickTargetStateVariableDefinition } from "../utils/triggering";
 
 export default class Image extends BlockComponent {
     constructor(args) {
@@ -279,53 +280,13 @@ export default class Image extends BlockComponent {
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
-        stateVariableDefinitions.shortDescription = {
-            description: "A short accessibility description of the image.",
-            forRenderer: true,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                shortDescriptionChild: {
-                    dependencyType: "child",
-                    childGroups: ["shortDescriptions"],
-                    variableNames: ["text"],
-                },
-                decorative: {
-                    dependencyType: "stateVariable",
-                    variableName: "decorative",
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnShortDescriptionStateVariableDefinition({
+                componentType: "image",
+                componentName: "image",
             }),
-            definition({ dependencyValues }) {
-                let shortDescription = "";
-                const diagnostics = [];
-                if (dependencyValues.shortDescriptionChild.length > 0) {
-                    const shortDescriptionChild =
-                        dependencyValues.shortDescriptionChild[
-                            dependencyValues.shortDescriptionChild.length - 1
-                        ];
-
-                    shortDescription =
-                        shortDescriptionChild.stateValues.text.trim();
-                }
-                if (shortDescription === "" && !dependencyValues.decorative) {
-                    diagnostics.push(
-                        codedDiagnostic({
-                            type: "accessibility",
-                            level: 1,
-                            code: "doenet-a0001",
-                            args: { component: "image" },
-                        }),
-                    );
-                }
-
-                return {
-                    setValue: { shortDescription },
-                    sendDiagnostics: diagnostics,
-                };
-            },
-        };
+        );
 
         stateVariableDefinitions.childIndicesToRender = {
             returnDependencies: () => ({
@@ -779,6 +740,8 @@ export default class Image extends BlockComponent {
             },
         };
 
+        addClickTargetStateVariableDefinition(stateVariableDefinitions);
+
         return stateVariableDefinitions;
     }
 
@@ -800,6 +763,7 @@ export default class Image extends BlockComponent {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });
@@ -818,6 +782,7 @@ export default class Image extends BlockComponent {
 
     async imageClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -827,6 +792,7 @@ export default class Image extends BlockComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -835,6 +801,7 @@ export default class Image extends BlockComponent {
 
     async imageFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -844,6 +811,7 @@ export default class Image extends BlockComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

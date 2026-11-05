@@ -113,7 +113,6 @@ color =
                    *[m] ڀورو
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -137,12 +136,10 @@ line-width =
                    *[m] سنهو
                 }
         }
-
 # Both are unmarked, so neither inflects.
 line-style =
     .dashed = ٽٽل
     .dotted = نقطيدار
-
 # Noun phrases in the oblique plural, because their other use is in front of
 # «وارو» — a postposition that governs the oblique and inflects like a marked
 # adjective itself. They agree with nothing, so `style-fill` has to give them
@@ -154,7 +151,6 @@ fill-style =
     .backdiagonal = ابتڙ ترڇن ليڪن
     .dots = نقطن
     .diamonds = لوزن
-
 noun =
     .line = ليڪ
     .line-segment = ليڪ جو ٽڪرو
@@ -174,7 +170,6 @@ noun =
     .diamond = لوزو
     .cross = ڪراس
     .plus = جمع جو نشان
-
 # Sindhi keeps the side count in front of the noun, so the whole thing is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -182,7 +177,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } پاسن وارو باقاعده گھڻ ڪنڊو
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (گھڻ ڪنڊو, m) or
 # the head of a phrase the description never names: `border` (ڪنارو, m),
 # `fill` (ڀراءُ, m), `text` (متن, m), `background` (پس منظر, m).
@@ -193,7 +187,6 @@ noun-gender =
         [polyline] f
        *[other] m
     }
-
 
 ## Style composition
 
@@ -207,18 +200,15 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # Adjectives precede the noun, as in English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # «ڀريل» is a participle and does not inflect, so this takes no branch even
 # though it is handed a gender.
 style-filled-word = ڀريل
-
 # «وارو» is a marked adjective itself, and it agrees with the shape rather than
 # with the pattern in front of it: «نقطن واري ليڪ», «نقطن وارو چورس». It is
 # always said of the shape, so the direct form is the only one needed here —
@@ -226,27 +216,28 @@ style-filled-word = ڀريل
 # there is «ڀراءُ», which is always masculine.
 style-filled =
     { $parts ->
-        [pattern] { $pattern } { $gender ->
-            [f] واري
-           *[m] وارو
-        } { $color } { $filled }
+        [pattern]
+            { $pattern } { $gender ->
+                [f] واري
+               *[m] وارو
+            } { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $pattern } { $gender ->
-            [f] واري
-           *[m] وارو
-        } { $color } { $filled } { $noun }
+        [pattern]
+            { $pattern } { $gender ->
+                [f] واري
+               *[m] وارو
+            } { $color } { $filled } { $noun }
         [plain-tail] { $color } { $filled } { $noun } { $nounTail }
-        [pattern-tail] { $pattern } { $gender ->
-            [f] واري
-           *[m] وارو
-        } { $color } { $filled } { $noun } { $nounTail }
+        [pattern-tail]
+            { $pattern } { $gender ->
+                [f] واري
+               *[m] وارو
+            } { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «سان» is a postposition, so «ڪنارو» takes the oblique «ڪناري» and so do its
 # adjectives — which is what the `border-clause` branch supplies. Sindhi has no
 # article, so the `-article` branches read the same as the ones without.
@@ -257,7 +248,6 @@ style-border-clause =
         [and-article] ۽ { $border } ڪناري سان
        *[with] { $border } ڪناري سان
     }
-
 # The fill-pattern words are oblique plurals, so this message supplies a noun
 # for them to hang off — «ڀراءُ», masculine, which is the gender `noun-gender`
 # already answers for `fill`.
@@ -266,29 +256,23 @@ style-fill =
         [pattern] { $pattern } وارو { $color } ڀراءُ
        *[plain] { $color } ڀراءُ
     }
-
 style-unfilled = بنا ڀراءَ
-
 style-text =
     { $parts ->
         [background] { $background } پس منظر تي { $color }
        *[plain] { $color }
     }
-
 style-background-none = ڪجهه به نه
-
 
 ## Boolean words
 
 boolean-true = صحيح
 boolean-false = غلط
 
-
 ## Answer buttons
 
 answer-submit-label = جواب جانچيو
 answer-submit-label-no-correctness = جواب موڪليو
-
 
 ## Sectional blocks
 
@@ -313,7 +297,6 @@ section-name =
     .solution = حل
     .task = ڪم
     .theorem = نظريو
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -323,9 +306,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = اشارو
-
 
 ## Tables and figures
 
@@ -336,7 +317,6 @@ table-name =
         [unnumbered-title] جدول{ ": " }
        *[unnumbered] جدول
     }
-
 figure-name =
     { $parts ->
         [numbered] شڪل { $enumeration }
@@ -345,28 +325,21 @@ figure-name =
        *[unnumbered] شڪل
     }
 
-
 ## Paginator controls
 
 paginator-previous = پويون
 paginator-next = ايندڙ
 paginator-page = صفحو
-
 paginator-page-status = { $numPages } مان { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = يا
-
 piecewise-condition-if = جيڪڏهن
-
 piecewise-condition-otherwise = ٻي صورت ۾
-
 
 ## Chemistry
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = نامعتبر ڪيميائي نشان
 chemistry-invalid-ionic-compound = نامعتبر آئوني مرڪب

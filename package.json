@@ -49,11 +49,12 @@
         "lint:i18n": "npm run lint:i18n -w @doenet/i18n",
         "check:i18n-instances": "npm run check:instances -w @doenet/i18n",
         "prettier:check": "prettier --check .",
+        "typecheck": "node scripts/typecheck.mjs",
         "prettier:format": "prettier --write .",
         "publish": "npm run publish -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07",
         "test": "npm run test -ws --if-present -- run",
         "test:preview": "npm run preview --workspace packages/test-cypress",
-        "test:all-no-worker-js": "echo \"NOTE: 'test:all-no-worker-js' uses a hard-coded workspace list; update this list when adding or removing workspaces.\" && npm --if-present run test -w packages/codemirror -w packages/debug-hooks -w packages/docs-nextra -w packages/doenetml -w packages/doenetml-iframe -w packages/doenetml-prototype -w packages/doenetml-to-pretext -w packages/doenetml-worker -w packages/doenetml-worker-rust -w packages/i18n -w packages/lsp -w packages/lsp-tools -w packages/memory-benchmark -w packages/parser -w packages/prefigure -w packages/standalone -w packages/static-assets -w packages/test-cypress -w packages/test-viewer -w packages/ui-components -w packages/utils -w packages/v06-to-v07 -w packages/virtual-keyboard -w packages/webwork-to-doenetml -w @doenet/vscode-extension -- run",
+        "test:all-no-worker-js": "echo \"NOTE: 'test:all-no-worker-js' uses a hard-coded workspace list; update this list when adding or removing workspaces.\" && npm --if-present run test -w packages/codemirror -w packages/debug-hooks -w packages/docs-nextra -w packages/doenetml -w packages/doenetml-iframe -w packages/doenetml-prototype -w packages/doenetml-to-pretext -w packages/doenetml-worker -w packages/doenetml-worker-rust -w packages/i18n -w packages/lsp -w packages/lsp-tools -w packages/math -w packages/memory-benchmark -w packages/parser -w packages/prefigure -w packages/rust-parity -w packages/standalone -w packages/static-assets -w packages/test-cypress -w packages/test-viewer -w packages/ui-components -w packages/utils -w packages/v06-to-v07 -w packages/virtual-keyboard -w packages/webwork-to-doenetml -w @doenet/vscode-extension -- run",
         "test:e2e-group1": "npm run test:group1 -w packages/test-cypress",
         "test:e2e-group2": "npm run test:group2 -w packages/test-cypress",
         "test:e2e-group3": "npm run test:group3 -w packages/test-cypress",
@@ -70,10 +71,9 @@
     "prettier": {
         "tabWidth": 4
     },
-    "lint-staged": {
-        "*.{js,jsx,ts,tsx,css,json}": "prettier --write"
-    },
     "overrides": {
+        "zod": "~4.3.6",
+        "yauzl": "^3.4.0",
         "@qualified/lsp-connection": {
             "vscode-jsonrpc": "$vscode-jsonrpc"
         },
@@ -165,14 +165,13 @@
         "json-stringify-deterministic": "1.0.14",
         "jsxgraph": "^1.12.2",
         "jszip": "^3.10.1",
-        "lint-staged": "^15.0.0",
         "katex": "^0.16.47",
         "lorem-ipsum": "^2.0.8",
-        "math-expressions": "^2.0.0-alpha95",
         "micromark": "^4.0.2",
         "nanoid": "^5.1.16",
-        "nextra": "^3.3.1",
-        "nextra-theme-docs": "^3.3.1",
+        "nextra": "^4.6.1",
+        "nextra-theme-docs": "^4.6.1",
+        "pagefind": "^1.5.2",
         "peggy": "^5.1.0",
         "postcss": "^8.5.16",
         "prettier": "^3.9.4",
@@ -209,7 +208,7 @@
         "vscode-languageserver-protocol": "3.17.5",
         "wait-on": "^9.0.10",
         "wasm-pack": "^0.15.0",
-        "webdriverio": "^9.29.1",
+        "webdriverio": "^9.32.0",
         "wick-a11y": "^2.5.0",
         "wireit": "^0.14.13",
         "xast-util-to-xml": "^4.0.0",
@@ -217,7 +216,7 @@
         "yargs": "^17.7.3"
     },
     "dependencies": {
-        "next": "^15.5.9",
+        "next": "^15.5.25",
         "next-themes": "^0.4.6",
         "react-select": "^5.10.2"
     }

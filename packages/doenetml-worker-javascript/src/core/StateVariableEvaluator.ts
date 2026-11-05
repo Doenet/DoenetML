@@ -170,15 +170,19 @@ export class StateVariableEvaluator {
             result = stateVarObj.definition(definitionArgs);
         }
 
-        let receivedValue: Record<string, boolean> = {
-            [stateVariable]: false,
-        };
+        // Whether the definition returned each variable it defines. A Map,
+        // not an object keyed by the variables: V8 kept generalizing the
+        // field of such an object as it went from false to true, as for the
+        // change records (`newChangeRecord`).
+        const receivedValue = new Map<string, boolean>([
+            [stateVariable, false],
+        ]);
 
         let valuesChanged: Record<string, any> = {};
 
         if (additionalStateVariablesDefined) {
             for (let otherVar of additionalStateVariablesDefined) {
-                receivedValue[otherVar] = false;
+                receivedValue.set(otherVar, false);
             }
         }
 
@@ -194,17 +198,17 @@ export class StateVariableEvaluator {
 
             let matchingArrayEntry: string | undefined;
 
-            if (!(varName in receivedValue)) {
+            if (!receivedValue.has(varName)) {
                 matchingArrayEntry = this._findOrThrowMatchingArrayEntry({
                     varName,
                     receivedValue,
                     component,
                     errorMessage: `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
                 });
-                receivedValue[matchingArrayEntry] = true;
+                receivedValue.set(matchingArrayEntry, true);
                 valuesChanged[matchingArrayEntry] = true;
             } else {
-                receivedValue[varName] = true;
+                receivedValue.set(varName, true);
 
                 if (component.state[varName].isArray) {
                     if (!valuesChanged[varName]) {
@@ -310,17 +314,17 @@ export class StateVariableEvaluator {
 
             let matchingArrayEntry: string | undefined;
 
-            if (!(varName in receivedValue)) {
+            if (!receivedValue.has(varName)) {
                 matchingArrayEntry = this._findOrThrowMatchingArrayEntry({
                     varName,
                     receivedValue,
                     component,
                     errorMessage: `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
                 });
-                receivedValue[matchingArrayEntry] = true;
+                receivedValue.set(matchingArrayEntry, true);
                 valuesChanged[matchingArrayEntry] = true;
             } else {
-                receivedValue[varName] = true;
+                receivedValue.set(varName, true);
                 if (component.state[varName].isArray) {
                     if (!valuesChanged[varName]) {
                         valuesChanged[varName] = { arrayKeysChanged: {} };
@@ -496,7 +500,7 @@ export class StateVariableEvaluator {
                 );
             }
 
-            if (!(varName in receivedValue)) {
+            if (!receivedValue.has(varName)) {
                 this._findOrThrowMatchingArrayEntry({
                     varName,
                     receivedValue,
@@ -526,7 +530,7 @@ export class StateVariableEvaluator {
                     // throw Error(`Claiming state variable is unchanged when it isn't yet resolved: ${varName} of ${component.componentIdx}`)
                 }
 
-                if (!(varName in receivedValue)) {
+                if (!receivedValue.has(varName)) {
                     this._findOrThrowMatchingArrayEntry({
                         varName,
                         receivedValue,
@@ -535,7 +539,7 @@ export class StateVariableEvaluator {
                     });
                 }
 
-                receivedValue[varName] = true;
+                receivedValue.set(varName, true);
 
                 if (
                     Object.getOwnPropertyDescriptor(
@@ -560,7 +564,7 @@ export class StateVariableEvaluator {
                 );
             }
 
-            if (!(varName in receivedValue)) {
+            if (!receivedValue.has(varName)) {
                 this._findOrThrowMatchingArrayEntry({
                     varName,
                     receivedValue,
@@ -787,9 +791,9 @@ export class StateVariableEvaluator {
             }
         }
 
-        for (let varName in receivedValue) {
+        for (const [varName, received] of receivedValue) {
             if (!(
-                receivedValue[varName] ||
+                received ||
                 component.state[varName].isArrayEntry ||
                 component.state[varName].isArray
             )) {
@@ -1008,7 +1012,7 @@ export class StateVariableEvaluator {
         errorMessage,
     }: {
         varName: string;
-        receivedValue: Record<string, any>;
+        receivedValue: Map<string, boolean>;
         component: any;
         errorMessage: string;
     }): string {
@@ -1019,7 +1023,7 @@ export class StateVariableEvaluator {
         ) {
             for (let arrayEntryName of component.state[varName]
                 .arrayEntryNames) {
-                if (arrayEntryName in receivedValue) {
+                if (receivedValue.has(arrayEntryName)) {
                     matchingArrayEntry = arrayEntryName;
                     break;
                 }

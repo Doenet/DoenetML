@@ -48,7 +48,8 @@ fn add_nodes() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: make_path(["y", "z"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx, c_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, c_idx],
+            child_indexes: vec![],
         })
     );
     let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
@@ -58,7 +59,8 @@ fn add_nodes() {
             node_idx: g_idx,
             unresolved_path: None,
             original_path: make_path(["y", "w"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx, g_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, g_idx],
+            child_indexes: vec![],
         })
     );
 
@@ -70,7 +72,8 @@ fn add_nodes() {
             node_idx: b_idx,
             unresolved_path: None,
             original_path: make_path(["y"], None),
-            nodes_in_resolved_path: vec![c_idx, b_idx]
+            nodes_in_resolved_path: vec![c_idx, b_idx],
+            child_indexes: vec![],
         })
     );
     let referent = resolver.resolve(make_path(["q"], None), g_idx, false);
@@ -80,7 +83,8 @@ fn add_nodes() {
             node_idx: f_idx,
             unresolved_path: None,
             original_path: make_path(["q"], None),
-            nodes_in_resolved_path: vec![g_idx, f_idx]
+            nodes_in_resolved_path: vec![g_idx, f_idx],
+            child_indexes: vec![],
         })
     );
 }
@@ -114,7 +118,8 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
             node_idx: b_idx,
             unresolved_path: None,
             original_path: make_path(["x", "y"], None),
-            nodes_in_resolved_path: vec![d_idx, a_idx, b_idx]
+            nodes_in_resolved_path: vec![d_idx, a_idx, b_idx],
+            child_indexes: vec![],
         })
     );
 
@@ -126,9 +131,72 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
             node_idx: e_idx,
             unresolved_path: None,
             original_path: make_path(["x", "z"], None),
-            nodes_in_resolved_path: vec![d_idx, a_idx, e_idx]
+            nodes_in_resolved_path: vec![d_idx, a_idx, e_idx],
+            child_indexes: vec![],
         })
     );
+}
+
+#[test]
+fn copied_content_is_found_only_through_the_copy() {
+    // `<a>` is a copy, such as `<section name="s2" copy="$s">`, with a child `<b>` written inside it.
+    // The fragment is the content it copied.
+    let dast_root = dast_root_no_position(
+        r#"<a name="s2">
+            <b name="y" />
+        </a>
+        <d name="h" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+
+    let mut flat_fragment =
+        flat_fragment_from_str(r#"<c name="h" /><e name="z" />"#, d_idx + 1, Some(a_idx));
+    flat_fragment.copied_content = true;
+
+    let c_idx = d_idx + 1;
+    let e_idx = d_idx + 2;
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+
+    // From the child written inside the copy, a bare name skips the copied content
+    // and resolves outward, as it would next to the copy.
+    let referent = resolver.resolve(make_path(["h"], None), b_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: d_idx,
+            unresolved_path: None,
+            original_path: make_path(["h"], None),
+            nodes_in_resolved_path: vec![b_idx, d_idx],
+            child_indexes: vec![],
+        })
+    );
+    let referent = resolver.resolve(make_path(["z"], None), b_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+
+    // It still sees the children written next to it
+    let referent = resolver.resolve(make_path(["y"], None), b_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(b_idx));
+
+    // A path step through the copy's name reaches the copied content, from inside the copy or next to it
+    for origin in [b_idx, d_idx] {
+        let referent = resolver.resolve(make_path(["s2", "h"], None), origin, false);
+        assert_eq!(referent.map(|r| r.node_idx), Ok(c_idx));
+        let referent = resolver.resolve(make_path(["s2", "z"], None), origin, false);
+        assert_eq!(referent.map(|r| r.node_idx), Ok(e_idx));
+    }
+
+    // Once the copied content is deleted and the same names are added as content that isn't copied,
+    // a bare name from inside `<a>` finds them again.
+    resolver.delete_nodes(&flat_fragment.nodes);
+    flat_fragment.copied_content = false;
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let referent = resolver.resolve(make_path(["h"], None), b_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(c_idx));
 }
 
 #[test]
@@ -171,7 +239,8 @@ fn add_nodes_with_no_parent() {
             node_idx: g_idx,
             unresolved_path: None,
             original_path: make_path(["w"], None),
-            nodes_in_resolved_path: vec![c_idx, g_idx]
+            nodes_in_resolved_path: vec![c_idx, g_idx],
+            child_indexes: vec![],
         })
     );
 
@@ -181,6 +250,51 @@ fn add_nodes_with_no_parent() {
 
     let referent = resolver.resolve(make_path(["q"], None), g_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
+}
+
+#[test]
+fn name_table_of_a_fragment_is_the_size_of_the_fragment() {
+    // A composite's expansion is added after everything else, so its indices are as large
+    // as the document, which is why a table indexed by node index has the document's size.
+    let dast_root = dast_root_no_position(
+        r#"<e><a name="x">
+            <b name="y" />
+        </a></e>
+        <d name="y" /><f name="q" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+
+    let c_idx = 10_000;
+    let g_idx = c_idx + 1;
+    let flat_fragment = flat_fragment_from_str(
+        r#"<c name="z">
+          <g name="w" />
+        </c>"#,
+        c_idx,
+        Some(b_idx),
+    );
+
+    // `c` reaches `w`, and the fragment parent `b` reaches `z` and `w`. `g` reaches no name.
+    let name_table = Resolver::build_name_map(&FlatRootOrFragment::Fragment(&flat_fragment), None);
+    let mut keys = name_table.keys().copied().collect::<Vec<_>>();
+    keys.sort();
+    assert_eq!(keys, vec![b_idx + 1, c_idx + 1]);
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: g_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "w"], None),
+            nodes_in_resolved_path: vec![a_idx, b_idx, g_idx],
+            child_indexes: vec![],
+        })
+    );
 }
 
 #[test]
@@ -218,7 +332,8 @@ fn delete_nodes() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: make_path(["y", "z"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx, c_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, c_idx],
+            child_indexes: vec![],
         })
     );
 
@@ -229,7 +344,8 @@ fn delete_nodes() {
             node_idx: g_idx,
             unresolved_path: None,
             original_path: make_path(["y", "w"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx, g_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, g_idx],
+            child_indexes: vec![],
         })
     );
 
@@ -242,7 +358,8 @@ fn delete_nodes() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: make_path(["y", "z"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx, c_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, c_idx],
+            child_indexes: vec![],
         })
     );
 
@@ -253,7 +370,8 @@ fn delete_nodes() {
             node_idx: b_idx,
             unresolved_path: Some(make_path(["w"], None)),
             original_path: make_path(["y", "w"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx],
+            child_indexes: vec![],
         })
     );
 
@@ -267,7 +385,8 @@ fn delete_nodes() {
             node_idx: b_idx,
             unresolved_path: Some(make_path(["z"], None)),
             original_path: make_path(["y", "z"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx],
+            child_indexes: vec![],
         })
     );
     let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
@@ -277,7 +396,8 @@ fn delete_nodes() {
             node_idx: b_idx,
             unresolved_path: Some(make_path(["w"], None)),
             original_path: make_path(["y", "w"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx],
+            child_indexes: vec![],
         })
     );
 }
@@ -384,7 +504,8 @@ fn add_and_delete_a_large_number_of_nodes_multiple_times() {
             node_idx: h1_idx,
             unresolved_path: None,
             original_path: make_path(["y", "v1"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx, h1_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, h1_idx],
+            child_indexes: vec![],
         })
     );
 
@@ -398,7 +519,224 @@ fn add_and_delete_a_large_number_of_nodes_multiple_times() {
             node_idx: b_idx,
             unresolved_path: Some(make_path(["v1"], None)),
             original_path: make_path(["y", "v1"], None),
-            nodes_in_resolved_path: vec![a_idx, b_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx],
+            child_indexes: vec![],
         })
+    );
+}
+
+#[test]
+fn a_name_in_branches_is_the_active_branch_s_once_its_content_is_added() {
+    // A `<conditionalContent>` adds what its active case holds as its children (`add_nodes`).
+    // A name in its branches is then the one added, until it is deleted.
+    let dast_root = dast_root_no_position(
+        r#"<conditionalContent name="cc"><case><m name="x" /></case><else><n name="x" /></else></conditionalContent><p />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let cc_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let shift = flat_root.nodes.len();
+    let flat_fragment = flat_fragment_from_str(r#"<g><m name="x" /></g>"#, shift, Some(cc_idx));
+    let x_idx = shift + 1;
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+
+    for path in [vec!["x"], vec!["cc", "x"]] {
+        let referent = resolver.resolve(make_path(&path, None), p_idx, false);
+        assert_eq!(
+            referent,
+            Ok(RefResolution {
+                node_idx: x_idx,
+                unresolved_path: None,
+                original_path: make_path(&path, None),
+                nodes_in_resolved_path: vec![p_idx, cc_idx, x_idx],
+                child_indexes: vec![],
+            }),
+            "{path:?}"
+        );
+    }
+
+    // Once deleted (no case is active), it is left for the container again
+    resolver.delete_nodes(&flat_fragment.nodes);
+    for path in [vec!["x"], vec!["cc", "x"]] {
+        let referent = resolver.resolve(make_path(&path, None), p_idx, false);
+        assert_eq!(
+            referent.map(|r| (r.node_idx, r.unresolved_path)),
+            Ok((cc_idx, Some(make_path(["x"], None)))),
+            "{path:?}"
+        );
+    }
+
+    // And another case's content is found in its place
+    let flat_fragment = flat_fragment_from_str(r#"<g><n name="x" /></g>"#, shift + 2, Some(cc_idx));
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(shift + 3));
+}
+
+#[test]
+fn names_in_branches_added_to_a_container_are_its_branches_names() {
+    // An `extend` of a `<conditionalContent>` adds the cases it copies to the container,
+    // as a fragment whose parent is not in it. A name in those cases is the container's branches.
+    let dast_root = dast_root_no_position(r#"<conditionalContent name="cc2" /><p />"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let cc_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let shift = flat_root.nodes.len();
+    let flat_fragment = flat_fragment_from_str(
+        r#"<case><m name="x" /></case><else><n name="x" /></else>"#,
+        shift,
+        Some(cc_idx),
+    );
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+
+    let referent = resolver.resolve(make_path(["cc2", "x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((cc_idx, Some(make_path(["x"], None))))
+    );
+}
+
+#[test]
+fn a_name_in_branches_of_a_nested_container_is_gone_once_it_is_deleted() {
+    // The active case of `cc` holds a `<conditionalContent>` whose branches declare `x`,
+    // so `x` in `cc` is that container's branches. Once it is deleted, `x` is left for `cc`
+    // again, and another case's `x` is found in its place.
+    let dast_root = dast_root_no_position(
+        r#"<conditionalContent name="cc"><case><conditionalContent><case><m name="x" /></case><else><m name="x" /></else></conditionalContent></case><else><n name="x" /></else></conditionalContent><p />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let cc_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let shift = flat_root.nodes.len();
+    let flat_fragment = flat_fragment_from_str(
+        r#"<g><conditionalContent><case><m name="x" /></case><else><m name="x" /></else></conditionalContent></g>"#,
+        shift,
+        Some(cc_idx),
+    );
+    let inner_idx = shift + 1;
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((inner_idx, Some(make_path(["x"], None))))
+    );
+
+    resolver.delete_nodes(&flat_fragment.nodes);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((cc_idx, Some(make_path(["x"], None))))
+    );
+
+    let shift = shift + flat_fragment.nodes.len();
+    let flat_fragment = flat_fragment_from_str(r#"<g><n name="x" /></g>"#, shift, Some(cc_idx));
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(shift + 1));
+}
+
+#[test]
+fn a_container_ambiguous_with_a_deleted_name_still_has_the_name_in_its_branches() {
+    // `x` is in `m` and in the branches of `cc`, so it is ambiguous. Once `m` is deleted,
+    // `x` is the branches of `cc` again, left for `cc` to resolve, not `cc` itself.
+    let dast_root = dast_root_no_position(
+        r#"<g><m name="x" /><conditionalContent name="cc"><case><n name="x" /></case><else><q name="x" /></else></conditionalContent></g><p />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let m_idx = find(&flat_root, "m").unwrap();
+    let cc_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+
+    resolver.delete_nodes(&flat_root.nodes[m_idx..m_idx + 1]);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((cc_idx, Some(make_path(["x"], None))))
+    );
+}
+
+#[test]
+fn a_deleted_container_is_no_longer_among_the_referents_of_an_ambiguous_name() {
+    // `x` is in `m` and in the branches of `inner`, so it is ambiguous.
+    // Once `inner` and what it holds are deleted, `x` is `m`.
+    let dast_root = dast_root_no_position(
+        r#"<g><m name="x" /><conditionalContent name="inner"><case><n name="x" /></case></conditionalContent></g><p />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let m_idx = find(&flat_root, "m").unwrap();
+    let inner_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+
+    resolver.delete_nodes(&flat_root.nodes[inner_idx..p_idx]);
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(m_idx));
+}
+
+#[test]
+fn a_name_in_branches_of_an_external_document_is_the_active_branch_s_once_added() {
+    // `<section name="s" extend="doenet:abc"/>`, with `doenet:abc` holding a `<conditionalContent>`:
+    // `$s.x` is looked up in the external document's names (`source_sequence`),
+    // where it is in the branches of the container, and, once the container has added
+    // what its active case holds, it is that, with the names after it from that document.
+    let dast_root = dast_root_no_position(
+        r#"<a name="s"><conditionalContent><case><m name="x" /></case><else><n name="x" /></else></conditionalContent></a><p />"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let s_idx = find(&flat_root, "a").unwrap();
+    let cc_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    add_source_doc_to_descendants(
+        &mut flat_root,
+        s_idx,
+        Some(1.into()),
+        Some("s2".to_string()),
+    );
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    // Before the container has added its active case, it is left for the container
+    let referent = resolver.resolve(make_path(["s", "x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((cc_idx, Some(make_path(["x"], None))))
+    );
+
+    let shift = flat_root.nodes.len();
+    let mut flat_fragment = flat_fragment_from_str(
+        r#"<g><m name="x"><k name="y" /></m></g>"#,
+        shift,
+        Some(cc_idx),
+    );
+    for node in flat_fragment.nodes.iter_mut() {
+        if let FlatNode::Element(element) = node {
+            element.source_doc = Some(1.into());
+        }
+    }
+    let x_idx = shift + 1;
+    let y_idx = shift + 2;
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+
+    let referent = resolver.resolve(make_path(["s", "x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path, r.nodes_in_resolved_path)),
+        Ok((x_idx, None, vec![p_idx, s_idx, cc_idx, x_idx]))
+    );
+    let referent = resolver.resolve(make_path(["s", "x", "y"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((y_idx, None))
     );
 }

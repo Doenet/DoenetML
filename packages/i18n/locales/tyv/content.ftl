@@ -35,15 +35,12 @@ color =
     .purple = фиолет
     .pink = розовый
     .brown = хүрең
-
 line-width =
     .thick = кылын
     .thin = чуга
-
 line-style =
     .dashed = үзүктелген
     .dotted = точкалыг
-
 # Noun phrases: they stand in front of «чурумалдыг» and modify nothing.
 fill-style =
     .horizontal = горизонталь шугум
@@ -52,7 +49,6 @@ fill-style =
     .backdiagonal = удурланышкак диагональ шугум
     .dots = точка
     .diamonds = ромб
-
 noun =
     .line = дорт шугум
     .line-segment = кезек
@@ -72,7 +68,6 @@ noun =
     .diamond = ромб
     .cross = крест
     .plus = плюс
-
 # Tuvan builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -80,11 +75,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] дең { $numSides } булуңнуг
     }
-
 # Tuvan has no grammatical gender, so every noun answers the same and the
 # answer goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -98,21 +91,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = будаан
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } чурумалдыг { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } чурумалдыг { $color } { $filled } { $noun }
@@ -120,7 +109,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } чурумалдыг { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «кыдыглыг» — "having an edge" — carries the "with a border" sense in its own
 # suffix, so neither a preposition nor an article is wanted.
 style-border-clause =
@@ -130,15 +118,12 @@ style-border-clause =
         [and-article] база { $border } кыдыглыг
        *[with] { $border } кыдыглыг
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } чурумалдыг { $color } будуг
        *[plain] { $color } будуг
     }
-
 style-unfilled = будаваан
-
 # «кырында» — "on top of" — is a postposition and follows the background
 # colour, so nothing stands between the two words.
 style-text =
@@ -146,21 +131,17 @@ style-text =
         [background] { $background } фон кырында { $color }
        *[plain] { $color }
     }
-
 style-background-none = чок
-
 
 ## Boolean words
 
 boolean-true = шын
 boolean-false = меге
 
-
 ## Answer buttons
 
 answer-submit-label = Хынаар
 answer-submit-label-no-correctness = Харыыны чорудар
-
 
 ## Sectional blocks
 
@@ -185,7 +166,6 @@ section-name =
     .solution = Шиитпир
     .task = Онаалга
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -195,9 +175,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Сүме
-
 
 ## Tables and figures
 
@@ -208,7 +186,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Чурук { $enumeration }
@@ -217,15 +194,12 @@ figure-name =
        *[unnumbered] Чурук
     }
 
-
 ## Paginator controls
 
 paginator-previous = Мурнунда
 paginator-next = Дараазында
 paginator-page = Арын
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -238,7 +212,6 @@ piecewise-condition-or = азы
 piecewise-condition-if = болза
 piecewise-condition-otherwise = өске таварылгада
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -247,6 +220,5 @@ piecewise-condition-otherwise = өске таварылгада
 ## ones — the school-system case this whole batch shares.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Шын эвес химиктиг демдек
 chemistry-invalid-ionic-compound = Шын эвес ион каттыжыышкыны

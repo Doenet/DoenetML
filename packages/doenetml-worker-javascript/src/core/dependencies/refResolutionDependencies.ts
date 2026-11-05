@@ -6,7 +6,56 @@
 
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
-import { doenetMLStringForReference } from "../../utils/sourceLocation";
+import {
+    doenetMLDollarsForReference,
+    doenetMLStringForReference,
+} from "../../utils/sourceLocation";
+import { listEntryAtResolverNode } from "../listEntryResolverNodes";
+import { listEntryTargetOfResolution } from "../listEntryTargets";
+import { refResolutionAt } from "../../utils/referenceSlot";
+import {
+    indexSelectsInstances,
+    instanceKindOf,
+} from "../../utils/indexInstances";
+
+/**
+ * The same path with every index emptied.
+ *
+ * A path that has been through `resolveComponentsInPathIndices` holds only
+ * strings in its indices; one that has not holds the components the author
+ * wrote between the brackets. The second kind must not be handed on as a
+ * resolution result: it ends up in `compositeReplacementRange`, which
+ * `childDependencies.ts` round-trips through `JSON.stringify`, and a live
+ * component is circular.
+ */
+function dropPathIndices(path: any[]): any[] {
+    return path.map((pathPart) => ({ ...pathPart, index: [] }));
+}
+
+/**
+ * Whether `component`, written between the brackets of a reference's path,
+ * gives the index: an `integer`, or a value reference presenting as one
+ * (`$i` of `$l[$i]`, `utils/dast/valueReferences.ts`).
+ */
+function isIndexComponent(component: any): boolean {
+    return (
+        component.componentType === "integer" ||
+        (component.componentType === "_ref" &&
+            component.presentedComponentType === "integer")
+    );
+}
+
+/**
+ * The index that `component` (see `isIndexComponent`) gives when its
+ * `value` is `value`, as the literal string the resolver takes. A value
+ * reference reads its referent's number as it is, so it is rounded here,
+ * as the `integer` a copy would have made from it rounds.
+ */
+function indexFromValue(component: any, value: any): string {
+    return (
+        component.componentType === "_ref" ? Math.round(value) : value
+    ).toString();
+}
 
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
@@ -19,7 +68,18 @@ export class RefResolutionIndexDependencies extends Dependency {
             this.compositeIdx = this.upstreamComponentIdx;
         }
 
+        // the reference of an attribute's slot, or the component's own
+        this.slot = this.definition.slot;
+
         this.missingComponentBlockers = [];
+    }
+
+    /**
+     * The reference this dependency resolves on `component`: its slot's
+     * (`refResolutionAt`), or the component's own.
+     */
+    refResolutionOf(component: any) {
+        return refResolutionAt(component, this.slot);
     }
 
     async determineDownstreamComponents() {
@@ -28,7 +88,9 @@ export class RefResolutionIndexDependencies extends Dependency {
         let composite = this.dependencyHandler._components[this.compositeIdx];
 
         if (!composite) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.compositeIdx,
+            );
             this.missingComponentBlockers.push(this.compositeIdx);
 
             return {
@@ -41,7 +103,7 @@ export class RefResolutionIndexDependencies extends Dependency {
         this.componentList = [];
 
         const gatherResult = await this.gatherComponentsInPath(
-            composite.refResolution.originalPath,
+            this.refResolutionOf(composite).originalPath,
         );
 
         if (gatherResult.success) {
@@ -63,13 +125,21 @@ export class RefResolutionIndexDependencies extends Dependency {
     // Iterate through the index of all parts of `originalPath`.
     // If encounter unexpanded composites, set up resolve blockers
     // so that this dependency will be resolved again once the composites are expanded.
-    // Otherwise, gather all the component indices of the "integer" components into `componentList`.
+    // Otherwise, gather all the component indices of the index components (`isIndexComponent`) into `componentList`.
     // If encountered unexpanded composites, return
     // - success: false
-    // If successfully found all integer components return
+    // If successfully found all index components return
     // - success: true,
-    // - componentList: a list of the component indices of the "integer" components found in the unresolved path
-    // Throw an error if an index of unresolved path does not contain either a string or a single integer component
+    // - componentList: a list of the component indices of the index components found in the unresolved path
+    //
+    // An index that did not come out as a single index component is simply left
+    // out of `componentList`. It used to throw, which blanked the document
+    // (#1917): the index of a component that had already been turned into an
+    // `_error` is not an integer, so an ordinary authoring slip -- a mistyped
+    // attribute on an `<indexOf>` -- took down the page and the diagnostic about
+    // that slip with it. `resolveComponentsInPathIndices` sees the same component
+    // and is the single place that decides the reference is dead, so there is
+    // nothing to report from here.
     async gatherComponentsInPath(originalPath: any) {
         const componentList = [];
         let foundUnexpanded = false;
@@ -88,7 +158,7 @@ export class RefResolutionIndexDependencies extends Dependency {
 
                     if (haveComposite) {
                         if (!indexComponent.isExpanded) {
-                            this.addBlockerForUnexpandedComposite(
+                            await this.addBlockerForUnexpandedComposite(
                                 indexComponent,
                             );
 
@@ -102,21 +172,14 @@ export class RefResolutionIndexDependencies extends Dependency {
                             );
 
                             if (indexComponent.replacements.length !== 1) {
-                                throw Error(
-                                    "Something went wrong as path index is not an integer",
-                                );
+                                continue;
                             }
                             indexComponent = indexComponent.replacements[0];
                         }
                     }
 
-                    if (
-                        !foundUnexpanded &&
-                        indexComponent.componentType !== "integer"
-                    ) {
-                        throw Error(
-                            "Something went wrong as path index is not an integer",
-                        );
+                    if (!foundUnexpanded && !isIndexComponent(indexComponent)) {
+                        continue;
                     }
 
                     componentList.push(indexComponent.componentIdx);
@@ -158,11 +221,52 @@ export class RefResolutionIndexDependencies extends Dependency {
 }
 
 /**
+ * The number of instances an expanded `composite` has, i.e., of its
+ * replacements an index counts (all but blank strings) that it has not
+ * withheld.
+ */
+function numInstances(composite: any): number {
+    const counted = (composite.replacements ?? []).filter(
+        (replacement: any) =>
+            typeof replacement !== "string" || replacement.trim() !== "",
+    ).length;
+    return Math.max(0, counted - (composite.replacementsToWithhold ?? 0));
+}
+
+/**
+ * The name an author gave `component`, or `undefined` if it has none. The
+ * names the parser makes up for compatibility start with `_`.
+ */
+function authoredName(component: any): string | undefined {
+    const name = component?.attributes?.name?.primitive?.value;
+    return typeof name === "string" && name !== "" && !name.startsWith("_")
+        ? name
+        : undefined;
+}
+
+/**
+ * What the `<group>` an index selected a child of was written as, given the
+ * type of the component that made it (`_instanceOf`, see
+ * `utils/indexInstances.ts`): an `iteration` of a repeat, a `pick` of a
+ * select, the `case` a `<conditionalContent>` shows, or a `group` written as
+ * one. (Only a repeat, a select and a `<conditionalContent>` make such a
+ * group.)
+ */
+function containerKind(instanceOf: string | undefined): string {
+    if (instanceOf === "conditionalContent") {
+        return "case";
+    }
+    const kind = instanceKindOf(instanceOf);
+    return kind === "iteration" || kind === "pick" ? kind : "group";
+}
+
+/**
  * A dependency that attempts to resolve the `originalPath` of a `refResolution` on a composite component.
  *
  * If `refResolution.nodeIdx` has any composite descendants
  * or any indices of the path have composites, these composites are first expanded.
- * Then, the `originalPath` path is resolved using the first node of `refResolution.nodesInResolvedPath` as the origin;
+ * Then, the `originalPath` path is resolved from the first of the candidate origins that
+ * `originsToResolveFrom` yields (normally the first node of `refResolution.nodesInResolvedPath`);
  * `nodeIdx` is updated to the matched component, and `unresolvedPath` is updated to any remaining unresolved path.
  *
  * If an index is encountered (which halts the rust resolver), then
@@ -187,7 +291,127 @@ export class RefResolutionDependency extends Dependency {
         }
 
         this.indexDependencyValues = this.definition.indexDependencyValues;
+        // the reference of an attribute's slot, or the component's own
+        this.slot = this.definition.slot;
+
         this.missingComponentBlockers = [];
+    }
+
+    /**
+     * The origins to re-resolve `composite`'s reference from, best first.
+     *
+     * A reference is normally re-resolved from where it now sits, which is what lets a
+     * copied reference find a copied referent: every iteration of a `<repeat>` supplies
+     * its own `valueName`, so the copy of `$i` in each iteration must resolve against
+     * that iteration and not the template.
+     *
+     * A copy can also land where the name it references is not in scope at all, though.
+     * `$r[3]` on `<repeat name="r" valueName="i"><number>$i</number></repeat>` copies
+     * the `<number>` and the `$i` inside it to wherever the reference appears, and `i`
+     * lives inside the repeat, invisible from there. Such a copy shadows the component
+     * it was copied from, and still refers to whatever that one refers to, so fall back
+     * on resolving the reference where the shadowed component sits.
+     *
+     * A shadowing copy is a structural duplicate of what it shadows: its `refResolution`
+     * is serialized from the shadowed component's, so the two carry the same reference —
+     * the same path resolved from a different place — which is what makes their origins
+     * interchangeable candidates. That is why the walk stops at the first link with no
+     * `refResolution` of its own: a component whose reference did not come from the one
+     * it shadows says nothing about where this reference should resolve.
+     */
+    *originsToResolveFrom(composite: any): Generator<number> {
+        // Guards against a cycle in the `shadows` chain, so the walk terminates even if
+        // the chain does not.
+        const visitedSources = new Set<number>();
+        // Two components in the chain can share an origin; resolving from the same place
+        // a second time would only repeat the same failure.
+        const yieldedOrigins = new Set<number>();
+
+        let source = composite;
+
+        while (
+            this.refResolutionOf(source) &&
+            !visitedSources.has(source.componentIdx)
+        ) {
+            visitedSources.add(source.componentIdx);
+
+            const origin = this.refResolutionOf(source).nodesInResolvedPath[0];
+
+            if (origin != undefined && !yieldedOrigins.has(origin)) {
+                yieldedOrigins.add(origin);
+                yield origin;
+            }
+
+            // A component that shadows nothing, or whose source is gone, ends the chain.
+            source =
+                this.dependencyHandler._components[
+                    source.shadows?.componentIdx
+                ];
+        }
+    }
+
+    /**
+     * Whether `resolution` landed on the reference itself or on a component containing it.
+     *
+     * A reference can legitimately point at its own container — `$P` inside `P`'s label
+     * is how a label says "my own value" — so such a resolution is used when it is the
+     * only one on offer. It is not what a *copy* wants, though. A composite that names
+     * the item it creates, as `<repeat valueName="i">` does, hands that name to the copy
+     * itself, so a `$i` that the copied content already carried now finds the copy rather
+     * than what it named in the original. Preferring a candidate origin that resolves
+     * outside the reference keeps the copied `$i` pointing where the original one did.
+     */
+    resolvesIntoOwnAncestry(composite: any, resolution: any) {
+        const nodeIdx = resolution.nodeIdx;
+
+        return (
+            nodeIdx === composite.componentIdx ||
+            (composite.ancestors?.some(
+                (ancestor: any) => ancestor.componentIdx === nodeIdx,
+            ) ??
+                false)
+        );
+    }
+
+    /**
+     * The reference this dependency resolves on `component`: its slot's
+     * (`refResolutionAt`), or the component's own.
+     */
+    refResolutionOf(component: any) {
+        return refResolutionAt(component, this.slot);
+    }
+
+    /**
+     * Wait for the `_copy` children that fill the list at `listIdx`
+     * (`listCopiesOf`) to expand, and update when they change. Returns
+     * `false` if one has not expanded yet (a blocker was added).
+     *
+     * Not the `_copy` `composite` belongs to, or one holding it: a list that
+     * copies itself (`<mathList name="c" copy="$c"/>`) would wait on itself,
+     * where it should report the cycle.
+     */
+    async waitForListCopies(listIdx: number, composite: any) {
+        const listCopies = listCopiesOf(
+            this.dependencyHandler._components[listIdx],
+        ).filter(
+            (copy) =>
+                copy.componentIdx !== composite.componentIdx &&
+                !composite.ancestors?.some(
+                    (ancestor: any) =>
+                        ancestor.componentIdx === copy.componentIdx,
+                ),
+        );
+        const unexpandedListCopy = listCopies.find((copy) => !copy.isExpanded);
+        if (unexpandedListCopy) {
+            await this.addBlockerForUnexpandedComposite(unexpandedListCopy);
+            return false;
+        }
+        if (listCopies.length > 0) {
+            const indices = listCopies.map((copy) => copy.componentIdx);
+            this.compositeReplacementDependencies.push(...indices);
+            this.addUpdateTriggersForCompositeReplacements(indices);
+        }
+        return true;
     }
 
     async determineDownstreamComponents({ force = false } = {}) {
@@ -196,7 +420,9 @@ export class RefResolutionDependency extends Dependency {
         let composite = this.dependencyHandler._components[this.compositeIdx];
 
         if (!composite) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.compositeIdx,
+            );
             this.missingComponentBlockers.push(this.compositeIdx);
 
             return {
@@ -206,10 +432,10 @@ export class RefResolutionDependency extends Dependency {
             };
         }
 
-        let nodeIdx = composite.refResolution.nodeIdx;
+        let nodeIdx = this.refResolutionOf(composite).nodeIdx;
 
         // If `nodeIdx` is a component that was created via an `extend` or `copy` attribute,
-        // then it was (or will be) created from a copy that has a `createComponentIdx` attribute
+        // then it was (or will be) created from a copy that has a `_createComponentIdx` attribute
         // set to `nodeIdx`. In this case, we find that copy using the `createComponentIdxMapping`
         // and create blockers/triggers to potentially postpone creating this dependency
         // and update it when `nodeIdx` is created or updated.
@@ -234,7 +460,7 @@ export class RefResolutionDependency extends Dependency {
             }
 
             if (!compositeCreating.isExpanded) {
-                this.addBlockerForUnexpandedComposite(compositeCreating);
+                await this.addBlockerForUnexpandedComposite(compositeCreating);
 
                 return {
                     success: false,
@@ -251,12 +477,74 @@ export class RefResolutionDependency extends Dependency {
             ]);
         }
 
+        // A list made by a `copy` or `extend` (`convertToCopy.ts`) has its
+        // children made by a `_copy` child (`forList`), and the resolver
+        // learns their names only once it expands -- in a copy of a copy, a
+        // `_copy` inside what that one made, too. Wait for them, as for a copy
+        // made with `_createComponentIdx` above, so that `$c.h` finds the
+        // copy's `h` wherever it is written (NAME-2).
+        if (!(await this.waitForListCopies(nodeIdx, composite))) {
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
         // Resolve all components in the path indices to integer values
         const resolveComponentResult =
             await this.resolveComponentsInPathIndices(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
                 force,
             );
+
+        if (resolveComponentResult.indexIsNotANumber) {
+            // The reference cannot be resolved, but it is an authoring mistake
+            // rather than a broken invariant, so it reports and renders as
+            // nothing -- the same as a reference whose referent is missing. The
+            // component sitting in the index has almost always reported an error
+            // of its own already, and that is the one the author needs; this says
+            // why the reference then came up empty (#1917).
+            this.dependencyHandler.core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0163",
+                    args: {
+                        reference: `${doenetMLDollarsForReference(
+                            this.refResolutionOf(composite).originalPath,
+                            this.dependencyHandler.core.allDoenetMLs,
+                        )}${doenetMLStringForReference(
+                            this.refResolutionOf(composite).originalPath,
+                            this.dependencyHandler.core.allDoenetMLs,
+                        )}`,
+                    },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+
+            this.extendIdx = -1;
+            // Without the index. Every other branch that gives up hands back a
+            // path whose indices are the literal strings
+            // `resolveComponentsInPathIndices` produced, and we never got one --
+            // so what is left in there is the live component the index was
+            // written from. That path reaches `compositeReplacementRange`, which
+            // is round-tripped through `JSON.stringify` in
+            // `childDependencies.ts`, and a component graph does not survive
+            // that: the reference blanked the document all over again as soon as
+            // anything followed it in the same parent. Nothing can resolve
+            // through an index we could not work out anyway, and the names and
+            // positions the reporting paths read are all still here.
+            this.originalPath = dropPathIndices(
+                this.refResolutionOf(composite).originalPath,
+            );
+            this.unresolvedPath = this.originalPath;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
 
         if (!resolveComponentResult.success) {
             return {
@@ -293,7 +581,7 @@ export class RefResolutionDependency extends Dependency {
         if (haveComposite) {
             // make sure that the composite refComponent is expanded
             if (!refComponent.isExpanded) {
-                this.addBlockerForUnexpandedComposite(refComponent);
+                await this.addBlockerForUnexpandedComposite(refComponent);
 
                 return {
                     success: false,
@@ -310,16 +598,25 @@ export class RefResolutionDependency extends Dependency {
             ]);
         }
 
-        let refResolution;
-
         /**
-         * Given the ref resolution `composite.refResolution`
+         * Given the ref resolution `this.refResolutionOf(composite)`
          * and the DoenetML string from `this.dependencyHandler.core.allDoenetMLs[0]`,
          * return the substring of DoenetML corresponding to the resolution's `originalPath`.
          */
         const getDoenetMLStringForReference = () =>
             doenetMLStringForReference(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
+                this.dependencyHandler.core.allDoenetMLs,
+            );
+
+        /**
+         * The `$` or `$$` the author wrote. Hardcoding `$` named a function
+         * reference as something they did not write: `$$fs[$i]` came back as
+         * `$fs[$i]`.
+         */
+        const getDollarsForReference = () =>
+            doenetMLDollarsForReference(
+                this.refResolutionOf(composite).originalPath,
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
@@ -330,49 +627,148 @@ export class RefResolutionDependency extends Dependency {
         // console.log(
         //     "resolve path",
         //     { path: resolveComponentResult.path },
-        //     composite.refResolution.nodesInResolvedPath[0],
+        //     [...this.originsToResolveFrom(composite)],
         //     skip_parent_search,
         // );
 
-        try {
-            refResolution = this.dependencyHandler.core.resolvePath!(
-                { path: resolveComponentResult.path },
-                composite.refResolution.nodesInResolvedPath[0],
-                skip_parent_search,
-            );
-        } catch (e) {
-            // console.log("resolve error", e);
-            if (e === "NonUniqueReferent" || e === "NoReferent") {
-                const referenceText = getDoenetMLStringForReference();
+        // The resolution from the first candidate origin that produced one; left
+        // `undefined` if every candidate failed (or if there was no candidate to try).
+        let refResolution;
 
-                // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
-                // Rather than duplicating code to make the messages,
-                // we could make sure that `ref_resolve` formats the messages in this case, too.
+        // A resolution that landed on the reference itself or on a component containing
+        // it, kept aside in case no candidate origin does better.
+        // See `resolvesIntoOwnAncestry`.
+        let selfReferentialResolution;
+
+        // The failure reported if no candidate origin resolves. It is the failure of the
+        // first candidate — the reference's own position — since that is the one that
+        // describes the document the author wrote; later candidates are only fallbacks.
+        let firstResolutionError:
+            "NonUniqueReferent" | "NoReferent" | undefined;
+
+        for (const origin of this.originsToResolveFrom(composite)) {
+            try {
+                const candidateResolution = this.dependencyHandler.core
+                    .resolvePath!(
+                    { path: resolveComponentResult.path },
+                    origin,
+                    skip_parent_search,
+                );
+
+                if (
+                    this.resolvesIntoOwnAncestry(composite, candidateResolution)
+                ) {
+                    selfReferentialResolution ??= candidateResolution;
+                    continue;
+                }
+
+                refResolution = candidateResolution;
+                break;
+            } catch (e) {
+                // console.log("resolve error", e);
+                if (e === "NonUniqueReferent" || e === "NoReferent") {
+                    firstResolutionError ??= e;
+                } else {
+                    throw e;
+                }
+            }
+        }
+
+        refResolution ??= selfReferentialResolution;
+
+        if (refResolution === undefined) {
+            const referenceText = getDoenetMLStringForReference();
+
+            // A reference written as a tag whose index is not a positive
+            // integer now (`<math extend="$r[$k]"/>` while `k` is blank or
+            // 0) names nothing, and says so itself, as an info that lasts
+            // while it does (`doenet-i0054`, `indexNamesNothing` in
+            // `Copy.js`), as for an index past what a composite made
+            // (below).
+            const reportedByCopy =
+                firstResolutionError === "NoReferent" &&
+                this.isScalarTag(composite) &&
+                resolveComponentResult.path.some((part: any) =>
+                    part.index.some(
+                        (index: any) =>
+                            !/^[1-9]\d*$/.test(String(index.value[0])),
+                    ),
+                );
+
+            // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
+            // Rather than duplicating code to make the messages,
+            // we could make sure that `ref_resolve` formats the messages in this case, too.
+            if (!reportedByCopy) {
                 this.dependencyHandler.core.addDiagnostic(
                     codedDiagnostic({
                         type: "warning",
                         // Spread rather than a ternary on the value: the
                         // code has to sit next to `code:` as a literal, or
                         // `lint:i18n` reads it as a code nothing raises.
-                        ...(e === "NonUniqueReferent"
+                        ...(firstResolutionError === "NonUniqueReferent"
                             ? { code: "doenet-w0105" as const }
                             : { code: "doenet-w0104" as const }),
-                        args: { reference: `$${referenceText}` },
+                        args: {
+                            reference: `${getDollarsForReference()}${referenceText}`,
+                        },
                         position: composite.position,
                         sourceDoc: composite.sourceDoc,
                     }),
                 );
-
-                this.extendIdx = -1;
-                this.unresolvedPath = this.originalPath;
-                return {
-                    success: true,
-                    downstreamComponentIndices: [],
-                    downstreamComponentTypes: [],
-                };
-            } else {
-                throw e;
             }
+
+            this.extendIdx = -1;
+            this.unresolvedPath = this.originalPath;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        this.reportChildIndexes(composite, refResolution.childIndexes);
+
+        // An entry of a list component that a composite is indexed by is a
+        // node of the resolver with no component
+        // (`listEntryResolverNodes.ts`); it is read as an index into the
+        // list, as `$l[2]` is.
+        const listEntry = listEntryAtResolverNode(
+            this.dependencyHandler.core,
+            refResolution.nodeIdx,
+        );
+        if (listEntry) {
+            refResolution = {
+                ...refResolution,
+                nodeIdx: listEntry.listIdx,
+                unresolvedPath: [
+                    {
+                        name: "",
+                        index: [
+                            {
+                                value: [String(listEntry.entryIndex + 1)],
+                            },
+                        ],
+                    },
+                    ...(refResolution.unresolvedPath ?? []),
+                ],
+            };
+        }
+
+        // The name was resolved to a list made inside a copy (`$E.e.h` for
+        // an `extend` `E` of a component holding `<mathList name="e"
+        // extend="$l"/>`), whose children are again made by a `_copy` child
+        // that may not have expanded yet. Wait for it, as for the list the
+        // reference starts at (above), so that `h` is not read as a property.
+        if (
+            refResolution.unresolvedPath !== null &&
+            refResolution.nodeIdx !== nodeIdx &&
+            !(await this.waitForListCopies(refResolution.nodeIdx, composite))
+        ) {
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
         }
 
         this.extendIdx = refResolution.nodeIdx;
@@ -441,7 +837,7 @@ export class RefResolutionDependency extends Dependency {
             // We ended on a composite component with the next unresolved path being an index.
             // If the composite isn't expanded, that's the next blocker for resolving the reference.
             if (!newRefComponent.isExpanded) {
-                this.addBlockerForUnexpandedComposite(newRefComponent);
+                await this.addBlockerForUnexpandedComposite(newRefComponent);
 
                 return {
                     success: false,
@@ -452,17 +848,51 @@ export class RefResolutionDependency extends Dependency {
 
             // If the composite is expanded and yet the index did not match one of the composite's replacements,
             // then there is no replacement at that index, and we obtained no referent for the reference.
-            const referenceText = getDoenetMLStringForReference();
+            const reference = `${getDollarsForReference()}${getDoenetMLStringForReference()}`;
 
-            this.dependencyHandler.core.addDiagnostic(
-                codedDiagnostic({
-                    type: "warning",
-                    code: "doenet-w0104",
-                    args: { reference: `$${referenceText}` },
-                    position: composite.position,
-                    sourceDoc: composite.sourceDoc,
-                }),
+            // An iteration or pick holding only a reference to a list or to a
+            // composite with instances is indexed as that list or composite
+            // (`referencedIndexable`): past a list's entries is silent
+            // (#1499), and past a composite's instances says how many it made.
+            const referenced = this.referencedIndexable(
+                newRefComponent.componentIdx,
             );
+            const indexedComponent = referenced ?? newRefComponent;
+            const instanceKind = instanceKindOf(indexedComponent.componentType);
+
+            // A composite that produces instances says how many it made
+            // (`doenet-w0181`), naming what the author wrote (D27).
+            if (this.isScalarTag(composite)) {
+                // Reported by the copy as an info that lasts while the
+                // index names nothing (`doenet-i0054`), or, for a literal
+                // index past what a selector picks, as an error when the
+                // document loaded (D36, `typeChangeAtLoad.ts`).
+            } else if (instanceKind) {
+                this.dependencyHandler.core.addDiagnostic(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0181",
+                        args: {
+                            reference,
+                            component: indexedComponent.componentType,
+                            kind: instanceKind,
+                            count: numInstances(indexedComponent),
+                        },
+                        position: composite.position,
+                        sourceDoc: composite.sourceDoc,
+                    }),
+                );
+            } else if (!referenced) {
+                this.dependencyHandler.core.addDiagnostic(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0104",
+                        args: { reference },
+                        position: composite.position,
+                        sourceDoc: composite.sourceDoc,
+                    }),
+                );
+            }
 
             this.compositeReplacementDependencies.push(
                 newRefComponent.componentIdx,
@@ -473,6 +903,184 @@ export class RefResolutionDependency extends Dependency {
         }
 
         return this.foundExtend();
+    }
+
+    /**
+     * Whether `composite` is a reference written as a tag that is not a list
+     * or a `<group>` (`<math extend="$r[1]"/>`), which always makes that tag
+     * (D36): it is `<T/>` while its index names nothing, and says so itself
+     * (`indexNamesNothing` in `Copy.js`).
+     */
+    isScalarTag(composite: any) {
+        const written =
+            composite.attributes?._createComponentOfType?.primitive?.value;
+        if (
+            !written ||
+            !composite.attributes?._copyInChildren?.primitive?.value ||
+            composite.doenetAttributes?.forList !== undefined
+        ) {
+            return false;
+        }
+        const componentInfoObjects =
+            this.dependencyHandler.componentInfoObjects;
+        const writtenType =
+            componentInfoObjects.componentTypeLowerCaseMapping[
+                written.toLowerCase()
+            ];
+        const writtenClass = componentInfoObjects.allComponentClasses[
+            writtenType
+        ] as any;
+        return Boolean(
+            writtenClass &&
+            writtenClass.listEntryComponentType === undefined &&
+            writtenType !== "group" &&
+            !componentInfoObjects.isCompositeComponent({
+                componentType: writtenType,
+            }),
+        );
+    }
+
+    /**
+     * Warn of each index of the reference that selected a child of a
+     * `<group>` (`childIndexes` of the resolution), which still resolves but is
+     * deprecated (D27): an index selects among the instances a component
+     * produces, not among the children of a container. The warning quotes the
+     * reference up to that index and shows the form to write instead, which
+     * names the child.
+     *
+     * A reference resolved again, or in a copy of the component holding it,
+     * raises the same warning at the same place, which is kept only once.
+     */
+    reportChildIndexes(composite: any, childIndexes: any[] | undefined) {
+        if (!childIndexes?.length) {
+            return;
+        }
+        const core = this.dependencyHandler.core;
+        const originalPath = this.refResolutionOf(composite).originalPath;
+        const start = originalPath?.[0]?.position?.start.offset;
+        const source = core.allDoenetMLs?.[originalPath?.[0]?.sourceDoc ?? 0];
+        if (start == undefined || source == undefined) {
+            return;
+        }
+        const dollars = doenetMLDollarsForReference(
+            originalPath,
+            core.allDoenetMLs,
+        );
+
+        for (const { containerIdx, childIdx, position } of childIndexes) {
+            const indexStart = position?.start.offset;
+            const indexEnd = position?.end.offset;
+            if (indexStart == undefined || indexEnd == undefined) {
+                continue;
+            }
+            const child = this.dependencyHandler._components[childIdx];
+            if (
+                child?.componentType !== "setup" &&
+                this.referencedIndexable(containerIdx)
+            ) {
+                // The whole content is a reference to a list or to a
+                // composite whose instances an index selects
+                // (`<option>$l</option>`), so the reference's replacements
+                // are what the index selects among, as in
+                // `<option><mathList extend="$l"/></option>`, where the
+                // index passes through (`_indexPassThrough`, D27): the form
+                // D27 recommends, not a child index (#2428). An index that
+                // selects a `<setup>` beside the reference selects that
+                // child, and is reported below like any other.
+                continue;
+            }
+            if (child?.doenetAttributes?.iterationAliases) {
+                // The `<setup>` a repeat adds to an iteration for its
+                // `valueName` and `indexName`, after the content: the author
+                // wrote no such child, so there is none to name, and it shows
+                // nothing (D27). A `<setup>` the author wrote is a child like
+                // any other.
+                continue;
+            }
+            const before = `${dollars}${source.substring(start, indexStart)}`;
+
+            const childName = authoredName(child);
+            const instanceOf =
+                this.dependencyHandler._components[containerIdx]?.attributes
+                    ?._instanceOf?.primitive?.value;
+
+            core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0179",
+                    args: {
+                        reference: `${dollars}${source.substring(start, indexEnd)}`,
+                        suggestion: `${before}.${childName ?? "x"}`,
+                        named: childName === undefined ? "no" : "yes",
+                        container: containerKind(instanceOf),
+                        component: instanceOf ?? "group",
+                    },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+        }
+    }
+
+    /**
+     * The component that the whole content of the `<group>` `containerIdx`
+     * (an iteration or a pick) refers to, when that content is one reference
+     * (a `_copy`) to a whole component whose instances an index selects
+     * (`indexSelectsInstances`): a list, or a repeat, select or other
+     * composite of `INSTANCE_KINDS`; `undefined` otherwise. A `<setup>` is not
+     * content, as in `instanceGroupAttributes`, but one written before the
+     * reference shifts what an index counts, so it is not passed over.
+     *
+     * Such a group is not marked to pass an index through
+     * (`_indexPassThrough`), since what the reference makes is not known when
+     * the group is made, but an index into the group selects among the
+     * reference's replacements, which are the referent's instances, all the
+     * same (#2428).
+     *
+     * Only an iteration or a pick, which would pass an index through to the
+     * list written in place: a `<group>` the author wrote, or what a
+     * `<conditionalContent>` shows, would not (`<group><mathList/></group>`
+     * still selects a child), so neither does it for a reference.
+     */
+    referencedIndexable(containerIdx: number): any {
+        const components = this.dependencyHandler._components;
+        const instanceKind = instanceKindOf(
+            components[containerIdx]?.attributes?._instanceOf?.primitive?.value,
+        );
+        if (instanceKind !== "iteration" && instanceKind !== "pick") {
+            return undefined;
+        }
+        const children = (
+            components[containerIdx]?.serializedChildren ?? []
+        ).filter(
+            (child: any) => typeof child !== "string" || child.trim() !== "",
+        );
+        const content = children.filter(
+            (child: any) =>
+                typeof child === "string" || child.componentType !== "setup",
+        );
+        if (content.length !== 1 || content[0].componentType !== "_copy") {
+            return undefined;
+        }
+        // A `<setup>` the author wrote before the reference takes the first
+        // position an index into the group counts, so the reference's
+        // replacements are not what `[1]`, `[2]`, … select: each index is
+        // then a child index, reported as one.
+        if (children.indexOf(content[0]) > 0) {
+            return undefined;
+        }
+        const resolution = refResolutionAt(components[content[0].componentIdx]);
+        if (!resolution || resolution.unresolvedPath !== null) {
+            return undefined;
+        }
+        const referent = components[resolution.nodeIdx];
+        return referent &&
+            indexSelectsInstances(
+                referent.componentType,
+                this.dependencyHandler.componentInfoObjects,
+            )
+            ? referent
+            : undefined;
     }
 
     /**
@@ -526,9 +1134,15 @@ export class RefResolutionDependency extends Dependency {
 
     /**
      * Iterate through the index of all parts of `path`.
-     * If any component is found, it must be an "integer".
-     * Resolve its `value` state variable, which should be an integer,
-     * and use its string value instead of the component.
+     * If any component is found, it must be an index component
+     * (`isIndexComponent`), and its `value`, rounded where it is not an
+     * `integer`'s (`indexFromValue`), replaces it as a string.
+     *
+     * A component that is not an index component -- or a composite that did not produce
+     * exactly one replacement -- means the index cannot be worked out at all.
+     * That returns `indexIsNotANumber`, and the caller reports it and leaves the
+     * reference resolving to nothing. It used to throw, and since nothing between
+     * here and the worker catches, the whole document went blank (#1917).
      *
      * Note: we use strings rather than numbers for the literal indices
      * so that the unresolved path follows the `FlatPathPart` assumed by the resolver.
@@ -556,7 +1170,7 @@ export class RefResolutionDependency extends Dependency {
 
                     if (haveComposite) {
                         if (!indexComponent.isExpanded) {
-                            this.addBlockerForUnexpandedComposite(
+                            await this.addBlockerForUnexpandedComposite(
                                 indexComponent,
                             );
 
@@ -573,25 +1187,24 @@ export class RefResolutionDependency extends Dependency {
                         );
 
                         if (indexComponent.replacements.length !== 1) {
-                            throw Error(
-                                "Something went wrong as path index is not an integer",
-                            );
+                            return { success: true, indexIsNotANumber: true };
                         }
                         indexComponent = indexComponent.replacements[0];
                     }
 
-                    if (indexComponent.componentType !== "integer") {
-                        throw Error(
-                            "Something went wrong as path index is not an integer",
-                        );
+                    if (!isIndexComponent(indexComponent)) {
+                        return { success: true, indexIsNotANumber: true };
                     }
 
                     // save index as a literal string
                     index.push({
                         value: [
-                            this.indexDependencyValues[
-                                indexComponent.componentIdx
-                            ].toString(),
+                            indexFromValue(
+                                indexComponent,
+                                this.indexDependencyValues[
+                                    indexComponent.componentIdx
+                                ],
+                            ),
                         ],
                         position: index_part.position,
                         sourceDoc: index_part.sourceDoc,
@@ -647,6 +1260,12 @@ export class RefResolutionDependency extends Dependency {
  *   or `undefined` if no referent was found
  * - unresolvedPath: any unresolved path remaining after `componentIdx` was resolved
  * - originalPath: the original path corresponding to the given reference
+ * - listEntry: when the reference names one entry of a list component
+ *   (`$pl[2]`), which has no component, the entry as a target
+ *   (`listEntryTargetOfResolution`): the renderer index reserved for it, with
+ *   the list and the entry's index; `undefined` otherwise. A consumer that
+ *   needs a component as a target takes `componentIdx` when `unresolvedPath`
+ *   is `null`, and otherwise this entry's `componentIdx`, if there is one.
  */
 export class AttributeRefResolutions extends Dependency {
     static dependencyType = "attributeRefResolutions";
@@ -676,7 +1295,9 @@ export class AttributeRefResolutions extends Dependency {
         let parent = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.parentIdx,
+            );
             this.missingComponentBlockers.push(this.parentIdx);
 
             return {
@@ -715,13 +1336,21 @@ export class AttributeRefResolutions extends Dependency {
 
         for (const comp of result.value) {
             const extendIdx = comp.stateValues.extendIdx;
+            const unresolvedPath = comp.stateValues.unresolvedPath;
 
             newValue.push({
                 componentIdx: extendIdx,
-                unresolvedPath: comp.stateValues.unresolvedPath,
+                unresolvedPath,
                 originalPath: comp.stateValues.originalPath,
                 position: comp.position,
                 sourceDoc: comp.sourceDoc,
+                listEntry:
+                    extendIdx === -1
+                        ? undefined
+                        : listEntryTargetOfResolution(
+                              this.dependencyHandler.core,
+                              { componentIdx: extendIdx, unresolvedPath },
+                          ),
             });
 
             if (extendIdx !== -1) {
@@ -838,7 +1467,9 @@ export class ComponentsReferencingAttributeDependency extends Dependency {
             this.dependencyHandler._components[this.referencedIdx];
 
         if (!referencedComponent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.referencedIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.referencedIdx,
+            );
             this.missingComponentBlockers.push(this.referencedIdx);
 
             return {
@@ -943,7 +1574,9 @@ export class StringsFromReferenceAttribute extends Dependency {
         let parent = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.parentIdx,
+            );
             this.missingComponentBlockers.push(this.parentIdx);
 
             return {
@@ -1010,7 +1643,9 @@ export class RendererId extends Dependency {
         this.component = this.dependencyHandler._components[this.componentIdx];
 
         if (!this.component) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.componentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.componentIdx,
+            );
             this.missingComponentBlockers.push(this.componentIdx);
 
             return {
@@ -1048,4 +1683,31 @@ export class RendererId extends Dependency {
             this.deleteUpdateTriggerForMissingComponent(componentIdx);
         }
     }
+}
+
+/**
+ * The `_copy` components (`forList`) that make the children of `list`, a list
+ * written with `copy` or `extend`, and, once one has expanded, those that
+ * make the children of the lists it made, as in a copy of a copy of a list.
+ * Empty for any other component.
+ */
+function listCopiesOf(list: any): any[] {
+    const copies: any[] = [];
+    const visit = (component: any) => {
+        for (const child of component?.definingChildren ?? []) {
+            if (
+                child?.componentType === "_copy" &&
+                child.doenetAttributes?.forList !== undefined
+            ) {
+                copies.push(child);
+                if (child.isExpanded) {
+                    for (const replacement of child.replacements ?? []) {
+                        visit(replacement);
+                    }
+                }
+            }
+        }
+    };
+    visit(list);
+    return copies;
 }

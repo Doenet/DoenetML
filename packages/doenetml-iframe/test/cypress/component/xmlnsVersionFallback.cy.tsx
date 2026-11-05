@@ -1,0 +1,275 @@
+import React, { useState } from "react";
+import { DoenetEditor, DoenetViewer } from "../../../src/index";
+import {
+    STANDALONE_BLOB_URL,
+    STANDALONE_CSS_BLOB_URL,
+    IFRAME_READY_TIMEOUT,
+} from "./helpers";
+
+// #2383: an `xmlns` naming a DoenetML version whose bundle cannot be loaded
+// (mistyped, or never published) must not leave the iframe blank. The
+// wrapper falls back to the host-specified bundle. Before the fix the
+// failure was only noticed when the iframe's 60 s poll for the bundle timed
+// out; the bundle `<script>`'s `onerror` now reports it at once, so the
+// fallback has to boot within the ordinary `IFRAME_READY_TIMEOUT` budget.
+// The editor test also guards the diagnostic it adds for the bad version: its
+// `position` used to be a legacy offset range rather than a unist `Position`,
+// which crashed the fallback editor before it rendered anything.
+
+const MISSING_VERSION = "0.0.0-missing.1";
+const MISSING_BUNDLE_URL = `https://cdn.jsdelivr.net/npm/@doenet/standalone@v${MISSING_VERSION}/**`;
+const DOENETML = `<document xmlns="https://doenet.org/spec/doenetml/v${MISSING_VERSION}"><p>Fallback works</p></document>`;
+
+// The fallback swaps the iframe's `srcdoc`, which reloads its document, so
+// read `contentDocument` afresh on every retry: a `.its("0.contentDocument")`
+// chain would lock onto the document from before the reload. Look for the
+// rendered paragraph (the `<p>` renderer emits `role="paragraph"`), not the
+// body's text: the srcdoc carries the DoenetML source in a
+// `<script type="text/doenetml">`, whose text is in the body before anything
+// renders.
+function renderedParagraphText($iframe: JQuery<HTMLElement>): string {
+    const doc = ($iframe[0] as HTMLIFrameElement).contentDocument;
+    return Array.from(doc?.querySelectorAll('[role="paragraph"]') ?? [])
+        .map((p) => p.textContent ?? "")
+        .join("\n");
+}
+
+// Rendering the document requires a full core-worker boot on top of the
+// bundle evaluation; budget more than IFRAME_READY_TIMEOUT for it.
+const CONTENT_TIMEOUT = 30_000;
+
+// A second missing version, for tests that switch `doenetML` after a
+// fallback. Stubbed in `beforeEach` like the first.
+const OTHER_VERSION = "0.0.0-missing.2";
+
+/**
+ * A viewer on `DOENETML` (whose `xmlns` names the missing version) with a
+ * button that switches its `doenetML` to name `OTHER_VERSION` instead.
+ * `render={false}` keeps the document from booting a core, which these tests
+ * do not need.
+ */
+function SwitchingViewer(props: {
+    standaloneUrl?: string;
+    cssUrl?: string;
+    doenetmlVersion?: string;
+}) {
+    const [doenetML, setDoenetML] = useState(DOENETML);
+    return (
+        <div>
+            <button
+                data-test="switch"
+                onClick={() =>
+                    setDoenetML(
+                        DOENETML.replace(MISSING_VERSION, OTHER_VERSION),
+                    )
+                }
+            >
+                Switch
+            </button>
+            <DoenetViewer
+                doenetML={doenetML}
+                render={false}
+                addVirtualKeyboard={false}
+                {...props}
+            />
+        </div>
+    );
+}
+
+describe("xmlns-detected version that fails to load", () => {
+    beforeEach(() => {
+        cy.intercept("GET", MISSING_BUNDLE_URL, {
+            statusCode: 404,
+            body: "Not Found",
+        }).as("missingBundle");
+        cy.intercept(
+            "GET",
+            `https://cdn.jsdelivr.net/npm/@doenet/standalone@v${OTHER_VERSION}/**`,
+            { statusCode: 404, body: "Not Found" },
+        ).as("otherMissingBundle");
+    });
+
+    it("DoenetViewer falls back to the host-specified bundle and warns", () => {
+        cy.window().then((win) => {
+            cy.spy(win.console, "warn").as("warn");
+        });
+
+        cy.mount(
+            <DoenetViewer
+                doenetML={DOENETML}
+                standaloneUrl={STANDALONE_BLOB_URL}
+                cssUrl={STANDALONE_CSS_BLOB_URL}
+                addVirtualKeyboard={false}
+            />,
+        );
+
+        cy.wait("@missingBundle");
+
+        // The fallback iframe loads the host's bundle, not the missing one.
+        cy.get("iframe", { timeout: IFRAME_READY_TIMEOUT }).should(
+            ($iframe) => {
+                const srcDoc = ($iframe[0] as HTMLIFrameElement).srcdoc;
+                expect(
+                    srcDoc.includes(STANDALONE_BLOB_URL),
+                    "srcdoc loads the host-specified bundle",
+                ).to.be.true;
+                // Match the bundle URL, not the bare version: the srcdoc also
+                // embeds the DoenetML source, whose `xmlns` names the version.
+                expect(
+                    srcDoc.includes(`@doenet/standalone@v${MISSING_VERSION}`),
+                    "srcdoc loads the missing version's bundle",
+                ).to.be.false;
+            },
+        );
+        cy.get("@warn").should(
+            "have.been.calledWithMatch",
+            `v${MISSING_VERSION}`,
+        );
+
+        cy.get("iframe", { timeout: CONTENT_TIMEOUT }).should(($iframe) => {
+            expect(renderedParagraphText($iframe)).to.include("Fallback works");
+        });
+    });
+
+    it("DoenetEditor falls back to the host-specified bundle", () => {
+        cy.mount(
+            <div style={{ height: "600px", width: "900px" }}>
+                <DoenetEditor
+                    doenetML={DOENETML}
+                    standaloneUrl={STANDALONE_BLOB_URL}
+                    cssUrl={STANDALONE_CSS_BLOB_URL}
+                    addVirtualKeyboard={false}
+                />
+            </div>,
+        );
+
+        cy.wait("@missingBundle");
+
+        cy.get("iframe", { timeout: IFRAME_READY_TIMEOUT }).should(
+            ($iframe) => {
+                const srcDoc = ($iframe[0] as HTMLIFrameElement).srcdoc;
+                expect(
+                    srcDoc.includes(STANDALONE_BLOB_URL),
+                    "srcdoc loads the host-specified bundle",
+                ).to.be.true;
+                expect(
+                    srcDoc.includes(`@doenet/standalone@v${MISSING_VERSION}`),
+                    "srcdoc loads the missing version's bundle",
+                ).to.be.false;
+            },
+        );
+
+        // The editor boots on the fallback bundle, so the author can fix the
+        // `xmlns` that named the missing version.
+        cy.get("iframe", { timeout: IFRAME_READY_TIMEOUT }).should(
+            ($iframe) => {
+                const doc = ($iframe[0] as HTMLIFrameElement).contentDocument;
+                expect(
+                    doc?.querySelector(".cm-content")?.textContent ?? "",
+                ).to.include(MISSING_VERSION);
+            },
+        );
+    });
+
+    it("DoenetViewer still honors a different version in a later document", () => {
+        // After one fallback, only the version that failed is ignored: a new
+        // `doenetML` naming another version must load that version's bundle,
+        // not stay on the fallback. The second version is missing too, so
+        // the test sees its bundle requested and a second fallback warning
+        // without leaving the stubbed network.
+        cy.window().then((win) => {
+            cy.spy(win.console, "warn").as("warn");
+        });
+
+        cy.mount(
+            <SwitchingViewer
+                standaloneUrl={STANDALONE_BLOB_URL}
+                cssUrl={STANDALONE_CSS_BLOB_URL}
+            />,
+        );
+
+        cy.wait("@missingBundle");
+        cy.get("@warn").should(
+            "have.been.calledWithMatch",
+            `v${MISSING_VERSION}`,
+        );
+
+        cy.get("[data-test=switch]").click();
+        cy.wait("@otherMissingBundle");
+        cy.get("@warn").should(
+            "have.been.calledWithMatch",
+            `v${OTHER_VERSION}`,
+        );
+    });
+
+    it("DoenetViewer tries a different version even after its fallback failed too", () => {
+        // The fallback here, the host's `doenetmlVersion` (given without a
+        // `v`), is missing as well, so the viewer ends in its error state.
+        // Switching to a document naming another version must still request
+        // that version's bundle: the error belongs to the fallback bundle,
+        // not to the new version, which used to be blamed for it (warned
+        // about as unloadable without ever being requested).
+        const FALLBACK_VERSION = "0.0.0-fallback.2";
+        cy.intercept(
+            "GET",
+            `https://cdn.jsdelivr.net/npm/@doenet/standalone@${FALLBACK_VERSION}/**`,
+            { statusCode: 404, body: "Not Found" },
+        ).as("fallbackBundle");
+        cy.window().then((win) => {
+            cy.spy(win.console, "warn").as("warn");
+        });
+
+        cy.mount(<SwitchingViewer doenetmlVersion={FALLBACK_VERSION} />);
+
+        cy.wait("@missingBundle");
+        cy.wait("@fallbackBundle");
+        cy.get("@warn").should(
+            "have.been.calledWithMatch",
+            `using version \`v${FALLBACK_VERSION}\` instead`,
+        );
+        cy.contains("Invalid DoenetML version", {
+            timeout: IFRAME_READY_TIMEOUT,
+        });
+
+        cy.get("[data-test=switch]").click();
+        cy.wait("@otherMissingBundle");
+        cy.get("@warn").should(
+            "have.been.calledWithMatch",
+            `v${OTHER_VERSION}`,
+        );
+    });
+
+    it("DoenetEditor names the fallback version with its `v` prefix", () => {
+        // With no host-specified bundle the editor falls back to
+        // `doenetmlVersion`, given here without a `v`. Hold that bundle's
+        // (stubbed) response back so the srcdoc carrying the diagnostic can
+        // be read before the fallback's own load fails.
+        const FALLBACK_VERSION = "0.0.0-fallback.1";
+        cy.intercept(
+            "GET",
+            `https://cdn.jsdelivr.net/npm/@doenet/standalone@${FALLBACK_VERSION}/**`,
+            { statusCode: 404, body: "Not Found", delay: 10_000 },
+        );
+
+        cy.mount(
+            <div style={{ height: "600px", width: "900px" }}>
+                <DoenetEditor
+                    doenetML={DOENETML}
+                    doenetmlVersion={FALLBACK_VERSION}
+                    addVirtualKeyboard={false}
+                />
+            </div>,
+        );
+
+        cy.wait("@missingBundle");
+        cy.get("iframe", { timeout: IFRAME_READY_TIMEOUT }).should(
+            ($iframe) => {
+                const srcDoc = ($iframe[0] as HTMLIFrameElement).srcdoc;
+                expect(
+                    srcDoc.includes(`"fallback":"v${FALLBACK_VERSION}"`),
+                    "diagnostic names the fallback as v" + FALLBACK_VERSION,
+                ).to.be.true;
+            },
+        );
+    });
+});

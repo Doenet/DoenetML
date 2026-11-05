@@ -562,6 +562,9 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m5")].stateValues
                     .latex,
             ),
+            // Terms of equal degree order by coefficient, so `-2x^2` leads the
+            // three `x^2` terms. Matches the legacy library, which folds the
+            // sign into the coefficient and then sorts on it.
         ).eq("-2x^{2}+x^{2}+5x^{2}-2");
         expect(
             cleanLatex(
@@ -606,6 +609,10 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
                 .tree,
+            // Like terms stay uncollected (that is what `simplify="numbers"`
+            // means), and the ones that survive sort canonically rather than in
+            // written order: within one degree, by coefficient, so `-2x²`
+            // before `x²` before `5x²`. Same four terms, same value.
         ).eqls([
             "+",
             ["*", -2, ["^", "x", 2]],
@@ -688,6 +695,10 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,
         ).eqls(["*", ["+", "x", -3], ["+", ["*", 2, "x"], 4]]);
+        // `(-2)x`, not `-(2x)`: a computed term carries its sign on the leading
+        // coefficient, which is where a student would write it. A bare `Neg`
+        // survives only when there is no number to carry the sign (`-x`, and
+        // the `-(3x+5)(7-x)` in `m3` below, whose leading factor is a sum).
         expect(
             stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
                 .tree,
@@ -2490,7 +2501,11 @@ describe("Math tag tests @group3", async () => {
             ),
         ).eq("35203000");
 
-        // invalid both, no rounding
+        // invalid both, no rounding: the exact decimal as authored. Legacy
+        // could only show `35203423.023523435`, the shortest f64 that reads
+        // back as the same double, because it held the value as a float. The
+        // Rust engine parses a typed decimal to an exact rational, so "no
+        // rounding" now means no rounding at all.
         await updateMathInputValue({
             componentIdx: await resolvePathToNodeIdx("nDecimals"),
             latex: "y",
@@ -2502,7 +2517,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("na")].stateValues
                     .latex,
             ),
-        ).eq("35203423.023523435");
+        ).eq("35203423.02352343201");
 
         // only invalid nDecimals, falls back to digits
         await updateMathInputValue({
@@ -3533,7 +3548,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("tuple")].stateValues
                 .text,
-        ).eq("( a, b, c )");
+        ).eq("(a, b, c)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("doubleNoList")]
@@ -3551,7 +3566,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("doubleTuple")]
                 .stateValues.text,
-        ).eq("2 ( a, b, c )");
+        ).eq("2 (a, b, c)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("appendNoList")]
@@ -3587,7 +3602,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("functionOfList")]
                 .stateValues.text,
-        ).eq("f( a, b, c )");
+        ).eq("f(a, b, c)");
     });
 
     it("aslist inside math, sequence", async () => {
@@ -5673,7 +5688,11 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a2isumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(e,f)+\\langlep,q\\rangle");
+            // Simplified, so the sum is in canonical order — which for this
+            // pair is also the written order, so it reads identically to
+            // `a2isum` above. The pair still pins that simplifying does not
+            // *reorder* an angle-bracket vector against a tuple.
+        ).eq("\\langlep,q\\rangle+(e,f)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("st2mul")].stateValues
@@ -6589,13 +6608,13 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22sm22bSimp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}mn+a&mo+b\\\\mp+c&mq+d\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22sm22bExpSimp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}mn+a&mo+b\\\\mp+c&mq+d\\end{bmatrix}");
     });
 
     it("matrix multiplication", async () => {
@@ -6663,7 +6682,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22aSq")].stateValues
                     .latex,
             ),
-        ).eq("(\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix})^{2}");
+        ).eq("\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}^{2}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22aSqExp")]
@@ -6798,12 +6817,15 @@ describe("Math tag tests @group3", async () => {
                     .latex,
             ),
         ).eq("(e,f)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        // A coordinate vector is read by position: a row (1×N) to the left of a
+        // matrix, a column (N×1) to its right. So `expand` contracts on both
+        // sides, and `$tuple2$matrix22` is the row product, not the column one.
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("t2m22Exp")]
                     .stateValues.latex,
             ),
-        ).eq("(e,f)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        ).eq("(ae+cf,be+df)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22v2")].stateValues
@@ -6827,7 +6849,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("v2m22Exp")]
                     .stateValues.latex,
             ),
-        ).eq("(g,h)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        ).eq("(ag+ch,bg+dh)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22a2")].stateValues
@@ -6851,7 +6873,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a2m22Exp")]
                     .stateValues.latex,
             ),
-        ).eq("\\langlep,q\\rangle\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        ).eq("\\langleap+cq,bp+dq\\rangle");
     });
 
     it("matrix and vector state variables", async () => {
@@ -11497,7 +11519,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("e6")].stateValues
                     .latex,
             ),
-        ).eq("ac+adi+bci-bd");
+        ).eq("adi+bci+ac-bd");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("e7")].stateValues
@@ -13228,6 +13250,9 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
                 .tree,
+            // A negative product is spelled `(-2)·…`, not `-(2·…)`: the sign
+            // rides the leading coefficient, as in the legacy library. A `Neg`
+            // wrapper is left only when no numeric factor can carry it.
         ).eqls(["*", -2, ["apply", "cbrt", ["*", 3, ["^", "x", 6]]]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value
@@ -13426,7 +13451,10 @@ describe("Math tag tests @group3", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("2/3 - (3 x)/4");
+            // No parentheses around the numerator: `3 x/4` re-parses as
+            // `(3x)/4` by precedence, so the two spellings are the same
+            // expression. The latex above keeps the grouping explicit.
+        ).eq("2/3 - 3 x/4");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
@@ -13544,5 +13572,214 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues
                 .renderMode,
         ).eq("inline");
+    });
+
+    it("a math reports number as NaN when it has none, and as a plain complex when it is one", async () => {
+        // `.number` is public and its own description promises "NaN if not a
+        // number". While the engine reported an expression it cannot evaluate
+        // as `null`, that coerced to `0` in every consumer that does
+        // arithmetic; it reports `NaN` now.
+        //
+        // `m3` is the leg that measures this definition rather than the
+        // engine. `evaluate_to_constant()` answers a math.js `Complex` for a
+        // constant that is not real, and `plainComplex` is what turns it into
+        // an object that survives the structured clone to the main thread —
+        // remove it and `m3` arrives with its prototype stripped and its
+        // `re`/`im` gone, while the `m1`/`m2` legs stay green.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <math name="m1">x+y</math>
+  <math name="m2">3+4</math>
+  <math name="m3">sqrt(-4)</math>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.number,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.number,
+        ).eq(7);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.number,
+        ).eqls({ re: 0, im: 2 });
+    });
+
+    it("a math with a unary plus can be modified", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <mathInput name="a" prefill="3" />
+  <math name="m">+$a</math>
+  <mathInput name="mi" bindValueTo="$m" />
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .canBeModified,
+        ).eq(true);
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
+        ).eq(5);
+    });
+
+    it("fixLocation keeps a math where it is drawn, not at its value", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <math name="m" fixLocation anchor="(1,2)" draggable>x</math>
+    </graph>
+    <math name="m2" extend="$m" />
+    <mathInput name="mi" bindValueTo="$m2" />
+    `,
+        });
+        const mIdx = await resolvePathToNodeIdx("m");
+
+        await moveMath({ componentIdx: mIdx, x: 5, y: 6, core });
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[mIdx].stateValues.anchor.toString()).eq("(1, 2)");
+        expect(stateVariables[mIdx].stateValues.value.tree).eq("y");
+        expect(stateVariables[mIdx].stateValues.canBeModified).eq(true);
+    });
+    it("a move giving one coordinate keeps the anchor's others", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+        <math name="m" anchor="(1,2)">x</math>
+        <text name="t" anchor="(1,2,3)">hi</text>
+        <number name="n" anchor="(a,2)">1</number>
+        <point name="P">(1,2,3)</point>
+        <label name="l" anchor="$P">hi</label>
+    </graph>
+    `,
+        });
+        const anchorOf = async (name: string) =>
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.anchor.tree;
+
+        for (const [name, actionName] of [
+            ["m", "moveMath"],
+            ["t", "moveText"],
+            ["n", "moveNumber"],
+            ["l", "moveLabel"],
+        ]) {
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName,
+                args: { y: 5 },
+            });
+        }
+        expect(await anchorOf("m")).eqls(["vector", 1, 5]);
+        expect(await anchorOf("t")).eqls(["vector", 1, 5, 3]);
+        expect(await anchorOf("n")).eqls(["vector", "a", 5]);
+        // An anchor referencing a point moves that point.
+        expect(await anchorOf("l")).eqls(["vector", 1, 5, 3]);
+        expect(
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("P")
+            ].stateValues.xs.map((v: any) => v.tree),
+        ).eqls([1, 5, 3]);
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("t"),
+            actionName: "moveText",
+            args: { x: 7 },
+        });
+        expect(await anchorOf("t")).eqls(["vector", 7, 5, 3]);
+    });
+
+    it("a math with no children written through an input reloads as a math", async () => {
+        const doenetML = `
+    <math name="m"/>
+    <mathInput name="mi" bindValueTo="$m"/>
+    <math extend="$m" name="m2" />
+    <math copy="$m" name="m3" />
+    `;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await updateMathInputValue({
+            latex: "5x",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["m", "m2"]) {
+                const { value, number } =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect(value.tree).eqls(["*", 5, "x"]);
+                expect(number).eqls(NaN);
+            }
+            expect(
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                    .value.tree,
+            ).eqls(["*", 5, "x"]);
+            // an unlinked copy keeps the blank it was made with
+            expect(
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .value.tree,
+            ).eq("\uff3f");
+        }
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
+
+    it("a math with no children whose value is a number reloads as a math", async () => {
+        const doenetML = `
+    <math name="m"/>
+    <mathInput name="mi" bindValueTo="$m"/>
+    <number name="n">$m.number</number>
+    `;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const m = stateVariables[await resolvePathToNodeIdx("m")].stateValues;
+        expect(m.value.tree).eq(5);
+        expect(m.number).eq(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(5);
     });
 });

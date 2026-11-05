@@ -1,4 +1,5 @@
 import * as fs from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 
 const destUrl = new URL("../src/generated/math-assets.json", import.meta.url);
 
@@ -244,6 +245,6 @@ const mathAssets = {
     latexSubstitutions,
 };
 
-console.log("Writing math assets to", destUrl.pathname);
+console.log("Writing math assets to", fileURLToPath(destUrl));
 
-await fs.writeFile(destUrl.pathname, JSON.stringify(mathAssets, null, 4));
+await fs.writeFile(destUrl, JSON.stringify(mathAssets, null, 4));

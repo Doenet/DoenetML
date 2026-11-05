@@ -82,7 +82,7 @@ export function addNodesToFlatFragment({
                         // we already dealt with name, above
                         if (
                             attrName === "name" ||
-                            attrName === "createComponentName"
+                            attrName === "_createComponentName"
                         ) {
                             break;
                         }
@@ -196,7 +196,7 @@ export function addNodesToFlatFragment({
 
 /**
  * Return the effective component index of `component`,
- * which means the component index is overridden by the `createComponentIdx` attribute, if it exists.
+ * which means the component index is overridden by the `_createComponentIdx` attribute, if it exists.
  */
 export function getEffectiveComponentIdx(
     component: SerializedComponent | UnflattenedComponent,
@@ -204,8 +204,8 @@ export function getEffectiveComponentIdx(
     let componentIdx = component.componentIdx;
 
     if (component.type === "unflattened") {
-        if (component.attributes.createComponentIdx?.children.length === 1) {
-            const child = component.attributes.createComponentIdx.children[0];
+        if (component.attributes._createComponentIdx?.children.length === 1) {
+            const child = component.attributes._createComponentIdx.children[0];
             if (typeof child === "string") {
                 const idx = Number(child);
                 if (Number.isInteger(idx)) {
@@ -214,13 +214,13 @@ export function getEffectiveComponentIdx(
             }
         }
     } else {
-        if (component.attributes.createComponentIdx?.type === "primitive") {
+        if (component.attributes._createComponentIdx?.type === "primitive") {
             if (
-                component.attributes.createComponentIdx.primitive.type ===
+                component.attributes._createComponentIdx.primitive.type ===
                 "number"
             ) {
                 componentIdx =
-                    component.attributes.createComponentIdx.primitive.value;
+                    component.attributes._createComponentIdx.primitive.value;
             }
         }
     }
@@ -230,15 +230,15 @@ export function getEffectiveComponentIdx(
 
 /**
  * Return the effective component name of `component`,
- * which means the component name is overridden by the `createComponentName` attribute, if it exists.
- * Return `null` if neither `name` nor `createComponentName` attribute exists.
+ * which means the component name is overridden by the `_createComponentName` attribute, if it exists.
+ * Return `null` if neither `name` nor `_createComponentName` attribute exists.
  */
 function getEffectiveComponentName(
     component: SerializedComponent | UnflattenedComponent,
 ) {
     if (component.type === "unflattened") {
-        if (component.attributes.createComponentName?.children.length === 1) {
-            const child = component.attributes.createComponentName.children[0];
+        if (component.attributes._createComponentName?.children.length === 1) {
+            const child = component.attributes._createComponentName.children[0];
             if (typeof child === "string") {
                 return child;
             }
@@ -254,10 +254,11 @@ function getEffectiveComponentName(
         return null;
     } else {
         if (
-            component.attributes.createComponentName?.type === "primitive" &&
-            component.attributes.createComponentName.primitive.type === "string"
+            component.attributes._createComponentName?.type === "primitive" &&
+            component.attributes._createComponentName.primitive.type ===
+                "string"
         ) {
-            return component.attributes.createComponentName.primitive.value;
+            return component.attributes._createComponentName.primitive.value;
         } else if (
             component.attributes.name?.type === "primitive" &&
             component.attributes.name.primitive.type === "string"
@@ -282,22 +283,22 @@ function getEffectiveComponentName(
  * Async because `isInactiveCompositeReplacement` is a state-value getter that
  * may resolve asynchronously.
  *
- * Behaviour preserved verbatim from the original closure form in
- * `ResolverAdapter`:
+ * Behavior:
  * - Withheld replacements (`stateValues.isInactiveCompositeReplacement`)
- *   and blank-string replacements are skipped.
+ *   and blank-string replacements are skipped, as is everything inside them.
  * - Expanded `_copy` replacements are substituted in place by their own
  *   replacements (recursively); unexpanded copies remain. An expanded copy
  *   missing `replacements` (shouldn't happen at runtime, but the type allows
  *   it) is treated as having no replacements.
- * - When `copyComponentIdx` matches at the current level, `startIdx`/`endIdx`
- *   are set to the position in the current level's flattened result. A match
- *   at the current level overrides any match found in a recursive call (the
- *   original code mutated outer-scope variables, so the last write — the
- *   parent level — won).
- * - When `updateStart`/`updateEnd` are provided and the match falls inside an
- *   expanded copy, the indices are offset by `updateStart`/`updateEnd` instead
- *   of spanning the whole expansion.
+ * - `startIdx`/`endIdx` are the matched copy's position in this level's
+ *   flattened result, including when the match is a copy nested inside an
+ *   expanded copy. A match at the current level overrides any match found in
+ *   a recursive call.
+ * - When `updateStart`/`updateEnd` are provided and the matched copy is
+ *   expanded, the indices are offset from the copy's start by
+ *   `updateStart`/`updateEnd` instead of spanning the whole expansion.
+ * - When the copy is not found, because it is inside a replacement that is
+ *   not a copy or inside a withheld one, `startIdx`/`endIdx` are undefined.
  */
 export async function calcStartEndIdx({
     replacements,
@@ -364,12 +365,13 @@ export async function calcStartEndIdx({
         const recurFlattened = recursionResult.flattenedReplacements;
         const n = recurFlattened.length;
 
-        // The recursion may have produced a match. The current level's own
+        // The recursion may have produced a match, at a position within
+        // `recurFlattened`, which starts at `i` here. The current level's own
         // match (below) overrides it — preserving the closure-mutation
         // semantics of the original code.
         if (recursionResult.startIdx !== undefined) {
-            startIdx = recursionResult.startIdx;
-            endIdx = recursionResult.endIdx;
+            startIdx = i + recursionResult.startIdx;
+            endIdx = i + recursionResult.endIdx!;
         }
 
         if (repl.componentIdx === copyComponentIdx) {

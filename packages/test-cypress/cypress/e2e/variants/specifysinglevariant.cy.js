@@ -1,5 +1,17 @@
 import { cesc } from "@doenet/utils";
 
+/**
+ * The value of a component, or of the one entry of a list component, such as
+ * a `<selectFromSequence>`, which holds its values in an array.
+ */
+function valueOf(component) {
+    const stateValues = component.stateValues;
+    return (
+        stateValues.value ??
+        (stateValues.numbers ?? stateValues.maths ?? stateValues.texts)?.[0]
+    );
+}
+
 describe(
     "Specifying single variant document tests",
     { tags: ["@group3"] },
@@ -34,7 +46,8 @@ describe(
           <option><selectFromSequence from="-1000" to="-900" /></option>
         </select>
       </p></option>
-      <option><p>Chosen letter: <selectFromSequence type="letters" to="g" name="item" /></p></option>
+      <!-- item is a select in every option, so $p.item names it -->
+      <option><p>Chosen letter: <select name="item"><option><selectFromSequence type="letters" to="g" /></option></select></p></option>
       <option><p>Variable: <select type="text" name="item">u v w x z y</select></p></option>
     </select>
     <p>Enter item $item as text: <answer><textInput name="textInput1"/><award><text>$(p.item)</text></award></answer></p>
@@ -77,9 +90,9 @@ describe(
                         firstStringsToInd[p.activeChildren[0].trim()];
                     expect(variantInd).not.eq(undefined);
 
-                    let secondValue =
-                        stateVariables[p.activeChildren[1].componentIdx]
-                            .stateValues.value;
+                    let secondValue = valueOf(
+                        stateVariables[p.activeChildren[1].componentIdx],
+                    );
 
                     if (variantInd === 0) {
                         let i = [
@@ -159,9 +172,9 @@ describe(
                             firstStringsToInd[p.activeChildren[0].trim()];
                         expect(variantInd2).eq(variantInd);
 
-                        let secondValue2 =
-                            stateVariables[p.activeChildren[1].componentIdx]
-                                .stateValues.value;
+                        let secondValue2 = valueOf(
+                            stateVariables[p.activeChildren[1].componentIdx],
+                        );
                         expect(secondValue2).eq(secondValue);
 
                         cy.get("#textInput1_input").type(`{end}X`);
@@ -428,12 +441,8 @@ describe(
                     indexChosen2 =
                         stateVariables[await win.resolvePath1("n")].stateValues
                             .selectedIndices[0];
-                    m =
-                        stateVariables[await win.resolvePath1("m[1]")]
-                            .stateValues.value;
-                    n =
-                        stateVariables[await win.resolvePath1("n[1]")]
-                            .stateValues.value;
+                    m = valueOf(stateVariables[await win.resolvePath1("m")]);
+                    n = valueOf(stateVariables[await win.resolvePath1("n")]);
 
                     cy.get("#mathInput1" + " textarea").type(`${m}{enter}`, {
                         force: true,
@@ -487,12 +496,14 @@ describe(
                                 .stateValues.selectedIndices[0],
                         ).eq(indexChosen2);
                         expect(
-                            stateVariables[await win.resolvePath1("m[1]")]
-                                .stateValues.value,
+                            valueOf(
+                                stateVariables[await win.resolvePath1("m")],
+                            ),
                         ).eq(m);
                         expect(
-                            stateVariables[await win.resolvePath1("n[1]")]
-                                .stateValues.value,
+                            valueOf(
+                                stateVariables[await win.resolvePath1("n")],
+                            ),
                         ).eq(n);
                     });
 
@@ -572,6 +583,26 @@ describe(
     <p name="p3">Enter <selectFromSequence name="m" />. <answer name="ans">$m</answer></p>
     `;
 
+            // Component indices follow the order in which components are
+            // made, which can differ when a saved page is loaded again
+            // (#2349). Look the inputs up by name after each load.
+            async function getInputSelectors(win) {
+                let stateVariables = await win.returnAllStateVariables1();
+                let selectors = {};
+                let paths = ["g.ans", "g2.ans", "g3.ans", "p3.ans"];
+                for (let [i, path] of paths.entries()) {
+                    let inputIdx =
+                        stateVariables[await win.resolvePath1(path)].stateValues
+                            .inputChildren[0].componentIdx;
+                    selectors[`mathInput${i + 1}Anchor`] =
+                        cesc("#_id_" + inputIdx) + " textarea";
+                    selectors[`answer${i + 1}Button`] = cesc(
+                        "#_id_" + inputIdx + "_button",
+                    );
+                }
+                return selectors;
+            }
+
             cy.window().then(async (win) => {
                 win.postMessage(
                     {
@@ -594,41 +625,19 @@ describe(
                 let choiceOrder =
                     stateVariables[await win.resolvePath1("ci")].stateValues
                         .choiceOrder;
-                let n =
-                    stateVariables[await win.resolvePath1("n[1]")].stateValues
-                        .value;
-                let m =
-                    stateVariables[await win.resolvePath1("m[1]")].stateValues
-                        .value;
+                let n = valueOf(stateVariables[await win.resolvePath1("n")]);
+                let m = valueOf(stateVariables[await win.resolvePath1("m")]);
 
-                let mathInput1Idx =
-                    stateVariables[await win.resolvePath1(`g.ans`)].stateValues
-                        .inputChildren[0].componentIdx;
-                let mathInput2Idx =
-                    stateVariables[await win.resolvePath1(`g2.ans`)].stateValues
-                        .inputChildren[0].componentIdx;
-                let mathInput3Idx =
-                    stateVariables[await win.resolvePath1(`g3.ans`)].stateValues
-                        .inputChildren[0].componentIdx;
-                let mathInput4Idx =
-                    stateVariables[await win.resolvePath1(`p3.ans`)].stateValues
-                        .inputChildren[0].componentIdx;
-
-                let mathInput1Anchor =
-                    cesc("#_id_" + mathInput1Idx) + " textarea";
-                let answer1Button = cesc("#_id_" + mathInput1Idx + "_button");
-
-                let mathInput2Anchor =
-                    cesc("#_id_" + mathInput2Idx) + " textarea";
-                let answer2Button = cesc("#_id_" + mathInput2Idx + "_button");
-
-                let mathInput3Anchor =
-                    cesc("#_id_" + mathInput3Idx) + " textarea";
-                let answer3Button = cesc("#_id_" + mathInput3Idx + "_button");
-
-                let mathInput4Anchor =
-                    cesc("#_id_" + mathInput4Idx) + " textarea";
-                let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
+                let {
+                    mathInput1Anchor,
+                    answer1Button,
+                    mathInput2Anchor,
+                    answer2Button,
+                    mathInput3Anchor,
+                    answer3Button,
+                    mathInput4Anchor,
+                    answer4Button,
+                } = await getInputSelectors(win);
 
                 cy.get("#ci_choice1_input")
                     .parent()
@@ -712,12 +721,10 @@ describe(
                     let stateVariables = await win.returnAllStateVariables1();
 
                     expect(
-                        stateVariables[await win.resolvePath1("g2.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g2.n")]),
                     ).eq(n);
                     expect(
-                        stateVariables[await win.resolvePath1("g3.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g3.n")]),
                     ).eq(n);
                     expect(
                         stateVariables[await win.resolvePath1("g2.ci")]
@@ -789,20 +796,16 @@ describe(
                     let stateVariables = await win.returnAllStateVariables1();
 
                     expect(
-                        stateVariables[await win.resolvePath1("g.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g.n")]),
                     ).eq(n);
                     expect(
-                        stateVariables[await win.resolvePath1("g2.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g2.n")]),
                     ).eq(n);
                     expect(
-                        stateVariables[await win.resolvePath1("g3.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g3.n")]),
                     ).eq(n);
                     expect(
-                        stateVariables[await win.resolvePath1("m[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("m")]),
                     ).eq(m);
 
                     expect(
@@ -866,64 +869,77 @@ describe(
                     `Selected value: ${choices[choiceOrder[0] - 1]}`,
                 );
 
-                cy.get(answer1Button).should("contain.text", "Correct");
-                cy.get(answer2Button).should("contain.text", "Correct");
-                cy.get(answer3Button).should("contain.text", "Correct");
-                cy.get(answer4Button).should("contain.text", "Correct");
+                cy.window().then(async (win) => {
+                    let {
+                        mathInput1Anchor,
+                        answer1Button,
+                        mathInput2Anchor,
+                        answer2Button,
+                        mathInput3Anchor,
+                        answer3Button,
+                        mathInput4Anchor,
+                        answer4Button,
+                    } = await getInputSelectors(win);
 
-                cy.get(mathInput1Anchor).type(
-                    `{end}{backspace}{backspace}${n + 1}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer2Button).click();
-                cy.get(answer1Button).should("contain.text", "Incorrect");
-                cy.get(answer2Button).should("contain.text", "Incorrect");
+                    cy.get(answer1Button).should("contain.text", "Correct");
+                    cy.get(answer2Button).should("contain.text", "Correct");
+                    cy.get(answer3Button).should("contain.text", "Correct");
+                    cy.get(answer4Button).should("contain.text", "Correct");
 
-                cy.get(mathInput2Anchor).type(
-                    `{end}{backspace}{backspace}${n}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer1Button).click();
-                cy.get(answer1Button).should("contain.text", "Correct");
-                cy.get(answer2Button).should("contain.text", "Correct");
+                    cy.get(mathInput1Anchor).type(
+                        `{end}{backspace}{backspace}${n + 1}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer2Button).click();
+                    cy.get(answer1Button).should("contain.text", "Incorrect");
+                    cy.get(answer2Button).should("contain.text", "Incorrect");
 
-                cy.get(mathInput3Anchor).type(
-                    `{end}{backspace}{backspace}${n + 1}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer3Button).click();
-                cy.get(answer3Button).should("contain.text", "Incorrect");
-                cy.get(mathInput3Anchor).type(
-                    `{end}{backspace}{backspace}${n}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer3Button).click();
-                cy.get(answer3Button).should("contain.text", "Correct");
+                    cy.get(mathInput2Anchor).type(
+                        `{end}{backspace}{backspace}${n}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer1Button).click();
+                    cy.get(answer1Button).should("contain.text", "Correct");
+                    cy.get(answer2Button).should("contain.text", "Correct");
 
-                cy.get(mathInput4Anchor).type(
-                    `{end}{backspace}{backspace}${m + 1}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer4Button).click();
-                cy.get(answer4Button).should("contain.text", "Incorrect");
-                cy.get(mathInput4Anchor).type(
-                    `{end}{backspace}{backspace}${m}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer4Button).click();
-                cy.get(answer4Button).should("contain.text", "Correct");
+                    cy.get(mathInput3Anchor).type(
+                        `{end}{backspace}{backspace}${n + 1}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer3Button).click();
+                    cy.get(answer3Button).should("contain.text", "Incorrect");
+                    cy.get(mathInput3Anchor).type(
+                        `{end}{backspace}{backspace}${n}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer3Button).click();
+                    cy.get(answer3Button).should("contain.text", "Correct");
+
+                    cy.get(mathInput4Anchor).type(
+                        `{end}{backspace}{backspace}${m + 1}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer4Button).click();
+                    cy.get(answer4Button).should("contain.text", "Incorrect");
+                    cy.get(mathInput4Anchor).type(
+                        `{end}{backspace}{backspace}${m}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer4Button).click();
+                    cy.get(answer4Button).should("contain.text", "Correct");
+                });
             });
         });
     },

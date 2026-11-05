@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -195,20 +196,44 @@ describe("matching patterns answer tests @group2", async () => {
                             .stateValues.creditAchieved,
                     ).eq(1);
                     expect(
-                        stateVariables[await resolvePathToNodeIdx("sub[1]")]
-                            .stateValues.value.tree,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                "sub[1]",
+                            )
+                        ).stateValues.value.tree,
                     ).eqls(res.response);
                     expect(
-                        stateVariables[await resolvePathToNodeIdx("quad[1]")]
-                            .stateValues.value.tree,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                "quad[1]",
+                            )
+                        ).stateValues.value.tree,
                     ).eqls(res.matches[0]);
                     expect(
-                        stateVariables[await resolvePathToNodeIdx("lin[1]")]
-                            .stateValues.value.tree,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                "lin[1]",
+                            )
+                        ).stateValues.value.tree,
                     ).eqls(res.matches[1]);
                     expect(
-                        stateVariables[await resolvePathToNodeIdx("const[1]")]
-                            .stateValues.value.tree,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                "const[1]",
+                            )
+                        ).stateValues.value.tree,
                     ).eqls(res.matches[2]);
                     expect(
                         stateVariables[await resolvePathToNodeIdx("ans")]
@@ -232,16 +257,38 @@ describe("matching patterns answer tests @group2", async () => {
                             .stateValues.creditAchieved,
                     ).eq(0);
                     expect(
-                        stateVariables[await resolvePathToNodeIdx("sub[1]")]
-                            .stateValues.value.tree,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                "sub[1]",
+                            )
+                        ).stateValues.value.tree,
                     ).eqls(res.response);
                     expect(
-                        stateVariables[await resolvePathToNodeIdx("quad[1]")],
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            "quad[1]",
+                        ),
                     ).be.undefined;
-                    expect(stateVariables[await resolvePathToNodeIdx("lin[1]")])
-                        .be.undefined;
                     expect(
-                        stateVariables[await resolvePathToNodeIdx("const[1]")],
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            "lin[1]",
+                        ),
+                    ).be.undefined;
+                    expect(
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            "const[1]",
+                        ),
                     ).be.undefined;
                     expect(
                         stateVariables[await resolvePathToNodeIdx("ans")]

@@ -1,10 +1,28 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
-import { setUpVariantSeedAndRng } from "../utils/variants";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import {
+    setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { returnBreakStringsIntoTypeSugarInstruction } from "../utils/listValues";
+import { listEntryReplacement } from "./Sort";
+
+/**
+ * What the shuffle copies for `key`, one of its `originalComponentIndices`:
+ * a component, or, for an entry of a list component (`"idx|k"`), the list
+ * and the entry's index, which has no component to copy.
+ */
+function shuffledSource(key, components) {
+    if (typeof key === "string") {
+        const [listIdx, listInd] = key.split("|").map(Number);
+        const list = components[listIdx];
+        return list ? { list, listInd } : undefined;
+    }
+    return components[key];
+}
 
 export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
@@ -14,7 +32,7 @@ export default class Shuffle extends CompositeComponent {
     };
     static takesIndex = true;
 
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAnywhere = true;
 
     static createsVariants = true;
 
@@ -25,11 +43,29 @@ export default class Shuffle extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.type = {
+            highlighted: true,
             createPrimitiveOfType: "string",
-            description: "Component type to shuffle children as.",
+            description:
+                "Component type to read bare string children as. Omit it and they are read as what they look like: every piece naming a number makes them numbers, anything else makes them text.",
+            validValues: [
+                {
+                    value: "number",
+                    description: "Read bare strings as numbers.",
+                },
+                {
+                    value: "math",
+                    description: "Read bare strings as math expressions.",
+                },
+                { value: "text", description: "Read bare strings as text." },
+                {
+                    value: "boolean",
+                    description: "Read bare strings as booleans.",
+                },
+            ],
         };
 
         attributes.asList = {
+            highlighted: true,
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
@@ -43,83 +79,9 @@ export default class Shuffle extends CompositeComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        function breakStringsMacrosIntoTypeBySpaces({
-            matchedChildren,
-            componentAttributes,
-            componentInfoObjects,
-            nComponents,
-        }) {
-            const diagnostics = [];
-            // only if all children are strings or macros
-            if (
-                !matchedChildren.every(
-                    (child) =>
-                        typeof child === "string" ||
-                        (child.extending && "Ref" in child.extending),
-                )
-            ) {
-                return { success: false };
-            }
-
-            let type;
-            if (componentAttributes.type?.value) {
-                type = componentAttributes.type.value;
-            } else {
-                if (
-                    matchedChildren.some((child) => typeof child === "string")
-                ) {
-                    diagnostics.push(
-                        codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0013",
-                            args: { component: "shuffle" },
-                        }),
-                    );
-                }
-                return { success: false, diagnostics };
-            }
-
-            if (!["math", "text", "number", "boolean"].includes(type)) {
-                console.warn(`Invalid type ${type}`);
-                diagnostics.push(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0014",
-                        args: { type, component: "shuffle" },
-                    }),
-                );
-                type = "math";
-            }
-
-            // break any string by white space and wrap pieces with type
-            let groupIntoComponentTypesSeparatedBySpaces =
-                returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                    componentType: type,
-                    forceComponentType: true,
-                });
-            let result = groupIntoComponentTypesSeparatedBySpaces({
-                matchedChildren,
-                componentInfoObjects,
-                nComponents,
-            });
-
-            if (result.success) {
-                let newChildren = result.newChildren;
-
-                return {
-                    success: true,
-                    newChildren,
-                    nComponents: result.nComponents,
-                    diagnostics,
-                };
-            } else {
-                return { success: false };
-            }
-        }
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsMacrosIntoTypeBySpaces,
-        });
+        sugarInstructions.push(
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+        );
 
         return sugarInstructions;
     }
@@ -163,6 +125,12 @@ export default class Shuffle extends CompositeComponent {
                         originalComponentIndices.push(
                             ...child.stateValues.componentIndicesInList,
                         );
+                    } else if (child.listEntryIndex !== undefined) {
+                        // an entry of a list component, which the list
+                        // presents as one child per entry
+                        originalComponentIndices.push(
+                            `${child.componentIdx}|${child.listEntryIndex}`,
+                        );
                     } else {
                         originalComponentIndices.push(child.componentIdx);
                     }
@@ -179,6 +147,11 @@ export default class Shuffle extends CompositeComponent {
         };
 
         stateVariableDefinitions.componentOrder = {
+            // A shuffle that extends another (`<shuffle extend="$sh">`) shows
+            // the replacements of its source, so it takes its source's order
+            // rather than drawing one from a seed of its own, which no
+            // variant records (Doenet/DoenetML#2359).
+            shadowVariable: true,
             returnDependencies({ sharedParameters }) {
                 let dependencies = {
                     variantSeed: {
@@ -302,16 +275,29 @@ export default class Shuffle extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "componentOrder",
                 },
+                // The variant components among the shuffle's children, in
+                // the order they are written, which is the order
+                // `setUpVariant` hands a desired variant's subvariants back
+                // to them in (as `getUniqueVariant` lists them). The items
+                // shown are shadows of these children, in `componentOrder`,
+                // so they show the values recorded here. Read from the
+                // items, the subvariants would be in the shown order, so each
+                // item would be handed another item's values when the
+                // variant is passed back (as when a saved page is loaded
+                // again, or a container of the shuffle is copied), and would
+                // hold the items' own seeds, such as that of the copy of a
+                // `<repeat>`, which are not the ones the children drew.
+                // The list form (`_shuffleList`) shares this definition: its
+                // children are its entries, and read as a list's
+                // replacements, they would give no subvariants at all.
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
                     ],
-                    useReplacementsForComposites: true,
                     recurseToMatchedChildren: false,
                     variablesOptional: true,
                     includeNonActiveChildren: true,
@@ -376,26 +362,85 @@ export default class Shuffle extends CompositeComponent {
 
         let componentsCopied = [];
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        // See the note in `Sort.js`: without a `stateIdInfo` these replacements
+        // are keyed by `componentIdx`, a position in the build, which moves
+        // whenever anything ahead of this `<shuffle>` does and is minted afresh
+        // every time the shuffled children change (Doenet/DoenetML#1944).
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let originalComponentIndices =
             await component.stateValues.originalComponentIndices;
 
+        const replacementSources = [];
         for (let ind of await component.stateValues.componentOrder) {
-            let replacementSource =
-                components[originalComponentIndices[ind - 1]];
+            const key = originalComponentIndices[ind - 1];
+            let replacementSource = shuffledSource(key, components);
 
             if (replacementSource) {
-                componentsCopied.push(replacementSource.componentIdx);
-
-                const serializedComponent = await replacementSource.serialize();
-
-                const res = createNewComponentIndices(
-                    [serializedComponent],
-                    nComponents,
-                );
-                nComponents = res.nComponents;
-
-                replacements.push(...res.components);
+                componentsCopied.push(key);
+                replacementSources.push(replacementSource);
             }
+        }
+
+        ({ replacements, nComponents } = await this.copyReplacementSources({
+            component,
+            replacementSources,
+            nComponents,
+            stateIdInfo,
+        }));
+
+        workspace.componentsCopied = componentsCopied;
+        workspace.replacementsCreated = stateIdInfo.num;
+
+        return {
+            replacements,
+            diagnostics,
+            nComponents,
+        };
+    }
+
+    /**
+     * Serialize a copy of each of `replacementSources` to be a replacement of
+     * the shuffle, in order.
+     */
+    static async copyReplacementSources({
+        component,
+        replacementSources,
+        nComponents,
+        stateIdInfo,
+    }) {
+        let replacements = [];
+
+        for (const replacementSource of replacementSources) {
+            if (replacementSource.list) {
+                // An entry of a list component is referenced, as `$l[2]`.
+                const res = listEntryReplacement({
+                    list: replacementSource.list,
+                    listInd: replacementSource.listInd,
+                    nComponents,
+                    stateIdInfo,
+                });
+                nComponents = res.nComponents;
+                replacements.push(res.serializedComponent);
+                continue;
+            }
+            const serializedComponent = await replacementSource.serialize();
+
+            const res = createNewComponentIndices(
+                [serializedComponent],
+                nComponents,
+                stateIdInfo,
+            );
+            nComponents = res.nComponents;
+
+            replacements.push(...res.components);
         }
 
         replacements = postProcessCopy({
@@ -405,13 +450,77 @@ export default class Shuffle extends CompositeComponent {
             markAsPrimaryShadow: true,
         });
 
-        workspace.componentsCopied = componentsCopied;
+        return { replacements, nComponents };
+    }
 
-        return {
-            replacements,
-            diagnostics,
-            nComponents,
+    /**
+     * Recreate any replacement that was deleted while the shuffle still copies
+     * its source.
+     *
+     * A source can be rebuilt under the same component index, such as
+     * `<feedback extend="$award.feedback" />` when the award gains its first
+     * feedback. Deleting the old source also deletes its copy here, but the
+     * shuffle still copies the same indices, so only the missing copies are
+     * recreated, in place. The other replacements, and any state they hold,
+     * are kept.
+     */
+    static async recreateMissingReplacements({
+        component,
+        components,
+        workspace,
+        nComponents,
+        diagnostics,
+    }) {
+        const replacementChanges = [];
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
         };
+
+        // Deleted replacements were spliced out of `component.replacements`,
+        // so the ones left are still in the order of `componentsCopied`.
+        let replacementInd = 0;
+        for (const [ind, sourceIdx] of workspace.componentsCopied.entries()) {
+            const replacement = component.replacements[replacementInd];
+            if (
+                typeof sourceIdx === "string"
+                    ? replacement !== undefined
+                    : replacement?.shadows?.componentIdx === sourceIdx
+            ) {
+                replacementInd++;
+                continue;
+            }
+
+            const replacementSource = shuffledSource(sourceIdx, components);
+            if (!replacementSource) {
+                continue;
+            }
+
+            const res = await this.copyReplacementSources({
+                component,
+                replacementSources: [replacementSource],
+                nComponents,
+                stateIdInfo,
+            });
+            nComponents = res.nComponents;
+
+            // Earlier changes have already filled every position before `ind`.
+            // Nothing is left to delete, but the deleted copy still holds
+            // its place in the resolver, so `$sh[n]` would still count it.
+            replacementChanges.push({
+                changeType: "add",
+                changeTopLevelReplacements: true,
+                firstReplacementInd: ind,
+                numberReplacementsToReplace: 0,
+                numberDeletedReplacementsToReplace: 1,
+                serializedReplacements: res.replacements,
+            });
+        }
+
+        workspace.replacementsCreated = stateIdInfo.num;
+
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static async calculateReplacementChanges({
@@ -429,11 +538,9 @@ export default class Shuffle extends CompositeComponent {
             await component.stateValues.originalComponentIndices;
 
         for (let ind of await component.stateValues.componentOrder) {
-            let replacementSource =
-                components[originalComponentIndices[ind - 1]];
-
-            if (replacementSource) {
-                componentsToCopy.push(replacementSource.componentIdx);
+            const key = originalComponentIndices[ind - 1];
+            if (shuffledSource(key, components)) {
+                componentsToCopy.push(key);
             }
         }
 
@@ -443,7 +550,13 @@ export default class Shuffle extends CompositeComponent {
                 (x, i) => x === componentsToCopy[i],
             )
         ) {
-            return { replacementChanges: [], diagnostics, nComponents };
+            return await this.recreateMissingReplacements({
+                component,
+                components,
+                workspace,
+                nComponents,
+                diagnostics,
+            });
         }
 
         // for now, just recreate
@@ -472,44 +585,58 @@ export default class Shuffle extends CompositeComponent {
         return { replacementChanges, diagnostics, nComponents };
     }
 
-    static determineNumberOfUniqueVariants({
+    /**
+     * The number of children of `serializedComponent` that are shuffled, as
+     * known from the document, or `undefined` when it is not known there (a
+     * list component among them, or a composite not given a type, which may
+     * make any number of components).
+     */
+    static numberOfShuffledChildren({
         serializedComponent,
         componentInfoObjects,
-        infoDiagnostics,
     }) {
         let numComponents = 0;
 
         for (let child of serializedComponent.children) {
+            // A list component (`<sequence>`) is as many children as it
+            // has entries, which are not known from the document.
+            if (
+                componentInfoObjects.allComponentClasses[child.componentType]
+                    ?.listEntryComponentType !== undefined
+            ) {
+                return undefined;
+            }
             if (
                 componentInfoObjects.isInheritedComponentType({
                     inheritedComponentType: child.componentType,
                     baseComponentType: "_composite",
                 })
             ) {
-                if (child.attributes.createComponentOfType?.primitive) {
-                    if (
-                        child.attributes.numComponents?.primitive !== undefined
-                    ) {
-                        let newComponents = Number(
-                            child.attributes.numComponents?.primitive.value,
-                        );
-                        if (
-                            Number.isInteger(newComponents) &&
-                            newComponents >= 0
-                        ) {
-                            numComponents += newComponents;
-                        } else {
-                            return { success: false };
-                        }
-                    } else {
-                        numComponents++;
-                    }
+                // A composite given a type makes exactly one component.
+                if (child.attributes._createComponentOfType?.primitive) {
+                    numComponents++;
                 } else {
-                    return { success: false };
+                    return undefined;
                 }
             } else {
                 numComponents++;
             }
+        }
+
+        return numComponents;
+    }
+
+    static determineNumberOfUniqueVariants({
+        serializedComponent,
+        componentInfoObjects,
+        infoDiagnostics,
+    }) {
+        const numComponents = this.numberOfShuffledChildren({
+            serializedComponent,
+            componentInfoObjects,
+        });
+        if (numComponents === undefined) {
+            return { success: false };
         }
 
         let numberOfPermutations = 1;

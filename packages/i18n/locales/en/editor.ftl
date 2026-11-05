@@ -303,3 +303,24 @@ help-removed-on-input = Removed on this input:
 
 # The three names are attributes an author writes, so they stay as written.
 help-reset-overrides = { $reset } overrides { $additional } and { $removed }.
+
+# Length syntax for a `componentSize` attribute (`width`, `height`). The values
+# listed alongside this label are examples the panel renders as chips.
+help-accepted-sizes = Accepted sizes:
+help-size-units = A bare number is pixels. A percentage is a share of the width around the component.
+
+# For a `height`, which is offered no percentage: the note must not raise a form
+# the attribute does not support.
+help-size-units-absolute = A bare number is pixels.
+
+# For a width that picks a named `size` preset (`<graph>`, `<image>`, `<video>`):
+# a percentage there is a share of the largest width any component may take, not
+# of the space around this one.
+help-size-units-preset = A bare number is pixels, and a percentage is a share of the widest a component can be.
+
+# For a side-by-side `width`, which is offered no absolute form: the same rule,
+# the other way round.
+help-size-units-relative = A percentage is a share of the width around the component.
+
+# `size` names a sibling attribute an author writes, so it stays as written.
+help-size-snaps-to-preset = This width picks the nearest { $size } preset rather than being used exactly.

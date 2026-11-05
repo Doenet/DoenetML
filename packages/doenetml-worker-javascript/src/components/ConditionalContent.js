@@ -1,6 +1,10 @@
 import CompositeComponent from "./abstract/CompositeComponent";
+import { instanceOfAttribute } from "../utils/indexInstances";
 import { deepClone } from "@doenet/utils";
-import { setUpVariantSeedAndRng } from "../utils/variants";
+import {
+    setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 import { codedDiagnostic } from "../utils/diagnostics";
 export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
@@ -160,9 +164,8 @@ export default class ConditionalContent extends CompositeComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -228,14 +231,22 @@ export default class ConditionalContent extends CompositeComponent {
         return { ...replacementResults, nComponents };
     }
 
-    static async getReplacements(component, components) {
+    /**
+     * The replacements of `component`: what its active case holds, or, with
+     * `caseIndex`, what that case holds, which an unlinked copy made from it
+     * is made from again on load (`heldCaseSource` in `Copy.js`).
+     */
+    static async getReplacements(component, components, caseIndex) {
         let diagnostics = [];
 
         let replacements = [];
 
         let caseChildren = await component.stateValues.caseChildren;
 
-        let selectedIndex = await component.stateValues.selectedIndex;
+        let selectedIndex =
+            caseIndex !== undefined
+                ? caseIndex
+                : await component.stateValues.selectedIndex;
 
         if (selectedIndex !== null) {
             const selectedChildComponentIdx =
@@ -255,13 +266,32 @@ export default class ConditionalContent extends CompositeComponent {
                 {},
                 components[selectedChildComponentIdx].doenetAttributes,
             );
+            // Names the group in the warning for an index that selects one
+            // of its children (D27)
+            serializedChild.attributes = {
+                ...serializedChild.attributes,
+                _instanceOf: instanceOfAttribute(component.componentType),
+            };
+            const seed =
+                component.sharedParameters.variantSeed +
+                "|" +
+                selectedIndex.toString();
+
+            // A `<conditionalContent>` given the variant it generated (an
+            // unlinked copy of a container holding it, or a page loaded with
+            // its generated variant) holds the variant of this group among
+            // its subvariants. Use it, so that the group hands its random
+            // descendants their variants rather than having them draw again
+            // from its seed, which gives the same values only if they draw in
+            // the same order (a random child added to a copy draws later in
+            // a copy of the container than in its source).
+            const generatedVariant =
+                component.variants?.desiredVariant?.subvariants?.find(
+                    (subvariant) => subvariant?.seed === seed,
+                );
+
             serializedChild.variants = {
-                desiredVariant: {
-                    seed:
-                        component.sharedParameters.variantSeed +
-                        "|" +
-                        selectedIndex.toString(),
-                },
+                desiredVariant: generatedVariant ?? { seed },
             };
 
             replacements.push(serializedChild);
@@ -271,6 +301,45 @@ export default class ConditionalContent extends CompositeComponent {
             replacements,
             diagnostics,
         };
+    }
+
+    /**
+     * The `stateId` of every component the cases of `component` can make,
+     * including those a reload made from saved state: what is kept of a case
+     * not active is kept under these (see `deleteComponents`). Its own
+     * `stateId` comes first: a `<conditionalContent>` that shadows another
+     * (`extend`) numbers its replacements from it.
+     */
+    static stateIdsOfPossibleReplacements(component) {
+        const stateIds = [component.stateId];
+        const addStateIds = (value) => {
+            if (Array.isArray(value)) {
+                value.forEach(addStateIds);
+            } else if (value !== null && typeof value === "object") {
+                if (typeof value.stateId === "string") {
+                    stateIds.push(value.stateId);
+                }
+                Object.values(value).forEach(addStateIds);
+            }
+        };
+        for (const child of component.definingChildren) {
+            addStateIds(child.serializedChildren);
+        }
+        return stateIds;
+    }
+
+    // See `stateIdSegmentForCopiesOfReplacements` (utils/componentIndices.ts).
+    // Names the case the replacements were made from, not `selectedIndex`:
+    // within the update that changes `selectedIndex`, a copy can be made from
+    // the previous case's replacements before they are replaced.
+    // With one case there is no other to tell apart, and a copy made while it
+    // is not active, which has nothing to name, gets the same ids.
+    static async stateIdSegmentForCopiesOfReplacements(component) {
+        if ((await component.stateValues.numCases) === 1) {
+            return "";
+        }
+        const caseIndex = component.replacementsWorkspace.previousSelectedIndex;
+        return caseIndex == null ? "" : `case${caseIndex}|`;
     }
 
     static async calculateReplacementChanges({
@@ -342,9 +411,12 @@ export default class ConditionalContent extends CompositeComponent {
             }
         }
 
-        // delete previous replacements and create new ones
-        // TODO: could we find a way to withhold old ones?
-        // Either change order of replacements or allow to withhold later replacements
+        // Delete the previous case's replacements and create the new case's.
+        // Only a suffix of the replacements can be withheld, so the inactive
+        // cases cannot be kept (Doenet/DoenetML#1947). What a reader did in
+        // the previous case is kept instead (`keepSavedState`), and applied
+        // when that case is made again: its components get the `stateId`s
+        // they had, which come from the document.
 
         const replacementChanges = [];
 
@@ -361,6 +433,7 @@ export default class ConditionalContent extends CompositeComponent {
             numberReplacementsToReplace: component.replacements.length,
             serializedReplacements: replacementResults.replacements,
             replacementsToWithhold: 0,
+            keepSavedState: true,
         };
 
         replacementChanges.push(replacementInstruction);
@@ -383,21 +456,10 @@ export default class ConditionalContent extends CompositeComponent {
         });
     }
 
-    get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = super.allPotentialRendererTypes;
-
-        if (this.serializedChildren) {
-            let additionalRendererTypes =
-                this.potentialRendererTypesFromSerializedComponents(
-                    this.serializedChildren,
-                );
-            for (let rendererType of additionalRendererTypes) {
-                if (!allPotentialRendererTypes.includes(rendererType)) {
-                    allPotentialRendererTypes.push(rendererType);
-                }
-            }
-        }
-
-        return allPotentialRendererTypes;
-    }
+    // No `addOwnPotentialRendererTypes` override here, unlike the sibling
+    // composites that hold a template: this class defines no
+    // `keepChildrenSerialized`, so `ComponentBuilder` always gives it an empty
+    // `serializedChildren` and such an override could contribute nothing. The
+    // branches are covered by `Case`, which does keep its children serialized
+    // and does report their renderer types.
 }

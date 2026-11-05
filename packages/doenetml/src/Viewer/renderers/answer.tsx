@@ -7,10 +7,12 @@ import { AnswerResponseButton } from "./utils/AnswerResponseButton";
 import {
     calculateValidationState,
     createCheckWorkComponent,
+    wantsFullCheckWorkButton,
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DynamicMath } from "./utils/DynamicMath";
 import { DescriptionPopover } from "./utils/Description";
+import { AnswerLabelContext, useRenderedLabel } from "./utils/inputLabel";
 import { useContentT } from "../../utils/i18n";
 
 interface AnswerSVs {
@@ -25,6 +27,7 @@ interface AnswerSVs {
     haveBlockInputChild: boolean;
     inputChildIndices: any;
     descriptionChildInd: any;
+    labelChildInd: number;
 }
 
 export default React.memo(function Answer(props: UseDoenetRendererProps) {
@@ -39,6 +42,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         flags,
         callAction,
     } = useDoenetRenderer<AnswerSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     // The check-work button follows the document's language, not the
     // reader's — see `useContentT`.
@@ -65,6 +69,13 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
     if (SVs.labelHasLatex) {
         label = <DynamicMath latex={SVs.label} />;
     }
+    if (renderedLabel && SVs.label) {
+        label = renderedLabel;
+    }
+    // The label, when not shown with the check work component, for an input
+    // created from sugar, which takes its label from the answer.
+    let labelForInput: React.ReactNode =
+        SVs.labelChildInd !== -1 ? children[SVs.labelChildInd] : null;
 
     const inputChildrenToRender = SVs.inputChildIndices.map(
         (ind: number) => children[ind],
@@ -104,7 +115,10 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         id,
         validationState,
         submitActionWithPending,
-        SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton,
+        // An `<answer>` renders its own button only when it has no input
+        // field to hang one off, so it stands on a line of its own: the full
+        // labelled button is the default.
+        wantsFullCheckWorkButton(SVs, true),
         isPending,
         tContent,
     );
@@ -123,6 +137,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         }
 
         if (label) {
+            labelForInput = null;
             // if label was not moved via sugar to an input child,
             // then add the label to the check work component
             checkWorkComponent = (
@@ -163,7 +178,9 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
                 alignItems: "start",
             }}
         >
-            {inputChildrenToRender}
+            <AnswerLabelContext.Provider value={labelForInput}>
+                {inputChildrenToRender}
+            </AnswerLabelContext.Provider>
             {checkWorkComponent}
             {answerResponseButton}
             {description}

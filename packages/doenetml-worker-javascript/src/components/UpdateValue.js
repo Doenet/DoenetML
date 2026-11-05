@@ -6,6 +6,7 @@ import {
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
 import { normalizeMathExpression } from "@doenet/utils";
 import {
@@ -33,6 +34,7 @@ export default class UpdateValue extends InlineComponent {
         summary: "Updates one or more state variables on a target component",
     };
     static rendererType = "button";
+    static renderChildren = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -160,6 +162,10 @@ export default class UpdateValue extends InlineComponent {
 
         let labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnRenderOnlyLabelChildDefinitions(),
+        );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
@@ -171,7 +177,14 @@ export default class UpdateValue extends InlineComponent {
         };
 
         stateVariableDefinitions.targetComponentIdx = {
-            additionalStateVariablesDefined: ["unresolvedPath"],
+            // `targetOriginalPath` is the `target` reference's path as the
+            // author wrote it — positions and all — kept so that a failure
+            // can quote the `$…` back to them. The component index alone is
+            // no use for that: it never appeared in the document.
+            additionalStateVariablesDefined: [
+                "unresolvedPath",
+                "targetOriginalPath",
+            ],
             returnDependencies: () => ({
                 target: {
                     dependencyType: "attributeRefResolutions",
@@ -186,6 +199,7 @@ export default class UpdateValue extends InlineComponent {
                         setValue: {
                             targetComponentIdx: target.componentIdx,
                             unresolvedPath: target.unresolvedPath,
+                            targetOriginalPath: target.originalPath,
                         },
                     };
                 } else {
@@ -193,6 +207,7 @@ export default class UpdateValue extends InlineComponent {
                         setValue: {
                             targetComponentIdx: null,
                             unresolvedPath: null,
+                            targetOriginalPath: null,
                         },
                     };
                 }
@@ -226,7 +241,10 @@ export default class UpdateValue extends InlineComponent {
         };
 
         stateVariableDefinitions.targetIdentities = {
-            stateVariablesDeterminingDependencies: ["targetComponent"],
+            stateVariablesDeterminingDependencies: [
+                "targetComponent",
+                "unresolvedPath",
+            ],
             returnDependencies: function ({
                 stateValues,
                 componentInfoObjects,
@@ -234,7 +252,29 @@ export default class UpdateValue extends InlineComponent {
                 let dependencies = {};
 
                 if (stateValues.targetComponent !== null) {
+                    const targetClass =
+                        componentInfoObjects.allComponentClasses[
+                            stateValues.targetComponent.componentType
+                        ];
                     if (
+                        targetClass?.listEntryComponentType !== undefined &&
+                        !picksListEntry(stateValues.unresolvedPath)
+                    ) {
+                        // A list component is as many targets as it has
+                        // entries, as a composite is its replacements,
+                        // unless the path picks one (`$l[2].x`). An index
+                        // on a property (`$l.xs[2]`) applies to every entry.
+                        dependencies.numEntries = {
+                            dependencyType: "stateVariable",
+                            componentIdx:
+                                stateValues.targetComponent.componentIdx,
+                            variableName: targetClass.listEntryCountVariable,
+                        };
+                        dependencies.targets = {
+                            dependencyType: "stateVariable",
+                            variableName: "targetComponent",
+                        };
+                    } else if (
                         componentInfoObjects.isCompositeComponent({
                             componentType:
                                 stateValues.targetComponent.componentType,
@@ -264,6 +304,18 @@ export default class UpdateValue extends InlineComponent {
                         targetIdentities = [targetIdentities];
                     }
                 }
+                if (dependencyValues.numEntries !== undefined) {
+                    // each entry of a list component
+                    const list = dependencyValues.targets;
+                    targetIdentities = Array.from(
+                        { length: dependencyValues.numEntries ?? 0 },
+                        (_, listEntryIndex) => ({
+                            componentIdx: list.componentIdx,
+                            componentType: list.componentType,
+                            listEntryIndex,
+                        }),
+                    );
+                }
                 let diagnostics = [];
                 if (
                     targetIdentities === null ||
@@ -289,6 +341,7 @@ export default class UpdateValue extends InlineComponent {
             stateVariablesDeterminingDependencies: [
                 "targetIdentities",
                 "unresolvedPath",
+                "targetOriginalPath",
             ],
             returnDependencies: function ({ stateValues }) {
                 let dependencies = {
@@ -309,7 +362,38 @@ export default class UpdateValue extends InlineComponent {
                     ] of stateValues.targetIdentities.entries()) {
                         let thisTarget;
 
-                        if (stateValues.unresolvedPath) {
+                        if (target.listEntryIndex !== undefined) {
+                            // an entry of a list component, read as
+                            // `$l[2]` and `$l[2].x` read it
+                            const entryPath = [
+                                {
+                                    name: "",
+                                    index: [
+                                        {
+                                            value: [
+                                                `${target.listEntryIndex + 1}`,
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ];
+                            thisTarget = {
+                                dependencyType:
+                                    "stateVariableFromUnresolvedPath",
+                                componentIdx: target.componentIdx,
+                                unresolvedPath: [
+                                    ...entryPath,
+                                    ...(stateValues.unresolvedPath ?? []),
+                                ],
+                                referenceOriginalPath:
+                                    stateValues.targetOriginalPath,
+                                returnAsComponentObject: true,
+                                variablesOptional: true,
+                                caseInsensitiveVariableMatch: true,
+                                publicStateVariablesOnly: true,
+                                useMappedVariableNames: true,
+                            };
+                        } else if (stateValues.unresolvedPath) {
                             let propIndex = stateValues.propIndex;
                             if (propIndex) {
                                 // make propIndex be a shallow copy
@@ -323,6 +407,11 @@ export default class UpdateValue extends InlineComponent {
                                     "stateVariableFromUnresolvedPath",
                                 componentIdx: target.componentIdx,
                                 unresolvedPath: stateValues.unresolvedPath,
+                                // So that an index in the path that cannot be
+                                // applied is reported as the reference the
+                                // author wrote in `target`.
+                                referenceOriginalPath:
+                                    stateValues.targetOriginalPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
                                 caseInsensitiveVariableMatch: true,
@@ -457,7 +546,22 @@ export default class UpdateValue extends InlineComponent {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        disabledCheckedByTriggerSet = false,
     }) {
+        // A disabled action does nothing, whether its button was clicked or
+        // it was triggered, and so triggers none of the actions chained to it.
+        // A parent `<triggerSet>` checks before running any of its children
+        // (see `triggerActions` there). In read-only mode, where everything is
+        // disabled, the action still runs as before: updates are blocked
+        // there anyway, and the actions read-only mode allows, such as
+        // revealing a hint or changing a page, still go through.
+        if (
+            !disabledCheckedByTriggerSet &&
+            !this.flags.readOnly &&
+            (await this.stateValues.disabled)
+        ) {
+            return;
+        }
         let targets = await this.stateValues.targets;
         let newValue = await this.stateValues.newValue;
         if (targets === null || newValue === null) {
@@ -543,8 +647,18 @@ export default class UpdateValue extends InlineComponent {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });
     }
+}
+
+/**
+ * Whether `unresolvedPath` starts with an index of its own (`$l[2]...`),
+ * which picks one entry of a list.
+ */
+function picksListEntry(unresolvedPath) {
+    const first = unresolvedPath?.[0];
+    return first?.name === "" && first.index?.length > 0;
 }

@@ -47,6 +47,7 @@ b - both
 
 - [x] `abs`
 - [x] `angle` [t]
+- [x] `argMax` / `argMin`
 - [x] `atom`
 - [x] `ceil`
 - [x] `clampNumber`
@@ -79,6 +80,10 @@ b - both
 
 - [x] `text`
 - [x] `boolean`
+- [x] `and` / `or` / `not` / `xor` / `iff` / `implies`
+- [x] `hasSameFactoring`
+- [x] `isBetween` / `isInteger` / `isNumber`
+- [x] `matchesPattern`
 - [x] `number`
 - [x] `point` — text-mode coordinate display
 - [x] `orbitalDiagram`
@@ -176,29 +181,29 @@ b - both
 
 ## Additional math expression elements (render via math component)
 
-- [ ] `clampFunction`
-- [ ] `derivative`
+- [x] `clampFunction`
+- [x] `derivative`
 - [ ] `eigenDecomposition`
 - [ ] `extractMathOperator`
 - [ ] `functionIterates`
 - [ ] `intersection`
 - [ ] `intervalList`
-- [ ] `me`
+- [x] `me`
 - [ ] `mrow`
 - [ ] `periodicSet`
-- [ ] `piecewiseFunction`
+- [x] `piecewiseFunction`
 - [ ] `sequence`
 - [ ] `solveEquations`
 - [ ] `substitute`
 - [ ] `tupleList`
-- [ ] `wrapFunctionPeriodic`
+- [x] `wrapFunctionPeriodic`
 
 ## Additional text display elements
 
-- [ ] `intComma` — number with comma formatting
-- [ ] `integer` — integer display
-- [ ] `latex` — raw LaTeX passthrough
-- [ ] `pluralize` — conditional pluralization
+- [x] `intComma` — number with comma formatting
+- [x] `integer` — integer display
+- [x] `latex` — raw LaTeX passthrough
+- [x] `pluralize` — conditional pluralization
 - [ ] `vectorList`
 
 ## Logic, conditional, and container elements
@@ -231,12 +236,8 @@ b - both
 
 ## Infrastructure (logic only, no visual renderer needed)
 
-- [ ] `and` / `or` / `not` / `xor`
 - [ ] `componentIndex` / `componentTypes`
 - [ ] `else`
-- [ ] `hasSameFactoring`
-- [ ] `isBetween` / `isInteger` / `isNumber`
-- [ ] `matchesPattern`
 - [ ] `setup`
 - [ ] `styleDefinition`
 - [ ] `variantControl`

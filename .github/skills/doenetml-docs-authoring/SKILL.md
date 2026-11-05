@@ -5,7 +5,7 @@ description: Author DoenetML documentation under packages/docs-nextra/ within th
 
 # DoenetML Reference-Docs Authoring Skill
 
-Use this skill when **creating or revising `pages/reference/<slug>.mdx` pages** for DoenetML components, or when retiring an entry from `undocumented-components-allowlist.txt` by writing the missing page.
+Use this skill when **creating or revising `content/reference/<slug>.mdx` pages** for DoenetML components, or when retiring an entry from `undocumented-components-allowlist.txt` by writing the missing page.
 
 For writing the DoenetML inside the examples themselves, defer to the [`doenetml-authoring`](../doenetml-authoring/SKILL.md) skill — it owns the rules for what is valid DoenetML. This skill owns the surrounding MDX prose, page layout, and how a new page is wired into the docs site.
 
@@ -15,28 +15,28 @@ The DoenetML docs are migrating to the [Diátaxis](https://diataxis.fr/) framewo
 
 | Diátaxis mode | Reader need | Site section | Folder |
 | --- | --- | --- | --- |
-| **Tutorial** | "teach me — I'm learning" | Tutorials | `pages/tutorials/` |
-| **How-to guide** | "help me accomplish a task" | Guides | `pages/guides/` |
-| **Reference** | "tell me the facts" — **this skill** | Reference | `pages/reference/` |
-| **Explanation / Concepts** | "help me understand why" | Concepts | `pages/concepts/` |
+| **Tutorial** | "teach me — I'm learning" | Tutorials | `content/tutorials/` |
+| **How-to guide** | "help me accomplish a task" | Guides | `content/guides/` |
+| **Reference** | "tell me the facts" — **this skill** | Reference | `content/reference/` |
+| **Explanation / Concepts** | "help me understand why" | Concepts | `content/concepts/` |
 
-The **Concepts** section is the Explanation quadrant. It was created by renaming the former "Document Structure" section: the folder is `pages/concepts/` and the sidebar title is "Concepts", with a subheading (in `pages/index.mdx`) that emphasizes explanation — the ideas and the *why*, not document layout. The goal of the migration is to have a clean four-mode skeleton so the team can write many more Concept and Guide pages against a consistent pattern; today those two sections are still thin.
+The **Concepts** section is the Explanation quadrant. It was created by renaming the former "Document Structure" section: the folder is `content/concepts/` and the sidebar title is "Concepts", with a subheading (in `content/index.mdx`) that emphasizes explanation — the ideas and the *why*, not document layout. The goal of the migration is to have a clean four-mode skeleton so the team can write many more Concept and Guide pages against a consistent pattern; today those two sections are still thin.
 
 ### Picking the right home for a page
 
-- **Reference** (`pages/reference/`, this skill) — complete, dry facts about one component: attributes, properties, small per-feature examples. Looked up, not read through.
-- **How-to guide** (`pages/guides/`) — a single task the reader wants to accomplish ("style components", "validate an answer", "control credit awarded"). Imperative, recipe-shaped, assumes the reader already knows the basics. The task-oriented pages that used to sit under "Document Structure" (answer validation, controlling credit, advanced examples) belong here.
-- **Concept / Explanation** (`pages/concepts/`) — understanding-oriented prose: the model behind a feature, the reasons for a design, the trade-offs. No step-by-step recipes; link out to a guide for those. Current Concepts pages: `essentialConcepts` (how DoenetML works — the component model), `references` (what a reference is and how it resolves), `styling` (how styling works), and the `documentStructure` stub to be built out.
-- **Tutorial** (`pages/tutorials/`) — a guided, start-to-finish learning experience.
+- **Reference** (`content/reference/`, this skill) — complete, dry facts about one component: attributes, properties, small per-feature examples. Looked up, not read through.
+- **How-to guide** (`content/guides/`) — a single task the reader wants to accomplish ("style components", "validate an answer", "control credit awarded"). Imperative, recipe-shaped, assumes the reader already knows the basics. The task-oriented pages that used to sit under "Document Structure" (answer validation, controlling credit, advanced examples) belong here.
+- **Concept / Explanation** (`content/concepts/`) — understanding-oriented prose: the model behind a feature, the reasons for a design, the trade-offs. No step-by-step recipes; link out to a guide for those. Current Concepts pages: `accessibility` (why accessibility shapes DoenetML), `essentialConcepts` (how DoenetML works — the component model), `references` (what a reference is and how it resolves), `styling` (how styling works), and the `documentStructure` stub to be built out.
+- **Tutorial** (`content/tutorials/`) — a guided, start-to-finish learning experience.
 
 A quick test for where a draft belongs: a numbered list of steps → **guide**; "here's the model / here's why" → **concept**; "every attribute of `<x>`" → **reference**; "follow along and build this" → **tutorial**.
 
 ### The concept ↔ guide split (the pattern to follow)
 
-When a topic mixes the *why* and the *how*, split it into a **concept page** (`pages/concepts/`) and a **how-to guide** (`pages/guides/`) that cross-link each other, rather than one page that tries to do both. The styling docs are the worked exemplar of this split:
+When a topic mixes the *why* and the *how*, split it into a **concept page** (`content/concepts/`) and a **how-to guide** (`content/guides/`) that cross-link each other, rather than one page that tries to do both. The styling docs are the worked exemplar of this split:
 
-- `pages/concepts/styling.mdx` — "Styling, meaning, and accessibility": the *why*. A style number is a statement of meaning ("these are importantly different"); encoding distinctions that way is what lets Doenet adapt them to each reader (the accessibility argument); hence you can't paint a color directly, and a semantic component is better still when a distinction has a name. Note what this page deliberately leaves out: the *mechanics* (the layering, the cascade, precedence) are how-it-works, so they live in the guide, not here. Explanation pages answer "why is it like this", not "how do I operate it".
-- `pages/guides/styling-components.mdx` — "Styling Components": the task recipes (set `styleNumber`, override a width, redefine a color, scope to a section), each linking back to the concept page for the reasoning.
+- `content/concepts/styling.mdx` — "Styling, meaning, and accessibility": the *why*. A style number is a statement of meaning ("these are importantly different"); encoding distinctions that way is what lets Doenet adapt them to each reader (the accessibility argument); hence you can't paint a color directly, and a semantic component is better still when a distinction has a name. Note what this page deliberately leaves out: the *mechanics* (the layering, the cascade, precedence) are how-it-works, so they live in the guide, not here. Explanation pages answer "why is it like this", not "how do I operate it".
+- `content/guides/styling-components.mdx` — "Styling Components": the task recipes (set `styleNumber`, override a width, redefine a color, scope to a section), each linking back to the concept page for the reasoning.
 
 Cross-link in **both** directions: the guide points to the concept page for "why this works", and the concept page points to the guide for "how to do it". Use relative links with no extension and an anchor slug to the relevant heading — e.g. `../concepts/styling#why-you-cant-set-a-color-directly-on-a-component` or `../guides/styling-components#redefine-a-style-and-change-colors`. (Nextra auto-generates a heading's anchor by lowercasing, dropping punctuation, and hyphenating spaces — confirm the slug matches the target heading.)
 
@@ -51,7 +51,7 @@ If you move or rename a page that already has a public URL (the docs deploy as a
 1. This file.
 2. `../doenetml-authoring/SKILL.md` and its `docs/` (especially `tag-reference.md`) — examples in a docs page must be valid DoenetML.
 3. The generated schema: `packages/static-assets/src/generated/doenet-schema.json` — source of truth for a component's attributes, properties, and `docsSlug`.
-4. An existing reference page that matches the shape of what you are writing — e.g. `bestFitLine.mdx` (component with attrs+props), `odeSystem.mdx` (block-with-children), `sq.mdx` (tiny markup component), `Sample_Component.mdx` (in-tree template with the three example fence types).
+4. An existing reference page that matches the shape of what you are writing — e.g. `bestFitLine.mdx` (component with attrs+props), `odeSystem.mdx` (block-with-children), `sq.mdx` (tiny markup component), `Sample_Component.mdx` (hidden, annotated template of the skeleton below).
 
 ## Audience and voice
 
@@ -67,25 +67,27 @@ Do not, in author-facing prose:
 
 It is fine — and often necessary — to mention attribute names, child-tag names, property names, and other surface-API identifiers. Those *are* the author-facing surface. The line to hold is roughly: "what would an author see by experimenting" vs "how is it implemented".
 
-Source-code references *are* appropriate in: PR descriptions, GitHub issue bodies, code comments, and skill/contributor docs like this file. Just not in `pages/reference/*.mdx`.
+Source-code references *are* appropriate in: PR descriptions, GitHub issue bodies, code comments, and skill/contributor docs like this file. Just not in `content/reference/*.mdx`.
 
 ## High-level page anatomy
 
-Every reference page lives at `packages/docs-nextra/pages/reference/<slug>.mdx`. The standard skeleton is:
+Every reference page lives at `packages/docs-nextra/content/reference/<slug>.mdx`. The standard skeleton (also available as the annotated, hidden template `content/reference/Sample_Component.mdx`) is:
 
-```mdx
+````mdx
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
-import { AttrPropDisplay } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<componentName>{:dn}`
 
+<ComponentDisplay name='componentName'/>
 
 One- to three-sentence prose introduction. Mention the component type’s category (e.g. graphical, input, math, sectional), its required children/attributes, and what it produces. Link related components like [`<otherComponent>{:dn}`](otherComponent).
 
 <AttrPropDisplay name='componentName'/>
 
----
+## Examples
 
 ### Example: ...
 ```doenet-editor-horiz
@@ -96,7 +98,7 @@ Short paragraph explaining what this example demonstrates.
 
 ---
 
-### Attribute Example: <attrName>
+### Attribute Example: attrName
 ```doenet-editor-horiz
 ... ...
 ```
@@ -104,19 +106,20 @@ One short paragraph explaining the attribute’s effect.
 
 ---
 
-### Property Example: <propName>
+### Property Example: propName
 ```doenet-editor-horiz
 ... ...
 ```
 One short paragraph.
-```
+````
 
 Notes:
 
 - The top `# `<name>{:dn}`` heading uses Shiki's `{:dn}` inline-language token so the tag renders in DoenetML colors. Use the same `{:dn}` inside backticks anywhere you mention a tag in prose: `` `<graph>{:dn}` ``.
 - The blank line after the H1 (and after the `import` block) is intentional — Nextra/MDX is whitespace-sensitive around JSX blocks.
+- `<ComponentDisplay>` renders the component's one-sentence `summary` from the schema (and a version badge for new components). The prose introduction follows it and should add to it, not repeat it.
 - `---` horizontal rules separate example sections.
-- Example section titles in existing pages follow these conventions: a free-form `### Example: …`, then per-feature `### Attribute Example: <name>` and `### Property Example: <name>` sections that walk one attribute or property at a time. The per-feature sections are the page's "long-form" attribute/property reference; `<AttrPropDisplay>` only gives the short auto-generated table.
+- Example section titles in existing pages follow these conventions: a free-form `### Example: …`, then per-feature `### Attribute Example: attrName` and `### Property Example: propName` sections that walk one attribute or property at a time. The per-feature sections are the page's "long-form" attribute/property reference; `<AttrPropDisplay>` only gives the short auto-generated table. Write the name after the colon bare (a comma-separated list is allowed): the build links each matching row of the attribute or property list to that section.
 
 ## `<AttrPropDisplay>` and friends — auto-generated tables
 
@@ -127,9 +130,58 @@ Notes:
 - `<PropDisplay name='componentName'/>` — properties only.
 - `<ComponentDisplay name='componentName'/>` — injects the component's `summary` from the schema.
 
-Because these read from the schema, the only authoring requirement is to keep `componentDocs.summary` and per-attribute/per-property `description` strings populated on the component class (the schema generator hard-fails if any are missing). You do not need to write attribute/property tables by hand.
+Because these read from the schema, you do not write attribute/property tables by hand. Two things must be right on the component class, and only the first is enforced: every `componentDocs.summary` and every per-attribute/per-property `description` must be populated (the schema generator hard-fails if any are missing), and the **`highlighted` and `groupName` flags must be chosen** (nothing checks these at all — see below).
 
 If a class is missing a `summary` or an attribute is missing a `description`, **fix it in the component source rather than working around it in MDX** — the schema generator will refuse to run otherwise.
+
+### `highlighted` and `groupName` — what the reader sees first
+
+**This is the half of the table nothing enforces, so it is the half that goes wrong.** The schema generator refuses to run over a missing `description`, and is silent about a component whose every attribute is unflagged — that page builds, passes CI, and renders as a wall of closed sections.
+
+`<AttrPropDisplay>` sorts items into four sections (`components/props-display.tsx`): **Highlighted** (`highlighted: true`), then **functional groups** (by `groupName`), then **Other** (neither), then **Common to all components**. Only Highlighted is open by default, so a component with nothing highlighted shows the reader nothing.
+
+**Highlight the few attributes that decide what the component does** — the ones an author reaches for on purpose, the ones the page's own examples demonstrate. Usually not the formatting knobs shared across many components: the five `returnNumberDisplayAttributes()` attributes are grouped as `number-display`, and shape how a number is written rather than what the component computes. `<math>` highlights `displayDigits` on purpose — how a math renders is part of what it is — but everything inheriting `<math>`'s attributes inherits that too, which is rarely deliberate, so most components carrying it never chose it. That is the trap described below, not a precedent to copy.
+
+**`groupName` is a separate decision, and the vocabulary is open.** It is a free string that nothing validates; the renderer falls back with `GROUP_LABELS[groupName] ?? groupName`, so an unrecognized group renders with its raw name as the heading. `GROUP_ORDER` in `props-display.tsx` is a sort order and label registry, not a whitelist — read it for the current names (`sorting`, `number-display`, `labels`, `positioning`, `styling`, `answer-grading`, `scoring`, `triggering`).
+
+Those existing groups are assigned almost entirely by *shared attribute helpers* rather than by components, which is why they look like a uniform taxonomy. The consequence to carry into a new component: **what it inherits arrives grouped and flagged; what it declares itself arrives bare.** If its own attributes form a real family, name a group for them — but do not stretch an existing name to cover something it does not describe, since a misleading heading is worse than "Other".
+
+A name absent from `GROUP_ORDER` sorts *after* every name in it, so register a new one there too; `sorting`, declared in `Sort.js` for that component's own attributes, sits first. This matters less than it looks: every group section is closed, so their order decides which closed heading sits highest, not what anyone sees. **Prominence is `highlighted`'s job** — and an item can be both, appearing in Highlighted *and* in its group.
+
+**Properties are highlighted independently of attributes.** A public state variable definition takes `highlighted: true` exactly as an attribute does — `<argMin>`'s `value` is highlighted with no attribute behind it. Where a component's output *is* its properties, highlight them all: `<summaryStatistics>` highlights its twelve statistics.
+
+**Inherited flags must be actively switched off.** `super.createAttributesObject()` hands down the parent's attribute objects with their flags intact, so a subclass inherits a highlight set chosen for a different component while its own attributes arrive unflagged — the page then opens on the parent's concerns and hides the child's. The repository's idiom is a destructuring strip, in `abstract/ListIndexBaseOperator.js`:
+
+```js
+// `<math>` highlights these because they shape the expression it parses and
+// renders. The value here is an integer index, so they are beside the point.
+for (const attrName of ["format", "simplify", "displayDigits"]) {
+    if (attributes[attrName]) {
+        const { highlighted: _highlighted, ...rest } = attributes[attrName];
+        attributes[attrName] = rest;
+    }
+}
+```
+
+`highlighted: false` works too (the generator copies the flag unless it is `undefined`); the strip just leaves nothing in the schema. Turning one *on* is the plain mutation, as `Math.js` does with `displayDigits`.
+
+Note those three attribute names. `format`, `simplify` and `displayDigits` are `<math>`'s highlighted set, and are the inherited trio most likely to be wrong on anything that computes *with* maths rather than rendering one — check them first when extending something math-derived. `<round>` shipped carrying them: its own `numDecimals` and `numDigits` sat in the closed "Other" section while the page opened on `<math>`'s three, so an author looking for how many digits to round to met the *display* attribute and not the rounding one. That is worse than an unflagged page, because it looks curated. An inherited set is invisible when reading the subclass — it shows only in the rendered page or the schema.
+
+**Check it before opening a PR**, since no build step will:
+
+```bash
+npm run build:schema -w @doenet/static-assets
+python3 -c "
+import json,io
+d=json.load(io.open('packages/static-assets/src/generated/doenet-schema.json',encoding='utf-8'))
+for e in d['elements']:
+    if e['name']=='<componentName>':
+        print([a['name'] for a in e.get('attributes',[]) if a.get('highlighted')])
+        print([p['name'] for p in e.get('properties',[]) if p.get('highlighted')])
+"
+```
+
+Empty lists mean the page opens closed. Read the result against the page's own examples: an attribute worth an `### Attribute Example:` section is almost always worth highlighting.
 
 ## Choosing an example fence
 
@@ -139,9 +191,9 @@ Fenced code-block forms registered in `next.config.mjs`:
 | --- | --- | --- |
 | ```` ```doenet-editor-horiz ```` | Source on the left, live preview on the right. **Default for reference pages.** | Almost every reference-page example; lets the reader scan source and behavior side-by-side. |
 | ```` ```doenet-editor ```` | Source on top, live preview below (stacked). | When the example is tall enough that horizontal split feels cramped. |
-| ```` ```doenet-example ```` | Live preview only, source hidden behind a disclosure. | When the source is uninteresting to first-time readers and the visual result is the point (often used for "this is what `<foo>` looks like" demos). |
+| ```` ```doenet-example ```` | Live preview, with the source in a second tab. | When the source is uninteresting to first-time readers and the visual result is the point (often used for "this is what `<foo>` looks like" demos). |
 | ```` ```doenet-viewer ```` | Live preview only, source completely hidden. | Rare — mainly when source is incidental to the point being made. Most pages should let readers see the source. |
-| ```` ```doenet ```` | **Source only**, syntax-highlighted. No live preview, no run button. | Showing a snippet the reader is meant to read but not run — e.g. in tutorials when introducing a concept before the full runnable example. Used widely in `pages/tutorials/`. (`` ```dn `` is the same fence via Shiki alias, but the hyphenated form is what existing pages use.) |
+| ```` ```doenet ```` | **Source only**, syntax-highlighted. No live preview, no run button. | Showing a snippet the reader is meant to read but not run — e.g. in tutorials when introducing a concept before the full runnable example. Used widely in `content/tutorials/`. (`` ```dn `` is the same fence via Shiki alias, but the hyphenated form is what existing pages use.) |
 | ```` ```math ```` | Display LaTeX via Nextra's KaTeX. | Long display math in prose (e.g. defining the equation a component solves). |
 
 Mechanics: `next.config.mjs` registers four `wrap*` remark plugins (`wrapDoenetEditor`, `wrapDoenetEditorHorizontal`, `wrapDoenetExample`, `wrapDoenetViewer`) that intercept the four hyphenated fence names and wrap them in the live React components. ```` ```doenet ```` has no wrapper — it falls through to Shiki and renders as a static highlighted block. ```` ```doenetml ```` is **not** registered; it would render as an unstyled unknown-language block. Do not use it.
@@ -308,11 +360,11 @@ When in doubt, run `npm run build -w packages/docs-nextra` on the changed page; 
 
 ## Integration steps when adding (or renaming) a page
 
-When you add `packages/docs-nextra/pages/reference/<slug>.mdx`, **all four** of the following must be updated in the same change, or CI will fail or the page will be unreachable:
+When you add `packages/docs-nextra/content/reference/<slug>.mdx`, **all four** of the following must be updated in the same change, or CI will fail or the page will be unreachable:
 
-1. **`packages/docs-nextra/pages/reference/_meta.ts`** — add `<slug>: { title: "<slug>" }` in alphabetical order. This drives the left-hand nav. For an existing component documented across multiple pages, the title can be augmented (`"foo (Properties)"`).
-2. **`packages/docs-nextra/pages/reference/componentIndex.mdx`** — the alphabetical "all components" table. Replace the existing **unlinked** row (`` `<slug>` ``) for the component with a linked one (`` [`<slug>`](slug) ``) and fill in the description. Sections are A, B, C, D, E, F-G, H-L, M, N-O, P, Q-R, S, T, U-Z.
-3. **`packages/docs-nextra/pages/reference/componentTypes.mdx`** — the "by category" table. If the component belongs to one of the named categories (Paragraph markup, Sectional, Input, Graphical, Display Math, Math, Math operator, General operator, Logic, Evaluation, Text), link it there too. If it appears in the existing table as an unlinked row, linkify it; if not, add a row in the appropriate category.
+1. **`packages/docs-nextra/content/reference/_meta.ts`** — add `<slug>: { title: "<slug>" }` in alphabetical order. This drives the left-hand nav. For an existing component documented across multiple pages, the title can be augmented (`"foo (Properties)"`).
+2. **`packages/docs-nextra/content/reference/componentIndex.mdx`** — the alphabetical "all components" table. Replace the existing **unlinked** row (`` `<slug>` ``) for the component with a linked one (`` [`<slug>`](slug) ``) and fill in the description. Sections are A, B, C, D, E, F-G, H-L, M, N-O, P, Q-R, S, T, U-Z.
+3. **`packages/docs-nextra/content/reference/componentTypes.mdx`** — the "by category" table. If the component belongs to one of the named categories (Paragraph markup, Sectional, Input, Graphical, Display Math, Math, Math operator, General operator, Logic, Evaluation, Text), link it there too. If it appears in the existing table as an unlinked row, linkify it; if not, add a row in the appropriate category.
 4. **`packages/static-assets/scripts/undocumented-components-allowlist.txt`** — if the component was on the allow-list (because it previously had no docs page), **remove the entry**. The docs-coverage CI check (`npm run check:docs-coverage -w packages/static-assets`) treats redundant allow-list entries as hard errors.
 
 If you also **renamed** a page, the component class's `componentDocs.docsSlug` (in `packages/doenetml-worker-javascript/src/components/...`) may need to be updated to point to the new slug.
@@ -373,7 +425,7 @@ This catches: MDX parse errors, broken `import`s, missing schema entries referen
 
 Before opening a PR that adds or renames a reference page:
 
-- [ ] `pages/reference/<slug>.mdx` exists and has the standard imports + H1 + `<AttrPropDisplay>` skeleton.
+- [ ] `content/reference/<slug>.mdx` exists and has the standard skeleton: imports, H1, `<ComponentDisplay>`, intro, `<AttrPropDisplay>`, `## Examples`.
 - [ ] All examples use `doenet-editor-horiz` (or a documented alternative) and are valid DoenetML per the `doenetml-authoring` skill.
 - [ ] **Every tag and attribute in every example has been looked up in `doenet-schema.json`** — not pattern-matched from other docs. In particular, no `xLabel` / `yLabel` *attributes* on `<graph>` (they are children), and labels/short descriptions are children.
 - [ ] Examples follow the conventions: `<setup>`, `<shortDescription>`, labeled inputs, no `<asList>`, indexed array access, no redundant `<tag extend="$x" />`.

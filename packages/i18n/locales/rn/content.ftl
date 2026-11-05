@@ -127,7 +127,6 @@ color =
             [c7] c'ikawa
            *[c9] y'ikawa
         }
-
 # The adjective concord, which is not the concord the verbs above take.
 line-width =
     .thick =
@@ -144,13 +143,11 @@ line-width =
             [c7] gito
            *[c9] nto
         }
-
 # Written as an invariable «w'…» phrase that agrees with nothing, so it can
 # close the description; `style-stroke` puts it last for that reason.
 line-style =
     .dashed = w'udukona
     .dotted = w'ududomo
-
 fill-style =
     .horizontal = imirongo iryamye
     .vertical = imirongo ihagaze
@@ -158,7 +155,6 @@ fill-style =
     .backdiagonal = imirongo iciye ku rundi ruhande
     .dots = ududomo
     .diamonds = amadiyama
-
 noun =
     .line = umurongo
     .line-segment = igice c'umurongo
@@ -178,7 +174,6 @@ noun =
     .diamond = idiyama
     .cross = umusaraba
     .plus = ikimenyetso co kwongerako
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -186,7 +181,6 @@ noun-regular-polygon =
         [tail] ifise impande { $numSides }
        *[head] ishusho ingana impande
     }
-
 # The noun class. `c9` is the default and the class a loanword joins, which is
 # what an author's own `markerStyleWord` is as far as this catalog is
 # concerned.
@@ -205,7 +199,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is an invariable «w'…» phrase and closes the description, so
@@ -220,13 +213,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] wuzuye
@@ -234,13 +225,11 @@ style-filled-word =
         [c7] cuzuye
        *[c9] yuzuye
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } hamwe na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } hamwe na { $pattern }
@@ -248,7 +237,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } hamwe na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «umupaka» is class 3, so the border's words agree with it and not with the
 # shape it surrounds. Kirundi has no article and joins a complement with the
 # invariable «hamwe n'», so all four branches read alike.
@@ -259,35 +247,28 @@ style-border-clause =
         [and-article] hamwe n'umupaka { $border }
        *[with] hamwe n'umupaka { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ntiyuzuye
-
 style-text =
     { $parts ->
         [background] { $color } ku nyuma { $background }
        *[plain] { $color }
     }
-
 style-background-none = nta na kimwe
-
 
 ## Boolean words
 
 boolean-true = ni vyo
 boolean-false = si vyo
 
-
 ## Answer buttons
 
 answer-submit-label = Genzura Igikorwa
 answer-submit-label-no-correctness = Rungika Inyishu
-
 
 ## Sectional blocks
 
@@ -312,7 +293,6 @@ section-name =
     .solution = Umuti
     .task = Igikorwa
     .theorem = Teoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -322,9 +302,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Akaboko
-
 
 ## Tables and figures
 
@@ -335,7 +313,6 @@ table-name =
         [unnumbered-title] Urutonde{ ": " }
        *[unnumbered] Urutonde
     }
-
 figure-name =
     { $parts ->
         [numbered] Ishusho { $enumeration }
@@ -344,24 +321,18 @@ figure-name =
        *[unnumbered] Ishusho
     }
 
-
 ## Paginator controls
 
 paginator-previous = Iheruka
 paginator-next = Ikurikira
 paginator-page = Urupapuro
-
 paginator-page-status = { $pageLabel } { $currentPage } kuri { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = canke
-
 piecewise-condition-if = igihe
-
 piecewise-condition-otherwise = ahandi hose
-
 
 ## Chemistry
 ##
@@ -373,6 +344,5 @@ piecewise-condition-otherwise = ahandi hose
 ## curriculum.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ikimenyetso ca Shimi Kitari Co
 chemistry-invalid-ionic-compound = Ivanga ry'Ayoni Ritari Ryo

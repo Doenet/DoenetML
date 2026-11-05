@@ -4,7 +4,11 @@ import {
     breakEmbeddedStringByCommas,
     returnBreakStringsSugarFunction,
 } from "./commonsugar/breakstrings";
-import { roundForDisplay } from "../utils/math";
+import {
+    roundForDisplay,
+    markUnspecifiedComponents,
+    evaluateToNumber,
+} from "../utils/math";
 import {
     convertValueToMathExpression,
     returnGraphicalStyleDescriptionDefinitions,
@@ -20,6 +24,10 @@ import {
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    listEntrySourceDependencies,
+    listEntrySourceValue,
+} from "../utils/listEntrySource";
 
 export default class Vector extends GraphicalComponent {
     constructor(args) {
@@ -41,6 +49,10 @@ export default class Vector extends GraphicalComponent {
     static canBeInList = true;
 
     static primaryStateVariableForDefinition = "displacementShadow";
+
+    // The attributes that define the value an unlinked copy of a reference
+    // to this component computes rather than holds (`BaseComponent.serialize`)
+    static attributesDefiningPrimaryValue = ["xs"];
     static variableForIndexAsProp = "displacement";
 
     static createAttributesObject() {
@@ -397,18 +409,25 @@ export default class Vector extends GraphicalComponent {
             },
             hasEssential: true,
             forRenderer: true,
-            returnDependencies: () => ({
-                tailDraggableAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "tailDraggable",
-                    variableNames: ["value"],
-                },
-                draggable: {
-                    dependencyType: "stateVariable",
-                    variableName: "draggable",
-                },
-            }),
+            returnDependencies() {
+                return {
+                    tailDraggableAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "tailDraggable",
+                        variableNames: ["value"],
+                    },
+                    draggable: {
+                        dependencyType: "stateVariable",
+                        variableName: "draggable",
+                    },
+                    ...listEntrySourceDependencies(
+                        this.svComponent,
+                        "tailDraggable",
+                    ),
+                };
+            },
             definition({ dependencyValues }) {
+                const fromListEntry = listEntrySourceValue(dependencyValues);
                 if (dependencyValues.tailDraggableAttr) {
                     return {
                         setValue: {
@@ -417,6 +436,8 @@ export default class Vector extends GraphicalComponent {
                                     .value,
                         },
                     };
+                } else if (typeof fromListEntry === "boolean") {
+                    return { setValue: { tailDraggable: fromListEntry } };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
@@ -438,18 +459,25 @@ export default class Vector extends GraphicalComponent {
             },
             hasEssential: true,
             forRenderer: true,
-            returnDependencies: () => ({
-                headDraggableAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "headDraggable",
-                    variableNames: ["value"],
-                },
-                draggable: {
-                    dependencyType: "stateVariable",
-                    variableName: "draggable",
-                },
-            }),
+            returnDependencies() {
+                return {
+                    headDraggableAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "headDraggable",
+                        variableNames: ["value"],
+                    },
+                    draggable: {
+                        dependencyType: "stateVariable",
+                        variableName: "draggable",
+                    },
+                    ...listEntrySourceDependencies(
+                        this.svComponent,
+                        "headDraggable",
+                    ),
+                };
+            },
             definition({ dependencyValues }) {
+                const fromListEntry = listEntrySourceValue(dependencyValues);
                 if (dependencyValues.headDraggableAttr) {
                     return {
                         setValue: {
@@ -458,6 +486,8 @@ export default class Vector extends GraphicalComponent {
                                     .value,
                         },
                     };
+                } else if (typeof fromListEntry === "boolean") {
+                    return { setValue: { headDraggable: fromListEntry } };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
@@ -1477,7 +1507,11 @@ export default class Vector extends GraphicalComponent {
                             desiredDisplacement.length = arraySize[0] + 1;
                             instructions.push({
                                 setDependency: "displacementAttr",
-                                desiredValue: me.fromAst(desiredDisplacement),
+                                desiredValue: me.fromAst(
+                                    markUnspecifiedComponents(
+                                        desiredDisplacement,
+                                    ),
+                                ),
                                 variableIndex: 0,
                             });
                         } else if (
@@ -1509,7 +1543,11 @@ export default class Vector extends GraphicalComponent {
                             desiredDisplacement.length = arraySize[0] + 1;
                             instructions.push({
                                 setDependency: "displacementShadow",
-                                desiredValue: me.fromAst(desiredDisplacement),
+                                desiredValue: me.fromAst(
+                                    markUnspecifiedComponents(
+                                        desiredDisplacement,
+                                    ),
+                                ),
                             });
                         } else if (
                             arraySize[0] === 1 &&
@@ -1831,7 +1869,9 @@ export default class Vector extends GraphicalComponent {
                         desiredHead.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "headShadow",
-                            desiredValue: me.fromAst(desiredHead),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredHead),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&
@@ -2088,7 +2128,9 @@ export default class Vector extends GraphicalComponent {
                         desiredTail.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "tailShadow",
-                            desiredValue: me.fromAst(desiredTail),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredTail),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&
@@ -2240,24 +2282,28 @@ export default class Vector extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
+                // `evaluate_to_constant()` used to report a coordinate with no
+                // numeric value — a symbolic head or tail — as `null`, and this
+                // array goes straight to the renderer, where `Number(null)` is
+                // `0`: an undefined endpoint was drawn at the origin rather
+                // than not drawn at all. Map it to `NaN`, as `Point.js`'s
+                // `numericalXs` and `LineSegment.js`'s own `numericalEndpoints`
+                // already do — which also folds the `Complex` arm.
                 let numericalHead, numericalTail;
                 if (dependencyValues.numDimensions === 1) {
-                    numericalHead =
-                        dependencyValues.head[0].evaluate_to_constant();
-                    numericalTail =
-                        dependencyValues.tail[0].evaluate_to_constant();
+                    numericalHead = evaluateToNumber(dependencyValues.head[0]);
+                    numericalTail = evaluateToNumber(dependencyValues.tail[0]);
                 } else {
                     numericalHead = [];
                     numericalTail = [];
 
                     for (let i = 0; i < dependencyValues.numDimensions; i++) {
-                        let head =
-                            dependencyValues.head[i].evaluate_to_constant();
-                        numericalHead.push(head);
-
-                        let tail =
-                            dependencyValues.tail[i].evaluate_to_constant();
-                        numericalTail.push(tail);
+                        numericalHead.push(
+                            evaluateToNumber(dependencyValues.head[i]),
+                        );
+                        numericalTail.push(
+                            evaluateToNumber(dependencyValues.tail[i]),
+                        );
                     }
                 }
 
@@ -2867,6 +2913,7 @@ export default class Vector extends GraphicalComponent {
 
     async vectorClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -2876,6 +2923,7 @@ export default class Vector extends GraphicalComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -2884,6 +2932,7 @@ export default class Vector extends GraphicalComponent {
 
     async vectorFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -2893,6 +2942,7 @@ export default class Vector extends GraphicalComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

@@ -5,7 +5,7 @@ import {
     stringToLezer,
     lezerToDast,
     toXml,
-    visit,
+    visitIncludingPathIndices,
 } from "@doenet/parser";
 import type { TreeCursor } from "@lezer/common";
 import { DoenetSourceObject, OffsetToPositionMap } from "./index";
@@ -44,17 +44,60 @@ export function initDast(this: DoenetSourceObject) {
     return lezerToDast(this._lezer(), this.source);
 }
 
+/**
+ * What a reference owns rather than contains: the contents of its index
+ * brackets, and a function reference's arguments.
+ *
+ * Neither is anybody's `children`, so a walk that recurses on `children` alone
+ * misses both. `visit` descends into them, which is why the walkers built on it
+ * need nothing extra; the hand-rolled ones here call this instead of growing
+ * two nearly identical loops each.
+ */
+function referenceOwnedContent(node: DastNodes): DastNodes[] {
+    if (node.type !== "macro" && node.type !== "function") {
+        return [];
+    }
+    const owned: DastNodes[] = [];
+    for (const pathPart of node.path) {
+        for (const propIndex of pathPart.index) {
+            owned.push(...(propIndex.value as DastNodes[]));
+        }
+    }
+    if (node.type === "function" && node.input) {
+        for (const argument of node.input) {
+            owned.push(...(argument as DastNodes[]));
+        }
+    }
+    return owned;
+}
+
 export function initParentMap(this: DoenetSourceObject) {
     const parentMap = new Map<DastNodes, DastElement | DastRoot>();
     for (const node of this.dast.children) {
         parentMap.set(node, this.dast);
     }
-    visit(this.dast, (_node) => {
+    visitIncludingPathIndices(this.dast, (_node, info) => {
         const node = _node as DastNodes;
         if (node.type === "element") {
             for (const child of node.children) {
                 parentMap.set(child, node);
             }
+            return;
+        }
+        if (node.type !== "macro" && node.type !== "function") {
+            return;
+        }
+        // What a reference owns is nobody's child, so the loop above never
+        // reaches it (#1909) — that is what is written between its index
+        // brackets, and what is written as a function reference's arguments.
+        // The parent of either is the element the reference sits in, not the
+        // reference: that is what `visit` reports in `info.parents` and what
+        // the core's own `ParentIterator` walks to, so the editor and the
+        // resolver agree about where a name written there is in scope.
+        const enclosing =
+            (info.parents[0] as DastElement | undefined) ?? this.dast;
+        for (const owned of referenceOwnedContent(node)) {
+            parentMap.set(owned, enclosing);
         }
     });
     return parentMap;
@@ -70,7 +113,7 @@ export function initOffsetToNodeMapRight(this: DoenetSourceObject) {
     const offsetToNodeMap: (DastNodes | null)[] = new Array(
         this.source.length,
     ).fill(null);
-    visit(dast, (_node) => {
+    visitIncludingPathIndices(dast, (_node) => {
         const node = _node as DastNodes;
         if (node.type === "error") {
             return;
@@ -105,12 +148,19 @@ export function initOffsetToNodeMapLeft(this: DoenetSourceObject) {
 }
 
 /**
- * Create a mapping from character offsets to Rust-compatible root/element indices.
+ * Create a mapping from character offsets to root/element indices.
  *
  * Indices are assigned to the root and element nodes only, in depth-first order.
  * When an offset lands on a non-element node (text/macro/function/etc.), the index
  * of the nearest containing element is returned, or root when no containing element
- * exists. This keeps index space aligned with Rust's element-oriented flat DAST.
+ * exists.
+ *
+ * This index space is the editor's own and is **not** the core's. The core numbers
+ * every non-text node — references and errors as well as elements — and gives the
+ * document no separate root, so the two disagree from the first reference onward.
+ * Nothing relies on them matching: the resolver's origin is found by comparing
+ * source offsets, not by sharing a numbering. Read this map as "which element am I
+ * in", nothing more.
  *
  * Returns array where `map[offset]` = root/element index or `null` if no node.
  */
@@ -133,6 +183,19 @@ export function initOffsetToNodeIndexMap(this: DoenetSourceObject) {
             nodeToIndexMap.set(node, nextIndex++);
             for (const child of node.children) {
                 assignIndices(child as DastNodes, node);
+            }
+            return;
+        }
+
+        if (node.type === "macro" || node.type === "function") {
+            // An element a reference owns — written between its index brackets
+            // (#1909) or as one of a function reference's arguments — is not a
+            // child of anything, so the loop above never reaches it and it
+            // would otherwise have no index at all. It is numbered where it is
+            // written, immediately after its reference, and it stays inside
+            // whichever element the reference sits in.
+            for (const owned of referenceOwnedContent(node)) {
+                assignIndices(owned, containingElement);
             }
         }
     };
@@ -164,7 +227,7 @@ export function initDescendantNamesMap(this: DoenetSourceObject) {
     const namesInScope: Map<DastElement | DastRoot, AccessList> = new Map();
     const rootAccessList: AccessList = [];
     namesInScope.set(dast, rootAccessList);
-    visit(dast, (_node, info) => {
+    visitIncludingPathIndices(dast, (_node, info) => {
         const node = _node as DastNodes;
         if (!(node.type === "element")) {
             return;

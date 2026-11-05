@@ -178,6 +178,152 @@ export default class Pretzel extends BlockScoredComponent {
         return attributes;
     }
 
+    /**
+     * Combine the arrangers of a pretzel that copies or extends another.
+     *
+     * The pretzel sugar wraps a pretzel's problems in a `_pretzelArranger`,
+     * and forwards its `mode` to it. A `<pretzel copy>` or `<pretzel extend>`
+     * therefore has two arrangers: first the one it copies, holding the
+     * source's problems, then its own, holding the problems and `mode`
+     * written on the copy (none, if nothing was written).
+     *
+     * - A `<pretzel copy>` arranges all of the problems together, in the
+     *   `mode` written on it, if any. Its arranger was given the source's
+     *   order and random choices as its desired variant. The order is kept
+     *   only if it still fits: added problems change the correct answers, so
+     *   they are arranged in a new order, as is a source's order that does
+     *   not start with problem 1 when the copy is in circuit mode. The
+     *   source's random choices are kept either way. The added problems'
+     *   random choices are those the document chose for the copy's own
+     *   arranger, drawn from a new seed rather than the source's.
+     *   A `<problem copy>` is not arranged, so it does not count as added.
+     * - A `<pretzel extend>` shows its source's arrangement, so problems or a
+     *   `mode` written on it are an error, reported where it is expanded
+     *   (`extendChangesContentErrors` in `Copy.js`), which shows the error
+     *   in its place. Its own arranger is then empty, and it takes its
+     *   source's `mode`, which decides how it is graded.
+     */
+    static preprocessSerializedChildren({ serializedChildren, attributes }) {
+        const arrangerInds = [...serializedChildren.keys()].filter(
+            (ind) =>
+                serializedChildren[ind]?.componentType === "_pretzelArranger",
+        );
+        if (arrangerInds.length < 2) {
+            return;
+        }
+
+        const copiedArranger = serializedChildren[arrangerInds[0]];
+        const ownArrangers = arrangerInds
+            .slice(1)
+            .map((ind) => serializedChildren[ind]);
+        for (const ind of arrangerInds.slice(1).reverse()) {
+            serializedChildren.splice(ind, 1);
+        }
+
+        const ownChildren = ownArrangers.flatMap(
+            (arranger) => arranger.children ?? [],
+        );
+        // Only a `<problem>` is arranged; a `<problem copy>` is ignored
+        // (`PretzelArranger`), so it adds no problem.
+        const addedProblems = ownChildren.some(
+            (child) => child?.componentType === "problem",
+        );
+        const ownMode = ownArrangers.findLast(
+            (arranger) => arranger.attributes?.mode,
+        )?.attributes.mode;
+
+        // A linked copy has downstream dependencies on its source
+        // (`postProcessCopy`); it shows its source's replacements.
+        const linked = Boolean(copiedArranger.downstreamDependencies);
+
+        if (linked) {
+            if (copiedArranger.attributes.mode) {
+                attributes.mode = copiedArranger.attributes.mode;
+            } else {
+                delete attributes.mode;
+            }
+            return;
+        }
+
+        copiedArranger.children = [
+            ...(copiedArranger.children ?? []),
+            ...ownChildren,
+        ];
+        if (ownMode) {
+            copiedArranger.attributes.mode = ownMode;
+        }
+
+        if (!copiedArranger.variants?.desiredVariant) {
+            return;
+        }
+
+        // The copy's own arrangers are not made. Record which children each
+        // one held, so that the arranger can report the variant of each
+        // (`variantsOfMergedComponents`), in the place of that arranger
+        // among the children added to the copy.
+        copiedArranger.variants = {
+            ...copiedArranger.variants,
+            mergedArrangers: ownArrangers.map((arranger) => ({
+                componentIdx: arranger.componentIdx,
+                childIdxs: (arranger.children ?? [])
+                    .filter((child) => typeof child === "object")
+                    .map((child) => child.componentIdx),
+            })),
+        };
+        // The desired variant is the source arranger's `generatedVariantInfo`
+        // itself (`copyVariants`), shared with the source and its other
+        // copies, so change a copy of it.
+        const desiredVariant = { ...copiedArranger.variants.desiredVariant };
+        copiedArranger.variants = {
+            ...copiedArranger.variants,
+            desiredVariant,
+        };
+        const sourceOrder = desiredVariant.indices;
+        if (
+            sourceOrder &&
+            (addedProblems ||
+                (ownMode?.primitive.value.toLowerCase() === "circuit" &&
+                    Number(sourceOrder[0]) !== 1))
+        ) {
+            delete desiredVariant.indices;
+        }
+
+        if (addedProblems) {
+            // The source's seed would give the random choices of the added
+            // problems the seeds that the source's own random choices drew
+            // from it, so that they would repeat the source's values. Seed
+            // the arranger anew, and give the added problems the random
+            // choices that the document chose for them, which follow the
+            // source's in the order the arranger hands out subvariants.
+            delete desiredVariant.seed;
+            // An own arranger given a variant this copy's arranger generated
+            // (`variantsOfMergedComponents`), as when a container of the
+            // copy is copied or the page is loaded again with the variant it
+            // generated, carries that arranger's seed and order. The variant
+            // the document chooses for an own arranger has no seed.
+            const generated = ownArrangers.find(
+                (arranger) =>
+                    arranger.variants?.desiredVariant?.seed !== undefined,
+            )?.variants.desiredVariant;
+            if (generated) {
+                desiredVariant.seed = generated.seed;
+                if (generated.indices) {
+                    desiredVariant.indices = generated.indices;
+                }
+            }
+            const ownSubvariants = ownArrangers.flatMap(
+                (arranger) =>
+                    arranger.variants?.desiredVariant?.subvariants ?? [],
+            );
+            if (desiredVariant.subvariants && ownSubvariants.length > 0) {
+                desiredVariant.subvariants = [
+                    ...desiredVariant.subvariants,
+                    ...ownSubvariants,
+                ];
+            }
+        }
+    }
+
     static returnChildGroups() {
         return [
             {

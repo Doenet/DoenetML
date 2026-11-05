@@ -3,6 +3,7 @@ import {
     UnflattenedComponent,
     UnflattenedIndex,
     UnflattenedPathPart,
+    UnflattenedRefResolution,
 } from "./dast/intermediateTypes";
 import {
     SerializedAttribute,
@@ -14,10 +15,65 @@ import {
 import { addSource, unwrapSource } from "./dast/convertNormalizedDast";
 
 /**
+ * What the `stateId`s of copies of `composite`'s replacements add after the
+ * copy's own: `""` unless `composite`'s replacements can come from different
+ * parts of its DoenetML, as the cases of a `<conditionalContent>` do
+ * (`stateIdSegmentForCopiesOfReplacements`). A copy counts the ids of the
+ * components it makes from its own, so without the segment each part would
+ * give them the same ones, and what was saved of one part's components would
+ * be applied to another's. A composite that shadows another holds the segment
+ * of the replacements it made its own from (`shadowReplacementsStateIdPrefix`).
+ */
+export async function stateIdSegmentForCopiesOfReplacements(
+    composite: any,
+): Promise<string> {
+    const segmentOfShadowed =
+        composite?.replacementsWorkspace?.stateIdSegmentOfShadowed;
+    if (segmentOfShadowed !== undefined) {
+        return segmentOfShadowed;
+    }
+    return (
+        (await composite?.constructor.stateIdSegmentForCopiesOfReplacements?.(
+            composite,
+        )) ?? ""
+    );
+}
+
+/**
+ * What the `stateId`s of the components a copy makes from `component` add
+ * after the copy's own: the segment (`stateIdSegmentForCopiesOfReplacements`)
+ * of each composite that `component` is a replacement of, or is in a
+ * replacement of, outermost first. A component named in a case of a
+ * `<conditionalContent>` is in a replacement of the case's `<group>`, which is
+ * a replacement of the `<conditionalContent>`, so the composites are followed
+ * out through `replacementOf`.
+ */
+export async function stateIdSegmentForCopyOf(component: any): Promise<string> {
+    let segment = "";
+    for (
+        let composite = component?.replacementOf;
+        composite;
+        composite = composite.replacementOf
+    ) {
+        segment =
+            (await stateIdSegmentForCopiesOfReplacements(composite)) + segment;
+    }
+    return segment;
+}
+
+/**
  * Recurse through all serialized components and update their component indices
  * to new values, starting with `nComponents`.
  *
  * If `idxMapOverride` is supplied, then use that map to create any matching indices rather than creating new indices.
+ *
+ * With `keepReferents`, the components are pasted from a source: what an
+ * unlinked copy (`copy=`) pastes, or an attribute that a copy of a property or
+ * list entry takes from its source (`replacementFromProp` in `Copy.js`). Each
+ * reference in them keeps the referent it had in the source
+ * (`remapCopiedRefResolution`). Otherwise a reference is resolved again from
+ * where its copy lands, which is what lets the copy of `$i` in each iteration
+ * of a `<repeat>` find that iteration's `i`.
  *
  * Returns:
  * - `components`: the components with new indices
@@ -31,6 +87,7 @@ export function createNewComponentIndices(
         num: number;
     },
     idxMapOverride?: Record<number, number>,
+    { keepReferents = false }: { keepReferents?: boolean } = {},
 ) {
     const result = createNewComponentIndicesSub(
         serializedComponents,
@@ -43,7 +100,7 @@ export function createNewComponentIndices(
     const idxMap = result.idxMap;
     nComponents = result.nComponents;
 
-    remapRefResolutions(newComponents, idxMap);
+    remapRefResolutions(newComponents, idxMap, keepReferents);
 
     return {
         components: newComponents,
@@ -130,11 +187,9 @@ function newComponentIndicesForExtending(
         num: number;
     },
 ) {
-    let newExtending: Source<SerializedRefResolution> = extending;
-
     const refResolution = unwrapSource(extending);
 
-    let originalPath: SerializedRefResolutionPathPart[] = [];
+    const originalPath: SerializedRefResolutionPathPart[] = [];
     for (const pathPath of refResolution.originalPath) {
         const newPathPart = { ...pathPath };
         const index: SerializedPathIndex[] = [];
@@ -154,13 +209,19 @@ function newComponentIndicesForExtending(
         }
         newPathPart.index = index;
         originalPath.push(newPathPart);
-
-        const newRefResolution = { ...refResolution };
-        newRefResolution.originalPath = originalPath;
-
-        newExtending = addSource(newRefResolution, extending);
     }
-    return { extending: newExtending, nComponents };
+
+    // Clone once, after the path has been rebuilt, so that a duplicate never
+    // shares its `extending` with the component it was copied from. A path
+    // with no parts at all reaches here from an unresolvable reference
+    // (`convertNormalizedDast` gives those an empty `originalPath`), and that
+    // is the case that would otherwise hand back the source's own object.
+    const newRefResolution = { ...refResolution, originalPath };
+
+    return {
+        extending: addSource(newRefResolution, extending),
+        nComponents,
+    };
 }
 
 function newComponentIndicesForAttributes(
@@ -212,7 +273,7 @@ function newComponentIndicesForAttributes(
             nComponents = attrResult.nComponents;
         } else if (attribute.type === "primitive") {
             if (
-                attrName === "createComponentIdx" &&
+                attrName === "_createComponentIdx" &&
                 attribute.primitive.type === "number"
             ) {
                 const originalIdx = attribute.primitive.value;
@@ -221,6 +282,23 @@ function newComponentIndicesForAttributes(
                 attribute.primitive = { type: "number", value: newIdx };
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "expression") {
+            // Its slots are its own, as a reference's resolution is, so that
+            // `remapRefResolutions` renumbers them and not those of what was
+            // copied, which may be copied again (a repeat's template).
+            (newAttributes[attrName] as any) = {
+                ...attribute,
+                slots: (attribute as any).slots.map((slot: any) => ({
+                    ...slot,
+                    refResolution: structuredClone(slot.refResolution),
+                })),
+            };
+        } else if (
+            attribute.type === "variableRef" ||
+            attribute.type === "literal"
+        ) {
+            // a reference to a component outside what is being copied, or a
+            // value: no component to number
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");
@@ -287,7 +365,7 @@ function createNewComponentIndicesUnflattened(
             nComponents = attrResult.nComponents;
 
             if (
-                attrName === "createComponentIdx" &&
+                attrName === "_createComponentIdx" &&
                 attribute.children.length === 1 &&
                 typeof attribute.children[0] === "string"
             ) {
@@ -345,6 +423,7 @@ function createNewComponentIndicesUnflattened(
 function remapRefResolutions(
     serializedComponents: (SerializedComponent | string)[],
     idxMap: Record<number, number>,
+    keepReferents = false,
 ) {
     for (const component of serializedComponents) {
         if (typeof component === "string") {
@@ -356,34 +435,29 @@ function remapRefResolutions(
         if (extending) {
             const refResolution = unwrapSource(extending);
 
-            const newNodeIdx = idxMap[refResolution.nodeIdx];
-            if (newNodeIdx != undefined) {
-                refResolution.nodeIdx = newNodeIdx;
-            }
-
             if (refResolution.unresolvedPath) {
                 for (const pathPath of refResolution.unresolvedPath) {
                     for (const indexPart of pathPath.index) {
-                        remapRefResolutions(indexPart.value, idxMap);
+                        remapRefResolutions(
+                            indexPart.value,
+                            idxMap,
+                            keepReferents,
+                        );
                     }
                 }
             }
 
             for (const pathPath of refResolution.originalPath) {
                 for (const indexPart of pathPath.index) {
-                    remapRefResolutions(indexPart.value, idxMap);
+                    remapRefResolutions(indexPart.value, idxMap, keepReferents);
                 }
             }
 
-            refResolution.nodesInResolvedPath =
-                refResolution.nodesInResolvedPath.map((idx) => {
-                    const newIdx = idxMap[idx];
-                    if (newIdx != undefined) {
-                        return newIdx;
-                    } else {
-                        return idx;
-                    }
-                });
+            if (keepReferents) {
+                remapCopiedRefResolution(refResolution, idxMap);
+            } else {
+                remapRefResolution(refResolution, idxMap);
+            }
         }
 
         if (component.doenetAttributes.extendListViaComposite) {
@@ -400,26 +474,199 @@ function remapRefResolutions(
                 component.doenetAttributes.copyListViaComposite = newNodeIdx;
             }
         }
+        const listIdx = component.doenetAttributes.extendsList;
+        if (listIdx != undefined && idxMap[listIdx] != undefined) {
+            component.doenetAttributes.extendsList = idxMap[listIdx];
+        }
 
-        remapRefResolutions(component.children, idxMap);
+        remapRefResolutions(component.children, idxMap, keepReferents);
 
         for (const attrName in component.attributes) {
             const attribute = component.attributes[attrName];
 
             if (attribute.type === "component") {
-                remapRefResolutions([attribute.component], idxMap);
+                remapRefResolutions(
+                    [attribute.component],
+                    idxMap,
+                    keepReferents,
+                );
             } else if (attribute.type === "references") {
-                remapRefResolutions(attribute.references, idxMap);
+                remapRefResolutions(
+                    attribute.references,
+                    idxMap,
+                    keepReferents,
+                );
             } else if (attribute.type === "unresolved") {
-                remapUnflattenedRefResolutions(attribute.children, idxMap);
+                remapUnflattenedRefResolutions(
+                    attribute.children,
+                    idxMap,
+                    keepReferents,
+                );
+            } else if (attribute.type === "expression") {
+                // The references the component resolves itself
+                // (`utils/dast/expressionAttributes.ts`). With
+                // `keepReferents`, they keep their referents. Otherwise each
+                // is resolved from the copy, which the resolver is given with
+                // the rest of what is copied, also when the original resolved
+                // them from where they were written.
+                for (const slot of (attribute as any).slots) {
+                    if (keepReferents) {
+                        remapCopiedRefResolution(slot.refResolution, idxMap);
+                    } else {
+                        remapRefResolution(slot.refResolution, idxMap);
+                        slot.refResolution.nodesInResolvedPath[0] =
+                            component.componentIdx;
+                    }
+                }
             }
         }
     }
 }
 
+/**
+ * Renumber `refResolution`, a reference in what is pasted from a source
+ * (`keepReferents` of `createNewComponentIndices`), so that it keeps meaning
+ * what it meant in the source. It goes by the referent, not by how the
+ * reference is spelled.
+ *
+ * Its referent is the component its path was resolved to (`nodeIdx`), with
+ * what is left of the path (`unresolvedPath`) still to resolve from there.
+ *
+ * A referent outside what is copied is kept, and a referent inside it
+ * becomes its counterpart in the copy. Either way the reference is resolved
+ * from that component, with what was left of its path, rather than by name:
+ * - outside, a component of the same name where the copy lands neither
+ *   captures it nor makes it ambiguous, and a referent that a bare name
+ *   cannot reach from the reference's origin, such as one made by an
+ *   `extend` the origin is in, is still kept;
+ * - inside, `$P.h` written inside `<p name="P">` names the `h` of a copy of
+ *   `P`, which has another name.
+ *
+ * If what is left of the path cannot be taken from the referent
+ * (`pathFromReferent`), or the path starts with no name, the whole path is
+ * resolved again instead: from the reference's origin in the source for a
+ * referent outside what is copied, and from the counterpart of its origin
+ * for one inside, as without `keepReferents`.
+ *
+ * References written on the copy tag itself are not among these: they are
+ * written where the copy is, and resolve from there (`convertToCopy.ts`).
+ */
+function remapCopiedRefResolution(
+    refResolution: SerializedRefResolution | UnflattenedRefResolution,
+    idxMap: Record<number, number>,
+) {
+    const counterpart = idxMap[refResolution.nodeIdx];
+    const referent = counterpart ?? refResolution.nodeIdx;
+
+    // A path that starts with no name resolves from its origin itself.
+    const path =
+        refResolution.originalPath[0]?.name === ""
+            ? undefined
+            : pathFromReferent(refResolution);
+    if (path === undefined) {
+        const origin = refResolution.nodesInResolvedPath[0];
+        remapRefResolution(refResolution, idxMap);
+        if (counterpart === undefined && origin !== undefined) {
+            refResolution.nodesInResolvedPath[0] = origin;
+        }
+        return;
+    }
+
+    refResolution.nodeIdx = referent;
+    refResolution.originalPath = path;
+    refResolution.nodesInResolvedPath = [referent];
+}
+
+/**
+ * What of the path of `refResolution` is left to resolve from its referent
+ * (`nodeIdx`), as a path resolved from the referent itself: one that starts
+ * with no name. It starts where the whole path was written, so that what is
+ * reported of the reference quotes all of it (`doenetMLStringForReference`).
+ * `undefined` if what the resolver left (`unresolvedPath`) is not the end of
+ * the path that was written.
+ */
+function pathFromReferent<
+    Part extends SerializedRefResolutionPathPart | UnflattenedPathPart,
+>({
+    originalPath,
+    unresolvedPath,
+}: {
+    originalPath: Part[];
+    unresolvedPath: Part[] | null;
+}): Part[] | undefined {
+    const left = unresolvedPath ?? [];
+    const nResolved = originalPath.length - left.length;
+    if (originalPath.length === 0 || nResolved < 0) {
+        return undefined;
+    }
+
+    const start = originalPath[0].position?.start;
+    const sourceDoc = originalPath[0].sourceDoc;
+    function fromReferent(index: Part["index"], end: Part | undefined) {
+        const endPosition = end?.position?.end ?? start;
+        return {
+            name: "",
+            index,
+            ...(start && endPosition
+                ? { position: { start, end: endPosition } }
+                : {}),
+            ...(sourceDoc !== undefined ? { sourceDoc } : {}),
+        } as Part;
+    }
+
+    if (left.length === 0) {
+        return [fromReferent([], originalPath[originalPath.length - 1])];
+    }
+
+    const part = originalPath[nResolved];
+    if (left[0].name !== "" && left[0].name !== "__invalid_index") {
+        // No component matched this name: it is a property of the referent,
+        // or names what the referent makes.
+        if (left[0].name !== part.name) {
+            return undefined;
+        }
+        return [
+            fromReferent([], originalPath[nResolved - 1]),
+            ...originalPath.slice(nResolved),
+        ];
+    }
+
+    // The resolver stopped within the indices of `part`.
+    const nIndexLeft = left[0].index.length;
+    if (nIndexLeft > part.index.length) {
+        return undefined;
+    }
+    return [
+        fromReferent(
+            part.index.slice(part.index.length - nIndexLeft) as Part["index"],
+            part,
+        ),
+        ...originalPath.slice(nResolved + 1),
+    ];
+}
+
+/**
+ * Renumber the components `refResolution` names (an index in its path is
+ * held as text, not as a component, for a reference a component resolves
+ * itself).
+ */
+function remapRefResolution(
+    refResolution: { nodeIdx: number; nodesInResolvedPath: number[] },
+    idxMap: Record<number, number>,
+) {
+    const newNodeIdx = idxMap[refResolution.nodeIdx];
+    if (newNodeIdx != undefined) {
+        refResolution.nodeIdx = newNodeIdx;
+    }
+    refResolution.nodesInResolvedPath = refResolution.nodesInResolvedPath.map(
+        (idx) => idxMap[idx] ?? idx,
+    );
+}
+
 function remapUnflattenedRefResolutions(
     serializedComponents: (UnflattenedComponent | string)[],
     idxMap: Record<number, number>,
+    keepReferents = false,
 ) {
     for (const component of serializedComponents) {
         if (typeof component === "string") {
@@ -431,63 +678,156 @@ function remapUnflattenedRefResolutions(
         if (extending) {
             const refResolution = unwrapSource(extending);
 
-            const newNodeIdx = idxMap[refResolution.nodeIdx];
-            if (newNodeIdx != undefined) {
-                refResolution.nodeIdx = newNodeIdx;
-            }
-
-            if (refResolution.unresolvedPath) {
-                for (const pathPath of refResolution.unresolvedPath) {
-                    for (const indexPart of pathPath.index) {
-                        const indexResult = remapUnflattenedRefResolutions(
-                            indexPart.value,
-                            idxMap,
-                        );
-                    }
-                }
-            }
-
-            for (const pathPath of refResolution.originalPath) {
-                for (const indexPart of pathPath.index) {
-                    const indexResult = remapUnflattenedRefResolutions(
+            const pathParts = [
+                ...(refResolution.unresolvedPath ?? []),
+                ...refResolution.originalPath,
+            ];
+            for (const pathPart of pathParts) {
+                for (const indexPart of pathPart.index) {
+                    remapUnflattenedRefResolutions(
                         indexPart.value,
                         idxMap,
+                        keepReferents,
                     );
                 }
             }
 
-            refResolution.nodesInResolvedPath =
-                refResolution.nodesInResolvedPath.map((idx) => {
-                    const newIdx = idxMap[idx];
-                    if (newIdx != undefined) {
-                        return newIdx;
-                    } else {
-                        return idx;
-                    }
-                });
+            if (keepReferents) {
+                remapCopiedRefResolution(refResolution, idxMap);
+            } else {
+                remapRefResolution(refResolution, idxMap);
+            }
         }
 
-        const childResult = remapUnflattenedRefResolutions(
+        remapUnflattenedRefResolutions(
             component.children,
             idxMap,
+            keepReferents,
         );
 
         for (const attrName in component.attributes) {
-            const attribute = component.attributes[attrName];
-
-            const attrResult = remapUnflattenedRefResolutions(
-                attribute.children,
+            remapUnflattenedRefResolutions(
+                component.attributes[attrName].children,
                 idxMap,
+                keepReferents,
             );
         }
     }
 }
 
 /**
+ * Recurse through the unflattened components and make `originIdx` the origin
+ * (`nodesInResolvedPath[0]`) of every reference in them, including references
+ * in their attributes, their descendants, and the indices of their paths.
+ *
+ * A reference's path is re-resolved from its origin, so this makes the references
+ * resolve as though written at `originIdx`, whatever position they are later placed in.
+ *
+ * References whose path starts with an empty name are left alone:
+ * those resolve from the origin itself rather than searching from its parent,
+ * so they are only meaningful from where they were created.
+ */
+export function setUnflattenedReferenceOrigins(
+    unflattenedComponents: (UnflattenedComponent | string)[],
+    originIdx: number,
+) {
+    for (const component of unflattenedComponents) {
+        if (typeof component === "string") {
+            continue;
+        }
+
+        if (component.extending) {
+            const refResolution = unwrapSource(component.extending);
+
+            const pathParts = [
+                ...refResolution.originalPath,
+                ...(refResolution.unresolvedPath ?? []),
+            ];
+            for (const pathPart of pathParts) {
+                for (const indexPart of pathPart.index) {
+                    setUnflattenedReferenceOrigins(indexPart.value, originIdx);
+                }
+            }
+
+            if (
+                refResolution.originalPath[0]?.name &&
+                refResolution.nodesInResolvedPath.length > 0
+            ) {
+                refResolution.nodesInResolvedPath[0] = originIdx;
+            }
+        }
+
+        setUnflattenedReferenceOrigins(component.children, originIdx);
+
+        for (const attrName in component.attributes) {
+            setUnflattenedReferenceOrigins(
+                component.attributes[attrName].children,
+                originIdx,
+            );
+        }
+    }
+}
+
+/**
+ * Give new component indices to `serializedReplacements`, the serialized
+ * replacements of the composite that `shadowingComponent` shadows, which
+ * become its own replacements. A composite whose replacement `i` is its
+ * serialized child `i` (`useSerializedChildrenComponentIndices`, such as
+ * `<group>`) takes the indices of those children; any other takes new ones,
+ * starting with `nComponents`, except those given in `idxMapOverride`.
+ *
+ * The replacements are renumbered together, so that a reference in one to
+ * another (`$g.x` in a `<p>` beside `x` in `<group name="g">`) names that
+ * one's counterpart, as a reference to a component in the same replacement
+ * does: a copy of the shadowing composite then names its own counterpart,
+ * not the shadowed composite's.
+ *
+ * Returns:
+ * - `components`: the replacements with new indices
+ * - `nComponents`: the new value of `nComponents`, one greater than the last component index assigned
+ */
+export function createComponentIndicesForShadowedReplacements({
+    serializedReplacements,
+    shadowingComponent,
+    nComponents,
+    stateIdInfo,
+    idxMapOverride,
+}: {
+    serializedReplacements: (SerializedComponent | string)[];
+    shadowingComponent: {
+        constructor: Function & {
+            useSerializedChildrenComponentIndices?: boolean;
+        };
+        serializedChildren: (SerializedComponent | string)[];
+    };
+    nComponents: number;
+    stateIdInfo: {
+        prefix: string;
+        num: number;
+    };
+    idxMapOverride?: Record<number, number>;
+}) {
+    if (shadowingComponent.constructor.useSerializedChildrenComponentIndices) {
+        return createComponentIndicesFromSerializedChildren(
+            serializedReplacements,
+            shadowingComponent.serializedChildren,
+            nComponents,
+            stateIdInfo,
+        );
+    }
+    return createNewComponentIndices(
+        serializedReplacements,
+        nComponents,
+        stateIdInfo,
+        idxMapOverride,
+    );
+}
+
+/**
  * Recurse through all serialized components and update their component indices.
  * For components and their descendants use the `componentIdx` of the corresponding component in `componentIdxSources`.
  * (An error will be thrown if `serializedComponents` and `componentIdxSources` don't have the exact same structure.)
- * Similarly, uses the `createComponentIdx` attribute of the corresponding component in `componentIdxSources`.
+ * Similarly, uses the `_createComponentIdx` attribute of the corresponding component in `componentIdxSources`.
  * For all other components, such as those in attributes and `extending`,
  * update their component indices to new values, starting with `nComponents`.
  *
@@ -671,7 +1011,7 @@ function newComponentIndicesForAttributesFromSerialized(
             nComponents = attrResult.nComponents;
         } else if (attribute.type === "primitive") {
             if (
-                attrName === "createComponentIdx" &&
+                attrName === "_createComponentIdx" &&
                 attribute.primitive.type === "number"
             ) {
                 if (
@@ -686,6 +1026,23 @@ function newComponentIndicesForAttributesFromSerialized(
                 attribute.primitive.value = newIdx;
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "expression") {
+            // Its slots are its own, as a reference's resolution is, so that
+            // `remapRefResolutions` renumbers them and not those of what was
+            // copied, which may be copied again (a repeat's template).
+            (newAttributes[attrName] as any) = {
+                ...attribute,
+                slots: (attribute as any).slots.map((slot: any) => ({
+                    ...slot,
+                    refResolution: structuredClone(slot.refResolution),
+                })),
+            };
+        } else if (
+            attribute.type === "variableRef" ||
+            attribute.type === "literal"
+        ) {
+            // a reference to a component outside what is being copied, or a
+            // value: no component to number
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");
@@ -696,7 +1053,7 @@ function newComponentIndicesForAttributesFromSerialized(
 
 /**
  * Create a map from a component's index to the index of the copy
- * with a `createComponentIdx` attribute that created the component.
+ * with a `_createComponentIdx` attribute that created the component.
  *
  * Currently, we use copies to create components that have
  * an `extend` or `copy` attribute. If another component depends
@@ -721,8 +1078,9 @@ export function extractCreateComponentIdxMapping(
             continue;
         }
 
-        if (component.attributes?.createComponentIdx?.type === "primitive") {
-            const primitive = component.attributes.createComponentIdx.primitive;
+        if (component.attributes?._createComponentIdx?.type === "primitive") {
+            const primitive =
+                component.attributes._createComponentIdx.primitive;
             if (primitive.type === "number") {
                 const createComponentIdx = primitive.value;
                 createComponentIdxMapping[createComponentIdx] =

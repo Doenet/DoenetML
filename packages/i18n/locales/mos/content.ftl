@@ -84,7 +84,6 @@ color =
     .purple = viole
     .pink = roze
     .brown = maroŋ
-
 line-width =
     .thick =
         { $gender ->
@@ -100,7 +99,6 @@ line-width =
             [c4] bilem
            *[c1] bilga
         }
-
 # Written as an invariable «ne …» phrase, so that it agrees with nothing and
 # can close the description; `style-stroke` puts it last for that reason. That
 # is also what keeps the class suffix off the end of the phrase, where a
@@ -108,7 +106,6 @@ line-width =
 line-style =
     .dashed = ne tirɛ
     .dotted = ne poẽ-poẽ
-
 fill-style =
     .horizontal = sõoya sẽn gãe
     .vertical = sõoya sẽn yals
@@ -116,7 +113,6 @@ fill-style =
     .backdiagonal = sõoya sẽn kẽng zãnga a to wã
     .dots = poẽ-poẽ
     .diamonds = diamã
-
 noun =
     .line = sõore
     .line-segment = sõor sɛgmã
@@ -136,7 +132,6 @@ noun =
     .diamond = diamã
     .cross = kruwa
     .plus = paas-bãnde
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -144,7 +139,6 @@ noun-regular-polygon =
         [tail] sẽn tar kɩrems { $numSides }
        *[head] poligonre sẽn zems
     }
-
 # The noun class. A Mooré noun's class is usually legible in its own suffix —
 # «sõore» is `-re`, so `c3` — but the class is a fact about the noun rather
 # than about its ending, and two entries here say so: «zĩiga» is `c2` despite
@@ -168,7 +162,6 @@ noun-gender =
        *[other] c1
     }
 
-
 ## Style composition
 
 # The dash pattern is a «ne …» phrase and closes the description, so it moves
@@ -183,13 +176,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c2] pidgo
@@ -197,13 +188,11 @@ style-filled-word =
         [c4] pidem
        *[c1] pidga
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ne { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ne { $pattern }
@@ -211,7 +200,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ne { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «noore» is the border and leads its own describing words, so they agree with
 # it rather than with the shape it surrounds. Mooré has no article and joins
 # this clause with the invariable «ne», so all four branches read alike.
@@ -222,35 +210,28 @@ style-border-clause =
         [and-article] ne noore { $border }
        *[with] ne noore { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = pa pid ye
-
 style-text =
     { $parts ->
         [background] { $color } ne poorẽ { $background }
        *[plain] { $color }
     }
-
 style-background-none = baa fʋɩ
-
 
 ## Boolean words
 
 boolean-true = sɩda
 boolean-false = ziri
 
-
 ## Answer buttons
 
 answer-submit-label = Ges Tʋʋmdã
 answer-submit-label-no-correctness = Tʋm Leoorã
-
 
 ## Sectional blocks
 
@@ -275,7 +256,6 @@ section-name =
     .solution = Tɩɩm
     .task = Tʋʋmde
     .theorem = Teorɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -285,9 +265,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Bãnde
-
 
 ## Tables and figures
 
@@ -298,7 +276,6 @@ table-name =
         [unnumbered-title] Tablo{ ": " }
        *[unnumbered] Tablo
     }
-
 figure-name =
     { $parts ->
         [numbered] Fiigɩɩr { $enumeration }
@@ -307,24 +284,18 @@ figure-name =
        *[unnumbered] Fiigɩɩr
     }
 
-
 ## Paginator controls
 
 paginator-previous = Sẽn looge
 paginator-next = Sẽn pʋgende
 paginator-page = Seb-neng
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = wall
-
 piecewise-condition-if = sã n yaa
-
 piecewise-condition-otherwise = zĩis a taab fãa
-
 
 ## Chemistry
 ##
@@ -337,6 +308,5 @@ piecewise-condition-otherwise = zĩis a taab fãa
 ## ministry and `locales/dag` does not, Ghana teaching it in English.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Sɩmi Bãnd Sẽn Pa Zems
 chemistry-invalid-ionic-compound = Ayõ Lagengr Sẽn Pa Zems

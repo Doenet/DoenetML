@@ -1,10 +1,16 @@
+import { serializedAttributeComponent } from "../utils/literalAttribute";
 import CompositeComponent from "./abstract/CompositeComponent";
+import { instanceGroupAttributes } from "../utils/indexInstances";
 import {
     deepClone,
     enumerateSelectionCombinations,
     enumerateCombinations,
 } from "@doenet/utils";
-import { gatherVariantComponents, pushVariantInfo } from "../utils/variants";
+import {
+    gatherVariantComponents,
+    pushVariantInfo,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import {
     NO_SELECT_ERROR,
@@ -40,7 +46,7 @@ export default class Select extends CompositeComponent {
     };
     static takesIndex = true;
 
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAnywhere = true;
 
     static createsVariants = true;
 
@@ -502,9 +508,8 @@ export default class Select extends CompositeComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -557,6 +562,61 @@ export default class Select extends CompositeComponent {
                 }
 
                 return { setValue: { generatedVariantInfo } };
+            },
+        };
+
+        // The `<select>`s in the content of the options this select chose.
+        // The `replacements` dependency is there only to expand this select,
+        // since the descendants found from it are those of its replacements.
+        stateVariableDefinitions.selectsInReplacements = {
+            returnDependencies: ({ componentIdx }) => ({
+                replacements: {
+                    dependencyType: "replacement",
+                    compositeIdx: componentIdx,
+                    recursive: true,
+                    recurseNonStandardComposites: true,
+                },
+                selectDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["select"],
+                    useReplacementsForComposites: true,
+                    includeNonActiveChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        selectsInReplacements:
+                            dependencyValues.selectDescendants.map(
+                                (select) => select.componentIdx,
+                            ),
+                    },
+                };
+            },
+        };
+
+        // Resolved once this select, and each select in the content of the
+        // options it chose, is expanded, so that its `generatedVariantInfo`
+        // holds the random choices in that content. An unlinked copy of a
+        // component holding this select waits for it
+        // (`Copy.unlinkedSelectsExpanded`).
+        stateVariableDefinitions.expandedWithSelectsInReplacements = {
+            stateVariablesDeterminingDependencies: ["selectsInReplacements"],
+            returnDependencies({ stateValues }) {
+                const dependencies = {};
+                for (const selectIdx of stateValues.selectsInReplacements) {
+                    dependencies[`selectExpanded${selectIdx}`] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: selectIdx,
+                        variableName: "expandedWithSelectsInReplacements",
+                    };
+                }
+                return dependencies;
+            },
+            definition() {
+                return {
+                    setValue: { expandedWithSelectsInReplacements: true },
+                };
             },
         };
 
@@ -646,7 +706,14 @@ export default class Select extends CompositeComponent {
                 componentType: "group",
                 componentIdx: nComponents++,
                 stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                attributes: {},
+                // An index after the pick passes to its content when that is
+                // one indexable component, and otherwise selects one of its
+                // children (D27)
+                attributes: instanceGroupAttributes({
+                    children: serializedGrandchildren,
+                    instanceOf: component.componentType,
+                    componentInfoObjects,
+                }),
                 doenetAttributes: Object.assign(
                     {},
                     selectedChild.doenetAttributes,
@@ -707,8 +774,9 @@ export default class Select extends CompositeComponent {
         let numToSelect = 1,
             withReplacement = false;
 
-        let numToSelectComponent =
-            serializedComponent.attributes.numToSelect?.component;
+        let numToSelectComponent = serializedAttributeComponent(
+            serializedComponent.attributes.numToSelect,
+        );
         if (numToSelectComponent) {
             // only implemented if have an integer with a single string child
             if (
@@ -718,7 +786,7 @@ export default class Select extends CompositeComponent {
             ) {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
-                if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
+                if (!Number.isInteger(numToSelect)) {
                     pushVariantInfo(
                         infoDiagnostics,
                         { code: "doenet-i0022", component: "select" },
@@ -726,6 +794,9 @@ export default class Select extends CompositeComponent {
                     );
                     return { success: false };
                 }
+                // A negative number selects nothing at run time, the same as 0,
+                // so it adds the single variant of selecting nothing
+                numToSelect = Math.max(numToSelect, 0);
             } else {
                 pushVariantInfo(
                     infoDiagnostics,
@@ -736,8 +807,26 @@ export default class Select extends CompositeComponent {
             }
         }
 
-        let withReplacementComponent =
-            serializedComponent.attributes.withReplacement?.component;
+        // Selecting nothing has exactly one outcome, whatever withReplacement,
+        // the options or the range, so return before reading anything that
+        // might not be countable
+        if (numToSelect === 0) {
+            if (serializedComponent.variants === undefined) {
+                serializedComponent.variants = {};
+            }
+            serializedComponent.variants.numVariants = 1;
+            serializedComponent.variants.uniqueVariants = true;
+            serializedComponent.variants.uniqueVariantData = {
+                numVariantsByChild: [],
+                numToSelect: 0,
+                withReplacement: false,
+            };
+            return { success: true, numVariants: 1 };
+        }
+
+        let withReplacementComponent = serializedAttributeComponent(
+            serializedComponent.attributes.withReplacement,
+        );
         if (withReplacementComponent) {
             // only implemented if have an boolean with a boolean value or a single string child
             if (withReplacementComponent.componentType === "boolean") {
@@ -842,12 +931,8 @@ export default class Select extends CompositeComponent {
                 .every((x) => x === firstNumber);
 
             if (allSameNumber) {
-                let numberOfPermutations = numChildren;
-                for (
-                    let n = numChildren - 1;
-                    n > numChildren - numToSelect;
-                    n--
-                ) {
+                let numberOfPermutations = 1;
+                for (let n = numChildren; n > numChildren - numToSelect; n--) {
                     numberOfPermutations *= n;
                 }
                 numVariants =
@@ -894,10 +979,25 @@ export default class Select extends CompositeComponent {
         let numVariantsByChild = uniqueVariantData.numVariantsByChild;
         let numToSelect = uniqueVariantData.numToSelect;
         let withReplacement = uniqueVariantData.withReplacement;
-        let numChildren = serializedComponent.children.length;
-        let childrenToSelect = serializedComponent.children;
+        // Index the same list `numVariantsByChild` was built from.
+        // `determineNumberOfUniqueVariants` builds it by walking
+        // `gatherVariantComponents`, which skips a child bearing no variants --
+        // a `<setup>`, `<sort>` or `<collect>` beside the options. Counting
+        // `children` instead then ran the index off the end of
+        // `numVariantsByChild`, `numberOfPossibilities` became `NaN`, every
+        // comparison against it was false, and the loop left
+        // `combinationIndexSelected` undefined for `combinations[undefined].map`
+        // to throw -- taking the document with it (#1875).
+        //
+        // For a `<select>` of `<option>`s the two lists are the same, element
+        // for element, because `<option>` creates variants and so is gathered
+        // as itself: that is the case every working document is in.
+        let childrenToSelect =
+            serializedComponent.variants.descendantVariantComponents ??
+            serializedComponent.children;
+        let numChildren = numVariantsByChild.length;
 
-        if (numVariantsByChild.length === 0) {
+        if (numVariantsByChild.length === 0 || numToSelect === 0) {
             return { success: true, desiredVariant: { indices: [] } };
         }
 
@@ -1033,7 +1133,8 @@ export default class Select extends CompositeComponent {
 // and each select gets multiplied by the total number of options of that selection
 let countOptions = function (numOptionsByItem, numItems) {
     if (numItems === 0) {
-        return 0;
+        // one way to select nothing
+        return 1;
     }
     if (numItems === 1) {
         // if select just one item, simply add up all the different options

@@ -11,16 +11,18 @@ import {
     LabelPosition,
     adjustPointLabelPosition,
     calculatePointLabelAnchor,
+    getEffectiveBoundingBox,
     normalizePointSize,
     normalizePointStyle,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { useSourceNavigation } from "./utils/useSourceNavigation";
-import { JXGPoint } from "./jsxgraph-distrib/types";
+import { JXGBoard, JXGPoint } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import { useRerenderOnBoundingBoxChange } from "./utils/useRerenderOnBoundingBoxChange";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveMarkerColor } from "./utils/styleColors";
 import {
@@ -112,6 +114,33 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     const fillOpacity = useOpenSymbol ? 1 : SVs.selectedStyle.markerOpacity;
 
     useBoardPointerTracking(board, dragState);
+
+    // Where the point is drawn depends on the graph's bounding box: off the
+    // graph it becomes an indicator pinned to the edge, and near an edge its
+    // label flips inward. Re-render whenever a new bounding box changes that:
+    // when the graph's limits change, the graph applies them only after this
+    // has rendered for the same update.
+    useRerenderOnBoundingBoxChange(board, () => {
+        if (!board) {
+            return false;
+        }
+        const placement = placePointOnBoard(
+            SVs.numericalXs,
+            board,
+            SVs.hideOffGraphIndicator,
+        );
+        return (
+            placement.coords.some(
+                (v, i) => !Object.is(v, lastPositionFromCore.current?.[i]),
+            ) ||
+            placement.offGraphIndicator.some(
+                (v, i) => v !== offGraphIndicator.current[i],
+            ) ||
+            placement.nearEdgeOfGraph.some(
+                (v, i) => v !== nearEdgeOfGraph.current[i],
+            )
+        );
+    });
 
     React.useEffect(() => {
         //On unmount
@@ -399,65 +428,14 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     }
 
     if (board) {
-        lastPositionFromCore.current = [...SVs.numericalXs] as [number, number];
-        offGraphIndicator.current = [0, 0];
-
-        if (!SVs.hideOffGraphIndicator) {
-            let { needIndicator, indicatorCoords, indicatorSides } =
-                characterizeOffGraphPoint(lastPositionFromCore.current, board);
-
-            if (needIndicator) {
-                lastPositionFromCore.current = indicatorCoords as [
-                    number,
-                    number,
-                ];
-                offGraphIndicator.current = indicatorSides;
-            }
-        }
-
-        // determine if near edge of graph
-        // which will be used to alter label position so that it is visible
-        nearEdgeOfGraph.current = [0, 0];
-
-        let flippedX = false;
-        let flippedY = false;
-
-        let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-
-        if (xMax < xMin) {
-            flippedX = true;
-            [xMax, xMin] = [xMin, xMax];
-        }
-        if (yMax < yMin) {
-            flippedY = true;
-            [yMax, yMin] = [yMin, yMax];
-        }
-
-        let xscale = xMax - xMin;
-        let yscale = yMax - yMin;
-
-        // TODO: use a measure of label width rather than 0.05 for x
-        let xminAdjusted = xMin + xscale * 0.05;
-        let xmaxAdjusted = xMax - xscale * 0.05;
-        let yminAdjusted = yMin + yscale * 0.05;
-        let ymaxAdjusted = yMax - yscale * 0.05;
-
-        if (
-            Number.isFinite(lastPositionFromCore.current[0]) &&
-            Number.isFinite(lastPositionFromCore.current[1])
-        ) {
-            if (lastPositionFromCore.current[0] < xminAdjusted) {
-                nearEdgeOfGraph.current[0] = flippedX ? 1 : -1;
-            } else if (lastPositionFromCore.current[0] > xmaxAdjusted) {
-                nearEdgeOfGraph.current[0] = flippedX ? -1 : 1;
-            }
-
-            if (lastPositionFromCore.current[1] < yminAdjusted) {
-                nearEdgeOfGraph.current[1] = flippedY ? 1 : -1;
-            } else if (lastPositionFromCore.current[1] > ymaxAdjusted) {
-                nearEdgeOfGraph.current[1] = flippedY ? -1 : 1;
-            }
-        }
+        const placement = placePointOnBoard(
+            SVs.numericalXs,
+            board,
+            SVs.hideOffGraphIndicator,
+        );
+        lastPositionFromCore.current = placement.coords;
+        offGraphIndicator.current = placement.offGraphIndicator;
+        nearEdgeOfGraph.current = placement.nearEdgeOfGraph;
 
         if (pointJXG.current === null) {
             createPointJXG();
@@ -651,3 +629,64 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         </span>
     );
 });
+
+/**
+ * Where to draw a point with coordinates `numericalXs` on `board`.
+ *
+ * Off the graph (unless `hideOffGraphIndicator`), the point is drawn at the
+ * edge, and `offGraphIndicator` gives, for each coordinate, the side it went
+ * off, else 0. `nearEdgeOfGraph` gives, for each coordinate, the side of the
+ * graph the drawn point is near, else 0, which is used to keep its label on
+ * the graph. Both give sides as drawn: -1 for left or bottom and 1 for right
+ * or top, even when an axis is flipped.
+ */
+function placePointOnBoard(
+    numericalXs: [number, number],
+    board: JXGBoard,
+    hideOffGraphIndicator: boolean,
+) {
+    let coords = [...numericalXs] as [number, number];
+    let offGraphIndicator: [number, number] = [0, 0];
+
+    if (!hideOffGraphIndicator) {
+        let { needIndicator, indicatorCoords, indicatorSides } =
+            characterizeOffGraphPoint(coords, board);
+
+        if (needIndicator) {
+            coords = indicatorCoords;
+            offGraphIndicator = indicatorSides;
+        }
+    }
+
+    // determine if near edge of graph
+    // which will be used to alter label position so that it is visible
+    let nearEdgeOfGraph: [number, number] = [0, 0];
+
+    let { flippedX, flippedY, xMin, xMax, yMin, yMax } =
+        getEffectiveBoundingBox(board);
+
+    let xscale = xMax - xMin;
+    let yscale = yMax - yMin;
+
+    // TODO: use a measure of label width rather than 0.05 for x
+    let xminAdjusted = xMin + xscale * 0.05;
+    let xmaxAdjusted = xMax - xscale * 0.05;
+    let yminAdjusted = yMin + yscale * 0.05;
+    let ymaxAdjusted = yMax - yscale * 0.05;
+
+    if (Number.isFinite(coords[0]) && Number.isFinite(coords[1])) {
+        if (coords[0] < xminAdjusted) {
+            nearEdgeOfGraph[0] = flippedX ? 1 : -1;
+        } else if (coords[0] > xmaxAdjusted) {
+            nearEdgeOfGraph[0] = flippedX ? -1 : 1;
+        }
+
+        if (coords[1] < yminAdjusted) {
+            nearEdgeOfGraph[1] = flippedY ? 1 : -1;
+        } else if (coords[1] > ymaxAdjusted) {
+            nearEdgeOfGraph[1] = flippedY ? -1 : 1;
+        }
+    }
+
+    return { coords, offGraphIndicator, nearEdgeOfGraph };
+}

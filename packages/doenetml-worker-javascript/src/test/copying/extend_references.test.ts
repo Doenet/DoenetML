@@ -11,12 +11,14 @@ import {
     updateMathInputImmediateValue,
     updateMathInputValue,
     updateMathInputValueToImmediateValue,
+    updateSelectedIndices,
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { typeAsPresented } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -32,8 +34,8 @@ describe("Extend and references tests @group2", async () => {
     it("extend copies properties", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <math name="math1" modifyIndirectly="false">x</math>
-    <math name="math2" modifyIndirectly="true">x</math>
+    <math name="math1" displayBlanks="false">x</math>
+    <math name="math2" displayBlanks="true">x</math>
     <math name="a" extend="$math1"/>
     <math name="b" extend="$a"/>
     <math name="c" extend="$math2"/>
@@ -47,27 +49,27 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("math1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("a")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("b")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("math2")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("c")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("d")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("point1")].stateValues
@@ -84,14 +86,14 @@ describe("Extend and references tests @group2", async () => {
     it("extend overwrites properties", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <math name="math1" modifyIndirectly="false">x</math>
+    <math name="math1" displayBlanks="false">x</math>
     <math name="r1" extend="$math1"/>
-    <math name="r2" modifyIndirectly="true" extend="$math1"/>
-    <math name="r3" modifyIndirectly="true" extend="$r1"/>
+    <math name="r2" displayBlanks="true" extend="$math1"/>
+    <math name="r3" displayBlanks="true" extend="$r1"/>
     <math name="r4" extend="$r2"/>
     <math name="r5" extend="$r3"/>
-    <math name="r6" extend="$r2" modifyIndirectly="false" />
-    <math name="r7" extend="$r3" modifyIndirectly="false" />
+    <math name="r6" extend="$r2" displayBlanks="false" />
+    <math name="r7" extend="$r3" displayBlanks="false" />
 
     <point labelIsName name="A">(1,2)</point>
     <point name="A2"><label>A</label>(1,2)</point>
@@ -127,35 +129,35 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("math1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r2")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r3")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r4")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r5")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r6")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r7")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
 
         expect(
@@ -247,14 +249,14 @@ describe("Extend and references tests @group2", async () => {
     it("extend overwrites properties, decode XML entities", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <math name="math1" modifyIndirectly="3 &gt; 4">x</math>
+    <math name="math1" displayBlanks="3 &gt; 4">x</math>
     <math name="r1" extend="$math1"/>
-    <math name="r2" modifyIndirectly="3&lt;4" extend="$math1"/>
-    <math name="r3" modifyIndirectly="3&lt;4" extend="$r1"/>
+    <math name="r2" displayBlanks="3&lt;4" extend="$math1"/>
+    <math name="r3" displayBlanks="3&lt;4" extend="$r1"/>
     <math name="r4" extend="$r2"/>
     <math name="r5" extend="$r3"/>
-    <math name="r6" extend="$r2" modifyIndirectly="3&gt;4" />
-    <math name="r7" extend="$r3" modifyIndirectly="3&gt;4" />
+    <math name="r6" extend="$r2" displayBlanks="3&gt;4" />
+    <math name="r7" extend="$r3" displayBlanks="3&gt;4" />
 
     `,
         });
@@ -262,35 +264,35 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("math1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r2")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r3")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r4")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r5")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r6")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r7")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
     });
 
@@ -300,17 +302,8 @@ describe("Extend and references tests @group2", async () => {
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("x")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
-        expect(
             stateVariables[await resolvePathToNodeIdx("x")].stateValues.hidden,
         ).eq(true);
-        // modifyIndirectly attribute is copied (as it has propagateToProps=true)
-        expect(
-            stateVariables[await resolvePathToNodeIdx("mr")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
         // hide attribute is not copied (default behavior)
         expect(
             stateVariables[await resolvePathToNodeIdx("mr")].stateValues.hidden,
@@ -319,24 +312,6 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("mr")].stateValues.value,
         ).eq(false);
 
-        // modifyIndirectly is overwritten
-        expect(
-            stateVariables[await resolvePathToNodeIdx("mr2")].stateValues
-                .modifyIndirectly,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("mr2")].stateValues
-                .hidden,
-        ).eq(false);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("mr2")].stateValues.value,
-        ).eq(false);
-
-        // modifyIndirectly attribute is copied (as it has propagateToProps=true)
-        expect(
-            stateVariables[await resolvePathToNodeIdx("frmt")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
         // hide attribute is not copied (default behavior)
         expect(
             stateVariables[await resolvePathToNodeIdx("frmt")].stateValues
@@ -347,10 +322,6 @@ describe("Extend and references tests @group2", async () => {
                 .value,
         ).eq("text");
 
-        expect(
-            stateVariables[await resolvePathToNodeIdx("frmt2")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("frmt2")].stateValues
                 .hidden,
@@ -361,10 +332,6 @@ describe("Extend and references tests @group2", async () => {
         ).eq("text");
 
         // all attributes copied when don't use prop
-        expect(
-            stateVariables[await resolvePathToNodeIdx("frmt3")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("frmt3")].stateValues
                 .value,
@@ -385,17 +352,6 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("l")].stateValues.value,
         ).eq("\\left( 1, 2 \\right)");
         expect(
-            stateVariables[await resolvePathToNodeIdx("l")].stateValues
-                .modifyIndirectly,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("lmr")].stateValues.value,
-        ).eq("\\left( 1, 2 \\right)");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("lmr")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
-        expect(
             stateVariables[await resolvePathToNodeIdx("A2")].stateValues.label,
         ).eq("A");
         expect(
@@ -410,9 +366,8 @@ describe("Extend and references tests @group2", async () => {
     it("extend props, dot notation", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <math name="x" modifyIndirectly="false" hide>x</math>
-    <boolean name="mr" extend="$x.modifyIndirectly"/>
-    <boolean name="mr2" modifyIndirectly="true" extend="$x.modifyIndirectly"/>
+    <math name="x" displayBlanks="false" hide>x</math>
+    <boolean name="mr" extend="$x.displayBlanks"/>
 
     <text name="frmt" extend="$x.format"/>
     <text name="frmt2" extend="$x.format" hide />
@@ -421,7 +376,6 @@ describe("Extend and references tests @group2", async () => {
     <point name="A" labelIsName>(1,2)</point>
     <coords name="cA" extend="$A.coords"/>
     <text name="l" extend="$cA.latex"/>
-    <text name="lmr" modifyIndirectly="false" extend="$cA.latex"/>
     <point name="A2" extend="$A"/>
     <coords name="cA2" extend="$A2.coords"/>
     <text name="l2" extend="$cA2.latex"/>
@@ -2369,8 +2323,10 @@ describe("Extend and references tests @group2", async () => {
 
         expect(stateVariables[Pref].stateValues.fixed).eq(true);
         expect(stateVariables[Pref].stateValues.fixLocation).eq(true);
-        expect(stateVariables[Pxref].stateValues.fixed).eq(true);
-        expect(stateVariables[Pxref].stateValues.fixLocation).eq(true);
+        // `$P.x` in a paragraph is a drawn value reference, which has no
+        // `fixed` of its own: a write through it goes to `P`, which is fixed
+        expect(stateVariables[Pxref].componentType).eq("_ref");
+        expect(stateVariables[Pxref].stateValues.fixed).eq(undefined);
         expect(
             stateVariables[await resolvePathToNodeIdx("P2")].stateValues.fixed,
         ).eq(true);
@@ -3259,7 +3215,10 @@ describe("Extend and references tests @group2", async () => {
         ).eqls(NaN);
     });
 
-    it("add children to invalid extend", async () => {
+    it("a tag whose extend names nothing is an error in its place, children and all", async () => {
+        // A tag written with `extend` always makes that tag (D36), so one
+        // whose reference names nothing cannot be made, and the error is
+        // shown where it was written, in place of its children too.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" extend="$invalid">
@@ -3274,43 +3233,12 @@ describe("Extend and references tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].activeChildren
-                .length,
-        ).eq(1);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("g")].activeChildren[0]
-                .componentIdx,
-        ).eq(await resolvePathToNodeIdx("P"));
-        expect(
-            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([0, 0]);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("Pcoords")].stateValues
-                .value.tree,
-        ).eqls(["vector", 0, 0]);
-
-        // move point
-
-        await movePoint({
-            componentIdx: await resolvePathToNodeIdx("P"),
-            x: 3,
-            y: 5,
-            core,
-        });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
-            ),
-        ).eqls([3, 5]);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("Pcoords")].stateValues
-                .value.tree,
-        ).eqls(["vector", 3, 5]);
+            stateVariables[await resolvePathToNodeIdx("g")].componentType,
+        ).eq("_error");
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => [e.code, e.message])).eqls([
+            ["doenet-w0104", "No referent found for reference: `$invalid`"],
+        ]);
     });
 
     it("add children with extend", async () => {
@@ -4638,7 +4566,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("P: ( 2, 3 )");
+        ).eq("P: (2, 3)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("x of P: 2");
@@ -4647,10 +4575,10 @@ describe("Extend and references tests @group2", async () => {
         ).eq("y of P: 3");
         expect(
             stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
-        ).eq("P.: ( 2, 3 ).");
+        ).eq("P.: (2, 3).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
-        ).eq("P.1: ( 2, 3 ).1");
+        ).eq("P.1: (2, 3).1");
         expect(
             stateVariables[await resolvePathToNodeIdx("p6")].stateValues.text,
         ).eq("x of P: 2");
@@ -4672,10 +4600,10 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p12")].stateValues.text,
-        ).eq("P: ( 2, 3 )");
+        ).eq("P: (2, 3)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p13")].stateValues.text,
-        ).eq("(P).x: ( 2, 3 ).x");
+        ).eq("(P).x: (2, 3).x");
         expect(
             stateVariables[await resolvePathToNodeIdx("p14")].stateValues.text,
         ).eq("no match: $(P.)");
@@ -4790,7 +4718,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p1")].stateValues
                     .text,
-            ).eq(`( ${P11}, ${P12} ), ( ${P21}, ${P22} )`);
+            ).eq(`(${P11}, ${P12}), (${P21}, ${P22})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p2")].stateValues
                     .text,
@@ -4811,15 +4739,17 @@ describe("Extend and references tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("p6")].stateValues
                     .text,
             ).eq(`${P12}, ${P22}`);
+            // A coordinate past the points' dimensions is blank in each
+            // point of the list, as for a math list's entries.
             expect(
                 stateVariables[await resolvePathToNodeIdx("p7")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿, ＿`);
 
             // XXX: restore this assertion
             // expect(
             //     stateVariables[await resolvePathToNodeIdx("p8")].stateValues.text,
-            // ).eq(`( ${P11}, ${P12} )`);
+            // ).eq(`(${P11}, ${P12})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p9")].stateValues
                     .text,
@@ -4848,7 +4778,7 @@ describe("Extend and references tests @group2", async () => {
             // XXX: restore this assertion
             // expect(
             //     stateVariables[await resolvePathToNodeIdx("p15")].stateValues.text,
-            // ).eq(`( ${P21}, ${P22} )`);
+            // ).eq(`(${P21}, ${P22})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p16")].stateValues
                     .text,
@@ -5138,7 +5068,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq(`( ${P11Dig2}, ${P12Dig2} ), ( ${P21Dig2}, ${P22Dig2} )`);
+        ).eq(`(${P11Dig2}, ${P12Dig2}), (${P21Dig2}, ${P22Dig2})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq(`${P11Dig2}, ${P21Dig2}`);
@@ -5160,7 +5090,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p8")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} ), ( ${P21Dec4}, ${P22Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4}), (${P21Dec4}, ${P22Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
         ).eq(`${P11Dec4}, ${P21Dec4}`);
@@ -5182,7 +5112,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p15")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p16")].stateValues.text,
         ).eq(`${P11Dec4}`);
@@ -5204,7 +5134,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p22")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} ), ( ${P21Dec4}, ${P22Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4}), (${P21Dec4}, ${P22Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p23")].stateValues.text,
         ).eq(`${P11Dec4}, ${P21Dec4}`);
@@ -5226,7 +5156,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p29")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p30")].stateValues.text,
         ).eq(`${P11Dec4}`);
@@ -5252,10 +5182,10 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p37")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} ), ( ${P21Dec4}, ${P22Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4}), (${P21Dec4}, ${P22Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p38")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4})`);
     });
 
     // TODO: convert this into extend, though many after restoring functionality lost that's mentioned above
@@ -5361,7 +5291,7 @@ describe("Extend and references tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("p1")].stateValues
                     .text,
             ).eq(
-                `( ${P11string || P11}, ${P12string || P12} ), ( ${P21string || P21}, ${P22string || P22} )`,
+                `(${P11string || P11}, ${P12string || P12}), (${P21string || P21}, ${P22string || P22})`,
             );
 
             expect(
@@ -5392,7 +5322,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p8")].stateValues
                     .text,
-            ).eq(`( ${P11string || P11}, ${P12string || P12} )`);
+            ).eq(`(${P11string || P11}, ${P12string || P12})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p9")].stateValues
                     .text,
@@ -5421,7 +5351,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p15")].stateValues
                     .text,
-            ).eq(`( ${P21string || P21}, ${P22string || P22} )`);
+            ).eq(`(${P21string || P21}, ${P22string || P22})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p16")].stateValues
                     .text,
@@ -5816,7 +5746,7 @@ describe("Extend and references tests @group2", async () => {
                     stateVariables[await resolvePathToNodeIdx("pt")].stateValues
                         .text,
                 ).contain(
-                    `are: ( ${Pxs[tn - 1]}, ${Pys[tn - 1]} ) and ( ${Qxs[tn - 1]}, ${Qys[tn - 1]} ).`,
+                    `are: (${Pxs[tn - 1]}, ${Pys[tn - 1]}) and (${Qxs[tn - 1]}, ${Qys[tn - 1]}).`,
                 );
 
                 if (pn === 1) {
@@ -5824,7 +5754,7 @@ describe("Extend and references tests @group2", async () => {
                         stateVariables[await resolvePathToNodeIdx("pp")]
                             .stateValues.text,
                     ).contain(
-                        `from the line in that item is: ( ${Pxs[tn - 1]}, ${Pys[tn - 1]} ).`,
+                        `from the line in that item is: (${Pxs[tn - 1]}, ${Pys[tn - 1]}).`,
                     );
 
                     // XXX: restore these assertions
@@ -5849,7 +5779,7 @@ describe("Extend and references tests @group2", async () => {
                         stateVariables[await resolvePathToNodeIdx("pp")]
                             .stateValues.text,
                     ).contain(
-                        `from the line in that item is: ( ${Qxs[tn - 1]}, ${Qys[tn - 1]} ).`,
+                        `from the line in that item is: (${Qxs[tn - 1]}, ${Qys[tn - 1]}).`,
                     );
 
                     // XXX: restore these assertions
@@ -6001,7 +5931,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("another blank: ");
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
-        ).eq("the point: ( 4, 5 )");
+        ).eq("the point: (4, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p6")].stateValues.text,
         ).eq("the point x: 4");
@@ -6010,7 +5940,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("the line: 0 = x - y - 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("p8")].stateValues.text,
-        ).eq("the line, point 1: ( 10, 9 )");
+        ).eq("the line, point 1: (10, 9)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
         ).eq("the line, point 2, y: 8");
@@ -6058,8 +5988,11 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("pextend3")]
                 .activeChildren[0].componentIdx;
 
-        expect(stateVariables[macrom1Name].componentType).eq("math");
-        expect(stateVariables[extendm1Name].componentType).eq("math");
+        // `$mi` in a paragraph is a value reference drawn as a math, and
+        // so is the extend written out with nothing else on it
+        expect(typeAsPresented(core, stateVariables, macrom1Name)).eq("math");
+        expect(stateVariables[extendm1Name].componentType).eq("_ref");
+        expect(typeAsPresented(core, stateVariables, extendm1Name)).eq("math");
         expect(stateVariables[extendm2Name].componentType).eq("math");
         expect(stateVariables[extendmi3Name].componentType).eq("mathInput");
         expect(stateVariables[macrom1Name].stateValues.value.tree).eqls([
@@ -6228,8 +6161,13 @@ describe("Extend and references tests @group2", async () => {
         expect(stateVariables[refmi2Name].componentType).eq("mathInput");
         expect(stateVariables[refIndmi1Name].componentType).eq("mathInput");
         expect(stateVariables[refIndmi2Name].componentType).eq("mathInput");
-        expect(stateVariables[refSubnamem1Name].componentType).eq("math");
-        expect(stateVariables[refSubnamem2Name].componentType).eq("math");
+        // `$repeat[1].mi` in a paragraph is a value reference drawn as a math
+        expect(typeAsPresented(core, stateVariables, refSubnamem1Name)).eq(
+            "math",
+        );
+        expect(typeAsPresented(core, stateVariables, refSubnamem2Name)).eq(
+            "math",
+        );
         expect(stateVariables[refmi1Name].stateValues.value.tree).eq("x");
         expect(stateVariables[refmi2Name].stateValues.value.tree).eq("y");
         expect(stateVariables[refIndmi1Name].stateValues.value.tree).eq("x");
@@ -6560,6 +6498,18 @@ describe("Extend and references tests @group2", async () => {
     `,
         });
 
+        // Selecting the child of a group by index still works but is
+        // deprecated (D27): an index selects among what a component makes.
+        expect(
+            getDiagnosticsByType(core).warnings.map((w) => [
+                w.code,
+                w.args?.reference,
+            ]),
+        ).eqls([
+            ["doenet-w0179", "$sec2.g[1]"],
+            ["doenet-w0179", "$sec2.g[1]"],
+        ]);
+
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
@@ -6859,7 +6809,9 @@ describe("Extend and references tests @group2", async () => {
         ).eq("3rd entry: 2, 2");
     });
 
-    it("extending bad prop still add in children", async () => {
+    it("extending a property that does not exist is an error in its place", async () => {
+        // A tag always makes that tag (D36): a property its source does not
+        // have names nothing, as a name that names nothing does (#2434).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p">Hello</p>
@@ -6871,6 +6823,1204 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq(" there");
+        ).eq(undefined);
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => [e.code, e.message])).eqls([
+            ["doenet-w0104", "No referent found for reference: `$p.badProp`"],
+        ]);
+    });
+
+    describe("an element written inside index brackets", () => {
+        // #1909. An element between the brackets is moved into the index by the
+        // parser's `gobblePropIndices`, and from the resolver down it is the same
+        // shape as the `$myList[$io]` the docs recommend.
+
+        async function textOf(doenetML: string, path = "p1") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(path)]
+                    .stateValues.text,
+                diagnostics: getDiagnosticsByType(core),
+            };
+        }
+
+        it("indexes with a bare <number>", async () => {
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number>2</number>]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("indexes with an <indexOf>, the case the issue was filed for", async () => {
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<indexOf target="100">$myList</indexOf>]</p>
+            `);
+            expect(text).eq("100");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("agrees with the named-and-referenced form it replaces", async () => {
+            // The workaround the docs show. Both spellings must give the same
+            // answer, since they become the same thing at the resolver.
+            const inline = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<argMin>$myList</argMin>]</p>
+            `);
+            const named = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <argMin name="am">$myList</argMin>
+    <p name="p1">$myList[$am]</p>
+            `);
+            expect(inline.text).eq(named.text);
+            expect(inline.text).eq("50");
+        });
+
+        it("does not also render the element where it was written", async () => {
+            // The element becomes an isolated component hanging off the
+            // reference, not a child of the paragraph, so its own value must not
+            // appear beside the answer.
+            const { text } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">before $myList[<indexOf target="200">$myList</indexOf>] after</p>
+            `);
+            expect(text).eq("before 200 after");
+        });
+
+        it("resolves a reference written inside the index element", async () => {
+            // `$myList` inside the `<indexOf>` has to resolve from where the
+            // reference sits, which is what the parent chain has to deliver for a
+            // node whose parent is the reference rather than an element.
+            const { text } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <number name="wanted">300</number>
+    <p name="p1">$myList[<indexOf target="$wanted">$myList</indexOf>]</p>
+            `);
+            expect(text).eq("300");
+        });
+
+        it("resolves a reference to a name given to the index element", async () => {
+            // The other direction: a `name` on the element in the brackets is
+            // registered in the element the reference sits in, so the rest of
+            // the document can refer to it. Order does not matter, and it is
+            // reachable from outside the enclosing element too.
+            const list = `<numberList name="myList">100 300 200 50</numberList>`;
+
+            const after = await textOf(`${list}
+    <p name="p1">$myList[<number name="u">2</number>] u=$u</p>
+            `);
+            expect(after.text).eq("300 u=2");
+            expect(after.diagnostics.errors.length).eq(0);
+            expect(after.diagnostics.warnings.length).eq(0);
+
+            // Written before the brackets it comes from.
+            const before = await textOf(`${list}
+    <p name="p1">u=$u $myList[<number name="u">2</number>]</p>
+            `);
+            expect(before.text).eq("u=2 300");
+
+            // And from a different paragraph, either side of it.
+            const later = await textOf(`${list}
+    <p>$myList[<number name="u">2</number>]</p>
+    <p name="p1">u=$u</p>
+            `);
+            expect(later.text).eq("u=2");
+
+            // A property of it resolves too, so it is a component and not just a
+            // name that happens to render.
+            const property = await textOf(`${list}
+    <p>$myList[<number name="u">2</number>]</p>
+    <p name="p1">$u.value</p>
+            `);
+            expect(property.text).eq("2");
+        });
+
+        it("reports a duplicate name on an index element like any other", async () => {
+            // Two elements in brackets sharing a name are as ambiguous as two
+            // ordinary children sharing one, and report identically.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p>$myList[<number name="d">1</number>]</p>
+    <p>$myList[<number name="d">2</number>]</p>
+    <p name="p1">$d</p>
+            `);
+            expect(diagnostics.warnings.length).eq(1);
+            expect(diagnostics.warnings[0].message).contain(
+                "Multiple referents found",
+            );
+        });
+
+        it("is not broken by a comment written beside the element", async () => {
+            // A comment is invisible to the reader, so it must be invisible to
+            // the index too: left in, it makes the index two nodes and the
+            // reference stops resolving.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<!-- the second one --><number>2</number>]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("does not render a comment written as a function argument", async () => {
+            // The comment used to arrive as content and render — `9 c²` — since
+            // the core reads an unrecognised node as text rather than rejecting
+            // it. Normalization removes it, so the call is just the call.
+            const { text, diagnostics } = await textOf(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f(<!-- c --><math>3</math>)</p>
+            `);
+            expect(text).eq("9");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("ignores whitespace written inside the index element", async () => {
+            // `<indexOf>` takes a child of any type, so a newline before
+            // `$myList` becomes a `<string>` child and hence one of the values
+            // searched. Blank children are removed from index contents for that
+            // reason; written on one line the removal never runs, so this is the
+            // spelling that actually exercises it.
+            const spaced = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<indexOf target="200">
+        $myList
+    </indexOf>]</p>
+            `);
+            const compact = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<indexOf target="200">$myList</indexOf>]</p>
+            `);
+            expect(spaced.text).eq("200");
+            expect(spaced.text).eq(compact.text);
+            expect(spaced.diagnostics.errors.length).eq(0);
+            expect(spaced.diagnostics.warnings.length).eq(0);
+        });
+
+        it("survives a declined reference written inside a claimed index", async () => {
+            // The inner `$(x)[…]` cannot be indexed, and the warning saying so
+            // used to land inside the outer index, where Rust has no variant for
+            // it — the whole document failed to deserialize rather than
+            // reporting anything.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[$(x)[<number>1</number>]]</p>
+            `);
+            expect(typeof text).eq("string");
+            expect(diagnostics.errors.length).eq(0);
+            expect(
+                diagnostics.warnings.some((w: any) =>
+                    w.message.includes("was not read as an index"),
+                ),
+            ).eq(true);
+        });
+
+        it("indexes a function reference that is then called", async () => {
+            // An index before a function reference's arguments picks which
+            // function to call, so `$$fs[<number>2</number>](3)` calls the
+            // second of them — the same question `$$fs[2](3)` asks.
+            const functions = `
+    <group name="fs">
+      <function variables="x">x^2</function>
+      <function variables="x">x^3</function>
+    </group>`;
+            const { text, diagnostics } = await textOf(`${functions}
+    <p name="p1">$$fs[<number>2</number>](3)</p>
+            `);
+            expect(text).eq("27");
+            expect(diagnostics.errors.length).eq(0);
+            // Selecting a child of a `<group>` by index is deprecated (D27)
+            expect(diagnostics.warnings.map((w) => w.code)).eqls([
+                "doenet-w0179",
+            ]);
+
+            // Which is the point of #1909: the position can be worked out rather
+            // than written down.
+            const { text: computed } = await textOf(`${functions}
+    <numberList name="powers">2 3</numberList>
+    <p name="p1">$$fs[<indexOf target="3">$powers</indexOf>](3)</p>
+            `);
+            expect(computed).eq("27");
+
+            // And it agrees with the named-and-referenced form it replaces.
+            const { text: named } = await textOf(`${functions}
+    <number name="i">2</number>
+    <p name="p1">$$fs[$i](3)</p>
+            `);
+            expect(named).eq("27");
+        });
+
+        it("warns, rather than saying nothing, when the brackets cannot index", async () => {
+            // `$(…)` closes the reference, so the brackets are ordinary text —
+            // the same as before #1909, except that it is now reported.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$(myList)[<number>2</number>]</p>
+            `);
+            expect(diagnostics.warnings.length).eq(1);
+            expect(diagnostics.warnings[0].message).contain(
+                "was not read as an index",
+            );
+        });
+
+        it("reports an invalid name on the index element rather than failing the document", async () => {
+            // The `_error` normalization makes for a bad name cannot be left in
+            // the index's own `value`, which holds only text, references and
+            // elements: the core would fail to read the document at all and the
+            // page would go blank. The name is dropped, the index still works,
+            // and the error is reported from the paragraph.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number name="bad name">2</number>]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                "Invalid attribute name='bad name'",
+            );
+        });
+
+        it("carries the path on past the index", async () => {
+            // The reference's path used to stop at an element index, leaving a
+            // stray `.x` as text next to the whole point (#1915).
+            const { text, diagnostics } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <p name="p1">$pts[<number>2</number>].x</p>
+            `);
+            expect(text).eq("3");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("agrees with the named-and-referenced form for a property after an index", async () => {
+            const { text: inline } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <p name="p1">$pts[<number>2</number>].x</p>
+            `);
+            const { text: named } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <number name="i">2</number>
+    <p name="p1">$pts[$i].x</p>
+            `);
+            expect(inline).eq(named);
+        });
+
+        it("takes a property and a further index after the element index", async () => {
+            // `.xs` and `[1]` are both claimed by the tail parse, on top of the
+            // element index that closed the path before it.
+            const { text, diagnostics } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <p name="p1">$pts[<number>2</number>].xs[1]</p>
+            `);
+            expect(text).eq("3");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("still indexes the last path part, which never needed a tail", async () => {
+            // Nothing follows the brackets here, so this worked already; it is
+            // the control for the two above.
+            const { text } = await textOf(`
+    <point name="pt">(1,2)</point>
+    <p name="p1">$pt.xs[<number>2</number>]</p>
+            `);
+            expect(text).eq("2");
+        });
+
+        it("names the component the author wrote when its attribute is invalid", async () => {
+            // An index has to round, so a lone `<number>` between the brackets
+            // is retyped to `integer` on the way through. The retype is right
+            // for the value and wrong for the message: the author wrote
+            // `<number>` and there is no `<integer>` anywhere in the document
+            // (#1919). That branch was unreachable from authored markup until
+            // an element could be written in an index at all.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number bogusAttr="1">2</number>]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid attribute "bogusAttr" for a component of type `<number>`',
+            );
+            expect(diagnostics.errors[0].message).not.contain("integer");
+        });
+
+        it("reports an invalid component name written in the index", async () => {
+            // The other half of the same problem: here the element cannot stay
+            // either, so the index is left empty and reads like any other index
+            // that resolves to nothing.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<_weird>2</_weird>]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid component name "_weird"',
+            );
+        });
+
+        it("leaves malformed markup between the brackets to its own parse error", async () => {
+            // A stray closing tag leaves an `error` node between the brackets,
+            // which an index cannot carry either. The brackets stay literal, as
+            // they were before an element could index, and the parse error is
+            // what the author is told about.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number>2</number> </badclose>]</p>
+            `);
+            expect(text).eq("100, 300, 200, 50[2 ]");
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                "Found closing tag `</badclose>`",
+            );
+        });
+
+        it("calls a nested function reference in any argument, not only the last", async () => {
+            // An element argument is what makes a nested call need the parser's
+            // post-pass rather than the grammar, and only the last argument was
+            // passed back through it. So the inner call simply did not happen
+            // anywhere else: this rendered `3 x² + 1`.
+            const functions = `
+    <function name="f" variables="x">x^2</function>
+    <function name="g" variables="a b">a+b</function>`;
+
+            for (const reference of [
+                `$$g($$f(<math>3</math>), 1)`,
+                `$$g(1, $$f(<math>3</math>))`,
+            ]) {
+                const { text, diagnostics } = await textOf(
+                    `${functions}<p name="p1">${reference}</p>`,
+                );
+                expect(text, reference).eq("10");
+                expect(diagnostics.errors.length, reference).eq(0);
+                expect(diagnostics.warnings.length, reference).eq(0);
+            }
+        });
+
+        it("renders an element written as a function reference's argument", async () => {
+            // Not an index, but the same parent chain: a function reference's
+            // arguments are parented to the reference too. This shape parsed
+            // before #1909 and was asserted at the DAST layer, but it had never
+            // been run end to end, and building the resolver for it threw
+            // `unreachable` out of the core.
+            const { text, diagnostics } = await textOf(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f(<math>3</math>)</p>
+            `);
+            expect(text).eq("9");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+    });
+
+    describe("a component-valued index that cannot be worked out", () => {
+        // #1917. `$list[$i]` is the form the documentation recommends, and four
+        // `throw`s on that path were reachable from ordinary markup. Since
+        // nothing between them and the worker catches, the whole document went
+        // blank -- taking with it the diagnostic that explained the mistake.
+        //
+        // None of these involves an element in brackets, and all of them
+        // reproduced before elements in brackets existed.
+
+        async function run(doenetML: string, path = "p1") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(path)]
+                    .stateValues.text,
+                diagnostics: getDiagnosticsByType(core),
+            };
+        }
+
+        it("reports the attribute error instead of stopping the document", async () => {
+            // `tolerance` is not an attribute of `<indexOf>`, so the component
+            // becomes an `_error`. That error is correct and is reported; what
+            // used to happen is that the reference then threw and the reader got
+            // a blank page instead of the message.
+            const { diagnostics } = await run(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <indexOf name="io" tolerance="1e-6" target="100">$myList</indexOf>
+    <p name="p1">$myList[$io]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid attribute "tolerance"',
+            );
+            // And the reference says why it came up empty.
+            expect(diagnostics.warnings.map((w: any) => w.code)).toContain(
+                "doenet-w0163",
+            );
+        });
+
+        it("does the same for a bad attribute on a plain <number> index", async () => {
+            const { diagnostics } = await run(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <number name="q" bogusAttr="1">1</number>
+    <p name="p1">$myList[$q]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid attribute "bogusAttr"',
+            );
+            expect(diagnostics.warnings.map((w: any) => w.code)).toContain(
+                "doenet-w0163",
+            );
+        });
+
+        it("names a function reference with both its dollars, and locates it", async () => {
+            // The message is built from the path read back out of the source,
+            // which does not include the `$`, so every call site puts one
+            // back. A hardcoded `$` named `$$fs[$bad]` as `$fs[$bad]` — markup
+            // the author never wrote and cannot search their document for.
+            //
+            // The called spelling had no position at all: it reports from the
+            // `<function>` that `convertEvaluate` synthesizes, which carried
+            // none, so the reader got no location and two such warnings about
+            // different references deduplicated into one.
+            const setup = `
+    <numberList name="nums">1 2</numberList>
+    <indexOf name="bad" tolerance="1" target="1">$nums</indexOf>
+    <group name="fs">
+      <function variables="x">x^2</function>
+      <function variables="x">x^3</function>
+    </group>`;
+
+            for (const reference of [`$$fs[$bad](3)`, `$$fs[$bad]`]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                const warning = diagnostics.warnings.find(
+                    (w: any) => w.code === "doenet-w0163",
+                );
+                expect(warning?.message).contain("`$$fs[$bad]`");
+                expect(warning?.message).not.contain("`$fs[$bad]`");
+                expect(warning?.position).toBeDefined();
+            }
+
+            // A parenthesized path starts inside its parentheses, so the `(`
+            // has to be stepped over to find the dollars behind it. The
+            // parentheses are not quoted back — the path alone names the same
+            // reference in the spelling that does not need them.
+            for (const reference of [`$$(fs[$bad])(3)`, `$$(fs[$bad])`]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                expect(
+                    diagnostics.warnings.find(
+                        (w: any) => w.code === "doenet-w0163",
+                    )?.message,
+                ).contain("`$$fs[$bad]`");
+            }
+
+            // Ordinary references still get the single `$` they were written
+            // with, parenthesized or not, which is the control.
+            for (const reference of [`$nums[$bad]`, `$(nums[$bad])`]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                expect(
+                    diagnostics.warnings.find(
+                        (w: any) => w.code === "doenet-w0163",
+                    )?.message,
+                ).contain("`$nums[$bad]`");
+            }
+        });
+
+        it("does not report a working index", async () => {
+            const { text, diagnostics } = await run(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <number name="i">2</number>
+    <p name="p1">$myList[$i]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("renders what sits beside the reference, not just what precedes it", async () => {
+            // Giving up on the index left the path holding the live component
+            // the index was written from, and that path travels on into
+            // `compositeReplacementRange`, which `childDependencies.ts` sends
+            // through `JSON.stringify`. A component graph is circular, so the
+            // throw came back the moment the paragraph held anything after the
+            // reference -- which is most paragraphs, and is why the plain
+            // one-reference case above is not enough of a test on its own.
+            const doc = (paragraph: string) => `
+    <numberList name="myList">100 300 200 50</numberList>
+    <indexOf name="io" tolerance="1e-6" target="100">$myList</indexOf>
+    <p name="p1">${paragraph}</p>
+    <p name="p2">after</p>
+            `;
+
+            for (const [paragraph, expected] of [
+                ["$myList[$io] tail", " tail"],
+                ["[$myList[$io]]", "[]"],
+                ["head $myList[$io] tail", "head  tail"],
+            ] as const) {
+                const { text, diagnostics } = await run(doc(paragraph));
+                expect(text).eq(expected);
+                expect(diagnostics.warnings.map((w: any) => w.code)).toContain(
+                    "doenet-w0163",
+                );
+                // And the document goes on after it.
+                expect((await run(doc(paragraph), "p2")).text).eq("after");
+            }
+        });
+
+        it("builds a called function reference with a component index once, not twice", async () => {
+            // `convertEvaluate` hands the synthesized `function` component the
+            // `<evaluate>`'s own resolution object, and converting a path
+            // rewrites it in place -- so both ended up owning the components
+            // built for the index, and the second to be instantiated threw
+            // `Found a duplicate componentIdx`.
+            //
+            // These render blank, which is what `$$f[1](3)` has always done and
+            // has nothing to do with calling: `f` is a single function, and an
+            // index on any single component finds nothing. Against a group the
+            // same shapes select, as the element-index test above shows. What
+            // matters here is that every spelling now agrees instead of one of
+            // them stopping the document.
+            const setup = `
+    <function name="f" variables="x">x^2</function>
+    <number name="k">1</number>`;
+            for (const reference of [
+                `$$f[$k](3)`,
+                `$$f[$k+0](3)`,
+                `$$f[$k][1](3)`,
+            ]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                expect(diagnostics.errors.length).eq(0);
+            }
+        });
+
+        it("still evaluates a function reference with no index", async () => {
+            const { text } = await run(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f(3)</p>
+            `);
+            expect(text).eq("9");
+        });
+    });
+
+    describe("a reference to an array entry that is not there", () => {
+        // #1938. A reference redefines the new component's primary state
+        // variable as a shadow of the target prop, and that shadow has a branch
+        // for an entry that does not exist -- it asks for the essential or
+        // default value. Most primaries have one. Some are computed variables
+        // that replaced the parent class's primary and left the essential
+        // behind under a new name, and for those the request threw, during
+        // initial dependency resolution, so the whole document went blank.
+        //
+        // `<integer>` is one of them, and index brackets always create an
+        // `<integer>`, which makes indexing the usual way in. But it is not an
+        // indexing bug: the plain `extend` spelling throws identically with no
+        // index anywhere.
+
+        async function run(doenetML: string, path = "q") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(path)]
+                    .stateValues.text,
+                diagnostics: getDiagnosticsByType(core),
+            };
+        }
+
+        it("renders a reference to an entry a shorter array does not have", async () => {
+            // A 2D point has no `x3`.
+            const { text } = await run(`
+    <point name="P">(1,2)</point>
+    <integer name="q" extend="$P.x3" />
+            `);
+            expect(text).eq("NaN");
+        });
+
+        it("gives the same value the component written empty holds", async () => {
+            // The behavior to match is the one the components that already
+            // worked have: `<number extend="$P.x3" />` is `NaN`, exactly as a
+            // bare `<number />` is. These three replaced their parent's
+            // primary, so each needs its own class asked rather than a value
+            // assumed -- and they disagree, which is the point.
+            for (const [componentType, empty] of [
+                ["integer", "NaN"],
+                ["intComma", ""],
+                ["md", "\uff3f"],
+            ] as [string, string][]) {
+                const { text } = await run(`
+    <point name="P">(1,2)</point>
+    <${componentType} name="q" extend="$P.x3" />
+                `);
+                expect(text, componentType).eq(empty);
+
+                const bare = await run(`<${componentType} name="q" />`);
+                expect(bare.text, `bare <${componentType}>`).eq(empty);
+            }
+        });
+
+        it("renders an index into an array that is empty for now, and fills it in later", async () => {
+            // Nothing is selected at load, so `selectedIndex` does not exist
+            // yet. This is the shape an author meets: not a mistake at all,
+            // just a page before anyone has clicked.
+            const doenetML = `
+    <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
+    <numberList name="nl">10 20 30</numberList>
+    <p name="p1">$nl[$ci.selectedIndex]</p>
+            `;
+            const { text, diagnostics } = await run(doenetML, "p1");
+            expect(text).eq("");
+            expect(diagnostics.errors.length).eq(0);
+
+            // "For now" is the load-bearing half. Setting the value directly
+            // must not pin it there: the entry appears when the reader picks a
+            // choice, and the reference has to follow it.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            await core.returnAllStateVariables(false, true);
+            await updateSelectedIndices({
+                componentIdx: await resolvePathToNodeIdx("ci"),
+                selectedIndices: [2],
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
+            ).eq("20");
+        });
+
+        it("renders every spelling of an index that resolves to nothing", async () => {
+            for (const reference of [
+                `$nl[$ci.selectedIndex]`,
+                `$nl[$ci.selectedIndices[1]]`,
+                `$nl[$ml[10]]`,
+                `$nl[$P.x3]`,
+            ]) {
+                const { text } = await run(
+                    `
+    <choiceInput name="ci"><choice>a</choice></choiceInput>
+    <numberList name="nl">10 20 30</numberList>
+    <mathList name="ml">1 2</mathList>
+    <point name="P">(1,2)</point>
+    <p name="p1">${reference}</p>
+                `,
+                    "p1",
+                );
+                expect(text, reference).eq("");
+            }
+        });
+
+        it("matches what the element-index spelling already did", async () => {
+            // The element index never took the shadow path, so it rendered
+            // empty throughout. It is the oracle for what these should be.
+            const { text } = await run(
+                `
+    <numberList name="nl">10 20 30</numberList>
+    <p name="p1">$nl[<number>10</number>]</p>
+            `,
+                "p1",
+            );
+            expect(text).eq("");
+        });
+
+        it("still resolves an entry that is there", async () => {
+            for (const [doenetML, path, expected] of [
+                [
+                    `<integer name="i">7</integer><integer name="q" extend="$i" />`,
+                    "q",
+                    "7",
+                ],
+                [
+                    `<numberList name="nl">10 20 30</numberList><p name="p1">$nl[2]</p>`,
+                    "p1",
+                    "20",
+                ],
+                [
+                    `<point name="P">(1,2)</point><number name="q" extend="$P.x2" />`,
+                    "q",
+                    "2",
+                ],
+            ] as [string, string, string][]) {
+                const { text } = await run(doenetML, path);
+                expect(text, doenetML).eq(expected);
+            }
+        });
+    });
+
+    describe("references in a copy's attributes resolve where the copy is written", () => {
+        async function stateOf(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            path: string,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(path)].stateValues;
+        }
+
+        it("attribute named the same as a component inside the copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><boolean name="h">false</boolean><p name="q">x</p></section>
+<section name="T">
+    <booleanInput name="h" prefill="true" />
+    <section copy="$S" hide="$h" name="S2" />
+    <section extend="$S" hide="$h" name="S3" />
+    <section copy="$S" hide="$S4.h" name="S4" />
+    <section extend="$S" hide="$S5.h" name="S5" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S3")).hidden,
+            ).eq(true);
+            // Reaching inside the copy takes its name
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S4")).hidden,
+            ).eq(false);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S5")).hidden,
+            ).eq(false);
+
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: await resolvePathToNodeIdx("T.h"),
+                core,
+            });
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(false);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S3")).hidden,
+            ).eq(false);
+        });
+
+        it("attribute of a copied or extended group or module", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<group name="G"><boolean name="h">false</boolean><p name="q">x</p></group>
+<module name="M"><boolean name="h">false</boolean><p name="q">x</p></module>
+<section name="T">
+    <setup><boolean name="h">true</boolean></setup>
+    <group copy="$G" hide="$h" name="G2" />
+    <module copy="$M" hide="$h" name="M2" />
+    <group extend="$G" hide="$h" name="G3" />
+    <module extend="$M" hide="$h" name="M3" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.G2.q")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.M2.q")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.G3.q")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.M3.q")).hidden,
+            ).eq(true);
+        });
+
+        it("non-boolean attribute named the same as a component inside the copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<graph name="G"><point name="n">(1,2)</point></graph>
+<section name="T">
+    <setup><number name="n">-3</number></setup>
+    <graph copy="$G" xMin="$n" name="G2" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect((await stateOf(core, resolvePathToNodeIdx, "T.G2")).xMin).eq(
+                -3,
+            );
+        });
+
+        it("attribute whose only referent is in the original, not the copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><booleanInput name="h" /><p name="q">x</p></section>
+<section name="T">
+    <section copy="$S" hide="$h" name="S2" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(false);
+
+            // The copy's own input does not hide it
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("T.S2.h"),
+                core,
+            });
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(false);
+
+            // The original's input does
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("S.h"),
+                core,
+            });
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(true);
+        });
+
+        it("attribute of a copy inside a repeat", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<p name="P"><number name="v">100</number></p>
+<section name="T">
+    <repeatForSequence from="1" to="2" valueName="v" name="r">
+        <p copy="$P" hide="$v > 1" name="P2" />
+    </repeatForSequence>
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.r[1].P2")).hidden,
+            ).eq(false);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.r[2].P2")).hidden,
+            ).eq(true);
+        });
+
+        it("attribute of a copied list", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<mathList name="L"><math name="h">1</math><math>2</math></mathList>
+<section name="T">
+    <setup><boolean name="h">true</boolean></setup>
+    <mathList copy="$L" hide="$h" name="L2" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.L2")).hidden,
+            ).eq(true);
+        });
+
+        it("attribute inherited by a copy of a copy keeps the referent it has in the copy it copies", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<graph name="G"><point name="n">(1,2)</point></graph>
+<section name="T">
+    <setup><number name="n">-3</number></setup>
+    <graph copy="$G" xMin="$n" name="G2" />
+</section>
+<section name="U">
+    <setup><number name="n">-5</number></setup>
+    <graph copy="$T.G2" name="G3" />
+</section>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings).eqls([]);
+            expect((await stateOf(core, resolvePathToNodeIdx, "T.G2")).xMin).eq(
+                -3,
+            );
+            // In `G2`, `$n` names `T.n`, which is outside what `G3` copies.
+            expect((await stateOf(core, resolvePathToNodeIdx, "U.G3")).xMin).eq(
+                -3,
+            );
+        });
+    });
+
+    describe("a reference resolves where it is written, among what is written", () => {
+        async function stateOf(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            path: string,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(path)].stateValues;
+        }
+
+        it("an attribute on a copy or extend sees the children written inside the tag", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="orig"><title>o</title></section>
+<module name="m"><p name="q">x</p></module>
+<boolean name="h">false</boolean>
+<section name="c" copy="$orig" hide="$h"><boolean name="h">true</boolean></section>
+<section name="e" extend="$orig" hide="$h"><boolean name="h">true</boolean></section>
+<module name="mc" copy="$m" hide="$h"><boolean name="h">true</boolean></module>
+<section name="w" hide="$h"><boolean name="h">true</boolean></section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            for (const name of ["c", "e", "mc", "w"]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, name)).hidden,
+                    name,
+                ).eq(true);
+            }
+        });
+
+        it("an attribute on a module copy sees a module attribute written inside the tag, not the copied one", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<setup>
+    <module name="g">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+            <number name="xmax">10</number>
+        </moduleAttributes>
+        <p name="p">$xmin, $xmax</p>
+    </module>
+</setup>
+<section name="T">
+    <module copy="$g" xmin="$xmin" name="m2"><number name="xmin">7</number></module>
+</section>
+<section name="U">
+    <setup><number name="xmin">-3</number></setup>
+    <module copy="$g" xmin="$xmin" name="m3" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.m2.p")).text,
+            ).eq("7, 10");
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "U.m3.p")).text,
+            ).eq("-3, 10");
+        });
+
+        it("a child added inside a copy or extend reaches the copied content only through the copy's name", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><text name="h">inner</text></section>
+<section name="T">
+    <text name="h">outer</text>
+    <section copy="$S" name="S2"><p name="q">$h</p><p name="q2">$S2.h</p></section>
+    <section extend="$S" name="S3"><p name="q">$h</p><p name="q2">$S3.h</p></section>
+    <section copy="$S"><p name="q4">$h</p></section>
+</section>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings).eqls([]);
+            // A bare name resolves outward, as it would beside the copy
+            for (const path of ["T.S2.q", "T.S3.q", "T.q4"]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, path)).text,
+                    path,
+                ).eq("outer");
+            }
+            for (const path of ["T.S2.q2", "T.S3.q2"]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, path)).text,
+                    path,
+                ).eq("inner");
+            }
+        });
+
+        it("a bare name in a child added inside a copy is ambiguous where it would be beside the copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><text name="h">inner</text></section>
+<text name="h">outer</text>
+<section copy="$S" name="S2"><p name="q">$h</p><p name="q2">$S2.h</p></section>
+`,
+            });
+
+            // `$h` is ambiguous between `S.h` and the outer `h`, as it would be beside the copy
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings.map((w) => w.message)).eqls([
+                "Multiple referents found for reference: `$h`",
+            ]);
+            expect((await stateOf(core, resolvePathToNodeIdx, "S2.q")).text).eq(
+                "",
+            );
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "S2.q2")).text,
+            ).eq("inner");
+        });
+
+        it("a bare name in a child added inside a copy finds the written component, not the copied one", async () => {
+            // Without an outer `h`, `$h` finds the original `S.h`, not the copy of it inside `S2`.
+            // The copy is not linked, so changing the original tells the two apart.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><textInput name="h" prefill="original" /></section>
+<section copy="$S" name="S2" link="false"><p name="q">$h</p><p name="q2">$S2.h</p></section>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings).eqls([]);
+
+            await updateTextInputValue({
+                text: "changed",
+                componentIdx: await resolvePathToNodeIdx("S.h"),
+                core,
+            });
+
+            expect((await stateOf(core, resolvePathToNodeIdx, "S2.q")).text).eq(
+                "changed",
+            );
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "S2.q2")).text,
+            ).eq("original");
+        });
+
+        it("a child added inside a copy or extend of a list reaches the list's children only through the copy's name", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<mathList name="L"><math name="h">1</math><math>2</math></mathList>
+<section name="T">
+    <setup><math name="h">5</math></setup>
+    <mathList copy="$L" name="L2"><math name="q">$h</math><math name="q2">$L2.h</math></mathList>
+    <mathList extend="$L" name="L3"><math name="q">$h</math><math name="q2">$L3.h</math></mathList>
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            for (const list of ["L2", "L3"]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `T.${list}.q`))
+                        .value.tree,
+                    list,
+                ).eq(5);
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `T.${list}.q2`))
+                        .value.tree,
+                    list,
+                ).eq(1);
+            }
+        });
+
+        it("an attribute searches the component's written descendants, then the component, ahead of a same-named sibling", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="orig"><title>o</title></section>
+<group name="G">
+    <section name="h" hide="$h"><boolean name="h">true</boolean></section>
+    <section name="h2" copy="$orig" hide="$h2"><boolean name="h2">true</boolean></section>
+    <section name="a" hide="$a.hb"><boolean name="hb">true</boolean></section>
+    <section name="a" hide="$a.hb"><boolean name="hb">false</boolean></section>
+    <section name="b" copy="$orig" hide="$b.hb"><boolean name="hb">true</boolean></section>
+    <section name="b" copy="$orig" hide="$b.hb"><boolean name="hb">false</boolean></section>
+</group>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            // A same-named descendant comes first, on an ordinary element and on a copy
+            for (const index of [1, 2]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `G[${index}]`))
+                        .hidden,
+                    `G[${index}]`,
+                ).eq(true);
+            }
+            // Then the component itself, ahead of a same-named sibling
+            for (const [index, hidden] of [
+                [3, true],
+                [4, false],
+                [5, true],
+                [6, false],
+            ] as [number, boolean][]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `G[${index}]`))
+                        .hidden,
+                    `G[${index}]`,
+                ).eq(hidden);
+            }
+        });
+
+        it("a child searches its component's written descendants, then the component, ahead of a same-named sibling", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="orig"><title>o</title></section>
+<group name="G">
+    <section name="k"><text name="k">inner</text><p name="q">$k</p></section>
+    <section name="k2" copy="$orig"><text name="k2">inner</text><p name="q">$k2</p></section>
+    <section name="m"><text name="v">first</text><p name="q">$m.v</p></section>
+    <section name="m"><text name="v">second</text><p name="q">$m.v</p></section>
+    <section name="n" copy="$orig"><text name="v">first</text><p name="q">$n.v</p></section>
+    <section name="n" copy="$orig"><text name="v">second</text><p name="q">$n.v</p></section>
+</group>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            for (const [index, text] of [
+                [1, "inner"],
+                [2, "inner"],
+                [3, "first"],
+                [4, "second"],
+                [5, "first"],
+                [6, "second"],
+            ] as [number, string][]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `G[${index}].q`))
+                        .text,
+                    `G[${index}].q`,
+                ).eq(text);
+            }
+        });
     });
 });

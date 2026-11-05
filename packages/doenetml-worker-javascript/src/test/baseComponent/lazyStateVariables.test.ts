@@ -37,11 +37,14 @@ describe("Lazy state variable tests @group4", async () => {
             undefined,
         );
         expect(components[fIdx].state.allMaxima.isResolved).eq(false);
-        expect(
-            JSON.stringify(
-                dependencies.resolveBlockers.neededToResolve[fIdx] ?? {},
+        const ledgerEntriesOfF = [
+            ...dependencies.resolveBlockers.neededToResolve.values(),
+        ].flatMap((entries) =>
+            [...entries].filter(
+                ([code]) => code.split("|")[0] === String(fIdx),
             ),
-        ).not.contain("allMaxima");
+        );
+        expect(JSON.stringify(ledgerEntriesOfF)).not.contain("allMaxima");
 
         // first read materializes the dependencies and produces the correct
         // value

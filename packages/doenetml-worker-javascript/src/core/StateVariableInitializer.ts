@@ -3,7 +3,12 @@ import { codedDiagnostic } from "../utils/diagnostics";
 import { reportInternalError } from "../utils/internalErrors";
 import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
-import { applyPendingShadowModification } from "./StateVariableDefinitionFactory";
+import { isListEntryArrayVariable } from "../utils/listEntryReference";
+import { readHeldCopySnapshot } from "../utils/copySnapshot";
+import {
+    applyPendingShadowModification,
+    getClassStateVariableDefinitions,
+} from "./StateVariableDefinitionFactory";
 import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
@@ -575,28 +580,123 @@ async function arrayReturnDependencies(this: any, args: any) {
     return dependencies;
 }
 
-function arrayGetCurrentFreshness(
-    this: any,
-    { freshnessInfo, arrayKeys, arraySize }: any,
+/**
+ * The keys of an array marked fresh are the keys of
+ * `freshnessInfo.freshByKey`, and `freshnessInfo.numFreshKeys` counts them, so
+ * the freshness of the whole array is read without building its keys (Doenet/DoenetML#2261).
+ * Mark keys fresh and stale only through these helpers, which keep the two in
+ * step.
+ *
+ * `markArrayKeyFresh` marks a key fresh only when it is within `arraySize`,
+ * and a change of size marks every key stale (`arrayMarkStale`), so
+ * `freshByKey` holds, and `numFreshKeys` counts, only keys of the array at its
+ * current size. A key asked for outside the size stays unmarked and is
+ * recomputed whenever it is asked for.
+ */
+function markArrayKeyFresh(
+    freshnessInfo: any,
+    arrayKey: string,
+    arraySize: number[] | undefined,
 ) {
-    const arrayStateVarObj = resolveArrayStateVarObj(this);
-    const arrayVarName = arrayStateVarObj.svVarName;
-
-    if (arrayKeys === undefined) {
-        arrayKeys = arrayStateVarObj.getAllArrayKeys(arraySize);
+    if (
+        !freshnessInfo.freshByKey[arrayKey] &&
+        isArrayKeyInSize(arrayKey, arraySize)
+    ) {
+        freshnessInfo.freshByKey[arrayKey] = true;
+        freshnessInfo.numFreshKeys++;
     }
+}
 
-    let freshByKey = freshnessInfo.freshByKey;
+function markArrayKeyStale(freshnessInfo: any, arrayKey: string) {
+    if (freshnessInfo.freshByKey[arrayKey]) {
+        delete freshnessInfo.freshByKey[arrayKey];
+        freshnessInfo.numFreshKeys--;
+    }
+}
+
+function markAllArrayKeysStale(freshnessInfo: any) {
+    freshnessInfo.freshByKey = {};
+    freshnessInfo.numFreshKeys = 0;
+}
+
+/** The number of keys `getAllArrayKeys(arraySize)` returns. */
+function numArrayKeys(arraySize: number[] | undefined) {
+    if (!arraySize || arraySize.length === 0) {
+        return 0;
+    }
+    let numKeys = 1;
+    for (const size of arraySize) {
+        numKeys *= size;
+    }
+    return numKeys;
+}
+
+/**
+ * Whether `arrayKey` is one of the keys `getAllArrayKeys(arraySize)` returns:
+ * one index for each dimension of `arraySize`, each a whole number below that
+ * dimension's size.
+ */
+function isArrayKeyInSize(arrayKey: string, arraySize: number[] | undefined) {
+    if (!arraySize || arraySize.length === 0) {
+        return false;
+    }
+    const indices = arrayKey.split(",");
+    if (indices.length !== arraySize.length) {
+        return false;
+    }
+    return indices.every((index, dim) => {
+        const ind = Number(index);
+        return (
+            Number.isInteger(ind) &&
+            ind >= 0 &&
+            ind < arraySize[dim] &&
+            String(ind) === index
+        );
+    });
+}
+
+/**
+ * How fresh the array is at `arrayKeys`, or, when they are `undefined`, at
+ * all of its keys: `fresh` when the size and every key are fresh,
+ * `partiallyFresh` with the number of them that are (the size counting as
+ * one) when only some are, and not `fresh` when none are.
+ *
+ * For the whole array, the count of fresh keys, which are all within the
+ * array's size when they are marked (see `markArrayKeyFresh`), is compared
+ * with the number of keys. A count that reaches the number of keys is still
+ * confirmed key by key before the array is reported fresh.
+ */
+function arrayFreshnessResult({
+    arrayStateVarObj,
+    freshnessInfo,
+    arrayKeys,
+    arraySize,
+}: any) {
+    const arrayVarName = arrayStateVarObj.svVarName;
+    const freshByKey = freshnessInfo.freshByKey;
 
     let numberFresh = freshnessInfo.freshArraySize ? 1 : 0;
-    for (let arrayKey of arrayKeys) {
-        if (freshByKey[arrayKey]) {
-            numberFresh += 1;
+    let numKeys: number;
+
+    if (arrayKeys === undefined) {
+        numKeys = numArrayKeys(arraySize);
+        if (freshnessInfo.numFreshKeys < numKeys) {
+            numberFresh += freshnessInfo.numFreshKeys;
+        } else {
+            arrayKeys = arrayStateVarObj.getAllArrayKeys(arraySize);
+        }
+    }
+    if (arrayKeys !== undefined) {
+        numKeys = arrayKeys.length;
+        for (const arrayKey of arrayKeys) {
+            if (freshByKey[arrayKey]) {
+                numberFresh += 1;
+            }
         }
     }
 
     if (numberFresh > 0) {
-        if (numberFresh === arrayKeys.length + 1) {
+        if (numberFresh === numKeys! + 1) {
             return { fresh: { [arrayVarName]: true } };
         } else {
             return { partiallyFresh: { [arrayVarName]: numberFresh } };
@@ -604,6 +704,18 @@ function arrayGetCurrentFreshness(
     } else {
         return { fresh: { [arrayVarName]: false } };
     }
+}
+
+function arrayGetCurrentFreshness(
+    this: any,
+    { freshnessInfo, arrayKeys, arraySize }: any,
+) {
+    return arrayFreshnessResult({
+        arrayStateVarObj: resolveArrayStateVarObj(this),
+        freshnessInfo,
+        arrayKeys,
+        arraySize,
+    });
 }
 
 function arrayMarkStale(
@@ -615,29 +727,25 @@ function arrayMarkStale(
 
     let result: any = {};
 
-    if (arrayKeys === undefined) {
-        arrayKeys = arrayStateVarObj.getAllArrayKeys(arraySize);
-    }
-
     if (arrayStateVarObj.markStaleByKey) {
-        result = arrayStateVarObj.markStaleByKey({ arrayKeys, changes });
+        result = arrayStateVarObj.markStaleByKey({
+            arrayKeys: arrayKeys ?? arrayStateVarObj.getAllArrayKeys(arraySize),
+            changes,
+        });
     }
-
-    let freshByKey = freshnessInfo.freshByKey;
 
     if (changes.__array_size) {
         freshnessInfo.freshArraySize = false;
         // everything is stale
-        freshnessInfo.freshByKey = {};
+        markAllArrayKeysStale(freshnessInfo);
         result.fresh = { [arrayVarName]: false };
         return result;
     }
 
-    if (Object.keys(freshByKey).length === 0) {
+    if (freshnessInfo.numFreshKeys === 0) {
         // everything is stale, except possibly array size
         // (check for nothing fresh as a shortcut, as mark stale could
         // be called repeated if size doesn't change, given that it's partially fresh)
-        freshnessInfo.freshByKey = {};
         if (freshnessInfo.freshArraySize) {
             result.partiallyFresh = { [arrayVarName]: 1 };
             return result;
@@ -647,10 +755,13 @@ function arrayMarkStale(
         }
     }
 
+    const numKeysAsked =
+        arrayKeys === undefined ? numArrayKeys(arraySize) : arrayKeys.length;
+
     for (let changeName in changes) {
         if (arrayStateVarObj.dependencyNames.global.includes(changeName)) {
             // everything is stale, except possible array size
-            freshnessInfo.freshByKey = {};
+            markAllArrayKeysStale(freshnessInfo);
             if (freshnessInfo.freshArraySize) {
                 result.partiallyFresh = { [arrayVarName]: 1 };
                 return result;
@@ -662,38 +773,28 @@ function arrayMarkStale(
 
         if (
             arrayStateVarObj.basedOnArrayKeyStateVariables &&
-            arrayKeys.length > 1
+            numKeysAsked > 1
         ) {
-            delete freshByKey[changeName];
+            markArrayKeyStale(freshnessInfo, changeName);
         } else {
             for (let key of arrayStateVarObj.dependencyNames.keysByName[
                 changeName
             ]) {
-                delete freshByKey[key];
+                markArrayKeyStale(freshnessInfo, key);
             }
         }
     }
 
     // check if the array keys requested are fresh
-    let numberFresh = freshnessInfo.freshArraySize ? 1 : 0;
-    for (let arrayKey of arrayKeys) {
-        if (freshByKey[arrayKey]) {
-            numberFresh += 1;
-        }
-    }
-
-    if (numberFresh > 0) {
-        if (numberFresh === arrayKeys.length + 1) {
-            result.fresh = { [arrayVarName]: true };
-            return result;
-        } else {
-            result.partiallyFresh = { [arrayVarName]: numberFresh };
-            return result;
-        }
-    } else {
-        result.fresh = { [arrayVarName]: false };
-        return result;
-    }
+    return Object.assign(
+        result,
+        arrayFreshnessResult({
+            arrayStateVarObj,
+            freshnessInfo,
+            arrayKeys,
+            arraySize,
+        }),
+    );
 }
 
 function arrayFreshenOnNoChanges(
@@ -701,14 +802,13 @@ function arrayFreshenOnNoChanges(
     { arrayKeys, freshnessInfo, arraySize }: any,
 ) {
     const arrayStateVarObj = resolveArrayStateVarObj(this);
-    let freshByKey = freshnessInfo.freshByKey;
 
     if (arrayKeys === undefined) {
         arrayKeys = arrayStateVarObj.getAllArrayKeys(arraySize);
     }
 
     for (let arrayKey of arrayKeys) {
-        freshByKey[arrayKey] = true;
+        markArrayKeyFresh(freshnessInfo, arrayKey, arraySize);
     }
 }
 
@@ -811,7 +911,7 @@ function arrayDefinition(this: any, args: any) {
                 !freshByKey[arrayKey] &&
                 foundAllDependencyValuesForKey[arrayKey]
             ) {
-                freshByKey[arrayKey] = true;
+                markArrayKeyFresh(args.freshnessInfo, arrayKey, args.arraySize);
                 arrayKeysToRecalculate.push(arrayKey);
             }
         }
@@ -832,20 +932,25 @@ function arrayDefinition(this: any, args: any) {
 
             // in case definition returns additional array entries,
             // mark all array keys received as fresh as well
-            if (result.setValue && result.setValue[arrayVarName]) {
-                for (let arrayKey in result.setValue[arrayVarName]) {
-                    freshByKey[arrayKey] = true;
+            const markReturnedKeysFresh = (valuesByKey: any) => {
+                for (let arrayKey in valuesByKey) {
+                    markArrayKeyFresh(
+                        args.freshnessInfo,
+                        arrayKey,
+                        args.arraySize,
+                    );
                 }
+            };
+            if (result.setValue && result.setValue[arrayVarName]) {
+                markReturnedKeysFresh(result.setValue[arrayVarName]);
             }
             if (
                 result.useEssentialOrDefaultValue &&
                 result.useEssentialOrDefaultValue[arrayVarName]
             ) {
-                for (let arrayKey in result.useEssentialOrDefaultValue[
-                    arrayVarName
-                ]) {
-                    freshByKey[arrayKey] = true;
-                }
+                markReturnedKeysFresh(
+                    result.useEssentialOrDefaultValue[arrayVarName],
+                );
             }
         }
 
@@ -1222,6 +1327,75 @@ function initializeStateVariablePlaceholder({
 }
 
 /**
+ * Give `component` a state variable it was not built with, as a placeholder
+ * that materializes on first demand like every other. Used for the shadows a
+ * value reference (`_ref`) makes when a dependency asks it for a variable it
+ * does not define (`createOnDemandStateVariableDefinitions`).
+ */
+export function addStateVariablePlaceholder({
+    core,
+    component,
+    stateVariable,
+    definition,
+}: {
+    core: Core;
+    component: ComponentInstance;
+    stateVariable: string;
+    definition: Record<string, any>;
+}) {
+    component.state[stateVariable] = definition;
+    initializeStateVariablePlaceholder({ core, component, stateVariable });
+}
+
+/**
+ * Give `component`, when it makes state variables on demand (a value
+ * reference, `_ref`), each of `stateVariables` it does not have yet, from the
+ * definitions it returns for it (`createOnDemandStateVariableDefinitions`),
+ * as placeholders that materialize on first demand. For the name of an array
+ * entry, the array is what gets made; the entry then follows through
+ * `createFromArrayEntry` as usual. Does nothing for any other component.
+ */
+export function addOnDemandStateVariables({
+    core,
+    component,
+    stateVariables,
+}: {
+    core: Core;
+    component: ComponentInstance;
+    stateVariables: string[];
+}) {
+    const onDemand = component as ComponentInstance & {
+        createOnDemandStateVariableDefinitions?: (args: {
+            stateVariable: string;
+            classDefinitions: (componentClass: any) => Record<string, any>;
+        }) => [string, Record<string, any>][];
+    };
+    if (!onDemand.createOnDemandStateVariableDefinitions) {
+        return;
+    }
+    for (const stateVariable of stateVariables) {
+        if (stateVariable in component.state) {
+            continue;
+        }
+        const definitions = onDemand.createOnDemandStateVariableDefinitions({
+            stateVariable,
+            classDefinitions: (componentClass: any) =>
+                getClassStateVariableDefinitions(core, componentClass).combined,
+        });
+        for (const [name, definition] of definitions) {
+            if (!(name in component.state)) {
+                addStateVariablePlaceholder({
+                    core,
+                    component,
+                    stateVariable: name,
+                    definition,
+                });
+            }
+        }
+    }
+}
+
+/**
  * Build the full runtime state-variable object for `stateVariable` (and
  * the rest of its definition group) if it is still a placeholder.
  * Called on first demand: from the evaluator, from dependency setup, and
@@ -1508,6 +1682,11 @@ async function initializeArrayEntryStateVariable({
                 arrayStateVarObj.shadowingInstructions.attributesToShadow;
         }
 
+        if (arrayStateVarObj.shadowingInstructions.contextVariables) {
+            stateVarObj.shadowingInstructions.contextVariables =
+                arrayStateVarObj.shadowingInstructions.contextVariables;
+        }
+
         if (arrayStateVarObj.shadowingInstructions.createComponentOfType) {
             let entryPrefixInd =
                 arrayStateVarObj.entryPrefixes.indexOf(arrayEntryPrefix);
@@ -1648,7 +1827,11 @@ async function initializeArrayStateVariable({
     // - freshnessInfo: this object can be used to track information about the
     //   freshness of the array entries or other array features, such as size.
     //   freshnessInfo is prepopulated with
-    //     - a freshByKey object for tracking by key
+    //     - a freshByKey object for tracking by key, with numFreshKeys
+    //       counting its keys (core changes them only through
+    //       markArrayKeyFresh, markArrayKeyStale and markAllArrayKeysStale,
+    //       which keep the two in step; anything else that changes
+    //       freshByKey must change numFreshKeys with it)
     //     - a freshArraySize for tracking array size
     //   To take advantage of this object, a component can read and modify
     //   freshnessInfo (as core will pass it in as an argument) in
@@ -1863,7 +2046,7 @@ async function initializeArrayStateVariable({
     // to the same object, as they will share the same freshnessinfo
     // TODO: a better idea?  This seems like it could lead to confusion.
     if (!stateVarObj.freshnessInfo) {
-        stateVarObj.freshnessInfo = { freshByKey: {} };
+        stateVarObj.freshnessInfo = { freshByKey: {}, numFreshKeys: 0 };
         if (stateVarObj.additionalStateVariablesDefined) {
             for (let vName of stateVarObj.additionalStateVariablesDefined) {
                 if (!component.state[vName]) {
@@ -1945,24 +2128,193 @@ async function createArraySizeStateVariable({
     });
 }
 
+/**
+ * What {@link arrayEntryNamesFromPropIndex} gives for a variable the index
+ * names nothing in. No state variable has this name, so a dependency that
+ * asks for it optionally (`variablesOptional`) gets nothing, and a reference
+ * to it shows nothing (VAL-5), rather than the whole variable the index was
+ * written on (#2407).
+ */
+export const INDEX_NAMES_NOTHING = "__index_names_nothing";
+
+/**
+ * Report that `reference`, an index into the value of `component`, names
+ * nothing because the value is a scalar (`doenet-w0100`, from
+ * `stateVarObj.indexIntoScalar`).
+ *
+ * The value can change, from a scalar to a tuple and back, and nothing about
+ * the reference is resolved again when it does, so with `watch` this is a
+ * watched condition of the component the reference belongs to
+ * (`DiagnosticsManager.watchCondition`): reported while the value is a
+ * scalar, withdrawn when it has entries, and reported again if it becomes a
+ * scalar later, as a reload would decide it (B33, DIAG-6). It is withdrawn
+ * for good once the reference no longer reads `component`
+ * (`watch.isCurrent`) or `component` is gone.
+ *
+ * A `copy` (an unlinked copy, `link` false) does not follow its source, so
+ * its warning is the one decided when it was made (`reportIndexIntoScalarAsMade`).
+ */
+async function reportIndexIntoScalarOf({
+    core,
+    component,
+    stateVarObj,
+    propIndex,
+    reference,
+    watch,
+}: {
+    core: Core;
+    component: ComponentInstance;
+    stateVarObj: any;
+    propIndex: number[];
+    reference: { text: string; position?: Position; sourceDoc?: number };
+    watch?: { owner: number; isCurrent: () => boolean };
+}) {
+    const diagnostic = codedDiagnostic({
+        type: "warning",
+        code: "doenet-w0100",
+        args: { reference: reference.text },
+        position: reference.position,
+        sourceDoc: reference.sourceDoc,
+    });
+    if (!watch) {
+        if (await stateVarObj.indexIntoScalar(component, propIndex)) {
+            core.addDiagnostic(diagnostic);
+        }
+        return;
+    }
+
+    const componentIdx = component.componentIdx;
+    const owner: any = core._components[watch.owner];
+    if (owner?.attributes?._link?.primitive?.value === false) {
+        await reportIndexIntoScalarAsMade({
+            core,
+            owner,
+            component,
+            stateVarObj,
+            propIndex,
+            reference,
+            diagnostic,
+        });
+        return;
+    }
+    let first = true;
+    async function decide() {
+        // Decided while the reference is being resolved, before it is
+        // registered as reading `component`.
+        if (
+            !first &&
+            (!watch!.isCurrent() || !core._components[componentIdx])
+        ) {
+            return null;
+        }
+        first = false;
+        return (await stateVarObj.indexIntoScalar(
+            core._components[componentIdx],
+            propIndex,
+        ))
+            ? [diagnostic]
+            : [];
+    }
+    await core.diagnosticsManager.watchCondition(
+        watch.owner,
+        `indexIntoScalar:${componentIdx}:${reference.text}`,
+        decide,
+    );
+}
+
+/**
+ * Report the warning that `reference` of the unlinked copy `owner` indexes
+ * into a scalar as it was decided when the copy was made: a `copy` does not
+ * follow its source, so the warning, like what it shows and like the info of
+ * a type change (`heldTypeChange` in `Copy.js`), stays as it was, which is
+ * what explains what the copy shows.
+ *
+ * It is decided once per reference and recorded on the copy
+ * (`unlinkedIndexWarnings`), as a condition of the copy, so it is withdrawn
+ * when the copy is deleted. When a warning decided now would differ
+ * (`freshIndexWarnings`), a save holds the copy
+ * (`StatePersistence.recordCopySnapshots`) with the decision
+ * (`heldCopySnapshot`), and a reload reads it back: the warning after a
+ * reload is the one before it (DIAG-6).
+ */
+async function reportIndexIntoScalarAsMade({
+    core,
+    owner,
+    component,
+    stateVarObj,
+    propIndex,
+    reference,
+    diagnostic,
+}: {
+    core: Core;
+    owner: any;
+    component: ComponentInstance;
+    stateVarObj: any;
+    propIndex: number[];
+    reference: { text: string };
+    diagnostic: any;
+}) {
+    const componentIdx = component.componentIdx;
+    owner.unlinkedIndexWarnings ??= {};
+    let holds = owner.unlinkedIndexWarnings[reference.text];
+    if (holds === undefined) {
+        const held = readHeldCopySnapshot(
+            owner.coreFunctions?.savedCopySnapshot?.(owner.stateId),
+        )?.madeFrom.indexIntoScalar?.[reference.text];
+        holds =
+            held ??
+            Boolean(await stateVarObj.indexIntoScalar(component, propIndex));
+        owner.unlinkedIndexWarnings[reference.text] = holds;
+    }
+    // What a copy made now would decide, which a save compares with what it
+    // was made with (`StatePersistence.recordCopySnapshots`): what the copy
+    // shows need not tell them apart (a blank value has no warning, as an
+    // entry has; `$m[2][1]` shows nothing whether `$m[2]` is a scalar or
+    // not), and a copy whose warning would be decided otherwise is held
+    // with it, so a reload reports the one it had. `undefined` once the
+    // component indexed is gone.
+    owner.freshIndexWarnings ??= {};
+    owner.freshIndexWarnings[reference.text] = async () => {
+        const indexed = core._components[componentIdx];
+        return indexed
+            ? Boolean(await stateVarObj.indexIntoScalar(indexed, propIndex))
+            : undefined;
+    };
+    core.diagnosticsManager.setConditionDiagnostics(
+        owner.componentIdx,
+        `indexIntoScalar:${reference.text}`,
+        holds ? [diagnostic] : [],
+    );
+}
+
 // arrayEntryNamesFromPropIndex is essentially a wrapper around
 // stateVarObj.arrayVarNameFromPropIndex.
 // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
 // It calls arrayVarNameFromPropIndex on each of an array of stateVariables,
 // first creating any missing array entry state variables,
 // reports the ones it cannot map,
-// and returns an array of the resulting state variables.
+// and returns an array of the resulting state variables,
+// with `INDEX_NAMES_NOTHING` in place of each one it cannot map.
 export async function arrayEntryNamesFromPropIndex({
     core,
     stateVariables,
     component,
     propIndex,
     reference,
+    reportIndexIntoScalar = true,
+    watch,
 }: {
     core: Core;
     stateVariables: string[];
     component: ComponentInstance;
     propIndex: number[];
+    /**
+     * Whether an index into a value that is a scalar is reported
+     * (`indexIntoScalar`). Not for an index left over past a composite's
+     * items, which was reported where the reference was resolved and is
+     * then tried on each of the composite's replacements.
+     */
+    reportIndexIntoScalar?: boolean;
     /**
      * The reference the author wrote and where they wrote it, so a failure
      * here can be reported in terms of the document rather than in terms of
@@ -1980,6 +2332,15 @@ export async function arrayEntryNamesFromPropIndex({
         position?: Position;
         sourceDoc?: number;
     };
+    /**
+     * Who the reference belongs to, so that whether an index into a value
+     * names nothing because the value is a scalar (`indexIntoScalar`) follows
+     * the value (B33): reported as a condition of component `owner`, decided
+     * again after each update while `isCurrent` says the reference still
+     * reads this component, and withdrawn once it does not. Without it, it is
+     * decided once, now.
+     */
+    watch?: { owner: number; isCurrent: () => boolean };
 }) {
     /**
      * Report that the index the author wrote cannot be applied.
@@ -2007,6 +2368,11 @@ export async function arrayEntryNamesFromPropIndex({
         }
     }
 
+    // An index below 1 names nothing, whatever the variable and its length:
+    // indices count from 1.
+    const indexBelowOne = propIndex.some((index) => index < 1);
+    let reportBelowOne = false;
+
     let newVarNames = [];
     for (let varName of stateVariables) {
         let stateVarObj = component.state[varName];
@@ -2028,9 +2394,69 @@ export async function arrayEntryNamesFromPropIndex({
             stateVarObj = component.state[varName];
         }
 
+        // An index below 1 on a variable that exists is reported as a
+        // reference with no referent, as `$l[0]` and `$l[$i]` with `i` = 0
+        // are (#2407). It is checked before asking whether the variable takes
+        // an index at all, so `$n.value[0]` reads as `$l[0]` does rather than
+        // as `$n.value[1]` (`doenet-w0100`, below). A variable that does not
+        // exist was skipped above, so `$n.nonexistent[0]` stays as silent as
+        // `$n.nonexistent` and `$n.nonexistent[1]`.
+        if (indexBelowOne) {
+            reportBelowOne = true;
+            newVarNames.push(INDEX_NAMES_NOTHING);
+            continue;
+        }
+
+        // An index into the value selects its entries, as a bare index does:
+        // `$m.value[1]` is `$m[1]` (D27).
+        const indexAsProp = component.constructor.variableForIndexAsProp;
+        if (
+            varName === "value" &&
+            !stateVarObj.isArray &&
+            !stateVarObj.isArrayEntry &&
+            indexAsProp &&
+            component.state[indexAsProp]?.isArray
+        ) {
+            varName = indexAsProp;
+            stateVarObj = component.state[indexAsProp];
+        }
+
+        // An array of a list holding one value per entry
+        // (`utils/listEntryReference.ts`) is given an index too many for an
+        // index into an entry's property that is not an array
+        // (`$l[2].coords[1]`), which names nothing, as `$P.coords[1]` does.
+        if (
+            stateVarObj.isArray &&
+            propIndex.length > stateVarObj.numDimensions &&
+            isListEntryArrayVariable(component, varName)
+        ) {
+            reportPropIndexFailure(varName, " as it has too many indices");
+            newVarNames.push(INDEX_NAMES_NOTHING);
+            continue;
+        }
+
         let newName;
         if (stateVarObj.isArray) {
             newName = stateVarObj.arrayVarNameFromPropIndex(propIndex, varName);
+            // A scalar has no entries, which is reported, unlike an index
+            // past the end of a value that has, since the length can change
+            // (#1499). The name is kept, so the reference names an entry
+            // once the value has one.
+            if (
+                newName &&
+                reference &&
+                reportIndexIntoScalar &&
+                stateVarObj.indexIntoScalar
+            ) {
+                await reportIndexIntoScalarOf({
+                    core,
+                    component,
+                    stateVarObj,
+                    propIndex,
+                    reference,
+                    watch,
+                });
+            }
         } else if (stateVarObj.isArrayEntry) {
             let arrayStateVarObj =
                 component.state[stateVarObj.arrayStateVariable];
@@ -2043,14 +2469,31 @@ export async function arrayEntryNamesFromPropIndex({
                 varName,
                 " as it is not an array or array entry state variable",
             );
-            newName = varName;
+            newName = INDEX_NAMES_NOTHING;
         }
         if (newName) {
             newVarNames.push(newName);
         } else {
+            // The index cannot be applied, so the reference names nothing.
+            // It used to fall back to the whole variable, which showed `5`
+            // for `$n.value[1]` while warning that the index could not be
+            // used (#2407).
             reportPropIndexFailure(varName, "");
-            newVarNames.push(varName);
+            newVarNames.push(INDEX_NAMES_NOTHING);
         }
+    }
+
+    // Once, however many of the variables the index was applied to.
+    if (reportBelowOne && reference) {
+        core.addDiagnostic(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0104",
+                args: { reference: reference.text },
+                position: reference.position,
+                sourceDoc: reference.sourceDoc,
+            }),
+        );
     }
 
     return newVarNames;

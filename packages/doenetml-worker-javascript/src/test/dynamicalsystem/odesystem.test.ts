@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
@@ -63,19 +64,11 @@ describe("odeSystem Tag Tests @group4", async () => {
                     .numericalSolutionFDefinitions[0],
             );
 
+            // A repeat whose template is one `<evaluate>` is a list of its
+            // values (`RepeatValueList.js`).
             let solutionsFromCore = stateVariables[
                 await resolvePathToNodeIdx("repeat1")
-            ]
-                .replacements!.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].replacements![0],
-                )
-                .map(
-                    (grandChild) =>
-                        stateVariables[grandChild.componentIdx].stateValues
-                            .value,
-                )
-                .map((v) => v.tree);
+            ].stateValues.maths.map((v) => v.tree);
 
             for (let x = 0; x <= 5; x += 0.5) {
                 expect(solutionF(x)).closeTo(
@@ -324,15 +317,11 @@ describe("odeSystem Tag Tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("ode")].stateValues
                     .numericalSolutionFDefinitions[0],
             );
+            // A repeat whose template is one `<evaluate>` is a list of its
+            // values (`RepeatValueList.js`).
             let solutionsFromCore = stateVariables[
                 await resolvePathToNodeIdx("repeat1")
-            ].replacements!.map(
-                (x) =>
-                    stateVariables[
-                        stateVariables[x.componentIdx].replacements![0]
-                            .componentIdx
-                    ].stateValues.value.tree,
-            );
+            ].stateValues.maths.map((v) => v.tree);
 
             for (let t = 0; t <= 5; t += 1) {
                 if (Number.isNaN(expectedF(t))) {
@@ -878,8 +867,14 @@ describe("odeSystem Tag Tests @group4", async () => {
 
         async function expectValue(origName: string, desiredValue: any) {
             expect(
-                stateVariables[await resolvePathToNodeIdx(origName)].stateValues
-                    .value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        origName,
+                    )
+                ).stateValues.value.tree,
             ).eqls(desiredValue);
         }
 

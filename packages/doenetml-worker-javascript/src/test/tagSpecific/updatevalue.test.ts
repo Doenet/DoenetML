@@ -623,7 +623,7 @@ describe("UpdateValue tag tests @group1", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 1 and point ( 3, 2 ).");
+        ).eq("Number 1 and point (3, 2).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text hello and line 0 = x - y + 1.");
@@ -636,7 +636,7 @@ describe("UpdateValue tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 3 and point ( 3, 2 ).");
+        ).eq("Number 3 and point (3, 2).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text hello and line 0 = x - y + 1.");
@@ -649,7 +649,7 @@ describe("UpdateValue tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 3 and point ( 3, 5 ).");
+        ).eq("Number 3 and point (3, 5).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text hello and line 0 = x - y + 1.");
@@ -662,7 +662,7 @@ describe("UpdateValue tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 3 and point ( 3, 5 ).");
+        ).eq("Number 3 and point (3, 5).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text bye and line 0 = x - y + 1.");
@@ -675,7 +675,7 @@ describe("UpdateValue tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 3 and point ( 3, 5 ).");
+        ).eq("Number 3 and point (3, 5).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text bye and line 0 = x - 2.");
@@ -1459,6 +1459,139 @@ describe("UpdateValue tag tests @group1", async () => {
                     .latex,
             ),
         ).eq("9x");
+    });
+
+    it("one click on two overlapping objects of a triggered action runs it once", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <rectangle name="r" vertices="(0,0) (4,2)" filled />
+      <text name="t" anchor="(2,1)">label</text>
+    </graph>
+    <number name="n">0</number>
+    <number name="m">0</number>
+    <number name="f">0</number>
+    <updateValue name="incN" triggerWhenObjectsClicked="$r $t" target="$n" newValue="$n+1" />
+    <updateValue name="incM" triggerWhenObjectsClicked="$t $r" target="$m" newValue="$m+1" />
+    <updateValue name="incF" triggerWhenObjectsFocused="$t" triggerWhenObjectsClicked="$r" target="$f" newValue="$f+1" />
+    `,
+        });
+
+        const rIdx = await resolvePathToNodeIdx("r");
+        const tIdx = await resolvePathToNodeIdx("t");
+
+        async function check(n: number, m: number, f: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value,
+            ).eq(n);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .value,
+            ).eq(m);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                    .value,
+            ).eq(f);
+        }
+
+        // what the renderers send for one pointer click on the label
+        async function clickLabel(gestureId?: string) {
+            const extra = gestureId === undefined ? {} : { gestureId };
+            await core.requestAction({
+                componentIdx: tIdx,
+                actionName: "textClicked",
+                args: { componentIdx: tIdx, ...extra },
+            });
+            await core.requestAction({
+                componentIdx: rIdx,
+                actionName: "polygonClicked",
+                args: { componentIdx: rIdx, ...extra },
+            });
+        }
+
+        await check(0, 0, 0);
+
+        // one gesture: each triggered action runs once
+        await clickLabel("1|100");
+        await check(1, 1, 1);
+
+        // another gesture runs them again
+        await clickLabel("1|200");
+        await check(2, 2, 2);
+
+        // a repeat of a gesture already handled runs nothing
+        await clickLabel("1|200");
+        await check(2, 2, 2);
+
+        // without a gesture id, each object's click runs the action
+        await clickLabel();
+        await check(4, 4, 3);
+
+        // a focus and a click of one gesture are not repeats of each other
+        await core.requestAction({
+            componentIdx: tIdx,
+            actionName: "textFocused",
+            args: { componentIdx: tIdx, gestureId: "1|300" },
+        });
+        await check(4, 4, 4);
+        await core.requestAction({
+            componentIdx: rIdx,
+            actionName: "polygonClicked",
+            args: { componentIdx: rIdx, gestureId: "1|300" },
+        });
+        await check(5, 5, 5);
+    });
+
+    it("one pointer down on two overlapping objects of a focus-triggered action runs it once", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <rectangle name="r" vertices="(0,0) (4,2)" filled />
+      <text name="t" anchor="(2,1)">label</text>
+    </graph>
+    <number name="n">0</number>
+    <updateValue triggerWhenObjectsFocused="$r $t" target="$n" newValue="$n+1" />
+    `,
+        });
+
+        const rIdx = await resolvePathToNodeIdx("r");
+        const tIdx = await resolvePathToNodeIdx("t");
+
+        async function check(n: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value,
+            ).eq(n);
+        }
+
+        // what the renderers send for one pointer down on the label
+        async function pressLabel(gestureId: string) {
+            await core.requestAction({
+                componentIdx: tIdx,
+                actionName: "textFocused",
+                args: { componentIdx: tIdx, gestureId },
+            });
+            await core.requestAction({
+                componentIdx: rIdx,
+                actionName: "polygonFocused",
+                args: { componentIdx: rIdx, gestureId },
+            });
+        }
+
+        await pressLabel("1|100");
+        await check(1);
+
+        await pressLabel("1|200");
+        await check(2);
     });
 
     it("update triggered when object focused", async () => {
@@ -3319,6 +3452,98 @@ describe("UpdateValue tag tests @group1", async () => {
         await check_coords([5, 6], [7, 8], [10]);
     });
 
+    it("update every entry of a list, or a property of every entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="nl">1 2</numberList>
+    <textList name="tl">a b</textList>
+    <pointList name="pl">(1,2) (3,4)</pointList>
+    <updateValue name="uvNumbers" target="$nl" newValue="5" type="number" />
+    <updateValue name="uvTexts" target="$tl" newValue="z" type="text" />
+    <updateValue name="uvX" target="$pl.x" newValue="7" />
+    <updateValue name="uvOne" target="$nl[2]" newValue="9" type="number" />
+    <updateValue name="uvYs" target="$pl.xs[2]" newValue="8" />
+    <graph><point name="A">(1,2)</point><point name="B">(3,4)</point></graph>
+    <collect name="c" componentType="point" from="$_graph1" />
+    <updateValue name="uvCollectedYs" target="$c.xs[2]" newValue="6" />
+    <p name="p">$nl | $tl | $pl</p>
+    <p name="pAB">$A $B</p>
+    `,
+        });
+
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+
+        for (const name of ["uvNumbers", "uvTexts", "uvX"]) {
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        expect(await text()).eq("5, 5 | z, z | (7, 2), (7, 4)");
+
+        // an index picks one entry
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvOne"),
+            core,
+        });
+        expect(await text()).eq("5, 9 | z, z | (7, 2), (7, 4)");
+
+        // an index on a property applies to every entry
+        for (const name of ["uvYs", "uvCollectedYs"]) {
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        expect(await text()).eq("5, 9 | z, z | (7, 8), (7, 8)");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pAB")].stateValues.text,
+        ).eq("(1, 6) (3, 6)");
+    });
+
+    it("reset every entry of a math list to blank", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml">() 3 () x+1</mathList>
+    <updateValue name="uvOne" target="$ml[1]" newValue="5" />
+    <updateValue name="uvReset" target="$ml" newValue="()" />
+    `,
+        });
+
+        async function trees() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx("ml")
+            ].stateValues.maths.map((m) => m.tree);
+        }
+
+        expect(await trees()).eqls(["＿", 3, "＿", ["+", "x", 1]]);
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvOne"),
+            core,
+        });
+        expect(await trees()).eqls([5, 3, "＿", ["+", "x", 1]]);
+
+        // the list keeps its length, with every entry blank
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvReset"),
+            core,
+        });
+        expect(await trees()).eqls(["＿", "＿", "＿", "＿"]);
+    });
+
     it("updateValue warnings with invalid targets", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -3587,5 +3812,81 @@ describe("UpdateValue tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("uv2")].stateValues
                 .selectedStyle.fillColor,
         ).eq("yellow");
+    });
+
+    it("a disabled updateValue does not update, whether clicked or triggered", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="P">(1,2)</point>
+    </graph>
+    <booleanInput name="dis" prefill="true" />
+    <booleanInput name="b" />
+    <number name="n1">0</number>
+    <number name="n2">0</number>
+    <number name="n3">0</number>
+    <number name="n4">0</number>
+    <number name="n5">0</number>
+    <number name="n6">0</number>
+
+    <updateValue name="uv1" target="$n1" newValue="$n1+1" disabled="$dis" />
+    <updateValue target="$n2" newValue="$n2+1" triggerWhen="$b" disabled="$dis" />
+    <updateValue target="$n3" newValue="$n3+1" triggerWhenObjectsClicked="$P" disabled="$dis" />
+    <updateValue target="$n4" newValue="$n4+1" triggerWhenObjectsFocused="$P" disabled="$dis" />
+    <updateValue target="$n5" newValue="$n5+1" triggerWith="$b" disabled="$dis" />
+    <updateValue target="$n6" newValue="$n6+1" triggerWith="$uv1" />
+    `,
+        });
+
+        const PIdx = await resolvePathToNodeIdx("P");
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        async function check(expected: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [ind, value] of expected.entries()) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`n${ind + 1}`)]
+                        .stateValues.value,
+                    `n${ind + 1}`,
+                ).eq(value);
+            }
+        }
+
+        async function fireAll() {
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx("uv1"),
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: bIdx,
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: bIdx,
+                core,
+            });
+            await clickPoint({ componentIdx: PIdx, core });
+            await focusPoint({ componentIdx: PIdx, core });
+        }
+
+        // Disabled: neither the button nor any trigger updates, and the
+        // updateValue chained to the disabled button does not run either.
+        await fireAll();
+        await check([0, 0, 0, 0, 0, 0]);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("dis"),
+            core,
+        });
+
+        // `triggerWith="$b"` fires on both changes of `b`
+        await fireAll();
+        await check([1, 1, 1, 1, 2, 1]);
     });
 });

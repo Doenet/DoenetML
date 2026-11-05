@@ -1,3 +1,22 @@
+//********************************************************************
+// Copyright (C) 2024-2026  Robert A. Beezer
+//
+// This file is part of PreTeXt.
+//
+// PreTeXt is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 or version 3 of the
+// License (at your option).
+//
+// PreTeXt is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+//********************************************************************
+
 // Produces a centered "page" with borders and centered banner
 // TOC will be an initially hidden overlay
 
@@ -37,8 +56,18 @@ $sidebar-breakpoint: $content-width + $sidebar-width + $content-side-padding * 2
   $navbar-breakpoint: $navbar-breakpoint,
 );
 
+.ptx-dialog {
+  --button-text-color: var(--dialog-text-color);
+  --button-background: var(--dialog-background);
+}
+
 :root {
   --page-width: 1100px;
+  --dialog-background: var(--primary-color-white-96);
+  --dialog-text-color: var(--body-text-color);
+}
+:root.dark-mode {
+  --dialog-background: var(--content-background);
 }
 
 .standalone-page {
@@ -94,7 +123,7 @@ $sidebar-breakpoint: $content-width + $sidebar-width + $content-side-padding * 2
 
 @container ptx-main (width < #{$navbar-breakpoint}) {
   .ptx-page > .ptx-main { 
-    .ptx-content {
+    & > .ptx-content {
       padding-left: 20px;
       padding-right: 20px;
       max-width: calc($content-width + 40px);

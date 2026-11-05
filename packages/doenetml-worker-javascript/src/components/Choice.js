@@ -1,4 +1,5 @@
 import { renameStateVariable } from "../utils/stateVariables";
+import { returnCreditAttributeAndStateVariableDefinition } from "../utils/answer";
 import { textFromChildren } from "../utils/text";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
@@ -16,15 +17,10 @@ export default class Choice extends InlineComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        attributes.credit = {
-            createComponentOfType: "number",
-            createStateVariable: "credit",
+        attributes.credit = returnCreditAttributeAndStateVariableDefinition({
             defaultValue: 0,
-            public: true,
-            attributesForCreatedComponent: { convertBoolean: "true" },
-            description:
-                "Fraction of credit (0 to 1) granted when this choice is selected.",
-        };
+            componentDescription: "this choice is selected",
+        }).attribute;
         attributes.feedbackCodes = {
             createComponentOfType: "textList",
             createStateVariable: "feedbackCodes",
@@ -63,6 +59,12 @@ export default class Choice extends InlineComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        stateVariableDefinitions.credit =
+            returnCreditAttributeAndStateVariableDefinition({
+                defaultValue: 0,
+                componentDescription: "this choice is selected",
+            }).stateVariableDefinition;
 
         // rename disabled to disabledOriginal
         renameStateVariable({

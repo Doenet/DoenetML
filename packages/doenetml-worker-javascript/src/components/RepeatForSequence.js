@@ -1,8 +1,10 @@
 import CompositeComponent from "./abstract/CompositeComponent";
+import { instanceGroupAttributes } from "../utils/indexInstances";
 import { deepClone } from "@doenet/utils";
 import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
 } from "../utils/variants";
 import {
     returnSequenceValues,
@@ -11,7 +13,13 @@ import {
 } from "../utils/sequence";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
-import { copyStateFromUnlinkedSource, remapExtendIndices } from "./Repeat";
+import {
+    copyStateFromUnlinkedSource,
+    hasIterationList,
+    iterationEntryMapping,
+    remapExtendIndices,
+    templateChildIndices,
+} from "./Repeat";
 export default class RepeatForSequence extends CompositeComponent {
     static componentType = "repeatForSequence";
 
@@ -21,7 +29,7 @@ export default class RepeatForSequence extends CompositeComponent {
     };
     static takesIndex = true;
 
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAnywhere = true;
 
     static createsVariants = true;
 
@@ -31,11 +39,7 @@ export default class RepeatForSequence extends CompositeComponent {
         "readyToExpandWhenResolved";
 
     static keepChildrenSerialized({ serializedComponent }) {
-        if (serializedComponent.children === undefined) {
-            return [];
-        } else {
-            return Object.keys(serializedComponent.children);
-        }
+        return templateChildIndices(serializedComponent);
     }
 
     // since don't have child groups, tell schema about children here
@@ -228,9 +232,8 @@ export default class RepeatForSequence extends CompositeComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -297,6 +300,7 @@ export default class RepeatForSequence extends CompositeComponent {
                 step: null,
                 type: null,
                 exclude: null,
+                lowercase: null,
             };
             return { replacements: [], diagnostics, nComponents };
         }
@@ -306,6 +310,7 @@ export default class RepeatForSequence extends CompositeComponent {
         let step = await component.stateValues.step;
         let type = await component.stateValues.type;
         let exclude = await component.stateValues.exclude;
+        let lowercase = await component.stateValues.lowercase;
 
         workspace.lastReplacementParameters = {
             from,
@@ -313,6 +318,7 @@ export default class RepeatForSequence extends CompositeComponent {
             step,
             type,
             exclude,
+            lowercase,
         };
 
         const numIterates = await component.stateValues.numIterates;
@@ -405,6 +411,17 @@ export default class RepeatForSequence extends CompositeComponent {
         );
 
         replacements[0] = aliasResult.replacement;
+
+        // An index after the iteration passes to its content when that is one
+        // indexable component, and otherwise selects one of its children (D27)
+        Object.assign(
+            replacements[0].attributes,
+            instanceGroupAttributes({
+                children: replacements[0].children,
+                instanceOf: component.componentType,
+                componentInfoObjects,
+            }),
+        );
         nComponents = aliasResult.nComponents;
         const valueComponentIdx = aliasResult.valueComponentIdx;
 
@@ -414,6 +431,7 @@ export default class RepeatForSequence extends CompositeComponent {
                 component,
                 iterateNumber: iter,
                 replacement: replacements[0],
+                componentInfoObjects,
             });
         }
 
@@ -475,6 +493,31 @@ export default class RepeatForSequence extends CompositeComponent {
         let step = await component.stateValues.step;
         let type = await component.stateValues.type;
         let exclude = await component.stateValues.exclude;
+        // letters are numbered from 1 whatever their case, so `from` alone
+        // does not show that `a` became `A`
+        let lowercase = await component.stateValues.lowercase;
+
+        // Nothing to change. Without this check, a sequence with excluded
+        // elements would be made again on every call. Making it again changes
+        // its parent's children, which can mark the excluded values, and so
+        // this sequence, for another update, without end.
+        // (An exclude value that is not a number, such as a blank input,
+        // is NaN for a number sequence, so NaN must match NaN.)
+        const sameValue = (a, b) =>
+            a === b ||
+            (Number.isNaN(a) && Number.isNaN(b)) ||
+            (typeof a?.equals === "function" && b != null && a.equals(b));
+        if (
+            lrp.type === type &&
+            sameValue(lrp.from, from) &&
+            lrp.length === length &&
+            sameValue(lrp.step, step) &&
+            lrp.exclude?.length === exclude.length &&
+            exclude.every((x, i) => sameValue(lrp.exclude[i], x)) &&
+            lrp.lowercase === lowercase
+        ) {
+            return { replacementChanges, diagnostics, nComponents };
+        }
 
         // check if changed type
         // or have excluded elements
@@ -509,7 +552,11 @@ export default class RepeatForSequence extends CompositeComponent {
                     modifyExistingValues = true;
                 }
             } else {
-                if (from !== lrp.from || step !== lrp.step) {
+                if (
+                    from !== lrp.from ||
+                    step !== lrp.step ||
+                    lowercase !== lrp.lowercase
+                ) {
                     modifyExistingValues = true;
                 }
             }
@@ -637,21 +684,22 @@ export default class RepeatForSequence extends CompositeComponent {
         lrp.length = length;
         lrp.step = step;
         lrp.exclude = exclude;
+        lrp.lowercase = lowercase;
 
         workspace.lastReplacementParameters = lrp;
 
         return { replacementChanges, diagnostics, nComponents };
     }
 
-    static setUpVariant({
-        serializedComponent,
-        sharedParameters,
-        descendantVariantComponents,
-    }) {
+    static setUpVariant({ serializedComponent, sharedParameters }) {
+        // The subvariants of a repeat's variant are those of its iteration
+        // groups, which its template does not hold, so they are not handed
+        // to the template's random components: its first one would be given
+        // the variant of the first iteration's group, in every iteration.
+        // The seed alone makes the iterations again, as it made them.
         setUpVariantSeedAndRng({
             serializedComponent,
             sharedParameters,
-            descendantVariantComponents,
             useSubpartVariantRng: true,
         });
     }
@@ -728,20 +776,10 @@ export default class RepeatForSequence extends CompositeComponent {
         return { success: true, desiredVariant };
     }
 
-    get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
-        let additionalRendererTypes =
-            this.potentialRendererTypesFromSerializedComponents(
-                this.serializedChildren,
-            );
-        for (let rendererType of additionalRendererTypes) {
-            if (!allPotentialRendererTypes.includes(rendererType)) {
-                allPotentialRendererTypes.push(rendererType);
-            }
-        }
-
-        return allPotentialRendererTypes;
+        this.addPotentialRendererTypesFromSerializedChildren(rendererTypes);
     }
 }
 
@@ -758,7 +796,9 @@ async function addAndLinkAliasComponents(
         componentIdx: nComponents++,
         stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
         attributes: {},
-        doenetAttributes: {},
+        // Not written by the author, so an index that reaches it is not
+        // reported as selecting a child (`reportChildIndexes`, D27)
+        doenetAttributes: { iterationAliases: true },
         state: {},
         children: [],
     };
@@ -770,7 +810,7 @@ async function addAndLinkAliasComponents(
 
     let valueComponentIdx;
 
-    if (valueName) {
+    if (valueName && !hasIterationList(component, "_repeatValues")) {
         valueComponentIdx = nComponents++;
         const valueDummyIdx = await component.stateValues.valueDummyIdx;
         if (valueDummyIdx != null) {
@@ -806,7 +846,7 @@ async function addAndLinkAliasComponents(
 
     const indexName = await component.stateValues.indexName;
 
-    if (indexName) {
+    if (indexName && !hasIterationList(component, "_repeatIndices")) {
         const indexComponentIdx = nComponents++;
         const indexDummyIdx = await component.stateValues.indexDummyIdx;
         if (indexDummyIdx != null) {
@@ -833,14 +873,26 @@ async function addAndLinkAliasComponents(
 
     const newRepl = { ...thisRepl };
 
-    if (Object.keys(extendIdxMapping).length > 0) {
+    // The value and index that are lists of the repeat's own
+    // (`_repeatValues`, `_repeatIndices`) are read at this iteration's entry.
+    const entryIdxMapping = iterationEntryMapping(component, iter);
+
+    if (
+        Object.keys(extendIdxMapping).length > 0 ||
+        Object.keys(entryIdxMapping).length > 0
+    ) {
         newRepl.children = remapExtendIndices(
             thisRepl.children,
             extendIdxMapping,
+            entryIdxMapping,
         );
     }
 
-    newRepl.children.push(setupComponent);
+    // A `<setup>` only for the components named after the value and index
+    // that are not lists of the repeat's.
+    if (setupComponent.children.length > 0) {
+        newRepl.children.push(setupComponent);
+    }
 
     return { replacement: newRepl, nComponents, valueComponentIdx };
 }

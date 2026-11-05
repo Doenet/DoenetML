@@ -54,7 +54,8 @@
             ],
             "dependencies": [
                 "../parser:build",
-                "../i18n:build"
+                "../i18n:build",
+                "../math:build"
             ]
         }
     },
@@ -62,7 +63,7 @@
         "@doenet/i18n": "*",
         "color-name": "^1.1.4",
         "colord": "^2.9.3",
-        "math-expressions": "^2.0.0-alpha95",
+        "math-expressions": "file:../math",
         "micromark": "^4.0.2"
     },
     "devDependencies": {

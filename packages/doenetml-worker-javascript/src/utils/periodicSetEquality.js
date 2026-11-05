@@ -1,4 +1,5 @@
 import me from "math-expressions";
+import { evaluateToNumber, isNumericConstant } from "./math";
 const { mod, min, fraction, number: mathNumber } = me.math;
 
 export default function periodicSetEquality(
@@ -95,9 +96,29 @@ export default function periodicSetEquality(
             return false;
         }
 
-        number_list = number_list.map((x) =>
-            me.fromAst(x).evaluate_to_constant(),
-        );
+        // `evaluateToNumber`, not the raw `evaluate_to_constant`: while the
+        // engine answered `null` for an offered element that is not a
+        // constant, `null` was `0` to `mod`, so a wholly symbolic list
+        // `y, z, w` passed the "first element lies on the set" test below and,
+        // with `match_partial`, was awarded a third of the credit. The engine
+        // answers `NaN` now, as the legacy one did, and `NaN` fails that test.
+        //
+        // The helper stays because this list is documented as numbers and a
+        // missing element would otherwise be `undefined` here — not because of
+        // the `Complex` arm, which an earlier version of this comment claimed
+        // and the twenty-fourth pass measured: the subtraction on the next line
+        // takes a `Complex` to `NaN` before `mod` ever sees it, so reverting
+        // this one reading changes no result. The guard that *is* load-bearing
+        // for a `Complex` is the per-tuple one in `contained_in` below, where
+        // the value reaches `fromAst` unsubtracted.
+        //
+        // Mapping to `NaN` rather than refusing the whole list is the point:
+        // the loop below counts a *consecutive run* from the first element, so
+        // a partly symbolic `0, y, 6` must still score the one element it got
+        // right, exactly as it did before the engine switch. Every other
+        // `evaluate_to_constant` in this file is already guarded; this was the
+        // one that was not.
+        number_list = number_list.map((x) => evaluateToNumber(me.fromAst(x)));
 
         // use me.math.mod rather than % so it always non-negative
         let offset_diff = mod(number_list[0] - offset, period);
@@ -240,8 +261,16 @@ function contained_in(tree, i_set, match_partial) {
     // normalize to period 1
     offset0 = me.fromAst(["/", offset0, period0]).evaluate_to_constant();
 
-    // if(!(typeof offset0 === 'number'))
-    //   return false;
+    // A symbolic offset does not normalize to a number: the engine answers
+    // `NaN` for it, and a `Complex` for an offset that is constant but not
+    // real. Neither belongs in the modular arithmetic below, and the `Complex`
+    // reaches `fromAst` further down, which rejects it — a throw out of here
+    // takes the document with it, which is what the engine's old `null` did.
+    // This one returns `false`, unlike the per-tuple guards further down which
+    // `continue`: `offset0` describes the piece being *tested*, and a piece we
+    // cannot place on the number line is not contained in anything. See the
+    // comment on those guards for why they must differ.
+    if (!isNumericConstant(offset0)) return false;
 
     var tuples = i_set.slice(1);
 
@@ -264,7 +293,21 @@ function contained_in(tree, i_set, match_partial) {
             .fromAst(["apply", "abs", ["/", tuples[i][2], period0]])
             .evaluate_to_constant();
 
-        if (typeof period !== "number" || Number.isNaN(period)) return false;
+        // A tuple we cannot place on the number line — an unfilled offset, or
+        // one still symbolic — covers nothing, so it drops out of the covering
+        // set. It must not abort the test: these are the *containing* set's
+        // pieces, and one unusable piece among them says nothing about whether
+        // the others contain `tree`. Aborting here is what turned a partially
+        // correct answer into a zero, because a student who asks for ten offset
+        // boxes and fills four of them leaves six blanks in this list.
+        //
+        // (The `offset0` guard above is different and does return `false`:
+        // it describes the piece being tested, and a piece we cannot place is
+        // not contained in anything. `period0` has no guard of its own — it is
+        // a raw subtree, never evaluated here — but it is divided into
+        // `offset0`, so a `period0` that cannot be placed shows up there.)
+        if (!isNumericConstant(period)) continue;
+        if (!isNumericConstant(offset)) continue;
 
         let frac = fraction(period);
         let p = mathNumber(frac.n);
@@ -275,6 +318,11 @@ function contained_in(tree, i_set, match_partial) {
 
         let q = mathNumber(frac.d);
         data.push([p, q, offset, period]);
+    }
+
+    // Every piece of the containing set was unusable: it covers nothing.
+    if (data.length === 0) {
+        return false;
     }
 
     // sort by p

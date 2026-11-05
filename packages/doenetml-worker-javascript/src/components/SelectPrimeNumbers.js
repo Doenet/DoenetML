@@ -1,3 +1,4 @@
+import { serializedAttributeComponent } from "../utils/literalAttribute";
 import { enumerateSelectionCombinations } from "@doenet/utils";
 import {
     extractConstantSortAttribute,
@@ -11,23 +12,32 @@ import {
 } from "../utils/excludeCombinations";
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
-import CompositeComponent from "./abstract/CompositeComponent";
+import ValueListComponent from "./abstract/ValueListComponent";
 import {
     NO_SELECT_ERROR,
+    returnSelectErrorReportDefinition,
     selectError,
     selectionResult,
 } from "../utils/selectErrors";
-import { errorComponentState } from "../utils/dast/errors";
 
-export default class SelectPrimeNumbers extends CompositeComponent {
+/**
+ * Selects prime numbers once, from the variant's generator. It is a list
+ * component (`ValueListComponent`): it holds the selection in one array,
+ * `selectedValues`, and a parent sees one `<integer>` per value.
+ */
+export default class SelectPrimeNumbers extends ValueListComponent {
     static componentType = "selectPrimeNumbers";
+
+    static listEntryComponentType = "integer";
+
+    static listEntryValuesVariable = "selectedValues";
+
+    static listEntriesTakeWrites = true;
 
     static componentDocs = {
         summary:
             "Randomly selects prime numbers from a range to create document variants",
     };
-    static takesIndex = true;
-
     static allowInSchemaAsComponent = ["integer"];
 
     static createsVariants = true;
@@ -279,85 +289,10 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                selectedValues: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedValues",
-                },
-            }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
-        };
+        stateVariableDefinitions.selectErrorReported =
+            returnSelectErrorReportDefinition();
 
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        workspace,
-        nComponents,
-    }) {
-        if (workspace.replacementsCreated === undefined) {
-            workspace.replacementsCreated = 0;
-        }
-
-        const stateIdInfo = {
-            prefix: `${component.stateId}|`,
-            num: workspace.replacementsCreated,
-        };
-
-        let diagnostics = [];
-
-        let errorMessage = await component.stateValues.errorMessage;
-        if (errorMessage) {
-            return {
-                replacements: [
-                    {
-                        type: "serialized",
-                        componentType: "_error",
-                        componentIdx: nComponents++,
-                        state: errorComponentState(
-                            errorMessage,
-                            await component.stateValues.errorDiagnostic,
-                        ),
-                        attributes: {},
-                        doenetAttributes: {},
-                        children: [],
-                    },
-                ],
-                diagnostics,
-                nComponents,
-            };
-        }
-
-        let replacements = [];
-
-        for (let value of await component.stateValues.selectedValues) {
-            replacements.push({
-                type: "serialized",
-                componentType: "integer",
-                componentIdx: nComponents++,
-                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                state: { value, fixed: true },
-                attributes: {},
-                doenetAttributes: {},
-                children: [],
-            });
-        }
-
-        workspace.replacementsCreated = stateIdInfo.num;
-
-        return {
-            replacements,
-            diagnostics,
-            nComponents,
-        };
-    }
-
-    static calculateReplacementChanges({ nComponents }) {
-        return { replacementChanges: [], nComponents };
     }
 
     static determineNumberOfUniqueVariants({
@@ -369,8 +304,9 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         let numToSelect = 1,
             withReplacement = false;
 
-        let numToSelectComponent =
-            serializedComponent.attributes.numToSelect?.component;
+        let numToSelectComponent = serializedAttributeComponent(
+            serializedComponent.attributes.numToSelect,
+        );
         if (numToSelectComponent) {
             // only implemented if have an integer with a single string child
             if (
@@ -380,21 +316,38 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             ) {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
-                if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
+                if (!Number.isInteger(numToSelect)) {
                     info({
                         code: "doenet-i0022",
                         component: "selectPrimeNumbers",
                     });
                     return { success: false };
                 }
+                // A negative number selects nothing at run time, the same as 0,
+                // so it adds the single variant of selecting nothing
+                numToSelect = Math.max(numToSelect, 0);
             } else {
                 info({ code: "doenet-i0023", component: "selectPrimeNumbers" });
                 return { success: false };
             }
         }
 
-        let withReplacementComponent =
-            serializedComponent.attributes.withReplacement?.component;
+        // Selecting nothing has exactly one outcome, whatever withReplacement,
+        // the options or the range, so return before reading anything that
+        // might not be countable
+        if (numToSelect === 0) {
+            serializedComponent.variants.numVariants = 1;
+            serializedComponent.variants.uniqueVariantData = {
+                primes: [],
+                numToSelect: 0,
+                withReplacement: false,
+            };
+            return { success: true, numVariants: 1 };
+        }
+
+        let withReplacementComponent = serializedAttributeComponent(
+            serializedComponent.attributes.withReplacement,
+        );
         if (withReplacementComponent) {
             // only implemented if have an boolean with a boolean value or a single string child
             if (withReplacementComponent.componentType === "boolean") {
@@ -426,7 +379,9 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         let primePars = {};
 
-        let fromComponent = serializedComponent.attributes.from?.component;
+        let fromComponent = serializedAttributeComponent(
+            serializedComponent.attributes.from,
+        );
         if (fromComponent) {
             // only implemented if have a single string child
             if (
@@ -453,7 +408,9 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             }
         }
 
-        let toComponent = serializedComponent.attributes.to?.component;
+        let toComponent = serializedAttributeComponent(
+            serializedComponent.attributes.to,
+        );
         if (toComponent) {
             // only implemented if have a single string child
             if (
@@ -485,8 +442,9 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             return { success: false };
         }
 
-        let excludeComponent =
-            serializedComponent.attributes.exclude?.component;
+        let excludeComponent = serializedAttributeComponent(
+            serializedComponent.attributes.exclude,
+        );
         if (excludeComponent) {
             if (
                 !excludeComponent.children.every(
@@ -538,12 +496,8 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         if (withReplacement || numToSelect === 1) {
             numVariants = Math.pow(primes.length, numToSelect);
         } else {
-            numVariants = primes.length;
-            for (
-                let n = primes.length - 1;
-                n > primes.length - numToSelect;
-                n--
-            ) {
+            numVariants = 1;
+            for (let n = primes.length; n > primes.length - numToSelect; n--) {
                 numVariants *= n;
             }
         }

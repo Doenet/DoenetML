@@ -155,7 +155,6 @@ color =
                    *[m] brūns
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -179,7 +178,6 @@ line-width =
                    *[m] plāns
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -203,7 +201,6 @@ line-style =
                    *[m] punktēts
                 }
         }
-
 # Noun phrases in the dative, which is the case every Latvian preposition takes
 # in the plural — so «ar» governs the accusative in `style-border-clause` above
 # and the dative here. They agree with nothing.
@@ -214,7 +211,6 @@ fill-style =
     .backdiagonal = apgrieztām diagonālām līnijām
     .dots = punktiem
     .diamonds = rombiem
-
 noun =
     .line = taisne
     .line-segment = nogrieznis
@@ -234,7 +230,6 @@ noun =
     .diamond = rombs
     .cross = krusts
     .plus = pluss
-
 # Latvian keeps the side count in front of the noun, so the whole of it is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -242,7 +237,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] regulārs { $numSides }-stūris
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (daudzstūris, m) or
 # the head of a phrase the description never names: `border` (apmale, f),
 # `fill` (pildījums, m), `text` (teksts, m), `background` (fons, m).
@@ -258,7 +252,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -271,13 +264,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -285,13 +276,11 @@ style-filled-word =
         [f] aizpildīta
        *[m] aizpildīts
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ar { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } ar { $pattern }
@@ -299,7 +288,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } ar { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «apmale» is feminine, so the border's adjectives agree with it and not with
 # the shape it surrounds. Latvian has no article, so the two `-article`
 # branches read like the two without.
@@ -310,7 +298,6 @@ style-border-clause =
         [and-article] un { $border } apmali
        *[with] ar { $border } apmali
     }
-
 # The fill-pattern words are dative plurals, because their other use is the
 # «ar { $pattern }» clause in `style-filled`. So this message supplies a noun
 # for them to hang off — «pildījums», masculine, which is the gender
@@ -320,29 +307,23 @@ style-fill =
         [pattern] { $color } pildījums ar { $pattern }
        *[plain] { $color } pildījums
     }
-
 style-unfilled = neaizpildīts
-
 style-text =
     { $parts ->
         [background] { $color } uz { $background } fona
        *[plain] { $color }
     }
-
 style-background-none = nav
-
 
 ## Boolean words
 
 boolean-true = patiess
 boolean-false = aplams
 
-
 ## Answer buttons
 
 answer-submit-label = Pārbaudīt
 answer-submit-label-no-correctness = Iesniegt atbildi
-
 
 ## Sectional blocks
 
@@ -367,7 +348,6 @@ section-name =
     .solution = Risinājums
     .task = Uzdevums
     .theorem = Teorēma
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -377,9 +357,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Padoms
-
 
 ## Tables and figures
 
@@ -390,7 +368,6 @@ table-name =
         [unnumbered-title] Tabula{ ". " }
        *[unnumbered] Tabula
     }
-
 figure-name =
     { $parts ->
         [numbered] { $enumeration }. attēls
@@ -399,22 +376,18 @@ figure-name =
        *[unnumbered] Attēls
     }
 
-
 ## Paginator controls
 
 paginator-previous = Iepriekšējā
 paginator-next = Nākamā
 paginator-page = Lappuse
-
 paginator-page-status = { $pageLabel } { $currentPage } no { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = vai
 piecewise-condition-if = ja
 piecewise-condition-otherwise = citādi
-
 
 ## Chemistry
 
@@ -537,7 +510,6 @@ element-name =
     .lv = Livermorijs
     .ts = Tenesīns
     .og = Oganesons
-
 element-anion-name =
     .h = Hidrīds
     .c = Karbīds
@@ -551,8 +523,6 @@ element-anion-name =
     .i = Jodīds
     .at = Astatīds
     .ts = Tenesīds
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Nederīgs ķīmiskais simbols
 chemistry-invalid-ionic-compound = Nederīgs jonu savienojums

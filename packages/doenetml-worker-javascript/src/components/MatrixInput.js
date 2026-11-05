@@ -48,6 +48,9 @@ export class MatrixInput extends Input {
             "An interactive matrix input where each cell accepts a math value",
     };
     static variableForImplicitProp = "value";
+    // An index selects a row, as a 1×n matrix, and a second index an entry,
+    // as for a `<matrix>` (D27).
+    static variableForIndexAsProp = "matrix";
 
     static processWhenJustUpdatedForNewComponent = true;
 
@@ -2847,6 +2850,10 @@ export class MatrixInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "descriptionChildInd",
                 },
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
             }),
             definition({ dependencyValues }) {
                 let nChildrenToRender =
@@ -2860,6 +2867,9 @@ export class MatrixInput extends Input {
                     childIndicesToRender.push(
                         dependencyValues.descriptionChildInd,
                     );
+                }
+                if (dependencyValues.labelChildInd !== -1) {
+                    childIndicesToRender.push(dependencyValues.labelChildInd);
                 }
 
                 return {

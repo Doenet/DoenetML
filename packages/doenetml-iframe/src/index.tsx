@@ -5,14 +5,14 @@ import * as Comlink from "comlink";
 import { MdError } from "react-icons/md";
 import {
     codedDiagnostic,
-    findAllNewlines,
-    getLineCharRange,
     getSystemTheme,
     subscribeToSystemTheme,
 } from "@doenet/utils";
 import type {
     DiagnosticRecord,
     ErrorRecord,
+    Point,
+    Position,
     WarningRecord,
     ThemeSetting,
     ResolvedTheme,
@@ -20,6 +20,7 @@ import type {
 import {
     DoenetViewerProps,
     DoenetEditorProps,
+    BOOT_CONCLUDING_CALLBACKS,
     createHtmlForDoenetViewer,
     createHtmlForDoenetEditor,
     setIframeBodyBackground,
@@ -57,6 +58,19 @@ import {
 
 export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
+
+/**
+ * A DoenetML version as messages show it: a version number always carries
+ * its `v` prefix. A detected version gets one from `xmlns` detection, but
+ * `IFRAME_VERSION` and a host's `doenetmlVersion` may come without it, and
+ * both spellings name the same CDN package. A host's `doenetmlVersion` may
+ * also be a dist-tag such as `dev`, which is shown as given.
+ */
+function versionLabel(doenetmlVersion: string): string {
+    return /^\d/.test(doenetmlVersion)
+        ? `v${doenetmlVersion}`
+        : doenetmlVersion;
+}
 
 export { mathjaxConfig } from "@doenet/utils";
 export {
@@ -141,7 +155,10 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
     /**
      * If `true`, look for a xmlns attribute in an outer `<document>` tag
      * and use that for the doenetmlVersion,
-     * overwriting any doenetmlVersion or urls provided
+     * overwriting any doenetmlVersion or urls provided.
+     * If the bundle for the detected version fails to load (e.g. the version
+     * is mistyped or was never published), fall back to the provided urls,
+     * or else to doenetmlVersion or the latest version, and warn.
      */
     autodetectVersion?: boolean;
     /**
@@ -219,7 +236,10 @@ export type DoenetEditorIframeProps = DoenetEditorProps & {
     /**
      * If `true`, look for a xmlns attribute in an outer `<document>` tag
      * and use that for the doenetmlVersion,
-     * overwriting any doenetmlVersion or urls provided
+     * overwriting any doenetmlVersion or urls provided.
+     * If the bundle for the detected version fails to load (e.g. the version
+     * is mistyped or was never published), fall back to the provided urls,
+     * or else to doenetmlVersion or the latest version, and warn.
      */
     autodetectVersion?: boolean;
     /**
@@ -370,50 +390,79 @@ export function DoenetViewer({
         clearBootWatchdog();
         releaseBootSlot(id);
     }
-    // Stable composed initializedCallback: releases this viewer's boot slot,
-    // then forwards to the host's latest callback. Registered with the
-    // iframe instead of the host's own callback when windowed (the iframe
-    // side sees one stable identity; the host's identity is still what the
+    // Stable composed callbacks: release this viewer's boot slot, then
+    // forward to the host's latest callback of the same name. Registered with
+    // the iframe instead of the host's own when windowed (the iframe side
+    // sees one stable identity; the host's identity is still what the
     // function-prop change detection compares).
-    const composedInitializedCallbackRef = React.useRef<
-        ((arg: unknown) => void) | null
-    >(null);
-    if (composedInitializedCallbackRef.current === null) {
-        composedInitializedCallbackRef.current = (arg: unknown) => {
-            relinquishBootSlot();
-            (doenetViewerPropsRef.current as any).initializedCallback?.(arg);
-        };
+    const composedBootCallbacksRef = React.useRef<Record<
+        string,
+        (arg: unknown) => void
+    > | null>(null);
+    if (composedBootCallbacksRef.current === null) {
+        // Null-prototype: `functionPropToProxy` looks names up in here by
+        // host-supplied key, and an object literal would answer `toString`
+        // (and every other `Object.prototype` member) with a function that is
+        // not a composed callback at all.
+        const composed = Object.create(null) as Record<
+            string,
+            (arg: unknown) => void
+        >;
+        for (const key of BOOT_CONCLUDING_CALLBACKS) {
+            composed[key] = (arg: unknown) => {
+                relinquishBootSlot();
+                (doenetViewerPropsRef.current as any)[key]?.(arg);
+            };
+        }
+        composedBootCallbacksRef.current = composed;
     }
     /** Proxy the composed callback for windowed viewers, the raw one otherwise. */
     function functionPropToProxy(key: string, prop: Function): Function {
-        if (windowed && key === "initializedCallback") {
-            return composedInitializedCallbackRef.current!;
+        const composed = composedBootCallbacksRef.current![key];
+        if (windowed && composed) {
+            return composed;
         }
         return prop;
     }
     /**
-     * Append the composed `initializedCallback` proxy to a Comlink
-     * function-prop argument list when windowed and the host supplied no
-     * `initializedCallback` of its own, so the boot-slot release still
-     * reaches the iframe. `hostFunctions` is the set of function props the
-     * host actually passed (keyed by name).
+     * Append the composed boot-concluding proxies to a Comlink function-prop
+     * argument list when windowed and the host supplied no callback of that
+     * name itself, so the boot-slot release still reaches the iframe.
+     * `hostFunctions` is the set of function props the host actually passed
+     * (keyed by name).
      */
-    function appendComposedInitializedCallback(
+    function appendComposedBootCallbacks(
         proxiedFunctions: (string | Function)[],
         hostFunctions: Record<string, Function>,
     ) {
-        if (windowed && !("initializedCallback" in hostFunctions)) {
-            proxiedFunctions.push("initializedCallback");
-            proxiedFunctions.push(
-                Comlink.proxy(composedInitializedCallbackRef.current!),
-            );
+        if (!windowed) {
+            return;
+        }
+        for (const key of BOOT_CONCLUDING_CALLBACKS) {
+            if (!(key in hostFunctions)) {
+                proxiedFunctions.push(key);
+                proxiedFunctions.push(
+                    Comlink.proxy(composedBootCallbacksRef.current![key]),
+                );
+            }
         }
     }
 
     const [height, setHeight] = React.useState("500px");
-    const [inErrorState, setInErrorState] = React.useState<string | null>(null);
-    const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
-        React.useState(false);
+    // The error the iframe last reported, with the standalone bundle URL it
+    // was loading at the time, so a later render can tell whether the error
+    // belongs to the bundle it currently selects.
+    const [inErrorState, setInErrorState] = React.useState<{
+        message: string;
+        standaloneUrl: string;
+    } | null>(null);
+    // The `xmlns`-detected version whose bundle failed to load, if any. Only
+    // that version is ignored from then on: `doenetML` can change live, and a
+    // later document naming a different version must still get that version
+    // rather than this viewer's fallback.
+    const [failedDetectedVersion, setFailedDetectedVersion] = React.useState<
+        string | null
+    >(null);
     const resolvedTheme = useResolvedTheme(
         doenetViewerProps.darkMode ?? "system",
     );
@@ -430,11 +479,14 @@ export function DoenetViewer({
 
     let standaloneUrl: string, cssUrl: string;
     let foundAutoVersion = false;
-    let detectedVersion;
+    let detectedVersion: string | undefined;
 
-    if (autodetectVersion && !ignoreDetectedVersion) {
+    if (autodetectVersion) {
         let result = detectVersionFromDoenetML(doenetML);
-        if (result?.version !== undefined) {
+        if (
+            result?.version !== undefined &&
+            "v" + result.version !== failedDetectedVersion
+        ) {
             foundAutoVersion = true;
             detectedVersion = "v" + result.version;
         }
@@ -736,8 +788,10 @@ export function DoenetViewer({
                 if (windowed) {
                     relinquishBootSlot();
                 }
-                //@ts-ignore
-                return setInErrorState(data.error);
+                return setInErrorState({
+                    message: String(data.error),
+                    standaloneUrl: standaloneUrlRef.current,
+                });
             } else if (data.iframeReady) {
                 // if `iframeReady`, then Comlink.expose has been called in the iframe
                 // and we can call `renderViewerWithFunctionProps`
@@ -774,9 +828,9 @@ export function DoenetViewer({
                         }
                     }
                     // Windowed viewers always register the composed
-                    // initializedCallback (it releases the boot slot), even
-                    // when the host passed none.
-                    appendComposedInitializedCallback(
+                    // boot-concluding callbacks (they release the boot slot),
+                    // even when the host passed none.
+                    appendComposedBootCallbacks(
                         proxiedFunctions,
                         registeredFunctions,
                     );
@@ -898,7 +952,7 @@ export function DoenetViewer({
             proxiedFunctions.push(key);
             proxiedFunctions.push(Comlink.proxy(functionPropToProxy(key, val)));
         }
-        appendComposedInitializedCallback(proxiedFunctions, current);
+        appendComposedBootCallbacks(proxiedFunctions, current);
         const action = (remote: ViewerIframeRemote) => {
             remote
                 .updateViewerFunctionProps(...proxiedFunctions)
@@ -1190,10 +1244,31 @@ export function DoenetViewer({
         updateEffectiveVisibility();
     }, [windowed, keepLive]);
 
+    if (inErrorState && inErrorState.standaloneUrl !== standaloneUrl) {
+        // `doenetML` changed since the error to one that selects a different
+        // bundle (e.g. its `xmlns` now names another version). The error
+        // belongs to the old bundle: drop it and load the new one, rather
+        // than blaming the new version for it below.
+        setInErrorState(null);
+        return null;
+    }
+
     if (inErrorState) {
         if (foundAutoVersion) {
-            setIgnoreDetectedVersion(true);
-            setInErrorState("");
+            // The bundle for the `xmlns`-detected version failed to load
+            // (e.g. a mistyped or unpublished version): fall back to the
+            // version the host would otherwise have used. The viewer has no
+            // diagnostics panel to carry this (the editor reports it as a
+            // coded diagnostic), so tell the author via the console.
+            console.warn(
+                `DoenetViewer: the xmlns names DoenetML version \`${detectedVersion}\`, which could not be loaded; using ${
+                    specifiedStandaloneUrl
+                        ? "the host-specified standalone bundle"
+                        : `version \`${versionLabel(specifiedDoenetmlVersion ?? latestDoenetmlVersion)}\``
+                } instead.`,
+            );
+            setFailedDetectedVersion(detectedVersion!);
+            setInErrorState(null);
             return null;
         }
 
@@ -1221,7 +1296,7 @@ export function DoenetViewer({
                     padding: "0.5em",
                 }}
             >
-                {errorIcon} {inErrorState}
+                {errorIcon} {inErrorState.message}
             </div>
         );
     }
@@ -1344,6 +1419,29 @@ function serializePropsSnapshot(
     return JSON.stringify(snapshot);
 }
 
+/**
+ * Convert a `{ begin, end }` character-offset range in `source` (as
+ * `detectVersionFromDoenetML` reports it) into the unist `Position` a
+ * diagnostic record carries: 1-based `line` and `column` plus the offset.
+ */
+function offsetRangeToPosition(
+    source: string,
+    range: { begin: number; end: number },
+): Position {
+    function offsetToPoint(offset: number): Point {
+        let line = 1;
+        let lineStart = 0;
+        for (let i = 0; i < offset; i++) {
+            if (source[i] === "\n") {
+                line++;
+                lineStart = i + 1;
+            }
+        }
+        return { line, column: offset - lineStart + 1, offset };
+    }
+    return { start: offsetToPoint(range.begin), end: offsetToPoint(range.end) };
+}
+
 // ComLink RPC calls return Promises, but the wrapper APIs built on them are
 // `void` (matching the in-process components so consumers can use one type
 // for both). Attach an explicit catch handler so we don't leave the Promise
@@ -1397,6 +1495,10 @@ export const DoenetEditor = React.forwardRef<
     const onStylePalettesRef = React.useRef(onStylePalettes);
     onStylePalettesRef.current = onStylePalettes;
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
+    // Unlike the viewer, the editor stops detecting for good after a failed
+    // detected version: its document is initial-only, so switching bundles
+    // would reload the iframe with the initial DoenetML and drop the author's
+    // edits. A fixed `xmlns` takes effect on the next mount.
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
     const [initialDiagnostics, setInitialDiagnostics] = React.useState<
@@ -1496,7 +1598,8 @@ export const DoenetEditor = React.forwardRef<
 
     let standaloneUrl: string, cssUrl: string;
     let foundAutoVersion = false;
-    let detectedVersion, detectedDoenetMLrange;
+    let detectedVersion: string | undefined;
+    let detectedDoenetMLrange: { begin: number; end: number } | undefined;
 
     if (autodetectVersion && !ignoreDetectedVersion) {
         let result = detectVersionFromDoenetML(doenetML);
@@ -1788,21 +1891,20 @@ export const DoenetEditor = React.forwardRef<
                     version: String(detectedVersion),
                     fallback: specifiedStandaloneUrl
                         ? "none"
-                        : String(
+                        : versionLabel(
                               specifiedDoenetmlVersion ?? latestDoenetmlVersion,
                           ),
                 },
             });
 
-            // add line number to the doenetML range of the error
-            let allNewlines = findAllNewlines(doenetML);
-            Object.assign(
-                detectedDoenetMLrange!,
-                getLineCharRange(detectedDoenetMLrange!, allNewlines),
-            );
-
             setInitialDiagnostics([
-                { ...versionDiagnostic, position: detectedDoenetMLrange! },
+                {
+                    ...versionDiagnostic,
+                    position: offsetRangeToPosition(
+                        doenetML,
+                        detectedDoenetMLrange!,
+                    ),
+                },
             ]);
             return null;
         }

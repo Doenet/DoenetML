@@ -86,6 +86,70 @@ fn can_iterate_parents() {
 }
 
 #[test]
+fn can_iterate_parents_of_an_element_written_inside_an_index() {
+    // What is written between a reference's index brackets is parented to the
+    // reference, not to an element. The reference is not an ancestor element, so the
+    // iterator steps over it and reports where the reference itself sits — which is
+    // what lets a name written in an index resolve from the surrounding document.
+    let dast_root =
+        dast_root_no_position(r#"<document><a><x>$m[<c name="n"/>]</x></a></document>"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+
+    let c_idx = flat_root
+        .nodes
+        .iter()
+        .find_map(|node| match node {
+            FlatNode::Element(element) if element.name == "c" => Some(element.idx),
+            _ => None,
+        })
+        .expect("the element written in the index should be a node of its own");
+
+    // Its parent is the `$m` reference rather than an element.
+    assert!(matches!(
+        flat_root.nodes[flat_root.nodes[c_idx].parent().unwrap()],
+        FlatNode::Ref(_)
+    ));
+
+    let parent_names = FlatRootOrFragment::Root(&flat_root)
+        .parent_iter(c_idx)
+        .map(|e| e.name.clone())
+        .collect::<Vec<_>>();
+    assert_eq!(vec!["x", "a", "document"], parent_names);
+}
+
+#[test]
+fn can_iterate_parents_of_an_element_written_as_a_function_reference_argument() {
+    // The same shape one layer over: a function reference's arguments are parented
+    // to the function reference. This one is not new — `$$f(<math>3</math>)` has
+    // parsed into an element argument for as long as `gobbleFunctionArguments` has
+    // existed — so before the iterator learned to step over a non-element parent,
+    // building the resolver for it panicked.
+    let dast_root =
+        dast_root_no_position(r#"<document><a><x>$$f(<c name="n"/>)</x></a></document>"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+
+    let c_idx = flat_root
+        .nodes
+        .iter()
+        .find_map(|node| match node {
+            FlatNode::Element(element) if element.name == "c" => Some(element.idx),
+            _ => None,
+        })
+        .expect("the element written as an argument should be a node of its own");
+
+    assert!(matches!(
+        flat_root.nodes[flat_root.nodes[c_idx].parent().unwrap()],
+        FlatNode::FunctionRef(_)
+    ));
+
+    let parent_names = FlatRootOrFragment::Root(&flat_root)
+        .parent_iter(c_idx)
+        .map(|e| e.name.clone())
+        .collect::<Vec<_>>();
+    assert_eq!(vec!["x", "a", "document"], parent_names);
+}
+
+#[test]
 fn can_print_to_xml() {
     let dast_root = dast_root_no_position(r#"<document><a><b></b><x><c/></x></a></document>"#);
     let flat_root = FlatRoot::from_dast(&dast_root);
@@ -197,4 +261,55 @@ fn flattening_carries_a_parser_diagnostic_code() {
     // The English the parser wrote rides along unchanged, so anything without
     // the message catalogs still has something to show.
     assert!(error.message.starts_with("Invalid DoenetML: The tag `<p>`"));
+}
+
+/// The attribute names of the first element in `source`, in the order the
+/// flattener produced them.
+///
+/// Deliberately does not go through `FlatRoot::to_xml`, which sorts attributes
+/// before printing "to ensure stable printing" -- that sort is what kept the
+/// nondeterminism these tests are about invisible to the suite.
+fn flattened_attribute_names(source: &str) -> Vec<String> {
+    let flat_root = FlatRoot::from_dast(&dast_root(source));
+    flat_root
+        .nodes
+        .iter()
+        .find_map(|node| match node {
+            FlatNode::Element(element) if !element.attributes.is_empty() => Some(
+                element
+                    .attributes
+                    .iter()
+                    .map(|attribute| attribute.name.clone())
+                    .collect(),
+            ),
+            _ => None,
+        })
+        .expect("no element with attributes was flattened")
+}
+
+#[test]
+fn flattens_attributes_in_source_order() {
+    // Written out of alphabetical order on purpose: sorting by name would pass
+    // an `x, y, name` document while still moving the indices if #122 ever
+    // replaces the map with a `Vec`.
+    assert_eq!(
+        flattened_attribute_names(r#"<point y="1" x="0" name="P" />"#),
+        vec!["y", "x", "name"]
+    );
+}
+
+#[test]
+fn flattens_attributes_in_the_same_order_every_time() {
+    // `DastElement::attributes` is a `HashMap`, whose iteration order Rust
+    // randomizes per process -- so this is the shape of test that catches the
+    // defect. A single build proves nothing: before the fix, ten builds of this
+    // document gave five different orders, and saved reader state keyed on the
+    // resulting indices restored a dragged point with its coordinates swapped
+    // about a third of the time (Doenet/DoenetML#1944).
+    let source = r#"<point x="0" y="1" name="P" />"#;
+    let first = flattened_attribute_names(source);
+
+    for _ in 0..20 {
+        assert_eq!(flattened_attribute_names(source), first);
+    }
 }

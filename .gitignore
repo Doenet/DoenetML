@@ -62,6 +62,9 @@ stats.html
 tsconfig.tsbuildinfo
 .vscode
 packages/docs-nextra/public/bundle
+# Derived from the release tags by docs-nextra's build:pre, never committed:
+# a stored copy could only ever be stale, never more correct.
+packages/docs-nextra/generated/
 .next
 cspell.json
 *.timestamp-*
@@ -79,6 +82,9 @@ packages/prefigure/src/worker/liblouis/generated/*.dis
 
 packages/doenetml-to-pretext-python/doenetml_to_pretext/js-assets/*
 packages/doenetml-print/python/pretext_wasm/core/*
+# PreTeXt's vendored stylesheets live in a `dist` directory, which the rule above would
+# ignore; update_pretext_core.sh must be able to add the new ones.
+!packages/doenetml-print/pretext_core/css/dist
 __pycache__
 .pytest_cache
 *.egg-info
@@ -88,3 +94,11 @@ __pycache__
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 tmp/
+# Heap snapshots/profiles written during memory profiling (.heapsnapshot,
+# .heapprofile, .heaptimeline).
+*.heap*
+
+# Vitest browser mode writes a screenshot here for every *failing* test
+# (browser.screenshotFailures, on by default). They are failure artifacts,
+# not intentional snapshots, and are trivially re-created by re-running.
+**/test/__screenshots__/

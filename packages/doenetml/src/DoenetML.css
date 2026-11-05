@@ -129,6 +129,11 @@ html {
     font-family: "Open Sans" !important;
     color: var(--canvasText);
     overflow-x: auto;
+    /* Without this, `overflow-x: auto` makes `overflow-y` compute to `auto`,
+       and content a few pixels taller than the viewer turns it into a
+       vertical scroller. iOS WebKit then hands every drag to that tiny
+       scroller, which snaps back, so the host page can't be scrolled. */
+    overflow-y: hidden;
 }
 .doenet-viewer h1 {
     font-size: 2em;

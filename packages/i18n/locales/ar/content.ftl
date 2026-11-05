@@ -93,7 +93,6 @@ color =
             [f] بنية
            *[m] بني
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -105,7 +104,6 @@ line-width =
             [f] رفيعة
            *[m] رفيع
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -117,7 +115,6 @@ line-style =
             [f] منقطة
            *[m] منقط
         }
-
 # Fill patterns are plural nouns rather than adjectives, so they do not agree
 # with the shape and take no `$gender` branch. The colour handed in beside one
 # agrees with the head of its phrase instead, never with the pattern: the shape
@@ -130,7 +127,6 @@ fill-style =
     .backdiagonal = خطوط مائلة معاكسة
     .dots = نقاط
     .diamonds = معينات
-
 # «علامة ضرب» and «علامة زائد» name the marker by the sign it is drawn as.
 # «صليب» is the word for a cross as an object and carries a religious sense
 # that a plotted point does not.
@@ -153,7 +149,6 @@ noun =
     .diamond = معين
     .cross = علامة ضرب
     .plus = علامة زائد
-
 # The side count is a complement rather than part of the head: «مضلع منتظم»
 # takes its adjectives first and closes with «ذو 5 أضلاع», so that the
 # adjectives stay beside the noun they agree with.
@@ -175,7 +170,6 @@ noun-regular-polygon =
             }
        *[head] مضلع منتظم
     }
-
 # Besides the nouns above, `$noun` may be «regular-polygon» (مضلع منتظم, m) or
 # the head of a phrase the description never names: «border» (إطار, m), «fill»
 # (ملء, m), «text» (نص, m), «background» (خلفية, f). Only the last is feminine
@@ -195,7 +189,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 # The adjectives are listed in the mirror of the English order, so that the one
@@ -211,7 +204,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «خط أحمر سميك». A noun with a
 # complement closes the phrase with it: «مضلع منتظم أحمر سميك ذو 5 أضلاع».
 style-with-noun =
@@ -219,13 +211,11 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] مملوءة
        *[m] مملوء
     }
-
 # «بنمط» — "with a pattern of" — rather than a bare preposition: Arabic
 # attaches «بـ» directly to the word after it, and a placeable cannot be
 # written against a prefix without a tatweel between them.
@@ -234,7 +224,6 @@ style-filled =
         [pattern] { $color } { $filled } بنمط { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } بنمط { $pattern }
@@ -242,7 +231,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $color } { $filled } { $nounTail } بنمط { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # Arabic has no indefinite article, so the two `-article` branches say exactly
 # what their plain counterparts do. They are kept apart rather than folded
 # together because the distinction is the English message's, not this one's,
@@ -255,7 +243,6 @@ style-border-clause =
         [and-article] وإطار { $border }
        *[with] بإطار { $border }
     }
-
 # «بلون» — "of the colour" — because the colour arrives agreed with «ملء»,
 # which is masculine singular, while the pattern words are feminine plurals.
 # The plain variant is the whole of what `fillColor` reports, so the gender the
@@ -266,31 +253,25 @@ style-fill =
         [pattern] { $pattern } بلون { $color }
        *[plain] { $color }
     }
-
 # Said of no particular shape — `describeFill` passes no gender — so it takes
 # the masculine, which is also what an unnamed subject takes.
 style-unfilled = غير مملوء
-
 style-text =
     { $parts ->
         [background] { $color } على خلفية { $background }
        *[plain] { $color }
     }
-
 style-background-none = لا شيء
-
 
 ## Boolean words
 
 boolean-true = صواب
 boolean-false = خطأ
 
-
 ## Answer buttons
 
 answer-submit-label = تحقق من الإجابة
 answer-submit-label-no-correctness = إرسال الإجابة
-
 
 ## Sectional blocks
 
@@ -315,7 +296,6 @@ section-name =
     .solution = حل
     .task = مهمة
     .theorem = نظرية
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -325,9 +305,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = تلميح
-
 
 ## Tables and figures
 
@@ -338,7 +316,6 @@ table-name =
         [unnumbered-title] جدول{ ": " }
        *[unnumbered] جدول
     }
-
 figure-name =
     { $parts ->
         [numbered] شكل { $enumeration }
@@ -347,24 +324,18 @@ figure-name =
        *[unnumbered] شكل
     }
 
-
 ## Paginator controls
 
 paginator-previous = السابق
 paginator-next = التالي
 paginator-page = صفحة
-
 paginator-page-status = { $pageLabel } { $currentPage } من { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = أو
-
 piecewise-condition-if = إذا كان
-
 piecewise-condition-otherwise = خلاف ذلك
-
 
 ## Chemistry
 
@@ -487,7 +458,6 @@ element-name =
     .lv = ليفرموريوم
     .ts = تينيسين
     .og = أوجانيسون
-
 element-anion-name =
     .h = هيدريد
     .c = كربيد
@@ -501,8 +471,6 @@ element-anion-name =
     .i = يوديد
     .at = أستاتيد
     .ts = تينيسيد
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = رمز كيميائي غير صالح
 chemistry-invalid-ionic-compound = مركب أيوني غير صالح

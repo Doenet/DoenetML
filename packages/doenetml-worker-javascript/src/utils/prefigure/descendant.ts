@@ -19,6 +19,14 @@ import {
 import { convertAngleToPrefigure } from "./components/angle";
 import { convertCurveToPrefigure } from "./components/curve";
 import { convertRegionBetweenCurvesToPrefigure } from "./components/regionBetweenCurves";
+import {
+    convertSlopeFieldToPrefigure,
+    convertVectorFieldToPrefigure,
+} from "./components/field";
+import {
+    GRAPH_TEXT_CONTENT_VARIABLES,
+    graphTextConverter,
+} from "./components/text";
 import type {
     Converter,
     Descendant,
@@ -35,7 +43,13 @@ const FILLED_COMPONENT_TYPES = new Set([
     "rectangle",
 ]);
 
-const NO_FILL_COMPONENT_TYPES = new Set(["polyline", "angle", "curve"]);
+const NO_FILL_COMPONENT_TYPES = new Set([
+    "polyline",
+    "angle",
+    "curve",
+    "slopeField",
+    "vectorField",
+]);
 
 function styleIncludesFill(
     componentType: string,
@@ -60,10 +74,18 @@ const convertByComponentType: Record<string, Converter> = {
     angle: convertAngleToPrefigure,
     curve: convertCurveToPrefigure,
     regionBetweenCurves: convertRegionBetweenCurvesToPrefigure,
+    slopeField: convertSlopeFieldToPrefigure,
+    vectorField: convertVectorFieldToPrefigure,
     endpoint: convertPointToPrefigure,
     equilibriumPoint: convertPointToPrefigure,
     triangle: convertPolygonToPrefigure,
     rectangle: convertPolygonToPrefigure,
+    ...Object.fromEntries(
+        Object.keys(GRAPH_TEXT_CONTENT_VARIABLES).map((componentType) => [
+            componentType,
+            graphTextConverter(componentType),
+        ]),
+    ),
 };
 
 interface ConvertGraphicalDescendantArgs {
@@ -98,6 +120,7 @@ export function convertGraphicalDescendantToPrefigure({
         ...(descendant?.stateValues ?? {}),
         graphBounds,
         graphDimensions,
+        darkMode,
     };
 
     // Swap in dark-mode colors once, here, so every downstream converter and the
@@ -119,7 +142,8 @@ export function convertGraphicalDescendantToPrefigure({
         includeFill: styleIncludesFill(descendant.componentType, sv),
     });
 
-    const converter = convertByComponentType[descendant.componentType];
+    const converter =
+        convertByComponentType[descendant.textType ?? descendant.componentType];
     if (!converter) {
         pushWarning({
             diagnostics,

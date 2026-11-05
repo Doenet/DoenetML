@@ -39,6 +39,7 @@ import {
 } from "./lezer-to-dast-utils";
 import { parseMacros } from "../macros";
 import { gobbleFunctionArguments } from "./gobble-function-arguments";
+import { gobblePropIndices } from "./gobble-prop-indices";
 import { findNodesWithPositionInfo } from "../dast-to-xml/utils";
 
 /**
@@ -74,7 +75,13 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
     const offsetMap = createOffsetToPositionMap(source);
     return {
         type: "root",
-        children: gobbleFunctionArguments(lezerNodeToDastNode(node)),
+        children: gobblePropIndices(
+            gobbleFunctionArguments(
+                gobblePropIndices(lezerNodeToDastNode(node), offsetMap),
+            ),
+            offsetMap,
+            { warnOnly: true },
+        ),
         position: lezerNodeToPosition(node, offsetMap),
         sources: [source],
     };
@@ -285,8 +292,23 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         (n) => lezerNodeToDastNode(n) as DastElementContent[],
                     ),
                 );
-                children = gobbleFunctionArguments(
-                    children,
+                // Indices are gobbled before function arguments so that the
+                // brackets are out of the sibling array by the time the
+                // arguments are looked for. `gobbleFunctionArguments` takes an
+                // argument list only from the node directly after the
+                // reference, so with `[`, the element and `]` still sitting
+                // there it would see `[` where it needs `(` and leave
+                // `$$f[<n/>](y)` uncalled. Reversing the two loses the call.
+                // The third pass reports the brackets the first cannot see —
+                // `$$f(<n/>)[<m/>]`, and `$$fs[<n/>](3)[<m/>]` too. Until the
+                // arguments are gobbled, either reference is followed by `(`
+                // rather than `[`.
+                children = gobblePropIndices(
+                    gobbleFunctionArguments(
+                        gobblePropIndices(children, offsetMap),
+                    ),
+                    offsetMap,
+                    { warnOnly: true },
                 ) as DastElementContent[];
 
                 return [

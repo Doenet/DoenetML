@@ -76,7 +76,6 @@ color =
             [f] dhonn
            *[m] donn
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -88,7 +87,6 @@ line-width =
             [f] chaol
            *[m] caol
         }
-
 line-style =
     .dashed = strìochagach
     .dotted =
@@ -96,7 +94,6 @@ line-style =
             [f] dhotagach
            *[m] dotagach
         }
-
 # Noun phrases standing behind «le». They modify nothing and take no gender.
 fill-style =
     .horizontal = loidhnichean còmhnard
@@ -105,7 +102,6 @@ fill-style =
     .backdiagonal = loidhnichean trastanach cùil
     .dots = dotagan
     .diamonds = daoimeanan
-
 noun =
     .line = loidhne
     .line-segment = earrann-loidhne
@@ -125,19 +121,18 @@ noun =
     .diamond = daoimean
     .cross = crois
     .plus = plus
-
 # The side count follows the style adjectives, so the head and the tail split
 # around them. Three to ten take a plural noun in Gaelic and every other count
 # leaves it singular, so the tail branches on `few` alone.
 noun-regular-polygon =
     { $part ->
-        [tail] le { $numSides } { $numSides ->
-            [few] taobhan
-           *[other] taobh
-        }
+        [tail]
+            le { $numSides } { $numSides ->
+                [few] taobhan
+               *[other] taobh
+            }
        *[head] ioma-cheàrnach riaghailteach
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (ioma-cheàrnach, m) or
 # the head of a phrase the description never names: `border` (iomall, m),
 # `fill` (lìonadh, m), `text` (teacsa, m), `background` (cùlaibh, m).
@@ -155,7 +150,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 # The adjectives follow their noun, and among themselves Gaelic keeps the
@@ -172,23 +166,19 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 # «lìonta» begins with `l`, which has no lenited form, so it reads the same
 # after either gender.
 style-filled-word = lìonta
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } le { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } le { $pattern }
@@ -196,7 +186,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $color } { $filled } { $nounTail } le { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # «iomall» is masculine, so the border's adjectives are unlenited after it
 # whatever the shape around it is. Gaelic prefixes nothing to it after «le»,
 # and has no indefinite article, so all four branches differ only in the
@@ -208,35 +197,28 @@ style-border-clause =
         [and-article] agus iomall { $border }
        *[with] le iomall { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] lìonadh { $color } le { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = gun lìonadh
-
 style-text =
     { $parts ->
         [background] { $color } le cùlaibh { $background }
        *[plain] { $color }
     }
-
 style-background-none = chan eil gin
-
 
 ## Boolean words
 
 boolean-true = fìor
 boolean-false = breugach
 
-
 ## Answer buttons
 
 answer-submit-label = Dearbh an obair
 answer-submit-label-no-correctness = Cuir a-steach an fhreagairt
-
 
 ## Sectional blocks
 
@@ -261,7 +243,6 @@ section-name =
     .solution = Fuasgladh
     .task = Obair
     .theorem = Teòirim
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -271,9 +252,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Sanas
-
 
 ## Tables and figures
 
@@ -284,7 +263,6 @@ table-name =
         [unnumbered-title] Clàr{ ": " }
        *[unnumbered] Clàr
     }
-
 figure-name =
     { $parts ->
         [numbered] Dealbh { $enumeration }
@@ -293,22 +271,18 @@ figure-name =
        *[unnumbered] Dealbh
     }
 
-
 ## Paginator controls
 
 paginator-previous = Air ais
 paginator-next = Air adhart
 paginator-page = Duilleag
-
 paginator-page-status = { $pageLabel } { $currentPage } à { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = no
 piecewise-condition-if = ma
 piecewise-condition-otherwise = air neo
-
 
 ## Chemistry
 
@@ -431,7 +405,6 @@ element-name =
     .lv = Livermorium
     .ts = Tenneisin
     .og = Oganeson
-
 element-anion-name =
     .h = Haidrid
     .c = Carbaid
@@ -445,8 +418,6 @@ element-anion-name =
     .i = Iodaid
     .at = Astataid
     .ts = Tenneisid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Samhla ceimigeach mì-dhligheach
 chemistry-invalid-ionic-compound = Todhar ianach mì-dhligheach

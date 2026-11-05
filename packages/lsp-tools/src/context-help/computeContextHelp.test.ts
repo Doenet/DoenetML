@@ -187,6 +187,48 @@ describe("computeContextHelp — cursor on a tag boundary (#1327)", () => {
         const help = await helpAt(source, 9);
         expect(help).toMatchObject({ kind: "element", elementName: "text" });
     });
+
+    it("reports element help while a tag name is typed before a terminator (#1767)", async () => {
+        // A character that cannot continue a tag name — here the `}` the
+        // editor auto-inserted for `\frac{` — used to make the half-typed
+        // `<math` look like a finished element the cursor was *inside*, so the
+        // panel listed that element's allowed children instead of describing
+        // the element being named.
+        const source = `<me>\\frac{<math}</me>`;
+        const help = await helpAt(source, source.indexOf("<math}") + 5);
+        expect(help).toMatchObject({ kind: "element", elementName: "math" });
+    });
+
+    it("reports no help for a tag name ending in a non-word character (#1780)", async () => {
+        // The panel used to describe the *parent* while the author was still
+        // typing a tag name that ended in anything `\w` does not cover — `-`,
+        // `.`, `:` or a non-ASCII letter — or show an empty allowed-children
+        // panel for the half-typed name as though it were a real element.
+        // Neither element exists, so there is nothing to say.
+        const followers = ["", "}", "/", ">"];
+        for (const nameEnd of ["-", ".", ":", "ü"]) {
+            for (const after of followers) {
+                const source = `<p><my${nameEnd}${after}</p>`;
+                const offset = source.indexOf("<my") + 3 + nameEnd.length;
+                const help = await helpAt(source, offset);
+                expect({ source, kind: help.kind }).toEqual({
+                    source,
+                    kind: "none",
+                });
+            }
+        }
+
+        // A name that does match an element still gets its help, whatever
+        // follows the cursor.
+        for (const after of followers) {
+            const source = `<p><math${after}</p>`;
+            const help = await helpAt(source, source.indexOf("<math") + 5);
+            expect({ source, help }).toMatchObject({
+                source,
+                help: { kind: "element", elementName: "math" },
+            });
+        }
+    });
 });
 
 describe("computeContextHelp — attribute help", () => {
@@ -1580,6 +1622,103 @@ describe("computeContextHelp — repeat-introduced names (valueName/indexName)",
                 ownerLine: 1,
             },
         });
+    });
+});
+
+describe("computeContextHelp — sizeSyntax on componentSize attributes", () => {
+    it("lists the accepted length forms on a width", async () => {
+        const source = `<textInput expanded width="600"/>`;
+        const offset = source.indexOf("width") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute" || !help.sizeSyntax) {
+            expect.fail("expected attribute help with sizeSyntax");
+            return;
+        }
+        const values = help.sizeSyntax.examples.map((e) => e.value);
+        // A bare number and a percentage are the two forms an author cannot
+        // guess from the attribute description alone.
+        expect(values).toContain("600");
+        expect(values).toContain("50%");
+        expect(values).toContain("6in");
+        expect(
+            help.sizeSyntax.examples.find((e) => e.value === "50%")?.kind,
+        ).toBe("relative");
+        expect(
+            help.sizeSyntax.examples.find((e) => e.value === "600")?.kind,
+        ).toBe("absolute");
+        // A `<textInput>` uses its width literally.
+        expect(help.sizeSyntax.snapsToSizePreset).toBeUndefined();
+    });
+
+    it("offers a height the absolute forms and no percentage", async () => {
+        const source = `<textInput expanded height="300"/>`;
+        const offset = source.indexOf("height") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute" || !help.sizeSyntax) {
+            expect.fail("expected attribute help with sizeSyntax");
+            return;
+        }
+        // The runtime takes a percentage height and does nothing with it, so
+        // the panel never raises one — not as an offer, and not as a caveat.
+        const values = help.sizeSyntax.examples.map((e) => e.value);
+        expect(values).toContain("600px");
+        expect(values).not.toContain("50%");
+        expect(
+            help.sizeSyntax.examples.every((e) => e.kind === "absolute"),
+        ).toBe(true);
+    });
+
+    it("flags the widths that snap to a size preset", async () => {
+        for (const elementName of ["graph", "image", "video"]) {
+            const source = `<${elementName} width="400px"/>`;
+            const offset = source.indexOf("width") + 2;
+            const help = await helpAt(source, offset);
+            if (help.kind !== "attribute" || !help.sizeSyntax) {
+                expect.fail(`expected sizeSyntax on <${elementName} width>`);
+                return;
+            }
+            expect(help.sizeSyntax.snapsToSizePreset).toBe(true);
+        }
+    });
+
+    it("does not flag a width that is used literally", async () => {
+        const source = `<codeEditor width="50%"/>`;
+        const offset = source.indexOf("width") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute" || !help.sizeSyntax) {
+            expect.fail("expected attribute help with sizeSyntax");
+            return;
+        }
+        expect(help.sizeSyntax.snapsToSizePreset).toBeUndefined();
+    });
+
+    it("offers a side-by-side width the percentage and nothing else", async () => {
+        for (const elementName of ["sideBySide", "sbsGroup"]) {
+            const source = `<${elementName} width="50%"/>`;
+            const offset = source.indexOf("width") + 2;
+            const help = await helpAt(source, offset);
+            if (help.kind !== "attribute" || !help.sizeSyntax) {
+                expect.fail(`expected sizeSyntax on <${elementName} width>`);
+                return;
+            }
+            // An absolute width is warned about and coerced to relative, so
+            // the panel never puts one in front of an author.
+            expect(help.sizeSyntax.examples.map((e) => e.value)).toEqual([
+                "50%",
+            ]);
+            expect(help.sizeSyntax.snapsToSizePreset).toBeUndefined();
+        }
+    });
+
+    it("is absent on an attribute that is not a size", async () => {
+        const source = `<textInput expanded="true"/>`;
+        const offset = source.indexOf("expanded") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail("expected attribute help");
+            return;
+        }
+        expect(help.sizeSyntax).toBeUndefined();
     });
 });
 

@@ -71,15 +71,12 @@ color =
     .purple = ntong-ọbara
     .pink = ntong-ndịdiọn̄
     .brown = itiat
-
 line-width =
     .thick = akwa
     .thin = nsịn
-
 line-style =
     .dashed = eke ẹkpade ẹkpade
     .dotted = eke mme ntọt
-
 fill-style =
     .horizontal = mme ọfụhọ eke ẹnyụn̄de
     .vertical = mme ọfụhọ eke ẹdarade
@@ -87,7 +84,6 @@ fill-style =
     .backdiagonal = mme ọfụhọ eke ẹdarade ke ọkpọkpọ efep
     .dots = mme ntọt
     .diamonds = mme diamon
-
 noun =
     .line = ọfụhọ
     .line-segment = ubak ọfụhọ
@@ -107,17 +103,14 @@ noun =
     .diamond = diamon
     .cross = ekpri-ubọk
     .plus = idian
-
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
        *[head] n̄kanika eke enyenede { $numSides } n̄kịk emi ekemde kiet
     }
-
 # No grammatical gender, so this answers one token for every noun and the
 # answer goes unused — the shape `locales/en` has.
 noun-gender = kiet
-
 
 ## Style composition
 
@@ -131,21 +124,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = eke ẹyọhọde
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ye { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } ye { $pattern }
@@ -153,7 +142,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } ye { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] ye ọkpọkpọ { $border }
@@ -161,35 +149,28 @@ style-border-clause =
         [and-article] ye ọkpọkpọ { $border }
        *[with] ye ọkpọkpọ { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = eke mîyọhọke
-
 style-text =
     { $parts ->
         [background] { $color } ye ọkpọkpọ efep { $background }
        *[plain] { $color }
     }
-
 style-background-none = idụhe n̄kpọ
-
 
 ## Boolean words
 
 boolean-true = true
 boolean-false = false
 
-
 ## Answer buttons
 
 answer-submit-label = Nse Utom
 answer-submit-label-no-correctness = Nọ Ibọrọ
-
 
 ## Sectional blocks
 
@@ -214,7 +195,6 @@ section-name =
     .solution = Ibiere
     .task = Utom
     .theorem = Eti Ikọ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -224,7 +204,6 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ibuot
 
 ## Tables and figures
@@ -236,7 +215,6 @@ table-name =
         [unnumbered-title] Tebụl{ ": " }
        *[unnumbered] Tebụl
     }
-
 figure-name =
     { $parts ->
         [numbered] Ndise { $enumeration }
@@ -245,15 +223,12 @@ figure-name =
        *[unnumbered] Ndise
     }
 
-
 ## Paginator controls
 
 paginator-previous = Mbemiso
 paginator-next = N̄kaha
 paginator-page = Page
-
 paginator-page-status = { $pageLabel } { $currentPage } eke { $numPages }
-
 
 ## Piecewise functions
 
@@ -261,13 +236,11 @@ piecewise-condition-or = m̀mê
 piecewise-condition-if = edieke
 piecewise-condition-otherwise = ke n̄kpọ efen
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately absent — see the
 ## header above.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ndamban̄a Kemistri Emi Mîdotke
 chemistry-invalid-ionic-compound = N̄kpọ Ionic Emi Mîdotke

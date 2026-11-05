@@ -1,10 +1,11 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts()],
+    plugins: [ignoreWireitCachesPlugin(), dts()],
     resolve: {
         // The package `decode-named-character-reference` imported by `micromark-util-decode-string`
         // which is imported by `mdast-util-to-markdown` defaults to using the browser's DOM to compute

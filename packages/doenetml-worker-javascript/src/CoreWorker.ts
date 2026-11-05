@@ -15,21 +15,48 @@ import {
     RefResolution,
     IndexResolution,
     ContentVector,
-    RootNames,
+    RootNameChanges,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 // Type signatures for callbacks
+
+/**
+ * For a deferred batch, the viewer may return a promise that resolves once it
+ * has drawn the batch; core sends its next idle-lane chunk only after that,
+ * or after `RENDERER_ACK_TIMEOUT_MS` if it never resolves.
+ */
 export type UpdateRenderersCallback = (arg: {
     updateInstructions: Record<string, any>[];
     actionId?: string;
     diagnostics?: any[];
     init?: boolean;
-}) => void;
+    /**
+     * This batch is the deferred remainder of an earlier update, whose own
+     * batch already reported `actionId` as complete. The viewer applies the
+     * state but must not resolve the action a second time.
+     */
+    deferred?: boolean;
+    /**
+     * An update after load raised this circular dependency and the document
+     * has stopped: the core rejects every later request. The viewer shows the
+     * message in place of the document. Sent with no update instructions.
+     */
+    documentStopped?: string;
+}) => void | Promise<void>;
 export type ReportScoreAndStateCallback = (data: {
     score: number;
     state: unknown;
+    /**
+     * A mirror of the payload the 60-second database throttle is currently
+     * holding back, not a report to hand to the host (Doenet/DoenetML#1726).
+     * `DocViewer` buffers it and delivers it as a real report if the page
+     * goes away — or the viewer unmounts — before the throttle expires. A
+     * subsequent real report supersedes the buffered copy; a core rebuild
+     * discards it along with the document it describes.
+     */
+    pending?: boolean;
 }) => void;
 export type RequestAnimationFrame = (args: {
     action: { actionName: string; componentIdx?: string };
@@ -90,7 +117,7 @@ export class PublicDoenetMLCore {
         origin: number,
         skip_parent_search: boolean,
     ) => RefResolution;
-    calculateRootNames?: () => RootNames;
+    updateRootNames?: (reportAll: boolean) => RootNameChanges;
 
     setSource(doenetML: string) {
         this.doenetML = doenetML;
@@ -121,7 +148,7 @@ export class PublicDoenetMLCore {
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
-        calculateRootNames,
+        updateRootNames,
     }: {
         activityId: string;
         docId: string;
@@ -142,14 +169,14 @@ export class PublicDoenetMLCore {
             origin: number,
             skip_parent_search: boolean,
         ) => RefResolution;
-        calculateRootNames?: () => RootNames;
+        updateRootNames?: (reportAll: boolean) => RootNameChanges;
     }) {
         this.addNodesToResolver = addNodesToResolver;
         this.replaceIndexResolutionsInResolver =
             replaceIndexResolutionsInResolver;
         this.deleteNodesFromResolver = deleteNodesFromResolver;
         this.resolvePath = resolvePath;
-        this.calculateRootNames = calculateRootNames;
+        this.updateRootNames = updateRootNames;
 
         let componentInfoObjects = createComponentInfoObjects();
 
@@ -251,7 +278,7 @@ export class PublicDoenetMLCore {
                 this.replaceIndexResolutionsInResolver,
             deleteNodesFromResolver: this.deleteNodesFromResolver,
             resolvePath: this.resolvePath,
-            calculateRootNames: this.calculateRootNames,
+            updateRootNames: this.updateRootNames,
             updateRenderersCallback,
             reportScoreAndStateCallback,
             requestAnimationFrame,
@@ -316,15 +343,19 @@ export class PublicDoenetMLCore {
             return await this.core.requestAction(actionArgs);
         } catch (e) {
             console.error(e);
+            // The request queue rejects with the error's message rather than
+            // the error itself.
             return {
                 success: false,
                 errMsg:
-                    typeof e === "object" &&
-                    e &&
-                    "message" in e &&
-                    typeof e.message === "string"
-                        ? e.message
-                        : "",
+                    typeof e === "string"
+                        ? e
+                        : typeof e === "object" &&
+                            e &&
+                            "message" in e &&
+                            typeof e.message === "string"
+                          ? e.message
+                          : "",
                 actionId: actionArgs.args?.actionId,
             };
         }
@@ -347,6 +378,16 @@ export class PublicDoenetMLCore {
     ) {
         if (!this.core?.components) {
             return {};
+        }
+
+        // Evaluating every state variable of a document that a circular
+        // dependency has stopped would recurse into the cycle until the worker
+        // runs out of memory (#2137). This entry point is reached outside the
+        // request queue (`DocViewer` installs it as a `window` function), so
+        // it checks for the stop itself.
+        const stoppedByError = this.core.processQueue.stoppedByError;
+        if (stoppedByError !== null) {
+            throw Error(stoppedByError);
         }
 
         const componentsObj: Record<

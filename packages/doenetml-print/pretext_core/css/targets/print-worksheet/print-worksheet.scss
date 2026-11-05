@@ -1,3 +1,22 @@
+//********************************************************************
+// Copyright (C) 2025-2026  Robert A. Beezer
+//
+// This file is part of PreTeXt.
+//
+// PreTeXt is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 or version 3 of the
+// License (at your option).
+//
+// PreTeXt is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+//********************************************************************
+
 /*! Theme: print-worksheet */
 
 // Used for print versions of worksheets (including their previews) for all themes
@@ -27,6 +46,9 @@
 // For the print button
 @use 'components/helpers/buttons-default' as buttons;
 
+// For the "Printing options" dialog
+@use 'components/helpers/dialogs' as dialogs;
+
 
 // Make sure we are including the root colors using simple black-and-white palette
 // Always use colors from the light mode palette, since the print preview and printed version will be light mode.
@@ -36,11 +58,46 @@
   $primary-color: black,
 );
 
+// Typefaces offered in the "Printing options" dialog for readers who find them
+// easier to read (see the font rules for .printout below).  Importing them
+// only declares them: a browser fetches a font's files once a reader actually
+// chooses it.
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&family=Andika:ital,wght@0,400;0,700;1,400;1,700&family=Lexend:wght@100..900&display=swap');
+
 $light-colors: map.merge(
   palette.$colors,
   (
     "block-head-color": black,
   )
+);
+
+// Runestone ships its own dark-mode CSS variables that are independent of
+// PreTeXt theme variables; force those to light values in worksheet previews.
+$runestone-light-colors: (
+  "background": #fff,
+  "outerBackground": #eee,
+  "links": #0645ad,
+  "bodyFont": #000,
+  "tooltip": #fff,
+  "grayToWhite": #333,
+  "navbar": #f8f8f8,
+  "navbarFont": #707070,
+  "navbarFontHover": #000,
+  "alerts": #d9edf7,
+  "completionButton": #f19711,
+  "completionButtonHover": #ff9f19,
+  "completionButtonText": #000,
+  "admonition": #fcf8e3,
+  "admonitionBorder": #fbeed5,
+  "codeButtons": #474949,
+  "codeButtonsBorder": #474949,
+  "dangerAlerts": #f2dede,
+  "successAlerts": #dff0d8,
+  "componentBgColor": #f0f8ff,
+  "componentBorderColor": #000,
+  "questionBgColor": #e1efff,
+  "parsonsBgColor": #d5d5d5,
+  "parsonsBorderColor": #494949,
 );
 
 // Print worksheets should always render with the light palette, even if the page
@@ -49,6 +106,12 @@ $light-colors: map.merge(
 :root.dark-mode {
   color-scheme: light;
   @include colorHelpers.scss-to-css($light-colors);
+}
+
+:root.dark-mode {
+  @each $name, $value in $runestone-light-colors {
+    --#{$name}: #{$value} !important;
+  }
 }
 
 // ---------------------------------------------
@@ -80,8 +143,9 @@ $light-colors: map.merge(
     display:none;
   }
 
-  // Remove the print preview link
-.heading .print-links {
+  // Remove the print preview link, whether it sits inside a printout's
+  // heading or beside a standalone printout project's heading.
+.print-links {
   display: none;
 }
 
@@ -95,16 +159,102 @@ $light-colors: map.merge(
 //   buttons in general (to remove Runestone "Check Me" button)
 // We remove these here.
 .image-description,
+.ptx-image-expand-button,
 .ptx-content .webwork-button,
 .ptx-runestone-container button.btn {
   display: none;
 }
 
 
-// Set font appropriate for printing
-section.worksheet, section.handout {
-  font-size: 11pt;
-  font-family: var(--font-print);
+// Set font appropriate for printing.
+// ".printout" is applied by the javascript to whatever element is being
+// previewed: a worksheet/handout section, or the article of a project-like
+// block that carries workspace outside of any worksheet or handout.
+//
+// A reader can change the size, line and letter spacing, and typeface in the
+// "Printing options" dialog.  The javascript records those choices on the
+// printout as the custom properties and attributes read below (see
+// setPrintTextChoices()), and each falls back to the standard the page breaks
+// are planned against.
+.printout {
+  font-size: var(--ptx-print-font-size, 11pt);
+  font-family: var(--ptx-print-font-family, var(--font-print));
+
+  // Line spacing belongs to the dialog above.  Without these, the reading
+  // view's own line height (readability-options.js sets it on the root) would
+  // reach a printout too: through the line-height inherited from .ptx-content,
+  // and through .para, which reads the property directly.
+  line-height: var(--ptx-print-line-height, normal);
+  --ptx-content-line-height: var(--ptx-print-line-height, 1.35);
+}
+
+// The typefaces behind the dialog's font choices, beyond the standard one.
+//   hyperlegible: the Braille Institute's face for low vision, which keeps
+//                 easily confused letters and figures (Il1, O0, bdpq) distinct
+//   lexend:       designed to reduce visual crowding
+//   andika:       SIL's face for beginning and struggling readers, with the
+//                 handwritten forms of a and g
+// Verdana is the fallback for each, being wide and open itself.
+.printout[data-print-font="sans-serif"] {
+  --ptx-print-font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.printout[data-print-font="hyperlegible"] {
+  --ptx-print-font-family: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', Verdana, sans-serif;
+}
+
+.printout[data-print-font="lexend"] {
+  --ptx-print-font-family: 'Lexend', Verdana, sans-serif;
+}
+
+.printout[data-print-font="andika"] {
+  --ptx-print-font-family: 'Andika', Verdana, sans-serif;
+}
+
+// The spacing behind the dialog's letter spacing choices.  Space between words
+// grows with the space between letters, in the same proportion, or the words
+// start to run together.  The widest is the British Dyslexia Association's
+// recommendation, about a third of an average letter's width; the one before
+// it is the spacing WCAG 2.2 (1.4.12, Text Spacing) asks a page to survive.
+.printout[data-print-letter-spacing="wide"] {
+  letter-spacing: 0.06em;
+  word-spacing: 0.08em;
+}
+
+.printout[data-print-letter-spacing="wider"] {
+  letter-spacing: 0.12em;
+  word-spacing: 0.16em;
+}
+
+.printout[data-print-letter-spacing="widest"] {
+  letter-spacing: 0.18em;
+  word-spacing: 0.24em;
+}
+
+// Mathematics is typeset by MathJax, which places each glyph itself, so space
+// added between letters would only pull a formula apart.
+.printout[data-print-letter-spacing] mjx-container {
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+
+// Headings are normally set in a face of their own, but a reader who picks a
+// typeface is choosing one for all of the text.
+.printout[data-print-font] {
+  --font-headings: var(--ptx-print-font-family);
+}
+
+// A project-like printout is an "article", so it arrives with the block
+// decoration every other block gets.  As the page container it wants none.
+article.printout {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+
+  &::before, &::after {
+    all: unset;
+  }
 }
 
 // .onepage is the common class that wraps all content in a single worksheet page (often modified by the javascript)
@@ -129,12 +279,22 @@ section.worksheet, section.handout {
 .onepage .first-page-footer,
 .onepage .running-footer {
   display: flex;
-  justify-content: space-between;
   align-content: flex-start;
 
-  // Make divs have minimum width to make it easier to select them for editing
-  div {
+  // Each box sizes to its text and takes an equal share of any room left over,
+  // which puts the centre box's text exactly where space-between would.  A box
+  // with text keeps a minimum width, so it is easy to select for editing.  An
+  // empty one does not: it still takes its share of spare room, and so can be
+  // clicked into, but gives all of it up when its neighbours need the space --
+  // with nothing in the centre, the left and right text run inward rather than
+  // wrap.  The javascript marks the empty ones (see markBlankHeaderFooterBox()).
+  > div {
+    flex: 1 1 auto;
     min-width: 10em;
+  }
+
+  > div.blank {
+    min-width: 0;
   }
 
   .header-center, .footer-center {
@@ -157,41 +317,178 @@ section.worksheet, section.handout {
 }
 
 
-// Style solutions divs, which the javascript transforms from knowls to divs with titles
-
-.solutions {
+// Style solution-like divs, which the javascript transforms from knowls to divs with titles
+.solution-like.born-hidden-knowl {
   margin-top: 1em;
+  padding: unset;
 
-  .solution-like.born-hidden-knowl {
-    margin-top: 1em;
-    padding: unset;
+  h5 {
+    font-weight: bolder;
+    display: inline;
+    font-size: 1em;
+  }
 
-    h5 {
-      font-weight: bolder;
+  > div {
+    display: inline;
+  }
+
+  .knowl__content {
+    display: inline;
+    border: none;
+    background-color: unset;
+    padding: 0;
+
+    >:first-child {
       display: inline;
-      font-size: 1em;
     }
 
-    > div {
-      display: inline;
-    }
-
-    .knowl__content {
-      display: inline;
-      border: none;
-      background-color: unset;
-      padding: 0;
-
-      >:first-child {
-        display: inline;
-      }
-
-      .para {
-        margin-top: 0.5em;
-      }
+    .para {
+      margin-top: 0.5em;
     }
   }
 }
+
+// A list too tall to fit on one page is cut into one single-item list per row,
+// so that pagination has somewhere to break inside it (see
+// flattenOversizedListsIn()).  The pieces have to go on reading as the one list
+// they were, which means the space between two of them must be the space
+// between two items -- `li` carries that (`_lists.scss`) -- and not that plus a
+// list's own outer margins on top.  So the pieces give up their outer margins;
+// the first piece is left behind inside whatever held the list, where it keeps
+// the margins the original had.
+.onepage > .split-list {
+  // The gap between two items lives on the piece, not on the item inside it.
+  //
+  // `li` normally carries that spacing (see _lists.scss), but a margin on the
+  // item collapses straight out through the piece's border-free top edge: the
+  // space is there on screen, while the piece's offsetHeight does not include
+  // it.  Pagination measures rows with offsetHeight plus margins, so every
+  // piece then measured about 7px short -- nothing on its own, but once per
+  // item it put a whole page's budget out by well over an inch, which
+  // over-filled pages and left the footnote block below them hanging off the
+  // bottom of the sheet.
+  //
+  // Carried as a top margin rather than a bottom one so that it collapses with
+  // the piece before it to a single gap, which is exactly what the row
+  // measurement then counts once.
+  margin-top: 0.5em;
+  margin-bottom: 0;
+
+  // ...and not on the item, where it would be both invisible to that
+  // measurement and added on top of the gap above.  `:first-child` rather than
+  // `li` so that a description list's leading <dt> is covered too.
+  > :first-child {
+    margin-top: 0;
+  }
+}
+
+// The block a split list was cut out of keeps only the list's first piece, the
+// rest being rows outside it.  Any panel decoration it carries would then frame
+// one item out of many, reading as though the list stopped there, so drop it
+// and let the block's heading simply introduce the run of items that follows.
+.onepage .split-block {
+  border: none;
+  background: none;
+
+  &::before,
+  &::after {
+    all: unset;
+  }
+}
+
+// Footnotes
+//
+// A printout sets footnotes the way a book does: the marker stays inline where
+// the reference is, and the text is collected into a .footnotes block at the
+// foot of whichever page that reference lands on (see rebuildFootnotes()).
+//
+// That block holds a *clone* of the text, so the original -- still sitting
+// inline inside its <details>, which is what lets the paginator move rows
+// around without anything needing to be put back -- has to stay out of sight.
+// A closed <details> already shows nothing but its summary, but the [open]
+// rules are repeated below so that a reader who manages to toggle one open
+// cannot inject the text back into the middle of a sentence and invalidate a
+// page plan computed without it.  For the same reason the marker is inert: down
+// here it is a reference to text already on the page, not a control.
+.printout {
+  .ptx-footnote,
+  .ptx-footnote[open] {
+    display: inline;
+  }
+
+  .ptx-footnote__number,
+  .ptx-footnote[open] .ptx-footnote__number {
+    display: inline;
+    min-width: 0;
+    cursor: inherit;
+    pointer-events: none;
+
+    sup {
+      display: inline;
+    }
+
+    // the "[x]" close affordance the body of the page shows on an open footnote
+    &::before {
+      content: none;
+    }
+  }
+
+  .ptx-footnote__contents {
+    display: none;
+  }
+}
+
+// Hiding the contents element is not enough on its own: a browser that
+// implements <details> with a ::details-content wrapper puts a *block* box
+// inside the inline <details> above, and a block inside an inline splits the
+// line it sits on -- so every footnote reference broke its sentence in three,
+// even though the only thing visible was the marker.  Kept as a rule of its own
+// so that a browser which does not know the pseudo-element throws out just this
+// one rule and not the whole block above it.
+.printout .ptx-footnote::details-content {
+  display: none;
+}
+
+// The collected footnote text, at the foot of a page.
+.onepage > .footnotes {
+  margin-top: 1em;
+  font-size: 0.85em;
+
+  // The separating rule, set short as a book sets it rather than across the
+  // full measure.  A pseudo-element rather than a border on the block itself,
+  // so that only the rule is short and the text below still runs full width.
+  &::before {
+    content: "";
+    display: block;
+    width: 30%;
+    border-top: 1px solid black;
+    margin-bottom: 0.4em;
+  }
+
+  // Hanging indent, as a book sets footnotes: the number sits out in the
+  // margin and every line of the text lines up with the first.
+  .footnote-item {
+    margin-top: 0.25em;
+    padding-left: 1.2em;
+    text-indent: -1.2em;
+  }
+
+  .footnote-item__number {
+    margin-right: 0.35em;
+  }
+
+  // The clone arrives shorn of .ptx-footnote__contents (buildFootnoteItem()
+  // takes the class off), so none of that class's knowl-box styling applies
+  // here.  All that is left to do is run the text on after the number.
+  .footnote-item__contents {
+    display: inline;
+
+    > .para {
+      display: inline;
+    }
+  }
+}
+
 
 // Additional styling tweaks for print
 
@@ -221,13 +518,29 @@ section.worksheet, section.handout {
 }
 
 // tasks might be "free-floating" articles, in which case they should get the same indenting as tasks inside exercises.
-section article.task, .conclusion.subtask {
+//
+// The javascript hoists a task out of its exercise, and a task's solutions and
+// writing space out of the task, so that pagination can place each on its own
+// (see flattenTasksIn/flattenSolutionsIn).  That flattening throws away the
+// nesting the indentation came from, so on the way out each row is stamped
+// with the depth it sat at and these rules put the indentation back.
+//
+// A task indents one step past the task it came out of; everything else --
+// a conclusion, a hoisted hint/answer/solution, the writing space -- belongs
+// at its owner's own level, which is why the same class name appears one row
+// further down for those than it does for a task.  A .workspace and its
+// .workspace-container overlay wrapper both appear because the indent moves
+// to whichever of the two is currently acting as the row.
+section article.task, .conclusion.subtask,
+.solution-like.subtask, .workspace.subtask, .workspace-container.subtask {
   margin-left: 20px;
 }
-section article.subtask, .conclusion.subsubtask {
+section article.subtask, .conclusion.subsubtask,
+.solution-like.subsubtask, .workspace.subsubtask, .workspace-container.subsubtask {
   margin-left: 40px;
 }
-section article.subsubtask {
+section article.subsubtask,
+.solution-like.subsubsubtask, .workspace.subsubsubtask, .workspace-container.subsubsubtask {
   margin-left: 60px;
 }
 
@@ -252,10 +565,6 @@ section.worksheet > .heading + .para, section.handout > .heading + .para {
   }
 }
 
-form.papersize-select {
-  padding-bottom: 8px;
-}
-
 
 
 
@@ -266,7 +575,7 @@ form.papersize-select {
     margin: 50px auto;
   }
 
-  .worksheet, .handout {
+  .printout {
     max-width: var(--ws-width);
     margin: 0 auto;
   }
@@ -317,46 +626,114 @@ form.papersize-select {
   @include buttons.ptx-button;
   }
 
-  .papersize-select {
-    z-index: 1;
-    .name::after {
-      content: ": ";
+  // The title, with the buttons at the far end of the same line
+  .print-preview-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em 1em;
+    padding-bottom: 1em;
+
+    .print-preview {
+      margin: 0;
     }
   }
 
   .print-controls {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding-bottom: 1em;
+    gap: 0.5em;
+    margin-left: auto;
   }
 
   // Make labels and inputs for print options have pointer cursor
-  label, input {
+  label, input, select {
     cursor: pointer;
+  }
+
+  // The "Printing options" button and the dialog it opens, styled after the
+  // readability settings dialog of an ordinary page.  Those rules are scoped to
+  // the navbar (see _navbar.scss), which a print preview hides, so they are
+  // restated here rather than shared.
+  .ptx-print-options-button {
+    @include buttons.ptx-button;
+  }
+
+  .ptx-print-options-popup {
+    padding: 10px;
+    min-width: 16rem;
+    max-width: 500px;
+    width: 90%;
+
+    @include dialogs.ptx-dialog-modal;
+
+    .ptx-print-options-popup-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5em;
+      border-bottom: 1px solid var(--dialog-border-color);
+    }
+
+    .ptx-print-options-close-button {
+      @include buttons.ptx-button($border-width: 0);
+    }
+
+    .ptx-print-options-reset-button {
+      align-self: flex-start;
+      @include buttons.ptx-button;
+    }
+
+    .ptx-print-options-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+      padding: 0.75em 0.25em;
+
+      & + .ptx-print-options-group {
+        border-top: 1px solid var(--dialog-border-color);
+      }
+    }
+
+    label, .print-option-label {
+      display: flex;
+      gap: 0.5em;
+      align-items: center;
+    }
+
+    // Paper size and each text option: a label, then its choices, on one line
+    .print-option-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1em;
+    }
+
+    // Same width for every row's choices, so they line up
+    select, .papersize-choices {
+      min-width: 12em;
+    }
+
+    select {
+      font: inherit;
+    }
+
+    .papersize-choices {
+      display: flex;
+      gap: 1.5em;
+    }
   }
 
   // Add spacing for header/footer options
   .header-option, .footer-option {
     display: flex;
+    flex-wrap: wrap;
     gap: 1em;
     align-items: baseline;
 
     .title::after {
       content: ":";
-    }
-  }
-
-// Style the additional printing options the same as we do for knowls
-  .print-options {
-    summary {
-      cursor: pointer;
-      display: list-item inline;
-    }
-
-    .hide-option {
-      display: inline-block;
-      padding-right: 1em;
     }
   }
 }
@@ -374,22 +751,32 @@ form.papersize-select {
     display: none;
   }
 
-  section.worksheet, section.handout {
+  .printout {
     border: none;
     width: 100%;
 
     .onepage {
       margin-top: 0;
       width: 100%;
-      height: var(--ws-content-height);
+      // Not a fixed height: `--ws-content-height` and the printable area
+      // Safari derives from `@page`'s margin can round to disagree by a
+      // sub-pixel, which Safari (unlike Chrome) paginates as a blank page
+      // after every page. Sizing to content -- already paginated to fit --
+      // sidesteps the mismatch instead of racing its rounding.
+      height: auto;
       overflow: hidden;
+      // `break-after`/`break-inside` are the modern Fragmentation-spec
+      // properties; `page-break-*` are the aliases older engines need.
       page-break-after: always;
       page-break-inside: avoid;
+      break-after: page;
+      break-inside: avoid;
     }
 
     // Avoid a blank page at the end if the last page fits on the previous page
     .onepage:last-of-type {
       page-break-after: avoid;
+      break-after: avoid;
     }
 
     .first-page-header, .running-header {

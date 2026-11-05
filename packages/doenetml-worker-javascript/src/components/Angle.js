@@ -1,6 +1,11 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { roundForDisplay } from "../utils/math";
+import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
+import {
+    roundForDisplay,
+    isNumericConstant,
+    evaluateToNumber,
+} from "../utils/math";
 import {
     buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,
@@ -20,6 +25,11 @@ export default class Angle extends GraphicalComponent {
     static canBeInList = true;
 
     static representsClosedPath = true;
+
+    // A reference to a state variable that creates an angle (an answer's
+    // submitted angle response) gives its value to `radiansShadow`
+    static primaryStateVariableForDefinition = "radiansShadow";
+    static stateVariableToBeShadowed = "radians";
 
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["number", "math", "string"];
@@ -114,6 +124,23 @@ export default class Angle extends GraphicalComponent {
         return sugarInstructions;
     }
 
+    // A copy given this angle's radians (`<repeat copy>`, or an unlinked
+    // copy of a reference) is given its `radiansShadow` instead, or nothing
+    // when there is none. The copy measures its angle from its own points
+    // or lines whenever they determine it, as this angle does.
+    async serialize(parameters = {}) {
+        const serialized = await super.serialize(parameters);
+        if (serialized.state && "radians" in serialized.state) {
+            const radiansShadow = await this.stateValues.radiansShadow;
+            if (radiansShadow === null) {
+                delete serialized.state.radians;
+            } else {
+                serialized.state.radians = radiansShadow;
+            }
+        }
+        return serialized;
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -143,6 +170,72 @@ export default class Angle extends GraphicalComponent {
                         dependencyValues.betweenLines.componentIdx;
                 }
                 return { setValue: { betweenLinesName } };
+            },
+        };
+
+        // radiansShadow will be null unless the angle was created
+        // from a reference to a state variable or from serialized state
+        // with a radians value. For a reference, given the
+        // primaryStateVariableForDefinition static variable, the definition
+        // of radiansShadow will be changed to be the value it shadows.
+        stateVariableDefinitions.radiansShadow = {
+            defaultValue: null,
+            hasEssential: true,
+            essentialVarName: "radians",
+            set: convertValueToMathExpression,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: {
+                    radiansShadow: true,
+                },
+            }),
+            inverseDefinition: async function ({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "radiansShadow",
+                            value: desiredStateVariableValues.radiansShadow,
+                        },
+                    ],
+                };
+            },
+        };
+
+        // Whether `radiansShadow` gives the angle's measure: it does unless
+        // three points or two lines determine the angle
+        stateVariableDefinitions.measureFromShadow = {
+            stateVariablesDeterminingDependencies: ["betweenLinesName"],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    radiansShadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "radiansShadow",
+                    },
+                    numPointsSpecified: {
+                        dependencyType: "stateVariable",
+                        variableName: "numPointsSpecified",
+                    },
+                };
+                if (stateValues.betweenLinesName !== null) {
+                    dependencies.lineChildren = {
+                        dependencyType: "child",
+                        parentIdx: stateValues.betweenLinesName,
+                        childGroups: ["lines"],
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                let measureFromShadow = dependencyValues.radiansShadow !== null;
+                if (dependencyValues.lineChildren) {
+                    measureFromShadow &&=
+                        dependencyValues.lineChildren.length === 1;
+                } else {
+                    measureFromShadow &&=
+                        dependencyValues.numPointsSpecified < 3;
+                }
+                return { setValue: { measureFromShadow } };
             },
         };
 
@@ -252,6 +345,10 @@ export default class Angle extends GraphicalComponent {
                         attributeName: "degrees",
                         variableNames: ["value"],
                     },
+                    radiansShadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "radiansShadow",
+                    },
                 };
 
                 if (stateValues.betweenLinesName !== null) {
@@ -316,14 +413,26 @@ export default class Angle extends GraphicalComponent {
                             },
                         });
 
-                        let a1 =
-                            line1.stateValues.points[0][0].evaluate_to_constant();
-                        let a2 =
-                            line1.stateValues.points[0][1].evaluate_to_constant();
-                        let b1 =
-                            line1.stateValues.points[1][0].evaluate_to_constant();
-                        let b2 =
-                            line1.stateValues.points[1][1].evaluate_to_constant();
+                        // Read through `evaluateToNumber`: a line through
+                        // symbolic points has no numeric coordinates, and the
+                        // engine used to report those as `null`, which is `0`
+                        // to `-`. `Math.atan2(0, 0)` is `0`, so the angle came
+                        // out along the positive x-axis and every point below
+                        // was a real number placed on it. `NaN` is what "no
+                        // angle" has to look like here, and is what the engine
+                        // now answers directly.
+                        let a1 = evaluateToNumber(
+                            line1.stateValues.points[0][0],
+                        );
+                        let a2 = evaluateToNumber(
+                            line1.stateValues.points[0][1],
+                        );
+                        let b1 = evaluateToNumber(
+                            line1.stateValues.points[1][0],
+                        );
+                        let b2 = evaluateToNumber(
+                            line1.stateValues.points[1][1],
+                        );
 
                         let angleOfLine = Math.atan2(b2 - a2, b1 - a1);
 
@@ -354,6 +463,14 @@ export default class Angle extends GraphicalComponent {
                             if (Number.isFinite(degrees)) {
                                 radians = (degrees / 180) * Math.PI;
                             } else {
+                                points["2,0"] = me.fromAst("\uff3f");
+                                points["2,1"] = me.fromAst("\uff3f");
+                                return { setValue: { points } };
+                            }
+                        } else if (globalDependencyValues.radiansShadow) {
+                            radians =
+                                globalDependencyValues.radiansShadow.evaluate_to_constant();
+                            if (!Number.isFinite(radians)) {
                                 points["2,0"] = me.fromAst("\uff3f");
                                 points["2,1"] = me.fromAst("\uff3f");
                                 return { setValue: { points } };
@@ -394,27 +511,30 @@ export default class Angle extends GraphicalComponent {
 
                         let point2 = lineIntersection;
 
-                        let a1 =
-                            line1.stateValues.points[0][0].evaluate_to_constant();
-                        let a2 =
-                            line1.stateValues.points[0][1].evaluate_to_constant();
-                        let b1 =
-                            line1.stateValues.points[1][0].evaluate_to_constant();
-                        let b2 =
-                            line1.stateValues.points[1][1].evaluate_to_constant();
+                        // See the note in the one-line case: a symbolic
+                        // coordinate has no numeric value, and the offsets
+                        // below must see `NaN` rather than a number.
+                        let a1 = evaluateToNumber(
+                            line1.stateValues.points[0][0],
+                        );
+                        let a2 = evaluateToNumber(
+                            line1.stateValues.points[0][1],
+                        );
+                        let b1 = evaluateToNumber(
+                            line1.stateValues.points[1][0],
+                        );
+                        let b2 = evaluateToNumber(
+                            line1.stateValues.points[1][1],
+                        );
                         let point1 = [
                             me.fromAst(point2[0].tree + b1 - a1),
                             me.fromAst(point2[1].tree + b2 - a2),
                         ];
 
-                        a1 =
-                            line2.stateValues.points[0][0].evaluate_to_constant();
-                        a2 =
-                            line2.stateValues.points[0][1].evaluate_to_constant();
-                        b1 =
-                            line2.stateValues.points[1][0].evaluate_to_constant();
-                        b2 =
-                            line2.stateValues.points[1][1].evaluate_to_constant();
+                        a1 = evaluateToNumber(line2.stateValues.points[0][0]);
+                        a2 = evaluateToNumber(line2.stateValues.points[0][1]);
+                        b1 = evaluateToNumber(line2.stateValues.points[1][0]);
+                        b2 = evaluateToNumber(line2.stateValues.points[1][1]);
                         let point3 = [
                             me.fromAst(point2[0].tree + b1 - a1),
                             me.fromAst(point2[1].tree + b2 - a2),
@@ -450,7 +570,11 @@ export default class Angle extends GraphicalComponent {
                 let foundBadThroughPoint = false;
                 for (let [ind, prescribedPoint] of prescribedPoints.entries()) {
                     for (let i = 0; i < 2; i++) {
-                        if (prescribedPoint[i]) {
+                        // A point list gives a point that is not one (`(0,0),`)
+                        // the coordinates it has, as one blank coordinate
+                        // padded with 0s, so a blank or a tuple for a
+                        // coordinate is as bad as a missing one.
+                        if (isValidCoordinate(prescribedPoint[i])) {
                             points[`${ind},${i}`] = prescribedPoint[i];
                         } else {
                             points[`${ind},${i}`] = me.fromAst("\uff3f");
@@ -508,14 +632,31 @@ export default class Angle extends GraphicalComponent {
                                 sendDiagnostics: diagnostics,
                             };
                         }
+                    } else if (globalDependencyValues.radiansShadow) {
+                        radians =
+                            globalDependencyValues.radiansShadow.evaluate_to_constant();
+                        if (!Number.isFinite(radians)) {
+                            points["2,0"] = me.fromAst("\uff3f");
+                            points["2,1"] = me.fromAst("\uff3f");
+                            return {
+                                setValue: { points },
+                                sendDiagnostics: diagnostics,
+                            };
+                        }
                     } else {
                         radians = Math.PI / 2;
                     }
 
-                    let a1 = points["0,0"].evaluate_to_constant();
-                    let a2 = points["0,1"].evaluate_to_constant();
-                    let b1 = points["1,0"].evaluate_to_constant();
-                    let b2 = points["1,1"].evaluate_to_constant();
+                    // `<angle through="(a,b) (0,0)" />`: the prescribed points
+                    // are symbolic, so they have no numeric value and
+                    // `Math.atan2` must see `NaN`. While the engine answered
+                    // `null` here they subtracted as `0`, and `Math.atan2(0, 0)`
+                    // is `0` — the third point came out at a real position on
+                    // the unit circle instead of nowhere.
+                    let a1 = evaluateToNumber(points["0,0"]);
+                    let a2 = evaluateToNumber(points["0,1"]);
+                    let b1 = evaluateToNumber(points["1,0"]);
+                    let b2 = evaluateToNumber(points["1,1"]);
 
                     let angleFromTwoPoints = Math.atan2(a2 - b2, a1 - b1);
                     let desiredAngle = angleFromTwoPoints + radians;
@@ -564,6 +705,14 @@ export default class Angle extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "chooseReflexAngle",
                 },
+                radiansShadow: {
+                    dependencyType: "stateVariable",
+                    variableName: "radiansShadow",
+                },
+                measureFromShadow: {
+                    dependencyType: "stateVariable",
+                    variableName: "measureFromShadow",
+                },
             }),
             definition({ dependencyValues }) {
                 let swapPointOrder = false;
@@ -587,6 +736,13 @@ export default class Angle extends GraphicalComponent {
                             swapPointOrder,
                         },
                     };
+                } else if (dependencyValues.measureFromShadow) {
+                    return {
+                        setValue: {
+                            radians: dependencyValues.radiansShadow.simplify(),
+                            swapPointOrder,
+                        },
+                    };
                 }
 
                 let ps = [];
@@ -596,7 +752,10 @@ export default class Angle extends GraphicalComponent {
                         dependencyValues.points[i][0].evaluate_to_constant(),
                         dependencyValues.points[i][1].evaluate_to_constant(),
                     ]);
-                    if (Number.isNaN(ps[i][0]) || Number.isNaN(ps[i][1])) {
+                    if (
+                        !isNumericConstant(ps[i][0]) ||
+                        !isNumericConstant(ps[i][1])
+                    ) {
                         foundNaN = true;
                     }
                 }
@@ -775,8 +934,10 @@ export default class Angle extends GraphicalComponent {
                     let point = dependencyValuesByKey[arrayKey].point;
                     let numericalP = [];
                     for (let ind = 0; ind < 2; ind++) {
-                        let val = point[ind].evaluate_to_constant();
-                        numericalP.push(val);
+                        // `evaluateToNumber`: `numericalPoints` is
+                        // `forRenderer` and JSXGraph coerces whatever it is
+                        // given, so a complex coordinate has to arrive as NaN.
+                        numericalP.push(evaluateToNumber(point[ind]));
                     }
                     numericalPoints[arrayKey] = numericalP;
                 }
@@ -872,4 +1033,16 @@ function calculateLineIntersection(line1, line2) {
     let x = (c2 * b1 - c1 * b2) / d;
     let y = (c1 * a2 - c2 * a1) / d;
     return [me.fromAst(x), me.fromAst(y)];
+}
+
+/** Whether `x` is one coordinate: a math that is neither blank nor a tuple. */
+function isValidCoordinate(x) {
+    if (!x) {
+        return false;
+    }
+    const tree = x.tree;
+    if (Array.isArray(tree) && vectorOperators.includes(tree[0])) {
+        return false;
+    }
+    return !JSON.stringify(tree).includes("\uff3f");
 }

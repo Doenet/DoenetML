@@ -1,7 +1,7 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { normalizeMathExpression } from "@doenet/utils";
-import { returnNVariables } from "../utils/math";
+import { returnNVariables, toNumberOrNaN } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
 // import nerdamer from 'nerdamer'
 // import 'nerdamer/Algebra.js'
@@ -332,12 +332,11 @@ export default class SolveEquations extends InlineComponent {
                     try {
                         return f(x);
                     } catch (e) {
-                        let res = f_symbolic(x);
-                        if (res !== null) {
-                            return res;
-                        } else {
-                            return NaN;
-                        }
+                        // `f_symbolic` returns `evaluate_to_constant()`'s
+                        // answer, which is already `NaN` when there is none;
+                        // `toNumberOrNaN` is here for the complex arm, which a
+                        // root finder cannot use either.
+                        return toNumberOrNaN(f_symbolic(x));
                     }
                 };
 

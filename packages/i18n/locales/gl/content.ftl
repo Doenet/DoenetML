@@ -53,7 +53,6 @@ color =
         }
     .pink = rosa
     .brown = marrón
-
 line-width =
     .thick =
         { $gender ->
@@ -65,7 +64,6 @@ line-width =
             [f] fina
            *[m] fino
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -77,7 +75,6 @@ line-style =
             [f] punteada
            *[m] punteado
         }
-
 # Noun phrases standing behind «con». They modify nothing and take no gender.
 fill-style =
     .horizontal = liñas horizontais
@@ -86,7 +83,6 @@ fill-style =
     .backdiagonal = liñas diagonais inversas
     .dots = puntos
     .diamonds = rombos
-
 noun =
     .line = liña
     .line-segment = segmento
@@ -106,7 +102,6 @@ noun =
     .diamond = rombo
     .cross = cruz
     .plus = máis
-
 # The side count follows the style adjectives so that they stay beside the noun
 # they agree with.
 noun-regular-polygon =
@@ -114,7 +109,6 @@ noun-regular-polygon =
         [tail] de { $numSides } lados
        *[head] polígono regular
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (polígono, m) or
 # the head of a phrase the description never names: `border` (bordo, m), `fill`
 # (recheo, m), `text` (texto, m), `background` (fondo, m).
@@ -130,7 +124,6 @@ noun-gender =
         [cross] f
        *[other] m
     }
-
 
 ## Style composition
 
@@ -149,25 +142,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] chea
        *[m] cheo
     }
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } con { $pattern }
        *[plain] { $color } { $filled }
     }
-
 # The complement stays beside its own noun rather than at the end: «cheo de 5
 # lados» would read as «full of 5 sides». «Polígono regular de 5 lados azul
 # cheo».
@@ -178,7 +167,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $color } { $filled } con { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # «bordo» is masculine, so the border's adjectives agree with it and not with
 # the shape it surrounds.
 style-border-clause =
@@ -188,7 +176,6 @@ style-border-clause =
         [and-article] e un bordo { $border }
        *[with] con bordo { $border }
     }
-
 # Naming «recheo» keeps the colour agreeing with a masculine singular noun the
 # catalog writes, instead of with the plural pattern word beside it: «recheo
 # azul con rombos» rather than «rombos azuis».
@@ -197,29 +184,23 @@ style-fill =
         [pattern] recheo { $color } con { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = sen recheo
-
 style-text =
     { $parts ->
         [background] { $color } cun fondo { $background }
        *[plain] { $color }
     }
-
 style-background-none = ningún
-
 
 ## Boolean words
 
 boolean-true = verdadeiro
 boolean-false = falso
 
-
 ## Answer buttons
 
 answer-submit-label = Comprobar
 answer-submit-label-no-correctness = Enviar a resposta
-
 
 ## Sectional blocks
 
@@ -244,7 +225,6 @@ section-name =
     .solution = Solución
     .task = Tarefa
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -254,9 +234,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Pista
-
 
 ## Tables and figures
 
@@ -267,7 +245,6 @@ table-name =
         [unnumbered-title] Táboa{ ": " }
        *[unnumbered] Táboa
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -276,22 +253,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Anterior
 paginator-next = Seguinte
 paginator-page = Páxina
-
 paginator-page-status = { $pageLabel } { $currentPage } de { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ou
 piecewise-condition-if = se
 piecewise-condition-otherwise = noutro caso
-
 
 ## Chemistry
 
@@ -414,7 +387,6 @@ element-name =
     .lv = Livermorio
     .ts = Teneso
     .og = Oganesón
-
 element-anion-name =
     .h = Hidruro
     .c = Carburo
@@ -428,8 +400,6 @@ element-anion-name =
     .i = Ioduro
     .at = Astaturo
     .ts = Tenesuro
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Símbolo químico non válido
 chemistry-invalid-ionic-compound = Composto iónico non válido

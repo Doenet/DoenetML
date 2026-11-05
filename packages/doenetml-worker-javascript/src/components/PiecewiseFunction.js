@@ -14,7 +14,11 @@ import {
     find_maxima_of_piecewise,
     find_minima_of_piecewise,
 } from "../utils/extrema";
-import { roundForDisplay } from "../utils/math";
+import {
+    isNumericConstant,
+    roundForDisplay,
+    toNumberOrNaN,
+} from "../utils/math";
 import {
     contentTranslator,
     returnContentLocaleDependencies,
@@ -143,9 +147,18 @@ export default class PiecewiseFunction extends Function {
                         let intervalMinIsClosed = fDomain.tree[2][1];
                         let intervalMaxIsClosed = fDomain.tree[2][2];
 
+                        // `isNumericConstant` rather than `!Number.isNaN`,
+                        // because an endpoint can also be complex and that is
+                        // not a numeric domain either. It also used to be the
+                        // only thing catching the `null` the engine answered
+                        // for a free variable in `[a,a]` or `(s,t)`: testing
+                        // NaN alone read those pieces as *numeric* with an
+                        // unusable domain and dropped them from the rendered
+                        // `\begin{cases}` entirely. ±Infinity is a legitimate
+                        // numeric endpoint and passes.
                         childrenWithNonNumericDomains.push(
-                            Number.isNaN(intervalMin) ||
-                                Number.isNaN(intervalMax),
+                            !isNumericConstant(intervalMin) ||
+                                !isNumericConstant(intervalMax),
                         );
 
                         if (
@@ -326,6 +339,40 @@ export default class PiecewiseFunction extends Function {
             },
         };
 
+        // Since every entry of `symbolicfs` above returns a blank, a piecewise
+        // function evaluates numerically unless the author sets `symbolic`.
+        // Unlike `Function`, we do not inherit `symbolic` from the first
+        // function child: a `<function>` piece is symbolic by default,
+        // which would send evaluation back to the blank `symbolicfs`.
+        stateVariableDefinitions.symbolic = {
+            description: "Whether the function is treated symbolically.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            defaultValue: false,
+            hasEssential: true,
+            returnDependencies: () => ({
+                symbolicAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "symbolic",
+                    variableNames: ["value"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.symbolicAttr !== null) {
+                    return {
+                        setValue: {
+                            symbolic:
+                                dependencyValues.symbolicAttr.stateValues.value,
+                        },
+                    };
+                } else {
+                    return { useEssentialOrDefaultValue: { symbolic: true } };
+                }
+            },
+        };
+
         stateVariableDefinitions.numericalfs = {
             isArray: true,
             entryPrefixes: ["numericalf"],
@@ -415,10 +462,17 @@ export default class PiecewiseFunction extends Function {
                     for (let arrayKey of arrayKeys) {
                         if (arrayKey === "0") {
                             numericalfs[arrayKey] = function (x) {
+                                // The same contract as `Function.js`' twin of
+                                // this branch: a `numericalf` must answer a
+                                // number, every other branch here answers
+                                // `NaN` when it has nothing, and the engine's
+                                // old `null` for a shadowed symbolic function
+                                // that did not reduce to a constant was `0` to
+                                // whatever plots or integrates it.
                                 let val = globalDependencyValues
                                     .symbolicfShadow(me.fromAst(x))
                                     .evaluate_to_constant();
-                                return val;
+                                return toNumberOrNaN(val);
                             };
                         } else {
                             numericalfs[arrayKey] = () => NaN;

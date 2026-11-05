@@ -1,6 +1,9 @@
 import React, {
     createContext,
+    useCallback,
     useContext,
+    useEffect,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -9,19 +12,29 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
-import Select, { components, MultiValue, OnChangeValue } from "react-select";
+import Select, {
+    components,
+    MenuProps,
+    MultiValue,
+    OnChangeValue,
+} from "react-select";
 import { CANVAS_DARK_MODE_COLOR } from "@doenet/utils/style";
 import { DocContext } from "../DocViewer";
 import "./choiceInput.css";
 import {
     calculateValidationState,
     createCheckWorkComponent,
+    wantsFullCheckWorkButton,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { useRenderedLabel } from "./utils/inputLabel";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
+import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
+import { NoClickTargetContext } from "./utils/ClickTarget";
 
 // type guard
 const isMultiValue = <T,>(
@@ -67,6 +80,82 @@ export const ChoiceInputInlineContext = createContext<{
     inOption: boolean;
 }>({ isHidden: false, inOption: false });
 
+/**
+ * `MIN_MENU_HEIGHT` is react-select's default `minMenuHeight`: the shortest a
+ * menu may be made to fit below the control before it opens above instead.
+ * react-select places an open menu again whenever `minMenuHeight` changes, so
+ * the inline choice input alternates it with `MIN_MENU_HEIGHT_ALT`, a value
+ * no different in effect, to ask for that; see `MenuThatRechecksPlacement`.
+ */
+const MIN_MENU_HEIGHT = 140;
+const MIN_MENU_HEIGHT_ALT = 139.9;
+
+/**
+ * Asks the inline choice input to have react-select place its open menu again.
+ */
+const RecheckMenuPlacementContext = createContext<() => void>(() => {});
+
+/**
+ * The menu of the inline choice input.
+ *
+ * With `menuPlacement="auto"`, react-select decides once, when the menu opens,
+ * whether it fits below the control or must open above it, from the menu's
+ * height at that moment. Choices containing math are typeset only after the
+ * menu has opened, and grow as they are, so a menu that fit below when it
+ * opened can then run past the bottom of the page or frame (#2298).
+ *
+ * While the menu is open below the control, this watches its height, and each
+ * time it grows, asks for the placement to be made again from its new height.
+ * The menu then opens above the control instead, or is shortened to scroll
+ * within the room below it, as it would have been had it opened at its full
+ * height. A shortened menu scrolls rather than growing. A menu above the
+ * control grows upward and is not watched: react-select measures the room
+ * below from the menu's own top, so placing it again would move it back below.
+ */
+function MenuThatRechecksPlacement(props: MenuProps<Option, boolean>) {
+    const recheckPlacement = useContext(RecheckMenuPlacementContext);
+    const { innerRef, placement } = props;
+    const [menuElement, setMenuElement] = useState<HTMLDivElement | null>(null);
+
+    // react-select measures the menu through `innerRef`, so it must still be
+    // handed the element.
+    const setMenuRef = useCallback(
+        (element: HTMLDivElement | null) => {
+            setMenuElement(element);
+            if (typeof innerRef === "function") {
+                innerRef(element);
+            } else if (innerRef) {
+                (
+                    innerRef as React.MutableRefObject<HTMLDivElement | null>
+                ).current = element;
+            }
+        },
+        [innerRef],
+    );
+
+    useEffect(() => {
+        if (
+            !menuElement ||
+            placement !== "bottom" ||
+            typeof ResizeObserver === "undefined"
+        ) {
+            return;
+        }
+        let lastHeight = menuElement.getBoundingClientRect().height;
+        const observer = new ResizeObserver(() => {
+            const height = menuElement.getBoundingClientRect().height;
+            if (height > lastHeight) {
+                recheckPlacement();
+            }
+            lastHeight = height;
+        });
+        observer.observe(menuElement);
+        return () => observer.disconnect();
+    }, [menuElement, placement, recheckPlacement]);
+
+    return <components.Menu {...props} innerRef={setMenuRef} />;
+}
+
 interface ChoiceInputSVs {
     [key: string]: any;
     hidden: boolean;
@@ -95,8 +184,25 @@ interface ChoiceInputSVs {
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
         useDoenetRenderer<ChoiceInputSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     const t = useT();
+
+    // Flipped to have react-select place the open menu again; see
+    // `MenuThatRechecksPlacement`. The menu can grow more than once before
+    // the flip is rendered, so a request made while one is already pending is
+    // left to that one, which places the menu from its height at render time.
+    const [altMinMenuHeight, setAltMinMenuHeight] = useState(false);
+    const menuRecheckPending = useRef(false);
+    const recheckMenuPlacement = useCallback(() => {
+        if (!menuRecheckPending.current) {
+            menuRecheckPending.current = true;
+            setAltMinMenuHeight((alt) => !alt);
+        }
+    }, []);
+    useLayoutEffect(() => {
+        menuRecheckPending.current = false;
+    }, [altMinMenuHeight]);
 
     // The check-work button and the validation state announced on the input
     // both follow the document's language, not the reader's — see
@@ -104,6 +210,25 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     const tContent = useContentT();
 
     const { darkMode } = useContext(DocContext) || {};
+
+    // Inside an expression there is no room for anything but the control
+    // itself: a visible label drawn among the symbols would read as part of
+    // the math. The expression names the control instead, through its short
+    // description. Read here, with the other hooks, so it is read on every
+    // render whether or not the control goes on to draw anything.
+    const inMathSlot = useInMathSlot();
+
+    // A label that is itself math is typeset by MathJax, which gives it a tab
+    // stop. Inside a slot the label is out of sight, so that stop would land
+    // on nothing a keyboard user can see; the ref is attached only there.
+    const slotRootRef = useRef<HTMLSpanElement>(null);
+    useMathJaxOutOfTabOrder(slotRootRef);
+
+    // A select's width is fixed by its widest choice, so an expression around
+    // it never has to make room for it; while the reader has it open the
+    // expression is still re-typeset in step with any change in it. Outside a
+    // slot this is a no-op.
+    const slotEditing = useMathSlotEditing();
 
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
@@ -135,6 +260,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     });
 
     function onFocusChanged(focused: boolean) {
+        slotEditing.setEditing(focused);
         callAction({
             action: actions.focusChanged,
             args: { focused },
@@ -214,10 +340,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     // drops the component from its parent's rendered children (see
     // `returnActiveChildrenIndicesToRender` in the worker's `ChildMatcher`),
     // so React unmounts the instance instead of re-rendering it past the
-    // return. But that is an invariant of the worker, not of this file, and a
-    // component that opts into `sendToRendererEvenIfHidden` does keep
-    // re-rendering while hidden — at which point a hook below the return
-    // changes the hook count and React throws.
+    // return. But that is an invariant of the worker, not of this file, and
+    // if a hidden instance ever were re-rendered, a hook below the return
+    // would change the hook count and React would throw.
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
 
@@ -284,6 +409,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             Input: (props: any) => (
                 <components.Input {...props} aria-details={descriptionId} />
             ),
+            Menu: MenuThatRechecksPlacement,
         }),
         [descriptionId, t],
     );
@@ -306,6 +432,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </MathJax>
         );
     }
+    if (renderedLabel) {
+        label = renderedLabel;
+    }
 
     let shortDescription = SVs.shortDescription || undefined;
     const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
@@ -316,11 +445,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         .filter(Boolean)
         .join(" ");
 
-    // For inline, the default is a small check work button,
-    // for non-inline, the default is a full check work button
-    const fullCheckWork = SVs.inline
-        ? SVs.forceFullCheckWorkButton
-        : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
+    // An inline choice input is a word-sized dropdown in a sentence; a
+    // non-inline one is a block of choices with room beneath it.
+    const fullCheckWork = wantsFullCheckWorkButton(SVs, !SVs.inline);
 
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
@@ -522,60 +649,84 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     <ChoiceInputInlineContext.Provider
                         value={{ isHidden: false, inOption: false }}
                     >
-                        <Select
-                            id={id}
-                            inputId={inlineInputId}
-                            isMulti={SVs.selectMultiple}
-                            styles={customStyles}
-                            options={choiceOptions}
-                            components={inlineSelectComponents}
-                            // `getOptionLabel` restates react-select's default,
-                            // so that renaming `Option.label` becomes a type
-                            // error here rather than a silently undefined
-                            // accessible name.
-                            getOptionLabel={(opt) => opt.label}
-                            formatOptionLabel={(opt) => opt.content}
-                            menuPortalTarget={menuPortalTarget}
-                            menuPlacement="auto"
-                            className={inputClasses}
-                            onChange={onChangeHandlerInline}
-                            // A selected choice that is now hidden has no
-                            // option to show, so it drops out of the value
-                            // rather than displacing the others.
-                            value={rendererSelectedIndices
-                                .map((ind) => getOptionFromIndex(ind))
-                                .filter((opt) => opt !== undefined)}
-                            placeholder={SVs.placeHolder}
-                            isDisabled={disabled}
-                            isOptionDisabled={(opt) => !!opt.isDisabled}
-                            aria-labelledby={inlineLabelledByIds || undefined}
-                            aria-label={
-                                !inlineLabelledByIds
-                                    ? shortDescription
-                                    : undefined
-                            }
-                            aria-description={
-                                inlineLabelledByIds
-                                    ? shortDescription
-                                    : undefined
-                            }
-                            // Note: aria-details added in CustomInput
-                        />
+                        <RecheckMenuPlacementContext.Provider
+                            value={recheckMenuPlacement}
+                        >
+                            <Select
+                                id={id}
+                                inputId={inlineInputId}
+                                isMulti={SVs.selectMultiple}
+                                styles={customStyles}
+                                options={choiceOptions}
+                                components={inlineSelectComponents}
+                                // `getOptionLabel` restates react-select's default,
+                                // so that renaming `Option.label` becomes a type
+                                // error here rather than a silently undefined
+                                // accessible name.
+                                getOptionLabel={(opt) => opt.label}
+                                formatOptionLabel={(opt) => opt.content}
+                                menuPortalTarget={menuPortalTarget}
+                                menuPlacement="auto"
+                                minMenuHeight={
+                                    altMinMenuHeight
+                                        ? MIN_MENU_HEIGHT_ALT
+                                        : MIN_MENU_HEIGHT
+                                }
+                                className={inputClasses}
+                                onChange={onChangeHandlerInline}
+                                // A selected choice that is now hidden has no
+                                // option to show, so it drops out of the value
+                                // rather than displacing the others.
+                                value={rendererSelectedIndices
+                                    .map((ind) => getOptionFromIndex(ind))
+                                    .filter((opt) => opt !== undefined)}
+                                placeholder={SVs.placeHolder}
+                                isDisabled={disabled}
+                                isOptionDisabled={(opt) => !!opt.isDisabled}
+                                aria-labelledby={
+                                    inlineLabelledByIds || undefined
+                                }
+                                aria-label={
+                                    !inlineLabelledByIds
+                                        ? shortDescription
+                                        : undefined
+                                }
+                                aria-description={
+                                    inlineLabelledByIds
+                                        ? shortDescription
+                                        : undefined
+                                }
+                                // Note: aria-details added in CustomInput
+                            />
+                        </RecheckMenuPlacementContext.Provider>
                     </ChoiceInputInlineContext.Provider>
                 </div>
             </div>
         );
 
+        // Inside an expression the label is kept out of sight rather than
+        // left out, so `aria-labelledby` names the control from it exactly as
+        // it does elsewhere — a label that is itself math is then spoken as
+        // MathJax reads it, not as its LaTeX.
         const labelComponent = hasLabel ? (
             <label
                 id={labelId}
                 htmlFor={inlineInputId}
-                style={{
-                    marginInlineEnd:
-                        SVs.labelPosition === "end" ? undefined : "4px",
-                    marginInlineStart:
-                        SVs.labelPosition === "end" ? "4px" : undefined,
-                }}
+                className={inMathSlot ? "visually-hidden" : undefined}
+                style={
+                    inMathSlot
+                        ? undefined
+                        : {
+                              marginInlineEnd:
+                                  SVs.labelPosition === "end"
+                                      ? undefined
+                                      : "4px",
+                              marginInlineStart:
+                                  SVs.labelPosition === "end"
+                                      ? "4px"
+                                      : undefined,
+                          }
+                }
             >
                 {label}
             </label>
@@ -592,7 +743,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     verticalAlign: "baseline",
                 }}
             >
-                {selectWithDynamicWidth}
+                {/* Every choice is shown inside the select, so none can be a click target. */}
+                <NoClickTargetContext.Provider value={true}>
+                    {selectWithDynamicWidth}
+                </NoClickTargetContext.Provider>
                 {checkWorkComponent}
                 {description}
             </span>
@@ -600,6 +754,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         return (
             <span
+                ref={inMathSlot ? slotRootRef : undefined}
                 // `display: inline` so the label and select flow with the
                 // surrounding paragraph text and a wrapping label keeps the
                 // select after its end rather than beside its first line
@@ -742,7 +897,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                 />
                                 <span className={radioClassName} />
                                 <span style={{ marginInlineStart: "2px" }}>
-                                    {child}
+                                    <NoClickTargetContext.Provider value={true}>
+                                        {child}
+                                    </NoClickTargetContext.Provider>
                                 </span>
                             </label>
                         </li>
@@ -780,7 +937,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                 />
                                 <span className={checkboxClassName} />
                                 <span style={{ marginInlineStart: "2px" }}>
-                                    {child}
+                                    <NoClickTargetContext.Provider value={true}>
+                                        {child}
+                                    </NoClickTargetContext.Provider>
                                 </span>
                             </label>
                         </li>

@@ -63,15 +63,12 @@ color =
     .purple = сийна-цӀен
     .pink = цӀен-кӀайн
     .brown = мора
-
 line-width =
     .thick = дуькъа
     .thin = дораха
-
 line-style =
     .dashed = кагйина
     .dotted = тӀадамашца
-
 # Noun phrases: they stand in front of «сурташца» and modify nothing.
 fill-style =
     .horizontal = горизонталан сиз
@@ -80,7 +77,6 @@ fill-style =
     .backdiagonal = дуьхьал диагоналан сиз
     .dots = тӀадам
     .diamonds = ромб
-
 noun =
     .line = нийса сиз
     .line-segment = сизан дакъа
@@ -100,7 +96,6 @@ noun =
     .diamond = ромб
     .cross = жӀар
     .plus = плюс
-
 # Chechen builds the word from the side count in front of the noun, so the
 # whole of it is one head and there is no tail.
 noun-regular-polygon =
@@ -108,7 +103,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] нийса { $numSides } сонера
     }
-
 # The class of the noun being described, handed to every word that agrees with
 # it. See the note at the top of this file: only the entries this seed could
 # check are written out, and everything else falls to `d`.
@@ -128,7 +122,6 @@ noun-gender =
        *[other] d
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -141,13 +134,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # The one word in this catalog that carries a class prefix, and the reason
 # `$gender` exists here at all.
 style-filled-word =
@@ -157,13 +148,11 @@ style-filled-word =
         [v] вуьзна
        *[d] дуьзна
     }
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } сурташца { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } сурташца { $color } { $filled } { $noun }
@@ -171,7 +160,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } сурташца { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «йистеца» — "with an edge" — is a case form of a noun this catalog writes, so
 # nothing is welded to a placeable and no article is wanted.
 style-border-clause =
@@ -181,20 +169,17 @@ style-border-clause =
         [and-article] а { $border } йистеца
        *[with] { $border } йистеца
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } сурташца { $color } бос
        *[plain] { $color } бос
     }
-
 # The negated participle agrees in the language exactly as the positive one
 # does — «буьзна боцу», «юьзна йоцу», «вуьзна воцу» — but this message
 # describes a fill standing on its own, with no noun and therefore no
 # `$gender` reaching it. So the д-class form is written flat, and a fork here
 # would only ever render its default branch.
 style-unfilled = дуьзна доцу
-
 # «тӀехь» — "on" — is a postposition and follows the background colour, so
 # nothing stands between the two words.
 style-text =
@@ -202,21 +187,17 @@ style-text =
         [background] { $background } фон тӀехь { $color }
        *[plain] { $color }
     }
-
 style-background-none = дац
-
 
 ## Boolean words
 
 boolean-true = бакъ
 boolean-false = харц
 
-
 ## Answer buttons
 
 answer-submit-label = Таллар
 answer-submit-label-no-correctness = Жоп дӀадахьийта
-
 
 ## Sectional blocks
 
@@ -241,7 +222,6 @@ section-name =
     .solution = Сацам
     .task = Дехар
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -251,9 +231,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Хьехам
-
 
 ## Tables and figures
 
@@ -264,7 +242,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Сурт { $enumeration }
@@ -273,15 +250,12 @@ figure-name =
        *[unnumbered] Сурт
     }
 
-
 ## Paginator controls
 
 paginator-previous = Хьалха
 paginator-next = ТӀаьхьа
 paginator-page = АгӀо
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -294,7 +268,6 @@ piecewise-condition-or = я
 piecewise-condition-if = нагахь санна
 piecewise-condition-otherwise = кхечу агӀор
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -303,6 +276,5 @@ piecewise-condition-otherwise = кхечу агӀор
 ## ones — the school-system case this batch shares throughout.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Нийса доцу химин хьаьрк
 chemistry-invalid-ionic-compound = Нийса доцу ионан цхьаьнакхетар

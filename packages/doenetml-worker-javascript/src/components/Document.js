@@ -2,17 +2,23 @@ import BaseComponent from "./abstract/BaseComponent";
 import {
     determineVariantsForSection,
     getVariantsForDescendantsForUniqueVariants,
+    variantDescendantComponentTypes,
 } from "../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { SUPPORTED_LOCALES, resolveDocumentLocale } from "@doenet/i18n";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
 import {
+    returnCheckWorkCreditStateVariableDefinition,
     returnScoredSectionAttributes,
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { returnSubmitLabelStateVariableDefinitions } from "../utils/answer";
+import {
+    DIVISION_SEQUENCE,
+    returnSequenceNumbersOfChildrenDefinition,
+} from "../utils/sequenceNumbering";
 
 export default class Document extends BaseComponent {
     constructor(args) {
@@ -43,7 +49,6 @@ export default class Document extends BaseComponent {
 
         delete attributes.hide;
         delete attributes.disabled;
-        delete attributes.modifyIndirectly;
         delete attributes.fixed;
         delete attributes.styleNumber;
         delete attributes.isResponse;
@@ -128,6 +133,14 @@ export default class Document extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // How the document numbers the top-level divisions, counting through
+        // any `<div>` or `<cascade>` among them, from the `initializeCounters`
+        // the hosting page passed in. See `utils/sequenceNumbering.js`.
+        stateVariableDefinitions.divisionNumbersOfChildren =
+            returnSequenceNumbersOfChildrenDefinition(DIVISION_SEQUENCE, {
+                isDocument: true,
+            });
+
         // Note: style definition state variables allow one to redefine the style
         // via styledefinitions inside a setup in the document
         let styleDefinitionStateVariables =
@@ -150,6 +163,12 @@ export default class Document extends BaseComponent {
         // the scores of its children, so it drops the opt-in `aggregateScores`
         // state variable.
         delete stateVariableDefinitions.aggregateScores;
+
+        // `creditAchievedForProgress` exists so a `<cascade>` can ask whether a
+        // step is complete. A document is never a step of one, and the shared
+        // definition is written against the `aggregateScores` just deleted, so
+        // it goes too rather than being overridden the way `creditAchieved` is.
+        delete stateVariableDefinitions.creditAchievedForProgress;
 
         // The shared submit labels read the *enclosing* document's language,
         // which is right for everything inside a document and wrong for the
@@ -582,6 +601,15 @@ export default class Document extends BaseComponent {
             },
         };
 
+        // Overrides the shared `creditAchievedForCheckWork` for the same reason
+        // as `creditAchieved` above: the document always aggregates, rather
+        // than only when `aggregateScores` is enabled. The rule is unchanged,
+        // so it still comes from the shared definition.
+        stateVariableDefinitions.creditAchievedForCheckWork =
+            returnCheckWorkCreditStateVariableDefinition({
+                alwaysAggregate: true,
+            });
+
         // Overrides the shared `creditAchievedIfSubmit` for the same reason as
         // `creditAchieved` above: the document always aggregates, rather than
         // only when `aggregateScores` is enabled.
@@ -644,9 +672,8 @@ export default class Document extends BaseComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",

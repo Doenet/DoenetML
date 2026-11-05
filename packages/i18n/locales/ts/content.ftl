@@ -60,7 +60,6 @@ color =
     .purple = phepuli
     .pink = phinki
     .brown = ntsvuku wa misava
-
 # The two true adjectives. With `style-filled-word` below, these are the only
 # places in this file where a class concord moves.
 line-width =
@@ -76,13 +75,11 @@ line-width =
             [c7] lexitsongo
            *[c9] leyitsongo
         }
-
 # Written as an invariable «hi …» phrase, so that it agrees with nothing and
 # can close the phrase. `style-stroke` puts it last for that reason.
 line-style =
     .dashed = hi swiphemu
     .dotted = hi swikoloto
-
 fill-style =
     .horizontal = mintila yo etlela
     .vertical = mintila yo yima
@@ -90,7 +87,6 @@ fill-style =
     .backdiagonal = mintila yo rhembelela hi ku hundzuluxa
     .dots = swikoloto
     .diamonds = madayimani
-
 noun =
     .line = ntila
     .line-segment = xiphemu xa ntila
@@ -110,7 +106,6 @@ noun =
     .diamond = dayimani
     .cross = xihambano
     .plus = xikombiso xo hlanganisa
-
 # The side count is a possessive complement and closes the noun phrase behind
 # the describing words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -118,7 +113,6 @@ noun-regular-polygon =
         [tail] xa matlhelo ya { $numSides }
        *[head] xivumbeko lexi ringanaka
     }
-
 # The noun class. `c9` is the default and the class of every loanword,
 # including a word an author supplies.
 noun-gender =
@@ -142,7 +136,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «hi …» phrase and closes the description, so it moves
@@ -157,26 +150,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] lowu tateriweke
         [c7] lexi tateriweke
        *[c9] leyi tateriweke
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } hi { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } hi { $pattern }
@@ -184,7 +173,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } hi { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «ndzilakano» is class 3 and leads its own describing words, so the border's
 # words agree with it rather than with the shape it surrounds. Xitsonga has no
 # article and joins this clause with the invariable «ni», so all four branches
@@ -196,35 +184,28 @@ style-border-clause =
         [and-article] ni ndzilakano { $border }
        *[with] ni ndzilakano { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = a swi tateriwanga
-
 style-text =
     { $parts ->
         [background] { $color } ehenhla ka xitshuriwa { $background }
        *[plain] { $color }
     }
-
 style-background-none = a ku na nchumu
-
 
 ## Boolean words
 
 boolean-true = ntiyiso
 boolean-false = mavunwa
 
-
 ## Answer buttons
 
 answer-submit-label = Kambela Ntirho
 answer-submit-label-no-correctness = Rhumela Nhlamulo
-
 
 ## Sectional blocks
 
@@ -249,7 +230,6 @@ section-name =
     .solution = Ntlhantlho
     .task = Ntirho
     .theorem = Thiyoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -259,9 +239,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Xiletelo
-
 
 ## Tables and figures
 
@@ -272,7 +250,6 @@ table-name =
         [unnumbered-title] Tafula{ ": " }
        *[unnumbered] Tafula
     }
-
 figure-name =
     { $parts ->
         [numbered] Xifaniso { $enumeration }
@@ -281,24 +258,18 @@ figure-name =
        *[unnumbered] Xifaniso
     }
 
-
 ## Paginator controls
 
 paginator-previous = Leswi hundzeke
 paginator-next = Leswi landzelaka
 paginator-page = Tluka
-
 paginator-page-status = { $pageLabel } { $currentPage } eka { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = kumbe
-
 piecewise-condition-if = loko
-
 piecewise-condition-otherwise = handle ka sweswo
-
 
 ## Chemistry
 ##
@@ -312,6 +283,5 @@ piecewise-condition-otherwise = handle ka sweswo
 ## language.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Xikombiso xa Khemikhali lexi Hoxeke
 chemistry-invalid-ionic-compound = Nhlanganiso wa Ayoni lowu Hoxeke

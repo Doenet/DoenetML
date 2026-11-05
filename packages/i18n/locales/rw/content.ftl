@@ -117,7 +117,6 @@ color =
             [c7] cy'ikawa
            *[c9] y'ikawa
         }
-
 # True adjectives, and so the adjective concord rather than the subject one.
 line-width =
     .thick =
@@ -134,13 +133,11 @@ line-width =
             [c7] gito
            *[c9] nto
         }
-
 # An invariable «ufite …» phrase — "having …" — so that it agrees with nothing
 # and can close the description. `style-stroke` puts it last for that reason.
 line-style =
     .dashed = ufite uduce
     .dotted = ufite udutonyanga
-
 fill-style =
     .horizontal = imirongo iryamye
     .vertical = imirongo ihagaze
@@ -148,7 +145,6 @@ fill-style =
     .backdiagonal = imirongo iberamye ku ruhande rundi
     .dots = udutonyanga
     .diamonds = amadiyama
-
 noun =
     .line = umurongo
     .line-segment = igice cy'umurongo
@@ -168,7 +164,6 @@ noun =
     .diamond = idiyama
     .cross = umusaraba
     .plus = ikimenyetso cyo kongeramo
-
 # The side count goes in the tail, behind the describing words: Kinyarwanda
 # closes a noun phrase with a relative rather than opening one with it.
 noun-regular-polygon =
@@ -176,7 +171,6 @@ noun-regular-polygon =
         [tail] ifite impande { $numSides }
        *[head] ishusho ingana impande
     }
-
 noun-gender =
     { $noun ->
         [line] c3
@@ -192,7 +186,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -205,13 +198,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] wuzuye
@@ -219,13 +210,11 @@ style-filled-word =
         [c7] cyuzuye
        *[c9] yuzuye
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } hamwe na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } hamwe na { $pattern }
@@ -233,7 +222,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } hamwe na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «umupaka» is class 3, so the border's words agree with it and not with the
 # shape it surrounds. Kinyarwanda has no article and joins a complement with
 # the invariable «hamwe n'», so all four branches read alike.
@@ -244,35 +232,28 @@ style-border-clause =
         [and-article] hamwe n'umupaka { $border }
        *[with] hamwe n'umupaka { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ntiyuzuye
-
 style-text =
     { $parts ->
         [background] { $color } ku mbuganyuma { $background }
        *[plain] { $color }
     }
-
 style-background-none = nta na kimwe
-
 
 ## Boolean words
 
 boolean-true = ni byo
 boolean-false = si byo
 
-
 ## Answer buttons
 
 answer-submit-label = Genzura Umurimo
 answer-submit-label-no-correctness = Ohereza Igisubizo
-
 
 ## Sectional blocks
 
@@ -297,7 +278,6 @@ section-name =
     .solution = Igisubizo
     .task = Umurimo
     .theorem = Teoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -307,9 +287,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Inama
-
 
 ## Tables and figures
 
@@ -320,7 +298,6 @@ table-name =
         [unnumbered-title] Imbonerahamwe{ ": " }
        *[unnumbered] Imbonerahamwe
     }
-
 figure-name =
     { $parts ->
         [numbered] Ishusho { $enumeration }
@@ -329,15 +306,12 @@ figure-name =
        *[unnumbered] Ishusho
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ibanza
 paginator-next = Ikurikira
 paginator-page = Urupapuro
-
 paginator-page-status = { $pageLabel } { $currentPage } kuri { $numPages }
-
 
 ## Piecewise functions
 
@@ -345,8 +319,8 @@ piecewise-condition-or = cyangwa
 piecewise-condition-if = niba
 piecewise-condition-otherwise = ubundi
 
-
 ## Chemistry
+
 
 # Kinyarwanda is one of the catalogs that leaves `element-name` and
 # `element-anion-name` out, so those 130 keys fall back to English. Rwandan
@@ -355,6 +329,5 @@ piecewise-condition-otherwise = ubundi
 # in their own textbook.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ikimenyetso cya Shimi Kitemewe
 chemistry-invalid-ionic-compound = Umuvange wa Ayoni Utemewe

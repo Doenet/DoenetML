@@ -11,18 +11,25 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import {
-    buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import {
     textToAst,
-    textToMathFactory,
     mathStateVariableFromNumberStateVariable,
     numberToMathExpression,
-    roundForDisplay,
+    plainComplex,
 } from "../utils/math";
+import { addClickTargetStateVariableDefinition } from "../utils/triggering";
+import {
+    numberDisplayString,
+    numberFromDesiredText,
+    numberFromDesiredValue,
+    numberFromString,
+    numberValueForDisplay,
+    numberValueFromCodes,
+} from "../utils/valueFunctions/number";
 
 export default class NumberComponent extends InlineComponent {
     constructor(args) {
@@ -408,13 +415,7 @@ export default class NumberComponent extends InlineComponent {
             description: "The numeric value.",
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
-                // the reason we create a attribute component from the state variable,
-                // rather than just shadowing the attribute,
-                // is that a sequence creates a number where it sets fixed directly in the state
                 addAttributeComponentsShadowingStateVariables: {
-                    fixed: {
-                        stateVariableToShadow: "fixed",
-                    },
                     ...returnNumberDisplayAttributeComponentShadowing(),
                 },
             },
@@ -529,80 +530,15 @@ export default class NumberComponent extends InlineComponent {
                                 },
                             };
                         }
-                        // Convert string child to number, but don't let empty string be converted to 0
-                        let number = Number(
-                            dependencyValues.stringChild[0] || undefined,
+                        const number = numberFromString(
+                            dependencyValues.stringChild[0],
+                            {
+                                convertBoolean: dependencyValues.convertBoolean,
+                                valueOnNaN: dependencyValues.valueOnNaN,
+                                componentInfoObjects,
+                            },
                         );
-                        if (Number.isNaN(number)) {
-                            try {
-                                number = me
-                                    .fromAst(
-                                        textToAst.convert(
-                                            dependencyValues.stringChild[0],
-                                        ),
-                                    )
-                                    .evaluate_to_constant();
-
-                                if (typeof number === "boolean") {
-                                    if (dependencyValues.convertBoolean) {
-                                        number = number ? 1 : 0;
-                                    } else {
-                                        number = dependencyValues.valueOnNaN;
-                                    }
-                                } else if (Number.isNaN(number)) {
-                                    if (dependencyValues.convertBoolean) {
-                                        let parsedExpression =
-                                            buildParsedExpression({
-                                                dependencyValues: {
-                                                    stringChildren:
-                                                        dependencyValues.stringChild,
-                                                    allChildren:
-                                                        dependencyValues.stringChild,
-                                                },
-                                                componentInfoObjects,
-                                            }).setValue.parsedExpression;
-
-                                        number = evaluateLogic({
-                                            logicTree: parsedExpression.tree,
-                                            dependencyValues: {
-                                                booleanChildrenByCode: {},
-                                                booleanListChildrenByCode: {},
-                                                textChildrenByCode: {},
-                                                textListChildrenByCode: {},
-                                                mathChildrenByCode: {},
-                                                mathListChildrenByCode: {},
-                                                numberChildrenByCode: {},
-                                                numberListChildrenByCode: {},
-                                                otherChildrenByCode: {},
-                                            },
-                                            valueOnInvalid:
-                                                dependencyValues.valueOnNaN,
-                                        });
-                                    } else {
-                                        number = dependencyValues.valueOnNaN;
-                                    }
-                                } else if (
-                                    number?.re === Infinity ||
-                                    number?.re === -Infinity ||
-                                    number?.im === Infinity ||
-                                    number?.im === -Infinity
-                                ) {
-                                    // if start with Infinity*i, evaluate_to_constant makes it Infinity+Infinity*i,
-                                    // but if start with Infinity+Infinity*i, evaluate_to_constant makes is NaN+NaN*i
-                                    // To make sure displayed value (which has one more pass through evaluate_to_constant)
-                                    // and value match, pass through evaluate_to_constant a second time in this case
-                                    number =
-                                        numberToMathExpression(
-                                            number,
-                                        ).evaluate_to_constant();
-                                } else if (number?.im === 0) {
-                                    number = number.re;
-                                }
-                            } catch (e) {
-                                number = dependencyValues.valueOnNaN;
-                            }
-                        }
-                        return { setValue: { value: number } };
+                        return { setValue: { value: plainComplex(number) } };
                     } else {
                         let number =
                             dependencyValues.numberChild.length === 1
@@ -613,7 +549,11 @@ export default class NumberComponent extends InlineComponent {
                         if (Number.isNaN(number)) {
                             number = dependencyValues.valueOnNaN;
                         }
-                        return { setValue: { value: number } };
+                        // `plainComplex` here too: `<text>`'s `.number` can be
+                        // a math.js `Complex` (`<number><text>3+4i</text></number>`),
+                        // and this was the one branch of this definition that
+                        // let the class instance reach the state variable.
+                        return { setValue: { value: plainComplex(number) } };
                     }
                 } else {
                     if (dependencyValues.parsedExpression === null) {
@@ -632,49 +572,27 @@ export default class NumberComponent extends InlineComponent {
                             .length === 0
                     ) {
                         // just have strings, numbers, and math, evaluate expression
-
-                        let replaceMath = function (tree) {
-                            if (typeof tree === "string") {
-                                let child =
-                                    dependencyValues.mathChildrenByCode[tree];
-                                if (child !== undefined) {
-                                    return child.stateValues.value.tree;
-                                }
-                                child =
-                                    dependencyValues.numberChildrenByCode[tree];
-                                if (child !== undefined) {
-                                    return numberToMathExpression(
-                                        child.stateValues.value,
-                                    ).tree;
-                                }
-                                return tree;
-                            }
-                            if (!Array.isArray(tree)) {
-                                return tree;
-                            }
-                            return [tree[0], ...tree.slice(1).map(replaceMath)];
-                        };
-
-                        let number;
-
-                        try {
-                            number = me
-                                .fromAst(
-                                    replaceMath(
-                                        dependencyValues.parsedExpression.tree,
-                                    ),
-                                )
-                                .evaluate_to_constant();
-                        } catch (e) {
-                            number = dependencyValues.valueOnNaN;
+                        const mathValuesByCode = {};
+                        for (let code in dependencyValues.mathChildrenByCode) {
+                            mathValuesByCode[code] =
+                                dependencyValues.mathChildrenByCode[
+                                    code
+                                ].stateValues.value;
                         }
-
-                        if (
-                            !Number.isNaN(number) &&
-                            (typeof number === "number" ||
-                                (typeof number?.re === "number" &&
-                                    typeof number?.im === "number"))
-                        ) {
+                        const numberValuesByCode = {};
+                        for (let code in dependencyValues.numberChildrenByCode) {
+                            numberValuesByCode[code] =
+                                dependencyValues.numberChildrenByCode[
+                                    code
+                                ].stateValues.value;
+                        }
+                        const number = numberValueFromCodes({
+                            parsedExpression: dependencyValues.parsedExpression,
+                            mathValuesByCode,
+                            numberValuesByCode,
+                            valueOnNaN: dependencyValues.valueOnNaN,
+                        });
+                        if (number !== null) {
                             return { setValue: { value: number } };
                         }
                     }
@@ -727,9 +645,17 @@ export default class NumberComponent extends InlineComponent {
                 let number = Number(value);
                 if (Number.isNaN(number)) {
                     try {
-                        number = me
-                            .fromAst(textToAst.convert(value))
-                            .evaluate_to_constant();
+                        // `?? NaN` is belt and braces: `plainComplex` passes
+                        // anything that is not a `Complex` straight through, and
+                        // `evaluate_to_constant()` used to hand it a `null` for
+                        // a free variable or a blank, which coerces to `0`. It
+                        // answers `NaN` for those now.
+                        number =
+                            plainComplex(
+                                me
+                                    .fromAst(textToAst.convert(value))
+                                    .evaluate_to_constant(),
+                            ) ?? NaN;
                     } catch (e) {
                         number = NaN;
                     }
@@ -746,34 +672,10 @@ export default class NumberComponent extends InlineComponent {
                     return { success: false };
                 }
 
-                let desiredValue = desiredStateVariableValues.value;
-                if (desiredValue instanceof me.class) {
-                    desiredValue = desiredValue.evaluate_to_constant();
-                    if (
-                        Number.isNaN(desiredValue) ||
-                        !(
-                            typeof desiredValue === "number" ||
-                            (typeof desiredValue?.re === "number" &&
-                                typeof desiredValue?.im === "number")
-                        )
-                    ) {
-                        desiredValue = dependencyValues.valueOnNaN;
-                    }
-                } else {
-                    if (
-                        Number.isNaN(desiredValue) ||
-                        !(
-                            typeof desiredValue === "number" ||
-                            (typeof desiredValue?.re === "number" &&
-                                typeof desiredValue?.im === "number")
-                        )
-                    ) {
-                        desiredValue = Number(desiredValue);
-                        if (Number.isNaN(desiredValue)) {
-                            desiredValue = dependencyValues.valueOnNaN;
-                        }
-                    }
-                }
+                let desiredValue = numberFromDesiredValue(
+                    desiredStateVariableValues.value,
+                    dependencyValues.valueOnNaN,
+                );
 
                 if (!dependencyValues.singleNumberOrStringChild) {
                     // invert only if have just a single math child
@@ -804,9 +706,11 @@ export default class NumberComponent extends InlineComponent {
                         instructions = [
                             {
                                 setEssentialValue: "value",
-                                value: numberToMathExpression(
-                                    desiredValue,
-                                ).evaluate_to_constant(), // to normalize form
+                                value: plainComplex(
+                                    numberToMathExpression(
+                                        desiredValue,
+                                    ).evaluate_to_constant(),
+                                ), // to normalize form
                             },
                         ];
                     } else {
@@ -861,16 +765,10 @@ export default class NumberComponent extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                // for display via latex and text, round any decimal numbers to the significant digits
-                // determined by displaydigits
-                let rounded = roundForDisplay({
-                    value: numberToMathExpression(dependencyValues.value),
-                    dependencyValues,
-                }).evaluate_to_constant();
-
                 return {
                     setValue: {
-                        valueForDisplay: rounded,
+                        valueForDisplay:
+                            numberValueForDisplay(dependencyValues),
                     },
                 };
             },
@@ -911,64 +809,31 @@ export default class NumberComponent extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let params = buildNumberDisplayParameters({
-                    padZeros: dependencyValues.padZeros,
-                    displayDigits: dependencyValues.displayDigits,
-                    displayDecimals: dependencyValues.displayDecimals,
-                    avoidScientificNotation:
-                        dependencyValues.avoidScientificNotation,
-                });
                 return {
                     setValue: {
-                        text: numberToMathExpression(
-                            dependencyValues.valueForDisplay,
-                        ).toString(params),
+                        text: numberDisplayString({
+                            ...dependencyValues,
+                            format: "text",
+                        }),
                     },
                 };
             },
-            async inverseDefinition({
-                desiredStateVariableValues,
-                stateValues,
-            }) {
-                let desiredNumber = Number(desiredStateVariableValues.text);
-                if (Number.isFinite(desiredNumber)) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "value",
-                                desiredValue: desiredNumber,
-                            },
-                        ],
-                    };
-                } else {
-                    let fromText = textToMathFactory({
-                        parseScientificNotation: false,
-                    });
-
-                    let expr;
-                    try {
-                        expr = fromText(desiredStateVariableValues.text);
-                    } catch (e) {
-                        return { success: false };
-                    }
-
-                    desiredNumber = expr.evaluate_to_constant();
-
-                    if (Number.isFinite(desiredNumber)) {
-                        return {
-                            success: true,
-                            instructions: [
-                                {
-                                    setDependency: "value",
-                                    desiredValue: desiredNumber,
-                                },
-                            ],
-                        };
-                    } else {
-                        return { success: false };
-                    }
+            inverseDefinition({ desiredStateVariableValues }) {
+                const desiredNumber = numberFromDesiredText(
+                    desiredStateVariableValues.text,
+                );
+                if (desiredNumber === null) {
+                    return { success: false };
                 }
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "value",
+                            desiredValue: desiredNumber,
+                        },
+                    ],
+                };
             },
         };
 
@@ -1014,18 +879,12 @@ export default class NumberComponent extends InlineComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let params = buildNumberDisplayParameters({
-                    padZeros: dependencyValues.padZeros,
-                    displayDigits: dependencyValues.displayDigits,
-                    displayDecimals: dependencyValues.displayDecimals,
-                    avoidScientificNotation:
-                        dependencyValues.avoidScientificNotation,
-                });
                 return {
                     setValue: {
-                        latex: numberToMathExpression(
-                            dependencyValues.valueForDisplay,
-                        ).toLatex(params),
+                        latex: numberDisplayString({
+                            ...dependencyValues,
+                            format: "latex",
+                        }),
                     },
                 };
             },
@@ -1037,10 +896,6 @@ export default class NumberComponent extends InlineComponent {
                     dependencyType: "child",
                     childGroups: ["numbers"],
                     variableNames: ["canBeModified"],
-                },
-                modifyIndirectly: {
-                    dependencyType: "stateVariable",
-                    variableName: "modifyIndirectly",
                 },
                 fixed: {
                     dependencyType: "stateVariable",
@@ -1057,7 +912,6 @@ export default class NumberComponent extends InlineComponent {
             }),
             definition: function ({ dependencyValues }) {
                 if (
-                    !dependencyValues.modifyIndirectly ||
                     dependencyValues.fixed ||
                     !(
                         dependencyValues.singleNumberOrStringChild ||
@@ -1078,6 +932,8 @@ export default class NumberComponent extends InlineComponent {
                 return { setValue: { canBeModified: true } };
             },
         };
+
+        addClickTargetStateVariableDefinition(stateVariableDefinitions);
 
         return stateVariableDefinitions;
     }
@@ -1120,6 +976,7 @@ export default class NumberComponent extends InlineComponent {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });
@@ -1127,6 +984,7 @@ export default class NumberComponent extends InlineComponent {
 
     async numberClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1136,6 +994,7 @@ export default class NumberComponent extends InlineComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -1144,6 +1003,7 @@ export default class NumberComponent extends InlineComponent {
 
     async numberFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1153,6 +1013,7 @@ export default class NumberComponent extends InlineComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

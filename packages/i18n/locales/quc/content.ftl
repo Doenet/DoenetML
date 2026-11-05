@@ -47,15 +47,12 @@ color =
     .purple = morad
     .pink = kyaqsaq
     .brown = kape
-
 line-width =
     .thick = pim
     .thin = xax
-
 line-style =
     .dashed = qʼatom
     .dotted = tzʼubʼutzʼubʼ
-
 # Noun phrases, which is what the head of `style-fill` is. Kʼicheʼ does not
 # pluralize these, so they are the same words for one and for many.
 fill-style =
@@ -65,7 +62,6 @@ fill-style =
     .backdiagonal = juchʼ pa xukut tzalijisam
     .dots = tzʼubʼ
     .diamonds = rombo
-
 noun =
     .line = juchʼ
     .line-segment = juchʼ qʼatom
@@ -85,7 +81,6 @@ noun =
     .diamond = rombo
     .cross = kurus
     .plus = retal kʼiyinem
-
 # The side count is a prenominal modifier, so it stays in the head and the tail is
 # empty. The «u-» on «uxukut» is fixed: «xukut» is a word this catalog writes.
 noun-regular-polygon =
@@ -93,11 +88,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } uxukut junam
     }
-
 # One answer for every noun: Kʼicheʼ has no grammatical gender, so nothing
 # downstream has anything to agree with.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -111,7 +104,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The adjectives precede the noun, so this is English's order. The `[noun-tail]`
 # branch is unreachable from Kʼicheʼ's own `noun-regular-polygon`; it is kept
 # because it is what a partly-corrected catalog falls back to.
@@ -120,9 +112,7 @@ style-with-noun =
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = nojisam
-
 # «rukʼ», "with", is a free word, so nothing is welded to `$pattern`. The
 # possessive prefix could not have been used here: its shape would depend on the
 # pattern's first sound.
@@ -131,7 +121,6 @@ style-filled =
         [pattern] { $filled } { $color } rukʼ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } rukʼ { $pattern }
@@ -139,7 +128,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } rukʼ { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # The «u-» on «utzʼapibʼal» is fixed, because «tzʼapibʼal» is written here.
 # Kʼicheʼ has no article, so English's four branches are two distinct strings; all
 # four are written out because they are four positions.
@@ -150,7 +138,6 @@ style-border-clause =
         [and-article] xuqujeʼ jun { $border } utzʼapibʼal
        *[with] rukʼ { $border } utzʼapibʼal
     }
-
 # Here the pattern is the head noun — "blue diamonds" — and the colour precedes
 # it, so the phrase needs nothing at all.
 style-fill =
@@ -158,29 +145,23 @@ style-fill =
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = man nojisam taj
-
 style-text =
     { $parts ->
         [background] { $color } rukʼ jun { $background } uwach
        *[plain] { $color }
     }
-
 style-background-none = maj
-
 
 ## Boolean words
 
 boolean-true = qas
 boolean-false = man qas taj
 
-
 ## Answer buttons
 
 answer-submit-label = Chanikʼoj ri chak
 answer-submit-label-no-correctness = Chataqa ri tzalijisabʼal
-
 
 ## Sectional blocks
 
@@ -207,7 +188,6 @@ section-name =
     .solution = Solbʼal
     .task = Taqanik
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -217,9 +197,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Tobʼanik
-
 
 ## Tables and figures
 
@@ -230,7 +208,6 @@ table-name =
         [unnumbered-title] Cholajil{ ": " }
        *[unnumbered] Cholajil
     }
-
 figure-name =
     { $parts ->
         [numbered] Wachibʼal { $enumeration }
@@ -239,23 +216,19 @@ figure-name =
        *[unnumbered] Wachibʼal
     }
 
-
 ## Paginator controls
 
 paginator-previous = Nabʼe
 paginator-next = Kʼisbʼal
 paginator-page = Wuj
-
 # «rech», "of", carries a fixed prefix because it is a word this catalog writes.
 paginator-page-status = { $pageLabel } { $currentPage } rech { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = we
 piecewise-condition-otherwise = we man
-
 
 ## Chemistry
 ##
@@ -266,6 +239,5 @@ piecewise-condition-otherwise = we man
 ## table for a seed to reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Man utz taj ri retal kimiko
 chemistry-invalid-ionic-compound = Man utz taj ri riqoj ioniko

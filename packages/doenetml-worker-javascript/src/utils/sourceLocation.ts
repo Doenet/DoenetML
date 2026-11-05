@@ -76,6 +76,47 @@ export function doenetMLStringForReference(
 }
 
 /**
+ * The `$` or `$$` an author wrote in front of a reference.
+ *
+ * {@link doenetMLStringForReference} returns the path without it, and a caller
+ * composing a message has to put one back. Hardcoding `$` misquotes every
+ * function reference: `$$fs[$i]` comes back as `$fs[$i]`, naming something the
+ * author did not write and could not search their document for.
+ *
+ * Read from the source rather than inferred, because by this point nothing on
+ * the component says which spelling produced it.
+ *
+ * A parenthesized path is written `$(x)` or `$$(f)`, and its path starts inside
+ * the parentheses — so the `(` is stepped over before looking back for the
+ * dollars, without which `$$(f)` would come back as an ordinary `$`. The parentheses
+ * themselves are not reported: `doenetMLStringForReference` spans the path, so
+ * `$$(fs[$i])` is quoted as `$$fs[$i]`, which names the same reference in the
+ * spelling that does not need them.
+ *
+ * Falls back to `$` whenever the source is not there to read — the same answer
+ * as before, for a reference we cannot say more about. An `extend=` attribute
+ * has no `$` at all and lands there too.
+ */
+export function doenetMLDollarsForReference(
+    originalPath: ReferencePathPart[] | undefined | null,
+    allDoenetMLs: readonly string[] | undefined,
+): string {
+    const startOffset = originalPath?.[0]?.position?.start.offset;
+    if (startOffset == undefined) {
+        return "$";
+    }
+    const sourceDoc = originalPath![0].sourceDoc ?? 0;
+    const source = allDoenetMLs?.[sourceDoc];
+    if (source == undefined) {
+        return "$";
+    }
+    // `$(x)` and `$$(f)` start their path one character further in.
+    const dollarsEnd =
+        source[startOffset - 1] === "(" ? startOffset - 1 : startOffset;
+    return source.substring(dollarsEnd - 2, dollarsEnd) === "$$" ? "$$" : "$";
+}
+
+/**
  * Matches the run of XML tag-name characters immediately after `<`.
  * Per XML 1.0 a name may contain a wider set of characters, but DoenetML
  * tag names only ever use these — keeping the class tight avoids accidentally

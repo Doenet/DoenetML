@@ -4,6 +4,9 @@ export default class Coords extends MathComponent {
     static componentType = "coords";
     static rendererType = "math";
 
+    // the coordinates of a point: `fixLocation` keeps them where they are
+    static valueIsLocation = true;
+
     static componentDocs = {
         summary: "A math expression treated as a vector of coordinates",
     };

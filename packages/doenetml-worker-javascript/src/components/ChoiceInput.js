@@ -1,7 +1,10 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
-import { setUpVariantSeedAndRng } from "../utils/variants";
+import {
+    setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import {
     buildInputResponseEvent,
@@ -29,6 +32,12 @@ export default class Choiceinput extends Input {
     static renderChildren = true;
 
     static variableForImplicitProp = "selectedValues";
+
+    // The inline (select) form sizes itself to its widest choice and keeps that
+    // width whatever is selected, so an embedded one does not resize as it is
+    // used. Only `inline` choice inputs are embedded; a block of radio buttons
+    // has no place inside an expression.
+    static canBeEmbeddedInMath = true;
 
     static createsVariants = true;
 
@@ -343,9 +352,8 @@ export default class Choiceinput extends Input {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -1573,6 +1581,10 @@ export default class Choiceinput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "descriptionChildInd",
                 },
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 const childIndicesToRender = [];
@@ -1590,6 +1602,9 @@ export default class Choiceinput extends Input {
                     childIndicesToRender.push(
                         dependencyValues.descriptionChildInd,
                     );
+                }
+                if (dependencyValues.labelChildInd !== -1) {
+                    childIndicesToRender.push(dependencyValues.labelChildInd);
                 }
 
                 return {
@@ -1689,23 +1704,11 @@ export default class Choiceinput extends Input {
                         inheritedComponentType: child.componentType,
                         baseComponentType: "_composite",
                     }) &&
-                    child.attributes.createComponentOfType?.primitive.value ===
+                    child.attributes._createComponentOfType?.primitive.value ===
                         "choice"
                 ) {
-                    if (
-                        child.attributes.numComponents?.primitive !== undefined
-                    ) {
-                        let newChoices = Number(
-                            child.attributes.numComponents?.primitive.value,
-                        );
-                        if (Number.isInteger(newChoices) && newChoices >= 0) {
-                            numChoices += newChoices;
-                        } else {
-                            return { success: false };
-                        }
-                    } else {
-                        numChoices++;
-                    }
+                    // A composite given a type makes exactly one component.
+                    numChoices++;
                 } else {
                     return { success: false };
                 }

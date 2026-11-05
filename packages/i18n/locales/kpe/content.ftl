@@ -62,15 +62,12 @@ color =
     .purple = fuu-wɔlɔ
     .pink = wɔlɔ-faa
     .brown = ndunia-wɔlɔ
-
 line-width =
     .thick = gbagba
     .thin = kpinkpin
-
 line-style =
     .dashed = tɛgɛli
     .dotted = kɛlɛ-kɛlɛ
-
 fill-style =
     .horizontal = laa-laa
     .vertical = kologboo-kologboo
@@ -78,7 +75,6 @@ fill-style =
     .backdiagonal = gbaali-kpogbo
     .dots = kɛlɛ-ŋa
     .diamonds = kula-taamaa-ŋa
-
 noun =
     .line = tan
     .line-segment = tan-kunkun
@@ -98,15 +94,12 @@ noun =
     .diamond = kula-taamaa
     .cross = kula-fele
     .plus = pulusi
-
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
        *[head] fan-caa { $numSides } lɔnni
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -120,21 +113,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = fanla
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern } nda
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } { $pattern } nda
@@ -142,7 +131,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern } nda
        *[plain] { $filled } { $color } { $noun }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] { $border } gbansan nda
@@ -150,35 +138,28 @@ style-border-clause =
         [and-article] nda { $border } gbansan
        *[with] { $border } gbansan nda
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = fanla gaa
-
 style-text =
     { $parts ->
         [background] { $color } nda kpogbo-kolo { $background } nda
        *[plain] { $color }
     }
-
 style-background-none = ɓoyi
-
 
 ## Boolean words
 
 boolean-true = true
 boolean-false = false
 
-
 ## Answer buttons
 
 answer-submit-label = Jaabi kɔlɔ
 answer-submit-label-no-correctness = Jaabi ci
-
 
 ## Sectional blocks
 
@@ -203,7 +184,6 @@ section-name =
     .solution = Jaabi-jɛnjɛn
     .task = Kɛta-baalu
     .theorem = Sɛbɛ-tigi-kuma
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -213,9 +193,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Nɔnabɔli
-
 
 ## Tables and figures
 
@@ -226,7 +204,6 @@ table-name =
         [unnumbered-title] Tabali{ ": " }
        *[unnumbered] Tabali
     }
-
 figure-name =
     { $parts ->
         [numbered] Ja { $enumeration }
@@ -235,32 +212,24 @@ figure-name =
        *[unnumbered] Ja
     }
 
-
 ## Paginator controls
 
 paginator-previous = Kɔrɔ
 paginator-next = Nata
 paginator-page = Peji
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = wala
-
 piecewise-condition-if = ni
-
 piecewise-condition-otherwise = fɛn gbɛtɛ bɛɛ na
-
 
 ## Chemistry
 ##
 ## Left out — see this file's header for why the two-country school-system
 ## split makes a single fallback the wrong shape here.
 
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Elemɛn-taamaa Sɔsɔi
 chemistry-invalid-ionic-compound = Yɛlɛma-fan Sɔsɔi

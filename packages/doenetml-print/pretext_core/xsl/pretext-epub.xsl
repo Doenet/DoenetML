@@ -78,25 +78,20 @@
 </xsl:variable>
 <xsl:variable name="mock-UUID">mock-123456789-0-987654321</xsl:variable>
 
-<!-- We hard-code the chunking level.  Level 2 is the  -->
-<!-- default for books, which we presume throughout.   -->
-<!-- Specialized divisions, to the spine, assume this. -->
-<!-- NB: this override is only defined for a "book",   -->
-<!-- so when there is support for "article" it will    -->
-<!-- need new definitions.                             -->
-<xsl:variable name="chunk-level">
-    <xsl:choose>
-        <xsl:when test="$root/book/part">3</xsl:when>
-        <xsl:when test="$root/book">2</xsl:when>
-        <!-- break "article" into "section" -->
-        <xsl:when test="$root/article/section">1</xsl:when>
-        <!-- otherwise, no real divisions -->
-        <xsl:when test="$root/article">0</xsl:when>
-    </xsl:choose>
-</xsl:variable>
+<!-- The level a document's structure implies, with no publisher    -->
+<!-- choice consulted: a reader is served by files that are neither -->
+<!-- so large that a reading system labors over one nor so numerous -->
+<!-- that it labors over the set.  See "chunking-level-warnings".   -->
+<xsl:variable name="chunk-level" select="$chunk-level-default"/>
 
-<!-- We disable the ToC level to avoid any conflicts with chunk level -->
-<xsl:variable name="toc-level" select="number(0)" />
+<!-- Force level 2 as the top level heading for chunks     -->
+<!-- by overriding this variable rather than the original. -->
+<xsl:variable name="chunk-heading-level" select="2"/>
+
+<!-- The navigation document lists every file of the spine, so its   -->
+<!-- depth is the chunking level and there is nothing left for a     -->
+<!-- table of contents level to say.  See "chunking-level-warnings". -->
+<xsl:variable name="toc-level" select="number(0)"/>
 
 <!-- XHTML files as output -->
 <xsl:variable name="file-extension" select="'.xhtml'" />
@@ -147,6 +142,24 @@
 <!-- but a a boolean sure helps                                  -->
 <xsl:variable name="b-kindle" select="$math.format = 'kindle'"/>
 
+<!-- A file holding mathematics must say so in the "properties" of -->
+<!-- its manifest "item", and which property depends only on the   -->
+<!-- format of the mathematics.  Mathematics as speech is text, so -->
+<!-- it has no property, and the value is empty.                   -->
+<xsl:variable name="manifest-math-property">
+    <xsl:choose>
+        <xsl:when test="$math.format = 'mml' or $math.format = 'kindle'">
+            <xsl:text>mathml</xsl:text>
+        </xsl:when>
+        <xsl:when test="$math.format = 'svg'">
+            <xsl:text>svg</xsl:text>
+        </xsl:when>
+    </xsl:choose>
+</xsl:variable>
+
+<!-- HTML sets based on theme. EPUB should always use 600 -->
+<xsl:variable name="design-width" select="'600'" />
+
 <!-- If there are footnotes, we'll build and package a "endnotes.xhtml" file -->
 <xsl:variable name="b-has-endnotes" select="boolean($document-root//fn|$document-root//aside|$document-root//biographical|$document-root//historical)"/>
 
@@ -184,7 +197,10 @@
 <!-- template in the entry template here, so these pages are not built (good).      -->
 <!-- But we do get little buttons to elect a printable version.  We have to kill    -->
 <!-- those buttons, since EPUB wants to go looking for the printable-version files. -->
-<xsl:template match="worksheet|handout" mode="standalone-printout-links"/>
+<!-- PROJECT-LIKE is here for the same reason: a project with workspace    -->
+<!-- outside a printout earns a print preview button in HTML, which is     -->
+<!-- meaningless in EPUB.                                                  -->
+<xsl:template match="&PRINTOUT;|&PROJECT-LIKE;" mode="standalone-printout-links"/>
 
 
 <!-- ############## -->
@@ -201,7 +217,7 @@
         <xsl:call-template name="banner-warning">
             <xsl:with-param name="warning">PTX:FATAL: EPUB creation is only implemented for a "book" or an "article",&#xa;not a "<xsl:value-of select="local-name($document-root)"/>", and we cannot recover</xsl:with-param>
         </xsl:call-template>
-        <xsl:message terminate="yes">Quitting...</xsl:message>
+        <xsl:message terminate="yes">PTX:FATAL:   Quitting...</xsl:message>
     </xsl:if>
     <!-- analyze authored source -->
     <xsl:apply-templates select="$original" mode="generic-warnings"/>
@@ -209,17 +225,32 @@
     <xsl:apply-templates select="$original" mode="parameter-deprecation-warnings"/>
     <!-- Following should use $root or $document-root as defined -->
     <!-- by the "assembly" template.  Checked 2020-07-16.        -->
+    <xsl:call-template name="chunking-level-warnings"/>
     <xsl:call-template name="setup" />
     <xsl:apply-templates select="$root"/>
     <xsl:call-template name="package-document" />
     <xsl:call-template name="packaging-info"/>
 </xsl:template>
 
-<!-- First, we use the frontmatter element to trigger various necessary files     -->
+<!-- Two publisher choices under "common" do not reach this    -->
+<!-- conversion, and an author who set one deserves to hear so -->
+<!-- rather than wonder why the output never changed.          -->
+<xsl:template name="chunking-level-warnings">
+    <xsl:if test="$chunk-level-entered != ''">
+        <xsl:message>PTX:FALLBACK: the publisher file  common/chunking/@level  entry is being ignored for the conversion to EPUB, which always divides a document at the default level for its structure.  The choice matters little here: a reading system presents the files as one continuous reading order, and the level only governs how large the files are.  The default keeps them at a size reading systems handle well.</xsl:message>
+    </xsl:if>
+    <xsl:if test="$publication/common/tableofcontents/@level">
+        <xsl:message>PTX:FALLBACK: the publisher file  common/tableofcontents/@level  entry is being ignored for the conversion to EPUB, whose navigation lists every file of the document, leaving a reading system to provide its own control over how much of that to show at once.</xsl:message>
+    </xsl:if>
+</xsl:template>
+
+<!-- First, create the cover page and table of contents files, which are          -->
+<!-- necessary for every EPUB, even when the source has no "frontmatter"          -->
 <!-- We process structural nodes via chunking routine in  xsl/mathbook-common.xsl -->
 <!-- This in turn calls specific modal templates defined elsewhere in this file   -->
 <xsl:template match="/pretext">
-    <xsl:apply-templates select="$document-root//frontmatter" mode="epub" />
+    <xsl:call-template name="cover-page-file"/>
+    <xsl:call-template name="table-contents-file"/>
     <xsl:call-template name="endnotes"/>
     <xsl:apply-templates mode="chunking" />
 </xsl:template>
@@ -235,7 +266,7 @@
 <!-- EPUB conversion with "chapter" having "section" it gets an -->
 <!-- HTML page of its own as part of the "summary" hack.  Ditto -->
 <!-- for "outcomes" which might appear in a different order.    -->
-<xsl:template match="&STRUCTURAL;|chapter/conclusion|chapter/outcomes[preceding-sibling::section]" mode="file-wrap">
+<xsl:template match="&STRUCTURAL;|&DIVISION-COMPANION;" mode="file-wrap">
     <xsl:param name="content" />
     <xsl:variable name="file">
         <xsl:value-of select="$content-dir" />
@@ -272,6 +303,13 @@
     </exsl:document>
 </xsl:template>
 
+<!-- The "backmatter" has no page of its own (see above), so   -->
+<!-- a summary page never links to it: the links pass through  -->
+<!-- to its children, each of which is a genuine page          -->
+<xsl:template match="backmatter" mode="summary-nav">
+    <xsl:apply-templates select="*" mode="summary-nav"/>
+</xsl:template>
+
 <!-- The book element gets mined in various ways,            -->
 <!-- but the "usual" HTML treatment can/should be thrown out -->
 <!-- At fixed level 2, this is a summary page from an        -->
@@ -282,7 +320,7 @@
 <!-- and they are going into their own files.  So it seems the    -->
 <!-- right thing to do, while making minimal changes elsewhere.   -->
 <xsl:template match="chapter/conclusion|chapter/outcomes[preceding-sibling::section]" mode="containing-filename">
-    <xsl:apply-templates select="." mode="visible-id"/>
+    <xsl:apply-templates select="." mode="unique-id"/>
     <xsl:text>.xhtml</xsl:text>
 </xsl:template>
 
@@ -303,23 +341,10 @@
             <section class="{local-name(.)}">
                 <xsl:apply-templates select="." mode="html-id-attribute"/>
                 <xsl:apply-templates select="." mode="section-heading" />
-                <xsl:apply-templates select="author|objectives|introduction|titlepage|abstract" />
+                <xsl:apply-templates select="author|titlepage|abstract" />
                 <!-- deleted "nav" and summary links here -->
+                <!-- division companions become their own files, in the spine -->
             </section>
-            <xsl:if test="conclusion">
-                <xsl:apply-templates select="conclusion" mode="file-wrap">
-                    <xsl:with-param name="content">
-                        <xsl:apply-templates select="conclusion"/>
-                    </xsl:with-param>
-                </xsl:apply-templates>
-            </xsl:if>
-            <xsl:if test="outcomes">
-                <xsl:apply-templates select="outcomes" mode="file-wrap">
-                    <xsl:with-param name="content">
-                        <xsl:apply-templates select="outcomes"/>
-                    </xsl:with-param>
-                </xsl:apply-templates>
-            </xsl:if>
         </xsl:with-param>
     </xsl:apply-templates>
 </xsl:template>
@@ -387,10 +412,12 @@
                 <xsl:apply-templates select="personname"/>
             </xsl:element>
         </xsl:for-each>
-        <!-- Required in EPUB 3.0.1 spec       -->
-        <!-- TODO: title-types can refine this -->
+        <!-- Required in EPUB 3.0.1 spec                       -->
+        <!-- TODO: title-types can refine this                 -->
+        <!-- Text only, so any mathematics is its LaTeX source -->
+        <!-- (or the author supplies a "plaintitle" instead)   -->
         <xsl:element name="dc:title">
-            <xsl:apply-templates select="$document-root" mode="title-full" />
+            <xsl:apply-templates select="$document-root" mode="title-plain"/>
         </xsl:element>
         <!-- Required in EPUB 3.0.1 spec                -->
         <!-- Repeatable and more complicated, see spec  -->
@@ -447,29 +474,38 @@
                 <item id="css-epub" href="{$css-dir}/epub.css" media-type="text/css"/>
             </xsl:otherwise>
         </xsl:choose>
-        <item id="cover-page" href="{$xhtml-dir}/cover-page.xhtml" media-type="application/xhtml+xml"/>
+        <!-- Absent an authored image, the cover page shows the -->
+        <!-- document's title, which may hold mathematics       -->
+        <item id="cover-page" href="{$xhtml-dir}/cover-page.xhtml" media-type="application/xhtml+xml">
+            <xsl:variable name="has-math">
+                <xsl:call-template name="file-has-math">
+                    <xsl:with-param name="filename" select="'cover-page.xhtml'"/>
+                </xsl:call-template>
+            </xsl:variable>
+            <xsl:if test="$has-math = 'true'">
+                <xsl:attribute name="properties">
+                    <xsl:value-of select="$manifest-math-property"/>
+                </xsl:attribute>
+            </xsl:if>
+        </item>
         <item id="table-contents"
               href="{$xhtml-dir}/table-contents.xhtml"
               media-type="application/xhtml+xml">
-            <!-- TODO: If the TOC expands to include more than -->
-            <!-- chapter and appendix, this will need revision. -->
+            <!-- The file has been written by now, so rather than    -->
+            <!-- predict which division titles the table of contents -->
+            <!-- displays, read it and see if any mathematics landed -->
+            <!-- there, exactly as "manifest-item" does per chunk    -->
+            <xsl:variable name="has-math">
+                <xsl:call-template name="file-has-math">
+                    <xsl:with-param name="filename" select="'table-contents.xhtml'"/>
+                </xsl:call-template>
+            </xsl:variable>
             <xsl:attribute name="properties">
-                <xsl:choose>
-                    <xsl:when test="($b-is-book and ($document-root//chapter/title/m or $document-root//appendix/title/m))">
-                    <xsl:choose>
-                            <xsl:when test="$math.format = 'mml' or
-                                            $math.format = 'kindle'">
-                                <xsl:text>nav mathml</xsl:text>
-                            </xsl:when>
-                            <xsl:when test="$math.format = 'svg'">
-                                <xsl:text>nav svg</xsl:text>
-                            </xsl:when>
-                        </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:text>nav</xsl:text>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <xsl:text>nav</xsl:text>
+                <xsl:if test="($has-math = 'true') and not($manifest-math-property = '')">
+                    <xsl:text> </xsl:text>
+                    <xsl:value-of select="$manifest-math-property"/>
+                </xsl:if>
             </xsl:attribute>
         </item>
         <item id="cover-image" href="{$xhtml-dir}/{$epub-cover-dest}" properties="cover-image">
@@ -503,17 +539,12 @@
         <xsl:if test="$b-has-endnotes">
             <item id="endnotes" href="{$xhtml-dir}/{$endnote-file}"
                   media-type="application/xhtml+xml">
-                <xsl:if test="$b-endnotes-have-math">
+                <!-- The test examines the source, not the file, so it -->
+                <!-- also holds for mathematics as speech, which is    -->
+                <!-- text and has no property to declare               -->
+                <xsl:if test="$b-endnotes-have-math and not($manifest-math-property = '')">
                     <xsl:attribute name="properties">
-                        <xsl:choose>
-                            <xsl:when test="$math.format = 'mml' or
-                                            $math.format = 'kindle'">
-                                <xsl:text>mathml</xsl:text>
-                            </xsl:when>
-                            <xsl:when test="$math.format = 'svg'">
-                                <xsl:text>svg</xsl:text>
-                            </xsl:when>
-                        </xsl:choose>
+                        <xsl:value-of select="$manifest-math-property"/>
                     </xsl:attribute>
                 </xsl:if>
             </item>
@@ -533,10 +564,83 @@
 <!-- recurse into contents for image files, etc    -->
 <!-- See "Core Media Type Resources"               -->
 <!-- Add to spine identically                      -->
-<!-- Specialized divisions are terminal in back    -->
-<!-- matter, and only a separate file when within  -->
-<!-- a "chapter", at level 2                       -->
-<xsl:template match="frontmatter|colophon|biography|dedication|acknowledgement|preface|chapter|chapter/conclusion|chapter/outcomes[preceding-sibling::section]|appendix|index|section|exercises|chapter/reading-questions|chapter/solutions|appendix/solutions|backmatter/solutions|chapter/references|appendix/references|backmatter/references" mode="manifest">
+<!-- A division is a page of the container exactly when the        -->
+<!-- chunking machinery makes one: a terminal chunk, or a summary  -->
+<!-- page above the chunk level (the document root's own summary   -->
+<!-- included).  "backmatter" is the deliberate exception: it is   -->
+<!-- a pure container, with no content of its own, so its summary  -->
+<!-- page would be nothing but links to its children, and a        -->
+<!-- reading system's own navigation provides exactly that, so     -->
+<!-- the page is never produced (see mode="intermediate", above).  -->
+<!-- Contrast with "frontmatter", whose page renders genuine       -->
+<!-- content: a title page, an abstract, and so on.                -->
+<!-- The manifest and the spine both consult this one template,    -->
+<!-- and the files written are governed by the same machinery, so  -->
+<!-- the three can never disagree.                                 -->
+<xsl:template match="&STRUCTURAL;" mode="is-epub-page">
+    <xsl:variable name="chunk">
+        <xsl:apply-templates select="." mode="is-chunk"/>
+    </xsl:variable>
+    <xsl:variable name="intermediate">
+        <xsl:apply-templates select="." mode="is-intermediate"/>
+    </xsl:variable>
+    <xsl:choose>
+        <xsl:when test="self::backmatter">
+            <xsl:text>false</xsl:text>
+        </xsl:when>
+        <!-- a "book" is the second exception: its summary page is  -->
+        <!-- also deliberately not produced (see the "book" version -->
+        <!-- of mode="intermediate"), the table of contents being   -->
+        <!-- the better organizer.  An "article" root DOES produce  -->
+        <!-- its summary page, and so is not excepted.              -->
+        <xsl:when test="self::book">
+            <xsl:text>false</xsl:text>
+        </xsl:when>
+        <xsl:when test="($chunk = 'true') or ($intermediate = 'true')">
+            <xsl:text>true</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:text>false</xsl:text>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<xsl:template match="&STRUCTURAL;" mode="manifest">
+    <xsl:variable name="is-page">
+        <xsl:apply-templates select="." mode="is-epub-page"/>
+    </xsl:variable>
+    <xsl:if test="$is-page = 'true'">
+        <xsl:call-template name="manifest-item"/>
+    </xsl:if>
+    <!-- recurse, eg from chapter down into a section -->
+    <xsl:apply-templates select="*" mode="manifest" />
+</xsl:template>
+
+<!-- A division companion is a file exactly when it is a chunk -->
+<!-- (its parent is a summary page); it has no children that   -->
+<!-- could ever join the manifest, so there is no recursion    -->
+<xsl:template match="&DIVISION-COMPANION;" mode="manifest">
+    <xsl:variable name="chunk">
+        <xsl:apply-templates select="." mode="is-chunk"/>
+    </xsl:variable>
+    <xsl:if test="$chunk = 'true'">
+        <xsl:call-template name="manifest-item"/>
+    </xsl:if>
+</xsl:template>
+
+<!-- Whether a file of the container holds mathematics, as "true"   -->
+<!-- or "false".  There are simply too many edge cases to decide    -->
+<!-- this from the structure of the source, so read the XHTML file, -->
+<!-- already written, and look for an "svg" or a "math" element.    -->
+<!-- (Processing with page2svg makes it appear SVG images exist.)   -->
+<xsl:template name="file-has-math">
+    <xsl:param name="filename"/>
+    <xsl:variable name="contents" select="document(concat($tmpdir, '/', $content-dir, '/', $xhtml-dir, '/', $filename))"/>
+    <xsl:value-of select="boolean($contents//svg:svg | $contents//math:math)"/>
+</xsl:template>
+
+<!-- One manifest "item" element for the context node's file -->
+<xsl:template name="manifest-item">
     <!-- Annotate manifest entries -->
     <xsl:comment>
         <xsl:apply-templates select="." mode="long-name" />
@@ -545,49 +649,17 @@
     <xsl:element name="item" xmlns="http://www.idpf.org/2007/opf">
         <xsl:apply-templates select="." mode="html-id-attribute"/>
         <!-- properties are iff, so validator complains if extra -->
-        <!-- condition on math presence for svg/mathml property  -->
-        <!-- TODO: use a parameter switch for output style       -->
         <!-- Study: https://github.com/w3c/epubcheck/issues/420  -->
-        <!-- Processing with page2svg makes it appear SVG images exist -->
-        <!-- Set properties="svg" or properties="mathml" when a -->
-        <!-- file contains math in one of thse formats. -->
-        <!-- There are simply too many edge cases to do this -->
-        <!-- based on document structure alone, so read the actual -->
-        <!-- XHTML files we've already written and look for svg -->
-        <!-- or math tags in them. -->
         <xsl:variable name="has-math">
-            <xsl:variable name="contents-filename">
-                <xsl:value-of select="$tmpdir" />
-                <xsl:text>/</xsl:text>
-                <xsl:value-of select="$content-dir" />
-                <xsl:text>/</xsl:text>
-                <xsl:value-of select="$xhtml-dir" />
-                <xsl:text>/</xsl:text>
-                <xsl:apply-templates select="."
-                                     mode="containing-filename"/>
-            </xsl:variable>
-            <xsl:variable name="filedata"
-                          select="document($contents-filename)"/>
-            <xsl:choose>
-                <xsl:when test="$filedata//svg:svg|$filedata//math:math">
-                    <xsl:text>true</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>false</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="file-has-math">
+                <xsl:with-param name="filename">
+                    <xsl:apply-templates select="." mode="containing-filename"/>
+                </xsl:with-param>
+            </xsl:call-template>
         </xsl:variable>
-        <xsl:variable name="b-has-math" select="$has-math = 'true'" />
-        <xsl:if test="$b-has-math">
+        <xsl:if test="$has-math = 'true'">
             <xsl:attribute name="properties">
-                <xsl:choose>
-                    <xsl:when test="$math.format = 'mml' or $math.format = 'kindle'">
-                        <xsl:text>mathml</xsl:text>
-                    </xsl:when>
-                    <xsl:when test="$math.format = 'svg'">
-                        <xsl:text>svg</xsl:text>
-                    </xsl:when>
-                </xsl:choose>
+                <xsl:value-of select="$manifest-math-property"/>
             </xsl:attribute>
         </xsl:if>
         <!-- TODO: coordinate with manifest/script on xhtml extension -->
@@ -601,7 +673,6 @@
         </xsl:attribute>
     </xsl:element>
     <!-- recurse, eg from chapter down into a section -->
-    <xsl:apply-templates select="*" mode="manifest" />
 </xsl:template>
 
 <!-- How the files are organized into the spine  -->
@@ -623,19 +694,43 @@
     <xsl:apply-templates select="*" mode="spine" />
 </xsl:template>
 
+<!-- A division companion joins the linear reading order exactly -->
+<!-- when it is a file; document order places an "introduction"  -->
+<!-- right after its division's summary page, and a "conclusion" -->
+<!-- after the last subdivision                                  -->
+<xsl:template match="&DIVISION-COMPANION;" mode="spine">
+    <xsl:variable name="chunk">
+        <xsl:apply-templates select="." mode="is-chunk"/>
+    </xsl:variable>
+    <xsl:if test="$chunk = 'true'">
+        <xsl:element name="itemref" xmlns="http://www.idpf.org/2007/opf">
+            <xsl:attribute name="idref">
+                <xsl:apply-templates select="." mode="html-id" />
+            </xsl:attribute>
+            <xsl:attribute name="linear">
+                <xsl:text>yes</xsl:text>
+            </xsl:attribute>
+        </xsl:element>
+    </xsl:if>
+</xsl:template>
+
 <!-- Simplest scenario is spine matches manifest, all with @linear="yes" -->
-<!-- Specialized divisions will only become files in the manifest at     -->
-<!-- chunk level 2, in other words, peers of chapters or sections        -->
-<!-- (book or chapter/appendix as parent, respectively)                  -->
-<xsl:template match="frontmatter|colophon|acknowledgement|biography|dedication|preface|chapter|appendix|index|section|exercises[parent::book|parent::chapter|parent::appendix]|reading-questions[parent::book|parent::chapter|parent::appendix]|chapter/solutions|appendix/solutions|backmatter/solutions|chapter/references|appendix/references|backmatter/references|glossary[parent::book|parent::chapter|parent::appendix]|conclusion[parent::chapter]|outcomes[preceding-sibling::section]" mode="spine">
-    <xsl:element name="itemref" xmlns="http://www.idpf.org/2007/opf">
-        <xsl:attribute name="idref">
-            <xsl:apply-templates select="." mode="html-id" />
-        </xsl:attribute>
-        <xsl:attribute name="linear">
-            <xsl:text>yes</xsl:text>
-        </xsl:attribute>
-    </xsl:element>
+<!-- The identical "is-epub-page" question asked by the "manifest"       -->
+<!-- templates above, so every spine reference resolves                  -->
+<xsl:template match="&STRUCTURAL;" mode="spine">
+    <xsl:variable name="is-page">
+        <xsl:apply-templates select="." mode="is-epub-page"/>
+    </xsl:variable>
+    <xsl:if test="$is-page = 'true'">
+        <xsl:element name="itemref" xmlns="http://www.idpf.org/2007/opf">
+            <xsl:attribute name="idref">
+                <xsl:apply-templates select="." mode="html-id" />
+            </xsl:attribute>
+            <xsl:attribute name="linear">
+                <xsl:text>yes</xsl:text>
+            </xsl:attribute>
+        </xsl:element>
+    </xsl:if>
     <xsl:apply-templates select="*" mode="spine" />
 </xsl:template>
 
@@ -671,19 +766,17 @@
                 </xsl:choose>
             </xsl:attribute>
         </cover>
-        <!-- These may be used in automated creation of a cover image -->
-        <title>
-            <xsl:apply-templates select="$document-root" mode="title-simple"/>
-        </title>
-        <subtitle>
-            <xsl:apply-templates select="$document-root" mode="subtitle"/>
-        </subtitle>
-        <author>
-            <xsl:apply-templates select="$bibinfo/author" mode="name-list"/>
-        </author>
         <!-- Decide what to do with preview images, etc. -->
         <images>
             <xsl:for-each select="$document-root//image">
+                <xsl:variable name="write-filename">
+                    <xsl:apply-templates select="." mode="epub-base-filename">
+                        <xsl:with-param name="purpose" select="'write'"/>
+                    </xsl:apply-templates>
+                </xsl:variable>
+                <!-- a PDF-only image is replaced by a placeholder, -->
+                <!-- so the file itself is not copied in            -->
+                <xsl:if test="not(substring($write-filename, string-length($write-filename) - 3) = '.pdf')">
                 <image>
                     <!-- filename begins with directories from publisher file -->
                     <xsl:attribute name="sourcename">
@@ -697,6 +790,7 @@
                         </xsl:apply-templates>
                     </xsl:attribute>
                 </image>
+                </xsl:if>
             </xsl:for-each>
         </images>
     </packaging>
@@ -712,11 +806,25 @@
             <link href="../{$css-dir}/epub.css" rel="stylesheet" type="text/css"/>
         </xsl:otherwise>
     </xsl:choose>
+    <!-- Custom list markers are "@counter-style" rules derived from -->
+    <!-- the source, so they ride along in every content file's head -->
+    <xsl:if test="$b-needs-custom-marker-css">
+        <style>
+            <xsl:text>&#xa;</xsl:text>
+            <xsl:apply-templates select="exsl:node-set($ol-markers)//ol-marker" mode="ol-marker-style"/>
+        </style>
+    </xsl:if>
 </xsl:template>
 
 <!-- ############# -->
 <!-- Content files -->
 <!-- ############# -->
+
+<!-- The cover page and table of contents files are listed in the   -->
+<!-- manifest and spine of every EPUB, and "package-manifest" reads -->
+<!-- the table of contents file once written.  So create both       -->
+<!-- unconditionally: their content comes from the document root,   -->
+<!-- not the optional "frontmatter".                                -->
 
 <!-- "coverpage.html" comes in two flavors:                            -->
 <!--                                                                   -->
@@ -731,15 +839,16 @@
 <!--     here is backed out.  More immediately, we build a simple page -->
 <!--     (with CSS) having title, subtitle, and authors.               -->
 
-<xsl:template match="frontmatter" mode="epub">
+<xsl:template name="cover-page-file">
     <exsl:document href="{$content-dir}/{$xhtml-dir}/cover-page.xhtml" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="no">
         <html>
             <xsl:call-template name="html-theme-attributes"/>
-            <!-- head element should not be empty -->
+            <!-- head element should not be empty         -->
+            <!-- and a "title" in the "head" is text only -->
             <head>
                 <meta charset="utf-8"/>
                 <title>
-                    <xsl:apply-templates select="$document-root" mode="title-full"/>
+                    <xsl:apply-templates select="$document-root" mode="title-plain"/>
                 </title>
                 <xsl:if test="not($b-authored-cover)">
                     <xsl:call-template name="epub-kindle-css"/>
@@ -780,6 +889,9 @@
             </body>
         </html>
     </exsl:document>
+</xsl:template>
+
+<xsl:template name="table-contents-file">
     <exsl:document href="{$content-dir}/{$xhtml-dir}/table-contents.xhtml" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="no">
         <html xmlns:epub="http://www.idpf.org/2007/ops">
             <xsl:call-template name="html-theme-attributes"/>
@@ -790,52 +902,84 @@
             </head>
             <body class="ptx-content epub" epub:type="frontmatter">
                 <nav epub:type="toc" id="toc">
-                    <h1>Table of Contents</h1>
+                    <h2>Table of Contents</h2>
                     <ol>
-                        <!-- top-level divisions, for a book -->
-                        <xsl:for-each select="$document-root/chapter[$b-is-book]|$document-root/section[$b-is-article]">
-                            <li>
-                                <xsl:element name="a">
-                                    <xsl:attribute name="href">
-                                        <xsl:apply-templates select="." mode="containing-filename" />
-                                    </xsl:attribute>
-                                    <xsl:apply-templates select="." mode="title-simple" />
-                                </xsl:element>
-                            </li>
-                        </xsl:for-each>
-                        <!-- following divisions identical for book v. article -->
-                        <xsl:if test="$document-root/backmatter/appendix|$document-root/backmatter/solutions">
-                            <li class="no-marker">
-                                <span>Appendices</span>
-                                <ol type="A">
-                                    <xsl:for-each select="$document-root/backmatter/appendix|$document-root/backmatter/solutions">
-                                        <li>
-                                            <xsl:element name="a">
-                                                <xsl:attribute name="href">
-                                                    <xsl:apply-templates select="." mode="containing-filename" />
-                                                </xsl:attribute>
-                                                <xsl:apply-templates select="." mode="title-simple" />
-                                            </xsl:element>
-                                        </li>
-                                    </xsl:for-each>
-                                </ol>
-                            </li>
-                        </xsl:if>
-                        <xsl:for-each select="$document-root/backmatter/references|$document-root/backmatter/index">
-                            <li class="no-marker">
-                                <xsl:element name="a">
-                                    <xsl:attribute name="href">
-                                        <xsl:apply-templates select="." mode="containing-filename" />
-                                    </xsl:attribute>
-                                    <xsl:apply-templates select="." mode="title-simple" />
-                                </xsl:element>
-                            </li>
-                        </xsl:for-each>
+                        <!-- The whole document, so the navigation mirrors the spine:   -->
+                        <!-- every file of the reading order earns an entry, nested by  -->
+                        <!-- the divisions that contain it.  A reading system offers no -->
+                        <!-- other way in, so anything omitted here is unreachable.     -->
+                        <xsl:apply-templates select="$document-root" mode="nav-entry"/>
                     </ol>
                 </nav>
             </body>
         </html>
     </exsl:document>
+</xsl:template>
+
+<!-- One "li" of the navigation document per file of the spine. -->
+<!-- The test is "is-epub-page", the very template the manifest -->
+<!-- and the spine consult, so the four cannot disagree.  A     -->
+<!-- division that is not a file of its own ("book" and         -->
+<!-- "backmatter") contributes no entry, and its children rise  -->
+<!-- to take its place rather than becoming unreachable.        -->
+<xsl:template match="&STRUCTURAL;" mode="nav-entry">
+    <xsl:variable name="is-page">
+        <xsl:apply-templates select="." mode="is-epub-page"/>
+    </xsl:variable>
+    <xsl:choose>
+        <xsl:when test="$is-page = 'true'">
+            <li>
+                <xsl:element name="a">
+                    <xsl:attribute name="href">
+                        <xsl:apply-templates select="." mode="containing-filename"/>
+                    </xsl:attribute>
+                    <xsl:apply-templates select="." mode="title-simple"/>
+                </xsl:element>
+                <xsl:call-template name="nav-subentries"/>
+            </li>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:apply-templates select="*" mode="nav-entry"/>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<!-- A division companion is a file exactly when it is a chunk, -->
+<!-- the same test the manifest makes.  It has no children that -->
+<!-- could ever be files, so there is no recursion.             -->
+<xsl:template match="&DIVISION-COMPANION;" mode="nav-entry">
+    <xsl:variable name="chunk">
+        <xsl:apply-templates select="." mode="is-chunk"/>
+    </xsl:variable>
+    <xsl:if test="$chunk = 'true'">
+        <li class="no-marker">
+            <xsl:element name="a">
+                <xsl:attribute name="href">
+                    <xsl:apply-templates select="." mode="containing-filename"/>
+                </xsl:attribute>
+                <xsl:apply-templates select="." mode="division-companion-text"/>
+            </xsl:element>
+        </li>
+    </xsl:if>
+</xsl:template>
+
+<!-- Everything else is not a division, so it is not a file, so -->
+<!-- it earns no entry.  Without this the default template rule -->
+<!-- would spill the text of paragraphs into the navigation.    -->
+<xsl:template match="*" mode="nav-entry"/>
+
+<!-- The nested list of a division's own entries, built first so -->
+<!-- that a division whose children are all inlined contributes  -->
+<!-- no empty "ol", which is invalid in a navigation document.   -->
+<xsl:template name="nav-subentries">
+    <xsl:variable name="subentries">
+        <xsl:apply-templates select="*" mode="nav-entry"/>
+    </xsl:variable>
+    <xsl:if test="exsl:node-set($subentries)/*">
+        <ol>
+            <xsl:copy-of select="$subentries"/>
+        </ol>
+    </xsl:if>
 </xsl:template>
 
 <!-- An abstract named template accepts input text and   -->
@@ -1014,6 +1158,14 @@
             <xsl:with-param name="filename" select="@source|@pi:generated" />
         </xsl:call-template>
     </xsl:variable>
+    <xsl:variable name="image-filename">
+        <xsl:apply-templates select="." mode="epub-base-filename">
+            <xsl:with-param name="purpose" select="'write'"/>
+        </xsl:apply-templates>
+    </xsl:variable>
+    <!-- a PDF-only image is never displayed, never packaged: -->
+    <!-- a placeholder appears in its place (see below)       -->
+    <xsl:if test="not(substring($image-filename, string-length($image-filename) - 3) = '.pdf')">
     <!-- item  element for manifest -->
     <xsl:element name="item" namespace="http://www.idpf.org/2007/opf">
         <!-- internal id of the image -->
@@ -1022,9 +1174,7 @@
         <xsl:attribute name="href">
             <xsl:value-of select="$xhtml-dir" />
             <xsl:text>/</xsl:text>
-            <xsl:apply-templates select="." mode="epub-base-filename">
-                <xsl:with-param name="purpose" select="'write'"/>
-            </xsl:apply-templates>
+            <xsl:value-of select="$image-filename"/>
         </xsl:attribute>
         <!-- media attribute -->
         <xsl:attribute name="media-type">
@@ -1053,12 +1203,16 @@
                 <xsl:when test="@pi:generated and ($extension = 'jpg')">
                     <xsl:text>image/jpeg</xsl:text>
                 </xsl:when>
+                <!-- these images switch to PNG for a Kindle build (see    -->
+                <!-- "best-file-extension") so the media type must express -->
+                <!-- the same choice, else a reading system (or validator) -->
+                <!-- tries to parse PNG bytes as XML                       -->
                 <xsl:when test="latex-image|asymptote|mermaid|pf:prefigure">
-                    <xsl:text>image/svg+xml</xsl:text>
+                    <xsl:call-template name="best-media-type"/>
                 </xsl:when>
                 <!-- A 2D "sageplot" is just like any other image built from source -->
                 <xsl:when test="sageplot[not(@variant) or (@variant = '2d')]">
-                    <xsl:text>image/svg+xml</xsl:text>
+                    <xsl:call-template name="best-media-type"/>
                 </xsl:when>
                 <!-- NB: a 3D "sageplot" only comes in PNG and HTML variants, -->
                 <!-- so we cannot manufacture the preferable SVG version,     -->
@@ -1070,10 +1224,14 @@
                 <xsl:otherwise>
                     <xsl:message>PTX:BUG:     EPUB image media-type not determined</xsl:message>
                     <xsl:apply-templates select="." mode="location-report" />
+                    <!-- an empty media-type is invalid; this is the -->
+                    <!-- honest generic type while the bug survives  -->
+                    <xsl:text>application/octet-stream</xsl:text>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:attribute>
     </xsl:element>
+    </xsl:if>
     <!-- likely a dead-end here, but we examine children anyway -->
     <xsl:apply-templates select="*" mode="manifest" />
 </xsl:template>
@@ -1108,33 +1266,57 @@
 </xsl:template>
 
 <!-- Now the actual image inclusion where born -->
+<!-- EPUB reading systems display no PDF, so an image available     -->
+<!-- only in that format (STACK exercises supply these) becomes a   -->
+<!-- placeholder, with a warning at build time.  The manifest       -->
+<!-- template asks the identical question, so the unusable file is  -->
+<!-- not packaged either.                                           -->
 <xsl:template match="image">
-    <xsl:element name="img">
-        <xsl:attribute name="src">
-            <xsl:apply-templates select="." mode="epub-base-filename">
-                <xsl:with-param name="purpose" select="'write'"/>
-            </xsl:apply-templates>
-        </xsl:attribute>
-        <xsl:if test="@width">
-            <xsl:attribute name="style">
-                <xsl:text>width: </xsl:text>
-                <xsl:value-of select="@width" />
-                <xsl:text>; margin: 0 auto;</xsl:text>
-            </xsl:attribute>
-        </xsl:if>
-    </xsl:element>
-    <xsl:if test="description">
-        <details class="image-description">
-            <summary>
-                <xsl:call-template name="insert-symbol">
-                    <xsl:with-param name="name" select="'description'"/>
-                </xsl:call-template>
-            </summary>
-            <div>
-                <xsl:apply-templates select="description"/>
-            </div>
-        </details>
-    </xsl:if>
+    <xsl:variable name="filename">
+        <xsl:apply-templates select="." mode="epub-base-filename">
+            <xsl:with-param name="purpose" select="'write'"/>
+        </xsl:apply-templates>
+    </xsl:variable>
+    <xsl:choose>
+        <xsl:when test="substring($filename, string-length($filename) - 3) = '.pdf'">
+            <xsl:message>PTX:ERROR:   an image is available only as a PDF, which an EPUB reading system will not display; a placeholder appears in its place</xsl:message>
+            <xsl:apply-templates select="." mode="location-report"/>
+            <p class="image-placeholder">[An image belongs here, but it is available only in PDF form, which EPUB does not display.]</p>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:element name="img">
+                <xsl:attribute name="src">
+                    <xsl:value-of select="$filename"/>
+                </xsl:attribute>
+                <xsl:if test="@width">
+                    <xsl:attribute name="style">
+                        <xsl:text>width: </xsl:text>
+                        <xsl:value-of select="@width" />
+                        <xsl:text>; margin: 0 auto;</xsl:text>
+                    </xsl:attribute>
+                </xsl:if>
+            </xsl:element>
+            <xsl:if test="description">
+                <details class="image-description">
+                    <summary>
+                        <xsl:call-template name="insert-symbol">
+                            <xsl:with-param name="name" select="'description'"/>
+                        </xsl:call-template>
+                    </summary>
+                    <div>
+                        <!-- 80% of the available width, however narrow    -->
+                        <!-- the image; in a "sidebyside" panel, the panel -->
+                        <xsl:if test="not(&SBS-LAYOUT-FILTER;)">
+                            <xsl:attribute name="style">
+                                <xsl:text>width: 80%; margin-left: 10%;</xsl:text>
+                            </xsl:attribute>
+                        </xsl:if>
+                        <xsl:apply-templates select="description"/>
+                    </div>
+                </details>
+            </xsl:if>
+        </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <!-- ######### -->
@@ -1224,11 +1406,6 @@
 </xsl:template>
 
 <!-- Footnotes -->
-<!-- First disable the "footnote" popping routine used to -->
-<!-- move the content out of HTML structures where it is  -->
-<!-- not welcome (e.g a "p" inside a "p").                -->
-<xsl:template match="*" mode="pop-footnote-text"/>
-
 <!-- Drop a marker as a superscript -->
 <xsl:template match="fn">
     <xsl:variable name="hid">
@@ -1333,13 +1510,70 @@
     </xsl:for-each>
 </xsl:template>
 
+<!-- A hyperlink relative to the document (no scheme in the       -->
+<!-- address) points *into* the reading system's container, at a  -->
+<!-- file that is not packaged; the visible text appears, with no -->
+<!-- dead hyperlink                                                -->
+<xsl:template match="url[@href and not(contains(@href, ':'))]">
+    <xsl:choose>
+        <xsl:when test="node()">
+            <xsl:apply-templates/>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:value-of select="@visual"/>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<!-- A MyOpenMath problem may arrive with a link whose address    -->
+<!-- *is* an entire data file (a "data:" address), defused with a -->
+<!-- "denied:" prefix during harvesting.  No reading system can   -->
+<!-- use it, so a placeholder states what is missing, naming the  -->
+<!-- type of the file, and the link's visible text as an          -->
+<!-- identifier, when there is one                                -->
+<xsl:template match="url[starts-with(@href, 'denied:')]">
+    <xsl:variable name="mime-type" select="substring-before(substring-after(@href, 'denied:data:'), ';')"/>
+    <xsl:text>[</xsl:text>
+    <xsl:choose>
+        <xsl:when test="not($mime-type = '')">
+            <xsl:value-of select="translate(substring-after($mime-type, '/'), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
+            <xsl:text> data file not included here</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:text>Data file not included here</xsl:text>
+        </xsl:otherwise>
+    </xsl:choose>
+    <xsl:if test="normalize-space(.) != ''">
+        <xsl:text>: "</xsl:text>
+        <xsl:value-of select="normalize-space(.)"/>
+        <xsl:text>"</xsl:text>
+    </xsl:if>
+    <xsl:text>]</xsl:text>
+</xsl:template>
+
+<!-- A data file packaged into a document is intended for reader  -->
+<!-- download, which no reading system offers; the reference      -->
+<!-- renders as its visible text, with no dead hyperlink          -->
+<xsl:template match="dataurl[@source and not(@href)]">
+    <xsl:choose>
+        <xsl:when test="node()">
+            <xsl:apply-templates/>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:value-of select="@visual"/>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
 <!-- #### -->
 <!-- Math -->
 <!-- #### -->
 
-<!-- Pluck SVGs from the file full of them, with matching IDs -->
-<xsl:template match="m|md[mrow]">
-    <!-- NB: math-representation file writes with "visible-id" -->
+<!-- Pluck SVGs from the file full of them, with matching IDs.  -->
+<!-- Music notation ("n", "scaledeg", "timesignature", "chord") -->
+<!-- is set as inline math, so it has a representation as well. -->
+<xsl:template match="m|md[mrow]|n|scaledeg|timesignature|chord">
+    <!-- NB: math-representation file writes with "unique-id" -->
     <xsl:variable name="id">
         <xsl:apply-templates select="." mode="unique-id"/>
     </xsl:variable>
@@ -1377,11 +1611,11 @@
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$math.format = 'mml'">
-                <xsl:copy-of select="$math/div[@class = 'mathml']/math:math"/>
+                <xsl:apply-templates select="$math/div[@class = 'mathml']/math:math" mode="mml-edit"/>
             </xsl:when>
             <!-- Kindle does best with MathML format -->
             <xsl:when test="$b-kindle">
-                <xsl:copy-of select="$math/div[@class = 'mathml']/math:math"/>
+                <xsl:apply-templates select="$math/div[@class = 'mathml']/math:math" mode="mml-edit"/>
             </xsl:when>
             <!-- 2020-07-17: reprs needed a new "span.speech" wrapper -->
             <xsl:when test="$math.format = 'speech'">
@@ -1402,6 +1636,21 @@
 <!-- Identity template as a mode coursing through SVGs  -->
 <!-- We are stream editing to satisfy the EPUB standard -->
 <!-- Mostly killing attrributes                         -->
+<!-- MathJax mints an HTML id from an equation's \tag for its own -->
+<!-- \eqref linking, which PreTeXt never uses; a tag used twice    -->
+<!-- (symbols as tags invite this) would duplicate the id, so     -->
+<!-- they are dropped, from SVG and MathML alike                  -->
+<xsl:template match="@id[starts-with(., 'mjx-eqn')]" mode="svg-edit"/>
+
+<!-- MathML travels nearly as-is: an identity, less the ids -->
+<xsl:template match="@id[starts-with(., 'mjx-eqn')]" mode="mml-edit"/>
+
+<xsl:template match="node()|@*" mode="mml-edit">
+    <xsl:copy>
+        <xsl:apply-templates select="node()|@*" mode="mml-edit"/>
+    </xsl:copy>
+</xsl:template>
+
 <xsl:template match="node()|@*" mode="svg-edit">
     <xsl:copy>
         <xsl:apply-templates select="node()|@*" mode="svg-edit"/>

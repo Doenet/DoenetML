@@ -31,10 +31,13 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:xml="http://www.w3.org/XML/1998/namespace"
     xmlns:pi="http://pretextbook.org/2020/pretext/internal"
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns:pf="https://prefigure.org"
     xmlns:exsl="http://exslt.org/common"
     xmlns:date="http://exslt.org/dates-and-times"
     xmlns:str="http://exslt.org/strings"
     extension-element-prefixes="exsl date str"
+    exclude-result-prefixes="svg pf"
 >
 
 <!-- Necessary to get some HTML constructions,    -->
@@ -51,6 +54,33 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Used to identify build target in templates shared with plain  -->
 <!-- HTML conversion (preferably avoid using this).                -->
 <xsl:variable name="b-reveal-build" select="true()" />
+
+<!-- Embedded mathematics: files of per-equation SVG and speech     -->
+<!-- representations, keyed by id, manufactured at build time by    -->
+<!-- the "mathjax_latex()" routine and passed in here as string     -->
+<!-- parameters.  Both are empty for online mathematics (the        -->
+<!-- default), and then the derived variables are empty node-sets,  -->
+<!-- never consulted.                                               -->
+<xsl:param name="mathfile" select="''"/>
+<xsl:param name="speechfile" select="''"/>
+<xsl:variable name="math-repr" select="document($mathfile)/pi:math-representations"/>
+<xsl:variable name="speech-repr" select="document($speechfile)/pi:math-representations"/>
+
+<!-- Embedded mathematics is extracted as SVG with clause-ending    -->
+<!-- punctuation absorbed into display mathematics only, so the     -->
+<!-- text after inline mathematics must keep its punctuation.  This -->
+<!-- overrides the HTML value, which absorbs punctuation into all   -->
+<!-- mathematics, as MathJax does for online mathematics.           -->
+<xsl:variable name="math.punctuation.include">
+    <xsl:choose>
+        <xsl:when test="$b-reveal-embedded-math">
+            <xsl:text>display</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:text>all</xsl:text>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:variable>
 
 <!-- Reveal.js output is one monolithic page, so heading levels are -->
 <!-- threaded, not chunked.  The slideshow title (h1) and subtitle  -->
@@ -72,6 +102,9 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- HTML5 format -->
 <xsl:output method="html" indent="yes" encoding="UTF-8" doctype-system="about:legacy-compat"/>
+
+<!-- HTML sets based on theme. Reveal.js should always use the same value -->
+<xsl:variable name="design-width" select="'600'" />
 
 <!-- Publisher Switches -->
 <!-- Various configuration options are set in the publisher file,  -->
@@ -129,18 +162,52 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:apply-templates select="." mode="sagecell" />
             <xsl:call-template name="syntax-highlight"/>
 
-            <!-- load reveal.js resources; w/ v 4.1.2 -->
-            <!-- these seem to be *always* minified   -->
+            <!-- load reveal.js resources; w/ v 6.x                 -->
+            <!-- paths are relative to the distribution's "dist"    -->
+            <!-- directory, whose layout a "local" resource host    -->
+            <!-- must reproduce                                     -->
             <link href="{$reveal-root}/reset.css" rel="stylesheet"></link>
             <link href="{$reveal-root}/reveal.css" rel="stylesheet"></link>
             <link href="{$reveal-root}/theme/{$reveal-theme}.css" rel="stylesheet"></link>
             <script src="{$reveal-root}/reveal.js"></script>
-            <script src="{$reveal-root}/plugin/math/math.js"></script>
+            <!-- embedded mathematics needs no typesetting, so no math plugin -->
+            <xsl:if test="not($b-reveal-embedded-math)">
+                <script src="{$reveal-root}/plugin/math.js"></script>
+            </xsl:if>
 
             <link href="_static/pretext/css/pretext-reveal.css" rel="stylesheet"></link>
           <style>
+            <xsl:if test="$b-reveal-embedded-math">
+                <!-- layout for build-time SVG images of mathematics; the -->
+                <!-- class names are those of the EPUB conversion, which  -->
+                <!-- pioneered this device                                -->
+                <xsl:text>span.mjpage { display: inline; }&#xa;</xsl:text>
+                <xsl:text>span.mjpage__block { display: block; text-align: center; margin: 0.5em 0; }&#xa;</xsl:text>
+            </xsl:if>
+            <!-- Vertical alignment of slides diverging from the      -->
+            <!-- document-wide default.  reveal.js absolutely         -->
+            <!-- positions each slide, and when configured to center  -->
+            <!-- ("center: true") it computes an inline "top" offset, -->
+            <!-- which only "!important" can overrule.  A top-aligned -->
+            <!-- slide just pins that offset to zero.  Middle and     -->
+            <!-- bottom alignment stretch the slide to the full frame -->
+            <!-- and place its content by flexbox; the "display" rule -->
+            <!-- is confined to the "present" slide so hidden slides  -->
+            <!-- retain "display: none".                              -->
+            <xsl:text>.reveal .slides section.valign-top { top: 0 !important; }&#xa;</xsl:text>
+            <xsl:text>.reveal .slides section.valign-middle.present { display: flex !important; flex-direction: column; justify-content: center; top: 0 !important; height: 100% !important; }&#xa;</xsl:text>
+            <xsl:text>.reveal .slides section.valign-bottom.present { display: flex !important; flex-direction: column; justify-content: flex-end; top: 0 !important; height: 100% !important; }&#xa;</xsl:text>
+            <!-- A slide without a number still gets the number's box, -->
+            <!-- which reveal.js displays with an inline style         -->
+            <xsl:if test="$b-reveal-slide-numbering">
+                <xsl:text>.reveal .slide-number:has(.slide-number-a:empty) { display: none !important; }&#xa;</xsl:text>
+            </xsl:if>
           </style>
-          <xsl:call-template name="diagcess-header"/>
+          <!-- no diagcess machinery with embedded mathematics: an  -->
+          <!-- annotated PreFigure diagram is then a static image   -->
+          <xsl:if test="not($b-reveal-embedded-math)">
+              <xsl:call-template name="diagcess-header"/>
+          </xsl:if>
 
           <!-- custom-css, if specified, should be last -->
           <xsl:if test="not($reveal-custom-css = '')">
@@ -157,15 +224,22 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 
         <body>
             <div class="reveal ptx-content">
-                <!-- For mathematics/MathJax, must be located -->
-                <!-- within div.reveal to be effective        -->
-                <xsl:call-template name="latex-macros"/>
+                <!-- For mathematics/MathJax, must be located  -->
+                <!-- within div.reveal to be effective.  With  -->
+                <!-- embedded mathematics the macros are baked -->
+                <!-- into the SVG images at build time, so the -->
+                <!-- hidden macro division would be inert.     -->
+                <xsl:if test="not($b-reveal-embedded-math)">
+                    <xsl:apply-templates select="." mode="latex-macros"/>
+                </xsl:if>
                 <div class="slides">
                      <xsl:apply-templates select="frontmatter"/>
                     <xsl:apply-templates select="section|slide"/>
                 </div>
             </div>
-            <xsl:call-template name="diagcess-footer"/>
+            <xsl:if test="not($b-reveal-embedded-math)">
+                <xsl:call-template name="diagcess-footer"/>
+            </xsl:if>
         </body>
 
         <script>
@@ -201,35 +275,100 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                 <xsl:value-of select="$reveal-navigation-mode"/>
             <xsl:text>',&#xa;</xsl:text>
             <xsl:text>  progress: false,&#xa;</xsl:text>
-            <xsl:text>  center: false,&#xa;</xsl:text>
+            <!-- reveal.js displays what this function returns, so a -->
+            <!-- slide shows the number PreTeXt computed for it, the -->
+            <!-- same in every navigation mode, and any other slide  -->
+            <!-- (title, abstract, section title) shows nothing      -->
+            <xsl:text>  slideNumber: </xsl:text>
+                <xsl:choose>
+                    <xsl:when test="$b-reveal-slide-numbering">
+                        <xsl:text>function(slide) { return [(slide &amp;&amp; slide.dataset.slideNumber) || '']; }</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>false</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
+            <xsl:text>,&#xa;</xsl:text>
+            <!-- reveal.js "center" vertically centers every slide,  -->
+            <!-- so it realizes a document-wide "middle" default;    -->
+            <!-- a "top" or "bottom" default disables it, and slides -->
+            <!-- diverging from the default get a class instead      -->
+            <xsl:text>  center: </xsl:text>
+                <xsl:choose>
+                    <xsl:when test="$slides-valign-default = 'middle'">
+                        <xsl:text>true</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>false</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
+            <xsl:text>,&#xa;</xsl:text>
             <xsl:text>  hash: true,&#xa;</xsl:text>
             <xsl:text>  transition: 'fade',&#xa;</xsl:text>
             <xsl:text>  width: "100%",&#xa;</xsl:text>
             <xsl:text>  height: "100%",&#xa;</xsl:text>
-            <xsl:text>  margin: "0.025",&#xa;</xsl:text>
-            <!-- Explicitly enable AMS-style inline \(...\),      -->
-            <!-- and explicitly disable TeX-style inline $...$    -->
-            <!-- The main HTML conversion does not do anything    -->
-            <!-- special for display math, so we disable any such -->
-            <!-- markup, since we use environments exclusively.   -->
-            <!-- N.B. default HTML adds a "zero-width" space into -->
-            <!-- a \( authored in a non-math context.             -->
-            <!-- N.B. This may need to be changed for MathJax 3   -->
-
-            <!-- Suggested by  https://revealjs.com/math/, 2021-09-19 -->
-            <xsl:text>  math: {&#xa;</xsl:text>
-            <xsl:text>    mathjax: 'https://cdn.jsdelivr.net/gh/mathjax/mathjax@2.7.8/MathJax.js',&#xa;</xsl:text>
-            <xsl:text>    config: 'TeX-AMS_HTML-full',&#xa;</xsl:text>
-            <xsl:text>    // other options are passed into MathJax.Hub.Config()&#xa;</xsl:text>
-            <xsl:text>    tex2jax: {&#xa;</xsl:text>
-            <xsl:text>      inlineMath:  [['\\(','\\)']],&#xa;</xsl:text>
-            <xsl:text>      displayMath: [],&#xa;</xsl:text>
-            <xsl:text>    }&#xa;</xsl:text>
-            <xsl:text>  },&#xa;</xsl:text>
-            <xsl:text>  plugins: [ RevealMath ]&#xa;</xsl:text>
+            <!-- "margin" must be a JavaScript number.  The PDF export     -->
+            <!-- computes its page size as (slide dimension)*(1 + margin); -->
+            <!-- a quoted value concatenates instead of adding, producing  -->
+            <!-- pages ten times too large, and a print dialog then        -->
+            <!-- shrinks each slide to a small fraction of the paper.      -->
+            <xsl:text>  margin: 0.025,&#xa;</xsl:text>
+            <xsl:choose>
+                <!-- Embedded mathematics is finished SVG images: -->
+                <!-- no math plugin, no typesetting configuration -->
+                <xsl:when test="$b-reveal-embedded-math">
+                    <xsl:text>  plugins: []&#xa;</xsl:text>
+                </xsl:when>
+                <!-- Explicitly enable AMS-style inline \(...\),      -->
+                <!-- and explicitly disable TeX-style inline $...$    -->
+                <!-- The main HTML conversion does not do anything    -->
+                <!-- special for display math, so we disable any such -->
+                <!-- markup, since we use environments exclusively.   -->
+                <!-- N.B. default HTML adds a "zero-width" space into -->
+                <!-- a \( authored in a non-math context.             -->
+                <!-- The MathJax version matches the main HTML        -->
+                <!-- conversion; the "mathjax4" adapter of the math   -->
+                <!-- plugin loads it from the URL given and passes    -->
+                <!-- the "tex" object into the MathJax configuration. -->
+                <!-- Suggested by  https://revealjs.com/math/, 2026-07-22 -->
+                <xsl:otherwise>
+                    <xsl:text>  mathjax4: {&#xa;</xsl:text>
+                    <xsl:text>    mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js',&#xa;</xsl:text>
+                    <xsl:text>    tex: {&#xa;</xsl:text>
+                    <xsl:text>      inlineMath:  [['\\(','\\)']],&#xa;</xsl:text>
+                    <xsl:text>      displayMath: [],&#xa;</xsl:text>
+                    <xsl:text>    }&#xa;</xsl:text>
+                    <xsl:text>  },&#xa;</xsl:text>
+                    <xsl:text>  plugins: [ RevealMath.MathJax4 ]&#xa;</xsl:text>
+                </xsl:otherwise>
+            </xsl:choose>
             <xsl:text>});&#xa;</xsl:text>
         </script>
     </html>
+</xsl:template>
+
+<!-- reveal.js natively places content at the middle of a slide -->
+<!-- when centering (a "middle" default) and at the top         -->
+<!-- otherwise.  Any other placement gets a class tied to the   -->
+<!-- style rules above.                                         -->
+<xsl:template name="valign-class">
+    <xsl:param name="valign"/>
+    <xsl:variable name="native">
+        <xsl:choose>
+            <xsl:when test="$slides-valign-default = 'middle'">
+                <xsl:text>middle</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:text>top</xsl:text>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+    <xsl:if test="not($valign = $native)">
+        <xsl:attribute name="class">
+            <xsl:text>valign-</xsl:text>
+            <xsl:value-of select="$valign"/>
+        </xsl:attribute>
+    </xsl:if>
 </xsl:template>
 
 <!-- A "section" contains multiple "slide", which we process,   -->
@@ -246,6 +385,9 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:when test="($reveal-navigation-mode = 'default') or ($reveal-navigation-mode = 'grid')">
             <section>
                 <section>
+                    <xsl:call-template name="valign-class">
+                        <xsl:with-param name="valign" select="$slides-valign-default"/>
+                    </xsl:call-template>
                     <h2>
                         <xsl:apply-templates select="." mode="title-full"/>
                     </h2>
@@ -255,6 +397,9 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
         </xsl:when>
         <xsl:when test="$reveal-navigation-mode = 'linear'">
             <section>
+                <xsl:call-template name="valign-class">
+                    <xsl:with-param name="valign" select="$slides-valign-default"/>
+                </xsl:call-template>
                 <h2>
                     <xsl:apply-templates select="." mode="title-full"/>
                 </h2>
@@ -270,6 +415,9 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:template match="frontmatter">
     <section>
       <section>
+        <xsl:call-template name="valign-class">
+            <xsl:with-param name="valign" select="$slides-valign-default"/>
+        </xsl:call-template>
         <!-- we assume an overall title exists -->
         <h1>
             <xsl:apply-templates select="$root/slideshow" mode="title-full" />
@@ -321,6 +469,9 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 
 <xsl:template match="abstract">
     <section>
+          <xsl:call-template name="valign-class">
+              <xsl:with-param name="valign" select="$slides-valign-default"/>
+          </xsl:call-template>
           <h2>Abstract</h2>
           <div align="left">
               <xsl:apply-templates select="*"/>
@@ -330,6 +481,16 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 
 <xsl:template match="slide">
     <section>
+          <xsl:call-template name="valign-class">
+              <xsl:with-param name="valign">
+                  <xsl:apply-templates select="." mode="valign"/>
+              </xsl:with-param>
+          </xsl:call-template>
+          <xsl:if test="$b-reveal-slide-numbering">
+              <xsl:attribute name="data-slide-number">
+                  <xsl:apply-templates select="." mode="number"/>
+              </xsl:attribute>
+          </xsl:if>
           <xsl:variable name="slide-hN">
               <xsl:apply-templates select="." mode="hN">
                   <xsl:with-param name="heading-level" select="$reveal-slide-heading-level"/>
@@ -407,17 +568,122 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
   </p>
 </xsl:template>
 
+<!-- A paragraph containing displays - lists ("ol", "ul", "dl"),   -->
+<!-- display mathematics ("md"), or code display ("cd") - cannot   -->
+<!-- be realized as a single HTML "p".  Each display renders as    -->
+<!-- an element that HTML forbids inside a "p" (a list, a "pre",   -->
+<!-- a "div" of online mathematics), and a browser recovers by     -->
+<!-- closing the paragraph at the display, leaving the remainder   -->
+<!-- orphaned outside any paragraph.  So, just as in the HTML      -->
+<!-- conversion, such a paragraph is exploded: each maximal run    -->
+<!-- of inline content becomes a "p" (an empty run produces        -->
+<!-- nothing at all), with the displays standing in between.       -->
+<!-- (With embedded mathematics a display is a "span", legal       -->
+<!-- within a "p" and block-level only by styling, but it is       -->
+<!-- exploded identically: the presentation is the same and the    -->
+<!-- template stays uniform.)                                      -->
+<!--                                                               -->
+<!-- This realization is demanded by the output format alone; it   -->
+<!-- is not the undoing of upstream normalization.  An author may  -->
+<!-- place a display mid-paragraph, so the explosion is necessary  -->
+<!-- even when no paragraph is ever manufactured.  Conversely,     -->
+<!-- when the assembly wraps a bare list on a "slide" in a         -->
+<!-- paragraph, so the internal tree presents the main grammar's   -->
+<!-- one shape to every consumer, that paragraph's inline runs     -->
+<!-- are all empty and the exploded output is exactly the bare     -->
+<!-- list again.  The two maneuvers are complementary: normalize   -->
+<!-- toward the grammar internally, adapt to the medium at output. -->
+<!--                                                               -->
+<!-- A paused paragraph must advance as a single unit, so its      -->
+<!-- exploded parts ride together in one container carrying the    -->
+<!-- "fragment" class.                                             -->
+<xsl:template match="p[ol|ul|dl|md[mrow]|cd]">
+    <xsl:choose>
+        <xsl:when test="@pause = 'yes'">
+            <div class="fragment">
+                <xsl:apply-templates select="." mode="exploded-paragraph"/>
+            </div>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:apply-templates select="." mode="exploded-paragraph"/>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<!-- The explosion itself, patterned on the HTML conversion's      -->
+<!-- template for a "p" with displays, simplified: no HTML id, no  -->
+<!-- permalink, no knowl machinery on the pieces of a slide.       -->
+<xsl:template match="p" mode="exploded-paragraph">
+    <xsl:variable name="displays" select="ol|ul|dl|md[mrow]|cd"/>
+    <!-- content prior to the first display; if empty -->
+    <!-- we do not manufacture an empty paragraph     -->
+    <xsl:variable name="initial" select="$displays[1]/preceding-sibling::*|$displays[1]/preceding-sibling::text()"/>
+    <xsl:variable name="initial-content">
+        <xsl:apply-templates select="$initial"/>
+    </xsl:variable>
+    <!-- XSLT 1.0: RTF is just a string if not converted to node set -->
+    <xsl:if test="not($initial-content = '')">
+        <p>
+            <xsl:copy-of select="$initial-content"/>
+        </p>
+    </xsl:if>
+    <!-- for each display: the display itself, then trailing content -->
+    <xsl:for-each select="$displays">
+        <xsl:apply-templates select="."/>
+        <xsl:variable name="rightward" select="following-sibling::*|following-sibling::text()"/>
+        <xsl:variable name="next-display" select="following-sibling::*[self::ul or self::ol or self::dl or self::md[mrow] or self::cd][1]"/>
+        <xsl:choose>
+            <xsl:when test="$next-display">
+                <xsl:variable name="leftward" select="$next-display/preceding-sibling::*|$next-display/preceding-sibling::text()"/>
+                <!-- device below forms set intersection -->
+                <xsl:variable name="common" select="$rightward[count(. | $leftward) = count($leftward)]"/>
+                <xsl:variable name="common-content">
+                    <xsl:apply-templates select="$common"/>
+                </xsl:variable>
+                <xsl:if test="not($common-content = '')">
+                    <p>
+                        <!-- interstitial content arising from an authored -->
+                        <!-- "intertext" is marked, as in the HTML         -->
+                        <!-- conversion, for styling purposes              -->
+                        <xsl:if test="$common[self::pi:intertext]">
+                            <xsl:attribute name="class">
+                                <xsl:text>intertext</xsl:text>
+                            </xsl:attribute>
+                        </xsl:if>
+                        <xsl:copy-of select="$common-content"/>
+                    </p>
+                </xsl:if>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- finish the trailing content, if nonempty -->
+                <xsl:variable name="common-content">
+                    <xsl:apply-templates select="$rightward"/>
+                </xsl:variable>
+                <xsl:if test="not($common-content = '')">
+                    <p>
+                        <xsl:copy-of select="$common-content"/>
+                    </p>
+                </xsl:if>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:for-each>
+</xsl:template>
+
 <!-- Images get wrapped in a div with @class="fragment" if they are  -->
 <!-- paused                                                          -->
-<xsl:template match="image[not(ancestor::sidebyside) and (@pause='yes')]">
+<xsl:template match="image[not(&SBS-LAYOUT-FILTER;) and (@pause='yes')]">
     <div class="fragment">
       <xsl:apply-imports/>
     </div>
 </xsl:template>
 
 <!-- Side-By-Side -->
-<!-- Built by implementing two abstract   -->
-<!-- templates from the -common templates -->
+<!-- Same container-declared composition as HTML and LaTeX,        -->
+<!-- realized here with CSS table display: margins are declared on -->
+<!-- the wrapper div, and each panel div carries its width and     -->
+<!-- vertical alignment.  Built by implementing the two abstract   -->
+<!-- templates ("panel-panel", "compose-panels") of the -common    -->
+<!-- machinery.                                                    -->
 
 <!-- Overall wrapper of a sidebyside  -->
 <xsl:template match="sidebyside" mode="compose-panels">
@@ -478,8 +744,14 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:element>
 </xsl:template>
 
-<xsl:template match="xref">
-  [REF=TODO]
+<!-- The content of a cross-reference is computed by the -common  -->
+<!-- machinery; on a slide we do not make it a live link, since   -->
+<!-- the likely target is a nearby slide and knowls do not exist. -->
+<xsl:template match="*" mode="xref-link">
+    <xsl:param name="target"/>
+    <xsl:param name="content"/>
+    <xsl:param name="origin"/>
+    <xsl:copy-of select="$content"/>
 </xsl:template>
 
 <!-- We don't want any permalinks -->
@@ -505,12 +777,163 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:with-param name="warning">Conversion to reveal.js presentations/slideshows is experimental&#xa;Requests for additional specific constructions welcome&#xa;Additional PreTeXt elements are subject to change</xsl:with-param>
     </xsl:call-template>
     <xsl:if test="not($theme = '')">
-        <xsl:message >PTX:WARNING: the temporary "theme" stringparam is deprecated and is being ignored by the conversion to a Reveal.js slideshow.  Please switch to using a publisher file to set this option, see documentation in The Guide.  The default theme is "simple".</xsl:message>
+        <xsl:message >PTX:DEPRECATE: the temporary "theme" stringparam is deprecated and is being ignored by the conversion to a Reveal.js slideshow.  Please switch to using a publisher file to set this option, see documentation in The Guide.  The default theme is "simple".</xsl:message>
         <xsl:text>simple</xsl:text>
     </xsl:if>
     <xsl:if test="not($local = '')">
-        <xsl:message >PTX:WARNING: the temporary "local" stringparam is deprecated and is being ignored.  Please switch to using a publisher file to set this option, see documentation in The Guide.  The default behavior is to get resources from a CDN.</xsl:message>
+        <xsl:message >PTX:DEPRECATE: the temporary "local" stringparam is deprecated and is being ignored.  Please switch to using a publisher file to set this option, see documentation in The Guide.  The default behavior is to get resources from a CDN.</xsl:message>
     </xsl:if>
+</xsl:template>
+
+<!-- #################### -->
+<!-- Embedded Mathematics -->
+<!-- #################### -->
+
+<!-- Online mathematics (the default) is authored LaTeX passed      -->
+<!-- through, inherited from the HTML conversion, for the math      -->
+<!-- plugin and MathJax to typeset in the browser.  Embedded        -->
+<!-- mathematics substitutes an SVG image and a speech string,      -->
+<!-- both manufactured at build time, so the slideshow performs no  -->
+<!-- typesetting at all: the same device as the EPUB conversion,    -->
+<!-- whose templates these mirror.  Every "md" has "mrow" children  -->
+<!-- once the assembly repairs an authored one-line "md", so the    -->
+<!-- match covers all mathematics.  Slides never link to an         -->
+<!-- equation (a cross-reference renders as its text), so no HTML   -->
+<!-- id is placed, unlike EPUB.                                     -->
+<!-- Music notation ("n", "scaledeg", "timesignature", "chord")     -->
+<!-- is set as inline math, so it has a representation as well.     -->
+<xsl:template match="m|md[mrow]|n|scaledeg|timesignature|chord">
+    <xsl:choose>
+        <xsl:when test="$b-reveal-embedded-math">
+            <!-- NB: math-representation file writes with "unique-id" -->
+            <xsl:variable name="id">
+                <xsl:apply-templates select="." mode="unique-id"/>
+            </xsl:variable>
+            <xsl:variable name="math" select="$math-repr/pi:math[@id = $id]"/>
+            <xsl:variable name="speech" select="$speech-repr/pi:math[@id = $id]"/>
+            <span>
+                <xsl:attribute name="class">
+                    <xsl:choose>
+                        <xsl:when test="$math/@context = 'inline'">
+                            <xsl:text>mjpage</xsl:text>
+                        </xsl:when>
+                        <xsl:when test="$math/@context = 'displaymath'">
+                            <xsl:text>mjpage mjpage__block</xsl:text>
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:attribute>
+                <xsl:apply-templates select="$math/div[@class = 'svg']/svg:svg" mode="svg-edit">
+                    <xsl:with-param name="speech" select="$speech"/>
+                    <xsl:with-param name="base-id" select="$id"/>
+                </xsl:apply-templates>
+            </span>
+        </xsl:when>
+        <!-- online: the usual LaTeX-within-delimiters construction -->
+        <xsl:otherwise>
+            <xsl:apply-imports/>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<!-- An annotated PreFigure diagram is normally embedded for the    -->
+<!-- diagcess library: an interactive, keyboard-driven exploration  -->
+<!-- for a screen reader.  With embedded mathematics the slideshow  -->
+<!-- has already traded such interactivity for fixed alternatives,  -->
+<!-- so the diagram becomes a static image (its plain SVG), and the -->
+<!-- diagcess machinery is omitted entirely.                        -->
+<xsl:template match="image[pf:prefigure[pf:diagram/pf:annotations]]" mode="image-inclusion">
+    <xsl:choose>
+        <xsl:when test="$b-reveal-embedded-math">
+            <xsl:variable name="base-pathname">
+                <xsl:value-of select="$generated-directory"/>
+                <xsl:text>prefigure/</xsl:text>
+                <xsl:apply-templates select="pf:prefigure" mode="image-source-basename"/>
+            </xsl:variable>
+            <xsl:apply-templates select="." mode="svg-png-wrapper">
+                <xsl:with-param name="image-filename" select="concat($base-pathname, '.svg')"/>
+            </xsl:apply-templates>
+            <!-- possibly annotate with archive links -->
+            <xsl:apply-templates select="." mode="archive">
+                <xsl:with-param name="base-pathname" select="$base-pathname"/>
+            </xsl:apply-templates>
+        </xsl:when>
+        <!-- online: the diagcess embedding, inherited -->
+        <xsl:otherwise>
+            <xsl:apply-imports/>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<!-- MathJax mints an HTML id from an equation's \tag for its own  -->
+<!-- \eqref linking, which PreTeXt never uses; a tag used twice    -->
+<!-- (symbols as tags invite this) would duplicate the id, so they -->
+<!-- are dropped                                                   -->
+<xsl:template match="@id[starts-with(., 'mjx-eqn')]" mode="svg-edit"/>
+
+<!-- Identity for the SVG stream-edit -->
+<xsl:template match="node()|@*" mode="svg-edit">
+    <xsl:copy>
+        <xsl:apply-templates select="node()|@*" mode="svg-edit"/>
+    </xsl:copy>
+</xsl:template>
+
+<!-- We enrich the main "svg" element with a speech string.      -->
+<!--   1.  Since this is the "entry template" for this mode,     -->
+<!--       this is the only place we accept the "speech" param.  -->
+<!--   2.  MathJax seems to use SVGs inside of SVGs for placing  -->
+<!--       numbers/tags of numbered equations, so we only enrich -->
+<!--       "top-level" SVG - that is the point of the filter.    -->
+<!--   3.  The id of the math element will be used as the base   -->
+<!--       of (unique) ids necessary to point to the speech.     -->
+<!--       Pattern 11 at:                                        -->
+<!--       https://www.deque.com/blog/creating-accessible-svgs/  -->
+<!--   4.  Seems                                                 -->
+<!--           "title" + @aria-labelledby                        -->
+<!--           "desc"  + @aria-describedby                       -->
+<!--       cover all the bases.  It is suggested that the two    -->
+<!--       elements alone would be recognized by screen readers. -->
+<xsl:template match="svg:svg[not(ancestor::svg:svg)]" mode="svg-edit">
+    <xsl:param name="speech"/>
+    <xsl:param name="base-id"/>
+
+    <!-- manufacture id values for consistency, uniqueness -->
+    <xsl:variable name="title-id">
+        <xsl:value-of select="$base-id"/>
+        <xsl:text>-title</xsl:text>
+    </xsl:variable>
+    <xsl:variable name="desc-id">
+        <xsl:value-of select="$base-id"/>
+        <xsl:text>-desc</xsl:text>
+    </xsl:variable>
+
+    <xsl:copy>
+        <!-- attributes first -->
+        <xsl:apply-templates select="@*" mode="svg-edit"/>
+        <xsl:attribute name="role">
+            <xsl:text>img</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="aria-labelledby">
+            <xsl:value-of select="$title-id"/>
+        </xsl:attribute>
+        <xsl:attribute name="aria-describedby">
+            <xsl:value-of select="$desc-id"/>
+        </xsl:attribute>
+        <!-- now additional metadata, of sorts -->
+        <xsl:element name="title" namespace="http://www.w3.org/2000/svg">
+            <xsl:attribute name="id">
+                <xsl:value-of select="$title-id"/>
+            </xsl:attribute>
+            <xsl:text>Math Expression</xsl:text>
+        </xsl:element>
+        <xsl:element name="desc" namespace="http://www.w3.org/2000/svg">
+            <xsl:attribute name="id">
+                <xsl:value-of select="$desc-id"/>
+            </xsl:attribute>
+            <xsl:value-of select="$speech"/>
+        </xsl:element>
+        <!-- and all the rest of the nodes -->
+        <xsl:apply-templates select="node()" mode="svg-edit"/>
+    </xsl:copy>
 </xsl:template>
 
 </xsl:stylesheet>

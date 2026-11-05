@@ -1,4 +1,8 @@
-import { quote, toXml } from "../dast-to-xml/dast-util-to-xml";
+import {
+    quote,
+    referenceWouldAbsorb,
+    toXml,
+} from "../dast-to-xml/dast-util-to-xml";
 import {
     Attr,
     FullPath,
@@ -16,9 +20,16 @@ type Node = Macro | FunctionMacro | Text | PropAccess;
  * **Note**: This function is probably not what you want. You probably want `toXml`, since this function
  * cannot print function macros that have XML nodes as children.
  */
-export function macroToString(node: Node | Node[]): string {
+export function macroToString(
+    node: Node | Node[],
+    /**
+     * Set when what follows would otherwise be read as part of the macro. See
+     * `referenceWouldAbsorb` in `dast-util-to-xml.ts`.
+     */
+    forceParens = false,
+): string {
     if (Array.isArray(node)) {
-        return node.map((n) => macroToString(n)).join("");
+        return arrayToString(node);
     }
     switch (node.type) {
         case "macro": {
@@ -26,7 +37,7 @@ export function macroToString(node: Node | Node[]): string {
 
             let start = "$";
             let end = "";
-            if (macroNeedsParens(node)) {
+            if (macroNeedsParens(node) || forceParens) {
                 start += "(";
                 end += ")";
             }
@@ -37,12 +48,12 @@ export function macroToString(node: Node | Node[]): string {
 
             let start = "$$";
             let end = "";
-            if (macroNeedsParens(node)) {
+            if (macroNeedsParens(node) || forceParens) {
                 start += "(";
                 end += ")";
             }
             const args = node.input
-                ? `(${node.input.map(macroToString).join(", ")})`
+                ? `(${node.input.map((arg) => macroToString(arg)).join(", ")})`
                 : "";
             return start + macro + end + args;
         }
@@ -83,12 +94,36 @@ function macroPathPartToString(pathPart: ScopedPathPart): string {
     );
 }
 
+/**
+ * Render a run of siblings, giving a macro its `$(...)` form when what follows it would
+ * otherwise be read as part of it. `referenceWouldAbsorb` is the shared rule; comparing
+ * the rendered strings means escaping and siblings that print nothing take care of
+ * themselves.
+ */
+function arrayToString(nodes: readonly Node[]): string {
+    const parts = nodes.map((n) => macroToString(n));
+    let following = "";
+    for (let i = parts.length - 1; i >= 0; i--) {
+        const child = nodes[i];
+        if (
+            (child.type === "macro" || child.type === "function") &&
+            referenceWouldAbsorb(parts[i], following, child)
+        ) {
+            parts[i] = macroToString(child, true);
+        }
+        if (parts[i]) {
+            following = parts[i];
+        }
+    }
+    return parts.join("");
+}
+
 function attrToString(attr: Attr): string {
     const name = attr.name;
     if (attr.children.length === 0) {
         return name;
     }
-    const value = attr.children.map(macroToString).join("");
+    const value = arrayToString(attr.children);
     return `${name}=${quote(value)}`;
 }
 

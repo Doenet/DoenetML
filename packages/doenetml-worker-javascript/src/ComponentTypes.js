@@ -4,6 +4,11 @@ import * as MdMdnMrow from "./components/MdMdnMrow";
 import * as BooleanOperators from "./components/BooleanOperators";
 import * as BooleanOperatorsOfMath from "./components/BooleanOperatorsOfMath";
 import * as MathOperators from "./components/MathOperators";
+import * as MathListOperators from "./components/MathListOperators";
+import * as ListIndexOperators from "./components/ListIndexOperators";
+import * as CountOperators from "./components/CountOperators";
+import Chart from "./components/Chart";
+import Series from "./components/Series";
 import * as FunctionOperators from "./components/FunctionOperators";
 import * as TextOperatorsOfMath from "./components/TextOperatorsOfMath";
 import * as Extrema from "./components/Extrema";
@@ -38,6 +43,7 @@ import BooleanComponent from "./components/Boolean";
 import BooleanList from "./components/BooleanList";
 import MathComponent from "./components/Math";
 import Collect from "./components/Collect";
+import CollectList from "./components/CollectList";
 import Ref from "./components/Ref";
 import Point from "./components/Point";
 import Coords from "./components/Coords";
@@ -81,6 +87,9 @@ import Option from "./components/Option";
 import Sequence from "./components/Sequence";
 import Repeat from "./components/Repeat";
 import RepeatForSequence from "./components/RepeatForSequence";
+import { RepeatValues, RepeatIndices } from "./components/RepeatIterationLists";
+import RepeatValueList from "./components/RepeatValueList";
+import RepeatPointList from "./components/RepeatPointList";
 import Slider from "./components/Slider";
 import Markers from "./components/Markers";
 import Pegboard from "./components/Pegboard";
@@ -106,6 +115,7 @@ import DiscreteSimulationResultPolyline from "./components/DiscreteSimulationRes
 import Cell from "./components/Cell";
 import Row from "./components/Row";
 import Column from "./components/Column";
+import Col from "./components/Col";
 import CellBlock from "./components/CellBlock";
 import Tabular from "./components/Tabular";
 import Table from "./components/Table";
@@ -119,6 +129,7 @@ import AnimateFromSequence from "./components/AnimateFromSequence";
 import Evaluate from "./components/Evaluate";
 import SelectRandomNumbers from "./components/SelectRandomNumbers";
 import SampleRandomNumbers from "./components/SampleRandomNumbers";
+import SampleMultivariateRandomNumber from "./components/SampleMultivariateRandomNumber";
 import SelectPrimeNumbers from "./components/SelectPrimeNumbers";
 import SamplePrimeNumbers from "./components/SamplePrimeNumbers";
 import Substitute from "./components/Substitute";
@@ -146,7 +157,10 @@ import Footnote from "./components/Footnote";
 import Caption from "./components/Caption";
 import Endpoint from "./components/Endpoint";
 import Sort from "./components/Sort";
+import SortList from "./components/SortList";
 import Shuffle from "./components/Shuffle";
+import ShuffleList from "./components/ShuffleList";
+import SortIndices from "./components/SortIndices";
 import SolveEquations from "./components/SolveEquations";
 import PostponeRenderContainer from "./components/PostponeRenderContainer";
 import SubsetOfRealsInput from "./components/SubsetOfRealsInput";
@@ -176,6 +190,7 @@ import StickyGroup from "./components/StickyGroup";
 import Pretzel from "./components/Pretzel";
 import PretzelArranger from "./components/PretzelArranger";
 import Cascade from "./components/Cascade";
+import Page from "./components/Page";
 import DynamicChildren from "./components/DynamicChildren";
 import ShortDescription from "./components/ShortDescription";
 
@@ -184,6 +199,7 @@ import * as ComponentSize from "./components/abstract/ComponentSize";
 import * as SectioningComponent from "./components/abstract/SectioningComponent";
 import BaseComponent from "./components/abstract/BaseComponent";
 import Copy from "./components/abstract/Copy";
+import ValueRef from "./components/abstract/ValueRef";
 import InlineComponent from "./components/abstract/InlineComponent";
 import BlockComponent from "./components/abstract/BlockComponent";
 import BlockScoredComponent from "./components/abstract/BlockScoredComponent";
@@ -214,6 +230,11 @@ const componentTypeArray = [
     ...Object.values(BooleanOperators),
     ...Object.values(BooleanOperatorsOfMath),
     ...Object.values(MathOperators),
+    ...Object.values(MathListOperators),
+    ...Object.values(ListIndexOperators),
+    ...Object.values(CountOperators),
+    Chart,
+    Series,
     ...Object.values(FunctionOperators),
     ...Object.values(TextOperatorsOfMath),
     ...Object.values(Extrema),
@@ -247,7 +268,9 @@ const componentTypeArray = [
     TupleList,
     NumberList,
     Copy,
+    ValueRef,
     Collect,
+    CollectList,
     Ref,
     Point,
     Coords,
@@ -291,6 +314,7 @@ const componentTypeArray = [
     Cell,
     Row,
     Column,
+    Col,
     CellBlock,
     Tabular,
     Table,
@@ -299,6 +323,10 @@ const componentTypeArray = [
     Panel,
     Repeat,
     RepeatForSequence,
+    RepeatValues,
+    RepeatValueList,
+    RepeatPointList,
+    RepeatIndices,
     Pegboard,
     Constraints,
     ConstrainToGrid,
@@ -324,6 +352,7 @@ const componentTypeArray = [
     Evaluate,
     SelectRandomNumbers,
     SampleRandomNumbers,
+    SampleMultivariateRandomNumber,
     SelectPrimeNumbers,
     SamplePrimeNumbers,
     Substitute,
@@ -351,7 +380,10 @@ const componentTypeArray = [
     Caption,
     Endpoint,
     Sort,
+    SortList,
+    SortIndices,
     Shuffle,
+    ShuffleList,
     SolveEquations,
     PostponeRenderContainer,
     SubsetOfRealsInput,
@@ -381,6 +413,7 @@ const componentTypeArray = [
     Pretzel,
     PretzelArranger,
     Cascade,
+    Page,
     DynamicChildren,
     ShortDescription,
 

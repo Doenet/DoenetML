@@ -8,7 +8,14 @@
 export interface LabelLikeJXG {
     visProp: Record<string, any>;
     needsUpdate: boolean;
-    update: () => void;
+    // Spelled `Function` rather than `() => void` because that is how
+    // jsxgraph's own declarations type the `.label` property of a line, point,
+    // polygon and so on. `Function` is assignable to no specific signature, so
+    // the narrower spelling made every `getLabelJXG: () => someJXG.label` call
+    // site a type error. We only ever call it with no arguments and ignore
+    // whatever it returns.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    update: Function;
 }
 
 /**

@@ -62,15 +62,12 @@ color =
     .purple = papulu
     .pink = pinki
     .brown = braun
-
 line-width =
     .thick = gbanhọn
     .thin = fiofio
-
 line-style =
     .dashed = ni ẹmiẹmi
     .dotted = ni akoto akoto
-
 # Noun phrases: they follow the shape being described and modify nothing.
 fill-style =
     .horizontal = efe nọ dẹbeghe
@@ -79,7 +76,6 @@ fill-style =
     .backdiagonal = efe nọ gbayie fiegbe
     .dots = akoto
     .diamonds = ayamọni
-
 noun =
     .line = ẹfẹ
     .line-segment = ọya ẹfẹ
@@ -99,7 +95,6 @@ noun =
     .diamond = ayamọni
     .cross = ekpogho
     .plus = ọfa ẹkọ
-
 # The side count follows in the tail, behind the description, as Yoruba does:
 # «ọtọ ọbọkiọkiọ dọgbanhi ọtọ 5», keeping «ọtọ» beside the numeral counting it
 # rather than separating them to hold a fixed English word order.
@@ -108,11 +103,9 @@ noun-regular-polygon =
         [tail] ọtọ { $numSides }
        *[head] ọtọ ọbọkiọkiọ dọgbanhi
     }
-
 # Edo has no grammatical gender, so every noun answers the same way and the
 # answer goes unused — as in English and Yoruba.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -126,22 +119,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its description follows: «ẹfẹ gbanhọn ni ẹmiẹmi ọbara».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = nọ vbe ẹgua
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } kevbe { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } kevbe { $pattern }
@@ -149,7 +138,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } kevbe { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «kevbe ọya ẹfẹ ọbara nọ gbanhọn» — "and a thick red border".
 style-border-clause =
     { $parts ->
@@ -158,35 +146,28 @@ style-border-clause =
         [and-article] kevbe ọya ẹfẹ { $border }
        *[with] kevbe ọya ẹfẹ { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = nọ i vbe ẹgua
-
 style-text =
     { $parts ->
         [background] { $color } vbe ugbo { $background }
        *[plain] { $color }
     }
-
 style-background-none = i rre
-
 
 ## Boolean words
 
 boolean-true = true
 boolean-false = false
 
-
 ## Answer buttons
 
 answer-submit-label = Miẹn Ọsẹ
 answer-submit-label-no-correctness = Rhie Ọre
-
 
 ## Sectional blocks
 
@@ -211,7 +192,6 @@ section-name =
     .solution = Ọre nọ Gbaroko
     .task = Ọsẹ
     .theorem = Emwẹ nọ Gbaroko
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -221,9 +201,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ọtọ
-
 
 ## Tables and figures
 
@@ -234,7 +212,6 @@ table-name =
         [unnumbered-title] Tebulu{ ": " }
        *[unnumbered] Tebulu
     }
-
 figure-name =
     { $parts ->
         [numbered] Owanrẹn { $enumeration }
@@ -243,15 +220,12 @@ figure-name =
        *[unnumbered] Owanrẹn
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ọni
 paginator-next = Ọvbehe
 paginator-page = Ọwagbe
-
 paginator-page-status = { $pageLabel } { $currentPage } vbe { $numPages }
-
 
 ## Piecewise functions
 
@@ -259,14 +233,14 @@ piecewise-condition-or = yana
 piecewise-condition-if = deghẹ
 piecewise-condition-otherwise = deghẹ ọvbehe
 
-
 ## Chemistry
+
+
 #
 # Bini leaves `element-name` and `element-anion-name` out, following the same
 # Nigerian-education reasoning `locales/ha` and `locales/yo` document: see this
 # file's header.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Uni Kemisiti nọ i maan
 chemistry-invalid-ionic-compound = Emwin Ayọni nọ i maan

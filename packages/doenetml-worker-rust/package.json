@@ -41,7 +41,8 @@
             "output": [],
             "dependencies": [
                 "build:rust",
-                "build:js"
+                "build:js",
+                "../math:build"
             ]
         },
         "test:rust:before": {
@@ -110,5 +111,8 @@
             ]
         }
     },
-    "devDependencies": {}
+    "devDependencies": {},
+    "dependencies": {
+        "math-expressions": "file:../math"
+    }
 }

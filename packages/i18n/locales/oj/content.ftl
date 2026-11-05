@@ -126,7 +126,6 @@ color =
             [anim] makade-ozaawizi
            *[inan] makade-ozaawaa
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -138,7 +137,6 @@ line-width =
             [anim] bibagizi
            *[inan] bibagaa
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -150,7 +148,6 @@ line-style =
             [anim] agwaawaadizi
            *[inan] agwaawaadaan
         }
-
 # Noun phrases, and the plural is the inanimate plural `-an`/`-oon`, because
 # these are things rather than beings. This is one of the two places animacy is
 # visible in the noun itself rather than only in the verb agreeing with it.
@@ -161,7 +158,6 @@ fill-style =
     .backdiagonal = aazhawaakwaan jiigaatigoon aanjisejig
     .dots = agwaawaadeg
     .diamonds = wiingashkoon
-
 noun =
     .line = jiigaatig
     .line-segment = jiigaatig bakwezhigan
@@ -181,7 +177,6 @@ noun =
     .diamond = wiingashk
     .cross = aazhidebide'igan
     .plus = agindaasowin-mazina'igan
-
 # The side count precedes the noun, so the head holds it and the `[tail]` branch
 # is empty — English's shape.
 noun-regular-polygon =
@@ -189,7 +184,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } endaso-wiikwaan naasaab
     }
-
 # **Animacy, not masculine and feminine.** Nothing here is derivable: Ojibwe
 # assigns animacy word by word, and a shape's assignment is a fact about the word
 # rather than about the shape. Every entry below is a guess this file is asking a
@@ -208,7 +202,6 @@ noun-gender =
        *[other] inan
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -221,7 +214,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The describing verbs precede the noun, which is English's order — but they are
 # verbs standing beside it rather than modifiers of it, and Ojibwe would more
 # usually fold them in. See this file's header for why they are not folded.
@@ -230,13 +222,11 @@ style-with-noun =
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [anim] mooshkinezi
        *[inan] mooshkinebii
     }
-
 # «gaye», "and also", joins the pattern rather than a case marker: nothing can be
 # welded to `$pattern`, and no preverb can be chosen without seeing it.
 style-filled =
@@ -244,7 +234,6 @@ style-filled =
         [pattern] { $filled } { $color }, gaye { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun }, gaye { $pattern }
@@ -252,7 +241,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail }, gaye { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «jiigaatigwaan», the border, is inanimate, so the border's own describing verbs
 # agree with *it* rather than with the shape it surrounds — which is exactly what
 # the `border` entry in `noun-gender` is for.
@@ -271,7 +259,6 @@ style-border-clause =
         [and-article] miinawaa { $border } jiigaatigwaan
        *[with] gaye { $border } jiigaatigwaan
     }
-
 # Here the pattern is the head, so the colour precedes it and the phrase needs
 # nothing.
 style-fill =
@@ -279,29 +266,23 @@ style-fill =
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = gaawiin mooshkinebiisinoon
-
 style-text =
     { $parts ->
         [background] { $color }, { $background } atesing
        *[plain] { $color }
     }
-
 style-background-none = gaawiin gegoo
-
 
 ## Boolean words
 
 boolean-true = geget
 boolean-false = gaawiin geget
 
-
 ## Answer buttons
 
 answer-submit-label = Nanaa'ichige
 answer-submit-label-no-correctness = Izhinizha'amaw nakwetamowin
-
 
 ## Sectional blocks
 
@@ -329,7 +310,6 @@ section-name =
     .solution = Nanaa'igewin
     .task = Anokiiwin
     .theorem = Teyoorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -339,9 +319,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Wiidookaagewin
-
 
 ## Tables and figures
 
@@ -352,7 +330,6 @@ table-name =
         [unnumbered-title] Adoopowin{ ": " }
        *[unnumbered] Adoopowin
     }
-
 figure-name =
     { $parts ->
         [numbered] Mazinaakizon { $enumeration }
@@ -361,22 +338,18 @@ figure-name =
        *[unnumbered] Mazinaakizon
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ishkweyaang
 paginator-next = Niigaan
 paginator-page = Bezhig-mazina'igan
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = gemaa
 piecewise-condition-if = giishpin
 piecewise-condition-otherwise = bakaan igo
-
 
 ## Chemistry
 ##
@@ -390,6 +363,5 @@ piecewise-condition-otherwise = bakaan igo
 ## the English a student meets in their own textbook.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Gaawiin gwayak mazina'igan (chemistry)
 chemistry-invalid-ionic-compound = Gaawiin gwayak ionic-mamaw-ayi'ii

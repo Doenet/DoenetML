@@ -1,21 +1,38 @@
 /**
  * Guards the built standalone bundles against silent growth, and against the
- * specific way they have grown before: the Rust core sitting somewhere it does
+ * specific way they have grown before: a WASM core sitting somewhere it does
  * not belong.
  *
- * The core ships as a single base64 `data:application/wasm` URI inlined into
- * the worker bundle — 8.3 MiB of the worker's 14.2 MiB. Until #1465 the whole
- * worker, that blob included, was inlined into `doenet-standalone.js` instead,
- * which is why that bundle was ~28 MB rather than today's ~14 MB — and nothing
- * in the build noticed either its size or where the core had landed. A change
- * that puts the blob back into `doenet-standalone.js`, or emits it twice, would
- * be just as quiet.
+ * There are two of them, held to different rules.
+ *
+ * The **Rust document core** ships as {@link WASM_CORE_FILE}, a separate
+ * `.wasm` the worker fetches from beside its own script (#1438), so the
+ * browser's URL-keyed machine-code cache shares one compilation across
+ * workers, iframes, and page views. It used to be inlined — first into
+ * `doenet-standalone.js` (~28 MB, until #1465), then as a base64
+ * `data:application/wasm` URI inside the worker bundle (8.3 MiB of its ~14
+ * MiB, until #1438) — and nothing in the build noticed either its size or
+ * where it had landed. A change that inlines it back into any emitted script,
+ * or that stops the `.wasm` being copied beside the worker, would be just as
+ * quiet.
+ *
+ * **`@doenet/math`'s core** is the opposite case: it *is* inlined, as bare
+ * base64 rather than a data URI, because it has to reach a worker and a main
+ * thread that cannot both fetch a sibling file. One copy per script is the
+ * expected arrangement, and two is the failure —
+ * {@link countInlinedBinaries} tells the two cores apart by content so each
+ * can be held to its own rule.
  *
  * Three checks, doing different jobs:
  *
- *  - The placement check needs no threshold and never needs adjusting. The
- *    core is meant to sit in {@link WASM_CORE_SCRIPT} and nowhere else, and any
- *    other arrangement is a bug rather than a judgement call. It scans *every*
+ *  - The placement checks — three rules — need no threshold and never need
+ *    adjusting. The document core belongs in {@link WASM_CORE_FILE} and
+ *    nowhere else: no emitted script may carry a wasm data URI, and the
+ *    `.wasm` itself must be emitted, starting with WebAssembly's magic bytes —
+ *    a worker with no sibling copy falls back to fetching the release from the
+ *    CDN, which no offline deployment or test environment can serve. The math
+ *    core may appear at most once per script. A multi-megabyte inline that is
+ *    neither belongs in no script at all. The script scan covers *every*
  *    emitted script under `dist/`, not just the budgeted ones, so a copy that
  *    lands in a newly emitted chunk is still caught.
  *  - The catalog check covers the same kind of mistake for `@doenet/i18n`'s
@@ -34,8 +51,10 @@
  * Run via `npm run check:size -w packages/standalone`. Exits non-zero, and
  * prints every problem it found rather than just the first, when a bundle is
  * over budget, when a budgeted file is missing, when `bundle-budgets.json` is
- * unusable, when the core is not inlined exactly once in the right script, or
- * when a served catalog is in the wrong place or missing.
+ * unusable, when the document core is inlined into any script or its served
+ * `.wasm` is missing or corrupt, when the math core appears twice in one
+ * script, when a script holds a multi-megabyte inline that is neither, or when
+ * a served catalog is in the wrong place or missing.
  *
  * A third way the catalogs can fail to arrive — served, and nothing reading
  * them, because a bundle holds two copies of the module that decides what is
@@ -58,12 +77,13 @@ const BUDGETS_FILE = path.join(PACKAGE_ROOT, "bundle-budgets.json");
 const DIST_DIR = path.join(PACKAGE_ROOT, "dist");
 
 /**
- * The one emitted script that is supposed to carry the inlined core. It is
- * copied here from `@doenet/doenetml-worker` by `viteStaticCopy` in
- * `vite.config.ts`; if that destination changes, change this key and the
- * matching one in `bundle-budgets.json` together.
+ * The one emitted file that is supposed to carry the core: the `.wasm` the
+ * worker fetches from beside its own script. It is copied here from
+ * `@doenet/doenetml-worker` by `viteStaticCopy` in `vite.config.ts`; if that
+ * destination changes, change this constant to match.
  */
-export const WASM_CORE_SCRIPT = "dist/doenetml-worker/index.js";
+export const WASM_CORE_FILE =
+    "dist/doenetml-worker/lib_doenetml_worker_bg.wasm";
 
 /** `@doenet/i18n`'s catalogs, which this bundle serves rather than carries. */
 const I18N_ROOT = path.resolve(PACKAGE_ROOT, "..", "i18n");
@@ -114,17 +134,79 @@ const WASM_URI = /data:application\/wasm;base64/g;
 /** Emitted JavaScript, in any extension a bundler might choose. */
 const SCRIPT_EXTENSION = /\.[cm]?js$/;
 
+/** The marker that precedes the DoenetML core's payload when it is inlined. */
+const WASM_URI_PREFIX = "data:application/wasm;base64,";
+
 /**
- * Count maximal base64 runs of at least {@link BIG_BLOB_MIN} characters.
+ * The base64 spelling of the WebAssembly magic number, `\0asm`. A blob that
+ * starts a base64 string at offset 0 — which `@doenet/math`'s does, being a
+ * whole string literal — encodes those four bytes as exactly this.
+ */
+const WASM_MAGIC_BASE64 = "AGFzbQ";
+
+/**
+ * Count maximal base64 runs of at least {@link BIG_BLOB_MIN} characters, split
+ * three ways.
+ *
+ *  - **DoenetML's Rust document core**, if something inlines it, arrives as a
+ *    `data:application/wasm;base64,…` URI, so its payload is preceded by
+ *    {@link WASM_URI_PREFIX}. It ships as {@link WASM_CORE_FILE} and belongs
+ *    in no script at all.
+ *  - **`@doenet/math`'s core** is a bare base64 string assigned to a constant
+ *    (`packages/math/src/generated/wasm-bytes.ts`), with no URI wrapper, so it
+ *    is recognized by the wasm magic it starts with. It belongs wherever math
+ *    is used — including these bundles — but never more than once per script.
+ *  - **Anything else** is an unexplained multi-megabyte inline: a data-URI
+ *    font, an image, a bundled worker. Nothing in this repository should be
+ *    producing one, and it belongs in no script at all.
+ *
+ * The third bucket is why classification is positive rather than by
+ * elimination. Sorting "not a wasm URI" straight into the math core made every
+ * such asset look like the one blob that is legal in a script, so the
+ * unexplained-inline check {@link unexplainedBlobProblem} could never fire.
+ *
+ * Both cores are identified by what the bytes *are*, never by the variable name
+ * holding them, which minification renames.
  *
  * Scanned by hand rather than with `/[A-Za-z0-9+/]{1000000,}/`, which throws
  * `RangeError: Maximum call stack size exceeded` on a string this size — the
- * bundles are ~15 MB and the engine backtracks itself to death. A single pass
- * costs nothing and cannot blow up.
+ * bundles are megabytes and the engine backtracks itself to death. A single
+ * pass costs nothing and cannot blow up.
+ *
+ * @returns `{wasmUriBlobs, bareWasmBlobs, otherBlobs}`; their sum is every big
+ *   blob in `text`.
  */
-export function countBigBlobs(text) {
-    let count = 0;
+export function countInlinedBinaries(text) {
+    let wasmUriBlobs = 0;
+    let bareWasmBlobs = 0;
+    let otherBlobs = 0;
     let run = 0;
+    function finish(end) {
+        if (run < BIG_BLOB_MIN) {
+            return;
+        }
+        const start = end - run;
+        // `startsWith` clamps a negative position to 0, so without the length
+        // test a blob beginning within the first `WASM_URI_PREFIX.length`
+        // characters of the file would be classified by whether the *file*
+        // starts with the prefix. No input reaches that today, and the reason
+        // is a property of the prefix rather than of this loop: it ends in `,`,
+        // which is not a base64 character, so a run starting before its end is
+        // cut off at that comma and never reaches `BIG_BLOB_MIN`. Kept because
+        // that coupling is implicit — an inlined-asset prefix that happened to
+        // end in a base64 character would make it live, and no test can pin it
+        // in the meantime.
+        if (
+            start >= WASM_URI_PREFIX.length &&
+            text.startsWith(WASM_URI_PREFIX, start - WASM_URI_PREFIX.length)
+        ) {
+            wasmUriBlobs++;
+        } else if (text.startsWith(WASM_MAGIC_BASE64, start)) {
+            bareWasmBlobs++;
+        } else {
+            otherBlobs++;
+        }
+    }
     for (let i = 0; i < text.length; i++) {
         const c = text.charCodeAt(i);
         const isBase64 =
@@ -136,13 +218,12 @@ export function countBigBlobs(text) {
         if (isBase64) {
             run++;
         } else {
-            if (run >= BIG_BLOB_MIN) {
-                count++;
-            }
+            finish(i);
             run = 0;
         }
     }
-    return run >= BIG_BLOB_MIN ? count + 1 : count;
+    finish(text.length);
+    return { wasmUriBlobs, bareWasmBlobs, otherBlobs };
 }
 
 function mib(bytes) {
@@ -367,10 +448,19 @@ function collectEmittedScripts(probes) {
             .relative(PACKAGE_ROOT, file)
             .split(path.sep)
             .join("/");
+        const binaries = countInlinedBinaries(contents);
         scripts.set(relative, {
             size: buffer.length,
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
-            bigBlobs: countBigBlobs(contents),
+            bigBlobs:
+                binaries.wasmUriBlobs +
+                binaries.bareWasmBlobs +
+                binaries.otherBlobs,
+            // Each of the three kinds is held to its own rule, so each is
+            // carried separately rather than recovered by subtraction.
+            doenetCores: binaries.wasmUriBlobs,
+            mathCores: binaries.bareWasmBlobs,
+            otherBlobs: binaries.otherBlobs,
             inlinedCatalogs: catalogsInScript(contents, probes),
         });
     }
@@ -420,32 +510,131 @@ export function loadBudgets(budgetsFile = BUDGETS_FILE) {
     return entries;
 }
 
-/**
- * Describe a script whose inlined-blob count is not what it should be.
- *
- * `expected` is 1 for {@link WASM_CORE_SCRIPT} and 0 for everything else, so
- * the two wordings cover every script.
- */
-function blobPlacementProblem(relative, emitted, expected) {
+/** Describe a script that carries the Rust document core, which none should. */
+function blobPlacementProblem(relative, emitted) {
     const observed =
         `${emitted.wasmUris} wasm data-URI(s) and ` +
-        `${emitted.bigBlobs} large inlined blob(s)`;
-    if (expected === 1) {
-        return (
-            `${relative} should carry the Rust core exactly once, but has ${observed}.\n` +
-            `    Zero means the core stopped being inlined, and vite.config.ts copies only\n` +
-            `    index.js (+ its map) into dist/ — there is no sibling .wasm left for the\n` +
-            `    worker to fetch. More than one means it was bundled twice, which adds\n` +
-            `    megabytes.`
-        );
-    }
+        `${emitted.doenetCores} inlined copies of it`;
     return (
-        `${relative} should carry no inlined binary — the Rust core belongs to\n` +
-        `    ${WASM_CORE_SCRIPT} alone — but has ${observed}.\n` +
-        `    A wasm URI here means the core leaked out of the worker or was bundled\n` +
-        `    twice. A large blob without one means some other multi-megabyte asset is\n` +
-        `    now inlined into JavaScript. Either way it should be a deliberate change.`
+        `${relative} should carry no copy of the Rust document core — it ships as\n` +
+        `    ${WASM_CORE_FILE}, fetched beside the worker\n` +
+        `    script — but has ${observed}.\n` +
+        `    Inlining it back into a script costs every realm the bytes and forfeits\n` +
+        `    the browser's shared machine-code cache, so it should be a deliberate\n` +
+        `    change.`
     );
+}
+
+/**
+ * Describe a script carrying more than one copy of the `@doenet/math` core.
+ *
+ * Unlike the document core, this one is *meant* to be inlined: it is how the
+ * math seam reaches a worker and a main thread that cannot fetch a sibling
+ * file. One copy per script is the expected arrangement; two is not.
+ */
+function mathCorePlacementProblem(relative, count) {
+    return (
+        `${relative} carries ${count} copies of the @doenet/math core; one is expected.\n` +
+        `    Each copy is ~2.3 MiB of inlined base64 and a separate WASM instantiation\n` +
+        `    at runtime. It means the seam resolved as more than one module instance —\n` +
+        `    usually a package that bundles \`math-expressions\` into its own dist instead\n` +
+        `    of externalizing it, which then rides into every bundle embedding it.`
+    );
+}
+
+/**
+ * Describe a script carrying a multi-megabyte inline that is neither core.
+ *
+ * Both cores are recognized by their content (see
+ * {@link countInlinedBinaries}), so anything left over is an asset that started
+ * being inlined into JavaScript without anyone deciding it should be — a
+ * data-URI font, an image, a bundled worker. There is no script where that is
+ * expected, so this needs no threshold and no per-script exception.
+ */
+function unexplainedBlobProblem(relative, count) {
+    return (
+        `${relative} carries ${count} multi-megabyte inlined blob(s) that are neither\n` +
+        `    the Rust document core nor the @doenet/math core.\n` +
+        `    Some other asset is now being inlined into JavaScript rather than emitted\n` +
+        `    beside it. Emit it as a file, or — if inlining it really is intended —\n` +
+        `    teach countInlinedBinaries to recognize it so it stops being unexplained.`
+    );
+}
+
+/**
+ * The emitted scripts a budget key covers.
+ *
+ * A key is an exact `dist/`-relative path, except that `*` matches any run of
+ * characters other than `/` — which is how a budget pins down a code-split
+ * chunk whose emitted name carries a content hash
+ * (`dist/chunks/index-*.js`). Each matching script is held to the budget's
+ * `maxBytes` individually.
+ *
+ * @returns `[relativePath, emitted]` pairs.
+ */
+export function scriptsForBudget(relative, scripts) {
+    if (!relative.includes("*")) {
+        const emitted = scripts.get(relative);
+        return emitted ? [[relative, emitted]] : [];
+    }
+    const pattern = new RegExp(
+        "^" +
+            relative
+                .split("*")
+                .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+                .join("[^/]*") +
+            "$",
+    );
+    return [...scripts].filter(([name]) => pattern.test(name));
+}
+
+/**
+ * How the emitted core `.wasm` looks on disk: `null` if it was not emitted,
+ * otherwise its size and whether it starts with WebAssembly's magic bytes
+ * (`\0asm` — what separates a real module from, say, an HTML error page saved
+ * under the right name).
+ */
+function collectCoreWasm(file = path.join(PACKAGE_ROOT, WASM_CORE_FILE)) {
+    if (!fs.existsSync(file)) {
+        return null;
+    }
+    const header = Buffer.alloc(4);
+    const fd = fs.openSync(file, "r");
+    try {
+        fs.readSync(fd, header, 0, 4, 0);
+    } finally {
+        fs.closeSync(fd);
+    }
+    return {
+        size: fs.statSync(file).size,
+        hasWasmMagic: header.equals(Buffer.from([0x00, 0x61, 0x73, 0x6d])),
+    };
+}
+
+/**
+ * Problems with the served core `.wasm` itself — the counterpart to the
+ * inlined-blob scan: that one catches the core landing inside a script, this
+ * one catches it landing nowhere.
+ *
+ * @param coreWasm the emitted `.wasm` as {@link collectCoreWasm} reports it.
+ */
+export function coreWasmProblems(coreWasm) {
+    if (coreWasm === null) {
+        return [
+            `${WASM_CORE_FILE} was not emitted, so the worker has no\n` +
+                `    sibling copy of the Rust core to fetch, and every offline or self-hosted\n` +
+                `    deployment would fall back to fetching the release from the CDN. It is\n` +
+                `    copied there from @doenet/doenetml-worker by viteStaticCopy in\n` +
+                `    vite.config.ts; if it moved, update WASM_CORE_FILE in this script.`,
+        ];
+    }
+    if (!coreWasm.hasWasmMagic) {
+        return [
+            `${WASM_CORE_FILE} does not start with WebAssembly's\n` +
+                `    magic bytes (\\0asm), so the worker could not compile it.`,
+        ];
+    }
+    return [];
 }
 
 /**
@@ -462,39 +651,37 @@ function blobPlacementProblem(relative, emitted, expected) {
 export function findProblems(budgets, scripts) {
     const problems = [];
     const report = [];
+    const budgeted = new Set();
 
     for (const [relative, budget] of budgets) {
-        const emitted = scripts.get(relative);
-        if (!emitted) {
-            // "Build the package" is the right advice only when there is no
-            // build. If other scripts were emitted and the core-carrying one
-            // was not, the build ran and the file moved — say that once, in
-            // the more specific message below, instead of twice and wrongly.
-            if (relative !== WASM_CORE_SCRIPT || scripts.size === 0) {
-                problems.push(
-                    `${relative} does not exist — build the package before checking its size ` +
-                        `(\`npm run build -w packages/standalone\`).`,
-                );
-            }
+        const matches = scriptsForBudget(relative, scripts);
+        if (matches.length === 0) {
+            problems.push(
+                `${relative} does not exist — build the package before checking its size ` +
+                    `(\`npm run build -w packages/standalone\`).`,
+            );
             continue;
         }
 
-        report.push(
-            `  ${relative}\n` +
-                `      ${mib(emitted.size)} of ${mib(budget.maxBytes)} budget` +
-                `  (${((emitted.size / budget.maxBytes) * 100).toFixed(1)}%)` +
-                `, ${emitted.wasmUris} wasm URI(s), ${emitted.bigBlobs} inlined blob(s)`,
-        );
-
-        if (emitted.size > budget.maxBytes) {
-            problems.push(
-                `${relative} is ${mib(emitted.size)} (${emitted.size} bytes), over its ` +
-                    `${mib(budget.maxBytes)} budget by ${mib(emitted.size - budget.maxBytes)}.\n` +
-                    `    If the growth is intended, raise "maxBytes" for this file in\n` +
-                    `    packages/standalone/bundle-budgets.json in the same commit, so the\n` +
-                    `    increase is visible in review. If it is not intended, something was\n` +
-                    `    pulled in twice — compare against the previous build before raising it.`,
+        for (const [name, emitted] of matches) {
+            budgeted.add(name);
+            report.push(
+                `  ${name}\n` +
+                    `      ${mib(emitted.size)} of ${mib(budget.maxBytes)} budget` +
+                    `  (${((emitted.size / budget.maxBytes) * 100).toFixed(1)}%)` +
+                    `, ${emitted.wasmUris} wasm URI(s), ${emitted.bigBlobs} inlined blob(s)`,
             );
+
+            if (emitted.size > budget.maxBytes) {
+                problems.push(
+                    `${name} is ${mib(emitted.size)} (${emitted.size} bytes), over its ` +
+                        `${mib(budget.maxBytes)} budget by ${mib(emitted.size - budget.maxBytes)}.\n` +
+                        `    If the growth is intended, raise "maxBytes" for this file in\n` +
+                        `    packages/standalone/bundle-budgets.json in the same commit, so the\n` +
+                        `    increase is visible in review. If it is not intended, something was\n` +
+                        `    pulled in twice — compare against the previous build before raising it.`,
+                );
+            }
         }
     }
 
@@ -502,7 +689,6 @@ export function findProblems(budgets, scripts) {
     // is a normal thing for the bundler to do — but it is listed so that a
     // chunk quietly growing into a second multi-megabyte payload is visible,
     // and so somebody can decide whether it deserves a budget.
-    const budgeted = new Set(budgets.map(([relative]) => relative));
     for (const [relative, emitted] of scripts) {
         if (!budgeted.has(relative)) {
             report.push(
@@ -513,22 +699,39 @@ export function findProblems(budgets, scripts) {
         }
     }
 
-    // Where the core sits, not just how many copies exist: a single copy in
-    // the wrong script is as much a bug as two copies, and a total-only count
-    // cannot tell them apart.
+    // Three rules, one per kind of inlined binary. The document core ships as
+    // its own `.wasm` file (whose presence `coreWasmProblems` checks
+    // separately), so no script may carry it; the math core is inlined by
+    // design but must not be duplicated; anything else is unexplained.
     for (const [relative, emitted] of scripts) {
-        const expected = relative === WASM_CORE_SCRIPT ? 1 : 0;
-        if (emitted.wasmUris !== expected || emitted.bigBlobs !== expected) {
-            problems.push(blobPlacementProblem(relative, emitted, expected));
+        // Its payload always arrives as a wasm data-URI, so both counts move
+        // together, and each is checked so that a URI without a payload (or
+        // the reverse) is still caught.
+        if (emitted.wasmUris !== 0 || emitted.doenetCores !== 0) {
+            problems.push(blobPlacementProblem(relative, emitted));
+        }
+        // Allowed anywhere math is used, but never twice in one script. Two
+        // copies means the seam resolved as two module instances, each
+        // contributing its own ~2.3 MiB of inlined base64 — the failure this
+        // check exists to catch, and the reason the libraries that feed these
+        // bundles externalize the seam rather than bundling it.
+        if (emitted.mathCores > 1) {
+            problems.push(
+                mathCorePlacementProblem(relative, emitted.mathCores),
+            );
+        }
+        if (emitted.otherBlobs > 0) {
+            problems.push(unexplainedBlobProblem(relative, emitted.otherBlobs));
         }
     }
-    // Catalogs this bundle is supposed to serve, not carry. Being one file, it
-    // cannot code-split them the way the library build does, so it switches
-    // `__DOENET_CODE_SPLIT_CATALOGS__` off and fetches `dist/locales/` at
-    // runtime instead. Anything that makes the glob reachable again — a define
-    // that stops being applied, a new eager import of a catalog — puts every
-    // translation back in here, and the size budget alone would absorb it for
-    // a long time.
+    // Catalogs these bundles are supposed to serve, not carry. The build keeps
+    // them as plain runtime-fetched files in `dist/locales/` — version-pinnable
+    // there, and out of the single-file inline variant — by switching
+    // `__DOENET_CODE_SPLIT_CATALOGS__` off instead of code-splitting them the
+    // way the library build does. Anything that makes the glob reachable again
+    // — a define that stops being applied, a new eager import of a catalog —
+    // puts every translation back in here, and the size budget alone would
+    // absorb it for a long time.
     for (const [relative, emitted] of scripts) {
         const leaked = emitted.inlinedCatalogs;
         if (leaked.length > 0) {
@@ -542,17 +745,6 @@ export function findProblems(budgets, scripts) {
         }
     }
 
-    // An unbuilt `dist/` has no scripts to check, and the budget loop above has
-    // already said to build; only complain about the core going missing once
-    // there is a build to complain about.
-    if (scripts.size > 0 && !scripts.has(WASM_CORE_SCRIPT)) {
-        problems.push(
-            `${WASM_CORE_SCRIPT} was not emitted, so nothing carries the Rust core.\n` +
-                `    The worker bundle is copied into \`dist/\` by vite.config.ts; if it moved,\n` +
-                `    update WASM_CORE_SCRIPT in this script and the key in bundle-budgets.json.`,
-        );
-    }
-
     return { report, problems };
 }
 
@@ -562,9 +754,11 @@ function main() {
     const scripts = collectEmittedScripts(probes);
     const { report, problems } = findProblems(budgets, scripts);
 
-    // An unbuilt `dist/` has already been reported as such; only ask where the
-    // served catalogs went once there is a build to ask about.
+    // An unbuilt `dist/` has already been reported as such; only ask where
+    // the served catalogs and the core `.wasm` went once there is a build to
+    // ask about.
     if (scripts.size > 0) {
+        problems.push(...coreWasmProblems(collectCoreWasm()));
         problems.push(
             ...servedCatalogProblems(
                 collectSourceLocales(),
@@ -585,8 +779,8 @@ function main() {
     }
 
     console.log(
-        "\nwithin budget, the core is inlined exactly once, and the message catalogs\n" +
-            "are served rather than carried.",
+        "\nwithin budget, the core is served as its own .wasm beside the worker, and\n" +
+            "the message catalogs are served rather than carried.",
     );
 }
 

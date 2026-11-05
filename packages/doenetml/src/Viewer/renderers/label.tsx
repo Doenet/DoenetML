@@ -6,7 +6,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { DynamicMath } from "./utils/DynamicMath";
 import me from "math-expressions";
-import { textRendererStyle } from "@doenet/utils";
+import { textRendererStyle, toNumberOrNaN } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
@@ -20,12 +20,21 @@ import {
     detachAnchoredGraphElement,
 } from "./utils/useAnchoredGraphDragHandler";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import { resolveBackgroundColor, resolveTextColor } from "./utils/styleColors";
 import { computeLabelMaskCssStyle } from "./utils/labelMaskStyle";
+import { InputLabelContext } from "./utils/inputLabel";
+import { renderMarkupBody } from "./utils/markupRenderer";
+import {
+    ClickTargetButton,
+    NoClickTargetContext,
+    useClickTargetAllowed,
+} from "./utils/ClickTarget";
 
 interface LabelSVs {
     hidden: boolean;
     layer: number;
     fixed: boolean;
+    clickTarget: boolean;
     fixLocation: boolean;
     draggable: boolean;
     anchor: any;
@@ -33,13 +42,14 @@ interface LabelSVs {
     value: string;
     hasLatex: boolean;
     maskLabel: boolean;
+    _compositeReplacementActiveRange?: any;
     forTargetRendererId?: string;
     forTargetIsGroup?: boolean;
     selectedStyle: ResolvedStyleDefinition;
 }
 
 export default React.memo(function Label(props: UseDoenetRendererProps) {
-    let { componentIdx, id, SVs, actions, callAction } =
+    let { componentIdx, id, SVs, children, actions, callAction } =
         useDoenetRenderer<LabelSVs>(props);
 
     // @ts-ignore
@@ -49,8 +59,10 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
     const anchorPointJXG = useRef<JXGPoint | null>(null);
     const anchorRel = useRef<[string, string] | null>(null);
 
+    const { inLabel: inInputLabel } = useContext(InputLabelContext);
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
+    const clickTargetAllowed = useClickTargetAllowed();
 
     const pointerState = usePointerDragState();
     const pointAtDown = useRef<number[] | null>(null);
@@ -76,14 +88,11 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             return null;
         }
 
-        let textColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.textColorDarkMode
-                : SVs.selectedStyle.textColor;
-        let backgroundColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.backgroundColorDarkMode
-                : SVs.selectedStyle.backgroundColor;
+        let textColor = resolveTextColor(SVs.selectedStyle, darkMode);
+        let backgroundColor = resolveBackgroundColor(
+            SVs.selectedStyle,
+            darkMode,
+        );
 
         let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
             layer: SVs.layer,
@@ -120,8 +129,8 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             let anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
 
             if (!Number.isFinite(anchorCoords[0])) {
@@ -204,8 +213,8 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -255,14 +264,11 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 labelJXG.current.setAttribute({ layer });
             }
 
-            let textColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.textColorDarkMode
-                    : SVs.selectedStyle.textColor;
-            let backgroundColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.backgroundColorDarkMode
-                    : SVs.selectedStyle.backgroundColor;
+            let textColor = resolveTextColor(SVs.selectedStyle, darkMode);
+            let backgroundColor = resolveBackgroundColor(
+                SVs.selectedStyle,
+                darkMode,
+            );
             let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
                 layer: SVs.layer,
                 backgroundColor,
@@ -314,14 +320,28 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         return null;
     }
 
-    const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
-        : undefined;
+    // The label of an input is styled by the input, as when the input showed
+    // the label's string.
+    const style =
+        !choiceInputInlineContext.inOption && !inInputLabel
+            ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
+            : undefined;
 
     let label: React.ReactNode = SVs.value;
 
     if (SVs.hasLatex) {
         label = <DynamicMath latex={SVs.value} />;
+    }
+
+    // Render the children, so that their markup (e.g., `<em>` or `<delete>`)
+    // shows, except in a dropdown's option, which can hold only text. A label
+    // without children (e.g., one copied from another component's `label`)
+    // has only its value to show.
+    if (
+        !choiceInputInlineContext.inOption &&
+        children.some((child) => child !== null && child !== "")
+    ) {
+        label = trimOuterWhitespace(renderMarkupBody({ SVs, children }) ?? []);
     }
     if (SVs.forTargetRendererId) {
         if (SVs.forTargetIsGroup) {
@@ -338,14 +358,61 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 id={id}
                 htmlFor={`${SVs.forTargetRendererId}_input`}
             >
-                {label}
+                <NoClickTargetContext.Provider value={true}>
+                    {label}
+                </NoClickTargetContext.Provider>
             </label>
         );
     }
 
-    return (
+    const content = (
         <span style={style} id={id}>
             {label}
         </span>
     );
+
+    // Blank content would make a button with no name.
+    if (
+        SVs.clickTarget &&
+        !SVs.fixed &&
+        clickTargetAllowed &&
+        SVs.value.trim() !== ""
+    ) {
+        return (
+            <ClickTargetButton
+                onClick={() =>
+                    callAction({
+                        action: actions.labelClicked,
+                        args: { componentIdx },
+                    })
+                }
+            >
+                {content}
+            </ClickTargetButton>
+        );
+    }
+
+    return content;
 });
+
+/**
+ * Trim the whitespace at the start of the first child and the end of the last
+ * child, as the label's value is trimmed.
+ */
+function trimOuterWhitespace(children: React.ReactNode[]): React.ReactNode[] {
+    const trimmed = [...children];
+    const first = trimmed.findIndex((child) => child !== null);
+    const firstChild = trimmed[first];
+    if (typeof firstChild === "string") {
+        trimmed[first] = firstChild.trimStart();
+    }
+    let last = trimmed.length - 1;
+    while (last >= 0 && trimmed[last] === null) {
+        last--;
+    }
+    const lastChild = trimmed[last];
+    if (typeof lastChild === "string") {
+        trimmed[last] = lastChild.trimEnd();
+    }
+    return trimmed;
+}

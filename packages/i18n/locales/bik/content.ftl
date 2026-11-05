@@ -45,15 +45,12 @@ color =
     .purple = lila
     .pink = rosas
     .brown = kape
-
 line-width =
     .thick = makapal
     .thin = manipis
-
 line-style =
     .dashed = putol-putol
     .dotted = tuldok-tuldok
-
 # Noun phrases. Bikol marks no plural on the noun, so «linya» is the word for
 # one line and for many alike.
 fill-style =
@@ -63,7 +60,6 @@ fill-style =
     .backdiagonal = baliktad na pahilig na linya
     .dots = tuldok
     .diamonds = diyamante
-
 noun =
     .line = linya
     .line-segment = segmento
@@ -83,16 +79,13 @@ noun =
     .diamond = diyamante
     .cross = krus
     .plus = plus
-
 noun-regular-polygon =
     { $part ->
         [tail] na may { $numSides } na gilid
        *[head] regular na poligono
     }
-
 # One answer for every noun: Bikol has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -107,21 +100,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } na { $noun } { $nounTail }
        *[noun] { $description } na { $noun }
     }
-
 style-filled-word = pano
-
 style-filled =
     { $parts ->
         [pattern] { $filled } na { $color } na may { $pattern }
        *[plain] { $filled } na { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } na { $color } na { $noun } na may { $pattern }
@@ -129,7 +118,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } na { $color } na { $noun } { $nounTail } na may { $pattern }
        *[plain] { $filled } na { $color } na { $noun }
     }
-
 # Bikol has no article, so the two `-article` branches say what the other two
 # say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «na may» against «asin».
@@ -140,35 +128,28 @@ style-border-clause =
         [and-article] asin { $border } na gilid
        *[with] na may { $border } na gilid
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } na { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = bakong pano
-
 style-text =
     { $parts ->
         [background] { $color } na may { $background } na background
        *[plain] { $color }
     }
-
 style-background-none = mayo
-
 
 ## Boolean words
 
 boolean-true = totoo
 boolean-false = bakong totoo
 
-
 ## Answer buttons
 
 answer-submit-label = Siyasaton an simbag
 answer-submit-label-no-correctness = Ipadara an simbag
-
 
 ## Sectional blocks
 
@@ -196,7 +177,6 @@ section-name =
     .solution = Solusyon
     .task = Gibuhon
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -206,9 +186,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Giya
-
 
 ## Tables and figures
 
@@ -219,7 +197,6 @@ table-name =
         [unnumbered-title] Talaan{ ": " }
        *[unnumbered] Talaan
     }
-
 figure-name =
     { $parts ->
         [numbered] Pigura { $enumeration }
@@ -228,22 +205,18 @@ figure-name =
        *[unnumbered] Pigura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Nakaagi
 paginator-next = Sunod
 paginator-page = Pahina
-
 paginator-page-status = { $pageLabel } { $currentPage } sa { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = kun
 piecewise-condition-otherwise = kun bako
-
 
 ## Chemistry
 ##
@@ -253,6 +226,5 @@ piecewise-condition-otherwise = kun bako
 ## one — the same reason `locales/fil` and `locales/ceb` leave these keys out.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Bakong balidong simbolong kemikal
 chemistry-invalid-ionic-compound = Bakong balidong kompuwestong ioniko

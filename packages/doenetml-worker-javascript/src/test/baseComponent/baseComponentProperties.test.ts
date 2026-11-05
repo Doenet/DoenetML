@@ -3,6 +3,7 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     updateBooleanInputValue,
+    updateMathInputValue,
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
@@ -23,7 +24,7 @@ describe("Base component property tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pCoords")].stateValues
                 .text,
-        ).eq("Coordinates of P: ( 0, 0 )");
+        ).eq("Coordinates of P: (0, 0)");
 
         if (start_fixed) {
             expect(
@@ -42,7 +43,7 @@ describe("Base component property tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCoords")]
                     .stateValues.text,
-            ).eq("Coordinates of P: ( 0, 0 )");
+            ).eq("Coordinates of P: (0, 0)");
 
             // make point not fixed
             await updateValue({
@@ -67,7 +68,7 @@ describe("Base component property tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pCoords")].stateValues
                 .text,
-        ).eq("Coordinates of P: ( 1, 2 )");
+        ).eq("Coordinates of P: (1, 2)");
 
         // have point fixed
         await updateValue({
@@ -91,7 +92,7 @@ describe("Base component property tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pCoords")].stateValues
                 .text,
-        ).eq("Coordinates of P: ( 1, 2 )");
+        ).eq("Coordinates of P: (1, 2)");
 
         // have point not fixed
         await updateValue({
@@ -115,7 +116,7 @@ describe("Base component property tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pCoords")].stateValues
                 .text,
-        ).eq("Coordinates of P: ( 5, 6 )");
+        ).eq("Coordinates of P: (5, 6)");
     }
     it("change the fixed attribute even when fixed", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -231,15 +232,15 @@ describe("Base component property tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pACoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of A: ( ${A.join(", ")} )`);
+            ).eq(`Coordinates of A: (${A.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pBCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of B: ( ${B.join(", ")} )`);
+            ).eq(`Coordinates of B: (${B.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of C: ( ${C.join(", ")} )`);
+            ).eq(`Coordinates of C: (${C.join(", ")})`);
         }
 
         let gFixed = false;
@@ -493,19 +494,19 @@ describe("Base component property tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pACoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of A: ( ${A.join(", ")} )`);
+            ).eq(`Coordinates of A: (${A.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pBCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of B: ( ${B.join(", ")} )`);
+            ).eq(`Coordinates of B: (${B.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of C: ( ${C.join(", ")} )`);
+            ).eq(`Coordinates of C: (${C.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pDCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of D: ( ${D.join(", ")} )`);
+            ).eq(`Coordinates of D: (${D.join(", ")})`);
         }
 
         let AFixed = false;
@@ -666,6 +667,48 @@ describe("Base component property tests @group4", async () => {
             y: C[1],
             core,
         });
+    });
+
+    it("an extend of a component fixed by its graph or group is fixed, even where its own graph sets fixed false", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph fixed><point name="P">(1,2)</point></graph>
+  <group fixed><mathInput name="mi">x</mathInput></group>
+
+  <graph><point name="Q" extend="$P" /></graph>
+  <graph fixed="false"><point name="Qf" extend="$P" /></graph>
+  <mathInput name="mi2" extend="$mi" />
+  `,
+        });
+
+        const stateValuesOf = async (name: string) =>
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx(name)
+            ].stateValues;
+
+        expect((await stateValuesOf("Q")).fixed).eq(true);
+        expect((await stateValuesOf("mi2")).fixed).eq(true);
+        // a graph's fixed="false" only stops the graph from fixing it
+        expect((await stateValuesOf("Qf")).fixed).eq(true);
+
+        // as before, a drag or a change of one of them does not reach its source
+        for (const name of ["Q", "Qf"]) {
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx(name),
+                x: 5,
+                y: 6,
+                core,
+            });
+        }
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        expect((await stateValuesOf("P")).xs.map((x: any) => x.tree)).eqls([
+            1, 2,
+        ]);
+        expect((await stateValuesOf("mi")).value.tree).eq("x");
     });
 
     it("change disabled, inverse direction", async () => {

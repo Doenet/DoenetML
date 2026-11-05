@@ -75,7 +75,6 @@ color =
     .purple = ndathi
     .pink = pingi
     .brown = ngoikoni ya thĩ
-
 line-width =
     .thick =
         { $gender ->
@@ -89,13 +88,11 @@ line-width =
             [c7] kĩnini
            *[c9] nini
         }
-
 # Written as an invariable «na …» phrase, so that it agrees with nothing and
 # can close the phrase. `style-stroke` puts it last for that reason.
 line-style =
     .dashed = na icunjĩ
     .dotted = na tũdoti
-
 fill-style =
     .horizontal = mĩhari ĩkomete
     .vertical = mĩhari ĩrũngiĩ
@@ -103,7 +100,6 @@ fill-style =
     .backdiagonal = mĩhari ĩinamĩte na mwena ũngĩ
     .dots = tũdoti
     .diamonds = daimondi
-
 noun =
     .line = mũhari
     .line-segment = gĩcunjĩ kĩa mũhari
@@ -123,7 +119,6 @@ noun =
     .diamond = daimondi
     .cross = mũtharaba
     .plus = kĩmenyithia kĩa kuongerera
-
 # The side count is a relative complement and closes the noun phrase behind the
 # describing words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -131,7 +126,6 @@ noun-regular-polygon =
         [tail] ũrĩ na mĩena { $numSides }
        *[head] mũhianĩre mũiganu
     }
-
 # The noun class. `c9` is the default and the class of every loanword.
 noun-gender =
     { $noun ->
@@ -154,7 +148,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «na …» phrase and closes the description, so it moves
@@ -169,26 +162,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] mũiyũre
         [c7] kĩiyũre
        *[c9] njiyũre
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } na { $pattern }
@@ -196,7 +185,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «mũhaka» is class 3 and leads its own describing words, so the border's words
 # agree with it rather than with the shape it surrounds. Gĩkũyũ has no article
 # and joins this clause with the invariable «na», so all four branches read
@@ -208,35 +196,28 @@ style-border-clause =
         [and-article] na mũhaka { $border }
        *[with] na mũhaka { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ndĩiyũre
-
 style-text =
     { $parts ->
         [background] { $color } igũrũ rĩa kĩhumo { $background }
        *[plain] { $color }
     }
-
 style-background-none = gũtirĩ kĩndũ
-
 
 ## Boolean words
 
 boolean-true = ma
 boolean-false = maheeni
 
-
 ## Answer buttons
 
 answer-submit-label = Rora Wĩra
 answer-submit-label-no-correctness = Tũma Macookio
-
 
 ## Sectional blocks
 
@@ -261,7 +242,6 @@ section-name =
     .solution = Ũtaũri
     .task = Wĩra
     .theorem = Thioremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -271,9 +251,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Kĩrĩkanĩro
-
 
 ## Tables and figures
 
@@ -284,7 +262,6 @@ table-name =
         [unnumbered-title] Metha{ ": " }
        *[unnumbered] Metha
     }
-
 figure-name =
     { $parts ->
         [numbered] Mũhianano { $enumeration }
@@ -293,24 +270,18 @@ figure-name =
        *[unnumbered] Mũhianano
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ĩrĩa ĩhĩtũkĩte
 paginator-next = Ĩrĩa ĩrũmĩrĩire
 paginator-page = Karatathi
-
 paginator-page-status = { $pageLabel } { $currentPage } harĩ { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = kana
-
 piecewise-condition-if = angĩkorwo
-
 piecewise-condition-otherwise = angĩkorwo tiguo
-
 
 ## Chemistry
 ##
@@ -325,6 +296,5 @@ piecewise-condition-otherwise = angĩkorwo tiguo
 ## education system, two different answers.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kĩmenyithia kĩa Kemikaru Gĩtarĩ kĩega
 chemistry-invalid-ionic-compound = Mũtukanio wa Ayoni Ũtarĩ mwega

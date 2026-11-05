@@ -1,2 +1,2 @@
 #!/bin/sh
-npx --no-install lint-staged
+exec bash "$(dirname "$0")/format-staged.sh"

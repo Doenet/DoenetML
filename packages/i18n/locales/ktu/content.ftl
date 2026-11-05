@@ -51,15 +51,12 @@ color =
     .purple = ya vyole
     .pink = ya loze
     .brown = ya mabele
-
 line-width =
     .thick = ya nene
     .thin = ya fioti
-
 line-style =
     .dashed = ya batini
     .dotted = ya bantoni
-
 fill-style =
     .horizontal = balinya ya kulala
     .vertical = balinya ya kutelama
@@ -67,7 +64,6 @@ fill-style =
     .backdiagonal = balinya ya kubenda na lweka ya nkaka
     .dots = bantoni
     .diamonds = badiama
-
 noun =
     .line = linya
     .line-segment = kitini ya linya
@@ -87,7 +83,6 @@ noun =
     .diamond = diama
     .cross = kuluzu
     .plus = kidimbu ya kuyika
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -95,13 +90,11 @@ noun-regular-polygon =
         [tail] ya kele ti bansuki { $numSides }
        *[head] kifwani ya bansuki ya kiteso mosi
     }
-
 # One token, because Kituba has one: nothing in the language selects on the
 # class a noun's frozen prefix came from. A branch for a class would be a
 # variant nothing can reach — see `locales/zu`'s header for that rule stated
 # where the classes are real.
 noun-gender = mosi
-
 
 ## Style composition
 
@@ -115,21 +108,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = ya kufuluka
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ti { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ti { $pattern }
@@ -137,7 +126,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ti { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Kituba has no article and joins this clause with the invariable «ti», so all
 # four branches read alike.
 style-border-clause =
@@ -147,35 +135,28 @@ style-border-clause =
         [and-article] ti ndilu { $border }
        *[with] ti ndilu { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ya kufuluka ve
-
 style-text =
     { $parts ->
         [background] { $color } na nima { $background }
        *[plain] { $color }
     }
-
 style-background-none = ata kima ve
-
 
 ## Boolean words
 
 boolean-true = ya kyeleka
 boolean-false = ya luvunu
 
-
 ## Answer buttons
 
 answer-submit-label = Tala Kisalu
 answer-submit-label-no-correctness = Tinda Mvutu
-
 
 ## Sectional blocks
 
@@ -200,7 +181,6 @@ section-name =
     .solution = Nsukulu
     .task = Kisalu
     .theorem = Teoreme
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -210,9 +190,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Kidimbu
-
 
 ## Tables and figures
 
@@ -223,7 +201,6 @@ table-name =
         [unnumbered-title] Tablo{ ": " }
        *[unnumbered] Tablo
     }
-
 figure-name =
     { $parts ->
         [numbered] Kifwani { $enumeration }
@@ -232,24 +209,18 @@ figure-name =
        *[unnumbered] Kifwani
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ya ntete
 paginator-next = Ya nima
 paginator-page = Lutiti
-
 paginator-page-status = { $pageLabel } { $currentPage } na kati ya { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = to
-
 piecewise-condition-if = kana
-
 piecewise-condition-otherwise = na bisika ya nkaka yonso
-
 
 ## Chemistry
 ##
@@ -261,6 +232,5 @@ piecewise-condition-otherwise = na bisika ya nkaka yonso
 ## curriculum — the same answer `locales/ln` and `locales/lua` give.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kidimbu ya Shimi Ya Mbi
 chemistry-invalid-ionic-compound = Kuvukisa ya Bayoni Ya Mbi

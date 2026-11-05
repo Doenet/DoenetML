@@ -1,8 +1,12 @@
 import { deepClone } from "@doenet/utils";
-import { expandUnflattenedToSerializedComponents } from "../utils/dast/convertNormalizedDast";
+import {
+    expandUnflattenedToSerializedComponents,
+    unwrapSource,
+} from "../utils/dast/convertNormalizedDast";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { applySugar } from "../utils/dast/sugar";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { setUnflattenedReferenceOrigins } from "../utils/componentIndices";
 
 export default class ModuleAttributes extends CompositeComponent {
     static componentType = "moduleAttributes";
@@ -20,6 +24,12 @@ export default class ModuleAttributes extends CompositeComponent {
 
     // since don't have child groups, tell schema about children here
     static additionalSchemaChildren = ["_base"];
+
+    // The components in the `<setup>` this makes are its serialized children,
+    // with their indices, which is how `$a` finds the `a` it makes. An extend
+    // of a `<module>` renumbers the serialized children of its
+    // `<moduleAttributes>`, so its `<setup>` gives them the same indices.
+    static mapShadowedReplacementIndicesThroughSerializedChildren = true;
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -152,7 +162,9 @@ export default class ModuleAttributes extends CompositeComponent {
 
             // check if the attribute name is already defined in a module
             // in which case it won't work to use it as a custom module attribute
-            if (existingModuleAttrNames.includes(attributeName)) {
+            // (compared lowercased, as `existingModuleAttrNames` is, so that
+            // a camel-cased one such as `asList` is caught too)
+            if (existingModuleAttrNames.includes(attributeName.toLowerCase())) {
                 diagnostics.push(
                     codedDiagnostic({
                         type: "warning",
@@ -174,9 +186,43 @@ export default class ModuleAttributes extends CompositeComponent {
                 );
             }
 
+            // `xmin="$xmin"` on a module whose own `xmin` it names would make that `xmin`
+            // depend on itself. Report that, rather than the circular dependency it would become,
+            // and keep the module attribute's own value.
+            if (
+                referencesComponent(
+                    attributeFromModule.children,
+                    child.componentIdx,
+                )
+            ) {
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "error",
+                        code: "doenet-e0055",
+                        args: { name: childName },
+                        position: attributeFromModule.position,
+                    }),
+                );
+                componentsForModuleAttributes.push(child);
+                continue;
+            }
+
+            // The attribute's content was written on the `<module>`, so its references must resolve
+            // as an attribute's do: as if written in a child of the `<module>`. Left to resolve
+            // from their new position inside `child`, they would find `child` itself first.
+            // This `<moduleAttributes>` is such a child, so they resolve from it.
+            // They see what is written inside the module, so `xmin="$xmin"` on a module that
+            // defines `xmin` refers to the module's own `xmin`. They don't see what a copy made,
+            // so on `<module copy="$m">` the copied module attributes are out of their reach.
+            const attributeChildren = deepClone(attributeFromModule.children);
+            setUnflattenedReferenceOrigins(
+                attributeChildren,
+                component.componentIdx,
+            );
+
             // Use the children from the attribute to replace the child's children
             const expandResult = expandUnflattenedToSerializedComponents({
-                serializedComponents: attributeFromModule.children,
+                serializedComponents: attributeChildren,
                 componentInfoObjects,
                 nComponents,
                 stateIdInfo,
@@ -228,4 +274,36 @@ export default class ModuleAttributes extends CompositeComponent {
             nComponents,
         };
     }
+}
+
+/**
+ * Whether a reference among `unflattenedComponents`, or among their descendants and attributes,
+ * resolved to the component with index `componentIdx`.
+ */
+function referencesComponent(unflattenedComponents, componentIdx) {
+    for (const component of unflattenedComponents) {
+        if (typeof component !== "object" || component === null) {
+            continue;
+        }
+        if (
+            component.extending &&
+            unwrapSource(component.extending).nodeIdx === componentIdx
+        ) {
+            return true;
+        }
+        if (referencesComponent(component.children ?? [], componentIdx)) {
+            return true;
+        }
+        for (const attrName in component.attributes) {
+            if (
+                referencesComponent(
+                    component.attributes[attrName].children ?? [],
+                    componentIdx,
+                )
+            ) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

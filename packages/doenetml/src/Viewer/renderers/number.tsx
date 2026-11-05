@@ -7,10 +7,11 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import me from "math-expressions";
-import { textRendererStyle } from "@doenet/utils";
+import { textRendererStyle, toNumberOrNaN } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { InputLabelContext } from "./utils/inputLabel";
 import { JXGPoint, JXGText } from "./jsxgraph-distrib/types";
 import type { ResolvedStyleDefinition } from "@doenet/utils";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -21,11 +22,14 @@ import {
     detachAnchoredGraphElement,
 } from "./utils/useAnchoredGraphDragHandler";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import { resolveBackgroundColor, resolveTextColor } from "./utils/styleColors";
+import { ClickTargetButton, useClickTargetAllowed } from "./utils/ClickTarget";
 
 interface NumberSVs {
     hidden: boolean;
     layer: number;
     fixed: boolean;
+    clickTarget: boolean;
     fixLocation: boolean;
     draggable: boolean;
     anchor: any;
@@ -50,6 +54,8 @@ export default React.memo(function NumberComponent(
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
+    const clickTargetAllowed = useClickTargetAllowed();
+    const { inheritTextColor } = useContext(InputLabelContext);
 
     const pointerState = usePointerDragState();
     const pointAtDown = useRef<number[] | null>(null);
@@ -75,14 +81,11 @@ export default React.memo(function NumberComponent(
             return null;
         }
 
-        let textColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.textColorDarkMode
-                : SVs.selectedStyle.textColor;
-        let backgroundColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.backgroundColorDarkMode
-                : SVs.selectedStyle.backgroundColor;
+        let textColor = resolveTextColor(SVs.selectedStyle, darkMode);
+        let backgroundColor = resolveBackgroundColor(
+            SVs.selectedStyle,
+            darkMode,
+        );
 
         let cssStyle = ``;
         if (backgroundColor) {
@@ -178,8 +181,8 @@ export default React.memo(function NumberComponent(
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -229,14 +232,11 @@ export default React.memo(function NumberComponent(
                 numberJXG.current.setAttribute({ layer });
             }
 
-            let textColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.textColorDarkMode
-                    : SVs.selectedStyle.textColor;
-            let backgroundColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.backgroundColorDarkMode
-                    : SVs.selectedStyle.backgroundColor;
+            let textColor = resolveTextColor(SVs.selectedStyle, darkMode);
+            let backgroundColor = resolveBackgroundColor(
+                SVs.selectedStyle,
+                darkMode,
+            );
             let cssStyle = ``;
             if (backgroundColor) {
                 cssStyle += `background-color: ${backgroundColor}`;
@@ -293,13 +293,31 @@ export default React.memo(function NumberComponent(
         number = "\\(" + number + "\\)";
     }
 
-    const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
-        : undefined;
+    const style =
+        !choiceInputInlineContext.inOption && !inheritTextColor
+            ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
+            : undefined;
 
-    return (
+    const content = (
         <span style={style} id={id}>
             <DynamicMath latex={number} />
         </span>
     );
+
+    if (SVs.clickTarget && !SVs.fixed && clickTargetAllowed) {
+        return (
+            <ClickTargetButton
+                onClick={() =>
+                    callAction({
+                        action: actions.numberClicked,
+                        args: { componentIdx },
+                    })
+                }
+            >
+                {content}
+            </ClickTargetButton>
+        );
+    }
+
+    return content;
 });

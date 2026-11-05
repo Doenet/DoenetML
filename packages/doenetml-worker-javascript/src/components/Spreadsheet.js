@@ -20,6 +20,11 @@ export default class Spreadsheet extends BlockComponent {
     static componentDocs = {
         summary: "An interactive spreadsheet",
     };
+
+    // A spreadsheet is not a value with entries (D27): its cells are
+    // selected through `cells` (`$ss.cells[1][2]`), and an index on the
+    // spreadsheet itself (`$ss[1]`) is reported as such (`doenet-w0182`).
+    static indexThroughProperty = "cells";
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
@@ -126,6 +131,10 @@ export default class Spreadsheet extends BlockComponent {
                 componentTypes: ["cellBlock"],
             },
             {
+                group: "cols",
+                componentTypes: ["col"],
+            },
+            {
                 group: "dataFrames",
                 componentTypes: ["dataFrame"],
             },
@@ -170,6 +179,64 @@ export default class Spreadsheet extends BlockComponent {
                         cellIndicesByRowCol: result.cellIndicesByRowCol,
                     },
                 };
+            },
+        };
+
+        // One entry per column, left to right, through the last column that
+        // has a `<col>` or a `<column>` with a width: a `componentSize`, or
+        // `null` for a column with no width. Widths come from two places,
+        // which spell the attribute identically:
+        //  - `<col width="…">` children, as in a `<tabular>`, the nth `<col>`
+        //    applying to the nth column. Every `<col>` counts, including an
+        //    empty placeholder, because that is how one reaches column 3.
+        //  - `<column width="…">` children, at the column they are placed in
+        //    (`colNum`, or one past the previous `<column>`, matching
+        //    `determineCellMapping`). These win over a `<col>` for the same
+        //    column. A `<column>` inside a `<cellBlock>` is not consulted.
+        // A width that is not positive counts as no width. Handsontable reads
+        // a zero width as "use the default" and draws a negative one at some
+        // other size, while stretching still sizes the other columns around
+        // the authored value, so either would scroll the table sideways.
+        stateVariableDefinitions.columnWidths = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                colChildren: {
+                    dependencyType: "child",
+                    childGroups: ["cols"],
+                    variableNames: ["width"],
+                },
+                columnChildren: {
+                    dependencyType: "child",
+                    childGroups: ["columns"],
+                    variableNames: ["colNum", "width"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const usable = (width) =>
+                    width != null && width.size > 0 ? width : null;
+                const columnWidths = dependencyValues.colChildren.map((col) =>
+                    usable(col.stateValues.width),
+                );
+                let nextColIndex = 0;
+                for (const column of dependencyValues.columnChildren) {
+                    let colIndex = normalizeIndex(column.stateValues.colNum);
+                    if (colIndex === undefined) {
+                        colIndex = nextColIndex;
+                    }
+                    nextColIndex = colIndex + 1;
+                    const width = usable(column.stateValues.width);
+                    if (
+                        width != null &&
+                        Number.isInteger(colIndex) &&
+                        colIndex >= 0
+                    ) {
+                        while (columnWidths.length < colIndex) {
+                            columnWidths.push(null);
+                        }
+                        columnWidths[colIndex] = width;
+                    }
+                }
+                return { setValue: { columnWidths } };
             },
         };
 
@@ -242,12 +309,23 @@ export default class Spreadsheet extends BlockComponent {
                     childGroups: ["dataFrames"],
                     variableNames: ["numColumns"],
                 },
+                columnWidths: {
+                    dependencyType: "stateVariable",
+                    variableName: "columnWidths",
+                },
             }),
             definition({ dependencyValues }) {
                 let numColumns = dependencyValues.minNumColumns;
                 if (!Number.isFinite(numColumns)) {
                     numColumns = 4;
                 }
+                // Every column `columnWidths` reaches exists even if it is
+                // still empty, an empty `<col />` placeholder included, as a
+                // `<col>` makes a column of a `<tabular>`.
+                numColumns = Math.max(
+                    numColumns,
+                    dependencyValues.columnWidths.length,
+                );
                 for (let row of dependencyValues.cellIndicesByRowCol) {
                     if (row) {
                         numColumns = Math.max(numColumns, row.length);
@@ -740,6 +818,97 @@ export default class Spreadsheet extends BlockComponent {
                     success: true,
                     instructions,
                 };
+            },
+        };
+
+        // Per-cell flags that the grid needs but that no cell component can
+        // deliver on its own: `<spreadsheet>` does not render its children, so
+        // a `<cell>`'s `fixed` and `inHeader` would otherwise stop at the
+        // worker and the grid would draw every cell alike. Laid out like
+        // `cells`, one entry per position, `false` wherever no `<cell>` backs
+        // the position (an empty cell, or one supplied by a `<dataFrame>`).
+        stateVariableDefinitions.cellsFixed = {
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "cellsInHeader",
+                    forRenderer: true,
+                },
+            ],
+            forRenderer: true,
+            returnDependencies: () => ({
+                numRows: {
+                    dependencyType: "stateVariable",
+                    variableName: "numRows",
+                },
+                numColumns: {
+                    dependencyType: "stateVariable",
+                    variableName: "numColumns",
+                },
+                cellIdxToRowCol: {
+                    dependencyType: "stateVariable",
+                    variableName: "cellIdxToRowCol",
+                },
+                cellDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["cell"],
+                    variableNames: ["fixed", "inHeader"],
+                    // A `<cell>` accepts any content, including another
+                    // spreadsheet. Those cells belong to that spreadsheet's
+                    // map, not to this one.
+                    recurseToMatchedChildren: false,
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { numRows, numColumns, cellIdxToRowCol } =
+                    dependencyValues;
+
+                const cellsFixed = [];
+                const cellsInHeader = [];
+                // Built by loop rather than `new Array(numRows)`: `minNumRows`
+                // and `minNumColumns` are `number`s, not integers, and
+                // `new Array(2.5)` throws. (A non-integer dimension draws
+                // nothing either way — `cells` comes back empty — but it must
+                // not take the document down with it.)
+                for (let rowInd = 0; rowInd < numRows; rowInd++) {
+                    const fixedRow = [];
+                    const inHeaderRow = [];
+                    for (let colInd = 0; colInd < numColumns; colInd++) {
+                        fixedRow.push(false);
+                        inHeaderRow.push(false);
+                    }
+                    cellsFixed.push(fixedRow);
+                    cellsInHeader.push(inHeaderRow);
+                }
+
+                for (const cell of dependencyValues.cellDescendants) {
+                    const rowCol = cellIdxToRowCol[cell.componentIdx];
+                    // `null` marks a cell that a later cell displaced from its
+                    // position; `undefined`, one this map never placed.
+                    if (!rowCol) {
+                        continue;
+                    }
+                    const [rowInd, colInd] = rowCol;
+                    // `rowNum` and `colNum` are free-form text, so a cell can
+                    // ask for a position that is not a grid position at all:
+                    // `rowNum="0"` maps to -1 and `rowNum="1.5"` to 0.5, and
+                    // neither names a row that was built above.
+                    if (
+                        !Number.isInteger(rowInd) ||
+                        !Number.isInteger(colInd) ||
+                        rowInd < 0 ||
+                        colInd < 0 ||
+                        rowInd >= numRows ||
+                        colInd >= numColumns
+                    ) {
+                        continue;
+                    }
+                    cellsFixed[rowInd][colInd] =
+                        cell.stateValues.fixed === true;
+                    cellsInHeader[rowInd][colInd] =
+                        cell.stateValues.inHeader === true;
+                }
+
+                return { setValue: { cellsFixed, cellsInHeader } };
             },
         };
 

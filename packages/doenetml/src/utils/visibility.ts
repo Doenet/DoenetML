@@ -1,11 +1,99 @@
-import { RefObject, useEffect, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
+
+/**
+ * How far beyond the viewport a block still counts as near it. Core sends
+ * renderer updates for blocks near the viewport straight away and holds the
+ * rest until it is idle, so this margin is what lets content just past the
+ * edge be current by the time the reader scrolls to it.
+ *
+ * Inside a cross-origin iframe the browser ignores a root margin, and "near"
+ * then means visible.
+ */
+const NEAR_VIEWPORT_MARGIN = "50% 0px";
+
+type EntryListener = (entry: IntersectionObserverEntry) => void;
+
+/**
+ * One IntersectionObserver per root margin, shared by every element observed
+ * with that margin.
+ */
+const sharedObservers = new Map<
+    string,
+    {
+        observer: IntersectionObserver;
+        listeners: Map<Element, Set<EntryListener>>;
+    }
+>();
+
+/**
+ * Call `listener` with each intersection change of `element` against the
+ * viewport grown by `rootMargin`. Returns a function that stops it.
+ */
+function observeIntersection(
+    element: Element,
+    rootMargin: string,
+    listener: EntryListener,
+): () => void {
+    let shared = sharedObservers.get(rootMargin);
+    if (!shared) {
+        const listeners = new Map<Element, Set<EntryListener>>();
+        const observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    for (const callback of listeners.get(entry.target) ?? []) {
+                        callback(entry);
+                    }
+                }
+            },
+            { rootMargin },
+        );
+        shared = { observer, listeners };
+        sharedObservers.set(rootMargin, shared);
+    }
+
+    const { observer, listeners } = shared;
+    let forElement = listeners.get(element);
+    if (!forElement) {
+        forElement = new Set();
+        listeners.set(element, forElement);
+        observer.observe(element);
+    }
+    forElement.add(listener);
+
+    return () => {
+        forElement.delete(listener);
+        if (forElement.size === 0) {
+            listeners.delete(element);
+            observer.unobserve(element);
+        }
+    };
+}
+
+/**
+ * Call `listener` with whether any part of `element` is in the viewport, each
+ * time that changes. Returns a function that stops it.
+ */
+export function observeInViewport(
+    element: Element,
+    listener: (inViewport: boolean) => void,
+): () => void {
+    return observeIntersection(element, "0px", (entry) =>
+        listener(entry.isIntersecting),
+    );
+}
 
 /**
  * Call `callAction` with the `actions.recordVisibilityChange`
  * when any portion of the element referenced by `ref`
- * is visible or stops being visible in the browser's viewport.
+ * becomes or stops being visible in the browser's viewport (`isVisible`), or
+ * near it (`isNear`).
  *
- * If `skipRecording` is false, then don't do anything.
+ * The hook follows whatever element `ref` holds after each render, so a
+ * renderer that returns `null` for a while and later renders a new element
+ * is observed again. When the element goes away, or the renderer unmounts,
+ * it reports the block as neither visible nor near.
+ *
+ * If `skipRecording` is true, then don't do anything.
  */
 export function useRecordVisibilityChanges(
     ref: RefObject<HTMLElement | null>,
@@ -13,29 +101,79 @@ export function useRecordVisibilityChanges(
     actions: any,
     skipRecording = false,
 ) {
+    const observed = useRef<{
+        element: HTMLElement;
+        stop: () => void;
+    } | null>(null);
+
+    // Runs after every render, since a ref change does not cause one.
     useEffect(() => {
-        if (skipRecording) {
+        const element = skipRecording ? null : ref.current;
+        if (element === (observed.current?.element ?? null)) {
             return;
         }
-        if (ref.current) {
-            const observer = new IntersectionObserver(([entry]) => {
+
+        if (observed.current) {
+            observed.current.stop();
+            observed.current = null;
+            if (!element) {
                 callAction({
                     action: actions.recordVisibilityChange,
-                    args: { isVisible: entry.isIntersecting },
+                    args: { isVisible: false, isNear: false },
                 });
-            });
-
-            observer.observe(ref.current);
-
-            return () => {
-                observer.disconnect();
-                callAction({
-                    action: actions.recordVisibilityChange,
-                    args: { isVisible: false },
-                });
-            };
+            }
         }
-    }, [ref]);
+        if (!element) {
+            return;
+        }
+
+        // Each observer reports once on its own when observing starts; wait
+        // for both, so the first report carries both.
+        let isVisible: boolean | undefined;
+        let isNear: boolean | undefined;
+        const report = () => {
+            if (isVisible !== undefined && isNear !== undefined) {
+                callAction({
+                    action: actions.recordVisibilityChange,
+                    args: { isVisible, isNear },
+                });
+            }
+        };
+
+        const stopVisible = observeIntersection(element, "0px", (entry) => {
+            isVisible = entry.isIntersecting;
+            report();
+        });
+        const stopNear = observeIntersection(
+            element,
+            NEAR_VIEWPORT_MARGIN,
+            (entry) => {
+                isNear = entry.isIntersecting;
+                report();
+            },
+        );
+
+        observed.current = {
+            element,
+            stop: () => {
+                stopVisible();
+                stopNear();
+            },
+        };
+    });
+
+    useEffect(() => {
+        return () => {
+            if (observed.current) {
+                observed.current.stop();
+                observed.current = null;
+                callAction({
+                    action: actions.recordVisibilityChange,
+                    args: { isVisible: false, isNear: false },
+                });
+            }
+        };
+    }, []);
 }
 
 /**

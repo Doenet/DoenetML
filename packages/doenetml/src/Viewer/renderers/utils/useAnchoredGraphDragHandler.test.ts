@@ -19,7 +19,8 @@ import type { PointerDragState } from "./pointerDragState";
 // (clamp from `newJXG.size` + `anchorRel`) and image-mode (clamp from the
 // `imageMode` getters with a smaller padding fraction and offset
 // subtraction). The down/hit/up/keydown plumbing is action-name lookup;
-// Cypress validates that end-to-end.
+// Cypress validates that end-to-end, apart from the gesture id a pointer
+// event adds to a focus or a click, which is checked here.
 
 function makeRef<T>(value: T): RefObject<T> {
     return { current: value } as RefObject<T>;
@@ -319,5 +320,55 @@ describe("attachAnchoredGraphDragHandlers — drag-handler clamp math", () => {
         } as JXGEvent);
 
         expect(env.calculatedX.current).toBeCloseTo(-12, 10);
+    });
+});
+
+describe("attachAnchoredGraphDragHandlers — gesture ids", () => {
+    it("sends the pointer event's gesture id with a focus and a click", () => {
+        // `down` blurs the focused element
+        vi.stubGlobal("document", { activeElement: null });
+        const env = setup();
+        const down = {
+            type: "pointerdown",
+            x: 200,
+            y: 200,
+            pointerId: 3,
+            timeStamp: 1000,
+        } as JXGEvent;
+        const up = {
+            type: "pointerup",
+            x: 200,
+            y: 200,
+            pointerId: 3,
+            timeStamp: 1100,
+        } as JXGEvent;
+
+        env.fakeJXG.handlers["down"](down);
+        env.fakeJXG.handlers["up"](up);
+
+        expect(env.callAction).toHaveBeenNthCalledWith(1, {
+            action: env.actions.textFocused,
+            args: { componentIdx: 1, gestureId: "3|1000" },
+        });
+        expect(env.callAction).toHaveBeenNthCalledWith(2, {
+            action: env.actions.textClicked,
+            args: { componentIdx: 1, gestureId: "3|1100" },
+        });
+        vi.unstubAllGlobals();
+    });
+
+    it("sends no gesture id with a click from the keyboard", () => {
+        const env = setup();
+
+        env.fakeJXG.handlers["keydown"]({
+            type: "keydown",
+            key: "Enter",
+            timeStamp: 1000,
+        } as JXGEvent);
+
+        expect(env.callAction).toHaveBeenCalledWith({
+            action: env.actions.textClicked,
+            args: { componentIdx: 1 },
+        });
     });
 });

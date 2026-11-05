@@ -12,6 +12,9 @@ import type Core from "../Core";
  *  - `originsOfActionsChangedToActions`: bookkeeping that lets us find
  *    and unregister chained actions when their declaring state variable
  *    re-resolves to a different target list
+ *  - `gestureId` / `actionsRunForGesture`: the most recent pointer gesture
+ *    and the chained actions it has already run, so that one click landing
+ *    on several of an action's objects runs that action once
  *
  * Holds a back-reference to Core to read `_components` and `updateInfo`
  * and to dispatch via `performAction` and `updateAllChangedRenderers`.
@@ -24,12 +27,16 @@ export class ActionTriggerScheduler {
     >;
     actionsChangedToActions: Record<string, any[]>;
     originsOfActionsChangedToActions: Record<number, Record<string, any[]>>;
+    gestureId: string | null;
+    actionsRunForGesture: Set<string>;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
         this.stateVariableChangeTriggers = {};
         this.actionsChangedToActions = {};
         this.originsOfActionsChangedToActions = {};
+        this.gestureId = null;
+        this.actionsRunForGesture = new Set();
     }
 
     /**
@@ -40,6 +47,8 @@ export class ActionTriggerScheduler {
         this.stateVariableChangeTriggers = {};
         this.actionsChangedToActions = {};
         this.originsOfActionsChangedToActions = {};
+        this.gestureId = null;
+        this.actionsRunForGesture = new Set();
     }
 
     /**
@@ -244,17 +253,38 @@ export class ActionTriggerScheduler {
      * don't propagate authored intent). Re-syncs the chain graph first
      * so `componentsToUpdateActionChaining` doesn't miss any pending
      * registration changes.
+     *
+     * For an action on entry `listEntryIndex` of the list component
+     * `componentIdx` (or on the renderer index of an entry, which stands for
+     * the list and the entry), the actions chained to the entry fire
+     * (`$pl[2]`, keyed by the entry's renderer index, `listEntryTargets.ts`),
+     * then those chained to the list (`$pl`), which an action on any of its
+     * entries fires; along the shadows, those chained to the same entry of
+     * the list a reference to the whole list shadows. An action chained to
+     * more than one of these fires once.
+     *
+     * A renderer passes a `gestureId` with a click or focus from a pointer.
+     * JSXGraph hands one pointer event to every object under the pointer, so
+     * a click on a label lying over a polygon arrives as `textClicked` and
+     * then `polygonClicked`, with the same `gestureId`. An action chained to
+     * a click (or focus) of both runs for the first and not again for that
+     * gesture. Gestures arrive one after another, so only the latest one is
+     * remembered.
      */
     async triggerChainedActions({
         componentIdx,
+        listEntryIndex,
         triggeringAction,
         actionId,
+        gestureId,
         sourceInformation = {},
         skipRendererUpdate = false,
     }: {
         componentIdx: number;
+        listEntryIndex?: number;
         triggeringAction?: string;
         actionId?: string;
+        gestureId?: string;
         sourceInformation?: any;
         skipRendererUpdate?: boolean;
     }): Promise<void> {
@@ -271,26 +301,63 @@ export class ActionTriggerScheduler {
 
         this.core.updateInfo.componentsToUpdateActionChaining = {};
 
-        let actionsToChain: any[] = [];
+        let actionsRunForGesture: Set<string> | null = null;
+        if (gestureId !== undefined) {
+            if (gestureId !== this.gestureId) {
+                this.gestureId = gestureId;
+                this.actionsRunForGesture = new Set();
+            }
+            actionsRunForGesture = this.actionsRunForGesture;
+        }
 
+        let actionsToChain: any[] = [];
+        const chainedKeys = new Set<string>();
+        const actionsChangedToActions = this.actionsChangedToActions;
+        function addActionsChangedTo(idx: number | undefined) {
+            if (idx === undefined) {
+                return;
+            }
+            const id = triggeringAction ? `${idx}|${triggeringAction}` : idx;
+            for (const chained of actionsChangedToActions[id] ?? []) {
+                const key = `${chained.componentIdx}|${chained.actionName}`;
+                if (chainedKeys.has(key)) {
+                    continue;
+                }
+                chainedKeys.add(key);
+                if (actionsRunForGesture) {
+                    const gestureKey = `${key}|${triggeringAction}`;
+                    if (actionsRunForGesture.has(gestureKey)) {
+                        continue;
+                    }
+                    actionsRunForGesture.add(gestureKey);
+                }
+                actionsToChain.push(chained);
+            }
+        }
+
+        const builder = this.core.rendererInstructionBuilder;
         let cIdx = componentIdx;
+        let entryIndex = listEntryIndex;
+        const entryOfRenderer = builder.listEntryOfRendererIdx.get(cIdx);
+        if (entryOfRenderer && !this.core._components[cIdx]) {
+            cIdx = entryOfRenderer.listIdx;
+            entryIndex = entryOfRenderer.entryIndex;
+        }
 
         while (true) {
             let comp = this.core._components[cIdx];
-            let id: string | number = cIdx;
 
-            if (triggeringAction) {
-                id = id + "|" + triggeringAction;
+            if (entryIndex !== undefined) {
+                addActionsChangedTo(
+                    builder.listEntryRendererIndices.get(cIdx)?.get(entryIndex),
+                );
             }
-
-            if (this.actionsChangedToActions[id]) {
-                actionsToChain.push(...this.actionsChangedToActions[id]);
-            }
+            addActionsChangedTo(cIdx);
 
             if (comp?.shadows) {
                 let composite =
                     this.core._components[comp.shadows.compositeIdx];
-                if (composite.attributes.createComponentOfType != null) {
+                if (composite.attributes._createComponentOfType != null) {
                     break;
                 }
 
@@ -306,6 +373,12 @@ export class ActionTriggerScheduler {
                 // where we want the button to be.
 
                 cIdx = comp.shadows.componentIdx;
+
+                // A list made from a property (`$P.xs`) has entries of its
+                // own, which are not the entries of the component it shadows.
+                if (comp.shadows.propVariable !== undefined) {
+                    entryIndex = undefined;
+                }
             } else {
                 break;
             }

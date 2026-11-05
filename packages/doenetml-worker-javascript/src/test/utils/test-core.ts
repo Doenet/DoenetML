@@ -27,6 +27,7 @@ import { defaultFlags } from "../../../../doenetml/src/flags";
 import type { DoenetMLFlags } from "../../../../doenetml/src/flags";
 
 import util from "util";
+import { createTestCoreRust } from "./test-core-rust";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -39,21 +40,10 @@ export type ResolvePathToNodeIdx = Awaited<
     ReturnType<typeof createTestCore>
 >["resolvePathToNodeIdx"];
 
-export async function createTestCore({
-    doenetML,
-    requestedVariantIndex = 1,
-    flags: specifiedFlags = {},
-    theme,
-    documentLocale,
-    localeResources,
-    styleOverrides,
-    initializeCounters = {},
-    requestSolutionView = async () => ({ allowView: true }),
-    externalDoenetMLs = {},
-    initialState,
-}: {
+type CreateTestCoreOptions = {
     doenetML: string;
     requestedVariantIndex?: number;
+    requestedVariant?: Record<string, any>;
     flags?: DoenetMLFlagsSubset;
     theme?: "dark" | "light";
     /** BCP-47 tag the hosting page asks for; `<document lang>` overrides it. */
@@ -67,7 +57,71 @@ export async function createTestCore({
     }>;
     externalDoenetMLs?: Record<string, string>;
     initialState?: string;
-}) {
+};
+
+export async function createTestCore({
+    doenetML,
+    requestedVariantIndex = 1,
+    requestedVariant,
+    flags: specifiedFlags = {},
+    theme,
+    documentLocale,
+    localeResources,
+    styleOverrides,
+    initializeCounters = {},
+    requestSolutionView = async () => ({ allowView: true }),
+    externalDoenetMLs = {},
+    initialState,
+}: CreateTestCoreOptions): Promise<
+    Awaited<ReturnType<typeof createTestCoreJavascript>>
+> {
+    if (process.env.DOENET_TEST_CORE === "rust") {
+        // Measures Rust-core parity; see `test-core-rust.ts`. The Rust stand-in
+        // returns only the part of this interface that most tests use.
+        return (await createTestCoreRust({
+            doenetML,
+            requestedVariantIndex,
+            requestedVariant,
+            flags: specifiedFlags,
+            theme,
+            documentLocale,
+            localeResources,
+            styleOverrides,
+            initializeCounters,
+            externalDoenetMLs,
+            initialState,
+        })) as unknown as Awaited<ReturnType<typeof createTestCoreJavascript>>;
+    }
+    return createTestCoreJavascript({
+        doenetML,
+        requestedVariantIndex,
+        requestedVariant,
+        flags: specifiedFlags,
+        theme,
+        documentLocale,
+        localeResources,
+        styleOverrides,
+        initializeCounters,
+        requestSolutionView,
+        externalDoenetMLs,
+        initialState,
+    });
+}
+
+async function createTestCoreJavascript({
+    doenetML,
+    requestedVariantIndex = 1,
+    requestedVariant,
+    flags: specifiedFlags = {},
+    theme,
+    documentLocale,
+    localeResources,
+    styleOverrides,
+    initializeCounters = {},
+    requestSolutionView = async () => ({ allowView: true }),
+    externalDoenetMLs = {},
+    initialState,
+}: CreateTestCoreOptions) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
             import.meta.dirname,
@@ -111,8 +165,8 @@ export async function createTestCore({
 
     const normalizedRoot = rustCore.return_normalized_dast_root();
 
-    function calculateRootNames() {
-        return rustCore.calculate_root_names();
+    function updateRootNames(reportAll: boolean) {
+        return rustCore.update_root_names(reportAll);
     }
 
     function resolvePath(
@@ -170,7 +224,7 @@ export async function createTestCore({
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
-        calculateRootNames,
+        updateRootNames,
     });
 
     const scoreState = {
@@ -178,18 +232,48 @@ export async function createTestCore({
         state: "",
     };
 
+    /**
+     * The whole of the last real report's `state`, not just its `coreState`.
+     *
+     * `scoreState.state` keeps only the `coreState` string, which is what
+     * almost every test wants. The envelope around it -- `coreInfo` above all,
+     * which carries the entire initial renderer instruction tree -- is what a
+     * host actually stores, so a test measuring what persistence costs has to
+     * be able to see it (Doenet/DoenetML#1940).
+     */
+    const lastStateReport: { payload: Record<string, any> | null } = {
+        payload: null,
+    };
+
+    /**
+     * The payloads of `pending` reports, in arrival order — mirrors of what
+     * the 60-second database throttle is holding back (Doenet/DoenetML#1726).
+     * A real host never saves one (`DocViewer` buffers them for the page-hide
+     * flush), so `scoreState` deliberately does not see them; they are
+     * collected here for tests that assert what the throttle is withholding.
+     */
+    const pendingReports: { score: number; state: unknown }[] = [];
+
     function reportScoreAndStateCallback(data: {
         score: number;
         state: unknown;
+        pending?: boolean;
     }) {
+        if (data.pending) {
+            // A mirror of what the 60-second throttle is holding back
+            // (Doenet/DoenetML#1726), not a report for a host to save. Real
+            // hosts never see these — `DocViewer` buffers them for the
+            // page-hide flush — so this stand-in host ignores them too.
+            pendingReports.push({ score: data.score, state: data.state });
+            return;
+        }
         scoreState.score = data.score;
 
-        if (
-            typeof data.state === "object" &&
-            data.state !== null &&
-            "coreState" in data.state
-        ) {
-            scoreState.state = data.state.coreState as string;
+        if (typeof data.state === "object" && data.state !== null) {
+            lastStateReport.payload = data.state as Record<string, any>;
+            if ("coreState" in data.state) {
+                scoreState.state = data.state.coreState as string;
+            }
         }
     }
 
@@ -201,6 +285,7 @@ export async function createTestCore({
             theme,
             styleOverrides,
             stateVariableChanges: initialState,
+            requestedVariant,
         },
         () => null,
         reportScoreAndStateCallback,
@@ -225,7 +310,14 @@ export async function createTestCore({
         return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
     }
 
-    return { core, rustCore, resolvePathToNodeIdx, scoreState };
+    return {
+        core,
+        rustCore,
+        resolvePathToNodeIdx,
+        scoreState,
+        pendingReports,
+        lastStateReport,
+    };
 }
 
 const LOCALES_DIR = path.resolve(__dirname, "../../../../i18n/locales");

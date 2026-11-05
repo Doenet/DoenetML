@@ -640,4 +640,37 @@ a />
             'Attribute values must be enclosed in quotes: `name="foo"`',
         );
     });
+
+    it("builds a document holding a half-typed function call", async () => {
+        // `$$g($$f(<math>3</math>)` threw out of the parser, so the document
+        // never built and the reader got a blank page — and that is a document
+        // an author passes through on the way to writing the one below, with
+        // the editor parsing on every keystroke. The unclosed call declines and
+        // its text is left alone, as every other unfinished shape here is.
+        const { core } = await createTestCore({
+            doenetML: `
+<function name="f" variables="x">x^2</function>
+<function name="g" variables="a b">a+b</function>
+<p>$$g($$f(<math>3</math>)</p>
+            `,
+        });
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+
+        // ...and the document it was on the way to still evaluates both calls.
+        const { core: finished, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<function name="f" variables="x">x^2</function>
+<function name="g" variables="a b">a+b</function>
+<p name="p">$$g($$f(<math>3</math>), 2)</p>
+            `,
+        });
+        const stateVariables = await finished.returnAllStateVariables(
+            false,
+            true,
+        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("11");
+    });
 });

@@ -1,0 +1,53 @@
+{
+    "name": "@doenet/rust-parity",
+    "type": "module",
+    "description": "Dashboard of how far the Rust DoenetML core is from parity with the JavaScript core",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "scripts": {
+        "parity": "wireit",
+        "parity:tests": "wireit",
+        "parity:report": "vite-node generate-report.ts",
+        "test": "echo \"No tests\""
+    },
+    "wireit": {
+        "parity": {
+            "command": "vite-node generate-report.ts",
+            "dependencies": [
+                "parity:tests"
+            ],
+            "files": [
+                "generate-report.ts",
+                "dashboard.html",
+                "../static-assets/src/generated/doenet-schema.json",
+                "../parser/src/dast-normalize/element-expansions.ts",
+                "../doenetml-worker-rust/Cargo.toml",
+                "../doenetml-worker-rust/lib-doenetml-core/Cargo.toml",
+                "../doenetml-worker-rust/lib-doenetml-core/src/**/*.rs",
+                "../doenetml-worker-rust/lib-doenetml-core/examples/**/*.rs",
+                "../doenetml-worker-rust/lib-rust-macros/src/**/*.rs",
+                "../doenetml-worker-javascript/src/test/**/*.test.ts"
+            ],
+            "output": [
+                "out/parity-report.json",
+                "out/parity-dashboard.html"
+            ]
+        },
+        "parity:tests": {
+            "command": "cd ../doenetml-worker-javascript && DOENET_TEST_CORE=rust npx vitest run --exclude '**/*-bench.test.ts' --reporter=json --outputFile=../rust-parity/out/test-results.json || true",
+            "dependencies": [
+                "../doenetml-worker-javascript:test:before"
+            ],
+            "files": [
+                "../doenetml-worker-javascript/src/**",
+                "../doenetml-worker-javascript/package.json"
+            ],
+            "output": [
+                "out/test-results.json"
+            ]
+        }
+    }
+}

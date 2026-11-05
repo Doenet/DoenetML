@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import { cleanLatex } from "../utils/math";
 import {
     callAction,
@@ -120,13 +121,24 @@ describe("callAction tag tests @group4", async () => {
             for (let i = 1; i <= n; i++) {
                 expect(
                     cleanLatex(
-                        stateVariables[await resolvePathToNodeIdx(`ps[${i}]`)]
-                            .stateValues.latex,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                `ps[${i}]`,
+                            )
+                        ).stateValues.latex,
                     ),
                 ).eq(`(${points[i - 1][0]},${points[i - 1][1]})`);
             }
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ps[${n + 1}]`)],
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    `ps[${n + 1}]`,
+                ),
             ).eq(undefined);
 
             const g1 =
@@ -398,8 +410,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -423,8 +441,14 @@ describe("callAction tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 
@@ -538,9 +562,14 @@ describe("callAction tag tests @group4", async () => {
 
             expect(
                 cleanLatex(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`sets[${ind}].ps[2]`)
-                    ].stateValues.latex,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `sets[${ind}].ps[2]`,
+                        )
+                    ).stateValues.latex,
                 ),
             ).eq("(3,4)");
 
@@ -570,9 +599,14 @@ describe("callAction tag tests @group4", async () => {
 
             expect(
                 cleanLatex(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`sets[${ind}].ps[2]`)
-                    ].stateValues.latex,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `sets[${ind}].ps[2]`,
+                        )
+                    ).stateValues.latex,
                 ),
             ).eq("(-2,5)");
 
@@ -663,8 +697,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -688,8 +728,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 
@@ -728,8 +774,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[3]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -759,8 +811,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[3]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(7,-9)");
 
@@ -2106,8 +2164,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -2132,8 +2196,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 
@@ -2245,8 +2315,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -2271,8 +2347,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 
@@ -2370,8 +2452,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -2396,8 +2484,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 
@@ -2513,5 +2607,121 @@ describe("callAction tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("ca2")].stateValues
                 .selectedStyle.fillColor,
         ).eq("yellow");
+    });
+
+    it("a disabled callAction does not call its action, whether clicked or triggered", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="P">(1,2)</point>
+    </graph>
+    <booleanInput name="dis" prefill="true" />
+    <booleanInput name="b" />
+    <number name="n1">0</number>
+    <number name="n2">0</number>
+    <number name="n3">0</number>
+    <number name="n4">0</number>
+    <number name="n5">0</number>
+    <number name="n6">0</number>
+
+    <updateValue name="uv1" target="$n1" newValue="$n1+1" />
+    <updateValue name="uv2" target="$n2" newValue="$n2+1" />
+    <updateValue name="uv3" target="$n3" newValue="$n3+1" />
+    <updateValue name="uv4" target="$n4" newValue="$n4+1" />
+    <updateValue name="uv5" target="$n5" newValue="$n5+1" />
+
+    <callAction name="ca1" target="$uv1" actionName="updateValue" disabled="$dis" />
+    <callAction target="$uv2" actionName="updateValue" triggerWhen="$b" disabled="$dis" />
+    <callAction target="$uv3" actionName="updateValue" triggerWhenObjectsClicked="$P" disabled="$dis" />
+    <callAction target="$uv4" actionName="updateValue" triggerWhenObjectsFocused="$P" disabled="$dis" />
+    <callAction target="$uv5" actionName="updateValue" triggerWith="$b" disabled="$dis" />
+    <updateValue target="$n6" newValue="$n6+1" triggerWith="$ca1" />
+    `,
+        });
+
+        const PIdx = await resolvePathToNodeIdx("P");
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        async function check(expected: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [ind, value] of expected.entries()) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`n${ind + 1}`)]
+                        .stateValues.value,
+                    `n${ind + 1}`,
+                ).eq(value);
+            }
+        }
+
+        async function fireAll() {
+            await callAction({
+                componentIdx: await resolvePathToNodeIdx("ca1"),
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: bIdx,
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: bIdx,
+                core,
+            });
+            await clickPoint({ componentIdx: PIdx, core });
+            await focusPoint({ componentIdx: PIdx, core });
+        }
+
+        // Disabled: neither the button nor any trigger calls the action, and
+        // the updateValue chained to the disabled button does not run either.
+        await fireAll();
+        await check([0, 0, 0, 0, 0, 0]);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("dis"),
+            core,
+        });
+
+        // `triggerWith="$b"` fires on both changes of `b`
+        await fireAll();
+        await check([1, 1, 1, 1, 2, 1]);
+    });
+
+    it("in read-only mode, a triggered callAction still calls an action read-only mode allows", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <hint name="h1"><p>One</p></hint>
+    <hint name="h2"><p>Two</p></hint>
+    <hint name="h3"><p>Three</p></hint>
+
+    <callAction target="$h2" actionName="revealHint" triggerWhen="$h1.open" />
+    <triggerSet triggerWhen="$h1.open">
+      <callAction target="$h3" actionName="revealHint" />
+    </triggerSet>
+    `,
+            flags: { readOnly: true },
+        });
+
+        // Read-only mode disables everything, but that does not stop these
+        // actions: it already blocks any update, and revealing a hint is one
+        // of the actions it allows.
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("h1"),
+            actionName: "revealHint",
+            args: {},
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["h1", "h2", "h3"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .open,
+                name,
+            ).eq(true);
+        }
     });
 });

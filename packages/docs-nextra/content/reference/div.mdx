@@ -1,0 +1,51 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<div>{:dn}`
+
+<ComponentDisplay name='div'/>
+
+`<div>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types) 
+component that groups doenetML content into an unformatted container that can be named.
+
+A `<div>{:dn}` does not start a count of its own: a
+[`<section>{:dn}`](section) or other numbered sectional component inside it is
+numbered along with the ones beside the `<div>{:dn}`, and the count continues
+after it.
+
+<AttrPropDisplay name='div'/>
+
+
+## Examples
+
+### Example: `<div>{:dn}` as a general container element
+
+
+```doenet-editor-horiz
+<booleanInput name="hideContent">
+  <label>Hide the <tag>div</tag></label>
+</booleanInput>
+
+<div name="contentDiv" hide="$hideContent">
+  <p><lorem generateWords="10"/></p>
+  <graph size="tiny"><shortDescription>A tiny blank graph</shortDescription></graph>
+  <slider/>
+</div>
+
+<booleanInput name="copyContent">
+  <label>Copy the <tag>div</tag></label>
+</booleanInput>
+
+<conditionalContent condition="$copyContent=true">
+  $contentDiv
+</conditionalContent>
+```
+
+
+
+A `<div>{:dn}` can be used to group portions of 
+content that are to be collectively hidden or copied.
+
+

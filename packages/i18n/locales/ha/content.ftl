@@ -40,15 +40,12 @@ color =
     .purple = mai launin shunayya
     .pink = mai launin ruwan hoda
     .brown = mai launin ruwan ƙasa
-
 line-width =
     .thick = mai kauri
     .thin = mai sirara
-
 line-style =
     .dashed = mai gutsattsari
     .dotted = mai ɗigogi
-
 # Noun phrases: they follow «da» and modify nothing.
 fill-style =
     .horizontal = layukan kwance
@@ -57,7 +54,6 @@ fill-style =
     .backdiagonal = layukan karkata ta wancan gefe
     .dots = ɗigogi
     .diamonds = lu'ulu'ai
-
 noun =
     .line = layi
     .line-segment = gutsuren layi
@@ -77,7 +73,6 @@ noun =
     .diamond = lu'ulu'u
     .cross = giciye
     .plus = alamar tarawa
-
 # The side count goes in the tail, behind the describing words, because «mai
 # gefuna 5» is one more «mai …» phrase and Hausa strings them after the noun
 # rather than folding one into it.
@@ -86,7 +81,6 @@ noun-regular-polygon =
         [tail] mai gefuna { $numSides }
        *[head] siffa daidaitacciya
     }
-
 # Real genders, and nothing here reads them. See the header.
 noun-gender =
     { $noun ->
@@ -101,7 +95,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -114,7 +107,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its «mai …» phrases follow, with the noun's own
 # complement closing the phrase: «siffa daidaitacciya mai launin ja mai gefuna
 # 5».
@@ -123,15 +115,12 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = cike
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } da { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } da { $pattern }
@@ -139,7 +128,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } da { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Hausa has no article, and it joins a complement with the invariable «da», so
 # all four branches read alike.
 style-border-clause =
@@ -149,35 +137,28 @@ style-border-clause =
         [and-article] da iyaka { $border }
        *[with] da iyaka { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ba a cika ba
-
 style-text =
     { $parts ->
         [background] { $color } a bango { $background }
        *[plain] { $color }
     }
-
 style-background-none = babu
-
 
 ## Boolean words
 
 boolean-true = gaskiya
 boolean-false = ƙarya
 
-
 ## Answer buttons
 
 answer-submit-label = Duba Aiki
 answer-submit-label-no-correctness = Aika Amsa
-
 
 ## Sectional blocks
 
@@ -202,7 +183,6 @@ section-name =
     .solution = Mafita
     .task = Aiki
     .theorem = Ka'ida
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -212,9 +192,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Alama
-
 
 ## Tables and figures
 
@@ -225,7 +203,6 @@ table-name =
         [unnumbered-title] Tebur{ ": " }
        *[unnumbered] Tebur
     }
-
 figure-name =
     { $parts ->
         [numbered] Hoto { $enumeration }
@@ -234,15 +211,12 @@ figure-name =
        *[unnumbered] Hoto
     }
 
-
 ## Paginator controls
 
 paginator-previous = Baya
 paginator-next = Gaba
 paginator-page = Shafi
-
 paginator-page-status = { $pageLabel } { $currentPage } daga cikin { $numPages }
-
 
 ## Piecewise functions
 
@@ -250,8 +224,8 @@ piecewise-condition-or = ko
 piecewise-condition-if = idan
 piecewise-condition-otherwise = in ba haka ba
 
-
 ## Chemistry
+
 
 # Hausa is one of the catalogs that leaves `element-name` and
 # `element-anion-name` out, so those 130 keys fall back to English. Nigerian
@@ -261,6 +235,5 @@ piecewise-condition-otherwise = in ba haka ba
 # rather than a translation.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Alamar Sinadari Mara Inganci
 chemistry-invalid-ionic-compound = Haɗin Ayon Mara Inganci

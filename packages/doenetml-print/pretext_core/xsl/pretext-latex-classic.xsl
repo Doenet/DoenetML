@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 
 <!--********************************************************************
-Copyright 2020 Robert A. Beezer
+Copyright (C) 2020-2026  Robert A. Beezer
 
 This file is part of PreTeXt.
 
@@ -128,7 +128,6 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:template name="latex-preamble">
     <!-- Some journal styles require specific packages be loaded right away -->
     <xsl:call-template name="journal-packages"/>
-    <xsl:call-template name="frontmatter-helpers"/>
     <xsl:call-template name="preamble-early"/>
     <xsl:call-template name="cleardoublepage"/>
     <xsl:call-template name="standard-packages"/>
@@ -143,7 +142,6 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:call-template name="pdfpages-package"/>
     <!--<xsl:call-template name="division-titles"/>-->
     <xsl:call-template name="semantic-macros"/>
-    <xsl:call-template name="exercises-and-solutions"/>
     <xsl:call-template name="chapter-start-number"/>
     <xsl:call-template name="equation-numbering"/>
     <xsl:call-template name="image-tcolorbox"/>
@@ -183,7 +181,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:text>\newlength{\ptxnormalparskip}&#xa;</xsl:text>
     <xsl:text>\AtBeginDocument{\setlength{\ptxnormalparindent}{\parindent}}&#xa;</xsl:text>
     <xsl:text>\AtBeginDocument{\setlength{\ptxnormalparskip}{\parskip}}&#xa;</xsl:text>
-    <xsl:text>\newcommand{\setparstyle}{\setlength{\parindent}{\ptxnormalparindent}\setlength{\parskip}{\ptxnormalparskip}}</xsl:text>
+    <xsl:text>\newcommand{\ptxsetparstyle}{\setlength{\parindent}{\ptxnormalparindent}\setlength{\parskip}{\ptxnormalparskip}}</xsl:text>
 
     <!-- could condition on "subfigure-reps" -->
     <xsl:if test="$b-has-sidebyside">
@@ -252,7 +250,6 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Other latex styles can override this to put some information there. -->
 <xsl:template name="bibinfo-pre-begin-document">
     <xsl:apply-templates select="$document-root" mode="article-title"/>
-    <!--<xsl:apply-templates select="$bibinfo/support" mode="article-frontmatter"/>-->
     <xsl:call-template name="article-authors"/>
     <xsl:apply-templates select="$bibinfo/date" mode="article-frontmatter"/>
 </xsl:template>
@@ -368,10 +365,13 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 </xsl:template>
 
 
+<!-- The article-level support statement is a "\thanks" on the title -->
+<!-- (see the "article-title" template): a marked footnote on the    -->
+<!-- title page, apart from the per-author "\thanks" off each name   -->
 <xsl:template match="bibinfo/support" mode="article-frontmatter">
-    <xsl:text>\support{</xsl:text>
-    <xsl:apply-templates select="$bibinfo/support" mode="article-info"/>
-    <xsl:text>}&#xa;</xsl:text>
+    <xsl:text>\thanks{</xsl:text>
+    <xsl:apply-templates/>
+    <xsl:text>}</xsl:text>
 </xsl:template>
 
 
@@ -531,7 +531,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:text>\newtcolorbox{</xsl:text>
     <xsl:value-of select="$environment-name"/>
     <xsl:text>}[1][]{title={#1}, </xsl:text>
-    <xsl:text>breakable, before upper app={\setparstyle}, </xsl:text>
+    <xsl:text>breakable, before upper app={\ptxsetparstyle}, </xsl:text>
     <xsl:value-of select="$environment-name"/>
     <xsl:text>style}&#xa;</xsl:text>
 </xsl:template>
@@ -595,20 +595,24 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 </xsl:template>
 
 
-<xsl:template match="&THEOREM-LIKE;|&AXIOM-LIKE;|&DEFINITION-LIKE;|&REMARK-LIKE;|&COMPUTATION-LIKE;|&OPENPROBLEM-LIKE;|&EXAMPLE-LIKE;|&PROJECT-LIKE;|exercise[boolean(&INLINE-EXERCISE-FILTER;)]" mode="env-title"> 
-    <xsl:if test="title|creator">
-        <xsl:text>[</xsl:text>
+<!-- amsthm sets the optional argument in parentheses, so a title, -->
+<!-- the creator, and the origins share that one group, separated  -->
+<!-- by commas.  Braces protect the argument: a citation such as   -->
+<!-- [3] would otherwise end it at the first "]".                  -->
+<xsl:template match="&THEOREM-LIKE;|&AXIOM-LIKE;|&DEFINITION-LIKE;|&REMARK-LIKE;|&COMPUTATION-LIKE;|&OPENPROBLEM-LIKE;|&EXAMPLE-LIKE;|&PROJECT-LIKE;|exercise[boolean(&INLINE-EXERCISE-FILTER;)]" mode="env-title">
+    <xsl:if test="title or creator or origins">
+        <xsl:text>[{</xsl:text>
         <xsl:if test="title">
             <!-- Title, but without punctuation.  Or is there a smarter way? -->
             <xsl:apply-templates select="." mode="title-xref"/>
         </xsl:if>
-        <xsl:if test="(title) and (creator)">
-            <xsl:text>&#160;</xsl:text>
+        <xsl:if test="title and (creator or origins)">
+            <xsl:text>, </xsl:text>
         </xsl:if>
-        <xsl:if test="creator">
-            <xsl:apply-templates select="." mode="creator-full"/>
+        <xsl:if test="creator or origins">
+            <xsl:apply-templates select="." mode="attribution-full"/>
         </xsl:if>
-        <xsl:text>]</xsl:text>
+        <xsl:text>}]</xsl:text>
     </xsl:if>
 </xsl:template>
 
@@ -684,14 +688,24 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- Introductions and Conclusions -->
 <!-- Introductions and conclusions are just their contents at their position. -->
-<xsl:template match="article/introduction|chapter/introduction|section/introduction|subsection/introduction|appendix/introduction|exercises/introduction|solutions/introduction|worksheet/introduction|reading-questions/introduction|references/introduction">
+<xsl:template match="article/introduction|chapter/introduction|section/introduction|subsection/introduction|appendix/introduction|exercises/introduction|solutions/introduction|worksheet/introduction|reading-questions/introduction">
     <xsl:text>% Introduction&#xa;</xsl:text>
+    <!-- an authored @xml:id suggests a cross-reference target -->
+    <xsl:if test="@xml:id">
+        <xsl:apply-templates select="." mode="label"/>
+        <xsl:text>%&#xa;</xsl:text>
+    </xsl:if>
     <xsl:apply-templates select="*"/>
     <xsl:text>% end of introduction&#xa;</xsl:text>
 </xsl:template>
 
-<xsl:template match="article/conclusion|chapter/conclusion|section/conclusion|subsection/conclusion|appendix/conclusion|exercises/conclusion|solutions/conclusion|worksheet/conclusion|reading-questions/conclusion|references/conclusion">
+<xsl:template match="article/conclusion|chapter/conclusion|section/conclusion|subsection/conclusion|appendix/conclusion|exercises/conclusion|solutions/conclusion|worksheet/conclusion|reading-questions/conclusion">
     <xsl:text>% Conclusion&#xa;</xsl:text>
+    <!-- an authored @xml:id suggests a cross-reference target -->
+    <xsl:if test="@xml:id">
+        <xsl:apply-templates select="." mode="label"/>
+        <xsl:text>%&#xa;</xsl:text>
+    </xsl:if>
     <xsl:apply-templates select="*"/>
     <xsl:text>% end of conclusion&#xa;</xsl:text>
 </xsl:template>
@@ -763,6 +777,11 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
         </xsl:call-template>
     </xsl:if>
     <xsl:text>]{block}{}&#xa;</xsl:text>
+    <!-- tcolorbox names each auto counter after its box, so the names     -->
+    <!-- below reappear in the LaTeX as counters, "tcb@cnt@figuredistinct" -->
+    <!-- for one, and as macros, "\thetcb@cnt@figuredistinct", which       -->
+    <!-- subfigure captions write out directly.  A control sequence name   -->
+    <!-- cannot contain a hyphen, so none of the box names does.           -->
     <!-- should condition on $project-reps, but it is not defined yet -->
     <xsl:if test="$b-number-project-distinct">
         <xsl:text>%%&#xa;</xsl:text>
@@ -778,7 +797,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                 <xsl:with-param name="level" select="$numbering-projects" />
             </xsl:call-template>
         </xsl:if>
-        <xsl:text>]{project-distinct}{}&#xa;</xsl:text>
+        <xsl:text>]{projectdistinct}{}&#xa;</xsl:text>
     </xsl:if>
     <xsl:if test="$b-number-exercise-distinct">
         <xsl:text>%%&#xa;</xsl:text>
@@ -793,7 +812,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                 <xsl:with-param name="level" select="$numbering-exercises" />
             </xsl:call-template>
         </xsl:if>
-        <xsl:text>]{exercise-distinct}{}&#xa;</xsl:text>
+        <xsl:text>]{exercisedistinct}{}&#xa;</xsl:text>
     </xsl:if>
     <xsl:if test="$b-number-figure-distinct">
         <xsl:text>%%&#xa;</xsl:text>
@@ -808,7 +827,23 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                 <xsl:with-param name="level" select="$numbering-figures" />
             </xsl:call-template>
         </xsl:if>
-        <xsl:text>]{figure-distinct}{}&#xa;</xsl:text>
+        <xsl:text>]{figuredistinct}{}&#xa;</xsl:text>
+    </xsl:if>
+    <xsl:if test="$b-number-openproblem-distinct">
+        <xsl:text>%%&#xa;</xsl:text>
+        <xsl:text>%% This document is set to number OPENPROBLEM-LIKE on a separate numbering scheme&#xa;</xsl:text>
+        <xsl:text>%% So, a faux tcolorbox whose only purpose is to provide this numbering&#xa;</xsl:text>
+        <xsl:text>%% Controlled by  numbering.openproblems.level  processing parameter&#xa;</xsl:text>
+        <xsl:text>\newtcolorbox[auto counter</xsl:text>
+        <!-- control the levels of the numbering -->
+        <!-- global (no periods) is the default  -->
+        <xsl:if test="not($numbering-openproblems = 0)">
+            <xsl:text>, number within=</xsl:text>
+            <xsl:call-template name="level-to-name">
+                <xsl:with-param name="level" select="$numbering-openproblems" />
+            </xsl:call-template>
+        </xsl:if>
+        <xsl:text>]{openproblemdistinct}{}&#xa;</xsl:text>
     </xsl:if>
     <!-- TODO: condition of figure/*/figure-like, or $subfigure-reps -->
     <xsl:text>%% A faux tcolorbox whose only purpose is to provide common numbering&#xa;</xsl:text>
@@ -819,16 +854,24 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:text>\newtcolorbox[auto counter</xsl:text>
     <!-- control the levels of the numbering -->
     <!-- global (no periods) is the default  -->
+    <!-- The subnumbers nest within the counter that numbers figures, -->
+    <!-- and the full number, a figure number followed by a letter,   -->
+    <!-- is built from that same counter                              -->
+    <xsl:variable name="figure-counter">
+        <xsl:choose>
+            <xsl:when test="$b-number-figure-distinct">
+                <xsl:text>tcb@cnt@figuredistinct</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:text>tcb@cnt@block</xsl:text>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
     <xsl:text>, number within=</xsl:text>
-    <xsl:choose>
-        <xsl:when test="$b-number-figure-distinct">
-            <xsl:text>tcb@cnt@figure-distinct</xsl:text>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:text>tcb@cnt@block</xsl:text>
-        </xsl:otherwise>
-    </xsl:choose>
-    <xsl:text>, number freestyle={\noexpand\thetcb@cnt@block(\noexpand\alph{\tcbcounter})}</xsl:text>
+    <xsl:value-of select="$figure-counter"/>
+    <xsl:text>, number freestyle={\noexpand\the</xsl:text>
+    <xsl:value-of select="$figure-counter"/>
+    <xsl:text>(\noexpand\alph{\tcbcounter})}</xsl:text>
     <xsl:text>]{subdisplay}{}&#xa;</xsl:text>
     <!-- faux subdisplay requires manipulating low-level counters -->
     <xsl:text>\makeatother&#xa;</xsl:text>
@@ -851,14 +894,15 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <!-- FIGURE-LIKE come in three flavors: blocks (not in a side-by-side),  -->
     <!-- panels (in a side-by-side, but not in an overall "figure"), or      -->
     <!-- subnumbered (panel of a side-by-side, which is then in an overall   -->
-    <!-- "figure').  Selections must be careful (not like dropping through   -->
+    <!-- "figure", or a "figure" in a "stack" that is the content of an      -->
+    <!-- overall "figure").  Selections must be careful (not dropping through -->
     <!-- a choose/when).  Environments need to consider title/caption        -->
     <!-- placement and counters.  So we might create twelve different        -->
     <!-- environments here.  In -common, see the "figure-placement" template -->
     <!-- for another determination, and a more careful explanation.          -->
     <!-- (There was once a subtle bug when we were not so careful here.)     -->
     <xsl:variable name="figure-reps" select="
-        ($document-root//figure[not(parent::sidebyside)])[1]|
+        ($document-root//figure[not(parent::sidebyside or parent::stack/parent::figure)])[1]|
         ($document-root//table[not(parent::sidebyside)])[1]|
         ($document-root//listing[not(parent::sidebyside)])[1]|
         ($document-root//list[not(parent::sidebyside)])[1]"/>
@@ -888,7 +932,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <!-- (SUB)FIGURE-LIKE -->
     <!-- subnumbered versions, if contained by overall figure -->
     <xsl:variable name="subnumber-reps" select="
-        ($document-root//figure/sidebyside/figure|$document-root//figure/sbsgroup/sidebyside/figure)[1]|
+        ($document-root//figure/sidebyside/figure|$document-root//figure/sbsgroup/sidebyside/figure|$document-root//figure/stack/figure)[1]|
         ($document-root//figure/sidebyside/table|$document-root//figure/sbsgroup/sidebyside/table)[1]|
         ($document-root//figure/sidebyside/listing|$document-root//figure/sbsgroup/sidebyside/listing)[1]|
         ($document-root//figure/sidebyside/list|$document-root//figure/sbsgroup/sidebyside/list)[1]"/>
@@ -915,22 +959,6 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:for-each select="$miscellaneous-reps">
         <xsl:apply-templates select="." mode="environment"/>
     </xsl:for-each>
-</xsl:template>
-
-
-<!-- Preamble template for elements needed to produce the frontmatter -->
-<xsl:template name="frontmatter-helpers">
-    <!-- If there is a <support> tag in an article, create a unnumbered footnote environment for it -->
-    <!-- NB: this is also part of the footnote-numbering named template (as of 2025-02-24), but we don't call that for -classic -->
-    <xsl:if test="$b-is-article and $bibinfo/support">
-        <xsl:text>%% add a \support command as unnumbered footnote&#xa;</xsl:text>
-        <xsl:text>\let\svdthefootnote\thefootnote%&#xa;</xsl:text>
-        <xsl:text>\newcommand\support[1]{%&#xa;</xsl:text>
-        <xsl:text>  \let\thefootnote\relax%&#xa;</xsl:text>
-        <xsl:text>  \footnotetext{#1}%&#xa;</xsl:text>
-        <xsl:text>  \let\thefootnote\svdthefootnote%&#xa;</xsl:text>
-        <xsl:text>}&#xa;</xsl:text>
-    </xsl:if>
 </xsl:template>
 
 </xsl:stylesheet>

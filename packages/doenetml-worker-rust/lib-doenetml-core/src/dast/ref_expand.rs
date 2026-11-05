@@ -7,7 +7,9 @@ use super::{
     flat_dast::{
         ErrorType, FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent,
     },
-    ref_resolve::{RefResolution, ResolutionError, Resolver, format_error_message},
+    ref_resolve::{
+        RefResolution, ResolutionError, Resolver, format_error_message, resolution_error_code,
+    },
 };
 
 /// An `Expander` replaces all refs with their `DastElement`-equivalent forms. For example
@@ -50,6 +52,29 @@ impl Expander {
                     match resolver.resolve(&ref_.path, ref_.idx, false) {
                         Ok(ref_resolution) => {
                             // Get the tag name of the referent
+                            // Author-reachable, and the one thing #1921's audit
+                            // found. The resolver registers *names* only for
+                            // elements (`build_resolver` walks elements), which
+                            // is what the invariant used to rest on -- but
+                            // `resolve` also follows *index* resolutions, and
+                            // those are recorded for whatever a composite's
+                            // child is (`ref_resolve/index_resolutions.rs`),
+                            // with no element check. `expand_refs` walks in
+                            // ascending index order, so `$g[1]<group
+                            // name="g">$x</group>` resolves to a child that is
+                            // still a `FlatNode::Ref` and traps here, taking
+                            // the whole document down. The shapes are pinned in
+                            // `dast/panic_reachability.test.rs`
+                            // (`an_index_into_a_composite_of_refs_traps`).
+                            //
+                            // Left as a panic here, and tracked in #1942. It
+                            // traps the same way on `main`, and the choice
+                            // between reporting it (the `FlatError` the `Err`
+                            // arm below already builds) and resolving it
+                            // whatever the order is a decision of its own: the
+                            // first renders the page but leaves the reference
+                            // yielding nothing, which is not what the author
+                            // wrote.
                             let name = match &flat_root.nodes[ref_resolution.node_idx] {
                                 FlatNode::Element(e) => e.name.clone(),
                                 _ => panic!("Expected an element"),
@@ -71,7 +96,16 @@ impl Expander {
                             parent: ref_.parent,
                             message: format_error_message(err, &ref_.path),
                             error_type: ErrorType::Warning,
-                            code: None,
+                            // Coded, so that the worker reports it as it
+                            // reports a reference it fails to resolve itself
+                            // (`refResolutionDependencies.ts`): the same code
+                            // for `$l[0]` as for `$l[$i]` with `i` = 0. The
+                            // code's argument is the whole reference as
+                            // written, which needs the source text the
+                            // resolver does not have, so the worker fills it
+                            // in from this node's position
+                            // (`convertNormalizedDast.ts`).
+                            code: Some(resolution_error_code(err).into()),
                             args: None,
                             unresolved_path: if let ResolutionError::NoReferent = err {
                                 Some(ref_.path.clone())
@@ -124,6 +158,13 @@ impl Expander {
                                     );
                                     // The `<li>` tags are the exclusive children of the `<ol>` tag.
                                     // We created the same number of `<li>` tags as there are `inputs`.
+                                    // Internal invariant: `merge_content` was
+                                    // just handed a `DastElementContent::Element`
+                                    // three lines up, so the node it returned is
+                                    // that element. Audited for #1921; function
+                                    // references with several inputs, element
+                                    // inputs, nested calls and an index before
+                                    // the call all leave it holding.
                                     let li_node_indices =
                                         match &flat_root.nodes[lookup_idx(&ol).unwrap()] {
                                             FlatNode::Element(e) => e,
@@ -154,9 +195,15 @@ impl Expander {
                             Err(err) => FlatNode::Error(FlatError {
                                 idx: function_ref.idx,
                                 parent: function_ref.parent,
-                                message: format!("Ref resolution error: {err}"),
+                                message: format_error_message(err, &function_ref.path),
                                 error_type: ErrorType::Warning,
-                                code: None,
+                                // Coded as a plain reference's failure is, so
+                                // `$$f(2)` is reported, and shows the missing
+                                // value, as `$f` does. The worker quotes the
+                                // whole function reference, arguments
+                                // included, from this node's position
+                                // (`convertNormalizedDast.ts`).
+                                code: Some(resolution_error_code(err).into()),
                                 args: None,
                                 unresolved_path: if let ResolutionError::NoReferent = err {
                                     Some(function_ref.path.clone())
@@ -293,11 +340,13 @@ impl Expander {
                 // We couldn't find a unique `extending` prop, so the `extend` attribute is invalid.
                 // Push an error message as a child of `node`.
 
-                let error_type = if let Some(_err) = error_found {
-                    ErrorType::Warning
-                } else {
-                    ErrorType::Error
-                };
+                // A tag written with `extend` or `copy` always makes that tag
+                // (D36), so a reference in the attribute that names nothing,
+                // or more than one thing, is an error, where the same
+                // reference written bare is a warning. It keeps the
+                // reference's code: a code names the situation, and the
+                // severity is the call site's (`@doenet/i18n` diagnostics).
+                let error_type = ErrorType::Error;
 
                 let message = if let Some(err) = error_found {
                     format!("In '{}' attribute: {}", extend_or_copy.name, err.message)
@@ -305,17 +354,51 @@ impl Expander {
                     format!("Invalid '{}' attribute", extend_or_copy.name)
                 };
 
-                element.children.push(flat_root.merge_content(
+                // A reference in the attribute that failed to resolve keeps
+                // its code, path and position, so that it is reported as the
+                // same reference written as text is (`expand_refs`), and as
+                // the worker reports it when an index is dynamic: `extend="$l[0]"`
+                // as `extend="$l[$i]"` with `i` = 0 (#2407). Its position is
+                // the reference's, inside the attribute, which is also what
+                // the worker reads the reference's text from.
+                let coded_failure = error_found.filter(|err| err.code.is_some()).map(|err| {
+                    (
+                        err.code.clone(),
+                        err.unresolved_path.clone(),
+                        err.position.clone(),
+                        err.source_doc,
+                    )
+                });
+
+                let (code, unresolved_path, position, source_doc) = match coded_failure {
+                    Some(failure) => failure,
+                    None => (
+                        None,
+                        None,
+                        extend_or_copy.position.clone(),
+                        extend_or_copy.source_doc,
+                    ),
+                };
+
+                let error = flat_root.merge_content(
                     &DastElementContent::Error(DastError {
                         message,
                         error_type: Some(error_type),
-                        code: None,
+                        code,
                         args: None,
-                        position: extend_or_copy.position.clone(),
-                        source_doc: extend_or_copy.source_doc,
+                        position,
+                        source_doc,
                     }),
                     extend_or_copy.parent,
-                ));
+                );
+                // A `DastError` has no unresolved path, so it is set on the
+                // flat error `merge_content` made of it.
+                if let (UntaggedContent::Ref(error_idx), Some(_)) = (&error, &unresolved_path)
+                    && let FlatNode::Error(flat_error) = &mut flat_root.nodes[*error_idx]
+                {
+                    flat_error.unresolved_path = unresolved_path;
+                }
+                element.children.push(error);
 
                 // Remove the `extend` or `copy` attribute since it has been replaced with an error
                 element.attributes.retain(|attr| {
@@ -361,3 +444,7 @@ fn lookup_idx(untagged: &UntaggedContent) -> Result<Index, anyhow::Error> {
 #[cfg(test)]
 #[path = "ref_expand.test.rs"]
 mod test;
+
+#[cfg(test)]
+#[path = "panic_reachability.test.rs"]
+mod panic_reachability_test;

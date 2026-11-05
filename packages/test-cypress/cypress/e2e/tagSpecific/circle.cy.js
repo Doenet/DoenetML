@@ -51,7 +51,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                 stateVariables[await win.resolvePath1("circ")].stateValues
                     .numericalRadius,
             ).eq(1);
-            cy.get(cesc(`#r2`)).should("contain.text", "1");
+            cy.get(cesc(`#r2`)).scrollIntoView().should("contain.text", "1");
         });
 
         cy.log(`move circle`);
@@ -62,11 +62,10 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                 args: { center: [-7, 2] },
             });
 
-            cy.get(cesc(`#r2`)).should("contain.text", "1");
-            cy.get(cesc(`#c`)).should(
-                "contain.text",
-                `(${nInDOM(-7)},${nInDOM(2)})`,
-            );
+            cy.get(cesc(`#r2`)).scrollIntoView().should("contain.text", "1");
+            cy.get(cesc(`#c`))
+                .scrollIntoView()
+                .should("contain.text", `(${nInDOM(-7)},${nInDOM(2)})`);
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -86,7 +85,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
             force: true,
         });
         cy.get(cesc(`#r`) + ` .mq-editable-field`).should("contain.text", "3");
-        cy.get(cesc(`#r2`)).should("contain.text", "3");
+        cy.get(cesc(`#r2`)).scrollIntoView().should("contain.text", "3");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -186,6 +185,157 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                 // ...and a sibling without the override keeps styleNumber 3's
                 // default (0.3), proving the values aren't coincidentally equal.
                 expect(circlesByName.dflt.visProp.fillopacity).to.eq(0.3);
+            });
+        });
+    });
+
+    describe("off-graph indicators follow the graph's limits", () => {
+        // Check graph g once its circle is drawn and its bounding box has
+        // reached `yMax` (if given). Waiting for both keeps a check that
+        // expects no indicator from passing before the circle is drawn or
+        // before the new limits are applied. `check` receives the circle's
+        // visible off-graph indicators and the board.
+        function checkIndicators({ yMax, check }) {
+            cy.get("#g").then(($g) => {
+                cy.window().should((win) => {
+                    const board = Object.values(win.JXG.boards).find(
+                        (b) => b?.containerObj === $g[0],
+                    );
+                    expect(board, "JSXGraph board for graph g").to.exist;
+
+                    if (yMax !== undefined) {
+                        expect(board.getBoundingBox()[1]).closeTo(yMax, 1e-12);
+                    }
+
+                    const objects = Object.values(board.objects);
+                    const circles = objects.filter(
+                        (o) => o?.elType === "circle",
+                    );
+                    expect(circles.length, "circles on graph g").eq(1);
+
+                    // Skip the circle's center, a hidden point JSXGraph
+                    // creates along with the circle.
+                    const indicators = objects.filter(
+                        (o) =>
+                            o?.elType === "point" &&
+                            o !== circles[0].center &&
+                            o.visProp?.visible !== false,
+                    );
+                    check(indicators, board);
+                });
+            });
+        }
+
+        it("redraws a circle when only the graph's limits change", () => {
+            // The circle's own state never changes here, so nothing but the
+            // new bounding box can tell its renderer to redraw it.
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+<mathInput name="yMax" prefill="10" />
+<graph name="g" yMax="$yMax">
+    <circle center="(0,20)" radius="2" />
+</graph>
+`,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get("#g").find("svg").should("exist");
+
+            checkIndicators({
+                yMax: 10,
+                check(indicators) {
+                    expect(indicators.length).eq(1);
+                    expect(indicators[0].visProp.face).eq("triangleup");
+                    expect(indicators[0].X()).closeTo(0, 1e-12);
+                    expect(indicators[0].Y()).lessThan(10);
+                },
+            });
+
+            cy.get("#yMax textarea").type(
+                "{end}{backspace}{backspace}30{enter}",
+                { force: true },
+            );
+
+            checkIndicators({
+                yMax: 30,
+                check(indicators) {
+                    expect(indicators.length).eq(0);
+                },
+            });
+
+            // The center is off the graph, but the bottom of the circle is
+            // on it, so there is still no indicator.
+            cy.get("#yMax textarea").type(
+                "{end}{backspace}{backspace}19{enter}",
+                { force: true },
+            );
+
+            checkIndicators({
+                yMax: 19,
+                check(indicators) {
+                    expect(indicators.length).eq(0);
+                },
+            });
+
+            cy.get("#yMax textarea").type(
+                "{end}{backspace}{backspace}10{enter}",
+                { force: true },
+            );
+
+            checkIndicators({
+                yMax: 10,
+                check(indicators) {
+                    expect(indicators.length).eq(1);
+                    expect(indicators[0].visProp.face).eq("triangleup");
+                    expect(indicators[0].Y()).lessThan(10);
+                },
+            });
+
+            // The indicator moves to the new edge.
+            cy.get("#yMax textarea").type(
+                "{end}{backspace}{backspace}5{enter}",
+                { force: true },
+            );
+
+            checkIndicators({
+                yMax: 5,
+                check(indicators) {
+                    expect(indicators.length).eq(1);
+                    expect(indicators[0].visProp.face).eq("triangleup");
+                    expect(indicators[0].Y()).lessThan(5);
+                    expect(indicators[0].Y()).greaterThan(4);
+                },
+            });
+        });
+
+        it("shows no indicator for a circle that reaches into a graph with a flipped x-axis", () => {
+            // The circle's center is off the top of the graph, but its bottom
+            // is on it.
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+<graph name="g" xMin="10" xMax="-10">
+    <circle center="(0,11)" radius="2" />
+</graph>
+`,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get("#g").find("svg").should("exist");
+
+            checkIndicators({
+                check(indicators, board) {
+                    const [xMin, , xMax] = board.getBoundingBox();
+                    expect(xMin).greaterThan(xMax);
+                    expect(indicators.length).eq(0);
+                },
             });
         });
     });

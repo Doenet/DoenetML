@@ -82,7 +82,6 @@ color =
     .purple = phephuḽi
     .pink = phinngi
     .brown = buraweni
-
 line-width =
     .thick =
         { $gender ->
@@ -96,13 +95,11 @@ line-width =
             [c7] tshiṱuku
            *[c9] nṱuku
         }
-
 # Written as an invariable «nga …» phrase, so that it agrees with nothing and
 # can close the phrase. `style-stroke` puts it last for that reason.
 line-style =
     .dashed = nga zwipiḓa
     .dotted = nga thodzi
-
 fill-style =
     .horizontal = mitalo yo lalaho
     .vertical = mitalo yo imaho
@@ -110,7 +107,6 @@ fill-style =
     .backdiagonal = mitalo yo sendamaho nga u fhambana
     .dots = thodzi
     .diamonds = daimonde
-
 noun =
     .line = mutalo
     .line-segment = tshipiḓa tsha mutalo
@@ -130,7 +126,6 @@ noun =
     .diamond = daimonde
     .cross = tshifhambano
     .plus = tshiga tsha u engedza
-
 # The side count is a possessive complement and closes the noun phrase behind
 # the describing words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -138,7 +133,6 @@ noun-regular-polygon =
         [tail] tsha masia a { $numSides }
        *[head] tshivhumbeo tsho linganaho
     }
-
 # The noun class. `c9` is the default and the class of every loanword.
 noun-gender =
     { $noun ->
@@ -158,7 +152,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «nga …» phrase and closes the description, so it moves
@@ -173,26 +166,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] wo ḓadzwaho
         [c7] tsho ḓadzwaho
        *[c9] yo ḓadzwaho
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } nga { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } nga { $pattern }
@@ -200,7 +189,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } nga { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «mukano» is class 3 and leads its own describing words, so the border's words
 # agree with it rather than with the shape it surrounds. Tshivenḓa has no
 # article and joins this clause with the invariable «na», so all four branches
@@ -212,35 +200,28 @@ style-border-clause =
         [and-article] na mukano { $border }
        *[with] na mukano { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = a yo ngo ḓadzwa
-
 style-text =
     { $parts ->
         [background] { $color } nṱha ha muvhala wa murahu { $background }
        *[plain] { $color }
     }
-
 style-background-none = a hu na tshithu
-
 
 ## Boolean words
 
 boolean-true = ngoho
 boolean-false = mazwifhi
 
-
 ## Answer buttons
 
 answer-submit-label = Sedza Mushumo
 answer-submit-label-no-correctness = Rumela Phindulo
-
 
 ## Sectional blocks
 
@@ -265,7 +246,6 @@ section-name =
     .solution = Tandululo
     .task = Mushumo
     .theorem = Thiyoreme
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -275,9 +255,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Nyeletshedzo
-
 
 ## Tables and figures
 
@@ -288,7 +266,6 @@ table-name =
         [unnumbered-title] Ṱhefula{ ": " }
        *[unnumbered] Ṱhefula
     }
-
 figure-name =
     { $parts ->
         [numbered] Tshifanyiso { $enumeration }
@@ -297,24 +274,18 @@ figure-name =
        *[unnumbered] Tshifanyiso
     }
 
-
 ## Paginator controls
 
 paginator-previous = Zwo fhiraho
 paginator-next = Zwi tevhelaho
 paginator-page = Siaṱari
-
 paginator-page-status = { $pageLabel } { $currentPage } kha { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = kana
-
 piecewise-condition-if = arali
-
 piecewise-condition-otherwise = nga nnḓa ha zwenezwo
-
 
 ## Chemistry
 ##
@@ -327,6 +298,5 @@ piecewise-condition-otherwise = nga nnḓa ha zwenezwo
 ## table in one of those and the fallback *is* the curriculum.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Tshiga tsha Khemikhala tsho Khakheaho
 chemistry-invalid-ionic-compound = Ṱhanganelo ya Ayoni yo Khakheaho

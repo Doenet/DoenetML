@@ -909,7 +909,7 @@ describe("BooleanInput tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("bi")].stateValues
                 .childIndicesToRender,
-        ).eqls([1]);
+        ).eqls([1, 0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("bi")].activeChildren
                 .length,

@@ -112,7 +112,6 @@ color =
     .purple = pəpul
     .pink = pink
     .brown = braun
-
 line-width =
     .thick =
         { $gender ->
@@ -128,13 +127,11 @@ line-width =
             [c4] ʌŋkəni
            *[c1] kʌkəni
         }
-
 # Written as «na …» phrases rather than as prefixed qualifiers, so that they
 # take no concord and can close the description. `style-stroke` puts them last.
 line-style =
     .dashed = na ʌŋpath-pathi
     .dotted = na ʌŋtoni
-
 fill-style =
     .horizontal = ʌŋlayn ŋa ŋi lay
     .vertical = ʌŋlayn ŋa ŋi yema
@@ -142,7 +139,6 @@ fill-style =
     .backdiagonal = ʌŋlayn ŋa ŋi kəri ka pʌŋ ʌŋbʌŋ
     .dots = ʌŋtoni
     .diamonds = ʌŋdayamɔn
-
 # Every noun below carries its class prefix in writing, so `noun-gender`'s
 # table can be read straight off this message. That is the alliterative-concord
 # property the header describes, and it is what makes this catalog checkable.
@@ -165,7 +161,6 @@ noun =
     .diamond = rʌdayamɔn
     .cross = rʌkrɔs
     .plus = rʌmark rʌ plɔs
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words, so it goes in the tail.
 noun-regular-polygon =
@@ -173,7 +168,6 @@ noun-regular-polygon =
         [tail] tʌ na tʌbʌŋ { $numSides }
        *[head] tʌpɔligɔn tʌ nɔŋ
     }
-
 # The noun class. Read it against `noun` above: each entry that names one of
 # `noun`'s attributes takes the class that attribute's own written prefix
 # carries, and `regular-polygon` takes `c2` because `noun-regular-polygon`'s
@@ -203,7 +197,6 @@ noun-gender =
        *[other] c1
     }
 
-
 ## Style composition
 
 # The dash pattern is a «na …» phrase and closes the description, so it moves
@@ -218,13 +211,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c2] tʌwuni
@@ -232,13 +223,11 @@ style-filled-word =
         [c4] ʌŋwuni
        *[c1] kʌwuni
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } na { $pattern }
@@ -246,7 +235,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «ʌŋbʌŋ» is the border and leads its own describing words, so they agree with
 # it rather than with the shape it surrounds — which is why `border` answers
 # `c4` in `noun-gender`, matching that word's own «ʌŋ-». Temne has no article
@@ -259,35 +247,28 @@ style-border-clause =
         [and-article] na ʌŋbʌŋ { $border }
        *[with] na ʌŋbʌŋ { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = kʌwuni bɔm
-
 style-text =
     { $parts ->
         [background] { $color } na kʌbaka { $background }
        *[plain] { $color }
     }
-
 style-background-none = kəm bɔm
-
 
 ## Boolean words
 
 boolean-true = ʌŋtɔfɔ
 boolean-false = ʌŋgbɔl
 
-
 ## Answer buttons
 
 answer-submit-label = Chɛk Ʌŋpaŋth
 answer-submit-label-no-correctness = Sɔŋ Ʌŋlipi
-
 
 ## Sectional blocks
 
@@ -312,7 +293,6 @@ section-name =
     .solution = Ʌŋsɔlushɔn
     .task = Ʌŋpaŋth
     .theorem = Tiɔrɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -322,9 +302,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Kʌsandi
-
 
 ## Tables and figures
 
@@ -335,7 +313,6 @@ table-name =
         [unnumbered-title] Tebul{ ": " }
        *[unnumbered] Tebul
     }
-
 figure-name =
     { $parts ->
         [numbered] Kʌmisal { $enumeration }
@@ -344,25 +321,18 @@ figure-name =
        *[unnumbered] Kʌmisal
     }
 
-
 ## Paginator controls
 
 paginator-previous = Kʌ pʌ
 paginator-next = Kʌ tʌŋ
-
 paginator-page = Kʌpej
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ɔ
-
 piecewise-condition-if = ma
-
 piecewise-condition-otherwise = ka tʌbʌŋ tʌ pəŋ
-
 
 ## Chemistry
 ##
@@ -374,6 +344,5 @@ piecewise-condition-otherwise = ka tʌbʌŋ tʌ pəŋ
 ## curriculum — the same answer `locales/kri` gives from the same ministry.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kʌmark kʌ Kɛmistri kʌ Bana Bɔm
 chemistry-invalid-ionic-compound = Kʌthɔfi kʌ Ayɔn kʌ Bana Bɔm

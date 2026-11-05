@@ -1,5 +1,5 @@
 use crate::dast::{
-    DastElement, DastElementContent, DastError, DastFunctionRef, DastRef, DastRoot,
+    DastAttribute, DastElement, DastElementContent, DastError, DastFunctionRef, DastRef, DastRoot,
     DastTextRefElementContent, PathPart, Position,
 };
 
@@ -7,6 +7,38 @@ use super::{
     FlatAttribute, FlatElement, FlatError, FlatFunctionRef, FlatIndex, FlatNode, FlatPathPart,
     FlatRef, FlatRoot, Index, UntaggedContent,
 };
+
+/// The attributes of `elm`, in the order they were written in the source.
+///
+/// `DastElement::attributes` is a `HashMap`, so its own order is arbitrary and
+/// varies between runs of the same program. Sorting by `position` recovers the
+/// authored order. Attributes synthesized during normalization carry no
+/// `position`; they sort after the authored ones, by name, so the order is
+/// total and deterministic either way.
+///
+/// Source order is also the order a `Vec<DastAttribute>` would give if #122
+/// replaces the map, so indices minted under this ordering do not move again
+/// when that lands. Sorting by name instead would guarantee they do.
+fn ordered_attributes(elm: &DastElement) -> Vec<&DastAttribute> {
+    /// `Position`/`Point` derive only `PartialEq`, so compare an orderable key
+    /// built from them rather than the structs themselves. The leading `bool`
+    /// puts positionless (synthesized) attributes last.
+    fn sort_key(attr: &DastAttribute) -> (bool, usize, usize, &str) {
+        match attr.position.as_ref() {
+            Some(position) => (
+                false,
+                position.start.line,
+                position.start.column,
+                attr.name.as_str(),
+            ),
+            None => (true, 0, 0, attr.name.as_str()),
+        }
+    }
+
+    let mut attributes: Vec<&DastAttribute> = elm.attributes.values().collect();
+    attributes.sort_by(|a, b| sort_key(a).cmp(&sort_key(b)));
+    attributes
+}
 
 impl FlatRoot {
     /// Create a new `FlatRoot` from a `DastRoot`.
@@ -47,9 +79,15 @@ impl FlatRoot {
                     .iter()
                     .map(|child| self.merge_content(child, Some(idx)))
                     .collect();
-                let attributes: Vec<FlatAttribute> = elm
-                    .attributes
-                    .values()
+                // `DastElement::attributes` is a `HashMap`, and Rust randomizes
+                // its iteration order on purpose. Everything below allocates
+                // node indices as it walks, so an unordered walk hands the same
+                // document different indices from one build to the next -- and
+                // saved reader state is keyed on those indices, which is how a
+                // reloaded point came back with its coordinates swapped
+                // (Doenet/DoenetML#1944). Walk in source order instead.
+                let attributes: Vec<FlatAttribute> = ordered_attributes(elm)
+                    .into_iter()
                     .map(|attr| {
                         let children = attr
                             .children
@@ -139,6 +177,15 @@ impl FlatRoot {
     }
 
     /// Set the children of an element node.
+    ///
+    /// Internal invariant, not an authoring error: `idx` is one this merge just
+    /// wrote an element at, or -- for the one caller outside this module,
+    /// `ref_expand.rs`'s `set_children(li_idx, …)` -- one of the `<li>` nodes
+    /// `merge_content` created a few lines earlier. Either way a non-element
+    /// here means a caller passed the wrong index, a bug in the core rather
+    /// than in the document. Audited for #1921 against a corpus of documents
+    /// aimed at exactly this (see `dast/panic_reachability.test.rs`); none
+    /// reached it.
     pub fn set_children(&mut self, idx: usize, children: Vec<UntaggedContent>) {
         match &mut self.nodes[idx] {
             FlatNode::Element(elm) => {
@@ -149,6 +196,9 @@ impl FlatRoot {
     }
 
     /// Set the attributes of an element node.
+    ///
+    /// Internal invariant, as for `set_children`: the index is one this merge
+    /// made an element. Audited for #1921; unreachable from authored markup.
     fn set_attributes(&mut self, idx: usize, attributes: Vec<FlatAttribute>) {
         match &mut self.nodes[idx] {
             FlatNode::Element(elm) => {
@@ -159,6 +209,13 @@ impl FlatRoot {
     }
 
     /// Set the input of a function ref node.
+    ///
+    /// Internal invariant: only the `DastElementContent::FunctionRef` arm
+    /// reaches this, and it has just called `set_function_ref` to write a
+    /// `FlatNode::FunctionRef` at `idx`. A document
+    /// cannot produce a function ref whose node is something else -- `$$f(…)`
+    /// where `f` names a `<math>` or nothing at all still makes a function ref
+    /// node here, and is resolved (or not) later. Audited for #1921.
     fn set_function_ref_input(&mut self, idx: usize, args: Vec<Vec<UntaggedContent>>) {
         match &mut self.nodes[idx] {
             FlatNode::FunctionRef(func_ref) => {

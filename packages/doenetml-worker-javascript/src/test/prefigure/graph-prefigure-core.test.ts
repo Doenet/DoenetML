@@ -144,8 +144,12 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         expect(prefigureXML).toContain(`<axes axes="all">`);
-        expect(prefigureXML).toContain(`<xlabel alignment="nw">time</xlabel>`);
-        expect(prefigureXML).toContain(`<ylabel alignment="se">value</ylabel>`);
+        expect(prefigureXML).toContain(
+            `<xlabel alignment="nw" color="currentColor">time</xlabel>`,
+        );
+        expect(prefigureXML).toContain(
+            `<ylabel alignment="se" color="currentColor">value</ylabel>`,
+        );
 
         const diagnosticsByType = await getWarnings(
             prefigureGraph(
@@ -235,8 +239,12 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         expect(prefigureXML).toContain(`<axes axes="all">`);
-        expect(prefigureXML).toContain(`<xlabel alignment="nw"><m>`);
-        expect(prefigureXML).toContain(`<ylabel alignment="se"><m>`);
+        expect(prefigureXML).toContain(
+            `<xlabel alignment="nw" color="currentColor"><m>`,
+        );
+        expect(prefigureXML).toContain(
+            `<ylabel alignment="se" color="currentColor"><m>`,
+        );
         expect(prefigureXML).toContain(`x^2`);
         expect(prefigureXML).toContain(`y_1`);
     });
@@ -249,7 +257,7 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all"><xlabel alignment="nw"><m>x^2</m></xlabel><ylabel alignment="se"><m>y_1</m></ylabel></axes></coordinates><annotations></annotations></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all"><xlabel alignment="nw" color="currentColor"><m>x^2</m></xlabel><ylabel alignment="se" color="currentColor"><m>y_1</m></ylabel></axes></coordinates><annotations></annotations></diagram>"`,
         );
     });
 

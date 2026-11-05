@@ -12,6 +12,7 @@ import {
 } from "./utils/checkWork";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { DescriptionPopover } from "./utils/Description";
+import { useRenderedLabel } from "./utils/inputLabel";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
 
@@ -35,6 +36,7 @@ export default React.memo(function FractionInput(
 ) {
     let { id, SVs, actions, children, callAction } =
         useDoenetRenderer<FractionInputSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     // The check-work button and the validation state announced on the input
     // both follow the document's language, not the reader's — see
@@ -81,6 +83,9 @@ export default React.memo(function FractionInput(
                 {label}
             </MathJax>
         );
+    }
+    if (renderedLabel) {
+        label = renderedLabel;
     }
 
     let shortDescription = SVs.shortDescription || undefined;

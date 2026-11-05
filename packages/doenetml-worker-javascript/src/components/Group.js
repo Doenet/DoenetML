@@ -1,7 +1,10 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { deepClone } from "@doenet/utils";
 import { verifyReplacementsMatchSpecifiedType } from "../utils/copy";
-import { setUpVariantSeedAndRng } from "../utils/variants";
+import {
+    setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class Group extends CompositeComponent {
     static componentType = "group";
@@ -9,7 +12,7 @@ export default class Group extends CompositeComponent {
     static componentDocs = {
         summary: "A logical grouping of components",
     };
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAnywhere = true;
 
     static treatAsComponentForRecursiveReplacements = true;
     static includeBlankStringChildren = true;
@@ -55,15 +58,27 @@ export default class Group extends CompositeComponent {
             leaveRaw: true,
             excludeFromSchema: true,
         };
-        attributes.createComponentOfType = {
+        // Set by core, not by authors, on a group made to stand for the
+        // component a copy or another composite was to make: the type of the
+        // one component to make of its children. The leading `_` keeps it
+        // out of reach of an author's attributes.
+        attributes._createComponentOfType = {
             createPrimitiveOfType: "string",
-            description:
-                "Component type to wrap each child as when expanding the group.",
+            excludeFromSchema: true,
         };
-        attributes.numComponents = {
+        // Set on a group made for an iteration of a repeat, a pick of a
+        // select, or what a `<conditionalContent>` shows
+        // (`utils/indexInstances.ts`): the type of the component that made
+        // it, and, for an iteration or a pick whose whole content is one
+        // indexable component, that component's position, to which an index
+        // after the group passes.
+        attributes._instanceOf = {
+            createPrimitiveOfType: "string",
+            excludeFromSchema: true,
+        };
+        attributes._indexPassThrough = {
             createPrimitiveOfType: "number",
-            description:
-                "Number of components to create when expanding (used with createComponentOfType).",
+            excludeFromSchema: true,
         };
 
         attributes.asList = {
@@ -132,9 +147,8 @@ export default class Group extends CompositeComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -176,15 +190,12 @@ export default class Group extends CompositeComponent {
             },
         };
 
+        // A group given a type makes exactly one component of that type.
         stateVariableDefinitions.numComponentsSpecified = {
             returnDependencies: () => ({
-                numComponentsAttr: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "numComponents",
-                },
                 typeAttr: {
                     dependencyType: "attributePrimitive",
-                    attributeName: "createComponentOfType",
+                    attributeName: "_createComponentOfType",
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
@@ -206,16 +217,7 @@ export default class Group extends CompositeComponent {
                             `Invalid componentType ${dependencyValues.typeAttr} of a ${componentClass.componentType}.`,
                         );
                     }
-                    if (dependencyValues.numComponentsAttr !== null) {
-                        numComponentsSpecified =
-                            dependencyValues.numComponentsAttr;
-                    } else {
-                        numComponentsSpecified = 1;
-                    }
-                } else if (dependencyValues.numComponentsAttr !== null) {
-                    throw Error(
-                        `You must specify createComponentOfType when specifying numComponents for a ${componentClass.componentType}.`,
-                    );
+                    numComponentsSpecified = 1;
                 } else {
                     numComponentsSpecified = null;
                 }
@@ -237,7 +239,7 @@ export default class Group extends CompositeComponent {
     }) {
         let diagnostics = [];
 
-        // evaluate numComponentsSpecified so get error if specify numComponents without createComponentOfType
+        // evaluate numComponentsSpecified so get error if createComponentOfType is invalid
         await component.stateValues.numComponentsSpecified;
 
         if (!(await component.stateValues.rendered)) {
@@ -406,19 +408,9 @@ export default class Group extends CompositeComponent {
         });
     }
 
-    get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
-        let additionalRendererTypes =
-            this.potentialRendererTypesFromSerializedComponents(
-                this.serializedChildren,
-            );
-        for (let rendererType of additionalRendererTypes) {
-            if (!allPotentialRendererTypes.includes(rendererType)) {
-                allPotentialRendererTypes.push(rendererType);
-            }
-        }
-
-        return allPotentialRendererTypes;
+        this.addPotentialRendererTypesFromSerializedChildren(rendererTypes);
     }
 }

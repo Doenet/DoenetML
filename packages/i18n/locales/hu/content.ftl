@@ -42,15 +42,12 @@ color =
     .purple = lila
     .pink = rózsaszín
     .brown = barna
-
 line-width =
     .thick = vastag
     .thin = vékony
-
 line-style =
     .dashed = szaggatott
     .dotted = pontozott
-
 # Bare singular nouns, because they are used as compound modifiers of «minta»
 # rather than as nouns of their own: «rombusz mintával», «pont mintával». That
 # is what lets the instrumental suffix stay on a word this catalog writes.
@@ -61,7 +58,6 @@ fill-style =
     .backdiagonal = fordított átlós vonal
     .dots = pont
     .diamonds = rombusz
-
 noun =
     .line = egyenes
     .line-segment = szakasz
@@ -81,7 +77,6 @@ noun =
     .diamond = rombusz
     .cross = kereszt
     .plus = plusz
-
 # «5 oldalú sokszög» — the count and the word for "sided" are separate words in
 # front of the noun, so the whole phrase is a head and there is no tail.
 noun-regular-polygon =
@@ -89,12 +84,10 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] szabályos { $numSides } oldalú sokszög
     }
-
 # Hungarian has no grammatical gender, so this answer goes unused. It is here
 # because the source catalog defines the key and a missing key would fall back
 # to English rather than to nothing.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -108,15 +101,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = kitöltött
-
 # The pattern clause moves to the front, because «mintával kitöltött» is a
 # participle phrase and everything modifying the noun stands before it.
 style-filled =
@@ -124,7 +114,6 @@ style-filled =
         [pattern] { $pattern } mintával { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } mintával { $filled } { $color } { $noun }
@@ -132,7 +121,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } mintával { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «keret» is written here, so it carries the instrumental itself. Hungarian
 # has no indefinite article in this position, so the `-article` branches read
 # the same as the ones without.
@@ -143,36 +131,29 @@ style-border-clause =
         [and-article] és { $border } kerettel
        *[with] { $border } kerettel
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern } minta
        *[plain] { $color }
     }
-
 style-unfilled = kitöltetlen
-
 # «háttér» takes the superessive, and it is written here: «háttéren».
 style-text =
     { $parts ->
         [background] { $color } { $background } háttéren
        *[plain] { $color }
     }
-
 style-background-none = nincs
-
 
 ## Boolean words
 
 boolean-true = igaz
 boolean-false = hamis
 
-
 ## Answer buttons
 
 answer-submit-label = Ellenőrzés
 answer-submit-label-no-correctness = Válasz beküldése
-
 
 ## Sectional blocks
 
@@ -197,7 +178,6 @@ section-name =
     .solution = Megoldás
     .task = Teendő
     .theorem = Tétel
-
 # Hungarian puts the number in front of the word it counts, with an ordinal
 # period: «2. példa», not «Példa 2».
 section-title-prefix =
@@ -209,9 +189,7 @@ section-title-prefix =
         [name-number-title] { $sectionNumber }. { $sectionName }{ ": " }
        *[name-number] { $sectionNumber }. { $sectionName }
     }
-
 hint-title = Segítség
-
 
 ## Tables and figures
 ##
@@ -224,7 +202,6 @@ table-name =
         [unnumbered-title] Táblázat{ ": " }
        *[unnumbered] Táblázat
     }
-
 figure-name =
     { $parts ->
         [numbered] { $enumeration }. ábra
@@ -233,24 +210,20 @@ figure-name =
        *[unnumbered] Ábra
     }
 
-
 ## Paginator controls
 
 paginator-previous = Előző
 paginator-next = Következő
 paginator-page = Oldal
-
 # A slash rather than «-ból/-ből»: the elative harmonizes with how the numeral
 # is read, which the catalog cannot see.
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = vagy
 piecewise-condition-if = ha
 piecewise-condition-otherwise = egyébként
-
 
 ## Chemistry
 
@@ -373,7 +346,6 @@ element-name =
     .lv = Livermórium
     .ts = Tenesszin
     .og = Oganesszon
-
 element-anion-name =
     .h = Hidrid
     .c = Karbid
@@ -387,8 +359,6 @@ element-anion-name =
     .i = Jodid
     .at = Asztatid
     .ts = Tenesszid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Érvénytelen vegyjel
 chemistry-invalid-ionic-compound = Érvénytelen ionvegyület

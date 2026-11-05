@@ -2,6 +2,7 @@ import type Core from "../Core";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { errorComponentState } from "../utils/dast/errors";
 import { deepClone } from "@doenet/utils";
+import { stateIdSegmentForCopiesOfReplacements } from "../utils/componentIndices";
 import {
     deriveChildResultsFromDefiningChildren,
     findChildGroup,
@@ -11,17 +12,21 @@ import { processNewDefiningChildren } from "./ComponentLifecycle";
 import {
     addReplacementsToResolver,
     gatherDiagnosticsAndAssignDoenetMLRange,
+    reportConditionDiagnostics,
 } from "./ResolverAdapter";
 import {
     addAttributesToSingleReplacement,
+    namesReachedThroughCopy,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
 } from "../utils/copy";
 import { preprocessAttributesObject } from "../utils/attributes";
 import {
     createComponentIndicesFromSerializedChildren,
-    createNewComponentIndices,
+    createComponentIndicesForShadowedReplacements,
 } from "../utils/componentIndices";
+import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
+import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 
 /**
  * Expands composite components into their replacements: walks descendants
@@ -393,6 +398,7 @@ export async function expandCompositeComponent({
         sourceDoc,
         overwriteDoenetMLRange,
     });
+    reportConditionDiagnostics({ core, component });
 
     if (component.constructor.stateVariableToEvaluateAfterReplacements) {
         await component.stateValues[
@@ -403,18 +409,11 @@ export async function expandCompositeComponent({
     if (result.replacements) {
         let serializedReplacements = result.replacements;
 
-        await addReplacementsToResolver({
-            core,
-            serializedReplacements,
-            component,
-        });
-
-        reserveComponentIndices(core, newNComponents);
-
         await createAndSetReplacements({
             core,
             component,
             serializedReplacements,
+            newNComponents,
         });
     } else {
         throw Error(
@@ -480,7 +479,10 @@ async function expandShadowingComposite({
     }
 
     const stateIdInfo = {
-        prefix: `${component.stateId}|`,
+        prefix: await shadowReplacementsStateIdPrefix(
+            component,
+            shadowedComposite,
+        ),
         num: component.replacementsWorkspace.replacementsCreated,
     };
 
@@ -492,10 +494,20 @@ async function expandShadowingComposite({
     // However, those replacements already exist in the replacements of `shadowedComposite` which we are copying.
     // As a workaround, we create a map from the indices of the children of `shadowedComposite`
     // to the indices of the children of `component` and override the component indices created on the new replacements.
+    // A composite whose replacements are made from parts of its serialized
+    // children, such as `<pretzel>`'s arranger, is in the same situation; it
+    // sets `mapShadowedReplacementIndicesThroughSerializedChildren` to use
+    // this map. (`useSerializedChildrenComponentIndices`, below, is for a
+    // composite such as `<group>` whose replacement `i` is serialized child
+    // `i`; it cannot be used when replacements and children do not line up.)
     const idxMapOverride: Record<string, number> = {};
     const copyInChildren =
-        shadowedComposite.attributes.copyInChildren?.primitive.value;
-    if (copyInChildren) {
+        shadowedComposite.attributes._copyInChildren?.primitive.value;
+    if (
+        copyInChildren ||
+        component.constructor
+            .mapShadowedReplacementIndicesThroughSerializedChildren
+    ) {
         const componentChildren = JSON.parse(
             JSON.stringify(component.serializedChildren),
         );
@@ -519,35 +531,39 @@ async function expandShadowingComposite({
         }
     }
 
-    for (let [idx, repl] of shadowedComposite.replacements.entries()) {
+    // A copy given a type (`<text extend="$cc"/>`) makes components of
+    // that type, so a value reference among the replacements it copies is
+    // copied as a component (`ValueRef.serialize`); a copy that is not
+    // given one stands where the composite it copies does, and copies a
+    // value reference as one.
+    const valueReferenceAsComponent =
+        component.attributes._createComponentOfType?.primitive != null;
+    // as the mediating copy was made (`namesReachedThroughCopy`)
+    const namesReached = namesReachedThroughCopy(
+        core._components[component.shadows.compositeIdx],
+    );
+    const serializedShadowedReplacements = [];
+    for (const repl of shadowedComposite.replacements) {
         if (typeof repl === "object") {
-            const serializedComponent = await repl.serialize();
-
-            if (component.constructor.useSerializedChildrenComponentIndices) {
-                const res = createComponentIndicesFromSerializedChildren(
-                    [serializedComponent],
-                    [component.serializedChildren[idx]],
-                    newNComponents,
-                    stateIdInfo,
-                );
-                newNComponents = res.nComponents;
-
-                serializedReplacements.push(...res.components);
-            } else {
-                const res = createNewComponentIndices(
-                    [serializedComponent],
-                    newNComponents,
-                    stateIdInfo,
-                    idxMapOverride,
-                );
-                newNComponents = res.nComponents;
-
-                serializedReplacements.push(...res.components);
-            }
+            serializedShadowedReplacements.push(
+                await repl.serialize({
+                    valueReferenceAsComponent,
+                    namesReachedThroughCopy: namesReached,
+                }),
+            );
         } else {
-            serializedReplacements.push(repl);
+            serializedShadowedReplacements.push(repl);
         }
     }
+    const replacementsResult = createComponentIndicesForShadowedReplacements({
+        serializedReplacements: serializedShadowedReplacements,
+        shadowingComponent: component,
+        nComponents: newNComponents,
+        stateIdInfo,
+        idxMapOverride,
+    });
+    newNComponents = replacementsResult.nComponents;
+    serializedReplacements.push(...replacementsResult.components);
 
     if (component.constructor.addExtraSerializedChildrenWhenShadowing) {
         let rendered = true;
@@ -604,7 +620,7 @@ async function expandShadowingComposite({
                 code: "doenet-e0005",
                 args: {
                     componentType:
-                        component.attributes.createComponentOfType?.primitive
+                        component.attributes._createComponentOfType?.primitive
                             ?.value ?? "none",
                 },
                 position: compositeMediatingTheShadow.position,
@@ -686,18 +702,11 @@ async function expandShadowingComposite({
 
     component.replacementsWorkspace.replacementsCreated = stateIdInfo.num;
 
-    await addReplacementsToResolver({
-        core,
-        serializedReplacements,
-        component,
-    });
-
-    reserveComponentIndices(core, newNComponents);
-
     await createAndSetReplacements({
         core,
         component,
         serializedReplacements,
+        newNComponents,
     });
 
     if (shadowedComposite.replacementsToWithhold > 0) {
@@ -748,9 +757,25 @@ function reserveComponentIndices(core: Core, newNComponents: number) {
 }
 
 /**
- * If `composite` has `createComponentIdx` specified,
+ * The prefix of the `stateId`s given to the replacements of `shadowing`, a
+ * composite made from the replacements of `shadowed`. See
+ * `stateIdSegmentForCopiesOfReplacements`. The segment is held in
+ * `shadowing`'s workspace, as the segment of copies of its replacements: they
+ * come from the same part of the DoenetML as `shadowed`'s do now.
+ */
+export async function shadowReplacementsStateIdPrefix(
+    shadowing: any,
+    shadowed: any,
+) {
+    const segment = await stateIdSegmentForCopiesOfReplacements(shadowed);
+    shadowing.replacementsWorkspace.stateIdSegmentOfShadowed = segment;
+    return `${shadowing.stateId}|${segment}`;
+}
+
+/**
+ * If `composite` has `_createComponentIdx` specified,
  * then its one replacement should have the componentIdx.
- * Similarly, if it has `createComponentName` specified,
+ * Similarly, if it has `_createComponentName` specified,
  * then its one replacement should receive that name.
  */
 export function adjustForCreateComponentIdxName({
@@ -761,16 +786,38 @@ export function adjustForCreateComponentIdxName({
     composite: any;
 }) {
     if (serializedReplacements.length === 1) {
+        const createdType =
+            composite.attributes._createComponentOfType?.primitive?.value;
         if (
-            composite.attributes.createComponentIdx?.primitive.value !=
+            typeof serializedReplacements[0] === "string" &&
+            createdType != undefined &&
+            composite.attributes._createComponentIdx?.primitive.value !=
+                undefined
+        ) {
+            // A string, such as the text of a case of a `<conditionalContent>`
+            // (`<case>no</case>`), is made the type the composite is given
+            // (`<text extend="$cc"/>`) to take the index and name (#2433).
+            serializedReplacements[0] = {
+                type: "serialized",
+                componentType: createdType,
+                componentIdx: undefined,
+                stateId: `${composite.stateId}|_string`,
+                attributes: {},
+                doenetAttributes: {},
+                state: {},
+                children: [serializedReplacements[0]],
+            };
+        }
+        if (
+            composite.attributes._createComponentIdx?.primitive.value !=
             undefined
         ) {
             serializedReplacements[0].componentIdx =
-                composite.attributes.createComponentIdx.primitive.value;
+                composite.attributes._createComponentIdx.primitive.value;
         }
 
         if (
-            composite.attributes.createComponentName?.primitive.value !=
+            composite.attributes._createComponentName?.primitive.value !=
             undefined
         ) {
             serializedReplacements[0].attributes.name = {
@@ -778,7 +825,7 @@ export function adjustForCreateComponentIdxName({
                 name: "name",
                 primitive: {
                     type: "string",
-                    value: composite.attributes.createComponentName.primitive
+                    value: composite.attributes._createComponentName.primitive
                         .value,
                 },
             };
@@ -786,39 +833,90 @@ export function adjustForCreateComponentIdxName({
     }
 }
 
+/**
+ * Register `serializedReplacements` with the resolver and create them as
+ * `component`'s replacements.
+ *
+ * Both halves report the same way. A composite that cannot produce its
+ * replacements shows an error in its own place and the rest of the document
+ * builds around it; before, only the second half did that and a failure
+ * registering the names escaped expansion and blanked the page (#1950).
+ */
 export async function createAndSetReplacements({
     core,
     component,
     serializedReplacements,
+    newNComponents,
 }: {
     core: Core;
     component: any;
     serializedReplacements: any[];
+    newNComponents: number;
 }) {
+    // Reserve the indices ahead of the guard below, rather than after
+    // registering with the resolver as the callers used to:
+    // `createSerializedReplacements` has already handed them out, and now that
+    // a failure registering them is caught rather than fatal, a later expansion
+    // would otherwise hand out the same ones again.
+    reserveComponentIndices(core, newNComponents);
+
+    // Registering with the resolver stays outside the parameter stack, where it
+    // was when it was the caller's step, so that `setErrorReplacements` builds
+    // its `_error` component with the composite's shared parameters pushed
+    // however the failure arose.
+    let registrationFailure: any = null;
+    try {
+        await addReplacementsToResolver({
+            core,
+            serializedReplacements,
+            component,
+        });
+    } catch (e: any) {
+        rethrowIfCircular(e);
+        registrationFailure = e;
+    }
+
     core.parameterStack.push(component.sharedParameters, false);
 
-    try {
-        let replacementResult = await createIsolatedComponents({
-            core,
-            serializedComponents: serializedReplacements,
-            ancestors: component.ancestors,
-            shadow: true,
-            componentsReplacementOf: component,
-        });
-        component.replacements = replacementResult.components;
-    } catch (e: any) {
-        console.error(e);
-        component.replacements = await core.setErrorReplacements({
-            composite: component,
-            message: e.message,
-            source: e,
-        });
+    if (registrationFailure) {
+        await setReplacementsToError(core, component, registrationFailure);
+    } else {
+        try {
+            let replacementResult = await createIsolatedComponents({
+                core,
+                serializedComponents: serializedReplacements,
+                ancestors: component.ancestors,
+                shadow: true,
+                componentsReplacementOf: component,
+            });
+            component.replacements = replacementResult.components;
+        } catch (e: any) {
+            rethrowIfCircular(e);
+            await setReplacementsToError(core, component, e);
+        }
     }
     core.parameterStack.pop();
 
     await core.dependencies.addBlockersFromChangedReplacements(component);
 
     component.isExpanded = true;
+
+    // A list component among the items is indexed by its entries.
+    await giveListEntriesToIndexParent({ core, composite: component });
+}
+
+/**
+ * Put `component` into its error state: its replacements become the one
+ * `_error` component that carries `e`'s message, and the message is added to
+ * the document's diagnostics beside the composite.
+ */
+async function setReplacementsToError(core: Core, component: any, e: any) {
+    console.error(e);
+    component.replacements = await core.setErrorReplacements({
+        composite: component,
+        message: e.message,
+        source: e,
+    });
 }
 
 export async function replaceCompositeChildren({
@@ -866,10 +964,10 @@ export async function replaceCompositeChildren({
             let replaceWithPlaceholders = false;
 
             // if an unexpanded composite has a createComponentOfType specified
-            // replace with placeholders
+            // replace with a placeholder
             // otherwise, leave composite as an activeChild
             if (!child.isExpanded) {
-                if (child.attributes.createComponentOfType?.primitive) {
+                if (child.attributes._createComponentOfType?.primitive) {
                     replaceWithPlaceholders = true;
                 } else {
                     continue;
@@ -879,34 +977,23 @@ export async function replaceCompositeChildren({
             let replacements;
 
             if (replaceWithPlaceholders) {
-                let numComponents;
-
-                if (child.attributes.numComponents) {
-                    numComponents =
-                        child.attributes.numComponents.primitive.value;
-                } else {
-                    numComponents = 1;
-                }
-
+                // A composite given a type makes exactly one component,
+                // so it is replaced by a single placeholder.
                 let componentType =
                     core.componentInfoObjects.componentTypeLowerCaseMapping[
-                        child.attributes.createComponentOfType.primitive.value.toLowerCase()
+                        child.attributes._createComponentOfType.primitive.value.toLowerCase()
                     ];
-                replacements = [];
-
-                for (let i = 0; i < numComponents; i++) {
-                    replacements.push({
+                replacements = [
+                    {
                         componentType,
                         fromComposite: child.componentIdx,
                         placeholderInd: nPlaceholdersAdded,
-                    });
-                    nPlaceholdersAdded++;
-                }
+                    },
+                ];
+                nPlaceholdersAdded++;
 
                 parent.hasPlaceholderActiveChildren = true;
-                let placeholdInds = [...Array(numComponents).keys()].map(
-                    (x) => x + childInd,
-                );
+                let placeholdInds = [childInd];
 
                 if (!parent.placeholderActiveChildrenIndices) {
                     parent.placeholderActiveChildrenIndices = [];
@@ -954,12 +1041,14 @@ export async function replaceCompositeChildren({
             // then it may be turned into a list if all the components can be list elements.
 
             // All inline components and any components with canBeInList set
-            // are considered potential components for a list.
+            // are considered potential components for a list. A value
+            // reference (`_ref`) counts as the type it stands in for.
             let replacementsCanBeInList = replacements.map((repl: any) =>
                 Boolean(
                     typeof repl !== "object" ||
                     (core.componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: repl.componentType,
+                        inheritedComponentType:
+                            repl.presentedComponentType ?? repl.componentType,
                         baseComponentType: "_inline",
                     }) &&
                         repl.constructor.canBeInList !== false) ||
@@ -967,11 +1056,16 @@ export async function replaceCompositeChildren({
                 ),
             );
 
+            // An enclosing composite recorded this child as one entry of its
+            // own range; now that the child has become `replacements.length`
+            // children, widen that range and put the replacements' eligibility
+            // in the entry's place. `potentialListComponents` is indexed from
+            // the range's own `firstInd`, not from the parent's children.
             for (let otherCompositeObject of parent.compositeReplacementActiveRange) {
                 if (otherCompositeObject.lastInd >= childInd) {
                     otherCompositeObject.lastInd += replacements.length - 1;
                     otherCompositeObject.potentialListComponents.splice(
-                        childInd,
+                        childInd - otherCompositeObject.firstInd,
                         1,
                         ...replacementsCanBeInList,
                     );
@@ -1235,7 +1329,9 @@ export async function changeInactiveComponentAndDescendants({
  * keeps replacements past `replacementsToWithhold`. `stopIfHaveProp`,
  * if set, names a state variable: a composite that publicly exposes
  * that variable is treated as the replacement itself rather than
- * recursed into.
+ * recursed into. `stopAtListComposites` does the same for a composite
+ * that can be shown as a list (its state has `asList`), so that a copy
+ * of the replacements keeps the list, commas and all.
  */
 export function recursivelyReplaceCompositesWithReplacements({
     core,
@@ -1243,12 +1339,14 @@ export function recursivelyReplaceCompositesWithReplacements({
     recurseNonStandardComposites = false,
     includeWithheldReplacements = false,
     stopIfHaveProp,
+    stopAtListComposites = false,
 }: {
     core: Core;
     replacements: any[];
     recurseNonStandardComposites?: boolean;
     includeWithheldReplacements?: boolean;
     stopIfHaveProp?: string;
+    stopAtListComposites?: boolean;
 }): {
     compositesFound: number[];
     newReplacements: any[];
@@ -1285,6 +1383,11 @@ export function recursivelyReplaceCompositesWithReplacements({
             }
         }
 
+        if (stopAtListComposites && "asList" in replacement.state) {
+            newReplacements.push(replacement);
+            continue;
+        }
+
         compositesFound.push(replacement.componentIdx);
 
         if (!replacement.isExpanded) {
@@ -1313,6 +1416,7 @@ export function recursivelyReplaceCompositesWithReplacements({
             recurseNonStandardComposites,
             includeWithheldReplacements,
             stopIfHaveProp,
+            stopAtListComposites,
         });
         compositesFound.push(...recursionResult.compositesFound);
         newReplacements.push(...recursionResult.newReplacements);

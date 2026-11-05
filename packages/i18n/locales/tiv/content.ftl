@@ -77,7 +77,6 @@ color =
     .purple = papul
     .pink = pinki
     .brown = buraun
-
 line-width =
     .thick =
         { $gender ->
@@ -91,14 +90,12 @@ line-width =
             [c2] i kiryan
            *[c3] a kiryan
         }
-
 # Written as invariable «man …» phrases rather than as quality verbs, so that
 # they take no particle and can close the description. `style-stroke` puts them
 # last.
 line-style =
     .dashed = man ubaajir
     .dotted = man utindi
-
 fill-style =
     .horizontal = ulayin mba ve tsa
     .vertical = ulayin mba ve tile
@@ -106,7 +103,6 @@ fill-style =
     .backdiagonal = ulayin mba ve gbe ken ijime i ugen
     .dots = utindi
     .diamonds = udayamon
-
 noun =
     .line = layin
     .line-segment = ikyar i layin
@@ -126,7 +122,6 @@ noun =
     .diamond = dayamon
     .cross = korosu
     .plus = ikyav i seer
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -134,7 +129,6 @@ noun-regular-polygon =
         [tail] i a lu a atser { $numSides }
        *[head] poligon i a kuma
     }
-
 # The noun class. `c3` is the default and the class a loanword joins, which is
 # what an author's own `markerStyleWord` is as far as this catalog is
 # concerned.
@@ -159,7 +153,6 @@ noun-gender =
        *[other] c3
     }
 
-
 ## Style composition
 
 # The dash pattern is a «man …» phrase and closes the description, so it moves
@@ -176,26 +169,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c1] u iv
         [c2] i iv
        *[c3] a iv
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } man { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } man { $pattern }
@@ -203,7 +192,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } man { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «igbenda» is the border and leads its own describing words, so they agree
 # with it rather than with the shape it surrounds. Tiv has no article and joins
 # this clause with the invariable «man», so all four branches read alike.
@@ -214,35 +202,28 @@ style-border-clause =
         [and-article] man igbenda { $border }
        *[with] man igbenda { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = i iv ga
-
 style-text =
     { $parts ->
         [background] { $color } sha ijime { $background }
        *[plain] { $color }
     }
-
 style-background-none = ma kwagh ngu ga
-
 
 ## Boolean words
 
 boolean-true = mimi
 boolean-false = aie
 
-
 ## Answer buttons
 
 answer-submit-label = Tôô Tom
 answer-submit-label-no-correctness = Tindi Mlumun
-
 
 ## Sectional blocks
 
@@ -267,7 +248,6 @@ section-name =
     .solution = Mbem
     .task = Tom
     .theorem = Tiyorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -277,9 +257,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Mtesen
-
 
 ## Tables and figures
 
@@ -290,7 +268,6 @@ table-name =
         [unnumbered-title] Tebur{ ": " }
        *[unnumbered] Tebur
     }
-
 figure-name =
     { $parts ->
         [numbered] Ikyav { $enumeration }
@@ -299,25 +276,18 @@ figure-name =
        *[unnumbered] Ikyav
     }
 
-
 ## Paginator controls
 
 paginator-previous = U karen
 paginator-next = U dondon
-
 paginator-page = Peji
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = shin
-
 piecewise-condition-if = aluer
-
 piecewise-condition-otherwise = hen ajiir agen cii
-
 
 ## Chemistry
 ##
@@ -330,6 +300,5 @@ piecewise-condition-otherwise = hen ajiir agen cii
 ## give from the same ministry.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ikyav i Kemistiri i i Doo Ga
 chemistry-invalid-ionic-compound = Mkohol u Ayon u u Doo Ga

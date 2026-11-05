@@ -11,7 +11,7 @@ import {
     UnflattenedPathPart,
     UnflattenedRefResolution,
 } from "./intermediateTypes";
-import { unwrapSource } from "./convertNormalizedDast";
+import { addSource, unwrapSource } from "./convertNormalizedDast";
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -126,6 +126,11 @@ export function convertRefsToCopies({
                     state: {},
                     children: [],
                     extending: wrappingComponent.extending,
+                    // where the list is written, so that a diagnostic of
+                    // what it is made from (`typeChangeAtLoad.ts`) is marked
+                    // there
+                    position: wrappingComponent.position,
+                    sourceDoc: wrappingComponent.sourceDoc,
                 };
 
                 if (!wrappingComponent.doenetAttributes) {
@@ -156,8 +161,8 @@ export function convertRefsToCopies({
                 }
 
                 if ("CopyAttribute" in extending) {
-                    newComponent.attributes.link = {
-                        name: "link",
+                    newComponent.attributes._link = {
+                        name: "_link",
                         children: ["false"],
                     };
 
@@ -166,23 +171,40 @@ export function convertRefsToCopies({
                 } else {
                     wrappingComponent.doenetAttributes.extendListViaComposite =
                         newComponent.componentIdx;
+
+                    // The list it extends, when the reference names it with
+                    // nothing left to resolve, whose attributes it takes as
+                    // an extend takes its source's
+                    // (`AttributeComponentDependency`, `utils/contextAttribute.js`).
+                    if (
+                        refResolution.unresolvedPath === null ||
+                        refResolution.unresolvedPath.length === 0
+                    ) {
+                        wrappingComponent.doenetAttributes.extendsList =
+                            refResolution.nodeIdx;
+                    }
                 }
 
-                // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component
-                if ("removeEmptyArrayEntries" in wrappingComponent.attributes) {
-                    newComponent.attributes.removeEmptyArrayEntries =
-                        wrappingComponent.attributes.removeEmptyArrayEntries;
-                    delete wrappingComponent.attributes.removeEmptyArrayEntries;
+                // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component,
+                // in whatever case the author wrote it
+                for (const attrName of Object.keys(
+                    wrappingComponent.attributes,
+                )) {
+                    if (attrName.toLowerCase() === "removeemptyarrayentries") {
+                        newComponent.attributes[attrName] =
+                            wrappingComponent.attributes[attrName];
+                        delete wrappingComponent.attributes[attrName];
+                    }
                 }
 
                 delete wrappingComponent.extending;
             } else {
-                outerAttributes.createComponentOfType = {
-                    name: "createComponentOfType",
+                outerAttributes._createComponentOfType = {
+                    name: "_createComponentOfType",
                     children: [newComponent.componentType],
                 };
-                outerAttributes.createComponentIdx = {
-                    name: "createComponentIdx",
+                outerAttributes._createComponentIdx = {
+                    name: "_createComponentIdx",
                     children: [newComponent.componentIdx.toString()],
                 };
                 const originalIdx = newComponent.componentIdx;
@@ -212,20 +234,20 @@ export function convertRefsToCopies({
                 }
 
                 if (outerAttributes.name) {
-                    outerAttributes.createComponentName = {
-                        name: "createComponentName",
+                    outerAttributes._createComponentName = {
+                        name: "_createComponentName",
                         children: outerAttributes.name.children,
                     };
                     delete outerAttributes.name;
                 }
-                outerAttributes.copyInChildren = {
-                    name: "copyInChildren",
+                outerAttributes._copyInChildren = {
+                    name: "_copyInChildren",
                     children: ["true"],
                 };
 
                 if ("CopyAttribute" in extending) {
-                    outerAttributes.link = {
-                        name: "link",
+                    outerAttributes._link = {
+                        name: "_link",
                         children: ["false"],
                     };
                 }
@@ -262,6 +284,13 @@ export function convertRefsToCopies({
                             comp.componentType === "integer"
                         ) {
                             // round value
+                            // Remember what was written first. Now that an
+                            // element can be written between the brackets
+                            // (#1909), a `<number>` retyped here is markup the
+                            // author typed, and an attribute error naming
+                            // `<integer>` would name a component that appears
+                            // nowhere in their document (#1919).
+                            comp.authoredComponentType = comp.componentType;
                             comp.componentType = "integer";
                             return {
                                 value: [comp],
@@ -270,10 +299,10 @@ export function convertRefsToCopies({
                             };
                         } else if (
                             comp.componentType === "_copy" &&
-                            !comp.attributes.createComponentOfType
+                            !comp.attributes._createComponentOfType
                         ) {
-                            comp.attributes.createComponentOfType = {
-                                name: "createComponentOfType",
+                            comp.attributes._createComponentOfType = {
+                                name: "_createComponentOfType",
                                 children: ["integer"],
                             };
                             return {
@@ -291,6 +320,19 @@ export function convertRefsToCopies({
                                 type: "unflattened",
                                 componentType: "integer",
                                 componentIdx: nComponents++,
+                                // This wrapper is not something an author wrote,
+                                // so it does not get an author's sugar. Without
+                                // this, now that `applySugar` reaches an index's
+                                // contents (#1909), `<number>`'s operator sugar
+                                // fires on the pieces of an ordinary `$a[$i+1]`
+                                // and builds a `<math>` that nothing needs —
+                                // two extra components per index, and per
+                                // iteration inside a `<repeat>`. The components
+                                // written between the brackets still get their
+                                // own sugar: `skipSugar` stops only this
+                                // component's instructions, not the recursion
+                                // into its children.
+                                skipSugar: true,
                                 attributes: {},
                                 doenetAttributes: {},
                                 children: res.components,
@@ -345,6 +387,19 @@ export function convertRefsToCopies({
 }
 
 /**
+ * The same path with every index emptied.
+ *
+ * Used for the copy of a resolution that must not own the components sitting in
+ * its indices. The path parts themselves are rebuilt rather than mutated, since
+ * the original is still in use by whoever does own them.
+ */
+function dropIndexComponents(
+    path: UnflattenedPathPart[],
+): UnflattenedPathPart[] {
+    return path.map((pathPart) => ({ ...pathPart, index: [] }));
+}
+
+/**
  * Convert evaluate component to the serialized component
  * format needed for the javascript core
  */
@@ -377,6 +432,14 @@ function convertEvaluate({
         doenetAttributes: {},
         state: {},
         extending: evaluateComponent.extending,
+        // This component is synthesized rather than written, but it is the one
+        // that carries the reference — so anything that reports a problem with
+        // the reference reports it from here. Without a position such a
+        // diagnostic has no location to show the author, and two of them
+        // covering different references look identical and are deduplicated
+        // into one. The `<evaluate>`'s own span is where the author wrote it.
+        position: evaluateComponent.position,
+        sourceDoc: evaluateComponent.sourceDoc,
     };
 
     let res = convertRefsToCopies({
@@ -419,6 +482,32 @@ function convertEvaluate({
     // Note: we don't delete the `extending` attribute of the `<evaluate>` even though it isn't directly used,
     // as it is used in sugar to determine whether or not the component is a reference
     // delete evaluateComponent.extending;
+
+    // What it must *not* keep is the index. `functionComponent` was handed this
+    // very object, and `convertRefsToCopies` rewrites a resolution's paths in
+    // place, so the conversion just above left the `<evaluate>` pointing at the
+    // same freshly built index components as the `function` it created. Both then
+    // reach `createIsolatedComponents`, which instantiates each component in a
+    // path index — and the second one throws `Found a duplicate componentIdx`,
+    // blanking the document (#1917).
+    //
+    // The index belongs to the function: in `$$f[$k](3)` it picks which function
+    // is called, not part of what the call returns. So the `<evaluate>` keeps the
+    // path it was written with and gives up the components in it. Nothing reads
+    // them from here — every other consumer of an `<evaluate>`'s `extending`
+    // tests only that it is a reference, or compares `nodeIdx` and
+    // `unresolvedPath`.
+    evaluateComponent.extending = addSource(
+        {
+            ...refResolution,
+            originalPath: dropIndexComponents(refResolution.originalPath),
+            unresolvedPath:
+                refResolution.unresolvedPath === null
+                    ? null
+                    : dropIndexComponents(refResolution.unresolvedPath),
+        },
+        evaluateComponent.extending!,
+    );
 
     // The child of the evaluate is a list of the form `<ol><li></li><li></li></ol>""
     // The grandchildren become children of the input attribute,

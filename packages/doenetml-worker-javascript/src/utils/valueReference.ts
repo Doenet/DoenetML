@@ -1,0 +1,801 @@
+/**
+ * Where a reference to one state variable can be a value reference (a `_ref`
+ * component, see `components/abstract/ValueRef.js`) instead of a full
+ * component shadowing the referent, and what it then stands in for. Part of
+ * Doenet/DoenetML#2128.
+ *
+ * Two callers plan value references. `utils/dast/valueReferences.ts` plans
+ * them when the document is converted, from the types the document declares,
+ * and makes a `_ref` that resolves its own reference; `Copy.js` plans them
+ * when a `_copy` expands, from the component it resolved to, for the
+ * references whose target or type is only known then.
+ */
+import type { ComponentInfoObjects } from "./componentInfoObjects";
+import { publicCaseInsensitiveAliasSubstitutions } from "../StateVariableNameResolver";
+import { describeReferentVariable } from "./referentDescription";
+import {
+    listEntryPropertyPath,
+    listEntryPropertyType,
+} from "./listEntryReference";
+
+/**
+ * The component types a value reference can stand in for, with their
+ * subclasses (`integer` for `number`, `latex` for `text`).
+ */
+const VALUE_COMPONENT_TYPES = ["number", "math", "text", "boolean"];
+
+export type ValueReferencePlan = {
+    /** The type the reference stands in for in its parent's child groups. */
+    presentedComponentType: string;
+    /**
+     * Set when the reference presents as the type of one of the referenced
+     * value's adapters: the referent's variable it reads instead of the
+     * referenced one (`math` for `$n` in a `<math>`).
+     */
+    adapterVariable?: string;
+};
+
+/**
+ * The component types (with their subclasses) that render their children
+ * but in which a value reference is not drawn: a `<graph>` places a
+ * `<number>`, `<math>` or `<text>` child at an anchor the reader can drag,
+ * and an input or a slider reads its value children as its choices or its
+ * initial value. A reference there stays the component it was.
+ */
+const PARENTS_NOT_DRAWING_VALUE_REFERENCES = [
+    "graph",
+    "_input",
+    "slider",
+    "matrixInput",
+    "fractionInput",
+];
+
+/**
+ * Whether a value reference whose parent is of class `parentClass` can be
+ * drawn there (`ValueRef.js`): the parent renders its children and is not
+ * one of `PARENTS_NOT_DRAWING_VALUE_REFERENCES`.
+ */
+export function parentDrawsValueReferences(
+    parentClass: any,
+    componentInfoObjects: ComponentInfoObjects,
+): boolean {
+    return (
+        Boolean(parentClass?.renderChildren) &&
+        !PARENTS_NOT_DRAWING_VALUE_REFERENCES.some((baseComponentType) =>
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: parentClass.componentType,
+                baseComponentType,
+            }),
+        )
+    );
+}
+
+/**
+ * Decide whether a linked reference to one state variable of a component of
+ * `targetComponentType` can be a value reference, and if so as what type
+ * and reading which variable.
+ *
+ * It can when it stands where only a value is read: the parent that will
+ * hold it is not a composite and does not render its children, the
+ * variable's type is one of `VALUE_COMPONENT_TYPES`, the reference carries
+ * no attributes of its own, and the parent accepts the type in a child
+ * group. With `allowDrawn`, a parent that renders its children qualifies
+ * too when it draws value references (`parentDrawsValueReferences`): the
+ * reference is then drawn there as the type it presents as, in place of a
+ * full component (`$n` in `<p>The value is $n.</p>`). When the parent does
+ * not accept the type but would accept one of the type's adapters (`$n` in a `<math>`: `number` adapts to `math`
+ * through its `math` variable), the reference presents as the adapter's type
+ * and reads the adapter's variable on the referent instead, which is what the
+ * adapter component would have done. That re-pointing is only possible when
+ * the reference is to the implicit prop of a referent of the value's own type
+ * (`implicitPropReturnsSameType`): the adapter's variable, with its inverse,
+ * lives on the referent only then. A `<booleanInput>`'s `text` is not a
+ * `<boolean>`'s, and does not take a write.
+ *
+ * Returns `undefined` for everything else, which keeps today's component.
+ */
+export function planValueReference({
+    parentClass,
+    targetComponentType,
+    valueComponentType,
+    fromImplicitProp,
+    hasAttributes,
+    allowDrawn = false,
+    componentInfoObjects,
+}: {
+    parentClass: any;
+    targetComponentType: string;
+    valueComponentType: string | undefined;
+    fromImplicitProp: boolean;
+    hasAttributes: boolean;
+    /**
+     * Whether the reference may be one its parent draws. Not for one entry
+     * of many (`Copy.js`'s `arrayListReplacement` asks whether a parent
+     * reads values, and makes one list component where it draws them).
+     */
+    allowDrawn?: boolean;
+    componentInfoObjects: ComponentInfoObjects;
+}): ValueReferencePlan | undefined {
+    if (
+        hasAttributes ||
+        !parentClass ||
+        (parentClass.renderChildren &&
+            !(
+                allowDrawn &&
+                parentDrawsValueReferences(parentClass, componentInfoObjects)
+            ))
+    ) {
+        return undefined;
+    }
+    if (
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: parentClass.componentType,
+            baseComponentType: "_composite",
+        })
+    ) {
+        return undefined;
+    }
+    if (!isValueComponentType(valueComponentType, componentInfoObjects)) {
+        return undefined;
+    }
+
+    if (
+        childGroupAccepts(
+            parentClass,
+            valueComponentType!,
+            componentInfoObjects,
+        )
+    ) {
+        return { presentedComponentType: valueComponentType! };
+    }
+
+    const targetClass =
+        componentInfoObjects.allComponentClasses[targetComponentType];
+
+    if (fromImplicitProp && targetClass?.implicitPropReturnsSameType) {
+        const valueClass =
+            componentInfoObjects.allComponentClasses[valueComponentType!];
+        const targetVariables =
+            componentInfoObjects.publicStateVariableInfo[targetComponentType]
+                .stateVariableDescriptions;
+        for (let n = 0; n < valueClass.numAdapters; n++) {
+            const adapter = valueClass.adapters[n];
+            if (
+                typeof adapter !== "string" &&
+                adapter.substituteForPrimaryStateVariable
+            ) {
+                continue;
+            }
+            const adapterVariable =
+                typeof adapter === "string" ? adapter : adapter.stateVariable;
+            const adapterType = valueClass.getAdapterComponentType(
+                n,
+                componentInfoObjects.publicStateVariableInfo,
+            );
+            if (!isValueComponentType(adapterType, componentInfoObjects)) {
+                continue;
+            }
+            const description = targetVariables[adapterVariable];
+            if (
+                !description ||
+                description.isArray ||
+                description.createComponentOfType !== adapterType
+            ) {
+                continue;
+            }
+            if (
+                childGroupAccepts(
+                    parentClass,
+                    adapterType,
+                    componentInfoObjects,
+                )
+            ) {
+                return {
+                    presentedComponentType: adapterType,
+                    adapterVariable,
+                };
+            }
+        }
+    }
+
+    if (
+        childGroupAccepts(
+            parentClass,
+            valueComponentType!,
+            componentInfoObjects,
+            true,
+        )
+    ) {
+        return { presentedComponentType: valueComponentType! };
+    }
+
+    return undefined;
+}
+
+/**
+ * Whether a value reference planned as `plan`, to the implicit prop of a
+ * component of class `targetClass` when `fromImplicitProp`, stands for a copy
+ * of its referent: the referent's implicit prop is of the referent's own type
+ * (`implicitPropReturnsSameType`, `$n` of a `<number>`) and the reference
+ * reads it as it is. The component a copy made for such a reference shadowed
+ * all of the referent's attributes, so where the reference is drawn it shows
+ * as the referent does (`hide`, `styleNumber`, `renderMode`, …; `ValueRef.js`).
+ * `$n.value`, and `$mi` of a `<mathInput>`, are not copies of the referent.
+ */
+export function copiesReferent({
+    fromImplicitProp,
+    targetClass,
+    plan,
+}: {
+    fromImplicitProp: boolean;
+    targetClass: any;
+    plan: ValueReferencePlan;
+}): boolean {
+    return (
+        fromImplicitProp &&
+        Boolean(targetClass?.implicitPropReturnsSameType) &&
+        plan.adapterVariable === undefined
+    );
+}
+
+/**
+ * For a reference to the value of an entry of a list component
+ * (`listClass`, `$l[$i]`) whose parent takes no component of the entries'
+ * type (`valueComponentType`) but takes that of one of its adapters (a
+ * `<number>` adapts to a `<math>` through its `math`): the entry property
+ * the adapter would read, which the list provides (`$l[$i].math`), and the
+ * type the reference then presents as. A component of the entries' type
+ * standing there would have been given that adapter.
+ */
+export function planListEntryAdapterReference({
+    parentClass,
+    listClass,
+    valueComponentType,
+    componentInfoObjects,
+}: {
+    parentClass: any;
+    listClass: any;
+    valueComponentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+}): { presentedComponentType: string; entryProperty: string } | undefined {
+    // A parent that `planValueReference` turns away for every reference
+    // (a composite, such as a `<numberList>`, which copies an entry's
+    // display settings from a `_copy`) is turned away here too.
+    if (
+        !parentClass ||
+        parentClass.renderChildren ||
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: parentClass.componentType,
+            baseComponentType: "_composite",
+        })
+    ) {
+        return undefined;
+    }
+    const valueClass =
+        componentInfoObjects.allComponentClasses[valueComponentType];
+    for (let n = 0; n < (valueClass?.numAdapters ?? 0); n++) {
+        const adapter = valueClass.adapters[n];
+        if (
+            typeof adapter !== "string" &&
+            adapter.substituteForPrimaryStateVariable
+        ) {
+            continue;
+        }
+        const entryProperty =
+            typeof adapter === "string" ? adapter : adapter.stateVariable;
+        const adapterType = valueClass.getAdapterComponentType(
+            n,
+            componentInfoObjects.publicStateVariableInfo,
+        );
+        if (
+            isValueComponentType(adapterType, componentInfoObjects) &&
+            listClass.listEntryStateVariables[entryProperty] !== undefined &&
+            listEntryPropertyType(
+                listClass,
+                entryProperty,
+                componentInfoObjects,
+            ) === adapterType &&
+            childGroupAccepts(parentClass, adapterType, componentInfoObjects)
+        ) {
+            return { presentedComponentType: adapterType, entryProperty };
+        }
+    }
+    return undefined;
+}
+
+/**
+ * For a reference to the whole of a component of class `targetClass` that
+ * has no implicit prop (`$P` of a `<point>`), in a parent that takes no
+ * component of the target's type but takes that of one of its adapters
+ * (a `<boolean>` takes the `coords` a point adapts to): the adapter's type,
+ * which the reference then presents as, and the adapter's variable, which
+ * it reads on the referent (`P.coords`). That is what the adapter component
+ * made from a copy of the referent would have read, so the reference stands
+ * in for the copy and its adapter with no component of either.
+ *
+ * The adapter is the one `ChildMatcher` would choose for a component of the
+ * target's type: the first, in the class's order, whose type the parent
+ * takes. The plan is made only when that adapter's type is a value type
+ * (`isValueComponentType`: one of `VALUE_COMPONENT_TYPES` or a type that
+ * inherits from one, as `coords` does from `math`) and is the type of the
+ * adapter's variable
+ * (`createComponentOfType`), and the variable is one value, as for the
+ * re-pointing `planValueReference` does for `$n` in a `<math>`. A parent that
+ * renders its children (`<p>$P</p>`) draws the referent, and is turned away.
+ */
+export function planReferentAdapterReference({
+    parentClass,
+    targetComponentType,
+    targetClass: givenTargetClass,
+    componentInfoObjects,
+}: {
+    parentClass: any;
+    targetComponentType: string;
+    /**
+     * The class the target is created as, when it is not the one registered
+     * for its type (`classForSerializedComponent`).
+     */
+    targetClass?: any;
+    componentInfoObjects: ComponentInfoObjects;
+}): Required<ValueReferencePlan> | undefined {
+    const targetClass =
+        givenTargetClass ??
+        componentInfoObjects.allComponentClasses[targetComponentType];
+    if (
+        !targetClass ||
+        targetClass.variableForImplicitProp ||
+        !parentClass ||
+        parentClass.renderChildren ||
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: parentClass.componentType,
+            baseComponentType: "_composite",
+        }) ||
+        componentInfoObjects.isCompositeComponent({
+            componentType: targetComponentType,
+            includeNonStandard: true,
+        }) ||
+        childGroupAccepts(
+            parentClass,
+            targetComponentType,
+            componentInfoObjects,
+        )
+    ) {
+        return undefined;
+    }
+    const targetVariables =
+        componentInfoObjects.publicStateVariableInfo[targetComponentType]
+            ?.stateVariableDescriptions;
+    if (!targetVariables) {
+        return undefined;
+    }
+    for (let n = 0; n < targetClass.numAdapters; n++) {
+        const adapter = targetClass.adapters[n];
+        const adapterType = targetClass.getAdapterComponentType(
+            n,
+            componentInfoObjects.publicStateVariableInfo,
+        );
+        if (
+            !adapterType ||
+            !childGroupAccepts(parentClass, adapterType, componentInfoObjects)
+        ) {
+            continue;
+        }
+        // the adapter `ChildMatcher` would choose: plan with it or not at all
+        if (
+            (typeof adapter !== "string" &&
+                adapter.substituteForPrimaryStateVariable) ||
+            !isValueComponentType(adapterType, componentInfoObjects)
+        ) {
+            return undefined;
+        }
+        const adapterVariable =
+            typeof adapter === "string" ? adapter : adapter.stateVariable;
+        const description = targetVariables[adapterVariable];
+        if (
+            !description ||
+            description.isArray ||
+            description.createComponentOfType !== adapterType
+        ) {
+            return undefined;
+        }
+        return { presentedComponentType: adapterType, adapterVariable };
+    }
+    return undefined;
+}
+
+/**
+ * What a reference to a component of `targetComponentType` with the
+ * remaining path `unresolvedPath` reads, worked out from the type alone:
+ * the type of the component the value is read from (`referentComponentType`),
+ * the type of a component holding the value, and whether the reference is to
+ * the referent's implicit prop. `undefined` when that cannot be known from
+ * the type, or when what is read is not one value.
+ *
+ * Known when the target is not a composite and the path is empty (the
+ * implicit prop) or one part: a prop name, an array entry, a bare index into
+ * `variableForIndexAsProp`, or a name with as many indices as the array or
+ * entry has dimensions, so that one value comes out; or, for a list
+ * component, a property of one of its entries (`[2].text`,
+ * `utils/listEntryReference.ts`). Names are matched as
+ * they are at run time (case, aliases, public variables only). The variable
+ * must declare the type of its values; one whose type depends on its value
+ * (a `<choiceInput>`'s `selectedValue`) is left to be resolved at run time.
+ *
+ * A composite's replacements are only known once it expands, so a reference
+ * to a composite is not worked out from its type.
+ */
+export function staticValueReferenceTarget({
+    targetComponentType,
+    targetClass: givenTargetClass,
+    unresolvedPath,
+    componentInfoObjects,
+}: {
+    targetComponentType: string;
+    /**
+     * The class the target is created as, when it is not the one registered
+     * for its type (`classForSerializedComponent`).
+     */
+    targetClass?: any;
+    unresolvedPath: { name: string; index: unknown[] }[] | null | undefined;
+    componentInfoObjects: ComponentInfoObjects;
+}):
+    | {
+          referentComponentType: string;
+          valueComponentType: string;
+          fromImplicitProp: boolean;
+          /** The entry property read, for an entry of a list component. */
+          listEntryProperty?: string;
+      }
+    | undefined {
+    const targetClass =
+        givenTargetClass ??
+        componentInfoObjects.allComponentClasses[targetComponentType];
+    if (!targetClass) {
+        return undefined;
+    }
+    if (
+        componentInfoObjects.isCompositeComponent({
+            componentType: targetComponentType,
+            includeNonStandard: true,
+        })
+    ) {
+        return undefined;
+    }
+
+    // A property of an entry of a list component (`$l[2].text`) is one
+    // value, of the type of that property of the entries; the property of
+    // every entry (`$l.text`) is not.
+    const listEntryPath = listEntryPropertyPath({
+        listClass: targetClass,
+        unresolvedPath,
+        componentInfoObjects,
+    });
+    if (listEntryPath) {
+        const valueComponentType = listEntryPath.isEntry
+            ? listEntryPropertyType(
+                  targetClass,
+                  listEntryPath.entryProperty,
+                  componentInfoObjects,
+              )
+            : undefined;
+        return valueComponentType === undefined
+            ? undefined
+            : {
+                  referentComponentType: targetComponentType,
+                  valueComponentType,
+                  fromImplicitProp: false,
+                  listEntryProperty: listEntryPath.entryProperty,
+              };
+    }
+
+    let name: string | undefined;
+    let indexCount = 0;
+    let fromImplicitProp = false;
+
+    if (unresolvedPath == null) {
+        name = targetClass.variableForImplicitProp;
+        fromImplicitProp = true;
+    } else {
+        if (unresolvedPath.length !== 1) {
+            return undefined;
+        }
+        name = unresolvedPath[0].name;
+        indexCount = unresolvedPath[0].index.length;
+        if (name === "") {
+            name = targetClass.variableForIndexAsProp;
+        }
+    }
+
+    if (!name) {
+        return undefined;
+    }
+
+    const [variableName] = publicCaseInsensitiveAliasSubstitutions({
+        stateVariables: [name],
+        componentClass: targetClass,
+        componentInfoObjects,
+    });
+    if (variableName.startsWith("__not_public_")) {
+        return undefined;
+    }
+
+    const info = componentInfoObjects.publicStateVariableInfo[
+        targetComponentType
+    ] as any;
+    let description = info.stateVariableDescriptions[variableName];
+    let entryDimensions: number;
+
+    if (description) {
+        entryDimensions = description.isArray
+            ? (description.numDimensions ?? 1)
+            : 0;
+    } else {
+        // the name of an array entry: find its array by the longest prefix
+        // that yields a key
+        const prefix = Object.keys(info.arrayEntryPrefixes)
+            .sort((a, b) => b.length - a.length)
+            .find((prefix) => {
+                if (!variableName.startsWith(prefix)) {
+                    return false;
+                }
+                const arrayDescription =
+                    info.stateVariableDescriptions[
+                        info.arrayEntryPrefixes[prefix].arrayVariableName
+                    ];
+                return (
+                    arrayDescription?.getArrayKeysFromVarName?.({
+                        arrayEntryPrefix: prefix,
+                        varEnding: variableName.substring(prefix.length),
+                        numDimensions: arrayDescription.numDimensions,
+                    }).length > 0
+                );
+            });
+        if (prefix === undefined) {
+            return undefined;
+        }
+        const prefixDescription = info.arrayEntryPrefixes[prefix];
+        description =
+            info.stateVariableDescriptions[prefixDescription.arrayVariableName];
+        entryDimensions = prefixDescription.numDimensions;
+    }
+
+    if (!description || indexCount !== entryDimensions) {
+        return undefined;
+    }
+
+    const valueComponentType = description.createComponentOfType;
+    if (typeof valueComponentType !== "string") {
+        return undefined;
+    }
+
+    return {
+        referentComponentType: targetComponentType,
+        valueComponentType,
+        fromImplicitProp,
+    };
+}
+
+/**
+ * The serialized form of the value reference a `_copy` makes when it
+ * expands, to `referencedVariable` of `target`. Its referent is fixed
+ * (`doenetAttributes.fixedReferent`, what the reference's `referentInfo`
+ * would otherwise work out at run time): the copy resolved the reference,
+ * and remakes the component when the target or the variable's type changes
+ * (`calculateReplacementChanges`).
+ */
+export function serializeValueReference({
+    presentedComponentType,
+    adapterVariable,
+    referencedVariable,
+    valueComponentType,
+    target,
+    componentIdx,
+    stateId,
+    responseMarks = {},
+    copiesReferent = false,
+}: ValueReferencePlan & {
+    /** The referent's variable the author's reference resolved to. */
+    referencedVariable: string;
+    /** The type of a component holding that variable's value. */
+    valueComponentType: string;
+    target: any;
+    componentIdx: number;
+    stateId: string;
+    /** The response marks the copy gives its replacement. */
+    responseMarks?: Record<string, any>;
+    /** Whether the reference stands for a copy of `target` (`copiesReferent`). */
+    copiesReferent?: boolean;
+}) {
+    const description = describeReferentVariable(target, referencedVariable);
+    const doenetAttributes: Record<string, any> = {
+        presentedComponentType,
+        referencedComponentType: valueComponentType,
+        fixedReferent: {
+            componentIdx: target.componentIdx,
+            componentType: target.componentType,
+            variableName: adapterVariable ?? referencedVariable,
+            referencedVariable,
+            referencedPrimaryValue: description?.isPrimaryValue ?? false,
+            companions: description?.companions ?? {},
+            isLocation: description?.isLocation ?? false,
+            ...(description?.listEntryPosition === undefined
+                ? {}
+                : { listEntryPosition: description.listEntryPosition }),
+        },
+    };
+    if (adapterVariable !== undefined) {
+        doenetAttributes.adapterVariable = adapterVariable;
+    }
+    if (copiesReferent) {
+        doenetAttributes.copiesReferent = true;
+    }
+    return {
+        type: "serialized",
+        componentType: "_ref",
+        componentIdx,
+        stateId,
+        attributes: responseMarks,
+        doenetAttributes,
+        state: {},
+        children: [],
+    };
+}
+
+/**
+ * Whether `serialized`, about to take the place of the live replacement
+ * `current`, is a value reference that stands in for a different type,
+ * reads a different variable or reads a different component than `current`
+ * does. `Copy.js` otherwise tells a replacement that must be remade by its
+ * `componentType`, and two value references share `_ref`: the referenced
+ * variable can change type while the referent stays (a `<choiceInput>`'s
+ * `selectedValue` is a `math` until a text choice appears), and the
+ * reference then has to be remade as the new type.
+ */
+export function valueReferenceDiffers(current: any, serialized: any): boolean {
+    if (
+        current.componentType !== "_ref" ||
+        serialized.componentType !== "_ref"
+    ) {
+        return false;
+    }
+    const now = current.doenetAttributes;
+    const next = serialized.doenetAttributes;
+    return (
+        now.presentedComponentType !== next.presentedComponentType ||
+        now.fixedReferent?.componentIdx !== next.fixedReferent?.componentIdx ||
+        now.fixedReferent?.variableName !== next.fixedReferent?.variableName ||
+        now.fixedReferent?.referencedVariable !==
+            next.fixedReferent?.referencedVariable
+    );
+}
+
+export function isValueComponentType(
+    componentType: string | undefined,
+    componentInfoObjects: ComponentInfoObjects,
+): boolean {
+    return (
+        typeof componentType === "string" &&
+        VALUE_COMPONENT_TYPES.some((baseComponentType) =>
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: componentType,
+                baseComponentType,
+            }),
+        )
+    );
+}
+
+/**
+ * Whether one of `parentClass`'s child groups takes a component of
+ * `componentType`: the test `findChildGroupNoAdapters` in `ChildMatcher`
+ * applies, without recording the match. Groups that match only after
+ * adapters are consulted only when `afterAdapters` is set.
+ */
+function childGroupAccepts(
+    parentClass: any,
+    componentType: string,
+    componentInfoObjects: ComponentInfoObjects,
+    afterAdapters = false,
+): boolean {
+    for (const group of parentClass.childGroups) {
+        if (group.matchAfterAdapters && !afterAdapters) {
+            continue;
+        }
+        for (const typeFromGroup of group.componentTypes) {
+            if (
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: componentType,
+                    baseComponentType: typeFromGroup,
+                })
+            ) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * The attributes by which an `<answer>` records what a reference in its
+ * awards reads as a response, lower-cased: the `isPotentialResponse` an
+ * answer with no input of its own gives every reference in its awards
+ * (`Answer.js`), and the `isResponse` an `<award referencesAreResponses>`
+ * gives the references it names (`Award.js`; `utils/dast/valueReferences.ts`
+ * for one the document makes a value reference). A value reference holds them
+ * as primitives in its `attributes`, and the `isResponse` and
+ * `isPotentialResponse` it makes on demand read them (`ValueRef.js`).
+ */
+export const RESPONSE_MARKS = new Set(["isresponse", "ispotentialresponse"]);
+
+/**
+ * Split `attributes` into the response marks among them and the rest.
+ */
+export function separateResponseMarks<T>(attributes: Record<string, T>): {
+    responseMarks: Record<string, T>;
+    otherAttributes: Record<string, T>;
+} {
+    const responseMarks: Record<string, T> = {};
+    const otherAttributes: Record<string, T> = {};
+    for (const name in attributes) {
+        if (RESPONSE_MARKS.has(name.toLowerCase())) {
+            responseMarks[name] = attributes[name];
+        } else {
+            otherAttributes[name] = attributes[name];
+        }
+    }
+    return { responseMarks, otherAttributes };
+}
+
+/**
+ * The prefix of the names under which a value reference (`_ref`) exposes
+ * the state variables of its referent as they are on the referent. The
+ * reference's own `value` is what it presents (`n.text` for `$n` standing
+ * in a `<text>`); `referentVariableName("value")` is `n.value`, the number.
+ * `ValueRef.createOnDemandStateVariableDefinitions` makes such a variable
+ * when asked for it, and the adapter-source dependencies
+ * (`core/dependencies/adapterDependencies.ts`) ask: a reference presenting
+ * as an adapter's type has no adapter component, and its referent is what
+ * the adapter would have been made from.
+ */
+const REFERENT_VARIABLE_PREFIX = "__referent_";
+
+/** The name under which a `_ref` exposes `variableName` of its referent. */
+export function referentVariableName(variableName: string): string {
+    return REFERENT_VARIABLE_PREFIX + variableName;
+}
+
+/**
+ * The referent's variable that `name` exposes, when `name` was made by
+ * `referentVariableName`; `undefined` otherwise.
+ */
+export function variableOfReferentVariable(name: string): string | undefined {
+    return name.startsWith(REFERENT_VARIABLE_PREFIX)
+        ? name.slice(REFERENT_VARIABLE_PREFIX.length)
+        : undefined;
+}
+
+const COPIED_REFERENT_VARIABLE_PREFIX = "__copiedReferent_";
+
+/**
+ * The name under which a `_ref` exposes `variableName` of its referent when
+ * it stands for a copy of its referent (`copiesReferent`: `$t`, not
+ * `$t.value`), as the copy made for it shadowed the referent's attributes.
+ * Any other reference gives `null` under that name. A list that shows each
+ * entry as its source shows itself
+ * (`AuthoredValueList.listEntriesShownAsSources`) reads a reference's
+ * `hide`, style and `renderMode` this way.
+ */
+export function copiedReferentVariableName(variableName: string): string {
+    return COPIED_REFERENT_VARIABLE_PREFIX + variableName;
+}
+
+/**
+ * The referent's variable that `name` exposes, when `name` was made by
+ * `copiedReferentVariableName`; `undefined` otherwise.
+ */
+export function variableOfCopiedReferentVariable(
+    name: string,
+): string | undefined {
+    return name.startsWith(COPIED_REFERENT_VARIABLE_PREFIX)
+        ? name.slice(COPIED_REFERENT_VARIABLE_PREFIX.length)
+        : undefined;
+}

@@ -59,6 +59,32 @@ const schema = {
     ],
 };
 
+/**
+ * Characters that cannot continue a tag name, so typing one ends the tag name
+ * being typed. These are the ones the report for #1767 tabulated; the fix isn't
+ * keyed to a list, so any other such character (`!`, `#`, `,`, `;`, `"`, …)
+ * behaves the same way.
+ */
+const TAG_NAME_TERMINATORS = ["}", "{", ")", "]", "$", "&", "%", "\\"];
+
+/**
+ * The completion items offered against the real Doenet schema (so snippets and
+ * ranking are in play) for `withCursor`, a source string whose cursor position
+ * is marked with `|`. The marker is stripped before parsing.
+ */
+async function itemsFor(withCursor: string) {
+    const source = withCursor.replace("|", "");
+    const autoCompleter = new AutoCompleter(source, doenetSchema.elements);
+    return await autoCompleter.getCompletionItems(withCursor.indexOf("|"));
+}
+
+/**
+ * The labels of {@link itemsFor}'s items, in the order they are offered.
+ */
+async function labelsFor(withCursor: string) {
+    return (await itemsFor(withCursor)).map((item) => item.label);
+}
+
 describe("AutoCompleter", () => {
     it("Can suggest completions", async () => {
         let source: string;
@@ -248,6 +274,100 @@ describe("AutoCompleter", () => {
         );
         expect(items.map((i) => i.label)).toEqual(["b"]);
         expect(items.map((i) => i.label)).not.toContain("/b>");
+    });
+
+    it("suggests element names when a tag-name terminator follows the cursor (#1767)", async () => {
+        // `<aa><b}</aa>` — error recovery parses the half-typed `<b` plus the
+        // `}` that ends it as a complete `<b>` element holding `}` as text, so
+        // the cursor right after `<b` used to look like `<b>`'s body and offer
+        // nothing. It should offer element names filtered by the typed text,
+        // exactly as it does with no terminator present.
+        for (const terminator of TAG_NAME_TERMINATORS) {
+            const source = `<aa><b${terminator}</aa>`;
+            const autoCompleter = new AutoCompleter(source, schema.elements);
+            const offset = source.indexOf("<b") + 2; // right after `<b`
+            const items = await autoCompleter.getCompletionItems(offset);
+            expect({ terminator, labels: items.map((i) => i.label) }).toEqual({
+                terminator,
+                labels: ["b"],
+            });
+        }
+
+        // `/` ends the tag name too, through a self-closing tag whose `>` has
+        // yet to be typed, and was equally empty before.
+        const selfClosingSource = `<aa><b/</aa>`;
+        const selfClosing = new AutoCompleter(
+            selfClosingSource,
+            schema.elements,
+        );
+        const selfClosingItems = await selfClosing.getCompletionItems(
+            selfClosingSource.indexOf("<b") + 2, // right after `<b`
+        );
+        expect(selfClosingItems.map((i) => i.label)).toEqual(["b"]);
+    });
+
+    it("offers the same items with and without a tag-name terminator (#1767)", async () => {
+        // The terminator sits *after* the cursor, so it must not perturb the
+        // completions at all: the same elements, in the same order, with the
+        // same replacement ranges on the snippet items (which replace `<m`,
+        // leaving the terminator in place). Checked against the real schema,
+        // where snippets and ranking are in play.
+        const expected = await itemsFor(`<p><m|</p>`);
+        expect(expected.map((i) => i.label)).toContain("math");
+        for (const terminator of TAG_NAME_TERMINATORS) {
+            const items = await itemsFor(`<p><m|${terminator}</p>`);
+            expect({ terminator, items }).toEqual({
+                terminator,
+                items: expected,
+            });
+        }
+
+        // The shape from the issue: a tag typed inside a brace group of an
+        // `<me>`, where `closeBrackets` has already supplied the `}`. The
+        // suggestions come from `<me>`'s allowed children, and again match the
+        // terminator-free source exactly.
+        const inMe = await itemsFor(`<me>\\frac{<m|}</me>`);
+        expect(inMe.map((i) => i.label)).toContain("mathInput");
+        expect(inMe).toEqual(await itemsFor(`<me>\\frac{<m|</me>`));
+    });
+
+    it("keeps suggesting a hyphenated snippet name across its hyphens (#1780)", async () => {
+        // Nine of the ten completion snippets have hyphenated names, and the
+        // menu emptied on the hyphen: `<answer-` was read as the close tag
+        // that follows it, so the only item offered was `/p>` — whose edit
+        // spanned the typed `<answer-`. Typing the hyphen must keep the
+        // snippet that the author is reaching for.
+        expect(await labelsFor(`<p><answer-|</p>`)).toEqual(["answer-labeled"]);
+        expect(await labelsFor(`<p><multiple-|</p>`)).toEqual([
+            "multiple-choice-answer",
+            "multiple-choice-select-multiple-answer",
+        ]);
+        // Unchanged one character earlier, where the name still ends in a word
+        // character — the hyphen is the only thing that used to break it.
+        expect(await labelsFor(`<p><multiple|</p>`)).toEqual(
+            await labelsFor(`<p><multiple-|</p>`),
+        );
+
+        // The same at the top level, where the name being typed is all there
+        // is and no close tag follows it.
+        expect(await labelsFor(`<answer-|`)).toEqual(["answer-labeled"]);
+        expect(await labelsFor(`<p>hi</p>\n<multiple-|`)).toEqual([
+            "multiple-choice-answer",
+            "multiple-choice-select-multiple-answer",
+        ]);
+
+        // A name matching nothing offers nothing — in particular not the
+        // enclosing element's close tag, whose edit would have replaced `<my-`.
+        // (`ü` because `\w` is ASCII-only, so a name ending in a non-ASCII
+        // letter was read the same way a hyphenated one was.)
+        for (const nameEnd of ["-", ".", ":", "ü"]) {
+            const labels = await labelsFor(`<p><my${nameEnd}|</p>`);
+            expect({ nameEnd, labels }).toEqual({ nameEnd, labels: [] });
+        }
+
+        // The enclosing element's close tag is still offered where it belongs:
+        // on a close tag the author is actually typing.
+        expect(await labelsFor(`<p>hello</p|`)).toContain("/p>");
     });
 
     it("matches element names by substring, not only by prefix (#1328)", async () => {
@@ -3343,20 +3463,30 @@ describe("AutoCompleter", () => {
 
         it("Documents each suggested locale with its name", async () => {
             // The descriptions are derived at codegen time from
-            // `Intl.DisplayNames`, so a new locale carries help text without
-            // anyone writing any. An empty one would render as a blank
-            // autocomplete row.
+            // `Intl.DisplayNames` — or, for the handful of tags CLDR has no
+            // data for, from `LOCALE_NAME_FALLBACKS` — so a new locale carries
+            // help text without anyone writing any. Every row is checked
+            // against the roster's own label rather than one row being spot-
+            // checked for non-emptiness, because the failure this guards
+            // against is a *stale* schema rather than a blank one: a locale
+            // whose name arrived after the last `build:schema` run documents
+            // itself with its bare tag, which is truthy and reads as a defect
+            // in the roster rather than in the generated file.
             const source = `<document lang="`;
             const ac = new AutoCompleter(source, doenetSchema.elements);
             const items = await ac.getCompletionItems(source.length);
-            const spanish = items.find((i) => i.label === "es");
-            expect(spanish?.documentation).toBeTruthy();
-            const documentation = spanish?.documentation;
-            const text =
-                typeof documentation === "string"
+            const documentationOf = (locale: string) => {
+                const documentation = items.find(
+                    (i) => i.label === locale,
+                )?.documentation;
+                return typeof documentation === "string"
                     ? documentation
                     : (documentation?.value ?? "");
-            expect(text).toContain("Spanish");
+            };
+            expect(documentationOf("es")).toContain("Spanish");
+            for (const { locale, label } of SUPPORTED_LOCALES) {
+                expect(documentationOf(locale)).toBe(label);
+            }
         });
 
         it("Still offers to quote a bare tag that isn't on the list", async () => {

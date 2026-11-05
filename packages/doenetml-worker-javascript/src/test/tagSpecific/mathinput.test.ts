@@ -8244,7 +8244,12 @@ describe("MathInput tag tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("iv1")].stateValues
                     .latex,
             ),
-        ).eq("\\frac{a}{b}\\int_{a}^{b}f(x)dx");
+            // The engine parenthesizes an integral used as a factor, where
+            // legacy left it bare. Both mean `(a/b)·∫f dx` — an integral's
+            // scope already ends at the differential — so this is explicitness,
+            // not a change of meaning. The raw value below is what the student
+            // typed and is unaffected.
+        ).eq("\\frac{a}{b}(\\int_{a}^{b}f(x)dx)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pr1")].stateValues.text,
         ).eq("Raw value: \\frac{a}{b} \\int_a^b f(x) dx");
@@ -11601,9 +11606,65 @@ describe("MathInput tag tests @group2", async () => {
         ).eq(6);
     });
 
+    it("a fixed point follows the mathInputs it reads, but a drag does not change them", async () => {
+        // Typing into the inputs moves the point; dragging the point is
+        // refused, so it never rewrites what was typed.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="userX" prefill="1" />
+    <mathInput name="userY" prefill="2" />
+    <graph>
+    <point name="B" fixed>($userX, $userY)</point>
+    </graph>
+    `,
+        });
+
+        async function check_items(x: number, y: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("userX")].stateValues
+                    .value.tree,
+            ).eq(x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("userY")].stateValues
+                    .value.tree,
+            ).eq(y);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("B")
+                ].stateValues.xs.map((v) => v.tree),
+            ).eqls([x, y]);
+        }
+
+        await check_items(1, 2);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("userX"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "-4",
+            componentIdx: await resolvePathToNodeIdx("userY"),
+            core,
+        });
+        await check_items(3, -4);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("B"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        await check_items(3, -4);
+    });
+
     it("mathInput specifying point -- product, make invertible", async () => {
         // x-coordinate of a point is product of mathInputs
-        // Since one factor is marked with modifyIndirectly=false,
+        // Since one factor is fixed,
         // we leave that factor constant when changing the x-coordinate by dragging
         // and modify the other factor to match the new x-coordinate
 
@@ -11612,7 +11673,7 @@ describe("MathInput tag tests @group2", async () => {
     <mathInput name="a" prefill="-3"/>
     <mathInput name="b" prefill="2"/>
     <graph>
-    <point name="P">($a<math extend="$b" modifyIndirectly="false" />, -7)</point>
+    <point name="P">($a<math extend="$b" fixed />, -7)</point>
     </graph>
     `,
         });
@@ -11918,7 +11979,7 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p14")]
                         .stateValues.text,
-                ).eq(`Matrix: [ [ ${math} ] ]`);
+                ).eq(`Matrix: [[${math}]]`);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("mi")
@@ -11931,7 +11992,11 @@ describe("MathInput tag tests @group2", async () => {
                     stateVariables[await resolvePathToNodeIdx("p14")]
                         .stateValues.text,
                 ).eq(
-                    `Matrix: [ ${[...Array(numDimensions).keys()].map((i) => `[ ${math.get_component(i)} ]`).join(", ")} ]`,
+                    // The engine prints a matrix without the padding spaces
+                    // the JS library used (`[[1], [2]]`, not `[ [ 1 ], [ 2 ] ]`)
+                    // — a recorded, deliberate divergence
+                    // (`ast-output-known-divergences.json`).
+                    `Matrix: [${[...Array(numDimensions).keys()].map((i) => `[${math.get_component(i)}]`).join(", ")}]`,
                 );
                 expect(
                     stateVariables[
@@ -11946,12 +12011,12 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]
                         .stateValues.text,
-                ).eq(`Matrix[${i}]: [ [ ${x1} ] ]`);
+                ).eq(`Matrix[${i}]: [[${x1}]]`);
             } else if (i <= numDimensions) {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]
                         .stateValues.text,
-                ).eq(`Matrix[${i}]: [ [ ${math.get_component(i - 1)} ] ]`);
+                ).eq(`Matrix[${i}]: [[${math.get_component(i - 1)}]]`);
             } else {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]
@@ -12018,7 +12083,12 @@ describe("MathInput tag tests @group2", async () => {
             }
 
             if (numDimensions === 1) {
-                let num = math.evaluate_to_constant();
+                // `<numberList>` reports "no number here" as `NaN`, and so
+                // does the engine — but `evaluate_to_constant` can also answer
+                // a `Complex`, which a `<numberList>` cannot hold, so the
+                // expectation makes the same conversion the component does.
+                let evaluated = math.evaluate_to_constant();
+                let num = typeof evaluated === "number" ? evaluated : NaN;
 
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p20")]
@@ -12029,9 +12099,13 @@ describe("MathInput tag tests @group2", async () => {
                         .numbers,
                 ).eqls([num]);
             } else {
+                // As above: `evaluate_to_constant` can answer a `Complex`,
+                // and once answered `null`; a `<numberList>` holds only
+                // numbers, so anything else has to become `NaN`.
                 let nums = math.tree
                     .slice(1)
-                    .map((v: Tree) => me.fromAst(v).evaluate_to_constant());
+                    .map((v: Tree) => me.fromAst(v).evaluate_to_constant())
+                    .map((v: unknown) => (typeof v === "number" ? v : NaN));
 
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p20")]
@@ -12183,7 +12257,7 @@ describe("MathInput tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .childIndicesToRender,
-        ).eqls([1]);
+        ).eqls([1, 0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("mi")].activeChildren
                 .length,
@@ -12375,5 +12449,40 @@ describe("MathInput tag tests @group2", async () => {
         });
         const diagnosticsByType = getDiagnosticsByType(core);
         expect(diagnosticsByType.warnings.length).eq(0);
+    });
+
+    it("a copy of a mathInput at a fixed location takes typing with no refused write", async () => {
+        // `fixLocation` refuses only a write to a location. The input's own
+        // state written through the copy's shadow chain is not one, and was
+        // refused, with an internal warning, on every keystroke.
+        const warn = vi.spyOn(console, "warn");
+        try {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" fixLocation />
+    <mathInput extend="$mi" name="mi2" />
+    `,
+            });
+            await updateMathInputValue({
+                latex: "7",
+                componentIdx: await resolvePathToNodeIdx("mi2"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                    .value.tree,
+            ).eq(7);
+            expect(
+                warn.mock.calls.filter((args) =>
+                    String(args[0]).includes("because fixLocation is true"),
+                ),
+            ).eqls([]);
+        } finally {
+            warn.mockRestore();
+        }
     });
 });

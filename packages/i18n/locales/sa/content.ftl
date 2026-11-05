@@ -190,7 +190,6 @@ color =
                    *[m] कपिशः
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -216,7 +215,6 @@ line-width =
                    *[m] सूक्ष्मः
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -242,7 +240,6 @@ line-style =
                    *[m] बिन्दुमयः
                 }
         }
-
 # Instrumental plurals, because everywhere these are used puts «सह» after them
 # — «बिन्दुभिः सह», "with dots". Writing them in the nominative and inflecting
 # them in the frame is not possible: the frame would have to know which stem
@@ -254,7 +251,6 @@ fill-style =
     .backdiagonal = विपरीतकर्णरेखाभिः
     .dots = बिन्दुभिः
     .diamonds = समचतुर्भुजैः
-
 noun =
     .line = रेखा
     .line-segment = रेखाखण्डः
@@ -274,7 +270,6 @@ noun =
     .diamond = समचतुर्भुजः
     .cross = गुणनचिह्नम्
     .plus = योगचिह्नम्
-
 # «-भुजः» is a bahuvrīhi ending welded onto the count — "having 5 sides" — and
 # it has one shape whatever number lands in front of it, so the weld is sound
 # in the way the README's affix rule allows. समबहुभुजः is masculine, and the
@@ -284,7 +279,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides }-भुजः समबहुभुजः
     }
-
 # Besides the nouns above, `$noun` may be «regular-polygon» (समबहुभुजः, m) or
 # the head of a phrase the description does not name: «border» (सीमा, f),
 # «fill» (पूरणम्, n), «text» (पाठ्यम्, n), «background» (पृष्ठभूमिः, f).
@@ -306,7 +300,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 # Adjectives precede the noun, and are written apart from it rather than
@@ -322,13 +315,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Said only of the shape itself, so it agrees with `$gender` and takes no
 # `$role` branch.
 style-filled-word =
@@ -337,7 +328,6 @@ style-filled-word =
         [n] पूरितम्
        *[m] पूरितः
     }
-
 # «सह» governs the instrumental and follows what it governs, which is why the
 # pattern comes first here where English appends it.
 style-filled =
@@ -345,7 +335,6 @@ style-filled =
         [pattern] { $pattern } सह { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } सह { $filled } { $color } { $noun }
@@ -353,7 +342,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } सह { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «सीमया सह» is instrumental, which is the case `border-clause` supplies. «तथा»
 # rather than «च» for the `and` branches: «च» is enclitic and would have to
 # stand after the phrase it joins, where a placeable already sits. Sanskrit has
@@ -365,7 +353,6 @@ style-border-clause =
         [and-article] तथा { $border } सीमया सह
        *[with] { $border } सीमया सह
     }
-
 # The colour arrives agreeing with «पूरणम्», which is neuter, so the noun has
 # to stand beside it: «नीलम्» alone would be read as agreeing with whatever the
 # reader last saw.
@@ -374,10 +361,8 @@ style-fill =
         [pattern] { $pattern } सह { $color } पूरणम्
        *[plain] { $color } पूरणम्
     }
-
 # Nothing is passed to agree this with, so it is fixed in the neuter.
 style-unfilled = अपूरितम्
-
 # The background's colour is locative — «नीलायां पृष्ठभूमौ», on a blue
 # background — and the text's own colour, which follows, is nominative neuter
 # agreeing with «पाठ्यम्». Both words on the right of the placeable are this
@@ -387,21 +372,17 @@ style-text =
         [background] { $background } पृष्ठभूमौ { $color }
        *[plain] { $color }
     }
-
 style-background-none = किमपि न
-
 
 ## Boolean words
 
 boolean-true = सत्यम्
 boolean-false = असत्यम्
 
-
 ## Answer buttons
 
 answer-submit-label = परीक्ष्यताम्
 answer-submit-label-no-correctness = उत्तरं प्रेष्यताम्
-
 
 ## Sectional blocks
 
@@ -426,7 +407,6 @@ section-name =
     .solution = समाधानम्
     .task = कार्यम्
     .theorem = प्रमेयम्
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -436,9 +416,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = सङ्केतः
-
 
 ## Tables and figures
 
@@ -449,7 +427,6 @@ table-name =
         [unnumbered-title] सारणी{ ": " }
        *[unnumbered] सारणी
     }
-
 figure-name =
     { $parts ->
         [numbered] चित्रम् { $enumeration }
@@ -458,27 +435,21 @@ figure-name =
        *[unnumbered] चित्रम्
     }
 
-
 ## Paginator controls
 
 paginator-previous = पूर्वम्
 paginator-next = अग्रिमम्
 paginator-page = पृष्ठम्
-
 # «X-मध्ये Y» — "Y among X" — puts the total first, so the two counts change
 # places. «-मध्ये» is a locative in form and partitive in sense; it is welded
 # to a placeable and has one shape whatever precedes it.
 paginator-page-status = { $numPages }-मध्ये { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = अथवा
-
 piecewise-condition-if = यदि
-
 piecewise-condition-otherwise = अन्यथा
-
 
 ## Chemistry
 ##
@@ -496,6 +467,5 @@ piecewise-condition-otherwise = अन्यथा
 ## reading Sanskrit meets in their chemistry class anyway.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = अमान्यं रासायनिकं चिह्नम्
 chemistry-invalid-ionic-compound = अमान्यम् आयनिकं यौगिकम्

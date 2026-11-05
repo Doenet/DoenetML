@@ -50,6 +50,13 @@ export async function getSchemaViolations(
 
     /**
      * Get all pairs of elements and their parent.
+     *
+     * Deliberately children-only, so an element written between a reference's
+     * index brackets (#1909) is not checked. It has no parent in the schema's
+     * sense: pairing it with the element the reference sits in would ask
+     * whether `<indexOf>` is allowed inside `<p>`, which is not the question —
+     * the schema has no notion of what may appear in an index. Until it does,
+     * silence beats a violation that names the wrong relationship.
      */
     function getElementPairs(
         node: DastElement | DastRoot,

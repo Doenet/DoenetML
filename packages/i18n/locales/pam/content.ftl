@@ -45,15 +45,12 @@ color =
     .purple = lila
     .pink = rosas
     .brown = kape
-
 line-width =
     .thick = makapal
     .thin = manipis
-
 line-style =
     .dashed = putul-putul
     .dotted = tuldik-tuldik
-
 # Noun phrases. Kapampangan marks no plural on the noun, so «gulis» is the word
 # for one line and for many alike.
 fill-style =
@@ -63,7 +60,6 @@ fill-style =
     .backdiagonal = kabaligtaran a mihilis a gulis
     .dots = tuldik
     .diamonds = diyamante
-
 noun =
     .line = linya
     .line-segment = segmento
@@ -83,16 +79,13 @@ noun =
     .diamond = diyamante
     .cross = krus
     .plus = plus
-
 noun-regular-polygon =
     { $part ->
         [tail] a atin { $numSides } a gilid
        *[head] regular a poligono
     }
-
 # One answer for every noun: Kapampangan has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -107,21 +100,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } a { $noun } { $nounTail }
        *[noun] { $description } a { $noun }
     }
-
 style-filled-word = mitmo
-
 style-filled =
     { $parts ->
         [pattern] { $filled } a { $color } a atin { $pattern }
        *[plain] { $filled } a { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } a { $color } a { $noun } a atin { $pattern }
@@ -129,7 +118,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } a { $color } a { $noun } { $nounTail } a atin { $pattern }
        *[plain] { $filled } a { $color } a { $noun }
     }
-
 # Kapampangan has no article, so the two `-article` branches say what the other
 # two say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «a atin» against «at».
@@ -140,35 +128,28 @@ style-border-clause =
         [and-article] at { $border } a gilid
        *[with] a atin { $border } a gilid
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } a { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ali mitmo
-
 style-text =
     { $parts ->
         [background] { $color } a atin { $background } a background
        *[plain] { $color }
     }
-
 style-background-none = ala
-
 
 ## Boolean words
 
 boolean-true = tutu
 boolean-false = ali tutu
 
-
 ## Answer buttons
 
 answer-submit-label = Siyasatan ing pakibat
 answer-submit-label-no-correctness = Ipadala ing pakibat
-
 
 ## Sectional blocks
 
@@ -196,7 +177,6 @@ section-name =
     .solution = Solusyon
     .task = Dapat
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -206,9 +186,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Giya
-
 
 ## Tables and figures
 
@@ -219,7 +197,6 @@ table-name =
         [unnumbered-title] Talaan{ ": " }
        *[unnumbered] Talaan
     }
-
 figure-name =
     { $parts ->
         [numbered] Pigura { $enumeration }
@@ -228,22 +205,18 @@ figure-name =
        *[unnumbered] Pigura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Milabas
 paginator-next = Tutuki
 paginator-page = Bulung
-
 paginator-page-status = { $pageLabel } { $currentPage } king { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = nung
 piecewise-condition-otherwise = nung ali
-
 
 ## Chemistry
 ##
@@ -254,6 +227,5 @@ piecewise-condition-otherwise = nung ali
 ## keys out.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ali balido a simbolong kemikal
 chemistry-invalid-ionic-compound = Ali balido a kompuwestong ioniko

@@ -40,15 +40,12 @@ color =
     .purple = ສີມ່ວງ
     .pink = ສີບົວ
     .brown = ສີນ້ຳຕານ
-
 line-width =
     .thick = ໜາ
     .thin = ບາງ
-
 line-style =
     .dashed = ຂີດຂາດ
     .dotted = ຈຸດ
-
 # Noun phrases: they follow «ພ້ອມ» and modify nothing.
 fill-style =
     .horizontal = ເສັ້ນນອນ
@@ -57,7 +54,6 @@ fill-style =
     .backdiagonal = ເສັ້ນທະແຍງກັບ
     .dots = ຈຸດ
     .diamonds = ຮູບຂ້າວຫຼາມຕັດ
-
 noun =
     .line = ເສັ້ນຊື່
     .line-segment = ພາກຂອງເສັ້ນຊື່
@@ -77,7 +73,6 @@ noun =
     .diamond = ຮູບຂ້າວຫຼາມຕັດ
     .cross = ເຄື່ອງໝາຍກາກະບາດ
     .plus = ເຄື່ອງໝາຍບວກ
-
 # The count and the word it counts — «ດ້ານ», side — sit together immediately
 # after the noun and in front of any adjective, so they fold into the head and
 # there is no tail. Putting them after the adjectives would separate «ດ້ານ»
@@ -87,11 +82,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] ຮູບຫຼາຍແຫຼ່ຽມດ້ານເທົ່າ { $numSides } ດ້ານ
     }
-
 # Lao has no grammatical gender, so every noun answers the same and the answer
 # goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,27 +98,23 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «ເສັ້ນຊື່ໜາຂີດຂາດສີແດງ».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun }{ $description }{ $nounTail }
        *[noun] { $noun }{ $description }
     }
-
 # «ລະບາຍ» is the verb for laying colour on a surface, and every colour word
 # above already carries its own «ສີ», so the composition reads «ລະບາຍສີຟ້າ»
 # with the colour word said once. A colour that did not come from that table
 # brings no «ສີ» with it, and «ລະບາຍ» stands in front of it unaided.
 # `style-unfilled` stands on its own and keeps the full «ບໍ່ລະບາຍສີ».
 style-filled-word = ລະບາຍ
-
 style-filled =
     { $parts ->
         [pattern] { $filled }{ $color } ພ້ອມ{ $pattern }
        *[plain] { $filled }{ $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun }{ $filled }{ $color } ພ້ອມ{ $pattern }
@@ -133,7 +122,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun }{ $nounTail }{ $filled }{ $color } ພ້ອມ{ $pattern }
        *[plain] { $noun }{ $filled }{ $color }
     }
-
 # «ຂອບ» leads its own adjectives, the way every noun here does. Lao has no
 # article, so the `-article` branches read like the ones without.
 style-border-clause =
@@ -143,36 +131,29 @@ style-border-clause =
         [and-article] ແລະຂອບ{ $border }
        *[with] ພ້ອມຂອບ{ $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern }{ $color }
        *[plain] { $color }
     }
-
 style-unfilled = ບໍ່ລະບາຍສີ
-
 style-text =
     { $parts ->
         [background] { $color }ເທິງພື້ນຫຼັງ{ $background }
        *[plain] { $color }
     }
-
 style-background-none = ບໍ່ມີ
-
 
 ## Boolean words
 
 boolean-true = ຈິງ
 boolean-false = ເທັດ
 
-
 ## Answer buttons
 
 answer-submit-label = ກວດຄຳຕອບ
 answer-submit-label-no-correctness = ສົ່ງຄຳຕອບ
-
 
 ## Sectional blocks
 
@@ -197,7 +178,6 @@ section-name =
     .solution = ວິທີແກ້
     .task = ໜ້າວຽກ
     .theorem = ທິດສະດີບົດ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -207,9 +187,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ຄຳໃບ້
-
 
 ## Tables and figures
 
@@ -220,7 +198,6 @@ table-name =
         [unnumbered-title] ຕາຕະລາງ{ ": " }
        *[unnumbered] ຕາຕະລາງ
     }
-
 figure-name =
     { $parts ->
         [numbered] ຮູບທີ { $enumeration }
@@ -229,22 +206,18 @@ figure-name =
        *[unnumbered] ຮູບ
     }
 
-
 ## Paginator controls
 
 paginator-previous = ກ່ອນໜ້າ
 paginator-next = ຕໍ່ໄປ
 paginator-page = ໜ້າ
-
 paginator-page-status = { $pageLabel } { $currentPage } ຈາກ { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ຫຼື
 piecewise-condition-if = ຖ້າ
 piecewise-condition-otherwise = ກໍລະນີອື່ນ
-
 
 ## Chemistry
 ##
@@ -259,6 +232,5 @@ piecewise-condition-otherwise = ກໍລະນີອື່ນ
 ## fill in, and filling it in needs no permission.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ສັນຍາລັກເຄມີບໍ່ຖືກຕ້ອງ
 chemistry-invalid-ionic-compound = ສານປະກອບໄອອອນບໍ່ຖືກຕ້ອງ

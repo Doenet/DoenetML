@@ -22,8 +22,8 @@ function createDoenetML(polyString: string) {
     <text name="add">+</text>
     <conditionalContent name="cc1">
       <case condition="$originalOperator=$minus">
-        <extractMath type="operand" operandNumber="1" name="respNoMinus">$respSimplify</extractMath>
-        <extractMathOperator name="postMinusOperator">$respNoMinus</extractMathOperator>
+        <math name="respNoMinus"><extractMath type="operand" operandNumber="1">$respSimplify</extractMath></math>
+        <text name="postMinusOperator"><extractMathOperator>$respNoMinus</extractMathOperator></text>
       </case>
       <else>
         <math name="respNoMinus" extend="$respSimplify" />
@@ -32,9 +32,9 @@ function createDoenetML(polyString: string) {
     </conditionalContent>
     <conditionalContent name="cc2">
       <case condition="$cc1.postMinusOperator=$div">
-        <extractMath type="operand" operandNumber="1" name="numerator">$cc1.respNoMinus</extractMath>
-        <extractMath type="operand" operandNumber="2" name="denominator">$cc1.respNoMinus</extractMath>
-        <extractMathOperator name="numeratorOperator">$numerator</extractMathOperator>
+        <math name="numerator"><extractMath type="operand" operandNumber="1">$cc1.respNoMinus</extractMath></math>
+        <math name="denominator"><extractMath type="operand" operandNumber="2">$cc1.respNoMinus</extractMath></math>
+        <text name="numeratorOperator"><extractMathOperator>$numerator</extractMathOperator></text>
       </case>
       <else>
         <math name="numerator" extend="$cc1.respNoMinus" />
@@ -46,8 +46,8 @@ function createDoenetML(polyString: string) {
     <extractMath type="numOperands" name="numeratorNumOperands">$cc2.numerator</extractMath>
     <conditionalContent name="cc3">
       <case condition="$cc2.numeratorOperator=$mult and isnumber($numeratorOperand1) and $numeratorNumOperands = 2" >
-        <extractMath type="operand" operandNumber="2" name="innerPiece">$cc2.numerator</extractMath>
-        <extractMathOperator name="innerOperator">$innerPiece</extractMathOperator>
+        <math name="innerPiece"><extractMath type="operand" operandNumber="2">$cc2.numerator</extractMath></math>
+        <text name="innerOperator"><extractMathOperator>$innerPiece</extractMathOperator></text>
       </case>
       <else>
         <math name="innerPiece" extend="$cc2.numerator" />
@@ -136,8 +136,10 @@ async function run_tests({
 
 // Note: even through have a better factoring test,
 // we are keeping these tests, as they probe how well
-// we can handle components that change type
-// (due to the multiple conditionalContents that are copied)
+// we handle values that change with the active case
+// of the multiple conditionalContents that are copied.
+// Each case declares each name with the same type, as a
+// reference to a name in the cases requires (#2450).
 
 describe("factor polynomial tests, old algorithm @group3", async () => {
     it("factor x^2-1", async () => {
