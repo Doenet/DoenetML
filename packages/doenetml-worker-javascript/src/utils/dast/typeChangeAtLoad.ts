@@ -53,6 +53,11 @@ import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedAttribute } from "./types";
 import { documentReferents } from "./valueReferences";
 import { typeChangeRule } from "../typeChange";
+import { codedDiagnostic } from "../diagnostics";
+import {
+    doenetMLDollarsForReference,
+    doenetMLStringForReference,
+} from "../sourceLocation";
 import { sequenceEntryComponentType } from "../sequence";
 
 /** What `doenetAttributes.typeChangeAtLoad` holds for an error. */
@@ -221,6 +226,142 @@ const HOLD_CHILDREN = new Set(["group", "sort", "shuffle"]);
  * Check every reference written as a tag in `serializedComponents`, marking
  * what is found on it (see above).
  */
+/**
+ * The codes of what `checkTypeChangesAtLoad` finds that make a reference
+ * written as a tag name nothing (D37): a literal index past the picks
+ * (`doenet-w0181`), and a name the every-branch rule rejects for a branch
+ * that lacks it (`doenet-w0183`). The tag is then missing, with the warning.
+ */
+export const MISSING_AT_LOAD_CODES = new Set(["doenet-w0181", "doenet-w0183"]);
+
+/**
+ * The diagnostic for what `checkTypeChangesAtLoad` decided of a reference
+ * written as the tag `writtenType` (`mark`, its `typeChangeAtLoad`), quoting
+ * the reference as written (`source`): a warning for a reference that names
+ * nothing (`MISSING_AT_LOAD_CODES`), else an error. It is reported when the
+ * document loads (`reportTypeChangesAtLoad`), and again, the same, where the
+ * copy is made (`Copy.js`), which is kept once.
+ */
+export function typeChangeAtLoadDiagnostic({
+    mark,
+    writtenType,
+    source,
+}: {
+    mark: TypeChangeAtLoadError;
+    writtenType: string | undefined;
+    source: string;
+}) {
+    // A reference that names nothing (an index past what a selector picks,
+    // or a name the branches of a container do not all declare,
+    // `branchNameIssue`) is quoted as a reference.
+    const args = ["doenet-w0181", "doenet-w0183", "doenet-w0184"].includes(
+        mark.code,
+    )
+        ? { reference: source, ...mark.args }
+        : { componentType: writtenType, source, ...mark.args };
+    // A reference that names nothing gives a missing tag, with the warning
+    // the same reference written bare gives (D37); only a type is an error.
+    const level: "warning" | "error" = MISSING_AT_LOAD_CODES.has(mark.code)
+        ? "warning"
+        : "error";
+    return {
+        level,
+        diagnostic: codedDiagnostic({
+            type: level,
+            code: mark.code as any,
+            args: args as any,
+        }),
+    };
+}
+
+/**
+ * The diagnostic of each reference written as a tag that
+ * `checkTypeChangesAtLoad` decided (`typeChangeAtLoad`) among
+ * `serializedComponents`, reported when the document loads, wherever the tag
+ * is: in a case that is not true, or in the template of a repeat with no
+ * iterations, it is made only after an interaction, and an error that first
+ * shows then would show to a student, not to the author. The copy reports
+ * the same diagnostic again when it is made (`Copy.js`), which is kept once.
+ */
+export function reportTypeChangesAtLoad({
+    serializedComponents,
+    componentInfoObjects,
+    sources,
+}: {
+    serializedComponents: (SerializedComponent | string)[];
+    componentInfoObjects: ComponentInfoObjects;
+    sources: readonly string[];
+}) {
+    const diagnostics: ReturnType<typeof codedDiagnostic>[] = [];
+    const byIdx = new Map<number, SerializedComponent>();
+    const marked: SerializedComponent[] = [];
+    const seen = new Set<SerializedComponent>();
+    function visit(components: (SerializedComponent | string)[]) {
+        for (const component of components) {
+            if (typeof component !== "object" || seen.has(component)) {
+                continue;
+            }
+            seen.add(component);
+            byIdx.set(component.componentIdx, component);
+            const mark = component.doenetAttributes?.typeChangeAtLoad;
+            if (mark && mark !== "allowed") {
+                marked.push(component);
+            }
+            for (const attribute of Object.values(component.attributes ?? {})) {
+                const attr: any = attribute;
+                if (attr.type === "component" && attr.component) {
+                    visit([attr.component]);
+                } else if (Array.isArray(attr.children)) {
+                    visit(attr.children);
+                }
+            }
+            visit(component.children ?? []);
+        }
+    }
+    visit(serializedComponents);
+
+    for (const copy of marked) {
+        const mark = copy.doenetAttributes!
+            .typeChangeAtLoad as TypeChangeAtLoadError;
+        const forList = copy.doenetAttributes?.forList;
+        const writtenValue =
+            forList !== undefined
+                ? byIdx.get(forList)?.componentType
+                : (copy.attributes?._createComponentOfType as any)?.primitive
+                      ?.value;
+        const writtenType =
+            writtenValue &&
+            (componentInfoObjects.componentTypeLowerCaseMapping[
+                writtenValue.toLowerCase()
+            ] ??
+                writtenValue);
+        const extending: any = copy.extending ?? {};
+        const originalPath = (
+            extending.Ref ??
+            extending.ExtendAttribute ??
+            extending.CopyAttribute
+        )?.originalPath;
+        if (!originalPath?.length) {
+            continue;
+        }
+        const source = `${doenetMLDollarsForReference(
+            originalPath,
+            sources,
+        )}${doenetMLStringForReference(originalPath, sources)}`;
+        const { diagnostic } = typeChangeAtLoadDiagnostic({
+            mark,
+            writtenType,
+            source,
+        });
+        diagnostics.push({
+            ...diagnostic,
+            position: copy.position,
+            sourceDoc: copy.sourceDoc,
+        });
+    }
+    return diagnostics;
+}
+
 export function checkTypeChangesAtLoad({
     serializedComponents,
     componentInfoObjects,
@@ -1322,6 +1463,103 @@ export function checkTypeChangesAtLoad({
             sourceType,
             componentInfoObjects,
         });
+    }
+
+    /**
+     * Whether a tag `writtenType` made from a `sourceType` reads the
+     * source's value (`variableForImplicitProp`, the `implicitProp` of
+     * `Copy.js`), as `<math extend="$ans"/>` of an `<answer>` reads its
+     * submitted response, whose type is decided when the document runs:
+     * when that variable makes `writtenType`, or no type of its own.
+     */
+    function readsImplicitProp(sourceType: string, writtenType: string) {
+        const variable = (allClasses[sourceType] as any)
+            ?.variableForImplicitProp;
+        if (!variable) {
+            return false;
+        }
+        const made = (componentInfoObjects as any).publicStateVariableInfo?.[
+            sourceType
+        ]?.stateVariableDescriptions?.[variable]?.createComponentOfType;
+        return made === undefined || made === writtenType;
+    }
+
+    /** Whether the component `componentIdx` is written in `node`. */
+    function contains(node: SerializedComponent, componentIdx: number) {
+        const stack: (SerializedComponent | string)[] = [
+            ...(node.children ?? []),
+        ];
+        while (stack.length > 0) {
+            const child = stack.pop()!;
+            if (typeof child !== "object") {
+                continue;
+            }
+            if (child.componentIdx === componentIdx) {
+                return true;
+            }
+            stack.push(...(child.children ?? []));
+        }
+        return false;
+    }
+
+    /**
+     * The error for a scalar tag `writtenType` made from a component that is
+     * not a composite, whose type, the one in `held`, is written in the
+     * DoenetML, or `undefined` when the tag can be made from it (its value,
+     * as a tuple for a `<point>`, is checked when the document runs) or the
+     * type is not known. It is decided when the document loads, though the
+     * component may be made only later, as a name in a case that is not true
+     * yet (`$m`, `$cc.m`) or in an iteration not made yet (`$r[1].m`): an
+     * error is never shown first after an interaction, which would show it
+     * to a student, but where the author sees it.
+     */
+    function fixedTypeError(
+        held: Holding,
+        writtenType: string,
+    ): TypeChangeAtLoadError | undefined {
+        if (held.skip || held.unknown) {
+            return undefined;
+        }
+        const types = typesAs(held.types, writtenType);
+        if (types.length !== 1) {
+            return undefined;
+        }
+        const sourceType = types[0];
+        if (
+            sourceType === writtenType ||
+            sourceType === "_error" ||
+            // what is missing (`Missing.js`), of which a tag is missing too
+            sourceType === "_missing" ||
+            // a part of a choosing tag, which can't be extended at all
+            // (`doenet-e0061`, `extendChangesContentErrors` in `Copy.js`)
+            ["case", "else", "option"].includes(sourceType) ||
+            ["case", "else", "option"].includes(writtenType) ||
+            readsImplicitProp(sourceType, writtenType)
+        ) {
+            return undefined;
+        }
+        const rule = becomes(sourceType, writtenType);
+        if (rule.allowed) {
+            return undefined;
+        }
+        if (rule.kind === "inputFromValue") {
+            return {
+                code: "doenet-e0062",
+                args: {
+                    sourceType,
+                    hasPrefill:
+                        "prefill" in
+                        (allClasses[writtenType]?.createAttributesObject?.() ??
+                            {})
+                            ? "true"
+                            : "false",
+                },
+            };
+        }
+        if (rule.kind === "container") {
+            return { code: "doenet-e0063", args: { sourceType } };
+        }
+        return { code: "doenet-e0065", args: { sourceType } };
     }
 
     /**
@@ -2516,13 +2754,43 @@ export function checkTypeChangesAtLoad({
             const added: (SerializedComponent | string)[][] = [];
             const holder = namedHolder(ref.nodeIdx, seen, added);
             if (!holder) {
-                return undefined;
+                const node =
+                    referents.componentsByIdx.get(ref.nodeIdx) ??
+                    referents.copiesByCreatedIdx.get(ref.nodeIdx);
+                if (!node || isList || node.componentType === "setup") {
+                    return undefined;
+                }
+                if (node.componentType === "_placeholder") {
+                    // The value of a `<repeatForSequence>`, of its `type`
+                    const type = referents.referentType(ref.nodeIdx);
+                    return type
+                        ? fixedTypeError(
+                              { types: new Set([type]) },
+                              writtenType!,
+                          )
+                        : undefined;
+                }
+                return fixedTypeError(itemHolding(node, seen), writtenType!);
             }
-            return verdict(
+            const decision = verdict(
                 withAdded(holding(holder, seen), added, seen),
                 holder.componentType,
                 true,
             );
+            if (
+                decision === "allowed" &&
+                writtenType &&
+                contains(holder, copy.componentIdx)
+            ) {
+                // The tag in what it is of, made from itself without end,
+                // whether or not the part holding it is shown now
+                // (`doenet-e0005`)
+                return {
+                    code: "doenet-e0005",
+                    args: { componentType: writtenType },
+                };
+            }
+            return decision;
         }
 
         // Names, the last of which may have one index (`$m2.s[1]`), or one
@@ -2541,7 +2809,31 @@ export function checkTypeChangesAtLoad({
             // `checkBranchName` has found every branch declares.
             const container = branchContainerAt(ref.nodeIdx, true);
             if (!container) {
-                return undefined;
+                // A name after an index into the iterations of a repeat
+                // (`$r[1].m`): what is so named in its template, which each
+                // iteration makes, though none may be made yet.
+                if (
+                    !["repeat", "repeatForSequence"].includes(
+                        referents.referentType(ref.nodeIdx) ?? "",
+                    ) ||
+                    lastIndex.length > 0 ||
+                    path.length !== 2
+                ) {
+                    return undefined;
+                }
+                const named = descendantsNamed(ref.nodeIdx, path.slice(1));
+                if (!named || named.length !== 1) {
+                    return undefined;
+                }
+                const node = named[0];
+                if (
+                    isList ||
+                    isComposite(node.componentType) ||
+                    node.componentType === "setup"
+                ) {
+                    return undefined;
+                }
+                return fixedTypeError(itemHolding(node, seen), writtenType!);
             }
             // An index past the picks names nothing, whatever follows it
             // (a list tag made from it is empty, as below).
@@ -2645,10 +2937,11 @@ export function checkTypeChangesAtLoad({
             !held.skip &&
             typesAs(held.types, isList ? entryOfList : writtenType).length <= 1
         ) {
-            // Components that are not composites, of one type: the one
-            // named is checked when the document runs, as a component
-            // named by a reference is.
-            return undefined;
+            // Components that are not composites, of one type: whether the
+            // tag can be made from that type is decided now
+            // (`fixedTypeError`), and the value of the one named when the
+            // document runs.
+            return isList ? undefined : fixedTypeError(held, writtenType!);
         }
         return verdict(held, tag ?? held.notOneTag ?? "", true);
     }

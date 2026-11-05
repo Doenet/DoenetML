@@ -1363,8 +1363,9 @@ describe("What still changes at run time, without changing what the component is
 <p name="p3"><group name="k1"><math extend="$k2"/></group><group name="k2"><math extend="$k3"/></group><group name="k3"><math extend="$k1"/></group></p>
 `);
         // The else of `cc` holds two components, decided when the document
-        // loads; the others are circular, as on main, reported once for
-        // each cycle.
+        // loads, for the tag in each case of `cc`, reported then though the
+        // case is not shown (DIAG-7); the others are circular, as on main,
+        // reported once for each cycle.
         expect(await d.texts(["p1", "p2", "p3"])).eqls({
             p1: "x",
             p2: "12",
@@ -1374,8 +1375,11 @@ describe("What still changes at run time, without changing what the component is
             "doenet-e0005",
             "doenet-e0005",
             "doenet-e0064",
+            "doenet-e0064",
         ]);
 
+        // `c1` and `c2` extending each other still report their cycle again
+        // when the cases change (B32, #2439, a known violation of DIAG-7).
         await d.setBoolean("b", true);
         expect(await d.texts(["p2", "p3"])).eqls({ p2: "＿", p3: "" });
 

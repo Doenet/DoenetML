@@ -26,6 +26,7 @@ import {
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { applySugar } from "../../utils/dast/sugar";
+import { typeChangeAtLoadDiagnostic } from "../../utils/dast/typeChangeAtLoad";
 import AuthoredValueList from "./AuthoredValueList";
 import { typeChangeRule, valueAllowsTypeChange } from "../../utils/typeChange";
 import {
@@ -6151,30 +6152,10 @@ async function typeChangeAtLoadError({
             await component.stateValues.originalPath,
             components[extended?.componentIdx],
         );
-    // A reference that names nothing (an index past what a selector picks,
-    // or a name the branches of a container do not all declare,
-    // `branchNameIssue`) is quoted as a reference.
-    const args = ["doenet-w0181", "doenet-w0183", "doenet-w0184"].includes(
-        mark.code,
-    )
-        ? { reference: source, ...mark.args }
-        : { componentType: writtenType, source, ...mark.args };
-    // A reference that names nothing gives a missing tag, with the warning
-    // the same reference written bare gives (D37); only a type is an error.
-    const level = MISSING_AT_LOAD_CODES.has(mark.code) ? "warning" : "error";
-    return {
-        level,
-        diagnostic: codedDiagnostic({ type: level, code: mark.code, args }),
-    };
+    // The same diagnostic the document reported when it loaded
+    // (`reportTypeChangesAtLoad`), which is kept once.
+    return typeChangeAtLoadDiagnostic({ mark, writtenType, source });
 }
-
-/**
- * The codes of what `typeChangeAtLoad.ts` finds that make a reference written
- * as a tag name nothing (D37): a literal index past the picks
- * (`doenet-w0181`), and a name the every-branch rule rejects for a branch
- * that lacks it (`doenet-w0183`). The tag is then missing, with the warning.
- */
-const MISSING_AT_LOAD_CODES = new Set(["doenet-w0181", "doenet-w0183"]);
 
 /**
  * The warning for a reference written as a tag, scalar or list, whose

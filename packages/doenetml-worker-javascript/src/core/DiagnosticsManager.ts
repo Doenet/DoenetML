@@ -1,12 +1,4 @@
-import {
-    AccessibilityRecord,
-    DiagnosticRecord,
-    InfoRecord,
-    WarningRecord,
-} from "@doenet/utils";
-
-type NonErrorDiagnosticRecord =
-    WarningRecord | InfoRecord | AccessibilityRecord;
+import { DiagnosticRecord } from "@doenet/utils";
 
 /**
  * A diagnostic a condition gives ({@link DiagnosticsManager.setConditionDiagnostics}),
@@ -81,27 +73,25 @@ export class DiagnosticsManager {
         // happen once. Deduping through a `Set` of keys is a single pass, so the
         // O(n²) that once argued against doing it here does not apply.
         //
-        // Errors are ignored here; we'll gather those from the dast when
-        // processing it.
+        // Errors are kept too, though the `_error` components built from the
+        // document raise most of them again, which is kept once: an `_error`
+        // in content made only after an interaction, as in a case that is not
+        // true yet, is reported now, where the author sees it, not first to a
+        // student.
         this._diagnosticKeys = new Set<string>();
         this._conditionDiagnostics = new Map();
         this._watchedConditions = new Map();
         this._refreshing = false;
         this.isShown = () => true;
-        this._queue = preliminaryDiagnostics.filter(
-            (diagnostic): diagnostic is NonErrorDiagnosticRecord => {
-                if (diagnostic.type === "error") {
-                    return false;
-                }
-                this.assertDiagnosticIsValid(diagnostic);
-                const key = diagnosticDedupKey(diagnostic);
-                if (this._diagnosticKeys.has(key)) {
-                    return false;
-                }
-                this._diagnosticKeys.add(key);
-                return true;
-            },
-        );
+        this._queue = preliminaryDiagnostics.filter((diagnostic) => {
+            this.assertDiagnosticIsValid(diagnostic);
+            const key = diagnosticDedupKey(diagnostic);
+            if (this._diagnosticKeys.has(key)) {
+                return false;
+            }
+            this._diagnosticKeys.add(key);
+            return true;
+        });
         this._queueSeq = this._queue.map((_, ind) => ind);
         this._seq = this._queue.length;
 

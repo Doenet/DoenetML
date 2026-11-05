@@ -39,12 +39,22 @@ async function setup(doenetML: string) {
         return result;
     }
 
-    /** The diagnostics of a type change, as code, level and line. */
+    /**
+     * The diagnostics of a type change, as code, level and line, in the
+     * order they are written: one decided when the document loads is
+     * reported then, before those decided as components are made.
+     */
     function typeChangeDiagnostics() {
+        const inOrder = (list: any[]) =>
+            [...list].sort(
+                (a: any, b: any) =>
+                    (a.position?.start.offset ?? 0) -
+                    (b.position?.start.offset ?? 0),
+            );
         return [
-            ...diagnostics.errors,
-            ...diagnostics.warnings,
-            ...diagnostics.infos,
+            ...inOrder(diagnostics.errors),
+            ...inOrder(diagnostics.warnings),
+            ...inOrder(diagnostics.infos),
         ]
             .filter((d: any) => TYPE_CHANGE_CODES.includes(d.code))
             .map((d: any) => ({
@@ -837,10 +847,13 @@ describe("A reference written as a different tag is allowed only between related
         const circular = getDiagnosticsByType(core).errors.filter(
             (d: any) => d.code === "doenet-e0005",
         );
-        // One for `k` and `l`: the first found ends the cycle.
-        expect(circular.map((d: any) => d.position?.start.line)).eqls([
-            2, 4, 5, 6, 7,
-        ]);
+        // One for `k` and `l`: the first found ends the cycle. Those decided
+        // when the document loads are reported first.
+        expect(
+            circular
+                .map((d: any) => d.position?.start.line)
+                .sort((a: number, b: number) => a - b),
+        ).eqls([2, 4, 5, 6, 7]);
     });
 
     it("a setup reached by the index of a child is not decided", async () => {

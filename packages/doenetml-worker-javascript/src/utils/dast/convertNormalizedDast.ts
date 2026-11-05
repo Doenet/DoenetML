@@ -35,7 +35,10 @@ import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
 import { convertCopiesToValueReferences } from "./valueReferences";
 import { convertToListForms } from "./listForms";
-import { checkTypeChangesAtLoad } from "./typeChangeAtLoad";
+import {
+    checkTypeChangesAtLoad,
+    reportTypeChangesAtLoad,
+} from "./typeChangeAtLoad";
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
 import { DiagnosticRecord } from "@doenet/utils";
@@ -649,6 +652,17 @@ export async function normalizedDastToSerializedComponents(
             };
         }
     }
+
+    // What was decided of each reference written as a tag is reported now,
+    // though the tag may be made only after an interaction, as in a case that
+    // is not true yet: an error never first shows to a student.
+    diagnostics.push(
+        ...reportTypeChangesAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
 
     // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
     // the values it reads, and before the value references, so that a
