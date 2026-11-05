@@ -11,7 +11,7 @@ vi.mock("hyperformula");
  * (#2419), is reported as the same failure of a plain reference is:
  * `doenet-w0104` or `doenet-w0105`, quoting the whole function reference as
  * written, arguments included, and marked there. The missing value shows as
- * the plain reference's does: nothing in text, `＿` in a `<math>`. A function
+ * the plain reference's does: `＿`, in text as in a `<math>`. A function
  * reference in an attribute is reported the same way. In the parenthesized form
  * `$$(f)(2)`, the parentheses are not part of the quoted reference (`$$f(2)`),
  * as they are not for a plain reference, but the warning is marked at all of
@@ -43,14 +43,14 @@ describe("A function reference that names nothing @group4", async () => {
         }[] = [
             {
                 doenetML: `<p name="p">[$$f(2)]</p>`,
-                text: "[]",
+                text: "[＿]",
                 code: "doenet-w0104",
                 reference: "$$f(2)",
                 message: "No referent found for reference: `$$f(2)`",
             },
             {
                 doenetML: `${twoFs}<p name="p">[$$f(2)]</p>`,
-                text: "[]",
+                text: "[＿]",
                 code: "doenet-w0105",
                 reference: "$$f(2)",
                 message: "Multiple referents found for reference: `$$f(2)`",
@@ -71,7 +71,7 @@ describe("A function reference that names nothing @group4", async () => {
             },
             {
                 doenetML: `<p name="p">[$$(f)(2)]</p>`,
-                text: "[]",
+                text: "[＿]",
                 code: "doenet-w0104",
                 reference: "$$f(2)",
                 message: "No referent found for reference: `$$f(2)`",
@@ -79,7 +79,7 @@ describe("A function reference that names nothing @group4", async () => {
             },
             {
                 doenetML: `${twoFs}<p name="p">[$$(f)(2)]</p>`,
-                text: "[]",
+                text: "[＿]",
                 code: "doenet-w0105",
                 reference: "$$f(2)",
                 message: "Multiple referents found for reference: `$$f(2)`",
@@ -95,7 +95,7 @@ describe("A function reference that names nothing @group4", async () => {
             },
             {
                 doenetML: `<number name="i">1</number><p name="p">[$$(f[$(i)])(2)]</p>`,
-                text: "[]",
+                text: "[＿]",
                 code: "doenet-w0104",
                 reference: "$$f[$(i)](2)",
                 message: "No referent found for reference: `$$f[$(i)](2)`",
@@ -103,7 +103,7 @@ describe("A function reference that names nothing @group4", async () => {
             },
             {
                 doenetML: `${twoFs}<p name="p">[$(f)]</p>`,
-                text: "[]",
+                text: "[＿]",
                 code: "doenet-w0105",
                 reference: "$f",
                 message: "Multiple referents found for reference: `$f`",
@@ -112,7 +112,7 @@ describe("A function reference that names nothing @group4", async () => {
             {
                 // A parenthesis in an index is not the one closing the path.
                 doenetML: `${twoFs}<p name="p">[$(f[)])]</p>`,
-                text: "[]",
+                text: "[＿]",
                 code: "doenet-w0105",
                 reference: "$f[)]",
                 message: "Multiple referents found for reference: `$f[)]`",
@@ -120,7 +120,7 @@ describe("A function reference that names nothing @group4", async () => {
             },
             {
                 doenetML: `${twoFs}<p name="p">[$$(f)((x), 3)]</p>`,
-                text: "[]",
+                text: "[＿]",
                 code: "doenet-w0105",
                 reference: "$$f((x), 3)",
                 message:
@@ -136,7 +136,7 @@ describe("A function reference that names nothing @group4", async () => {
             },
             {
                 doenetML: `<p name="p">[$$f(2, 3)]</p>`,
-                text: "[]",
+                text: "[＿]",
                 code: "doenet-w0104",
                 reference: "$$f(2, 3)",
                 message: "No referent found for reference: `$$f(2, 3)`",

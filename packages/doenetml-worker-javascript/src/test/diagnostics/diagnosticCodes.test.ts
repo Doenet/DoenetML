@@ -219,9 +219,8 @@ describe("coded diagnostics reach the record @group4", () => {
         const { core } = await createTestCore({ doenetML });
 
         const { warnings } = getDiagnosticsByType(core);
-        expect(
-            warnings.map((w: any) => [w.code, w.message, w.args, w.level]),
-        ).eqls([]);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
         expect(warnings[0].args).eqls({
             reference: "$p.styleDescription[1]",
         });
@@ -249,9 +248,8 @@ describe("coded diagnostics reach the record @group4", () => {
         });
 
         const { warnings } = getDiagnosticsByType(core);
-        expect(
-            warnings.map((w: any) => [w.code, w.message, w.args, w.level]),
-        ).eqls([]);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
         expect(warnings[0].args).eqls({ reference: "$pg.vertexX1_1[1]" });
         expect(warnings[0].message).eq(
             "Cannot reference index `$pg.vertexX1_1[1]`",

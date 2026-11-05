@@ -138,13 +138,13 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
             type: "info",
             line: 4,
             message:
-                "`$r[$n]` names nothing now, so this `<text>` has the value of `<text/>` until it does.",
+                "`$r[$n]` names nothing now, so this `<text>` is missing until it does.",
         };
         expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([]);
 
         for (let i = 0; i < 2; i++) {
             await d.setMath("n", "3");
-            expect(await d.text("p1")).eq("");
+            expect(await d.text("p1")).eq("＿");
             expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([info]);
             expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([
                 info,
@@ -170,7 +170,7 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
                 code: "doenet-i0053",
                 type: "info",
                 line: 4,
-                message: `A \`<point>\` can't be made from \`$g\` while its value, ${value}, isn't a tuple of coordinates, so it has the value of \`<point/>\` until it is.`,
+                message: `A \`<point>\` can't be made from \`$g\` while its value, ${value}, isn't a tuple of coordinates, so it is missing until it is.`,
             };
         }
         expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([infoNaming("x")]);
@@ -189,7 +189,8 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
     });
 
     it("an info of an unlinked copy names the value it was made from, after a reload too", async () => {
-        // A `copy` stays as it was made, `<point/>`, and so does its info.
+        // A `copy` stays as it was made, a missing `<point>`, and so does its
+        // info.
         const d = await setup(`
 <mathInput name="mi" prefill="x"/>
 <group name="g"><math>$mi</math></group>
@@ -200,18 +201,18 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
             type: "info",
             line: 4,
             message:
-                "A `<point>` can't be made from `$g` while its value, x, isn't a tuple of coordinates, so it has the value of `<point/>` until it is.",
+                "A `<point>` can't be made from `$g` while its value, x, isn't a tuple of coordinates, so it is missing until it is.",
         };
         expect(d.diagnostics(TYPE_CHANGE_CODES)).eqls([infoNamingX]);
 
         await d.setMath("mi", "y");
-        expect(await d.text("p1")).eq("(0, 0)");
+        expect(await d.text("p1")).eq("＿");
         expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([
             infoNamingX,
         ]);
 
         await d.setMath("mi", "(1,2)");
-        expect(await d.text("p1")).eq("(0, 0)");
+        expect(await d.text("p1")).eq("＿");
         expect(await d.diagnosticsSurvivingReload(TYPE_CHANGE_CODES)).eqls([
             infoNamingX,
         ]);
@@ -279,7 +280,7 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
             line: 4,
             message: "Cannot reference index `$m[2]`",
         };
-        expect(await d.text("p")).eq("[]");
+        expect(await d.text("p")).eq("[＿]");
         expect(d.diagnostics(["doenet-w0100"])).eqls([warning]);
 
         for (let i = 0; i < 2; i++) {
@@ -288,7 +289,7 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
             expect(d.diagnostics(["doenet-w0100"])).eqls([]);
 
             await d.setMath("mi", "7");
-            expect(await d.text("p")).eq("[]");
+            expect(await d.text("p")).eq("[＿]");
             expect(d.diagnostics(["doenet-w0100"])).eqls([warning]);
         }
     });
@@ -303,7 +304,8 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
         expect(await d.diagnosticsSurvivingReload(["doenet-w0100"])).eqls([]);
 
         await d.setMath("mi", "3");
-        expect(await d.text("p")).eq("[]");
+        // an index into a scalar names nothing, a blank (D37)
+        expect(await d.text("p")).eq("[＿]");
         expect(
             (await d.diagnosticsSurvivingReload(["doenet-w0100"])).map(
                 (x: any) => x.code,
@@ -362,7 +364,8 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
         expect(d.diagnostics(["doenet-w0100"])).eqls([]);
 
         await d.setMath("mi", "3");
-        expect(await d.text("linked")).eq("[]");
+        // an index into a scalar names nothing, a blank (D37)
+        expect(await d.text("linked")).eq("[＿]");
         expect(await d.text("copied")).eq("[2]");
         expect(
             (await d.diagnosticsSurvivingReload(["doenet-w0100"])).map(

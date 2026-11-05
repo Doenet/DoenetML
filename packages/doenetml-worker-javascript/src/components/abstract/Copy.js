@@ -2481,6 +2481,7 @@ export default class Copy extends CompositeComponent {
     static async calculateReplacementChanges(args) {
         const result = await this.calculateReplacementChangesOfCopy(args);
         await reportMissingProperty(args);
+        await blankInPlaceOfNothing({ ...args, result });
         return result;
     }
 
@@ -6250,6 +6251,20 @@ async function missingPropertyError({
     ) {
         return undefined;
     }
+    // The property, not an index after it (`$p.styleDescription[1]`,
+    // `doenet-w0100`), is what is missing, as for the bare reference
+    // (`reportMissingProperty`).
+    const propName = (await component.stateValues.unresolvedPath)?.[0]?.name;
+    if (
+        propName &&
+        typeHasProperty({
+            componentType: sourceComponent.componentType,
+            propName,
+            componentInfoObjects,
+        })
+    ) {
+        return undefined;
+    }
     if (
         componentInfoObjects.isCompositeComponent({
             componentType: sourceComponent.componentType,
@@ -6464,7 +6479,15 @@ async function isBareReferenceToOneThing(component, components) {
     }
     // A name, or a property of what it names: one thing, unless it names a
     // collection as a whole, a composite or a list, whose property is one
-    // of each of its members (`$r.y` of a `<repeat>`), possibly none.
+    // of each of its members (`$r.y` of a `<repeat>`), possibly none. A
+    // name after it (`$cc.x` of a name in a case, `pathStartsWithProperty`
+    // unset) is one thing.
+    if (
+        unresolvedPath?.length > 0 &&
+        !component.doenetAttributes?.pathStartsWithProperty
+    ) {
+        return true;
+    }
     const componentInfoObjects = component.componentInfoObjects;
     return !(
         componentInfoObjects.isCompositeComponent({
@@ -6473,6 +6496,118 @@ async function isBareReferenceToOneThing(component, components) {
         componentInfoObjects.allComponentClasses[extended.componentType]
             ?.listEntryComponentType !== undefined
     );
+}
+
+/**
+ * Make the changes `result` that leave the bare reference to one thing
+ * `component` (`isBareReferenceToOneThing`) showing no component leave it
+ * showing a blank instead (D37), whatever path decided them: an index that
+ * comes to name nothing at run time (`$r[3]` once `r` has two iterations,
+ * `$m[2]` once `m` is a scalar). The copy then names no source, so it is
+ * made from its source again once that makes something.
+ */
+async function blankInPlaceOfNothing({
+    component,
+    components,
+    workspace,
+    result,
+}) {
+    if (
+        component.componentType !== "_copy" ||
+        (await component.stateValues.link) === false
+    ) {
+        return;
+    }
+    // What the copy shows once `result` is applied: whether each of its
+    // top-level replacements is a component, and how many it withholds.
+    const isComponent = component.replacements.map(
+        (x) => typeof x === "object",
+    );
+    let withhold = component.replacementsToWithhold ?? 0;
+    for (const change of result.replacementChanges ?? []) {
+        if (change.changeType === "add" && change.changeTopLevelReplacements) {
+            isComponent.splice(
+                change.firstReplacementInd,
+                change.numberReplacementsToReplace ?? 0,
+                ...change.serializedReplacements.map(
+                    (x) => typeof x === "object",
+                ),
+            );
+        } else if (
+            change.changeType === "delete" &&
+            change.changeTopLevelReplacements
+        ) {
+            isComponent.splice(
+                change.firstReplacementInd,
+                change.numberReplacementsToDelete,
+            );
+        } else if (change.changeType === "changeReplacementsToWithhold") {
+            withhold = change.replacementsToWithhold;
+        }
+    }
+    const shown = isComponent.slice(0, isComponent.length - withhold);
+    const oneThing = await isBareReferenceToOneThing(component, components);
+    const changesTopLevel = (result.replacementChanges ?? []).some(
+        (change) =>
+            change.changeTopLevelReplacements &&
+            (change.changeType === "add" || change.changeType === "delete"),
+    );
+    if (
+        !oneThing &&
+        !changesTopLevel &&
+        component.replacements.length > 0 &&
+        component.replacements.every((x) => x.componentType === "_missing")
+    ) {
+        // The blank it showed while it named nothing, now that it names
+        // what shows nothing (a `<setup>`), or a collection
+        result.replacementChanges = [
+            ...(result.replacementChanges ?? []),
+            {
+                changeType: "delete",
+                changeTopLevelReplacements: true,
+                firstReplacementInd: 0,
+                numberReplacementsToDelete: component.replacements.length,
+            },
+        ];
+        workspace.numReplacementsBySource = [];
+        workspace.numNonStringReplacementsBySource = [];
+        return;
+    }
+    if (shown.some(Boolean) || !oneThing) {
+        return;
+    }
+    const stateIdInfo = {
+        prefix: `${component.stateId}|`,
+        num: workspace.replacementsCreated,
+    };
+    const missing = missingReplacement({
+        nComponents: result.nComponents++,
+        stateIdInfo,
+    });
+    workspace.replacementsCreated = stateIdInfo.num;
+    result.replacementChanges = [
+        ...(result.replacementChanges ?? []),
+        ...(withhold > 0
+            ? [
+                  {
+                      changeType: "changeReplacementsToWithhold",
+                      replacementsToWithhold: 0,
+                  },
+              ]
+            : []),
+        {
+            changeType: "add",
+            changeTopLevelReplacements: true,
+            firstReplacementInd: 0,
+            numberReplacementsToReplace: isComponent.length,
+            serializedReplacements: [missing],
+        },
+    ];
+    workspace.numReplacementsBySource = [1];
+    workspace.numNonStringReplacementsBySource = [1];
+    workspace.sourceIndices = [];
+    workspace.propVariablesCopiedBySource = [];
+    workspace.sourceContainsCopyBySource = [];
 }
 
 /** A `_missing` (`Missing.js`), as the one replacement of a copy. */
