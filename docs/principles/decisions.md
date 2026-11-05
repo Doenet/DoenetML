@@ -2021,8 +2021,8 @@ nothing with a warning, the tag is an error (REF-1, REF-0).
 ### The idea
 
 An author is less surprised by a reference that always shows something than by one that shows
-nothing and appears later. A missing value becomes a state of every value type, shown as a
-blank. Then REF-0 still holds, more strongly: `<math extend="$nothing"/>` is a math, whose value is
+nothing and appears later. Being missing becomes a state any component can be in, shown as a
+blank. Then REF-0 still holds, more strongly: `<math extend="$nothing"/>` is a math, which is
 missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a point at (0, 0),
 `<angle/>`) no longer appear through references.
 
@@ -2034,10 +2034,35 @@ missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a 
 2. **A reference to a collection gives its members, possibly none.** A list, a repeat, a collect,
    a group, and `$cc` itself while no case is active show nothing when empty. This is the only
    way a reference shows nothing.
-3. **A missing value shows as `＿` inline, and is not drawn in a graph.** This settles D10. A
-   missing point is not drawn and can't be dragged.
-4. **`<T extend="$x"/>` is a T.** When x is missing, the T's value is missing, not `<T/>`'s
-   default. `<text/>` is still `""`, `<number/>` `NaN`, `<boolean/>` `false`, `<point/>` (0, 0).
+3. **Missing shows as `＿` inline, and is not drawn in a graph.** This settles D10. A missing
+   point is not drawn and can't be dragged.
+4. **A tag whose source is missing is itself missing, whatever it adds.** `<T extend="$x"/>` is
+   a T, and while x is missing the T is missing too. Its own children and attributes don't make
+   it something else:
+
+   | Written | Shows while the source is missing |
+   |---|---|
+   | `<math extend="$nothing"/>`, `<math extend="$nothing">+1</math>` | `＿` |
+   | `<text extend="$nothing">hi</text>` | `＿` |
+   | `<p extend="$nothing">hi</p>`, `<section extend="$nothing">…</section>` | `＿` |
+   | `<group extend="$nothing">hi</group>` | `＿` |
+   | `<mathInput extend="$nothing"/>` | `＿`, with no input box |
+   | `<point extend="$nothing"/>` in a graph | not drawn |
+   | `<p extend="$r[$i]">note</p>` while the index names nothing | `＿`; the p and its `note` return when the index names an iteration |
+
+   An extend is the same component again, plus what is added (REF-7). With no component there is
+   nothing to add to, and the warning says why. So:
+   - a missing tag is not `<T/>`. `<text/>` is still `""`, `<number/>` `NaN`, `<boolean/>`
+     `false`, `<point/>` (0, 0);
+   - a name on a missing tag reads it as missing: `$m.value` of `<math name="m"
+     extend="$nothing"/>` is missing;
+   - `hide` still hides it (question 4);
+   - a missing input shows no box, so the reader can't type into something the link will later
+     replace. This removes D36's question about inputs reached through an index.
+
+   **Accepted asymmetry:** `<math extend="$m">+1</math>` is `＿` while `m` is missing, because
+   the extended math is missing. `<math>$m + 1</math>` is `＿ + 1`, because it is a new math
+   that reads a blank operand.
 5. **`$x` is `<X extend="$x"/>` again**, where X is the type `$x` presents as: x's tag, or an
    input's value type (REF-1a). With no referent, both are a blank.
 6. **A missing referent, an ambiguous name, a missing property, or a name failing D22's
@@ -2086,22 +2111,22 @@ missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a 
 
 ### Questions
 
-1. **A missing component that isn't a value**, such as `$sec.p` for a `<p>` that doesn't
-   exist, or an iteration past the end of a repeat of paragraphs. Recommendation: rule 1 applies.
-   A `＿` where a paragraph would be is visible, which helps the author.
+1. **A missing component that isn't a value** (decided, rule 4). `$sec.p` for a `<p>` that
+   doesn't exist, an iteration past the end of a repeat of paragraphs, and `<p
+   extend="$nothing">hi</p>` are all blanks.
 2. **Operators.** Recommendation: a missing operand is a blank, as `<math>` already does, so
    `<sum>$l[5] 3</sum>` is missing rather than `3`. A missing number shows `＿`, and `NaN` stays
    for a computation that has no value.
 3. **D36's presence rules.** Recommendation: "no `<else>`", "no case active" and "a name in no
-   case" give a T with a missing value and an info. Mixed and unrelated types stay load-time
+   case" give a missing T and an info. Mixed and unrelated types stay load-time
    errors. That keeps the type safety, and drops the requirement to write an `<else>`.
 4. **Hidden referents (D9).** "Always shows something" means missing shows as blank, not that
    hidden content shows. A hidden referent stays hidden.
 
 ### Cost and compatibility
 
-- Every value type needs a missing state that survives conversions, properties and saved state.
-  Today only math has one (`＿`). This is the work D10 needed anyway.
+- The missing state has to survive conversions, properties and saved state. This is the work
+  D10 needed anyway, but most of it is in shared code (below).
 - 0.7 documents that look different: `$ans.submittedResponse` in feedback shows `＿` before a
   submission; `$l[$i]` and `$s[$k]` out of range show `＿`; typos show `＿`, which helps.
 - Tests that pin today's display: VAL-5's (`drawn_value_references.test.ts:234`,
@@ -2109,3 +2134,27 @@ missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a 
   tests #2447 and #2451 changed to expect errors on a tag (`indexNamesNothing.test.ts`,
   `type_change_run_time.test.ts`, `branch_names.test.ts`, `extend_references.test.ts`,
   `external_references.test.ts`, `answer.test.ts`, the two `*WordsLocale` tests).
+
+### Implementation note
+
+Most of the plumbing exists for value references, and can be made general:
+- **The flag.** `ValueRef` has `valueMissing` (`valueMissingDefinition` in
+  `W/components/abstract/referenceSlotDefinitions.js`). It is separate from the value because an
+  empty value can't say "missing": a referent can hold `NaN` or `""`. While missing, the value is
+  `emptyValueOfType` (`＿`, `NaN`, `""`, `false`). Move the flag to `BaseComponent`, false by
+  default, and set it for an extend or copy whose source is missing: no referent, an index that
+  names nothing, a value that doesn't convert. Every component can then be missing, so containers
+  and composites need no flag of their own.
+- **Properties.** A property of a missing component is missing. That belongs where a reference
+  reads its referent's variable, not in each class.
+- **Drawing.** `RendererInstructionBuilder.ts` chooses `rendererType` in one place. A missing
+  component gets one shared blank renderer: `＿` inline, announced as blank, and its children not
+  drawn. In a graph it is not drawn, as a hidden component is not. Today a drawn `ValueRef` that
+  is missing is hidden instead (`hidden` in `W/components/abstract/ValueRef.js`); that becomes
+  the blank.
+- **Consumers.** `MathBaseOperator`, `BooleanBaseOperator`, comparisons
+  (`returnChildrenByCodeStateVariableDefinitions` in `W/utils/booleanLogic.js`), `<answer>` and
+  `CollectList` already read `valueMissing`. Operators change from leaving a missing operand out
+  to using a blank, if question 2 is decided that way.
+- **Coming back.** When the source exists again (an index names something, a case becomes
+  active), the component is made from it again, with its own children and attributes.
