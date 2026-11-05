@@ -218,7 +218,7 @@ impl Loaded {
             keys: compiled.plans.keys.clone(),
             structural_depth: compiled.plans.structural_depth,
             version: compiled.plans.version,
-            diagnostics: compiled.plans.diagnostics.clone(),
+            diagnostics: compiled.diagnostics.clone(),
             compiled: compiled.plans.has_repeats().then_some(compiled),
         }
     }

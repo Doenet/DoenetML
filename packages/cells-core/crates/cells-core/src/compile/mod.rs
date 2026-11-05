@@ -88,22 +88,26 @@ use record::{ChildValue, ValueChildren};
 use refs::Refs;
 pub(crate) use seal::keys;
 
-/// A compile that planned: what it planned, and the errors of the
-/// elements it boxed where they failed.
+/// A compile that planned: what it planned, the errors of the elements it
+/// boxed where they failed, and the planners' warnings.
 pub(in crate::compile) struct Attempt {
     pub(in crate::compile) plans: Plans,
     pub(in crate::compile) errors: Vec<Diagnostic>,
+    pub(in crate::compile) warnings: Vec<Diagnostic>,
 }
 
 /// What every stage of one compile works on, outline to seal: the source,
-/// read-only, the plans being made in their parts, which stage runs, and a
-/// cache.
+/// read-only, the plans being made in their parts, the planners' warnings,
+/// which stage runs, and a cache.
 /// What boxing records is a [`Boxes`], given only to the stages that box.
 pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled. Only the finished `Compiled` owns it.
     pub(in crate::compile) dast: &'a Dast,
     /// What the compile makes from it.
     pub(in crate::compile) plans: Plans,
+    /// The planners' warnings about the source, which the compile reports
+    /// with the boxes' errors.
+    warnings: Vec<Diagnostic>,
     /// What outlining settles, which every stage after it reads and none
     /// changes.
     settled: Settled,
@@ -226,12 +230,12 @@ impl Compiler<'_> {
                 keys: Arc::default(),
                 version: dast.version_hash(),
                 extra_strings: Vec::new(),
-                diagnostics: Arc::default(),
                 structural_depth: 0,
                 prune: false,
                 fold: false,
                 expr_class: Vec::new(),
             },
+            warnings: Vec::new(),
             settled: Settled::default(),
             tables: Vec::new(),
             stage: Stage::Outline,
@@ -277,6 +281,7 @@ impl Compiler<'_> {
         let Compiler {
             dast,
             mut plans,
+            warnings,
             tables,
             settled,
             ..
@@ -309,7 +314,11 @@ impl Compiler<'_> {
                 .map(|&k| (k, OnceLock::new()))
                 .collect();
         }
-        Ok(Attempt { plans, errors })
+        Ok(Attempt {
+            plans,
+            errors,
+            warnings,
+        })
     }
 }
 
@@ -387,19 +396,15 @@ impl Compiler<'_> {
         t
     }
 
-    /// A warning about the element at `node`, kept with the compile's
-    /// diagnostics.
+    /// A warning about the element at `node`, which the compile reports.
     pub(in crate::compile) fn warn(
         &mut self,
         node: NodeId,
         code: &'static str,
         message: &str,
     ) -> Warned {
-        Arc::make_mut(&mut self.plans.diagnostics).push(crate::diagnostics::Diagnostic::warning(
-            code,
-            Some(node),
-            message.into(),
-        ));
+        self.warnings
+            .push(Diagnostic::warning(code, Some(node), message.into()));
         Warned::raised()
     }
 

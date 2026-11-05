@@ -169,7 +169,6 @@ mod tests {
         // The accessibility lint is about the document (a graph without a
         // description), not the attribute.
         let clean = compiled
-            .plans
             .diagnostics
             .iter()
             .all(|d| d.kind == crate::DiagnosticKind::Accessibility);

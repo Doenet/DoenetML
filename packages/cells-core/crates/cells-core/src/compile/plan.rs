@@ -1412,6 +1412,9 @@ impl GivenPoint {
 pub struct Compiled {
     pub(crate) dast: Dast,
     pub(crate) plans: Plans,
+    /// The source's diagnostics, in node order: a fact about the source
+    /// (ADR 0014), which the document shares (`Loaded::diagnostics`).
+    pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
 }
 
 /// What a build reads: a source and the plans made from it, borrowed.
@@ -1445,8 +1448,6 @@ pub(crate) struct Plans {
     /// `prefill`), appended after the DAST's table, so their ids are the
     /// same in every build.
     pub(crate) extra_strings: Vec<String>,
-    /// The source's diagnostics, in node order.
-    pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
     /// The document's structural depth, which bounds every build's: 0
     /// without a repeat, and 0 when a test load skips the count check.
     pub(crate) structural_depth: u32,

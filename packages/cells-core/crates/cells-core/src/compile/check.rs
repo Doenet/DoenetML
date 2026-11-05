@@ -33,7 +33,7 @@ pub(crate) fn compile(
         let _s = crate::trace::span("lint");
         lint::lint(&dast)
     };
-    let (mut plans, ()) = plan_and_check(&dast, &mut list, share, |dast, plans| {
+    let (plans, warnings) = plan_and_check(&dast, &mut list, share, |dast, plans| {
         plans.prune = prune;
         plans.fold = fold;
         let _s = crate::trace::span("abstract build");
@@ -47,19 +47,20 @@ pub(crate) fn compile(
             }
             tpl.checked = Checked { attrs };
         }
-        // The abstract build's warnings are the document's: no build finds
-        // one the abstract build did not (ADR 0014).
-        Arc::make_mut(&mut plans.diagnostics).extend(findings.warnings);
-        Ok(())
+        Ok(findings.warnings)
     })?;
-    // The planners' and the abstract build's warnings, from the compile
-    // that built.
+    // The abstract build's warnings are the document's: no build finds one
+    // the abstract build did not (ADR 0014). With them, the lint findings,
+    // the boxes' errors and the planners' warnings, which the loop added.
     let _s = crate::trace::span("diagnostics");
-    list.append(Arc::make_mut(&mut plans.diagnostics));
+    list.extend(warnings);
     crate::diagnostics::sort(&mut list);
-    plans.diagnostics = Arc::new(list);
     Ok(CompileOutput {
-        compiled: Arc::new(Compiled { dast, plans }),
+        compiled: Arc::new(Compiled {
+            dast,
+            plans,
+            diagnostics: Arc::new(list),
+        }),
     })
 }
 
@@ -69,10 +70,9 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let mut list = lint::lint(dast);
     // The build is not wanted, but its warnings are, with the planners'.
     // A failure with no element to box is in the list already.
-    if let Ok((plans, findings)) = plan_and_check(dast, &mut list, true, |dast, plans| {
+    if let Ok((_, findings)) = plan_and_check(dast, &mut list, true, |dast, plans| {
         build::abstract_build(CompiledRef { dast, plans }, true)
     }) {
-        list.extend(plans.diagnostics.iter().cloned());
         list.extend(findings.warnings);
     }
     crate::diagnostics::sort(&mut list);
@@ -94,9 +94,10 @@ pub(crate) fn signature_renamed(
 /// The compile's loop: plan `dast`, boxing every element that fails where
 /// it fails; then run `check` on the plan. An element `check` fails on, or
 /// a failure no element could carry, is boxed and the plan made again.
-/// Each box is an error in `errors`. Only a failure with no element to
-/// box, a cycle, fails it, after its error joins `errors` too. `share`
-/// runs the sharing stage. Every stage and `check` borrow `dast`; the
+/// Each box is an error in `errors`, and the planners' warnings of the
+/// plan that checked join them. Only a failure with no element to box, a
+/// cycle, fails it, after its error joins `errors` too. `share` runs the
+/// sharing stage. Every stage and `check` borrow `dast`; the
 /// loop returns the plans that checked, made from it.
 fn plan_and_check<T>(
     dast: &Dast,
@@ -138,12 +139,13 @@ fn plan_and_check<T>(
         let Attempt {
             mut plans,
             errors: boxed_here,
-            ..
+            warnings,
         } = planned;
         match check(dast, &mut plans) {
             Ok(checked) => {
                 crate::trace::count("boxed", boxed_here.len());
                 errors.extend(boxed_here);
+                errors.extend(warnings);
                 return Ok((plans, checked));
             }
             Err(f) => restart(&mut boxed, errors, f)?,

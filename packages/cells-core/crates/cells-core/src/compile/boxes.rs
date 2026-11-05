@@ -162,7 +162,7 @@ impl Compiler<'_> {
             return;
         }
         bx.drop_errors_on(&dead);
-        Arc::make_mut(&mut self.plans.diagnostics)
+        self.warnings
             .retain(|d| !d.node.is_some_and(|n| boxes.contains(&n)));
     }
 
@@ -323,7 +323,6 @@ mod tests {
         assert_eq!(tpl.tables.ref_child_plans[id.index()], RefChildPlan::Boxed);
         assert!(
             compiled
-                .plans
                 .diagnostics
                 .iter()
                 .any(|d| d.code == "doenet-w0104")
