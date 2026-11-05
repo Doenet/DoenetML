@@ -49,13 +49,14 @@ impl<'a> Compiler<'a> {
     /// A literal number or a single reference; else `BadValue`.
     pub(in crate::compile) fn plan_value(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         attr: &str,
         nodes: &[NodeId],
         ref_prop: Option<&'static str>,
     ) -> Result<Source> {
-        match self.try_value(t, scope, nodes, ref_prop)? {
+        match self.try_value(rf, t, scope, nodes, ref_prop)? {
             Some(source) => Ok(source),
             None => Err(Error::BadValue {
                 attr: attr.into(),
@@ -68,6 +69,7 @@ impl<'a> Compiler<'a> {
     /// reference (math text, most often).
     pub(in crate::compile) fn try_value(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
@@ -95,9 +97,10 @@ impl<'a> Compiler<'a> {
         }
         match (macros, texts) {
             (1, 0) => {
-                let p = self.plan_ref(t, scope, macro_node)?;
+                let p = self.plan_ref(rf, t, scope, macro_node)?;
                 if let (None, Some(rp)) = (&self.compiled.refs[p.index()].prop, ref_prop) {
-                    self.compiled.refs[p.index()].prop = self.prop_named(t, p, rp)?;
+                    let named = self.prop_named(t, p, rp)?;
+                    rf.plan_mut(&mut self.compiled.refs, p).prop = named;
                 }
                 Ok(Some(Source::reference(p)))
             }
@@ -123,12 +126,13 @@ impl<'a> Compiler<'a> {
     /// leaves are plan ids.
     pub(in crate::compile) fn plan_math(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
     ) -> Result<ExprId> {
         let _s = crate::trace::tally("plan math");
-        let (toks, src) = self.math_tokens(t, scope, nodes)?;
+        let (toks, src) = self.math_tokens(rf, t, scope, nodes)?;
         self.parse_tokens(&toks, src)
     }
 
@@ -136,25 +140,27 @@ impl<'a> Compiler<'a> {
     /// the text for the symbolic engine in case the math turns out symbolic.
     pub(in crate::compile) fn plan_sym_math(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
     ) -> Result<ExprId> {
         let mt = self.math_text(nodes)?;
-        self.parse_math_text(t, scope, &mt)
+        self.parse_math_text(rf, t, scope, &mt)
     }
 
     /// The source for one scalar attribute value: literal, reference, or math.
     pub(in crate::compile) fn plan_scalar(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
     ) -> Result<Source> {
-        match self.try_value(t, scope, nodes, None)? {
+        match self.try_value(rf, t, scope, nodes, None)? {
             Some(p) => Ok(p),
             None => {
-                let id = self.plan_math(t, scope, nodes)?;
+                let id = self.plan_math(rf, t, scope, nodes)?;
                 Ok(self.plan_from_expr(id))
             }
         }
@@ -173,6 +179,7 @@ impl<'a> Compiler<'a> {
     /// `(a, b)`: two scalar sources from tuple text, with `$ref` leaves.
     pub(in crate::compile) fn plan_tuple(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
@@ -188,10 +195,10 @@ impl<'a> Compiler<'a> {
             .all(|&n| d.kind(n) != NodeKind::Text || d.str(n).trim().is_empty());
         if macros.len() == 1 && text_blank {
             // `<point>$q</point>`: alias the referent's coordinates.
-            let p = self.plan_ref(t, scope, macros[0])?;
+            let p = self.plan_ref(rf, t, scope, macros[0])?;
             return Ok([Source::coord(p, 0), Source::coord(p, 1)]);
         }
-        let (toks, src) = self.math_tokens(t, scope, nodes)?;
+        let (toks, src) = self.math_tokens(rf, t, scope, nodes)?;
         let entries = expr::tuple_entries(&toks).ok_or_else(|| Error::BadMath {
             text: src.text(self.dast),
             reason: "expected a tuple like (x, y)".into(),
@@ -218,13 +225,15 @@ impl<'a> Compiler<'a> {
     /// A point-valued attribute: a reference (`center="$p"`) or a tuple.
     pub(in crate::compile) fn plan_point_attr(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         a: u32,
     ) -> Result<GivenPoint> {
         match self.single_macro(a) {
-            Some(m) => Ok(GivenPoint::Ref(self.plan_ref(t, scope, m)?)),
+            Some(m) => Ok(GivenPoint::Ref(self.plan_ref(rf, t, scope, m)?)),
             None => Ok(GivenPoint::Tuple(self.plan_tuple(
+                rf,
                 t,
                 scope,
                 self.dast.attr_children(a),

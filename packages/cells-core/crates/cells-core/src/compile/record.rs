@@ -3,6 +3,7 @@
 //! each in the scope it was written in. A planner reads the record, never
 //! the source; an extend's record is its own merged over the referent's.
 
+use crate::compile::rebase::Rebaser;
 use crate::compile::*;
 use crate::components::{AttrDecl, AttrKind, ChildrenDecl, ChildrenKind};
 
@@ -292,24 +293,19 @@ impl Record {
 
     /// Every reference and math text the record holds rewritten, for a
     /// record read from another template.
-    pub(in crate::compile) fn rebase<'a>(
-        &mut self,
-        cp: &mut Compiler<'a>,
-        refs: &mut dyn FnMut(&mut Compiler<'a>, &mut RefId),
-        exprs: &mut dyn FnMut(&mut Compiler<'a>, &mut ExprId),
-    ) {
+    pub(in crate::compile) fn rebase(&mut self, rw: &mut Rebaser<'_, '_>) {
         for v in &mut self.values {
             match v {
-                AttrValue::Scalar(s) => rebase_source(s, cp, refs, exprs),
-                AttrValue::Point(PointAttr::Point(p)) => rebase_point(p, cp, refs, exprs),
+                AttrValue::Scalar(s) => rebase_source(s, rw),
+                AttrValue::Point(PointAttr::Point(p)) => rebase_point(p, rw),
                 AttrValue::Points(ps) => {
                     for p in ps {
-                        rebase_point(p, cp, refs, exprs);
+                        rebase_point(p, rw);
                     }
                 }
-                AttrValue::Ref(p) => refs(cp, p),
+                AttrValue::Ref(p) => rw.reference(p),
                 AttrValue::Content(v) => match &mut v.value {
-                    ChildValue::Reference(p) => refs(cp, p),
+                    ChildValue::Reference(p) => rw.reference(p),
                     // Math text names nodes planned where the referent
                     // sits: through a path, the copy takes none.
                     ChildValue::Math => *v = ValueChildren::blank(),
@@ -324,40 +320,30 @@ impl Record {
     }
 }
 
-fn rebase_source<'a>(
-    s: &mut Source,
-    cp: &mut Compiler<'a>,
-    refs: &mut dyn FnMut(&mut Compiler<'a>, &mut RefId),
-    exprs: &mut dyn FnMut(&mut Compiler<'a>, &mut ExprId),
-) {
+fn rebase_source(s: &mut Source, rw: &mut Rebaser<'_, '_>) {
     match s {
-        Source::Flow(Flow::Alias(Arg::Ref(p, _))) => refs(cp, p),
+        Source::Flow(Flow::Alias(Arg::Ref(p, _))) => rw.reference(p),
         Source::Flow(Flow::Op(_, args)) => {
             for a in args {
                 if let Arg::Ref(p, _) = a {
-                    refs(cp, p);
+                    rw.reference(p);
                 }
             }
         }
         Source::Flow(
             Flow::Math(id) | Flow::MathHandle(id, _) | Flow::MathValue(id) | Flow::SymExpr(id, _),
-        ) => exprs(cp, id),
-        Source::Leaf(Leaf::Scope(ScopeConst::Seed(p))) => refs(cp, p),
+        ) => rw.expr(id),
+        Source::Leaf(Leaf::Scope(ScopeConst::Seed(p))) => rw.reference(p),
         _ => {}
     }
 }
 
-fn rebase_point<'a>(
-    p: &mut GivenPoint,
-    cp: &mut Compiler<'a>,
-    refs: &mut dyn FnMut(&mut Compiler<'a>, &mut RefId),
-    exprs: &mut dyn FnMut(&mut Compiler<'a>, &mut ExprId),
-) {
+fn rebase_point(p: &mut GivenPoint, rw: &mut Rebaser<'_, '_>) {
     match p {
-        GivenPoint::Ref(p) | GivenPoint::Item(p, _) => refs(cp, p),
+        GivenPoint::Ref(p) | GivenPoint::Item(p, _) => rw.reference(p),
         GivenPoint::Tuple(xy) => {
             for s in xy {
-                rebase_source(s, cp, refs, exprs);
+                rebase_source(s, rw);
             }
         }
     }
@@ -367,7 +353,12 @@ impl Compiler<'_> {
     /// Element `e`'s record: every attribute its planner's type declares,
     /// and its children as the type reads them, parsed from the element's
     /// own source where the element sits.
-    pub(in crate::compile) fn parse_record(&mut self, t: TemplateId, e: ElemId) -> Result<Record> {
+    pub(in crate::compile) fn parse_record(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<Record> {
         let Elem {
             node,
             planned_as,
@@ -383,7 +374,7 @@ impl Compiler<'_> {
                 tag: String::new(),
             });
         }
-        self.parse_node_record(t, scope, node, planned_as)
+        self.parse_node_record(rf, t, scope, node, planned_as)
     }
 
     /// The record of `node`, an element of type `component_type` (an
@@ -391,6 +382,7 @@ impl Compiler<'_> {
     /// `scope`.
     fn parse_node_record(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
@@ -405,11 +397,11 @@ impl Compiler<'_> {
             tag: self.dast.str(node).to_string(),
         };
         for decl in decls {
-            let value = self.parse_attr(t, scope, node, decl)?;
+            let value = self.parse_attr(rf, t, scope, node, decl)?;
             record.own.push(!matches!(value, AttrValue::Absent));
             record.values.push(value);
         }
-        record.children = self.parse_children(t, scope, node, &def.children)?;
+        record.children = self.parse_children(rf, t, scope, node, &def.children)?;
         Ok(record)
     }
 
@@ -420,6 +412,7 @@ impl Compiler<'_> {
     /// the type has groups, and math text's (as written) when it has none.
     fn parse_children(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
@@ -448,13 +441,13 @@ impl Compiler<'_> {
             if let Some(g) = decl.groups.iter().position(|g| g.name == tag) {
                 for &m in d.children(n) {
                     if d.kind(m) == NodeKind::Element {
-                        let member = self.parse_member(t, scope, m, decl, Some(g))?;
+                        let member = self.parse_member(rf, t, scope, m, decl, Some(g))?;
                         children.groups[g].push(member);
                     }
                 }
                 continue;
             }
-            let member = self.parse_member(t, scope, n, decl, None)?;
+            let member = self.parse_member(rf, t, scope, n, decl, None)?;
             let g = decl
                 .groups
                 .iter()
@@ -474,7 +467,9 @@ impl Compiler<'_> {
                 )));
             }
             ChildrenKind::Math => Content::Math(content.into()),
-            ChildrenKind::Value => Content::Value(self.parse_value_children(t, scope, content)?),
+            ChildrenKind::Value => {
+                Content::Value(self.parse_value_children(rf, t, scope, content)?)
+            }
         };
         Ok(children)
     }
@@ -484,6 +479,7 @@ impl Compiler<'_> {
     /// not that one) takes its type.
     fn parse_member(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         n: NodeId,
@@ -502,7 +498,7 @@ impl Compiler<'_> {
                 let names: Vec<&str> = decl.groups.iter().map(|g| g.name).collect();
                 Error::Unsupported(format!("<{tag}> among the {}", names.join(" or ")))
             })?;
-        let record = self.parse_node_record(t, scope, n, component_type)?;
+        let record = self.parse_node_record(rf, t, scope, n, component_type)?;
         Ok(Member {
             component_type,
             record,
@@ -513,6 +509,7 @@ impl Compiler<'_> {
     /// them is planned here, where it was written.
     fn parse_value_children(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: Vec<NodeId>,
@@ -533,7 +530,7 @@ impl Compiler<'_> {
             }
         }
         let value = match (macros, texts.len()) {
-            (1, 0) => ChildValue::Reference(self.plan_ref(t, scope, macro_node)?),
+            (1, 0) => ChildValue::Reference(self.plan_ref(rf, t, scope, macro_node)?),
             (0, 1..) => ChildValue::Text {
                 text: texts.iter().map(|&n| d.str(n)).collect(),
                 id: (texts.len() == 1).then(|| d.str_id(texts[0])),
@@ -551,6 +548,7 @@ impl Compiler<'_> {
     /// Attribute `decl` of `node`, planned from `scope`.
     fn parse_attr(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
@@ -562,12 +560,17 @@ impl Compiler<'_> {
         };
         Ok(match decl.kind {
             AttrKind::Scalar => {
-                AttrValue::Scalar(self.plan_scalar(t, scope, d.attr_children(a))?)
+                AttrValue::Scalar(self.plan_scalar(rf, t, scope, d.attr_children(a))?)
             }
-            AttrKind::Value => {
-                AttrValue::Scalar(self.plan_value(t, scope, decl.name, d.attr_children(a), None)?)
-            }
-            AttrKind::Point => AttrValue::Point(match self.plan_point_attr(t, scope, a) {
+            AttrKind::Value => AttrValue::Scalar(self.plan_value(
+                rf,
+                t,
+                scope,
+                decl.name,
+                d.attr_children(a),
+                None,
+            )?),
+            AttrKind::Point => AttrValue::Point(match self.plan_point_attr(rf, t, scope, a) {
                 Ok(p) => PointAttr::Point(p),
                 // Not a point (`center="A"`): the planner's to warn about
                 // or refuse.
@@ -576,10 +579,12 @@ impl Compiler<'_> {
                 }
                 Err(e) => return Err(e),
             }),
-            AttrKind::Points { .. } => AttrValue::Points(self.plan_point_list(t, scope, node, a)?),
+            AttrKind::Points { .. } => {
+                AttrValue::Points(self.plan_point_list(rf, t, scope, node, a)?)
+            }
             AttrKind::Flag { .. } => AttrValue::Scalar(match self.single_macro(a) {
                 // A reference is bound.
-                Some(_) => self.plan_scalar(t, scope, d.attr_children(a))?,
+                Some(_) => self.plan_scalar(rf, t, scope, d.attr_children(a))?,
                 // A literal: a bare attribute is true.
                 None => Source::given(if self.attr_flag(node, decl.name) {
                     1.0
@@ -603,7 +608,7 @@ impl Compiler<'_> {
             ),
             AttrKind::Content => {
                 let nodes = d.attr_children(a).to_vec();
-                AttrValue::Content(self.parse_value_children(t, scope, nodes)?)
+                AttrValue::Content(self.parse_value_children(rf, t, scope, nodes)?)
             }
             AttrKind::Text => match self.attr_text(a) {
                 Some(text) => AttrValue::Text(text),
@@ -615,7 +620,7 @@ impl Compiler<'_> {
                     attr: decl.name.into(),
                     text: self.attr_text(a).unwrap_or_default(),
                 })?;
-                AttrValue::Ref(self.plan_ref(t, scope, m)?)
+                AttrValue::Ref(self.plan_ref(rf, t, scope, m)?)
             }
         })
     }

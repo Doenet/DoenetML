@@ -9,18 +9,20 @@ impl<'a> Compiler<'a> {
     /// a type with one is planned by a function.
     pub(in crate::compile) fn plan_attrs(
         &mut self,
+        rf: &mut Refs,
         parsed: &Parsed,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
     ) -> Result<()> {
-        self.plan_table(parsed, t, e, extend, false)
+        self.plan_table(rf, parsed, t, e, extend, false)
     }
 
     /// `plan_attrs` for machinery that plans the `by_planner` props itself
     /// after the table: they are left absent.
     pub(in crate::compile) fn plan_table(
         &mut self,
+        rf: &mut Refs,
         parsed: &Parsed,
         t: TemplateId,
         e: ElemId,
@@ -64,7 +66,7 @@ impl<'a> Compiler<'a> {
                         attr: bind.into(),
                         text: self.attr_text(a).unwrap_or_default(),
                     })?;
-                    Some(Source::reference(self.plan_ref(t, scope, m)?))
+                    Some(Source::reference(self.plan_ref(rf, t, scope, m)?))
                 }
                 None => None,
             };
@@ -72,6 +74,7 @@ impl<'a> Compiler<'a> {
                 (Some(p), _) => p,
                 (None, PropFrom::Attribute) => match d.attr(el, def.attr_name()) {
                     Some(a) => self.plan_value(
+                        rf,
                         t,
                         scope,
                         def.attr_name(),
@@ -82,7 +85,7 @@ impl<'a> Compiler<'a> {
                 },
                 (None, PropFrom::AttributeOr { alias }) => match d.attr(el, def.attr_name()) {
                     Some(a) => {
-                        self.plan_value(t, scope, def.attr_name(), d.attr_children(a), None)?
+                        self.plan_value(rf, t, scope, def.attr_name(), d.attr_children(a), None)?
                     }
                     None => Source::own(Port::table(alias as usize)),
                 },
@@ -90,13 +93,15 @@ impl<'a> Compiler<'a> {
                 (None, PropFrom::Children) => match &children.value {
                     // A mathInput's `prefill` stands in for blank children.
                     ChildValue::Blank => match def.attr.and_then(|a| d.attr(el, a)) {
-                        Some(a) => match self.try_value(t, scope, d.attr_children(a), None)? {
+                        Some(a) => match self.try_value(rf, t, scope, d.attr_children(a), None)? {
                             Some(p) => p,
-                            None => Source::math(self.plan_math(t, scope, d.attr_children(a))?),
+                            None => {
+                                Source::math(self.plan_math(rf, t, scope, d.attr_children(a))?)
+                            }
                         },
                         None => default(def.default, pi),
                     },
-                    _ => self.plan_value_children(t, scope, &children)?,
+                    _ => self.plan_value_children(rf, t, scope, &children)?,
                 },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
@@ -122,6 +127,7 @@ impl<'a> Compiler<'a> {
     /// slot.
     pub(in crate::compile) fn plan_value_children(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         v: &ValueChildren,
@@ -132,7 +138,7 @@ impl<'a> Compiler<'a> {
                 values::literal_value(text.trim()).expect("a literal")
             }
             // Not a single literal or reference: math text.
-            _ => Source::math(self.plan_math(t, scope, &v.nodes)?),
+            _ => Source::math(self.plan_math(rf, t, scope, &v.nodes)?),
         })
     }
 

@@ -129,26 +129,27 @@ impl<'a> PlanCtx<'_, 'a> {
     #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) fn scalar_of(&mut self, nodes: &[NodeId]) -> Result<Source> {
         let scope = self.scope_for(nodes);
-        self.c.plan_scalar(self.t, scope, nodes)
+        self.c.plan_scalar(&mut self.p.refs, self.t, scope, nodes)
     }
 
     /// Math text that is a pair, `(a, b)`, as its two coordinates.
     pub(crate) fn tuple(&mut self, nodes: &[NodeId]) -> Result<[Source; 2]> {
         let scope = self.scope_for(nodes);
-        self.c.plan_tuple(self.t, scope, nodes)
+        self.c.plan_tuple(&mut self.p.refs, self.t, scope, nodes)
     }
 
     /// Children or an attribute read as a value, not blank: a reference,
     /// a literal, or math text, as a table prop of `children` is planned.
     pub(crate) fn value_of(&mut self, v: &ValueChildren) -> Result<Source> {
         let scope = self.scope_for(&v.nodes);
-        self.c.plan_value_children(self.t, scope, v)
+        self.c
+            .plan_value_children(&mut self.p.refs, self.t, scope, v)
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
     /// an error when what it names has no such prop.
     pub(crate) fn with_prop(&mut self, p: RefId, prop: &'static str) -> Result<RefId> {
-        self.c.plan_with_prop(self.t, p, prop)
+        self.c.plan_with_prop(&mut self.p.refs, self.t, p, prop)
     }
 
     /// A prop of the element a reference names, as an operator's argument.
@@ -188,7 +189,7 @@ impl<'a> PlanCtx<'_, 'a> {
         nodes: &'n [NodeId],
     ) -> Result<(Vec<Token>, MathSrc<'n>)> {
         let scope = self.scope_for(nodes);
-        self.c.math_tokens(self.t, scope, nodes)
+        self.c.math_tokens(&mut self.p.refs, self.t, scope, nodes)
     }
 
     /// An expression as a source: lowered to numeric operators when it is
@@ -207,7 +208,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// its text kept for the symbolic engine.
     pub(crate) fn sym_math(&mut self, nodes: &[NodeId], mt: &MathText) -> Result<ExprId> {
         let scope = self.scope_for(nodes);
-        self.c.parse_math_text(self.t, scope, mt)
+        self.c.parse_math_text(&mut self.p.refs, self.t, scope, mt)
     }
 
     /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as sources
@@ -260,7 +261,7 @@ impl<'a> PlanCtx<'_, 'a> {
         let scope = self.scope_for(nodes);
         let compare = self.c.compare_attrs(&[self.node()]);
         self.c
-            .plan_condition_content(self.t, scope, nodes, compare, wiring)
+            .plan_condition_content(&mut self.p.refs, self.t, scope, nodes, compare, wiring)
     }
 
     /// Warns that the element cannot be what its attributes ask, with a

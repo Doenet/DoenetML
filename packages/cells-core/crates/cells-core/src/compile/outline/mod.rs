@@ -14,6 +14,8 @@ use crate::compile::*;
 pub(in crate::compile) struct Outlining<'a> {
     /// What boxing records, outlining's while it runs.
     pub(in crate::compile) boxes: Boxes<'a>,
+    /// Reference planning's state, outlining's while it runs.
+    pub(in crate::compile) refs: Refs,
     /// What outlining hands on, as it fills it.
     pub(in crate::compile) work: Outline,
     /// The container copies (`<graph extend="$g"/>`) the walk found, which
@@ -28,10 +30,15 @@ pub(in crate::compile) struct Outlining<'a> {
 impl Compiler<'_> {
     /// Outline the document. Returns the work found for the stages after
     /// it, and the boxes; what it settled is in `Compiler::settled`.
-    pub(in crate::compile) fn outline<'b>(&mut self, boxes: Boxes<'b>) -> (Outline, Boxes<'b>) {
+    pub(in crate::compile) fn outline<'b>(
+        &mut self,
+        boxes: Boxes<'b>,
+        refs: Refs,
+    ) -> (Outline, Boxes<'b>, Refs) {
         let dast = self.dast;
         let mut outlining = Outlining {
             boxes,
+            refs,
             work: Outline::default(),
             container_copies: Vec::new(),
             expanding: HashSet::new(),
@@ -78,8 +85,10 @@ impl Compiler<'_> {
         }
         crate::trace::span("extends").run(|| self.plan_extends(o));
         crate::trace::span("answer children").run(|| self.add_answer_children(o));
-        let Outlining { work, boxes, .. } = outlining;
-        (work, boxes)
+        let Outlining {
+            work, boxes, refs, ..
+        } = outlining;
+        (work, boxes, refs)
     }
 
     pub(in crate::compile) fn push_elem(

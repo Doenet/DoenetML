@@ -60,7 +60,7 @@ impl<'a> Compiler<'a> {
         let component_type = self.outlined(t).elems[e.index()].planned_as;
         match Self::planner(component_type) {
             Planner::Plan(plan) => self.plan_with_extend(pl, t, e, Some(p), plan),
-            _ => self.plan_attrs(&pl.parsed, t, e, Some(p)),
+            _ => self.plan_attrs(&mut pl.refs, &pl.parsed, t, e, Some(p)),
         }
     }
 
@@ -158,7 +158,7 @@ impl<'a> Compiler<'a> {
                     .map_err(|_| Error::BoxedReferent(self.compiled.ref_display(p)))?;
                 let theirs = match r {
                     Referent::Here(_) => theirs,
-                    Referent::Path(p, ..) => self.rebase_record(p, theirs),
+                    Referent::Path(p, ..) => self.rebase_record(&mut pl.refs, p, theirs),
                 };
                 record = record.merged_over(&theirs);
                 Some(r)

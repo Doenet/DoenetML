@@ -19,6 +19,8 @@ use crate::compile::*;
 pub(in crate::compile) struct Planning<'a> {
     /// What boxing records, planning's while it runs.
     pub(in crate::compile) boxes: Boxes<'a>,
+    /// Reference planning's state, planning's while it runs.
+    pub(in crate::compile) refs: Refs,
     pub(in crate::compile) parsed: Parsed,
     pub(in crate::compile) planned: Planned,
 }
@@ -39,13 +41,15 @@ impl<'a> Compiler<'a> {
     pub(in crate::compile) fn plan_all(
         &mut self,
         boxes: Boxes<'a>,
+        refs: Refs,
         parsed: Parsed,
         to_plan: Vec<(TemplateId, ElemId)>,
         ref_children: Vec<(TemplateId, RefChildId)>,
         reads: Vec<Read>,
-    ) -> (Planned, Boxes<'a>) {
+    ) -> (Planned, Boxes<'a>, Refs) {
         let mut pl = Planning {
             boxes,
+            refs,
             parsed,
             planned: Planned {
                 reads,
@@ -88,7 +92,7 @@ impl<'a> Compiler<'a> {
                 Some(e) => self.child_scope(t, e),
                 None => ROOT_SCOPE,
             };
-            let plan = match self.plan_ref(t, scope, m) {
+            let plan = match self.plan_ref(&mut pl.refs, t, scope, m) {
                 Ok(p) => RefChildPlan::Ref(p),
                 // A reference that cannot be planned is boxed where it
                 // stands (ADR 0027).
@@ -99,7 +103,7 @@ impl<'a> Compiler<'a> {
             };
             self.tables[t.index()].ref_child_plans[id.index()] = plan;
         }
-        (pl.planned, pl.boxes)
+        (pl.planned, pl.boxes, pl.refs)
     }
 
     /// Plans element `e`, and records what holds it beside its plans.
@@ -117,7 +121,7 @@ impl<'a> Compiler<'a> {
         let planned_as = self.outlined(t).elems[e.index()].planned_as;
         let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(pl, t, e).and_then(|()| {
-            let hold = crate::trace::tally("hold").run(|| self.plan_hold(t, e))?;
+            let hold = crate::trace::tally("hold").run(|| self.plan_hold(&mut pl.refs, t, e))?;
             self.tables[t.index()].plans[e.index()].hold = hold;
             Ok(())
         });
@@ -158,11 +162,11 @@ impl<'a> Compiler<'a> {
             }
             ElemShape::ByType(extend) => match Self::planner(component_type) {
                 Planner::Props => {
-                    self.plan_attrs(&pl.parsed, t, e, extend)?;
+                    self.plan_attrs(&mut pl.refs, &pl.parsed, t, e, extend)?;
                     // A repeat's `valueName` and `indexName` make hidden
                     // elements in its body, which its table cannot say.
                     if matches!(self.outlined(t).elems[e.index()].body, Body::Repeat { .. }) {
-                        self.plan_iteration_names(t, e);
+                        self.plan_iteration_names(&mut pl.refs, t, e);
                     }
                     Ok(())
                 }
@@ -215,14 +219,14 @@ impl<'a> Compiler<'a> {
         m: Machinery,
     ) -> Result<()> {
         match m {
-            Machinery::Answer => self.plan_answer(t, e),
-            Machinery::Choice => self.plan_choice(t, e),
+            Machinery::Answer => self.plan_answer(&mut pl.refs, t, e),
+            Machinery::Choice => self.plan_choice(&mut pl.refs, t, e),
             Machinery::RepeatFor => {
-                self.plan_iteration_names(t, e);
-                self.plan_repeat_for(t, e)
+                self.plan_iteration_names(&mut pl.refs, t, e);
+                self.plan_repeat_for(&mut pl.refs, t, e)
             }
             Machinery::FunctionIterates => self.plan_function_iterates(pl, t, e),
-            Machinery::Collect => self.plan_collect(t, e),
+            Machinery::Collect => self.plan_collect(&mut pl.refs, t, e),
         }
     }
 
@@ -230,7 +234,7 @@ impl<'a> Compiler<'a> {
     /// its `from` (a `<polyline>`'s `vertices`) names, of the type
     /// outlining recorded it collects, gathered when it expands; its count
     /// is an aggregate over them.
-    fn plan_collect(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    fn plan_collect(&mut self, rf: &mut Refs, t: TemplateId, e: ElemId) -> Result<()> {
         let Elem {
             node,
             name_scope: scope,
@@ -251,7 +255,7 @@ impl<'a> Compiler<'a> {
             .attr(node, attr)
             .and_then(|a| self.single_macro(a))
             .ok_or(refused)?;
-        let p = self.plan_ref(t, scope, m)?;
+        let p = self.plan_ref(rf, t, scope, m)?;
         if self.compiled.refs[p.index()].prop.is_some() {
             return Err(if polyline {
                 Error::Unsupported(
@@ -335,20 +339,21 @@ impl<'a> Compiler<'a> {
     /// from the repeat's own template (one hop up).
     pub(in crate::compile) fn own_prop_plan(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         e: ElemId,
         prop: &'static str,
     ) -> RefId {
         let ty = self.outlined(t).elems[e.index()].component_type;
         let prop_sel = RefProp::named(ty, prop).expect("a repeat has the prop its body reads");
-        self.compiled.refs.push(RefPlan {
+        let plan = RefPlan {
             hops: 1,
             steps: vec![Step::Elem(e)],
             prop: Some(prop_sel),
             display: RefDisplay::Spelled(format!("(repeat).{prop}").into()),
             node: NodeId::NONE,
-        });
-        RefId::from_index(self.compiled.refs.len() - 1)
+        };
+        rf.push(&mut self.compiled.refs, plan)
     }
 }
 

@@ -57,7 +57,12 @@ impl<'a> Compiler<'a> {
     /// own, else (an inherited one) the nearest ancestor's. A
     /// literal true on any of them holds the element always; a reference
     /// holds it while its flag is set, several while any is.
-    pub(in crate::compile) fn plan_hold(&mut self, t: TemplateId, e: ElemId) -> Result<Hold> {
+    pub(in crate::compile) fn plan_hold(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<Hold> {
         let component_type = self.outlined(t).elems[e.index()].component_type;
         let mut flags = Vec::new();
         for row in HOLD_ATTRS {
@@ -91,7 +96,7 @@ impl<'a> Compiler<'a> {
                 attr: row.name.into(),
                 text: self.attr_text(a).unwrap_or_default(),
             })?;
-            let p = self.plan_ref(at, name_scope, m)?;
+            let p = self.plan_ref(rf, at, name_scope, m)?;
             self.compiled.refs[p.index()].hops += hops;
             flags.push(p);
         }

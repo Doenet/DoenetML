@@ -84,6 +84,7 @@ use parse::Parsed;
 use planning::ctx::PlanCtx;
 use planning::planner::Planner;
 use record::{ChildValue, ValueChildren};
+use refs::Refs;
 pub(crate) use seal::keys;
 
 /// A compile that planned: what it planned, and the errors of the
@@ -111,9 +112,6 @@ pub(in crate::compile) struct Compiler<'a> {
     /// Every string's canonical id, over the DAST table and then
     /// `extra_strings`; built when first needed. A cache.
     pub(in crate::compile) string_ids: Option<HashMap<String, StrId>>,
-    /// By DAST string, the prop a reference spelled with it last named,
-    /// with the type it named it on. A cache.
-    pub(in crate::compile) prop_sels: Vec<Option<(ComponentType, Option<PropSel>)>>,
 }
 
 /// What outlining hands to the stages after it: the work it found for
@@ -241,11 +239,13 @@ impl Compiler<'_> {
             tables: Vec::new(),
             stage: Stage::Outline,
             string_ids: None,
-            prop_sels: Vec::new(),
         };
-        // What boxing records, handed to each stage that boxes.
+        // What boxing records, handed to each stage that boxes, and
+        // reference planning's state, handed to each stage that plans one.
         let boxes = Boxes::new(boxed);
-        let (outline, mut boxes) = crate::trace::span("outline").run(|| cp.outline(boxes));
+        let refs = Refs::default();
+        let (outline, mut boxes, mut refs) =
+            crate::trace::span("outline").run(|| cp.outline(boxes, refs));
         let Outline {
             to_plan,
             macros,
@@ -259,11 +259,12 @@ impl Compiler<'_> {
         let outlined = cp.elem_count();
         cp.stage = Stage::Parse;
         let mut parsed: Parsed =
-            crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
-        crate::trace::span("parse records").run(|| cp.parse_records(&to_plan, &mut parsed));
+            crate::trace::span("parse maths").run(|| cp.parse_maths(&mut refs, math_texts));
+        crate::trace::span("parse records")
+            .run(|| cp.parse_records(&mut refs, &to_plan, &mut parsed));
         cp.stage = Stage::Plan;
-        let (mut planned, mut boxes) = crate::trace::span("plan all")
-            .run(|| cp.plan_all(boxes, parsed, to_plan, macros, reads));
+        let (mut planned, mut boxes, _) = crate::trace::span("plan all")
+            .run(|| cp.plan_all(boxes, refs, parsed, to_plan, macros, reads));
         boxes.restart_if_needed()?;
         cp.stage = Stage::Link;
         crate::trace::span("link").run(|| cp.link(&mut boxes, &mut planned))?;

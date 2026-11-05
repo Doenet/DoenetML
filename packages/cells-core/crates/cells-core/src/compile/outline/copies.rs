@@ -19,7 +19,7 @@ impl Compiler<'_> {
             {
                 continue;
             }
-            if let Err(error) = self.with_clones(o, |cp| cp.plan_extend(t, e)) {
+            if let Err(error) = self.with_clones(o, |cp, rf| cp.plan_extend(rf, t, e)) {
                 self.box_in_place(&mut o.boxes, t, e, error);
             }
         }
@@ -79,7 +79,7 @@ impl Compiler<'_> {
         e: ElemId,
     ) -> Result<()> {
         let p = self
-            .with_clones(o, |cp| cp.plan_extend(t, e))?
+            .with_clones(o, |cp, rf| cp.plan_extend(rf, t, e))?
             .expect("a container copy extends");
         // `<graph extend="$x.prop"/>` is no container copy: planning refuses
         // it as an extend of a prop.
@@ -91,7 +91,7 @@ impl Compiler<'_> {
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
         // A referent that is itself a copy has its clones first; one that
         // is a box has none to clone.
-        self.with_clones(o, |cp| cp.ref_target(t, p).map(drop))?;
+        self.with_clones(o, |cp, _| cp.ref_target(t, p).map(drop))?;
         self.referent_type(&mut o.work.reads, t, e, p)?;
         let scope = self.child_scope(t, e);
         let mut kids = self.clone_children(o, t, r, scope, e)?;
@@ -141,7 +141,7 @@ impl Compiler<'_> {
                         scope,
                         root,
                     )?;
-                    self.compiled.refs.push(RefPlan {
+                    let plan = RefPlan {
                         hops: 0,
                         steps: vec![Step::Elem(c)],
                         prop: None,
@@ -149,8 +149,8 @@ impl Compiler<'_> {
                             format!("(copy of {})", self.elem_label(t, c)).into(),
                         ),
                         node: NodeId::NONE,
-                    });
-                    let ep = RefId::from_index(self.compiled.refs.len() - 1);
+                    };
+                    let ep = o.refs.push(&mut self.compiled.refs, plan);
                     {
                         let el = &mut self.outlined_mut(t).elems[ne.index()];
                         el.extend = Some(ep);
@@ -190,14 +190,14 @@ impl Compiler<'_> {
     pub(in crate::compile) fn with_clones<T>(
         &mut self,
         o: &mut Outlining<'_>,
-        mut f: impl FnMut(&mut Self) -> Result<T>,
+        mut f: impl FnMut(&mut Self, &mut Refs) -> Result<T>,
     ) -> Result<T> {
         loop {
             let n = self.compiled.refs.len();
-            match f(self) {
+            match f(self, &mut o.refs) {
                 Err(Error::AwaitsClones { template, elem }) => {
                     // What the attempt planned is planned again.
-                    self.compiled.refs.truncate(n);
+                    o.refs.truncate(&mut self.compiled.refs, n);
                     self.expand_container_copy(o, TemplateId::new(template), ElemId::new(elem))?;
                 }
                 r => return r,

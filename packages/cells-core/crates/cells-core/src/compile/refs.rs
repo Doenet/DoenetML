@@ -8,10 +8,63 @@ use super::*;
 /// the last element its path named.
 pub(in crate::compile) type RefTarget = (Option<ComponentType>, Option<(TemplateId, ElemId)>);
 
+/// Reference planning's working state: the one writer of the reference
+/// table (`Compiled::refs`), which every stage reads, and its cache of
+/// prop spellings. The driver hands it to outlining, parsing and planning,
+/// which plan references, and to no other stage.
+#[derive(Default)]
+pub(in crate::compile) struct Refs {
+    /// By DAST string, the prop a reference spelled with it last named,
+    /// with the type it named it on: a spelling is nearly always used on
+    /// one type, so this is an array read.
+    prop_sels: Vec<Option<(ComponentType, Option<PropSel>)>>,
+}
+
+impl Refs {
+    /// Adds `plan` to the table, as the reference it is the plan of.
+    pub(in crate::compile) fn push(&mut self, table: &mut Vec<RefPlan>, plan: RefPlan) -> RefId {
+        table.push(plan);
+        RefId::from_index(table.len() - 1)
+    }
+
+    /// Plan `p`, to change: a prop named on it after it was planned.
+    pub(in crate::compile) fn plan_mut<'t>(
+        &mut self,
+        table: &'t mut [RefPlan],
+        p: RefId,
+    ) -> &'t mut RefPlan {
+        &mut table[p.index()]
+    }
+
+    /// Drops the plans made since the table held `n`: what an attempt
+    /// planned before it found a copy's clones unmade (`with_clones`).
+    pub(in crate::compile) fn truncate(&mut self, table: &mut Vec<RefPlan>, n: usize) {
+        table.truncate(n);
+    }
+
+    /// Prop `name` (a DAST string) of type `ty`, found once per type and
+    /// spelling: a reference reads it with no name to compare.
+    fn prop_sel(&mut self, dast: &Dast, ty: ComponentType, name: StrId) -> Option<PropSel> {
+        let i = name.index();
+        if let Some(Some((of, sel))) = self.prop_sels.get(i)
+            && *of == ty
+        {
+            return *sel;
+        }
+        let sel = ty.resolve_prop(ty.canonical_prop(dast.strings.get(name)));
+        if self.prop_sels.len() <= i {
+            self.prop_sels.resize(dast.strings.len().max(i + 1), None);
+        }
+        self.prop_sels[i] = Some((ty, sel));
+        sel
+    }
+}
+
 impl<'a> Compiler<'a> {
     /// A copy of plan `p` naming `prop` instead of its own (`$l` -> `$l.x2`).
     pub(in crate::compile) fn plan_with_prop(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         p: RefId,
         prop: &'static str,
@@ -20,26 +73,7 @@ impl<'a> Compiler<'a> {
         let mut plan = self.compiled.refs[p.index()].clone();
         plan.prop = named;
         plan.display = RefDisplay::Prop(Box::new(plan.display), prop);
-        self.compiled.refs.push(plan);
-        Ok(RefId::from_index(self.compiled.refs.len() - 1))
-    }
-
-    /// Prop `name` (a DAST string) of type `ty`, found once per type and
-    /// spelling: a reference reads it with no name to compare.
-    fn prop_sel(&mut self, ty: ComponentType, name: StrId) -> Option<PropSel> {
-        let i = name.index();
-        if let Some(Some((of, sel))) = self.prop_sels.get(i)
-            && *of == ty
-        {
-            return *sel;
-        }
-        let sel = ty.resolve_prop(ty.canonical_prop(self.dast.strings.get(name)));
-        if self.prop_sels.len() <= i {
-            self.prop_sels
-                .resize(self.dast.strings.len().max(i + 1), None);
-        }
-        self.prop_sels[i] = Some((ty, sel));
-        sel
+        Ok(rf.push(&mut self.compiled.refs, plan))
     }
 
     /// Prop `name` of what plan `p`, planned from `t`, names, resolved on
@@ -287,6 +321,7 @@ impl<'a> Compiler<'a> {
 
     pub(in crate::compile) fn plan_ref(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         m: NodeId,
@@ -408,7 +443,7 @@ impl<'a> Compiler<'a> {
                         // `$l.points[1]`, `$l.points[1][2]`, `$l.points[2].y`:
                         // points of a list, by literal index. The prop is
                         // found once per type and spelling (`prop_sel`).
-                        let sel = self.prop_sel(component_type, names[i]);
+                        let sel = rf.prop_sel(self.dast, component_type, names[i]);
                         let prop_of = |sel| RefProp::of(component_type, sel);
                         // A list's points are as many as the element has: an
                         // index past them is the missing value when built.
@@ -553,18 +588,18 @@ impl<'a> Compiler<'a> {
                 // build walks what the kind says and asks no type.
                 match self.outlined(cur_t).elems[e.index()].body {
                     Body::Repeat { template } => {
-                        let ip = self.plan_index(t, scope, expr, display)?;
+                        let ip = self.plan_index(rf, t, scope, expr, display)?;
                         steps.push(Step::Iter(ip));
                         cur_t = template;
                         at = At::Iteration;
                     }
                     // A collect's item: still that component.
                     Body::Collect { .. } => {
-                        let ip = self.plan_index(t, scope, expr, display)?;
+                        let ip = self.plan_index(rf, t, scope, expr, display)?;
                         steps.push(Step::Item(Collection::Gathered, ip));
                     }
                     Body::Choice(cid) if !self.choice(cid).reactive && !after_iface => {
-                        let ip = self.plan_index(t, scope, expr, display)?;
+                        let ip = self.plan_index(rf, t, scope, expr, display)?;
                         // Which option a pick is comes from the seed, not a
                         // cell.
                         if ip.is_dynamic() {
@@ -576,7 +611,7 @@ impl<'a> Compiler<'a> {
                     _ if self.outlined(cur_t).elems[e.index()].component_type
                         == ComponentType::PointList =>
                     {
-                        let ip = self.plan_index(t, scope, expr, display)?;
+                        let ip = self.plan_index(rf, t, scope, expr, display)?;
                         steps.push(Step::Item(Collection::ListPoints, ip));
                     }
                     _ => return Err(Error::NotIndexable(display.to_string())),
@@ -611,14 +646,14 @@ impl<'a> Compiler<'a> {
             None => (hops, steps),
         };
         let _p = crate::trace::tally("push");
-        self.compiled.refs.push(RefPlan {
+        let plan = RefPlan {
             hops,
             steps,
             prop,
             display: RefDisplay::Written,
             node: m,
-        });
-        Ok(RefId::from_index(self.compiled.refs.len() - 1))
+        };
+        Ok(rf.push(&mut self.compiled.refs, plan))
     }
 
     /// A literal integer index (list props are static, so `[$n]` is not
@@ -647,6 +682,7 @@ impl<'a> Compiler<'a> {
     /// sum: the reference is the whole index.
     pub(in crate::compile) fn plan_index(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         expr: &[NodeId],
@@ -697,7 +733,7 @@ impl<'a> Compiler<'a> {
                         if !terms.is_empty() {
                             return Err(Error::DynamicIndex(display.to_string()));
                         }
-                        let p = self.plan_ref(t, scope, n)?;
+                        let p = self.plan_ref(rf, t, scope, n)?;
                         terms.push(IndexTerm::Cell(p));
                     }
                 }
@@ -786,6 +822,7 @@ impl Compiler<'_> {
     /// where `e` sits.
     pub(in crate::compile) fn plan_extend(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         e: ElemId,
     ) -> Result<Option<RefId>> {
@@ -802,7 +839,7 @@ impl Compiler<'_> {
             attr: "extend".into(),
             text: self.attr_text(a).unwrap_or_default(),
         })?;
-        let p = self.plan_ref(t, name_scope, m)?;
+        let p = self.plan_ref(rf, t, name_scope, m)?;
         // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an extend
         // across related types is the referent's value as the element's
         // type (REF-5, ADR 0025), so it is the extend of its default prop,
@@ -827,7 +864,7 @@ impl Compiler<'_> {
             };
             if let Some(dp) = dp {
                 let named = self.prop_named(t, p, dp)?;
-                let r = &mut self.compiled.refs[p.index()];
+                let r = rf.plan_mut(&mut self.compiled.refs, p);
                 r.prop = named;
                 let base = std::mem::replace(&mut r.display, RefDisplay::Written);
                 r.display = RefDisplay::Prop(Box::new(base), dp);

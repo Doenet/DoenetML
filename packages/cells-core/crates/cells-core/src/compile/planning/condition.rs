@@ -43,15 +43,16 @@ impl<'a> Compiler<'a> {
     /// operand holds when it is nonzero.
     pub(in crate::compile) fn plan_condition(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         e: ElemId,
         wiring: &mut ElemWiring,
         nodes: &[NodeId],
     ) -> Result<Port> {
-        if let Some(port) = self.plan_text_condition(t, e, nodes, wiring)? {
+        if let Some(port) = self.plan_text_condition(rf, t, e, nodes, wiring)? {
             return Ok(port);
         }
-        let (toks, src) = self.math_tokens(t, e, nodes)?;
+        let (toks, src) = self.math_tokens(rf, t, e, nodes)?;
         self.plan_condition_tokens(wiring, &toks, src, Compare::default())
     }
 
@@ -61,6 +62,7 @@ impl<'a> Compiler<'a> {
     /// involved; any other use of one is refused.
     fn plan_text_condition(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
@@ -101,7 +103,7 @@ impl<'a> Compiler<'a> {
                 .and_then(|k| k.parse::<usize>().ok());
             match lone {
                 Some(k) if cp.macro_reads_text(t, scope, refs[k]) => {
-                    let p = cp.plan_ref(t, scope, refs[k])?;
+                    let p = cp.plan_ref(rf, t, scope, refs[k])?;
                     Ok(wiring.hidden(Source::reference(p)))
                 }
                 Some(_) => Err(refuse("a text value compared with a number")),
@@ -153,19 +155,20 @@ impl<'a> Compiler<'a> {
     /// be one `=` between two expressions for the engine.
     pub(in crate::compile) fn plan_condition_content(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
         compare: Compare,
         wiring: &mut ElemWiring,
     ) -> Result<Port> {
-        if let Some(port) = self.plan_text_condition(t, scope, nodes, wiring)? {
+        if let Some(port) = self.plan_text_condition(rf, t, scope, nodes, wiring)? {
             return Ok(port);
         }
-        match self.math_tokens(t, scope, nodes) {
+        match self.math_tokens(rf, t, scope, nodes) {
             Ok((toks, src)) => self.plan_condition_tokens(wiring, &toks, src, compare),
             Err(Error::BadMath { text, reason }) => {
-                let sym = self.sym_spelling(t, scope, nodes)?;
+                let sym = self.sym_spelling(rf, t, scope, nodes)?;
                 let Some((lhs, rhs, negate)) = split_equality(&sym) else {
                     return Err(Error::BadMath { text, reason });
                 };
@@ -205,14 +208,20 @@ impl<'a> Compiler<'a> {
 
     /// The content as the engine spells it: text as written, each `$ref`
     /// as its `cellN<plan>` leaf.
-    fn sym_spelling(&mut self, t: TemplateId, scope: ElemId, nodes: &[NodeId]) -> Result<String> {
+    fn sym_spelling(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &[NodeId],
+    ) -> Result<String> {
         let d = self.dast;
         let mut sym = String::new();
         for &n in nodes {
             match d.kind(n) {
                 NodeKind::Text => sym.push_str(d.str(n)),
                 NodeKind::Macro => {
-                    let p = self.plan_ref(t, scope, n)?;
+                    let p = self.plan_ref(rf, t, scope, n)?;
                     sym.push_str(&format!(
                         " {} ",
                         crate::sym::engine::leaf_name(p.get(), false)

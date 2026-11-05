@@ -11,13 +11,14 @@ impl<'a> Compiler<'a> {
     /// per item.
     pub(in crate::compile) fn plan_point_list(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
         a: u32,
     ) -> Result<Vec<GivenPoint>> {
         let d = self.dast;
-        let (toks, src) = self.math_tokens(t, scope, d.attr_children(a))?;
+        let (toks, src) = self.math_tokens(rf, t, scope, d.attr_children(a))?;
         let mut out = Vec::new();
         let mut i = 0;
         while i < toks.len() {

@@ -15,7 +15,12 @@ impl<'a> Compiler<'a> {
     /// A choice's props: a select's `hide`; for a reactive choice also a
     /// hidden port per case condition (an else is a constant 1) and
     /// `choice`, the first of them that holds.
-    pub(in crate::compile) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    pub(in crate::compile) fn plan_choice(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<()> {
         let Body::Choice(cid) = self.outlined(t).elems[e.index()].body else {
             unreachable!()
         };
@@ -33,7 +38,7 @@ impl<'a> Compiler<'a> {
                     0.0
                 })
             }
-            Some(a) => self.plan_value(t, scope, "hide", d.attr_children(a), None)?,
+            Some(a) => self.plan_value(rf, t, scope, "hide", d.attr_children(a), None)?,
             None => Source::constant(0.0),
         };
         if !self.choice(cid).reactive {
@@ -44,7 +49,7 @@ impl<'a> Compiler<'a> {
         let mut conds = Vec::new();
         for c in self.choice(cid).conditions.clone() {
             conds.push(match c {
-                Some(a) => self.plan_condition(t, e, &mut wiring, d.attr_children(a))?,
+                Some(a) => self.plan_condition(rf, t, e, &mut wiring, d.attr_children(a))?,
                 None => wiring.hidden(Source::constant(1.0)),
             });
         }

@@ -290,6 +290,21 @@ otherwise.
    checks. Every stage still reads the box table through `Compiler`
    (`is_box`), and `Compiler::stage` still says which stage a box was
    made in.
+
+   Amended 2026-11-05, later still: reference planning the same way.
+   `Refs` (`refs.rs`) is the one writer of the reference table
+   (`Compiled::refs`), which every stage and the build read, and holds
+   the cache of prop spellings that was `Compiler::prop_sels`. The driver
+   hands it to outlining, parsing and planning, the stages that plan
+   references (outlining's and planning's working states carry it;
+   parsing takes it as an argument), and never to linking or sealing;
+   every push to the table, every change to a plan and the one truncation
+   (`with_clones`) go through it, so a stage without one cannot plan a
+   reference, which the compiler checks. The cost is the argument on
+   every function between a stage's entry and `plan_ref`, some seventy;
+   the planners reach it through their context. A record read through a
+   path is rebased by a `Rebaser` (`rebase.rs`), which carries the `Refs`
+   where two closures used to share it.
 8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`
    name the new paths. Done: `outline/` (the walk; `copies.rs`,
    `choice.rs`, `answer.rs` for what outlining makes of each), `parse.rs`,
