@@ -153,6 +153,8 @@ missing, and a tag whose source is missing is missing too (REF-0).
 - **(Tier 2)** `hide` still hides it: a hidden referent stays hidden (VAL-10), and
   `<math extend="$nothing" hide/>` shows nothing.
 - **(Tier 2)** It behaves the same in a repeat and a group as at the document level.
+- **(Tier 2)** A reference to a component in error is missing too: `$m` of an `m` shown as an
+  error is `＿`, with no diagnostic of its own (DIAG-5, #2449).
 
 Evidence: `T/copying/value_references.test.ts`, the "references with nothing to read" describe:
 - `:2133`, `:2275`, `:2358`, `:2513`, `:2556`, `:2671`;
