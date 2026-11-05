@@ -312,7 +312,8 @@ marked "just submitted" (#2325).
   happened on main before #2451 (B40, #2453);
 - a container reached by a name after an index into a repeat (`$r[1].s.x`) isn't checked at load;
 - the language server's autocomplete still treats names inside a container as hidden
-  (`lsp-tools` `_isHiddenBySugar`);
+  (`lsp-tools` `_isHiddenBySugar`), so it doesn't offer `$x` for a name every case declares
+  (#2455);
 - root names, and so HTML ids, of components in the branches are unchanged: one in an unnamed
   container has none.
 
