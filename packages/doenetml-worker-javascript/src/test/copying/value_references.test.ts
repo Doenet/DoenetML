@@ -3201,6 +3201,27 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
             });
 
+            it("a run-time reference to a missing component is one empty response", async () => {
+                // `$r[1].m.value` is a reference a copy makes at run time
+                // (`fixedReferent`); its referent `m` is missing (D37), so it
+                // is recorded as a blank math, not as `<boolean/>`'s `false`.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <number name="n">3</number>
+    <repeatForSequence name="r" length="1"><boolean name="m" extend="$nothing"/><text>t</text></repeatForSequence>
+    <answer name="ans"><considerAsResponses>$n $r[1].m.value</considerAsResponses><award><when>$n = 3</when></award></answer>
+    `,
+                });
+                const ansIdx = await resolvePathToNodeIdx("ans");
+                await submitAnswer({ componentIdx: ansIdx, core });
+                expect(await submitted(core, ansIdx)).eqls({
+                    responses: [3, "＿"],
+                    types: ["number", "math"],
+                    credit: 1,
+                    numResponses: 2,
+                });
+            });
+
             it("a missing entry among a considerAsResponses's children is one empty response", async () => {
                 // A `<considerAsResponses>` child that is a reference is
                 // recorded from its referent too: an empty math when there
