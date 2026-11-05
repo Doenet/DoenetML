@@ -139,12 +139,13 @@ jobs:
                       # A pull request from a fork's own `main` branch also
                       # runs with head_branch "main", under workflows the
                       # pull request itself supplies, so only runs from this
-                      # repository count.
+                      # repository count.  An API error fails the run, which
+                      # records nothing, so the next run reads the same record.
                       RUN_ID=$(gh api "repos/${REPO}/actions/artifacts?name=vscode-prerelease-baseline&per_page=100" \
-                          --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main" and .workflow_run.head_repository_id == .workflow_run.repository_id)] | sort_by(.created_at) | last | .workflow_run.id // empty' \
-                          || true)
-                      if [ -n "${RUN_ID}" ] && gh run download "${RUN_ID}" -R "${REPO}" \
-                              -n vscode-prerelease-baseline -D "$RUNNER_TEMP/recorded"; then
+                          --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main" and .workflow_run.head_repository_id == .workflow_run.repository_id)] | sort_by(.created_at) | last | .workflow_run.id // empty')
+                      if [ -n "${RUN_ID}" ]; then
+                          gh run download "${RUN_ID}" -R "${REPO}" \
+                              -n vscode-prerelease-baseline -D "$RUNNER_TEMP/recorded"
                           RECORDED_SHA=$(tr -d '[:space:]' < "$RUNNER_TEMP/recorded/sha")
                       fi
                       # The record must be a full commit SHA.  Git would also
