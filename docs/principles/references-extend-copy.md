@@ -564,7 +564,7 @@ Diagnostics:
 - **`doenet-e0063`:** a container with a `text` (`<p>`, `<li>`) as another tag, suggesting
   `$p.text`;
 - **`doenet-e0064`:** a composite that can hold several components. Its reason says why:
-  `numToSelect`, any number, or a case, option or iteration holding several. Under D37 its
+  `numToSelect`, any number, or a case, option or iteration holding several. Its
   `noElse` reason is gone since #2458: a part holding nothing gives a missing tag, with info
   **`doenet-i0055`** while no case of a `<conditionalContent>` with no `<else>` is true;
 - **`doenet-e0065`:** any other pair;
