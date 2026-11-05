@@ -33,15 +33,10 @@ impl Document {
     /// reaches it along more than one path, where a request is refused.
     pub(crate) fn refused_bits(&self) -> Vec<u64> {
         let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
-        let found = crate::program::refuse::analyze(
-            &self.program.instrs,
-            &self.program.operands,
-            &self.program.vecs,
-            &self.program.syms,
-            self.essentials(),
-            &self.interactive_cells(),
-            &self.program.holds.held_always(&self.cells, 0..self.n_const),
-        );
+        let held = self.program.holds.held_always(&self.cells, 0..self.n_const);
+        let graph =
+            crate::program::refuse::ProgramGraph::of(&self.program, self.essentials(), &held);
+        let found = crate::program::refuse::analyze(&graph, &self.interactive_cells());
         for (cell, finding) in found {
             if let crate::program::refuse::Finding::Twice { .. } = finding {
                 bits[cell.index() / 64] |= 1 << (cell.index() % 64);

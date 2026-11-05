@@ -43,6 +43,7 @@ mod emit;
 mod expand;
 mod live;
 mod orient;
+mod refuse;
 pub mod signature;
 mod slot_cells;
 mod structure;

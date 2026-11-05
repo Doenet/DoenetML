@@ -61,6 +61,8 @@ mod source;
 mod values;
 
 pub use check::diagnose;
+#[cfg(feature = "testing")]
+pub use check::refuse_pair;
 pub(crate) use check::{CompileOutput, compile};
 pub use plan::Compiled;
 pub(crate) use plan::CompiledRef;

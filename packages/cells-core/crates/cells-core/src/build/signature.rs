@@ -570,7 +570,7 @@ impl<'a, 'c> Signer<'a, 'c> {
             }
             PlannedOp::Spec(OpSpec::Sym(kind)) => hash_of(format!("{kind:?}")),
             PlannedOp::Spec(OpSpec::Vec(v)) => hash_of(format!("{v:?}")),
-            PlannedOp::Spec(spec) => hash_of(scalar_text(spec)),
+            PlannedOp::Spec(spec) => hash_of(format!("{spec:?}")),
         }
     }
 
@@ -691,14 +691,6 @@ impl<'a, 'c> Signer<'a, 'c> {
         }
         Domain::BoundsBy(h.finish())
     }
-}
-
-/// A scalar operator as the signature has always hashed it: the bound
-/// operator with its inputs left out (`Op::unbound`), printed.
-fn scalar_text(spec: OpSpec) -> String {
-    let zeros = [CellIdx::new(0); 2];
-    let n = spec.scalar_arity().expect("a scalar operator");
-    format!("{:?}", spec.bind_scalar(&zeros[..n]).unbound())
 }
 
 /// Component `c`'s component children.

@@ -2,6 +2,14 @@
 //! index into one list cannot be passed where an index into another is
 //! meant. Each wraps a `u32` and is read as a position through `index()`.
 
+/// What every index type is: a position, as a type a generic reader of
+/// positions (the refuse analysis over a program or over a build's slots)
+/// can take.
+pub(crate) trait Idx: Copy + Eq + std::fmt::Debug {
+    fn index(self) -> usize;
+    fn from_index(i: usize) -> Self;
+}
+
 /// Define an index type over `u32`. Its `Debug` and `Display` print the
 /// bare number.
 macro_rules! index_type {
@@ -70,6 +78,17 @@ macro_rules! index_type {
             /// Every index below `n`, in order.
             pub fn below(n: usize) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator {
                 (0..u32::try_from(n).expect(concat!(stringify!($name), " out of range"))).map($name)
+            }
+        }
+
+        impl crate::index::Idx for $name {
+            #[inline(always)]
+            fn index(self) -> usize {
+                self.0 as usize
+            }
+            #[inline(always)]
+            fn from_index(i: usize) -> Self {
+                $name::from_index(i)
             }
         }
 

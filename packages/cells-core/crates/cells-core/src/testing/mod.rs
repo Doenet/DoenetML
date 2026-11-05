@@ -10,6 +10,7 @@ pub mod spec;
 pub mod test_utils;
 
 pub use crate::build::coverage::{AbstractEdges, abstract_edges, uncovered};
+pub use crate::compile::refuse_pair;
 
 /// `f` of every item, computed on as many threads as the machine has
 /// cores, returned in the items' order. A panic stops every thread taking
