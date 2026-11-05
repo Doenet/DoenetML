@@ -1541,8 +1541,8 @@ they need no rewriting to `$x`.
 **Decided.** `copy` is the fresh form: the source's DoenetML written again here, with no reader
 state and random choices of its own. `copyWithState` is the duplicating form: what `copy` did
 through 0.7, the DoenetML plus the reader's current state and the source's random choices. CPY-1,
-CPY-2 and CPY-8 state them. Open: the migration of existing documents (below), and the two
-smaller points at the end.
+CPY-2 and CPY-8 state them. Existing documents are migrated by the `v07-to-v08` converter
+(#2457). Open: the two smaller points at the end.
 
 **Today** a `copy` carries its source's reader state and random choices (CPY-2, CPY-8), and the
 attributes written on it override the source's (CPY-1, D4). The two conflict when what is written
@@ -1669,19 +1669,19 @@ again.
 - `snapshot` was rejected: it suggests the result is frozen, but inputs in it still change and
   references inside it stay live (CPY-3).
 
-### Migration (open)
+### Migration (decided)
 
-Every existing `copy` of random content, or of content the reader changed, changes meaning. The
-options:
-- **(a) An automatic rename:** a converter turns `copy` into `copyWithState` in documents written
-  for 0.7, as `packages/v06-to-v07` did for the last version. Existing documents keep their
-  meaning, and authors move to `copy` where they meant the fresh form.
-- **(b) A version gate:** the meaning of `copy` depends on the document's DoenetML version.
+DoenetML 0.8 ships a `v07-to-v08` converter, modeled on `packages/v06-to-v07`. It renames `copy`
+to `copyWithState`, so a 0.7 document keeps its meaning, with two exceptions that stay `copy`:
+- **a copy of a module:** written as a `<module>` (or a type inheriting from it), or whose
+  referent is one. Authors use `<module copy>` to reuse a module and expect each use to have its
+  own random values, which 0.8's `copy` gives;
+- **a copy that writes an attribute deciding what a choosing tag chooses**, or adds options. In
+  0.7 it either failed to load (#2389) or chose again. Under `copyWithState` it would be an error.
 
-**Recommendation: (a).** One meaning per attribute is easier to explain and to maintain.
+The converter notes each rename, so an author can switch a copy meant to be fresh back to `copy`.
 doenet.org does not let the source or DoenetML version of assigned content change, so assigned
-work is not affected either way. Many 0.7 uses of `<module copy>` meant the fresh form; a hint on
-`copyWithState` of a module in `<setup>` can suggest `copy`.
+work is not affected. The spec is item 1 of #2457, which tracks every 0.8 migration.
 
 ### What it changes
 
@@ -1713,7 +1713,6 @@ work is not affected either way. Many 0.7 uses of `<module copy>` meant the fres
 
 ### Open points
 
-- The migration (above).
 - Whether `copyWithState` of a `choiceInput` with added choices is an error only when its order
   is shuffled.
 - Whether several fresh uses of one module should ever share draws. If so, the author would ask
