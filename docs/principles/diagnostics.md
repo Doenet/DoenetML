@@ -139,3 +139,42 @@ A reload restores what the reader saw (SAVE-1), and that includes the diagnostic
   `w0181`;
 - a copy that made nothing is not held in a save, so a reload can report a different info for
   why it shows nothing, when its source's case changed (B37, from #2443).
+
+### DIAG-7: an error is decided at load, from the DoenetML alone (Tier 1; D38, #2463)
+An error is decided when the document loads, from what the author wrote. It never comes from
+values (inputs, references, the active case), from the reader's actions, or from the variant
+(random choices, `requestedVariantIndex`). Two guarantees follow:
+1. **No error appears while a reader works.** The set of errors is fixed once the document has
+   loaded. An error the author sees at load, a reader sees at load too, and that is acceptable.
+2. **Every variant has the same errors.** The variant is not part of the DoenetML, so it cannot
+   change what is an error. An author who sees no error in one variant sees none in any.
+
+A problem that depends on values or the variant is not an error. The component is missing
+(VAL-5, D37) and the rest renders (DIAG-5). It gives an info, or a warning when the author should
+write something else (DIAG-2).
+
+**How it is guaranteed:**
+- **Only load-time code reports an error:** the resolver, `W/utils/dast/typeChangeAtLoad.ts` and
+  the DoenetML conversion. An error-level report after load is a bug. In development and tests
+  it is an assertion. In production it is reported as a warning, so the reader sees no error.
+- **A load-time check reads only the DoenetML and its literals**, never a state variable's
+  value. That is why REF-5 says "`numToSelect` written as `1`" rather than "whose value is 1".
+- **A variant sweep checks it:** a test helper loads a document at several variants (all of
+  them when there are few) and asserts the same set of errors. The editor can offer the same
+  check to authors.
+
+The load-time checks of D22, D26, D32 and D36 follow it already, since each reads only the
+DoenetML.
+
+**Known violations:**
+- cycles that appear after a change: `<group extend="$cc.x"/>` gives `doenet-e0005` after the
+  case changes (B40, #2453), an iteration withheld and shown again gives `e0005` (#2430), and two
+  `<conditionalContent>`s extending each other (B32, #2439). A reference cycle can be found at
+  load from the reference graph over every case; otherwise the component is missing with an
+  info;
+- choice errors that depend on the variant or on values: `doenet-e0037`/`e0048` from a stale
+  requested variant (#2389 item 1), and from a `numToSelect` or range computed from another
+  random choice, such as `<selectFromSequence to="$a" numToSelect="3"/>` with a random `a` that
+  is sometimes below 3;
+- state-variable cycles that throw (D14), which can depend on values;
+- exceptions during interaction, such as B36's on reload (DIAG-5).
