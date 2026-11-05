@@ -667,6 +667,8 @@ gives the component instead. A reference to something that *contains* an input
 - **On a tag**, `<math extend="$x"/>` is decided by REF-0: a mix of types or a missing `x` is an
   error, and so is an `x` that can be absent because there's no `<else>`, as for
   `<math extend="$cc"/>` without one (D36).
+  **Revised by D37:** a missing `x` gives the bare form's warning and a missing tag, and an `x`
+  that can be absent (no `<else>`) gives a missing tag with an info while no case is active.
 - **A `<select>` with one pick** (`numToSelect` written as `1`, or left out) works the same way,
   with every option in place of every case. **With several picks**, names stay private, as in a
   repeat: `$s[2].x`, under the same every-option, same-type rule (D27).
@@ -2005,7 +2007,7 @@ extended as a scalar picks one.
 ## D37. A missing value is a blank, and a bare reference is its extend again (decided, Tier 1; revises D10, D36, REF-0, REF-1)
 
 **Decided.** REF-0, REF-1, REF-5, VAL-5, COMP-11 and DIAG-1 state it. It reverses parts of #2447
-and #2451 (below), and changes what 0.7 documents show for missing values. No implementation issue is filed yet.
+and #2451 (below), and changes what 0.7 documents show for missing values. The implementation is #2456.
 
 **Today** (**[probe]** on main at `55db31b`) a missing value shows differently by where it is:
 

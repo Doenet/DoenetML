@@ -63,7 +63,7 @@ removed.
 **Names**
 1. `$x` means the nearest `x` around where it is written. `$a.b` is the `b` inside `a`, and
    `$r[2]` is the second item of `r`. If the nearest scope has two `x`s, the reference is
-   ambiguous: it reports a warning and shows nothing. (NAME-1, NAME-2)
+   ambiguous: it reports a warning and shows a blank, `＿`. (NAME-1, NAME-2)
 
    An index selects what a tag produces (entries, iterations, picks) or the entries of a value
    (coordinates, matrix entries), never a container's children: name the child instead. Nested
