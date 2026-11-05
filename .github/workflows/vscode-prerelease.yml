@@ -4,10 +4,12 @@ name: VS Code Extension Pre-release
 # the extension itself actually changed.
 #
 # The algorithm:
-#   1. If no commit landed on main in the last 24 hours, do nothing.
-#   2. Otherwise build the extension twice: once at the commit main pointed at
-#      24 hours ago, once at the current tip.
-#   3. If the two builds are identical, the day's commits never reached the
+#   1. Find the baseline: the last commit of main whose build is known to be
+#      on the registries — the last one published, or one found to build
+#      identically to it.  If main has not moved since, do nothing.
+#   2. Otherwise build the extension twice: once at the baseline, once at the
+#      current tip.
+#   3. If the two builds are identical, the commits since never reached the
 #      extension (docs, tests, other packages, refactors that bundle the
 #      same) — publish nothing.
 #   4. Otherwise publish the current build as a pre-release.
@@ -15,26 +17,43 @@ name: VS Code Extension Pre-release
 # This replaces publishing on every successful CI run on main, which produced
 # a Marketplace release per merge regardless of whether the extension changed.
 #
+# The baseline is carried from run to run in a small artifact,
+# `vscode-prerelease-baseline`, holding one commit SHA.  It moves to the tip
+# only when this run published, or found the tip's build identical to the
+# baseline's.  A run that is skipped because CI is not green, that fails, or
+# that is cancelled leaves it where it was, so the next run compares against
+# the same baseline and nothing that landed in between is lost.  Every run
+# re-uploads it, which keeps it inside the artifact retention period however
+# long main stays quiet.  When there is no usable record — the first run, or
+# a baseline that is no longer on main — the baseline falls back to main as it
+# was 24 hours ago.
+#
 # Both revisions are deliberately built in the *same* working directory, one
 # after the other: bundlers and rustc bake absolute paths into their output,
 # so two checkouts living at different paths could differ byte-for-byte even
-# for identical source.
+# for identical source.  The baseline is built under the current tip's package
+# versions (`package-versions.mjs`), because a version is baked into the
+# bundle and would otherwise make a changesets "Version Packages" merge look
+# like an extension change.
 #
 # Version scheme: the Marketplace requires integer semver, so the `-dev.N`
 # suffix used by the npm dev channel is unavailable.  The patch is hours since
-# the Unix epoch (~494000 in 2026), which is unique per run, always increasing,
-# and far above both any stable patch (0.7.24) and the patches published by the
-# previous `<run number> + 10000` scheme.
+# the Unix epoch (~495000 in 2026), which is always increasing, differs between
+# daily runs, and is far above both any stable patch and the patches published
+# by the previous `<run number> + 10000` scheme.
 #
 # Secrets: `VSCE_PAT` (Marketplace) and `OVSX_PAT` (Open VSX, which is what
 # puts the extension within reach of VS Code-compatible editors such as
 # VSCodium — #1317) must be **repository-level** secrets.  Each registry is
-# published independently, so a missing token for one leaves the other alone.
+# published independently: a missing token or a failed publish on one leaves
+# the other's publish untouched.  A missing token is a warning, not a failure,
+# so it does not by itself keep the baseline from moving.
 
 on:
     schedule:
         # 07:17 UTC — an off hour, so CI for the day's last merge has usually
-        # settled by the time this looks at it.
+        # settled by the time this looks at it.  (`verify-ci.mjs` waits out one
+        # that has not, for up to an hour.)
         - cron: "17 7 * * *"
     workflow_dispatch:
         inputs:
@@ -49,10 +68,10 @@ on:
                 type: boolean
                 default: false
             window_hours:
-                description: How far back to take the comparison build
+                description: Compare against main as it was this many hours ago, instead of against the last published commit
                 required: false
                 type: string
-                default: "24"
+                default: ""
 
 concurrency:
     group: vscode-prerelease
@@ -79,56 +98,95 @@ jobs:
                   node-version: 24.x
                   cache: "npm"
 
-            - name: Stash helper scripts outside the working tree
+            - name: Stash helper scripts and versions outside the working tree
               # The baseline build checks out an older commit, where these
               # scripts may not exist yet.
               run: |
+                  set -euo pipefail
                   cp .github/scripts/hash-vscode-extension.mjs \
                      .github/scripts/diff-extension-manifests.mjs \
+                     .github/scripts/package-versions.mjs \
                      "$RUNNER_TEMP/"
+                  node .github/scripts/package-versions.mjs save \
+                      "$RUNNER_TEMP/current-versions.json"
 
             - name: Decide whether there is anything to do
               id: decide
+              # `verify-ci.mjs` waits up to an hour for a CI run that is still
+              # going; this is the backstop on that wait.
+              timeout-minutes: 70
               env:
+                  GH_TOKEN: ${{ github.token }}
                   GITHUB_TOKEN: ${{ github.token }}
                   REPO: ${{ github.repository }}
-                  WINDOW_HOURS: ${{ inputs.window_hours || '24' }}
+                  WINDOW_HOURS: ${{ inputs.window_hours }}
               run: |
                   set -euo pipefail
 
-                  case "${WINDOW_HOURS}" in
-                      ''|*[!0-9]*)
+                  HEAD_SHA=$(git rev-parse HEAD)
+                  RECORDED_SHA=""
+                  BASE_SHA=""
+
+                  if [ -n "${WINDOW_HOURS}" ]; then
+                      if ! [[ "${WINDOW_HOURS}" =~ ^[1-9][0-9]*$ ]]; then
                           echo "Error: window_hours must be a positive integer, got '${WINDOW_HOURS}'" >&2
                           exit 1
-                          ;;
-                  esac
+                      fi
+                      BASE_SOURCE=override
+                  else
+                      # The newest baseline record a run on main uploaded.
+                      RUN_ID=$(gh api "repos/${REPO}/actions/artifacts?name=vscode-prerelease-baseline&per_page=100" \
+                          --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main")] | sort_by(.created_at) | last | .workflow_run.id // empty' \
+                          || true)
+                      if [ -n "${RUN_ID}" ] && gh run download "${RUN_ID}" -R "${REPO}" \
+                              -n vscode-prerelease-baseline -D "$RUNNER_TEMP/recorded"; then
+                          RECORDED_SHA=$(tr -d '[:space:]' < "$RUNNER_TEMP/recorded/sha")
+                      fi
+                      if [ -n "${RECORDED_SHA}" ] && git merge-base --is-ancestor "${RECORDED_SHA}" HEAD 2>/dev/null; then
+                          BASE_SHA="${RECORDED_SHA}"
+                          BASE_SOURCE=recorded
+                      else
+                          if [ -n "${RECORDED_SHA}" ]; then
+                              echo "::warning::Recorded baseline ${RECORDED_SHA} is not on main — falling back to main as of 24 hours ago."
+                          else
+                              echo "::notice::No recorded baseline — falling back to main as of 24 hours ago."
+                          fi
+                          RECORDED_SHA=""
+                          WINDOW_HOURS=24
+                          BASE_SOURCE=fallback
+                      fi
+                  fi
 
-                  HEAD_SHA=$(git rev-parse HEAD)
-                  # The newest commit on main that is already older than the
-                  # window — i.e. what main looked like ${WINDOW_HOURS} ago.
-                  BASE_SHA=$(git rev-list -n 1 --first-parent --before="${WINDOW_HOURS} hours ago" HEAD || true)
+                  if [ "${BASE_SOURCE}" != recorded ]; then
+                      # The newest commit on main that is already older than the
+                      # window — i.e. what main looked like ${WINDOW_HOURS} ago.
+                      BASE_SHA=$(git rev-list -n 1 --first-parent --before="${WINDOW_HOURS} hours ago" HEAD || true)
+                  fi
 
                   echo "head_sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"
                   echo "base_sha=${BASE_SHA}" >> "$GITHUB_OUTPUT"
-                  echo "Current main:  ${HEAD_SHA}"
-                  echo "Baseline (${WINDOW_HOURS}h ago): ${BASE_SHA:-<none>}"
+                  echo "base_source=${BASE_SOURCE}" >> "$GITHUB_OUTPUT"
+                  echo "recorded_sha=${RECORDED_SHA}" >> "$GITHUB_OUTPUT"
+                  echo "Current main: ${HEAD_SHA}"
+                  echo "Baseline (${BASE_SOURCE}): ${BASE_SHA:-<none>}"
 
                   if [ "${BASE_SHA}" = "${HEAD_SHA}" ]; then
-                      echo "No commits in the last ${WINDOW_HOURS} hours — nothing to do."
-                      echo "## No commits in the last ${WINDOW_HOURS} hours" >> "$GITHUB_STEP_SUMMARY"
+                      echo "main has not moved since the baseline — nothing to do."
+                      echo "## main has not moved since the baseline" >> "$GITHUB_STEP_SUMMARY"
                       echo "Nothing was built or published." >> "$GITHUB_STEP_SUMMARY"
+                      echo "up_to_date=true" >> "$GITHUB_OUTPUT"
                       echo "proceed=false" >> "$GITHUB_OUTPUT"
                       exit 0
                   fi
 
-                  # Never publish code CI has not blessed.  A pending or failed
-                  # run is a skip rather than a failure: the next scheduled run
-                  # picks the commit up once CI is green, and a red cron job
-                  # every morning would be noise, not signal.
+                  # Never publish code CI has not blessed.  A failed run is a
+                  # skip rather than a failure: the baseline stays put, so the
+                  # next run compares against it again once the tip is green,
+                  # and a red cron job every morning would be noise, not signal.
                   if ! TARGET_SHA="${HEAD_SHA}" node .github/scripts/verify-ci.mjs; then
                       echo "::warning::CI has not succeeded for ${HEAD_SHA} — skipping this run."
                       echo "## Skipped: CI is not green for the current tip" >> "$GITHUB_STEP_SUMMARY"
-                      echo "\`${HEAD_SHA}\` has no successful CI run yet." >> "$GITHUB_STEP_SUMMARY"
+                      echo "\`${HEAD_SHA}\` has no successful CI run." >> "$GITHUB_STEP_SUMMARY"
                       echo "proceed=false" >> "$GITHUB_OUTPUT"
                       exit 0
                   fi
@@ -146,6 +204,10 @@ jobs:
             - name: Install dependencies (baseline)
               if: steps.decide.outputs.proceed == 'true' && steps.decide.outputs.base_sha != ''
               run: npm ci
+
+            - name: Use the current package versions (baseline)
+              if: steps.decide.outputs.proceed == 'true' && steps.decide.outputs.base_sha != ''
+              run: node "$RUNNER_TEMP/package-versions.mjs" apply "$RUNNER_TEMP/current-versions.json"
 
             - name: Build the extension (baseline)
               id: baseline-build
@@ -176,7 +238,8 @@ jobs:
               if: steps.decide.outputs.proceed == 'true'
               run: |
                   set -euo pipefail
-                  # --force because a build may have touched tracked files.
+                  # --force because the baseline's package versions were
+                  # rewritten, and a build may have touched tracked files.
                   git checkout --force --detach ${{ steps.decide.outputs.head_sha }}
                   # Discard everything the baseline build left behind, so a
                   # file the current commit no longer produces cannot survive
@@ -250,7 +313,8 @@ jobs:
                       echo "The built extension differs from the baseline:"
                       diff -u "$BASE" "$CURRENT" || true
                       node "$RUNNER_TEMP/diff-extension-manifests.mjs" \
-                          "$BASE" "$CURRENT" >> "$GITHUB_STEP_SUMMARY"
+                          "$BASE" "$CURRENT" >> "$GITHUB_STEP_SUMMARY" \
+                          || echo "::warning::Could not summarize the difference; the decision to publish stands."
                       CHANGED=true
                   fi
 
@@ -286,6 +350,7 @@ jobs:
                   echo "Publishing version \`${VERSION}\`." >> "$GITHUB_STEP_SUMMARY"
 
             - name: Set the pre-release version in the extension manifest
+              id: set-version
               if: steps.compare.outputs.publish == 'true'
               run: |
                   node -e "
@@ -302,6 +367,7 @@ jobs:
                   "
 
             - name: Publish the Marketplace pre-release
+              id: publish-marketplace
               if: steps.compare.outputs.publish == 'true'
               run: |
                   # secrets.* is not available in `if:` expressions (GitHub
@@ -317,7 +383,14 @@ jobs:
                   VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
             - name: Publish the Open VSX pre-release
-              if: steps.compare.outputs.publish == 'true'
+              id: publish-openvsx
+              # Runs even if the Marketplace publish failed, so one registry's
+              # outage does not hold the other back — but only once the
+              # pre-release version is in the manifest.
+              if: >-
+                  !cancelled() &&
+                  steps.compare.outputs.publish == 'true' &&
+                  steps.set-version.outcome == 'success'
               run: |
                   if [ -z "${OVSX_PAT}" ]; then
                       echo "::warning::OVSX_PAT repository secret is not set — the Open VSX pre-release was not published."
@@ -327,3 +400,49 @@ jobs:
                   npm run publish:openvsx:prerelease -w @doenet/vscode-extension
               env:
                   OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+            # ---------------------------------------------------------------
+            # Carry the baseline to the next run
+            # ---------------------------------------------------------------
+
+            - name: Decide the next baseline
+              id: next-baseline
+              if: always() && github.ref == 'refs/heads/main' && steps.decide.outcome == 'success'
+              env:
+                  HEAD_SHA: ${{ steps.decide.outputs.head_sha }}
+                  RECORDED_SHA: ${{ steps.decide.outputs.recorded_sha }}
+                  BASE_SOURCE: ${{ steps.decide.outputs.base_source }}
+                  UP_TO_DATE: ${{ steps.decide.outputs.up_to_date }}
+                  CHANGED: ${{ steps.compare.outputs.changed }}
+                  MARKETPLACE: ${{ steps.publish-marketplace.outcome }}
+                  OPENVSX: ${{ steps.publish-openvsx.outcome }}
+              run: |
+                  set -euo pipefail
+                  NEXT="${RECORDED_SHA}"
+                  if [ "${MARKETPLACE}" = success ] && [ "${OPENVSX}" = success ]; then
+                      # The tip is what the registries now carry.
+                      NEXT="${HEAD_SHA}"
+                  elif [ "${BASE_SOURCE}" != override ] && \
+                       { [ "${UP_TO_DATE}" = true ] || [ "${CHANGED}" = false ]; }; then
+                      # The tip builds the same as the baseline, so it stands
+                      # for what the registries carry.  Not so against a
+                      # baseline chosen by hand, which may never have been
+                      # published.
+                      NEXT="${HEAD_SHA}"
+                  fi
+                  if [ -z "${NEXT}" ]; then
+                      echo "No baseline to record; the next run falls back to main as of 24 hours ago."
+                      exit 0
+                  fi
+                  mkdir -p "$RUNNER_TEMP/next-baseline"
+                  echo "${NEXT}" > "$RUNNER_TEMP/next-baseline/sha"
+                  echo "sha=${NEXT}" >> "$GITHUB_OUTPUT"
+                  echo "Next run's baseline: ${NEXT}"
+
+            - name: Record the next baseline
+              if: always() && steps.next-baseline.outputs.sha != ''
+              uses: actions/upload-artifact@v7
+              with:
+                  name: vscode-prerelease-baseline
+                  path: ${{ runner.temp }}/next-baseline/sha
+                  retention-days: 90

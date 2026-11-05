@@ -34,19 +34,28 @@ const MAX_LISTED = 40;
  * Collapse a content hash in a built filename, so that the same chunk before
  * and after a rebuild lines up: `codeEditor-ObpSVeQN.js` -> `codeEditor-*.js`.
  *
+ * Vite's hashes are exactly eight base64url characters, which can themselves
+ * include `-` (`angle-Dc-5vw41.js`), so the hash is taken as the last eight
+ * characters before the extension, not as everything after a hyphen. An
+ * eight-letter all-lowercase word is left alone, so a hashless name such as
+ * `foo-regulars.woff` keeps its own key.
+ *
  * @param {string} filePath
  * @returns {string}
  */
 function collapseContentHash(filePath) {
-    return filePath.replace(/-[A-Za-z0-9_-]{8,}(\.[^./]+)$/, "-*$1");
+    return filePath.replace(
+        /-(?![a-z]{8}\.)[A-Za-z0-9_-]{8}(\.[^./]+)$/,
+        "-*$1",
+    );
 }
 
 /**
  * @param {string} file
- * @returns {Map<string, Set<string>>} collapsed path -> content hashes
+ * @returns {Map<string, string[]>} collapsed path -> content hashes
  */
 function readManifest(file) {
-    /** @type {Map<string, Set<string>>} */
+    /** @type {Map<string, string[]>} */
     const entries = new Map();
     const text = fs.readFileSync(file, "utf8");
     for (const line of text.split("\n")) {
@@ -56,8 +65,8 @@ function readManifest(file) {
         const separator = line.indexOf("  ");
         const hash = line.slice(0, separator);
         const key = collapseContentHash(line.slice(separator + 2));
-        const hashes = entries.get(key) ?? new Set();
-        hashes.add(hash);
+        const hashes = entries.get(key) ?? [];
+        hashes.push(hash);
         entries.set(key, hashes);
     }
     return entries;
@@ -73,20 +82,25 @@ const removed = [];
 /** @type {string[]} */
 const modified = [];
 
-for (const [key, hashes] of current) {
-    const before = base.get(key);
-    if (!before) {
-        added.push(key);
-    } else if (
-        before.size !== hashes.size ||
-        [...hashes].some((h) => !before.has(h))
-    ) {
+// A collapsed key can stand for several files when Vite emits more than one
+// chunk under the same name (`index-*.js`), so a change in how many files share
+// a key is an addition or removal, and only a same-sized group whose contents
+// differ is a modification.
+for (const key of new Set([...base.keys(), ...current.keys()])) {
+    const before = base.get(key) ?? [];
+    const after = current.get(key) ?? [];
+    // `index-*.js (+1)`: one more file under a name that already had some.
+    const delta = after.length - before.length;
+    const label =
+        before.length && after.length
+            ? `${key} (${delta > 0 ? "+" : ""}${delta})`
+            : key;
+    if (delta > 0) {
+        added.push(label);
+    } else if (delta < 0) {
+        removed.push(label);
+    } else if (before.sort().join() !== after.sort().join()) {
         modified.push(key);
-    }
-}
-for (const key of base.keys()) {
-    if (!current.has(key)) {
-        removed.push(key);
     }
 }
 

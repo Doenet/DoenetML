@@ -11,18 +11,19 @@
  *   node hash-vscode-extension.mjs <extension-dir> <manifest-out>
  *
  * Writes a manifest of `<sha256>  <relative path>` lines, sorted by path, to
- * <manifest-out>, prints the aggregate hash, and sets a `hash` step output
- * when running under GitHub Actions.
+ * <manifest-out> and prints the aggregate hash.
  *
- * Two normalizations keep the comparison free of false positives:
+ * Two kinds of file are skipped:
  *
- *   - `version` in any package.json is blanked.  The published pre-release
- *     version is derived from the clock, not from the manifest, so a version
- *     bump alone is not a reason to publish.
- *   - Source maps are skipped.  They are derived from the same sources as the
- *     `.js` files beside them, so a real change always shows up in the `.js`,
- *     while the maps carry build-machine paths that can differ for identical
- *     source.
+ *   - Source maps.  They are derived from the same sources as the `.js` files
+ *     beside them, so a real change always shows up in the `.js`, while the
+ *     maps carry build-machine paths that can differ for identical source.
+ *   - `CHANGELOG.md`.  Only a changesets "Version Packages" merge writes it,
+ *     and the entries it adds describe stable releases.
+ *
+ * A version bump alone does not register as a change, because the workflow
+ * builds the baseline under the current commit's package versions (see
+ * `package-versions.mjs`).
  */
 
 import { createHash } from "node:crypto";
@@ -47,8 +48,8 @@ if (!fs.existsSync(extensionDir)) {
 const SKIP_DIRS = new Set([".git", "node_modules"]);
 
 /** @param {string} file */
-function isSourceMap(file) {
-    return file.endsWith(".map");
+function isSkipped(file) {
+    return file.endsWith(".map") || file === "CHANGELOG.md";
 }
 
 /** @type {string[]} */
@@ -64,7 +65,7 @@ function walk(dir) {
             }
             walk(full);
         } else if (entry.isFile()) {
-            if (isSourceMap(entry.name)) {
+            if (isSkipped(entry.name)) {
                 continue;
             }
             files.push(full);
@@ -80,24 +81,11 @@ if (files.length === 0) {
 }
 
 /**
- * Hash one file's contents, with package.json versions blanked out.
- *
  * @param {string} file
  * @returns {string}
  */
 function hashFile(file) {
-    let contents = fs.readFileSync(file);
-    if (path.basename(file) === "package.json") {
-        try {
-            const pkg = JSON.parse(contents.toString("utf8"));
-            pkg.version = "0.0.0-normalized";
-            contents = Buffer.from(JSON.stringify(pkg, null, 4) + "\n");
-        } catch {
-            // A package.json that does not parse is hashed as-is; a build that
-            // produces one has bigger problems than a spurious publish.
-        }
-    }
-    return createHash("sha256").update(contents).digest("hex");
+    return createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 }
 
 const lines = files
@@ -116,7 +104,3 @@ const aggregate = createHash("sha256").update(manifest).digest("hex");
 console.log(`Hashed ${lines.length} files under ${extensionDir}`);
 console.log(`Manifest: ${manifestOut}`);
 console.log(`Aggregate hash: ${aggregate}`);
-
-if (process.env.GITHUB_OUTPUT) {
-    fs.appendFileSync(process.env.GITHUB_OUTPUT, `hash=${aggregate}\n`);
-}

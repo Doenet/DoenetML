@@ -130,8 +130,8 @@ jobs:
     # per successful CI run on main meant a Marketplace release per merge, most
     # of which never touched the extension.  `vscode-prerelease.yml` now does it
     # on a daily schedule, and only when a rebuild actually differs from the
-    # build of 24 hours earlier.  Stable extension releases stay below, with the
-    # rest of the production release.
+    # last one published.  Stable extension releases stay below, with the rest
+    # of the production release.
 
     production-release:
         name: Production Release
