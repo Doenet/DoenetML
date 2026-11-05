@@ -2389,9 +2389,17 @@ export function checkTypeChangesAtLoad({
                 };
                 return true;
             }
-            if (declared.status === "types" && !declared.property) {
+            if (
+                declared.status === "types" &&
+                !declared.property &&
+                (isScalarTag(copy) ||
+                    copy.doenetAttributes?.forList !== undefined)
+            ) {
                 // Decided as for any composite holding types that differ
-                // (`doenet-e0066`, `decide`)
+                // (`doenet-e0066`, `decide`). A `<group>` tag holds whatever
+                // it is made from, which `decide` leaves be, so its type
+                // would change with the active branch: the difference is
+                // the error (`doenet-w0184`, below).
                 return false;
             }
             if (

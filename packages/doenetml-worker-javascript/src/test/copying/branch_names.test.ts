@@ -212,6 +212,79 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
     });
 
+    it("on a group tag, a mix of types is an error, as the group would change type with the case", async () => {
+        const { text, toggle, diagnostics } = await setUp(`
+<conditionalContent name="cc">
+    <case condition="$b"><math name="x">1</math></case>
+    <else><text name="x">t</text></else>
+</conditionalContent>
+<p name="p">[<group extend="$x"/>][<group extend="$cc.x"/>][<group copy="$x"/>]</p>`);
+        expect(await text()).eq("[][][]");
+        await toggle(true);
+        expect(await text()).eq("[][][]");
+        expect(diagnostics.warnings).eqls([]);
+        expect(codes(diagnostics.errors)).eqls([
+            "doenet-w0184",
+            "doenet-w0184",
+            "doenet-w0184",
+        ]);
+        expect(diagnostics.errors.map((e) => e.message)).eqls([
+            "`$x` names nothing: `x` is a `<math>` in one case of `cc` and a `<text>` in another. Use the same type, or different names.",
+            "`$cc.x` names nothing: `x` is a `<math>` in one case of `cc` and a `<text>` in another. Use the same type, or different names.",
+            "`$x` names nothing: `x` is a `<math>` in one case of `cc` and a `<text>` in another. Use the same type, or different names.",
+        ]);
+
+        const select = await setUp(`
+<select name="s">
+    <option><math name="x">1</math></option>
+    <option><text name="x">t</text></option>
+</select>
+<p name="p">[<group extend="$x"/>][<group extend="$s.x"/>]</p>`);
+        expect(await select.text()).eq("[][]");
+        expect(codes(select.diagnostics.errors)).eqls([
+            "doenet-w0184",
+            "doenet-w0184",
+        ]);
+        expect(select.diagnostics.warnings).eqls([]);
+    });
+
+    it("on a group tag, a name a branch lacks is an error", async () => {
+        const { text, diagnostics } = await setUp(`
+<conditionalContent name="cc">
+    <case condition="$b"><math name="x">1</math></case>
+    <else><math name="y">2</math></else>
+</conditionalContent>
+<p name="p">[<group extend="$x"/>][<group extend="$cc.x"/>]</p>`);
+        expect(await text()).eq("[][]");
+        expect(codes(diagnostics.errors)).eqls([
+            "doenet-w0183",
+            "doenet-w0183",
+        ]);
+        expect(diagnostics.warnings).eqls([]);
+    });
+
+    it("on a group tag or a list tag, a name every case has with one type is made", async () => {
+        const { text, toggle, diagnostics } = await setUp(
+            `${sameTypeCases}<p name="p">[<group extend="$x"/>][<group extend="$cc.x"/>][<mathList extend="$x"/>]</p>`,
+        );
+        expect(await text()).eq("[2][2][2]");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+        await toggle(true);
+        expect(await text()).eq("[1][1][1]");
+    });
+
+    it("on a list tag, a mix of types is an error, unchanged", async () => {
+        const { text, diagnostics } = await setUp(`
+<conditionalContent name="cc">
+    <case condition="$b"><math name="x">1</math></case>
+    <else><text name="x">t</text></else>
+</conditionalContent>
+<p name="p">[<mathList extend="$x"/>]</p>`);
+        expect(await text()).eq("[]");
+        expect(codes(diagnostics.errors)).eqls(["doenet-e0066"]);
+        expect(diagnostics.warnings).eqls([]);
+    });
+
     it("finds a name in a nested conditionalContent that satisfies the rule", async () => {
         const { text, toggle, diagnostics } = await setUp(`
 <conditionalContent name="cc">
