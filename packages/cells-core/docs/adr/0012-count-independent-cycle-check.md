@@ -1,6 +1,8 @@
 # Cycles are rejected for every iteration count, not the count at load
 
-Status: accepted 2026-10-16.
+Status: accepted 2026-10-16. Amended 2026-11-05 by ADR 0035: the abstract
+build stops at define and runs no emit, and the prefill rule is define's;
+see the last section.
 
 The cycle check runs on the template graph with every indexed reference
 assumed to land on a real iteration, so a document that is acyclic at the
@@ -77,7 +79,9 @@ once, since rebuilds change counts but never templates.
 - The prefill rule (a seed must name a value that is not computed), which
   the build applies at emit, is applied in the abstract build from the
   resolved sources, so a referent past the count at load is checked as the
-  iteration it would name.
+  iteration it would name. (Since ADR 0035 the rule is define's, in every
+  build, stated on the definitions: a prefill must name a cell whose
+  definition is not an operator, unless it is a counted value.)
 - Caps are ignored: a loop is reported at any count that would close it.
 
 ## Considered options
@@ -216,8 +220,10 @@ test is unchanged. The abstract build now runs emit too, with its output
 discarded, so the prefill rule is checked by `seed_cells` itself rather than
 by a copy in the abstract build; a loop of aliases in the abstract build, a
 recurrence folded onto its one iteration, is left to the SCC test rather
-than reported by emit. `cycles.rs` went from 604 to 492 lines. The golden
-diff against 6e66632 is identical.
+than reported by emit. (No longer since ADR 0035: the abstract build stops
+at define, which now holds the prefill rule and that step for a loop of
+aliases, and runs no emit; see the last section.) `cycles.rs` went from
+604 to 492 lines. The golden diff against 6e66632 is identical.
 
 `tests/every_count.rs` checks the promise independently of the abstract
 build: every golden document, `sir` and every generated fixture, plus the

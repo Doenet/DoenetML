@@ -1,6 +1,9 @@
 # Compile once, build per structure: a hard line between the two
 
 Status: accepted 2026-10-17. Every step of the migration is done; see Progress.
+Amended 2026-10-29 (one load sequence) and 2026-11-05 (ADR 0035: a build
+gains a define stage, the abstract build stops at it, and the compile
+holds no program); see the amendments at the end.
 
 The core works in three stages that differ in how often they run and what
 they may depend on, and this ADR makes the line between them hard: each
@@ -321,6 +324,9 @@ The compile reads, from the build, only what its check runs:
 `build::abstract build`, `build::first_build` and `BuildOutput`, all in
 `compile/check.rs`. Per-phase profiling (`profile.rs`) belongs to
 neither. A change that needs more across the line is a change to this ADR.
+(Amended twice since: `first_build` went with the one load sequence, and
+no `BuildOutput` crosses the line since ADR 0035; see the amendments
+below.)
 
 ## Consequences
 
@@ -376,3 +382,28 @@ template slot) was taken as live whatever read it, so a pruned build
 computed an interface prop nothing reads from branch cells the record had
 pruned and failed as unchecked. Such a class is now live only when a root or
 a live class reads it, as in the abstract build's walk (`build/live.rs`).
+
+## Amendment: the abstract build stops at define, 2026-11-05
+
+ADR 0035 splits emit in two at the line the code drew inside it. **Define**
+merges aliased slots into the cells they will share, orients the author's
+operators and classes every cell; **emit** numbers the cells, pools and
+folds the constants, binds the instructions, seeds values and makes
+tapes. A build is expand, resolve, define, emit, schedule. The abstract
+build runs expand, resolve, its checks and define, and makes no program;
+emit runs only in a stamped build and reads no view.
+
+So what the compile reads of the build is now `build::abstract_build`,
+which returns `AbstractFindings`, and `build::abstract_signature`, the
+input signature (ADR 0017) read off the same definitions, both in
+`compile/check.rs`, with the signature's types for `compare_versions`
+(`compile/compare.rs`). No `BuildOutput` crosses the line: the compile
+never holds a program, made or discarded. The view is read by expand and
+resolve, by the abstract build's checks, and once by define, for a loop
+of aliases; never by emit or anything after it.
+
+The rule a contributor follows gains a line: a diagnostic raised in emit
+is misplaced, as one raised in a stamped build is, and a view read in emit
+is a bug. The price the amendment above names, one more expand and emit
+at load for a document without repeats or selects, is now an expand,
+resolve and define; ADR 0012's section of 2026-11-05 has the numbers.

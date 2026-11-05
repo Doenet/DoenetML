@@ -1,7 +1,8 @@
 # The abstract build reads cell definitions, never a program
 
-Status: proposed 2026-11-05. Amends ADR 0015 (what the compile reads of
-the build) and ADR 0012 (its reason for the abstract build running emit).
+Status: accepted 2026-11-05. Proposed 2026-11-05; every migration step is
+done (see Migration). Amends ADR 0015 (what the compile reads of the
+build) and ADR 0012 (its reason for the abstract build running emit).
 
 A build is expand, resolve, emit, schedule (ADR 0015). This ADR splits
 emit in two at the line the code already draws inside it. **Define**
@@ -401,3 +402,17 @@ and tick, in instructions, as ADR 0015's steps were.
 5. **Documents**: ARCHITECTURE.md, CONTEXT.md, the doc of
    `build::abstract_build`, and the amendments to ADR 0012 and ADR 0015.
    This ADR's status becomes accepted.
+
+   *Done.* As landed: ARCHITECTURE.md's pipeline has a define line
+   between expand and emit, its Build section a **Define** item (merge,
+   orient, the prefill rule, the classes, and the readers of `Defined`)
+   beside a shorter **Emit**, a paragraph on which stage reads the view
+   and where a rule belongs, and its table of types a row for `Defined`;
+   its Check item says the abstract build stops at define and makes no
+   program. CONTEXT.md's *Build* names the five stages, each in a
+   clause, and *Compile stages* says the abstract build runs as far as
+   define. `build::abstract_build`'s doc gives no reason for running
+   define. ADR 0012's status, its prefill bullet and its paragraph on
+   the abstract build running emit point here; ADR 0015's status and its
+   "What each stage takes from the other" point to an amendment of
+   2026-11-05, which restates what the compile reads of the build.

@@ -405,13 +405,21 @@ element's plan, from the source and what outlining and parsing made,
 never from another element's plan. *Link*: what ties plans together once
 all are made (shared state; boxing what read a boxed referent). *Seal*:
 what reads every plan and changes none (choice interfaces, arity, keys,
-slot offsets). *Abstract build*: one build through the abstract view. They
-are not called passes: a *pass* is one build while the repeat counts settle.
+slot offsets). *Abstract build*: a build through the abstract view as far
+as define, its graph checked for loops at any count; it makes no program
+(ADR 0035). They are not called passes: a *pass* is one build while the
+repeat counts settle.
 
 **Build** — One pass from the compile, the session and iteration counts to
-cells, program and component table: expand, resolve, emit, schedule. A
-*load* is a compile, then builds until the structure *settles*; a *rebuild*
-is builds until it settles again.
+cells, program and component table: expand, resolve, define, emit,
+schedule. *Expand* stamps templates into components and slots, and
+*resolve* points each reference at a slot. *Define* merges aliased slots
+into the cells they will share, orients the author's operators and classes
+every cell (essential or not, live or dead); what a cell *is* is decided
+there or earlier. *Emit* numbers the cells and binds operators into
+instructions, and reads no structure view (ADR 0035). *Schedule* orders the
+instructions. A *load* is a compile, then builds until the structure
+*settles*; a *rebuild* is builds until it settles again.
 
 **Session** — What survives every build of a document (ADR 0015): the scope
 table, every essential value by key, which of them a student touched,

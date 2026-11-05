@@ -60,7 +60,8 @@ The work splits by when it happens:
    │ Compiled (kept by the document for rebuilds)
    ▼
  build/      expand: templates → components, slots         per structure
-             emit:   slots → cells, instructions                ▲
+             define: slots → cells, each classed                ▲
+             emit:   cells → numbered cells, instructions       │
    │                                                            │
    │ BuildOutput                                                │
    ▼                                                            │
@@ -137,15 +138,19 @@ Runs once per load and depends on the source alone.
   (ADR 0029), so elements are planned in any order: what one shares with
   another (an extend's essential state) is linked once all are planned.
 - **Check** (`check.rs`, ADR 0012, ADR 0014) finds every error the document
-  can have. It builds the plans once through the **abstract build**
-  (`build/abstract_build.rs`), which folds every iteration into one and
-  builds every option of every select, so its graph holds every edge any
-  count or pick could create. It rejects any dependency loop that could
-  close at some count, records what every build reads (below) and the
-  document's structural depth, then discards that build. Every document goes
-  through the abstract build, with or without repeats: a load is one
-  sequence of steps. An element that fails to build is *boxed*; see [An
-  element cannot be built](#an-element-cannot-be-built).
+  can have. It expands, resolves and defines the plans once through the
+  **abstract build** (`build/abstract_build.rs`), which folds every
+  iteration into one and builds every option of every select, so its graph
+  holds every edge any count or pick could create. It rejects any
+  dependency loop that could close at some count, and from the definitions
+  records what every build reads (below), the document's structural depth
+  and a warning for each request no build could land (ADR 0026). It stops
+  at define and makes no program (ADR 0035). Every document goes through
+  the abstract build, with or without repeats: a load is one sequence of
+  steps. An element that fails to build is *boxed*; see [An element cannot
+  be built](#an-element-cannot-be-built). The input signature (ADR 0017),
+  which compares two versions of a document, is read off the same
+  definitions (`build/signature.rs`).
 
 Each stage keeps its own table (ADR 0031): a template is outlining's part
 (`Outlined`, read-only once outlining is done), boxing's and planning's
@@ -169,13 +174,14 @@ draw for every select.
 - **Expand** (`build/expand/`) stamps each template into components once per
   *scope* (the document, and each iteration of each repeat) and resolves
   references to slots.
-- **Emit** (`build/emit.rs`) merges aliased slots into cells with a
-  union-find, numbers the cells (the constants, with the session's pool of
-  document constants first, ADR 0028; then essential; then derived) and
-  binds operators to them as instructions. A given value (an
-  attribute's or a default) is essential only when a student's action can write it (ADR
-  0018): `build/writable.rs` walks back from every input prop to where a
-  request on each cell goes. Both walks read the cells the slots will make
+- **Define** (`build/define.rs`, ADR 0035) merges aliased slots into cells
+  with a union-find and finds the one slot that defines each cell, orients
+  the author's operators (ADR 0026), checks the prefill rule (a prefill
+  must name a value that is not computed, unless it is a counted value),
+  and classes every cell. A given value (an attribute's or a default) is
+  essential only when a student's action can write it (ADR 0018):
+  `build/writable.rs` walks back from every input prop to where a request
+  on each cell goes. Both walks read the cells the slots will make
   (`SlotCells`, `build/slot_cells.rs`) only through a cell's definition
   (`Def`), which defines its two relations once: what it needs (what its
   source reads, and the flags that hold it) and where a request on it goes
@@ -189,11 +195,22 @@ draw for every select.
   repeat counts) through what each cell needs. The abstract build records
   the live template slots in `Plans::live` as it records the writable
   ones; a class the record cannot name (a synthesized component's, such as a
-  choice's interface) is live when something live reads it. A dead class
-  gets no cell: its props name the one dead cell, a constant NaN, and its
-  instruction is never bound. A live class that needs the dead cell, an
-  instruction's input or a hold's flag, fails the build
-  (`Error::Unchecked`). `LoadOptions::prune` off computes every class.
+  choice's interface) is live when something live reads it. Which way a
+  build classes is its caller's choice (`Defined::by_walk` in the abstract
+  build, `Defined::by_record` in every other), so define has no branch for
+  it. What define makes, `Defined`, is what emit reads, and what the
+  abstract build hands its readers: its findings, the input signature,
+  and the refuse analysis (`program/refuse.rs`), one rule over a graph
+  that the abstract build asks of the definitions (`build/refuse.rs`) and
+  a document asks of its program (`Interactive::refused_bits`).
+- **Emit** (`build/emit.rs`) numbers the cells (the constants, with the
+  session's pool of document constants first, ADR 0028; then essential;
+  then derived), binds operators to them as instructions, seeds values
+  and compiles curve tapes. A dead class gets no cell: its props name the
+  one dead cell, a constant NaN, and its instruction is never bound. A
+  live class that needs the dead cell, an instruction's input or a hold's
+  flag, fails the build (`Error::Unchecked`). `LoadOptions::prune` off
+  computes every class.
 
   Emit also makes the constants (ADR 0028). A document constant, by the
   abstract build's record (`Plans::document_constants`), an operator's
@@ -217,6 +234,17 @@ index names, a collect's count, a select's options. A real build uses the
 uses the `Abstract` view. Because the cycle check reasons about the
 abstract build, any structural read that bypasses the view is one the cycle
 check cannot see.
+
+Expand, resolve and the abstract build's checks read the view, and define
+reads it once: a loop of aliases is a recurrence folded onto itself under
+the abstract view, which the loop check has judged, and a gap in the check
+(`Unchecked`) in a stamped build. Emit runs only in a stamped build and
+reads no view (ADR 0035). So the check reads the graph and the cells'
+definitions, never a numbered cell or a bound instruction: a rule about
+what a cell *is* (its class, what it needs, where a request on it goes,
+what an author may reference) belongs in define or before it, and a rule
+about how a cell is numbered or an instruction bound belongs in emit. A
+diagnostic raised in emit is misplaced, and a view read in emit is a bug.
 
 A build reads the `Session` (`session.rs`) and returns the next one. The
 session is everything that survives across builds: the scope table, every
@@ -366,7 +394,8 @@ the other action: it sets each `<updateValue>`'s target.
 | `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
 | `Compiled`, `CompiledRef`, `Plans`, `Template` | `compile/plan.rs` | The compile's output: the source and its `Plans`, one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. A build reads it as a `CompiledRef`. |
 | `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Abstract`, which folds every iteration into one (`build/abstract_build.rs`). |
-| `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
+| `Defined` | `build/define.rs` | What define made of a build's resolved slots: the cells they will make (`SlotCells`) and each slot's class, essential and live, by the build's own walks in the abstract build or by the compile's records in a stamped one (ADR 0035). What emit reads; in the abstract build, what its findings (`AbstractFindings`) and the input signature read. |
+| `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one stamped build, before scheduling. The abstract build makes none. |
 | `Session`, `Counts`, `Pool` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine, the constant pool (ADR 0028); and the counts a build stamps. |
 | `Structure` | `build/structure.rs` | What one build made: its repeats and its essential cells' keys. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a scalar operator with its evaluation and inverse; `VecOp` (`vector.rs`) reads and writes several cells; symbolic operators call the math engine. A `Program` is read-only while a tick runs; what its symbolic instructions keep between runs is a `SymState` beside it in the document. |

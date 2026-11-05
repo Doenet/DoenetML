@@ -2,14 +2,15 @@
 //! count-independent cycle check: a document is rejected at load when a
 //! dependency loop would close at any iteration count a repeat can reach.
 //!
-//! The document is built once more through the abstract view: every repeat
-//! gets one iteration, an index past it lands in it, and every reference
-//! edge is labelled with how it moves through the iterations, one entry per
-//! level of nesting of its target. `$r[$i-2].x` inside `r` keeps the
-//! position and shifts it by minus two; `$r[2].x` resets it; a bare `$x`
-//! keeps it. A loop is a cycle when its shifts sum to zero in every
-//! coordinate it keeps; a lagged recurrence is not. A coordinate some edge
-//! of the loop resets is taken as free, which can only over-report.
+//! The document is built once more through the abstract view, as far as
+//! define (ADR 0035): every repeat gets one iteration, an index past it
+//! lands in it, and every reference edge is labelled with how it moves
+//! through the iterations, one entry per level of nesting of its target.
+//! `$r[$i-2].x` inside `r` keeps the position and shifts it by minus two;
+//! `$r[2].x` resets it; a bare `$x` keeps it. A loop is a cycle when its
+//! shifts sum to zero in every coordinate it keeps; a lagged recurrence is
+//! not. A coordinate some edge of the loop resets is taken as free, which
+//! can only over-report.
 //!
 //! A count whose inputs reach a cell inside a repeat's iterations is a
 //! cycle of structure: a loop on the graph of repeats, a self-loop
@@ -26,11 +27,10 @@ pub(in crate::build) enum Coord {
     Reset,
 }
 
-/// The abstract build: the compile built once through the abstract view,
-/// its graph tested for loops at any count, and defined, so define's rules
-/// run on the referents of every count and every option. It reads a
-/// session of its own, and makes no program (ADR 0035): what it found is
-/// its findings.
+/// The abstract build: the compile expanded and resolved once through the
+/// abstract view, its graph tested for loops at any count, and defined.
+/// It reads a session of its own and makes no program (ADR 0035): what it
+/// found is its findings.
 pub(crate) fn abstract_build(
     compiled: CompiledRef,
     checks: bool,
