@@ -78,6 +78,13 @@ impl SymKind {
 }
 
 crate::index::index_type! {
+    /// A position in `Program::instrs`: an instruction, by where it stands
+    /// in the schedule. `NONE` is "no instruction" (an essential cell or a
+    /// constant has no producer).
+    pub struct InstrIdx;
+}
+
+crate::index::index_type! {
     /// A position in `Program::operands`, where a vector or symbolic
     /// instruction's input cells are parked: an index into that list, never
     /// into the cells.

@@ -15,6 +15,14 @@ crate::index::index_type! {
     pub struct ScopeId;
 }
 
+crate::index::index_type! {
+    /// A position in a template's slot space: an element's slot offset
+    /// (`Sealed::slot_off`) plus the port's position among its slots. With
+    /// its scope it names an essential value across builds (see
+    /// `CONTEXT.md`, essential key).
+    pub struct TemplateSlot;
+}
+
 impl ScopeId {
     /// The document's own scope.
     pub const DOCUMENT: ScopeId = ScopeId::new(0);
@@ -91,7 +99,7 @@ pub struct Structure {
     /// Per essential cell, in cell order: its essential key as (scope,
     /// template slot). The template slot identifies the element and prop
     /// within the scope's template.
-    pub essential_slots: Vec<(ScopeId, u32)>,
+    pub essential_slots: Vec<(ScopeId, TemplateSlot)>,
     /// Per essential cell, in cell order: its element's key and the slot's
     /// position among the element's, by which saved state names it.
     pub essential_keys: Vec<(ElemKey, u32)>,
@@ -102,15 +110,15 @@ pub struct Structure {
     /// Per value slot this build's own walk finds writable, in slot order:
     /// its essential key, whatever the record says.
     #[cfg(feature = "testing")]
-    pub walked_essential_slots: Vec<(ScopeId, u32)>,
+    pub walked_essential_slots: Vec<(ScopeId, TemplateSlot)>,
     /// What each live template slot's own source makes it in this build,
     /// by its (scope, template, template slot).
     #[cfg(feature = "testing")]
-    pub slot_classes: Vec<((ScopeId, u32, u32), SlotClass)>,
+    pub slot_classes: Vec<((ScopeId, u32, TemplateSlot), SlotClass)>,
     /// What each template slot's cell holds in this build, by its (scope,
     /// template, template slot).
     #[cfg(feature = "testing")]
-    pub slot_types: Vec<((ScopeId, u32, u32), crate::program::ValueType)>,
+    pub slot_types: Vec<((ScopeId, u32, TemplateSlot), crate::program::ValueType)>,
 }
 
 /// What a template slot's cell is in one build.

@@ -13,7 +13,7 @@ impl Seal<'_> {
                 if let Step::Iface(cid, id) = *step {
                     let def = &mut self.choice_seals[cid.index()];
                     if let std::collections::hash_map::Entry::Vacant(v) = def.used_at.entry(id) {
-                        v.insert(def.used.len() as u32);
+                        v.insert(IfaceIdx::from_index(def.used.len()));
                         def.used.push(self.names.text(id).to_string());
                     }
                 }

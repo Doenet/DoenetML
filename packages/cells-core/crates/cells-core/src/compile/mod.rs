@@ -147,7 +147,7 @@ pub(in crate::compile) struct Settled {
     submitted: HashMap<NodeId, ElemId>,
     /// By (template, answer), the `response` outlining made for each input
     /// its whens read.
-    answer_responses: HashMap<(u32, u32), Vec<(InputKey, ElemId)>>,
+    answer_responses: HashMap<(TemplateId, ElemId), Vec<(InputKey, ElemId)>>,
 }
 
 /// A recorded cross-element read: the reader, and the reference to what it
@@ -162,7 +162,7 @@ pub(in crate::compile) struct Planned {
     shares: Vec<Share>,
     /// By (template, element), which port holds each given leaf of an
     /// element planned by a `Plan` type's planner, by what gave it.
-    given: HashMap<(u32, u32), HashMap<GivenId, Port>>,
+    given: HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
     /// Every read recorded, outlining's and planning's: an element whose
     /// plan read the type of what a reference names.
     reads: Vec<Read>,

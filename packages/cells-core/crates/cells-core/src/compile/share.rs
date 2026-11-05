@@ -297,7 +297,7 @@ impl Share<'_> {
         let tpl = &self.c.templates[t.index()];
         let ty = tpl.elems[e.index()].component_type;
         let np = self.n_public(t, e);
-        let off = tpl.sealed.elems[e.index()].slot_off as usize;
+        let off = tpl.sealed.elems[e.index()].slot_off.index();
         for (port, c) in out.iter_mut().enumerate() {
             let mut bits = 0;
             if port < np && ty.is_interactive_prop(np, port) {
@@ -482,11 +482,9 @@ impl Share<'_> {
         // The referents seen through a path: each of their ports is what
         // `Ref(path, Port(k))` names, and the reference that names it.
         let mut via: FxMap<Node, RefId> = FxMap::default();
-        let mut seen_paths: HashSet<(u32, u32, u32)> = HashSet::new();
+        let mut seen_paths: HashSet<(RefId, TemplateId, ElemId)> = HashSet::new();
         for p in paths {
-            if !self.takes_part(p.rt, p.re)
-                || !seen_paths.insert((p.path.get(), p.rt.get(), p.re.get()))
-            {
+            if !self.takes_part(p.rt, p.re) || !seen_paths.insert((p.path, p.rt, p.re)) {
                 continue;
             }
             let hold = self.hold(p.rt, p.re);

@@ -259,12 +259,12 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn resolve_iface(
         &self,
         cid: ChoiceId,
-        id: u32,
+        id: NameId,
         cur: Resolved,
     ) -> (Resolved, ScopeId) {
         let def = &self.compiled.choices[cid.index()];
         let u = def.used_at[&id];
-        let elems = &def.iface[&def.used[u as usize]].1;
+        let elems = &def.iface[&def.used[u.index()]].1;
         let in_branch = |inst: &ChoiceInst, j: usize| {
             let s = inst.scopes[j];
             (
@@ -285,7 +285,7 @@ impl<'c> Builder<'c> {
             Resolved::Comp(c) => {
                 let inst = &self.choice_insts[self.comp_choice[&c]];
                 (
-                    Resolved::Comp(inst.iface_comps[u as usize]),
+                    Resolved::Comp(inst.iface_comps[u.index()]),
                     self.components.scope[c.index()],
                 )
             }

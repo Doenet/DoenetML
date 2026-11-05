@@ -78,7 +78,7 @@ impl Compiler<'_> {
                             keys.push((key, r));
                             self.settled_mut()
                                 .answer_responses
-                                .entry((t.get(), e.get()))
+                                .entry((t, e))
                                 .or_default()
                                 .push((key, r));
                             r

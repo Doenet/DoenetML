@@ -48,7 +48,7 @@ impl Compiler<'_> {
         t: TemplateId,
         e: ElemId,
     ) -> Result<()> {
-        let key = (t.get(), e.get());
+        let key = (t, e);
         if o.expanded.contains(&key) || self.is_box(t, e) {
             // A copy boxed before its clones were made has none to read.
             self.outlined_mut(t).elems[e.index()].clones_pending = false;

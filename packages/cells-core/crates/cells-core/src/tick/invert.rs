@@ -28,8 +28,8 @@ type HashSet<K> = std::collections::HashSet<K, BuildHasherDefault<IndexHasher>>;
 
 use crate::document::CellIdx;
 use crate::program::Produced;
+use crate::program::{InstrIdx, Program, SymRun};
 use crate::program::{Op, SymKind};
-use crate::program::{Program, SymRun};
 use crate::tick::Request;
 
 /// A request on both cells of a point, issued together with others as a
@@ -136,11 +136,10 @@ pub fn realize(
     }
     let hi = requests
         .iter()
-        .map(|&(c, _)| program.producer[c.index()])
-        .filter(|&p| p != u32::MAX)
+        .filter_map(|&(c, _)| program.producer_of(c))
         .max();
     if let Some(hi) = hi {
-        for ins in &program.instrs[..=hi as usize] {
+        for ins in &program.instrs[..=hi.index()] {
             if program.any_input_differs(ins, &scratch, cells) {
                 program.step(ins, sym, &mut scratch, None);
             }
@@ -158,8 +157,8 @@ struct RequestEngine<'a> {
     /// Requested value per derived cell awaiting its producer's inverse.
     pending: HashMap<CellIdx, f64>,
     /// Producers with pending requests, highest schedule position first.
-    heap: BinaryHeap<u32>,
-    queued: HashSet<u32>,
+    heap: BinaryHeap<InstrIdx>,
+    queued: HashSet<InstrIdx>,
     /// Position in `inversion.writes` of each essential cell written.
     write_index: HashMap<CellIdx, usize>,
     inversion: Inversion,
@@ -174,8 +173,7 @@ impl RequestEngine<'_> {
             self.inversion.dropped.push(origin);
             return;
         }
-        let p = self.program.producer[cell.index()];
-        if p == u32::MAX {
+        let Some(p) = self.program.producer_of(cell) else {
             if self.essentials.contains(&cell.index()) {
                 match self.write_index.get(&cell) {
                     Some(&i) => self.inversion.writes[i].1 = value,
@@ -188,7 +186,7 @@ impl RequestEngine<'_> {
                 self.inversion.dropped.push(origin);
             }
             return;
-        }
+        };
         self.pending.insert(cell, value);
         self.origin.insert(cell, origin);
         if self.queued.insert(p) {
@@ -201,12 +199,12 @@ impl RequestEngine<'_> {
     /// symbolic operator.
     fn walk(&mut self, mut cell: CellIdx, mut value: f64, origin: Request) {
         loop {
-            let p = self.program.producer[cell.index()];
-            if p == u32::MAX || self.program.holds.holds(cell, self.cells) {
+            let p = self.program.producer_of(cell);
+            let Some(p) = p.filter(|_| !self.program.holds.holds(cell, self.cells)) else {
                 self.push(cell, value, origin);
                 return;
-            }
-            let op = self.program.instrs[p as usize].op;
+            };
+            let op = self.program.instrs[p.index()].op;
             if matches!(op, Op::Vec(..) | Op::Sym(..)) {
                 self.push(cell, value, origin);
                 return;
@@ -279,7 +277,7 @@ impl RequestEngine<'_> {
         let mut produced = Produced::default();
         while let Some(p) = self.heap.pop() {
             self.queued.remove(&p);
-            let ins = &self.program.instrs[p as usize];
+            let ins = &self.program.instrs[p.index()];
             let n_out = ins.op.n_out();
             desired.clear();
             let mut origin = None;

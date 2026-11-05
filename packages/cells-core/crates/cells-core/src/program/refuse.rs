@@ -13,7 +13,7 @@
 
 use std::rc::Rc;
 
-use super::{Instr, Op, SymEntry, VecOp};
+use super::{Instr, InstrIdx, Op, Program, SymEntry, VecOp};
 use crate::document::CellIdx;
 
 /// What `analyze` found for one asked cell.
@@ -42,12 +42,7 @@ pub fn analyze(
     held_always: &[bool],
 ) -> Vec<(CellIdx, Finding)> {
     let n_cells = held_always.len();
-    let mut producer = vec![u32::MAX; n_cells];
-    for (i, ins) in instrs.iter().enumerate() {
-        for k in 0..ins.op.n_out() {
-            producer[ins.out.index() + k] = i as u32;
-        }
-    }
+    let producer = Program::producers(instrs, n_cells);
     let mut graph = Graph {
         instrs,
         operands,
@@ -69,22 +64,22 @@ pub fn analyze(
     let mut buffers = (Vec::new(), Vec::new());
     // Per written cell, its group in `by_source`; u32::MAX for none.
     let mut group = vec![u32::MAX; n_cells];
-    let mut by_source: Vec<(u32, Vec<usize>)> = Vec::new();
+    let mut by_source: Vec<(CellIdx, Vec<usize>)> = Vec::new();
     let mut drops = vec![false; asked.len()];
     for (a, &cell) in asked.iter().enumerate() {
         let walked = graph.walk(cell, &mut memo, &mut buffers);
         drops[a] = walked.drops;
         for &e in walked.written.as_slice() {
-            if group[e as usize] == u32::MAX {
-                group[e as usize] = by_source.len() as u32;
+            if group[e.index()] == u32::MAX {
+                group[e.index()] = by_source.len() as u32;
                 by_source.push((e, Vec::new()));
             }
-            by_source[group[e as usize] as usize].1.push(a);
+            by_source[group[e.index()] as usize].1.push(a);
         }
     }
     // A group asking only the written cell itself reaches it once.
-    by_source.retain(|(e, group)| group.iter().any(|&a| asked[a].index() != *e as usize));
-    let mut twice: Vec<Option<u32>> = vec![None; asked.len()];
+    by_source.retain(|(e, group)| group.iter().any(|&a| asked[a] != *e));
+    let mut twice: Vec<Option<CellIdx>> = vec![None; asked.len()];
     if !by_source.is_empty() {
         count_groups(&mut graph, n_cells, asked, &mut by_source, &mut twice);
     }
@@ -92,12 +87,7 @@ pub fn analyze(
         .iter()
         .enumerate()
         .filter_map(|(a, &cell)| match (twice[a], drops[a]) {
-            (Some(e), _) => Some((
-                cell,
-                Finding::Twice {
-                    source: CellIdx::from_index(e as usize),
-                },
-            )),
+            (Some(e), _) => Some((cell, Finding::Twice { source: e })),
             (None, true) => Some((cell, Finding::Drops)),
             (None, false) => None,
         })
@@ -112,8 +102,8 @@ fn count_groups(
     graph: &mut Graph,
     n_cells: usize,
     asked: &[CellIdx],
-    by_source: &mut [(u32, Vec<usize>)],
-    twice: &mut [Option<u32>],
+    by_source: &mut [(CellIdx, Vec<usize>)],
+    twice: &mut [Option<CellIdx>],
 ) {
     let instrs = graph.instrs;
     // Paths from each written cell, into one scratch array.
@@ -157,12 +147,12 @@ struct Walked {
 enum Written {
     #[default]
     None,
-    One(u32),
-    Many(Rc<[u32]>),
+    One(CellIdx),
+    Many(Rc<[CellIdx]>),
 }
 
 impl Written {
-    fn as_slice(&self) -> &[u32] {
+    fn as_slice(&self) -> &[CellIdx] {
         match self {
             Written::None => &[],
             Written::One(e) => std::slice::from_ref(e),
@@ -197,28 +187,28 @@ impl Memo {
 /// Path counts from one written cell, and what to clear after it.
 struct Scratch {
     count: Vec<u8>,
-    touched: Vec<u32>,
+    touched: Vec<CellIdx>,
     seen: Vec<bool>,
-    seen_list: Vec<u32>,
+    seen_list: Vec<InstrIdx>,
     /// Per downstream instruction, its inputs from downstream not yet
     /// counted.
     waiting: Vec<u32>,
     /// Cells from which an asked cell of the group can be reached: the
     /// only cells whose counts matter.
     relevant: Vec<bool>,
-    relevant_list: Vec<u32>,
+    relevant_list: Vec<CellIdx>,
 }
 
 impl Scratch {
     fn reset(&mut self) {
         for &c in &self.touched {
-            self.count[c as usize] = 0;
+            self.count[c.index()] = 0;
         }
         for &i in &self.seen_list {
-            self.seen[i as usize] = false;
+            self.seen[i.index()] = false;
         }
         for &c in &self.relevant_list {
-            self.relevant[c as usize] = false;
+            self.relevant[c.index()] = false;
         }
         self.touched.clear();
         self.seen_list.clear();
@@ -231,11 +221,11 @@ struct Graph<'a> {
     operands: &'a [CellIdx],
     vecs: &'a [VecOp],
     syms: &'a [SymEntry],
-    producer: &'a [u32],
+    producer: &'a [InstrIdx],
     /// The instructions reading each cell, compressed: those of cell `c`
     /// are `readers[start[c]..start[c + 1]]`. Made only for a count.
     start: Vec<u32>,
-    readers: Vec<u32>,
+    readers: Vec<InstrIdx>,
     essentials: std::ops::Range<usize>,
     held_always: &'a [bool],
 }
@@ -253,10 +243,10 @@ impl Graph<'_> {
             start[c + 1] += start[c];
         }
         let mut fill = start.clone();
-        let mut readers = vec![0u32; start[n_cells] as usize];
+        let mut readers = vec![InstrIdx::NONE; start[n_cells] as usize];
         for (i, ins) in self.instrs.iter().enumerate() {
             for c in ins.op.inputs(self.operands) {
-                readers[fill[c.index()] as usize] = i as u32;
+                readers[fill[c.index()] as usize] = InstrIdx::from_index(i);
                 fill[c.index()] += 1;
             }
         }
@@ -302,18 +292,18 @@ impl Graph<'_> {
                 memo.set(
                     i,
                     Walked {
-                        written: Written::One(i as u32),
+                        written: Written::One(c),
                         drops: false,
                     },
                 );
                 continue;
             }
             let p = self.producer[i];
-            if p == u32::MAX {
+            if p.is_none() {
                 memo.set(i, Walked::default());
                 continue;
             }
-            let ins = &self.instrs[p as usize];
+            let ins = &self.instrs[p.index()];
             self.written_inputs(ins, below);
             if !expanded {
                 // Mark it open: a loop back to it writes nothing.
@@ -339,7 +329,7 @@ impl Graph<'_> {
                     }
                 }
                 _ => {
-                    let mut written: Vec<u32> = Vec::new();
+                    let mut written: Vec<CellIdx> = Vec::new();
                     let mut drops = own_drops;
                     for b in below.iter() {
                         if let Some(sub) = memo.get(b.index()) {
@@ -373,27 +363,27 @@ impl Graph<'_> {
     /// their largest).
     fn mark_relevant(&self, targets: impl Iterator<Item = CellIdx>, scratch: &mut Scratch) -> bool {
         let mut joins = false;
-        let mut todo: Vec<u32> = Vec::new();
+        let mut todo: Vec<CellIdx> = Vec::new();
         for c in targets {
             if !scratch.relevant[c.index()] {
                 scratch.relevant[c.index()] = true;
-                scratch.relevant_list.push(c.index() as u32);
-                todo.push(c.index() as u32);
+                scratch.relevant_list.push(c);
+                todo.push(c);
             }
         }
         while let Some(c) = todo.pop() {
-            let p = self.producer[c as usize];
-            if p == u32::MAX {
+            let p = self.producer[c.index()];
+            if p.is_none() {
                 continue;
             }
-            let op = &self.instrs[p as usize].op;
+            let op = &self.instrs[p.index()].op;
             let mut n = 0;
             for input in op.inputs(self.operands) {
                 n += 1;
                 if !scratch.relevant[input.index()] {
                     scratch.relevant[input.index()] = true;
-                    scratch.relevant_list.push(input.index() as u32);
-                    todo.push(input.index() as u32);
+                    scratch.relevant_list.push(input);
+                    todo.push(input);
                 }
             }
             joins |= n > 1 && !matches!(op, Op::Vec(..));
@@ -404,23 +394,23 @@ impl Graph<'_> {
     /// How many paths lead from cell `e` to each cell downstream of it,
     /// saturating at 2, into `scratch`: a scalar or symbolic instruction
     /// sums its inputs' counts, a vector one takes their largest.
-    fn count_from(&self, e: u32, scratch: &mut Scratch) {
-        scratch.count[e as usize] = 1;
+    fn count_from(&self, e: CellIdx, scratch: &mut Scratch) {
+        scratch.count[e.index()] = 1;
         scratch.touched.push(e);
         // The instructions downstream of `e`, then in schedule order.
         let mut todo = vec![e];
         while let Some(c) = todo.pop() {
-            let (s, t) = (self.start[c as usize], self.start[c as usize + 1]);
+            let (s, t) = (self.start[c.index()], self.start[c.index() + 1]);
             for &i in &self.readers[s as usize..t as usize] {
-                let out = self.instrs[i as usize].out.index();
-                let n_out = self.instrs[i as usize].op.n_out();
+                let ins = &self.instrs[i.index()];
+                let out = ins.out.index();
+                let n_out = ins.op.n_out();
                 let matters = (out..out + n_out).any(|o| scratch.relevant[o]);
-                if matters && !scratch.seen[i as usize] {
-                    scratch.seen[i as usize] = true;
+                if matters && !scratch.seen[i.index()] {
+                    scratch.seen[i.index()] = true;
                     scratch.seen_list.push(i);
-                    let ins = &self.instrs[i as usize];
-                    for k in 0..ins.op.n_out() {
-                        todo.push((ins.out.index() + k) as u32);
+                    for k in 0..n_out {
+                        todo.push(ins.out.offset(k));
                     }
                 }
             }
@@ -430,22 +420,22 @@ impl Graph<'_> {
         let downstream = std::mem::take(&mut scratch.seen_list);
         let mut ready = Vec::new();
         for &i in &downstream {
-            let ins = &self.instrs[i as usize];
+            let ins = &self.instrs[i.index()];
             let waiting = ins
                 .op
                 .inputs(self.operands)
                 .filter(|c| {
                     let p = self.producer[c.index()];
-                    p != u32::MAX && p != i && scratch.seen[p as usize]
+                    !p.is_none() && p != i && scratch.seen[p.index()]
                 })
                 .count() as u32;
-            scratch.waiting[i as usize] = waiting;
+            scratch.waiting[i.index()] = waiting;
             if waiting == 0 {
                 ready.push(i);
             }
         }
         while let Some(i) = ready.pop() {
-            let ins = &self.instrs[i as usize];
+            let ins = &self.instrs[i.index()];
             let counts = ins
                 .op
                 .inputs(self.operands)
@@ -457,14 +447,14 @@ impl Graph<'_> {
             for o in 0..ins.op.n_out() {
                 let out = ins.out.index() + o;
                 if scratch.count[out] == 0 {
-                    scratch.touched.push(out as u32);
+                    scratch.touched.push(CellIdx::from_index(out));
                 }
                 scratch.count[out] = scratch.count[out].max(k.min(2) as u8);
                 let (s, t) = (self.start[out], self.start[out + 1]);
                 for &j in &self.readers[s as usize..t as usize] {
-                    if j != i && scratch.seen[j as usize] {
-                        scratch.waiting[j as usize] -= 1;
-                        if scratch.waiting[j as usize] == 0 {
+                    if j != i && scratch.seen[j.index()] {
+                        scratch.waiting[j.index()] -= 1;
+                        if scratch.waiting[j.index()] == 0 {
                             ready.push(j);
                         }
                     }

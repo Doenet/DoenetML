@@ -8,23 +8,23 @@ use crate::compile::*;
 #[derive(Default)]
 pub(in crate::compile) struct Parsed {
     /// By (template, element).
-    maths: HashMap<(u32, u32), Result<ParsedMath>>,
+    maths: HashMap<(TemplateId, ElemId), Result<ParsedMath>>,
     /// Every element's attribute record, by (template, element), or the
     /// error parsing it met.
-    records: HashMap<(u32, u32), Result<record::Record>>,
+    records: HashMap<(TemplateId, ElemId), Result<record::Record>>,
 }
 
 impl Parsed {
     /// `<math>` `e`'s parse, or the error parsing it met; `None` for an
     /// element that is no math, or one boxed before it was parsed.
     pub(in crate::compile) fn math(&self, t: TemplateId, e: ElemId) -> Option<&Result<ParsedMath>> {
-        self.maths.get(&(t.get(), e.get()))
+        self.maths.get(&(t, e))
     }
 
     /// Element `e`'s record, or the error parsing it met; an empty record
     /// for an element not parsed (a box, a clone).
     pub(in crate::compile) fn record(&self, t: TemplateId, e: ElemId) -> Result<record::Record> {
-        match self.records.get(&(t.get(), e.get())) {
+        match self.records.get(&(t, e)) {
             Some(Ok(r)) => Ok(r.clone()),
             Some(Err(e)) => Err(e.clone()),
             None => Ok(record::Record::default()),
@@ -51,7 +51,7 @@ impl Compiler<'_> {
                 ..
             } = self.outlined(t).elems[e.index()];
             let math = mt.and_then(|mt| self.parse_math(rf, t, name_scope, component_type, &mt));
-            parsed.maths.insert((t.get(), e.get()), math);
+            parsed.maths.insert((t, e), math);
         }
         parsed
     }
@@ -73,7 +73,7 @@ impl Compiler<'_> {
                 continue;
             }
             let record = self.parse_record(rf, t, e);
-            parsed.records.insert((t.get(), e.get()), record);
+            parsed.records.insert((t, e), record);
         }
     }
 }

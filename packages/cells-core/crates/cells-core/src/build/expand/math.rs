@@ -192,7 +192,7 @@ impl<'c> Builder<'c> {
             return ValueType::Number;
         }
         if let Some((t, ts)) = self.template_slot(slot) {
-            return self.compiled.port_type(t, ts).value_type();
+            return self.compiled.port_type(t.index(), ts).value_type();
         }
         if let BuiltSource::Alias(t) = self.sources[slot.index()] {
             return self.value_type_within(t, depth - 1);

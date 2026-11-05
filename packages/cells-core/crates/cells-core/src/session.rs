@@ -8,7 +8,7 @@ use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use std::sync::Arc;
 
-use crate::build::{ScopeId, ScopeTable};
+use crate::build::{ScopeId, ScopeTable, TemplateSlot};
 use crate::compile::expr::ExprId;
 use crate::compile::plan::ElemKey;
 use crate::dast::NodeId;
@@ -37,7 +37,7 @@ pub struct Session {
     pub parked: HashMap<(ScopeId, ElemKey, u32), Parked>,
     /// Every essential value a request has written or saved state restored,
     /// by (scope, template slot), whether or not it equals its default.
-    pub touched: Arc<HashSet<(ScopeId, u32)>>,
+    pub touched: Arc<HashSet<(ScopeId, TemplateSlot)>>,
     /// Strings interned since load, appended after every build's own
     /// table.
     pub runtime_strings: Vec<String>,
@@ -67,7 +67,7 @@ impl Session {
 
     /// Record a document's essential values (its essential cells and
     /// their keys), so the next build carries them.
-    pub fn record(&mut self, slots: &[(ScopeId, u32)], cells: &[f64]) {
+    pub fn record(&mut self, slots: &[(ScopeId, TemplateSlot)], cells: &[f64]) {
         let values = Arc::make_mut(&mut self.values);
         // Never shrink: `restore_state` may have parked values for scopes
         // the table has not made yet.
@@ -76,18 +76,18 @@ impl Session {
         }
         for (&(scope, slot), &v) in slots.iter().zip(cells) {
             let row = &mut values[scope.index()];
-            if row.len() <= slot as usize {
-                row.resize(slot as usize + 1, None);
+            if row.len() <= slot.index() {
+                row.resize(slot.index() + 1, None);
             }
-            row[slot as usize] = Some(v);
+            row[slot.index()] = Some(v);
         }
     }
 
     /// The value carried for `(scope, slot)`, if any.
-    pub(crate) fn carried(&self, scope: ScopeId, slot: u32) -> Option<f64> {
+    pub(crate) fn carried(&self, scope: ScopeId, slot: TemplateSlot) -> Option<f64> {
         self.values
             .get(scope.index())
-            .and_then(|row| row.get(slot as usize).copied().flatten())
+            .and_then(|row| row.get(slot.index()).copied().flatten())
     }
 
     pub fn heap_bytes(&self) -> usize {

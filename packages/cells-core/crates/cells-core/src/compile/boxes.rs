@@ -173,7 +173,7 @@ impl Compiler<'_> {
         t: TemplateId,
         e: ElemId,
     ) -> Vec<(TemplateId, ElemId)> {
-        let mut seen: HashSet<(u32, u32)> = HashSet::from([(t.get(), e.get())]);
+        let mut seen: HashSet<(TemplateId, ElemId)> = HashSet::from([(t, e)]);
         let mut out = vec![(t, e)];
         let mut i = 0;
         while i < out.len() {
@@ -196,7 +196,7 @@ impl Compiler<'_> {
                 }
             }
             for k in under {
-                if seen.insert((k.0.get(), k.1.get())) {
+                if seen.insert(k) {
                     out.push(k);
                 }
             }
@@ -238,7 +238,7 @@ impl Compiler<'_> {
         let registered = names
             .id(self.dast.strings.get(el.name))
             .and_then(|id| names.entry(t, el.name_scope, id))
-            .is_some_and(|x| x == e.get() || x == AMBIGUOUS);
+            .is_some_and(|x| x == e || x == AMBIGUOUS);
         if !registered {
             self.outlined_mut(t).elems[e.index()].name = StrId::NONE;
         }

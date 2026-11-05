@@ -52,7 +52,7 @@ pub(crate) use abstract_build::abstract_build;
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
 pub use structure::SlotClass;
-pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
+pub use structure::{Repeat, ScopeId, ScopeTable, Structure, TemplateSlot};
 
 crate::index::index_type! {
     /// A build's slot: one prop of one stamped element, before emit gives it

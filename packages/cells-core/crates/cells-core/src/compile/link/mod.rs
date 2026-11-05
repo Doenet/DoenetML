@@ -73,11 +73,7 @@ impl Compiler<'_> {
                     re,
                 });
             }
-            if let Some(&port) = planned
-                .given
-                .get(&(rt.get(), re.get()))
-                .and_then(|m| m.get(&s.id))
-            {
+            if let Some(&port) = planned.given.get(&(rt, re)).and_then(|m| m.get(&s.id)) {
                 let arg = match s.referent {
                     Referent::Here(r) => Arg::Elem(r, port),
                     Referent::Path(p, ..) => Arg::Ref(p, Sel::Port(port.index() as u8)),

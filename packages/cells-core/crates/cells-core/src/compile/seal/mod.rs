@@ -25,7 +25,7 @@ pub(in crate::compile) struct Seal<'a> {
     pub(in crate::compile) choice_seals: Vec<ChoiceSeal>,
     /// By (template, element), which port holds each given leaf, by which a
     /// key names a hidden port.
-    pub(in crate::compile) given: &'a HashMap<(u32, u32), HashMap<GivenId, Port>>,
+    pub(in crate::compile) given: &'a HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
 }
 
 impl<'a> Seal<'a> {
@@ -104,20 +104,23 @@ impl<'a> Seal<'a> {
 
     /// Slot offsets, now that planned types know their hidden port count:
     /// by template, each element's, and how many slots they take.
-    fn slot_offsets(&self) -> Vec<(Vec<u32>, u32)> {
+    fn slot_offsets(&self) -> Vec<(Vec<TemplateSlot>, u32)> {
         (self.template_ids())
             .map(|t| {
                 let tpl = self.view(t);
                 let mut off = 0;
                 let offs = (tpl.rows().enumerate())
                     .map(|(e, el)| {
-                        let at = off;
+                        let at = TemplateSlot::from_index(off);
                         let n_props = tpl.plan(ElemId::from_index(e)).props.len();
-                        off += n_props.max(el.component_type.prop_defs().len()) as u32;
+                        off += n_props.max(el.component_type.prop_defs().len());
                         at
                     })
                     .collect();
-                (offs, off)
+                (
+                    offs,
+                    u32::try_from(off).expect("fewer template slots than a u32 counts"),
+                )
             })
             .collect()
     }

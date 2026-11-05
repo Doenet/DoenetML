@@ -160,7 +160,7 @@ impl super::Seal<'_> {
                             self.names
                                 .id(s)
                                 .and_then(|id| self.names.entry(t, anchor, id))
-                                == Some(e as u32)
+                                == Some(ElemId::from_index(e))
                         });
                     named.push(name.is_some());
                     match name {
@@ -206,7 +206,7 @@ impl super::Seal<'_> {
         // A hidden port holding a given leaf is saved by what gave it; a
         // public one by the prop's name.
         for (&(t, e), given) in self.given {
-            let id = elem_keys[t as usize][e as usize];
+            let id = elem_keys[t.index()][e.index()];
             let n_public = keys.n_public[id.index()];
             for (g, &port) in given {
                 if port.index() as u32 >= n_public {

@@ -7,7 +7,7 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use cells_core::build::{ScopeId, build};
+use cells_core::build::{ScopeId, TemplateSlot, build};
 use cells_core::session::{Counts, Session};
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::{Compiled, Document, LoadOptions, ValueType};
@@ -72,7 +72,7 @@ fn agree(
     name: &str,
     what: &str,
     compiled: &Compiled,
-    slot_types: &[((ScopeId, u32, u32), ValueType)],
+    slot_types: &[((ScopeId, u32, TemplateSlot), ValueType)],
     failures: &mut Vec<String>,
 ) -> usize {
     for &((scope, template, slot), held) in slot_types {

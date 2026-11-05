@@ -174,12 +174,13 @@ impl<'c> Builder<'c> {
                         }))
         };
         let mut pool = self.session.pool.clone();
-        let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(counts[0]);
+        let mut essential_slots: Vec<(ScopeId, TemplateSlot)> = Vec::with_capacity(counts[0]);
         let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(counts[0]);
         let mut parked = self.session.parked.clone();
         // Restored values the build takes from `parked`: (cell, what was
         // parked, its key).
-        let mut unparked: Vec<(CellIdx, crate::session::Parked, (ScopeId, u32))> = Vec::new();
+        let mut unparked: Vec<(CellIdx, crate::session::Parked, (ScopeId, TemplateSlot))> =
+            Vec::new();
         let mut essential_defaults: Vec<f64> = Vec::with_capacity(counts[0]);
         // Each essential slot, with the value it starts at and what it took
         // from `parked`.
@@ -568,7 +569,7 @@ impl<'c> Builder<'c> {
                         },
                         _ => SlotClass::Derived,
                     };
-                    ((scope, template as u32, tslot), class)
+                    ((scope, template.get(), tslot), class)
                 })
                 .collect()
         };
@@ -581,7 +582,7 @@ impl<'c> Builder<'c> {
                 let (scope, tslot, _) = self.essential_key(s);
                 let (template, _) = self.template_slot(s).expect("a template slot");
                 let ty = value_types[slot_to_cell[s.index()].index()];
-                ((scope, template as u32, tslot), ty)
+                ((scope, template.get(), tslot), ty)
             })
             .collect();
 
@@ -984,7 +985,10 @@ impl<'c> Builder<'c> {
     /// A component slot's template and template slot (the element's slot
     /// offset plus the prop's position), what a `Record` is indexed by; None
     /// for a slot of no element, or past the slots its element reserves.
-    pub(in crate::build) fn template_slot(&self, slot: SlotId) -> Option<(usize, u32)> {
+    pub(in crate::build) fn template_slot(
+        &self,
+        slot: SlotId,
+    ) -> Option<(TemplateId, TemplateSlot)> {
         let comp = self.slot_comp[slot.index()];
         if comp == CompIdx::NONE {
             return None;
@@ -1001,7 +1005,7 @@ impl<'c> Builder<'c> {
             return None;
         }
         let sealed = self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()];
-        Some((inst.template.index(), sealed.slot_off + pi))
+        Some((inst.template, sealed.slot_off.offset(pi as usize)))
     }
 
     /// The template slots of the slots `marked`, per template: the record
@@ -1015,7 +1019,7 @@ impl<'c> Builder<'c> {
             .collect();
         for (s, _) in marked.iter().enumerate().filter(|(_, w)| **w) {
             if let Some((t, ts)) = self.template_slot(SlotId::from_index(s)) {
-                record[t][ts as usize / 64] |= 1 << (ts % 64);
+                record[t.index()][ts.index() / 64] |= 1 << (ts.index() % 64);
             }
         }
         Record(record)
@@ -1025,12 +1029,19 @@ impl<'c> Builder<'c> {
     /// slot offset plus the port's position), and its element's key and
     /// port.
     #[inline]
-    pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
+    pub(in crate::build) fn essential_key(
+        &self,
+        slot: SlotId,
+    ) -> (ScopeId, TemplateSlot, (ElemKey, u32)) {
         let comp = self.slot_comp[slot.index()];
         let inst = self.instances[self.comp_instance[comp.index()] as usize];
         let pi = slot.get() - self.slot_base[comp.index()].get();
         let sealed = self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()];
-        (inst.scope, sealed.slot_off + pi, (sealed.key, pi))
+        (
+            inst.scope,
+            sealed.slot_off.offset(pi as usize),
+            (sealed.key, pi),
+        )
     }
 }
 

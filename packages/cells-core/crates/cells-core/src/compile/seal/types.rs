@@ -42,7 +42,7 @@ impl Seal<'_> {
     /// elements' slot offsets), and the checks that need them.
     pub(in crate::compile) fn infer_types(
         &self,
-        offs: &[(Vec<u32>, u32)],
+        offs: &[(Vec<TemplateSlot>, u32)],
     ) -> std::result::Result<Vec<Vec<PortType>>, Failure> {
         let mut types: Vec<Vec<PortType>> = offs
             .iter()
@@ -62,43 +62,42 @@ impl Seal<'_> {
             .iter()
             .map(|(_, n)| vec![(ElemId::NONE, 0); *n as usize])
             .collect();
-        let mut readers: Vec<Vec<Vec<(u32, u32)>>> = offs
+        let mut readers: Vec<Vec<Vec<(TemplateId, TemplateSlot)>>> = offs
             .iter()
             .map(|(_, n)| vec![Vec::new(); *n as usize])
             .collect();
         // Every port once, from `Num` up, recording what it read; then
         // every reader of a port that rose, until none rises. Every rule
         // only raises a type, so this ends.
-        let mut work: Vec<(u32, u32)> = Vec::new();
+        let mut work: Vec<(TemplateId, TemplateSlot)> = Vec::new();
         for t in self.template_ids() {
             let tpl = self.view(t);
             for e in ElemId::below(tpl.elems.len()) {
                 let plan = tpl.plan(e);
                 for (pi, src) in plan.props.iter().enumerate() {
-                    let slot = pass.offs[t.index()].0[e.index()] + pi as u32;
-                    owner[t.index()][slot as usize] = (e, pi);
+                    let slot = pass.offs[t.index()].0[e.index()].offset(pi);
+                    owner[t.index()][slot.index()] = (e, pi);
                     pass.reads.borrow_mut().clear();
                     let ty = pass.source_type(t, e, pi, src, false)?;
                     for &(rt, rs) in pass.reads.borrow().iter() {
-                        readers[rt as usize][rs as usize].push((t.get(), slot));
+                        readers[rt.index()][rs.index()].push((t, slot));
                     }
                     if pass.raise(t, slot, ty) {
-                        work.push((t.get(), slot));
+                        work.push((t, slot));
                     }
                 }
             }
         }
         while let Some((rt, rs)) = work.pop() {
-            for &(t, slot) in &readers[rt as usize][rs as usize] {
-                let t = TemplateId::new(t);
-                let (e, pi) = owner[t.index()][slot as usize];
+            for &(t, slot) in &readers[rt.index()][rs.index()] {
+                let (e, pi) = owner[t.index()][slot.index()];
                 let src = &self.view(t).plan(e).props[pi];
                 // Its reads were recorded the first time; they do not
                 // change.
                 pass.reads.borrow_mut().clear();
                 let ty = pass.source_type(t, e, pi, src, false)?;
                 if pass.raise(t, slot, ty) {
-                    work.push((t.get(), slot));
+                    work.push((t, slot));
                 }
             }
         }
@@ -121,35 +120,38 @@ impl Seal<'_> {
 /// far, and what the walks found, which is found once.
 struct Types<'s, 'a> {
     seal: &'s Seal<'a>,
-    offs: &'s [(Vec<u32>, u32)],
+    offs: &'s [(Vec<TemplateSlot>, u32)],
     types: &'s mut Vec<Vec<PortType>>,
     /// Where each reference lands, by (template, plan).
-    walks: std::cell::RefCell<HashMap<(u32, u32), (Walk, bool)>>,
+    walks: std::cell::RefCell<HashMap<(TemplateId, RefId), (Walk, bool)>>,
     /// What each collect gathers, by (template, element).
-    collects: std::cell::RefCell<HashMap<(u32, u32), Collected>>,
+    collects: std::cell::RefCell<HashMap<(TemplateId, ElemId), Collected>>,
     /// Whether each math text has a free symbol, by expression.
     has_symbol: std::cell::RefCell<HashMap<ExprId, bool>>,
     /// The ports read while typing one port, as (template, template
     /// slot): its dependencies, which the worklist follows.
-    reads: std::cell::RefCell<Vec<(u32, u32)>>,
+    reads: std::cell::RefCell<Vec<(TemplateId, TemplateSlot)>>,
 }
 
 impl Types<'_, '_> {
     /// The type of port `pi` of element `e` of template `t`, as settled so
     /// far; recorded as a read of the port being typed.
     fn port(&self, t: TemplateId, e: ElemId, pi: usize) -> PortType {
-        let slot = self.offs[t.index()].0[e.index()] as usize + pi;
-        self.reads.borrow_mut().push((t.get(), slot as u32));
-        self.types[t.index()].get(slot).copied().unwrap_or_default()
+        let slot = self.offs[t.index()].0[e.index()].offset(pi);
+        self.reads.borrow_mut().push((t, slot));
+        self.types[t.index()]
+            .get(slot.index())
+            .copied()
+            .unwrap_or_default()
     }
 
     /// Raise template slot `slot` of `t` to `ty` if that is above it;
     /// whether it rose.
-    fn raise(&mut self, t: TemplateId, slot: u32, ty: PortType) -> bool {
-        let old = self.types[t.index()][slot as usize];
+    fn raise(&mut self, t: TemplateId, slot: TemplateSlot, ty: PortType) -> bool {
+        let old = self.types[t.index()][slot.index()];
         let new = old.join(ty);
         if new != old {
-            self.types[t.index()][slot as usize] = new;
+            self.types[t.index()][slot.index()] = new;
             true
         } else {
             false
@@ -568,7 +570,7 @@ impl Types<'_, '_> {
     /// Where reference `p`, planned from template `t`, lands, as far as
     /// the templates tell, over every iteration, item and branch at once.
     fn walk(&self, t: TemplateId, p: RefId) -> Target {
-        let key = (t.get(), p.get());
+        let key = (t, p);
         if let Some((at, lands)) = self.walks.borrow().get(&key) {
             return Target {
                 at: at.clone(),
@@ -689,7 +691,7 @@ impl Types<'_, '_> {
     /// gathers from, not recursing into a match; and whether any sits in a
     /// repeat's body.
     fn collected(&self, t: TemplateId, e: ElemId, component_type: ComponentType) -> Collected {
-        let key = (t.get(), e.get());
+        let key = (t, e);
         if let Some(found) = self.collects.borrow().get(&key) {
             return found.clone();
         }
@@ -741,10 +743,10 @@ impl Types<'_, '_> {
         in_repeat: bool,
         out: &mut Vec<(TemplateId, ElemId)>,
         varies: &mut bool,
-        seen: &mut HashSet<(u32, u32)>,
+        seen: &mut HashSet<(TemplateId, ElemId)>,
     ) {
         if let Some(e) = e
-            && !seen.insert((t.get(), e.get()))
+            && !seen.insert((t, e))
         {
             return;
         }
@@ -777,7 +779,7 @@ impl Types<'_, '_> {
                         }
                         Body::Collect { component_type: ct } => {
                             // Its children are copies of what it gathered.
-                            if ct == component_type && seen.insert((t.get(), k.get())) {
+                            if ct == component_type && seen.insert((t, k)) {
                                 let (items, v) = self.collected(t, k, ct);
                                 *varies |= v;
                                 out.extend(items);

@@ -1248,7 +1248,7 @@ impl<'c> Builder<'c> {
             // What the cell holds is the port's type (ADR 0032).
             let port_type = self
                 .compiled
-                .port_type(inst.template.index(), slot_off + pi as u32);
+                .port_type(inst.template.index(), slot_off.offset(pi));
             if port_type != PortType::Num {
                 self.typed_slots.push((s, port_type.value_type()));
             }
@@ -1365,7 +1365,7 @@ impl<'c> Builder<'c> {
                     // Symbolic when the compile typed the port math (ADR 0032).
                     if self
                         .compiled
-                        .port_type(inst.template.index(), slot_off_of(self, inst) + pi as u32)
+                        .port_type(inst.template.index(), slot_off_of(self, inst).offset(pi))
                         == PortType::Math
                     {
                         self.sym_source(*expr, *post, inst.scope)?
@@ -1438,7 +1438,7 @@ impl<'c> Builder<'c> {
 }
 
 /// The slot offset of instance `inst`'s element in its template.
-fn slot_off_of(b: &Builder<'_>, inst: Instance) -> u32 {
+fn slot_off_of(b: &Builder<'_>, inst: Instance) -> TemplateSlot {
     b.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].slot_off
 }
 

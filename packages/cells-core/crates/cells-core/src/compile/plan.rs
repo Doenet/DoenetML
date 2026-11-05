@@ -3,7 +3,14 @@
 //! and every reference. Nothing here names an iteration.
 
 use super::*;
+pub(crate) use crate::build::TemplateSlot;
+pub(crate) use crate::compile::names::NameId;
 use crate::components::{Aggregate, ArgFrom, Collection, PropFrom};
+
+crate::index::index_type! {
+    /// An interface name of a choice, as a position in its `used`.
+    pub(crate) struct IfaceIdx;
+}
 
 crate::index::index_type! {
     /// An element's stable key, as an index into the compile's `Keys`:
@@ -364,7 +371,7 @@ pub(crate) struct ChoiceDef {
     /// plans first name them.
     pub(crate) used: Vec<String>,
     /// Each used name's position in `used`, by name-table id.
-    pub(crate) used_at: HashMap<u32, u32>,
+    pub(crate) used_at: HashMap<NameId, IfaceIdx>,
 }
 
 /// What sealing finds of a choice: its branch interface and the interface
@@ -373,7 +380,7 @@ pub(crate) struct ChoiceDef {
 pub(crate) struct ChoiceSeal {
     pub(crate) iface: HashMap<String, (ComponentType, Vec<ElemId>)>,
     pub(crate) used: Vec<String>,
-    pub(crate) used_at: HashMap<u32, u32>,
+    pub(crate) used_at: HashMap<NameId, IfaceIdx>,
 }
 
 impl ChoiceSeal {
@@ -660,7 +667,7 @@ pub(crate) struct Sealed {
     pub(crate) key: ElemKey,
     /// First of this element's prop slots within the template's slot
     /// space.
-    pub(crate) slot_off: u32,
+    pub(crate) slot_off: TemplateSlot,
 }
 
 /// What sealing makes of a template: a row per element, how
@@ -837,7 +844,7 @@ pub(crate) enum Step {
     Item(Collection, IndexPlan),
     /// An interface name of a choice, by its name-table id: `$cc.x`, or
     /// `$s[1].x` after an index into a select's picks.
-    Iface(ChoiceId, u32),
+    Iface(ChoiceId, NameId),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -1455,10 +1462,10 @@ pub(crate) struct Record(pub(crate) Vec<Vec<u64>>);
 
 impl Record {
     /// Whether the record marks template slot `slot` of `template`.
-    pub(crate) fn marks(&self, template: usize, slot: u32) -> bool {
-        self.0[template]
-            .get(slot as usize / 64)
-            .is_some_and(|w| w & (1 << (slot % 64)) != 0)
+    pub(crate) fn marks(&self, template: TemplateId, slot: TemplateSlot) -> bool {
+        self.0[template.index()]
+            .get(slot.index() / 64)
+            .is_some_and(|w| w & (1 << (slot.index() % 64)) != 0)
     }
 }
 
@@ -1470,8 +1477,8 @@ impl Compiled {
 
     /// The type of template slot `slot` of `template`, as the type pass
     /// settled it.
-    pub fn port_type(&self, template: usize, slot: u32) -> PortType {
-        self.templates[template].sealed.types[slot as usize]
+    pub fn port_type(&self, template: usize, slot: TemplateSlot) -> PortType {
+        self.templates[template].sealed.types[slot.index()]
     }
 
     /// Drop the plans' spare capacity once planning is done.

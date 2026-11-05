@@ -429,7 +429,7 @@ impl<'a> Compiler<'a> {
     fn outlined_response(&self, t: TemplateId, e: ElemId, key: (u32, ElemId)) -> Result<ElemId> {
         self.settled()
             .answer_responses
-            .get(&(t.get(), e.get()))
+            .get(&(t, e))
             .and_then(|rs| rs.iter().find(|(k, _)| *k == key))
             .map(|&(_, r)| r)
             .ok_or_else(|| Error::Internal("a response outlining did not make".into()))

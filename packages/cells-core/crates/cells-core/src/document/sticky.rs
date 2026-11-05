@@ -106,12 +106,12 @@ impl Document {
 
     /// A rigid polygon's vertices are outputs of its `Shape` instruction.
     fn is_shape_output(&self, cell: CellIdx) -> bool {
-        let p = self.program.producer[cell.index()];
-        p != u32::MAX
-            && matches!(
-                self.program.vec_op(&self.program.instrs[p as usize].op),
+        self.program.producer_of(cell).is_some_and(|p| {
+            matches!(
+                self.program.vec_op(&self.program.instrs[p.index()].op),
                 Some(VecOp::Shape { .. })
             )
+        })
     }
 
     /// Snap the requests on member cells, in place. Points a snap moves

@@ -18,7 +18,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use super::*;
 use crate::components::prop::{case, conditional_content};
-use crate::program::{Needs, Op};
+use crate::program::{InstrIdx, Needs, Op};
 
 /// A document's inputs, by their element's stable key.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -111,7 +111,7 @@ struct Signer<'a> {
     rename: &'a dyn Fn(&str) -> String,
     /// The instruction writing each derived cell, and which of its outputs
     /// the cell is.
-    producer: Vec<(u32, u8)>,
+    producer: Vec<(InstrIdx, u8)>,
     /// Each cell's hash, once found.
     hashes: Vec<Option<u64>>,
     /// Each essential cell's (element key, prop).
@@ -140,10 +140,10 @@ impl<'a> Signer<'a> {
         rename: &'a dyn Fn(&str) -> String,
     ) -> Self {
         let n = out.cells.len();
-        let mut producer = vec![(u32::MAX, 0u8); n];
+        let mut producer = vec![(InstrIdx::NONE, 0u8); n];
         for (i, instr) in out.instrs.iter().enumerate() {
             for k in 0..instr.op.n_out() {
-                producer[instr.out.index() + k] = (i as u32, k as u8);
+                producer[instr.out.index() + k] = (InstrIdx::from_index(i), k as u8);
             }
         }
         let keys = &compiled.keys;
@@ -341,7 +341,7 @@ impl<'a> Signer<'a> {
     /// follow.
     fn needs(&self, cell: CellIdx) -> Needs<'a> {
         let (i, _) = self.producer[cell.index()];
-        let instr = (i != u32::MAX).then(|| &self.out.instrs[i as usize]);
+        let instr = (!i.is_none()).then(|| &self.out.instrs[i.index()]);
         Needs::new(instr, &self.out.operands.cells, &self.out.holds, cell)
     }
 

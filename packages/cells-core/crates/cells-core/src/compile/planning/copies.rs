@@ -196,9 +196,7 @@ impl<'a> Compiler<'a> {
             }
         }
         if !wiring.given().is_empty() {
-            pl.planned
-                .given
-                .insert((t.get(), e.get()), wiring.given().clone());
+            pl.planned.given.insert((t, e), wiring.given().clone());
         }
         let (props, list) = wiring.finish();
         let plan = &mut self.tables[t.index()].plans[e.index()];

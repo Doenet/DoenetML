@@ -13,7 +13,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 use std::sync::Arc;
 
-use cells_core::build::{BuildError, Repeat, ScopeId, SlotClass, build};
+use cells_core::build::{BuildError, Repeat, ScopeId, SlotClass, TemplateSlot, build};
 use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::session::{Counts, Session};
@@ -522,7 +522,7 @@ fn every_write_lands_on_a_cell_the_record_makes_essential() {
             doc
         };
         let checked = at(on);
-        let essential: BTreeSet<(ScopeId, u32)> =
+        let essential: BTreeSet<(ScopeId, TemplateSlot)> =
             checked.structure.essential_slots.iter().copied().collect();
         for key in &checked.structure.walked_essential_slots {
             assert!(
@@ -571,7 +571,7 @@ fn settle_at(compiled: &Arc<Compiled>, seed: u64, c: Option<u32>) -> (Session, C
 
 /// Every action a student can take on `doc`, each on a copy of it, with
 /// the essential keys it writes.
-fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
+fn writes(doc: &Document) -> Vec<(String, (ScopeId, TemplateSlot))> {
     let mut out = Vec::new();
     let mut record = |action: String, tick: &dyn Fn(&mut Document)| {
         let mut copy = doc.clone();
@@ -643,10 +643,10 @@ fn a_constant_is_the_same_in_every_build() {
                 .expect("a document with a repeat");
             // (scope, template, template slot) -> (count it was first seen
             // at, class).
-            let mut seen: HashMap<(ScopeId, u32, u32), (u32, SlotClass)> = HashMap::new();
+            let mut seen: HashMap<(ScopeId, u32, TemplateSlot), (u32, SlotClass)> = HashMap::new();
             // (template, template slot) -> (scope first seen in, value) of
             // a document constant.
-            let mut document: HashMap<(u32, u32), (ScopeId, f64)> = HashMap::new();
+            let mut document: HashMap<(u32, TemplateSlot), (ScopeId, f64)> = HashMap::new();
             // One session throughout: scope ids are stable within it.
             let mut session = Session::new(seed);
             for c in COUNTS.chain(COUNTS.rev()) {

@@ -23,8 +23,8 @@ pub(in crate::compile) struct Outlining<'a> {
     pub(in crate::compile) container_copies: Vec<(TemplateId, ElemId)>,
     /// By (template, element), the container copies expanding now and
     /// those done: one reached again while it expands is a cycle.
-    pub(in crate::compile) expanding: HashSet<(u32, u32)>,
-    pub(in crate::compile) expanded: HashSet<(u32, u32)>,
+    pub(in crate::compile) expanding: HashSet<(TemplateId, ElemId)>,
+    pub(in crate::compile) expanded: HashSet<(TemplateId, ElemId)>,
 }
 
 impl Compiler<'_> {
@@ -126,7 +126,7 @@ impl Compiler<'_> {
             let id = match names.ids.get(s) {
                 Some(&id) => id,
                 None => {
-                    let id = names.ids.len() as u32;
+                    let id = NameId::from_index(names.ids.len());
                     names.ids.insert(s.into(), id);
                     names.texts.push(s.into());
                     id
@@ -154,7 +154,7 @@ impl Compiler<'_> {
         });
         if let Some(id) = name_id {
             // Two siblings with one name can never be told apart.
-            if !names.siblings.insert((t.get(), name_scope.get(), id)) {
+            if !names.siblings.insert((t, name_scope, id)) {
                 let s = dast.strings.get(name).trim().to_string();
                 return Err(Error::DuplicateName(s));
             }
@@ -163,9 +163,9 @@ impl Compiler<'_> {
             loop {
                 names
                     .by_scope
-                    .entry((t.get(), a.get(), id))
+                    .entry((t, a, id))
                     .and_modify(|o| *o = AMBIGUOUS)
-                    .or_insert(e as u32);
+                    .or_insert(ElemId::from_index(e));
                 if a == ROOT_SCOPE || a == stop {
                     break;
                 }

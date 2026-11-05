@@ -265,7 +265,7 @@ impl<'a> Compiler<'a> {
         &self,
         mut t: TemplateId,
         mut from: ElemId,
-        id: u32,
+        id: NameId,
     ) -> std::result::Result<Option<(u32, ElemId)>, ()> {
         let names = self.names();
         let mut hops = 0;
