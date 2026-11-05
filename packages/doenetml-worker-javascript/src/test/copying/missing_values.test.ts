@@ -266,6 +266,31 @@ describe("Missing values and missing tags (D37) @group2", () => {
         expect(text).eq("[＿ + 3][＿ + 3][＿ + 3][false][false][false][true]");
     });
 
+    it("treats a bare reference with no referent as a blank operand, as the tag", async () => {
+        const { text, warnings } = await shownAndReported(`
+    <number name="n">2</number>
+    <p name="p">[<sum>$nothing 3</sum>][<sum><math extend="$nothing"/> 3</sum>][<sum>$n.nonexistent 3</sum>][<count>$nothing 3</count>][<and>$nothing true</and>][<or>$nothing true</or>]</p>
+    `);
+        expect(text).eq("[＿ + 3][＿ + 3][＿ + 3][2][false][true]");
+        expect(warnings.map((w) => w.code)).eqls(Array(6).fill("doenet-w0104"));
+    });
+
+    it("gives the members of an array property, possibly none, and a blank for one entry", async () => {
+        const { text } = await shownAndReported(`
+    <function name="f" domain="[0,2]">(x+1)(x-2)(x-4)</function>
+    <p name="p">[$f.minima][$f.minimumValues][$f.minimumLocations][$f.minimumValue1]</p>
+    `);
+        expect(text).eq("[][][][＿]");
+    });
+
+    it("reads a missing value in a text as a blank", async () => {
+        const { text } = await shownAndReported(`
+    <textList name="tl">a b</textList>
+    <p name="p">[<text>$nothing</text>][<text>x $tl[5] y</text>][<text>x <text extend="$nothing"/></text>][<text/>]</p>
+    `);
+        expect(text).eq("[＿][x ＿ y][x ＿][]");
+    });
+
     it("keeps an unlinked copy made while missing missing after a reload", async () => {
         const doenetML = `
     <mathInput name="i" prefill="5" />

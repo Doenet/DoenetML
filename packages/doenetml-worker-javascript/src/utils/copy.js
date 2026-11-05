@@ -507,9 +507,13 @@ export async function verifyReplacementsMatchSpecifiedType({
 
         // A reference written as a tag whose source made nothing is missing
         // (D37): a tag whose source is missing is missing, whatever it adds.
+        // So is the filler of a bare reference with no referent (`$nothing`)
+        // in a parent that needs it to make something (a `<text>`), which is
+        // a blank there, as `<text extend="$nothing"/>` is.
         const madeNothing =
             replacementTypes.length === 0 &&
-            Boolean(component.attributes._createComponentOfType?.primitive);
+            (Boolean(component.attributes._createComponentOfType?.primitive) ||
+                Boolean(component.doenetAttributes?.noReferent));
 
         replacements = [];
         for (let i = 0; i < requiredLength; i++) {

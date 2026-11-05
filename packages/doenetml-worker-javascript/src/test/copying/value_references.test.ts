@@ -2217,9 +2217,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     boolInput: false,
                     choiceEq: false,
                     choiceNe: true,
-                    // what the references show is the empty value of each type
+                    // a number and a boolean hold the empty value of their
+                    // type, and a text reads a missing value as a blank (D37)
                     num: NaN,
-                    txt: "",
+                    txt: "＿",
                     bool: false,
                 });
 

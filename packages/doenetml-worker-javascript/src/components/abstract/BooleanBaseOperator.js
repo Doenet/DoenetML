@@ -62,7 +62,10 @@ export default class BooleanOperator extends BooleanComponent {
         return [
             {
                 group: "booleans",
-                componentTypes: ["boolean"],
+                // `_missing`: a bare reference to one thing that names
+                // nothing (`$nothing`), a blank operand (D37), as
+                // `<boolean extend="$nothing"/>` is
+                componentTypes: ["boolean", "_missing"],
             },
         ];
     }

@@ -6514,14 +6514,21 @@ async function isBareReferenceToOneThing(
         return false;
     }
     // A property that is an array, such as `$ci.selectedValues` or
-    // `$f.minima`, is a list: its members, possibly none.
+    // `$f.minima`, is a list: its members, possibly none. So is an entry of
+    // an array that spans entries, such as `$f.minimumValues`, unlike one
+    // that is one entry, such as `$P.x` or `$f.minimumValue1`.
     if (unresolvedPath?.length > 0) {
         const propName = (
             await component.stateValues.effectivePropNameBySource
         )?.[0];
         const stateVarObj =
             propName && components[extended.componentIdx]?.state[propName];
-        if (stateVarObj?.isArray) {
+        if (
+            stateVarObj?.isArray ||
+            (stateVarObj?.isArrayEntry &&
+                stateVarObj.numDimensions >
+                    (stateVarObj.wrappingComponents?.length ?? 0))
+        ) {
             return false;
         }
     }

@@ -1301,7 +1301,7 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("We can't see ＿ in paragraph or  in text.");
+        ).eq("We can't see ＿ in paragraph or ＿ in text.");
         expect(
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,

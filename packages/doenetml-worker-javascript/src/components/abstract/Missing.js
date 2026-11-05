@@ -1,4 +1,5 @@
 import InlineComponent from "./InlineComponent";
+import me from "math-expressions";
 import { BLANK_RENDERER_TYPE, MISSING_TEXT } from "../../utils/missing";
 
 /**
@@ -27,6 +28,24 @@ export default class Missing extends InlineComponent {
         stateVariableDefinitions.text = {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { text: MISSING_TEXT } }),
+        };
+
+        // What an operator reads of it among its operands (a `<sum>` or an
+        // `<and>`, which take it as a blank, D37): the blank math that
+        // `<math extend="$nothing"/>` holds, which cannot be written through.
+        stateVariableDefinitions.value = {
+            returnDependencies: () => ({}),
+            definition: () => ({
+                setValue: { value: me.fromAst(MISSING_TEXT) },
+            }),
+        };
+        stateVariableDefinitions.canBeModified = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { canBeModified: false } }),
+        };
+        stateVariableDefinitions.unordered = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { unordered: false } }),
         };
 
         return stateVariableDefinitions;

@@ -87,7 +87,10 @@ export default class MathOperator extends MathComponent {
         return [
             {
                 group: "maths",
-                componentTypes: ["math"],
+                // `_missing`: a bare reference to one thing that names
+                // nothing (`$nothing`), a blank operand (`operandChildren`,
+                // D37), as `<math extend="$nothing"/>` is
+                componentTypes: ["math", "_missing"],
             },
             {
                 group: "numbers",
