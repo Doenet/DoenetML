@@ -228,7 +228,7 @@ impl<'a> Compiler<'a> {
         rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
-        a: u32,
+        a: AttrId,
     ) -> Result<GivenPoint> {
         match self.single_macro(a) {
             Some(m) => Ok(GivenPoint::Ref(self.plan_ref(rf, t, scope, m)?)),

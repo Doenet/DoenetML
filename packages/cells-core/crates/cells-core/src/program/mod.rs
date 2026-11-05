@@ -12,7 +12,7 @@ mod vector;
 
 pub use instr::{
     Instr, InstrIdx, MemoIdx, OperandIdx, Operands, Post, SAMPLES, SymEntry, SymIdx, SymKind,
-    VecIdx,
+    TapeIdx, VecIdx,
 };
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
 pub use vector::{MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp};
@@ -402,7 +402,7 @@ impl Program {
             }
             if let SymKind::SampleTape { tape } = kind {
                 let stack = &mut state.tape_stack;
-                run_tape(&self.tapes[tape as usize], cells, inputs, outs, stack);
+                run_tape(&self.tapes[tape.index()], cells, inputs, outs, stack);
             } else {
                 run_sym(sym.engine, kind, cells, inputs, outs);
             }

@@ -359,7 +359,7 @@ pub(crate) struct ChoiceDef {
     /// tag (`option#2`); `body` for a choice that is its own one branch.
     pub(crate) branch_keys: Vec<Box<str>>,
     /// Reactive: each case's `condition` attribute (None: an else).
-    pub(crate) conditions: Vec<Option<u32>>,
+    pub(crate) conditions: Vec<Option<AttrId>>,
     /// Load-time: picks, with replacement or not, and a weight per option.
     pub(crate) num_to_select: u32,
     pub(crate) with_replacement: bool,

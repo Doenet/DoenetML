@@ -15,7 +15,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
-        a: u32,
+        a: AttrId,
     ) -> Result<Vec<GivenPoint>> {
         let d = self.dast;
         let (toks, src) = self.math_tokens(rf, t, scope, d.attr_children(a))?;

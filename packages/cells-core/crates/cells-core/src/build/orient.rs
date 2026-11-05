@@ -136,10 +136,10 @@ impl<'c> Builder<'c> {
         if let BuiltSource::Op(PlannedOp::Spec(spec), start, 2) = *self.source_at(at)
             && author[self.slot_at(at).index()]
             && let Some(turned) = swapped(spec)
-            && !leads_from(self.op_inputs[start as usize])
-            && leads_from(self.op_inputs[start as usize + 1])
+            && !leads_from(self.op_inputs[start.index()])
+            && leads_from(self.op_inputs[start.index() + 1])
         {
-            self.op_inputs.swap(start as usize, start as usize + 1);
+            self.op_inputs.swap(start.index(), start.index() + 1);
             if let BuiltSource::Op(op, ..) = self.source_at_mut(at) {
                 *op = PlannedOp::Spec(turned);
             }

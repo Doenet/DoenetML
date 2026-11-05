@@ -177,8 +177,8 @@ impl<'c> Builder<'c> {
                 let (entries, varies): (Vec<Resolved>, bool) = match step {
                     Step::Iter(_) => {
                         let ri = self.comp_repeat[c.index()];
-                        assert!(ri != NONE, "planning made an iteration step of a repeat");
-                        let r = &self.repeats[ri as usize];
+                        assert!(!ri.is_none(), "planning made an iteration step of a repeat");
+                        let r = &self.repeats[ri.index()];
                         if w.labelling && push {
                             // A folded iteration stands for every index;
                             // the label says which.

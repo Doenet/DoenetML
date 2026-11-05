@@ -24,7 +24,7 @@ impl Compiler<'_> {
             )));
         }
         // (condition attribute, body nodes, weight) per branch, and its key.
-        let mut branches: Vec<(Option<u32>, Vec<NodeId>, f64)> = Vec::new();
+        let mut branches: Vec<(Option<AttrId>, Vec<NodeId>, f64)> = Vec::new();
         let mut branch_keys: Vec<Box<str>> = Vec::new();
         // A case's or option's key (ADR 0017): its name, else its tag and
         // its position among the branches with that tag.
@@ -152,7 +152,7 @@ impl Compiler<'_> {
         match content.as_slice() {
             [g] if d.kind(*g) == NodeKind::Element
                 && d.str(*g) == "group"
-                && d.attrs(*g).is_empty() =>
+                && d.attrs(*g).len() == 0 =>
             {
                 d.children(*g).to_vec()
             }

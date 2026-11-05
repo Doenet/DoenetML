@@ -55,7 +55,7 @@ impl Compiler<'_> {
         }
     }
 
-    pub(in crate::compile) fn attr_text(&self, a: u32) -> Option<String> {
+    pub(in crate::compile) fn attr_text(&self, a: AttrId) -> Option<String> {
         let d = self.dast;
         let mut s = String::new();
         for &n in d.attr_children(a) {
@@ -68,7 +68,7 @@ impl Compiler<'_> {
         Some(s)
     }
 
-    pub(in crate::compile) fn single_macro(&self, a: u32) -> Option<NodeId> {
+    pub(in crate::compile) fn single_macro(&self, a: AttrId) -> Option<NodeId> {
         let d = self.dast;
         let mut found = None;
         for &n in d.attr_children(a) {
@@ -91,7 +91,7 @@ impl Compiler<'_> {
         }
     }
 
-    pub(in crate::compile) fn literal_attr(&self, a: u32, name: &str) -> Result<f64> {
+    pub(in crate::compile) fn literal_attr(&self, a: AttrId, name: &str) -> Result<f64> {
         let text = self.attr_text(a).ok_or_else(|| Error::Banned(format!("'{name}' must be a literal number: a load-time choice depends only on the document seed and literals")))?;
         text.trim().parse::<f64>().map_err(|_| Error::BadValue {
             attr: name.into(),

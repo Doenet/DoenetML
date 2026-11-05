@@ -61,6 +61,12 @@ macro_rules! index_type {
                 v.into_iter().map($name).collect()
             }
 
+            /// The `n` indices from `start` on, in order: a run of a list
+            /// kept as (start, count).
+            pub fn span(start: u32, n: u32) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator + Clone {
+                (start..start + n).map($name)
+            }
+
             /// Every index below `n`, in order.
             pub fn below(n: usize) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator {
                 (0..u32::try_from(n).expect(concat!(stringify!($name), " out of range"))).map($name)

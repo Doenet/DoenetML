@@ -113,10 +113,10 @@ impl Builder<'_> {
             return None;
         }
         let i = self.comp_instance[comp.index()];
-        if i == NONE {
+        if i.is_none() {
             return None;
         }
-        let inst = self.instances[i as usize];
+        let inst = self.instances[i.index()];
         Some((
             inst.template,
             inst.elem,

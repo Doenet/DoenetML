@@ -23,7 +23,11 @@ crate::index::index_type! {
     pub struct NodeId;
 }
 
-pub type AttrId = u32;
+crate::index::index_type! {
+    /// An attribute of an element: a position in the DAST's attribute
+    /// columns.
+    pub struct AttrId;
+}
 
 crate::index::index_type! {
     /// A string: a position in a `StringTable`. A text cell holds one as
@@ -135,8 +139,10 @@ pub struct Dast {
     idx_c_count: Vec<u32>,
 }
 
-/// Position of one part of a macro path in the `path` arrays.
-pub type PathPart = u32;
+crate::index::index_type! {
+    /// Position of one part of a macro path in the `path` arrays.
+    pub struct PathPart;
+}
 
 impl Dast {
     pub const ROOT: NodeId = NodeId::new(0);
@@ -220,26 +226,28 @@ impl Dast {
         &self.children[s..s + c]
     }
 
-    pub fn attrs(&self, n: NodeId) -> std::ops::Range<AttrId> {
-        let s = self.a_start[n.index()];
-        s..s + self.a_count[n.index()]
+    pub fn attrs(
+        &self,
+        n: NodeId,
+    ) -> impl DoubleEndedIterator<Item = AttrId> + ExactSizeIterator + Clone + use<> {
+        AttrId::span(self.a_start[n.index()], self.a_count[n.index()])
     }
 
     #[inline]
     pub fn attr_name(&self, a: AttrId) -> &str {
-        self.strings.get(self.attr_name[a as usize])
+        self.strings.get(self.attr_name[a.index()])
     }
 
     #[inline]
     pub fn attr_name_id(&self, a: AttrId) -> StrId {
-        self.attr_name[a as usize]
+        self.attr_name[a.index()]
     }
 
     #[inline]
     pub fn attr_children(&self, a: AttrId) -> &[NodeId] {
         let (s, c) = (
-            self.attr_c_start[a as usize] as usize,
-            self.attr_c_count[a as usize] as usize,
+            self.attr_c_start[a.index()] as usize,
+            self.attr_c_count[a.index()] as usize,
         );
         &self.children[s..s + c]
     }
@@ -248,7 +256,7 @@ impl Dast {
     /// is recorded as read.
     pub fn attr(&self, n: NodeId, name: &str) -> Option<AttrId> {
         let a = self.attr_peek(n, name)?;
-        self.attr_read.mark(a as usize);
+        self.attr_read.mark(a.index());
         Some(a)
     }
 
@@ -263,7 +271,7 @@ impl Dast {
     /// some part of the core read it. Listing a node's attributes is not a
     /// read.
     pub fn attr_read(&self, a: AttrId) -> bool {
-        self.attr_read.get(a as usize)
+        self.attr_read.get(a.index())
     }
 
     /// Path parts of a macro node, as string ids.
@@ -278,9 +286,11 @@ impl Dast {
 
     /// Positions of a macro's path parts.
     #[inline]
-    pub fn macro_parts(&self, n: NodeId) -> std::ops::Range<PathPart> {
-        let s = self.a_start[n.index()];
-        s..s + self.a_count[n.index()]
+    pub fn macro_parts(
+        &self,
+        n: NodeId,
+    ) -> impl DoubleEndedIterator<Item = PathPart> + ExactSizeIterator + Clone + use<> {
+        PathPart::span(self.a_start[n.index()], self.a_count[n.index()])
     }
 
     /// The `[index]` expressions of one path part, each as its value nodes
@@ -288,8 +298,8 @@ impl Dast {
     /// index holding a macro and a text node).
     pub fn part_indices(&self, part: PathPart) -> impl Iterator<Item = &[NodeId]> + '_ {
         let (s, c) = (
-            self.path_i_start[part as usize] as usize,
-            self.path_i_count[part as usize] as usize,
+            self.path_i_start[part.index()] as usize,
+            self.path_i_count[part.index()] as usize,
         );
         (s..s + c).map(move |i| {
             let (cs, cc) = (self.idx_c_start[i] as usize, self.idx_c_count[i] as usize);
@@ -300,7 +310,7 @@ impl Dast {
     /// Whether any part of the macro path carries an index.
     pub fn macro_has_index(&self, n: NodeId) -> bool {
         self.macro_parts(n)
-            .any(|p| self.path_i_count[p as usize] > 0)
+            .any(|p| self.path_i_count[p.index()] > 0)
     }
 
     pub fn macro_display(&self, n: NodeId) -> String {

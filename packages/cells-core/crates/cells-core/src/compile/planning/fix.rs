@@ -118,7 +118,7 @@ impl<'a> Compiler<'a> {
         mut e: ElemId,
         name: &str,
         inherited: bool,
-    ) -> Option<(TemplateId, ElemId, u32, u32)> {
+    ) -> Option<(TemplateId, ElemId, AttrId, u32)> {
         let d = self.dast;
         let mut hops = 0;
         loop {

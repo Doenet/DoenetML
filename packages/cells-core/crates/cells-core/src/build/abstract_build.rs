@@ -151,7 +151,7 @@ impl<'c> Builder<'c> {
                 seen[sl.index()] = true;
                 touched.push(sl);
                 for rc in self.enclosing_repeats(self.slot_scope[sl.index()]) {
-                    let si = self.comp_repeat[rc.index()] as usize;
+                    let si = self.comp_repeat[rc.index()].index();
                     let nested =
                         si != ri && self.scope_within(r.scope, self.repeats[si].iter_scopes[0]);
                     if !nested && !adj[ri].contains(&si) {
@@ -199,7 +199,7 @@ impl<'c> Builder<'c> {
             .map(|r| {
                 self.enclosing_repeats(r.scope)
                     .first()
-                    .map(|&c| self.comp_repeat[c.index()] as usize)
+                    .map(|&c| self.comp_repeat[c.index()].index())
             })
             .collect();
         fn depth(ri: usize, adj: &[Vec<usize>], nests: &[Option<usize>], memo: &mut [u32]) -> u32 {

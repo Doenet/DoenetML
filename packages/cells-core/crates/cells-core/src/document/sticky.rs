@@ -10,7 +10,7 @@ use super::*;
 use crate::components::StickyPoints;
 use crate::program::VecOp;
 use crate::tick::invert::PointRequest;
-use crate::tick::snap::{Member, Params, Pt, snap_group};
+use crate::tick::snap::{Member, Params, PointIdx, Pt, snap_group};
 
 /// One group as cells.
 #[derive(Debug, Clone)]
@@ -24,7 +24,7 @@ pub struct StickyTable {
     /// share its index.
     points: Vec<[CellIdx; 2]>,
     /// Member cell -> (point, coordinate).
-    index: HashMap<CellIdx, (u32, u8)>,
+    index: HashMap<CellIdx, (PointIdx, u8)>,
     /// Per member, the `active` cells of the cases it sits in.
     gates: Vec<Vec<CellIdx>>,
 }
@@ -79,7 +79,7 @@ impl Document {
                     let id = match t.index.get(&x) {
                         Some(&(id, _)) => id,
                         None => {
-                            let id = t.points.len() as u32;
+                            let id = PointIdx::from_index(t.points.len());
                             t.points.push([x, y]);
                             t.index.insert(x, (id, 0));
                             t.index.insert(y, (id, 1));
@@ -126,8 +126,8 @@ impl Document {
             let mut requested: Vec<Option<Pt>> = vec![None; t.points.len()];
             let mut ask = |cell: CellIdx, value: f64| {
                 if let Some(&(id, k)) = t.index.get(&cell) {
-                    let [x, y] = t.points[id as usize];
-                    let p = requested[id as usize].get_or_insert([cur(x), cur(y)]);
+                    let [x, y] = t.points[id.index()];
+                    let p = requested[id.index()].get_or_insert([cur(x), cur(y)]);
                     p[k as usize] = value;
                 }
             };
@@ -161,7 +161,7 @@ impl Document {
                 .into_iter()
                 .flatten()
             {
-                let [cx, cy] = t.points[id as usize];
+                let [cx, cy] = t.points[id.index()];
                 for (cell, value) in [(cx, x), (cy, y)] {
                     match at.get(&cell) {
                         Some(&i) => snapped[i].1 = value,

@@ -106,6 +106,11 @@ pub fn snap(
     }
 }
 
+crate::index::index_type! {
+    /// A point of a sticky group: a position in the group's point list.
+    pub struct PointIdx;
+}
+
 /// One member of a group, as the wirings describe it: its shape, whether
 /// it is rigid, and its points as indices into the group's point list. Two
 /// members that share a point (a polygon whose vertex is a member point)
@@ -114,7 +119,7 @@ pub fn snap(
 pub struct Member {
     pub shape: Shape,
     pub rigid: bool,
-    pub points: Vec<u32>,
+    pub points: Vec<PointIdx>,
 }
 
 /// Snap every dragged member of a group. `current` holds each point's
@@ -130,11 +135,11 @@ pub fn snap_group(
     current: &[Pt],
     requested: &[Option<Pt>],
     p: &Params,
-) -> Vec<Vec<(u32, Pt)>> {
+) -> Vec<Vec<(PointIdx, Pt)>> {
     let n_req = |m: &Member| {
         m.points
             .iter()
-            .filter(|&&i| requested[i as usize].is_some())
+            .filter(|&&i| requested[i.index()].is_some())
             .count()
     };
     let mut dragged: Vec<usize> = (0..members.len())
@@ -147,17 +152,17 @@ pub fn snap_group(
     let mut busy = vec![false; current.len()];
     for &m in &dragged {
         for &i in &members[m].points {
-            busy[i as usize] = true;
+            busy[i.index()] = true;
         }
     }
     let mut att = Attractors::default();
     let mut pts: Vec<Pt> = Vec::new();
     for m in members {
-        if m.points.iter().any(|&i| busy[i as usize]) {
+        if m.points.iter().any(|&i| busy[i.index()]) {
             continue;
         }
         pts.clear();
-        pts.extend(m.points.iter().map(|&i| current[i as usize]));
+        pts.extend(m.points.iter().map(|&i| current[i.index()]));
         att.add(m.shape, &pts);
     }
     let mut placed = vec![false; current.len()];
@@ -167,7 +172,7 @@ pub fn snap_group(
         if mem
             .points
             .iter()
-            .all(|&i| placed[i as usize] || requested[i as usize].is_none())
+            .all(|&i| placed[i.index()] || requested[i.index()].is_none())
         {
             continue;
         }
@@ -175,10 +180,10 @@ pub fn snap_group(
         pts.extend(
             mem.points
                 .iter()
-                .map(|&i| requested[i as usize].unwrap_or(current[i as usize])),
+                .map(|&i| requested[i.index()].unwrap_or(current[i.index()])),
         );
         let asked: Vec<usize> = (0..mem.points.len())
-            .filter(|&k| requested[mem.points[k] as usize].is_some())
+            .filter(|&k| requested[mem.points[k].index()].is_some())
             .collect();
         let moved = if asked.len() == 1 {
             Some(asked[0])
@@ -189,9 +194,9 @@ pub fn snap_group(
         let mut writes = Vec::new();
         for (k, &i) in mem.points.iter().enumerate() {
             let changed =
-                pts[k] != current[i as usize] && !(pts[k][0].is_nan() && pts[k][1].is_nan());
-            if !placed[i as usize] && (requested[i as usize].is_some() || changed) {
-                placed[i as usize] = true;
+                pts[k] != current[i.index()] && !(pts[k][0].is_nan() && pts[k][1].is_nan());
+            if !placed[i.index()] && (requested[i.index()].is_some() || changed) {
+                placed[i.index()] = true;
                 writes.push((i, pts[k]));
             }
         }
@@ -722,17 +727,17 @@ mod tests {
             Member {
                 shape: Shape::Point,
                 rigid: false,
-                points: vec![0],
+                points: PointIdx::from_u32s(vec![0]),
             },
             Member {
                 shape: Shape::Closed,
                 rigid: false,
-                points: vec![0, 1, 2],
+                points: PointIdx::from_u32s(vec![0, 1, 2]),
             },
             Member {
                 shape: Shape::Point,
                 rigid: false,
-                points: vec![3],
+                points: PointIdx::from_u32s(vec![3]),
             },
         ];
         let current = [[0.0, 0.0], [4.0, 0.0], [0.0, 4.0], [10.0, 10.0]];
@@ -745,14 +750,18 @@ mod tests {
         assert_eq!(w.len(), 1);
         assert_eq!(
             w[0],
-            vec![(0, [0.2, 0.1]), (1, [4.2, 0.1]), (2, [0.2, 4.1])]
+            vec![
+                (PointIdx::new(0), [0.2, 0.1]),
+                (PointIdx::new(1), [4.2, 0.1]),
+                (PointIdx::new(2), [0.2, 4.1])
+            ]
         );
         // Point 3 does attract.
         requested[0] = Some([9.8, 9.9]);
         requested[1] = None;
         requested[2] = None;
         let w = snap_group(&members, &current, &requested, &P);
-        assert_eq!(w[0], vec![(0, [10.0, 10.0])]);
+        assert_eq!(w[0], vec![(PointIdx::new(0), [10.0, 10.0])]);
     }
 
     #[test]

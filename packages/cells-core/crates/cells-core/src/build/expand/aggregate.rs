@@ -261,7 +261,7 @@ impl<'c> Builder<'c> {
     /// Expand a collect (a polyline): its children are copies of what it
     /// gathers, and its count is how many.
     pub(in crate::build) fn expand_collect(&mut self, comp: CompIdx) -> Result<()> {
-        let inst = self.instances[self.comp_instance[comp.index()] as usize];
+        let inst = self.instances[self.comp_instance[comp.index()].index()];
         let tpl = &self.compiled.templates[inst.template.index()];
         let Body::Collect { component_type } = tpl.row(inst.elem).body else {
             unreachable!()
@@ -354,8 +354,8 @@ impl<'c> Builder<'c> {
         let comp = self.slot_comp[s.index()];
         let aggregate = comp != CompIdx::NONE && {
             let i = self.comp_instance[comp.index()];
-            i != NONE && {
-                let inst = self.instances[i as usize];
+            !i.is_none() && {
+                let inst = self.instances[i.index()];
                 let pi = s.index() - self.slot_base[comp.index()].index();
                 matches!(
                     self.compiled.templates[inst.template.index()].plan(inst.elem)

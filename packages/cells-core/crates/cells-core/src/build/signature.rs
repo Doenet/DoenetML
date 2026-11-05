@@ -406,7 +406,7 @@ impl<'a> Signer<'a> {
                     hash_of(("instantiate", canonical_leaves(&text, inputs), post as u8))
                 }
                 SymKind::SampleTape { tape } => {
-                    hash_of(("tape", format!("{:?}", self.out.tapes[tape as usize])))
+                    hash_of(("tape", format!("{:?}", self.out.tapes[tape.index()])))
                 }
                 kind => hash_of(format!("{kind:?}")),
             },

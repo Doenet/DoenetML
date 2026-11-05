@@ -21,10 +21,9 @@ impl BuiltSource {
     fn reads<'a>(&self, op_inputs: &'a [SlotId]) -> impl Iterator<Item = SlotId> + 'a {
         let (one, many): (Option<SlotId>, &[SlotId]) = match self {
             BuiltSource::Alias(t) => (Some(*t), &[]),
-            BuiltSource::Op(_, start, n) => (
-                None,
-                &op_inputs[*start as usize..*start as usize + *n as usize],
-            ),
+            BuiltSource::Op(_, start, n) => {
+                (None, &op_inputs[start.index()..start.index() + *n as usize])
+            }
             BuiltSource::VecOut(head, _) => (Some(*head), &[]),
             BuiltSource::Unset | BuiltSource::Given(_) | BuiltSource::Const(_) => (None, &[]),
         };

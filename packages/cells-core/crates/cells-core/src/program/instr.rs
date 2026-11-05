@@ -40,7 +40,7 @@ pub enum SymKind {
     /// `Program::tapes[tape]` at `SAMPLES` evenly spaced x from input 0 to
     /// input 1; inputs 2.. are the tape's parameter cells. What `Sample`
     /// becomes when the expression's shape is constant at build time.
-    SampleTape { tape: u32 },
+    SampleTape { tape: TapeIdx },
 }
 
 /// What a `<math>` does to its expression after instantiating it.
@@ -75,6 +75,11 @@ impl SymKind {
     pub fn makes_math(self) -> bool {
         matches!(self, SymKind::Instantiate { .. } | SymKind::Derivative)
     }
+}
+
+crate::index::index_type! {
+    /// A position in `Program::tapes`: a compiled curve.
+    pub struct TapeIdx;
 }
 
 crate::index::index_type! {
@@ -264,7 +269,9 @@ mod arity {
             OpSpec::Sym(SymKind::Equals),
             OpSpec::Sym(SymKind::EqualsSyntax),
             OpSpec::Sym(SymKind::Sample),
-            OpSpec::Sym(SymKind::SampleTape { tape: 0 }),
+            OpSpec::Sym(SymKind::SampleTape {
+                tape: TapeIdx::new(0),
+            }),
         ]);
         ops
     }

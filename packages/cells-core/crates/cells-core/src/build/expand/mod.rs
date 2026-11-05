@@ -16,6 +16,23 @@ mod resolve;
 // ---------------------------------------------------------------------------
 
 crate::index::index_type! {
+    /// A position in the build's `op_inputs`, where an operator slot's
+    /// input slots are listed: never a slot itself.
+    pub(in crate::build) struct OpInputIdx;
+}
+
+crate::index::index_type! {
+    /// A position in the build's `instances`: a component stamped from a
+    /// template element.
+    pub(in crate::build) struct InstanceId;
+}
+
+crate::index::index_type! {
+    /// A position in the build's `repeats`.
+    pub(in crate::build) struct RepeatIdx;
+}
+
+crate::index::index_type! {
     /// A symbolic template a build has planned: a position in the
     /// builder's `sym_templates`, whose leaves are slots.
     pub(in crate::build) struct SymTemplateId;
@@ -58,7 +75,7 @@ pub(in crate::build) enum BuiltSource {
     Alias(SlotId),
     /// Operator over `op_inputs[start..start + n]`; for a vector operator,
     /// the head (output 0).
-    Op(PlannedOp, u32, u8),
+    Op(PlannedOp, OpInputIdx, u8),
     /// Output `k` of the vector instruction headed at `head`.
     VecOut(SlotId, u8),
 }
@@ -135,10 +152,11 @@ pub(in crate::build) struct Builder<'c> {
     /// Per scope: element -> component, for the scope's template.
     pub(in crate::build) scope_comps: Vec<Vec<CompIdx>>,
     /// Per component: index into `instances`, or NONE for synthesized ones.
-    pub(in crate::build) comp_instance: Vec<u32>,
+    pub(in crate::build) comp_instance: Vec<InstanceId>,
     pub(in crate::build) instances: Vec<Instance>,
-    /// Per component: index into `repeats` for a repeat component.
-    pub(in crate::build) comp_repeat: Vec<u32>,
+    /// Per component: index into `repeats` for a repeat component, or
+    /// NONE.
+    pub(in crate::build) comp_repeat: Vec<RepeatIdx>,
     pub(in crate::build) repeats: Vec<Repeat>,
     /// `$ref` children awaiting a type: (component, plan, scope, has index).
     pub(in crate::build) pending: Vec<(CompIdx, RefId, ScopeId, bool)>,
@@ -315,8 +333,8 @@ impl<'c> Builder<'c> {
         self.components.dast_node.push(node);
         self.components.scope.push(scope);
         self.components.referent.push(CompIdx::NONE);
-        self.comp_instance.push(NONE);
-        self.comp_repeat.push(NONE);
+        self.comp_instance.push(InstanceId::NONE);
+        self.comp_repeat.push(RepeatIdx::NONE);
         self.slot_base.push(SlotId::NONE);
         self.n_public.push(NONE);
         self.allocate_slots(idx, n_slots);
@@ -582,7 +600,7 @@ impl<'c> Builder<'c> {
                 self.n_public[comp.index()] = n as u32;
             }
             self.scope_comps[scope.index()][e] = comp;
-            self.comp_instance[comp.index()] = self.instances.len() as u32;
+            self.comp_instance[comp.index()] = InstanceId::from_index(self.instances.len());
             self.instances.push(Instance {
                 scope,
                 template: t,
@@ -618,7 +636,7 @@ impl<'c> Builder<'c> {
                         let mut these = self.expand(template, s, comp)?;
                         kids.append(&mut these);
                     }
-                    self.comp_repeat[comp.index()] = self.repeats.len() as u32;
+                    self.comp_repeat[comp.index()] = RepeatIdx::from_index(self.repeats.len());
                     self.repeats.push(Repeat {
                         comp,
                         node,
@@ -1007,7 +1025,7 @@ impl<'c> Builder<'c> {
     /// the list prop it extends, or copies of the children of the point
     /// list it is a copy of.
     pub(in crate::build) fn expand_pointlist(&mut self, comp: CompIdx) -> Result<()> {
-        let inst = self.instances[self.comp_instance[comp.index()] as usize];
+        let inst = self.instances[self.comp_instance[comp.index()].index()];
         let tpl = &self.compiled.templates[inst.template.index()];
         let plan = tpl.plan(inst.elem);
         let mut kids = Vec::new();
@@ -1163,9 +1181,9 @@ impl<'c> Builder<'c> {
             return Ok(());
         };
         let ri = self.comp_instance[referent.index()];
-        if ri != NONE {
+        if !ri.is_none() {
             visiting.push(inst.comp);
-            let r = self.instances[ri as usize];
+            let r = self.instances[ri.index()];
             self.place_list_copy(r, visiting)?;
             visiting.pop();
         }
@@ -1332,7 +1350,7 @@ impl<'c> Builder<'c> {
                     BuiltSource::Alias(self.arg_slot(*arg, comp, inst.scope, component_type, pi)?)
                 }
                 Flow::Op(spec, args) => {
-                    let start = self.op_inputs.len() as u32;
+                    let start = OpInputIdx::from_index(self.op_inputs.len());
                     for &a in args {
                         let slot = self.arg_slot(a, comp, inst.scope, component_type, pi)?;
                         // A reference read by an operator is a number: text
@@ -1407,7 +1425,7 @@ impl<'c> Builder<'c> {
         op: PlannedOp,
         inputs: &[SlotId],
     ) -> BuiltSource {
-        let start = self.op_inputs.len() as u32;
+        let start = OpInputIdx::from_index(self.op_inputs.len());
         self.op_inputs.extend_from_slice(inputs);
         BuiltSource::Op(op, start, byte(inputs.len()))
     }

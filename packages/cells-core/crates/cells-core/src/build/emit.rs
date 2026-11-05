@@ -454,7 +454,7 @@ impl<'c> Builder<'c> {
             };
             bound.clear();
             bound.extend(
-                self.op_inputs[start as usize..start as usize + count as usize]
+                self.op_inputs[start.index()..start.index() + count as usize]
                     .iter()
                     .map(|&i| slot_to_cell[i.index()]),
             );
@@ -473,7 +473,7 @@ impl<'c> Builder<'c> {
                 if kind.makes_math() {
                     value_types[slot_to_cell[s].index()] = ValueType::Math;
                 }
-                let input = self.op_inputs[start as usize];
+                let input = self.op_inputs[start.index()];
                 // A derivative of a constant shape is taken once, here; the tick
                 // only fills in the parameters.
                 if compile
@@ -506,7 +506,7 @@ impl<'c> Builder<'c> {
                     bound.extend([lo, hi]);
                     bound.extend_from_slice(&tape.params);
                     spec = OpSpec::Sym(SymKind::SampleTape {
-                        tape: tapes.len() as u32,
+                        tape: crate::program::TapeIdx::from_index(tapes.len()),
                     });
                     tapes.push(tape);
                 }
@@ -627,10 +627,10 @@ impl<'c> Builder<'c> {
             .comp_instance
             .iter()
             .map(|&i| {
-                if i == NONE {
+                if i.is_none() {
                     return ElemKey::NONE;
                 }
-                let inst = self.instances[i as usize];
+                let inst = self.instances[i.index()];
                 self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].key
             })
             .collect();
@@ -818,7 +818,7 @@ impl<'c> Builder<'c> {
                 }
             }
             BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(SymKind::Derivative)), start, _) => {
-                let input = self.op_inputs[start as usize];
+                let input = self.op_inputs[start.index()];
                 self.constant_shape(input, slot_to_cell, memo)
                     .map(|h| self.engine.derivative(h, "x"))
             }
@@ -870,7 +870,7 @@ impl<'c> Builder<'c> {
                 .any(|&c| slot_to_cell[self.slot(c, prop::collect::COUNT).index()] == src);
             let source = &self.sources[def(from).index()];
             if stand_in && let BuiltSource::Op(PlannedOp::Spec(OpSpec::Copy), start, 1) = *source {
-                src = slot_to_cell[self.op_inputs[start as usize].index()];
+                src = slot_to_cell[self.op_inputs[start.index()].index()];
             }
             let computed = matches!(source, BuiltSource::Op(..) | BuiltSource::VecOut(..));
             if computed && !stand_in {
@@ -994,10 +994,10 @@ impl<'c> Builder<'c> {
             return None;
         }
         let i = self.comp_instance[comp.index()];
-        if i == NONE {
+        if i.is_none() {
             return None;
         }
-        let inst = self.instances[i as usize];
+        let inst = self.instances[i.index()];
         let tpl = &self.compiled.templates[inst.template.index()];
         let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
         let pi = slot.get() - self.slot_base[comp.index()].get();
@@ -1034,7 +1034,7 @@ impl<'c> Builder<'c> {
         slot: SlotId,
     ) -> (ScopeId, TemplateSlot, (ElemKey, u32)) {
         let comp = self.slot_comp[slot.index()];
-        let inst = self.instances[self.comp_instance[comp.index()] as usize];
+        let inst = self.instances[self.comp_instance[comp.index()].index()];
         let pi = slot.get() - self.slot_base[comp.index()].get();
         let sealed = self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()];
         (
