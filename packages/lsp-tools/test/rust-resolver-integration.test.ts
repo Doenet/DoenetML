@@ -11,6 +11,7 @@ import { AutoCompleter, RustResolverAdapter } from "../src";
 import type { ResolverCore } from "../src";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { CompletionItemKind } from "vscode-languageserver/browser";
+import { computeContextHelp } from "../src/context-help/computeContextHelp";
 
 // --------------- WASM bootstrap (skips if unavailable) ---------------
 
@@ -833,6 +834,35 @@ describe.skipIf(!wasmAvailable)(
             const throughName = await memberNames(named, ["cc", "g", ""]);
             expect(throughName!.node?.name).toBe("group");
             expect(throughName!.visibleDescendantNames).toEqual(["m"]);
+        });
+
+        it("$sec. lists a name every branch of a container inside sec declares", async () => {
+            const cc = (a: string, b: string) =>
+                `<conditionalContent><case condition="true">${a}</case><else>${b}</else></conditionalContent>`;
+            const shared = `<section name="sec">${cc('<math name="x">1</math>', '<math name="x">2</math>')}</section>\n$sec.`;
+            const result = await memberNames(shared, ["sec", ""]);
+            expect(result!.visibleDescendantNames).toContain("x");
+
+            // Not when a branch lacks it, the tags differ, or it is also
+            // declared beside the container (ambiguous).
+            for (const doc of [
+                `<section name="sec">${cc('<math name="x">1</math>', '<math name="z">2</math>')}</section>\n$sec.`,
+                `<section name="sec">${cc('<math name="x">1</math>', '<text name="x">2</text>')}</section>\n$sec.`,
+                `<section name="sec">${cc('<math name="x">1</math>', '<math name="x">2</math>')}<math name="x">3</math></section>\n$sec.`,
+            ]) {
+                const other = await memberNames(doc, ["sec", ""]);
+                expect(other!.visibleDescendantNames).not.toContain("x");
+            }
+
+            // Help for `$sec.x` describes the first branch's declaration.
+            const helpSource = shared.replace("$sec.", "$sec.x");
+            const { completer } = await createCompleterWithAdapter(helpSource);
+            const help = await computeContextHelp(completer, helpSource.length);
+            expect(help).toMatchObject({
+                kind: "refName",
+                refName: "x",
+                targetElementName: "math",
+            });
         });
 
         it("$x. for a branch name the branches do not share resolves to nothing", async () => {

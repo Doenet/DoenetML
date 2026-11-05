@@ -927,10 +927,20 @@ export class RustResolverAdapter {
             let visibleDescendantNames =
                 this._getCachedVisibleDescendantNames(resolvedIdx);
             if (!visibleDescendantNames) {
-                const allNames =
-                    this._sourceObj.getUniqueDescendantNamesForNode(
-                        resolvedNode,
-                    );
+                // Names every branch of a branch container below it
+                // declares (`$sec.x` for an `x` in each case of a
+                // `<conditionalContent>` in `sec`, issue #2455), which the
+                // unique-name walk drops for being declared more than once.
+                // The probe below keeps those the core resolves through the
+                // container and the branches share.
+                const allNames = [
+                    ...new Set([
+                        ...this._sourceObj.getUniqueDescendantNamesForNode(
+                            resolvedNode,
+                        ),
+                        ...namesSharedByBranchesIn(resolvedNode),
+                    ]),
+                ];
                 const probeResults = await Promise.all(
                     allNames.map(async (name) => {
                         try {
@@ -947,17 +957,28 @@ export class RustResolverAdapter {
                                 origin: resolvedIdx,
                                 skipParentSearch: true,
                             });
-                            // A fully-resolved path (no unresolved parts whose
-                            // first segment equals the original name) means the
-                            // name matched a visible descendant.
+                            const probeElement =
+                                this._rustIndexToDastElement.get(probe.nodeIdx);
+                            // A name the core leaves for a branch container
+                            // (`Ref::Branches`) is visible when every branch
+                            // declares it with one tag.
                             if (
                                 probe.unresolvedPath &&
                                 probe.unresolvedPath.length > 0
                             ) {
-                                return false;
+                                return (
+                                    probeElement != null &&
+                                    probe.unresolvedPath.length === 1 &&
+                                    probe.unresolvedPath[0].name === name &&
+                                    resolveThroughBranches(
+                                        probeElement,
+                                        [name],
+                                        false,
+                                    ) !== null
+                                );
                             }
-                            const probeElement =
-                                this._rustIndexToDastElement.get(probe.nodeIdx);
+                            // Otherwise a fully-resolved path means the name
+                            // matched a visible descendant.
                             const probeName = probeElement
                                 ? getElementNameAttributeValue(probeElement)
                                 : null;

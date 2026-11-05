@@ -18,7 +18,10 @@ import {
     getElementNameAttributeValue,
     type RustResolverAdapter,
 } from "./rust-resolver-adapter";
-import { branchDeclarations } from "./branch-declarations";
+import {
+    branchDeclarationBelow,
+    branchDeclarations,
+} from "./branch-declarations";
 import { isRepeatLikeElement } from "./repeat-elements";
 import {
     collectModuleInstancesWithCopyOrExtend,
@@ -983,6 +986,11 @@ export class AutoCompleter {
             ? declarations[0]
             : null;
         if (compositeMatch) return this._buildRefHelpInfo(compositeMatch);
+        // A name declared in the branches of a branch container below
+        // `container` (`$sec.x`), which the resolver lists when every
+        // branch declares it with one tag.
+        const belowMatch = branchDeclarationBelow(container, memberName);
+        if (belowMatch) return this._buildRefHelpInfo(belowMatch);
         return null;
     }
 

@@ -11,6 +11,7 @@ Editor: autocomplete now offers names declared in the cases of a `<conditionalCo
 - Typing `$` outside such a container offers `$x` when every `<case>` and the `<else>` (or every `<option>`) declares `x` with one tag, and its detail and help describe that tag. A name only some branches declare, or that branches declare with different tags, is still left out, since it doesn't resolve.
 - `$cc.` and `$s.` (for a `<select>` that picks one) list only the names every branch shares, and `$s[2].` does the same for a `<select>` of any number of picks. A name only some branches declared used to be offered there too.
 - `$x.` for such a name offers what every branch's `x` shares.
+- `$sec.` for a component holding such a container (a `<section>`, say) offers the name too, as `$sec.x` resolves to the active branch's `x`.
 - A `<select>` that picks more than one keeps its option names private, as before.
 
 Closes #2455.

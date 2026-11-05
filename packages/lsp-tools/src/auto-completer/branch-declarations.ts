@@ -296,6 +296,22 @@ export function branchDeclarations(
 }
 
 /**
+ * The element a reference from `container` to its descendant `name`
+ * (`$sec.x`) names when `name` is declared in the branches of a branch
+ * container below it (`$sec.x` for an `x` in every case of a
+ * `<conditionalContent>` in `sec`): the first branch's declaration, which
+ * shares its tag with the others. `null` when `container`'s descendants do
+ * not declare `name` exactly once so (`declarationsIn`).
+ */
+export function branchDeclarationBelow(
+    container: DastElement,
+    name: string,
+): DastElement | null {
+    const declared = declarationsIn(container.children as DastNodes[], [name]);
+    return Array.isArray(declared) ? declared[0] : null;
+}
+
+/**
  * The names a reference through `container` (`$cc.x`, or `$s[2].x` with
  * `indexed`) resolves to the active branch's: those every branch declares
  * once with the same tag (`branchDeclarations`). With `prefix`, the names
