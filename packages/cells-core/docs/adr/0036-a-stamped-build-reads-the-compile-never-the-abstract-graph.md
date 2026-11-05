@@ -1,6 +1,7 @@
 # A stamped build reads the compile, never the abstract build's graph
 
-Status: proposed 2026-11-05. Records a line the code already keeps and
+Status: accepted 2026-11-05. Proposed 2026-11-05; the two pointers of
+Migration are landed. Records a line the code already keeps and
 names the option on the other side of it, so the question is not asked
 again at each step of ADR 0032. Amends nothing; ADR 0015 and ADR 0035
 fix what the compile reads of the build, and this ADR fixes the reverse.

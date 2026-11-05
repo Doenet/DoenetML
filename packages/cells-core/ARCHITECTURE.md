@@ -245,6 +245,10 @@ what a cell *is* (its class, what it needs, where a request on it goes,
 what an author may reference) belongs in define or before it, and a rule
 about how a cell is numbered or an instruction bound belongs in emit. A
 diagnostic raised in emit is misplaced, and a view read in emit is a bug.
+A stamped build reads the compile and the session, never the abstract
+build's graph: what the abstract build hands it is facts about template
+slots, the records and the depth, and its builder is dropped with the
+check (ADR 0036).
 
 A build reads the `Session` (`session.rs`) and returns the next one. The
 session is everything that survives across builds: the scope table, every

@@ -658,6 +658,8 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
 8. **The abstract build as analysis.** Stamp templates in the abstract,
    label edges, join branches, count collections; the four records
    become port attributes; `build/abstract_build.rs` and the view go.
+   The attributes keep ADR 0036's rule: a stamped build reads the IR
+   and its attributes, never the abstract analysis's graph.
    Test: `tests/every_count.rs` and `tests/live.rs`, which check the
    records against real builds at every count and seed, unchanged.
 9. **Capped lists.** `List(T, cap)` with a length port, for
