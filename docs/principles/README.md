@@ -77,8 +77,9 @@ removed.
 
    Names inside a `<conditionalContent>`, or a `<select>` with one pick, are visible, as a
    group's are: `$x` finds the `x` in the active case. But every case (and the `<else>`, if there
-   is one) must declare `x` with the same type, or `$x` doesn't work and you get a warning. Give
-   the else its own `x`, or use different names. (COMP-11; D13, D22)
+   is one) must declare `x`, or `$x` is a blank with a warning; and they must declare it with the
+   same type, or `$x` is an error. Give the else its own `x`, or use different names.
+   (COMP-11; D13, D22)
 
 **References and `extend`**
 
