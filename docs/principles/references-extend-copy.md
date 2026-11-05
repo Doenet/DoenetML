@@ -748,6 +748,11 @@ of a `<conditionalContent>` or `<repeat>` decides its own case or iterations.
 **`copyWithState` adds** the reader's current state (CPY-2) and the source's random choices
 (CPY-8).
 
+**Both keep what they were made from through a reload** (SAVE-1). A `copy` carries no state, but
+its shape depends on what it was made from: `copy="$cc.p"` pastes the `p` of the case active
+then. After a reload it is made from the same source (#2443's held case and type-change decision;
+B35, #2446). Only the state snapshot is `copyWithState`'s alone. Implementation: #2459.
+
 **Known violation:** through 0.7 `copy` carries state and choices; `copyWithState` doesn't exist
 yet (D33). The `v07-to-v08` converter renames existing `copy` to `copyWithState`, except copies of a
 URI, copies of a module, and copies that change what is chosen (#2457).

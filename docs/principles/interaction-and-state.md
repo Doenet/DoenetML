@@ -142,7 +142,8 @@ Recent fixes show where the current representation is fragile:
   `<collect>` whose collected `<mathInput>` the reader typed into throws on reload once it
   collects a `<textInput>` (B36, #2446).
 - **Copies' saved snapshots concern `copyWithState` only** (D33). A `copy` carries no state from its
-  source, so it has no snapshot: its own components save their state like written content.
+  source, so it has no snapshot: its own components save their state like written content. Both
+  forms keep what decided their shape (the case, the type-change decision) through a reload.
 - **What decided a copy's shape was not saved** (B31). #2443 saves the type-change decision and
   the case of a `<conditionalContent>` the copy was made from. A copy of a component named inside
   the `<conditionalContent>` still is remade from the case active on load (B35, #2446).
