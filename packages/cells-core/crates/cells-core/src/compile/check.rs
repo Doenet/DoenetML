@@ -38,10 +38,10 @@ pub(crate) fn compile(
         let _s = crate::trace::span("abstract build");
         let findings = build::abstract_build(compiled, check_cycles)?.abstract_findings();
         compiled.structural_depth = findings.structural_depth;
-        compiled.classes = classify.then(|| Arc::new(findings.writable));
-        compiled.live = Arc::new(findings.live);
-        compiled.counted = Arc::new(findings.counted);
-        compiled.document_constants = Arc::new(findings.document_constants);
+        compiled.classes = classify.then_some(findings.writable);
+        compiled.live = findings.live;
+        compiled.counted = findings.counted;
+        compiled.document_constants = findings.document_constants;
         // The abstract build's warnings are the document's: no build finds
         // one the abstract build did not (ADR 0014).
         Arc::make_mut(&mut compiled.diagnostics).extend(findings.warnings);

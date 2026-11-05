@@ -1399,7 +1399,7 @@ impl GivenPoint {
 
 /// A document as compiled: its templates and plans, made once from its
 /// source.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Compiled {
     pub(crate) dast: Arc<Dast>,
     pub(crate) templates: Vec<Template>,
@@ -1427,16 +1427,16 @@ pub struct Compiled {
     pub(crate) structural_depth: u32,
     /// The value slots a student's action can write, which are essential;
     /// None with the classing off, when every value slot is essential.
-    pub(crate) classes: Option<Arc<Record>>,
+    pub(crate) classes: Option<Record>,
     /// The live slots.
-    pub(crate) live: Arc<Record>,
+    pub(crate) live: Record,
     /// The counted values: slots whose value a build counts from the
     /// structure it stamped (a collect's count). Always a derived cell,
     /// never a constant.
-    pub(crate) counted: Arc<Record>,
+    pub(crate) counted: Record,
     /// The document constants: slots whose constant is the same in every
     /// instance. Every other constant is a scope constant.
-    pub(crate) document_constants: Arc<Record>,
+    pub(crate) document_constants: Record,
     /// Whether a build gives a dead slot no cell; never in the abstract
     /// build.
     pub(crate) prune: bool,
