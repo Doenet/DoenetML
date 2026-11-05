@@ -202,6 +202,67 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(diagnostics.errors[0].message).contain("Add an `<else>`");
     });
 
+    it("on a tag, a name that can be absent stays only an error as the case comes and goes", async () => {
+        // The error is decided when the document loads (D36), so a case that
+        // becomes active, then not, does not make the tag again (#2454).
+        const { text, toggle, diagnostics } = await setUp(`
+<conditionalContent name="cc">
+    <case condition="$b"><number name="x">1</number></case>
+</conditionalContent>
+<p name="p">[<number extend="$x"/>][<number extend="$cc.x"/>][<math extend="$x"/>][$x]</p>`);
+        expect(await text()).eq("[][][][]");
+        await toggle(true);
+        expect(await text()).eq("[][][][1]");
+        await toggle(false);
+        expect(await text()).eq("[][][][]");
+        await toggle(true);
+        expect(await text()).eq("[][][][1]");
+        expect(codes(diagnostics.errors)).eqls([
+            "doenet-e0064",
+            "doenet-e0064",
+            "doenet-e0064",
+        ]);
+        expect(diagnostics.warnings).eqls([]);
+
+        // the same for a name in a select in the case
+        const select = await setUp(`
+<conditionalContent name="cc">
+    <case condition="$b"><select name="s">
+        <option><number name="x">1</number></option>
+        <option><number name="x">1</number></option>
+    </select></case>
+</conditionalContent>
+<p name="p">[<number extend="$s.x"/>][<number extend="$x"/>][$s.x]</p>`);
+        expect(await select.text()).eq("[][][]");
+        await select.toggle(true);
+        expect(await select.text()).eq("[][][1]");
+        await select.toggle(false);
+        expect(await select.text()).eq("[][][]");
+        await select.toggle(true);
+        expect(await select.text()).eq("[][][1]");
+        expect(codes(select.diagnostics.errors)).eqls([
+            "doenet-e0064",
+            "doenet-e0064",
+        ]);
+    });
+
+    it("on a tag, a name every case has with one type follows the case both ways", async () => {
+        const { text, toggle, diagnostics } = await setUp(`
+<conditionalContent name="cc">
+    <case condition="$b"><number name="x">1</number></case>
+    <else><number name="x">2</number></else>
+</conditionalContent>
+<p name="p">[<number extend="$x"/>][<number extend="$cc.x"/>][<number copy="$x"/>]</p>`);
+        expect(await text()).eq("[2][2][2]");
+        await toggle(true);
+        expect(await text()).eq("[1][1][2]");
+        await toggle(false);
+        expect(await text()).eq("[2][2][2]");
+        await toggle(true);
+        expect(await text()).eq("[1][1][2]");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+    });
+
     it("on a tag, a name every case has with one type is made", async () => {
         const { text, toggle, diagnostics } = await setUp(
             `${sameTypeCases}<p name="p"><math extend="$x"/>, <number extend="$cc.x"/></p>`,

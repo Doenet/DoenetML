@@ -2504,6 +2504,65 @@ export default class Copy extends CompositeComponent {
             return { replacementChanges: [], diagnostics, nComponents };
         }
 
+        // What the DoenetML could decide was decided when the document loaded
+        // (D36): its error, and only its error, stays in place of the copy
+        // whatever its source does now, whether it names nothing, is in a
+        // case not active (`targetInactive`), or has changed.
+        const atLoad = await typeChangeAtLoadError({
+            component,
+            components,
+            componentInfoObjects,
+            workspace,
+        });
+        if (atLoad) {
+            const key = typeChangeKey(atLoad);
+            workspace.sourceIndices = [];
+            if (
+                key === workspace.typeChangeKey &&
+                component.replacements.length === 1 &&
+                component.replacements[0].componentType === "_error"
+            ) {
+                return {
+                    replacementChanges: unwithheldChanges(component),
+                    diagnostics,
+                    nComponents,
+                };
+            }
+            const stateIdInfo = {
+                prefix: `${component.stateId}|`,
+                num: workspace.replacementsCreated,
+            };
+            workspace.typeChangeKey = key;
+            reportTypeChange(workspace, atLoad);
+            diagnostics.push(atLoad.diagnostic);
+            const replacements = errorInPlaceOfCopy({
+                component,
+                componentInfoObjects,
+                diagnostic: atLoad.diagnostic,
+                stateIdInfo,
+                nComponents: nComponents++,
+            });
+            workspace.numReplacementsBySource = [replacements.length];
+            workspace.numNonStringReplacementsBySource = [replacements.length];
+            workspace.propVariablesCopiedBySource = [];
+            workspace.replacementsCreated = stateIdInfo.num;
+            return {
+                replacementChanges: [
+                    ...unwithheldChanges(component),
+                    {
+                        changeType: "add",
+                        changeTopLevelReplacements: true,
+                        firstReplacementInd: 0,
+                        numberReplacementsToReplace:
+                            component.replacements.length,
+                        serializedReplacements: replacements,
+                    },
+                ],
+                diagnostics,
+                nComponents,
+            };
+        }
+
         let compositeAttributesObj = this.createAttributesObject();
 
         let replacementSourceIdentities =
@@ -2520,54 +2579,6 @@ export default class Copy extends CompositeComponent {
 
             let previousZeroSourceIndices =
                 workspace.sourceIndices.length === 0;
-
-            // What the DoenetML could decide was decided when the document
-            // loaded (D36): its error stays in place of the copy, whatever
-            // the index names now.
-            const atLoad = await typeChangeAtLoadError({
-                component,
-                components,
-                componentInfoObjects,
-                workspace,
-            });
-            if (atLoad) {
-                const key = typeChangeKey(atLoad);
-                workspace.sourceIndices = [];
-                if (key === workspace.typeChangeKey) {
-                    return { replacementChanges: [], diagnostics, nComponents };
-                }
-                workspace.typeChangeKey = key;
-                reportTypeChange(workspace, atLoad);
-                diagnostics.push(atLoad.diagnostic);
-                const replacements = errorInPlaceOfCopy({
-                    component,
-                    componentInfoObjects,
-                    diagnostic: atLoad.diagnostic,
-                    stateIdInfo,
-                    nComponents: nComponents++,
-                });
-                workspace.numReplacementsBySource = [replacements.length];
-                workspace.numNonStringReplacementsBySource = [
-                    replacements.length,
-                ];
-                workspace.propVariablesCopiedBySource = [];
-                workspace.replacementsCreated = stateIdInfo.num;
-                return {
-                    replacementChanges: [
-                        ...unwithheldChanges(component),
-                        {
-                            changeType: "add",
-                            changeTopLevelReplacements: true,
-                            firstReplacementInd: 0,
-                            numberReplacementsToReplace:
-                                component.replacements.length,
-                            serializedReplacements: replacements,
-                        },
-                    ],
-                    diagnostics,
-                    nComponents,
-                };
-            }
 
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
