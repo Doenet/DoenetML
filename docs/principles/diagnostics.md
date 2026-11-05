@@ -117,7 +117,8 @@ three errors, two of them at the `$m`s (B38, #2449).
 
 ### DIAG-5: an error does not stop the rest of the document (Tier 2)
 The component in error shows nothing, or the error in its place. The rest of the document
-renders.
+renders. A reference to a component in error is missing (VAL-5): it shows a blank `＿`, and
+reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 
 **Known violations:**
 - state-variable cycles throw, and the document fails to load (D14, NAME-7);
