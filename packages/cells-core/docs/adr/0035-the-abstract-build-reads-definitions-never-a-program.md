@@ -363,9 +363,41 @@ and tick, in instructions, as ADR 0015's steps were.
    branches become the caller's choice; `folds_iterations` leaves
    `build/emit.rs`. The `testing` feature's walked checks call the walks
    explicitly.
+
+   *Done, with step 4.* As landed: `build/define.rs` holds
+   `Builder::define` (merge, the alias-loop step, orient, the prefill
+   rule) and `Defined`, the named result: the `SlotCells` with each
+   slot's two classes, made by `Defined::by_walk` in the abstract build
+   and `Defined::by_record` in a stamped one, so define has no branch and
+   emit reads `Defined` and no view. `Builder::stage` is expand, resolve
+   and the checks, shared by `build` and the abstract build's
+   `with_abstract`, which stops at define and hands the definitions to a
+   reader: `Builder::findings` for the compile, `signature::sign` for the
+   signature. `BuildOutput` has no `findings`; `AbstractFindings` is the
+   abstract build's return. `build_with` is gone. Step 4 landed here
+   because this step is not green without it: with the abstract build
+   stopping at define, a prefill of a computed value would fail the
+   stamped build instead of boxing at load.
 4. **The prefill rule into define**, stated on definitions, and the
    stand-in removed. `tests/load_errors.rs` and the prefill tests guard
    the message and the boxed element.
+
+   *Done, with step 3.* As landed: `Builder::prefill_rule`, run by
+   define: a prefill reference must name a cell whose definition is not
+   an operator, unless the cell is a counted value, which
+   `Builder::counted_cell` reads off `counted_slots`, now kept in both
+   views (`is_counted` records what the stamped build reads from the
+   record too). The rule no longer looks through the abstract build's
+   stand-in for a collect's count by `follows_counts`; the stand-in
+   itself stays, for the counts check. `Builder::seed_source` is the one
+   place a seed's source is read, by emit's seeding and the signature
+   alike: a counted value's `Copy` reads through to the number. The rule
+   now admits every counted value, where it admitted only a collect's
+   count that follows its repeats: a prefill of a counted section number
+   seeds the number instead of boxing. In instructions under callgrind,
+   against the commit before: load of the mixed shape at 10,000 3.1%
+   fewer, the program the check made and dropped; load of sir 0.2%
+   fewer, at the edge of what repeated runs of one binary differ by.
 5. **Documents**: ARCHITECTURE.md, CONTEXT.md, the doc of
    `build::abstract_build`, and the amendments to ADR 0012 and ADR 0015.
    This ADR's status becomes accepted.

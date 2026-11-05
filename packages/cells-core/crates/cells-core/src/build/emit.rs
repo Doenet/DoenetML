@@ -1,140 +1,23 @@
-//! Define and emit. Define merges aliases into cells with a union-find and
-//! orients the author's operators: the definitions, which the walks and
-//! the input signature read. Emit numbers the cells (constants, the pooled
-//! ones first, then essential, then derived) and binds operators to
-//! instructions.
+//! Emit: number the cells (constants, the pooled ones first, then
+//! essential, then derived), bind operators to instructions, seed values
+//! and make the build, from the definitions (`define.rs`). Emit reads no
+//! view (ADR 0035): a stamped build is the only build that gets here.
 
 use super::*;
 
 impl<'c> Builder<'c> {
-    /// Define: merge aliased slots into the cells they will share, find
-    /// each cell's defining slot, and orient the author's operators
-    /// (ADR 0026). What every walk and the input signature read.
-    pub(in crate::build) fn define(&mut self) -> std::result::Result<SlotCells, Failure> {
-        let n = self.sources.len();
-        let mut uf = UnionFind::new(n);
-        for (s, src) in self.sources.iter().enumerate() {
-            if let BuiltSource::Alias(t) = src {
-                uf.union(SlotId::from_index(s), *t);
-            }
-        }
-        // The one non-alias slot of each cell's slots defines it; a cell
-        // is named here by its slots' root.
-        let mut def: Vec<SlotId> = vec![SlotId::NONE; n];
-        for (s, src) in self.sources.iter().enumerate() {
-            match src {
-                BuiltSource::Alias(_) => {}
-                BuiltSource::Unset => unreachable!(
-                    "slot {} never received a source",
-                    self.slot_label(SlotId::from_index(s))
-                ),
-                _ => {
-                    let root = uf.find(SlotId::from_index(s)).index();
-                    debug_assert!(def[root].is_none(), "two sources in one cell");
-                    def[root] = SlotId::from_index(s);
-                }
-            }
-        }
-
-        let cell_of: Vec<SlotId> = SlotId::below(n).map(|s| uf.find(s)).collect();
-        // A cell of aliases with no definer is a loop of aliases. When the
-        // view folds iterations it may be a recurrence folded onto itself,
-        // which the cycle check has judged; it becomes a constant here.
-        for (s, &root) in cell_of.iter().enumerate() {
-            let root = root.index();
-            if def[root] == SlotId::NONE {
-                if !self.view.folds_iterations() {
-                    return Err(Failure {
-                        error: Error::Cycle(self.slot_label(SlotId::from_index(s))),
-                        node: None,
-                    });
-                }
-                self.sources[s] = BuiltSource::Const(f64::NAN);
-                def[root] = SlotId::from_index(s);
-            }
-        }
-        let slot_cells = SlotCells::new(self, cell_of, def);
-        // Each binary operator of the author's math writes the input that
-        // leads to state (ADR 0026), before the walks read which inputs it
-        // writes.
-        self.orient(&slot_cells);
-        Ok(slot_cells)
-    }
-
     /// Emit: number the cells, bind the operators, seed the values, and
     /// make the build, from the definitions.
     pub(in crate::build) fn emit(
         mut self,
-        slot_cells: SlotCells,
+        defined: Defined,
     ) -> std::result::Result<BuildOutput, Failure> {
         let n = self.sources.len();
-        // Number cells: the constants, the pool's first (ADR 0028), then
-        // the essential cells, then the derived ones.
-        // Essential values come from the previous build when the slot existed.
-        // A value slot is essential when a student's action can write it,
-        // and a constant otherwise (ADR 0018): the abstract build finds
-        // them by its walk and records them by template slot, and every
-        // other build reads the record, so a slot's class is the same in
-        // every build; with the classing off (no record), every value slot
-        // is essential.
-        let folds = self.view.folds_iterations();
-        let (essential, record): (Vec<bool>, Record) = if folds {
-            let writable = self.writable_slots(&slot_cells);
-            let record = self.record_of(&writable);
-            (writable, record)
-        } else {
-            let essential = match &self.compiled.plans.classes {
-                None => vec![true; n],
-                Some(r) => SlotId::below(n)
-                    .map(|s| self.template_slot(s).is_none_or(|(t, ts)| r.marks(t, ts)))
-                    .collect(),
-            };
-            (essential, Record::default())
-        };
-        // Which cells the document computes (ADR 0019), the same way:
-        // the abstract build walks and records, every other build reads the
-        // record.
-        let (live_slot, live_record): (Vec<bool>, Record) = if folds {
-            let live = self.live_slots(&slot_cells);
-            let record = self.record_of(&live);
-            (live, record)
-        } else {
-            let live = self.live_by_record(&self.compiled.plans.live, &slot_cells);
-            (live, Record::default())
-        };
-        // The counted values the abstract build found (ADR 0028).
-        let counted_record = if folds {
-            let mut marked = vec![false; n];
-            for &s in &self.counted_slots {
-                marked[s.index()] = true;
-            }
-            self.record_of(&marked)
-        } else {
-            Record::default()
-        };
-        // The document constants the abstract build found (ADR 0028): of
-        // the slots whose plan gives one, those that are constants, not
-        // essential.
-        let document_record = if folds {
-            let mut marked = vec![false; n];
-            for &s in &self.document_slots {
-                marked[s.index()] = match self.sources[s.index()] {
-                    BuiltSource::Const(_) => true,
-                    BuiltSource::Given(_) => !essential[s.index()],
-                    _ => false,
-                };
-            }
-            self.record_of(&marked)
-        } else {
-            Record::default()
-        };
-        // Requests the program cannot land (ADR 0026): the abstract build
-        // warns of each interactive prop once, by its template element,
-        // off the definitions.
-        if folds {
-            let warnings = self.refuse_warnings(&slot_cells, &essential);
-            self.diagnostics.extend(warnings);
-        }
+        let Defined {
+            slot_cells,
+            essential,
+            live: live_slot,
+        } = defined;
         // What this build's own walks find, whatever the record says: what
         // the record is checked against (`tests/live.rs`, `every_count.rs`).
         #[cfg(feature = "testing")]
@@ -142,11 +25,10 @@ impl<'c> Builder<'c> {
         #[cfg(feature = "testing")]
         let walked_writable = self.writable_slots(&slot_cells);
         // A dead class gets no cell (ADR 0019): its slots name the one dead
-        // cell. Not in the abstract build, whose build is not kept, nor
-        // where the load asked for every cell (`LoadOptions::prune`). An
-        // essential slot is always live; were one not, it would be kept. A
-        // vector output goes with its head, whose instruction writes it.
-        let prune = self.compiled.plans.prune && !folds;
+        // cell, unless the load asked for every cell (`LoadOptions::prune`).
+        // An essential slot is always live; were one not, it would be kept.
+        // A vector output goes with its head, whose instruction writes it.
+        let prune = self.compiled.plans.prune;
         let pruned = |s: usize| {
             let s = match self.sources[s] {
                 BuiltSource::VecOut(head, _) => head.index(),
@@ -177,23 +59,20 @@ impl<'c> Builder<'c> {
         }
         // The document constants go to the pool (ADR 0028): a template
         // slot the compile's record makes one, an operator's constant, the
-        // missing-referent cell. Not in the abstract build, whose build is
-        // not kept.
+        // missing-referent cell.
         let pooled = |s: usize| {
-            !folds
-                && match self.sources[s] {
-                    BuiltSource::Const(_) => true,
-                    BuiltSource::Given(_) => !essential[s],
-                    _ => false,
-                }
-                && (Some(SlotId::from_index(s)) == self.missing
-                    || self.consts.values().any(|&k| k.index() == s)
-                    || self
-                        .template_slot(SlotId::from_index(s))
-                        .is_some_and(|(t, ts)| {
-                            !self.compiled.plans.document_constants.0.is_empty()
-                                && self.compiled.plans.document_constants.marks(t, ts)
-                        }))
+            (match self.sources[s] {
+                BuiltSource::Const(_) => true,
+                BuiltSource::Given(_) => !essential[s],
+                _ => false,
+            }) && (Some(SlotId::from_index(s)) == self.missing
+                || self.consts.values().any(|&k| k.index() == s)
+                || self
+                    .template_slot(SlotId::from_index(s))
+                    .is_some_and(|(t, ts)| {
+                        !self.compiled.plans.document_constants.0.is_empty()
+                            && self.compiled.plans.document_constants.marks(t, ts)
+                    }))
         };
         let mut pool = self.session.pool.clone();
         let mut essential_slots: Vec<(ScopeId, TemplateSlot)> = Vec::with_capacity(counts[0]);
@@ -424,13 +303,9 @@ impl<'c> Builder<'c> {
             &mut essential_defaults,
             n_const,
             &slot_to_cell,
-            |s| slot_cells.def(slot_cells.cell_of(s)),
+            &slot_cells,
             dead_cell,
-        )
-        .map_err(|error| Failure {
-            error,
-            node: self.failed_node,
-        })?;
+        );
 
         let mut instrs = Vec::with_capacity(derived_defs.len());
         let mut operands = Operands::default();
@@ -458,14 +333,12 @@ impl<'c> Builder<'c> {
         }
         let mut tapes = Vec::new();
         // Compile curves whose expression has a constant shape into tapes,
-        // and take a constant shape's derivative once, unless the load asked for
-        // engine sampling. Not in the abstract build, whose instructions
-        // never run: its build is discarded, and the input signature was
-        // read off its definitions before emit (`signature.rs`).
+        // and take a constant shape's derivative once, unless the load asked
+        // for engine sampling.
         #[cfg(feature = "testing")]
-        let compile = !self.session.sample_with_engine && !folds;
+        let compile = !self.session.sample_with_engine;
         #[cfg(not(feature = "testing"))]
-        let compile = !folds;
+        let compile = true;
         let mut constant_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
         // The folded instructions, bound as any other and run once below.
         let mut folded = Vec::with_capacity(fold_defs.len());
@@ -586,12 +459,11 @@ impl<'c> Builder<'c> {
                         | BuiltSource::Op(..)
                         | BuiltSource::VecOut(..) => SlotClass::Constant {
                             value: cells[slot_to_cell[s.index()].index()],
-                            document: !folds
-                                && self
-                                    .compiled
-                                    .plans
-                                    .document_constants
-                                    .marks(template, tslot),
+                            document: self
+                                .compiled
+                                .plans
+                                .document_constants
+                                .marks(template, tslot),
                         },
                         _ => SlotClass::Derived,
                     };
@@ -718,14 +590,6 @@ impl<'c> Builder<'c> {
             holds,
             cell_label,
             live,
-            findings: AbstractFindings {
-                structural_depth: self.structural_depth,
-                writable: record,
-                live: live_record,
-                counted: counted_record,
-                document_constants: document_record,
-                warnings: self.diagnostics,
-            },
         })
     }
 
@@ -769,18 +633,19 @@ impl<'c> Builder<'c> {
 
     /// Give each seeded essential math cell its first expression: the
     /// source cell's value, unless the cell carried a value over from an
-    /// earlier build. Fails unless the source is essential or a constant.
+    /// earlier build. That the source is not computed, define checked
+    /// (`prefill_rule`).
     fn seed_cells(
         &mut self,
         cells: &mut [f64],
         defaults: &mut [f64],
         n_const: usize,
         slot_to_cell: &[CellIdx],
-        def: impl Fn(SlotId) -> SlotId,
+        slot_cells: &SlotCells,
         dead_cell: Option<CellIdx>,
-    ) -> Result<()> {
+    ) {
         if self.seeds.is_empty() {
-            return Ok(());
+            return;
         }
         // Which seed sources hold math, from the few cells that are sources.
         let sources: HashSet<CellIdx> = self
@@ -798,29 +663,7 @@ impl<'c> Builder<'c> {
         for &(s, from) in &self.seeds {
             let (scope, tslot, _) = self.essential_key(s);
             let carried = !self.reseed && self.session.carried(scope, tslot).is_some();
-            let mut src = slot_to_cell[from.index()];
-            // A collect's count is a counted value (ADR 0028): the number
-            // a build gathered, held by a copy, which the seed takes; the
-            // abstract build only stands it in by an operator over the
-            // repeats' counts.
-            let stand_in = self
-                .follows_counts
-                .iter()
-                .any(|&c| slot_to_cell[self.slot(c, prop::collect::COUNT).index()] == src);
-            let source = &self.sources[def(from).index()];
-            if stand_in && let BuiltSource::Op(PlannedOp::Spec(OpSpec::Copy), start, 1) = *source {
-                src = slot_to_cell[self.op_inputs[start.index()].index()];
-            }
-            let computed = matches!(source, BuiltSource::Op(..) | BuiltSource::VecOut(..));
-            if computed && !stand_in {
-                // The seeded element is boxed (ADR 0013).
-                let node = self.components.dast_node[self.slot_comp[s.index()].index()];
-                self.failed_node = (node != NodeId::NONE).then_some(node);
-                return Err(Error::Unsupported(format!(
-                    "prefill=\"${}\": a prefill reference must name a value that is not computed",
-                    self.slot_label(from)
-                )));
-            }
+            let src = slot_to_cell[self.seed_source(slot_cells, from).index()];
             if dead_cell == Some(slot_to_cell[s.index()]) {
                 continue;
             }
@@ -844,15 +687,13 @@ impl<'c> Builder<'c> {
                 cells[cell] = seed;
             }
         }
-        Ok(())
     }
 
     /// The instructions this build folds, by defining slot: an operator
     /// whose every input, and every flag that holds it, is a constant made
     /// in the slot's own scope or one around it, so it is evaluated once as
     /// the build ends and its outputs are constants. A counted value is never
-    /// folded. Nothing folds in the abstract build or where the load asked
-    /// for every instruction.
+    /// folded. Nothing folds where the load asked for every instruction.
     fn folded_slots(
         &self,
         slot_cells: &SlotCells,
@@ -861,7 +702,7 @@ impl<'c> Builder<'c> {
     ) -> Vec<bool> {
         let n = self.sources.len();
         let mut fold = vec![false; n];
-        if !self.compiled.plans.fold || self.view.folds_iterations() {
+        if !self.compiled.plans.fold {
             return fold;
         }
         let counted = |s: SlotId| {
@@ -963,24 +804,6 @@ impl<'c> Builder<'c> {
         Some((inst.template, sealed.slot_off.offset(pi as usize)))
     }
 
-    /// The template slots of the slots `marked`, per template: the record
-    /// every later build reads.
-    fn record_of(&self, marked: &[bool]) -> Record {
-        let mut record: Vec<Vec<u64>> = self
-            .compiled
-            .plans
-            .templates
-            .iter()
-            .map(|t| vec![0; (t.sealed.n_slots as usize).div_ceil(64)])
-            .collect();
-        for (s, _) in marked.iter().enumerate().filter(|(_, w)| **w) {
-            if let Some((t, ts)) = self.template_slot(SlotId::from_index(s)) {
-                record[t.index()][ts.index() / 64] |= 1 << (ts.index() % 64);
-            }
-        }
-        Record(record)
-    }
-
     /// An essential slot's key: its scope, its template slot (the element's
     /// slot offset plus the port's position), and its element's key and
     /// port.
@@ -1025,31 +848,4 @@ fn cell_leaves(t: &Tree<CellIdx>, out: &mut Vec<CellIdx>) {
             out.push(cell);
         }
     });
-}
-
-/// The union-find that merges aliased slots into the cells they share.
-struct UnionFind {
-    parent: Vec<SlotId>,
-}
-
-impl UnionFind {
-    fn new(n: usize) -> Self {
-        UnionFind {
-            parent: SlotId::below(n).collect(),
-        }
-    }
-    fn find(&mut self, mut x: SlotId) -> SlotId {
-        while self.parent[x.index()] != x {
-            let p = self.parent[x.index()];
-            self.parent[x.index()] = self.parent[p.index()];
-            x = p;
-        }
-        x
-    }
-    fn union(&mut self, a: SlotId, b: SlotId) {
-        let (ra, rb) = (self.find(a), self.find(b));
-        if ra != rb {
-            self.parent[ra.index()] = rb;
-        }
-    }
 }

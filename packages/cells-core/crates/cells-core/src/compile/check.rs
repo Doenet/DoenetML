@@ -36,8 +36,7 @@ pub(crate) fn compile(
         plans.prune = prune;
         plans.fold = fold;
         let _s = crate::trace::span("abstract build");
-        let findings =
-            build::abstract_build(CompiledRef { dast, plans }, check_cycles)?.abstract_findings();
+        let findings = build::abstract_build(CompiledRef { dast, plans }, check_cycles)?;
         plans.structural_depth = findings.structural_depth;
         plans.classes = classify.then_some(findings.writable);
         plans.live = findings.live;
@@ -66,7 +65,7 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     // The build is not wanted, but its warnings are, with the planners'.
     // A failure with no element to box is in the list already.
     if let Ok((plans, findings)) = plan_and_check(dast, &mut list, true, |dast, plans| {
-        Ok(build::abstract_build(CompiledRef { dast, plans }, true)?.abstract_findings())
+        build::abstract_build(CompiledRef { dast, plans }, true)
     }) {
         list.extend(plans.diagnostics.iter().cloned());
         list.extend(findings.warnings);
@@ -76,13 +75,12 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
 }
 
 /// The input signature of `dast`, read off the check's definitions
-/// (ADR 0035). Every key goes through `rename`. The check still builds,
-/// so what emit boxes is boxed before the signature is read.
+/// (ADR 0035). Every key goes through `rename`.
 pub(crate) fn signature_renamed(
     dast: &Dast,
     rename: &dyn Fn(&str) -> String,
 ) -> Result<crate::build::signature::Signature> {
-    let (_, (_, signature)) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
+    let (_, signature) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
         build::abstract_signature(CompiledRef { dast, plans }, rename)
     })?;
     Ok(signature)

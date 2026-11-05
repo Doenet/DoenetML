@@ -196,8 +196,8 @@ pub(in crate::build) struct Builder<'c> {
     /// Collects (a polyline is one) whose count reads the counts of the
     /// repeats they gather from.
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
-    /// When the view folds iterations: the slots of the counted values it
-    /// found.
+    /// The slots of the counted values (ADR 0028): found by the abstract
+    /// build, read from the record by every other.
     pub(in crate::build) counted_slots: Vec<SlotId>,
     /// When the view folds iterations: the slots whose plan gives a
     /// document constant if they are constants.
@@ -442,17 +442,20 @@ impl<'c> Builder<'c> {
 
     /// Whether slot `s` holds a counted value: one the build counts from the
     /// structure it stamped, so it follows the counts. In the abstract build
-    /// `found` says whether it is, and is recorded; every other build reads
-    /// the record.
+    /// `found` says whether it is; every other build reads the record. A
+    /// counted slot is kept in `counted_slots`, which the abstract build
+    /// records and the prefill rule reads.
     pub(in crate::build) fn is_counted(&mut self, s: SlotId, found: bool) -> bool {
-        if self.view.folds_iterations() {
-            if found {
-                self.counted_slots.push(s);
-            }
-            return found;
+        let counted = if self.view.folds_iterations() {
+            found
+        } else {
+            self.template_slot(s)
+                .is_some_and(|(t, ts)| self.compiled.plans.counted.marks(t, ts))
+        };
+        if counted {
+            self.counted_slots.push(s);
         }
-        self.template_slot(s)
-            .is_some_and(|(t, ts)| self.compiled.plans.counted.marks(t, ts))
+        counted
     }
 
     /// Slot `s`'s source when this build counted `v` for it: a constant,

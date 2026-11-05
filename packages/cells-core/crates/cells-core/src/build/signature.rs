@@ -87,15 +87,14 @@ impl Domain {
 }
 
 /// The input signature of the document `b` built, read off its
-/// definitions (`slot_cells`, after define), with every key passed
-/// through `rename` (an editor's renames, applied to the version before
-/// them).
+/// definitions, with every key passed through `rename` (an editor's
+/// renames, applied to the version before them).
 pub(in crate::build) fn sign(
     b: &Builder<'_>,
-    slot_cells: &SlotCells,
+    defined: &Defined,
     rename: &dyn Fn(&str) -> String,
 ) -> Signature {
-    Signer::new(b, slot_cells, rename).sign()
+    Signer::new(b, defined, rename).sign()
 }
 
 /// An input as found: its component, the labelled cells its derivation
@@ -121,7 +120,7 @@ struct Signer<'a, 'c> {
     /// Per slot, whether a student's action can write it: a given value
     /// whose defining slot it marks is essential, any other a constant
     /// (ADR 0018).
-    writable: Vec<bool>,
+    writable: &'a [bool],
     /// Each cell's value type.
     types: Vec<ValueType>,
     /// The value each seed gives its cell.
@@ -148,9 +147,9 @@ fn bits(v: f64) -> u64 {
 }
 
 impl<'a, 'c> Signer<'a, 'c> {
-    fn new(b: &'a Builder<'c>, cells: &'a SlotCells, rename: &'a dyn Fn(&str) -> String) -> Self {
+    fn new(b: &'a Builder<'c>, defined: &'a Defined, rename: &'a dyn Fn(&str) -> String) -> Self {
         let n = b.sources.len();
-        let writable = b.writable_slots(cells);
+        let (cells, writable) = (&defined.slot_cells, defined.essential.as_slice());
         // A typed slot's cell is of its type; a symbolic operator that
         // makes math makes a math cell.
         let mut types = vec![ValueType::Number; n];
@@ -198,23 +197,11 @@ impl<'a, 'c> Signer<'a, 'c> {
 
     /// What the seeds give (`Builder::seed_cells`): each seeded cell takes
     /// its source cell's value, a number as the expression emit imports it
-    /// as. A seed whose source is computed fails the build at emit and
-    /// gives nothing here.
+    /// as.
     fn seed(&mut self) {
         let b = self.b;
         for &(s, from) in &b.seeds {
-            let mut src = self.cells.cell_of(from);
-            let stand_in = b
-                .follows_counts
-                .iter()
-                .any(|&c| self.cells.cell_of(b.slot(c, prop::collect::COUNT)) == src);
-            let source = &b.sources[self.cells.def(src).index()];
-            if stand_in && let BuiltSource::Op(PlannedOp::Spec(OpSpec::Copy), start, 1) = *source {
-                src = self.cells.cell_of(b.op_inputs[start.index()]);
-            }
-            if matches!(source, BuiltSource::Op(..) | BuiltSource::VecOut(..)) && !stand_in {
-                continue;
-            }
+            let src = b.seed_source(self.cells, from);
             let seed = match self.value(src) {
                 Value::Raw(v) if self.types[src.index()] == ValueType::Math || v.is_nan() => {
                     Value::Raw(v)

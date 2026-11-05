@@ -27,46 +27,101 @@ pub(in crate::build) enum Coord {
 }
 
 /// The abstract build: the compile built once through the abstract view,
-/// its graph tested for loops at any count, and emitted so emit's rules run
-/// on the referents of every count and every option. It reads a session of
-/// its own.
+/// its graph tested for loops at any count, and defined, so define's rules
+/// run on the referents of every count and every option. It reads a
+/// session of its own, and makes no program (ADR 0035): what it found is
+/// its findings.
 pub(crate) fn abstract_build(
     compiled: CompiledRef,
     checks: bool,
-) -> std::result::Result<BuildOutput, Failure> {
-    let session = Session::new(0);
-    let mut engine = session.engine.borrow_mut();
-    build_with(
-        compiled,
-        &session,
-        false,
-        &mut engine,
-        &View::Abstract,
-        checks,
-        |_, _| (),
-    )
-    .map(|(u, ())| u)
+) -> std::result::Result<AbstractFindings, Failure> {
+    with_abstract(compiled, checks, |b, defined| b.findings(defined))
 }
 
-/// The abstract build with the input signature read off its definitions
-/// (ADR 0035), every key through `rename`. The build is still made, so
-/// emit's rules box what they box; what the signature reads is settled
-/// before it.
+/// The input signature read off the abstract build's definitions, every
+/// key through `rename`. Define's rules box what they box first.
 pub(crate) fn abstract_signature(
     compiled: CompiledRef,
     rename: &dyn Fn(&str) -> String,
-) -> std::result::Result<(BuildOutput, signature::Signature), Failure> {
+) -> std::result::Result<signature::Signature, Failure> {
+    with_abstract(compiled, true, |b, defined| {
+        signature::sign(b, defined, rename)
+    })
+}
+
+/// Expand, resolve, optionally check counts and loops, and define through
+/// the abstract view, then `read` the definitions. The failure names the
+/// element to box.
+fn with_abstract<T>(
+    compiled: CompiledRef,
+    checks: bool,
+    read: impl FnOnce(&mut Builder<'_>, &Defined) -> T,
+) -> std::result::Result<T, Failure> {
     let session = Session::new(0);
     let mut engine = session.engine.borrow_mut();
-    build_with(
-        compiled,
-        &session,
-        false,
-        &mut engine,
-        &View::Abstract,
-        true,
-        |b, slot_cells| signature::sign(b, slot_cells, rename),
-    )
+    let mut b = Builder::new(compiled, &session, false, &mut engine, &View::Abstract);
+    b.stage(checks)?;
+    let slot_cells = crate::trace::span("define").run(|| b.define())?;
+    let defined = Defined::by_walk(&b, slot_cells);
+    Ok(read(&mut b, &defined))
+}
+
+impl<'c> Builder<'c> {
+    /// What the abstract build found for the compile to keep: the records
+    /// of what its walks classed and what it counted, and its warnings.
+    fn findings(&mut self, defined: &Defined) -> AbstractFindings {
+        let n = self.sources.len();
+        let Defined {
+            slot_cells,
+            essential,
+            live,
+        } = defined;
+        // The counted values (ADR 0028).
+        let mut counted = vec![false; n];
+        for &s in &self.counted_slots {
+            counted[s.index()] = true;
+        }
+        // The document constants (ADR 0028): of the slots whose plan gives
+        // one, those that are constants, not essential.
+        let mut document = vec![false; n];
+        for &s in &self.document_slots {
+            document[s.index()] = match self.sources[s.index()] {
+                BuiltSource::Const(_) => true,
+                BuiltSource::Given(_) => !essential[s.index()],
+                _ => false,
+            };
+        }
+        // Requests the program cannot land (ADR 0026), each interactive
+        // prop once, by its template element.
+        let mut warnings = std::mem::take(&mut self.diagnostics);
+        warnings.extend(self.refuse_warnings(slot_cells, essential));
+        AbstractFindings {
+            structural_depth: self.structural_depth,
+            writable: self.record_of(essential),
+            live: self.record_of(live),
+            counted: self.record_of(&counted),
+            document_constants: self.record_of(&document),
+            warnings,
+        }
+    }
+
+    /// The template slots of the slots `marked`, per template: the record
+    /// every later build reads.
+    fn record_of(&self, marked: &[bool]) -> Record {
+        let mut record: Vec<Vec<u64>> = self
+            .compiled
+            .plans
+            .templates
+            .iter()
+            .map(|t| vec![0; (t.sealed.n_slots as usize).div_ceil(64)])
+            .collect();
+        for (s, _) in marked.iter().enumerate().filter(|(_, w)| **w) {
+            if let Some((t, ts)) = self.template_slot(SlotId::from_index(s)) {
+                record[t.index()][ts.index() / 64] |= 1 << (ts.index() % 64);
+            }
+        }
+        Record(record)
+    }
 }
 
 /// The coordinate an index step contributes: a shift of the referencing

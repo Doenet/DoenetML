@@ -8,13 +8,14 @@
 //! reads. Scope ids are stable for the session, so essential values carry
 //! over per (scope, template slot).
 //!
-//! **Define**: union-find over aliases makes cells, and the author's
-//! operators are oriented. **Emit**: cells are numbered (constants, then
-//! essential, then derived) and operators are bound.
+//! **Define**: union-find over aliases makes cells, the author's operators
+//! are oriented, and every cell is classed. **Emit**: cells are numbered
+//! (constants, then essential, then derived) and operators are bound.
 //! [`BuildOutput::schedule`] then orders the instructions.
 //!
-//! The *abstract build* is the build through a view that folds every
-//! iteration into one, which the compile's check runs.
+//! The *abstract build* is expand, resolve and define through a view that
+//! folds every iteration into one, which the compile's check runs; it
+//! makes no program (ADR 0035).
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -39,6 +40,7 @@ use crate::session::{Counts, Session};
 mod abstract_build;
 #[cfg(feature = "testing")]
 pub mod coverage;
+mod define;
 mod emit;
 mod expand;
 mod live;
@@ -51,6 +53,7 @@ mod view;
 mod writable;
 
 pub(crate) use abstract_build::{abstract_build, abstract_signature};
+use define::Defined;
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
 pub use structure::SlotClass;
@@ -76,48 +79,29 @@ use abstract_build::Coord;
 use expand::*;
 use view::{CollectCount, Options, Plans, View};
 
-/// Expand, resolve, optionally run the abstract build's count and loop
-/// checks, define, and emit, through `view`. Between define and emit,
-/// `defined` reads the definitions: what the input signature is read off
-/// (ADR 0035), since emit keeps nothing of them. The failure names the
-/// element to box.
-pub(in crate::build) fn build_with<T>(
-    compiled: CompiledRef,
-    session: &Session,
-    reseed: bool,
-    engine: &mut Engine,
-    view: &View,
-    abstract_checks: bool,
-    defined: impl FnOnce(&Builder<'_>, &SlotCells) -> T,
-) -> std::result::Result<(BuildOutput, T), Failure> {
-    let mut b = Builder::new(compiled, session, reseed, engine, view);
-    let staged = (|| {
-        crate::trace::span("expand").run(|| b.expand_all())?;
-        crate::trace::span("resolve").run(|| b.resolve_all())?;
-        if abstract_checks {
-            let _s = crate::trace::span("loop check");
-            b.check_counts()?;
-            b.check_loops()?;
-        }
-        Ok(())
-    })();
-    if let Err(error) = staged {
-        return Err(Failure {
+impl<'c> Builder<'c> {
+    /// Expand and resolve, and with `abstract_checks` run the abstract
+    /// build's count and loop checks. The failure names the element to
+    /// box.
+    pub(in crate::build) fn stage(
+        &mut self,
+        abstract_checks: bool,
+    ) -> std::result::Result<(), Failure> {
+        let staged = (|| {
+            crate::trace::span("expand").run(|| self.expand_all())?;
+            crate::trace::span("resolve").run(|| self.resolve_all())?;
+            if abstract_checks {
+                let _s = crate::trace::span("loop check");
+                self.check_counts()?;
+                self.check_loops()?;
+            }
+            Ok(())
+        })();
+        staged.map_err(|error| Failure {
             error,
-            node: b.failed_node,
-        });
+            node: self.failed_node,
+        })
     }
-    let slot_cells = crate::trace::span("define").run(|| b.define())?;
-    let read = defined(&b, &slot_cells);
-    let u = {
-        let _s = crate::trace::span("emit");
-        let u = b.emit(slot_cells)?;
-        crate::trace::count("cells", u.cells.len());
-        crate::trace::count("instructions", u.instrs.len());
-        crate::trace::count("components", u.components.len());
-        u
-    };
-    Ok((u, read))
 }
 
 impl<'c> Builder<'c> {
@@ -193,17 +177,19 @@ pub fn build(
 ) -> std::result::Result<BuildOutput, BuildError> {
     let view = View::Stamped { counts };
     let mut engine = session.engine.borrow_mut();
-    build_with(
-        compiled.view(),
-        session,
-        reseed,
-        &mut engine,
-        &view,
-        false,
-        |_, _| (),
-    )
-    .map(|(u, ())| u)
-    .map_err(|f| BuildError::Unchecked(f.error.to_string()))
+    let mut b = Builder::new(compiled.view(), session, reseed, &mut engine, &view);
+    let built = (|| {
+        b.stage(false)?;
+        let slot_cells = crate::trace::span("define").run(|| b.define())?;
+        let defined = Defined::by_record(&b, slot_cells);
+        let _s = crate::trace::span("emit");
+        let u = b.emit(defined)?;
+        crate::trace::count("cells", u.cells.len());
+        crate::trace::count("instructions", u.instrs.len());
+        crate::trace::count("components", u.components.len());
+        Ok(u)
+    })();
+    built.map_err(|f: Failure| BuildError::Unchecked(f.error.to_string()))
 }
 
 /// A cell's human-readable owner, read from the compile's source, which
@@ -231,14 +217,11 @@ pub struct BuildOutput {
     cell_label: CellLabel,
     /// Which cells the document computes.
     live: Live,
-    /// What the abstract build found for the compile to keep: empty in any
-    /// other build.
-    findings: AbstractFindings,
 }
 
 /// What the abstract build found for the compile to keep: what every
 /// later build reads, and the warnings.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub(crate) struct AbstractFindings {
     /// The structural depth.
     pub(crate) structural_depth: u32,
@@ -265,11 +248,6 @@ pub(crate) struct Live {
 }
 
 impl BuildOutput {
-    /// What the abstract build found, which the compile keeps.
-    pub(crate) fn abstract_findings(self) -> AbstractFindings {
-        self.findings
-    }
-
     /// Schedule the program into a document.
     pub fn schedule(self, compiled: Arc<Compiled>) -> std::result::Result<Document, BuildError> {
         let n = self.cells.len();
