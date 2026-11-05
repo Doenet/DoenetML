@@ -275,15 +275,49 @@ marked "just submitted" (#2325).
   with every option in place of every case. **With several picks**, names stay private, as in a
   repeat: `$s[2].x`, under the same every-option, same-type rule (D27).
 
-**Today** (**[probe]** on main at `55db31b`) names inside cases are private:
-- a plain `$x` from outside gives warning `doenet-w0104`;
-- `$cc.x` reaches the `x` in the active case, whatever the other cases hold. With a math `x` in
-  one case and a text `x` in the else, `$cc.x` shows the active one with no diagnostic, and
-  `<math>$cc.x+1</math>` becomes `h i + 1`. The same holds for `$s.x` across options;
-- on a tag, #2447 already gives `doenet-e0066` for different types. An `x` in a case that isn't
-  active gives a blank math with no diagnostic.
+**Done by #2451** (closing #2450 and #2454). Before it, names inside cases were private: a plain
+`$x` gave `w0104`, and `$cc.x` followed the active case whatever the others held, so
+`<math>$cc.x+1</math>` could become `h i + 1`. Now:
+- **Diagnostics:** a branch with no `x` is **`doenet-w0183`** ("the `<else>` of `cc` has no `x`.
+  Give it one, or use a name every case has"). Two tags are **`doenet-w0184`** ("`x` is a
+  `<math>` in one case of `cc` and a `<text>` in another"). Both name the reference, which names
+  nothing.
+- **Indexed forms follow the same rule:** `$s[1].x` of a one-pick select, `$s[2].x` of a
+  multi-pick one, and `$cc[1].x`.
+- **Names after the name are held to it too.** `$h.x`, of a `<group name="h">` in every case,
+  resolves only if each branch's `h` declares `x` with one tag.
+- **A property after a name of mixed types** is `w0184` as well: `$x.value` with a math `x` in
+  one case and a text `x` in another. On a tag, #2447's rule can allow it: `<number
+  extend="$x.value"/>` of an `<integer>` and a `<number>` `x`.
+- **On a tag:**
+  - a missing `x` is `w0183` at error level;
+  - a mix of types is `e0066`;
+  - an `x` that can be absent because there's no `<else>` is `e0064`;
+  - a composite tag (`<group extend="$x"/>`, `<sort>`, `<shuffle>`) with a mix of types is
+    `w0184` at error level, since it would hold whatever the case has. `<sort>` and `<shuffle>`
+    were `e0065`;
+  - a literal index past what a selector picks, `<math extend="$s[2].x"/>`, is `w0181` at error
+    level, as #2447 made it for `$s[2]`.
+- **What counts as one pick:** `numToSelect` written as `1` or left out. `numToSelect="01"` picks
+  one but keeps its names private. A copy of a select counts only when it writes
+  `numToSelect="1"`.
+- **An error decided at load stays** through every replacement change of a linked copy (#2454).
+  Before, a case that became inactive again replaced it with a blank tag (`NaN`).
+- **Integer cases:** `<number extend="$cc.x"/>` of an `<integer>` case now shows the integer's
+  value. It used to be `NaN` after the case changed (`verifyReplacementsMatchSpecifiedType`).
 
-The implementation is #2450.
+**Known violations and gaps:**
+- `<group extend="$cc.x"/>` and `<group extend="$x"/>` go empty for good after the case changes,
+  with a spurious `doenet-e0005`, even when every case declares `x` with one type. The same
+  happened on main before #2451 (B40, #2453);
+- a container reached by a name after an index into a repeat (`$r[1].s.x`) isn't checked at load;
+- the language server's autocomplete still treats names inside a container as hidden
+  (`lsp-tools` `_isHiddenBySugar`);
+- root names, and so HTML ids, of components in the branches are unchanged: one in an unnamed
+  container has none.
+
+Evidence: `T/copying/branch_names.test.ts`; `resolve.test.rs` and `build_resolver.test.rs` in the
+Rust resolver.
 
 ADR 0009's rule, accepted as modified above (D13), was:
 

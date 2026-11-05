@@ -175,11 +175,19 @@ limit, shows `NaN` (#2416, D10).
    no property of that name (`__prop_name_not_found` in `W/components/abstract/Copy.js`). A
    property the type has, but with no value now, stays missing with no warning: `$P.z` of a 2D
    point, `$c.maxNumber` with no limit (above).
-3. **For a composite, everything it can hold.** `$cc.value` is fine when the cases hold maths.
-   It warns only when no component the composite can hold has the property.
+3. **For a composite, everything it holds.** `$cc.value` is fine when the cases hold maths.
+   It warns only when no component the composite holds has the property. #2451 decides this
+   from what it holds now, as a condition diagnostic that comes and goes with the case.
 
-Decided with D22 (#2434 item 1, #2450). **Known violation:** a bare one is silent today
-(`indexNamesNothing.test.ts` pins the silence).
+Decided with D22 (#2434 item 1). **Done by #2451** (closing #2450), including after names
+(`$x.nonexistent`) and after an index (`$s[1].nonexistent`, `$r[1].nonexistent`). On a tag it
+is the error, where `<math extend="$r[1].nonexistent"/>` used to give a blank math.
+
+**Open (#2452):** a property that only some of what a composite holds has is skipped silently
+for the rest. Nothing is named `x`, so `$cc1.x` of a case holding a math, a text and a number
+shows only the math's `x`, and `$cc1.latex` leaves out the text. The proposal is to warn when
+some, but not all, of the components have it. Still open: whether that is decided at load or
+from what the composite holds now, whether it is an error on a tag, and how lists count.
 
 That table is an accident of which internal form was built. A rewrite should choose one
 representation: "the empty value of the type it presents as, drawn as nothing". See D10.

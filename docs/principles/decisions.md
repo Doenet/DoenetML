@@ -58,6 +58,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B37 | A copy that made nothing, and would make nothing again, is not held in a save, so a reload can report a different info for why it shows nothing: `doenet-i0053` "the math is not a tuple" before, `doenet-e0065` "a text" after, when its case changed. What is shown is the same. Breaks DIAG-6. #2447 removed the run-time `e0065`, so this example no longer arises. Whether two other infos can still differ is not checked. | #2443, "Known limits" | a save holds a copy only when its remake would differ |
 | B38 | (#2449) `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written, because `$m` copies the `_error` now in m's place. The cause is at m alone (DIAG-4). | #2447, "Deviations" | a reference to an error component copies the `_error` |
 | B39 | (#2448) A `<select>` whose options are all written with `copy` fails to load: "Number of indices specified for select must match number to select". Breaks DIAG-5. On main before #2447 too. | #2447, "Deviations" | not traced |
+| B40 | (#2453) `<group extend="$cc.x"/>`, and since #2451 `<group extend="$x"/>`, of a name every case declares with one type, shows the active case's `x` until the case changes. The first switch reports a spurious `doenet-e0005`, and after it the group is empty for good. `<math extend="$cc.x"/>` and bare `$cc.x` follow the case. Breaks COMP-11 and NAME-7. Same on main before #2451. | #2451, "Not changed" | the copy recomputes its replacement changes in a loop when the case changes; not pinned down |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -436,6 +437,9 @@ Whether hidden *entries* inside a list are drawn is a separate question, D29.
 
 ## D10. One way to show a missing value
 
+**D37 (proposed)** settles this: a missing value is a blank, `＿` inline and not drawn in a
+graph, distinct from `<T/>`'s default.
+
 **Today** (VAL-5) a missing reference shows as `[]`, `[NaN]`, `＿`, `NaN`, `""` or `[＿, ＿]`,
 depending on the parent and on the spelling.
 
@@ -487,7 +491,7 @@ modified:
 - extend follows D32, and indexing into a branch follows D27;
 - a non-literal `numToSelect` stays allowed.
 
-COMP-11 states the rule. The implementation is #2450.
+COMP-11 states the rule. **Done by #2451** (closing #2450).
 
 This goes together with D22, which asks how names inside a `conditionalContent` should work
 at all.
@@ -667,7 +671,7 @@ gives the component instead. A reference to something that *contains* an input
   with every option in place of every case. **With several picks**, names stay private, as in a
   repeat: `$s[2].x`, under the same every-option, same-type rule (D27).
 
-COMP-11 states it. Implementation: #2450.
+COMP-11 states it. **Done by #2451** (closing #2450).
 
 **Today.** Names inside both forms of `<conditionalContent>` are private (**[probe]**):
 - a plain `$x` from outside reports "No referent found";
@@ -1992,3 +1996,116 @@ No test outside the two type-change suites relies on what is removed. Every `<co
 extended as a scalar tag in the other tests has an `<else>` holding one type
 (`conditionalcontent.test.ts:426`, `:1237`; `extend_references.test.ts:1274`). Every select
 extended as a scalar picks one.
+
+## D37. A missing value is a blank, and a bare reference is its extend again (proposed, Tier 1; revises D10, D36, REF-0, REF-1)
+
+**Proposed.** It reverses parts of #2447 and #2451 (below), and changes what 0.7 documents show
+for missing values.
+
+**Today** (**[probe]** on main at `55db31b`) a missing value shows differently by where it is:
+
+| Written | Shows |
+|---|---|
+| `You answered $ans.submittedResponse.` before a submission | `You answered .` |
+| `You answered <math extend="$ans.submittedResponse"/>.` | `You answered ＿.` |
+| `<math>$nothing + 1</math>`, and `<math>$l[5] + 1</math>` past the end | `＿ + 1` |
+| `<sum>$l[5] 3</sum>` | `3`: the missing operand is left out |
+| `<number>$l[5] + 3</number>` | `NaN` |
+| `<text>a $nothing b</text>`, and `a $l[5] b` in a `<p>` | `a  b` |
+| `<point extend="$nothing"/>` in a graph | the error in its place (#2447) |
+| `[$cc] [$cc.x]` while no case is active | `[] []` |
+
+And since #2447, `$x` and `<X extend="$x"/>` differ for a missing referent: the bare one shows
+nothing with a warning, the tag is an error (REF-1, REF-0).
+
+### The idea
+
+An author is less surprised by a reference that always shows something than by one that shows
+nothing and appears later. A missing value becomes a state of every value type, shown as a
+blank. Then REF-0 still holds, more strongly: `<math extend="$nothing"/>` is a math, whose value is
+missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a point at (0, 0),
+`<angle/>`) no longer appear through references.
+
+### Proposed rules
+
+1. **A reference to one thing gives that thing, or a missing value.** One thing is a name, an
+   index, a property, an iteration or a pick. A missing value never equals anything, a blank
+   input or another missing value included (VAL-5's Tier 1 rule stays).
+2. **A reference to a collection gives its members, possibly none.** A list, a repeat, a collect,
+   a group, and `$cc` itself while no case is active show nothing when empty. This is the only
+   way a reference shows nothing.
+3. **A missing value shows as `＿` inline, and is not drawn in a graph.** This settles D10. A
+   missing point is not drawn and can't be dragged.
+4. **`<T extend="$x"/>` is a T.** When x is missing, the T's value is missing, not `<T/>`'s
+   default. `<text/>` is still `""`, `<number/>` `NaN`, `<boolean/>` `false`, `<point/>` (0, 0).
+5. **`$x` is `<X extend="$x"/>` again**, where X is the type `$x` presents as: x's tag, or an
+   input's value type (REF-1a). With no referent, both are a blank.
+6. **A missing referent, an ambiguous name, a missing property, or a name failing D22's
+   every-branch rule is a warning in both forms.** It shows a blank. Errors stay for what can't
+   be honored as written: unrelated types and containers (REF-5), mixed types (`e0066`,
+   `w0184` on a composite tag), D32's extends, and cycles.
+
+### What it reverses
+
+**From #2447 (D36):**
+- `w0104` (no referent, missing property) and `w0105` (ambiguous) on a tag go back to warning
+  level, and the `_error` in the tag's place goes away. B38's example (#2449) goes with it; the
+  issue still covers other errors shown in a component's place.
+- A literal index past what a selector picks, `<math extend="$s[2]"/>`, `w0181` at error level,
+  goes back to a warning. It is authored, but the tag can be made: a math with a missing value.
+- `i0053` (a value that doesn't convert) and `i0054` (an index that names nothing) keep their
+  level, but the tag's value is missing rather than `<T/>`'s.
+
+**From #2451 (D22):**
+- `w0183` on a tag (`<math extend="$cc.x"/>` with a branch lacking `x`) goes back to a warning,
+  with a blank math.
+- `w0181` at error level for `<math extend="$s[2].x"/>` and `<math extend="$h[2].x"/>` goes
+  back to a warning.
+- `w0104` at error level for a missing property on a tag (`<math extend="$r[1].nonexistent"/>`)
+  goes back to a warning.
+- A bare reference that names nothing (`w0183`, `w0184`, `w0104`) shows a blank, not nothing.
+- **Stays:** `w0184` at error level on a composite tag (`<group extend="$x"/>` of mixed types),
+  since that tag would change type with the case; `e0066` for mixed types on a scalar or list
+  tag; #2454's rule that an error decided at load stays.
+- **Depends on question 3:** `e0064` (`noElse`) for `<math extend="$cc.x"/>` with no `<else>`.
+
+**In the principles:**
+- REF-0's "a missing referent on a tag is an error" and "`<T/>`'s value";
+- REF-1's one-directional note;
+- VAL-5's display table, and its Tier 2 rule that operators leave a missing operand out
+  (question 2);
+- DIAG-1's info examples, from "shows nothing" to "shows a blank".
+
+### What it fixes
+
+- The `<T/>` defaults stop leaking through references (D36's open question 1).
+- D36 required an `<else>` for `<math extend="$cc"/>`, while D22 allows a name in a
+  `<conditionalContent>` with no `<else>`. With a missing value, a math that is sometimes missing
+  is still a math, so presence no longer needs to be guaranteed for type safety (question 3).
+- The bare and extend forms report the same diagnostics, at the same level.
+
+### Questions
+
+1. **A missing component that isn't a value**, such as `$sec.p` for a `<p>` that doesn't
+   exist, or an iteration past the end of a repeat of paragraphs. Recommendation: rule 1 applies.
+   A `＿` where a paragraph would be is visible, which helps the author.
+2. **Operators.** Recommendation: a missing operand is a blank, as `<math>` already does, so
+   `<sum>$l[5] 3</sum>` is missing rather than `3`. A missing number shows `＿`, and `NaN` stays
+   for a computation that has no value.
+3. **D36's presence rules.** Recommendation: "no `<else>`", "no case active" and "a name in no
+   case" give a T with a missing value and an info. Mixed and unrelated types stay load-time
+   errors. That keeps the type safety, and drops the requirement to write an `<else>`.
+4. **Hidden referents (D9).** "Always shows something" means missing shows as blank, not that
+   hidden content shows. A hidden referent stays hidden.
+
+### Cost and compatibility
+
+- Every value type needs a missing state that survives conversions, properties and saved state.
+  Today only math has one (`＿`). This is the work D10 needed anyway.
+- 0.7 documents that look different: `$ans.submittedResponse` in feedback shows `＿` before a
+  submission; `$l[$i]` and `$s[$k]` out of range show `＿`; typos show `＿`, which helps.
+- Tests that pin today's display: VAL-5's (`drawn_value_references.test.ts:234`,
+  `extend_references.test.ts:4790-4830`, `:7507-7616`, `expressionAttributes.test.ts:400`); the
+  tests #2447 and #2451 changed to expect errors on a tag (`indexNamesNothing.test.ts`,
+  `type_change_run_time.test.ts`, `branch_names.test.ts`, `extend_references.test.ts`,
+  `external_references.test.ts`, `answer.test.ts`, the two `*WordsLocale` tests).
