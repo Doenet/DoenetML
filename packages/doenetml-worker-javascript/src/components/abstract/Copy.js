@@ -6739,6 +6739,10 @@ async function missingSourceInPlace({
     workspace.numReplacementsBySource = [missing.replacements.length];
     workspace.numNonStringReplacementsBySource = [missing.replacements.length];
     workspace.propVariablesCopiedBySource = [];
+    // It names no source then, so it is made from its source again once the
+    // source is there.
+    workspace.sourceIndices = [];
+    workspace.sourceContainsCopyBySource = [];
     if (result.replacements) {
         result.replacements = missing.replacements;
         return;
