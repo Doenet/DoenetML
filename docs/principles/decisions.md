@@ -488,8 +488,9 @@ rebuild.
 **Decided, together with D22's option (c).** ADR 0009's branch interface is accepted, as
 modified:
 - names in a choice are visible, not only through `$cc.x` (D22);
-- a name that some branch lacks, or that branches declare with different types, doesn't resolve,
-  with a warning, rather than being an error at the declaration;
+- a name that some branch lacks doesn't resolve, with a warning; one that branches declare with
+  different types is an error at the reference, bare or on a tag (revised after #2458). Neither
+  is an error at the declaration;
 - extend follows D32, and indexing into a branch follows D27;
 - a non-literal `numToSelect` stays allowed.
 
@@ -659,9 +660,11 @@ gives the component instead. A reference to something that *contains* an input
 - **It resolves only if every case declares it, with the same type.**
   - "Every case" means each `<case>` written, and the `<else>` if there is one. With no
     `<else>`, `x` in every case is enough: while no case is active, `$x` names nothing.
-  - If a case or the `<else>` has no `x`, or two of them declare `x` with different types, `$x`
-    and `$cc.x` name nothing, with a **warning** at the reference. It is not a deprecation: the
-    reference doesn't work.
+  - If a case or the `<else>` has no `x`, `$x` and `$cc.x` name nothing: a blank (VAL-5), with
+    **warning** `w0183` at the reference, bare or on a tag.
+  - If two of them declare `x` with different types, it is an **error** at the reference, bare
+    or on a tag, decided at load (`w0184` bare, `e0066` on a scalar tag; DIAG-7). A type error is
+    the same in both forms (REF-1). It is not a deprecation: the reference doesn't work.
   - So a reference's type, and whether a parent accepts it as a child, never change with the
     active case.
 - **Two cases declaring `x` don't make it ambiguous**, since only one can be active. An `x`
