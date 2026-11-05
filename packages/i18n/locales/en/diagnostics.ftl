@@ -473,6 +473,41 @@ reference-index-past-instances =
         }
     }
 
+# A reference to a name declared in the branches of a `<conditionalContent>`
+# (its `<case>`s and its `<else>`) or of a `<select>` that picks one (its
+# `<option>`s) names nothing unless every branch declares the name, with the
+# same tag, so that what it names never changes type with the active branch.
+# $reference is the reference as the author wrote it, with its `$`, and $name
+# the name; both stay as written. $branch is `case`, `else` or `option`, the
+# branch that has no $name, and $ordinal which of its kind it is (1 for the
+# first case). $container is the name of the `<conditionalContent>` or
+# `<select>` when $hasName is "true", and its tag otherwise; DoenetML, so it
+# stays in English.
+
+reference-name-missing-in-branch = `{ $reference }` names nothing: { $branch ->
+        [else] the `<else>`
+        [option] option { $ordinal }
+       *[case] case { $ordinal }
+    } of { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } has no `{ $name }`. Give it one, or use a name every { $branch ->
+        [option] option
+       *[other] case
+    } has.
+
+# As `reference-name-missing-in-branch`, where two branches declare $name with
+# different tags, $firstType and $secondType, which stay in English. $branch is
+# `case` or `option`.
+
+reference-name-types-differ-in-branches = `{ $reference }` names nothing: `{ $name }` is a `<{ $firstType }>` in one { $branch ->
+        [option] option
+       *[other] case
+    } of { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } and a `<{ $secondType }>` in another. Use the same type, or different names.
+
 ## `<callAction>`
 
 # $action is the `actionName` the author asked for, part of the DoenetML

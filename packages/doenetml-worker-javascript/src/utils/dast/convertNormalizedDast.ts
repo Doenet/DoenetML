@@ -533,10 +533,46 @@ export async function normalizedDastToSerializedComponents(
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag
     // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
-    checkTypeChangesAtLoad({
+    const { branchNameWarnings } = checkTypeChangesAtLoad({
         serializedComponents: sugarResult.components,
         componentInfoObjects,
     });
+    // A reference to a name the branches of a `<conditionalContent>` or a
+    // one-pick `<select>` do not all declare with one tag names nothing
+    // (D13, D22), so that what it names never changes type with the active
+    // branch.
+    for (const { copy, code, args } of branchNameWarnings) {
+        const ref: any = (copy.extending as any)?.Ref;
+        const originalPath = ref?.originalPath;
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: code as any,
+                args: {
+                    ...args,
+                    reference: `${doenetMLDollarsForReference(
+                        originalPath,
+                        normalized_root.sources,
+                    )}${doenetMLStringForReference(
+                        originalPath,
+                        normalized_root.sources,
+                    )}`,
+                },
+                position: copy.position,
+                sourceDoc: copy.sourceDoc,
+            }),
+        );
+        if (ref) {
+            copy.extending = {
+                Ref: {
+                    ...ref,
+                    nodeIdx: -1,
+                    unresolvedPath: null,
+                    nodesInResolvedPath: [],
+                },
+            } as any;
+        }
+    }
 
     // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
     // the values it reads, and before the value references, so that a

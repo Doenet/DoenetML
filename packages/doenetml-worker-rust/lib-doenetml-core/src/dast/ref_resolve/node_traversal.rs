@@ -168,7 +168,8 @@ impl Resolver {
                             None
                         }
                     }
-                    Ref::Ambiguous(_) => None,
+                    // A name declared in branches is reached through its container
+                    Ref::Ambiguous(_) | Ref::Branches(_) => None,
                 })
             {
                 queue.push_back((NodeOrRoot::Node(edge.referent), edge.origin_source));

@@ -283,6 +283,46 @@ lets you reach each `n` unambiguously with `$s1.n` and `$s2.n`.
 <p>The first section's n is $s1.n and the second's is $s2.n.</p>
 ```
 
+### Names inside a `<conditionalContent>` or a `<select>`
+
+A name inside a case or the `<else>` of a
+[`<conditionalContent>`](../reference/conditionalContent) is visible outside it,
+as a name inside a `<group>` is. A plain `$x` from outside finds the `x` in the
+case shown now, as `$cc.x` does. Two cases declaring `x` don't make it
+ambiguous, since only one is shown at a time; an `x` beside the
+`<conditionalContent>` does.
+
+The reference works only if **every case declares the name, with the same
+type**, so that what it names never changes type when another case is shown.
+"Every case" means each `<case>` written and the `<else>`, if there is one.
+With no `<else>`, an `x` in every case is enough: while no case is true, `$x`
+names nothing. If a case lacks `x`, or two cases declare it with different
+types, `$x` and `$cc.x` name nothing, with a warning that says which. Written as
+a tag, such as `<math extend="$x"/>{:dn}`, either is an error, and so is a name
+that is missing while no case is true, with no `<else>`. On a tag, a type that
+already is the tag counts as it: with an `<integer name="x">{:dn}` in one case
+and a `<number name="x">{:dn}` in another, `<number extend="$x"/>{:dn}` and
+`<number extend="$x.value"/>{:dn}` work, while `$x` alone does not. A name after it is held
+to the same rule: if every case has a `<group name="h">{:dn}`, `$h.x` works only
+if each of those groups declares `x`, with the same type.
+
+```doenet-editor-horiz
+<booleanInput name="b"><label>Use the first case</label></booleanInput>
+<conditionalContent name="cc">
+  <case condition="$b"><math name="x">1</math></case>
+  <else><math name="x">2</math></else>
+</conditionalContent>
+
+<p>x is $x, and $x + 1 is <math>$x + 1</math>.</p>
+```
+
+A [`<select>`](../reference/select) that picks one option (`numToSelect`
+written as `1`, or left out) works the same way, with every option in place of
+every case. A `<select>` that picks several keeps its names private, as a
+`<repeat>` does: reach a name in one pick with an index, as in `$s[2].x`.
+That works under the same rule: every option must declare `x`, with the same
+type, or `$s[2].x` names nothing, with a warning.
+
 ### References in a copy's attributes
 
 A reference in an attribute of a copy resolves as if it were written in a child
@@ -382,6 +422,10 @@ cause is a typo in the name.
 As with an ambiguous reference, `$total` renders nothing and DoenetML reports a
 warning — here, *No referent found for reference: `$total`* — shown in the
 Warnings panel and as a tooltip on hover.
+
+The same warning is given for a property the component doesn't have, such as
+`$count.total`. A property it has, but with no value now, such as `$P.z` of a
+point in two dimensions, shows nothing with no warning.
 
 Written as a tag, such as `<number extend="$total"/>{:dn}`, the same reference
 is an error rather than a warning: a tag always makes that tag, and this one

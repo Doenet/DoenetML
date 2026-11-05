@@ -131,22 +131,103 @@ describe("An index that names nothing @group4", async () => {
         }
     });
 
-    it("leaves a property that does not exist as silent with an index as without", async () => {
-        // The index is applied only to a property that exists, so an index
-        // below 1 does not make `$n.nonexistent[0]` warn where
-        // `$n.nonexistent` and `$n.nonexistent[1]` do not.
-        for (const body of [
-            `[$n.nonexistent]`,
-            `[$n.nonexistent[1]]`,
-            `[$n.nonexistent[0]]`,
-            `[$P.nonexistent[0]]`,
+    it("warns once for a property that does not exist, with an index as without", async () => {
+        // A property the referent's type does not have is a mistake in what
+        // the author wrote (DIAG-2, #2434 item 1, #2450), so it is one
+        // `doenet-w0104` quoting the reference, whatever index follows it:
+        // the index is applied only to a property that exists.
+        for (const { body, reference } of [
+            { body: `[$n.nonexistent]`, reference: "$n.nonexistent" },
+            { body: `[$n.nonexistent[1]]`, reference: "$n.nonexistent[1]" },
+            { body: `[$n.nonexistent[0]]`, reference: "$n.nonexistent[0]" },
+            { body: `[$P.nonexistent[0]]`, reference: "$P.nonexistent[0]" },
         ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                inParagraph(body),
+            );
+            expect(text, body).eq("[]");
+            expect([...errors, ...infos], body).eqls([]);
+            expect(warnings.length, body).eq(1);
+            expect(warnings[0].code, body).eq("doenet-w0104");
+            expect(warnings[0].message, body).contain(reference);
+        }
+    });
+
+    it("warns for a property that does not exist after an index into picks or iterations", async () => {
+        // The index is resolved at run time, and what follows it is a
+        // property of what it picks, not a name of the document.
+        for (const { body, reference } of [
+            {
+                body: `<select name="s"><option><math name="x">1</math></option></select>[$s[1].nonexistent]`,
+                reference: "$s[1].nonexistent",
+            },
+            {
+                body: `<select name="s" numToSelect="2"><option><math name="x">1</math></option><option><math name="x">2</math></option></select>[$s[2].nonexistent]`,
+                reference: "$s[2].nonexistent",
+            },
+            {
+                body: `<repeatForSequence name="r" length="2" valueName="v"><math>$v</math></repeatForSequence>[$r[1].nonexistent]`,
+                reference: "$r[1].nonexistent",
+            },
+        ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                inParagraph(body),
+            );
+            expect(text, body).eq("[]");
+            expect([...errors, ...infos], body).eqls([]);
+            expect(
+                warnings.map((w) => w.code),
+                body,
+            ).eqls(["doenet-w0104"]);
+            expect(warnings[0].message, body).contain(reference);
+        }
+
+        // On a tag, as for `<math extend="$n.nonexistent"/>`, it is an error,
+        // and a property the iteration's math has is made.
+        const onTag = await shownAndReported(
+            `<repeatForSequence name="r" length="2" valueName="v"><math>$v</math></repeatForSequence><p name="p">[<math extend="$r[1].nonexistent"/>][<math extend="$r[2].value"/>]</p>`,
+        );
+        expect(onTag.text).eq("[][2]");
+        expect([...onTag.warnings, ...onTag.infos]).eqls([]);
+        expect(onTag.errors.map((e) => e.code)).eqls(["doenet-w0104"]);
+        expect(onTag.errors[0].message).contain("$r[1].nonexistent");
+
+        // A property the picked component has, or a name, stays silent.
+        const { text, warnings, errors, infos } = await shownAndReported(
+            inParagraph(
+                `<select name="s"><option><math name="x">1</math></option></select>[$s[1].value][$s[1].x]`,
+            ),
+        );
+        expect(text).eq("[1][1]");
+        expect([...warnings, ...errors, ...infos]).eqls([]);
+    });
+
+    it("leaves a property the type has, with no value now, silent", async () => {
+        // VAL-5: the referent's type has the property, which is missing now.
+        for (const body of [`[$P.z]`, `[$P.xs[3]]`]) {
             const { text, warnings, errors, infos } = await shownAndReported(
                 inParagraph(body),
             );
             expect(text, body).eq("[]");
             expect([...warnings, ...errors, ...infos], body).eqls([]);
         }
+
+        // A collect with no limit has the property `maxNumber`.
+        const { warnings, errors, infos } = await shownAndReported(
+            `<collect name="c" componentType="math" from="$l"/><p name="p">[$c.maxNumber]</p>`,
+        );
+        expect([...warnings, ...errors, ...infos]).eqls([]);
+    });
+
+    it("warns for a property a function does not have, in an evaluation", async () => {
+        // `x` is not a name in the document and `<function>` has no
+        // property `x`, so `$$f.x(2)` names a property that does not exist.
+        const { warnings, errors, infos } = await shownAndReported(
+            `<function name="f">t^2</function><p name="p">[$$f.x(2)]</p>`,
+        );
+        expect([...errors, ...infos]).eqls([]);
+        expect(warnings.map((w) => w.code)).eqls(["doenet-w0104"]);
+        expect(warnings[0].message).contain("$$f.x");
     });
 
     it("warns when a dynamic index becomes 0, as the literal index does", async () => {

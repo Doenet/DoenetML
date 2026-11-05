@@ -273,6 +273,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0180": "reference-index-selects-nothing",
     "doenet-w0181": "reference-index-past-instances",
     "doenet-w0182": "reference-index-use-property",
+    "doenet-w0183": "reference-name-missing-in-branch",
+    "doenet-w0184": "reference-name-types-differ-in-branches",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

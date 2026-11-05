@@ -562,6 +562,11 @@ impl FlatFragment {
         &self.nodes[self.idx_map[&idx]]
     }
 
+    /// Whether the node with index `idx` is in the fragment
+    pub fn contains_idx(&self, idx: Index) -> bool {
+        self.idx_map.contains_key(&idx)
+    }
+
     pub fn min_idx(&self) -> usize {
         self.idx_map
             .keys()

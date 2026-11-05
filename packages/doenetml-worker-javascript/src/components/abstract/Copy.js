@@ -1,3 +1,4 @@
+import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
 import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
 import ValueListComponent from "./ValueListComponent";
@@ -1512,6 +1513,12 @@ export default class Copy extends CompositeComponent {
      * keeps nothing it cannot apply: it records only its own snapshot.
      */
     static async createSerializedReplacements(args) {
+        const result = await this.createSerializedReplacementsOfCopy(args);
+        await reportMissingProperty(args);
+        return result;
+    }
+
+    static async createSerializedReplacementsOfCopy(args) {
         const { component } = args;
         const unlinked = (await component.stateValues.link) === false;
         const held = unlinked
@@ -2470,7 +2477,13 @@ export default class Copy extends CompositeComponent {
         };
     }
 
-    static async calculateReplacementChanges({
+    static async calculateReplacementChanges(args) {
+        const result = await this.calculateReplacementChangesOfCopy(args);
+        await reportMissingProperty(args);
+        return result;
+    }
+
+    static async calculateReplacementChangesOfCopy({
         component,
         nComponents,
         componentChanges,
@@ -2491,6 +2504,65 @@ export default class Copy extends CompositeComponent {
             return { replacementChanges: [], diagnostics, nComponents };
         }
 
+        // What the DoenetML could decide was decided when the document loaded
+        // (D36): its error, and only its error, stays in place of the copy
+        // whatever its source does now, whether it names nothing, is in a
+        // case not active (`targetInactive`), or has changed.
+        const atLoad = await typeChangeAtLoadError({
+            component,
+            components,
+            componentInfoObjects,
+            workspace,
+        });
+        if (atLoad) {
+            const key = typeChangeKey(atLoad);
+            workspace.sourceIndices = [];
+            if (
+                key === workspace.typeChangeKey &&
+                component.replacements.length === 1 &&
+                component.replacements[0].componentType === "_error"
+            ) {
+                return {
+                    replacementChanges: unwithheldChanges(component),
+                    diagnostics,
+                    nComponents,
+                };
+            }
+            const stateIdInfo = {
+                prefix: `${component.stateId}|`,
+                num: workspace.replacementsCreated,
+            };
+            workspace.typeChangeKey = key;
+            reportTypeChange(workspace, atLoad);
+            diagnostics.push(atLoad.diagnostic);
+            const replacements = errorInPlaceOfCopy({
+                component,
+                componentInfoObjects,
+                diagnostic: atLoad.diagnostic,
+                stateIdInfo,
+                nComponents: nComponents++,
+            });
+            workspace.numReplacementsBySource = [replacements.length];
+            workspace.numNonStringReplacementsBySource = [replacements.length];
+            workspace.propVariablesCopiedBySource = [];
+            workspace.replacementsCreated = stateIdInfo.num;
+            return {
+                replacementChanges: [
+                    ...unwithheldChanges(component),
+                    {
+                        changeType: "add",
+                        changeTopLevelReplacements: true,
+                        firstReplacementInd: 0,
+                        numberReplacementsToReplace:
+                            component.replacements.length,
+                        serializedReplacements: replacements,
+                    },
+                ],
+                diagnostics,
+                nComponents,
+            };
+        }
+
         let compositeAttributesObj = this.createAttributesObject();
 
         let replacementSourceIdentities =
@@ -2507,54 +2579,6 @@ export default class Copy extends CompositeComponent {
 
             let previousZeroSourceIndices =
                 workspace.sourceIndices.length === 0;
-
-            // What the DoenetML could decide was decided when the document
-            // loaded (D36): its error stays in place of the copy, whatever
-            // the index names now.
-            const atLoad = await typeChangeAtLoadError({
-                component,
-                components,
-                componentInfoObjects,
-                workspace,
-            });
-            if (atLoad) {
-                const key = typeChangeKey(atLoad);
-                workspace.sourceIndices = [];
-                if (key === workspace.typeChangeKey) {
-                    return { replacementChanges: [], diagnostics, nComponents };
-                }
-                workspace.typeChangeKey = key;
-                reportTypeChange(workspace, atLoad);
-                diagnostics.push(atLoad.diagnostic);
-                const replacements = errorInPlaceOfCopy({
-                    component,
-                    componentInfoObjects,
-                    diagnostic: atLoad.diagnostic,
-                    stateIdInfo,
-                    nComponents: nComponents++,
-                });
-                workspace.numReplacementsBySource = [replacements.length];
-                workspace.numNonStringReplacementsBySource = [
-                    replacements.length,
-                ];
-                workspace.propVariablesCopiedBySource = [];
-                workspace.replacementsCreated = stateIdInfo.num;
-                return {
-                    replacementChanges: [
-                        ...unwithheldChanges(component),
-                        {
-                            changeType: "add",
-                            changeTopLevelReplacements: true,
-                            firstReplacementInd: 0,
-                            numberReplacementsToReplace:
-                                component.replacements.length,
-                            serializedReplacements: replacements,
-                        },
-                    ],
-                    diagnostics,
-                    nComponents,
-                };
-            }
 
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
@@ -6066,10 +6090,14 @@ async function typeChangeAtLoadError({
             await component.stateValues.originalPath,
             components[extended?.componentIdx],
         );
-    const args =
-        mark.code === "doenet-w0181"
-            ? { reference: source, ...mark.args }
-            : { componentType: writtenType, source, ...mark.args };
+    // A reference that names nothing (an index past what a selector picks,
+    // or a name the branches of a container do not all declare,
+    // `branchNameIssue`) is quoted as a reference.
+    const args = ["doenet-w0181", "doenet-w0183", "doenet-w0184"].includes(
+        mark.code,
+    )
+        ? { reference: source, ...mark.args }
+        : { componentType: writtenType, source, ...mark.args };
     return {
         level: "error",
         diagnostic: codedDiagnostic({ type: "error", code: mark.code, args }),
@@ -6149,6 +6177,102 @@ async function missingPropertyError({
             },
         }),
     };
+}
+
+/**
+ * Report, as the `"missingProperty"` condition of the copy `component`
+ * (`reportConditionDiagnostics`), a reference not written as a tag to a
+ * property that what it names does not have (`$n.nonexistent`, `$$f.x(2)`):
+ * `doenet-w0104`, as it is a mistake in what the author wrote (DIAG-2,
+ * #2434). It is the property the referent's type lacks, not one with no value
+ * now: `$P.z` of a point in two dimensions stays silent (VAL-5). What follows
+ * the referent is first looked up as a name, so it is a property only if no
+ * component of the document has that name (`pathStartsWithProperty`,
+ * `typeChangeAtLoad.ts`): `$sec.t` of a `t` written elsewhere, or `$cc.c` of a
+ * name the case active now does not hold, is not reported here. For a
+ * composite, it is reported when none of what it holds now has it. A reference written as a tag reports it as an
+ * error instead (`missingPropertyError`).
+ */
+async function reportMissingProperty({
+    component,
+    components,
+    componentInfoObjects,
+    workspace,
+}) {
+    if (!workspace) {
+        return;
+    }
+    let diagnostics = [];
+    const isTag =
+        component.attributes._createComponentOfType?.primitive?.value !==
+            undefined || component.doenetAttributes?.forList !== undefined;
+    const extendedComponent = isTag
+        ? undefined
+        : await component.stateValues.extendedComponent;
+    const sourceComponent = components[extendedComponent?.componentIdx];
+    const propName = (await component.stateValues.unresolvedPath)?.[0]?.name;
+    if (sourceComponent && propName) {
+        const propNames = await component.stateValues.effectivePropNameBySource;
+        const sources =
+            (await component.stateValues.replacementSourceIdentities) ?? [];
+        if (
+            propNames?.length > 0 &&
+            propNames.every((name) => name === "__prop_name_not_found") &&
+            // a name of the document is looked up as a name first, so it is
+            // not a property (`$sec.t` of a `t` written elsewhere)
+            component.doenetAttributes?.pathStartsWithProperty &&
+            // the property, not an index after it (`$n.value[1]`,
+            // `doenet-w0100`), is what is missing
+            !sources.some(
+                (source) =>
+                    typeof source === "object" &&
+                    typeHasProperty({
+                        componentType: source.componentType,
+                        propName,
+                        componentInfoObjects,
+                    }),
+            )
+        ) {
+            diagnostics = [
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0104",
+                    args: {
+                        // as written, `$$` and all (`createReplacementsFromSources`)
+                        reference:
+                            workspace.referenceAsWritten ??
+                            referenceAsWritten(
+                                await component.stateValues.originalPath,
+                                sourceComponent,
+                            ),
+                    },
+                }),
+            ];
+        }
+    }
+    workspace.conditionDiagnostics = {
+        ...workspace.conditionDiagnostics,
+        missingProperty: diagnostics,
+    };
+}
+
+/**
+ * Whether a component of type `componentType` has the public property
+ * `propName`, matched as a reference matches it (without regard to case,
+ * through aliases and array entries).
+ */
+function typeHasProperty({ componentType, propName, componentInfoObjects }) {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[componentType];
+    if (!componentClass) {
+        return false;
+    }
+    const [mapped] = publicCaseInsensitiveAliasSubstitutions({
+        stateVariables: [propName],
+        componentClass,
+        componentInfoObjects,
+    });
+    return mapped !== undefined && !mapped.startsWith("__not_public_");
 }
 
 /**

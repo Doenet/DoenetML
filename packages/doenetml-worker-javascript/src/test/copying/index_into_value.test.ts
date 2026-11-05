@@ -168,12 +168,22 @@ describe("An index into a value with entries @group4", async () => {
 
     it("does not read the entries by a name of their own", async () => {
         // The entries are reached only by an index, as for any property
-        // that is not public.
-        await expectShownSilently([
-            ["$mt.__valueEntries", ""],
-            ["$mt.__valueEntry1", ""],
-            ["$mm.__valueEntry2_1", ""],
-        ]);
+        // that is not public: a property the component does not have, which
+        // is a warning (#2450).
+        for (const reference of [
+            "$mt.__valueEntries",
+            "$mt.__valueEntry1",
+            "$mm.__valueEntry2_1",
+        ]) {
+            const { text, warnings, errors, infos } =
+                await shownAndReported(reference);
+            expect(text, reference).eq("[]");
+            expect([...errors, ...infos], reference).eqls([]);
+            expect(
+                warnings.map((w) => w.code),
+                reference,
+            ).eqls(["doenet-w0104"]);
+        }
     });
 
     it("names nothing below 1, quoting the whole reference", async () => {

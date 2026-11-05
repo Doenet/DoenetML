@@ -27,14 +27,14 @@ fn can_resolve_name_among_parents() {
         name: "y".to_string(),
         source_doc: None.into(),
     };
-    let referent = resolver.search_parents(&y_name, c_idx);
+    let referent = resolver.search_parents(&y_name, c_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(b_idx));
 
-    let referent = resolver.search_parents(&y_name, b_idx);
+    let referent = resolver.search_parents(&y_name, b_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(b_idx));
 
     // Searching from `e` should fail because there are multiple `y`s that could be referred to.
-    let referent = resolver.search_parents(&y_name, e_idx);
+    let referent = resolver.search_parents(&y_name, e_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
 }
 
@@ -63,18 +63,18 @@ fn resolve_to_parent_in_ambiguous_case() {
         name: "x".to_string(),
         source_doc: None.into(),
     };
-    let referent = resolver.search_parents(&x_name, c_idx);
+    let referent = resolver.search_parents(&x_name, c_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(a_idx));
 
-    let referent = resolver.search_parents(&x_name, b_idx);
+    let referent = resolver.search_parents(&x_name, b_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(a_idx));
 
     // Searching from `d` should find itself
-    let referent = resolver.search_parents(&x_name, d_idx);
+    let referent = resolver.search_parents(&x_name, d_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(d_idx));
 
     // Searching from `e` should fail because there are multiple `x`s that could be referred to.
-    let referent = resolver.search_parents(&x_name, e_idx);
+    let referent = resolver.search_parents(&x_name, e_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
 }
 
@@ -469,7 +469,7 @@ fn can_resolve_name_at_ref_origin() {
         name: "x".to_string(),
         source_doc: None.into(),
     };
-    let referent = resolver.search_parents(&x_name, b_idx);
+    let referent = resolver.search_parents(&x_name, b_idx).map(|(idx, _)| idx);
     assert_eq!(referent, Ok(a_idx));
 }
 
@@ -588,6 +588,148 @@ fn elements_with_children_invisible_to_their_grandparents() {
             nodes_in_resolved_path: vec![c_idx, d_idx],
             child_indexes: vec![],
         })
+    );
+}
+
+#[test]
+fn names_in_branches_resolve_through_their_container() {
+    // The names in the cases and the `<else>` of a `<conditionalContent>` are visible outside it,
+    // and the same name in two branches is not ambiguous: `$x` is resolved as `$cc.x`,
+    // left for the container to resolve with the active branch (D13, D22).
+    let dast_root = dast_root_no_position(
+        r#"
+        <conditionalContent name="cc">
+            <case><m name="x" /><r /></case>
+            <else><n name="x" /></else>
+        </conditionalContent>
+        <p />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let cc_idx = find(&flat_root, "conditionalContent").unwrap();
+    let m_idx = find(&flat_root, "m").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    for path in [vec!["x"], vec!["cc", "x"]] {
+        let referent = resolver.resolve(make_path(&path, None), p_idx, false);
+        assert_eq!(
+            referent,
+            Ok(RefResolution {
+                node_idx: cc_idx,
+                unresolved_path: Some(make_path(["x"], None)),
+                original_path: make_path(&path, None),
+                nodes_in_resolved_path: vec![p_idx, cc_idx],
+                child_indexes: vec![],
+            }),
+            "{path:?}"
+        );
+    }
+
+    // Inside a branch, its own `x` is found
+    let r_idx = find(&flat_root, "r").unwrap();
+    let referent = resolver.resolve(make_path(["x"], None), r_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(m_idx));
+
+    // A path after the name, or an index, is left for the container too
+    let referent = resolver.resolve(
+        make_path_with_indices(
+            &[TestPathPart {
+                name: "x",
+                indices: vec!["2"],
+            }],
+            None,
+        ),
+        p_idx,
+        false,
+    );
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path.unwrap()[0].name.clone())),
+        Ok((cc_idx, "x".to_string()))
+    );
+}
+
+#[test]
+fn a_name_beside_a_container_with_it_in_its_branches_is_ambiguous() {
+    for dast in [
+        r#"<m name="x" /><conditionalContent><case><n name="x" /></case></conditionalContent><p />"#,
+        r#"<conditionalContent><case><n name="x" /></case></conditionalContent><m name="x" /><p />"#,
+        r#"<conditionalContent><case><n name="x" /></case></conditionalContent><select><option><m name="x" /></option></select><p />"#,
+    ] {
+        let flat_root = FlatRoot::from_dast(&dast_root_no_position(dast));
+        let p_idx = find(&flat_root, "p").unwrap();
+        let resolver = Resolver::from_flat_root(&flat_root);
+        let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+        assert_eq!(referent, Err(ResolutionError::NonUniqueReferent), "{dast}");
+    }
+}
+
+#[test]
+fn options_of_a_select_are_visible_only_when_it_picks_one() {
+    for (num_to_select, visible) in [
+        ("", true),
+        (r#"numToSelect="1""#, true),
+        (r#"numtoselect=" 1 ""#, true),
+        (r#"numToSelect="2""#, false),
+        (r#"numToSelect="$k""#, false),
+        // A copy picks as many as what it copies
+        (r#"extend="$t""#, false),
+        (r#"extend="$t" numToSelect="1""#, true),
+        // An attribute name is matched without regard to case
+        (r#"COPY="$t""#, false),
+        (r#"Extend="$t""#, false),
+    ] {
+        let dast = format!(
+            r#"<select name="s" {num_to_select}><option><m name="x" /></option><option><n name="x" /></option></select><p />"#
+        );
+        let flat_root = FlatRoot::from_dast(&dast_root_no_position(&dast));
+        let select_idx = find(&flat_root, "select").unwrap();
+        let p_idx = find(&flat_root, "p").unwrap();
+        let resolver = Resolver::from_flat_root(&flat_root);
+        let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+        if visible {
+            assert_eq!(
+                referent.map(|r| (r.node_idx, r.unresolved_path)),
+                Ok((select_idx, Some(make_path(["x"], None)))),
+                "{dast}"
+            );
+        } else {
+            assert_eq!(referent, Err(ResolutionError::NoReferent), "{dast}");
+        }
+    }
+}
+
+#[test]
+fn names_in_nested_branches_resolve_through_the_outer_container() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <conditionalContent name="outer">
+            <case>
+                <conditionalContent name="inner">
+                    <case><m name="x" /></case>
+                    <else><n name="x" /></else>
+                </conditionalContent>
+            </case>
+            <else><q name="x" /></else>
+        </conditionalContent>
+        <p />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let outer_idx = find(&flat_root, "conditionalContent").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    let referent = resolver.resolve(make_path(["x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((outer_idx, Some(make_path(["x"], None))))
+    );
+    // The inner container is itself named in a branch of the outer one,
+    // so it too is left for the outer one to resolve
+    let referent = resolver.resolve(make_path(["inner", "x"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((outer_idx, Some(make_path(["inner", "x"], None))))
     );
 }
 

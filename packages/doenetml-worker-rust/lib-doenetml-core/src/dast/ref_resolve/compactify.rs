@@ -23,10 +23,23 @@ impl Resolver {
                             Ref::Unique(idx) => {
                                 (key.clone(), Ref::Unique(old_to_new_indices[*idx]))
                             }
+                            Ref::Branches(idx) => {
+                                (key.clone(), Ref::Branches(old_to_new_indices[*idx]))
+                            }
                             Ref::Ambiguous(vec_idx) => (
                                 key.clone(),
                                 Ref::Ambiguous(
-                                    vec_idx.iter().map(|idx| old_to_new_indices[*idx]).collect(),
+                                    vec_idx
+                                        .iter()
+                                        .map(|ref_| match ref_ {
+                                            Ref::Branches(idx) => {
+                                                Ref::Branches(old_to_new_indices[*idx])
+                                            }
+                                            ref_ => Ref::Unique(
+                                                old_to_new_indices[ref_.single_idx().unwrap()],
+                                            ),
+                                        })
+                                        .collect(),
                                 ),
                             ),
                         })
@@ -47,6 +60,7 @@ impl Resolver {
                         index_resolutions,
                         index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
+                        branch_kind: node_data.branch_kind,
                     }
                 } else {
                     NodeResolverData {
@@ -59,6 +73,7 @@ impl Resolver {
                         index_resolutions,
                         index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
+                        branch_kind: node_data.branch_kind,
                     }
                 }
             })

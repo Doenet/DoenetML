@@ -250,15 +250,16 @@ describe("An unlinked copy through a reload @group4", () => {
     });
 
     it("keeps its value through a reload while its source is inactive", async () => {
-        // On load the copy is made again from `cc.a`, inactive then: a copy
-        // of its type still, with no value of its own (main shows a blank),
-        // which takes the held snapshot.
+        // On load the copy is made again from `cc`, inactive then, and
+        // takes the held snapshot. It is a `<group>`, which may hold
+        // nothing: `<math copy="$cc.a"/>` is an error, as `a` is absent
+        // while the case is not (D36, #2450).
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc" condition="$b">
         <mathInput name="a" prefill="1" />
     </conditionalContent>
-    <math copy="$cc.a" name="c" />
+    <group copy="$cc" name="g" />
     <mathInput name="other" />
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
@@ -271,7 +272,7 @@ describe("An unlinked copy through a reload @group4", () => {
             );
             const sv = async (name: string) =>
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues;
-            expect((await sv("c")).value.tree).eq(c);
+            expect((await sv("g.a")).value.tree).eq(c);
             if (a !== undefined) {
                 expect((await sv("cc.a")).value.tree).eq(a);
             }
