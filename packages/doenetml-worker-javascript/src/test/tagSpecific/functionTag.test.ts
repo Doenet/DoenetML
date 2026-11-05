@@ -7936,7 +7936,7 @@ describe("Function tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p1")].stateValues
                     .text,
-            ).eq("＿");
+            ).eq("");
         });
 
         it("gives a derivative rather than no document", async () => {

@@ -2688,7 +2688,11 @@ export default class Copy extends CompositeComponent {
                 num: workspace.replacementsCreated,
             };
 
-            if (await isBareReferenceToOneThing(component, components)) {
+            if (
+                await isBareReferenceToOneThing(component, components, {
+                    withheld: true,
+                })
+            ) {
                 // A bare reference to one thing in a case that is not active
                 // (`$cc.x`) is a blank while it is not (D37), not withheld.
                 // It names no source then, so it is made from its source
@@ -3017,7 +3021,9 @@ export default class Copy extends CompositeComponent {
                 if (
                     allWithheld &&
                     sourceNum === 0 &&
-                    (await isBareReferenceToOneThing(component, components))
+                    (await isBareReferenceToOneThing(component, components, {
+                        withheld: true,
+                    }))
                 ) {
                     // A bare reference to one thing withheld, as in a case
                     // that is not active (`$cc.x`), is a blank while it is
@@ -6452,7 +6458,11 @@ function inPlaceOfCopy({
  * something (`compositesMustHaveAReplacement`, a `<math>`) gets its blank
  * of the type it needs instead (`verifyReplacementsMatchSpecifiedType`).
  */
-async function isBareReferenceToOneThing(component, components) {
+async function isBareReferenceToOneThing(
+    component,
+    components,
+    { withheld = false } = {},
+) {
     if (
         component.componentType !== "_copy" ||
         component.attributes._createComponentOfType?.primitive ||
@@ -6477,6 +6487,11 @@ async function isBareReferenceToOneThing(component, components) {
     if (hasIndex) {
         return true;
     }
+    if (withheld && originalPath?.length > 1) {
+        // A name in a branch that is not active (`$cc.x`), whatever it
+        // names, as it is decided before the branch is made
+        return true;
+    }
     // A name, or a property of what it names: one thing, unless it names a
     // collection as a whole, a composite or a list, whose property is one
     // of each of its members (`$r.y` of a `<repeat>`), possibly none. A
@@ -6489,13 +6504,28 @@ async function isBareReferenceToOneThing(component, components) {
         return true;
     }
     const componentInfoObjects = component.componentInfoObjects;
-    return !(
+    if (
         componentInfoObjects.isCompositeComponent({
             componentType: extended.componentType,
         }) ||
         componentInfoObjects.allComponentClasses[extended.componentType]
             ?.listEntryComponentType !== undefined
-    );
+    ) {
+        return false;
+    }
+    // A property that is an array, such as `$ci.selectedValues` or
+    // `$f.minima`, is a list: its members, possibly none.
+    if (unresolvedPath?.length > 0) {
+        const propName = (
+            await component.stateValues.effectivePropNameBySource
+        )?.[0];
+        const stateVarObj =
+            propName && components[extended.componentIdx]?.state[propName];
+        if (stateVarObj?.isArray) {
+            return false;
+        }
+    }
+    return true;
 }
 
 /**
