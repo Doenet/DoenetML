@@ -76,7 +76,7 @@ The rule goes by referent, not by how the reference is spelled. `$P.h` inside a 
 its referent inside the copied part, so it names the copy's `h`. That reverses CPY-3's
 "through the source's own name" case, and #2367's `$l.h` in a copy of a list. References in
 attributes written on the copy tag itself resolve where the copy is written (NAME-4, D6). The
-same rule covers D33's fresh form. #376 asks for the same for an `extend`.
+same rule covers `copyWithState` (D33). #376 asks for the same for an `extend`.
 
 Nothing decided since changes this. It removes one of the ways D33 found a copy's nested choices
 can change without anything written on the copy saying so.
@@ -786,7 +786,7 @@ single-use child. No test pins the current behavior. Add a sweep: for every comp
 single-use child group, writing two of them uses the second, and adding one in an `extend` or
 `copy` replaces the source's.
 
-## D26. Which type changes may an `extend`, a `copy` or the fresh form make?
+## D26. Which type changes may an `extend`, a `copy` or a `copyWithState` make?
 
 **Decided. Done by #2427 and #2436** (closing #2423, #2414, #2415, #2435). REF-5 states it.
 
@@ -796,9 +796,9 @@ type, or it is an error at load. Only an index and a value conversion are still 
 change.
 
 **Decided:** related types are allowed, and any other pair is an error. The same table decides
-all three forms: `extend`, `copy`, and D33's fresh form, whose name is still open. Each asks
+all three forms: `extend`, `copy` and `copyWithState` (D33). Each asks
 for "a T made from x", and only the conversion differs: linked for an extend, a snapshot for a
-copy, a fresh start for the fresh form.
+`copyWithState`, a fresh start for `copy`.
 
 **Today** (REF-5) an unrelated pair gives a default component of the written type. It comes
 sometimes with an "Invalid children" warning that confuses authors, and sometimes silently: for
@@ -851,7 +851,7 @@ these cases:
   as a value (`<text>$cc</text>`).
 - **any other pair,** such as a section as a math.
 
-**Known at load or at run time.** An error is reported on the extend, copy or fresh form and not
+**Known at load or at run time.** An error is reported on the extend or copy and not
 rendered. When the mismatch depends on what the document makes at run time, it is an **info**,
 and nothing is shown while it lasts. Examples:
 - which case is active, or which option was picked;
@@ -1489,8 +1489,7 @@ instead. For example:
 > Children written inside an `extend` of a `<select>` would be new options, but an extend shows
 > the same choice as `$s`. To choose from more options, use `copy`.
 
-Once D33 names the fresh form, the messages name it instead of `copy` where a new instance is
-meant.
+Since D33, `copy` is the fresh form, so these messages already name the right form.
 
 ### What it changes
 
@@ -1537,7 +1536,13 @@ they need no rewriting to `$x`.
 - one error test for each banned attribute and for added children, checking the message;
 - a `<choiceInput>` extend with an added choice, and with `shuffleOrder`, giving the error.
 
-## D33. Two kinds of copy: written again here, or duplicated with its state (proposed Tier 1; names open)
+## D33. Two kinds of copy: written again here, or duplicated with its state (decided, Tier 1)
+
+**Decided.** `copy` is the fresh form: the source's DoenetML written again here, with no reader
+state and random choices of its own. `copyWithState` is the duplicating form: what `copy` did
+through 0.7, the DoenetML plus the reader's current state and the source's random choices. CPY-1,
+CPY-2 and CPY-8 state them. Open: the migration of existing documents (below), and the two
+smaller points at the end.
 
 **Today** a `copy` carries its source's reader state and random choices (CPY-2, CPY-8), and the
 attributes written on it override the source's (CPY-1, D4). The two conflict when what is written
@@ -1590,10 +1595,10 @@ the same attributes. Today every `<module copy>` repeats the source's draws.
 
 ### Proposal
 
-Let the form decide, never the attributes. Below, `NEW` is a placeholder for the name of the
-second form (see "Names").
+Let the form decide, never the attributes. The fresh form is `copy`, and the duplicating form is
+`copyWithState` (see "Names").
 
-**The fresh form, `<T NEW="$x" …/>`: written again here.**
+**The fresh form, `<T copy="$x" …/>`: written again here.**
 - It is the source's DoenetML pasted (CPY-1): attributes override, children are appended
   (D4), and names inside are private, reached through its name (NAME-3).
 - It carries no reader state and no random choices. It starts as written content does.
@@ -1602,20 +1607,26 @@ second form (see "Names").
   seeded from its own position.
 - References keep meaning what they meant in the source, as for a copy (D1): a referent inside
   the pasted part becomes its counterpart, and one outside is kept.
-- `<module NEW="$m" k="4"/>`, with `m` in `<setup>`, becomes the documented module pattern.
+- `<module copy="$m" k="4"/>`, with `m` in `<setup>`, is the documented module pattern. Each use
+  draws its own values.
+- A copy of a choosing tag chooses again: `<select copy="$x" numToSelect="4"/>` of a two-pick
+  select is a new select making four picks. A copy of a `<conditionalContent>` or `<repeat>` is a
+  new one, deciding its own case or iterations from what its pasted DoenetML refers to.
+- A copy of a property or list entry has no DoenetML, so it holds the value (CPY-5).
 
-**The duplicating form (today's `copy`): duplicated with its state.** It always keeps its source's
+**The duplicating form, `<T copyWithState="$x" …/>`: duplicated with its state** (what `copy` did
+through 0.7). It always keeps its source's
 reader state and random choices (CPY-2, CPY-8), whatever is written on it.
 - **Known before the document runs → error.** Writing on it an attribute that decides what a
   choosing tag chooses (`numToSelect`, `withReplacement`, a range, `exclude`, a sampler's
   `numSamples` or distribution) is an error, as is adding children that are options (an
   `<option>` inside a copy of a `<select>`). The check goes by attribute name, so
   `numToSelect="2"` and `numToSelect="3"` behave the same, computed or not. The error says to use
-  the fresh form. This matches D32, which makes the same changes an error on an `extend`.
+  `copy`. This matches D32, which makes the same changes an error on an `extend`.
 - **Known only at run time → warning.** When what is written reaches nested content, as `k`
   does above, the carried choices win and a
-  warning says to use the fresh form. The mismatch may only appear after the reader interacts, so
-  it cannot be an error. `<module copy="$m" k="2"/>` and `k="4"` then behave the same: the
+  warning says to use `copy`. The mismatch may only appear after the reader interacts, so
+  it cannot be an error. `<module copyWithState="$m" k="2"/>` and `k="4"` then behave the same: the
   source's choices. `k` itself still takes the written value. Only the nested choice, which
   nothing written on the copy names, keeps the source's, so the result does not depend on the
   value of `k`.
@@ -1646,80 +1657,85 @@ again.
 
 **For the author, one sentence each:**
 - `extend`: the same component, with your changes;
-- the duplicating form: a duplicate, as it is now;
-- the fresh form: written again here.
+- `copyWithState`: a duplicate, with the reader's work and the random choices;
+- `copy`: written again here.
 
-### Names
+### Names (decided)
 
-Left open, for feedback. Two directions:
-1. **Keep `copy` for the duplicating form, and name the fresh one** (`instance`, `use`,
-   `template`, `new`). Existing documents keep their meaning. The migration is below.
-2. **Give `copy` the fresh meaning, and name the duplicating form** by what it adds:
-   `copyWithState`, or a name like `snapshot`.
-   - The fresh form is then stated simply: "`copy` is the DoenetML pasted". The duplicating form
-     is stated as an addition: "and also the reader's work and the random choices".
-   - The module pattern uses plain `copy`, as authors write today.
-   - `snapshot` suggests the result is frozen. It is not: inputs in it still change, and
-     references inside it stay live (CPY-3).
-   - Every existing `copy` of random content, or of content the reader changed, would change
-     meaning. That needs a migration of its own: a version gate, or an automatic rename of
-     existing `copy` attributes.
+**Direction 2:** `copy` has the fresh meaning, and the duplicating form is `copyWithState`.
+- The fresh form is stated simply: "`copy` is the DoenetML pasted". The duplicating form is stated
+  as an addition: "and also the reader's work and the random choices".
+- The module pattern uses plain `copy`, as authors write today.
+- `snapshot` was rejected: it suggests the result is frozen, but inputs in it still change and
+  references inside it stay live (CPY-3).
 
-### Migration (direction 1)
+### Migration (open)
 
-- `<module copy>` with attributes keeps today's draws, except where an attribute changes a nested
-  choice. Today that shows nothing (above), and after this it shows the source's choices with a
-  warning.
-- A hint on `<module copy>` of a module in `<setup>` points to the fresh form.
-- Moving existing content to the fresh form changes its random values. doenet.org does not let
-  the source or DoenetML version of assigned content change, so assigned work is not affected.
+Every existing `copy` of random content, or of content the reader changed, changes meaning. The
+options:
+- **(a) An automatic rename:** a converter turns `copy` into `copyWithState` in documents written
+  for 0.7, as `packages/v06-to-v07` did for the last version. Existing documents keep their
+  meaning, and authors move to `copy` where they meant the fresh form.
+- **(b) A version gate:** the meaning of `copy` depends on the document's DoenetML version.
+
+**Recommendation: (a).** One meaning per attribute is easier to explain and to maintain.
+doenet.org does not let the source or DoenetML version of assigned content change, so assigned
+work is not affected either way. Many 0.7 uses of `<module copy>` meant the fresh form; a hint on
+`copyWithState` of a module in `<setup>` can suggest `copy`.
 
 ### What it changes
 
-- **CPY-8** becomes absolute: a copy keeps its source's choices, with no exception for copies that
-  change what is chosen. B11 is resolved by the error and the warning above.
+- **CPY-8** applies to `copyWithState`, and becomes absolute there: it keeps its source's choices,
+  with no exception for copies that change what is chosen. B11 is resolved: under `copy` the select
+  chooses again, and under `copyWithState` the attribute is an error.
 - **#2392.** Its diagnostics, which stop a mismatch from failing the document, are needed in any
   case. Its resampling becomes the error (by attribute name) or the warning (at run time). Its
   per-class lists of attributes that decide choices (`attributesDeterminingChoices`) become what
   the error checks.
-- **COMP-13.** The module pattern becomes the fresh form with attributes. A copy of a module with
+- **COMP-13.** The module pattern is `copy` with attributes. `copyWithState` of a module with
   attributes stays allowed, as a duplicate.
 - **Documents that promise a new choice from a copy:**
   - `reference/pretzel.mdx` says a copy with added problems, or a `mode` that does not allow the
-    source's order, makes a new order. That moves to the fresh form.
+    source's order, makes a new order. That is still true of `copy`, which now always makes a new
+    order.
   - **[probe]** `<choiceInput copy="$ci" shuffleOrder>` with an added `<choice>` shuffles again
-    today. An added choice is an option, so it becomes the error above when the order is
-    shuffled. Whether that applies when `shuffleOrder` is not known until run time is a detail
+    today, which is what `copy` does now. Under `copyWithState` an added choice is an option, so
+    it is the error above when the order is shuffled. Whether that applies when `shuffleOrder` is not known until run time is a detail
     to settle.
-- **D32.** Its error message names the fresh form, not `copy`, as the way to make a new
-  repeat or select.
+- **D32.** Its error message already names `copy` as the way to make a new repeat or select, which
+  is now exactly the fresh form.
 - **D17** is the mechanism for the fresh form's randomness.
 - **D18** no longer has to say which carried state "still fits" a changed copy.
 - **D2** gains the rule that what is written on a copy takes precedence over carried state,
   including the reader's change to that same attribute.
-- **D28.** The fresh form gives option (d)'s "start here, then change on your own" a natural
+- **D28.** `copy` gives option (d)'s "start here, then change on your own" a natural
   place, though `copy="$x0.value"` is still needed for a single value.
 
 ### Open points
 
-- The names (above).
-- Whether a copy of a `choiceInput` with added choices is an error only when its order is
-  shuffled.
+- The migration (above).
+- Whether `copyWithState` of a `choiceInput` with added choices is an error only when its order
+  is shuffled.
 - Whether several fresh uses of one module should ever share draws. If so, the author would ask
   for it explicitly, for example with a seed attribute.
 
-**Tests that change** depend on the name. Under direction 1:
-- #2392's `copy_changes_choices.test.ts`, if merged: its resampling cases become error and
-  warning cases;
-- copies of a select, pretzel or choiceInput with added options;
-- `module.test.ts` cases that copy a module with attributes and expect independent values, if
-  any. None are known.
+**Tests that change:**
+- every test that relies on `copy` carrying reader state or random choices moves to
+  `copyWithState`: `unlinked copy.test.ts` (the snapshot tests, `:2112-2312`),
+  `unlinked_copy_reload.test.ts`, `group_copy_variants.test.ts`, `select.test.ts:432`,
+  `selectfromsequence.test.ts:567`, `shuffle.test.ts:47`, `conditionalcontent_case_state.test.ts`,
+  and the copy cases of `type_change_run_time.test.ts` and `valueDrivenDiagnostics.test.ts`;
+- tests of `copy` that pin only pasting (CPY-1, CPY-3 to CPY-7) stay on `copy`;
+- #2392's `copy_changes_choices.test.ts`, if merged: its cases split into `copy` (chooses again)
+  and `copyWithState` (error or warning).
 
 New tests:
-- each choosing tag: the fresh form draws its own values, distinct between two uses and stable
+- each choosing tag under `copy`: it draws its own values, distinct between two uses and stable
   through a reload;
-- the error for each attribute that decides a choice, with literal and computed values;
-- the run-time warning for the module case above.
+- `copy` of an input the reader changed starts at its prefill; `copyWithState` starts where the
+  reader left it;
+- the `copyWithState` error for each attribute that decides a choice, with literal and computed
+  values, and the run-time warning for the module case above.
 
 ## D34. A text's notation when it is read as math: `isLatex` and `format` (proposed Tier 2)
 
@@ -1822,7 +1838,7 @@ Each of these is a document waiting for the reader. None needs to be fixed.
   unrelated type change (D26), a cycle (NAME-7).
 - **warning:** the DoenetML is valid but almost certainly not what was meant, or does nothing.
   The author should change it. Examples: an attribute that is ignored, a deprecated form, an
-  ambiguous name (`doenet-w0105`), a literal `$l[0]`, and D33's warning that a copy's nested
+  ambiguous name (`doenet-w0105`), a literal `$l[0]`, and D33's warning that a `copyWithState`'s nested
   choices kept the source's.
 - **info:** the DoenetML is valid, and with the values it has now, part of it shows nothing or
   something degenerate. The diagnostic only explains why, so that the author is not confused.
@@ -1838,7 +1854,7 @@ from, not on the code:
   choice), it is an info. `$l[$i]` with `i` = 0 is an info.
 
 Run-time detection alone does not make a diagnostic an info. D33's nested choice stays a warning,
-although it is found only at run time, because the author should write the fresh form instead.
+although it is found only at run time, because the author should write `copy` instead.
 
 **What follows:**
 - **#1499** becomes simpler. An index past the end that can change is an info, reported the same
@@ -1897,7 +1913,7 @@ shape of what it finds, and may be nothing.
 ### The principle
 
 **A tag you write makes that tag.** In a document without errors, `<T extend="$x" …>…</T>`
-always makes exactly one T. The same holds for `copy` and for D33's fresh form. Errors are
+always makes exactly one T. The same holds for `copy` and `copyWithState`. Errors are
 excluded: an error shows in place of the component, and the author must change the document
 (DIAG-1).
 

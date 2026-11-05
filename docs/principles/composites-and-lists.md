@@ -350,10 +350,13 @@ ADR 0009 also bans several forms that main's tests use (D13):
     attribute written on it is an error, `doenet-e0060` (D32, #2409; `module.test.ts:1474`,
     `:1571`). Like a group's extend, it can add children, `hide` or a name.
   - References in a supplied attribute resolve where the copy is written (NAME-4).
-  - A copy repeats the source's random choices (CPY-8), so every `<module copy>` of one module
-    shows the same draws, and an attribute that changes a nested choice shows nothing
-    (**[probe]**, `numToSelect="$k"`). D33 proposes a separate form for "use this module again,
-    with its own random values", as the pattern for a module defined in `<setup>`.
+  - **`<module copy="$m" …/>` is the pattern for a module defined in `<setup>`** (D33): each use
+    is written again, with its own random values. `<module copyWithState="$m"/>` repeats the
+    source's draws and reader state (CPY-8); an attribute on it that changes a nested choice
+    gives a warning, and the source's choices win.
+  - **Known violation:** through 0.7, `copy` repeats the source's draws, so every `<module copy>`
+    of one module shows the same values, and an attribute that changes a nested choice shows
+    nothing (**[probe]**, `numToSelect="$k"`).
   - Evidence: `module.test.ts:68`, `:539`, `:1606-1910`.
 - **COMP-14: `<setup>` (Tier 1).**
   - Its content exists and can be referenced, but is never shown.

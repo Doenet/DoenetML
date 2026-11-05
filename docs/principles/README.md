@@ -111,16 +111,15 @@ removed.
 
 **`copy`**
 
-5. `copy="$x"` behaves as if x's DoenetML were pasted there, with the reader's current state
-   and x's random choices carried over. After that the copy is on its own: changing x no
-   longer changes it. References inside it stay live. Ones that pointed into x now point into
-   the copy. Ones that pointed outside x keep their referent, wherever the copy is written
-   (D1, #2397). A child you add inside a copy draws its own random values.
-   (CPY-1 to CPY-3, CPY-8)
-   Proposed (D33): a copy always keeps x's random choices, so an attribute on it that changes
-   what is chosen is an error. A second form, with its name still open, pastes x's DoenetML
-   without its state or choices, for content that should be written again here, such as a
-   module used several times.
+5. `copy="$x"` behaves as if x's DoenetML were written again there: no reader state, and random
+   choices of its own, so two copies of a module draw different values. `copyWithState="$x"` is
+   the same, plus the reader's current state and x's random choices, for repeating a reader's
+   work. (Through 0.7, `copy` meant `copyWithState`.) Either way the copy is on its own after
+   that: changing x no longer changes it. References inside it stay live. Ones that pointed into
+   x now point into the copy. Ones that pointed outside x keep their referent, wherever the copy
+   is written (D1, #2397). A child you add inside a copy draws its own random values. On
+   `copyWithState`, an attribute that changes what is chosen is an error: use `copy`.
+   (CPY-1 to CPY-3, CPY-8; D33)
 6. A copy of a reference pastes what the reference points to. A copy of a property
    (`copy="$P.x"`) has no DoenetML to paste, so it holds the value. (CPY-4, CPY-5)
 7. A copy is independent of what it copied, but not of what that refers to. To start
