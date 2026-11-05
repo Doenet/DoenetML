@@ -9,7 +9,7 @@ A Visual Studio Code extension to make writing [Doenet](https://doenet.org) docu
 
 -   Syntax highlighting and auto-completion for `.doenet` files. Suggestions come from the Doenet schema and appear as you type; press Ctrl+Space (or Ctrl+I / Cmd+I) to ask for the elements available at the cursor anywhere in a document.
 -   Highlights invalid doenet attributes
--   Previewing of doenet documents. To access, open the command pallet (Ctrl+Shift+P) and select the `Preview Doenet` action. When a document has more than one variant, a drop-down at the top of the preview switches between them.
+-   Previewing of doenet documents. To access, open the command palette (Ctrl+Shift+P) and select the `Preview Doenet` action. When a document has more than one variant, a drop-down at the top of the preview switches between them.
 -   Navigating between the source and the preview. Cmd+click (macOS) / Ctrl+click (Windows/Linux) a rendered element in the preview to put the editor's cursor on the DoenetML that produced it. In the other direction the preview follows the editor's cursor as you move it; turn that off with the `doenet.preview.scrollPreviewWithEditor` setting and scroll the preview when you ask instead, with the `Scroll Doenet Preview to Cursor` command (Ctrl+Alt+P, Cmd+Alt+P on macOS), which works either way.
 -   Pretty-printing of Doenet source code.
 
@@ -19,7 +19,7 @@ A Visual Studio Code extension to make writing [Doenet](https://doenet.org) docu
 
 ### Identifying Doenet Documents
 
-Open the a folder in VSCode. Open any of your source documents. If it has a `.doenet` file extension, it should be identified as a Doenet document, and you will see "Doenet" as the language in the bottom right corner of the window. You can associate other file extensions with the Doenet language using the "Files: Associations" setting (Ctrl+, brings up settings). Or you can select Doenet for a particular document using the "Change Language Mode" command.
+Open a folder in VSCode. Open any of your source documents. If it has a `.doenet` file extension, it should be identified as a Doenet document, and you will see "Doenet" as the language in the bottom right corner of the window. You can associate other file extensions with the Doenet language using the "Files: Associations" setting (Ctrl+, brings up settings). Or you can select Doenet for a particular document using the "Change Language Mode" command.
 
 Having a document identified as a Doenet document will give you:
 
