@@ -416,3 +416,7 @@ and tick, in instructions, as ADR 0015's steps were.
    the abstract build running emit point here; ADR 0015's status and its
    "What each stage takes from the other" point to an amendment of
    2026-11-05, which restates what the compile reads of the build.
+   ADR 0012's section of the same date measures what Consequences said
+   the migration would: over the fixtures without a repeat or a select,
+   the abstract build takes a median 0.71 of what it took before step 1,
+   and a load 0.93, the load within run-to-run noise.
