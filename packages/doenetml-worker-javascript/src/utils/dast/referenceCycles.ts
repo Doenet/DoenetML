@@ -19,8 +19,8 @@
  *   index into a composite names one of what it holds, decided only when it
  *   runs, so neither is an edge;
  * - a composite (`<conditionalContent>`, `<group>`, `<repeat>`, …), a
- *   `<case>` or an `<option>` to each child, as what it holds is made from
- *   them;
+ *   `<case>` or an `<option>` to each child but a `<setup>`, as what it
+ *   holds is made from them;
  * - a tag whose value is made from its children (`VALUE_FROM_CHILDREN`: a
  *   `<math>`, a `<text>`, …), or a reference written as one, to each child
  *   that is not a `<label>`. A component's own label may read the component
@@ -155,7 +155,8 @@ export function breakReferenceCycles({
     function childEdges(component: SerializedComponent, skipLabels: boolean) {
         const edges: number[] = [];
         for (const child of component.children ?? []) {
-            if (typeof child === "string") {
+            if (typeof child === "string" || child.componentType === "setup") {
+                // a `<setup>` is not part of what its parent holds or shows
                 continue;
             }
             if (

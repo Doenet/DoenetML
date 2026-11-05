@@ -777,21 +777,26 @@ describe("A reference written as a tag of a composite is decided when the docume
     it("what a composite read once holds is read again from inside a cycle through it", async () => {
         // `$X` is read first for `$W`, where it holds `<math>` (`c2`) or
         // `<text>`. For `c2`, X's case holds `c2` itself, so what Y holds
-        // is not decided, whether or not `$W` is written.
+        // is not decided, whether or not `$W` is written. `$c2`, `$X` and
+        // `c2` are a cycle through the cases, an error at each when the
+        // document loads (`referenceCycles.ts`), in place of `c2`.
         const cycle = `
 <booleanInput name="b"/>
 <conditionalContent name="X"><case condition="$b">$c2</case><else><text>t</text></else></conditionalContent>
 <conditionalContent name="Y"><case condition="$b">$X</case><else><math>2</math></else></conditionalContent>
 <p name="p2"><math name="c2" extend="$Y"/></p>`;
+        const cycleErrors = ["doenet-e0005", "doenet-e0005", "doenet-e0005"];
         const d1 = await setup(cycle);
-        expect(await d1.texts(["p2"])).eqls({ p2: "2" });
+        expect(await d1.texts(["p2"])).eqls({ p2: "" });
         expect(d1.newDiagnostics()).eqls([]);
+        expect(d1.errors()).eqls(cycleErrors);
 
         const d2 = await setup(
             `<conditionalContent name="W"><case condition="$b">$X</case><else><math>3</math></else></conditionalContent><p name="p1"><text extend="$W"/></p>` +
                 cycle,
         );
-        expect(await d2.texts(["p2"])).eqls({ p2: "2" });
+        expect(await d2.texts(["p2"])).eqls({ p2: "" });
+        expect(d2.errors()).eqls([...cycleErrors, "doenet-e0066"]);
         expect(d2.newDiagnostics()).eqls([
             {
                 code: "doenet-e0066",
@@ -1364,27 +1369,35 @@ describe("What still changes at run time, without changing what the component is
 `);
         // The else of `cc` holds two components, decided when the document
         // loads, for the tag in each case of `cc`, reported then though the
-        // case is not shown (DIAG-7); the others are circular, as on main,
-        // reported once for each cycle.
+        // case is not shown (DIAG-7), and only that: not circular too, once
+        // made. The extends of `c1` and `c2`, and of `k1`, `k2` and
+        // `k3`, are circular, an error at each extend, decided when the
+        // document loads over every case (B32, #2439,
+        // `referenceCycles.ts`).
         expect(await d.texts(["p1", "p2", "p3"])).eqls({
             p1: "x",
             p2: "12",
             p3: "",
         });
-        expect(d.errors().sort()).eqls([
+        const atLoad = [
+            "doenet-e0005",
+            "doenet-e0005",
+            "doenet-e0005",
             "doenet-e0005",
             "doenet-e0005",
             "doenet-e0064",
             "doenet-e0064",
-        ]);
+        ];
+        expect(d.errors().sort()).eqls(atLoad);
 
-        // `c1` and `c2` extending each other still report their cycle again
-        // when the cases change (B32, #2439, a known violation of DIAG-7).
+        // nothing new when the cases change
         await d.setBoolean("b", true);
-        expect(await d.texts(["p2", "p3"])).eqls({ p2: "＿", p3: "" });
+        expect(await d.texts(["p3"])).eqls({ p3: "" });
+        expect(d.errors().sort()).eqls(atLoad);
 
         await d.setBoolean("b", false);
         expect(await d.texts(["p2"])).eqls({ p2: "12" });
+        expect(d.errors().sort()).eqls(atLoad);
     });
 
     it("what is shown and what is decided are the same after a reload, in each state", async () => {

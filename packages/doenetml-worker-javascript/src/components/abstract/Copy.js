@@ -1605,6 +1605,45 @@ export default class Copy extends CompositeComponent {
 
         let compositeAttributesObj = this.createAttributesObject();
 
+        // What the DoenetML could decide was decided when the document
+        // loaded (D36): its error, or its missing tag, whatever its source
+        // holds or its index names now. Decided before anything is made from
+        // the source, which, for a tag in what it is of (`<math
+        // extend="$cc"/>` in a case of `cc`), would report it as circular
+        // too, once it is made.
+        const atLoad = await typeChangeAtLoadError({
+            component,
+            components,
+            componentInfoObjects,
+            workspace,
+        });
+        if (atLoad) {
+            const stateIdInfo = {
+                prefix: `${component.stateId}|`,
+                num: workspace.replacementsCreated,
+            };
+            workspace.typeChangeKey = typeChangeKey(atLoad);
+            diagnostics.push(atLoad.diagnostic);
+            const inPlace = inPlaceOfCopy({
+                component,
+                componentInfoObjects,
+                compositeAttributesObj,
+                typeChange: atLoad,
+                stateIdInfo,
+                nComponents,
+            });
+            workspace.numReplacementsBySource = [inPlace.replacements.length];
+            workspace.numNonStringReplacementsBySource = [
+                inPlace.replacements.length,
+            ];
+            workspace.replacementsCreated = stateIdInfo.num;
+            return {
+                replacements: inPlace.replacements,
+                diagnostics,
+                nComponents: inPlace.nComponents,
+            };
+        }
+
         let replacementSourceIdentities =
             await component.stateValues.replacementSourceIdentities;
         if (
@@ -1618,35 +1657,6 @@ export default class Copy extends CompositeComponent {
                 prefix: `${component.stateId}|`,
                 num: workspace.replacementsCreated,
             };
-
-            // What the DoenetML could decide was decided when the document
-            // loaded (D36), whatever the index names now.
-            const atLoad = await typeChangeAtLoadError({
-                component,
-                components,
-                componentInfoObjects,
-                workspace,
-            });
-            if (atLoad) {
-                workspace.typeChangeKey = typeChangeKey(atLoad);
-                diagnostics.push(atLoad.diagnostic);
-                const inPlace = inPlaceOfCopy({
-                    component,
-                    componentInfoObjects,
-                    compositeAttributesObj,
-                    typeChange: atLoad,
-                    stateIdInfo,
-                    nComponents,
-                });
-                replacements = inPlace.replacements;
-                nComponents = inPlace.nComponents;
-                workspace.numReplacementsBySource = [replacements.length];
-                workspace.numNonStringReplacementsBySource = [
-                    replacements.length,
-                ];
-                workspace.replacementsCreated = stateIdInfo.num;
-                return { replacements, diagnostics, nComponents };
-            }
 
             if (await isBareReferenceToOneThing(component, components)) {
                 // A bare reference with no referent (`$nothing`) is a blank,

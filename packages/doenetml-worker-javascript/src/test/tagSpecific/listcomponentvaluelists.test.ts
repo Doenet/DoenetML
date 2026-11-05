@@ -1083,7 +1083,11 @@ describe("Value lists as list components @group4", async () => {
 
         expect(
             getDiagnosticsByType(core).errors.map((e: any) => e.message),
-        ).eqls(["Circular dependency detected."]);
+        ).eqls([
+            // found when the document loads (`referenceCycles.ts`), naming
+            // the tag the copy is written as
+            "Circular dependency detected involving `<mathList>` component.",
+        ]);
         expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
             p: "1, 2",
         });

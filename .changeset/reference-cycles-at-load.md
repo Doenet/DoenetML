@@ -14,4 +14,6 @@ The cycle is found over every case of a `<conditionalContent>`, every option of 
 
 `<number extend="$r[2].io[1]"/>` of a value in an iteration of a `<repeat>` that is withheld after the document loads now gives the same info (`doenet-i0054`) as when the iteration is withheld at load.
 
+A tag whose error was decided at load, such as `<math extend="$cc"/>` in a case of the `<conditionalContent>` named `cc`, no longer also reports a circular dependency once it is made.
+
 Closes #2439, #2453 and #2430.
