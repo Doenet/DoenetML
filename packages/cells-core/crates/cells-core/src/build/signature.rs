@@ -1,8 +1,8 @@
 //! The input signature: what students can act on in a document, and what
 //! decides what each input shows and whether it exists or can be acted on,
 //! named by stable keys and literals only. It is read off the abstract
-//! build, so an input in any iteration or branch is covered by its
-//! template's.
+//! build's definitions (ADR 0035), so an input in any iteration or branch
+//! is covered by its template's.
 //!
 //! An input's *derivation* is a hash over the backward closure of its
 //! interactive props and of what decides whether it exists or can be acted
@@ -13,12 +13,12 @@
 //! the essential cells in the closure are kept beside it, with whether each
 //! is the input's starting value.
 
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 use super::*;
 use crate::components::prop::{case, conditional_content};
-use crate::program::{InstrIdx, Needs, Op};
+use crate::sym::engine::template_text;
 
 /// A document's inputs, by their element's stable key.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -86,36 +86,50 @@ impl Domain {
     }
 }
 
-impl BuildOutput {
-    /// The input signature of the document this build is the check of,
-    /// with every key passed through `rename` (an editor's renames, applied
-    /// to the version before them).
-    pub(crate) fn signature(
-        &self,
-        compiled: CompiledRef,
-        rename: &dyn Fn(&str) -> String,
-    ) -> Signature {
-        Signer::new(self, compiled, rename).sign()
-    }
+/// The input signature of the document `b` built, read off its
+/// definitions (`slot_cells`, after define), with every key passed
+/// through `rename` (an editor's renames, applied to the version before
+/// them).
+pub(in crate::build) fn sign(
+    b: &Builder<'_>,
+    slot_cells: &SlotCells,
+    rename: &dyn Fn(&str) -> String,
+) -> Signature {
+    Signer::new(b, slot_cells, rename).sign()
 }
 
 /// An input as found: its component, the labelled cells its derivation
 /// starts from, and how many of them (the first) are its interactive props.
-type Found = (CompIdx, Vec<(String, CellIdx)>, usize);
+type Found = (CompIdx, Vec<(String, SlotId)>, usize);
 
-/// What the signature is read off: the build and the compile, and the
-/// hashes found so far.
-struct Signer<'a> {
-    out: &'a BuildOutput,
-    compiled: CompiledRef<'a>,
+/// A cell's value as emit will set it: as its source gives it, or the
+/// expression a seed imports from a number, by its text.
+#[derive(Clone)]
+enum Value {
+    Raw(f64),
+    Expr(String),
+}
+
+/// What the signature is read off: the builder and its definitions, with
+/// what emit will make of each cell that the signature hashes (its class,
+/// its type, its value) and the hashes found so far. A cell is named here
+/// by the slot its aliases merged under (`SlotCells::cell_of`).
+struct Signer<'a, 'c> {
+    b: &'a Builder<'c>,
+    cells: &'a SlotCells,
     rename: &'a dyn Fn(&str) -> String,
-    /// The instruction writing each derived cell, and which of its outputs
-    /// the cell is.
-    producer: Vec<(InstrIdx, u8)>,
+    /// Per slot, whether a student's action can write it: a given value
+    /// whose defining slot it marks is essential, any other a constant
+    /// (ADR 0018).
+    writable: Vec<bool>,
+    /// Each cell's value type.
+    types: Vec<ValueType>,
+    /// The value each seed gives its cell.
+    seeded: HashMap<SlotId, Value>,
     /// Each cell's hash, once found.
     hashes: Vec<Option<u64>>,
     /// Each essential cell's (element key, prop).
-    named: HashMap<CellIdx, (String, String)>,
+    named: HashMap<SlotId, (String, String)>,
 }
 
 fn hash_of(x: impl Hash) -> u64 {
@@ -133,70 +147,113 @@ fn bits(v: f64) -> u64 {
     }
 }
 
-impl<'a> Signer<'a> {
-    fn new(
-        out: &'a BuildOutput,
-        compiled: CompiledRef<'a>,
-        rename: &'a dyn Fn(&str) -> String,
-    ) -> Self {
-        let n = out.cells.len();
-        let mut producer = vec![(InstrIdx::NONE, 0u8); n];
-        for (i, instr) in out.instrs.iter().enumerate() {
-            for k in 0..instr.op.n_out() {
-                producer[instr.out.index() + k] = (InstrIdx::from_index(i), k as u8);
+impl<'a, 'c> Signer<'a, 'c> {
+    fn new(b: &'a Builder<'c>, cells: &'a SlotCells, rename: &'a dyn Fn(&str) -> String) -> Self {
+        let n = b.sources.len();
+        let writable = b.writable_slots(cells);
+        // A typed slot's cell is of its type; a symbolic operator that
+        // makes math makes a math cell.
+        let mut types = vec![ValueType::Number; n];
+        for &(s, ty) in &b.typed_slots {
+            types[cells.cell_of(s).index()] = ty;
+        }
+        let mut signer = Signer {
+            b,
+            cells,
+            rename,
+            writable,
+            types,
+            seeded: HashMap::new(),
+            hashes: vec![None; n],
+            named: HashMap::new(),
+        };
+        // Seeds read the types the slots declare, before an operator's
+        // output is typed by what it makes.
+        signer.seed();
+        for s in SlotId::below(n) {
+            let makes_math = match b.sources[s.index()] {
+                BuiltSource::Op(PlannedOp::Template { .. }, ..) => true,
+                BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(kind)), ..) => kind.makes_math(),
+                _ => false,
+            };
+            if makes_math && cells.defines(s) {
+                signer.types[cells.cell_of(s).index()] = ValueType::Math;
             }
         }
-        let keys = &compiled.plans.keys;
-        let mut named = HashMap::new();
-        for (i, &(key, prop)) in out.structure.essential_keys.iter().enumerate() {
+        for s in SlotId::below(n) {
+            if !signer.is_essential_def(s) {
+                continue;
+            }
+            let (_, _, (key, prop)) = b.essential_key(s);
+            let keys = &b.compiled.plans.keys;
             let prop = keys
                 .prop_key(key, prop)
                 .unwrap_or_else(|| format!("(hidden {prop})"));
-            named.insert(
-                CellIdx::from_index(out.n_const + i),
-                (rename(keys.key_text(key)), prop),
-            );
+            signer
+                .named
+                .insert(cells.cell_of(s), (rename(keys.key_text(key)), prop));
         }
-        Signer {
-            out,
-            compiled,
-            rename,
-            producer,
-            hashes: vec![None; n],
-            named,
+        signer
+    }
+
+    /// What the seeds give (`Builder::seed_cells`): each seeded cell takes
+    /// its source cell's value, a number as the expression emit imports it
+    /// as. A seed whose source is computed fails the build at emit and
+    /// gives nothing here.
+    fn seed(&mut self) {
+        let b = self.b;
+        for &(s, from) in &b.seeds {
+            let mut src = self.cells.cell_of(from);
+            let stand_in = b
+                .follows_counts
+                .iter()
+                .any(|&c| self.cells.cell_of(b.slot(c, prop::collect::COUNT)) == src);
+            let source = &b.sources[self.cells.def(src).index()];
+            if stand_in && let BuiltSource::Op(PlannedOp::Spec(OpSpec::Copy), start, 1) = *source {
+                src = self.cells.cell_of(b.op_inputs[start.index()]);
+            }
+            if matches!(source, BuiltSource::Op(..) | BuiltSource::VecOut(..)) && !stand_in {
+                continue;
+            }
+            let seed = match self.value(src) {
+                Value::Raw(v) if self.types[src.index()] == ValueType::Math || v.is_nan() => {
+                    Value::Raw(v)
+                }
+                Value::Raw(v) => Value::Expr(template_text(&Tree::<u32>::Num(v))),
+                expr => expr,
+            };
+            self.seeded.insert(self.cells.cell_of(s), seed);
         }
     }
 
     fn sign(mut self) -> Signature {
-        let out = self.out;
-        let t = &out.components;
+        let b = self.b;
+        let t = &b.components;
         // Each input with the cells its derivation starts from, labelled.
         let mut found: Vec<Found> = Vec::new();
         for c in CompIdx::below(t.component_type.len()) {
             let ty = t.component_type[c.index()];
-            let cells = t.comp_cells(c);
-            let interactive: Vec<usize> = (0..cells.len())
-                .filter(|&pi| ty.is_input_prop(cells.len(), pi))
-                .collect();
+            let np = b.n_public(c);
+            let interactive: Vec<usize> = (0..np).filter(|&pi| ty.is_input_prop(np, pi)).collect();
             if (interactive.is_empty() && ty != ComponentType::Select)
-                || out.comp_keys[c.index()] == ElemKey::NONE
+                || b.comp_key(c) == ElemKey::NONE
             {
                 continue;
             }
-            let mut seeds: Vec<(String, CellIdx)> = interactive
+            let mut seeds: Vec<(String, SlotId)> = interactive
                 .iter()
-                .map(|&pi| (prop_label(ty, cells.len(), pi), cells[pi]))
+                .map(|&pi| (prop_label(ty, np, pi), self.prop_cell(c, pi)))
                 .collect();
             // What an answer submits and what an updateValue sets.
-            for (pi, &cell) in cells.iter().enumerate() {
-                let name = prop_label(ty, cells.len(), pi);
+            for pi in 0..np {
+                let name = prop_label(ty, np, pi);
                 let reads = match ty {
                     ComponentType::Answer | ComponentType::Response => name == "response",
                     ComponentType::UpdateValue => true,
                     _ => false,
                 };
                 if reads && !interactive.contains(&pi) {
-                    seeds.push((name, cell));
+                    seeds.push((name, self.prop_cell(c, pi)));
                 }
             }
             // Whether it exists or can be acted on: the hide of it and
@@ -204,21 +261,24 @@ impl<'a> Signer<'a> {
             let mut a = c;
             loop {
                 let aty = t.component_type[a.index()];
-                let acells = t.comp_cells(a);
+                let anp = b.n_public(a);
                 let label = |p: &str| format!("{p}@{}", self.ancestor_label(a));
                 if let Some(h) = aty.prop_index("hide") {
-                    seeds.push((label("hide"), acells[h]));
+                    seeds.push((label("hide"), self.prop_cell(a, h)));
                 }
                 match aty {
-                    ComponentType::Case => seeds.push((label("active"), acells[case::ACTIVE])),
-                    ComponentType::ConditionalContent => {
-                        seeds.push((label("choice"), acells[conditional_content::CHOICE]))
+                    ComponentType::Case => {
+                        seeds.push((label("active"), self.prop_cell(a, case::ACTIVE)))
                     }
+                    ComponentType::ConditionalContent => seeds.push((
+                        label("choice"),
+                        self.prop_cell(a, conditional_content::CHOICE),
+                    )),
                     ComponentType::RepeatForSequence
                     | ComponentType::RepeatFor
                     | ComponentType::FunctionIterates => {
-                        for (pi, &cell) in acells.iter().enumerate() {
-                            seeds.push((label(&prop_label(aty, acells.len(), pi)), cell));
+                        for pi in 0..anp {
+                            seeds.push((label(&prop_label(aty, anp, pi)), self.prop_cell(a, pi)));
                         }
                     }
                     _ => {}
@@ -232,11 +292,11 @@ impl<'a> Signer<'a> {
             found.push((c, seeds, interactive.len()));
         }
         // The essential cells each input's closure reads.
-        let closures: Vec<BTreeSet<CellIdx>> = found
+        let closures: Vec<BTreeSet<SlotId>> = found
             .iter()
             .map(|(_, seeds, _)| self.essential_leaves(seeds.iter().map(|s| s.1)))
             .collect();
-        let mut reached: HashMap<CellIdx, u32> = HashMap::new();
+        let mut reached: HashMap<SlotId, u32> = HashMap::new();
         for leaves in &closures {
             for &l in leaves {
                 *reached.entry(l).or_default() += 1;
@@ -248,11 +308,11 @@ impl<'a> Signer<'a> {
             // A default is the input's starting value only when it is one
             // of the input's props itself, no operator around the input
             // mixes it into anything else, and no other input reaches it.
-            let own: BTreeSet<CellIdx> = seeds[..*n_interactive].iter().map(|s| s.1).collect();
+            let own: BTreeSet<SlotId> = seeds[..*n_interactive].iter().map(|s| s.1).collect();
             let mixed = self.read_by_ops(seeds.iter().map(|s| s.1));
-            let starting = |l: CellIdx| reached[&l] == 1 && own.contains(&l) && !mixed.contains(&l);
+            let starting = |l: SlotId| reached[&l] == 1 && own.contains(&l) && !mixed.contains(&l);
             let ty = t.component_type[c.index()];
-            let cells = t.comp_cells(c);
+            let np = b.n_public(c);
             let mut h = DefaultHasher::new();
             for (label, cell) in seeds {
                 label.hash(&mut h);
@@ -262,12 +322,12 @@ impl<'a> Signer<'a> {
             let input = Input {
                 node: t.dast_node[c.index()],
                 tag: ty.tag(),
-                props: (0..cells.len())
-                    .filter(|&pi| ty.is_input_prop(cells.len(), pi))
+                props: (0..np)
+                    .filter(|&pi| ty.is_input_prop(np, pi))
                     .map(|pi| {
                         (
-                            prop_label(ty, cells.len(), pi),
-                            out.value_types[cells[pi].index()],
+                            prop_label(ty, np, pi),
+                            self.types[self.prop_cell(c, pi).index()],
                         )
                     })
                     .collect(),
@@ -278,17 +338,105 @@ impl<'a> Signer<'a> {
                     .map(|&l| (self.named[&l].clone(), (self.default_hash(l), starting(l))))
                     .collect(),
             };
-            let key = self.key(out.comp_keys[c.index()]);
+            let key = self.key(b.comp_key(c));
             sig.inputs.entry(key).or_insert(input);
         }
         sig
     }
 
+    /// The cell of prop `pi` of component `c`.
+    fn prop_cell(&self, c: CompIdx, pi: usize) -> SlotId {
+        self.cells.cell_of(self.b.slot_base[c.index()].offset(pi))
+    }
+
+    /// Whether slot `s` defines an essential cell: a given value a
+    /// student's action can write.
+    fn is_essential_def(&self, s: SlotId) -> bool {
+        self.cells.defines(s)
+            && matches!(self.b.sources[s.index()], BuiltSource::Given(_))
+            && self.writable[s.index()]
+    }
+
+    /// Whether `cell` is essential: a given value a student's action can
+    /// write.
+    fn is_essential(&self, cell: SlotId) -> bool {
+        self.is_essential_def(self.cells.def(cell))
+    }
+
+    /// Whether `cell` is a constant: a constant, or a given value no
+    /// student's action can write.
+    fn is_const(&self, cell: SlotId) -> bool {
+        let d = self.cells.def(cell);
+        match self.b.sources[d.index()] {
+            BuiltSource::Const(_) => true,
+            BuiltSource::Given(_) => !self.writable[d.index()],
+            _ => false,
+        }
+    }
+
+    /// The operator slot that computes `cell`, and which of its outputs
+    /// the cell is; none for an essential cell or a constant.
+    fn producer(&self, cell: SlotId) -> Option<(SlotId, u8)> {
+        let d = self.cells.def(cell);
+        match self.b.sources[d.index()] {
+            BuiltSource::Op(..) => Some((d, 0)),
+            BuiltSource::VecOut(head, k) => Some((self.cells.def(self.cells.cell_of(head)), k)),
+            _ => None,
+        }
+    }
+
+    /// The cells operator slot `op` reads, in its order.
+    fn op_inputs(&self, op: SlotId) -> Vec<SlotId> {
+        let BuiltSource::Op(_, start, n) = self.b.sources[op.index()] else {
+            unreachable!("an operator slot")
+        };
+        self.b.op_inputs[start.index()..start.index() + n as usize]
+            .iter()
+            .map(|&s| self.cells.cell_of(s))
+            .collect()
+    }
+
+    /// The cells of the flags that hold `cell`, each once, in the order
+    /// the build made them.
+    fn flags(&self, cell: SlotId) -> Vec<SlotId> {
+        let mut flags = Vec::new();
+        for &f in self.cells.flags(cell) {
+            let f = self.cells.cell_of(f);
+            if !flags.contains(&f) {
+                flags.push(f);
+            }
+        }
+        flags
+    }
+
+    /// What `cell` needs: its operator's inputs, then the flags that hold
+    /// it. The one relation the closure and the hash follow.
+    fn needs(&self, cell: SlotId) -> Vec<SlotId> {
+        let mut all = match self.producer(cell) {
+            Some((op, _)) => self.op_inputs(op),
+            None => Vec::new(),
+        };
+        all.extend(self.flags(cell));
+        all
+    }
+
+    /// A cell's value as emit sets it, for a cell no operator computes:
+    /// its source's, unless a seed replaced it.
+    fn value(&self, cell: SlotId) -> Value {
+        if let Some(v) = self.seeded.get(&cell) {
+            return v.clone();
+        }
+        match self.b.sources[self.cells.def(cell).index()] {
+            BuiltSource::Given(v) | BuiltSource::Const(v) => Value::Raw(v),
+            _ => Value::Raw(f64::NAN),
+        }
+    }
+
     /// How a seed names ancestor `a`: its key, or its type for one no
     /// element makes.
     fn ancestor_label(&self, a: CompIdx) -> String {
-        match self.out.comp_keys[a.index()] {
-            ElemKey::NONE => self.out.components.component_type[a.index()]
+        match self.b.comp_key(a) {
+            ElemKey::NONE => self.b.components.component_type[a.index()]
                 .tag()
                 .to_string(),
             key => self.key(key),
@@ -297,38 +445,47 @@ impl<'a> Signer<'a> {
 
     /// A key's text, renamed.
     fn key(&self, key: ElemKey) -> String {
-        (self.rename)(self.compiled.plans.keys.key_text(key))
+        (self.rename)(self.b.compiled.plans.keys.key_text(key))
+    }
+
+    /// A string by its id: the source's, or one the compile added.
+    fn string(&self, id: StrId) -> &str {
+        let strings = &self.b.compiled.dast.strings;
+        match id.index().checked_sub(strings.len()) {
+            None => strings.get(id),
+            Some(extra) => &self.b.compiled.plans.extra_strings[extra],
+        }
     }
 
     /// The essential cells the closure of `seeds` reads.
-    fn essential_leaves(&self, seeds: impl Iterator<Item = CellIdx>) -> BTreeSet<CellIdx> {
+    fn essential_leaves(&self, seeds: impl Iterator<Item = SlotId>) -> BTreeSet<SlotId> {
         let mut leaves = BTreeSet::new();
-        let mut seen: std::collections::HashSet<CellIdx> = std::collections::HashSet::new();
-        let mut stack: Vec<CellIdx> = seeds.collect();
+        let mut seen: HashSet<SlotId> = HashSet::new();
+        let mut stack: Vec<SlotId> = seeds.collect();
         while let Some(cell) = stack.pop() {
             if !seen.insert(cell) {
                 continue;
             }
-            if self.out.is_essential(cell.index()) {
+            if self.is_essential(cell) {
                 leaves.insert(cell);
             }
-            stack.extend(self.needs(cell).all());
+            stack.extend(self.needs(cell));
         }
         leaves
     }
 
-    /// The essential cells an instruction in the closure of `seeds`
-    /// reads: those whose default reaches a seed only through an operator.
-    fn read_by_ops(&self, seeds: impl Iterator<Item = CellIdx>) -> BTreeSet<CellIdx> {
+    /// The essential cells an operator in the closure of `seeds` reads:
+    /// those whose default reaches a seed only through an operator.
+    fn read_by_ops(&self, seeds: impl Iterator<Item = SlotId>) -> BTreeSet<SlotId> {
         let mut read = BTreeSet::new();
-        let mut seen: std::collections::HashSet<CellIdx> = std::collections::HashSet::new();
-        let mut stack: Vec<CellIdx> = seeds.collect();
+        let mut seen: HashSet<SlotId> = HashSet::new();
+        let mut stack: Vec<SlotId> = seeds.collect();
         while let Some(cell) = stack.pop() {
             if !seen.insert(cell) {
                 continue;
             }
-            for i in self.needs(cell).all() {
-                if self.out.is_essential(i.index()) {
+            for i in self.needs(cell) {
+                if self.is_essential(i) {
                     read.insert(i);
                 }
                 stack.push(i);
@@ -337,16 +494,8 @@ impl<'a> Signer<'a> {
         read
     }
 
-    /// What `cell` needs: the one relation the closure and the hash
-    /// follow.
-    fn needs(&self, cell: CellIdx) -> Needs<'a> {
-        let (i, _) = self.producer[cell.index()];
-        let instr = (!i.is_none()).then(|| &self.out.instrs[i.index()]);
-        Needs::new(instr, &self.out.operands.cells, &self.out.holds, cell)
-    }
-
     /// A cell's hash: what it is, never where it is, and what holds it.
-    fn hash(&mut self, cell: CellIdx) -> u64 {
+    fn hash(&mut self, cell: SlotId) -> u64 {
         // Post-order without recursion: a chain of cells may be long.
         let mut stack = vec![(cell, false)];
         while let Some((c, ready)) = stack.pop() {
@@ -354,35 +503,34 @@ impl<'a> Signer<'a> {
                 continue;
             }
             let ci = c.index();
-            let out = self.out;
-            let needs = self.needs(c);
-            let instr = needs.instr();
-            let reads: Vec<CellIdx> = needs.all().collect();
-            let n_inputs = needs.inputs().count();
+            let producer = self.producer(c);
+            let inputs = producer.map_or_else(Vec::new, |(op, _)| self.op_inputs(op));
+            let flags = self.flags(c);
             if !ready {
                 stack.push((c, true));
-                stack.extend(reads.iter().map(|&i| (i, false)));
+                stack.extend(inputs.iter().chain(&flags).map(|&i| (i, false)));
                 continue;
             }
-            let hashes: Vec<u64> = reads
-                .iter()
-                .map(|&i| self.hashes[i.index()].unwrap())
-                .collect();
-            let (ins, holds) = hashes.split_at(n_inputs);
-            let what = if out.is_essential(ci) {
-                hash_of(("e", &self.named[&c], out.value_types[ci] as u8))
-            } else if out.is_const(ci) {
-                hash_of(("f", self.value_hash(c, out.cells[ci])))
-            } else if let Some(instr) = instr {
-                let k = self.producer[ci].1;
+            let hash = |cells: &[SlotId]| -> Vec<u64> {
+                cells
+                    .iter()
+                    .map(|&i| self.hashes[i.index()].unwrap())
+                    .collect()
+            };
+            let (ins, holds) = (hash(&inputs), hash(&flags));
+            let what = if self.is_essential(c) {
+                hash_of(("e", &self.named[&c], self.types[ci] as u8))
+            } else if self.is_const(c) {
+                hash_of(("f", self.value_hash(c, &self.value(c))))
+            } else if let Some((op, k)) = producer {
                 // A `ChoiceIndex`'s count of choices (its second input) is
                 // the input's domain, which condition 1 compares: appending
                 // a choice keeps every index a student could have chosen.
-                let ins = match instr.op {
-                    Op::ChoiceIndex(..) => &ins[..1],
-                    _ => ins,
+                let ins = match self.b.sources[op.index()] {
+                    BuiltSource::Op(PlannedOp::Spec(OpSpec::ChoiceIndex), ..) => &ins[..1],
+                    _ => &ins[..],
                 };
-                hash_of(("d", self.op_hash(instr, &reads[..n_inputs]), k, ins))
+                hash_of(("d", self.op_hash(op, &inputs), k, ins))
             } else {
                 hash_of("unwritten")
             };
@@ -396,57 +544,70 @@ impl<'a> Signer<'a> {
     }
 
     /// An operator as what it computes: its kind (a vector one's options),
-    /// and for a symbolic one its expression with leaves numbered by input.
-    fn op_hash(&self, instr: &Instr, inputs: &[CellIdx]) -> u64 {
-        let ops = &self.out.operands;
-        match instr.op {
-            Op::Sym(_, _, s, _) => match ops.syms[s.index()].kind {
-                SymKind::Instantiate { template, post } => {
-                    let text = self.out.session.engine.borrow().text(template);
-                    hash_of(("instantiate", canonical_leaves(&text, inputs), post as u8))
-                }
-                SymKind::SampleTape { tape } => {
-                    hash_of(("tape", format!("{:?}", self.out.tapes[tape.index()])))
-                }
-                kind => hash_of(format!("{kind:?}")),
-            },
-            Op::Vec(_, _, v, _) => hash_of(format!("{:?}", ops.vecs[v.index()])),
-            op => hash_of(format!("{:?}", op.unbound())),
+    /// and for a symbolic one its planned template with leaves numbered by
+    /// input. A sampled curve hashes as `Sample` over the shape it reads.
+    fn op_hash(&self, op: SlotId, inputs: &[SlotId]) -> u64 {
+        let BuiltSource::Op(planned, ..) = self.b.sources[op.index()] else {
+            unreachable!("an operator slot")
+        };
+        match planned {
+            PlannedOp::Template { template, post } => {
+                // The template over its inputs' positions, printed as the
+                // engine prints it: what the signature has always hashed a
+                // template as, which a cell leaf's number does not change.
+                let tree = self.b.sym_templates[template.index()].map_leaves(|s| {
+                    let cell = self.cells.cell_of(s);
+                    inputs
+                        .iter()
+                        .position(|&x| x == cell)
+                        .map_or(u32::MAX, |p| p as u32)
+                });
+                hash_of((
+                    "instantiate",
+                    canonical_leaves(&template_text(&tree)),
+                    post as u8,
+                ))
+            }
+            PlannedOp::Spec(OpSpec::Sym(kind)) => hash_of(format!("{kind:?}")),
+            PlannedOp::Spec(OpSpec::Vec(v)) => hash_of(format!("{v:?}")),
+            PlannedOp::Spec(spec) => hash_of(scalar_text(spec)),
         }
     }
 
     /// A value as what it means: a number's bits, a string's text, an
     /// expression's text.
-    fn value_hash(&self, cell: CellIdx, v: f64) -> u64 {
+    fn value_hash(&self, cell: SlotId, v: &Value) -> u64 {
+        let v = match v {
+            Value::Expr(text) => return hash_of(("m", text)),
+            Value::Raw(v) => *v,
+        };
         if v.is_nan() {
             return hash_of(bits(v));
         }
-        match self.out.value_types[cell.index()] {
+        match self.types[cell.index()] {
             ValueType::Number => hash_of(bits(v)),
-            ValueType::Text => hash_of(("t", self.out.strings.get(StrId::from_value(v)))),
-            ValueType::Math => hash_of((
-                "m",
-                self.out.session.engine.borrow().text(Handle::from_value(v)),
-            )),
+            ValueType::Text => hash_of(("t", self.string(StrId::from_value(v)))),
+            ValueType::Math => hash_of(("m", self.b.engine.text(Handle::from_value(v)))),
         }
     }
 
-    fn default_hash(&self, cell: CellIdx) -> u64 {
-        let i = cell.index() - self.out.n_const;
-        self.value_hash(cell, self.out.structure.essential_defaults[i])
+    /// The hash of essential `cell`'s default: its value as the build
+    /// starts it.
+    fn default_hash(&self, cell: SlotId) -> u64 {
+        self.value_hash(cell, &self.value(cell))
     }
 
     /// The values a request on input `c` can take.
     fn domain(&mut self, c: CompIdx) -> Domain {
-        let out = self.out;
-        let t = &out.components;
+        let b = self.b;
+        let t = &b.components;
         let ty = t.component_type[c.index()];
         match ty {
             ComponentType::Select => {
-                let key = out.comp_keys[c.index()];
-                let templates = &self.compiled.plans.templates;
+                let key = b.comp_key(c);
+                let templates = &b.compiled.plans.templates;
                 let def =
-                    self.compiled.plans.choices.iter().find(|d| {
+                    b.compiled.plans.choices.iter().find(|d| {
                         templates[d.at.0.index()].sealed.elems[d.at.1.index()].key == key
                     });
                 if let Some(def) = def {
@@ -460,12 +621,12 @@ impl<'a> Signer<'a> {
                 return Domain::Any;
             }
             ComponentType::ChoiceInput => {
-                let d = &self.compiled.dast;
+                let d = b.compiled.dast;
                 let kids = children(t, c);
                 return Domain::Choices(
                     kids.into_iter()
                         .map(|k| {
-                            let key = match out.comp_keys[k.index()] {
+                            let key = match b.comp_key(k) {
                                 ElemKey::NONE => String::new(),
                                 key => self.key(key),
                             };
@@ -491,36 +652,38 @@ impl<'a> Signer<'a> {
         if a == CompIdx::NONE {
             return Domain::Any;
         }
-        let gcells = t.comp_cells(a);
-        let bounds: Vec<CellIdx> = ["xmin", "xmax", "ymin", "ymax"]
+        let bounds: Vec<SlotId> = ["xmin", "xmax", "ymin", "ymax"]
             .iter()
             .map(|p| {
-                gcells[ComponentType::Graph
-                    .prop_index(p)
-                    .expect("a graph has bounds")]
+                self.prop_cell(
+                    a,
+                    ComponentType::Graph
+                        .prop_index(p)
+                        .expect("a graph has bounds"),
+                )
             })
             .collect();
         // A graph's own bounds, given as literals, are essential (a pan
-        // writes them) or constants: their value as the author set it.
+        // writes them) or constants: their value as the author set it,
+        // which is an essential cell's default.
+        let number = |v: Value| match v {
+            Value::Raw(v) => v,
+            Value::Expr(_) => f64::NAN,
+        };
         let literal: Option<Vec<f64>> = bounds
             .iter()
-            .map(|&b| {
-                let bi = b.index();
-                if out.is_essential(bi) && self.named[&b].0 == self.key(out.comp_keys[a.index()]) {
-                    Some(out.structure.essential_defaults[bi - out.n_const])
-                } else if out.is_const(bi) {
-                    Some(out.cells[bi])
-                } else {
-                    None
-                }
+            .map(|&bound| {
+                let own =
+                    self.is_essential(bound) && self.named[&bound].0 == self.key(b.comp_key(a));
+                (own || self.is_const(bound)).then(|| number(self.value(bound)))
             })
             .collect();
         if let Some(v) = literal {
             return Domain::Bounds([v[0], v[1], v[2], v[3]]);
         }
         let mut h = DefaultHasher::new();
-        for &b in &bounds {
-            self.hash(b).hash(&mut h);
+        for &bound in &bounds {
+            self.hash(bound).hash(&mut h);
         }
         for l in self.essential_leaves(bounds.into_iter()) {
             self.named[&l].hash(&mut h);
@@ -528,6 +691,14 @@ impl<'a> Signer<'a> {
         }
         Domain::BoundsBy(h.finish())
     }
+}
+
+/// A scalar operator as the signature has always hashed it: the bound
+/// operator with its inputs left out (`Op::unbound`), printed.
+fn scalar_text(spec: OpSpec) -> String {
+    let zeros = [CellIdx::new(0); 2];
+    let n = spec.scalar_arity().expect("a scalar operator");
+    format!("{:?}", spec.bind_scalar(&zeros[..n]).unbound())
 }
 
 /// Component `c`'s component children.
@@ -548,9 +719,9 @@ fn prop_label(ty: ComponentType, n_props: usize, pi: usize) -> String {
         .map_or_else(|| format!("(hidden {pi})"), |n| n.into_owned())
 }
 
-/// Expression text with each cell leaf (`cellN12`) renamed by its position
-/// among the instruction's inputs (`#0`).
-fn canonical_leaves(text: &str, inputs: &[CellIdx]) -> String {
+/// Expression text with each cell leaf, numbered by its position among the
+/// operator's inputs (`cellN0`), as `N#0`.
+fn canonical_leaves(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     let mut rest = text;
     while let Some(i) = rest.find("cell") {
@@ -562,11 +733,9 @@ fn canonical_leaves(text: &str, inputs: &[CellIdx]) -> String {
             .map_or(0, |s| s.bytes().take_while(u8::is_ascii_digit).count());
         match (kind, digits) {
             (Some(k @ ('N' | 'M')), n) if n > 0 => {
-                let cell = after[1..1 + n].parse().map_or(CellIdx::NONE, CellIdx::new);
-                match inputs.iter().position(|&x| x == cell) {
-                    Some(p) => out.push_str(&format!("{k}#{p}")),
-                    None => out.push_str(&rest[i..i + 5 + n]),
-                }
+                out.push(k);
+                out.push('#');
+                out.push_str(&after[1..1 + n]);
                 rest = &after[1 + n..];
             }
             _ => {
@@ -609,4 +778,437 @@ fn dast_text(d: &crate::dast::Dast, n: NodeId) -> String {
         }
     }
     out
+}
+
+/// The signature read off the abstract build's program, as before
+/// ADR 0035: kept until `tests/signature.rs` has shown the two agree.
+#[cfg(feature = "testing")]
+mod program {
+    use super::*;
+    use crate::program::{InstrIdx, Needs, Op};
+
+    impl BuildOutput {
+        /// The input signature of the document this build is the check of,
+        /// read off its program, with every key passed through `rename`.
+        pub(crate) fn signature(
+            &self,
+            compiled: CompiledRef,
+            rename: &dyn Fn(&str) -> String,
+        ) -> Signature {
+            Signer::new(self, compiled, rename).sign()
+        }
+    }
+
+    type Found = (CompIdx, Vec<(String, CellIdx)>, usize);
+
+    struct Signer<'a> {
+        out: &'a BuildOutput,
+        compiled: CompiledRef<'a>,
+        rename: &'a dyn Fn(&str) -> String,
+        /// The instruction writing each derived cell, and which of its
+        /// outputs the cell is.
+        producer: Vec<(InstrIdx, u8)>,
+        hashes: Vec<Option<u64>>,
+        named: HashMap<CellIdx, (String, String)>,
+    }
+
+    impl<'a> Signer<'a> {
+        fn new(
+            out: &'a BuildOutput,
+            compiled: CompiledRef<'a>,
+            rename: &'a dyn Fn(&str) -> String,
+        ) -> Self {
+            let n = out.cells.len();
+            let mut producer = vec![(InstrIdx::NONE, 0u8); n];
+            for (i, instr) in out.instrs.iter().enumerate() {
+                for k in 0..instr.op.n_out() {
+                    producer[instr.out.index() + k] = (InstrIdx::from_index(i), k as u8);
+                }
+            }
+            let keys = &compiled.plans.keys;
+            let mut named = HashMap::new();
+            for (i, &(key, prop)) in out.structure.essential_keys.iter().enumerate() {
+                let prop = keys
+                    .prop_key(key, prop)
+                    .unwrap_or_else(|| format!("(hidden {prop})"));
+                named.insert(
+                    CellIdx::from_index(out.n_const + i),
+                    (rename(keys.key_text(key)), prop),
+                );
+            }
+            Signer {
+                out,
+                compiled,
+                rename,
+                producer,
+                hashes: vec![None; n],
+                named,
+            }
+        }
+
+        fn sign(mut self) -> Signature {
+            let out = self.out;
+            let t = &out.components;
+            let mut found: Vec<Found> = Vec::new();
+            for c in CompIdx::below(t.component_type.len()) {
+                let ty = t.component_type[c.index()];
+                let cells = t.comp_cells(c);
+                let interactive: Vec<usize> = (0..cells.len())
+                    .filter(|&pi| ty.is_input_prop(cells.len(), pi))
+                    .collect();
+                if (interactive.is_empty() && ty != ComponentType::Select)
+                    || out.comp_keys[c.index()] == ElemKey::NONE
+                {
+                    continue;
+                }
+                let mut seeds: Vec<(String, CellIdx)> = interactive
+                    .iter()
+                    .map(|&pi| (prop_label(ty, cells.len(), pi), cells[pi]))
+                    .collect();
+                for (pi, &cell) in cells.iter().enumerate() {
+                    let name = prop_label(ty, cells.len(), pi);
+                    let reads = match ty {
+                        ComponentType::Answer | ComponentType::Response => name == "response",
+                        ComponentType::UpdateValue => true,
+                        _ => false,
+                    };
+                    if reads && !interactive.contains(&pi) {
+                        seeds.push((name, cell));
+                    }
+                }
+                let mut a = c;
+                loop {
+                    let aty = t.component_type[a.index()];
+                    let acells = t.comp_cells(a);
+                    let label = |p: &str| format!("{p}@{}", self.ancestor_label(a));
+                    if let Some(h) = aty.prop_index("hide") {
+                        seeds.push((label("hide"), acells[h]));
+                    }
+                    match aty {
+                        ComponentType::Case => seeds.push((label("active"), acells[case::ACTIVE])),
+                        ComponentType::ConditionalContent => {
+                            seeds.push((label("choice"), acells[conditional_content::CHOICE]))
+                        }
+                        ComponentType::RepeatForSequence
+                        | ComponentType::RepeatFor
+                        | ComponentType::FunctionIterates => {
+                            for (pi, &cell) in acells.iter().enumerate() {
+                                seeds.push((label(&prop_label(aty, acells.len(), pi)), cell));
+                            }
+                        }
+                        _ => {}
+                    }
+                    let p = t.parent[a.index()];
+                    if p == CompIdx::NONE {
+                        break;
+                    }
+                    a = p;
+                }
+                found.push((c, seeds, interactive.len()));
+            }
+            let closures: Vec<BTreeSet<CellIdx>> = found
+                .iter()
+                .map(|(_, seeds, _)| self.essential_leaves(seeds.iter().map(|s| s.1)))
+                .collect();
+            let mut reached: HashMap<CellIdx, u32> = HashMap::new();
+            for leaves in &closures {
+                for &l in leaves {
+                    *reached.entry(l).or_default() += 1;
+                }
+            }
+            let mut sig = Signature::default();
+            for ((c, seeds, n_interactive), leaves) in found.iter().zip(&closures) {
+                let c = *c;
+                let own: BTreeSet<CellIdx> = seeds[..*n_interactive].iter().map(|s| s.1).collect();
+                let mixed = self.read_by_ops(seeds.iter().map(|s| s.1));
+                let starting =
+                    |l: CellIdx| reached[&l] == 1 && own.contains(&l) && !mixed.contains(&l);
+                let ty = t.component_type[c.index()];
+                let cells = t.comp_cells(c);
+                let mut h = DefaultHasher::new();
+                for (label, cell) in seeds {
+                    label.hash(&mut h);
+                    self.hash(*cell).hash(&mut h);
+                }
+                let input = Input {
+                    node: t.dast_node[c.index()],
+                    tag: ty.tag(),
+                    props: (0..cells.len())
+                        .filter(|&pi| ty.is_input_prop(cells.len(), pi))
+                        .map(|pi| {
+                            (
+                                prop_label(ty, cells.len(), pi),
+                                out.value_types[cells[pi].index()],
+                            )
+                        })
+                        .collect(),
+                    domain: self.domain(c),
+                    derivation: h.finish(),
+                    defaults: leaves
+                        .iter()
+                        .map(|&l| (self.named[&l].clone(), (self.default_hash(l), starting(l))))
+                        .collect(),
+                };
+                let key = self.key(out.comp_keys[c.index()]);
+                sig.inputs.entry(key).or_insert(input);
+            }
+            sig
+        }
+
+        fn ancestor_label(&self, a: CompIdx) -> String {
+            match self.out.comp_keys[a.index()] {
+                ElemKey::NONE => self.out.components.component_type[a.index()]
+                    .tag()
+                    .to_string(),
+                key => self.key(key),
+            }
+        }
+
+        fn key(&self, key: ElemKey) -> String {
+            (self.rename)(self.compiled.plans.keys.key_text(key))
+        }
+
+        fn essential_leaves(&self, seeds: impl Iterator<Item = CellIdx>) -> BTreeSet<CellIdx> {
+            let mut leaves = BTreeSet::new();
+            let mut seen: HashSet<CellIdx> = HashSet::new();
+            let mut stack: Vec<CellIdx> = seeds.collect();
+            while let Some(cell) = stack.pop() {
+                if !seen.insert(cell) {
+                    continue;
+                }
+                if self.out.is_essential(cell.index()) {
+                    leaves.insert(cell);
+                }
+                stack.extend(self.needs(cell).all());
+            }
+            leaves
+        }
+
+        fn read_by_ops(&self, seeds: impl Iterator<Item = CellIdx>) -> BTreeSet<CellIdx> {
+            let mut read = BTreeSet::new();
+            let mut seen: HashSet<CellIdx> = HashSet::new();
+            let mut stack: Vec<CellIdx> = seeds.collect();
+            while let Some(cell) = stack.pop() {
+                if !seen.insert(cell) {
+                    continue;
+                }
+                for i in self.needs(cell).all() {
+                    if self.out.is_essential(i.index()) {
+                        read.insert(i);
+                    }
+                    stack.push(i);
+                }
+            }
+            read
+        }
+
+        fn needs(&self, cell: CellIdx) -> Needs<'a> {
+            let (i, _) = self.producer[cell.index()];
+            let instr = (!i.is_none()).then(|| &self.out.instrs[i.index()]);
+            Needs::new(instr, &self.out.operands.cells, &self.out.holds, cell)
+        }
+
+        fn hash(&mut self, cell: CellIdx) -> u64 {
+            let mut stack = vec![(cell, false)];
+            while let Some((c, ready)) = stack.pop() {
+                if self.hashes[c.index()].is_some() {
+                    continue;
+                }
+                let ci = c.index();
+                let out = self.out;
+                let needs = self.needs(c);
+                let instr = needs.instr();
+                let reads: Vec<CellIdx> = needs.all().collect();
+                let n_inputs = needs.inputs().count();
+                if !ready {
+                    stack.push((c, true));
+                    stack.extend(reads.iter().map(|&i| (i, false)));
+                    continue;
+                }
+                let hashes: Vec<u64> = reads
+                    .iter()
+                    .map(|&i| self.hashes[i.index()].unwrap())
+                    .collect();
+                let (ins, holds) = hashes.split_at(n_inputs);
+                let what = if out.is_essential(ci) {
+                    hash_of(("e", &self.named[&c], out.value_types[ci] as u8))
+                } else if out.is_const(ci) {
+                    hash_of(("f", self.value_hash(c, out.cells[ci])))
+                } else if let Some(instr) = instr {
+                    let k = self.producer[ci].1;
+                    let ins = match instr.op {
+                        Op::ChoiceIndex(..) => &ins[..1],
+                        _ => ins,
+                    };
+                    hash_of(("d", self.op_hash(instr, &reads[..n_inputs]), k, ins))
+                } else {
+                    hash_of("unwritten")
+                };
+                self.hashes[ci] = Some(if holds.is_empty() {
+                    what
+                } else {
+                    hash_of((what, "held", holds))
+                });
+            }
+            self.hashes[cell.index()].unwrap()
+        }
+
+        fn op_hash(&self, instr: &Instr, inputs: &[CellIdx]) -> u64 {
+            let ops = &self.out.operands;
+            match instr.op {
+                Op::Sym(_, _, s, _) => match ops.syms[s.index()].kind {
+                    SymKind::Instantiate { template, post } => {
+                        let text = self.out.session.engine.borrow().text(template);
+                        hash_of(("instantiate", leaves_by_input(&text, inputs), post as u8))
+                    }
+                    SymKind::SampleTape { tape } => {
+                        hash_of(("tape", format!("{:?}", self.out.tapes[tape.index()])))
+                    }
+                    kind => hash_of(format!("{kind:?}")),
+                },
+                Op::Vec(_, _, v, _) => hash_of(format!("{:?}", ops.vecs[v.index()])),
+                op => hash_of(format!("{:?}", op.unbound())),
+            }
+        }
+
+        fn value_hash(&self, cell: CellIdx, v: f64) -> u64 {
+            if v.is_nan() {
+                return hash_of(bits(v));
+            }
+            match self.out.value_types[cell.index()] {
+                ValueType::Number => hash_of(bits(v)),
+                ValueType::Text => hash_of(("t", self.out.strings.get(StrId::from_value(v)))),
+                ValueType::Math => hash_of((
+                    "m",
+                    self.out.session.engine.borrow().text(Handle::from_value(v)),
+                )),
+            }
+        }
+
+        fn default_hash(&self, cell: CellIdx) -> u64 {
+            let i = cell.index() - self.out.n_const;
+            self.value_hash(cell, self.out.structure.essential_defaults[i])
+        }
+
+        fn domain(&mut self, c: CompIdx) -> Domain {
+            let out = self.out;
+            let t = &out.components;
+            let ty = t.component_type[c.index()];
+            match ty {
+                ComponentType::Select => {
+                    let key = out.comp_keys[c.index()];
+                    let templates = &self.compiled.plans.templates;
+                    let def = self.compiled.plans.choices.iter().find(|d| {
+                        templates[d.at.0.index()].sealed.elems[d.at.1.index()].key == key
+                    });
+                    if let Some(def) = def {
+                        return Domain::Options {
+                            keys: def.branch_keys.iter().map(|k| k.to_string()).collect(),
+                            weights: def.weights.iter().map(|&w| bits(w)).collect(),
+                            num_to_select: def.num_to_select,
+                            with_replacement: def.with_replacement,
+                        };
+                    }
+                    return Domain::Any;
+                }
+                ComponentType::ChoiceInput => {
+                    let d = &self.compiled.dast;
+                    let kids = children(t, c);
+                    return Domain::Choices(
+                        kids.into_iter()
+                            .map(|k| {
+                                let key = match out.comp_keys[k.index()] {
+                                    ElemKey::NONE => String::new(),
+                                    key => self.key(key),
+                                };
+                                let node = t.dast_node[k.index()];
+                                let content = if node == NodeId::NONE {
+                                    0
+                                } else {
+                                    hash_of(dast_text(d, node))
+                                };
+                                (key, content)
+                            })
+                            .collect(),
+                    );
+                }
+                ComponentType::Graph => return Domain::Any,
+                _ => {}
+            }
+            let mut a = t.parent[c.index()];
+            while a != CompIdx::NONE && t.component_type[a.index()] != ComponentType::Graph {
+                a = t.parent[a.index()];
+            }
+            if a == CompIdx::NONE {
+                return Domain::Any;
+            }
+            let gcells = t.comp_cells(a);
+            let bounds: Vec<CellIdx> = ["xmin", "xmax", "ymin", "ymax"]
+                .iter()
+                .map(|p| {
+                    gcells[ComponentType::Graph
+                        .prop_index(p)
+                        .expect("a graph has bounds")]
+                })
+                .collect();
+            let literal: Option<Vec<f64>> = bounds
+                .iter()
+                .map(|&b| {
+                    let bi = b.index();
+                    if out.is_essential(bi)
+                        && self.named[&b].0 == self.key(out.comp_keys[a.index()])
+                    {
+                        Some(out.structure.essential_defaults[bi - out.n_const])
+                    } else if out.is_const(bi) {
+                        Some(out.cells[bi])
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            if let Some(v) = literal {
+                return Domain::Bounds([v[0], v[1], v[2], v[3]]);
+            }
+            let mut h = DefaultHasher::new();
+            for &b in &bounds {
+                self.hash(b).hash(&mut h);
+            }
+            for l in self.essential_leaves(bounds.into_iter()) {
+                self.named[&l].hash(&mut h);
+                self.default_hash(l).hash(&mut h);
+            }
+            Domain::BoundsBy(h.finish())
+        }
+    }
+
+    /// Expression text with each cell leaf (`cellN12`) renamed by its
+    /// position among the instruction's inputs (`N#0`).
+    fn leaves_by_input(text: &str, inputs: &[CellIdx]) -> String {
+        let mut out = String::with_capacity(text.len());
+        let mut rest = text;
+        while let Some(i) = rest.find("cell") {
+            out.push_str(&rest[..i]);
+            let after = &rest[i + 4..];
+            let kind = after.chars().next();
+            let digits = after
+                .get(1..)
+                .map_or(0, |s| s.bytes().take_while(u8::is_ascii_digit).count());
+            match (kind, digits) {
+                (Some(k @ ('N' | 'M')), n) if n > 0 => {
+                    let cell = after[1..1 + n].parse().map_or(CellIdx::NONE, CellIdx::new);
+                    match inputs.iter().position(|&x| x == cell) {
+                        Some(p) => out.push_str(&format!("{k}#{p}")),
+                        None => out.push_str(&rest[i..i + 5 + n]),
+                    }
+                    rest = &after[1 + n..];
+                }
+                _ => {
+                    out.push_str("cell");
+                    rest = after;
+                }
+            }
+        }
+        out.push_str(rest);
+        out
+    }
 }

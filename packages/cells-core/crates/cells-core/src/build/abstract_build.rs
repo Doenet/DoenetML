@@ -35,8 +35,6 @@ pub(crate) fn abstract_build(
     checks: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
     let session = Session::new(0);
-    // The session's own engine, which the output keeps, so what the build
-    // made can be read (the input signature reads expressions).
     let mut engine = session.engine.borrow_mut();
     build_with(
         compiled,
@@ -45,6 +43,29 @@ pub(crate) fn abstract_build(
         &mut engine,
         &View::Abstract,
         checks,
+        |_, _| (),
+    )
+    .map(|(u, ())| u)
+}
+
+/// The abstract build with the input signature read off its definitions
+/// (ADR 0035), every key through `rename`. The build is still made, so
+/// emit's rules box what they box; what the signature reads is settled
+/// before it.
+pub(crate) fn abstract_signature(
+    compiled: CompiledRef,
+    rename: &dyn Fn(&str) -> String,
+) -> std::result::Result<(BuildOutput, signature::Signature), Failure> {
+    let session = Session::new(0);
+    let mut engine = session.engine.borrow_mut();
+    build_with(
+        compiled,
+        &session,
+        false,
+        &mut engine,
+        &View::Abstract,
+        true,
+        |b, slot_cells| signature::sign(b, slot_cells, rename),
     )
 }
 

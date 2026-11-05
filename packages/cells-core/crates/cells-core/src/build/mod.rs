@@ -8,8 +8,9 @@
 //! reads. Scope ids are stable for the session, so essential values carry
 //! over per (scope, template slot).
 //!
-//! **Emit**: union-find over aliases makes cells; cells are numbered
-//! (constants, then essential, then derived); and operators are bound.
+//! **Define**: union-find over aliases makes cells, and the author's
+//! operators are oriented. **Emit**: cells are numbered (constants, then
+//! essential, then derived) and operators are bound.
 //! [`BuildOutput::schedule`] then orders the instructions.
 //!
 //! The *abstract build* is the build through a view that folds every
@@ -48,7 +49,7 @@ mod structure;
 mod view;
 mod writable;
 
-pub(crate) use abstract_build::abstract_build;
+pub(crate) use abstract_build::{abstract_build, abstract_signature};
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
 pub use structure::SlotClass;
@@ -75,15 +76,19 @@ use expand::*;
 use view::{CollectCount, Options, Plans, View};
 
 /// Expand, resolve, optionally run the abstract build's count and loop
-/// checks, and emit, through `view`. The failure names the element to box.
-pub(in crate::build) fn build_with(
+/// checks, define, and emit, through `view`. Between define and emit,
+/// `defined` reads the definitions: what the input signature is read off
+/// (ADR 0035), since emit keeps nothing of them. The failure names the
+/// element to box.
+pub(in crate::build) fn build_with<T>(
     compiled: CompiledRef,
     session: &Session,
     reseed: bool,
     engine: &mut Engine,
     view: &View,
     abstract_checks: bool,
-) -> std::result::Result<BuildOutput, Failure> {
+    defined: impl FnOnce(&Builder<'_>, &SlotCells) -> T,
+) -> std::result::Result<(BuildOutput, T), Failure> {
     let mut b = Builder::new(compiled, session, reseed, engine, view);
     let staged = (|| {
         crate::trace::span("expand").run(|| b.expand_all())?;
@@ -101,15 +106,17 @@ pub(in crate::build) fn build_with(
             node: b.failed_node,
         });
     }
+    let slot_cells = crate::trace::span("define").run(|| b.define())?;
+    let read = defined(&b, &slot_cells);
     let u = {
         let _s = crate::trace::span("emit");
-        let u = b.finish()?;
+        let u = b.emit(slot_cells)?;
         crate::trace::count("cells", u.cells.len());
         crate::trace::count("instructions", u.instrs.len());
         crate::trace::count("components", u.components.len());
         u
     };
-    Ok(u)
+    Ok((u, read))
 }
 
 impl<'c> Builder<'c> {
@@ -185,8 +192,17 @@ pub fn build(
 ) -> std::result::Result<BuildOutput, BuildError> {
     let view = View::Stamped { counts };
     let mut engine = session.engine.borrow_mut();
-    build_with(compiled.view(), session, reseed, &mut engine, &view, false)
-        .map_err(|f| BuildError::Unchecked(f.error.to_string()))
+    build_with(
+        compiled.view(),
+        session,
+        reseed,
+        &mut engine,
+        &view,
+        false,
+        |_, _| (),
+    )
+    .map(|(u, ())| u)
+    .map_err(|f| BuildError::Unchecked(f.error.to_string()))
 }
 
 /// A cell's human-readable owner, read from the compile's source, which

@@ -114,6 +114,11 @@ impl SlotCells {
         self.def(self.cell_of(s)) == s
     }
 
+    /// The flag slots that hold `cell`, in the order the build made them.
+    pub(in crate::build) fn flags(&self, cell: SlotId) -> &[SlotId] {
+        self.flags.get(&cell).map_or(&[], Vec::as_slice)
+    }
+
     /// The definition of `slot`'s cell with `source` as what defines it:
     /// its defining slot's source, or another source a slot of it has (a
     /// later iteration's, a seed).

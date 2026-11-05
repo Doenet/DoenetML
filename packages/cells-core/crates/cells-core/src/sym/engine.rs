@@ -80,43 +80,12 @@ impl Engine {
         h
     }
 
-    fn convert<L: Leaf>(&self, t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
-        match t {
-            Tree::Num(v) => number(*v),
-            Tree::Sym(s) if s == BLANK => Expr::Blank,
-            Tree::Sym(s) => Expr::sym(s),
-            Tree::Cell { cell, math } => {
-                let cell = cell.raw();
-                if !leaves.contains(&(cell, *math)) {
-                    leaves.push((cell, *math));
-                }
-                Expr::sym(&leaf_name(cell, *math))
-            }
-            Tree::Add(ts) => Expr::Add(ts.iter().map(|t| self.convert(t, leaves)).collect()),
-            Tree::Mul(ts) => Expr::Mul(ts.iter().map(|t| self.convert(t, leaves)).collect()),
-            Tree::Sub(a, b) => Expr::Add(vec![
-                self.convert(a, leaves),
-                Expr::Neg(Box::new(self.convert(b, leaves))),
-            ]),
-            Tree::Div(a, b) => Expr::Div(
-                Box::new(self.convert(a, leaves)),
-                Box::new(self.convert(b, leaves)),
-            ),
-            Tree::Neg(x) => Expr::Neg(Box::new(self.convert(x, leaves))),
-            Tree::Pow(a, b) => Expr::Pow(
-                Box::new(self.convert(a, leaves)),
-                Box::new(self.convert(b, leaves)),
-            ),
-            Tree::Apply(f, x) => Expr::Apply(Box::new(Expr::sym(f)), vec![self.convert(x, leaves)]),
-        }
-    }
-
     /// Bring a builder tree in. Cell leaves are kept as leaves, by number:
     /// only a tree whose leaves are cells makes a template `instantiate`
     /// can fill.
     pub fn import<L: Leaf>(&mut self, tree: &Tree<L>) -> Handle {
         let mut leaves = Vec::new();
-        let e = self.convert(tree, &mut leaves);
+        let e = convert(tree, &mut leaves);
         let h = self.push(e);
         if !leaves.is_empty() {
             self.leaves.insert(h, leaves);
@@ -268,6 +237,40 @@ impl Engine {
 /// for a math cell.
 pub fn leaf_name(cell: u32, math: bool) -> String {
     format!("cell{}{cell}", if math { 'M' } else { 'N' })
+}
+
+/// A builder tree as an expression, its cell leaves (cell, is math)
+/// appended to `leaves` in first-seen order.
+fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
+    match t {
+        Tree::Num(v) => number(*v),
+        Tree::Sym(s) if s == BLANK => Expr::Blank,
+        Tree::Sym(s) => Expr::sym(s),
+        Tree::Cell { cell, math } => {
+            let cell = cell.raw();
+            if !leaves.contains(&(cell, *math)) {
+                leaves.push((cell, *math));
+            }
+            Expr::sym(&leaf_name(cell, *math))
+        }
+        Tree::Add(ts) => Expr::Add(ts.iter().map(|t| convert(t, leaves)).collect()),
+        Tree::Mul(ts) => Expr::Mul(ts.iter().map(|t| convert(t, leaves)).collect()),
+        Tree::Sub(a, b) => Expr::Add(vec![
+            convert(a, leaves),
+            Expr::Neg(Box::new(convert(b, leaves))),
+        ]),
+        Tree::Div(a, b) => Expr::Div(Box::new(convert(a, leaves)), Box::new(convert(b, leaves))),
+        Tree::Neg(x) => Expr::Neg(Box::new(convert(x, leaves))),
+        Tree::Pow(a, b) => Expr::Pow(Box::new(convert(a, leaves)), Box::new(convert(b, leaves))),
+        Tree::Apply(f, x) => Expr::Apply(Box::new(Expr::sym(f)), vec![convert(x, leaves)]),
+    }
+}
+
+/// A builder tree as text, as `Engine::text` prints it once imported: a
+/// function of the tree alone, held by no engine. A cell leaf prints by
+/// its number (`cellN3`).
+pub fn template_text<L: Leaf>(tree: &Tree<L>) -> String {
+    me::to_text(&convert(tree, &mut Vec::new()), &TextOpts::default())
 }
 
 /// The cell leaf a symbol names, if it is one.

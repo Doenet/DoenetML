@@ -1,11 +1,16 @@
-//! Emit: merge aliases into cells with a union-find, number cells
-//! (constants, the pooled ones first, then essential, then derived) and
-//! bind operators to instructions.
+//! Define and emit. Define merges aliases into cells with a union-find and
+//! orients the author's operators: the definitions, which the walks and
+//! the input signature read. Emit numbers the cells (constants, the pooled
+//! ones first, then essential, then derived) and binds operators to
+//! instructions.
 
 use super::*;
 
 impl<'c> Builder<'c> {
-    pub(in crate::build) fn finish(mut self) -> std::result::Result<BuildOutput, Failure> {
+    /// Define: merge aliased slots into the cells they will share, find
+    /// each cell's defining slot, and orient the author's operators
+    /// (ADR 0026). What every walk and the input signature read.
+    pub(in crate::build) fn define(&mut self) -> std::result::Result<SlotCells, Failure> {
         let n = self.sources.len();
         let mut uf = UnionFind::new(n);
         for (s, src) in self.sources.iter().enumerate() {
@@ -48,11 +53,21 @@ impl<'c> Builder<'c> {
                 def[root] = SlotId::from_index(s);
             }
         }
-        let slot_cells = SlotCells::new(&self, cell_of, def);
+        let slot_cells = SlotCells::new(self, cell_of, def);
         // Each binary operator of the author's math writes the input that
         // leads to state (ADR 0026), before the walks read which inputs it
         // writes.
         self.orient(&slot_cells);
+        Ok(slot_cells)
+    }
+
+    /// Emit: number the cells, bind the operators, seed the values, and
+    /// make the build, from the definitions.
+    pub(in crate::build) fn emit(
+        mut self,
+        slot_cells: SlotCells,
+    ) -> std::result::Result<BuildOutput, Failure> {
+        let n = self.sources.len();
         // Number cells: the constants, the pool's first (ADR 0028), then
         // the essential cells, then the derived ones.
         // Essential values come from the previous build when the slot existed.
@@ -438,8 +453,8 @@ impl<'c> Builder<'c> {
         // Compile curves whose expression has a constant shape into tapes,
         // and take a constant shape's derivative once, unless the load asked for
         // engine sampling. Not in the abstract build, whose instructions
-        // never run: its build is discarded, and the input signature reads
-        // the expressions themselves (`signature.rs`).
+        // never run: its build is discarded, and the input signature was
+        // read off its definitions before emit (`signature.rs`).
         #[cfg(feature = "testing")]
         let compile = !self.session.sample_with_engine && !folds;
         #[cfg(not(feature = "testing"))]
@@ -610,6 +625,7 @@ impl<'c> Builder<'c> {
             .map(|c| self.n_public(c))
             .collect();
 
+        let comp_keys: Vec<ElemKey> = CompIdx::below(n_comps).map(|c| self.comp_key(c)).collect();
         // The next session: this build's scopes and what is still parked;
         // the value store is shared, since the build only read it.
         let session = Session {
@@ -627,20 +643,6 @@ impl<'c> Builder<'c> {
             pool,
             last_build: (self.components.component_type.len(), self.sources.len()),
         };
-        let comp_keys: Vec<ElemKey> = self
-            .comp_instance
-            .iter()
-            .map(|&i| {
-                if i.is_none() {
-                    return ElemKey::NONE;
-                }
-                let inst = self.instances[i.index()];
-                self.compiled.plans.templates[inst.template.index()]
-                    .sealed
-                    .elems[inst.elem.index()]
-                .key
-            })
-            .collect();
         let structure = Structure {
             essential_slots,
             essential_keys,
@@ -986,6 +988,20 @@ impl<'c> Builder<'c> {
             }
             inner = self.scopes[inner].0;
         }
+    }
+
+    /// Component `c`'s element's stable key, `NONE` for one no element
+    /// makes (a case).
+    pub(in crate::build) fn comp_key(&self, c: CompIdx) -> ElemKey {
+        let i = self.comp_instance[c.index()];
+        if i.is_none() {
+            return ElemKey::NONE;
+        }
+        let inst = self.instances[i.index()];
+        self.compiled.plans.templates[inst.template.index()]
+            .sealed
+            .elems[inst.elem.index()]
+        .key
     }
 
     /// A component slot's template and template slot (the element's slot

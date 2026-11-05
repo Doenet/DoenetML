@@ -75,22 +75,42 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     list
 }
 
-/// The input signature of `dast`, from the check's build. Every key goes
-/// through `rename`.
+/// The input signature of `dast`, read off the check's definitions
+/// (ADR 0035). Every key goes through `rename`. The check still builds,
+/// so what emit boxes is boxed before the signature is read.
 pub(crate) fn signature_renamed(
     dast: &Dast,
     rename: &dyn Fn(&str) -> String,
 ) -> Result<crate::build::signature::Signature> {
-    let (plans, u) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
-        build::abstract_build(CompiledRef { dast, plans }, true)
+    let (_, (_, signature)) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
+        build::abstract_signature(CompiledRef { dast, plans }, rename)
     })?;
-    Ok(u.signature(
+    Ok(signature)
+}
+
+/// The input signature of `dast` twice: read off the abstract build's
+/// program, as before ADR 0035, and off its definitions. The two must
+/// agree (`tests/signature.rs`), until the first goes.
+#[cfg(feature = "testing")]
+pub fn signature_pair(
+    dast: &Dast,
+) -> Result<(
+    crate::build::signature::Signature,
+    crate::build::signature::Signature,
+)> {
+    let same = |k: &str| k.to_string();
+    let (plans, (u, from_definitions)) =
+        plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
+            build::abstract_signature(CompiledRef { dast, plans }, &same)
+        })?;
+    let from_program = u.signature(
         CompiledRef {
             dast,
             plans: &plans,
         },
-        rename,
-    ))
+        &same,
+    );
+    Ok((from_program, from_definitions))
 }
 
 /// The compile's loop: plan `dast`, boxing every element that fails where
