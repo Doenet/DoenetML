@@ -141,7 +141,8 @@ before a choice is made. Such a reference is *missing*. These rules are worth ke
 guarantees:
 - **(Tier 1, answers depend on it)** A missing value never equals another missing value or a
   blank input. Two missing values give no credit.
-- **(Tier 2)** Math and boolean operators leave it out of their operands.
+- **(Tier 2)** Math and boolean operators leave it out of their operands. D37 (proposed) reverses this: a missing
+  operand is a blank.
 - **(Tier 2)** It behaves the same in a repeat and a group as at the document level.
 
 Evidence: `T/copying/value_references.test.ts`, the "references with nothing to read" describe:
