@@ -21,8 +21,9 @@ vi.mock("hyperformula");
  * - Missing shows as `＿` inline and is not drawn in a graph.
  * - A tag whose source is missing is itself missing, whatever it adds, and
  *   comes back, with its own children, when the source is there again.
- * - The bare form and the tag report the same diagnostics, at the same
- *   level: only a type is a load-time error.
+ * - The bare form and the tag report the same warnings and errors, at the
+ *   same level: only a type is a load-time error. Only the tag has the info
+ *   that its index names nothing now (`doenet-i0054`).
  */
 
 /**
