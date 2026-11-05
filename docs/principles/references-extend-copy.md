@@ -48,8 +48,9 @@ Sub-rules. All three are Tier 2: they rarely matter, but they keep the rule tota
   (`elements_with_children_invisible_to_their_grandparents`, `RS/resolve.rs:64`). The privacy
   is needed, because these make several instances of a name.
   - **Names in a `case` or `else`, or in the options of a one-pick select, are visible** when
-    every branch declares them with the same type. Otherwise the reference names nothing (a
-    blank, VAL-5), with a warning (COMP-11; D13, D22). Branches of one choice don't make a name ambiguous.
+    every branch declares them with the same type. If a branch lacks the name, the reference
+    names nothing (a blank, VAL-5), with a warning. If the types differ, it is an error, bare or
+    on a tag (COMP-11; D13, D22). Branches of one choice don't make a name ambiguous.
   - Done by #2451: `Ref::Branches` in the resolver merges the same name in sibling branches
     into one entry, and an `x` beside the container still makes it ambiguous.
 

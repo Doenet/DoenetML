@@ -261,9 +261,11 @@ marked "just submitted" (#2325).
 - **It resolves only if every case declares it, with the same type.**
   - "Every case" means each `<case>` written, and the `<else>` if there is one. With no
     `<else>`, `x` in every case is enough: while no case is active, `$x` names nothing.
-  - If a case or the `<else>` has no `x`, or two of them declare `x` with different types, `$x`
-    and `$cc.x` name nothing, with a **warning** at the reference. It is not a deprecation: the
-    reference doesn't work.
+  - If a case or the `<else>` has no `x`, `$x` and `$cc.x` name nothing: a blank (VAL-5), with
+    **warning** `w0183` at the reference, bare or on a tag.
+  - If two of them declare `x` with different types, it is an **error** at the reference, bare
+    or on a tag, decided at load (`w0184` bare, `e0066` on a scalar tag; DIAG-7). A type error is
+    the same in both forms (REF-1). It is not a deprecation: the reference doesn't work.
   - So a reference's type, and whether a parent accepts it as a child, never change with the
     active case.
 - **Two cases declaring `x` don't make it ambiguous**, since only one can be active. An `x`
@@ -286,7 +288,7 @@ marked "just submitted" (#2325).
   (`＿`). A mix of types is an **error in both forms**: a bare reference the branches declare
   with different types (`w0184`) is an error shown in its place at load, as `<math extend="$x"/>`
   is `e0066`. That makes a type error the same bare or as a tag (REF-1) and decided at load
-  (DIAG-7).
+  (DIAG-7). Decided: mixed types stay an error in both forms.
 - **Indexed forms follow the same rule:** `$s[1].x` of a one-pick select, `$s[2].x` of a
   multi-pick one, and `$cc[1].x`.
 - **Names after the name are held to it too.** `$h.x`, of a `<group name="h">` in every case,
