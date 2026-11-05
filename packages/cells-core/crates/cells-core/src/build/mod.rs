@@ -226,9 +226,6 @@ pub struct BuildOutput {
     tapes: Vec<crate::sym::tape::Tape>,
     /// The cells a `fixed` holds.
     holds: crate::program::Holds,
-    /// Each component's element's stable key, `NONE` for one no element
-    /// makes (a case).
-    comp_keys: Vec<ElemKey>,
     /// Human-readable owner of a cell, e.g. "p1.x".
     cell_label: CellLabel,
     /// Which cells the document computes.
@@ -267,17 +264,6 @@ pub(crate) struct Live {
 }
 
 impl BuildOutput {
-    /// Whether cell `i` is essential: the essential cells follow the
-    /// constants.
-    pub(crate) fn is_essential(&self, i: usize) -> bool {
-        (self.n_const..self.n_const + self.n_essential).contains(&i)
-    }
-
-    /// Whether cell `i` is a constant: the constants come first.
-    pub(crate) fn is_const(&self, i: usize) -> bool {
-        i < self.n_const
-    }
-
     /// What the abstract build found, which the compile keeps.
     pub(crate) fn abstract_findings(self) -> AbstractFindings {
         self.findings

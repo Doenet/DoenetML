@@ -308,6 +308,26 @@ and tick, in instructions, as ADR 0015's steps were.
    `fixtures/`; then the old signer goes. `signature_renamed` still runs
    the full abstract build until step 3. This step settles how a template
    and a shape hash without the engine and the tapes.
+
+   *Done.* As landed: `signature::sign` reads the builder and its
+   `SlotCells` between define and emit, which `build_with` runs as two
+   functions (`Builder::define`, `Builder::emit`) with a reader between
+   them; `abstract_signature` signs there, and `signature_renamed` still
+   builds, so emit's rules box what they box. The program's signer stayed
+   behind `testing` for `tests/signature.rs`, which showed the two equal,
+   hash for hash, on the golden documents, every fixture and eight
+   documents of the constructs that hash differently, and then went with
+   the test. A template hashes by its planned tree with leaves numbered by
+   input, printed as the engine prints it (`sym::engine::template_text`,
+   a function of the tree with no engine), which is the text the program's
+   signer hashed; a sampled curve as `Sample` over the shape it reads,
+   since the abstract build compiles no tape; a scalar operator still by
+   its printed unbound form; a seeded default by the text of the number
+   the seed imports. The golden dump now carries the signature, so
+   `scripts/golden-diff.sh` guards it for the steps after. In instructions
+   under callgrind, against the commit before: load of sir and a tick on
+   the mixed shape at 10,000 within the 0.1% that repeated runs of one
+   binary differ by; load of that shape 0.2% fewer, on every run.
 2. **The refuse analysis onto a graph trait**, implemented by the program
    and by the definitions, with a test that both find the same refusals
    on every fixture; then the abstract build warns from the definitions

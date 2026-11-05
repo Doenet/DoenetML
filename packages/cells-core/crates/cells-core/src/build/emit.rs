@@ -625,7 +625,6 @@ impl<'c> Builder<'c> {
             .map(|c| self.n_public(c))
             .collect();
 
-        let comp_keys: Vec<ElemKey> = CompIdx::below(n_comps).map(|c| self.comp_key(c)).collect();
         // The next session: this build's scopes and what is still parked;
         // the value store is shared, since the build only read it.
         let session = Session {
@@ -784,7 +783,6 @@ impl<'c> Builder<'c> {
             value_types,
             tapes,
             holds,
-            comp_keys,
             cell_label,
             live,
             findings: AbstractFindings {

@@ -88,31 +88,6 @@ pub(crate) fn signature_renamed(
     Ok(signature)
 }
 
-/// The input signature of `dast` twice: read off the abstract build's
-/// program, as before ADR 0035, and off its definitions. The two must
-/// agree (`tests/signature.rs`), until the first goes.
-#[cfg(feature = "testing")]
-pub fn signature_pair(
-    dast: &Dast,
-) -> Result<(
-    crate::build::signature::Signature,
-    crate::build::signature::Signature,
-)> {
-    let same = |k: &str| k.to_string();
-    let (plans, (u, from_definitions)) =
-        plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
-            build::abstract_signature(CompiledRef { dast, plans }, &same)
-        })?;
-    let from_program = u.signature(
-        CompiledRef {
-            dast,
-            plans: &plans,
-        },
-        &same,
-    );
-    Ok((from_program, from_definitions))
-}
-
 /// The compile's loop: plan `dast`, boxing every element that fails where
 /// it fails; then run `check` on the plan. An element `check` fails on, or
 /// a failure no element could carry, is boxed and the plan made again.
