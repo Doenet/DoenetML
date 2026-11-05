@@ -243,8 +243,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await textOf(core, resolvePathToNodeIdx, "p")).eq("[＿]");
             expect(await drawn(core, resolvePathToNodeIdx, "p")).eqls([
                 "[",
-                ["_blank", "number", "NaN"],
+                ["_blank", "number", undefined],
                 "]",
+            ]);
+            // A blank is sent only whether it is hidden, all its renderer
+            // reads, not the renderer state of a `<number>`.
+            expect(await drawnStates(core, resolvePathToNodeIdx, "p")).eqls([
+                { hidden: false },
             ]);
 
             await updateMathInputValue({
