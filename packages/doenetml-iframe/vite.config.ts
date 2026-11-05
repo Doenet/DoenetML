@@ -52,6 +52,9 @@ export default defineConfig({
         // `src/test-main.tsx` can load it (see the plugin for details).
         serveDoenetmlWorkerPlugin(),
     ],
+    server: {
+        host: "0.0.0.0",
+    },
     build: {
         minify: false,
         outDir: "dist/component",
