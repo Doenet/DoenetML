@@ -2695,39 +2695,15 @@ export default class Copy extends CompositeComponent {
             ) {
                 // A bare reference to one thing in a case that is not active
                 // (`$cc.x`) is a blank while it is not (D37), not withheld.
-                // It names no source then, so it is made from its source
-                // again once the case is active.
-                workspace.sourceIndices = [];
-                workspace.propVariablesCopiedBySource = [];
-                workspace.sourceContainsCopyBySource = [];
-                if (
-                    component.replacements.length === 1 &&
-                    component.replacements[0].componentType === "_missing" &&
-                    !(component.replacementsToWithhold > 0)
-                ) {
-                    return { replacementChanges, diagnostics, nComponents };
-                }
-                workspace.numReplacementsBySource = [1];
-                workspace.numNonStringReplacementsBySource = [1];
-                const missing = missingReplacement({
-                    nComponents: nComponents++,
-                    stateIdInfo,
-                });
-                workspace.replacementsCreated = stateIdInfo.num;
                 return {
-                    replacementChanges: [
-                        ...unwithheldChanges(component),
-                        {
-                            changeType: "add",
-                            changeTopLevelReplacements: true,
-                            firstReplacementInd: 0,
-                            numberReplacementsToReplace:
-                                component.replacements.length,
-                            serializedReplacements: [missing],
-                        },
-                    ],
+                    ...missingInPlaceOfReplacements({
+                        component,
+                        workspace,
+                        stateIdInfo,
+                        nComponents,
+                        keepShown: true,
+                    }),
                     diagnostics,
-                    nComponents,
                 };
             }
 
@@ -3028,30 +3004,14 @@ export default class Copy extends CompositeComponent {
                     // A bare reference to one thing withheld, as in a case
                     // that is not active (`$cc.x`), is a blank while it is
                     // (D37), as for `targetInactive`, above.
-                    workspace.sourceIndices = [];
-                    workspace.propVariablesCopiedBySource = [];
-                    workspace.sourceContainsCopyBySource = [];
-                    workspace.numReplacementsBySource = [1];
-                    workspace.numNonStringReplacementsBySource = [1];
-                    const missing = missingReplacement({
-                        nComponents: nComponents++,
-                        stateIdInfo,
-                    });
-                    workspace.replacementsCreated = stateIdInfo.num;
                     return {
-                        replacementChanges: [
-                            ...unwithheldChanges(component),
-                            {
-                                changeType: "add",
-                                changeTopLevelReplacements: true,
-                                firstReplacementInd: 0,
-                                numberReplacementsToReplace:
-                                    component.replacements.length,
-                                serializedReplacements: [missing],
-                            },
-                        ],
+                        ...missingInPlaceOfReplacements({
+                            component,
+                            workspace,
+                            stateIdInfo,
+                            nComponents,
+                        }),
                         diagnostics,
-                        nComponents,
                     };
                 }
                 if (allWithheld) {
@@ -6645,6 +6605,55 @@ async function blankInPlaceOfNothing({
     workspace.sourceIndices = [];
     workspace.propVariablesCopiedBySource = [];
     workspace.sourceContainsCopyBySource = [];
+}
+
+/**
+ * The changes that make a `_missing` (`missingReplacement`) the one shown
+ * replacement of the bare reference to one thing `component` while what it
+ * names is withheld, as in a case that is not active (`$cc.x`, D37), and
+ * the workspace that goes with it: it names no source then, so it is made
+ * from its source again once the case is active. With `keepShown`, no
+ * change when it already shows that blank. `{ replacementChanges,
+ * nComponents }`.
+ */
+function missingInPlaceOfReplacements({
+    component,
+    workspace,
+    stateIdInfo,
+    nComponents,
+    keepShown = false,
+}) {
+    workspace.sourceIndices = [];
+    workspace.propVariablesCopiedBySource = [];
+    workspace.sourceContainsCopyBySource = [];
+    if (
+        keepShown &&
+        component.replacements.length === 1 &&
+        component.replacements[0].componentType === "_missing" &&
+        !(component.replacementsToWithhold > 0)
+    ) {
+        return { replacementChanges: [], nComponents };
+    }
+    workspace.numReplacementsBySource = [1];
+    workspace.numNonStringReplacementsBySource = [1];
+    const missing = missingReplacement({
+        nComponents: nComponents++,
+        stateIdInfo,
+    });
+    workspace.replacementsCreated = stateIdInfo.num;
+    return {
+        replacementChanges: [
+            ...unwithheldChanges(component),
+            {
+                changeType: "add",
+                changeTopLevelReplacements: true,
+                firstReplacementInd: 0,
+                numberReplacementsToReplace: component.replacements.length,
+                serializedReplacements: [missing],
+            },
+        ],
+        nComponents,
+    };
 }
 
 /** A `_missing` (`Missing.js`), as the one replacement of a copy. */
