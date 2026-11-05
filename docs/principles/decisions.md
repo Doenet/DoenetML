@@ -437,7 +437,7 @@ Whether hidden *entries* inside a list are drawn is a separate question, D29.
 
 ## D10. One way to show a missing value
 
-**D37 (proposed)** settles this: a missing value is a blank, `＿` inline and not drawn in a
+**Settled by D37:** a missing value is a blank, `＿` inline and not drawn in a
 graph, distinct from `<T/>`'s default.
 
 **Today** (VAL-5) a missing reference shows as `[]`, `[NaN]`, `＿`, `NaN`, `""` or `[＿, ＿]`,
@@ -1853,6 +1853,11 @@ an info instead. The codes stay the same.
 
 ## D36. A tag you write makes that tag (decided, Tier 1; revises D26)
 
+**Revised by D37.** The guarantee and the load-time type check stay. A missing referent on a
+tag is a warning, as for the bare reference, not an error; a tag with nothing to show is
+missing, shown as a blank, not `<T/>`; and a `<conditionalContent>` with no `<else>` gives a
+missing tag with an info, not an error.
+
 **Decided.** REF-0 states the guarantee, and REF-1 and REF-5 are restated to match. It replaces
 D26's run-time rule, which #2436 implemented: content made at run time is no longer checked against
 the tag as it changes. **Done by #2447** (closing #2445 and #2433).
@@ -1997,10 +2002,10 @@ extended as a scalar tag in the other tests has an `<else>` holding one type
 (`conditionalcontent.test.ts:426`, `:1237`; `extend_references.test.ts:1274`). Every select
 extended as a scalar picks one.
 
-## D37. A missing value is a blank, and a bare reference is its extend again (proposed, Tier 1; revises D10, D36, REF-0, REF-1)
+## D37. A missing value is a blank, and a bare reference is its extend again (decided, Tier 1; revises D10, D36, REF-0, REF-1)
 
-**Proposed.** It reverses parts of #2447 and #2451 (below), and changes what 0.7 documents show
-for missing values.
+**Decided.** REF-0, REF-1, REF-5, VAL-5, COMP-11 and DIAG-1 state it. It reverses parts of #2447
+and #2451 (below), and changes what 0.7 documents show for missing values. No implementation issue is filed yet.
 
 **Today** (**[probe]** on main at `55db31b`) a missing value shows differently by where it is:
 
@@ -2118,9 +2123,10 @@ missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a 
    `<sum>$l[5] 3</sum>` is missing rather than `3`. A missing number shows `＿`, and `NaN` stays
    for a computation that has no value. This reverses VAL-5's Tier 2 rule that operators leave a
    missing operand out.
-3. **D36's presence rules.** Recommendation: "no `<else>`", "no case active" and "a name in no
-   case" give a missing T and an info. Mixed and unrelated types stay load-time
-   errors. That keeps the type safety, and drops the requirement to write an `<else>`.
+3. **D36's presence rules** (decided). "No `<else>`", "no case active", "a case holding
+   nothing" and "a name in no case" give a missing T and an info. Mixed and unrelated types, and a
+   composite that can hold several components, stay load-time errors. That keeps the type safety,
+   and drops the requirement to write an `<else>`.
 4. **Hidden referents** (decided). "Always shows something" means missing shows as blank, not
    that hidden content shows. `hide` still hides a reference, a blank included: a hidden referent
    stays hidden as VAL-10 says, and `<math extend="$nothing" hide/>` shows nothing. D9 (whether

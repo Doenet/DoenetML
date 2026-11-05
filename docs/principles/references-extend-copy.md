@@ -245,65 +245,67 @@ Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThro
 
 ## 2. Bare references and `extend`
 
-### REF-0: a tag you write makes that tag (Tier 1; D36)
-**D37 (proposed)** would keep the guarantee but change two parts: a missing referent on a tag
-would be a warning, not an error, and a tag with nothing to show would have a missing value,
-shown as a blank, not `<T/>`'s. It would make REF-1 two-way again.
-
+### REF-0: a tag you write makes that tag (Tier 1; D36, D37)
 In a document without errors, `<T extend="$x" …>…</T>` always makes exactly one T, whatever x
 holds. The same holds for `copy` and D33's fresh form. An author who writes `<math>` can rely on
 a math: `$x + 1`, `$x.value` and an answer that checks `$x` all read one.
 
-Whether a T can be made from x is decided at load, from the DoenetML alone. **What the DoenetML
-could guarantee, it must:** when it does not guarantee one component that can be a T, the tag
-is an error (REF-5 says when).
+**The T can be missing** (D37, VAL-5). A tag whose source is missing is itself missing, whatever
+it adds: its own children and attributes don't make it something else. A missing tag shows `＿`
+inline and is not drawn in a graph. It is not `<T/>`: `<text/>` is still `""`, `<number/>` `NaN`,
+`<boolean/>` `false`, `<point/>` (0, 0).
 
-So `<math extend="$nothing"/>` is an error. The same goes for an ambiguous name, a literal index
-that names nothing, and a property that doesn't exist, written on a tag. A bare reference is
-different: `$nothing` is a warning and shows nothing, and `$cc` takes the shape of what it finds.
+| Written | Shows while the source is missing |
+|---|---|
+| `<math extend="$nothing"/>`, `<math extend="$nothing">+1</math>` | `＿` |
+| `<text extend="$nothing">hi</text>`, `<p extend="$nothing">hi</p>` | `＿` |
+| `<mathInput extend="$nothing"/>` | `＿`, with no input box |
+| `<point extend="$nothing"/>` in a graph | not drawn |
+| `<p extend="$r[$i]">note</p>` while the index names nothing | `＿`, until it names an iteration |
 
-Only values can still leave nothing to extend, and neither case changes what the component is:
-- **an index that names nothing because of its value** (`$r[$i]`, or `$r[1]` of a repeat whose
-  count is a value) gives `<T/>` with the extend's own attributes and children, and an info. The
-  T takes the component again when the index names one;
-- **a value that does not convert** (`<point extend="$mi"/>` while mi is not a tuple) gives
-  `<T/>`'s value, with info `doenet-i0053`.
+A name on a missing tag reads it as missing. `hide` still hides it. A missing input has no box,
+so the reader can't type into something a link will later replace.
 
-`<T/>`'s value is today's default: `＿`, an empty text, `NaN`, `false`, a point at (0, 0). D36 does
-not change these (D10).
+**Type is decided at load; presence is not required.** Whether a T can be made from x is decided
+from the DoenetML alone. It is an error only when the DoenetML can't guarantee *the type*: an
+unrelated pair, mixed types, or a composite that can hold several components (REF-5). When x may
+hold nothing, the tag is missing while it does:
 
-An input reached through such an index is a plain input while it names nothing. The reader can
-type in it, and the link wins when the iteration returns.
+| Cause | Diagnostic | While it lasts |
+|---|---|---|
+| no referent, an ambiguous name, a property the type doesn't have, a literal index that names nothing, a name D22's every-branch rule rejects | the same warning as the bare reference (`w0104`, `w0105`, `w0181`, `w0183`) | missing, for good |
+| no case active, a `<conditionalContent>` with no `<else>`, a case or option holding nothing | info | missing while no case holds one |
+| an index that names nothing because of its value | info `i0054` | missing until it names one |
+| a value that does not convert (`<point extend="$mi"/>` while mi is not a tuple) | info `i0053` | missing until it converts |
 
-Done by #2447 (closing #2445):
-- **a missing referent on a tag** is an error shown in the tag's place: `doenet-w0104` (no
-  referent, or a property the source doesn't have) and `w0105` (an ambiguous name), at error
-  level. For a composite, only a name that no component of the document has counts as a
-  property, so `$cc.c` of a case that isn't active is not an error;
-- **a value that does not convert** gives `<T/>` with the tag's own attributes and children, and
-  `doenet-i0053`;
-- **an index that names nothing** gives `<T/>` with its own attributes and children, and info
-  **`doenet-i0054`**, which appears and goes away with the index (DIAG-2). On a tag it replaces
-  the `w0181` and `w0104` such an index gave. An unlinked copy made this way is `<T/>` again
-  after a reload;
-- **an error found at load stays** while an index names nothing. The error names the reference
-  as written (`$r[$k]`), so it does not change with the index's value.
+So the bare form and the tag report the same diagnostics, at the same level (REF-1).
 
-**Known violations:**
+**Known violations (D37 not yet implemented):**
+- on a tag, a missing referent, an ambiguous name, a missing property, a literal index past the
+  picks, and `w0183` are errors with an `_error` in the tag's place (#2447, #2451);
+- a `<conditionalContent>` with no `<else>`, written as a scalar tag, is `e0064` (`noElse`) at
+  load (#2447, #2451);
+- an index that names nothing and a value that doesn't convert give `<T/>`, with its own
+  attributes and children, not a missing T (#2447);
+- an input reached through such an index is a plain input the reader can type into;
+- a bare reference that names nothing shows nothing, not `＿` (VAL-5);
 - `<group><group/><math/></group>`, one component beside a child that holds nothing, is not
-  decided at load. The copy is made from each source, so the tag can't be made from the one;
+  decided at load;
 - a `<conditionalContent>` or `<select>` nested in a case or option is allowed at load but shows
   `<T/>`'s default with no info (B22, #2437);
-- `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written,
-  because `$m` copies the `_error` in m's place (B38, #2449).
+- `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written
+  (B38, #2449). Under D37 this example goes away, since that tag is no longer an error.
+
+History: #2447 (closing #2445) implemented D36, deciding at load and making a missing referent on
+a tag an error. D37 keeps the load-time type check and reverses the errors for missing.
 
 ### REF-1: `$x` is shorthand for the unadorned `extend` (Tier 1 for the meaning, Tier 2 for exact parity)
 `$x` means `<T extend="$x"/>`, where T is the referent's own tag. Write the `extend` out only to
 change the type, or to add a name, attributes or children.
 
-The equivalence runs one way. It needs a referent: `<math extend="$m"/>` is the same as `$m`
-while `m` is a math. With no referent, `$m` is nothing, and `<math extend="$m"/>` is an error
-(REF-0).
+The equivalence holds both ways, missing included (D37). With no referent, `$m` and
+`<math extend="$m"/>` are both a blank, with the same warning. **Known violation:** since #2447,
+`$m` shows nothing and `<math extend="$m"/>` is an error (REF-0).
 
 The two forms are built the same way, so they behave the same in every container. That
 includes `fixed` containers, `<math>…+1</math>` and `<text>…!</text>`, and holds before and after
@@ -464,11 +466,12 @@ component with a single-child group ([testing-principles.md](testing-principles.
 - **from a composite that always stands for one component (D36):** a composite, or an instance
   of one, counts as its component when the DoenetML guarantees it always holds exactly one, of
   one type. This is NAME-2's pass-through applied to type changes. From the DoenetML:
-  - a `<conditionalContent>` has an `<else>`, and each case and the else holds one component of
-    the same type;
+  - in a `<conditionalContent>`, each case and the `<else>`, if there is one, holds at most one
+    component, all of the same type. No `<else>`, no case active, or a case holding nothing gives
+    a missing T with an info (REF-0, D37);
   - a `<select>` or other selector has `numToSelect` written as `1`, or left out. A reference
     is an error, even if its value is 1;
-  - a `<group>`, `<sort>` or `<shuffle>` holds one component;
+  - a `<group>`, `<sort>` or `<shuffle>` holds at most one component;
   - a part's type is its tag:
     - a bare `$y` is y's tag, and a nested composite is looked through;
     - a bare string is a text (#2433);
@@ -485,8 +488,8 @@ component with a single-child group ([testing-principles.md](testing-principles.
     `<number>` else are one type for a `<number>` or a `<numberList>`, but not for an
     `<integer>` or a `<math>`.
 
-  Authors write `<math extend="$s"/>` for a one-pick select, `<text extend="$cc"/>` of text cases
-  with an else, `<math extend="$g"/>`, and `<number extend="$s"/>` of a one-value
+  Authors write `<math extend="$s"/>` for a one-pick select, `<text extend="$cc"/>` of text cases,
+  `<math extend="$g"/>`, and `<number extend="$s"/>` of a one-value
   `selectFromSequence`. An iteration, `<math extend="$r[1]"/>`, is an index (REF-0).
 - **a list from a composite whose components all have one type that matches its entry type**,
   at any count, none included: `<mathList extend="$g"/>`, `<numberList extend="$c"/>` of a
@@ -497,20 +500,19 @@ Not allowed, each an error whose message gives the clearer form (DIAG-3):
   write `<mathInput bindValueTo="$m1"/>`; to start from its value, `prefill="$m1"`."
 - **a container** (`<p>`, `<section>`, `<div>`) as another tag: "use `$p.text`".
 - **a composite the DoenetML does not guarantee stands for one component**, as a scalar tag:
-  - a `<conditionalContent>` without an `<else>` ("add an `<else>`");
   - a case or option of another type, or two types that could each become T ("wrap it:
     `<math>$cc</math>`");
   - `numToSelect` that is not a literal 1, a `<repeat>`, `<collect>`, `<sequence>` or
     `<intersection>` ("use `$x[1]`").
   `<point extend="$i"/>` of an intersection is `<point extend="$i[1]"/>`.
-  A literal index past what a selector picks (`$s[2]` of a one-pick select) is `doenet-w0181` at
-  error level for a scalar tag. For a list tag it stays the run-time `w0181`.
+  A literal index past what a selector picks (`$s[2]` of a one-pick select) is warning
+  `doenet-w0181`, and the tag is missing (D37; since #2447 it is an error on a scalar tag).
 - **a list from components of more than one type** ("wrap it: `<mathList>$g</mathList>`").
 - **any other pair.**
 
 What the composite holds is decided at load and not again (D36). Only a value conversion is
-checked as the value changes: while a math is not a tuple, `<point extend="$m"/>` is a point with
-`<point/>`'s value, and an info (REF-0, DIAG-2).
+checked as the value changes: while a math is not a tuple, `<point extend="$m"/>` is a missing
+point, not drawn, with an info (REF-0, DIAG-2).
 
 For the allowed pairs the result is x's value as a T. It is linked both ways where the conversion
 can be run backward: **[probe]** `<point extend="$v"/>` of a vector is draggable, and dragging it
@@ -531,14 +533,15 @@ Diagnostics:
 - **`doenet-e0062`:** an input from a value;
 - **`doenet-e0063`:** a container with a `text` (`<p>`, `<li>`) as another tag, suggesting
   `$p.text`;
-- **`doenet-e0064`:** a composite the DoenetML doesn't guarantee holds one component. Its reason
-  says why: no `<else>`, `numToSelect`, any number, or a case, option or iteration holding the
-  wrong number;
+- **`doenet-e0064`:** a composite that can hold several components. Its reason says why:
+  `numToSelect`, any number, or a case, option or iteration holding several. Under D37 its
+  `noElse` reason, and a part holding nothing, become a missing tag with an info;
 - **`doenet-e0065`:** any other pair;
 - **`doenet-e0066`:** different types, suggesting `<T>$x</T>`, for a scalar or a list tag;
 - **`doenet-e0067`:** a property or a repeat's value, whose type isn't known at load;
 - **`doenet-i0053`:** an info for a value that does not allow the tag (a point from a non-tuple,
-  a boolean from a math that is not true or false). The tag has `<T/>`'s value;
+  a boolean from a math that is not true or false). The tag is missing (D37; today it has
+  `<T/>`'s value);
 - **`doenet-i0054`:** an info for an index that names nothing now (REF-0).
 
 The run-time `e0064` and `e0065` infos from #2436 are gone (#2447).
