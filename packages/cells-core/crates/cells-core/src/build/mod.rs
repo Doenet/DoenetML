@@ -192,9 +192,42 @@ pub fn build(
     built.map_err(|f: Failure| BuildError::Unchecked(f.error.to_string()))
 }
 
-/// A cell's human-readable owner, read from the compile's source, which
-/// the closure is handed rather than keeping.
-type CellLabel = Box<dyn Fn(CellIdx, &crate::dast::Dast) -> String>;
+/// Which slot defines each cell and which component owns each slot: what
+/// a cell's human-readable owner is read from, with the build's own
+/// components and strings.
+struct CellOwners {
+    /// The slot defining each cell; `NONE` for a pooled constant.
+    cell_def_slot: Vec<SlotId>,
+    /// The component owning each slot; `NONE` for an anonymous one.
+    slot_comp: Vec<CompIdx>,
+    /// Each component's first slot.
+    slot_base: Vec<SlotId>,
+}
+
+impl CellOwners {
+    /// The owner of `cell`, e.g. "p1.x".
+    fn label(&self, cell: CellIdx, components: &ComponentTable, strings: &StringTable) -> String {
+        let slot = self.cell_def_slot[cell.index()];
+        if slot == SlotId::NONE {
+            return "(a pooled constant)".to_string();
+        }
+        let comp = self.slot_comp[slot.index()];
+        if comp == CompIdx::NONE {
+            return "(anonymous cell)".to_string();
+        }
+        let pi = slot.index() - self.slot_base[comp.index()].index();
+        let component_type = components.component_type[comp.index()];
+        let owner = match components.name[comp.index()] {
+            StrId::NONE => format!("<{}>#{}", component_type.tag(), comp),
+            s => strings.get(s).trim().to_string(),
+        };
+        let n_public = components.comp_cells(comp).len();
+        match component_type.prop_name(n_public, pi) {
+            Some(name) => format!("{owner}.{name}"),
+            None => format!("{owner}.(hidden slot {pi})"),
+        }
+    }
+}
 
 /// A built document whose program has not yet been scheduled.
 pub struct BuildOutput {
@@ -213,8 +246,8 @@ pub struct BuildOutput {
     tapes: Vec<crate::sym::tape::Tape>,
     /// The cells a `fixed` holds.
     holds: crate::program::Holds,
-    /// Human-readable owner of a cell, e.g. "p1.x".
-    cell_label: CellLabel,
+    /// What a cell's owner is read from, for a cycle's error.
+    owners: CellOwners,
     /// Which cells the document computes.
     live: Live,
 }
@@ -258,7 +291,8 @@ impl BuildOutput {
                 p
             }
             Err(cell) => {
-                let cycle = Error::Cycle((self.cell_label)(cell, &compiled.dast));
+                let owner = self.owners.label(cell, &self.components, &self.strings);
+                let cycle = Error::Cycle(owner);
                 return Err(BuildError::Unchecked(cycle.to_string()));
             }
         };

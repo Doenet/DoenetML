@@ -499,11 +499,6 @@ impl<'c> Builder<'c> {
                 .prop_cells
                 .extend_from_slice(&slot_to_cell[base..base + np]);
         }
-        // Each component's public prop count, for the cycle labels below.
-        let n_public: Vec<usize> = (CompIdx::below(n_comps))
-            .map(|c| self.n_public(c))
-            .collect();
-
         // The next session: this build's scopes and what is still parked;
         // the value store is shared, since the build only read it.
         let session = Session {
@@ -534,30 +529,12 @@ impl<'c> Builder<'c> {
             slot_types,
         };
 
-        // Lazy labels for cycle errors.
-        let slot_comp = self.slot_comp;
-        let slot_base = self.slot_base;
-        let component_types = self.components.component_type.clone();
-        let names = self.components.name.clone();
-        let cell_label = Box::new(move |cell: CellIdx, dast: &crate::dast::Dast| {
-            let slot = cell_def_slot[cell.index()];
-            if slot == SlotId::NONE {
-                return "(a pooled constant)".to_string();
-            }
-            let comp = slot_comp[slot.index()];
-            if comp == CompIdx::NONE {
-                return "(anonymous cell)".to_string();
-            }
-            let pi = slot.index() - slot_base[comp.index()].index();
-            let owner = match names[comp.index()] {
-                StrId::NONE => format!("<{}>#{}", component_types[comp.index()].tag(), comp),
-                s => dast.strings.get(s).trim().to_string(),
-            };
-            match component_types[comp.index()].prop_name(n_public[comp.index()], pi) {
-                Some(name) => format!("{owner}.{name}"),
-                None => format!("{owner}.(hidden slot {pi})"),
-            }
-        });
+        // What a cycle's error names its cell by.
+        let owners = super::CellOwners {
+            cell_def_slot,
+            slot_comp: self.slot_comp,
+            slot_base: self.slot_base,
+        };
 
         let mut strings = self.compiled.dast.strings.clone();
         for s in &self.compiled.plans.extra_strings {
@@ -588,7 +565,7 @@ impl<'c> Builder<'c> {
             value_types,
             tapes,
             holds,
-            cell_label,
+            owners,
             live,
         })
     }

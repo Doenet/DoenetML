@@ -1,7 +1,8 @@
 # The abstract build reads cell definitions, never a program
 
 Status: accepted 2026-11-05. Proposed 2026-11-05; every migration step is
-done (see Migration). Amends ADR 0015 (what the compile reads of the
+done (see Migration). Amended 2026-11-05: emit hands `schedule` what a
+cycle's cell is named by, not a closure (see the note after Migration). Amends ADR 0015 (what the compile reads of the
 build) and ADR 0012 (its reason for the abstract build running emit).
 
 A build is expand, resolve, emit, schedule (ADR 0015). This ADR splits
@@ -420,3 +421,17 @@ and tick, in instructions, as ADR 0015's steps were.
    the migration would: over the fixtures without a repeat or a select,
    the abstract build takes a median 0.71 of what it took before step 1,
    and a load 0.93, the load within run-to-run noise.
+
+Amended 2026-11-05: emit made a closure to name a cell in a cycle's
+error (`cell_label`, a `Box<dyn Fn>`), into which it moved the slot-to-
+owner columns and copied the component table's types and names, on every
+build. With the refuse analysis out of emit (step 2), its one reader was
+`schedule`, which consumes the same `BuildOutput` and so holds those
+components itself. `BuildOutput` now carries the three columns as
+`CellOwners` (the slot defining each cell, the component owning each
+slot, each component's first slot), and `CellOwners::label` reads the
+output's own components and strings: the public prop count is the
+component's prop cells (`ComponentTable::comp_cells`), and a name's text
+is in the build's string table, which extends the source's with the same
+ids. No build copies a column for an error it almost never reports, and
+the label needs no source. The labels are unchanged.
