@@ -1081,7 +1081,11 @@ describe("Extend and references tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pHidden2A")].stateValues
                 .text,
-        ).eq("Hidden 2A: ");
+            // A bare value reference does not find the name `hidden` among
+            // the children an extended `<p>` copies (the tag form above
+            // does), so it names nothing, which is a blank (D37). It was
+            // hidden only because a reference with nothing to read was.
+        ).eq("Hidden 2A: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pReveal2")].stateValues
                 .text,
@@ -1097,7 +1101,11 @@ describe("Extend and references tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pHidden4A")].stateValues
                 .text,
-        ).eq("Hidden 4A: ");
+            // A bare value reference does not find the name `hidden` among
+            // the children an extended `<p>` copies (the tag form above
+            // does), so it names nothing, which is a blank (D37). It was
+            // hidden only because a reference with nothing to read was.
+        ).eq("Hidden 4A: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pReveal4")].stateValues
                 .text,
@@ -6549,7 +6557,7 @@ describe("Extend and references tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("sec4")]
                     .activeChildren[1].componentIdx
             ].stateValues.text,
-        ).eq("Nor can one reference by names from the group: (, ).");
+        ).eq("Nor can one reference by names from the group: (＿, ＿).");
         expect(
             stateVariables[
                 stateVariables[await resolvePathToNodeIdx("sec5")]

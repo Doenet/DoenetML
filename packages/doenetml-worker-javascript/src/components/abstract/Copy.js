@@ -6681,6 +6681,20 @@ function missingOfWrittenType({
             component.attributes._createComponentOfType.primitive.value.toLowerCase()
         ];
 
+    if (componentInfoObjects.isCompositeComponent({ componentType })) {
+        // A composite, such as a `<group>`, has nothing of its type to be
+        // missing as (`convertNormalizedDast.ts`).
+        return {
+            replacements: [
+                missingReplacement({
+                    nComponents: nComponents++,
+                    stateIdInfo,
+                }),
+            ],
+            nComponents,
+        };
+    }
+
     const res = convertUnresolvedAttributesForComponentType({
         attributes: component.attributes,
         componentType,

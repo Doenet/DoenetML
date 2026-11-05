@@ -617,6 +617,12 @@ export async function normalizedDastToSerializedComponents(
                     nodesInResolvedPath: [],
                 },
             } as any;
+            // a blank, as a reference to one thing that names nothing is
+            // (D37, `Copy.js`)
+            copy.doenetAttributes = {
+                ...copy.doenetAttributes,
+                noReferent: true,
+            };
         }
     }
 
