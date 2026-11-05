@@ -268,9 +268,9 @@ marked "just submitted" (#2325).
     active case.
 - **Two cases declaring `x` don't make it ambiguous**, since only one can be active. An `x`
   beside the `<conditionalContent>` does (`doenet-w0105`).
-- **On a tag**, `<math extend="$x"/>` is decided by REF-0: a mix of types or a missing `x` is an
-  error, and so is an `x` that can be absent because there's no `<else>`, as for
-  `<math extend="$cc"/>` without one (D36).
+- **On a tag**, `<math extend="$x"/>` is decided by REF-0: a mix of types is an error. A missing
+  `x` gives the same warning as the bare form, and the tag is missing. An `x` that can be absent
+  because there's no `<else>` gives a missing tag with an info while no case is active (D37).
 - **A `<select>` with one pick** (`numToSelect` written as `1`, or left out) works the same way,
   with every option in place of every case. **With several picks**, names stay private, as in a
   repeat: `$s[2].x`, under the same every-option, same-type rule (D27).
@@ -289,7 +289,8 @@ marked "just submitted" (#2325).
 - **A property after a name of mixed types** is `w0184` as well: `$x.value` with a math `x` in
   one case and a text `x` in another. On a tag, #2447's rule can allow it: `<number
   extend="$x.value"/>` of an `<integer>` and a `<number>` `x`.
-- **On a tag:**
+- **On a tag** (D37 reverses the first, fourth and fifth items: they become the bare form's
+  warning or an info, and a missing tag):
   - a missing `x` is `w0183` at error level;
   - a mix of types is `e0066`;
   - an `x` that can be absent because there's no `<else>` is `e0064`;

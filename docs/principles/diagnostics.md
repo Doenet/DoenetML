@@ -14,8 +14,8 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
 - **Error:** the DoenetML is invalid or cannot be honored as written. Something is not rendered,
   or is replaced by the error. The author must change it. Examples:
   - an extend that changes what a tag makes (REF-7, `doenet-e0056`–`e0061`);
-  - an unrelated type change (REF-5), and a tag whose content the DoenetML doesn't guarantee
-    (REF-0, D36);
+  - an unrelated type change (REF-5), and a tag whose type the DoenetML doesn't guarantee
+    (REF-0, D36, D37);
   - a cycle (NAME-7).
 - **Warning:** the DoenetML is valid, but almost certainly not what was meant, or does nothing.
   The author should change it. Examples:
@@ -24,8 +24,8 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
   - an ambiguous name (`doenet-w0105`);
   - a literal `$l[0]`;
   - a copy whose nested choices kept the source's (D33).
-- **Info:** the DoenetML is valid, and with the values it has now, part of it shows nothing or
-  something degenerate. The diagnostic only explains why, so that the author is not confused.
+- **Info:** the DoenetML is valid, and with the values it has now, part of it is missing (a blank)
+  or degenerate. The diagnostic only explains why, so that the author is not confused.
   Nothing needs to change. Examples:
   - an index that names nothing at the moment;
   - a construction from a blank input;

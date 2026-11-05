@@ -99,10 +99,13 @@ removed.
    - a different tag `T` is allowed only between related types (math, number, text and
      boolean among each other; point and vector), and gives x's value as a T; any other pair
      is an error.
-   - a tag you write makes that tag: `<math extend="$x"/>` is always a math. If the DoenetML
-     doesn't guarantee one component that can be a math (no referent, a `<conditionalContent>`
-     without an `<else>`, cases of different types), it is an error. Wrap it instead,
-     `<math>$cc</math>`, or index it, `$x[1]`.
+   - a tag you write makes that tag: `<math extend="$x"/>` is always a math. If x can be
+     something that isn't a math (cases of different types, several components), it is an error.
+     Wrap it instead, `<math>$cc</math>`, or index it, `$x[1]`.
+   - something that isn't there shows as a blank, `＿`, written bare or as a tag: a typo, an index
+     past the end, `$ans.submittedResponse` before a submission. Only an empty collection (a list,
+     a repeat, a case not shown) shows nothing. A blank never equals anything, so it never earns
+     credit. (VAL-5, D37)
 
    (REF-0, REF-3 to REF-5)
 

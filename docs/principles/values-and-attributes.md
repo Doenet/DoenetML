@@ -135,21 +135,31 @@ Code: `W/utils/numberDisplay.js:250`, the "a sole child passes its formatting up
 
 Whether formatting should pass through arithmetic was left open in #2127 (D19).
 
-### VAL-5: a reference with nothing to read is missing, never a value (Tier 2; the exact display is Tier 3)
-A reference can name nothing: an index past the end, `$P.z` on a 2D point, or `selectedIndex`
-before a choice is made. Such a reference is *missing*. These rules are worth keeping as
-guarantees:
-- **(Tier 1, answers depend on it)** A missing value never equals another missing value or a
-  blank input. Two missing values give no credit.
-- **(Tier 2)** Math and boolean operators leave it out of their operands. D37 (proposed) reverses this: a missing
-  operand is a blank.
+### VAL-5: a reference to one thing that isn't there is missing, and shows as a blank (Tier 1; D37)
+A reference can name nothing: no referent, an index past the end, `$P.z` on a 2D point, or
+`selectedIndex` before a choice is made. Such a reference is *missing*. Any component can be
+missing, and a tag whose source is missing is missing too (REF-0).
+- **(Tier 1)** A reference to one thing (a name, an index, a property, an iteration or a pick)
+  gives that thing, or a missing value. A reference to a collection (a list, a repeat, a collect,
+  a group, a `<conditionalContent>` with no case active) gives its members, possibly none. That
+  is the only way a reference shows nothing.
+- **(Tier 1)** Missing shows as `＿` inline, and is not drawn in a graph: a missing point can't
+  be dragged. `$ans.submittedResponse` is `＿` until a submission.
+- **(Tier 1, answers depend on it)** A missing value never equals anything: another missing
+  value, a blank input, or a value. Two missing values give no credit.
+- **(Tier 2)** In an operator a missing operand is a blank, as `<math>$a + 1</math>` gives
+  `＿ + 1`. `<sum>$l[5] 3</sum>` is missing. A missing number shows `＿`, and `NaN` is kept for a
+  computation that has no value.
+- **(Tier 2)** `hide` still hides it: a hidden referent stays hidden (VAL-10), and
+  `<math extend="$nothing" hide/>` shows nothing.
 - **(Tier 2)** It behaves the same in a repeat and a group as at the document level.
 
 Evidence: `T/copying/value_references.test.ts`, the "references with nothing to read" describe:
 - `:2133`, `:2275`, `:2358`, `:2513`, `:2556`, `:2671`;
 - and the responses section at `:2764`.
 
-What it *looks like* depends on the parent and on the spelling (**[probe]**):
+**Known violation:** today what it looks like depends on the parent and on the spelling
+(**[probe]**):
 
 | Where | Shows |
 |---|---|
@@ -190,9 +200,10 @@ shows only the math's `x`, and `$cc1.latex` leaves out the text. The proposal is
 some, but not all, of the components have it. Still open: whether that is decided at load or
 from what the composite holds now, whether it is an error on a tag, and how lists count.
 
-That table is an accident of which internal form was built. A rewrite should choose one
-representation: "the empty value of the type it presents as, drawn as nothing". See D10.
-Tests that lock the current table:
+That table is an accident of which internal form was built. D37 chooses one representation:
+missing, drawn as a blank. Also, a bare reference to one thing that isn't there shows nothing
+(`a $l[5] b` is `a  b`), and `<sum>` leaves a missing operand out. Tests that lock the current
+table, and change:
 - `drawn_value_references.test.ts:234`;
 - `extend_references.test.ts:4790-4830`, `:7507-7616`;
 - `expressionAttributes.test.ts:400`.
