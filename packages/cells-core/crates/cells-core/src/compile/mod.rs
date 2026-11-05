@@ -43,6 +43,7 @@ mod boxes;
 mod check;
 pub(crate) mod compare;
 pub(crate) mod expr;
+pub(crate) mod graph;
 mod link;
 pub mod lint;
 mod maths;

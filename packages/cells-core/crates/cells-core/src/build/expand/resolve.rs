@@ -181,8 +181,11 @@ impl<'c> Builder<'c> {
                             // A folded iteration stands for every index;
                             // the label says which.
                             let entered = self.scope_depth(r.scope) + 1;
-                            w.label
-                                .push(abstract_build::index_coord(ip, w.src_depth, entered));
+                            w.label.push(crate::compile::graph::index_coord(
+                                ip,
+                                w.src_depth,
+                                entered,
+                            ));
                         }
                         (
                             r.iter_scopes

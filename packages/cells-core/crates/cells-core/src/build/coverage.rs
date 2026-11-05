@@ -11,6 +11,7 @@
 //! label the real iterations satisfy.
 
 use super::*;
+use crate::compile::graph::{Gap, GraphNode, NodeKind, TemplateGraph, template_graph};
 
 /// A slot of an element: (template, element, position among its slots).
 type Key = (TemplateId, ElemId, u32);
@@ -185,4 +186,112 @@ fn compose(to_a: &[Coord], a_to_v: &[Coord]) -> Vec<Coord> {
             _ => Coord::Reset,
         })
         .collect()
+}
+
+/// How the compile's template graph (ADR 0032, step 8) agrees with the
+/// abstract build's graph on a document, between element slots, labels
+/// composed through every other node.
+#[derive(Debug)]
+pub struct GraphAgreement {
+    /// What the template graph left out.
+    pub gaps: Vec<Gap>,
+    /// Dependencies the template graph has and the abstract build does
+    /// not, described: never any.
+    pub extra: Vec<String>,
+    /// Dependencies the abstract build has and the template graph does
+    /// not, described: none when nothing was left out.
+    pub missing: Vec<String>,
+}
+
+/// The template graph of `compiled` against its abstract build.
+pub fn template_graph_agreement(
+    compiled: &Compiled,
+) -> std::result::Result<GraphAgreement, String> {
+    let abstract_deps = abstract_edges(compiled)?.deps;
+    let g = template_graph(compiled.view());
+    let mut graph_deps: HashMap<Key, Vec<(Key, Vec<Coord>)>> = HashMap::new();
+    for u in GraphNode::below(g.nodes.len()) {
+        let Some(ku) = graph_key(&g, u) else { continue };
+        let found = graph_deps.entry(ku).or_default();
+        for dep in graph_element_deps(&g, u) {
+            if !found.contains(&dep) {
+                found.push(dep);
+            }
+        }
+    }
+    let describe = |k: &Key| {
+        let (t, e, pi) = *k;
+        let row = compiled.plans.templates[t.index()].row(e);
+        let name = match row.name {
+            StrId::NONE => format!("<{}>", row.component_type.tag()),
+            s => compiled.dast.strings.get(s).trim().to_string(),
+        };
+        let prop = row
+            .component_type
+            .prop_name(usize::MAX, pi as usize)
+            .unwrap_or_else(|| format!("port {pi}").into());
+        format!("{name}.{prop} (template {t}, element {e}, port {pi})")
+    };
+    // What `a` has that `b` lacks, described.
+    let lacks = |a: &HashMap<Key, Vec<(Key, Vec<Coord>)>>,
+                 b: &HashMap<Key, Vec<(Key, Vec<Coord>)>>| {
+        let mut out = Vec::new();
+        for (ku, deps) in a {
+            for (kv, label) in deps {
+                if !b
+                    .get(ku)
+                    .is_some_and(|ds| ds.contains(&(*kv, label.clone())))
+                {
+                    out.push(format!(
+                        "{} reads {} labelled {label:?}",
+                        describe(ku),
+                        describe(kv)
+                    ));
+                }
+            }
+        }
+        out.sort();
+        out
+    };
+    Ok(GraphAgreement {
+        gaps: g.gaps.iter().copied().collect(),
+        extra: lacks(&graph_deps, &abstract_deps),
+        missing: lacks(&abstract_deps, &graph_deps),
+    })
+}
+
+/// The key of an element's port node; None for any other node.
+fn graph_key(g: &TemplateGraph, n: GraphNode) -> Option<Key> {
+    let node = g.nodes[n.index()];
+    match node.kind {
+        NodeKind::Port { elem, port } => Some((node.template, elem, port)),
+        _ => None,
+    }
+}
+
+/// The element ports `u` reads, directly or through other nodes, each
+/// with the label of a path to it, composed as `Builder::element_deps`
+/// composes it.
+fn graph_element_deps(g: &TemplateGraph, u: GraphNode) -> Vec<(Key, Vec<Coord>)> {
+    let mut out = Vec::new();
+    let mut seen = HashSet::new();
+    let mut stack = vec![(u, Vec::new(), true)];
+    while let Some((a, so_far, first)) = stack.pop() {
+        for &w in &g.reads[a.index()] {
+            let label = if first {
+                g.label(a, w)
+            } else {
+                compose(&so_far, &g.label(a, w))
+            };
+            match graph_key(g, w) {
+                Some(kw) => out.push((kw, label)),
+                None => {
+                    if seen.insert((w, label.clone())) {
+                        stack.push((w, label, false));
+                    }
+                }
+            }
+        }
+    }
+    out
 }

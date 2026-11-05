@@ -18,21 +18,6 @@
 
 use super::*;
 
-/// How a reference moves one coordinate of the iteration position: the
-/// referencing element's own position in that coordinate plus a shift, or
-/// a position chosen independently of it (a literal index, a branch).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(in crate::build) enum Coord {
-    Keep(i64),
-    Reset,
-}
-
-/// A reference's label: one `Coord` per level of nesting of its target,
-/// what the edge from its reader carries when the view folds iterations.
-/// Empty when it does not, and the identity when every coordinate is
-/// `Keep(0)`.
-pub(in crate::build) type Label = Vec<Coord>;
-
 /// The abstract build: the compile expanded and resolved once through the
 /// abstract view, its graph tested for loops at any count, and defined.
 /// It reads a session of its own and makes no program (ADR 0035): what it
@@ -135,33 +120,6 @@ impl<'c> Builder<'c> {
                 attrs[t.index()][ts.index()] |= attr;
             }
         }
-    }
-}
-
-/// The coordinate an index step contributes: a shift of the referencing
-/// element's position at the entered level when the index is that level's
-/// own iteration index plus a literal, else a reset (a cell may name any
-/// item).
-pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32) -> Coord {
-    let mut shift = 0i64;
-    let mut iters = 0;
-    let mut same_level = true;
-    for t in &ip.terms {
-        match t {
-            IndexTerm::Const(c) => shift += c,
-            IndexTerm::Iter(h) => {
-                iters += 1;
-                if src_depth.checked_sub(*h) != Some(entered) {
-                    same_level = false;
-                }
-            }
-            IndexTerm::Cell(_) => same_level = false,
-        }
-    }
-    if iters == 1 && same_level {
-        Coord::Keep(shift)
-    } else {
-        Coord::Reset
     }
 }
 
@@ -549,25 +507,5 @@ mod tests {
         // Loops of -2 and -1 only: never non-negative.
         let e = [(0, 1), (1, 0), (0, 0)];
         assert!(!has_nonpositive_cycle(2, &e, &[-1, -1, -1], -1));
-    }
-
-    #[test]
-    fn index_coords() {
-        let ip = |terms: Vec<IndexTerm>| IndexPlan { terms };
-        // `$r[$i-2]` inside r: depth 1 referencing, entering depth 1.
-        assert_eq!(
-            index_coord(&ip(vec![IndexTerm::Iter(0), IndexTerm::Const(-2)]), 1, 1),
-            Coord::Keep(-2)
-        );
-        // `$r[2]` from the document.
-        assert_eq!(
-            index_coord(&ip(vec![IndexTerm::Const(2)]), 0, 1),
-            Coord::Reset
-        );
-        // An outer index used on an inner repeat.
-        assert_eq!(
-            index_coord(&ip(vec![IndexTerm::Iter(1)]), 2, 2),
-            Coord::Reset
-        );
     }
 }
