@@ -669,16 +669,14 @@ export class RendererInstructionBuilder {
     ): Promise<{ stateValues: Record<string, any>; alwaysUpdate: boolean }> {
         const stateValues: Record<string, any> = {};
         let alwaysUpdate = false;
-        if (
-            (component.rendererConstants && component.drawnMissing) ||
-            component.isMissing
-        ) {
-            // Drawn as a blank (D37), whose renderer reads only whether it is
-            // hidden: the rest of what its type draws is not calculated. A
-            // reference drawn as a blank (`updateDrawnMissing`) is drawn
-            // anew, with all of it, once it has something to read
-            // (`blankSuffix`), and a missing tag is made again from its
-            // source (`isMissing`).
+        if (component.rendererConstants && component.drawnMissing) {
+            // A reference drawn as a blank (D37, `updateDrawnMissing`), whose
+            // renderer reads only whether it is hidden: the rest of what the
+            // type it presents as draws is not calculated while it is. It is
+            // drawn anew, with all of it, once it has something to read
+            // (`blankSuffix`). A missing tag is still sent its type's state,
+            // which what acts on it reads (the value a missing
+            // `<mathInput>` is given).
             addOnDemandStateVariables({
                 core: this.core,
                 component,
