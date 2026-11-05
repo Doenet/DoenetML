@@ -221,6 +221,8 @@ cherry-picked backport touches none of them, so the lines do not contend.
   dispatch path that step requires `HEAD` to be reachable from `origin/main`,
   which a maintenance-branch commit is not — so deleting the file removes a
   confusing button rather than the only thing standing in the way.
+- `vscode-prerelease.yml` → **deleted**. The line publishes no extension, and the
+  workflow always builds and publishes `main`'s tip, whichever branch runs it.
 - `gh-pages-docs.yml` → manual only. The docs site is a single unversioned build
   from `main`.
 - The branch also carries its own copies of `AGENTS.md`, this repo's changesets
