@@ -173,12 +173,14 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
 | `<sum>$l[5] 3</sum>` | `3` |
 
 How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
-`$n.value[1]`, `$ms[1]` and `$pl[2].coords[1]` now show nothing. An index into a scalar entry of a
+`$n.value[1]`, `$ms[1]` and `$pl[2].coords[1]` name nothing; under D37 they are missing and
+show `＿`, where today they show nothing. An index into a scalar entry of a
 list still gives `＿` (B34, #2438). A property with no value, such as `$c.maxNumber` with no
-limit, shows `NaN` (#2416, D10).
+limit, shows `NaN` (#2416). Under D37 it is missing and shows `＿`.
 
 **A property the source doesn't have** is a mistake in what the author wrote, so it is warning
-`doenet-w0104` (DIAG-2), and an error on a tag (REF-0, #2447). Examples: `$n.nonexistent`,
+`doenet-w0104` (DIAG-2), bare or on a tag, and the reference is missing (D37). Since #2447 it is
+an error on a tag, which D37 reverses (#2456). Examples: `$n.nonexistent`,
 `$$f.x(2)`, and `$cc.notThere`. It is decided in this order:
 1. **A name first.** `.notThere` is a property only if no component of the document has that
    name (#2447's `pathStartsWithProperty`).
@@ -192,7 +194,8 @@ limit, shows `NaN` (#2416, D10).
 
 Decided with D22 (#2434 item 1). **Done by #2451** (closing #2450), including after names
 (`$x.nonexistent`) and after an index (`$s[1].nonexistent`, `$r[1].nonexistent`). On a tag it
-is the error, where `<math extend="$r[1].nonexistent"/>` used to give a blank math.
+is an error today, where `<math extend="$r[1].nonexistent"/>` used to give a blank math. Under
+D37 it is the same warning as the bare form, and the tag is missing (#2456).
 
 **Open (#2452):** a property that only some of what a composite holds has is skipped silently
 for the rest. Nothing is named `x`, so `$cc1.x` of a case holding a math, a text and a number
