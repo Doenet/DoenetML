@@ -28,7 +28,8 @@ export default class ConsiderAsResponses extends BaseComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
-                    variableNames: ["numValues"],
+                    // a missing component (D37) is one response
+                    variableNames: ["numValues", "valueMissing"],
                     variablesOptional: true,
                 },
             }),

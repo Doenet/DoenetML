@@ -1583,6 +1583,13 @@ export default class Answer extends InlineComponent {
                         variableName: "numValues",
                         variablesOptional: true,
                     };
+                    // a missing input (D37) is one blank response
+                    dependencies["inputForAnswerMissing" + ind] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: inputComp.componentIdx,
+                        variableName: "valueMissing",
+                        variablesOptional: true,
+                    };
                 }
 
                 for (let [
@@ -1603,6 +1610,7 @@ export default class Answer extends InlineComponent {
                                 "isResponse",
                                 "isPotentialResponse",
                                 "numValues",
+                                "valueMissing",
                             ],
                             variablesOptional: true,
                             recurseToMatchedChildren: true,
@@ -1619,6 +1627,12 @@ export default class Answer extends InlineComponent {
                             dependencyType: "stateVariable",
                             componentIdx: child.componentIdx,
                             variableName: "numValues",
+                            variablesOptional: true,
+                        };
+                        dependencies["childMissing" + ind] = {
+                            dependencyType: "stateVariable",
+                            componentIdx: child.componentIdx,
+                            variableName: "valueMissing",
                             variablesOptional: true,
                         };
                     } else {
@@ -1642,8 +1656,13 @@ export default class Answer extends InlineComponent {
                     ind < dependencyValues.numInputsForAnswer;
                     ind++
                 ) {
-                    let numValues =
-                        dependencyValues["inputForAnswerNValues" + ind];
+                    // A missing component is one blank response, whatever
+                    // number of values its type has (`currentResponses`).
+                    let numValues = dependencyValues[
+                        "inputForAnswerMissing" + ind
+                    ]
+                        ? 1
+                        : dependencyValues["inputForAnswerNValues" + ind];
                     if (numValues === undefined) {
                         numResponses += 1;
                     } else {
@@ -1677,8 +1696,9 @@ export default class Answer extends InlineComponent {
                                 continue;
                             }
 
-                            let numValues =
-                                descendant.stateValues.numValues ?? 1;
+                            let numValues = descendant.stateValues.valueMissing
+                                ? 1
+                                : (descendant.stateValues.numValues ?? 1);
 
                             if (descendant.stateValues.isResponse) {
                                 numResponses += numValues;
@@ -1692,7 +1712,9 @@ export default class Answer extends InlineComponent {
                             baseComponentType: "_input",
                         })
                     ) {
-                        let numValues = dependencyValues["childNValues" + ind];
+                        let numValues = dependencyValues["childMissing" + ind]
+                            ? 1
+                            : dependencyValues["childNValues" + ind];
                         if (numValues === undefined) {
                             numResponses += 1;
                         } else {
@@ -1702,7 +1724,11 @@ export default class Answer extends InlineComponent {
                         // considerAsResponses
 
                         for (let child of dependencyValues["child" + ind]) {
-                            if (child.stateValues.numValues === undefined) {
+                            if (child.stateValues.valueMissing) {
+                                numResponses += 1;
+                            } else if (
+                                child.stateValues.numValues === undefined
+                            ) {
                                 numResponses += 1;
                             } else {
                                 numResponses += child.stateValues.numValues;

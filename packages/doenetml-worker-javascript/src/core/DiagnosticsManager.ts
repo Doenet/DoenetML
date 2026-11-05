@@ -496,7 +496,9 @@ function referenceSpan(
         if (valueEnd === -1 || valueEnd >= end) {
             return undefined;
         }
-        if (name === "extend" || name === "copy") {
+        // attribute names are case-insensitive, as the resolver reads them
+        const lowerName = name.toLowerCase();
+        if (lowerName === "extend" || lowerName === "copy") {
             return { start: valueStart, end: valueEnd };
         }
         i = valueEnd + 1;

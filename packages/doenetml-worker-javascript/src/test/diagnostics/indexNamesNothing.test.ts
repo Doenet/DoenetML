@@ -382,6 +382,21 @@ describe("An index that names nothing @group4", async () => {
         ]);
     });
 
+    it("reads the reference of a tag whatever the case of its attribute", async () => {
+        // `Extend` is `extend`: the warning in its index says why the index
+        // names nothing, as for the lowercase attribute.
+        for (const attribute of ["extend", "Extend", "COPY"]) {
+            const { warnings, infos } = await shownAndReported(
+                `<p name="p"><math ${attribute}="$l[$nothing]"/></p>`,
+            );
+            expect(
+                warnings.map((w) => w.code),
+                attribute,
+            ).eqls(["doenet-w0104"]);
+            expect(infos, attribute).eqls([]);
+        }
+    });
+
     it("codes a name that names more than one thing", async () => {
         const { warnings } = await shownAndReported(
             `<group><text name="t">a</text><text name="t">b</text></group><p name="p">[$t]</p>`,

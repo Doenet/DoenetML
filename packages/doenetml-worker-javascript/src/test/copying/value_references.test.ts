@@ -3233,6 +3233,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <answer name="award"><award referencesAreResponses="$b"><when>$b</when></award></answer>
     <boolean name="b" extend="$nothing"/>
     <answer name="input"><mathInput extend="$nothing"/><award><when>$n = 3</when></award></answer>
+    <answer name="choices"><considerAsResponses><choiceInput extend="$nothing"/> $n</considerAsResponses><award><when>$n = 3</when></award></answer>
+    <answer name="choiceInput"><choiceInput extend="$nothing"/><award><when>$n = 3</when></award></answer>
     `,
                 });
                 for (const [name, expected] of [
@@ -3256,6 +3258,26 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     ],
                     [
                         "input",
+                        {
+                            responses: ["＿"],
+                            types: ["math"],
+                            credit: 1,
+                            numResponses: 1,
+                        },
+                    ],
+                    // one response, though a choice input with nothing
+                    // selected has no values
+                    [
+                        "choices",
+                        {
+                            responses: ["＿", 3],
+                            types: ["math", "number"],
+                            credit: 1,
+                            numResponses: 2,
+                        },
+                    ],
+                    [
+                        "choiceInput",
                         {
                             responses: ["＿"],
                             types: ["math"],
