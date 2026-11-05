@@ -159,8 +159,6 @@ type Absent = { name: string; remaining: number };
 
 /** Why a composite does not always hold exactly one component. */
 type NotOne =
-    /** a `<conditionalContent>` with no `<else>` */
-    | { reason: "noElse" }
     /** a selector whose `numToSelect` (`numSamples`) is not written as 1 */
     | { reason: "numToSelect"; attribute: string }
     /** a composite that can hold any number, such as a `<repeat>` */
@@ -1029,7 +1027,9 @@ export function checkTypeChangesAtLoad({
                         seen,
                     ),
                 ),
-                hasElse ? undefined : { reason: "noElse" },
+                // With no `<else>`, it holds nothing while no case is true,
+                // and a tag made from it is then missing (D37).
+                undefined,
                 componentType,
                 "case",
             );
@@ -1330,7 +1330,11 @@ export function checkTypeChangesAtLoad({
         sourceTag: string,
         direct: boolean,
     ): TypeChangeAtLoadError | undefined {
-        if (held.notOne) {
+        if (held.notOne?.reason === "count" && held.notOne.count === 0) {
+            // What holds nothing gives a missing tag while it does (D37):
+            // a case or option holding nothing, as a `<conditionalContent>`
+            // with no case true.
+        } else if (held.notOne) {
             const notOne = held.notOne;
             const tag = held.notOneTag ?? sourceTag;
             return {
@@ -2366,11 +2370,13 @@ export function checkTypeChangesAtLoad({
 
     /**
      * Decide the every-branch, same-type rule for the reference `copy`
-     * (`branchDeclaration`). A reference written as a tag gets an error in
-     * place of the copy (`typeChangeAtLoad`), as does a scalar tag made from
-     * a name no case may hold (no `<else>`, D36). Any other reference names
-     * nothing, with a warning (`branchNameWarnings`). Returns whether it was
-     * decided here.
+     * (`branchDeclaration`). A reference written as a tag records what it
+     * finds on the copy (`typeChangeAtLoad`): types that differ are an
+     * error in its place, and a name a branch lacks, or a literal index past
+     * the picks, a warning with a missing tag (D37). A scalar tag made from a
+     * name no case may hold (no `<else>`) is allowed, and missing while no
+     * case is active. Any other reference names nothing, with a warning
+     * (`branchNameWarnings`). Returns whether it was decided here.
      */
     function checkBranchName(copy: SerializedComponent) {
         let declared = branchNameOf(copy);
@@ -2415,24 +2421,6 @@ export function checkTypeChangesAtLoad({
                     status: "ok",
                     canBeAbsent: declared.canBeAbsent,
                 };
-            }
-            if (
-                declared.status === "ok" &&
-                declared.canBeAbsent &&
-                isScalarTag(copy)
-            ) {
-                copy.doenetAttributes = {
-                    ...copy.doenetAttributes,
-                    typeChangeAtLoad: {
-                        code: "doenet-e0064",
-                        args: {
-                            reason: "noElse",
-                            sourceType: "conditionalContent",
-                            indexSelectsOne: "false",
-                        },
-                    },
-                };
-                return true;
             }
         }
         const issue = branchNameIssue(declared);

@@ -340,12 +340,14 @@ impl Expander {
                 // We couldn't find a unique `extending` prop, so the `extend` attribute is invalid.
                 // Push an error message as a child of `node`.
 
-                // A tag written with `extend` or `copy` always makes that tag
-                // (D36), so a reference in the attribute that names nothing,
-                // or more than one thing, is an error, where the same
-                // reference written bare is a warning. It keeps the
-                // reference's code: a code names the situation, and the
-                // severity is the call site's (`@doenet/i18n` diagnostics).
+                // The attribute failed, so the node is marked as an error. A
+                // reference in it that names nothing, or more than one thing,
+                // keeps the reference's code, and the worker reports it at
+                // the warning level the same reference written bare is, with
+                // the tag missing in its place (D37, `convertNormalizedDast.ts`):
+                // a code names the situation, and the severity is the call
+                // site's (`@doenet/i18n` diagnostics). An attribute that holds
+                // no reference stays an error.
                 let error_type = ErrorType::Error;
 
                 let message = if let Some(err) = error_found {

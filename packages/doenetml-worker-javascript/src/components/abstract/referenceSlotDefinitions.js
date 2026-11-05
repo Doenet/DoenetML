@@ -555,6 +555,9 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
  * answer records such a reference as a blank math. Nothing else asks, and
  * there the reference holds the empty value of the presented type.
  *
+ * A reference to a missing component (`BaseComponent.isMissing`, D37) is
+ * missing too, whatever variable it reads: `$m.value` of a missing `m`.
+ *
  * A reference a copy made at run time (`fixedReferent`) has no
  * `valueMissing`. The copy makes no reference for an entry that is not
  * there (`Copy.js`), and a reference it made stands for the component it
@@ -566,17 +569,26 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
     return {
         stateVariablesDeterminingDependencies: [names.referentInfo],
         returnDependencies({ stateValues }) {
-            return targetDependencies(
-                undefined,
-                stateValues[names.referentInfo],
-            );
+            const referentInfo = stateValues[names.referentInfo];
+            const dependencies = targetDependencies(undefined, referentInfo);
+            if (referentInfo) {
+                // A property of a missing component is missing (D37).
+                dependencies.targetMissing = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: "valueMissing",
+                    variablesOptional: true,
+                };
+            }
+            return dependencies;
         },
         definition({ dependencyValues }) {
             return {
                 setValue: {
                     [names.valueMissing]:
                         dependencyValues.target === undefined ||
-                        Boolean(dependencyValues.targetInactive),
+                        Boolean(dependencyValues.targetInactive) ||
+                        Boolean(dependencyValues.targetMissing),
                 },
             };
         },

@@ -1628,13 +1628,16 @@ export default class Copy extends CompositeComponent {
             if (atLoad) {
                 workspace.typeChangeKey = typeChangeKey(atLoad);
                 diagnostics.push(atLoad.diagnostic);
-                replacements = errorInPlaceOfCopy({
+                const inPlace = inPlaceOfCopy({
                     component,
                     componentInfoObjects,
-                    diagnostic: atLoad.diagnostic,
+                    compositeAttributesObj,
+                    typeChange: atLoad,
                     stateIdInfo,
-                    nComponents: nComponents++,
+                    nComponents,
                 });
+                replacements = inPlace.replacements;
+                nComponents = inPlace.nComponents;
                 workspace.numReplacementsBySource = [replacements.length];
                 workspace.numNonStringReplacementsBySource = [
                     replacements.length,
@@ -1643,10 +1646,20 @@ export default class Copy extends CompositeComponent {
                 return { replacements, diagnostics, nComponents };
             }
 
-            if (component.attributes._copyInChildren?.primitive.value) {
-                // even though don't have valid target,
-                // if copyInChildren, then include children added directly to component
-                const blank = blankOfWrittenType({
+            if (await isBareReferenceToOneThing(component, components)) {
+                // A bare reference with no referent (`$nothing`) is a blank,
+                // as `<T extend="$nothing"/>` is (D37, REF-1).
+                replacements = [
+                    missingReplacement({
+                        nComponents: nComponents++,
+                        stateIdInfo,
+                    }),
+                ];
+                workspace.numReplacementsBySource.push(1);
+                workspace.numNonStringReplacementsBySource.push(1);
+            } else if (component.attributes._copyInChildren?.primitive.value) {
+                // The tag is missing, whatever it adds (D37).
+                const blank = missingOfWrittenType({
                     component,
                     componentInfoObjects,
                     compositeAttributesObj,
@@ -1876,15 +1889,18 @@ export default class Copy extends CompositeComponent {
             workspace,
             canWatch: found.canWatch,
         });
-        if (typeChange?.level === "error") {
+        if (typeChange?.level === "error" || typeChange?.level === "warning") {
             diagnostics.push(typeChange.diagnostic);
-            replacements = errorInPlaceOfCopy({
+            const inPlace = inPlaceOfCopy({
                 component,
                 componentInfoObjects,
-                diagnostic: typeChange.diagnostic,
+                compositeAttributesObj,
+                typeChange,
                 stateIdInfo,
-                nComponents: nComponents++,
+                nComponents,
             });
+            replacements = inPlace.replacements;
+            nComponents = inPlace.nComponents;
             workspace.numReplacementsBySource = [replacements.length];
             workspace.numNonStringReplacementsBySource = [replacements.length];
             workspace.propVariablesCopiedBySource = [];
@@ -1892,8 +1908,8 @@ export default class Copy extends CompositeComponent {
             return { replacements, diagnostics, nComponents };
         }
         if (typeChange?.level === "info") {
-            // While the value does not convert, the copy is `<T/>` (D36).
-            const blank = blankOfWrittenType({
+            // While the value does not convert, the copy is missing (D37).
+            const blank = missingOfWrittenType({
                 component,
                 componentInfoObjects,
                 compositeAttributesObj,
@@ -1935,6 +1951,24 @@ export default class Copy extends CompositeComponent {
         diagnostics.push(...verificationResult.diagnostics);
         nComponents = verificationResult.nComponents;
         replacements = verificationResult.replacements;
+
+        if (
+            !replacements.some((x) => typeof x === "object") &&
+            (await isBareReferenceToOneThing(component, components))
+        ) {
+            // A bare reference to one thing that is not there (`$s[2]` of
+            // a select that picked one, `$n.nonexistent`) is a blank (D37).
+            // It names no source then, so it is made from its source again
+            // once that makes something.
+            replacements = [
+                missingReplacement({ nComponents: nComponents++, stateIdInfo }),
+            ];
+            workspace.numReplacementsBySource = [1];
+            workspace.numNonStringReplacementsBySource = [1];
+            workspace.sourceIndices = [];
+            workspace.propVariablesCopiedBySource = [];
+            workspace.sourceContainsCopyBySource = [];
+        }
 
         addAttributesToSingleReplacement(
             replacements,
@@ -2087,56 +2121,23 @@ export default class Copy extends CompositeComponent {
             let serializedReplacements = results.serializedReplacements;
             let propVariablesCopiedByReplacement =
                 results.propVariablesCopiedByReplacement;
-            // Whether what is made is only the tag's own children, as
-            // `<T/>` is (`blankOfWrittenType`), made nothing of the prop.
+            // Whether what is made is the missing tag (`missingOfWrittenType`),
+            // made of nothing of the prop.
             let madeBlank = false;
 
             if (copyInChildren && component.serializedChildren.length > 0) {
                 if (serializedReplacements.length === 0) {
-                    // even though don't have valid prop,
-                    // if copyInChildren, then include children added directly to component
-
-                    let componentType =
-                        componentInfoObjects.componentTypeLowerCaseMapping[
-                            component.attributes._createComponentOfType.primitive.value.toLowerCase()
-                        ];
-
-                    let componentClass =
-                        componentInfoObjects.allComponentClasses[componentType];
-
-                    const res = convertUnresolvedAttributesForComponentType({
-                        attributes: component.attributes,
-                        componentType,
+                    // The prop gives nothing, so the tag is missing, whatever
+                    // children it adds (D37).
+                    const missing = missingOfWrittenType({
+                        component,
                         componentInfoObjects,
                         compositeAttributesObj,
                         nComponents,
                         stateIdInfo,
                     });
-
-                    const attributesFromComposite = res.attributes;
-                    nComponents = res.nComponents;
-
-                    let children = deepClone(component.serializedChildren);
-                    if (!componentClass.includeBlankStringChildren) {
-                        children = children.filter(
-                            (x) => typeof x !== "string" || x.trim() !== "",
-                        );
-                    }
-
-                    let attributes = attributesFromComposite;
-
-                    serializedReplacements = [
-                        {
-                            type: "serialized",
-                            componentType,
-                            componentIdx: nComponents++,
-                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                            attributes,
-                            doenetAttributes: {},
-                            state: {},
-                            children,
-                        },
-                    ];
+                    nComponents = missing.nComponents;
+                    serializedReplacements = missing.replacements;
 
                     propVariablesCopiedByReplacement = [[]];
                     madeBlank = true;
@@ -2499,13 +2500,13 @@ export default class Copy extends CompositeComponent {
         // );
 
         let diagnostics = [];
-
         if ((await component.stateValues.link) === false) {
             return { replacementChanges: [], diagnostics, nComponents };
         }
 
         // What the DoenetML could decide was decided when the document loaded
-        // (D36): its error, and only its error, stays in place of the copy
+        // (D36): its error (or, for a reference that names nothing, its
+        // missing tag, D37), and only that, stays in place of the copy
         // whatever its source does now, whether it names nothing, is in a
         // case not active (`targetInactive`), or has changed.
         const atLoad = await typeChangeAtLoadError({
@@ -2519,8 +2520,10 @@ export default class Copy extends CompositeComponent {
             workspace.sourceIndices = [];
             if (
                 key === workspace.typeChangeKey &&
-                component.replacements.length === 1 &&
-                component.replacements[0].componentType === "_error"
+                (atLoad.level === "warning"
+                    ? component.replacements.every((x) => x.isMissing)
+                    : component.replacements.length === 1 &&
+                      component.replacements[0].componentType === "_error")
             ) {
                 return {
                     replacementChanges: unwithheldChanges(component),
@@ -2535,13 +2538,15 @@ export default class Copy extends CompositeComponent {
             workspace.typeChangeKey = key;
             reportTypeChange(workspace, atLoad);
             diagnostics.push(atLoad.diagnostic);
-            const replacements = errorInPlaceOfCopy({
+            const inPlace = inPlaceOfCopy({
                 component,
                 componentInfoObjects,
-                diagnostic: atLoad.diagnostic,
+                typeChange: atLoad,
                 stateIdInfo,
-                nComponents: nComponents++,
+                nComponents,
             });
+            const replacements = inPlace.replacements;
+            nComponents = inPlace.nComponents;
             workspace.numReplacementsBySource = [replacements.length];
             workspace.numNonStringReplacementsBySource = [replacements.length];
             workspace.propVariablesCopiedBySource = [];
@@ -2587,9 +2592,9 @@ export default class Copy extends CompositeComponent {
                 component.attributes._copyInChildren?.primitive.value &&
                 !previousZeroSourceIndices
             ) {
-                // `<T/>` with the tag's own attributes and children, as when
-                // it is made with no source (`createReplacementsFromSources`)
-                const blank = blankOfWrittenType({
+                // The missing tag, as when it is made with no source
+                // (`createReplacementsFromSources`, D37)
+                const blank = missingOfWrittenType({
                     component,
                     componentInfoObjects,
                     compositeAttributesObj,
@@ -2681,6 +2686,45 @@ export default class Copy extends CompositeComponent {
                 prefix: `${component.stateId}|`,
                 num: workspace.replacementsCreated,
             };
+
+            if (await isBareReferenceToOneThing(component, components)) {
+                // A bare reference to one thing in a case that is not active
+                // (`$cc.x`) is a blank while it is not (D37), not withheld.
+                // It names no source then, so it is made from its source
+                // again once the case is active.
+                workspace.sourceIndices = [];
+                workspace.propVariablesCopiedBySource = [];
+                workspace.sourceContainsCopyBySource = [];
+                if (
+                    component.replacements.length === 1 &&
+                    component.replacements[0].componentType === "_missing" &&
+                    !(component.replacementsToWithhold > 0)
+                ) {
+                    return { replacementChanges, diagnostics, nComponents };
+                }
+                workspace.numReplacementsBySource = [1];
+                workspace.numNonStringReplacementsBySource = [1];
+                const missing = missingReplacement({
+                    nComponents: nComponents++,
+                    stateIdInfo,
+                });
+                workspace.replacementsCreated = stateIdInfo.num;
+                return {
+                    replacementChanges: [
+                        ...unwithheldChanges(component),
+                        {
+                            changeType: "add",
+                            changeTopLevelReplacements: true,
+                            firstReplacementInd: 0,
+                            numberReplacementsToReplace:
+                                component.replacements.length,
+                            serializedReplacements: [missing],
+                        },
+                    ],
+                    diagnostics,
+                    nComponents,
+                };
+            }
 
             let nReplacements = component.replacements.length;
             if (nReplacements > 0) {
@@ -2919,6 +2963,9 @@ export default class Copy extends CompositeComponent {
         );
 
         let recreateRemaining = false;
+        // Whether every source is withheld now, as the content of a case
+        // that is not active, which then names nothing (D37)
+        let withheldAll = false;
 
         let numSourcesRecreated = 0;
 
@@ -2966,7 +3013,42 @@ export default class Copy extends CompositeComponent {
                     }
                 }
 
+                if (
+                    allWithheld &&
+                    sourceNum === 0 &&
+                    (await isBareReferenceToOneThing(component, components))
+                ) {
+                    // A bare reference to one thing withheld, as in a case
+                    // that is not active (`$cc.x`), is a blank while it is
+                    // (D37), as for `targetInactive`, above.
+                    workspace.sourceIndices = [];
+                    workspace.propVariablesCopiedBySource = [];
+                    workspace.sourceContainsCopyBySource = [];
+                    workspace.numReplacementsBySource = [1];
+                    workspace.numNonStringReplacementsBySource = [1];
+                    const missing = missingReplacement({
+                        nComponents: nComponents++,
+                        stateIdInfo,
+                    });
+                    workspace.replacementsCreated = stateIdInfo.num;
+                    return {
+                        replacementChanges: [
+                            ...unwithheldChanges(component),
+                            {
+                                changeType: "add",
+                                changeTopLevelReplacements: true,
+                                firstReplacementInd: 0,
+                                numberReplacementsToReplace:
+                                    component.replacements.length,
+                                serializedReplacements: [missing],
+                            },
+                        ],
+                        diagnostics,
+                        nComponents,
+                    };
+                }
                 if (allWithheld) {
+                    withheldAll = sourceNum === 0;
                     let numberReplacementsLeft =
                         workspace.numReplacementsBySource
                             .slice(sourceNum)
@@ -3364,10 +3446,11 @@ export default class Copy extends CompositeComponent {
         if (!workspace.typeChangeKey?.startsWith("mismatch")) {
             reportTypeChange(
                 workspace,
-                !namesNothing(
-                    numNonStringReplacementsBySource,
-                    madeBlankBySource,
-                )
+                !withheldAll &&
+                    !namesNothing(
+                        numNonStringReplacementsBySource,
+                        madeBlankBySource,
+                    )
                     ? undefined
                     : await indexNamesNothing({
                           component,
@@ -5577,7 +5660,7 @@ function recordIndexNamesNothing(workspace, info) {
 /**
  * Whether the sources of a copy made nothing of what its reference names:
  * each made no component (`numNonStringReplacementsBySource`), or only the
- * tag's own children (`madeBlankBySource`), as `<T/>` is.
+ * missing tag (`madeBlankBySource`, `missingOfWrittenType`).
  */
 function namesNothing(numNonStringReplacementsBySource, madeBlankBySource) {
     return numNonStringReplacementsBySource.every(
@@ -6041,7 +6124,11 @@ async function heldCaseSource({ caseSource, components, heldMadeFrom }) {
  */
 function heldTypeChange(typeChange, heldMadeFrom) {
     const held = heldMadeFrom?.typeChange;
-    if (held === undefined || typeChange?.level === "error") {
+    if (
+        held === undefined ||
+        typeChange?.level === "error" ||
+        typeChange?.level === "warning"
+    ) {
         return typeChange;
     }
     if (held.key === "allowed") {
@@ -6098,18 +6185,30 @@ async function typeChangeAtLoadError({
     )
         ? { reference: source, ...mark.args }
         : { componentType: writtenType, source, ...mark.args };
+    // A reference that names nothing gives a missing tag, with the warning
+    // the same reference written bare gives (D37); only a type is an error.
+    const level = MISSING_AT_LOAD_CODES.has(mark.code) ? "warning" : "error";
     return {
-        level: "error",
-        diagnostic: codedDiagnostic({ type: "error", code: mark.code, args }),
+        level,
+        diagnostic: codedDiagnostic({ type: level, code: mark.code, args }),
     };
 }
 
 /**
- * The error for a reference written as a tag, scalar or list, whose property
- * none of its sources has (`$t.nothing`, or `$g.nothing` of a `<group>`
- * holding a `<text>`): the tag cannot be made (D36), as for a name that
- * names nothing (#2434). `undefined` otherwise, as while a composite has
- * made nothing to look in, or for a name a composite does not hold now.
+ * The codes of what `typeChangeAtLoad.ts` finds that make a reference written
+ * as a tag name nothing (D37): a literal index past the picks
+ * (`doenet-w0181`), and a name the every-branch rule rejects for a branch
+ * that lacks it (`doenet-w0183`). The tag is then missing, with the warning.
+ */
+const MISSING_AT_LOAD_CODES = new Set(["doenet-w0181", "doenet-w0183"]);
+
+/**
+ * The warning for a reference written as a tag, scalar or list, whose
+ * property none of its sources has (`$t.nothing`, or `$g.nothing` of a
+ * `<group>` holding a `<text>`): the tag is missing, with the warning the
+ * same reference written bare gives (D37, #2434). `undefined` otherwise, as
+ * while a composite has made nothing to look in, or for a name a composite
+ * does not hold now.
  */
 async function missingPropertyError({
     component,
@@ -6165,9 +6264,9 @@ async function missingPropertyError({
         return undefined;
     }
     return {
-        level: "error",
+        level: "warning",
         diagnostic: codedDiagnostic({
-            type: "error",
+            type: "warning",
             code: "doenet-w0104",
             args: {
                 reference: referenceAsWritten(
@@ -6190,8 +6289,9 @@ async function missingPropertyError({
  * component of the document has that name (`pathStartsWithProperty`,
  * `typeChangeAtLoad.ts`): `$sec.t` of a `t` written elsewhere, or `$cc.c` of a
  * name the case active now does not hold, is not reported here. For a
- * composite, it is reported when none of what it holds now has it. A reference written as a tag reports it as an
- * error instead (`missingPropertyError`).
+ * composite, it is reported when none of what it holds now has it. A
+ * reference written as a tag reports it with its missing tag instead
+ * (`missingPropertyError`).
  */
 async function reportMissingProperty({
     component,
@@ -6276,6 +6376,113 @@ function typeHasProperty({ componentType, propName, componentInfoObjects }) {
 }
 
 /**
+ * What is in place of the copy `component` for the mismatch `typeChange`
+ * decided by what the author wrote (`typeChangeAtLoadError`,
+ * `missingPropertyError`): an `_error` for an error, and for a warning (a
+ * reference that names nothing) the missing tag (`missingOfWrittenType`,
+ * D37), or nothing for the copy that fills a list (`forList`), whose list
+ * then has no entries from it. `{ replacements, nComponents }`.
+ */
+function inPlaceOfCopy({
+    component,
+    componentInfoObjects,
+    compositeAttributesObj,
+    typeChange,
+    stateIdInfo,
+    nComponents,
+}) {
+    if (typeChange.level !== "warning") {
+        return {
+            replacements: errorInPlaceOfCopy({
+                component,
+                componentInfoObjects,
+                diagnostic: typeChange.diagnostic,
+                stateIdInfo,
+                nComponents: nComponents++,
+            }),
+            nComponents,
+        };
+    }
+    if (
+        component.doenetAttributes?.forList !== undefined ||
+        !component.attributes._createComponentOfType?.primitive?.value
+    ) {
+        return { replacements: [], nComponents };
+    }
+    const missing = missingOfWrittenType({
+        component,
+        componentInfoObjects,
+        compositeAttributesObj:
+            compositeAttributesObj ??
+            component.constructor.createAttributesObject(),
+        nComponents,
+        stateIdInfo,
+    });
+    addAttributesToSingleReplacement(
+        missing.replacements,
+        component,
+        componentInfoObjects,
+    );
+    return missing;
+}
+
+/**
+ * Whether the copy `component` is a bare reference (not written as a tag,
+ * with no type it must make) to one thing (D37, rule 1): it has no referent,
+ * or what it names is not a composite named as a whole, so it names a
+ * property, an index, or a component. Such a reference that makes nothing
+ * is a blank (`missingReplacement`). A reference to a composite as a whole
+ * (`$r` of a `<repeat>`, `$g` of a `<group>`) gives what the composite
+ * holds, possibly nothing. A parent that needs every composite to make
+ * something (`compositesMustHaveAReplacement`, a `<math>`) gets its blank
+ * of the type it needs instead (`verifyReplacementsMatchSpecifiedType`).
+ */
+async function isBareReferenceToOneThing(component, components) {
+    if (
+        component.componentType !== "_copy" ||
+        component.attributes._createComponentOfType?.primitive ||
+        component.sharedParameters.compositesMustHaveAReplacement ||
+        component.doenetAttributes?.forList !== undefined
+    ) {
+        return false;
+    }
+    if (component.doenetAttributes?.noReferent) {
+        return true;
+    }
+    const extended = await component.stateValues.extendedComponent;
+    if (!extended) {
+        return false;
+    }
+    const originalPath = await component.stateValues.originalPath;
+    const hasIndex = originalPath?.some((part) => part.index.length > 0);
+    const unresolvedPath = await component.stateValues.unresolvedPath;
+    if (extended.componentType === "setup") {
+        return false;
+    }
+    if (hasIndex || unresolvedPath?.length > 0) {
+        return true;
+    }
+    // a name: one thing, unless it names a composite as a whole
+    return !component.componentInfoObjects.isCompositeComponent({
+        componentType: extended.componentType,
+    });
+}
+
+/** A `_missing` (`Missing.js`), as the one replacement of a copy. */
+function missingReplacement({ nComponents, stateIdInfo }) {
+    return {
+        type: "serialized",
+        componentType: "_missing",
+        componentIdx: nComponents,
+        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+        attributes: {},
+        doenetAttributes: {},
+        state: {},
+        children: [],
+    };
+}
+
+/**
  * The `_error` shown in place of the copy `component` for `diagnostic`, as
  * its one replacement, with the index `componentIdx`.
  */
@@ -6309,12 +6516,18 @@ function errorInPlaceOfCopy({
 }
 
 /**
- * `<T/>`, for the reference `component` written as the tag `T`, with its own
- * attributes and children: what it is while the value it is made from does
- * not convert (`doenet-i0053`), or while its index names nothing
- * (`doenet-i0054`). It is still a `T` (D36, REF-0).
+ * A missing `T` (D37, `BaseComponent.isMissing`), for the reference
+ * `component` written as the tag `T`: what it is while its source is missing,
+ * whatever it adds. That is while it names nothing (a name, a property, or an
+ * index that names nothing now, `doenet-i0054`), while the value it is made
+ * from does not convert (`doenet-i0053`), and while the composite it is made
+ * from holds nothing (`doenet-i0055`). It is a `T` with the tag's own
+ * attributes, so `hide` still hides it, but without its children, which are
+ * not drawn: it is drawn as a blank, and its value, `<T/>`'s, never equals
+ * anything. It is made from its source again, with its children, once the
+ * source is there.
  */
-function blankOfWrittenType({
+function missingOfWrittenType({
     component,
     componentInfoObjects,
     compositeAttributesObj,
@@ -6325,8 +6538,6 @@ function blankOfWrittenType({
         componentInfoObjects.componentTypeLowerCaseMapping[
             component.attributes._createComponentOfType.primitive.value.toLowerCase()
         ];
-    const componentClass =
-        componentInfoObjects.allComponentClasses[componentType];
 
     const res = convertUnresolvedAttributesForComponentType({
         attributes: component.attributes,
@@ -6338,15 +6549,6 @@ function blankOfWrittenType({
     });
     nComponents = res.nComponents;
 
-    let children = component.attributes._copyInChildren?.primitive.value
-        ? deepClone(component.serializedChildren)
-        : [];
-    if (!componentClass.includeBlankStringChildren) {
-        children = children.filter(
-            (x) => typeof x !== "string" || x.trim() !== "",
-        );
-    }
-
     return {
         replacements: [
             {
@@ -6355,9 +6557,9 @@ function blankOfWrittenType({
                 componentIdx: nComponents++,
                 stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: res.attributes,
-                doenetAttributes: {},
+                doenetAttributes: { missing: true },
                 state: {},
-                children,
+                children: [],
             },
         ],
         nComponents,
@@ -6366,10 +6568,12 @@ function blankOfWrittenType({
 
 /**
  * The info for a reference written as a scalar tag whose index names
- * nothing now (`<math extend="$r[$i]"/>` past the iterations of `r`), which
- * is then `<T/>` (`blankOfWrittenType`) until it names something again
- * (D36): `{ level: "info", diagnostic }`, as `typeChangeStatus` gives, or
- * `undefined` when `component` is not such a reference.
+ * nothing now (`<math extend="$r[$i]"/>` past the iterations of `r`,
+ * `doenet-i0054`), or that names a composite holding nothing now
+ * (`<math extend="$cc"/>` while no case of `cc` is true, `doenet-i0055`),
+ * which is then missing (`missingOfWrittenType`, D37) until it names
+ * something again: `{ level: "info", diagnostic }`, as `typeChangeStatus`
+ * gives, or `undefined` when `component` is not such a reference.
  */
 async function indexNamesNothing({
     component,
@@ -6400,14 +6604,41 @@ async function indexNamesNothing({
         return undefined;
     }
     const originalPath = await component.stateValues.originalPath;
+    const extendedType = (await component.stateValues.extendedComponent)
+        ?.componentType;
     if (
-        !originalPath?.some((part) => part.index.length > 0) ||
         // a `<setup>`, reached by the index of a child (`doenet-w0179`),
         // which shows nothing
-        (await component.stateValues.extendedComponent)?.componentType ===
-            "setup"
+        extendedType === "setup"
     ) {
         return undefined;
+    }
+    if (!originalPath?.some((part) => part.index.length > 0)) {
+        // A composite named as a whole that holds nothing now, such as a
+        // `<conditionalContent>` with no case true and no `<else>` (D37).
+        const unresolvedPath = await component.stateValues.unresolvedPath;
+        if (
+            !extendedType ||
+            unresolvedPath?.length > 0 ||
+            !componentInfoObjects.isCompositeComponent({
+                componentType: extendedType,
+            })
+        ) {
+            return undefined;
+        }
+        return {
+            level: "info",
+            diagnostic: codedDiagnostic({
+                type: "info",
+                code: "doenet-i0055",
+                args: {
+                    componentType: writtenType,
+                    source:
+                        workspace.referenceAsWritten ??
+                        referenceAsWritten(originalPath, undefined),
+                },
+            }),
+        };
     }
     return {
         level: "info",
@@ -6440,15 +6671,17 @@ async function indexNamesNothing({
  * - otherwise `{ level, diagnostic }`, the mismatch: `level` is `"error"`
  *   when it follows from what the author wrote, and `"info"` when from the
  *   value of a math (`<point extend="$m"/>` while `$m` is not a tuple,
- *   `doenet-i0053`, DIAG-2). An error is shown in place of the copy; during
- *   an info the copy is `<T/>`, the tag it is written as with its own
- *   attributes and children, and a linked extend is decided again when the
- *   value changes (`calculateReplacementChanges`).
+ *   `doenet-i0053`, DIAG-2), or `"warning"` for a reference that names
+ *   nothing found when the document loaded or a property the source does
+ *   not have (D37). An error is shown in place of the copy; during an info
+ *   or a warning the copy is missing (`missingOfWrittenType`), and a linked
+ *   extend is decided again when the value changes
+ *   (`calculateReplacementChanges`).
  *
  * What a composite, or a list the document makes, holds is decided when the
  * document loads (D36, `utils/dast/typeChangeAtLoad.ts`), which records an
- * error on the copy (`typeChangeAtLoad`): a `<conditionalContent>` with no
- * `<else>`, a `<select>` whose `numToSelect` is not written as 1, a
+ * error on the copy (`typeChangeAtLoad`): a `<select>` whose `numToSelect`
+ * is not written as 1, a
  * `<repeat>`, cases of two types. What is left to decide here is the value
  * of the one math it holds. A list whose entries are written
  * (`isAuthoredList`) is decided by what the author wrote, too. A composite is read from the components it

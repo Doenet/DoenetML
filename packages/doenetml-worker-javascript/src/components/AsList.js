@@ -37,7 +37,7 @@ export default class AsList extends InlineComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inline"],
-                    variableNames: ["text", "hidden"],
+                    variableNames: ["text", "hidden", "valueMissing"],
                     variablesOptional: true,
                 },
             }),

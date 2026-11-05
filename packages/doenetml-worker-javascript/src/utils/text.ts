@@ -5,12 +5,20 @@ import {
     type CompositeGroup,
     type CompositeRange,
 } from "@doenet/utils";
+import { MISSING_TEXT } from "./missing";
 
+/**
+ * The text of one child: nothing when it is hidden, and a blank when it is
+ * missing (`valueMissing`, D37), as it is drawn, whatever the value its type
+ * holds then (`NaN`, `""`, `(0, 0)`).
+ */
 export function textFromComponent(component: any): string {
     if (typeof component !== "object") {
         return component.toString();
     } else if (component.stateValues.hidden) {
         return "";
+    } else if (component.stateValues.valueMissing) {
+        return MISSING_TEXT;
     } else if (typeof component.stateValues.text === "string") {
         return component.stateValues.text;
     } else {

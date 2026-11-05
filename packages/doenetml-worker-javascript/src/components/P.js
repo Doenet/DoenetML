@@ -71,7 +71,7 @@ export default class P extends BlockComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inlinesAndLists"],
-                    variableNames: ["text", "hidden"],
+                    variableNames: ["text", "hidden", "valueMissing"],
                     variablesOptional: true,
                 },
             }),

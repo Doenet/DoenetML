@@ -92,6 +92,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0052": "chart-histogram-values-outside-bins",
     "doenet-i0053": "type-change-value-not-convertible",
     "doenet-i0054": "type-change-index-names-nothing",
+    "doenet-i0055": "type-change-composite-holds-nothing",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",

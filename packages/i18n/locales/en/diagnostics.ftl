@@ -828,8 +828,7 @@ type-change-from-container = A `<{ $componentType }>` can't be made from `{ $sou
 # A tag written with `extend` or `copy` always makes one component (D36), so
 # it can be made from a composite only when the DoenetML guarantees that the
 # composite always holds exactly one component. $reason says why it may not:
-# `noElse` for a `<conditionalContent>` with no `<else>`, which holds nothing
-# when no case is true; `numToSelect` for a `<select>` or another selector
+# `numToSelect` for a `<select>` or another selector
 # whose $attribute (`numToSelect` or `numSamples`) is not written as 1;
 # `anyNumber` for a composite such as a `<repeat>` or `<collect>`, which can
 # hold any number; and `count` when it, or one $part of it (`case`,
@@ -841,7 +840,6 @@ type-change-from-container = A `<{ $componentType }>` can't be made from `{ $sou
 # and the tags are DoenetML and stay in English.
 type-change-composite-not-one =
     { $reason ->
-        [noElse] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` with no `<else>` holds nothing when no case is true. Add an `<else>`.
         [numToSelect] { $indexSelectsOne ->
             [true] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` holds one only when its `{ $attribute }` is written as 1 or left out. To use its first pick, write `{ $source }[1]`. To read all it picks as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
            *[other] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` holds one only when its `{ $attribute }` is written as 1 or left out. To read all it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
@@ -893,17 +891,23 @@ type-change-composite-type-unknown =
     }
 
 # The index of `$source` names nothing now, such as an iteration past the
-# last one, so the tag $componentType shows the value an empty one has until
+# last one, so the tag $componentType is missing, and shown as a blank, until
 # the index names something again.
-type-change-index-names-nothing = `{ $source }` names nothing now, so this `<{ $componentType }>` has the value of `<{ $componentType }/>` until it does.
+type-change-index-names-nothing = `{ $source }` names nothing now, so this `<{ $componentType }>` is missing until it does.
+
+# `$source` is a composite that holds nothing now, such as a
+# `<conditionalContent>` with no case true and no `<else>`, or one whose
+# active case holds nothing, so the tag $componentType is missing, and shown
+# as a blank, until it holds one component again.
+type-change-composite-holds-nothing = `{ $source }` holds nothing now, so this `<{ $componentType }>` is missing until it holds one component.
 
 # $value is the value of `$source` now. $valueCheck says what it would have
 # to be: a tuple, such as (1, 2), for a point, vector or coords, or true or
 # false, a number or a relation, for a boolean.
 type-change-value-not-convertible =
     { $valueCheck ->
-        [tuple] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't a tuple of coordinates, so it has the value of `<{ $componentType }/>` until it is.
-       *[other] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't true or false, so it has the value of `<{ $componentType }/>` until it is.
+        [tuple] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't a tuple of coordinates, so it is missing until it is.
+       *[other] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't true or false, so it is missing until it is.
     }
 
 ## Children that do not match

@@ -5,6 +5,7 @@ import {
 } from "./ChildMatcher";
 import { removeFunctionsMathExpressionClass } from "../utils/math";
 import { addOnDemandStateVariables } from "./StateVariableInitializer";
+import { BLANK_RENDERER_TYPE } from "../utils/missing";
 
 /**
  * How long a drag must go quiet before the deferred half of its renderer
@@ -322,12 +323,13 @@ export class RendererInstructionBuilder {
                             currentChildIdentifiers.push("");
                         } else if (item.child.rendererType) {
                             // a value reference as the type it is drawn as,
-                            // which its instruction records
+                            // which its instruction records, and whether it
+                            // is drawn as a blank (D37)
                             currentChildIdentifiers.push(
                                 `nameType:${item.child.componentIdx};${
                                     item.child.presentedComponentType ??
                                     item.child.componentType
-                                }`,
+                                }${blankSuffix(item.child.rendererType)}`,
                             );
                         } else if (typeof item.child === "string") {
                             currentChildIdentifiers.push(
@@ -359,7 +361,7 @@ export class RendererInstructionBuilder {
                         previousChildIdentifiers.push("");
                     } else if (child.componentIdx != undefined) {
                         previousChildIdentifiers.push(
-                            `nameType:${child.componentIdx};${child.componentType}`,
+                            `nameType:${child.componentIdx};${child.componentType}${blankSuffix(child.rendererType)}`,
                         );
                     } else if (typeof child === "string") {
                         previousChildIdentifiers.push(`string${ind}:${child}`);
@@ -729,10 +731,36 @@ export class RendererInstructionBuilder {
                     );
                 }
             } else {
+                await this.updateDrawnMissing(child);
                 items.push({ child });
             }
         }
         return { items };
+    }
+
+    /**
+     * Record on `child`, when it is a drawn value reference that resolves
+     * itself, whether it has nothing to read now (`valueMissing`), so it is
+     * drawn as a blank while it does not (D37, `ValueRef.rendererType`). Its
+     * `hidden` reads `valueMissing`, so a change to it updates the children
+     * its parent renders, which calls this again.
+     */
+    async updateDrawnMissing(child: any): Promise<void> {
+        if (
+            typeof child !== "object" ||
+            child === null ||
+            !child.rendererConstants ||
+            child.fixedReferent ||
+            child.rendererType === undefined
+        ) {
+            return;
+        }
+        addOnDemandStateVariables({
+            core: this.core,
+            component: child,
+            stateVariables: ["valueMissing"],
+        });
+        child.drawnMissing = Boolean(await child.stateValues.valueMissing);
     }
 
     /**
@@ -1579,4 +1607,15 @@ export class RendererInstructionBuilder {
             { deferred: true },
         );
     }
+}
+
+/**
+ * What the identifier of a rendered child adds for a child drawn as a blank
+ * (D37), so a value reference that comes to have nothing to read, or comes
+ * to have something again, is drawn anew.
+ */
+function blankSuffix(rendererType: string | undefined): string {
+    return rendererType === BLANK_RENDERER_TYPE
+        ? `;${BLANK_RENDERER_TYPE}`
+        : "";
 }

@@ -182,11 +182,70 @@ export async function normalizedDastToSerializedComponents(
      * Convert Errors to a `componentType` of "_error".
      */
     /**
-     * The `_error`s made for a reference in an `extend` or `copy` attribute
-     * that names nothing, or more than one thing: the tag cannot be made
-     * (D36), so the error is shown in its place.
+     * The placeholders made for a reference in an `extend` or `copy`
+     * attribute that names nothing, or more than one thing: the tag is then
+     * missing (D37), whatever it adds, with the warning the same reference
+     * written bare gives. The placeholder is replaced by the missing tag
+     * (`missingTag`).
      */
-    const errorsInPlaceOfTag = new Set<UnflattenedComponent>();
+    const missingInPlaceOfTag = new Set<UnflattenedComponent>();
+
+    /**
+     * The missing tag (`BaseComponent.isMissing`) for the element `node`,
+     * whose `extend` or `copy` names nothing, under its own index: a
+     * component of its type with its own attributes, but not its children,
+     * which are not drawn. A composite, such as a `<group>`, has nothing of
+     * its type to be missing as, so it is a `_missing` (`Missing.js`) with
+     * its name and `hide`.
+     */
+    function missingTag(
+        node: FlatElement,
+        componentIdx: number,
+        diagnostics: DiagnosticRecord[],
+    ): UnflattenedComponent {
+        const componentType = getComponentType(node);
+        const mapped =
+            componentInfoObjects.componentTypeLowerCaseMapping[
+                componentType.toLowerCase()
+            ];
+        const isComposite =
+            mapped !== undefined &&
+            componentInfoObjects.isCompositeComponent({
+                componentType: mapped,
+                includeNonStandard: true,
+            });
+        const attributes = node.attributes.filter(
+            (attribute) =>
+                !(attribute.name === "type" && node.name === "division") &&
+                (!isComposite ||
+                    attribute.name === "name" ||
+                    attribute.name.toLowerCase() === "hide"),
+        );
+        return {
+            type: "unflattened",
+            componentType: isComposite ? "_missing" : componentType,
+            componentIdx,
+            attributes: Object.fromEntries(
+                attributes.map((attribute) => [
+                    attribute.name,
+                    {
+                        name: attribute.name,
+                        children: unflattenDastNodes(
+                            attribute.children,
+                            diagnostics,
+                        ),
+                        position: attribute.position,
+                        sourceDoc: attribute.sourceDoc,
+                    },
+                ]),
+            ),
+            position: node.position,
+            sourceDoc: node.sourceDoc,
+            doenetAttributes: isComposite ? {} : { missing: true },
+            children: [],
+            state: {},
+        };
+    }
 
     function unflattenDastNodes(
         indicesOrStrings: UntaggedContent[],
@@ -205,36 +264,18 @@ export async function normalizedDastToSerializedComponents(
                         node.children,
                         diagnostics,
                     );
-                    const inPlaceOfTag = children.find(
-                        (child): child is UnflattenedComponent =>
+                    const inPlaceOfTag = children.some(
+                        (child) =>
                             typeof child === "object" &&
-                            errorsInPlaceOfTag.has(child),
+                            missingInPlaceOfTag.has(child),
                     );
                     if (inPlaceOfTag) {
-                        // The tag, with what its `extend` or `copy`
-                        // names unresolved, is shown as the error, under
-                        // its own index and name, so a reference to it
-                        // finds the error.
-                        const nameAttribute = node.attributes.find(
-                            (attribute) => attribute.name === "name",
+                        // The tag, with what its `extend` or `copy` names
+                        // unresolved, is missing (D37), under its own index
+                        // and name, so a reference to it reads as missing.
+                        unflattenedNodes.push(
+                            missingTag(node, idxOrString, diagnostics),
                         );
-                        unflattenedNodes.push({
-                            ...inPlaceOfTag,
-                            componentIdx: idxOrString,
-                            attributes: nameAttribute
-                                ? {
-                                      name: {
-                                          name: "name",
-                                          children: unflattenDastNodes(
-                                              nameAttribute.children,
-                                              diagnostics,
-                                          ),
-                                          position: nameAttribute.position,
-                                          sourceDoc: nameAttribute.sourceDoc,
-                                      },
-                                  }
-                                : {},
-                        });
                         continue;
                     }
                     unflattenedNodes.push({
@@ -330,6 +371,9 @@ export async function normalizedDastToSerializedComponents(
                                 attributes: {},
                                 position: node.position,
                                 sourceDoc: node.sourceDoc,
+                                // a blank, as `<T extend="$nothing"/>` is
+                                // (D37, `Copy.js`)
+                                doenetAttributes: { noReferent: true },
                                 extending: {
                                     Ref: {
                                         nodeIdx: -1,
@@ -348,28 +392,30 @@ export async function normalizedDastToSerializedComponents(
                     ) {
                         // A reference in the `extend` or `copy` attribute
                         // of a tag that names nothing, or more than one
-                        // thing (`ref_expand.rs`). Quoted as a reference
-                        // written as text is, at the error level.
-                        const diagnostic = unresolvedReferenceDiagnostic(
-                            node,
-                            normalized_root.sources,
-                            "error",
+                        // thing (`ref_expand.rs`, which marks it as an
+                        // error, as the attribute failed). Quoted as a
+                        // reference written as text is, at the warning
+                        // level the same reference written bare is (D37):
+                        // the tag is missing (`missingTag`).
+                        diagnostics.push(
+                            unresolvedReferenceDiagnostic(
+                                node,
+                                normalized_root.sources,
+                                "warning",
+                            ),
                         );
-                        const error: UnflattenedComponent = {
+                        const placeholder: UnflattenedComponent = {
                             type: "unflattened",
-                            componentType: "_error",
+                            componentType: "_missing",
                             componentIdx: idxOrString,
                             attributes: {},
                             position: node.position,
                             sourceDoc: node.sourceDoc,
-                            state: errorComponentState(
-                                diagnostic.message,
-                                diagnostic,
-                            ),
+                            state: {},
                             children: [],
                         };
-                        errorsInPlaceOfTag.add(error);
-                        unflattenedNodes.push(error);
+                        missingInPlaceOfTag.add(placeholder);
+                        unflattenedNodes.push(placeholder);
                     } else {
                         unflattenedNodes.push({
                             type: "unflattened",

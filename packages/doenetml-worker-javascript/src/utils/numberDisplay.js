@@ -18,10 +18,10 @@
  * @param {string[]} [options.childGroupsToStopSingleMatch=[]] Child groups
  *   whose presence suppresses the single-child propagation above.
  * @param {boolean} [options.skipChildrenWithNothingToRead=false] Whether a
- *   value reference with nothing to read (`valueMissing`, `ValueRef.js`) is
- *   left out when looking for a sole child, as a math operator leaves it out
- *   of its operands: `<sum>$l[$i] $n</sum>` takes `n`'s settings while
- *   `$l[$i]` is missing.
+ *   missing child (`valueMissing`: a value reference with nothing to read,
+ *   `ValueRef.js`, or a missing component) is left out when looking for a
+ *   sole child, as a blank has no display settings of its own (D37):
+ *   `<sum>$l[$i] $n</sum>` takes `n`'s settings while `$l[$i]` is missing.
  * @param {string|null} [options.additionalAttributeComponent=null] Attribute
  *   name of a sibling attribute component whose number-display state variables
  *   should also be consulted (e.g. `"function"` in `<evaluate>`, so that

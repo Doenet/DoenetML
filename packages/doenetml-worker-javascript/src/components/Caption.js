@@ -47,7 +47,7 @@ export default class Caption extends BlockComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inlinesBlocks"],
-                    variableNames: ["text", "hidden"],
+                    variableNames: ["text", "hidden", "valueMissing"],
                     variablesOptional: true,
                 },
             }),

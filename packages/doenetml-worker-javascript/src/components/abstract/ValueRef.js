@@ -9,6 +9,7 @@ import {
     valueMissingDefinition,
 } from "./referenceSlotDefinitions";
 import { currentReferentValue } from "../../utils/referentDescription";
+import { BLANK_RENDERER_TYPE } from "../../utils/missing";
 import { LIST_ENTRY_PREFIX } from "../../utils/listEntryReference";
 import {
     CONTEXT_ATTRIBUTES,
@@ -195,6 +196,11 @@ export default class ValueRef extends BaseComponent {
         if (!this.isDrawn) {
             return undefined;
         }
+        // While it has nothing to read, it is drawn as a blank (D37), as
+        // `RendererInstructionBuilder.updateDrawnMissing` records.
+        if (this.drawnMissing) {
+            return BLANK_RENDERER_TYPE;
+        }
         return this.componentInfoObjects.allComponentClasses[
             this.presentedComponentType
         ]?.rendererType;
@@ -346,11 +352,13 @@ export default class ValueRef extends BaseComponent {
         // A reference is hidden with its parent or with the composite that
         // made it. One that is read for its value is never hidden with its
         // referent: `<math>$n+1</math>` uses the value of a hidden `n`. One
-        // that is drawn is hidden where the copy made for it would not have
-        // been shown: when it has nothing to read (`valueMissing`; the copy
-        // made no component) and, when it stands for a copy of its referent
+        // that is drawn is hidden, when it stands for a copy of its referent
         // (`copiesReferent`), with the referent's `hide`, which that copy
-        // shadowed (`$t` of `<text hide>`; not `$t.value`).
+        // shadowed (`$t` of `<text hide>`; not `$t.value`). One that has
+        // nothing to read (`valueMissing`) is not hidden but drawn as a blank
+        // (D37); `hidden` reads it so that a change to it updates the
+        // children its parent renders (`markStale`), which then draws it as
+        // a blank or as its type (`RendererInstructionBuilder`).
         stateVariableDefinitions.hidden = {
             stateVariablesDeterminingDependencies: ["referentInfo"],
             returnDependencies({ stateValues = {} }) {
@@ -401,7 +409,6 @@ export default class ValueRef extends BaseComponent {
                         hidden: Boolean(
                             dependencyValues.parentHidden ||
                             dependencyValues.sourceCompositeHidden ||
-                            dependencyValues.valueMissing ||
                             dependencyValues.referentHide ||
                             entryHide,
                         ),

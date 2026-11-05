@@ -505,6 +505,12 @@ export async function verifyReplacementsMatchSpecifiedType({
             workspace.sourceIndices = [];
         }
 
+        // A reference written as a tag whose source made nothing is missing
+        // (D37): a tag whose source is missing is missing, whatever it adds.
+        const madeNothing =
+            replacementTypes.length === 0 &&
+            Boolean(component.attributes._createComponentOfType?.primitive);
+
         replacements = [];
         for (let i = 0; i < requiredLength; i++) {
             const res = convertUnresolvedAttributesForComponentType({
@@ -524,7 +530,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                 componentIdx: nComponents++,
                 stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: attributesFromComposite,
-                doenetAttributes: {},
+                doenetAttributes: madeNothing ? { missing: true } : {},
                 state: {},
                 children: [],
             });
@@ -603,6 +609,9 @@ export async function verifyReplacementsMatchSpecifiedType({
                     }
 
                     if (stateVarObj) {
+                        // Not missing: it holds what a write gives the
+                        // array, which may be empty now.
+                        replacements[0].doenetAttributes = {};
                         replacements[0].downstreamDependencies = {
                             [replacementSource.componentIdx]: [
                                 {

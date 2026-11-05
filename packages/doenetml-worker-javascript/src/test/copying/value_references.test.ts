@@ -2111,8 +2111,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // read. It shows the empty value of its type (`NaN`, `""`,
             // `false`, `＿`). As with the copy it replaced at document
             // level, a comparison takes it as a blank math, so that no two
-            // missing values are equal, and a math or boolean operator
-            // leaves it out of its operands.
+            // missing values are equal. A math or boolean operator takes it
+            // as a blank (D37).
 
             /** The `value` of each named component. */
             async function values(
@@ -2360,7 +2360,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 expect([after.a1, after.a3]).eqls([1, 1]);
             });
 
-            it("a math operator leaves it out of its operands", async () => {
+            it("a math operator takes it as a blank", async () => {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <numberList name="l">1 2 3</numberList>
@@ -2401,28 +2401,34 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     "meanNone",
                     "unorderedSum",
                 ];
-                expect(await values(core, resolvePathToNodeIdx, names)).eqls({
-                    sum: 5,
-                    product: 5,
-                    min: 5,
-                    max: 5,
-                    mean: 5,
-                    median: 6,
-                    variance: 2,
-                    count: 1,
-                    gcd: 2,
-                    // `<mod>` takes exactly two operands
-                    mod: NaN,
-                    sumMath: 5,
-                    // a missing math does not make the operator symbolic,
-                    // which would give `(1+2)/2`
-                    meanMath: 1.5,
-                    sumText: 5,
-                    // with no operand left, an operator is blank, as one with
-                    // no children is
-                    meanNone: "＿",
-                    // the sum of the one operand left is unordered, as it is
-                    unorderedSum: true,
+                // A missing operand is a blank, as it is in a `<math>`
+                // (D37), so the operator is symbolic, holding the blank.
+                const blankAnd = (operator: string, ...rest: any[]) => [
+                    "apply",
+                    operator,
+                    ["tuple", "＿", ...rest],
+                ];
+                const missing = await values(core, resolvePathToNodeIdx, names);
+                // the variance is a long expression in the blank
+                expect(JSON.stringify(missing.variance)).contain("＿");
+                delete missing.variance;
+                expect(missing).eqls({
+                    sum: ["+", "＿", 5],
+                    product: ["*", "＿", 5],
+                    min: blankAnd("min", 5),
+                    max: blankAnd("max", 5),
+                    mean: ["/", ["+", "＿", 5], 2],
+                    // a median of what is not all numbers
+                    median: NaN,
+                    count: 2,
+                    gcd: blankAnd("gcd", 6, 4),
+                    mod: blankAnd("mod", 3),
+                    sumMath: ["+", "＿", 5],
+                    meanMath: ["/", ["+", "＿", 1, 2], 3],
+                    sumText: ["+", "＿", 5],
+                    meanNone: ["/", ["+", "＿", "＿"], 2],
+                    // a blank is not equal to anything
+                    unorderedSum: false,
                 });
 
                 // once the entry is there, it is an operand again
@@ -2450,7 +2456,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
             });
 
-            it("a math operator takes the display settings of its one operand that is there", async () => {
+            it("a math operator takes the display settings of its one operand that is there, beside the blank", async () => {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <numberList name="l">1 2 3</numberList>
@@ -2469,10 +2475,11 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                         stateVariables[sumIdx].stateValues;
                     return { displayDigits, text };
                 }
-                // `n` is the only operand, and gives the sum its settings
+                // `n` is the only operand that is there, and gives the sum its
+                // settings; the missing one is a blank (D37)
                 expect(await shown()).eqls({
                     displayDigits: 6,
-                    text: "3.14159",
+                    text: "＿ + 3.14159",
                 });
 
                 // with two operands, the sum has its own
@@ -2486,7 +2493,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
             it("a write through a math operator goes to the operand that is there", async () => {
                 // `<min>` writes to its one operand that can be changed; a
-                // missing reference is not an operand, so `n` is the one
+                // missing reference is a blank, which cannot be written
+                // through, so `n` is the one
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <numberList name="l">1 2 3</numberList>
@@ -2512,10 +2520,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
                 expect(
                     await values(core, resolvePathToNodeIdx, ["n", "min"]),
-                ).eqls({ n: 2, min: 2 });
+                ).eqls({ n: 2, min: ["apply", "min", ["tuple", "＿", 2]] });
             });
 
-            it("a boolean operator leaves it out of its operands", async () => {
+            it("a boolean operator takes it as not true", async () => {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <booleanList name="bl">true false</booleanList>
@@ -2529,18 +2537,16 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <implies name="implies">$bl[$i] $t</implies>
     `,
                 });
-                // `<or>` and `<xor>` count only the true operands, so an
-                // operand left out and one read as `false` agree there
+                // A missing operand is a blank, which is not true, as
+                // `<boolean>＿</boolean>` is not (D37).
                 const names = ["and", "andOnly", "andNone", "iff", "implies"];
                 expect(censusOfCore(core).copies).eq(0);
                 expect(await values(core, resolvePathToNodeIdx, names)).eqls({
-                    and: true,
-                    // with no operand left, as with no children
-                    andOnly: true,
-                    andNone: true,
-                    iff: true,
-                    // `<implies>` with one operand is its negation
-                    implies: false,
+                    and: false,
+                    andOnly: false,
+                    andNone: false,
+                    iff: false,
+                    implies: true,
                 });
 
                 // once the entry is there, it is an operand again
@@ -2579,8 +2585,16 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
                 // A blank math and a text are not comparable, so `textNe` is
                 // false. Inside a composite the copy made nothing, which
-                // made it true there and false at document level.
-                const expected = [false, true, false, false, 5, true];
+                // made it true there and false at document level. A missing
+                // operand is a blank (D37).
+                const expected = [
+                    false,
+                    true,
+                    false,
+                    false,
+                    ["+", "＿", 5],
+                    false,
+                ];
                 for (const name of [
                     (n: string) => "d" + n,
                     (n: string) => "r[1]." + n,
@@ -2710,8 +2724,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 expect(await values(core, resolvePathToNodeIdx, names)).eqls({
                     eq: false,
                     ne: true,
-                    sum: 5,
-                    count: 1,
+                    sum: ["+", "＿", 5],
+                    count: 2,
                     num: NaN,
                 });
 
@@ -2729,9 +2743,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // The function `x` has no global minimum, and `-x^2` none
                 // either. No global extremum is found for a function of two
                 // variables, such as `k`, even an infimum. Their entries hold
-                // no value, so the references are missing: unequal, and left
-                // out of an operator. (The copy made a component holding
-                // `NaN` for them.)
+                // no value, so the references are missing: unequal, and a
+                // blank in an operator (D37). (The copy made a component
+                // holding `NaN` for them.)
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <function name="f">x</function>
@@ -2759,8 +2773,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     location: false,
                     value: false,
                     present: true,
-                    sum: 5,
-                    infimum: 5,
+                    sum: ["+", "＿", 5],
+                    infimum: ["+", "＿", 5],
                     num: NaN,
                 });
             });

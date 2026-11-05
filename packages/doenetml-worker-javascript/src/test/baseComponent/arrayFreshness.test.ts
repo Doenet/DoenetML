@@ -178,12 +178,13 @@ describe("Array freshness tests @group4", async () => {
             }
         }
 
-        await check("0, 0, , ");
+        // an extremum that is not found is missing, a blank (D37)
+        await check("0, 0, ＿, ＿");
         const aiIdx = await resolvePathToNodeIdx("ai");
         await updateMathInputValue({ latex: "-1", componentIdx: aiIdx, core });
-        await check(", , 0, 0");
+        await check("＿, ＿, 0, 0");
         await updateMathInputValue({ latex: "2", componentIdx: aiIdx, core });
-        await check("0, 0, , ");
+        await check("0, 0, ＿, ＿");
     });
 
     it("invalidating an array entry by entry does not build its keys each time", async () => {

@@ -591,6 +591,13 @@ ion-name-oxidation-state = { $name } ({ $numeral })
 chemistry-invalid-symbol = Invalid Chemical Symbol
 chemistry-invalid-ionic-compound = Invalid Ionic Compound
 
+## Missing values
+
+# Read by a screen reader in place of a missing value, which is shown as a
+# blank (＿): a reference to something that is not there, such as an index
+# past the end of a list. Never shown on screen, so keep it to a word or two.
+missing-value-blank = blank
+
 ## Inputs embedded in math
 
 # Names the gap an input fills when it is drawn inside a typeset expression, so

@@ -92,17 +92,20 @@ export default class BooleanOperator extends BooleanComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                // A value reference with nothing to read (`valueMissing`,
-                // `ValueRef.js`), such as `$bl[$i]` with `$i` past the end of
-                // the list, is not an operand: the copy it replaced made
-                // nothing here, so `<and>$bl[$i] true</and>` is true while
-                // the entry is missing.
+                // A missing operand (`valueMissing`: a value reference with
+                // nothing to read, such as `$bl[$i]` with `$i` past the end
+                // of the list, or a missing component) is a blank (D37),
+                // which is not true, as `<boolean>＿</boolean>` is not:
+                // `<and>$bl[$i] true</and>` is false while the entry is
+                // missing, and `<or>$bl[$i] true</or>` true.
                 return {
                     setValue: {
                         value: constructor.applyBooleanOperator(
-                            dependencyValues.booleanChildren
-                                .filter((x) => !x.stateValues.valueMissing)
-                                .map((x) => x.stateValues.value),
+                            dependencyValues.booleanChildren.map((x) =>
+                                x.stateValues.valueMissing
+                                    ? false
+                                    : x.stateValues.value,
+                            ),
                         ),
                     },
                 };
