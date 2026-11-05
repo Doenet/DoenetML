@@ -1778,7 +1778,13 @@ export default class Answer extends InlineComponent {
                     globalDependencies["inputForAnswer" + ind] = {
                         dependencyType: "multipleStateVariables",
                         componentIdx: inputComp.componentIdx,
-                        variableNames: ["value", "values", "componentType"],
+                        variableNames: [
+                            "value",
+                            "values",
+                            "componentType",
+                            // a missing input (D37)
+                            "valueMissing",
+                        ],
                         variablesOptional: true,
                     };
                 }
@@ -1807,6 +1813,8 @@ export default class Answer extends InlineComponent {
                                 // only a value reference (`_ref`) has these
                                 "valueAsResponse",
                                 "componentTypeAsResponse",
+                                // a missing component (D37)
+                                "valueMissing",
                             ],
                             variablesOptional: true,
                             recurseToMatchedChildren: true,
@@ -1823,7 +1831,13 @@ export default class Answer extends InlineComponent {
                         globalDependencies["child" + ind] = {
                             dependencyType: "multipleStateVariables",
                             componentIdx: child.componentIdx,
-                            variableNames: ["value", "values", "componentType"],
+                            variableNames: [
+                                "value",
+                                "values",
+                                "componentType",
+                                // a missing input (D37)
+                                "valueMissing",
+                            ],
                             variablesOptional: true,
                         };
                     } else {
@@ -1919,6 +1933,16 @@ export default class Answer extends InlineComponent {
                         componentType.push(
                             component.stateValues.componentTypeAsResponse,
                         );
+                        continue;
+                    }
+
+                    if (component.stateValues.valueMissing) {
+                        // A missing component (D37), such as
+                        // `<boolean extend="$nothing"/>`, holds the value of
+                        // `<T/>`, but is recorded as one blank math, as a
+                        // value reference with nothing to read is.
+                        currentResponses.push(me.fromAst("\uff3f"));
+                        componentType.push("math");
                         continue;
                     }
 

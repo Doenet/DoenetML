@@ -3222,6 +3222,54 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
             });
 
+            it("a missing tag is one blank response, whether it is a considerAsResponses's child, in an award or the answer's input", async () => {
+                // A missing tag (D37) holds `<T/>`'s value (`false` for a
+                // `<boolean>`), but is recorded as a blank math, as a value
+                // reference with nothing to read is.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <number name="n">3</number>
+    <answer name="consider"><considerAsResponses><boolean extend="$nothing"/> $n</considerAsResponses><award><when>$n = 3</when></award></answer>
+    <answer name="award"><award referencesAreResponses="$b"><when>$b</when></award></answer>
+    <boolean name="b" extend="$nothing"/>
+    <answer name="input"><mathInput extend="$nothing"/><award><when>$n = 3</when></award></answer>
+    `,
+                });
+                for (const [name, expected] of [
+                    [
+                        "consider",
+                        {
+                            responses: ["＿", 3],
+                            types: ["math", "number"],
+                            credit: 1,
+                            numResponses: 2,
+                        },
+                    ],
+                    [
+                        "award",
+                        {
+                            responses: ["＿"],
+                            types: ["math"],
+                            credit: 0,
+                            numResponses: 1,
+                        },
+                    ],
+                    [
+                        "input",
+                        {
+                            responses: ["＿"],
+                            types: ["math"],
+                            credit: 1,
+                            numResponses: 1,
+                        },
+                    ],
+                ] as const) {
+                    const idx = await resolvePathToNodeIdx(name);
+                    await submitAnswer({ componentIdx: idx, core });
+                    expect(await submitted(core, idx), name).eqls(expected);
+                }
+            });
+
             it("a missing entry among a considerAsResponses's children is one empty response", async () => {
                 // A `<considerAsResponses>` child that is a reference is
                 // recorded from its referent too: an empty math when there

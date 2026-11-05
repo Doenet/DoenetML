@@ -620,8 +620,10 @@ export async function normalizedDastToSerializedComponents(
             sourceDoc: copy.sourceDoc,
         });
         if (isError) {
-            // The `_error` raises the diagnostic when it is made
-            // (`ComponentBuilder`).
+            // Reported now, as the `_error` may be made only after an
+            // interaction (in a case not yet true), and again, the same, kept
+            // once, when the `_error` is made (`ComponentBuilder`).
+            diagnostics.push(diagnostic);
             const errorComponent = copy as any;
             errorComponent.componentType = "_error";
             errorComponent.state = errorComponentState(

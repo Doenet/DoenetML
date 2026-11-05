@@ -91,6 +91,12 @@ const documents: [string, string, string[]][] = [
         inCase(`<math extend="$cc"/>`),
         ["doenet-e0005"],
     ],
+    // a bare reference to a name of different types in the branches
+    [
+        "a bare reference in a case, to a name of different types",
+        `<conditionalContent><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>${inCase(`$x`)}`,
+        ["doenet-w0184"],
+    ],
     // a tag that does not exist
     ["an unknown tag in a case", inCase(`<bogus/>`), ["doenet-e0002"]],
     ["an unknown tag in a repeat", inRepeat(`<bogus/>`), ["doenet-e0002"]],

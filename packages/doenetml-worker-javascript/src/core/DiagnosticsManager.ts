@@ -399,10 +399,11 @@ export class DiagnosticsManager {
  * (`$n.nonexistent[1]`), an index into a value that is a scalar
  * (`doenet-w0100`), or a literal index below 1. The tag then reports what
  * the bare reference reports (D37). The info spans the whole tag, children
- * and all, so only a diagnostic in its start tag, at the reference or
- * another attribute, explains it, not one of what is written in it
- * (`<p extend="$g[$i]">$nothing</p>`). `sources` is the DoenetML of each
- * source document.
+ * and all, so only a diagnostic at the whole tag (as `doenet-w0100` is) or in
+ * the value of its `extend` or `copy` attribute (`referenceSpan`) explains
+ * it, not one in another attribute (`displayDigits="$nothing"`) or in what
+ * is written in the tag (`<p extend="$g[$i]">$nothing</p>`). `sources` is
+ * the DoenetML of each source document.
  */
 function withoutExplainedIndexInfos(
     sources: readonly string[],
@@ -423,15 +424,21 @@ function withoutExplainedIndexInfos(
         if (start === undefined || end === undefined) {
             return true;
         }
-        const within = startTagEnd(sources[info.sourceDoc ?? 0], start, end);
+        const reference = referenceSpan(
+            sources[info.sourceDoc ?? 0],
+            start,
+            end,
+        );
         return !explaining.some((d) => {
             const dStart = d.position?.start?.offset;
             const dEnd = d.position?.end?.offset;
             return (
                 dStart !== undefined &&
                 dEnd !== undefined &&
-                dStart >= start &&
-                (dEnd <= within || (dStart === start && dEnd === end)) &&
+                ((dStart === start && dEnd === end) ||
+                    (reference !== undefined &&
+                        dStart >= reference.start &&
+                        dEnd <= reference.end)) &&
                 (d.sourceDoc ?? 0) === (info.sourceDoc ?? 0)
             );
         });
@@ -439,28 +446,62 @@ function withoutExplainedIndexInfos(
 }
 
 /**
- * The offset just past the start tag of the tag written at `start` in
- * `source`, which ends by `end` (the `>` outside quotes), or `end` when it
- * cannot be found.
+ * The offsets of the value of the `extend` or `copy` attribute, inside its
+ * quotes, in the start tag of the tag written at `start` in `source`, which
+ * ends by `end`: the reference the tag is made from. `undefined` when there
+ * is no such attribute there, or the source is not a tag.
  */
-function startTagEnd(source: string | undefined, start: number, end: number) {
+function referenceSpan(
+    source: string | undefined,
+    start: number,
+    end: number,
+): { start: number; end: number } | undefined {
     if (source?.[start] !== "<") {
-        return end;
+        return undefined;
     }
-    let quote: string | undefined;
-    for (let i = start + 1; i < end; i++) {
-        const c = source[i];
-        if (quote) {
-            if (c === quote) {
-                quote = undefined;
-            }
-        } else if (c === '"' || c === "'") {
-            quote = c;
-        } else if (c === ">") {
-            return i + 1;
+    // Attributes are read in order, so a quote inside one value is not taken
+    // for the start of another.
+    let i = start + 1;
+    while (i < end && /[^\s/>]/.test(source[i])) {
+        i++;
+    }
+    while (i < end) {
+        while (i < end && /\s/.test(source[i])) {
+            i++;
         }
+        if (i >= end || source[i] === ">" || source[i] === "/") {
+            return undefined;
+        }
+        const nameStart = i;
+        while (i < end && /[^\s=/>]/.test(source[i])) {
+            i++;
+        }
+        const name = source.slice(nameStart, i);
+        while (i < end && /\s/.test(source[i])) {
+            i++;
+        }
+        if (source[i] !== "=") {
+            continue;
+        }
+        i++;
+        while (i < end && /\s/.test(source[i])) {
+            i++;
+        }
+        const quote = source[i];
+        if (quote !== '"' && quote !== "'") {
+            return undefined;
+        }
+        const valueStart = i + 1;
+        const valueEnd = source.indexOf(quote, valueStart);
+        if (valueEnd === -1 || valueEnd >= end) {
+            return undefined;
+        }
+        if (name === "extend" || name === "copy") {
+            return { start: valueStart, end: valueEnd };
+        }
+        i = valueEnd + 1;
     }
-    return end;
+    return undefined;
 }
 
 /**
