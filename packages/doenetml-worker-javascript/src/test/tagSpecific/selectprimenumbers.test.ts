@@ -1294,11 +1294,11 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
         nums4.length = 5;
         nums5.length = 5;
 
-        nums1.fill("", n1);
-        nums2.fill("", n2);
-        nums3.fill("", n3);
-        nums4.fill("", n4);
-        nums5.fill("", n5);
+        nums1.fill("＿", n1);
+        nums2.fill("＿", n2);
+        nums3.fill("＿", n3);
+        nums4.fill("＿", n4);
+        nums5.fill("＿", n5);
 
         let l = ["a", "b", "c", "d", "e"];
 

@@ -251,14 +251,20 @@ describe("A reference written as a different tag is allowed only between related
             "textFromPoint",
             "pointFromText",
             "mathFromList",
-            "mathFromEmptyGroup",
         ];
-        const shown = await texts(["before", "after", ...names]);
+        const shown = await texts([
+            "before",
+            "after",
+            ...names,
+            "mathFromEmptyGroup",
+        ]);
         expect(shown.before).eq("before");
         expect(shown.after).eq("after");
         for (const name of names) {
             expect(shown[name], name).eq("");
         }
+        // A group holding nothing is no error: the math is missing (D37).
+        expect(shown.mathFromEmptyGroup).eq("＿");
 
         // The error is shown in place of the reference.
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -273,6 +279,13 @@ describe("A reference written as a different tag is allowed only between related
                 name,
             ).eqls(["_error"]);
         }
+        const fromEmptyGroup =
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("mathFromEmptyGroup")]
+                    .activeChildren[0].componentIdx
+            ];
+        expect(fromEmptyGroup.componentType).eq("math");
+        expect(fromEmptyGroup.stateValues.text).eq("＿");
 
         const lines = doenetML.split("\n");
         const lineOf = (name: string) =>
@@ -349,13 +362,6 @@ describe("A reference written as a different tag is allowed only between related
                 line: lineOf("mathFromList"),
                 message:
                     "A `<math>` can be made from a `<mathList>` only when it holds one component, and `$ml` holds 2. To use one of them, write `$ml[1]` or name it. To read them all as one value, write `<math>$ml</math>`.",
-            },
-            {
-                code: "doenet-e0064",
-                type: "error",
-                line: lineOf("mathFromEmptyGroup"),
-                message:
-                    "A `<math>` can't be made from `$g0`, a `<group>` that holds nothing.",
             },
         ]);
     });
@@ -467,7 +473,7 @@ describe("A reference written as a different tag is allowed only between related
         ]);
     });
 
-    it("a math's value that does not allow the type is an info, and the tag has the value of the empty tag (D36)", async () => {
+    it("a math's value that does not allow the type is an info, and the tag is missing (D37)", async () => {
         const { texts, typeChangeDiagnostics } = await setup(`
 <math name="m">x+1</math>
 <mathInput name="mi" prefill="x"/>
@@ -477,10 +483,10 @@ describe("A reference written as a different tag is allowed only between related
 <p name="p4"><point extend="$mi"/></p>
 `);
         expect(await texts(["p1", "p2", "p3", "p4"])).eqls({
-            p1: "false",
-            p2: "(0, 0)",
-            p3: "(0, 0)",
-            p4: "(0, 0)",
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
         });
         expect(typeChangeDiagnostics()).eqls([
             {
@@ -488,28 +494,28 @@ describe("A reference written as a different tag is allowed only between related
                 type: "info",
                 line: 4,
                 message:
-                    "A `<boolean>` can't be made from `$m` while its value, x + 1, isn't true or false, so it has the value of `<boolean/>` until it is.",
+                    "A `<boolean>` can't be made from `$m` while its value, x + 1, isn't true or false, so it is missing until it is.",
             },
             {
                 code: "doenet-i0053",
                 type: "info",
                 line: 5,
                 message:
-                    "A `<point>` can't be made from `$m` while its value, x + 1, isn't a tuple of coordinates, so it has the value of `<point/>` until it is.",
+                    "A `<point>` can't be made from `$m` while its value, x + 1, isn't a tuple of coordinates, so it is missing until it is.",
             },
             {
                 code: "doenet-i0053",
                 type: "info",
                 line: 6,
                 message:
-                    "A `<point>` can't be made from `$m` while its value, x + 1, isn't a tuple of coordinates, so it has the value of `<point/>` until it is.",
+                    "A `<point>` can't be made from `$m` while its value, x + 1, isn't a tuple of coordinates, so it is missing until it is.",
             },
             {
                 code: "doenet-i0053",
                 type: "info",
                 line: 7,
                 message:
-                    "A `<point>` can't be made from `$mi` while its value, x, isn't a tuple of coordinates, so it has the value of `<point/>` until it is.",
+                    "A `<point>` can't be made from `$mi` while its value, x, isn't a tuple of coordinates, so it is missing until it is.",
             },
         ]);
     });
@@ -538,7 +544,7 @@ describe("A reference written as a different tag is allowed only between related
 <math name="m">$mi</math>
 <p name="p1"><point extend="$m"/></p>
 `);
-        expect(await texts(["p1"])).eqls({ p1: "(0, 0)" });
+        expect(await texts(["p1"])).eqls({ p1: "＿" });
         expect(typeChangeDiagnostics().map((d) => [d.code, d.type])).eqls([
             ["doenet-i0053", "info"],
         ]);
@@ -555,15 +561,15 @@ describe("A reference written as a different tag is allowed only between related
             componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
-        expect(await texts(["p1"])).eqls({ p1: "(0, 0)" });
+        expect(await texts(["p1"])).eqls({ p1: "＿" });
     });
 
     it("a point or boolean made from a value reference follows its value both ways", async () => {
         // `$g[1]` is the value reference `$m.value` (`_ref`), which presents
         // a math: its value is depended on as a math's is.
         for (const [start, point, boolean] of [
-            ["x", "(0, 0)", "false"],
-            ["(1,2)", "(1, 2)", "false"],
+            ["x", "＿", "＿"],
+            ["(1,2)", "(1, 2)", "＿"],
         ]) {
             const { core, resolvePathToNodeIdx, texts } = await setup(`
 <mathInput name="mi" prefill="${start}"/>
@@ -575,11 +581,11 @@ describe("A reference written as a different tag is allowed only between related
             expect(await texts(["p1", "p2"])).eqls({ p1: point, p2: boolean });
             const mi = await resolvePathToNodeIdx("mi");
             for (const [latex, p1, p2] of [
-                ["(3,4)", "(3, 4)", "false"],
-                ["y", "(0, 0)", "false"],
-                ["(5,6)", "(5, 6)", "false"],
-                ["1", "(0, 0)", "true"],
-                ["z", "(0, 0)", "false"],
+                ["(3,4)", "(3, 4)", "＿"],
+                ["y", "＿", "＿"],
+                ["(5,6)", "(5, 6)", "＿"],
+                ["1", "＿", "true"],
+                ["z", "＿", "＿"],
             ]) {
                 await updateMathInputValue({ latex, componentIdx: mi, core });
                 expect(await texts(["p1", "p2"])).eqls({ p1, p2 });
@@ -613,10 +619,10 @@ describe("A reference written as a different tag is allowed only between related
         expect((await after.stateValues.coords).toString()).eq("(3, 4)");
     });
 
-    it("a copy of the content holding a point made from a math has the value of the empty tag while it does", async () => {
+    it("a copy of the content holding a point made from a math is missing while it is", async () => {
         // The copy of the content (`<p extend>`, `$h`, an extend of `h`) is
-        // made from what the point is: `<point/>` while the value is not a
-        // tuple (D36). An empty point made by the copy of the content itself
+        // made from what the point is: missing while the value is not a
+        // tuple (D37). An empty point made by the copy of the content itself
         // once took the index of the point when the value became a tuple
         // ("Found a duplicate componentIdx").
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
@@ -630,7 +636,7 @@ describe("A reference written as a different tag is allowed only between related
 <p name="p3" extend="$pp"/>
 `);
         const names = ["p1", "p2", "p3"];
-        const blank = { p1: "(0, 0)", p2: "(0, 0)", p3: "(0, 0)false" };
+        const blank = { p1: "＿", p2: "＿", p3: "＿＿" };
         expect(await texts(names)).eqls(blank);
 
         const mi = await resolvePathToNodeIdx("mi");
@@ -638,7 +644,7 @@ describe("A reference written as a different tag is allowed only between related
         expect(await texts(names)).eqls({
             p1: "(1, 2)",
             p2: "(1, 2)",
-            p3: "(1, 2)false",
+            p3: "(1, 2)＿",
         });
 
         await updateMathInputValue({ latex: "y", componentIdx: mi, core });
@@ -648,14 +654,14 @@ describe("A reference written as a different tag is allowed only between related
         expect(await texts(names)).eqls({
             p1: "(3, 4)",
             p2: "(3, 4)",
-            p3: "(3, 4)false",
+            p3: "(3, 4)＿",
         });
 
         await updateMathInputValue({ latex: "1", componentIdx: mi, core });
         expect(await texts(names)).eqls({
-            p1: "(0, 0)",
-            p2: "(0, 0)",
-            p3: "(0, 0)true",
+            p1: "＿",
+            p2: "＿",
+            p3: "＿true",
         });
 
         // `h` always holds one point, so only its value is checked.
@@ -725,9 +731,9 @@ describe("A reference written as a different tag is allowed only between related
         ]);
     });
 
-    it("a group holding a reference to a conditionalContent with no else is an error (D36)", async () => {
+    it("a group holding a reference to a conditionalContent with no else is missing while no case is true (D37)", async () => {
         // What `$cc` holds is the active case, which is nothing while no
-        // case is true.
+        // case is true: no error, the math is missing then.
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`
 <booleanInput name="b"/>
@@ -737,20 +743,43 @@ describe("A reference written as a different tag is allowed only between related
 <p name="p1"><math extend="$g"/></p>
 <p name="p2"><math extend="$g1"/></p>
 `);
-        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
-        expect(
-            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
-        ).eqls([
-            ["doenet-e0064", "error", 6],
-            ["doenet-e0064", "error", 7],
+        async function missing() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const name of ["p1", "p2"]) {
+                const shown =
+                    stateVariables[
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .activeChildren[0].componentIdx
+                    ];
+                result.push([
+                    shown.componentType,
+                    shown.stateValues.valueMissing,
+                ]);
+            }
+            return result;
+        }
+        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "＿" });
+        expect(await missing()).eqls([
+            ["math", true],
+            ["math", true],
         ]);
-        expect(typeChangeDiagnostics()[0].message).eq(
-            "A `<math>` can be made from `$g` only when it always holds one component, and a `<conditionalContent>` with no `<else>` holds nothing when no case is true. Add an `<else>`.",
+        expect(typeChangeDiagnostics().filter((d) => d.type === "error")).eqls(
+            [],
         );
 
         const b = await resolvePathToNodeIdx("b");
         await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
-        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "1", p2: "1" });
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: b,
+            core,
+        });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "＿" });
     });
 
     it("an extend of a group holding an extend follows it when what it holds changes", async () => {
@@ -894,12 +923,12 @@ describe("A reference written as a different tag is allowed only between related
         }
 
         expect(await texts(names)).eqls({
-            p1: "(0, 0)",
-            p2: "false",
+            p1: "＿",
+            p2: "＿",
             p3: "＿",
         });
         expect(typeChangeDiagnostics()[0].message).eq(
-            "A `<point>` can't be made from `$ml` while its value, x, isn't a tuple of coordinates, so it has the value of `<point/>` until it is.",
+            "A `<point>` can't be made from `$ml` while its value, x, isn't a tuple of coordinates, so it is missing until it is.",
         );
         expect(newDiagnostics()).eqls([
             ["doenet-i0053", "info", 6],
@@ -910,7 +939,7 @@ describe("A reference written as a different tag is allowed only between related
         await setMath("mi", "(1,2)");
         expect(await texts(names)).eqls({
             p1: "(1, 2)",
-            p2: "false",
+            p2: "＿",
             p3: "(1, 2)",
         });
         expect(newDiagnostics()).eqls([["doenet-i0053", "info", 7]]);
@@ -921,7 +950,7 @@ describe("A reference written as a different tag is allowed only between related
         await setMath("mi", "(3,4)");
         expect(await texts(names)).eqls({
             p1: "(3, 4)",
-            p2: "false",
+            p2: "＿",
             p3: "(3, 4)",
         });
         expect((await pointShown()) === before).eq(true);
@@ -937,18 +966,18 @@ describe("A reference written as a different tag is allowed only between related
         await setMath("n", "1");
         expect(await texts(names)).eqls({
             p1: "(3, 4)",
-            p2: "false",
+            p2: "＿",
             p3: "(3, 4)",
         });
 
         await setMath("mi", "1");
-        expect(await texts(names)).eqls({ p1: "(0, 0)", p2: "true", p3: "＿" });
+        expect(await texts(names)).eqls({ p1: "＿", p2: "true", p3: "＿" });
         newDiagnostics();
 
         // decided once the count has caught up with the values, not from
         // the blank entry the list holds until then
         await setMath("n", "0");
-        expect(await texts(names)).eqls({ p1: "(0, 0)", p2: "", p3: "" });
+        expect(await texts(names)).eqls({ p1: "＿", p2: "", p3: "" });
         expect(newDiagnostics()).eqls([
             ["doenet-e0064", "error", 7],
             ["doenet-e0064", "error", 8],
@@ -975,7 +1004,7 @@ describe("A reference written as a different tag is allowed only between related
             });
         }
 
-        expect(await texts(names)).eqls({ p1: "false", p2: "false" });
+        expect(await texts(names)).eqls({ p1: "＿", p2: "＿" });
         expect(
             typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
         ).eqls([
@@ -988,9 +1017,9 @@ describe("A reference written as a different tag is allowed only between related
         await setMath("x>1");
         expect(await texts(names)).eqls({ p1: "false", p2: "false" });
         await setMath("(0,1]");
-        expect(await texts(names)).eqls({ p1: "false", p2: "false" });
+        expect(await texts(names)).eqls({ p1: "＿", p2: "＿" });
         expect(typeChangeDiagnostics().map((d) => d.message)).toContain(
-            "A `<boolean>` can't be made from `$il` while its value, (0, 1], isn't true or false, so it has the value of `<boolean/>` until it is.",
+            "A `<boolean>` can't be made from `$il` while its value, (0, 1], isn't true or false, so it is missing until it is.",
         );
     });
 
@@ -1057,7 +1086,7 @@ describe("A reference written as a different tag is allowed only between related
             p2: "true",
             p3: "true",
             p4: "false",
-            p5: "false",
+            p5: "＿",
         });
         expect(
             typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
@@ -1075,9 +1104,9 @@ describe("A reference written as a different tag is allowed only between related
 <p name="p3"><boolean extend="$raw"/></p>
 `);
         expect(await texts(["p1", "p2", "p3"])).eqls({
-            p1: "false",
-            p2: "false",
-            p3: "false",
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
         });
         expect(
             typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
@@ -1123,7 +1152,7 @@ describe("A reference written as a different tag is allowed only between related
         const mi = await resolvePathToNodeIdx("mi");
         await updateMathInputValue({ latex: "y", componentIdx: mi, core });
         await updateMathInputValue({ latex: "z", componentIdx: mi, core });
-        expect(await texts(["p1"])).eqls({ p1: "(0, 0)" });
+        expect(await texts(["p1"])).eqls({ p1: "＿" });
         expect(made).not.toHaveBeenCalled();
         // One info, naming the value as it is now (B33).
         expect(

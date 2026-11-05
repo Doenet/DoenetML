@@ -510,19 +510,19 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pfmin")].stateValues
                 .text,
-        ).eq("Minima of f: ");
+        ).eq("Minima of f: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pfmax")].stateValues
                 .text,
-        ).eq("Maxima of f: ");
+        ).eq("Maxima of f: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pf2min")].stateValues
                 .text,
-        ).eq("Minima of f_2: ");
+        ).eq("Minima of f_2: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pf2max")].stateValues
                 .text,
-        ).eq("Maxima of f_2: ");
+        ).eq("Maxima of f_2: ＿");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("f")].stateValues.minima,
@@ -593,7 +593,7 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pg2min")].stateValues
                 .text,
-        ).eq("Minima of g_2: ");
+        ).eq("Minima of g_2: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pg2max")].stateValues
                 .text,
@@ -691,7 +691,7 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("phmax")].stateValues
                 .text,
-        ).eq("Maxima of h: ");
+        ).eq("Maxima of h: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("ph2min")].stateValues
                 .text,

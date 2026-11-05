@@ -14,8 +14,9 @@ vi.mock("hyperformula");
  * `x` of the active branch, as `$cc.x` does. It resolves only if every
  * branch declares it, with the same tag, so that what a reference names
  * never changes type with the active branch; otherwise it names nothing,
- * with a warning at the reference (`doenet-w0183`, `doenet-w0184`), or an
- * error on a tag (REF-0, D36).
+ * with a warning at the reference (`doenet-w0183`, `doenet-w0184`); a tag
+ * is then missing, with the same warning (D37), or, for a mix of types, an
+ * error (REF-0, D36).
  */
 async function setUp(doenetML: string) {
     const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -88,12 +89,12 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
     <case condition="$b"><math name="x">1</math></case>
 </conditionalContent>
 <p name="p">[$x][$cc.x]</p>`);
-        expect(await text()).eq("[][]");
+        expect(await text()).eq("[＿][＿]");
         expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
         await toggle(true);
         expect(await text()).eq("[1][1]");
         await toggle(false);
-        expect(await text()).eq("[][]");
+        expect(await text()).eq("[＿][＿]");
         expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
     });
 
@@ -101,7 +102,7 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         const { text, diagnostics } = await setUp(
             `<math name="x">9</math>${sameTypeCases}<p name="p">[$x][$cc.x]</p>`,
         );
-        expect(await text()).eq("[][2]");
+        expect(await text()).eq("[＿][2]");
         expect(codes(diagnostics.warnings)).eqls(["doenet-w0105"]);
         expect(diagnostics.warnings[0].message).contain("`$x`");
     });
@@ -172,57 +173,49 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(diagnostics.warnings).eqls([]);
     });
 
-    it("on a tag, a name a branch lacks is an error", async () => {
+    it("on a tag, a name a branch lacks is missing, with a warning", async () => {
         const { text, diagnostics } = await setUp(`
 <conditionalContent name="cc">
     <case condition="$b"><math name="x">1</math></case>
     <else><math name="y">2</math></else>
 </conditionalContent>
 <p name="p"><math extend="$cc.x"/></p>`);
-        expect(await text()).eq("");
-        expect(codes(diagnostics.errors)).eqls(["doenet-w0183"]);
-        expect(diagnostics.errors[0].message).eq(
+        expect(await text()).eq("＿");
+        expect(diagnostics.errors).eqls([]);
+        expect(codes(diagnostics.warnings)).eqls(["doenet-w0183"]);
+        expect(diagnostics.warnings[0].message).eq(
             "`$cc.x` names nothing: the `<else>` of `cc` has no `x`. Give it one, or use a name every case has.",
         );
     });
 
-    it("on a tag, a name that can be absent, with no else, is an error", async () => {
+    it("on a tag, a name that can be absent, with no else, is missing while no case is active", async () => {
         const { text, toggle, diagnostics } = await setUp(`
 <conditionalContent name="cc">
     <case condition="$b"><math name="x">1</math></case>
 </conditionalContent>
 <p name="p"><math extend="$cc.x"/><math extend="$x"/></p>`);
-        expect(await text()).eq("");
+        expect(await text()).eq("＿＿");
         await toggle(true);
-        expect(await text()).eq("");
-        expect(codes(diagnostics.errors)).eqls([
-            "doenet-e0064",
-            "doenet-e0064",
-        ]);
-        expect(diagnostics.errors[0].message).contain("Add an `<else>`");
+        expect(await text()).eq("11");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
     });
 
-    it("on a tag, a name that can be absent stays only an error as the case comes and goes", async () => {
-        // The error is decided when the document loads (D36), so a case that
-        // becomes active, then not, does not make the tag again (#2454).
+    it("on a tag, a name that can be absent is missing while no case is active, as the case comes and goes", async () => {
+        // The tag is missing while no case is active, and is made again
+        // when one is (D37, #2454).
         const { text, toggle, diagnostics } = await setUp(`
 <conditionalContent name="cc">
     <case condition="$b"><number name="x">1</number></case>
 </conditionalContent>
 <p name="p">[<number extend="$x"/>][<number extend="$cc.x"/>][<math extend="$x"/>][$x]</p>`);
-        expect(await text()).eq("[][][][]");
+        expect(await text()).eq("[＿][＿][＿][＿]");
         await toggle(true);
-        expect(await text()).eq("[][][][1]");
+        expect(await text()).eq("[1][1][1][1]");
         await toggle(false);
-        expect(await text()).eq("[][][][]");
+        expect(await text()).eq("[＿][＿][＿][＿]");
         await toggle(true);
-        expect(await text()).eq("[][][][1]");
-        expect(codes(diagnostics.errors)).eqls([
-            "doenet-e0064",
-            "doenet-e0064",
-            "doenet-e0064",
-        ]);
-        expect(diagnostics.warnings).eqls([]);
+        expect(await text()).eq("[1][1][1][1]");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
 
         // the same for a name in a select in the case
         const select = await setUp(`
@@ -233,17 +226,17 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
     </select></case>
 </conditionalContent>
 <p name="p">[<number extend="$s.x"/>][<number extend="$x"/>][$s.x]</p>`);
-        expect(await select.text()).eq("[][][]");
+        expect(await select.text()).eq("[＿][＿][＿]");
         await select.toggle(true);
-        expect(await select.text()).eq("[][][1]");
+        expect(await select.text()).eq("[1][1][1]");
         await select.toggle(false);
-        expect(await select.text()).eq("[][][]");
+        expect(await select.text()).eq("[＿][＿][＿]");
         await select.toggle(true);
-        expect(await select.text()).eq("[][][1]");
-        expect(codes(select.diagnostics.errors)).eqls([
-            "doenet-e0064",
-            "doenet-e0064",
-        ]);
+        expect(await select.text()).eq("[1][1][1]");
+        expect([
+            ...select.diagnostics.warnings,
+            ...select.diagnostics.errors,
+        ]).eqls([]);
     });
 
     it("on a tag, a name every case has with one type follows the case both ways", async () => {
@@ -309,19 +302,19 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(select.diagnostics.warnings).eqls([]);
     });
 
-    it("on a group tag, a name a branch lacks is an error", async () => {
+    it("on a group tag, a name a branch lacks is missing, with a warning", async () => {
         const { text, diagnostics } = await setUp(`
 <conditionalContent name="cc">
     <case condition="$b"><math name="x">1</math></case>
     <else><math name="y">2</math></else>
 </conditionalContent>
 <p name="p">[<group extend="$x"/>][<group extend="$cc.x"/>]</p>`);
-        expect(await text()).eq("[][]");
-        expect(codes(diagnostics.errors)).eqls([
+        expect(await text()).eq("[＿][＿]");
+        expect(codes(diagnostics.warnings)).eqls([
             "doenet-w0183",
             "doenet-w0183",
         ]);
-        expect(diagnostics.warnings).eqls([]);
+        expect(diagnostics.errors).eqls([]);
     });
 
     it("on a group tag or a list tag, a name every case has with one type is made", async () => {
@@ -447,7 +440,7 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
     <option><math name="x">1</math></option>
 </select>
 <p name="p">[$x][$s[1].x][$s[2].x]</p>`);
-        expect(await text()).eq("[][1][1]");
+        expect(await text()).eq("[＿][1][1]");
         expect(codes(diagnostics.warnings)).eqls(["doenet-w0104"]);
     });
 
@@ -501,16 +494,16 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
     });
 
-    it("on a tag, a name after an index into a select's picks is an error when an option lacks it or types differ", async () => {
+    it("on a tag, a name after an index into a select's picks is missing when an option lacks it, and an error when types differ", async () => {
         const missing = await setUp(`
 <select name="s" numToSelect="2">
     <option><math name="x">1</math></option>
     <option><math name="y">2</math></option>
 </select>
 <p name="p"><math extend="$s[1].x"/></p>`);
-        expect(await missing.text()).eq("");
-        expect(codes(missing.diagnostics.errors)).eqls(["doenet-w0183"]);
-        expect(missing.diagnostics.warnings).eqls([]);
+        expect(await missing.text()).eq("＿");
+        expect(codes(missing.diagnostics.warnings)).eqls(["doenet-w0183"]);
+        expect(missing.diagnostics.errors).eqls([]);
 
         const mixed = await setUp(`
 <select name="s" numToSelect="2">
@@ -571,11 +564,12 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         const missing = await setUp(
             `${branches(`<math name="x">1</math>`, `<math name="y">2</math>`)}<p name="p">[$h.x]<math extend="$h.x"/></p>`,
         );
-        expect(await missing.text()).eq("[]");
+        expect(await missing.text()).eq("[＿]＿");
         expect(missing.diagnostics.warnings.map((w) => w.message)).eqls([
             "`$h.x` names nothing: the `<else>` of `cc` has no `x`. Give it one, or use a name every case has.",
+            "`$h.x` names nothing: the `<else>` of `cc` has no `x`. Give it one, or use a name every case has.",
         ]);
-        expect(codes(missing.diagnostics.errors)).eqls(["doenet-w0183"]);
+        expect(missing.diagnostics.errors).eqls([]);
 
         // A name in a select in every case, of different types in its options
         const nested = await setUp(`
@@ -725,9 +719,9 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         const { text, toggle, diagnostics } = await setUp(
             `${sameTypeCases}<p name="p">[$x.nonexistent][$cc.x.nonexistent]</p>`,
         );
-        expect(await text()).eq("[][]");
+        expect(await text()).eq("[＿][＿]");
         await toggle(true);
-        expect(await text()).eq("[][]");
+        expect(await text()).eq("[＿][＿]");
         expect(diagnostics.warnings.map((w) => w.message)).eqls([
             "No referent found for reference: `$x.nonexistent`",
             "No referent found for reference: `$cc.x.nonexistent`",
@@ -740,13 +734,13 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
     <option><math name="x">2</math></option>
 </select>
 <p name="p">[$s[1].x.nonexistent]</p>`);
-        expect(await indexed.text()).eq("[]");
+        expect(await indexed.text()).eq("[＿]");
         expect(indexed.diagnostics.warnings.map((w) => w.message)).eqls([
             "No referent found for reference: `$s[1].x.nonexistent`",
         ]);
     });
 
-    it("on a tag, a name a nested case without an else holds can be absent, whatever follows it", async () => {
+    it("on a tag, a name a nested case without an else holds can be absent, whatever follows it, and is missing then", async () => {
         // `x` is also a name of the document, so `$P.x` is followed as a
         // name into each `P`, which lacks it
         const { text, diagnostics } = await setUp(`
@@ -758,8 +752,8 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
     <else><point name="P">(3,4)</point></else>
 </conditionalContent>
 <p name="p"><number extend="$P.x"/></p>`);
-        expect(await text()).eq("");
-        expect(codes(diagnostics.errors)).eqls(["doenet-e0064"]);
+        expect(await text()).eq("3");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
     });
 
     it("on a tag, a select copied in each case is held to the rule in each", async () => {
@@ -800,29 +794,31 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(codes(onTag.diagnostics.errors)).eqls(["doenet-e0066"]);
     });
 
-    it("on a tag, an index past what a select picks is an error before the name after it", async () => {
+    it("on a tag, an index past what a select picks is missing, with a warning, before the name after it", async () => {
         const { text, diagnostics } = await setUp(`
 <select name="s">
     <option><math name="x">1</math></option>
     <option><math name="x">2</math></option>
 </select>
 <p name="p"><math extend="$s[2].x"/></p>`);
-        expect(await text()).eq("");
-        expect(codes(diagnostics.errors)).eqls(["doenet-w0181"]);
+        expect(await text()).eq("＿");
+        expect(codes(diagnostics.warnings)).eqls(["doenet-w0181"]);
+        expect(diagnostics.errors).eqls([]);
     });
 
-    it("on a tag, an index past what a select picks is an error before an option lacking the name", async () => {
+    it("on a tag, an index past what a select picks is missing, with a warning, before an option lacking the name", async () => {
         const { text, diagnostics } = await setUp(`
 <select name="s">
     <option><math name="x">1</math></option>
     <option><math name="y">2</math></option>
 </select>
 <p name="p"><math extend="$s[2].x"/></p>`);
-        expect(await text()).eq("");
-        expect(codes(diagnostics.errors)).eqls(["doenet-w0181"]);
+        expect(await text()).eq("＿");
+        expect(codes(diagnostics.warnings)).eqls(["doenet-w0181"]);
+        expect(diagnostics.errors).eqls([]);
     });
 
-    it("on a tag, an index between names past what each select picks is an error", async () => {
+    it("on a tag, an index between names past what each select picks is missing, with a warning", async () => {
         const doenetML = (numToSelect: string) => `
 <conditionalContent>
     <case condition="$b"><select name="h"${numToSelect}>
@@ -836,8 +832,9 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
 </conditionalContent>
 <p name="p"><math extend="$h[2].x"/></p>`;
         const past = await setUp(doenetML(""));
-        expect(await past.text()).eq("");
-        expect(codes(past.diagnostics.errors)).eqls(["doenet-w0181"]);
+        expect(await past.text()).eq("＿");
+        expect(codes(past.diagnostics.warnings)).eqls(["doenet-w0181"]);
+        expect(past.diagnostics.errors).eqls([]);
 
         // past each though they pick different numbers
         const pastBoth = await setUp(
@@ -848,8 +845,9 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
                 )
                 .replace(`$h[2].x`, `$h[3].x`),
         );
-        expect(await pastBoth.text()).eq("");
-        expect(pastBoth.diagnostics.errors.map((e) => e.message)).eqls([
+        expect(await pastBoth.text()).eq("＿");
+        expect(pastBoth.diagnostics.errors).eqls([]);
+        expect(pastBoth.diagnostics.warnings.map((e) => e.message)).eqls([
             "`$h[3].x`: the `<select>` made only 2 picks.",
         ]);
 
@@ -937,14 +935,19 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
             ]);
         }
 
-        // with no else, it can be absent (D36)
+        // with no else, it can be absent, so is missing while no case is
+        // active (D37)
         const noElse = await setUp(
             doenetML(`<number extend="$x.value"/>`).replace(
                 `<else><number name="x">2.5</number></else>`,
                 `<case condition="true"><number name="x">2.5</number></case>`,
             ),
         );
-        expect(codes(noElse.diagnostics.errors)).eqls(["doenet-e0064"]);
+        expect(await noElse.text()).eq("2.5");
+        expect([
+            ...noElse.diagnostics.warnings,
+            ...noElse.diagnostics.errors,
+        ]).eqls([]);
     });
 
     it("a name after a tag made from a container, not a composite, is its property", async () => {

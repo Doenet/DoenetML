@@ -53,7 +53,7 @@ describe("An index selects instances, not children @group4", async () => {
                 .text;
         }
 
-        expect(await text()).eq("[11] [13] [22] []");
+        expect(await text()).eq("[11] [13] [22] [＿]");
 
         await updateMathInputValue({
             latex: "3",
@@ -67,7 +67,7 @@ describe("An index selects instances, not children @group4", async () => {
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        expect(await text()).eq("[11] [] [22] [31]");
+        expect(await text()).eq("[11] [＿] [22] [31]");
 
         await updateMathInputValue({
             latex: "4",
@@ -113,7 +113,7 @@ describe("An index selects instances, not children @group4", async () => {
             ];
         }
 
-        expect(await texts()).eqls(["[1a1] [2a2] [2b1] []", "[2b1, 2b2]"]);
+        expect(await texts()).eqls(["[1a1] [2a2] [2b1] [＿]", "[2b1, 2b2]"]);
 
         await updateMathInputValue({
             latex: "3",
@@ -145,7 +145,7 @@ describe("An index selects instances, not children @group4", async () => {
     </repeatForSequence>
     <p name="p">[$a[2][3]] [$a[2][3].c] [$a[2][1][3]]</p>
     `);
-        expect(text).eq("[11] [11] []");
+        expect(text).eq("[11] [11] [＿]");
         expect(warnings.map((w) => w.code)).eqls(["doenet-w0104"]);
         expect(warnings[0].args).eqls({ reference: "$a[2][1][3]" });
     });
@@ -207,13 +207,13 @@ describe("An index selects instances, not children @group4", async () => {
         const pastList = await shownAndReported(
             `${setup}<select name="s"><option>$nl</option></select><p name="p">[$s[1][4]]</p>`,
         );
-        expect(pastList.text).eq("[]");
+        expect(pastList.text).eq("[＿]");
         expect(pastList.warnings).eqls([]);
 
         const pastRepeat = await shownAndReported(
             `${setup}<select name="s"><option>$rp</option></select><p name="p">[$s[1][3]]</p>`,
         );
-        expect(pastRepeat.text).eq("[]");
+        expect(pastRepeat.text).eq("[＿]");
         expect(pastRepeat.warnings.map((w) => [w.code, w.args])).eqls([
             [
                 "doenet-w0181",
@@ -275,7 +275,9 @@ describe("An index selects instances, not children @group4", async () => {
             const { text, warnings } = await shownAndReported(
                 `${setup}${body}<p name="p">[$${name}[2]] [${past}]</p>`,
             );
-            expect(text, body).eq(body.includes("$rp") ? "[2] []" : "[b] []");
+            expect(text, body).eq(
+                body.includes("$rp") ? "[2] [＿]" : "[b] [＿]",
+            );
             expect(
                 warnings.map((w) => w.code),
                 body,
@@ -302,7 +304,7 @@ describe("An index selects instances, not children @group4", async () => {
                 .text;
         }
 
-        expect(await text()).eq("[2] []");
+        expect(await text()).eq("[2] [＿]");
 
         await updateMathInputValue({
             latex: "3",
@@ -316,7 +318,7 @@ describe("An index selects instances, not children @group4", async () => {
             componentIdx: await resolvePathToNodeIdx("k"),
             core,
         });
-        expect(await text()).eq("[] []");
+        expect(await text()).eq("[＿] [＿]");
 
         const { warnings, errors } = getDiagnosticsByType(core);
         expect([...warnings, ...errors].map((d) => [d.code, d.message])).eqls(
@@ -462,7 +464,7 @@ describe("An index selects instances, not children @group4", async () => {
         }
 
         // `r` has no iteration 2 yet
-        await check("[] [] [] []");
+        await check("[＿] [＿] [] []");
 
         await updateMathInputValue({
             latex: "2",
@@ -540,7 +542,7 @@ describe("An index selects instances, not children @group4", async () => {
         for (const { body, ...args } of cases) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(body);
-            expect(text, body).eq("[]");
+            expect(text, body).eq("[＿]");
             expect(errors, body).eqls([]);
             expect(infos, body).eqls([]);
             expect(
@@ -617,7 +619,7 @@ describe("An index selects instances, not children @group4", async () => {
         for (const { body, message, ...args } of cases) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(body);
-            expect(text, body).eq("[]");
+            expect(text, body).eq("[＿]");
             expect(errors, body).eqls([]);
             expect(infos, body).eqls([]);
             expect(

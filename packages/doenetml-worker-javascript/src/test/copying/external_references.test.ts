@@ -157,8 +157,8 @@ describe("External References Tests @group1", async () => {
     });
 
     it("references to external content fail without parent name", async () => {
-        // A reference that names nothing is an error on a tag, shown in its
-        // place (D36).
+        // A reference that names nothing gives a missing tag, with a warning
+        // (D37).
         const doenetMLs = {
             abc: `<section name="s1" copy="doenet:def"><p name="p1">Hello</p></section>`,
             def: `<section name="s2" copy="doenet:ghi"><p name="p2">Bye</p></section>`,
@@ -198,23 +198,47 @@ describe("External References Tests @group1", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("s.p4")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s.p4")].stateValues
+                .valueMissing,
+        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("s.p5")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s.p5")].stateValues
+                .valueMissing,
+        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("s.p6")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s.p6")].stateValues
+                .valueMissing,
+        ).eq(true);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("s2.p4")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s2.p4")].stateValues
+                .valueMissing,
+        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("s2.p5")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s2.p5")].stateValues
+                .valueMissing,
+        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("s2.p6")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s2.p6")].stateValues
+                .valueMissing,
+        ).eq(true);
     });
 
     it("local names supersede external names in references", async () => {
@@ -269,8 +293,8 @@ describe("External References Tests @group1", async () => {
     });
 
     it("External content cannot reference local names", async () => {
-        // A reference that names nothing is an error on a tag, shown in its
-        // place (D36).
+        // A reference that names nothing gives a missing tag, with a warning
+        // (D37).
         const doenetMLs = {
             abc: `
         <section name="s1">
@@ -306,16 +330,32 @@ describe("External References Tests @group1", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("s.s1.p3")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s.s1.p3")].stateValues
+                .valueMissing,
+        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("s.s1.p4")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s.s1.p4")].stateValues
+                .valueMissing,
+        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("s.s1.p5")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s.s1.p5")].stateValues
+                .valueMissing,
+        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("s.s1.p6")].componentType,
-        ).eq("_error");
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s.s1.p6")].stateValues
+                .valueMissing,
+        ).eq(true);
     });
 
     it("reference external content from within an extend or copy", async () => {

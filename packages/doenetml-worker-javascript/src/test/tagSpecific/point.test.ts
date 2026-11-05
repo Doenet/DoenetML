@@ -4628,7 +4628,7 @@ describe("Point tag tests @group4", async () => {
                     expect(
                         stateVariables[await resolvePathToNodeIdx(`p${i}y`)]
                             .stateValues.text,
-                    ).eq(`y-coordinate: `);
+                    ).eq(`y-coordinate: ＿`);
                 }
                 if (nDim > 2) {
                     expect(
@@ -4639,7 +4639,7 @@ describe("Point tag tests @group4", async () => {
                     expect(
                         stateVariables[await resolvePathToNodeIdx(`p${i}z`)]
                             .stateValues.text,
-                    ).eq(`z-coordinate: `);
+                    ).eq(`z-coordinate: ＿`);
                 }
 
                 expect(

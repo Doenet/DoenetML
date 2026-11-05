@@ -271,11 +271,13 @@ describe("container words follow the document locale @group4", () => {
             // `label` is the control: a `raw` that is not reached says
             // something about reachability only if a reference that should
             // resolve does. A tag extending a property its source does not
-            // have is an error in its place (D36), so `raw` has no value.
+            // have is a missing tag of its type (D37), so `raw` is a missing
+            // text, whose value is that of `<text/>`.
             expect(await values(doc, ["label", "raw"], "value")).toEqual({
                 label: "Onward",
-                raw: undefined,
+                raw: "",
             });
+            expect((await values(doc, ["raw"], "valueMissing")).raw).eq(true);
         });
     });
 

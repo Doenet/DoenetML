@@ -124,8 +124,8 @@ describe("List operator results as children @group4", async () => {
                 "3",
                 "2, 5, 9, 14, 19",
             ],
-            ["1", "2", "2 + 1", "2", "1", "", "2"],
-            ["0", "", "＿ + 1", "＿", "＿", "", ""],
+            ["1", "2", "2 + 1", "2", "1", "＿", "2"],
+            ["0", "", "＿ + 1", "＿", "＿", "＿", ""],
             ["2", "2, 3", "(2, 3) + 1", "5", "2", "3", "2, 5"],
         ]) {
             await updateMathInputValue({
@@ -606,7 +606,7 @@ describe("List operator results as children @group4", async () => {
             pLatex: "3.7",
             pNumber: "3.7",
             pIndexBy: "3.7",
-            pPast: "",
+            pPast: "＿",
             pSettings: "3 true false true 1 (0, 0)",
             mValue: "3.7",
             nValue: "3.7",
@@ -664,12 +664,12 @@ describe("List operator results as children @group4", async () => {
         });
 
         await expectTexts(core, resolvePathToNodeIdx, {
-            pValue: "",
-            pText: "",
-            pIndexBy: "",
+            pValue: "＿",
+            pText: "＿",
+            pIndexBy: "＿",
             pAllValue: "1",
             pAllFixed: "true",
-            pNumbers: "  1",
+            pNumbers: "＿ ＿ 1",
         });
     });
 

@@ -63,7 +63,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psv")].stateValues
                     .text,
-            ).eq(`Selected value: ${selectedValue ?? ""}`);
+            ).eq(`Selected value: ${selectedValue ?? "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
@@ -404,7 +404,9 @@ describe("ChoiceInput tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("psv")].stateValues
                     .text,
             ).eq(
-                `Selected values: ${selectedValue ? Array(4).fill(selectedValue).join(", ") : ""}`,
+                `Selected values: ${Array(4)
+                    .fill(selectedValue ?? "＿")
+                    .join(", ")}`,
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
@@ -518,7 +520,9 @@ describe("ChoiceInput tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("psv")].stateValues
                     .text,
             ).eq(
-                `Selected values: ${selectedValue ? Array(2).fill(selectedValue).join(", ") : ""}`,
+                `Selected values: ${Array(2)
+                    .fill(selectedValue ?? "＿")
+                    .join(", ")}`,
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
@@ -629,7 +633,9 @@ describe("ChoiceInput tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("psv")].stateValues
                     .text,
             ).eq(
-                `Selected values: ${selectedValue ? Array(2).fill(selectedValue).join(", ") : ""}`,
+                `Selected values: ${Array(2)
+                    .fill(selectedValue ?? "＿")
+                    .join(", ")}`,
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
@@ -1223,7 +1229,9 @@ describe("ChoiceInput tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("psv")].stateValues
                     .text,
             ).eq(
-                `Selected values: ${selectedValue ? Array(2).fill(selectedValue).join(", ") : ""}`,
+                `Selected values: ${Array(2)
+                    .fill(selectedValue ?? "＿")
+                    .join(", ")}`,
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
@@ -1503,7 +1511,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psv")].stateValues
                     .text,
-            ).eq(`Selected value: ${selectedValue ?? ""}`);
+            ).eq(`Selected value: ${selectedValue ?? "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
@@ -1582,7 +1590,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psv")].stateValues
                     .text,
-            ).eq(`Selected values: ${selectedValues.join(", ")}`);
+            ).eq(`Selected values: ${selectedValues.join(", ") || "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
@@ -2010,7 +2018,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psv")].stateValues
                     .text,
-            ).eq(`Selected value: ${selectedValue ?? ""}`);
+            ).eq(`Selected value: ${selectedValue ?? "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
@@ -2118,7 +2126,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psv")].stateValues
                     .text,
-            ).eq(`Selected value: ${selectedValue ?? ""}`);
+            ).eq(`Selected value: ${selectedValue ?? "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
@@ -2227,10 +2235,10 @@ describe("ChoiceInput tag tests @group4", async () => {
         ) {
             let selectedValue1 = selectedIndex1
                 ? choices[selectedIndex1 - 1]
-                : "";
+                : "＿";
             let selectedValue2 = selectedIndex2
                 ? choices[selectedIndex2 - 1]
-                : "";
+                : "＿";
 
             const stateVariables = await core.returnAllStateVariables(
                 false,
@@ -2987,7 +2995,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // typing in wrong value doesn't do anything
         await updateTextInputValue({
@@ -2998,7 +3006,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Select value from text ci.selectedValue
         await updateTextInputValue({
@@ -3074,7 +3082,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Can change value from macros after starting afresh
         await updateTextInputValue({
@@ -3095,7 +3103,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Can change value from macros after starting afresh
         await updateTextInputValue({
@@ -3116,7 +3124,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Change value from text ci.selectedValue2 works after starting afresh
         await updateTextInputValue({
@@ -3169,7 +3177,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Change value from math ci.selectedIndex works after starting afresh
         await updateMathInputValue({
@@ -3245,7 +3253,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Can change value from macro ci.selectedIndex after starting afresh
         await updateMathInputValue({
@@ -3266,7 +3274,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Can change value from macro ci.selectedIndex2 after starting afresh
         await updateMathInputValue({
@@ -3287,7 +3295,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // can add value into from math ci.selectedIndex2 even after starting afresh
         await updateMathInputValue({
@@ -3328,7 +3336,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // typing in wrong value doesn't do anything
         await updateMathInputValue({
@@ -3339,7 +3347,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // Select value from math ci
         await updateMathInputValue({
@@ -3382,7 +3390,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // Can change value from one macro after starting afresh
         await updateMathInputValue({
@@ -3403,7 +3411,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // Can change value from other macro after starting afresh
         await updateMathInputValue({
@@ -3424,7 +3432,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // Change value from math ci.selectedValue works after starting afresh
         await updateMathInputValue({
@@ -3466,7 +3474,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // Change value from math ci.selectedIndices works after starting afresh
         await updateMathInputValue({
@@ -3488,7 +3496,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // Enter valid value into from math ci.selectedIndex
         await updateMathInputValue({
@@ -3533,7 +3541,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // Can change value from macros ci.selectedIndices after starting afresh
         await updateMathInputValue({
@@ -3556,7 +3564,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // Can change value from macro ci.selectedIndex after starting afresh
         await updateMathInputValue({
@@ -3577,7 +3585,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("Selected value: ");
+        ).eq("Selected value: ＿");
 
         // can add value into from math ci.selectedIndex even after starting afresh
         await updateMathInputValue({
@@ -3618,7 +3626,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // typing in wrong value doesn't do anything
         await updateMathInputValue({
@@ -3629,7 +3637,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Select value from text ci.selectedValue
         await updateMathInputValue({
@@ -3705,7 +3713,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Can change value from macros after starting afresh
         await updateMathInputValue({
@@ -3726,7 +3734,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Can change value from macros after starting afresh
         await updateMathInputValue({
@@ -3747,7 +3755,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Change value from text ci.selectedValue2 works after starting afresh
         await updateMathInputValue({
@@ -3800,7 +3808,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Change value from math ci.selectedIndex works after starting afresh
         await updateMathInputValue({
@@ -3876,7 +3884,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Can change value from macro ci.selectedIndex after starting afresh
         await updateMathInputValue({
@@ -3897,7 +3905,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // Can change value from macro ci.selectedIndex2 after starting afresh
         await updateMathInputValue({
@@ -3918,7 +3926,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`Selected values: `);
+        ).eq(`Selected values: ＿`);
 
         // can add value into from math ci.selectedIndex2 even after starting afresh
         await updateMathInputValue({

@@ -1655,7 +1655,7 @@ describe("MathInput tag tests @group3", async () => {
         ).eq("Matrix: [[a, b], [c, d]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pRow")].stateValues.text,
-        ).eq("Row: ");
+        ).eq("Row: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pEntry")].stateValues
                 .text,

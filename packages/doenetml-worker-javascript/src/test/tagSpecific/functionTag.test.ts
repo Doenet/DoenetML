@@ -7782,12 +7782,12 @@ describe("Function tag tests @group4", async () => {
             }
         }
 
-        await check("0, 0, , ");
+        await check("0, 0, ＿, ＿");
         const aiIdx = await resolvePathToNodeIdx("ai");
         await updateMathInputValue({ latex: "-1", componentIdx: aiIdx, core });
-        await check(", , 0, 0");
+        await check("＿, ＿, 0, 0");
         await updateMathInputValue({ latex: "2", componentIdx: aiIdx, core });
-        await check("0, 0, , ");
+        await check("0, 0, ＿, ＿");
     });
 
     it("domain from a function child has one interval per input", async () => {
@@ -7936,7 +7936,7 @@ describe("Function tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p1")].stateValues
                     .text,
-            ).eq("");
+            ).eq("＿");
         });
 
         it("gives a derivative rather than no document", async () => {

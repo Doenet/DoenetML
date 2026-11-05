@@ -795,7 +795,7 @@ describe("MathList tag tests @group3", async () => {
 
             const p3Idx = await resolvePathToNodeIdx("p3");
             expect(stateVariables[p3Idx].stateValues.text).eq(
-                `Fifth math: ${texts[4] ?? ""}`,
+                `Fifth math: ${texts[4] ?? "＿"}`,
             );
         }
 

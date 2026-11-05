@@ -947,7 +947,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(1);
 
         expect(diagnosticsByType.infos[0].message).eq(
-            "`$g[1]` names nothing now, so this `<text>` has the value of `<text/>` until it does.",
+            "`$g[1]` names nothing now, so this `<text>` is missing until it does.",
         );
         expect(diagnosticsByType.infos[0].position.start.line).eq(3);
         expect(diagnosticsByType.infos[0].position.start.column).eq(1);

@@ -19,13 +19,13 @@ interface BlankSVs {
 export default React.memo(function Blank(props: UseDoenetRendererProps) {
     const { id, SVs } = useDoenetRenderer<BlankSVs>(props, false);
     const board = useContext(BoardContext);
-    const tContent = useContentT();
+    const t = useContentT();
 
     if (SVs.hidden || board) {
         return null;
     }
 
-    const label = tContent("missing-value-blank", undefined, "blank");
+    const label = t("missing-value-blank", undefined, "blank");
 
     return (
         <span id={id} role="img" aria-label={label}>

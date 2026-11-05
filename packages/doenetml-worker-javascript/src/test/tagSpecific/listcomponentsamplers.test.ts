@@ -600,7 +600,14 @@ describe("Samplers and sequences as list components @group4", async () => {
                 "k2",
                 "k4",
             ]),
-        ).eqls({ g1: "1, 2, 3", g2: "", g3: "", h2: "", k2: "5", k4: "" });
+        ).eqls({
+            g1: "1, 2, 3",
+            g2: "＿",
+            g3: "＿",
+            h2: "＿",
+            k2: "5",
+            k4: "＿",
+        });
     });
 
     it("letters and primes are drawn by the renderers of their types", async () => {

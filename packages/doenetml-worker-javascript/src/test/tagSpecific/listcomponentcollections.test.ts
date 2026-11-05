@@ -200,7 +200,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
 
         for (const [n, p, sum, count, index] of [
             ["4", "10, 1, 2, 3, 4, 100", "120", "6", "2"],
-            ["0", "10", "10", "1", ""],
+            ["0", "10", "10", "1", "＿"],
             ["3", "10, 1, 2, 3, 100", "116", "5", "2"],
         ]) {
             await updateMathInputValue({

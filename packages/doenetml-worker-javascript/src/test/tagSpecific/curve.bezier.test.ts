@@ -2310,40 +2310,40 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1x")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1y")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1c")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1ta")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1xa")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1ya")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1ca")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
 
         // set propIndex to 4
         await updateMathInputValue({
@@ -2358,37 +2358,37 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         ).eq("(-4, 7)");
         expect(
             stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
         ).eq("(6, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1x")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1y")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1c")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1ta")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1xa")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1ya")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1ca")].stateValues.text,
-        ).eq("");
+        ).eq("＿");
     });
 
     it("copy props with propIndex, control vectors and points, dot and array notation", async () => {
