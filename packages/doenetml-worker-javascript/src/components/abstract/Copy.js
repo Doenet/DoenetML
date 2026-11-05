@@ -6429,11 +6429,11 @@ function inPlaceOfCopy({
 /**
  * Whether the copy `component` is a bare reference (not written as a tag,
  * with no type it must make) to one thing (D37, rule 1): it has no referent,
- * or what it names is not a composite named as a whole, so it names a
- * property, an index, or a component. Such a reference that makes nothing
- * is a blank (`missingReplacement`). A reference to a composite as a whole
- * (`$r` of a `<repeat>`, `$g` of a `<group>`) gives what the composite
- * holds, possibly nothing. A parent that needs every composite to make
+ * it has an index (`$s[2]`), or it names a component, or a property of one,
+ * that is not a collection named as a whole. Such a reference that makes
+ * nothing is a blank (`missingReplacement`). A reference to a collection as
+ * a whole, a composite or a list (`$r` or `$r.y` of a `<repeat>`, `$g` of a
+ * `<group>`), gives its members, possibly none. A parent that needs every composite to make
  * something (`compositesMustHaveAReplacement`, a `<math>`) gets its blank
  * of the type it needs instead (`verifyReplacementsMatchSpecifiedType`).
  */
@@ -6459,13 +6459,20 @@ async function isBareReferenceToOneThing(component, components) {
     if (extended.componentType === "setup") {
         return false;
     }
-    if (hasIndex || unresolvedPath?.length > 0) {
+    if (hasIndex) {
         return true;
     }
-    // a name: one thing, unless it names a composite as a whole
-    return !component.componentInfoObjects.isCompositeComponent({
-        componentType: extended.componentType,
-    });
+    // A name, or a property of what it names: one thing, unless it names a
+    // collection as a whole, a composite or a list, whose property is one
+    // of each of its members (`$r.y` of a `<repeat>`), possibly none.
+    const componentInfoObjects = component.componentInfoObjects;
+    return !(
+        componentInfoObjects.isCompositeComponent({
+            componentType: extended.componentType,
+        }) ||
+        componentInfoObjects.allComponentClasses[extended.componentType]
+            ?.listEntryComponentType !== undefined
+    );
 }
 
 /** A `_missing` (`Missing.js`), as the one replacement of a copy. */
