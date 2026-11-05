@@ -22,11 +22,11 @@ name: VS Code Extension Pre-release
 # only when this run published, or found the tip's build identical to the
 # baseline's.  A run that is skipped because CI is not green, that fails, or
 # that is cancelled leaves it where it was, so the next run compares against
-# the same baseline and nothing that landed in between is lost.  Every run
-# re-uploads it, which keeps it inside the artifact retention period however
-# long main stays quiet.  When there is no usable record — the first run, or
-# a baseline that is no longer on main — the baseline falls back to main as it
-# was 24 hours ago.
+# the same baseline and nothing that landed in between is lost.  Every daily
+# run re-uploads it, which keeps it inside the artifact retention period
+# however long main stays quiet.  When there is no usable record — the first
+# run, or a baseline that is no longer on main — the baseline falls back to
+# main as it was 24 hours ago, and is carried from then on like a recorded one.
 #
 # Both revisions are deliberately built in the *same* working directory, one
 # after the other: bundlers and rustc bake absolute paths into their output,
@@ -63,7 +63,7 @@ on:
                 type: boolean
                 default: true
             force:
-                description: Publish even when the build is unchanged
+                description: Publish even when the build is unchanged (not when main has not moved since the baseline; set window_hours for that)
                 required: false
                 type: boolean
                 default: false
@@ -89,7 +89,8 @@ jobs:
               uses: actions/checkout@v6
               with:
                   ref: main
-                  # The baseline commit is found by walking history by date.
+                  # The baseline is an older commit of main: the recorded one,
+                  # or one found by walking history by date.
                   fetch-depth: 0
 
             - name: Use Node.js 24
@@ -162,7 +163,6 @@ jobs:
                           else
                               echo "::notice::No recorded baseline — falling back to main as of 24 hours ago."
                           fi
-                          RECORDED_SHA=""
                           WINDOW_HOURS=24
                           BASE_SOURCE=fallback
                       fi
@@ -174,10 +174,20 @@ jobs:
                       BASE_SHA=$(git rev-list -n 1 --first-parent --before="${WINDOW_HOURS} hours ago" HEAD || true)
                   fi
 
+                  # The baseline the next run gets unless this run moves it.
+                  # A fallback baseline is carried like a recorded one, so a
+                  # skipped or failed run leaves the next run comparing against
+                  # it.  A baseline chosen by hand is not carried: the newest
+                  # earlier record stays in force.
+                  KEEP_SHA=""
+                  if [ "${BASE_SOURCE}" != override ]; then
+                      KEEP_SHA="${BASE_SHA}"
+                  fi
+
                   echo "head_sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"
                   echo "base_sha=${BASE_SHA}" >> "$GITHUB_OUTPUT"
                   echo "base_source=${BASE_SOURCE}" >> "$GITHUB_OUTPUT"
-                  echo "recorded_sha=${RECORDED_SHA}" >> "$GITHUB_OUTPUT"
+                  echo "keep_sha=${KEEP_SHA}" >> "$GITHUB_OUTPUT"
                   echo "Current main: ${HEAD_SHA}"
                   echo "Baseline (${BASE_SOURCE}): ${BASE_SHA:-<none>}"
 
@@ -205,7 +215,7 @@ jobs:
                   echo "proceed=true" >> "$GITHUB_OUTPUT"
 
             # ---------------------------------------------------------------
-            # Baseline build (main as of the start of the window)
+            # Baseline build
             # ---------------------------------------------------------------
 
             - name: Check out the baseline commit
@@ -355,8 +365,8 @@ jobs:
                   CURRENT=$(node -p "require('./packages/vscode-extension/extension/package.json').version")
                   MAJOR=$(echo "$CURRENT" | cut -d. -f1)
                   MINOR=$(echo "$CURRENT" | cut -d. -f2)
-                  # Hours since the Unix epoch: unique per run, monotonic
-                  # forever, and above every patch published so far.
+                  # Hours since the Unix epoch: differs between daily runs,
+                  # monotonic forever, and above every patch published so far.
                   PATCH=$(( $(date -u +%s) / 3600 ))
                   VERSION="${MAJOR}.${MINOR}.${PATCH}"
                   echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
@@ -425,7 +435,7 @@ jobs:
               if: always() && github.ref == 'refs/heads/main' && steps.decide.outcome == 'success'
               env:
                   HEAD_SHA: ${{ steps.decide.outputs.head_sha }}
-                  RECORDED_SHA: ${{ steps.decide.outputs.recorded_sha }}
+                  KEEP_SHA: ${{ steps.decide.outputs.keep_sha }}
                   BASE_SOURCE: ${{ steps.decide.outputs.base_source }}
                   UP_TO_DATE: ${{ steps.decide.outputs.up_to_date }}
                   CHANGED: ${{ steps.compare.outputs.changed }}
@@ -433,7 +443,7 @@ jobs:
                   OPENVSX: ${{ steps.publish-openvsx.outcome }}
               run: |
                   set -euo pipefail
-                  NEXT="${RECORDED_SHA}"
+                  NEXT="${KEEP_SHA}"
                   if [ "${MARKETPLACE}" = success ] && [ "${OPENVSX}" = success ]; then
                       # The tip is what the registries now carry.
                       NEXT="${HEAD_SHA}"
@@ -446,7 +456,7 @@ jobs:
                       NEXT="${HEAD_SHA}"
                   fi
                   if [ -z "${NEXT}" ]; then
-                      echo "No baseline to record; the next run falls back to main as of 24 hours ago."
+                      echo "Nothing to record; the next run uses the newest earlier record, or main as of 24 hours ago if there is none."
                       exit 0
                   fi
                   mkdir -p "$RUNNER_TEMP/next-baseline"
