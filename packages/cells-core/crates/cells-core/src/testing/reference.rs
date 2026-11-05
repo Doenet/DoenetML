@@ -10,13 +10,9 @@ use crate::program::{SymRun, SymState};
 pub struct ReferenceEvaluator<'a> {
     doc: &'a Document,
     producer: HashMap<CellIdx, usize>,
-    /// Each derived cell's value once computed: without it a chain whose
-    /// cells each read the previous ones several times (function iterates)
-    /// is exponential.
+    /// Each derived cell's value once computed.
     memo: std::cell::RefCell<HashMap<CellIdx, f64>>,
-    /// A copy of the document's symbolic state: a symbolic instruction's
-    /// memo is keyed on its input values, so stepping on scratch cells
-    /// with it gives what stepping on the cells did.
+    /// A copy of the document's symbolic state, for stepping on scratch cells.
     sym: std::cell::RefCell<SymState>,
 }
 

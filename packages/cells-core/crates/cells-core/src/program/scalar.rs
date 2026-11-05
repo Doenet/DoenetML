@@ -93,14 +93,13 @@ scalar_ops! {
         exact |d| (b != 0.0 && b.is_finite()).then_some((A, d * b)),
     }
     /// `b - a`: `Sub` with its inputs reversed, so that a request writes
-    /// what is subtracted. The build makes one from a `Sub` whose second
-    /// input leads to state and whose first does not (ADR 0026).
+    /// what is subtracted.
     RSub(a, b) {
         eval: b - a,
         exact |d| b.is_finite().then_some((A, b - d)),
     }
     /// `b / a`: `Div` with its inputs reversed, so that a request writes the
-    /// divisor (ADR 0026). `k / $a` lowers to it: `a = k / d`.
+    /// divisor.
     RDiv(a, b) {
         eval: b / a,
         exact |d| (d != 0.0 && d.is_finite() && b != 0.0 && b.is_finite())
@@ -151,13 +150,12 @@ scalar_ops! {
         drops,
     }
     /// `a`: a held element's own cell for a value it reads from another
-    /// element's, so the hold (`Program::holds`) is on its cell and not on
-    /// the other's.
+    /// element's, so the hold is on its cell and not on the other's.
     Copy(a) {
         eval: a,
         exact |d| Some((A, d)),
     }
-    /// Comparisons for conditions (ADR 0009): 1 or 0, and 0 when either
+    /// Comparisons for conditions: 1 or 0, and 0 when either
     /// side is NaN. A request cannot change a condition.
     Lt(a, b) {
         eval: bit(a < b),

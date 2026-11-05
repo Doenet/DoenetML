@@ -19,57 +19,40 @@ use crate::sym::{Engine, Handle};
 /// What survives every build of a document.
 #[derive(Debug, Clone, Default)]
 pub struct Session {
-    /// The document seed load-time choices draw from (ADR 0009).
+    /// The document seed load-time choices draw from.
     pub seed: u64,
-    /// Curves sample through the engine, not compiled tapes (see
-    /// `LoadOptions`). Only with the `testing` feature.
+    /// Curves sample through the engine, not compiled tapes. Only with the
+    /// `testing` feature.
     #[cfg(feature = "testing")]
     pub sample_with_engine: bool,
     /// Every scope any build has made; ids are stable for the session.
     pub scopes: ScopeTable,
     /// `values[scope][template slot]`: the last value of every essential
-    /// cell that has existed, so an iteration that disappears and
-    /// reappears returns as it was left. Rows fill lazily. Shared with the
-    /// builds that read it, which leave it as it was.
+    /// cell that has existed. Rows fill lazily.
     pub values: Arc<Vec<Vec<Option<f64>>>>,
-    /// The count every repeat that has existed last asked for, so a
-    /// repeat in an iteration that disappears and reappears is stamped
-    /// with it, not with none, and the rebuild that brings it back settles
-    /// in one pass. Recorded by each rebuild (`Document::rebuild`); a
-    /// count that changed meanwhile costs the pass it would have anyway.
-    /// Shared with the builds that read it.
+    /// The count every repeat that has existed last asked for.
     pub counts: Arc<Counts>,
     /// Restored values whose scope no build has stamped yet, by (scope,
-    /// element key, position): the build that stamps it takes them.
+    /// element key, position).
     pub parked: HashMap<(ScopeId, ElemKey, u32), Parked>,
-    /// Every essential value a request has written, by (scope, template
-    /// slot), and every value restored from one (ADR 0017): what saved
-    /// state holds, whether or not it equals its default. Shared with the
-    /// builds that read it.
+    /// Every essential value a request has written or saved state restored,
+    /// by (scope, template slot), whether or not it equals its default.
     pub touched: Arc<HashSet<(ScopeId, u32)>>,
-    /// Strings interned since load (`Document::intern`), appended after
-    /// every build's own table so an interned id keeps its text.
+    /// Strings interned since load, appended after every build's own
+    /// table.
     pub runtime_strings: Vec<String>,
     /// The symbolic engine every math value of the session is a handle
-    /// into: what a build imports, what the tick computes with (borrowed
-    /// for each tick, `SymRun`), what a student's typed math is parsed into. It
-    /// only grows, so a handle stays valid for the session, across builds
-    /// and through a failed rebuild, which needs nothing back.
+    /// into. It only grows, so a handle stays valid for the session.
     pub engine: Rc<RefCell<Engine>>,
-    /// The handle of each constant expression of the source, its `Post`
-    /// applied, by (expression, post): a math text with no cell leaves,
-    /// imported and simplified or expanded once per load however many
-    /// instances stamp it and however many builds run (ADR 0028). A handle
-    /// into `engine`, so it goes where the engine goes.
+    /// The handle in `engine` of each constant expression of the source
+    /// (a math text with no cell leaves), its `Post` applied, by
+    /// (expression, post).
     pub(crate) math_constants: Rc<RefCell<HashMap<(ExprId, Post), Handle>>>,
-    /// The constant pool (ADR 0028): the document constants every build
-    /// has made, one cell per distinct value, at the front of every
-    /// build's cells in the order they were first made. It only grows, so
-    /// a document constant's cell is the same in every build of the
-    /// session. Shared with the builds that read it.
+    /// The constant pool: the document constants every build has made, one
+    /// cell per distinct value, at the front of every build's cells. It
+    /// only grows, so a document constant's cell is the same in every build.
     pub(crate) pool: Arc<Pool>,
-    /// How many components and slots the last build made: what the next
-    /// sizes its tables by, so a rebuild neither over-reserves nor regrows.
+    /// How many components and slots the last build made.
     pub(crate) last_build: (usize, usize),
 }
 
@@ -119,8 +102,8 @@ impl Session {
     }
 }
 
-/// The constant pool (`Session::pool`): each document constant's value and
-/// type, by its position, which is its cell in every build.
+/// The constant pool: each document constant's value and type, by its
+/// position, which is its cell in every build.
 #[derive(Debug, Clone, Default)]
 pub struct Pool {
     values: Vec<(f64, crate::ValueType)>,
@@ -165,8 +148,7 @@ pub struct Parked {
     pub value: f64,
     /// The type it was saved as: it goes only into a cell of that type.
     pub ty: crate::ValueType,
-    /// For view state, the default it had when saved: a cell whose default
-    /// is now another keeps its own (ADR 0017, step 2).
+    /// For view state, the default it had when saved.
     pub view_default: Option<f64>,
 }
 
@@ -182,8 +164,7 @@ pub(crate) fn same(a: f64, b: f64) -> bool {
     a == b || (a.is_nan() && b.is_nan())
 }
 
-/// How many iterations each repeat is stamped with, by (scope, node):
-/// what the count cells hold, read from the document a build follows.
+/// How many iterations each repeat is stamped with, by (scope, node).
 #[derive(Debug, Clone, Default)]
 pub struct Counts(HashMap<(ScopeId, NodeId), u32>);
 

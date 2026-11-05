@@ -22,7 +22,7 @@ use super::*;
 type Key = (TemplateId, ElemId, u32);
 
 /// Every dependency of the abstract build's graph, between element slots,
-/// with the labels of the paths that make it. Built once per compile.
+/// with the labels of the paths that make it.
 pub struct AbstractEdges {
     deps: HashMap<Key, Vec<(Key, Vec<Coord>)>>,
 }

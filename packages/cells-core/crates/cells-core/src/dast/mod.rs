@@ -125,8 +125,7 @@ pub struct Dast {
     attr_name: Vec<StrId>,
     attr_c_start: Vec<u32>,
     attr_c_count: Vec<u32>,
-    /// Per attribute, whether the core has looked it up by name (`attr`).
-    /// The check refuses an attribute nothing read (`compile/check.rs`).
+    /// Per attribute, whether the core has looked it up by name.
     attr_read: ReadFlags,
     children: Vec<NodeId>,
     path: Vec<StrId>,
@@ -339,10 +338,8 @@ impl Dast {
     }
 }
 
-/// One flag per attribute, set when the core reads the attribute. Set
-/// through a shared reference, since every read of the tree is one, and
-/// never cleared: a `Dast` is made once per load and read by the compile
-/// alone (`LiteralAttrs` keeps what a renderer reads).
+/// One flag per attribute, set when the core reads the attribute. Set through a
+/// shared reference, and never cleared.
 #[derive(Default)]
 pub struct ReadFlags(Vec<std::sync::atomic::AtomicBool>);
 
@@ -398,12 +395,10 @@ impl std::fmt::Debug for ReadFlags {
 
 // ---- construction ------------------------------------------------------------
 
-/// Builds a [`Dast`] node by node, the way every builder of one from a tree
-/// does (the JSON loader, `testing::dast`): a node is numbered after its
-/// contents (post-order), with node 0 the root; strings are interned in the
-/// order they are first written. Node ids feed `<select>`'s choice, so the
-/// order is part of behaviour, and `to_binary` reproduces the JavaScript
-/// encoder's bytes only for this order (`tests/wire.rs`).
+/// Builds a [`Dast`] node by node: a node is numbered after its contents
+/// (post-order), with node 0 the root; strings are interned in the order they
+/// are first written. The order is part of behaviour: node ids feed
+/// `<select>`'s choice.
 pub(crate) struct DastWriter {
     dast: Dast,
     intern: HashMap<String, StrId>,

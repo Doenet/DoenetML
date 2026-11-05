@@ -9,42 +9,33 @@ use crate::trace::Span;
 /// checked at every count.
 #[derive(Debug, Clone, Copy)]
 pub struct LoadOptions {
-    /// The document seed load-time choices draw from (ADR 0009): one seed
-    /// gives one variant of the document.
+    /// The document seed load-time choices draw from: one seed gives one
+    /// variant of the document.
     pub seed: u64,
     /// Sample curves through the engine instead of tapes compiled at build
     /// time; for checking the tapes and for measuring. Only with the
     /// `testing` feature.
     #[cfg(feature = "testing")]
     pub sample_with_engine: bool,
-    /// Skip the compile's check, so a document that should be rejected
-    /// loads: for tests of what the check prevents and for measuring what
-    /// it costs. Only with the `testing` feature; a real load always checks
-    /// (ADR 0014).
+    /// Run the compile's check; off, a document that should be rejected loads.
+    /// Only with the `testing` feature.
     #[cfg(feature = "testing")]
     pub check_cycles: bool,
     /// Class every value slot by whether a student's action can write it,
-    /// essential or constant (ADR 0018); off, every one is essential, as
-    /// before. Only with the `testing` feature: for a test of the
-    /// machinery whose document no input reaches, and to check the
-    /// classing against the inverses (`tests/every_count.rs`).
+    /// essential or constant; off, every one is essential. Only with the
+    /// `testing` feature.
     #[cfg(feature = "testing")]
     pub classify: bool,
-    /// Give a slot no output reads no cell (ADR 0019): on by default. Off,
-    /// every prop of every component is computed, for a reader that reads
-    /// any of them, as the JavaScript worker's parity harness and the
-    /// golden diff do; `Document::is_live` still says which are needed.
+    /// Give a slot no output reads no cell: on by default. Off, every prop of
+    /// every component is computed.
     pub prune: bool,
     /// Evaluate once, as it builds, every instruction whose inputs are all
-    /// constants, which become constants (ADR 0028): on by default. Off,
-    /// every instruction runs at tick time, as before. Only with the
-    /// `testing` feature: to check that folding changes no value.
+    /// constants, which become constants: on by default. Only with the
+    /// `testing` feature.
     #[cfg(feature = "testing")]
     pub fold: bool,
-    /// Merge two instructions that apply the same operator to the same
-    /// cells into one, whose cell both props name (ADR 0033): on by
-    /// default. Off, every instruction a plan makes is kept. Only with the
-    /// `testing` feature: to check that sharing changes no value.
+    /// Merge two instructions that apply the same operator to the same cells
+    /// into one: on by default. Only with the `testing` feature.
     #[cfg(feature = "testing")]
     pub share: bool,
 }
@@ -105,8 +96,7 @@ impl Default for LoadOptions {
     }
 }
 
-/// What a load took: its spans (`crate::trace`), and the stage timings
-/// read off them.
+/// What a load took: its spans, and the stage timings read off them.
 #[derive(Debug, Clone, Default)]
 pub struct LoadTimings {
     /// Every span the load recorded, in opening order: `load`, then
@@ -120,14 +110,13 @@ pub struct LoadTimings {
     pub schedule: Duration,
     pub initial_compute: Duration,
     /// The load check, part of `build`: the abstract build that stands for
-    /// every count and pick, which finds the document's cycles (ADR 0012)
-    /// and its errors (ADR 0014). Only a document with repeats or
-    /// selects runs it.
+    /// every count and pick, which finds the document's cycles and errors. Only
+    /// a document with repeats or selects runs it.
     pub cycle_check: Duration,
     /// Build passes until repeat counts settled (1 without repeats).
     pub passes: u32,
-    /// The document's structural depth (`CONTEXT.md`), as the compile's
-    /// check bounded it (0 when a test load skipped the check).
+    /// The document's structural depth, as the compile's check bounded it (0
+    /// when a test load skipped the check).
     pub structural_depth: u32,
 }
 

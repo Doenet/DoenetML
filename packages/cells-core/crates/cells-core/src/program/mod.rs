@@ -20,10 +20,8 @@ pub use instr::{
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
 pub use vector::{MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp};
 
-/// What a cell's `f64` means: a number, a string id into the document's
-/// string table, or an expression handle in the symbolic engine. Recorded
-/// by the build for every cell, from the source that defines the cell; the
-/// tick only reads it when a request arrives, never while recomputing.
+/// What a cell's `f64` means: a number, a string id into the document's string
+/// table, or an expression handle in the symbolic engine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[repr(u8)]
 pub enum ValueType {
@@ -33,15 +31,13 @@ pub enum ValueType {
     Math,
 }
 
-/// What a program's symbolic instructions keep between runs: for each,
-/// from its `MemoIdx`, the input values it last ran on and its outputs
-/// from that run; with scratch for `SampleTape`. Owned by the document
-/// beside its program, which stays read-only while a tick runs.
+/// What a program's symbolic instructions keep between runs: for each, from its
+/// `MemoIdx`, the input values it last ran on and its outputs from that run;
+/// with scratch for `SampleTape`.
 #[derive(Debug, Clone, Default)]
 pub struct SymState {
     memo: Vec<f64>,
-    /// How many symbolic steps called the engine (an input had changed):
-    /// what the cutoff is measured by (`tests/symbolic.rs`).
+    /// How many symbolic steps called the engine (an input had changed).
     #[cfg(feature = "testing")]
     pub runs: u64,
     /// Scratch columns for `SampleTape`.
@@ -105,12 +101,9 @@ pub struct Program {
     pub holds: Holds,
 }
 
-/// What a cell needs to be right: what its instruction reads, and the
-/// flags that hold it (`Program::holds`), which a request on it reads. The
-/// one place a cell's dependencies are defined: what is live is closed
-/// under it (ADR 0019), and the input signature hashes it (ADR 0017).
-/// Evaluation order is not it: a flag is read only when a request arrives,
-/// so `Program::schedule` orders instructions by `Op::inputs` alone.
+/// What a cell needs to be right: what its instruction reads, and the flags
+/// that hold it. The one place a cell's dependencies are defined. Evaluation
+/// order is not it: a flag is read only when a request arrives.
 pub struct Needs<'a> {
     instr: Option<&'a Instr>,
     operands: &'a [CellIdx],

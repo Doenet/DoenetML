@@ -11,7 +11,7 @@ const OWN: u32 = 1 << 31;
 
 /// An attribute's value: a string in the document's table, text of several
 /// nodes the attributes keep themselves (`OWN` set), or none (`EMPTY`, an
-/// attribute with no children). Read with `LiteralAttrs::text`.
+/// attribute with no children).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AttrValue(u32);
 

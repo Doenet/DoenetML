@@ -29,9 +29,9 @@ pub(crate) struct Keys {
     ends: Vec<u32>,
     /// The type of the element each key names.
     types: Vec<ComponentType>,
-    /// How many of each element's ports are public (ADR 0032): its
-    /// table's props and its list's points, as far as the compile knows
-    /// (`n_public`). A port past them is hidden.
+    /// How many of each element's ports are public: its table's props and
+    /// its list's points, as far as the compile knows. A port past them is
+    /// hidden.
     n_public: Vec<u32>,
     /// The elements that own templates (repeats, choices), by node: their
     /// key, and a choice's branches.

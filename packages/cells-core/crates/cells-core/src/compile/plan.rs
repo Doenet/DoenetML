@@ -6,24 +6,17 @@ use super::*;
 use crate::components::{Aggregate, ArgFrom, Collection, PropFrom};
 
 crate::index::index_type! {
-    /// An element's stable key (ADR 0017), as an index into the compile's
-    /// [`Keys`]: what saved state names it by, the same across versions of
-    /// the document that an ordinary edit makes. Every instance of a
-    /// template element shares its key; the scope tells them apart.
+    /// An element's stable key, as an index into the compile's [`Keys`]:
+    /// what saved state names it by. Every instance of a template element
+    /// shares its key; the scope tells them apart.
     pub struct ElemKey;
 }
 
-/// A port of an element's wiring (ADR 0032): one of its public props, a
-/// coordinate of one of its list's points, or a hidden port its planner
-/// made. A planner holds one only as its type's table or the wiring hands
-/// it out (`Props::PORTS`, `ElemWiring::item`, `ElemWiring::hidden`),
-/// never from a number: a wiring names a port by identifier, and no
-/// planner computes a slot. The build numbers ports into slots in the
-/// order the wiring holds them (`index`): the table's props, then two
-/// per point of the list, then the hidden ports. A saved-state key names
-/// an element's port by this number, and a port's name is a fact of its
-/// element (`keys::Keys::prop_key`): a public prop's, or the shared state
-/// a hidden port holds.
+/// A port of an element's wiring: one of its public props, a coordinate of
+/// one of its list's points, or a hidden port its planner made. Ports are
+/// numbered in that order: the table's props, then two per point of the
+/// list, then the hidden ports. Obtained only from the type's table or the
+/// wiring, never from a number.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Port(u8);
 
@@ -44,18 +37,18 @@ impl Port {
 }
 
 crate::index::index_type! {
-    /// A template: a position in `Compiled::templates`.
+    /// A template, indexing the compile's templates.
     pub(crate) struct TemplateId;
 }
 
 crate::index::index_type! {
-    /// An element of a template: a position in its `Template::elems`.
+    /// An element of a template, indexing its elements.
     pub(crate) struct ElemId;
 }
 
 crate::index::index_type! {
-    /// A reference plan: a position in `Compiled::refs`. A compiled math's
-    /// `$ref` leaves are these, until a build binds them to slots.
+    /// A reference plan, indexing the compile's reference plans. A compiled
+    /// math's `$ref` leaves are these, until a build binds them to slots.
     pub(crate) struct RefId;
 }
 
@@ -69,14 +62,14 @@ impl crate::sym::Leaf for RefId {
 }
 
 crate::index::index_type! {
-    /// A choice (a select or conditional content): a position in
-    /// `Compiled::choices`.
+    /// A choice (a select or conditional content), indexing the compile's
+    /// choices.
     pub(crate) struct ChoiceId;
 }
 
 crate::index::index_type! {
-    /// A `$ref` child of a template's elements or of the template itself:
-    /// a position in its template's `ref_children` and `ref_child_plans`.
+    /// A `$ref` child of a template's elements or of the template itself,
+    /// indexing its template's `$ref` children and their plans.
     pub(crate) struct RefChildId;
 }
 
@@ -95,16 +88,14 @@ pub(crate) enum Arg {
     /// A copy with overridden attributes shares the rest of the original's
     /// essential state through this.
     Elem(ElemId, Port),
-    /// A literal an operator reads: the build's one constant for the
-    /// value (`Builder::const_slot`). Only an operator input, never an
+    /// A literal an operator reads. Only an operator input, never an
     /// alias.
     Const(f64),
 }
 
 /// Which cell of a reference's target: the single cell, coordinate `j` of a
 /// point-valued prop, coordinate `j` of item `i` of a list prop, or port
-/// `k` of the element the path names, whatever prop it is (a copy's port
-/// aliasing its referent's across a scope, ADR 0032).
+/// `k` of the element the path names, whatever prop it is.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Sel {
     Whole,
@@ -121,10 +112,8 @@ pub(crate) enum Sel {
 /// that.
 pub(crate) const NO_VALUE: f64 = f64::NAN;
 
-/// What `PlanCtx::warn` returns: that the element's diagnostic was
-/// raised. Only the compile makes one, so a value a planner cannot
-/// define (`Wire::undefined`, `Source::undefined`) always comes with the
-/// diagnostic that explains it.
+/// Proof that the element's diagnostic was raised, required to make a
+/// value a planner cannot define.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Warned(());
 
@@ -134,11 +123,9 @@ impl Warned {
     }
 }
 
-/// Where a port's value comes from, before any iteration exists (ADR
-/// 0032, decision 2): a leaf, a dataflow expression over ports, or a
-/// scope specialization choosing between two by the scope the template is
-/// stamped in. The IR is closed: the build fills no hole, it materializes
-/// the collections an aggregate names (`Flow::Aggregate`).
+/// Where a port's value comes from, before any iteration exists: a leaf, a
+/// dataflow expression over ports, or a scope specialization choosing
+/// between two by the scope the template is stamped in.
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
     Leaf(Leaf),
@@ -150,12 +137,10 @@ pub(crate) enum Source {
 }
 
 /// A value nothing computes: given (essential when a student's action can
-/// write it, a constant otherwise, ADR 0018), a constant, or a scope
-/// constant, the same in every instance of the template slot but for the
-/// scope it is stamped in.
+/// write it, a constant otherwise), a constant, or a scope constant.
 #[derive(Debug, Clone)]
 pub(crate) enum Leaf {
-    /// A given value (ADR 0028): the attribute's, or the type's default
+    /// A given value: the attribute's, or the type's default
     /// without one.
     Given(f64),
     /// A given text value holding this string, or none (blank).
@@ -163,19 +148,19 @@ pub(crate) enum Leaf {
     /// A given math value (an unbound mathInput's `expr`, an answer's
     /// `submitted`) holding this expression, or blank (NaN).
     GivenMath(Option<Tree<RefId>>),
-    /// A constant (ADR 0028): never state, whatever can reach it.
+    /// A constant: never state, whatever can reach it.
     Const(f64),
     /// A value that depends on the scope the template is stamped in.
     Scope(ScopeConst),
 }
 
-/// A scope constant: a value that depends on the scope alone (ADR 0028).
+/// A scope constant: a value that depends on the scope alone.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum ScopeConst {
     /// The 1-based position of the enclosing iteration.
     IterIndex,
     /// A `<selectFromSequence>`'s value: `from + step * k` for a `k` below
-    /// `count` drawn per instance from the document seed (ADR 0009).
+    /// `count` drawn per instance from the document seed.
     SequencePick { from: f64, step: f64, count: u32 },
     /// A given math value whose initial expression is the value the
     /// reference names when the cell is first built (a mathInput's
@@ -203,21 +188,17 @@ pub(crate) enum Flow {
     /// number, the lowered operators if numeric, else an `Evaluate` of its
     /// `expr`.
     MathValue(ExprId),
-    /// A math cell from math text (`Compiled::sym_text`): a constant handle
+    /// A math cell from math text: a constant handle
     /// without cell leaves, an alias of a lone math leaf, else an
     /// `Instantiate` instruction over the leaves.
     SymExpr(ExprId, Post),
-    /// An operator over a collection of components around the element
-    /// (ADR 0032, decision 4): credit over the scored items, a section's
-    /// number among its siblings, a collect's count of what it gathers.
-    /// The build materializes the collection from the tree it stamped
-    /// (`build/expand/aggregate.rs`), and the abstract build finds by
-    /// looking whether it crosses a repeat (a counted value, ADR 0028).
+    /// An operator over a collection of components around the element:
+    /// credit over the scored items, a section's number among its
+    /// siblings, a collect's count of what it gathers.
     Aggregate(Aggregate),
 }
 
-/// A structural predicate of the scope a template is stamped in
-/// (`Source::Specialize`).
+/// A structural predicate of the scope a template is stamped in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ScopePred {
     /// The first iteration of the enclosing repeat (a function iterate's
@@ -342,9 +323,7 @@ impl Source {
 pub(crate) enum Child {
     Elem(ElemId),
     Text(StrId),
-    /// A `$ref` child: a copy or a number, decided when it resolves. What
-    /// outlining knows of it is its template's `ref_children`, and its
-    /// plan its template's `ref_child_plans` (ADR 0031).
+    /// A `$ref` child: a copy or a number, decided when it resolves.
     Macro(RefChildId),
 }
 
@@ -354,16 +333,15 @@ pub(crate) enum Body {
     Repeat {
         template: TemplateId,
     },
-    /// A `<collect>` or `<polyline>`, of the type it collects; what it
-    /// gathers from is planning's (`ElemPlan::from`).
+    /// A `<collect>` or `<polyline>`, of the type it collects.
     Collect {
         component_type: ComponentType,
     },
-    /// A `<conditionalContent>` or `<select>` (ADR 0009): `Compiled::choices`.
+    /// A `<conditionalContent>` or `<select>`.
     Choice(ChoiceId),
 }
 
-/// A choice as compiled (ADR 0009): one template per branch, its
+/// A choice as compiled: one template per branch, its
 /// branch interface, and how it chooses.
 #[derive(Debug, Clone)]
 pub(crate) struct ChoiceDef {
@@ -373,7 +351,7 @@ pub(crate) struct ChoiceDef {
     pub(crate) reactive: bool,
     /// One template per case or option, in document order.
     pub(crate) branches: Vec<TemplateId>,
-    /// Each branch's stable key (ADR 0017): the case's or option's name,
+    /// Each branch's stable key: the case's or option's name,
     /// else its tag and its position among the choice's branches with that
     /// tag (`option#2`); `body` for a choice that is its own one branch.
     pub(crate) branch_keys: Vec<Box<str>>,
@@ -383,21 +361,18 @@ pub(crate) struct ChoiceDef {
     pub(crate) num_to_select: u32,
     pub(crate) with_replacement: bool,
     pub(crate) weights: Vec<f64>,
-    /// The branch interface (`CONTEXT.md`): name -> type and the element
-    /// carrying it in each branch. Filled once every element is planned.
+    /// The branch interface: name -> type and the element carrying it in
+    /// each branch. Filled once every element is planned.
     pub(crate) iface: HashMap<String, (ComponentType, Vec<ElemId>)>,
     /// Interface names that references use, in the order the reference
-    /// plans first name them. Sealing's (ADR 0031), from every plan's
-    /// `Step::Iface`.
+    /// plans first name them.
     pub(crate) used: Vec<String>,
-    /// Each used name's position in `used`, by the name-table id a
-    /// `Step::Iface` holds. Sealing's.
+    /// Each used name's position in `used`, by name-table id.
     pub(crate) used_at: HashMap<u32, u32>,
 }
 
-/// What sealing finds of a choice (ADR 0031): its branch interface and
-/// the interface names references use, put into its `ChoiceDef` once the
-/// compile is done.
+/// What sealing finds of a choice: its branch interface and the interface
+/// names references use.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct ChoiceSeal {
     pub(crate) iface: HashMap<String, (ComponentType, Vec<ElemId>)>,
@@ -417,15 +392,13 @@ impl ChoiceSeal {
     }
 }
 
-/// Math text tokenized once (`Compiler::math_text`): its `$ref`s are
-/// placeholders, `Token::Cell(RefId::NONE)`, until `resolve_math` plans
-/// them.
+/// Math text tokenized once: its `$ref`s are placeholders,
+/// `Token::Cell(RefId::NONE)`, until planned.
 pub(crate) struct MathText {
     pub(in crate::compile) toks: Vec<Token>,
     /// The `$ref` nodes, one per placeholder, in order.
     pub(in crate::compile) macros: Vec<NodeId>,
-    /// The nodes the text was read from: spelled only for an error or the
-    /// symbolic engine (`MathSrc`, `SymText`).
+    /// The nodes the text was read from.
     pub(in crate::compile) nodes: Box<[NodeId]>,
 }
 
@@ -440,8 +413,7 @@ impl MathText {
     }
 }
 
-/// The nodes math text was read from, spelled (`text`) only when an error
-/// shows it: planning math builds no strings.
+/// The nodes math text was read from, spelled only when an error shows it.
 #[derive(Clone, Copy)]
 pub(crate) struct MathSrc<'n>(pub(in crate::compile) &'n [NodeId]);
 
@@ -469,8 +441,8 @@ pub(in crate::compile) fn spell_math(dast: &Dast, nodes: &[NodeId]) -> String {
     text
 }
 
-/// The symbolic engine's text of a math template (`Compiled::sym_text`),
-/// spelled by the build only when it finds the math symbolic.
+/// The symbolic engine's text of a math template, spelled only when the
+/// math is symbolic.
 #[derive(Debug, Clone)]
 pub(crate) enum SymText {
     /// Math text from the DAST: its nodes, and the plan of each `$ref` among
@@ -514,9 +486,7 @@ impl SymText {
     }
 }
 
-/// A `<math>`'s text parsed once, when parsing (ADR 0029), as the type
-/// outlining settled: what its planner plans from and a line's equation
-/// inlines.
+/// A `<math>`'s text parsed once, as the type outlining settled.
 #[derive(Debug, Clone)]
 pub(crate) enum ParsedMath {
     /// A math: one expression.
@@ -525,8 +495,8 @@ pub(crate) enum ParsedMath {
     Entries(Vec<ExprId>),
 }
 
-/// How many points an element's list holds (ADR 0016, ADR 0032), which
-/// with its type's table says which of its ports are public.
+/// How many points an element's list holds, which with its type's table
+/// says which of its ports are public.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub(crate) enum ListLen {
     /// No points after the table's props: a type without a given list, or
@@ -550,26 +520,21 @@ pub(crate) struct Elem {
     pub(crate) component_type: ComponentType,
     pub(crate) name: StrId,
     /// Parent element within the template (`ROOT_SCOPE` at the top). A
-    /// name is visible from every ancestor, as in the current core's
-    /// resolver; repeats hide their children behind their own name because
-    /// each repeat body is its own template.
+    /// name is visible from every ancestor within the template.
     pub(crate) name_scope: ElemId,
     pub(crate) children: Vec<Child>,
-    /// The reference the element's `extend` attribute names, planned when
-    /// outlining (ADR 0031): every element's, once the container copies
-    /// have their clones (`plan_extends`); a clone's names its original.
-    /// What the build copies is planning's (`ElemPlan::extend`).
+    /// The reference the element's `extend` attribute names; a clone's
+    /// names its original.
     pub(crate) extend: Option<RefId>,
     /// A child of a container copy (`<graph extend="$g"/>`): every prop
     /// aliases the original's, and the children are clones too.
     pub(crate) cloned: bool,
     /// The type whose planner plans it: its tag's, where `component_type`
-    /// is the type outlining settled (a `<math>` that is a point, ADR 0029).
+    /// is the type outlining settled (a `<math>` that is a point).
     pub(crate) planned_as: ComponentType,
     pub(crate) body: Body,
-    /// A container copy whose clones outlining has not made yet: what a
-    /// reference reads of it is not there (`Compiler::outlined_elem`).
-    /// Outlining's, and false once outlining is done.
+    /// A container copy whose clones are not made yet. False once
+    /// outlining is done.
     pub(crate) clones_pending: bool,
 }
 
@@ -592,26 +557,24 @@ impl Elem {
     }
 }
 
-/// What planning makes of one element (ADR 0031): row `e` of a
-/// template's `plans` is element `e`'s. Linking aliases shared ports in
-/// `props`; no other stage writes it.
+/// What planning makes of one element, indexed by `ElemId` in its
+/// template.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct ElemPlan {
     /// Each port's source, by `Port::index`: the table's props, then two
     /// per point of the list, then the hidden ports.
     pub(crate) props: Vec<Source>,
-    /// How many points its list holds (ADR 0016), which says how many of
+    /// How many points its list holds, which says how many of
     /// `props` are public; the hidden ports follow them.
     pub(crate) list: ListLen,
-    /// What holds it (`fixed`, `compile/planning/fix.rs`).
+    /// What holds it (`fixed`).
     pub(crate) hold: Hold,
     /// What planning gave its body to read: the reference a `<collect>`
     /// gathers from, or the list a `<pointList extend="$l.points">`
     /// takes its points from.
     pub(crate) from: Option<RefId>,
-    /// What the element is a copy of, which the build wires it from:
-    /// outlining's `Elem::extend`, unless planning made the element an
-    /// alias of what it extends instead (an extend of a prop, ADR 0025).
+    /// What the element is a copy of, if it is wired as one (not when it
+    /// is an alias of an extended prop).
     pub(crate) extend: Option<RefId>,
 }
 
@@ -638,7 +601,7 @@ impl ElemPlan {
     }
 }
 
-/// What outlining knows of a `$ref` child (ADR 0031): its node, the
+/// What outlining knows of a `$ref` child: its node, the
 /// element whose child it is (`None` for the template's own children), and
 /// whether its path carries an index.
 #[derive(Debug, Clone, Copy)]
@@ -648,9 +611,8 @@ pub(crate) struct RefChild {
     pub(crate) has_index: bool,
 }
 
-/// A `$ref` child's plan (ADR 0031): planning's, as a reference, or a box
-/// when it cannot be planned (ADR 0027), which the build makes an `_error`
-/// component of. `Unplanned` is under a box: no build reaches it.
+/// A `$ref` child's plan: a reference, or a box when it cannot be planned.
+/// `Unplanned` is under a box: no build reaches it.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum RefChildPlan {
     #[default]
@@ -659,10 +621,7 @@ pub(crate) enum RefChildPlan {
     Boxed,
 }
 
-/// A stage of the compile (`Compiler::stage`), as boxing records which
-/// made a box (ADR 0031): a reader of a referent's type while planning
-/// sees only outlining's, so planning does not depend on its own order.
-/// Parsing and sealing box nothing.
+/// A stage of the compile, as recorded for the stage that made a box.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Stage {
     Outline,
@@ -672,15 +631,14 @@ pub(crate) enum Stage {
     Seal,
 }
 
-/// Whether an element is a box (ADR 0031): boxing's own table, parallel to
-/// the elements, so boxing never rewrites what another stage made.
+/// Whether an element is a box.
 #[derive(Debug, Clone, Default)]
 pub(crate) enum BoxState {
     #[default]
     Live,
     /// Boxed where it failed, or, `dead`, under a box: no build makes a
     /// dead element, and a reference to it reads as undefined. `row` is
-    /// the element as the build sees it (`Elem::as_box`).
+    /// the element as the build sees it.
     Boxed {
         row: Box<Elem>,
         by: Stage,
@@ -688,9 +646,7 @@ pub(crate) enum BoxState {
     },
 }
 
-/// What holds an element (`compile/planning/fix.rs`): a fact beside its plans,
-/// never a change to them. The build makes each of the element's cells
-/// refuse requests as it says (`Program::holds`).
+/// What holds an element: when its cells refuse requests.
 #[derive(Debug, Clone, Default)]
 pub(crate) enum Hold {
     #[default]
@@ -701,36 +657,30 @@ pub(crate) enum Hold {
     While(Vec<RefId>),
 }
 
-/// What sealing makes of one element (ADR 0031): row `e` of a template's
-/// `sealed` table is element `e`'s.
+/// What sealing makes of one element, indexed by `ElemId` in its template.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Sealed {
     /// The element's identity across loads, for saved state.
     pub(crate) key: ElemKey,
-    /// First of this element's prop slots within the template's slot space,
-    /// once every element is planned, since planned types add hidden slots
-    /// after the public props.
+    /// First of this element's prop slots within the template's slot
+    /// space.
     pub(crate) slot_off: u32,
 }
 
-/// What sealing makes of a template (ADR 0031): a row per element, how
+/// What sealing makes of a template: a row per element, how
 /// many slots its elements take, and what each port holds.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct SealedTemplate {
     pub(crate) elems: Vec<Sealed>,
     pub(crate) n_slots: u32,
-    /// Each port's type (ADR 0032), by template slot (`Sealed::slot_off`
-    /// plus the port's position): what the type pass inferred once, which
-    /// every build reads (`compile/seal/types.rs`).
+    /// Each port's type, by template slot (`slot_off` plus the port's
+    /// position).
     pub(crate) types: Vec<PortType>,
 }
 
-/// What a port's cell holds (ADR 0032): a number (a boolean or an index
-/// among them), a string id, or a handle in the symbolic engine. Inferred
-/// once per template port by the compile's type pass, from the port's
-/// source and the ports it reads, and read by every build: a cell's value
-/// type (`program::ValueType`) is its defining port's. `Num` is the
-/// bottom: what a port is until something it reads says otherwise.
+/// What a port's cell holds: a number (a boolean or an index among them),
+/// a string id, or a handle in the symbolic engine. `Num` is the bottom:
+/// what a port is until something it reads says otherwise.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum PortType {
     #[default]
@@ -760,9 +710,8 @@ impl PortType {
     }
 }
 
-/// What outlining makes of a template (ADR 0031): its elements' rows,
-/// its own children and its `$ref` children. Read-only to every stage
-/// after outlining (`Settled::templates`).
+/// What outlining makes of a template: its elements' rows, its own
+/// children and its `$ref` children.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Outlined {
     /// (template, element) of the repeat or choice this template belongs to.
@@ -771,32 +720,29 @@ pub(crate) struct Outlined {
     /// Children of the template itself (the document, a repeat body or a
     /// choice branch).
     pub(crate) children: Vec<Child>,
-    /// Outlining's table of `$ref` children (ADR 0031), by `RefChildId`.
+    /// The `$ref` children, by `RefChildId`.
     pub(crate) ref_children: Vec<RefChild>,
 }
 
-/// What boxing and planning make of a template's elements (ADR 0031),
-/// parallel to `Outlined::elems` and `ref_children`: the tables the stages
-/// after outlining write.
+/// What boxing and planning make of a template's elements, parallel to
+/// its outlined elements and `$ref` children.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Tables {
-    /// Boxing's table: a row per element.
+    /// A row per element.
     pub(crate) boxes: Vec<BoxState>,
-    /// Planning's table: empty until planning makes it.
+    /// A plan per element: empty until planning.
     pub(crate) plans: Vec<ElemPlan>,
-    /// Planning's table of `$ref` children's plans: empty until planning
-    /// makes it.
+    /// A plan per `$ref` child: empty until planning.
     pub(crate) ref_child_plans: Vec<RefChildPlan>,
 }
 
-/// A template as the build reads it: each stage's table, put together
-/// once the compile is done (ADR 0031). It reads as its outlined part
-/// (`Deref`).
+/// A template as the build reads it: each stage's table. It derefs to its
+/// outlined part.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Template {
     pub(crate) outlined: Outlined,
     pub(crate) tables: Tables,
-    /// Sealing's table (ADR 0031), parallel to `elems`.
+    /// What sealing made, parallel to `elems`.
     pub(crate) sealed: SealedTemplate,
 }
 
@@ -881,9 +827,7 @@ impl Template {
     }
 }
 
-/// One step of a reference path (ADR 0032, decision 5). Planning decides
-/// each step's kind from the outlined table, so the build asks nothing of
-/// a component's type: it evaluates indices and walks arrays.
+/// One step of a reference path.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum Step {
     /// An element of the current template.
@@ -896,9 +840,7 @@ pub(crate) enum Step {
     /// pick of a select, which enters the option's template.
     Item(Collection, IndexPlan),
     /// An interface name of a choice, by its name-table id: `$cc.x`, or
-    /// `$s[1].x` after an index into a select's picks. Its position among
-    /// the names references use is sealing's (`ChoiceDef::used_at`), so a
-    /// reference plans the same in any stage and order (ADR 0031).
+    /// `$s[1].x` after an index into a select's picks.
     Iface(ChoiceId, u32),
 }
 
@@ -908,9 +850,7 @@ pub(crate) enum IndexTerm {
     /// The position of the iteration `hops` template levels up from the
     /// referencing element.
     Iter(u32),
-    /// The value of the cell the plan names, read when built (`$r[$n]`):
-    /// a dynamic index, which the build makes a choose over the items of
-    /// the collection (ADR 0032, decision 5).
+    /// The value of the cell the plan names (`$r[$n]`): a dynamic index.
     Cell(RefId),
 }
 
@@ -934,18 +874,17 @@ pub(crate) struct RefPlan {
     pub(crate) hops: u32,
     pub(crate) steps: Vec<Step>,
     /// The port the final part names, if any, resolved on the type the
-    /// path reaches (ADR 0032, decision 5).
+    /// path reaches.
     pub(crate) prop: Option<RefProp>,
-    /// How the plan is shown in an error (`Compiled::display_of`).
+    /// How the plan is shown in an error.
     pub(crate) display: RefDisplay,
     /// The macro node the plan came from, or NONE for a plan the build
     /// made itself; what an error in resolving it is reported on.
     pub(crate) node: NodeId,
 }
 
-/// The port a reference plan names, found from its name once, when the
-/// path is planned, on the type the path reaches (ADR 0032, decision 5):
-/// `sel` of `of`. The build reads slots by it and compares no name.
+/// The port a reference plan names, resolved on the type the path
+/// reaches: `sel` of `of`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct RefProp {
     pub(crate) of: ComponentType,
@@ -993,11 +932,10 @@ impl RefProp {
     }
 }
 
-/// How a reference plan is shown in an error, spelled only then
-/// (`Compiled::display_of`): planning a reference builds no string.
+/// How a reference plan is shown in an error, spelled only then.
 #[derive(Debug, Clone)]
 pub(crate) enum RefDisplay {
-    /// The plan's macro node (`RefPlan::node`) as written.
+    /// The plan's macro node as written.
     Written,
     /// Another display, then `.prop`: a plan of another's prop.
     Prop(Box<RefDisplay>, &'static str),
@@ -1026,11 +964,8 @@ impl Compiled {
 }
 
 /// An attribute a component's planner reads, as its `attributes { .. }`
-/// declares it (`component!`): only the macro makes one, as a constant of
-/// the component's `attr` module (`attr::radius`), so a planner can name
-/// only an attribute its type declares, and a misspelling does not
-/// compile. Its position among the type's declarations is where the
-/// element's record holds it.
+/// declares it: its name and its position among the type's declarations.
+/// Only `component!` makes one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Attr(&'static str, u8);
 
@@ -1052,10 +987,9 @@ impl Attr {
     }
 }
 
-/// A parameter a planner introduces that no attribute gives (`params {
-/// .. }` in `component!`, ADR 0032): a named given leaf with a default,
-/// which a copy shares with its original (a line's distance along its
-/// direction). Only the macro makes one.
+/// A parameter a planner introduces that no attribute gives: a named given
+/// leaf with a default (a line's distance along its direction). Only
+/// `component!` makes one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Param(&'static str);
 
@@ -1071,13 +1005,9 @@ impl Param {
     }
 }
 
-/// What gave a given leaf its value (ADR 0032, decision 3): an attribute
-/// (its `k`-th leaf: a point's two coordinates, a list's points), the
-/// element's children, or a parameter the planner introduced. A copy
-/// shares every given leaf whose attribute it did not override by
-/// aliasing it to the referent's port holding the same identity
-/// (`plan_with_extend`, `link_given_leaves`), and a hidden port holding
-/// one is saved by its identity's name (ADR 0017, `Keys`).
+/// What gave a given leaf its value: an attribute (its `k`-th leaf: a
+/// point's two coordinates, a list's points), the element's children, or a
+/// parameter the planner introduced.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum GivenId {
     Attr(Attr, u32),
@@ -1107,9 +1037,7 @@ impl GivenId {
 /// line's and segment's values are in `components/geometry/mod.rs`).
 pub(crate) type DefaultPoint = ([Param; 2], [f64; 2]);
 
-/// One port's source and, when it is a given leaf, what gave it: what a
-/// typed plan's fields hold (`component!`'s `Props`), so a given leaf is
-/// always identified on the port that holds it.
+/// One port's source and, when it is a given leaf, what gave it.
 #[derive(Debug, Clone)]
 pub(crate) struct Wire {
     pub(crate) source: Source,
@@ -1224,11 +1152,9 @@ impl Wire {
 }
 
 /// How each of an element's ports gets its value, as its planner builds
-/// it (ADR 0032): the public ports (the table's props, then the list's
-/// points), then hidden ports holding helper values that the props read
-/// like any own port. A planner names a port only as the wiring hands it
-/// out: the table's by `Props::PORTS`, a list point's by `item`, a hidden
-/// one by what made it.
+/// it: the public ports (the table's props, then the list's points), then
+/// hidden ports holding helper values that the props read like any own
+/// port.
 pub(crate) struct ElemWiring {
     component_type: ComponentType,
     /// Each port's source, by `Port::index`.
@@ -1240,9 +1166,8 @@ pub(crate) struct ElemWiring {
     given: HashMap<GivenId, Port>,
 }
 
-/// The props of an element planned from its type's table (`plan_attrs`),
-/// one per table prop by its port, which a `PropsThen` planner adjusts
-/// (`props[Props::PORTS.expr] = Some(..)`).
+/// The props of an element planned from its type's table, one per table
+/// prop by its port.
 pub(crate) struct TableProps(Vec<Option<Source>>);
 
 impl TableProps {
@@ -1480,7 +1405,7 @@ impl GivenPoint {
 }
 
 /// A document as compiled: its templates and plans, made once from its
-/// source and kept for the life of the document (ADR 0015).
+/// source.
 #[derive(Debug, Clone)]
 pub struct Compiled {
     pub(crate) dast: Arc<Dast>,
@@ -1488,73 +1413,50 @@ pub struct Compiled {
     pub(crate) refs: Vec<RefPlan>,
     /// Expression templates: cell leaves hold plan ids.
     pub(crate) arena: Arena<RefId>,
-    /// The math text of templates that may be symbolic, with each `$ref`
-    /// written `cellN<plan>` (see `sym::engine::leaf_name`).
+    /// The math text of templates that may be symbolic.
     pub(crate) sym_text: HashMap<ExprId, SymText>,
-    /// In a document with repeats, each math text's parse once a build has
-    /// found the math symbolic: a template parses once however many
-    /// instances stamp it and however many builds run. Empty in a document
-    /// without repeats, whose abstract build and one build each parse,
-    /// which costs less than keeping the trees would raise its load's peak
-    /// memory.
+    /// In a document with repeats, each symbolic math text's parse, made
+    /// once. Empty in a document without repeats.
     pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree<RefId>, String>>>,
     pub(crate) choices: Vec<ChoiceDef>,
-    /// The source's `Dast::version_hash`, once per load rather than per
-    /// build.
+    /// The source's version hash.
     pub(crate) version: u64,
-    /// Every element's stable key (ADR 0017), set once planning is done.
+    /// Every element's stable key.
     pub(crate) keys: Arc<super::keys::Keys>,
     /// Text the build needs that is not a DAST string (a textInput's
-    /// `prefill`, the literal side of a text comparison), appended after
-    /// the DAST's table in every build, so their ids are the same each time.
+    /// `prefill`), appended after the DAST's table, so their ids are the
+    /// same in every build.
     pub(crate) extra_strings: Vec<String>,
-    /// The source's diagnostics (ADR 0013, ADR 0015): the lint findings,
-    /// the errors of the boxed elements and the planners' and the abstract
-    /// build's warnings, in node order, which every document built from
-    /// this compile reports. Set by `compile::compile`.
+    /// The source's diagnostics, in node order.
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
-    /// The document's structural depth (`CONTEXT.md`) as the abstract build
-    /// found it, which bounds every build's, since each build's chains of
-    /// repeats map onto the abstract build's: 0 without a repeat, and 0
-    /// when a test load skips the abstract build's count check.
+    /// The document's structural depth, which bounds every build's: 0
+    /// without a repeat, and 0 when a test load skips the count check.
     pub(crate) structural_depth: u32,
-    /// The abstract build's record of the value slots a student's action
-    /// can write (ADR 0018), by which every build classes them essential or
-    /// constant; None with the classing off (a test load), when every value
-    /// slot is essential.
+    /// The value slots a student's action can write, which are essential;
+    /// None with the classing off, when every value slot is essential.
     pub(crate) classes: Option<Arc<Record>>,
-    /// The abstract build's record of the live slots (ADR 0019), by which
-    /// every build finds which cells it computes.
+    /// The live slots.
     pub(crate) live: Arc<Record>,
-    /// The abstract build's record of the counted values (ADR 0028): the
-    /// template slots whose value a build counts from the structure it
-    /// stamped (a collect's count, a section's number after a repeat, the
-    /// credit of a section whose answers are all in repeats). Each follows
-    /// the counts, so every build makes it a derived cell, never a
-    /// constant, even at a count where it has nothing to count.
+    /// The counted values: slots whose value a build counts from the
+    /// structure it stamped (a collect's count). Always a derived cell,
+    /// never a constant.
     pub(crate) counted: Arc<Record>,
-    /// The abstract build's record of the document constants (ADR 0028):
-    /// the template slots whose constant is the same in every instance,
-    /// made from the source alone. Every other constant is a scope
-    /// constant.
+    /// The document constants: slots whose constant is the same in every
+    /// instance. Every other constant is a scope constant.
     pub(crate) document_constants: Arc<Record>,
-    /// Whether a build gives a dead slot no cell (ADR 0019,
-    /// `LoadOptions::prune`); never in the abstract build.
+    /// Whether a build gives a dead slot no cell; never in the abstract
+    /// build.
     pub(crate) prune: bool,
-    /// Whether a build folds instructions over constants (ADR 0028,
-    /// `LoadOptions::fold`); never in the abstract build.
+    /// Whether a build folds instructions over constants; never in the
+    /// abstract build.
     pub(crate) fold: bool,
-    /// Each node of `arena` by its class of structurally equal nodes, its
-    /// first (ADR 0033, `compile/share.rs`): a build lowers each class once
-    /// per scope. Empty when the load does not share
-    /// (`LoadOptions::share`).
+    /// For each node of `arena`, the first node structurally equal to it.
+    /// Empty when the load does not share.
     pub(crate) expr_class: Vec<ExprId>,
 }
 
-/// What the abstract build records of a document (ADR 0018, ADR 0019): per
-/// template, a bit per template slot (`slot_off + pi`), set for a slot a
-/// student's action can write or for a live one. Every build of the
-/// document reads it, so a slot's class is the same in every build.
+/// What the abstract build records of a document: per template, a bit per
+/// template slot (`slot_off + pi`).
 #[derive(Debug, Clone, Default, PartialEq)]
 pub(crate) struct Record(pub(crate) Vec<Vec<u64>>);
 

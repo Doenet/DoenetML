@@ -75,7 +75,7 @@ pub(in crate::build) struct SlotCells {
     cell_of: Vec<SlotId>,
     /// Each cell's defining slot, by the cell.
     def: Vec<SlotId>,
-    /// The flags that hold each cell (`Builder::hold_all`).
+    /// The flags that hold each cell.
     flags: HashMap<SlotId, Vec<SlotId>>,
     /// The cells a constant flag holds: no request passes them.
     held_always: HashSet<SlotId>,

@@ -143,9 +143,9 @@ pub fn unsaved_essentials(doc: &crate::Document) -> Vec<String> {
     out
 }
 
-/// What a student sees of one input (ADR 0017's soundness test): its
-/// interactive props' values as text, the points among them, and the
-/// bounds of the graph it is in, as the author set them.
+/// What a student sees of one input: its interactive props' values as text, the
+/// points among them, and the bounds of the graph it is in, as the author set
+/// them.
 #[derive(Debug, Clone, PartialEq)]
 pub struct InputState {
     pub values: Vec<(String, String)>,

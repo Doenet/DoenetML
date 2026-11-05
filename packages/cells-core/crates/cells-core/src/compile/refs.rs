@@ -730,8 +730,7 @@ enum At {
     SelectPick(ChoiceId),
 }
 
-/// A reference as written (`Dast::macro_display`), spelled only when an
-/// error formats it: planning a reference builds no string.
+/// A reference as written, spelled only when an error formats it.
 #[derive(Clone, Copy)]
 pub(in crate::compile) struct Written<'d>(
     pub(in crate::compile) &'d Dast,

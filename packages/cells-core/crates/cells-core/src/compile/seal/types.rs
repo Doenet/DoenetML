@@ -135,8 +135,7 @@ impl Seal<'_> {
 }
 
 /// The pass's state: the seal it reads, the slot offsets, the types so
-/// far, and what the walks found, which depends on the templates alone and
-/// so is found once however many times the fixpoint asks.
+/// far, and what the walks found, which is found once.
 struct Types<'s, 'a> {
     seal: &'s Seal<'a>,
     offs: &'s [(Vec<u32>, u32)],
@@ -918,7 +917,7 @@ enum ArityOf {
     MathLeaf,
 }
 
-/// The cells a reference names (`Types::ref_cells`).
+/// The cells a reference names.
 struct Cells {
     plan: RefId,
     /// Their types, in order; as many as the most candidate has.

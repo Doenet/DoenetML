@@ -4,10 +4,10 @@
 use super::*;
 use crate::components::PropAt;
 
-/// The component table as parallel arrays indexed by `CompIdx`. Props are implicit:
-/// component `c` of type `k` owns `prop_cells[prop_base[c] + i]` for each
-/// `i` in `k.prop_defs()`, then two per point of its list (ADR 0016), up
-/// to `prop_base[c + 1]`.
+/// The component table as parallel arrays indexed by `CompIdx`. Props are
+/// implicit: component `c` of type `k` owns `prop_cells[prop_base[c] + i]` for
+/// each `i` in `k.prop_defs()`, then two per point of its list, up to
+/// `prop_base[c + 1]`.
 #[derive(Debug, Clone, Default)]
 pub struct ComponentTable {
     pub component_type: Vec<ComponentType>,
@@ -21,13 +21,13 @@ pub struct ComponentTable {
     pub child_list: Vec<ChildEntry>,
     /// DAST element each component came from (NONE if synthesized) and the
     /// scope it was created in. Together they identify a component across
-    /// rebuilds, which lets a renderer keep its tree keyed by identity.
+    /// rebuilds.
     pub dast_node: Vec<NodeId>,
     pub scope: Vec<ScopeId>,
-    /// The component this one is a reference to (`$P`, `<point
-    /// extend="$P"/>`, a container copy's clone), or `NONE`. What a
-    /// reference presents as and does not hold a cell for (a label, how a
-    /// number is displayed) a renderer reads through it (ADR 0024).
+    /// The component this one is a reference to (`$P`, `<point extend="$P"/>`,
+    /// a container copy's clone), or `NONE`. What a reference presents as and
+    /// holds no cell for (a label, how a number is displayed) a renderer reads
+    /// through it.
     pub referent: Vec<CompIdx>,
 }
 

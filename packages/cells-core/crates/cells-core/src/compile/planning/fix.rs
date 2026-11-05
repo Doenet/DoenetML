@@ -16,14 +16,9 @@
 
 use crate::compile::*;
 
-/// An attribute that holds an element, as `inherited-attributes.md` §5 of
-/// the principles states one: whether an element without it takes the
-/// nearest container's (an element's own setting always wins over its
-/// containers'), and which types it holds. What every row shares is the
-/// fold (`Compiler::plan_fix`): a reference means what it means where it
-/// was written, however deep the element that inherits it; a reference to
-/// the element is held because the hold is upstream of every alias; and a
-/// held element still follows its sources (a hold blocks only requests).
+/// An attribute that holds an element: whether an element without it takes
+/// the nearest container's (an element's own setting always wins), and
+/// which types it holds.
 pub(in crate::compile) struct HoldAttr {
     pub(in crate::compile) name: &'static str,
     /// Whether an element that does not write the attribute takes it from
@@ -31,8 +26,7 @@ pub(in crate::compile) struct HoldAttr {
     /// choices around its template. Without, only the element's own counts.
     pub(in crate::compile) inherited: bool,
     /// The types it holds. An inherited attribute is read on every type,
-    /// so a container may give it to what is inside; on a type it does not
-    /// hold, it has nothing to do there.
+    /// so a container may give it to what is inside.
     pub(in crate::compile) holds: fn(ComponentType) -> bool,
 }
 

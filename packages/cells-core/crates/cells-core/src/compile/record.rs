@@ -52,10 +52,9 @@ impl PointAttr {
     }
 }
 
-/// An element's declared attributes, parsed (`AttrValue`), by the
-/// attribute's position among its type's declarations, and whether each
-/// is the element's own or taken from what it extends; and its children,
-/// as its type reads them (`Children`).
+/// An element's declared attributes, parsed, by the attribute's position
+/// among its type's declarations, and whether each is the element's own or
+/// taken from what it extends; and its children, as its type reads them.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Record {
     values: Vec<AttrValue>,
@@ -87,12 +86,11 @@ enum Content {
     Value(ValueChildren),
 }
 
-/// Children read as a value (`children: Value`): what `plan_attrs` reads
-/// for a `PropFrom::Children` prop, and the value of a `<text>`, a
-/// `<boolean>` or an input, parsed once.
+/// Children read as a value (`children: Value`): a `PropFrom::Children`
+/// prop's, or the value of a `<text>`, a `<boolean>` or an input.
 #[derive(Debug, Clone)]
 pub(crate) struct ValueChildren {
-    /// The content: the children but layout and presentation (ADR 0024).
+    /// The content: the children but layout and presentation.
     pub(crate) nodes: Box<[NodeId]>,
     pub(crate) value: ChildValue,
     /// The tag of the first element among them, which a value cannot hold.

@@ -16,18 +16,16 @@
 
 use super::*;
 
-/// The structure view (`view.rs`): what a build is told about the
-/// document's structure.
+/// The structure view: what a build is told about the document's
+/// structure.
 pub(in crate::build) enum View<'c> {
     /// An ordinary build: the counts it was asked for, so it stamps every
     /// iteration it has, a reference past the count is missing, and a
     /// select draws its options from the session's seed.
     Stamped { counts: &'c Counts },
-    /// The abstract view, which the abstract build reads
-    /// (`abstract_build.rs`, ADR 0012, ADR 0014): one iteration per repeat,
-    /// standing for every iteration, and every option of every select,
-    /// standing for every draw, so what it finds depends on the source
-    /// alone.
+    /// The abstract view, which the abstract build reads: one iteration
+    /// per repeat, standing for every iteration, and every option of every
+    /// select, standing for every draw.
     Abstract,
 }
 
@@ -112,8 +110,8 @@ pub(in crate::build) enum Options {
 pub(in crate::build) enum Plans {
     First,
     Rest,
-    /// The first as the source, the rest as a later source
-    /// (`Builder::later_sources`) whose edges the graph carries too.
+    /// The first as the source, the rest as a later source whose edges the
+    /// graph carries too.
     Both,
 }
 

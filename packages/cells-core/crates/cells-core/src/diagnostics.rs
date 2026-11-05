@@ -18,7 +18,7 @@ use serde::Serialize;
 use crate::Error;
 use crate::dast::NodeId;
 
-/// The four kinds the current core's `DiagnosticRecord` has.
+/// A diagnostic's kind.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Kind {
@@ -35,8 +35,7 @@ pub struct Diagnostic {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub level: Option<u8>,
     /// The stable name of the situation: a `doenet-` code of the i18n
-    /// registry (`packages/i18n/src/diagnostics.ts`) where it has one,
-    /// else a `cells-` code of this core's own, to be registered.
+    /// registry where it has one, else a `cells-` code of this core's own.
     pub code: &'static str,
     /// The finding as an English sentence.
     pub message: String,

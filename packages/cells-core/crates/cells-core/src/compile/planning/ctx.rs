@@ -4,27 +4,20 @@ use super::Planning;
 use crate::compile::*;
 use crate::components::ConstrainTarget;
 
-/// What a planner is given (ADR 0016, ADR 0034): the element's record, the
-/// attributes and children the compile parsed before planning (the
-/// element's own merged over its `extend` referent's), the planning of
-/// what the record holds (math text, a reference), the port makers'
-/// facts, and `warn`; never the DAST, a node, or `extend`. What comes from
-/// the referent is planned where the referent sits, so a `$n` in it keeps
-/// the meaning it has there (ADR 0023); what the element writes itself is
-/// planned where the element sits. `plan_with_extend` makes it and does
-/// the rest: a bare copy and sharing state with the referent. No planner
-/// applies `fixed`: `plan_elem` holds every element after its planner
-/// (`compile/planning/fix.rs`). A test (`components/mod.rs`) counts its
-/// methods, so that it grows deliberately.
+/// What a planner is given: the element's record (its own attributes and
+/// children merged over its `extend` referent's), the planning of what the
+/// record holds, the port makers' facts, and `warn`; never the DAST, a
+/// node, or `extend`. What comes from the referent is planned where the
+/// referent sits; what the element writes itself, where the element sits.
+/// No planner applies `fixed`.
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
-    /// Planning's working set: what parsing made, what it records for
-    /// linking.
+    /// Planning's working set.
     p: &'c mut Planning,
     t: TemplateId,
     e: ElemId,
-    /// The element's record (ADR 0032, ADR 0034): its own, merged under
-    /// its `extend` referent's for a copy with overrides.
+    /// The element's record: its own, merged under its `extend` referent's
+    /// for a copy with overrides.
     record: record::Record,
     /// The `extend` referent of a copy with overrides, in this template,
     /// whose math text in the record is planned where it sits.

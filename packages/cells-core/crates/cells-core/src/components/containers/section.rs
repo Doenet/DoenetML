@@ -44,8 +44,7 @@ component! {
     planner: Plan(plan),
 }
 
-/// A tag that makes a `Section`, and its defaults (the current core's
-/// `Sectioning.js`).
+/// A tag that makes a `Section`, and its defaults.
 pub struct SectionTag {
     pub tag: &'static str,
     /// The word its automatic title shows: "Problem 3".

@@ -175,13 +175,8 @@ impl<'c> Builder<'c> {
     }
 }
 
-/// What can go wrong in a build (ADR 0014, ADR 0015): only that the
-/// compile missed something, a core bug, which `tests/every_count.rs`
-/// exists to catch. Never an author's error: the compile has boxed or
-/// reported every one, a cycle included, and this type has no way to say
-/// one. The machinery the build shares with the compile's check fails with
-/// a `Failure`, a fact about the source; only the compile turns one into a
-/// diagnostic.
+/// What can go wrong in a build: only that the compile missed something,
+/// a core bug. Never an author's error.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum BuildError {
     /// Something the compile's check passed failed: an element, or the
@@ -231,48 +226,44 @@ pub struct BuildOutput {
     operands: Operands,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
-    /// The cells a `fixed` holds (`Program::holds`).
+    /// The cells a `fixed` holds.
     holds: crate::program::Holds,
     /// Each component's element's stable key, `NONE` for one no element
-    /// makes (a case): what the input signature names components by.
+    /// makes (a case).
     comp_keys: Vec<ElemKey>,
-    /// Human-readable owner of a cell, e.g. "p1.x". Computed lazily because
-    /// a cycle error is the only consumer.
+    /// Human-readable owner of a cell, e.g. "p1.x".
     cell_label: Box<dyn Fn(CellIdx) -> String>,
-    /// Which cells the document computes (ADR 0019).
+    /// Which cells the document computes.
     live: Live,
-    /// What the abstract build found for the compile to keep (`findings`):
-    /// empty in any other build, which records nothing and runs no count
-    /// check.
+    /// What the abstract build found for the compile to keep: empty in any
+    /// other build.
     findings: AbstractFindings,
 }
 
-/// What the abstract build's build found for the compile to keep (ADR 0012,
-/// ADR 0018, ADR 0019): what every later build reads, and the warnings.
+/// What the abstract build found for the compile to keep: what every
+/// later build reads, and the warnings.
 #[derive(Debug, Default)]
 pub(crate) struct AbstractFindings {
-    /// The structural depth (`check_counts`).
+    /// The structural depth.
     pub(crate) structural_depth: u32,
     /// The template slots a student's action can write.
     pub(crate) writable: Record,
     /// The live template slots.
     pub(crate) live: Record,
-    /// The counted values' template slots (ADR 0028).
+    /// The counted values' template slots.
     pub(crate) counted: Record,
-    /// The document constants' template slots (ADR 0028).
+    /// The document constants' template slots.
     pub(crate) document_constants: Record,
-    /// The warnings (`check_counts`).
+    /// The warnings.
     pub(crate) warnings: Vec<Diagnostic>,
 }
 
-/// Which cells a build computes (ADR 0019): a bit per cell, set for one
-/// some output or the core itself reads, by the compile's record or the
-/// build's own walk (`build/live.rs`).
+/// Which cells a build computes: a bit per cell, set for one some output
+/// or the core itself reads.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Live {
     pub(crate) cells: Vec<u64>,
-    /// The same by this build's own walk, whatever the record says: what
-    /// the record is checked against (`tests/live.rs`).
+    /// The same by this build's own walk, whatever the record says.
     #[cfg(feature = "testing")]
     pub(crate) walked: Vec<u64>,
 }

@@ -402,9 +402,7 @@ struct Counter {
     known: f64,
     before: Option<SlotId>,
     /// A section was counted in a repeat (or a collect from one) before
-    /// the next one: its number follows the counts, a counted value (ADR
-    /// 0026). Found in the abstract build, whose one iteration stands for
-    /// every count; another build reads the abstract build's record.
+    /// the next one, so its number follows the counts.
     follows: bool,
     /// The number slots counted so far.
     numbered: Vec<SlotId>,

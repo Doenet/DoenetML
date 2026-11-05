@@ -44,8 +44,7 @@ struct Recorder {
     /// The parent of each span in `spans` (`usize::MAX` for none).
     parents: Vec<usize>,
     /// The span of each tally, by its parent's index (`usize::MAX` for
-    /// none) and its name's address: a tally opens once per element or
-    /// more, so its lookup hashes two words rather than the name.
+    /// none) and its name's address.
     tallies: HashMap<(usize, usize), usize, BuildHasherDefault<WordHasher>>,
 }
 

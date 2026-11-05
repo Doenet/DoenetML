@@ -12,16 +12,14 @@ mod copies;
 
 use crate::compile::*;
 
-/// Outlining's working state, a local of `Compiler::outline` handed down
-/// the walk: the `Outline` it fills for the stages after it, and what it
-/// needs only while it runs.
+/// Outlining's working state: the `Outline` it fills for the stages after
+/// it, and what it needs only while it runs.
 #[derive(Default)]
 pub(in crate::compile) struct Outlining {
     /// What outlining hands on, as it fills it.
     pub(in crate::compile) work: Outline,
     /// The container copies (`<graph extend="$g"/>`) the walk found, which
-    /// get their clones once every name is in the table
-    /// (`expand_container_copies`).
+    /// get their clones once every name is in the table.
     pub(in crate::compile) container_copies: Vec<(TemplateId, ElemId)>,
     /// By (template, element), the container copies expanding now and
     /// those done: one reached again while it expands is a cycle.

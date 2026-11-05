@@ -67,12 +67,11 @@ macro_rules! scalar_ops {
             $($(#[$m])* $name($(scalar_ops!(@cell $in)),+),)*
             /// A symbolic instruction `Sym(n, n_out, sym, start)`: inputs are
             /// `operands[start..start + n]`; its kind and memo are
-            /// `Program::syms[sym]` (see `Program::step`).
+            /// `Program::syms[sym]`.
             Sym(u8, u8, SymIdx, OperandIdx),
-            /// A vector operator (`vector.rs`) `Vec(n_in, n_out, op, start)`:
-            /// the operator is `Program::vecs[op]`, inputs are
-            /// `operands[start..start + n_in]`, outputs the `n_out` cells from
-            /// the instruction's `out`.
+            /// A vector operator `Vec(n_in, n_out, op, start)`: the operator is
+            /// `Program::vecs[op]`, inputs are `operands[start..start + n_in]`,
+            /// outputs the `n_out` cells from the instruction's `out`.
             Vec(u8, u8, VecIdx, OperandIdx),
         }
 
@@ -158,7 +157,7 @@ macro_rules! scalar_ops {
             }
         }
 
-        /// How a scalar operator's inverse is checked (`scalar.rs`'s `inverses`).
+        /// How a scalar operator's inverse is checked.
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub enum Inverse {
             Exact,

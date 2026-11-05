@@ -8,11 +8,8 @@
 use crate::document::CellIdx;
 use crate::program::{Program, SymRun};
 
-/// Walk only the downstream closure of the seeds, in schedule order. The
-/// schedule is topological, so every instruction a step queues lies after
-/// it: a bitset over schedule positions, scanned forward a word at a time,
-/// replaces a priority queue. Work is proportional to the closure plus its
-/// span over 64.
+/// The tables for walking only the downstream closure of the seeds, in
+/// schedule order, by a bitset over schedule positions.
 #[derive(Debug, Clone)]
 pub struct DirtyClosure {
     /// dependents[dep_start[cell]..dep_start[cell + 1]] = schedule
@@ -72,15 +69,13 @@ impl DirtyClosure {
     }
 }
 
-/// How a document recomputes after a tick's writes (`Document::request`):
-/// a setting, which a rebuild keeps. The dirty closure's tables follow the
-/// program and live beside it in the document.
+/// How a document recomputes after a tick's writes: a setting, which a
+/// rebuild keeps.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Recompute {
-    /// Every instruction in schedule order, ignoring the seeds
-    /// (`Program::run_all_tracking`).
+    /// Every instruction in schedule order, ignoring the seeds.
     Full,
-    /// The closure of what changed (`DirtyClosure`), what the browser runs.
+    /// The closure of what changed.
     #[default]
     DirtyClosure,
 }

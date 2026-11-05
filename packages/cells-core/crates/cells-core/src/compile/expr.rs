@@ -26,7 +26,7 @@ pub enum Expr<L> {
     Pow(ExprId, ExprId),
     Neg(ExprId),
     /// `round(x)`, `min(a, b)`: a function the lowering knows. A clamp's
-    /// bounds are always numbers (the parser checks).
+    /// bounds are always numbers.
     Call(Func, Vec<ExprId>),
 }
 
@@ -215,7 +215,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
 }
 
 /// A token of math text. References (`$a`) arrive already resolved to a
-/// reference plan id (`Token::Cell`) by the caller.
+/// reference plan id.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Num(f64),

@@ -52,7 +52,7 @@ pub enum Pivot {
 /// How a rigid shape may move. One dragged vertex rotates and, if `dilate`,
 /// scales the shape about the pivot; several dragged vertices translate it.
 /// `rotate` and `translate` switch those off. How far a pure dilation may
-/// shrink the shape is an input (`VecOp::Shape`).
+/// shrink the shape is an input.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RigidOpts {
     pub dilate: bool,
@@ -70,8 +70,8 @@ impl RigidOpts {
     };
 }
 
-/// What an inverse produces: scalar input requests, and point groups that
-/// the engine moves together (see `tick::invert::invert_requests`).
+/// What an inverse produces: scalar input requests, and point groups that the
+/// engine moves together.
 #[derive(Debug, Default)]
 pub struct Produced {
     pub writes: Vec<(CellIdx, f64)>,
@@ -113,10 +113,9 @@ pub enum VecOp {
     ProjectCircle,
     /// Inputs (x, y, x1, y1, x2, y2); outputs (x', y').
     ProjectLine,
-    /// A reactive choice's choice cell (ADR 0009): inputs are its `n`
-    /// condition cells; the output is the 1-based position of the first
-    /// that holds (nonzero, not NaN), or 0. No inverse: a request cannot
-    /// flip a branch.
+    /// A reactive choice's choice cell: inputs are its `n` condition cells; the
+    /// output is the 1-based position of the first that holds (nonzero, not
+    /// NaN), or 0. No inverse: a request cannot flip a branch.
     First { n: u8 },
     /// An interface name of a choice whose branches are all built: inputs
     /// are the choice cell and the name's cell in each of the `n` branches;
@@ -124,14 +123,12 @@ pub enum VecOp {
     /// The inverse writes the active branch only.
     Choose { n: u8 },
     /// Credit over scored items: inputs are `n` weights then `n` credits;
-    /// outputs are the weighted mean and the total weight. The mean is 1
-    /// when the total weight is 0 (nothing scored), as in the current core.
-    /// Means of chunks combine by their totals, so a large section is a
-    /// tree of these. No inverse: credit is not set by a request.
+    /// outputs are the weighted mean and the total weight. The mean is 1 when
+    /// the total weight is 0 (nothing scored). No inverse: credit is not set by
+    /// a request.
     WeightedMean { n: u8 },
     /// Input 0 held between inputs 1 and 2; NaN if any is NaN. A request
-    /// projects onto the bounds and writes input 0 (ADR 0003). A vector
-    /// operator only so that a scalar one reads at most two cells.
+    /// projects onto the bounds and writes input 0.
     Clamp,
     /// Inputs 2n point coordinates (n ≥ 1); outputs (cx, cy), their mean:
     /// a polygon's center. A request on it translates every point by the

@@ -567,7 +567,7 @@ fn arity_error(e: Error, component_type: ComponentType, prop: &str) -> Error {
     }
 }
 
-/// What a walk carries from step to step (`Builder::resolve_step`).
+/// What a walk carries from step to step.
 struct Walk<'a, 'c> {
     plan: &'c RefPlan,
     /// The scope the reference is read from.

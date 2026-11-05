@@ -44,12 +44,11 @@ pub struct Input {
     /// but for the defaults of the essential cells it reads. It names each
     /// essential cell by the (element key, prop) that defines it and its
     /// type, so it also fixes which cells a request on the input writes and
-    /// which elements share them: a copy sharing its original's state reads
-    /// the original's cell, one with its own reads its own.
+    /// which elements share them.
     pub derivation: u64,
     /// The defaults of every essential cell its closure reads, by the
     /// cell's key: the default's hash, and whether it is the input's
-    /// starting value (see the module's comment), which may change.
+    /// starting value.
     pub defaults: BTreeMap<(String, String), (u64, bool)>,
 }
 
@@ -60,8 +59,7 @@ pub enum Domain {
     /// graph's bounds.
     Any,
     /// Inside a graph whose bounds the author set as literals, as
-    /// `[xmin, xmax, ymin, ymax]`: whether or not the student can pan, a
-    /// point they do not know to pan to is lost.
+    /// `[xmin, xmax, ymin, ymax]`.
     Bounds([f64; 4]),
     /// Inside a graph whose bounds are given by cells: their derivation.
     BoundsBy(u64),

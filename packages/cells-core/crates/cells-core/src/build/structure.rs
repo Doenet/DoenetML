@@ -11,8 +11,7 @@ use crate::document::CompIdx;
 
 crate::index::index_type! {
     /// A name scope: 0 is the document, every other scope is one iteration
-    /// of a repeat (see `build/mod.rs`); a position in the session's
-    /// `ScopeTable`.
+    /// of a repeat; a position in the session's `ScopeTable`.
     pub struct ScopeId;
 }
 
@@ -85,46 +84,42 @@ impl std::ops::Index<ScopeId> for ScopeTable {
     }
 }
 
-/// What one build made of the document's shape (ADR 0015): its repeats
-/// and its essential cells' keys and defaults. What outlives the build is
-/// in the `Session`.
+/// What one build made of the document's shape: its repeats and its
+/// essential cells' keys and defaults.
 #[derive(Debug, Clone, Default)]
 pub struct Structure {
     /// Per essential cell, in cell order: its essential key as (scope,
     /// template slot). The template slot identifies the element and prop
-    /// within the scope's template. See `CONTEXT.md`, essential key.
+    /// within the scope's template.
     pub essential_slots: Vec<(ScopeId, u32)>,
     /// Per essential cell, in cell order: its element's key and the slot's
-    /// position among the element's, what saved state names it by.
+    /// position among the element's, by which saved state names it.
     pub essential_keys: Vec<(ElemKey, u32)>,
     /// Per essential cell, in cell order: the value the build gives it when
     /// nothing was carried over; saved state holds only the cells that differ.
     pub essential_defaults: Vec<f64>,
     pub repeats: Vec<Repeat>,
     /// Per value slot this build's own walk finds writable, in slot order:
-    /// its essential key, whatever the record says. What the record is
-    /// checked against (`tests/every_count.rs`).
+    /// its essential key, whatever the record says.
     #[cfg(feature = "testing")]
     pub walked_essential_slots: Vec<(ScopeId, u32)>,
     /// What each live template slot's own source makes it in this build,
-    /// by its (scope, template, template slot): what `tests/every_count.rs` checks a
-    /// constant against across builds (ADR 0028).
+    /// by its (scope, template, template slot).
     #[cfg(feature = "testing")]
     pub slot_classes: Vec<((ScopeId, u32, u32), SlotClass)>,
     /// What each template slot's cell holds in this build, by its (scope,
-    /// template, template slot): what `tests/port_types.rs` checks the
-    /// compile's port types against (ADR 0032).
+    /// template, template slot).
     #[cfg(feature = "testing")]
     pub slot_types: Vec<((ScopeId, u32, u32), crate::program::ValueType)>,
 }
 
-/// What a template slot's cell is in one build (`Structure::slot_classes`).
+/// What a template slot's cell is in one build.
 #[cfg(feature = "testing")]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SlotClass {
     Essential,
     /// A constant, with its value, and whether the compile's record makes
-    /// it a document constant (ADR 0028).
+    /// it a document constant.
     Constant {
         value: f64,
         document: bool,

@@ -6,8 +6,7 @@ use crate::compile::*;
 /// A name-table entry naming more than one element.
 pub(in crate::compile) const AMBIGUOUS: u32 = u32::MAX;
 
-/// The name table (ADR 0027): made when outlining, read by every later
-/// stage.
+/// The name table.
 #[derive(Default)]
 pub(in crate::compile) struct NameTable {
     /// By (template, scope, name), the one descendant of the scope (or
@@ -19,8 +18,7 @@ pub(in crate::compile) struct NameTable {
     /// Each name by its id: the inverse of `ids`.
     pub(in crate::compile) texts: Vec<Box<str>>,
     /// The id of each DAST string an element is named by, by string id
-    /// (`NO_NAME` for the rest): the DAST's strings are deduplicated, so a
-    /// reference `$c` to `name="c"` finds the id without hashing text.
+    /// (`NO_NAME` for the rest).
     pub(in crate::compile) by_str: Vec<u32>,
     /// (template, name scope, name) of every named element: two siblings
     /// with one name can never be told apart.

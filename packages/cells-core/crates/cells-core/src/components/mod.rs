@@ -195,54 +195,45 @@ pub struct ComponentDef {
     /// so its documents resolve unchanged.
     pub alternate_names: &'static [(&'static str, &'static str)],
     pub flags: Flags,
-    /// Where a component of the type is drawn (ADR 0019).
+    /// Where a component of the type is drawn.
     pub renders: Renders,
-    /// The type a bare reference to a component of this type reads as
-    /// (ADR 0025): `$mi` of a `<mathInput>` is a `<math>` holding what the
-    /// reader entered, not a second input. `None` for a type a bare
-    /// reference copies.
+    /// The type a bare reference to a component of this type reads as: `$mi` of
+    /// a `<mathInput>` is a `<math>` holding what the reader entered, not a
+    /// second input. `None` for a type a bare reference copies.
     pub reads_as: Option<ComponentType>,
     /// How an element of the type is planned.
     pub(crate) planner: crate::compile::api::Planner,
-    /// The attributes the type's planner reads, each with its kind
-    /// (`attributes { .. }`, ADR 0032): what the compile parses into the
-    /// element's record before the planner runs.
+    /// The attributes the type's planner reads, each with its kind.
     pub attributes: &'static [AttrDecl],
-    /// How the type reads its children (`children:`, ADR 0034): what the
-    /// compile parses them into, beside the attributes.
+    /// How the type reads its children.
     pub children: ChildrenDecl,
-    /// The machinery several types share that plans an element of the
-    /// type (`machinery:`, ADR 0034): the compile calls it, and no
-    /// function of the type's.
+    /// The machinery several types share that plans an element of the type, in
+    /// place of a planner of its own.
     pub machinery: Option<Machinery>,
     /// What owns an `owned` type, for the refusal of a free one.
     pub owner: Option<ComponentType>,
-    /// How a point is constrained to a component of the type
-    /// (`constrain_target { .. }`, ADR 0034): a type without one is no
-    /// constraint target.
+    /// How a point is constrained to a component of the type: a type without
+    /// one is no constraint target.
     pub constrain_target: Option<ConstrainTarget>,
-    /// The parameters the type's planner introduces that no attribute
-    /// gives (`params { .. }`): named given leaves a copy shares.
+    /// The parameters the type's planner introduces that no attribute gives:
+    /// named given leaves a copy shares.
     pub params: &'static [&'static str],
-    /// Attributes of this type a renderer reads from the literal attributes
-    /// and the core does not (`presentation { .. }`), accepted by the check
-    /// beside `PRESENTATION_ATTRS`.
+    /// Attributes of this type a renderer reads and the core does not.
     pub presentation: &'static [&'static str],
     /// How a member of a sticky group attracts and snaps: its shape, and
     /// where its points are.
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
 }
 
-/// What an attribute a planner reads holds (ADR 0032, decision 3): how
-/// the compile parses it into the element's record, and what the typed
-/// field of the type's `Attrs` is.
+/// What an attribute a planner reads holds: how it is parsed, and the type of
+/// its field in the type's `Attrs`.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AttrKind {
     /// A number, a reference or math (`radius="2"`, `x="$n"`,
     /// `slope="2 $m"`): a source.
     Scalar,
-    /// A literal number or one reference, as a table prop's attribute is
-    /// read (`plan_value`): a source, or an error for math.
+    /// A literal number or one reference, as a table prop's attribute is read:
+    /// a source, or an error for math.
     Value,
     /// A point: one reference, or a tuple `(a, b)`.
     Point,
@@ -255,9 +246,8 @@ pub enum AttrKind {
     Bool { default: bool },
     /// A literal number, `default` when absent or not a number.
     Number { default: f64 },
-    /// A literal number, `default` when absent; a reference or text that
-    /// is no number is an error the planner meets when it reads it (a
-    /// load-time choice depends only on the seed and literals, ADR 0009).
+    /// A literal number, `default` when absent; a reference or text that is no
+    /// number is an error when the planner reads it.
     Literal { default: f64 },
     /// A literal on/off attribute that may also take a value: present and
     /// not `false` or `none` (`simplify`, `simplify="full"`).
@@ -269,8 +259,8 @@ pub enum AttrKind {
     /// empty or `true`, read as written; one holding a reference is no
     /// literal, which the planner refuses.
     LiteralFlag,
-    /// A value as children are one (`ChildValue`): a literal, one
-    /// reference, or math text (a `<mathInput>`'s `prefill`).
+    /// A value as children are one: a literal, one reference, or math text (a
+    /// `<mathInput>`'s `prefill`).
     Content,
     /// Literal text, none when it holds a reference.
     Text,
@@ -281,20 +271,19 @@ pub enum AttrKind {
     Ref,
 }
 
-/// One attribute a type's planner reads (`ComponentDef::attributes`).
+/// One attribute a type's planner reads.
 #[derive(Debug, Clone, Copy)]
 pub struct AttrDecl {
     pub name: &'static str,
     pub kind: AttrKind,
 }
 
-/// How a type reads its children (`children:`, ADR 0034, decision 2):
-/// what the compile parses them into, in the element's record, before
-/// the planner runs.
+/// How a type reads its children: what they are parsed into before the planner
+/// runs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ChildrenKind {
-    /// Read by nothing and built as nothing: only presentation (a
-    /// `<label>`) is built, for a renderer (ADR 0024). A shape's.
+    /// Read by nothing and built as nothing: only presentation (a `<label>`) is
+    /// built, for a renderer. A shape's.
     None,
     /// Math text: the text and references, kept as the nodes they are
     /// written in for the planner to parse as it needs (a `<math>`'s, a
@@ -310,9 +299,7 @@ pub enum ChildrenKind {
     Rendered,
 }
 
-/// How a `<constrainTo>` naming a component of a type constrains its
-/// point (`constrain_target { .. }`, ADR 0034, decision 5): a fact about
-/// the target type, which the point's planner wires without knowing it.
+/// How a `<constrainTo>` naming a component of a type constrains its point.
 #[derive(Debug, Clone, Copy)]
 pub enum ConstrainTarget {
     /// The point's coordinates are the projection by `op` of what it was
@@ -328,17 +315,17 @@ pub enum ConstrainTarget {
     Graph { expr: &'static str },
 }
 
-/// Machinery several types share, which plans an element of a type that
-/// names it (`machinery:`, ADR 0034).
+/// Machinery several types share, which plans an element of a type that names
+/// it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Machinery {
-    /// An answer, its inputs, awards and whens (`compile/planning/answer.rs`).
+    /// An answer, its inputs, awards and whens.
     Answer,
-    /// A choice, reactive or at load (`compile/planning/choice.rs`).
+    /// A choice, reactive or at load.
     Choice,
-    /// A repeat over a list (`compile/planning/iterates.rs`).
+    /// A repeat over a list.
     RepeatFor,
-    /// A function's iterates, built as a repeat (`compile/planning/iterates.rs`).
+    /// A function's iterates, built as a repeat.
     FunctionIterates,
     /// Copies of the components under what an attribute names, of the type
     /// outlining recorded (`<collect from>`, `<polyline vertices>`).
@@ -390,15 +377,14 @@ pub struct ListProp {
     /// whole shape moves them (a line's, a circle's through points, a
     /// polygon's vertices).
     pub interactive: bool,
-    /// A renderer reads every point (a polygon's vertices; ADR 0019).
+    /// A renderer reads every point (a polygon's vertices).
     pub rendered: bool,
 }
 
-/// Where a component of a type is drawn, and so whether the props a
-/// renderer reads are outputs (ADR 0019). A component is rendered when its
-/// type's rule allows it where it is and its parent is rendered; the
-/// document is. A dynamic `hide`, or a case that is not active, leaves it
-/// rendered: either can change on any tick.
+/// Where a component of a type is drawn, and so whether the props a renderer
+/// reads are outputs. A component is rendered when its type's rule allows it
+/// where it is and its parent is rendered; the document is. A dynamic `hide`,
+/// or a case that is not active, leaves it rendered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Renders {
     /// Wherever it is; its children are rendered as their own rules say.
@@ -412,16 +398,12 @@ pub enum Renders {
 
 /// Where a list's points are.
 pub enum ListPoints {
-    /// As many as the element was given, stored after the props of the
-    /// type's table (ADR 0016): a circle's through points, a polygon's
-    /// vertices. An element's props are the table's, then two per point;
-    /// the list's length is what is left over, so it needs no cell of its
-    /// own. Point `k` (1-based) has coordinates `coords[0]` k and
-    /// `coords[1]` k (`throughX2`), which the current core also spells
-    /// `alternate_name` k `_` 1 and `_` 2 (`throughPointX2_1`). The
-    /// points are given by the attribute `attribute`, one of the type's
-    /// `attributes { .. }`, and the list keeps at most `max` of them (a
-    /// circle's three through points).
+    /// As many as the element was given, stored after the props of the type's
+    /// table, two per point; the list's length is what is left over. Point `k`
+    /// (1-based) has coordinates `coords[0]` k and `coords[1]` k (`throughX2`),
+    /// also spelled `alternate_name` k `_` 1 and `_` 2 (`throughPointX2_1`).
+    /// The points are given by the attribute `attribute`, and the list keeps at
+    /// most `max` of them.
     Given {
         coords: [&'static str; 2],
         alternate_name: Option<&'static str>,
@@ -453,16 +435,13 @@ pub enum PropAt {
     List,
 }
 
-/// A prop of a component type, found from its name once
-/// (`ComponentType::resolve_prop`): what a reference plan keeps and the
-/// build reads slots by, so neither compares prop names.
+/// A prop of a component type, resolved from its name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PropSel {
     /// Where `prop_at` finds it.
     At(PropAt),
-    /// A combined prop (`center`) or a point of a list whose points are
-    /// table props (`vertex3`, `point1`): its single-cell parts, as table
-    /// positions (`parts`).
+    /// A combined prop (`center`) or a point of a list whose points are table
+    /// props (`vertex3`, `point1`): its single-cell parts, as table positions.
     Parts { idx: [u8; MAX_PARTS], len: u8 },
     /// A list whose points are table props, as a whole (`points`).
     TableList,
@@ -481,9 +460,8 @@ impl PropSel {
     }
 }
 
-/// What a type is, apart from its props: each false until its
-/// `component!` block's `flags` names it, which calls the builder of the
-/// same name (`.copyable()`, ...).
+/// What a type is, apart from its props: each false unless its `component!`
+/// block's `flags` names it.
 #[derive(Debug, Clone, Copy)]
 pub struct Flags {
     /// `$name` as a child may produce a copy of the component, and
@@ -491,22 +469,19 @@ pub struct Flags {
     pub copyable: bool,
     /// The children are rendered; `extend` copies them deeply.
     pub container: bool,
-    /// Planned as math cells (`values/curve.rs`); not allowed in a branch
-    /// interface.
+    /// Planned as math cells; not allowed in a branch interface.
     pub symbolic: bool,
     /// Made by the builder, never by a tag in the source.
     pub internal: bool,
     /// Planned only by what owns it (an `<award>` by its `<answer>`, a
-    /// constraint in its point's record): the compile refuses one that
-    /// stands free (ADR 0034).
+    /// constraint in its point's record): one that stands free is refused.
     pub owned: bool,
-    /// Cannot be extended: the compile refuses an `extend` of one before
-    /// planning (ADR 0034). A choice's interface names are referenced
-    /// instead.
+    /// Cannot be extended: an `extend` of one is refused. A choice's interface
+    /// names are referenced instead.
     pub not_extendable: bool,
-    /// Every value it holds is a location: a point's coordinates, a
-    /// circle's center and radius, a polygon's vertices. `fixLocation`
-    /// holds it as `fixed` does (ADR 0022).
+    /// Every value it holds is a location: a point's coordinates, a circle's
+    /// center and radius, a polygon's vertices. `fixLocation` holds it as
+    /// `fixed` does.
     pub located: bool,
 }
 
@@ -944,17 +919,15 @@ pub enum PropFrom {
     /// reads the whole element: a circle's center from whichever of
     /// `center`, `radius` and `through` the author gave.
     ByPlanner,
-    /// An aggregate over a collection of components around the element
-    /// (ADR 0032, decision 4), which the build materializes from the tree
-    /// it stamped: no planner can wire it, and nothing overrides it.
+    /// An aggregate over a collection of components around the element,
+    /// materialized by the build: no planner can wire it, and nothing overrides
+    /// it.
     Aggregate(Aggregate),
 }
 
 /// A set of components around an element, described at compile time and
-/// materialized by the build (ADR 0032, decision 4). Each reaches through
-/// containers, repeats and choices, with a *gate* per choice branch (a
-/// case's `active`) where the current core would have no component at
-/// all.
+/// materialized by the build. Each reaches through containers, repeats and
+/// choices, with a *gate* per choice branch (a case's `active`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Collection {
     /// The scored items under the element, in document order: the answers,
@@ -965,9 +938,9 @@ pub enum Collection {
     /// where siblings are counted through the containers the current core
     /// expands in place (choices, cases, groups, repeats, collects).
     SectionsThrough,
-    /// The components of the type the element gathers (`Body::Collect`)
-    /// under what it gathers from (`ElemPlan::from`), in document order,
-    /// not entering a match: a collect's, or a polyline's points.
+    /// The components of the type the element gathers, under what it gathers
+    /// from, in document order, not entering a match: a collect's, or a
+    /// polyline's points.
     Gathered,
     /// The points a point list holds: its children, one per item of the
     /// list it extends.
@@ -989,8 +962,7 @@ pub enum AggOp {
     Count,
 }
 
-/// A prop wired from a collection (`PropFrom::Aggregate`): `op` over the
-/// ports of `over`.
+/// A prop wired from a collection: `op` over the ports of `over`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Aggregate {
     pub op: AggOp,
@@ -998,8 +970,7 @@ pub struct Aggregate {
 }
 
 /// A computed prop's inputs: positions among its component's props, or
-/// literals. Written as prop names and `(value)`s in the tables and
-/// resolved when compiled (`props` in `define.rs`).
+/// literals.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Args {
     at: [ArgFrom; MAX_ARGS],
@@ -1042,21 +1013,19 @@ pub struct PropDef {
     /// math's `expr`, not its `value`).
     pub ref_prop: Option<&'static str>,
     /// The prop holds text, a string id (a `<text>`'s or `<textInput>`'s
-    /// `value`), whatever gives it: declared, so a reference to it reads
-    /// as text when it is planned (ADR 0032), before the type pass types
-    /// every port.
+    /// `value`), whatever gives it.
     pub text: bool,
-    /// A renderer may request this prop: a student's action writes it, so
-    /// it is one of the document's inputs (ADR 0017).
+    /// A renderer may request this prop: a student's action writes it, so it is
+    /// one of the document's inputs.
     pub interactive: bool,
-    /// An action writes this prop (a submit, a trigger): student state,
-    /// though no renderer requests it (ADR 0018).
+    /// An action writes this prop (a submit, a trigger): student state, though
+    /// no renderer requests it.
     pub written_by_action: bool,
-    /// A renderer reads this prop (ADR 0019).
+    /// A renderer reads this prop.
     pub rendered: bool,
-    /// A grader reads this prop (ADR 0019).
+    /// A grader reads this prop.
     pub score: bool,
-    /// An action reads this prop (ADR 0019).
+    /// An action reads this prop.
     pub read_by_action: bool,
     /// How many consecutive cells the prop is the first of: 1, or
     /// `SAMPLES` for a curve's samples, which a renderer reads together.

@@ -13,9 +13,8 @@ mod types;
 
 use crate::compile::*;
 
-/// Sealing (ADR 0031): it reads every earlier stage's tables, read-only,
-/// and makes its own, which it returns: a `SealedTemplate` per template and
-/// a `ChoiceSeal` per choice. Of the compile it writes only the keys.
+/// Sealing's state: every earlier stage's tables, read-only, and what it
+/// finds of each choice. Of the compile it writes only the keys.
 pub(in crate::compile) struct Seal<'a> {
     pub(in crate::compile) compiled: &'a mut Compiled,
     pub(in crate::compile) dast: &'a Dast,
@@ -28,8 +27,8 @@ pub(in crate::compile) struct Seal<'a> {
     pub(in crate::compile) choices: &'a [ChoiceDef],
     /// What sealing finds of each choice, as it finds it.
     pub(in crate::compile) choice_seals: Vec<ChoiceSeal>,
-    /// By (template, element), which port holds each given leaf
-    /// (`Planned::given`), which a key names a hidden port by.
+    /// By (template, element), which port holds each given leaf, by which a
+    /// key names a hidden port.
     pub(in crate::compile) given: &'a HashMap<(u32, u32), HashMap<GivenId, Port>>,
 }
 

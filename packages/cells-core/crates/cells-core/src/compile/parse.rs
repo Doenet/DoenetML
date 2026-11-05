@@ -4,15 +4,14 @@
 
 use crate::compile::*;
 
-/// What parsing makes (ADR 0029, ADR 0030): each `<math>`'s text parsed
-/// once, as the type outlining settled, or the error parsing it met. Read,
-/// never changed, by the stages after it.
+/// What parsing makes: each `<math>`'s text parsed once, as the type
+/// outlining settled, or the error parsing it met.
 #[derive(Default)]
 pub(in crate::compile) struct Parsed {
     /// By (template, element).
     maths: HashMap<(u32, u32), Result<ParsedMath>>,
-    /// Every element's attribute record (ADR 0032, `record.rs`), by
-    /// (template, element), or the error parsing it met.
+    /// Every element's attribute record, by (template, element), or the
+    /// error parsing it met.
     records: HashMap<(u32, u32), Result<record::Record>>,
 }
 

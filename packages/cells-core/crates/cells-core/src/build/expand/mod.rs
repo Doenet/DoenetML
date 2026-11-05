@@ -22,8 +22,7 @@ crate::index::index_type! {
 }
 
 /// An operator as a build plans it: one the program runs, or a symbolic
-/// template still over slots, which emit makes an `Instantiate` once its
-/// leaves have cells.
+/// template still over slots.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(in crate::build) enum PlannedOp {
     Spec(OpSpec),
@@ -50,11 +49,11 @@ impl PlannedOp {
 #[derive(Debug, Clone)]
 pub(in crate::build) enum BuiltSource {
     Unset,
-    /// A given value: essential when the record says a student's action
-    /// can write it, a constant otherwise (ADR 0018).
+    /// A given value: essential when a student's action can write it, a
+    /// constant otherwise.
     Given(f64),
-    /// A constant, never essential (ADR 0028): an iteration index, a math
-    /// handle, the shared missing-referent cell.
+    /// A constant, never essential: an iteration index, a math handle, the
+    /// shared missing-referent cell.
     Const(f64),
     Alias(SlotId),
     /// Operator over `op_inputs[start..start + n]`; for a vector operator,
@@ -72,10 +71,9 @@ pub(in crate::build) enum Resolved {
     Iter(CompIdx, ScopeId),
     /// An index with no referent (`$r[32]` with ten iterations).
     Missing,
-    /// `$r[$n]` (ADR 0032, decision 5): any of `items`, the one the cell
-    /// `index` names when the document runs. A value read through it is
-    /// a choose over the items' values (`Builder::targets_of`); it names
-    /// no one component. `label` is the edge to the index cell's.
+    /// `$r[$n]`: any of `items`, the one the cell `index` names when the
+    /// document runs; it names no one component. `label` is the edge to
+    /// the index cell's.
     Chosen {
         index: SlotId,
         label: Vec<Coord>,
@@ -95,8 +93,7 @@ pub(in crate::build) struct ChoiceInst {
     /// Reactive choice, or a select built with every option: one component
     /// per `ChoiceDef::used` standing for that name in every branch.
     pub(in crate::build) iface_comps: Vec<CompIdx>,
-    /// A select whose every option was built (`Options::Every`), since each
-    /// iteration draws its own (ADR 0012).
+    /// A select whose every option was built.
     pub(in crate::build) every_option: bool,
 }
 
@@ -111,7 +108,7 @@ pub(in crate::build) struct Instance {
 
 pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) compiled: &'c Compiled,
-    /// The session the build reads (ADR 0015): carried values, scopes.
+    /// The session the build reads: carried values, scopes.
     pub(in crate::build) session: &'c Session,
     /// Seed seeded cells again whatever the session carries: a later pass
     /// of a load, before any student has changed a value.
@@ -120,17 +117,13 @@ pub(in crate::build) struct Builder<'c> {
     /// Templates of `Instantiate` instructions, cell leaves holding slots
     /// until emit rebinds them to cells and imports them.
     pub(in crate::build) sym_templates: Vec<Tree<SlotId>>,
-    /// Slots defining a cell that is not a number, with its type: every
-    /// template slot whose port the compile typed text or math (ADR 0032),
-    /// and a choice's text or math interface. Symbolic instructions'
-    /// outputs are math by their operator as well. A cell's type is its
-    /// defining slot's (emit), so an alias never changes it.
+    /// Slots defining a cell that is not a number, with its type. A cell's
+    /// type is its defining slot's, so an alias never changes it.
     pub(in crate::build) typed_slots: Vec<(SlotId, ValueType)>,
     pub(in crate::build) components: ComponentTable,
     pub(in crate::build) slot_base: Vec<SlotId>,
-    /// Per component, how many of its slots are public props (its ports
-    /// up to its list's last point, ADR 0032) when that is not its type
-    /// table's count: an element whose list holds points (ADR 0016).
+    /// Per component, how many of its slots are public props when that is
+    /// not its type table's count (an element whose list holds points).
     /// NONE: the table's.
     pub(in crate::build) n_public: Vec<u32>,
     pub(in crate::build) sources: Vec<BuiltSource>,
@@ -159,65 +152,60 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) comp_choice: HashMap<CompIdx, usize>,
     /// A component standing for whichever branch a choice takes (an
     /// interface name, or in the abstract build a select's whole pick) ->
-    /// the branches' components it stands for. What it holds is what any of
-    /// them may (`value_type`).
+    /// the branches' components it stands for.
     pub(in crate::build) stand_ins: HashMap<CompIdx, Vec<CompIdx>>,
     /// Per select (in the abstract build): the stand-in for its whole pick.
     pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
     /// One slot per constant an operator or a hold reads, by the value's
-    /// bits (`const_slot`): a literal in math text, a case's position, the
-    /// flag that holds an element always.
+    /// bits.
     pub(in crate::build) consts: HashMap<u64, SlotId>,
-    /// The slots a `fixed` holds, each with a flag slot (`hold_all`): a
-    /// slot held by several flags is listed once per flag.
+    /// The slots a `fixed` holds, each with a flag slot; a slot held by
+    /// several flags is listed once per flag.
     pub(in crate::build) holds: Vec<(SlotId, SlotId)>,
     /// Essential math slots seeded from another slot's value when first
-    /// built (`Source::GivenMathFrom`): (slot, source slot).
+    /// built: (slot, source slot).
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
     pub(in crate::build) arena: Arena<SlotId>,
     pub(in crate::build) root: CompIdx,
     /// Where the build learns counts, indexed referents, a collect's count
-    /// and a select's options (`build/view.rs`).
+    /// and a select's options.
     pub(in crate::build) view: &'c View<'c>,
     /// The scope each slot was made in.
     pub(in crate::build) slot_scope: Vec<ScopeId>,
     /// Per scope, the repeat component whose iteration it is, or NONE.
     pub(in crate::build) scope_repeat: Vec<CompIdx>,
     /// Collects (a polyline is one) whose count reads the counts of the
-    /// repeats they gather from (`CollectCount::RepeatCounts`).
+    /// repeats they gather from.
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
     /// When the view folds iterations: the slots of the counted values it
-    /// found (`Builder::counted`), which the abstract build records.
+    /// found.
     pub(in crate::build) counted_slots: Vec<SlotId>,
     /// When the view folds iterations: the slots whose plan gives a
-    /// document constant if they are constants (`Source::gives_document_constant`),
-    /// which the abstract build records.
+    /// document constant if they are constants.
     pub(in crate::build) document_slots: Vec<SlotId>,
     /// Sources a slot has in iterations after the first, when the view
-    /// folds iterations (`Plans::Both`): edges the graph carries as well.
+    /// folds iterations.
     pub(in crate::build) later_sources: Vec<(SlotId, BuiltSource)>,
-    /// The binary operators lowered from the author's math (`Builder::lower`),
-    /// which orientation may turn round (ADR 0026), in the order lowered.
+    /// The binary operators lowered from the author's math, in the order
+    /// lowered.
     pub(in crate::build) author_ops: Vec<SlotId>,
-    /// Whether the element whose ports are being made shares its math
-    /// (ADR 0033): the compile classed the expressions, and no hold makes
-    /// the element's cells its own.
+    /// Whether the element whose ports are being made shares its math.
     pub(in crate::build) share_math: bool,
-    /// Each expression class instantiated, by scope (`instantiate_expr`).
+    /// Each expression class instantiated, by scope.
     pub(in crate::build) instantiated: HashMap<(ExprId, ScopeId), ExprId>,
-    /// Each node of the build's arena lowered, to its slot (`lower_shared`).
+    /// Each node of the build's arena lowered, to its slot.
     pub(in crate::build) lowered: HashMap<ExprId, SlotId>,
     /// When the view folds iterations: the label of the last reference
     /// resolved, and those of reference edges (from slot, to slot) that are
-    /// not the identity (`build/abstract_build.rs`).
+    /// not the identity.
     pub(in crate::build) label: Vec<Coord>,
     pub(in crate::build) labels: HashMap<(SlotId, SlotId), Vec<Coord>>,
-    /// The node of the element whose expansion or resolution failed, for
-    /// `build` to box (ADR 0013); none when the failure has no element.
+    /// The node of the element whose expansion or resolution failed; none
+    /// when the failure has no element.
     pub(in crate::build) failed_node: Option<NodeId>,
-    /// The abstract build's warnings and structural depth (`check_counts`,
-    /// ADR 0013): empty and zero in any other build.
+    /// The abstract build's warnings and structural depth: empty and zero
+    /// in any other build.
     pub(in crate::build) diagnostics: Vec<Diagnostic>,
     pub(in crate::build) structural_depth: u32,
 }

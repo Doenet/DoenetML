@@ -169,8 +169,7 @@ struct Walked {
     drops: bool,
 }
 
-/// The essential cells a walk writes. Nearly every walk writes none or one,
-/// kept inline; several are shared.
+/// The essential cells a walk writes: none or one inline, several shared.
 #[derive(Debug, Clone, Default)]
 enum Written {
     #[default]

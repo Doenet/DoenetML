@@ -9,9 +9,8 @@ use super::{
 pub(super) use crate::compile::api::NO_VALUE;
 pub(super) use crate::program::OpSpec;
 
-/// A prop as a table writes it: a [`PropDef`] whose source still names
-/// the props a computed prop reads. [`props`] resolves the names to
-/// positions.
+/// A prop as a table writes it: a [`PropDef`] whose source still names the
+/// props a computed prop reads.
 #[derive(Clone, Copy)]
 pub(super) struct Prop {
     def: PropDef,
@@ -827,11 +826,11 @@ macro_rules! component {
             )*
         }
 
-        /// The type's attributes and children as the compile parsed them
-        /// into the element's record (ADR 0032, ADR 0034): one typed
-        /// field per declared attribute, `children` as its kind reads
-        /// them, and one field per group of element children, each the
-        /// element's own value or, under `extend`, its referent's.
+        /// The type's attributes and children as the compile parsed them into
+        /// the element's record: one typed field per declared attribute,
+        /// `children` as its kind reads them, and one field per group of
+        /// element children, each the element's own value or, under `extend`,
+        /// its referent's.
         #[allow(non_snake_case, dead_code)]
         #[derive(Debug)]
         pub(crate) struct Attrs {

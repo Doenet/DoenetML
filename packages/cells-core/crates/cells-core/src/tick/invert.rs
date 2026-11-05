@@ -5,8 +5,7 @@
 use std::collections::BinaryHeap;
 use std::hash::{BuildHasherDefault, Hasher};
 
-/// Keys here are cell and instruction indices: a multiply-shift hash is
-/// enough, and SipHash was most of the cost of a long inversion.
+/// A multiply-shift hash for cell and instruction indices.
 #[derive(Default)]
 struct IndexHasher(u64);
 

@@ -102,10 +102,8 @@ pub(crate) use check::{CompileOutput, compile};
 pub use plan::Compiled;
 
 /// A failed compile, check or first build: the error, and the node of the
-/// element it is about when there is one. `compile` boxes that element (it
-/// becomes an `_error` component, the error its diagnostic) and compiles
-/// again; an error with no element fails it (ADR 0013). Planning fails
-/// this way only where boxing in place cannot (`Compiler::box_in_place`).
+/// element it is about when there is one. `compile` boxes that element and
+/// compiles again; an error with no element fails the compile.
 pub(crate) struct Failure {
     pub(crate) error: Error,
     pub(crate) node: Option<NodeId>,
@@ -125,162 +123,102 @@ use record::{ChildValue, ValueChildren};
 pub(crate) use seal::keys;
 
 /// A compile that planned: what it planned, and the errors of the
-/// elements it boxed where they failed (ADR 0027).
+/// elements it boxed where they failed.
 pub(in crate::compile) struct Attempt {
     pub(in crate::compile) compiled: Compiled,
     pub(in crate::compile) errors: Vec<Diagnostic>,
 }
 
-/// What every stage of one compile works on, outline to seal (ADR 0030):
-/// the source, the compile being made in its parts (`compiled`, what
-/// outlining `settled`, the later stages' `tables`), which stage runs,
-/// the boxes, and two caches. Nothing here is one stage's own: a stage's
-/// working state is a local of its function, and what a stage makes for
-/// a later one is its return value and the other's argument (`Outline`,
-/// `Parsed`, `Planned`). Each field says which stage writes it (*W*) and
-/// which read it (*R*).
+/// What every stage of one compile works on, outline to seal: the source,
+/// the compile being made in its parts, which stage runs, the boxes, and
+/// two caches.
 pub(in crate::compile) struct Compiler<'a> {
-    /// The source being compiled. `compiled.dast` is the same source; this
-    /// reference is copied out (`let d = self.dast;`) so a method can read
-    /// it while it writes the rest of `self`. R: every stage.
+    /// The source being compiled, the same as `compiled.dast`.
     pub(in crate::compile) dast: &'a Dast,
-    /// What the compile makes. W: every stage. Outlining pushes every
-    /// element (an answer's synthetic ones too, `add_answer_children`),
-    /// template and `$ref` child (`ref_children`), and the references it
-    /// reads (every element's `extend`, an answer's whens), and settles
-    /// a `<math>`'s type; it plans no prop. Parsing pushes references and
-    /// expressions; planning makes `plans` (props, holds, a body's `from`,
-    /// what a copy copies) and the `$ref` children's plans
-    /// (`ref_child_plans`), and pushes no element; boxing writes `boxes`;
-    /// linking
-    /// aliases shared ports in `plans`; sealing makes `sealed` and choice
-    /// interfaces (ADR 0031).
+    /// What the compile makes.
     pub(in crate::compile) compiled: Compiled,
     /// What outlining settles, which every stage after it reads and none
-    /// changes (ADR 0030). W: outline, through `outlined_mut` and the
-    /// walk (`push_elem_visible_to`, `push_template`), which `stage`
-    /// guards. R: every stage after outlining, through `settled`,
-    /// `outlined`, `names`, `choice` and `submitted`.
+    /// changes.
     settled: Settled,
-    /// Boxing's and planning's tables, by `TemplateId` (ADR 0031): what
-    /// the stages after outlining write, beside outlining's part
-    /// (`Settled::templates`), which they only read. W: boxing (outline,
-    /// plan, link), plan; link aliases shared slots in `plans`.
+    /// Boxing's and planning's tables, by `TemplateId`.
     tables: Vec<Tables>,
-    /// The stage running now. W: `compile`, at each stage boundary. R:
-    /// boxing, which records it on each box (`make_box`) and reads it to
-    /// decide which boxes a reader sees (`is_visible_box`), and the checks
-    /// that only outlining makes elements and plans extends.
+    /// The stage running now.
     stage: Stage,
-    /// Every string's canonical id, over the DAST table (built when first
-    /// needed) and then `extra_strings`: see `intern_literal`. A cache.
-    /// W, R: plan (`intern_literal`).
+    /// Every string's canonical id, over the DAST table and then
+    /// `extra_strings`; built when first needed. A cache.
     pub(in crate::compile) string_ids: Option<HashMap<String, StrId>>,
     /// Nodes an earlier compile could not build: compiled as `_error`
-    /// elements with their names but no children and no props (ADR 0013,
-    /// ADR 0027). The compile's input, from `plan_and_check`. R: outline
-    /// (`add_elem`, `add_children`).
+    /// elements with their names but no children and no props.
     pub(in crate::compile) boxed: &'a HashSet<NodeId>,
-    /// The first failure no element could carry (`box_in_place` of an
-    /// element with no node, an unread attribute of a node with no
-    /// element): the stage goes on, and the compile ends with it once the
-    /// stage is done, its node to be boxed before compiling again, or the
-    /// load to fail. W: outline, plan, link (`box_in_place`). R:
-    /// `compile`, between stages.
+    /// The first failure no element could carry: the stage goes on, and the
+    /// compile ends with it once the stage is done.
     restart: Option<Failure>,
-    /// Elements boxed where they failed, with their errors (ADR 0027).
-    /// W: outline, plan, link (`box_in_place`, `push_error_elem`; the
-    /// unread-attribute check drops what was under what it boxes).
-    /// R: link (the unread-attribute check skips what is boxed), and
-    /// `compile`, which returns the errors.
+    /// Elements boxed where they failed, with their errors.
     errors: Vec<Diagnostic>,
     boxed_here: HashSet<NodeId>,
     /// By DAST string, the prop a reference spelled with it last named,
-    /// with the type it named it on: a spelling is nearly always used on
-    /// one type, so this is an array read. A cache. W, R: every stage that
-    /// plans a reference (`prop_sel`).
+    /// with the type it named it on. A cache.
     pub(in crate::compile) prop_sels: Vec<Option<(ComponentType, Option<PropSel>)>>,
 }
 
-/// What outlining hands to the stages after it (ADR 0030): the work it
-/// found for them, in the order the walk made it. What it settles of each
-/// element is in the templates themselves.
+/// What outlining hands to the stages after it: the work it found for
+/// them, in the order the walk made it.
 #[derive(Default)]
 pub(in crate::compile) struct Outline {
-    /// Every element to plan, as outlining made them (`plan_all`).
+    /// Every element to plan.
     to_plan: Vec<(TemplateId, ElemId)>,
-    /// Every `$ref` child to plan (`plan_all`).
+    /// Every `$ref` child to plan.
     macros: Vec<(TemplateId, RefChildId)>,
-    /// Each `<math>`'s text, tokenized where its type was settled
-    /// (`parse_maths`).
+    /// Each `<math>`'s text, tokenized where its type was settled.
     math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
-    /// Every read outlining recorded (`record_read`): a container copy's
-    /// of its referent's type, and each clone's of its original. Planning
-    /// adds its own (`Planned::reads`); linking boxes the readers of
-    /// boxes among them (`box_readers_of_boxes`).
+    /// Every read outlining recorded: a container copy's of its referent's
+    /// type, and each clone's of its original.
     reads: Vec<Read>,
 }
 
-/// What outlining settles that the stages after it read and never change
-/// (ADR 0030), beside what it settles of each element in the templates.
+/// What outlining settles that the stages after it read and never change,
+/// beside what it settles of each element in the templates.
 #[derive(Default)]
 pub(in crate::compile) struct Settled {
-    /// Outlining's part of every template (ADR 0031): its elements' rows,
-    /// its children and its `$ref` children, by `TemplateId`. R: every
-    /// stage after outlining; the build, once put together with the other
-    /// stages' tables.
+    /// Outlining's part of every template: its elements' rows, its children
+    /// and its `$ref` children, by `TemplateId`.
     templates: Vec<Outlined>,
-    /// Every choice as outlining made it, by `ChoiceId`; sealing finds its
-    /// interface (`ChoiceSeal`).
+    /// Every choice as outlining made it, by `ChoiceId`.
     choices: Vec<ChoiceDef>,
-    /// The name table. R: parse and plan (`plan_ref`), link
-    /// (`drop_unregistered_name`), seal (choices, keys).
+    /// The name table.
     names: NameTable,
-    /// The references in an answer's whens, planned when outlining made
-    /// the answer's responses (`add_answer_children`), by macro node.
-    /// R: plan (`plan_award`).
+    /// The references in an answer's whens, by macro node.
     when_refs: HashMap<NodeId, RefId>,
     /// Each `$mi` in an answer's `<when>` that names an input, with the
-    /// answer's `response` for that input, which it stands for: credit
-    /// reads the submitted copy (`compile/planning/answer.rs`). A fact
-    /// about the source, so `plan_ref` plans such a `$mi` as the response
-    /// in every stage after outlining. R: `plan_ref`.
+    /// answer's `response` for that input, which it stands for.
     submitted: HashMap<NodeId, ElemId>,
     /// By (template, answer), the `response` outlining made for each input
-    /// its whens read, keyed as `input_named` keys them. R: plan
-    /// (`plan_award`).
+    /// its whens read.
     answer_responses: HashMap<(u32, u32), Vec<(InputKey, ElemId)>>,
 }
 
-/// A recorded cross-element read (`Compiler::record_read`): the reader,
-/// and the reference to what it read.
+/// A recorded cross-element read: the reader, and the reference to what it
+/// read.
 pub(in crate::compile) type Read = (TemplateId, ElemId, RefId);
 
-/// What planning makes for linking and sealing (ADR 0030), beside the
-/// plans themselves in the templates.
+/// What planning makes for linking and sealing, beside the plans
+/// themselves in the templates.
 #[derive(Default)]
 pub(in crate::compile) struct Planned {
-    /// What copies share of their referents' given leaves
-    /// (`plan_with_extend`). R: link (`link_given_leaves`).
+    /// What copies share of their referents' given leaves.
     shares: Vec<Share>,
     /// By (template, element), which port holds each given leaf of an
-    /// element planned by a `Plan` type's planner, by what gave it (ADR
-    /// 0032): what a copy shares with its original. R: link
-    /// (`link_given_leaves`), seal (`assign_keys`).
+    /// element planned by a `Plan` type's planner, by what gave it.
     given: HashMap<(u32, u32), HashMap<GivenId, Port>>,
-    /// Every read recorded (`record_read`): outlining's (`Outline::reads`,
-    /// which planning starts from) and planning's, an element whose plan
-    /// read the type of what a reference names. R: link
-    /// (`box_readers_of_boxes`), which boxes one whose referent is a box.
+    /// Every read recorded, outlining's and planning's: an element whose
+    /// plan read the type of what a reference names.
     reads: Vec<Read>,
-    /// The extends whose referent is in another template, as linking tied
-    /// them (`link_given_leaves`). R: share (`compile/share.rs`).
+    /// The extends whose referent is in another template.
     paths: Vec<share::PathExtend>,
 }
 
-/// A given leaf copy `e` shares with its referent (ADR 0023, ADR 0032):
-/// port `port` of the copy is to alias the referent's port holding the
-/// leaf `id` gave, which only the referent's planning knows. The referent
+/// A given leaf copy `e` shares with its referent: port `port` of the copy
+/// is to alias the referent's port holding the leaf `id` gave. The referent
 /// is an element of the same template, or reached by a path from `e`'s.
 pub(in crate::compile) struct Share {
     t: TemplateId,
@@ -290,8 +228,8 @@ pub(in crate::compile) struct Share {
     id: GivenId,
 }
 
-/// What an extend names, as linking ties a share to it: an element of the
-/// copy's template, or a path to one in another (`ElemPlan::extend`).
+/// What an extend names: an element of the copy's template, or a path to
+/// one in another.
 #[derive(Clone, Copy)]
 pub(in crate::compile) enum Referent {
     Here(ElemId),

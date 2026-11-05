@@ -33,9 +33,8 @@
 
 use crate::compile::*;
 
-/// An extend whose referent is in another template, as linking tied its
-/// given leaves (`link_given_leaves`): an element of template `t`
-/// extending element `re` of template `rt` through reference `path`.
+/// An extend whose referent is in another template: an element of template
+/// `t` extending element `re` of template `rt` through reference `path`.
 #[derive(Debug, Clone, Copy)]
 pub(in crate::compile) struct PathExtend {
     pub(in crate::compile) t: TemplateId,
@@ -49,7 +48,7 @@ pub(in crate::compile) struct PathExtend {
 enum Node {
     /// Port `.1` of element `.0`.
     Local(u32, u8),
-    /// What a reference names, by its plan's class (`RefClasses`).
+    /// What a reference names, by its plan's class.
     Ext(u32, SelKey),
     /// A literal an operator reads.
     Const(u64),
@@ -180,8 +179,7 @@ impl UnionFind {
 }
 
 /// A word-at-a-time hasher for this stage's small keys (the rotate and
-/// multiply of rustc's `FxHasher`): the default hasher costs more than the
-/// stage's work.
+/// multiply of rustc's `FxHasher`).
 #[derive(Default)]
 struct Fx(u64);
 
@@ -256,9 +254,8 @@ impl Nodes {
     }
 }
 
-/// The compile's plans, read while this stage decides; what it decides
-/// is applied once every template is done, so every decision reads the
-/// plans as linking left them.
+/// The compile's plans, read while this stage decides, and its classes of
+/// references and maths.
 struct Share<'c> {
     c: &'c Compiled,
     refs: RefClasses<'c>,

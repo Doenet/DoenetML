@@ -49,92 +49,73 @@ pub const NONE: u32 = u32::MAX;
 /// Set on a `child_list` entry whose low bits are a string id, not a component.
 pub const TEXT_BIT: u32 = 1 << 31;
 
-/// A loaded document. Its fields fall in two groups by how long they
-/// live: what one build made, which a rebuild replaces (`load.rs`), and
-/// what outlives every build, which a rebuild carries: the session, what
-/// the load settled, and how ticks recompute.
+/// A loaded document. Its fields fall in two groups: what one build made,
+/// which a rebuild replaces, and what outlives every build.
 #[derive(Debug, Clone)]
 pub struct Document {
     // What one build made.
     /// All cells: the constants, then the essential cells, then the
-    /// derived ones (ADR 0028).
+    /// derived ones.
     pub cells: Vec<f64>,
-    /// Number of essential cells, which follow the constants
-    /// (`Document::essentials`).
+    /// Number of essential cells, which follow the constants.
     pub n_essential: usize,
-    /// Number of constants, `cells[..n_const]`: values no tick changes,
-    /// which depend on the source and their scope alone (ADR 0028), such
-    /// as an author's value no student can write, an iteration's index or
-    /// the missing-referent NaN. The first `n_pool` are the session's
-    /// constant pool, the document constants, whose cells are the same in
-    /// every build.
+    /// Number of constants, `cells[..n_const]`: values no tick changes.
+    /// The first `n_pool` of them are the session's constant pool.
     pub n_const: usize,
-    /// Number of pooled constants, `cells[..n_pool]` (ADR 0028).
+    /// Number of pooled constants, `cells[..n_pool]`, the same in every
+    /// build.
     pub n_pool: usize,
-    /// What each cell's value means: read when a request arrives and when
-    /// state is saved, never while recomputing.
+    /// What each cell's value means.
     pub value_types: Vec<ValueType>,
     /// The scheduled instructions, which a tick only reads.
     pub program: Program,
     /// What the program's symbolic instructions keep between runs.
     pub sym: SymState,
-    /// The dirty closure's tables for `program`: built on the first tick
-    /// that recomputes by them, so a document never ticked never holds them.
+    /// The dirty closure's tables for `program`, built on first use.
     dirty: Option<DirtyClosure>,
     pub components: ComponentTable,
-    /// Names and text: the DAST's table, then the strings the build added
-    /// (`Compiled::extra_strings`), then those interned since load.
+    /// Names and text: the DAST's table, then the strings the build added,
+    /// then those interned since load.
     pub strings: StringTable,
     /// Each string's canonical id, built on first `intern`.
     interned: Option<HashMap<String, StrId>>,
     /// Index of the root `<document>` component.
     pub root: CompIdx,
     pub structure: Structure,
-    /// Sticky groups as cells, for the request pre-pass (ADR 0007).
+    /// Sticky groups as cells.
     sticky: Vec<sticky::StickyTable>,
-    /// One bit per cell a renderer may request (`interactive.rs`).
+    /// One bit per cell a renderer may request.
     interactive: Vec<u64>,
-    /// One bit per interactive cell whose requests are refused: the value
-    /// its inverse writes reaches it along more than one path (ADR 0026,
-    /// `program::refuse`).
+    /// One bit per interactive cell whose requests are refused.
     refused: Vec<u64>,
-    /// Which cells the document computes (ADR 0019, `outputs.rs`).
+    /// Which cells the document computes.
     live: crate::build::Live,
 
     // What outlives every build.
-    /// What the session has accumulated (ADR 0015): carried values, scopes,
-    /// strings interned at runtime, the math engine. Every build reads it
-    /// and returns the next.
+    /// What the session has accumulated: carried values, scopes, strings
+    /// interned at runtime, the math engine.
     pub session: Session,
     /// What the load settled.
     pub loaded: Loaded,
-    /// How a tick recomputes (`set_evaluator`).
+    /// How a tick recomputes.
     recompute: Recompute,
 }
 
 /// What a document's load settled, which every rebuild carries.
 #[derive(Debug, Clone)]
 pub struct Loaded {
-    /// The source's literal attributes, for a renderer (`attr_text`): all
-    /// a document keeps of its DAST, unless it keeps its compile. Gathered
-    /// once a load settles, off the load's peak.
+    /// The source's literal attributes, for a renderer.
     pub literal_attrs: Arc<crate::dast::LiteralAttrs>,
-    /// The document as compiled at load, which every rebuild stamps
-    /// (ADR 0015). Kept only by a document with a repeat: one without
-    /// never rebuilds, and its compile, several times the size of the
-    /// built document, is dropped after load.
+    /// The document as compiled at load, which every rebuild stamps. Kept
+    /// only by a document with a repeat, since one without never rebuilds.
     pub compiled: Option<Arc<crate::compile::Compiled>>,
-    /// The elements' stable keys (ADR 0017), what saved state names cells
-    /// by: kept by every document, with its compile or without.
+    /// The elements' stable keys, by which saved state names cells.
     pub(crate) keys: Arc<crate::compile::keys::Keys>,
-    /// The document's structural depth (`CONTEXT.md`), which the compile's
-    /// check found: zero without repeats.
+    /// The document's structural depth: zero without repeats.
     pub structural_depth: u32,
-    /// The source's `Dast::version_hash`: the version saved state was made
-    /// in.
+    /// The source's version hash, the version saved state was made in.
     pub(crate) version: u64,
-    /// The compile's diagnostics (ADR 0013), the document's list: settled at
-    /// load and a fact about the source alone (ADR 0014).
+    /// The compile's diagnostics.
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
 }
 

@@ -19,16 +19,14 @@ mod points;
 
 use crate::compile::*;
 
-/// Planning's working set, a local of `Compiler::plan_all` handed down to
-/// what it calls, and to every planner through its [`PlanCtx`]: what
-/// parsing made, which planning reads and never changes, and what it
-/// makes for linking and sealing.
+/// Planning's working set: what parsing made, which planning reads and
+/// never changes, and what it makes for linking and sealing.
 pub(in crate::compile) struct Planning {
     pub(in crate::compile) parsed: Parsed,
     pub(in crate::compile) planned: Planned,
 }
 
-/// The ways an element is planned; see `Compiler::elem_shape`.
+/// The ways an element is planned.
 enum ElemShape {
     Cloned,
     Synthetic,
