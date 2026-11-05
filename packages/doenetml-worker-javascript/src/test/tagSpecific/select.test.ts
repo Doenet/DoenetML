@@ -3323,3 +3323,167 @@ describe("Select tag tests @group2", async () => {
         });
     });
 });
+
+/**
+ * A `<select>` whose options are written with `copy` picks among them, as
+ * among written ones (#2448, B39). The options aren't options when the
+ * variants are counted, so the select doesn't count them
+ * (`doenet-i0056`) and draws from the variant's generator.
+ */
+describe("Select with options written with copy @group2", async () => {
+    const allCopied = `
+<setup>
+  <option name="o1"><math>x</math></option>
+  <option name="o2"><math>y</math></option>
+</setup>
+<select name="s"><option copy="$o1"/><option copy="$o2"/></select>
+<p name="p1">$s</p>`;
+
+    async function load(
+        doenetML: string,
+        options: {
+            requestedVariantIndex?: number;
+            requestedVariant?: any;
+            initialState?: string;
+        } = {},
+    ) {
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML, ...options },
+        );
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const text =
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text;
+        const diagnostics = getDiagnosticsByType(core);
+        const generatedVariantInfo = JSON.parse(
+            JSON.stringify(
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .stateValues.generatedVariantInfo,
+            ),
+        );
+        return {
+            core,
+            scoreState,
+            text,
+            errors: diagnostics.errors,
+            infos: diagnostics.infos,
+            generatedVariantInfo,
+        };
+    }
+
+    it("all options written with copy: loads, picks one, the same in the same variant", async () => {
+        const picked = new Set<string>();
+        for (
+            let requestedVariantIndex = 1;
+            requestedVariantIndex <= 8;
+            requestedVariantIndex++
+        ) {
+            const first = await load(allCopied, { requestedVariantIndex });
+            expect(first.errors).eqls([]);
+            expect(["x", "y"]).toContain(first.text);
+            expect(first.infos.map((d) => d.code)).toContain("doenet-i0056");
+            picked.add(first.text);
+
+            const again = await load(allCopied, { requestedVariantIndex });
+            expect(again.text).eq(first.text);
+        }
+        // each option is picked in some variant
+        expect([...picked].sort()).eqls(["x", "y"]);
+    });
+
+    it("all options written with copy: the same pick through a reload", async () => {
+        for (const requestedVariantIndex of [1, 2, 3]) {
+            const first = await load(allCopied, { requestedVariantIndex });
+            await first.core.saveImmediately();
+            const reloaded = await load(allCopied, {
+                requestedVariantIndex,
+                initialState: first.scoreState.state,
+            });
+            expect(reloaded.errors).eqls([]);
+            expect(reloaded.text).eq(first.text);
+        }
+    });
+
+    it("all options written with copy: the same pick from the variant the document generated", async () => {
+        for (const requestedVariantIndex of [1, 2, 3]) {
+            const first = await load(allCopied, { requestedVariantIndex });
+            const specified = await load(allCopied, {
+                requestedVariant: first.generatedVariantInfo,
+            });
+            expect(specified.errors).eqls([]);
+            expect(specified.infos.map((d) => d.code)).not.toContain(
+                "doenet-i0057",
+            );
+            expect(specified.text).eq(first.text);
+        }
+    });
+
+    it("one option written with copy is picked in some variant", async () => {
+        // Before #2448 the written option was counted alone, so the variant
+        // always picked it.
+        const doenetML = `
+<setup>
+  <option name="o1"><math>x</math></option>
+</setup>
+<select name="s"><option copy="$o1"/><option><math>y</math></option></select>
+<p name="p1">$s</p>`;
+        const picked = new Set<string>();
+        for (
+            let requestedVariantIndex = 1;
+            requestedVariantIndex <= 8;
+            requestedVariantIndex++
+        ) {
+            const { text, errors } = await load(doenetML, {
+                requestedVariantIndex,
+            });
+            expect(errors).eqls([]);
+            picked.add(text);
+        }
+        expect([...picked].sort()).eqls(["x", "y"]);
+    });
+
+    it("an option copied from another select", async () => {
+        const doenetML = `
+<select name="s1">
+  <option name="a"><math>x</math></option>
+  <option name="b"><math>y</math></option>
+</select>
+<select name="s"><option copy="$s1.a"/><option copy="$s1.b"/><option><math>z</math></option></select>
+<p name="p1">$s</p>`;
+        const picked = new Set<string>();
+        for (
+            let requestedVariantIndex = 1;
+            requestedVariantIndex <= 10;
+            requestedVariantIndex++
+        ) {
+            const { text, errors } = await load(doenetML, {
+                requestedVariantIndex,
+            });
+            expect(errors).eqls([]);
+            picked.add(text);
+        }
+        expect([...picked].sort()).eqls(["x", "y", "z"]);
+    });
+
+    it("two picks among options written with copy", async () => {
+        const doenetML = `
+<setup>
+  <option name="o1"><math>x</math></option>
+  <option name="o2"><math>y</math></option>
+  <option name="o3"><math>z</math></option>
+</setup>
+<select name="s" numToSelect="2"><option copy="$o1"/><option copy="$o2"/><option copy="$o3"/></select>
+<p name="p1">$s</p>`;
+        for (const requestedVariantIndex of [1, 2, 3]) {
+            const { text, errors } = await load(doenetML, {
+                requestedVariantIndex,
+            });
+            expect(errors).eqls([]);
+            const picks = text.split(", ");
+            expect(picks.length).eq(2);
+            expect(new Set(picks).size).eq(2);
+            for (const pick of picks) {
+                expect(["x", "y", "z"]).toContain(pick);
+            }
+        }
+    });
+});

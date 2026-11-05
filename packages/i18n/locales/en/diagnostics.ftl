@@ -85,6 +85,12 @@ shuffle-indices-count-mismatch = Ignoring indices specified for shuffle as numbe
 # name, so it stays in English.
 indices-ignored-out-of-range = Ignoring indices specified for { $component } as some indices out of range.
 
+# $component is `select`, `selectFromSequence`, `selectPrimeNumbers` or
+# `selectRandomNumbers` — a DoenetML component name, so it stays in English.
+# The requested variant was saved before the document changed, so the choices
+# it holds for this tag no longer fit it.
+select-variant-choices-ignored = Ignoring the choices the requested variant gives for { $component } as they don't fit it. It makes its own choices instead.
+
 pretzel-indices-repeated = Ignoring indices specified for pretzel as some indices are repeated.
 
 pretzel-circuit-first-index = Ignoring indices specified for pretzel in circuit mode as the first index must be 1.
@@ -646,6 +652,9 @@ variant-num-to-select-not-constant-number = cannot determine unique variants of 
 variant-with-replacement-not-constant-boolean = cannot determine unique variants of { $component } as withReplacement isn't constant boolean.
 
 variant-select-weight-disables-unique = Unique variants for select disabled if have an option with selectWeight or selectForVariants specified
+
+# `option` and `copy` are DoenetML names and stay in English.
+variant-select-options-not-written = cannot determine unique variants of select as an option isn't written as an option in it, such as an option written with copy.
 
 variant-coprime-undetermined = cannot determine unique variants of { $component } as cannot determine coprime is always false.
 

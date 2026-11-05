@@ -1,5 +1,6 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import SampleRandomNumbers from "./SampleRandomNumbers";
+import { returnIgnoredVariantChoicesDefinition } from "../utils/selectErrors";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     // `<sampleRandomNumbers>` offers a `resample` action, and this component
     // has no use for it: it draws once from the variant's generator, and
@@ -225,39 +226,32 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     };
                 }
 
+                // Values the requested variant gives in a different number
+                // than are selected are ignored, with an info
+                // (`ignoredVariantChoicesReported`), and fresh ones drawn
+                let desiredValues =
+                    dependencyValues.variants?.desiredVariant?.values;
                 if (
-                    dependencyValues.variants &&
-                    dependencyValues.variants.desiredVariant
+                    desiredValues &&
+                    desiredValues.length === dependencyValues.numSamples
                 ) {
-                    let desiredValues =
-                        dependencyValues.variants.desiredVariant.values;
-                    if (desiredValues) {
-                        if (
-                            desiredValues.length !== dependencyValues.numSamples
-                        ) {
-                            throw Error(
-                                "Number of values specified for selectRandomNumber must match number to select",
-                            );
-                        }
+                    // Take the values as given, but still check the parameters
+                    // they came from: replaying a variant should report the same
+                    // problems as generating it, rather than accepting the saved
+                    // numbers silently. Asking for none draws nothing, so the
+                    // variant's own randomness is untouched.
+                    const { diagnostics } = sampleFromRandomNumbers({
+                        ...dependencyValues,
+                        numSamples: 0,
+                    });
 
-                        // Take the values as given, but still check the parameters
-                        // they came from: replaying a variant should report the same
-                        // problems as generating it, rather than accepting the saved
-                        // numbers silently. Asking for none draws nothing, so the
-                        // variant's own randomness is untouched.
-                        const { diagnostics } = sampleFromRandomNumbers({
-                            ...dependencyValues,
-                            numSamples: 0,
-                        });
-
-                        return {
-                            setEssentialValue: {
-                                selectedValues: desiredValues,
-                            },
-                            setValue: { selectedValues: desiredValues },
-                            sendDiagnostics: diagnostics,
-                        };
-                    }
+                    return {
+                        setEssentialValue: {
+                            selectedValues: desiredValues,
+                        },
+                        setValue: { selectedValues: desiredValues },
+                        sendDiagnostics: diagnostics,
+                    };
                 }
 
                 const { sampledValues: selectedValues, diagnostics } =
@@ -270,6 +264,22 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                 };
             },
         };
+
+        stateVariableDefinitions.ignoredVariantChoicesReported =
+            returnIgnoredVariantChoicesDefinition({
+                component: "selectRandomNumbers",
+                choicesKey: "values",
+                dependencies: {
+                    numToSelect: {
+                        dependencyType: "stateVariable",
+                        variableName: "numToSelect",
+                    },
+                },
+                desiredChoicesFit: (dependencyValues) =>
+                    dependencyValues.numToSelect < 1 ||
+                    dependencyValues.variants.desiredVariant.values.length ===
+                        dependencyValues.numToSelect,
+            });
 
         stateVariableDefinitions.isVariantComponent = {
             returnDependencies: () => ({}),

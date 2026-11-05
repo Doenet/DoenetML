@@ -15,8 +15,12 @@ import { sampleFromNumberList } from "../utils/randomNumbers";
 import ValueListComponent from "./abstract/ValueListComponent";
 import {
     NO_SELECT_ERROR,
+    choicesDecidedByDoenetML,
+    returnChoicesDecidedByDoenetMLDefinition,
+    returnIgnoredVariantChoicesDefinition,
     returnSelectErrorReportDefinition,
     selectError,
+    selectFailureType,
     selectionResult,
 } from "../utils/selectErrors";
 
@@ -26,6 +30,25 @@ import {
  * `selectedValues`, and a parent sees one `<integer>` per value.
  */
 export default class SelectPrimeNumbers extends ValueListComponent {
+    constructor(args) {
+        super(args);
+        // Whether a failure to select is an error or a missing selection
+        // with an info (`selectFailureType`)
+        this.doenetAttributes.choicesDecidedByDoenetML =
+            choicesDecidedByDoenetML({
+                component: this,
+                attributeNames: [
+                    "from",
+                    "to",
+                    "exclude",
+                    "numToSelect",
+                    "withReplacement",
+                    "excludeCombinations",
+                ],
+                componentInfoObjects: args.componentInfoObjects,
+            });
+    }
+
     static componentType = "selectPrimeNumbers";
 
     static listEntryComponentType = "integer";
@@ -213,6 +236,19 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             },
         };
 
+        stateVariableDefinitions.choicesDecidedByDoenetML =
+            returnChoicesDecidedByDoenetMLDefinition();
+
+        stateVariableDefinitions.ignoredVariantChoicesReported =
+            returnIgnoredVariantChoicesDefinition({
+                component: "selectPrimeNumbers",
+                choicesKey: "values",
+                dependencies: selectionDependencies(),
+                desiredChoicesFit: (dependencyValues) =>
+                    !selectionReadsDesiredVariant(dependencyValues) ||
+                    desiredValuesThatFit(dependencyValues) !== null,
+            });
+
         stateVariableDefinitions.selectedValues = {
             immutable: true,
             hasEssential: true,
@@ -234,29 +270,10 @@ export default class SelectPrimeNumbers extends ValueListComponent {
                 },
             ],
             returnDependencies: ({ sharedParameters }) => ({
-                numToSelect: {
+                ...selectionDependencies(),
+                choicesDecidedByDoenetML: {
                     dependencyType: "stateVariable",
-                    variableName: "numToSelect",
-                },
-                withReplacement: {
-                    dependencyType: "stateVariable",
-                    variableName: "withReplacement",
-                },
-                possibleValues: {
-                    dependencyType: "stateVariable",
-                    variableName: "possibleValues",
-                },
-                excludedCombinations: {
-                    dependencyType: "stateVariable",
-                    variableName: "excludedCombinations",
-                },
-                sort: {
-                    dependencyType: "stateVariable",
-                    variableName: "sort",
-                },
-                variants: {
-                    dependencyType: "stateVariable",
-                    variableName: "variants",
+                    variableName: "choicesDecidedByDoenetML",
                 },
                 variantRng: {
                     dependencyType: "value",
@@ -551,6 +568,86 @@ export default class SelectPrimeNumbers extends ValueListComponent {
     }
 }
 
+/**
+ * What a `<selectPrimeNumbers>` selects from, and how many: the dependencies
+ * of `selectedValues`, other than the generator, which
+ * `ignoredVariantChoicesReported` reads too.
+ */
+function selectionDependencies() {
+    return {
+        numToSelect: {
+            dependencyType: "stateVariable",
+            variableName: "numToSelect",
+        },
+        withReplacement: {
+            dependencyType: "stateVariable",
+            variableName: "withReplacement",
+        },
+        possibleValues: {
+            dependencyType: "stateVariable",
+            variableName: "possibleValues",
+        },
+        excludedCombinations: {
+            dependencyType: "stateVariable",
+            variableName: "excludedCombinations",
+        },
+        sort: {
+            dependencyType: "stateVariable",
+            variableName: "sort",
+        },
+        variants: {
+            dependencyType: "stateVariable",
+            variableName: "variants",
+        },
+    };
+}
+
+/**
+ * Whether `makeSelection` reads the values the requested variant gives: it
+ * doesn't when it selects nothing, or can't select from the primes at all.
+ */
+function selectionReadsDesiredVariant(dependencyValues) {
+    if (dependencyValues.numToSelect < 1) {
+        return false;
+    }
+    const numUniqueRequired = dependencyValues.withReplacement
+        ? 1
+        : dependencyValues.numToSelect;
+    return numUniqueRequired <= dependencyValues.possibleValues.length;
+}
+
+/**
+ * The values the requested variant gives, or `null` when there are none or
+ * they don't fit: a different number of them than are selected, one that
+ * isn't among the primes, or an excluded combination. A variant saved before
+ * the document changed can give ones that don't fit (#2389).
+ */
+function desiredValuesThatFit(dependencyValues) {
+    let desiredValues = dependencyValues.variants?.desiredVariant?.values;
+    if (desiredValues === undefined) {
+        return null;
+    }
+    if (desiredValues.length !== dependencyValues.numToSelect) {
+        return null;
+    }
+    desiredValues = desiredValues.map(Number);
+    if (
+        !desiredValues.every((x) => dependencyValues.possibleValues.includes(x))
+    ) {
+        return null;
+    }
+    if (
+        checkForExcludedCombination({
+            type: "number",
+            excludedCombinations: dependencyValues.excludedCombinations,
+            values: desiredValues,
+        })
+    ) {
+        return null;
+    }
+    return desiredValues;
+}
+
 function makeSelection({ dependencyValues }) {
     // console.log(`make selection`)
     // console.log(dependencyValues)
@@ -558,6 +655,10 @@ function makeSelection({ dependencyValues }) {
     if (dependencyValues.numToSelect < 1) {
         return selectionResult(NO_SELECT_ERROR, { selectedValues: [] });
     }
+
+    // An error when the DoenetML decides that nothing can be selected, and a
+    // missing selection with an info when a value does (D38, DIAG-7)
+    const type = selectFailureType(dependencyValues.choicesDecidedByDoenetML);
 
     let numUniqueRequired = 1;
     if (!dependencyValues.withReplacement) {
@@ -571,44 +672,19 @@ function makeSelection({ dependencyValues }) {
         const error = selectError({
             code: "doenet-e0047",
             args: { numToSelect: numUniqueRequired, numValues },
+            type,
         });
         return selectionResult(error, { selectedValues: null });
     }
 
-    // if desiredIndices is specfied, use those
-    if (
-        dependencyValues.variants &&
-        dependencyValues.variants.desiredVariant !== undefined
-    ) {
-        let desiredValues = dependencyValues.variants.desiredVariant.values;
-        if (desiredValues !== undefined) {
-            if (desiredValues.length !== dependencyValues.numToSelect) {
-                const error = selectError({ code: "doenet-e0048" });
-                return selectionResult(error, { selectedValues: null });
-            }
-
-            desiredValues = desiredValues.map(Number);
-
-            if (!desiredValues.every((x) => possibleValues.includes(x))) {
-                const error = selectError({ code: "doenet-e0049" });
-                return selectionResult(error, { selectedValues: null });
-            }
-
-            if (
-                checkForExcludedCombination({
-                    type: "number",
-                    excludedCombinations: dependencyValues.excludedCombinations,
-                    values: desiredValues,
-                })
-            ) {
-                const error = selectError({ code: "doenet-e0050" });
-                return selectionResult(error, { selectedValues: null });
-            }
-
-            return selectionResult(NO_SELECT_ERROR, {
-                selectedValues: desiredValues,
-            });
-        }
+    // If the requested variant gives values that fit, use them. Ones that
+    // don't fit are ignored, with an info (`ignoredVariantChoicesReported`),
+    // and the select chooses as though it had been given none.
+    const desiredValues = desiredValuesThatFit(dependencyValues);
+    if (desiredValues !== null) {
+        return selectionResult(NO_SELECT_ERROR, {
+            selectedValues: desiredValues,
+        });
     }
 
     let numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
@@ -661,7 +737,7 @@ function makeSelection({ dependencyValues }) {
             }
 
             if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                const error = selectError({ code: "doenet-e0051" });
+                const error = selectError({ code: "doenet-e0051", type });
                 return selectionResult(error, { selectedValues: null });
             }
         }
@@ -693,8 +769,9 @@ function makeSelection({ dependencyValues }) {
         }
 
         if (!foundValidCombination) {
-            // this won't happen, as occurs with prob < 10^(-30)
-            const error = selectError({ code: "doenet-e0052" });
+            // this won't happen, as occurs with prob < 10^(-30), and depends
+            // on the variant alone
+            const error = selectError({ code: "doenet-e0052", type: "info" });
             return selectionResult(error, { selectedValues: null });
         }
     }

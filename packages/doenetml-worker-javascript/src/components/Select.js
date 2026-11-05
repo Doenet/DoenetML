@@ -14,10 +14,16 @@ import {
 import { createNewComponentIndices } from "../utils/componentIndices";
 import {
     NO_SELECT_ERROR,
+    choicesDecidedByDoenetML,
+    isInfoSelectFailure,
+    returnChoicesDecidedByDoenetMLDefinition,
+    returnIgnoredVariantChoicesDefinition,
     selectError,
+    selectFailureType,
     selectionResult,
 } from "../utils/selectErrors";
 import { errorComponentState } from "../utils/dast/errors";
+import { codedDiagnostic, diagnosticCodeFrom } from "../utils/diagnostics";
 
 /**
  * A {@link SelectErrorState} under the names the `availableVariants` group
@@ -37,7 +43,44 @@ function variantsError({ errorMessage, errorDiagnostic }) {
     };
 }
 
+/**
+ * The indices the requested variant gives a select, mapped onto its options,
+ * or `null` when they don't fit it: a different number of them than it
+ * selects, or one that is not an integer. That happens when the variant was
+ * saved before the document changed (#2389).
+ */
+function desiredIndicesThatFit({ variants, numToSelect, nOptions }) {
+    let desiredIndices = variants?.desiredVariant?.indices;
+    if (desiredIndices === undefined) {
+        return null;
+    }
+    if (desiredIndices.length !== numToSelect) {
+        return null;
+    }
+    desiredIndices = desiredIndices.map(Number);
+    if (!desiredIndices.every(Number.isInteger)) {
+        return null;
+    }
+    return desiredIndices.map(
+        (x) => ((((x - 1) % nOptions) + nOptions) % nOptions) + 1,
+    );
+}
+
 export default class Select extends CompositeComponent {
+    constructor(args) {
+        super(args);
+        // Whether a failure to select is an error or a missing selection with
+        // an info (`selectFailureType`): decided from what the author wrote,
+        // once, so it is the same in every variant.
+        this.doenetAttributes.choicesDecidedByDoenetML =
+            choicesDecidedByDoenetML({
+                component: this,
+                attributeNames: ["numToSelect", "withReplacement"],
+                optionChildType: "option",
+                componentInfoObjects: args.componentInfoObjects,
+            });
+    }
+
     static componentType = "select";
 
     static componentDocs = {
@@ -265,6 +308,30 @@ export default class Select extends CompositeComponent {
             },
         };
 
+        stateVariableDefinitions.choicesDecidedByDoenetML =
+            returnChoicesDecidedByDoenetMLDefinition();
+
+        stateVariableDefinitions.ignoredVariantChoicesReported =
+            returnIgnoredVariantChoicesDefinition({
+                component: "select",
+                dependencies: {
+                    numToSelect: {
+                        dependencyType: "stateVariable",
+                        variableName: "numToSelect",
+                    },
+                    nOptions: {
+                        dependencyType: "stateVariable",
+                        variableName: "nOptions",
+                    },
+                },
+                // Only where the definition of `selectedIndices` reads them:
+                // a select that selects nothing, or can't, ignores them anyway
+                desiredChoicesFit: (dependencyValues) =>
+                    !(dependencyValues.numToSelect >= 1) ||
+                    dependencyValues.nOptions === 0 ||
+                    desiredIndicesThatFit(dependencyValues) !== null,
+            });
+
         stateVariableDefinitions.selectedIndices = {
             immutable: true,
             hasEssential: true,
@@ -322,6 +389,10 @@ export default class Select extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "errorDiagnosticVariants",
                 },
+                choicesDecidedByDoenetML: {
+                    dependencyType: "stateVariable",
+                    variableName: "choicesDecidedByDoenetML",
+                },
                 variantRng: {
                     dependencyType: "value",
                     value: sharedParameters.variantRng,
@@ -350,37 +421,15 @@ export default class Select extends CompositeComponent {
                     });
                 }
 
-                // if desiredIndices is specified, use those
-                if (
-                    dependencyValues.variants &&
-                    dependencyValues.variants.desiredVariant !== undefined
-                ) {
-                    let desiredIndices =
-                        dependencyValues.variants.desiredVariant.indices;
-                    if (desiredIndices !== undefined) {
-                        if (
-                            desiredIndices.length !==
-                            dependencyValues.numToSelect
-                        ) {
-                            throw Error(
-                                "Number of indices specified for select must match number to select",
-                            );
-                        }
-                        desiredIndices = desiredIndices.map(Number);
-                        if (!desiredIndices.every(Number.isInteger)) {
-                            throw Error(
-                                "All indices specified for select must be integers",
-                            );
-                        }
-                        let n = dependencyValues.nOptions;
-                        desiredIndices = desiredIndices.map(
-                            (x) => ((((x - 1) % n) + n) % n) + 1,
-                        );
-
-                        return selectionResult(NO_SELECT_ERROR, {
-                            selectedIndices: desiredIndices,
-                        });
-                    }
+                // If the requested variant gives indices that fit, use those.
+                // Ones that don't fit are ignored, with an info
+                // (`ignoredVariantChoicesReported`), and the select chooses
+                // as though it had been given none.
+                const desiredIndices = desiredIndicesThatFit(dependencyValues);
+                if (desiredIndices !== null) {
+                    return selectionResult(NO_SELECT_ERROR, {
+                        selectedIndices: desiredIndices,
+                    });
                 }
 
                 // first check if have a variant for which options are specified
@@ -428,6 +477,9 @@ export default class Select extends CompositeComponent {
                             numToSelect: numUniqueRequired,
                             numOptions: dependencyValues.nOptions,
                         },
+                        type: selectFailureType(
+                            dependencyValues.choicesDecidedByDoenetML,
+                        ),
                     });
                     return selectionResult(error, { selectedIndices: [] });
                 }
@@ -658,6 +710,32 @@ export default class Select extends CompositeComponent {
         let diagnostics = [];
 
         let errorMessage = await component.stateValues.errorMessage;
+        const errorDiagnostic = await component.stateValues.errorDiagnostic;
+        if (errorMessage && isInfoSelectFailure(errorDiagnostic)) {
+            // A value or the variant decided that nothing can be selected,
+            // so the select is missing, a blank, and says why with an info
+            // (D38, DIAG-7)
+            return {
+                replacements: [
+                    {
+                        type: "serialized",
+                        componentType: "_missing",
+                        componentIdx: nComponents++,
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
+                        state: {},
+                    },
+                ],
+                diagnostics: [
+                    codedDiagnostic({
+                        type: "info",
+                        ...diagnosticCodeFrom(errorDiagnostic),
+                    }),
+                ],
+                nComponents,
+            };
+        }
         if (errorMessage) {
             return {
                 replacements: [
@@ -667,7 +745,7 @@ export default class Select extends CompositeComponent {
                         componentIdx: nComponents++,
                         state: errorComponentState(
                             errorMessage,
-                            await component.stateValues.errorDiagnostic,
+                            errorDiagnostic,
                         ),
                         attributes: {},
                         doenetAttributes: {},
@@ -730,10 +808,13 @@ export default class Select extends CompositeComponent {
             componentInfoObjects,
         });
 
-        // if subvariants were specified, add those the corresponding descendants
+        // if subvariants were specified, add those the corresponding
+        // descendants, unless the select ignored the variant's indices, so
+        // that its subvariants are for other options
         if (
             component.variants &&
-            component.variants.desiredVariant !== undefined
+            component.variants.desiredVariant !== undefined &&
+            !(await component.stateValues.ignoredVariantChoicesReported)
         ) {
             let desiredVariant = component.variants.desiredVariant;
             if (
@@ -862,6 +943,18 @@ export default class Select extends CompositeComponent {
         }
 
         for (let child of serializedComponent.children) {
+            if (child?.componentType === "_copy") {
+                // An option written with `copy`, or a reference, isn't an
+                // option yet, so the options can't be counted here (#2448).
+                // Counting the others would give the select indices of
+                // options it doesn't have.
+                pushVariantInfo(
+                    infoDiagnostics,
+                    { code: "doenet-i0056" },
+                    serializedComponent,
+                );
+                return { success: false };
+            }
             if (
                 child.attributes?.selectWeight ||
                 child.attributes?.selectForVariants
