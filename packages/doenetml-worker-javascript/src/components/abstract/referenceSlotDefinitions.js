@@ -275,9 +275,13 @@ export function referenceSlotDefinitions({
         // re-evaluate the referent's variable in the middle of a write
         excludeDependencyValuesInInverseDefinition: true,
         returnDependencies({ stateValues = {} }) {
-            return targetDependencies(
-                fixedReferentOf(this.svComponent),
-                stateValues[names.referentInfo],
+            const fixedReferent = fixedReferentOf(this.svComponent);
+            return withTargetMissing(
+                targetDependencies(
+                    fixedReferent,
+                    stateValues[names.referentInfo],
+                ),
+                fixedReferent ?? stateValues[names.referentInfo],
             );
         },
         definition({ dependencyValues, componentInfoObjects }) {
@@ -285,7 +289,11 @@ export function referenceSlotDefinitions({
             if (
                 target === undefined ||
                 target === null ||
-                dependencyValues.targetInactive
+                dependencyValues.targetInactive ||
+                // a property of a missing component is missing (D37), and
+                // holds the empty value of the presented type: `＿` in
+                // `<math>$n + 1</math>` of a missing `n`, not `NaN`
+                dependencyValues.targetMissing
             ) {
                 return {
                     setValue: {
@@ -437,6 +445,23 @@ export function targetDependencies(fixedReferent, referentInfo) {
 }
 
 /**
+ * `dependencies` with `targetMissing`, whether the referent `referentInfo`
+ * names is a missing component (`BaseComponent.isMissing`, D37), when there
+ * is a referent.
+ */
+export function withTargetMissing(dependencies, referentInfo) {
+    if (referentInfo) {
+        dependencies.targetMissing = {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName: "valueMissing",
+            variablesOptional: true,
+        };
+    }
+    return dependencies;
+}
+
+/**
  * A state variable definition that answers with the referent's variable of
  * the same name when the reference is to the referent's own value
  * (`referentInfo.referencedPrimaryValue`) and the referent has the variable,
@@ -555,8 +580,12 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
  * answer records such a reference as a blank math. Nothing else asks, and
  * there the reference holds the empty value of the presented type.
  *
- * A reference a copy made at run time (`fixedReferent`) has no
- * `valueMissing`. The copy makes no reference for an entry that is not
+ * A reference to a missing component (`BaseComponent.isMissing`, D37) is
+ * missing too, whatever variable it reads: `$m.value` of a missing `m`.
+ *
+ * A reference a copy made at run time (`fixedReferent`) has its own
+ * `valueMissing`, which is only whether its referent is a missing component
+ * (`ValueRef.js`). The copy makes no reference for an entry that is not
  * there (`Copy.js`), and a reference it made stands for the component it
  * made before value references, which held the empty value of its type once
  * its variable held no value (`$c.selectedValue` after the selected choice
@@ -566,9 +595,11 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
     return {
         stateVariablesDeterminingDependencies: [names.referentInfo],
         returnDependencies({ stateValues }) {
-            return targetDependencies(
-                undefined,
-                stateValues[names.referentInfo],
+            const referentInfo = stateValues[names.referentInfo];
+            // A property of a missing component is missing (D37).
+            return withTargetMissing(
+                targetDependencies(undefined, referentInfo),
+                referentInfo,
             );
         },
         definition({ dependencyValues }) {
@@ -576,7 +607,8 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
                 setValue: {
                     [names.valueMissing]:
                         dependencyValues.target === undefined ||
-                        Boolean(dependencyValues.targetInactive),
+                        Boolean(dependencyValues.targetInactive) ||
+                        Boolean(dependencyValues.targetMissing),
                 },
             };
         },

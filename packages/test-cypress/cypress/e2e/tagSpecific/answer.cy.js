@@ -2056,13 +2056,13 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.get("#pSubX")
             .scrollIntoView()
-            .should("have.text", "Submitted response: ");
+            .should("have.text", "Submitted response: ＿");
         cy.get("#pCreditX")
             .scrollIntoView()
             .should("have.text", "Credit for this answer: 0");
         cy.get("#pSubCorrect")
             .scrollIntoView()
-            .should("have.text", "Submitted response: ");
+            .should("have.text", "Submitted response: ＿");
         cy.get("#pCreditCorrect")
             .scrollIntoView()
             .should("have.text", "Credit for this answer: 0");
@@ -2082,7 +2082,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.get("#pSubX")
             .scrollIntoView()
-            .should("have.text", "Submitted response: ");
+            .should("have.text", "Submitted response: ＿");
         cy.get("#pCreditX")
             .scrollIntoView()
             .should("have.text", "Credit for this answer: 0");

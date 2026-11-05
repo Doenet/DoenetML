@@ -264,7 +264,7 @@ describe("chart prefigure tests @group4", async () => {
 
             expect(await text("first")).eq("41");
             expect(await text("second")).eq("63");
-            expect(await text("past")).eq("[]");
+            expect(await text("past")).eq("[＿]");
             expect(await text("total")).eq("200");
         });
 

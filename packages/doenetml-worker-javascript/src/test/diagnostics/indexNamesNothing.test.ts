@@ -18,7 +18,7 @@ vi.mock("hyperformula");
  * - An index past the end is silent, literal or dynamic, since the length of a
  *   list can change (#1499).
  * - An index that cannot be applied at all (`$n.value[1]`) is `doenet-w0100`,
- *   and shows nothing rather than the value it was written on.
+ *   and shows a blank rather than the value it was written on.
  */
 const preamble = `<mathList name="l">1 2 3</mathList><number name="n">5</number><point name="P">(1,2)</point>`;
 
@@ -46,7 +46,7 @@ function inParagraph(body: string) {
 }
 
 describe("An index that names nothing @group4", async () => {
-    it("shows nothing, and an index below 1 gets one coded warning quoting the whole reference", async () => {
+    it("shows a blank, and an index below 1 gets one coded warning quoting the whole reference", async () => {
         const cases: { body: string; reference: string }[] = [
             { body: `[$l[0]]`, reference: "$l[0]" },
             { body: `[$l[-1]]`, reference: "$l[-1]" },
@@ -77,7 +77,7 @@ describe("An index that names nothing @group4", async () => {
             const { text, warnings, errors, infos } = await shownAndReported(
                 inParagraph(body),
             );
-            expect(text, body).eq("[]");
+            expect(text, body).eq("[＿]");
             expect(errors, body).eqls([]);
             expect(infos, body).eqls([]);
             expect(warnings.length, body).eq(1);
@@ -97,19 +97,19 @@ describe("An index that names nothing @group4", async () => {
         expect(doenetML.substring(start.offset!, end.offset!)).eq("$l[0]");
     });
 
-    it("is an error in an extend or copy attribute, marked at the reference", async () => {
-        // The same reference on a tag is an error, shown in the tag's place:
-        // a tag always makes that tag (D36).
+    it("is a warning in an extend or copy attribute, marked at the reference", async () => {
+        // The same reference on a tag is the same warning, and the tag is a
+        // missing `<math>`, shown as a blank (D37).
         for (const attribute of ["extend", "copy"]) {
             const { text, warnings, errors, doenetML } = await shownAndReported(
                 `<p name="p"><math ${attribute}="$l[0]" /></p>`,
             );
-            expect(text, attribute).eq("");
-            expect(warnings, attribute).eqls([]);
-            expect(errors.length, attribute).eq(1);
-            expect(errors[0].code, attribute).eq("doenet-w0104");
-            expect(errors[0].args, attribute).eqls({ reference: "$l[0]" });
-            const { start, end } = errors[0].position!;
+            expect(text, attribute).eq("＿");
+            expect(errors, attribute).eqls([]);
+            expect(warnings.length, attribute).eq(1);
+            expect(warnings[0].code, attribute).eq("doenet-w0104");
+            expect(warnings[0].args, attribute).eqls({ reference: "$l[0]" });
+            const { start, end } = warnings[0].position!;
             expect(
                 doenetML.substring(start.offset!, end.offset!),
                 attribute,
@@ -126,7 +126,7 @@ describe("An index that names nothing @group4", async () => {
             const { text, warnings, errors, infos } = await shownAndReported(
                 inParagraph(body),
             );
-            expect(text, body).eq("[]");
+            expect(text, body).eq("[＿]");
             expect([...warnings, ...errors, ...infos], body).eqls([]);
         }
     });
@@ -145,7 +145,7 @@ describe("An index that names nothing @group4", async () => {
             const { text, warnings, errors, infos } = await shownAndReported(
                 inParagraph(body),
             );
-            expect(text, body).eq("[]");
+            expect(text, body).eq("[＿]");
             expect([...errors, ...infos], body).eqls([]);
             expect(warnings.length, body).eq(1);
             expect(warnings[0].code, body).eq("doenet-w0104");
@@ -173,7 +173,7 @@ describe("An index that names nothing @group4", async () => {
             const { text, warnings, errors, infos } = await shownAndReported(
                 inParagraph(body),
             );
-            expect(text, body).eq("[]");
+            expect(text, body).eq("[＿]");
             expect([...errors, ...infos], body).eqls([]);
             expect(
                 warnings.map((w) => w.code),
@@ -182,15 +182,16 @@ describe("An index that names nothing @group4", async () => {
             expect(warnings[0].message, body).contain(reference);
         }
 
-        // On a tag, as for `<math extend="$n.nonexistent"/>`, it is an error,
-        // and a property the iteration's math has is made.
+        // On a tag, as for `<math extend="$n.nonexistent"/>`, it is the same
+        // warning and the tag is missing, and a property the iteration's math
+        // has is made.
         const onTag = await shownAndReported(
             `<repeatForSequence name="r" length="2" valueName="v"><math>$v</math></repeatForSequence><p name="p">[<math extend="$r[1].nonexistent"/>][<math extend="$r[2].value"/>]</p>`,
         );
-        expect(onTag.text).eq("[][2]");
-        expect([...onTag.warnings, ...onTag.infos]).eqls([]);
-        expect(onTag.errors.map((e) => e.code)).eqls(["doenet-w0104"]);
-        expect(onTag.errors[0].message).contain("$r[1].nonexistent");
+        expect(onTag.text).eq("[＿][2]");
+        expect([...onTag.errors, ...onTag.infos]).eqls([]);
+        expect(onTag.warnings.map((e) => e.code)).eqls(["doenet-w0104"]);
+        expect(onTag.warnings[0].message).contain("$r[1].nonexistent");
 
         // A property the picked component has, or a name, stays silent.
         const { text, warnings, errors, infos } = await shownAndReported(
@@ -208,7 +209,7 @@ describe("An index that names nothing @group4", async () => {
             const { text, warnings, errors, infos } = await shownAndReported(
                 inParagraph(body),
             );
-            expect(text, body).eq("[]");
+            expect(text, body).eq("[＿]");
             expect([...warnings, ...errors, ...infos], body).eqls([]);
         }
 
@@ -253,7 +254,7 @@ describe("An index that names nothing @group4", async () => {
             componentIdx: await resolvePathToNodeIdx("i"),
             core,
         });
-        expect(await text()).eq("[]");
+        expect(await text()).eq("[＿]");
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
         expect(warnings[0].code).eq("doenet-w0104");
@@ -267,12 +268,12 @@ describe("An index that names nothing @group4", async () => {
         expect(await text()).eq("[3]");
     });
 
-    it("shows nothing for an index on a property that is not an array", async () => {
+    it("shows a blank for an index on a property that is not an array", async () => {
         // It used to show `5` while warning that the index cannot be used.
         const { text, warnings, errors, infos } = await shownAndReported(
             `<p name="p">[$n.value[1]]</p>`,
         );
-        expect(text).eq("[]");
+        expect(text).eq("[＿]");
         expect(errors).eqls([]);
         expect(infos).eqls([]);
         expect(warnings.length).eq(1);
@@ -343,10 +344,56 @@ describe("An index that names nothing @group4", async () => {
             const { text, warnings } = await shownAndReported(
                 `<p name="p">[${reference}]</p>`,
             );
-            expect(text, reference).eq("[]");
+            expect(text, reference).eq("[＿]");
             expect(warnings.length, reference).eq(1);
             expect(warnings[0].code, reference).eq("doenet-w0104");
             expect(warnings[0].args, reference).eqls({ reference });
+        }
+    });
+
+    it("keeps the info of a tag whose child has a warning of its own", async () => {
+        // A warning in what is written in the tag says nothing about its
+        // index; one in its reference (`$l[$nothing]`) does.
+        const { warnings, errors, infos } = await shownAndReported(
+            `<mathInput name="i" prefill="5"/><group name="pg"><text>a</text><text>b</text></group><p name="p"><text extend="$pg[$i]">$nothing</text><math extend="$l[$nothing]"/></p>`,
+        );
+        expect(errors).eqls([]);
+        expect(warnings.map((w) => w.args)).eqls([
+            { reference: "$nothing" },
+            { reference: "$nothing" },
+        ]);
+        expect(infos.map((i) => [i.code, i.args?.source])).eqls([
+            ["doenet-i0054", "$pg[$i]"],
+        ]);
+    });
+
+    it("keeps the info of a tag with a warning in another attribute", async () => {
+        // Only a warning at the reference the tag is made from says why its
+        // index names nothing; `displayDigits="$nothing"` does not.
+        const { warnings, errors, infos } = await shownAndReported(
+            `<p name="p"><math extend="$l[5]" displayDigits="$nothing"/></p>`,
+        );
+        expect(errors).eqls([]);
+        expect(warnings.map((w) => w.args)).toContainEqual({
+            reference: "$nothing",
+        });
+        expect(infos.map((i) => [i.code, i.args?.source])).eqls([
+            ["doenet-i0054", "$l[5]"],
+        ]);
+    });
+
+    it("reads the reference of a tag whatever the case of its attribute", async () => {
+        // `Extend` is `extend`: the warning in its index says why the index
+        // names nothing, as for the lowercase attribute.
+        for (const attribute of ["extend", "Extend", "COPY"]) {
+            const { warnings, infos } = await shownAndReported(
+                `<p name="p"><math ${attribute}="$l[$nothing]"/></p>`,
+            );
+            expect(
+                warnings.map((w) => w.code),
+                attribute,
+            ).eqls(["doenet-w0104"]);
+            expect(infos, attribute).eqls([]);
         }
     });
 
@@ -359,18 +406,19 @@ describe("An index that names nothing @group4", async () => {
         expect(warnings[0].args).eqls({ reference: "$t" });
     });
 
-    it("codes a name in an extend attribute that names more than one thing, as an error", async () => {
+    it("codes a name in an extend attribute that names more than one thing, as a warning", async () => {
         // The resolver gives no path for more than one referent, so the
         // reference is quoted from where it is marked, inside the attribute.
-        // On a tag it is an error (D36).
-        const { errors, warnings, doenetML } = await shownAndReported(
+        // On a tag it is the same warning, and the tag is missing (D37).
+        const { text, errors, warnings, doenetML } = await shownAndReported(
             `<group><text name="t">a</text><text name="t">b</text></group><p name="p"><text extend="$t" /></p>`,
         );
-        expect(warnings).eqls([]);
-        expect(errors.length).eq(1);
-        expect(errors[0].code).eq("doenet-w0105");
-        expect(errors[0].args).eqls({ reference: "$t" });
-        const { start, end } = errors[0].position!;
+        expect(text).eq("＿");
+        expect(errors).eqls([]);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0105");
+        expect(warnings[0].args).eqls({ reference: "$t" });
+        const { start, end } = warnings[0].position!;
         expect(doenetML.substring(start.offset!, end.offset!)).eq("$t");
     });
 });

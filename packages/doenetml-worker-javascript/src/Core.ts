@@ -380,6 +380,7 @@ export default class Core {
         });
         this.diagnosticsManager.isShown = (componentIdx: number) =>
             this.isComponentShown(componentIdx);
+        this.diagnosticsManager.sources = allDoenetMLs;
 
         this.numerics = new (Numerics as any)();
         this.flags = flags;

@@ -305,11 +305,11 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pa")].stateValues
                     .text,
-            ).eq(names[0] || "");
+            ).eq(names[0] || "＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx("pb")].stateValues
                     .text,
-            ).eq(names[2] || "");
+            ).eq(names[2] || "＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx("p2")].stateValues
                     .text,
@@ -317,11 +317,11 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pa2")].stateValues
                     .text,
-            ).eq(names[0] || "");
+            ).eq(names[0] || "＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx("pb2")].stateValues
                     .text,
-            ).eq(names[2] || "");
+            ).eq(names[2] || "＿");
         }
 
         await check_text([]);
@@ -575,7 +575,7 @@ describe("Conditional content tag tests @group2", async () => {
 
             // `c` is in one case only, so `$cc2.c` and `$cc3.c` name nothing
             // whichever case is active (#2450), and `c1`, written as a tag,
-            // is an error (checked below). The `c` of the active case is
+            // is missing, with a warning (checked below). The `c` of the active case is
             // still there, reached through the container.
             if (optional) {
                 expect(
@@ -604,11 +604,11 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(`pc2`)].stateValues
                     .text,
-            ).eq("");
+            ).eq("＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx(`pc3`)].stateValues
                     .text,
-            ).eq("");
+            ).eq("＿");
 
             expect(stateVariables[await resolvePathToNodeIdx(`cc3.d`)]).eq(
                 undefined,
@@ -654,19 +654,25 @@ describe("Conditional content tag tests @group2", async () => {
         await check_items("mouse", "z");
 
         // A name not in every case names nothing: a warning for each
-        // reference, and an error for each written as a tag (#2450)
+        // reference, whether bare or written as a tag, which is then
+        // missing (#2450, D37)
         const { warnings, errors } = getDiagnosticsByType(core);
         // `d` is no name of the document, so it is a property, which no
         // case has (`doenet-w0104`).
         expect(warnings.map((w) => w.message)).eqls([
             "`$cc2.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
             "`$cc3.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
-            "No referent found for reference: `$cc2.d`",
-        ]);
-        expect(errors.map((e) => e.message)).eqls([
             "`$cc.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
             "No referent found for reference: `$cc.d`",
+            "No referent found for reference: `$cc2.d`",
         ]);
+        expect(errors.map((e) => e.message)).eqls([]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["c1", "d1"]) {
+            const component = stateVariables[await resolvePathToNodeIdx(name)];
+            expect(component.componentType, name).eq("text");
+            expect(component.stateValues.valueMissing, name).eq(true);
+        }
     }
 
     it("case/else with text, math, and optional", async () => {
@@ -1359,7 +1365,7 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pb1")].stateValues
                     .text,
-            ).eq("b1: ");
+            ).eq("b1: ＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx("pc1")].stateValues
                     .text,
@@ -1371,7 +1377,7 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pe1")].stateValues
                     .text,
-            ).eq("e1: ");
+            ).eq("e1: ＿");
 
             expect(
                 stateVariables[await resolvePathToNodeIdx("b1")].stateValues
@@ -1505,9 +1511,10 @@ describe("Conditional content tag tests @group2", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(
-            stateVariables[await resolvePathToNodeIdx("s")].activeChildren,
-        ).eqls([
+        // `$nada` names nothing, so it is a blank (D37)
+        const activeChildren =
+            stateVariables[await resolvePathToNodeIdx("s")].activeChildren;
+        expect(activeChildren).eqls([
             "\n  ",
             {
                 componentIdx: await resolvePathToNodeIdx("n"),
@@ -1515,6 +1522,10 @@ describe("Conditional content tag tests @group2", async () => {
             },
             "\n  before\n  ",
             "nothing: ",
+            {
+                componentIdx: activeChildren[4].componentIdx,
+                componentType: "_missing",
+            },
             "\n  after\n",
         ]);
     });

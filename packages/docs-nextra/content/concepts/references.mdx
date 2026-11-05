@@ -148,9 +148,10 @@ it **always holds exactly one component, of one type** that can become the tag.
 This is decided when the document loads, from what you wrote, not from what
 the composite holds as the document runs:
 
-* a `<conditionalContent>` needs an `<else>`, and each case and the else must
-  hold one component of the same type. Without an `<else>`, it holds nothing
-  while no case is true, so add an `<else>`;
+* each case of a `<conditionalContent>`, and its `<else>`, must hold one
+  component of the same type, or nothing. While it holds nothing, as while no
+  case is true and there is no `<else>`, the tag is missing (see
+  [below](#what-still-changes-as-the-document-runs));
 * a `<select>`, `<selectFromSequence>` or another selector needs `numToSelect`
   written as `1`, or left out;
 * a `<group>`, `<sort>` or `<shuffle>` needs one component;
@@ -182,8 +183,14 @@ components, index what a `<repeat>`, a selector or a `<collect>` makes, such as
 ```
 
 A tag whose reference names nothing, more than one thing, or a property its
-source doesn't have is an error too. Written bare, `$nothing` is a warning and
-shows nothing.
+source doesn't have is not an error: it is **missing**, with the same warning
+the bare reference gives. A missing tag shows as a blank, `＿`, whatever it
+adds: `<math extend="$nothing">+1</math>{:dn}` and
+`<p extend="$nothing">note</p>{:dn}` both show `＿`, without their children, and
+a missing point isn't drawn in a graph. It is not the same as the empty tag:
+`<text/>{:dn}` is `""`, while a missing text never equals anything, and a
+reference to it, or to a property of it, is missing too. `hide` still hides it.
+Written bare, `$nothing` shows `＿` too, with the same warning.
 
 Other errors, each with the form to write instead:
 
@@ -194,16 +201,19 @@ Other errors, each with the form to write instead:
 
 #### What still changes as the document runs
 
-Two things are decided as the document runs, and neither changes what the tag
-makes:
+Three things are decided as the document runs. Each leaves the tag missing for
+a while, shown as `＿`, with an info, and none changes its type:
 
 * **A value that doesn't convert.** `<point extend="$m"/>{:dn}` while `m` is not
   a tuple, or `<boolean extend="$t"/>{:dn}` while `t` is not true or false, is
-  still a point or a boolean. It has the value an empty one has, such as
-  `(0, 0)`, with an info, until the value converts.
+  missing until the value converts.
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
-  iterations of `r` is still a math, `＿`, with an info, and is made from the
-  iteration again when the index names one.
+  iterations of `r` is missing, and is made from the iteration again, with the
+  tag's own children, when the index names one. The bare reference `$r[$i]`
+  shows `＿` too, without the info. A literal index below 1, such as `$l[0]`,
+  never names anything, and is a warning in either form.
+* **A composite that holds nothing.** `<math extend="$cc"/>{:dn}` of a
+  `<conditionalContent>` with no `<else>` is missing while no case is true.
 
 While the info lasts there is one, naming the value as it is now, and none for a
 tag in content that isn't there now, such as a case that isn't chosen. A `copy`
@@ -260,7 +270,7 @@ mean either section's `n`, so it fails.
 <p>Outside the sections, $n is ambiguous.</p>
 ```
 
-Nothing is rendered for `$n`, because DoenetML won't guess which `n` you meant.
+`$n` shows as a blank, `＿`, because DoenetML won't guess which `n` you meant.
 The editor surfaces the problem in the **Warnings** panel — its tab is marked
 with a <svg viewBox="0 0 16 16" width="1em" height="1em" fill="#c25a1a" style={{ display: "inline-block", verticalAlign: "-0.125em" }} role="img" aria-label="warning"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg> icon — reporting
 *Multiple referents found for reference: `$n`*. The same message also appears
@@ -296,10 +306,10 @@ The reference works only if **every case declares the name, with the same
 type**, so that what it names never changes type when another case is shown.
 "Every case" means each `<case>` written and the `<else>`, if there is one.
 With no `<else>`, an `x` in every case is enough: while no case is true, `$x`
-names nothing. If a case lacks `x`, or two cases declare it with different
-types, `$x` and `$cc.x` name nothing, with a warning that says which. Written as
-a tag, such as `<math extend="$x"/>{:dn}`, either is an error, and so is a name
-that is missing while no case is true, with no `<else>`. On a tag, a type that
+names nothing, and shows `＿`. If a case lacks `x`, `$x` and `$cc.x` name
+nothing, with a warning that says which; written as a tag, such as
+`<math extend="$x"/>{:dn}`, it is missing, with the same warning. If two cases
+declare `x` with different types, `$x`, `$cc.x` and the tag are an error. On a tag, a type that
 already is the tag counts as it: with an `<integer name="x">{:dn}` in one case
 and a `<number name="x">{:dn}` in another, `<number extend="$x"/>{:dn}` and
 `<number extend="$x.value"/>{:dn}` work, while `$x` alone does not. A name after it is held
@@ -419,17 +429,17 @@ cause is a typo in the name.
 <p>$total has no referent, because nothing is named "total".</p>
 ```
 
-As with an ambiguous reference, `$total` renders nothing and DoenetML reports a
+As with an ambiguous reference, `$total` shows a blank, `＿`, and DoenetML reports a
 warning — here, *No referent found for reference: `$total`* — shown in the
 Warnings panel and as a tooltip on hover.
 
 The same warning is given for a property the component doesn't have, such as
 `$count.total`. A property it has, but with no value now, such as `$P.z` of a
-point in two dimensions, shows nothing with no warning.
+point in two dimensions, shows `＿` with no warning.
 
 Written as a tag, such as `<number extend="$total"/>{:dn}`, the same reference
-is an error rather than a warning: a tag always makes that tag, and this one
-can't be made. The error is shown in its place.
+gives the same warning, and the tag is missing: it shows `＿`, whatever the tag
+adds.
 
 ## Referencing repeated content
 

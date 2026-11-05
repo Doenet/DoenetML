@@ -773,6 +773,14 @@ export async function substituteAdapter({
         // an attribute segment is `@<name>`, and the only other `@@` form is
         // a reference path's index, whose segment is digits and dots.
         newSerializedChild.stateId = `${originalChild.stateId}@@adapt${adapterIndUsed}`;
+        // An adapter of a missing component is missing too (D37): what a
+        // `<p>` draws of a missing `<point>` is its missing `<coords>`.
+        if (originalChild.isMissing) {
+            newSerializedChild.doenetAttributes = {
+                ...newSerializedChild.doenetAttributes,
+                missing: true,
+            };
+        }
         core._components[core._components.length] = undefined;
     } else {
         // XXX: how does this work with the new componentIdx approach?

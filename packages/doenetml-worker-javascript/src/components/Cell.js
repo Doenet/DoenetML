@@ -422,7 +422,7 @@ export default class Cell extends BaseComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["maths", "anything"],
-                    variableNames: ["text", "hidden"],
+                    variableNames: ["text", "hidden", "valueMissing"],
                     variablesOptional: true,
                 },
                 prefill: {

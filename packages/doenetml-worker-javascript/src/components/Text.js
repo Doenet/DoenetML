@@ -88,6 +88,9 @@ export default class Text extends InlineComponent {
                     "text",
                     "_singleCharacterInline",
                     "_inlineRenderInlineChildren",
+                    // a bare reference to one thing that names nothing
+                    // (`$nothing`), which reads as a blank (D37)
+                    "_missing",
                 ],
             },
         ];
@@ -148,7 +151,12 @@ export default class Text extends InlineComponent {
                 textLikeChildren: {
                     dependencyType: "child",
                     childGroups: ["textLike"],
-                    variableNames: ["text"],
+                    // a missing child reads as a blank (`textFromComponent`,
+                    // D37); like any child, whether or not it is hidden, as
+                    // a `<text>` reads its children's values and ignores
+                    // their `hide`
+                    variableNames: ["text", "valueMissing"],
+                    variablesOptional: true,
                 },
             }),
             defaultValue: "",

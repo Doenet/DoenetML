@@ -422,7 +422,7 @@ export class Li extends BaseComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
-                    variableNames: ["text", "hidden"],
+                    variableNames: ["text", "hidden", "valueMissing"],
                     variablesOptional: true,
                 },
             }),

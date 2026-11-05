@@ -1081,7 +1081,11 @@ describe("Extend and references tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pHidden2A")].stateValues
                 .text,
-        ).eq("Hidden 2A: ");
+            // A bare value reference does not find the name `hidden` among
+            // the children an extended `<p>` copies (the tag form above
+            // does), so it names nothing, which is a blank (D37). It was
+            // hidden only because a reference with nothing to read was.
+        ).eq("Hidden 2A: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pReveal2")].stateValues
                 .text,
@@ -1097,7 +1101,11 @@ describe("Extend and references tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pHidden4A")].stateValues
                 .text,
-        ).eq("Hidden 4A: ");
+            // A bare value reference does not find the name `hidden` among
+            // the children an extended `<p>` copies (the tag form above
+            // does), so it names nothing, which is a blank (D37). It was
+            // hidden only because a reference with nothing to read was.
+        ).eq("Hidden 4A: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("pReveal4")].stateValues
                 .text,
@@ -1293,7 +1301,7 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("We can't see  in paragraph or  in text.");
+        ).eq("We can't see ＿ in paragraph or ＿ in text.");
         expect(
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,
@@ -3215,10 +3223,10 @@ describe("Extend and references tests @group2", async () => {
         ).eqls(NaN);
     });
 
-    it("a tag whose extend names nothing is an error in its place, children and all", async () => {
+    it("a tag whose extend names nothing is missing, children and all", async () => {
         // A tag written with `extend` always makes that tag (D36), so one
-        // whose reference names nothing cannot be made, and the error is
-        // shown where it was written, in place of its children too.
+        // whose reference names nothing is missing, with a warning, and
+        // without its children (D37).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" extend="$invalid">
@@ -3234,9 +3242,14 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].componentType,
-        ).eq("_error");
-        const errors = getDiagnosticsByType(core).errors;
-        expect(errors.map((e) => [e.code, e.message])).eqls([
+        ).eq("graph");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .valueMissing,
+        ).eq(true);
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors).eqls([]);
+        expect(warnings.map((e) => [e.code, e.message])).eqls([
             ["doenet-w0104", "No referent found for reference: `$invalid`"],
         ]);
     });
@@ -4483,6 +4496,12 @@ describe("Extend and references tests @group2", async () => {
                         .label,
                 ).eq("\\(V_ 3\\)");
             } else {
+                // The index names nothing, so `P` is missing, without its
+                // own label (D37).
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                        .valueMissing,
+                ).eq(true);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("Pa")].stateValues
                         .coords.tree,
@@ -4490,7 +4509,7 @@ describe("Extend and references tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("l")].stateValues
                         .value,
-                ).eq("\\(V_ \uff3f\\)");
+                ).eq("");
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("P")
@@ -4499,7 +4518,7 @@ describe("Extend and references tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("P")].stateValues
                         .label,
-                ).eq("\\(V_ \uff3f\\)");
+                ).eq("");
             }
         }
 
@@ -4587,7 +4606,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("y of P: 3");
         expect(
             stateVariables[await resolvePathToNodeIdx("p8")].stateValues.text,
-        ).eq("nothing: ");
+        ).eq("nothing: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
         ).eq("x of P: 2");
@@ -4596,7 +4615,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("y of P: 3");
         expect(
             stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
-        ).eq("nothing: ");
+        ).eq("nothing: ＿");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p12")].stateValues.text,
@@ -4609,7 +4628,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("no match: $(P.)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p15")].stateValues.text,
-        ).eq("nothing: ");
+        ).eq("nothing: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p16")].stateValues.text,
         ).eq("x of P: 2");
@@ -4761,7 +4780,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p11")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
 
             // XXX: restore these assertions
             // expect(
@@ -4773,7 +4792,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p14")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
 
             // XXX: restore this assertion
             // expect(
@@ -4790,7 +4809,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p18")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             // XXX: restore these assertions
             // expect(
             //     stateVariables[await resolvePathToNodeIdx("p19")].stateValues.text,
@@ -4801,36 +4820,36 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p21")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
 
             expect(
                 stateVariables[await resolvePathToNodeIdx("p22")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p23")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p24")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p25")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p26")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p27")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p28")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
 
             // XXX: restore these assertions
             // expect(
@@ -4937,19 +4956,19 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p47")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p48")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p49")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p50")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
         }
 
         await check_items({
@@ -5728,19 +5747,19 @@ describe("Extend and references tests @group2", async () => {
             );
 
             if (!(n >= 1 && tn <= n)) {
-                // we have nothing
+                // the index names nothing, so each reference is a blank (D37)
                 expect(
                     stateVariables[await resolvePathToNodeIdx("pt")].stateValues
                         .text,
-                ).contain("are:  and .");
+                ).contain("are: ＿ and ＿.");
                 expect(
                     stateVariables[await resolvePathToNodeIdx("pp")].stateValues
                         .text,
-                ).contain("from the line in that item is: .");
+                ).contain("from the line in that item is: ＿.");
                 expect(
                     stateVariables[await resolvePathToNodeIdx("pc")].stateValues
                         .text,
-                ).contain("from that point is .");
+                ).contain("from that point is ＿.");
             } else {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("pt")].stateValues
@@ -5772,7 +5791,7 @@ describe("Extend and references tests @group2", async () => {
                     //     expect(
                     //         stateVariables[await resolvePathToNodeIdx("pc")]
                     //             .stateValues.text,
-                    //     ).contain("from that point is .");
+                    //     ).contain("from that point is ＿.");
                     // }
                 } else if (pn === 2) {
                     expect(
@@ -5797,17 +5816,17 @@ describe("Extend and references tests @group2", async () => {
                     //     expect(
                     //         stateVariables[await resolvePathToNodeIdx("pc")]
                     //             .stateValues.text,
-                    //     ).contain("from that point is .");
+                    //     ).contain("from that point is ＿.");
                     // }
                 } else {
                     expect(
                         stateVariables[await resolvePathToNodeIdx("pp")]
                             .stateValues.text,
-                    ).contain("from the line in that item is: .");
+                    ).contain("from the line in that item is: ＿.");
                     expect(
                         stateVariables[await resolvePathToNodeIdx("pc")]
                             .stateValues.text,
-                    ).contain("from that point is .");
+                    ).contain("from that point is ＿.");
                 }
             }
         }
@@ -5922,13 +5941,13 @@ describe("Extend and references tests @group2", async () => {
         ).eq("the math: x");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq("a blank: ");
+        ).eq("a blank: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
         ).eq("the text: hello");
         expect(
             stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
-        ).eq("another blank: ");
+        ).eq("another blank: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
         ).eq("the point: (4, 5)");
@@ -5952,7 +5971,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("text from p: word");
         expect(
             stateVariables[await resolvePathToNodeIdx("p12")].stateValues.text,
-        ).eq("nothing: ");
+        ).eq("nothing: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p13")].stateValues.text,
         ).eq("Prop fixed from group: falsetruefalsefalsefalse");
@@ -6531,14 +6550,14 @@ describe("Extend and references tests @group2", async () => {
                     .activeChildren[1].componentIdx
             ].stateValues.text,
         ).eq(
-            "Reference $\u200Bp does not add ability to reference names: (, ).",
+            "Reference $\u200Bp does not add ability to reference names: (＿, ＿).",
         );
         expect(
             stateVariables[
                 stateVariables[await resolvePathToNodeIdx("sec4")]
                     .activeChildren[1].componentIdx
             ].stateValues.text,
-        ).eq("Nor can one reference by names from the group: (, ).");
+        ).eq("Nor can one reference by names from the group: (＿, ＿).");
         expect(
             stateVariables[
                 stateVariables[await resolvePathToNodeIdx("sec5")]
@@ -6605,7 +6624,7 @@ describe("Extend and references tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
                 .text,
-        ).eq("3rd entry: , ");
+        ).eq("3rd entry: ＿, ＿");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
@@ -6684,12 +6703,12 @@ describe("Extend and references tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
                 .text,
-        ).eq("3rd entry: , ");
+        ).eq("3rd entry: ＿, ＿");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
                 .text,
-        ).eq("3rd entry: , ");
+        ).eq("3rd entry: ＿, ＿");
 
         // Add three replacements, so that third entry is again a number
         await updateMathInputValue({
@@ -6762,7 +6781,7 @@ describe("Extend and references tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
                 .text,
-        ).eq("3rd entry: , ");
+        ).eq("3rd entry: ＿, ＿");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
@@ -6809,9 +6828,10 @@ describe("Extend and references tests @group2", async () => {
         ).eq("3rd entry: 2, 2");
     });
 
-    it("extending a property that does not exist is an error in its place", async () => {
+    it("extending a property that does not exist is missing, with a warning", async () => {
         // A tag always makes that tag (D36): a property its source does not
-        // have names nothing, as a name that names nothing does (#2434).
+        // have names nothing, as a name that names nothing does (#2434), so
+        // the tag is missing (D37).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p">Hello</p>
@@ -6822,10 +6842,15 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq(undefined);
-        const errors = getDiagnosticsByType(core).errors;
-        expect(errors.map((e) => [e.code, e.message])).eqls([
+            stateVariables[await resolvePathToNodeIdx("p2")].componentType,
+        ).eq("p");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                .valueMissing,
+        ).eq(true);
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors).eqls([]);
+        expect(warnings.map((e) => [e.code, e.message])).eqls([
             ["doenet-w0104", "No referent found for reference: `$p.badProp`"],
         ]);
     });
@@ -7369,9 +7394,9 @@ describe("Extend and references tests @group2", async () => {
             `;
 
             for (const [paragraph, expected] of [
-                ["$myList[$io] tail", " tail"],
-                ["[$myList[$io]]", "[]"],
-                ["head $myList[$io] tail", "head  tail"],
+                ["$myList[$io] tail", "＿ tail"],
+                ["[$myList[$io]]", "[＿]"],
+                ["head $myList[$io] tail", "head ＿ tail"],
             ] as const) {
                 const { text, diagnostics } = await run(doc(paragraph));
                 expect(text).eq(expected);
@@ -7490,7 +7515,7 @@ describe("Extend and references tests @group2", async () => {
     <p name="p1">$nl[$ci.selectedIndex]</p>
             `;
             const { text, diagnostics } = await run(doenetML, "p1");
-            expect(text).eq("");
+            expect(text).eq("＿");
             expect(diagnostics.errors.length).eq(0);
 
             // "For now" is the load-bearing half. Setting the value directly
@@ -7532,13 +7557,14 @@ describe("Extend and references tests @group2", async () => {
                 `,
                     "p1",
                 );
-                expect(text, reference).eq("");
+                expect(text, reference).eq("＿");
             }
         });
 
         it("matches what the element-index spelling already did", async () => {
             // The element index never took the shadow path, so it rendered
-            // empty throughout. It is the oracle for what these should be.
+            // the same throughout: now a blank (D37). It is the oracle for
+            // what these should be.
             const { text } = await run(
                 `
     <numberList name="nl">10 20 30</numberList>
@@ -7546,7 +7572,7 @@ describe("Extend and references tests @group2", async () => {
             `,
                 "p1",
             );
-            expect(text).eq("");
+            expect(text).eq("＿");
         });
 
         it("still resolves an entry that is there", async () => {
@@ -7890,7 +7916,7 @@ describe("Extend and references tests @group2", async () => {
                 "Multiple referents found for reference: `$h`",
             ]);
             expect((await stateOf(core, resolvePathToNodeIdx, "S2.q")).text).eq(
-                "",
+                "＿",
             );
             expect(
                 (await stateOf(core, resolvePathToNodeIdx, "S2.q2")).text,

@@ -685,7 +685,10 @@ describe(
                     "have.text",
                     `Selected value: ${choices[choiceOrder[1] - 1]}`,
                 );
-                cy.get(cesc(`#g3.p1`)).should("have.text", `Selected value: `);
+                cy.get(cesc(`#g3.p1`)).should(
+                    "have.text",
+                    `Selected value: ＿`,
+                );
 
                 cy.get(cesc(`#g3.ci_choice1_input`)).click();
                 cy.get(cesc(`#ci_choice2_input`)).should("be.checked");

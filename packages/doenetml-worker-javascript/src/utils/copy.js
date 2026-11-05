@@ -505,6 +505,16 @@ export async function verifyReplacementsMatchSpecifiedType({
             workspace.sourceIndices = [];
         }
 
+        // A reference written as a tag whose source made nothing is missing
+        // (D37): a tag whose source is missing is missing, whatever it adds.
+        // So is the filler of a bare reference with no referent (`$nothing`)
+        // in a parent that needs it to make something (a `<text>`), which is
+        // a blank there, as `<text extend="$nothing"/>` is.
+        const madeNothing =
+            replacementTypes.length === 0 &&
+            (Boolean(component.attributes._createComponentOfType?.primitive) ||
+                Boolean(component.doenetAttributes?.noReferent));
+
         replacements = [];
         for (let i = 0; i < requiredLength; i++) {
             const res = convertUnresolvedAttributesForComponentType({
@@ -524,7 +534,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                 componentIdx: nComponents++,
                 stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: attributesFromComposite,
-                doenetAttributes: {},
+                doenetAttributes: madeNothing ? { missing: true } : {},
                 state: {},
                 children: [],
             });
@@ -603,6 +613,12 @@ export async function verifyReplacementsMatchSpecifiedType({
                     }
 
                     if (stateVarObj) {
+                        // Not missing: it holds what the array entry holds
+                        // once it has a value, and a write reaches the
+                        // entry. Missing, it would be a blank where a copy of
+                        // an award's feedback, which the award has none of
+                        // yet, is hidden.
+                        replacements[0].doenetAttributes = {};
                         replacements[0].downstreamDependencies = {
                             [replacementSource.componentIdx]: [
                                 {

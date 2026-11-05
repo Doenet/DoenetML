@@ -30,7 +30,7 @@ export default class ShortDescription extends TextOrInline {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inlines"],
-                    variableNames: ["text", "hidden"],
+                    variableNames: ["text", "hidden", "valueMissing"],
                     variablesOptional: true,
                 },
             }),

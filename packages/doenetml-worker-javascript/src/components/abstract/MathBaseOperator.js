@@ -9,20 +9,35 @@ import { isNumericConstant } from "../../utils/math";
 
 /**
  * The children an operator takes as operands, each with its index among
- * `children` (which a write through the operator addresses): all but a value
- * reference with nothing to read (`valueMissing`, `ValueRef.js`), such as
- * `$l[$i]` with `$i` past the end of the list. The copy such a reference
- * replaced made nothing here, so `<sum>$l[$i] 5</sum>` is 5 and
- * `<count>$l[$i] 5</count>` is 1 while the entry is missing.
+ * `children` (which a write through the operator addresses). A missing
+ * operand (`valueMissing`: a value reference with nothing to read, such as
+ * `$l[$i]` with `$i` past the end of the list, or a missing component) is a
+ * blank, as it is in a `<math>` (D37): `<sum>$l[$i] 5</sum>` is `＿ + 5`,
+ * not 5, and `<count>$l[$i] 5</count>` is 2.
  */
 function operandChildren(children) {
-    const operands = [];
-    for (const [childIndex, child] of children.entries()) {
-        if (!child.stateValues.valueMissing) {
-            operands.push({ child, childIndex });
-        }
-    }
-    return operands;
+    return children.map((child, childIndex) => ({
+        child: child.stateValues.valueMissing ? blankOperand(child) : child,
+        childIndex,
+    }));
+}
+
+/**
+ * The missing operand `child` as a blank math, which cannot be written
+ * through.
+ */
+function blankOperand(child) {
+    return {
+        ...child,
+        componentType: "math",
+        stateValues: {
+            ...child.stateValues,
+            value: me.fromAst("\uff3f"),
+            isNumber: false,
+            canBeModified: false,
+            unordered: false,
+        },
+    };
 }
 
 export default class MathOperator extends MathComponent {
@@ -72,7 +87,10 @@ export default class MathOperator extends MathComponent {
         return [
             {
                 group: "maths",
-                componentTypes: ["math"],
+                // `_missing`: a bare reference to one thing that names
+                // nothing (`$nothing`), a blank operand (`operandChildren`,
+                // D37), as `<math extend="$nothing"/>` is
+                componentTypes: ["math", "_missing"],
             },
             {
                 group: "numbers",
@@ -140,6 +158,12 @@ export default class MathOperator extends MathComponent {
                     variableNames: ["isNumber", "valueMissing"],
                     variablesOptional: true,
                 },
+                numberChildren: {
+                    dependencyType: "child",
+                    childGroups: ["numbers"],
+                    variableNames: ["valueMissing"],
+                    variablesOptional: true,
+                },
                 shadowSource: {
                     dependencyType: "shadowSource",
                     variableNames: ["isNumericOperator"],
@@ -153,6 +177,14 @@ export default class MathOperator extends MathComponent {
                 if (dependencyValues.forceNumeric) {
                     isNumericOperator = true;
                 } else if (dependencyValues.forceSymbolic) {
+                    isNumericOperator = false;
+                } else if (
+                    dependencyValues.numberChildren.some(
+                        (x) => x.stateValues.valueMissing,
+                    )
+                ) {
+                    // a missing number is a blank math (`blankOperand`), so
+                    // the result is symbolic: `＿ + 5`, not `NaN`
                     isNumericOperator = false;
                 } else if (mathChildren.length === 0) {
                     isNumericOperator =

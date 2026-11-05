@@ -2868,7 +2868,7 @@ describe("Select tag tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pb1")].stateValues.text,
-        ).eq(`b1: `);
+        ).eq(`b1: ＿`);
         expect(
             stateVariables[await resolvePathToNodeIdx("pc1")].stateValues.text,
         ).eq(`c1: ${option.animal}`);
@@ -2877,7 +2877,7 @@ describe("Select tag tests @group2", async () => {
         ).eq(`d1: ${option.verb}`);
         expect(
             stateVariables[await resolvePathToNodeIdx("pe1")].stateValues.text,
-        ).eq(`e1: `);
+        ).eq(`e1: ＿`);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("b1")].stateValues.text,
@@ -3214,11 +3214,11 @@ describe("Select tag tests @group2", async () => {
         vars4.length = 5;
         vars5.length = 5;
 
-        vars1.fill("", n1);
-        vars2.fill("", n2);
-        vars3.fill("", n3);
-        vars4.fill("", n4);
-        vars5.fill("", n5);
+        vars1.fill("＿", n1);
+        vars2.fill("＿", n2);
+        vars3.fill("＿", n3);
+        vars4.fill("＿", n4);
+        vars5.fill("＿", n5);
 
         let l = ["a", "b", "c", "d", "e"];
 

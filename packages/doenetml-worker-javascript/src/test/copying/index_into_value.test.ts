@@ -121,12 +121,12 @@ describe("An index into a value with entries @group4", async () => {
 
     it("names nothing past the end, silently", async () => {
         await expectShownSilently([
-            ["$P[3]", ""],
-            ["$mt[3]", ""],
-            ["$M[3]", ""],
-            ["$M[1][3]", ""],
-            ["$mi[3]", ""],
-            ["$x[3]", ""],
+            ["$P[3]", "＿"],
+            ["$mt[3]", "＿"],
+            ["$M[3]", "＿"],
+            ["$M[1][3]", "＿"],
+            ["$mi[3]", "＿"],
+            ["$x[3]", "＿"],
         ]);
     });
 
@@ -143,7 +143,7 @@ describe("An index into a value with entries @group4", async () => {
         ]) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(reference);
-            expect(text, reference).eq("[]");
+            expect(text, reference).eq("[＿]");
             expect([...errors, ...infos], reference).eqls([]);
             expect(
                 warnings.map((w) => w.code),
@@ -161,7 +161,7 @@ describe("An index into a value with entries @group4", async () => {
             "$g[2]",
             `<group name="g"><math>5</math></group>`,
         );
-        expect(text).eq("[]");
+        expect(text).eq("[＿]");
         expect([...errors, ...infos]).eqls([]);
         expect(warnings.map((w) => w.code)).eqls(["doenet-w0104"]);
     });
@@ -177,7 +177,7 @@ describe("An index into a value with entries @group4", async () => {
         ]) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(reference);
-            expect(text, reference).eq("[]");
+            expect(text, reference).eq("[＿]");
             expect([...errors, ...infos], reference).eqls([]);
             expect(
                 warnings.map((w) => w.code),
@@ -196,7 +196,7 @@ describe("An index into a value with entries @group4", async () => {
         ]) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(reference);
-            expect(text, reference).eq("[]");
+            expect(text, reference).eq("[＿]");
             expect([...errors, ...infos], reference).eqls([]);
             expect(
                 warnings.map((w) => w.code),
@@ -214,7 +214,7 @@ describe("An index into a value with entries @group4", async () => {
         ]) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(reference);
-            expect(text, reference).eq("[]");
+            expect(text, reference).eq("[＿]");
             expect([...errors, ...infos], reference).eqls([]);
             expect(
                 warnings.map((w) => w.code),
@@ -265,13 +265,13 @@ describe("An index into a value with entries @group4", async () => {
             return warnings.map((w) => [w.code, w.args?.reference]);
         }
 
-        expect(await shown()).eqls(["[2]", "[2]", "[]"]);
+        expect(await shown()).eqls(["[2]", "[2]", "[＿]"]);
         // `$m[2][1]` into the scalar entry 2 of `(1,2)`
         expect(reported()).eqls([["doenet-w0100", "$m[2][1]"]]);
 
         // a scalar: the index names nothing
         await updateMathInputValue({ latex: "5", componentIdx: a, core });
-        expect(await shown()).eqls(["[]", "[]", "[]"]);
+        expect(await shown()).eqls(["[＿]", "[＿]", "[＿]"]);
         expect(reported().sort()).eqls(
             [
                 ["doenet-w0100", "$m[2][1]"],
@@ -286,7 +286,7 @@ describe("An index into a value with entries @group4", async () => {
             componentIdx: a,
             core,
         });
-        expect(await shown()).eqls(["[4]", "[4]", "[]"]);
+        expect(await shown()).eqls(["[4]", "[4]", "[＿]"]);
         expect(reported()).eqls([["doenet-w0100", "$m[2][1]"]]);
 
         // a matrix: rows
@@ -301,7 +301,7 @@ describe("An index into a value with entries @group4", async () => {
 
     it("does not report an index into an input with nothing entered", async () => {
         await expectShownSilently(
-            [["$e[1]", ""]],
+            [["$e[1]", "＿"]],
             `<mathInput name="e"><label>e</label></mathInput>`,
         );
     });
@@ -529,7 +529,7 @@ describe("An index into an entry of a list @group4", async () => {
                 reference,
                 lists,
             );
-            expect(text, reference).eq("[]");
+            expect(text, reference).eq("[＿]");
             expect([...errors, ...infos], reference).eqls([]);
             expect(
                 warnings.map((w) => w.code),

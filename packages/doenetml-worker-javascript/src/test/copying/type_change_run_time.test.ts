@@ -13,8 +13,8 @@ vi.mock("hyperformula");
 
 /**
  * The codes of the diagnostics a reference written as a tag reports: a type
- * change (D26), a reference that names nothing (D36), and an index that
- * names nothing.
+ * change (D26), a reference that names nothing (D36), an index that
+ * names nothing, and a composite that holds nothing now (D37).
  */
 const TYPE_CHANGE_CODES = [
     "doenet-e0062",
@@ -25,6 +25,7 @@ const TYPE_CHANGE_CODES = [
     "doenet-e0067",
     "doenet-i0053",
     "doenet-i0054",
+    "doenet-i0055",
     "doenet-w0104",
     "doenet-w0105",
     "doenet-w0181",
@@ -159,7 +160,7 @@ async function setup(doenetML: string) {
 }
 
 describe("A reference written as a tag of a composite is decided when the document loads (D36) @group4", () => {
-    it("a conditionalContent needs an else, and each case and the else one component of one type", async () => {
+    it("a conditionalContent with no else is missing while no case is true, and each case and the else need one component of one type", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
 <conditionalContent name="noElse"><case condition="$b"><math>x</math></case></conditionalContent>
@@ -176,13 +177,6 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p7"><math copy="$mixed"/></p>
 `);
         const errors = [
-            {
-                code: "doenet-e0064",
-                type: "error",
-                line: 8,
-                message:
-                    "A `<math>` can be made from `$noElse` only when it always holds one component, and a `<conditionalContent>` with no `<else>` holds nothing when no case is true. Add an `<else>`.",
-            },
             {
                 code: "doenet-e0064",
                 type: "error",
@@ -211,26 +205,38 @@ describe("A reference written as a tag of a composite is decided when the docume
                 message:
                     "A `<math>` can be made from `$mixed` only when what it holds is always of one type, and it can hold `<math>`, `<number>`. To read what it holds as one value, write `<math>$mixed</math>`.",
             },
+            {
+                code: "doenet-i0055",
+                type: "info",
+                line: 8,
+                message:
+                    "`$noElse` holds nothing now, so this `<math>` is missing until it holds one component.",
+            },
         ];
         expect(await d.texts(["p5", "m5", "p6"])).eqls({
             p5: "2",
             m5: "2",
             p6: "2",
         });
-        for (const p of ["p1", "p2", "p3", "p4", "p7"]) {
+        for (const p of ["p2", "p3", "p4", "p7"]) {
             expect(await d.replacedBy(p), p).eqls(["_error"]);
         }
+        // A conditionalContent with no else is missing while no case is
+        // true (D37).
+        expect(await d.replacedBy("p1")).eqls(["math"]);
+        expect(await d.texts(["p1"])).eqls({ p1: "＿" });
         expect(d.newDiagnostics()).eqls(errors);
 
         // What is shown as a case becomes active does not change what the
-        // tags are.
+        // errors are.
         await d.setBoolean("b", true);
-        expect(await d.texts(["p5", "m5", "p6"])).eqls({
+        expect(await d.texts(["p1", "p5", "m5", "p6"])).eqls({
+            p1: "x",
             p5: "1",
             m5: "1",
             p6: "1",
         });
-        for (const p of ["p1", "p2", "p3", "p4", "p7"]) {
+        for (const p of ["p2", "p3", "p4", "p7"]) {
             expect(await d.replacedBy(p), p).eqls(["_error"]);
         }
         expect(d.newDiagnostics()).eqls([]);
@@ -292,11 +298,13 @@ describe("A reference written as a tag of a composite is decided when the docume
             n5: "5",
         });
         expect(await d.typeOf("m7")).eq("math");
-        for (const p of ["p2", "p3", "p4", "p6", "p8"]) {
+        for (const p of ["p2", "p3", "p4", "p6"]) {
             expect(await d.replacedBy(p), p).eqls(["_error"]);
         }
+        expect(await d.replacedBy("p8")).eqls(["math"]);
         // A reference is an error, even while its value is 1. A literal
-        // index past what is picked names nothing whatever happens.
+        // index past what is picked names nothing whatever happens: the tag
+        // is missing, with a warning (D37).
         expect(d.newDiagnostics()).eqls([
             {
                 code: "doenet-e0064",
@@ -328,7 +336,7 @@ describe("A reference written as a tag of a composite is decided when the docume
             },
             {
                 code: "doenet-w0181",
-                type: "error",
+                type: "warning",
                 line: 16,
                 message: "`$s1[2]`: the `<select>` made only 1 pick.",
             },
@@ -407,9 +415,10 @@ describe("A reference written as a tag of a composite is decided when the docume
             m6: "7",
             m8: "3",
         });
-        for (const p of ["p3", "p5", "p7"]) {
+        for (const p of ["p3", "p5"]) {
             expect(await d.replacedBy(p), p).eqls(["_error"]);
         }
+        expect(await d.replacedBy("p7")).eqls(["math"]);
         expect(d.newDiagnostics()).eqls([
             {
                 code: "doenet-e0067",
@@ -426,15 +435,15 @@ describe("A reference written as a tag of a composite is decided when the docume
                     "A `<math>` can be made from a `<group>` only when it holds one component, and `$g5` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$g5</math>`.",
             },
             {
-                code: "doenet-e0064",
-                type: "error",
+                code: "doenet-i0055",
+                type: "info",
                 line: 20,
                 message:
-                    "A `<math>` can be made from `$g7` only when it always holds one component, and a `<conditionalContent>` with no `<else>` holds nothing when no case is true. Add an `<else>`.",
+                    "`$g7` holds nothing now, so this `<math>` is missing until it holds one component.",
             },
         ]);
         await d.setBoolean("b", true);
-        expect(await d.texts(["m4"])).eqls({ m4: "1" });
+        expect(await d.texts(["m4", "p7"])).eqls({ m4: "1", p7: "1" });
         expect(d.newDiagnostics()).eqls([]);
     });
 
@@ -452,15 +461,15 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p2"><math extend="$rep2[1]"/></p>
 <p name="p3"><math name="m3" extend="$s[1]"/></p>
 `);
-        expect(await d.replacedBy("p1")).eqls(["_error"]);
+        expect(await d.replacedBy("p1")).eqls(["math"]);
         expect(await d.replacedBy("p2")).eqls(["_error"]);
-        expect(await d.texts(["m3"])).eqls({ m3: "3" });
+        expect(await d.texts(["p1", "m3"])).eqls({ p1: "＿", m3: "3" });
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-e0064", 10],
             ["doenet-e0064", 11],
+            ["doenet-i0054", 10],
         ]);
         await d.setBoolean("b", true);
-        expect(await d.texts(["m3"])).eqls({ m3: "1" });
+        expect(await d.texts(["p1", "m3"])).eqls({ p1: "1", m3: "1" });
         expect(d.newDiagnostics()).eqls([]);
     });
 
@@ -477,13 +486,11 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p1"><math name="m1" extend="$c1"/></p>
 <p name="p2"><math extend="$c2"/></p>
 `);
-        expect(await d.texts(["m1"])).eqls({ m1: "3" });
-        expect(await d.replacedBy("p2")).eqls(["_error"]);
-        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-e0064", 11],
-        ]);
+        // A case holding what can hold nothing is allowed (D37).
+        expect(await d.texts(["m1", "p2"])).eqls({ m1: "3", p2: "3" });
+        expect(d.newDiagnostics()).eqls([]);
         await d.setBoolean("b", true);
-        expect(await d.texts(["m1"])).eqls({ m1: "1" });
+        expect(await d.texts(["m1", "p2"])).eqls({ m1: "1", p2: "1" });
         expect(d.newDiagnostics()).eqls([]);
     });
 
@@ -547,17 +554,21 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p5"><math extend="$r[1]"/></p>
 <p name="p6"><math extend="$rs[1]"/></p>
 `);
-        for (const p of ["p1", "p2", "p3", "p4", "p5", "p6"]) {
+        for (const p of ["p1", "p2", "p3", "p5", "p6"]) {
             expect(await d.replacedBy(p), p).eqls(["_error"]);
         }
+        // A case holding nothing is allowed: the math is missing while it
+        // is active (D37).
+        expect(await d.texts(["p4"])).eqls({ p4: "＿" });
         expect(d.newDiagnostics().map((x) => x.message)).eqls([
             "A `<math>` can be made from `$g` only when it always holds one component, and a case of the `<conditionalContent>` holds 2. To read what it holds as one value, write `<math>$g</math>`.",
             "A `<math>` can be made from `$cc1` only when it always holds one component, and a case of the `<conditionalContent>` holds 2. To read what it holds as one value, write `<math>$cc1</math>`.",
             "A `<math>` can be made from `$cc2` only when it always holds one component, and an option of the `<select>` holds 2. To read what it holds as one value, write `<math>$cc2</math>`.",
-            "A `<math>` can be made from `$cc3` only when it always holds one component, and a case of the `<conditionalContent>` holds nothing. To read what it holds as one value, write `<math>$cc3</math>`.",
             "A `<math>` can be made from `$r[1]` only when it always holds one component, and an iteration of the `<repeat>` holds 2. To read what it holds as one value, write `<math>$r[1]</math>`.",
             "A `<math>` can be made from `$rs[1]` only when it always holds one component, and an iteration of the `<repeatForSequence>` holds 2. To read what it holds as one value, write `<math>$rs[1]</math>`.",
         ]);
+        await d.setBoolean("b", true);
+        expect(await d.texts(["p4"])).eqls({ p4: "1" });
     });
 
     it("a list tag takes any number of components, including none, all of one type", async () => {
@@ -650,7 +661,7 @@ describe("A reference written as a tag of a composite is decided when the docume
         }
     });
 
-    it("a tag whose reference names nothing, more than one thing, or a property its source does not have is an error; a bare one is a warning", async () => {
+    it("a tag whose reference names nothing, more than one thing, or a property its source does not have is missing, with a warning, as a bare one is", async () => {
         const d = await setup(`
 <group><text name="t">a</text><text name="t">b</text></group>
 <section name="sec"><title>A</title></section>
@@ -661,36 +672,36 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p5">$nothing</p>
 `);
         expect(await d.texts(["p1", "p2", "p3", "p4", "p5"])).eqls({
-            p1: "",
-            p2: "",
-            p3: "",
-            p4: "",
-            p5: "",
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
         });
         expect(
             d.newDiagnostics().sort((a: any, b: any) => a.line - b.line),
         ).eqls([
             {
                 code: "doenet-w0104",
-                type: "error",
+                type: "warning",
                 line: 4,
                 message: "No referent found for reference: `$nothing`",
             },
             {
                 code: "doenet-w0105",
-                type: "error",
+                type: "warning",
                 line: 5,
                 message: "Multiple referents found for reference: `$t`",
             },
             {
                 code: "doenet-w0104",
-                type: "error",
+                type: "warning",
                 line: 6,
                 message: "No referent found for reference: `$sec.nothing`",
             },
             {
                 code: "doenet-w0104",
-                type: "error",
+                type: "warning",
                 line: 7,
                 message: "No referent found for reference: `$nothing`",
             },
@@ -703,7 +714,7 @@ describe("A reference written as a tag of a composite is decided when the docume
         ]);
     });
 
-    it("a property none of the components a composite holds has is an error, for a scalar or a list tag", async () => {
+    it("a property none of the components a composite holds has is missing, with a warning, for a scalar or a list tag", async () => {
         const d = await setup(`
 <group name="g"><text>a</text></group>
 <group name="pg"><point>(1,2)</point></group>
@@ -715,18 +726,22 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p3"><math name="m3" extend="$pg.x"/></p>
 <p name="p4"><math extend="$r[$k].x"/></p>
 `);
-        expect(await d.replacedBy("p1")).eqls(["_error"]);
-        expect(await d.texts(["m3", "p4"])).eqls({ m3: "1", p4: "＿" });
+        expect(await d.replacedBy("p1")).eqls(["text"]);
+        expect(await d.texts(["p1", "m3", "p4"])).eqls({
+            p1: "＿",
+            m3: "1",
+            p4: "＿",
+        });
         expect(d.newDiagnostics()).eqls([
             {
                 code: "doenet-w0104",
-                type: "error",
+                type: "warning",
                 line: 7,
                 message: "No referent found for reference: `$g.nothing`",
             },
             {
                 code: "doenet-w0104",
-                type: "error",
+                type: "warning",
                 line: 8,
                 message: "No referent found for reference: `$n.nothing`",
             },
@@ -735,7 +750,7 @@ describe("A reference written as a tag of a composite is decided when the docume
                 type: "info",
                 line: 10,
                 message:
-                    "`$r[$k].x` names nothing now, so this `<math>` has the value of `<math/>` until it does.",
+                    "`$r[$k].x` names nothing now, so this `<math>` is missing until it does.",
             },
         ]);
         // An index that names nothing yet is the info alone.
@@ -822,12 +837,14 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p3"><math extend="$g3"/></p>
 <p name="p4"><math extend="$g4"/></p>
 `);
+        // `g2` holds nothing, so its math is missing (D37).
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
             ["doenet-e0064", 7],
-            ["doenet-e0064", 8],
             ["doenet-e0064", 9],
         ]);
         expect(await d.replacedBy("p1")).eqls(["_error"]);
+        expect(await d.replacedBy("p2")).eqls(["math"]);
+        expect(await d.texts(["p2"])).eqls({ p2: "＿" });
         expect(d.newDiagnostics()).eqls([]);
         // One component beside an empty group is not decided when the
         // document loads: no error that it holds two.
@@ -972,7 +989,7 @@ describe("A reference written as a tag of a composite is decided when the docume
         expect(d.newDiagnostics()).eqls([]);
     });
 
-    it("a tag written in an index is decided too", async () => {
+    it("a tag written in an index is decided too, and is missing while no case is true", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
 <mathList name="l">1 2</mathList>
@@ -984,7 +1001,7 @@ describe("A reference written as a tag of a composite is decided when the docume
                 .newDiagnostics()
                 .filter((x) => x.type === "error")
                 .map((x) => [x.code, x.line]),
-        ).eqls([["doenet-e0064", 5]]);
+        ).eqls([]);
     });
 
     it("a name in what a copied part copies is one the reference can name", async () => {
@@ -1000,7 +1017,7 @@ describe("A reference written as a tag of a composite is decided when the docume
 });
 
 describe("What still changes at run time, without changing what the component is (D36) @group4", () => {
-    it("a value that does not convert: the component has the value of the empty tag, with an info, until it does", async () => {
+    it("a value that does not convert: the component is missing, with an info, until it does", async () => {
         const d = await setup(`
 <mathInput name="mi" prefill="x"/>
 <booleanInput name="b"/>
@@ -1013,10 +1030,10 @@ describe("What still changes at run time, without changing what the component is
 `);
         const names = ["p1", "p2", "p3", "p5"];
         expect(await d.texts(names)).eqls({
-            p1: "(0, 0)",
-            p2: "false",
-            p3: "(0, 0)",
-            p5: "(0, 0)",
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p5: "＿",
         });
         for (const name of ["P", "Q"]) {
             expect(await d.typeOf(name), name).eq("point");
@@ -1033,15 +1050,15 @@ describe("What still changes at run time, without changing what the component is
                 line,
                 message:
                     T === "point"
-                        ? `A \`<point>\` can't be made from \`$${x}\` while its value, x, isn't a tuple of coordinates, so it has the value of \`<point/>\` until it is.`
-                        : `A \`<boolean>\` can't be made from \`$${x}\` while its value, x, isn't true or false, so it has the value of \`<boolean/>\` until it is.`,
+                        ? `A \`<point>\` can't be made from \`$${x}\` while its value, x, isn't a tuple of coordinates, so it is missing until it is.`
+                        : `A \`<boolean>\` can't be made from \`$${x}\` while its value, x, isn't true or false, so it is missing until it is.`,
             })),
         );
 
         await d.setMath("mi", "(1,2)");
         expect(await d.texts(names)).eqls({
             p1: "(1, 2)",
-            p2: "false",
+            p2: "＿",
             p3: "(1, 2)",
             p5: "(1, 2)",
         });
@@ -1052,7 +1069,7 @@ describe("What still changes at run time, without changing what the component is
                 type: "info",
                 line: 7,
                 message:
-                    "A `<boolean>` can't be made from `$g` while its value, (1, 2), isn't true or false, so it has the value of `<boolean/>` until it is.",
+                    "A `<boolean>` can't be made from `$g` while its value, (1, 2), isn't true or false, so it is missing until it is.",
             },
         ]);
 
@@ -1064,7 +1081,7 @@ describe("What still changes at run time, without changing what the component is
 
         await d.setMath("mi", "1");
         expect(await d.texts(["p1", "p2", "B"])).eqls({
-            p1: "(0, 0)",
+            p1: "＿",
             p2: "true",
             B: "true",
         });
@@ -1074,7 +1091,7 @@ describe("What still changes at run time, without changing what the component is
         expect(d.errors()).eqls([]);
     });
 
-    it("an index that names nothing because of its value: the empty tag with an info, until it names a component again", async () => {
+    it("an index that names nothing because of its value: a missing tag with an info, until it names a component again", async () => {
         const d = await setup(`
 <mathInput name="n" prefill="1"/>
 <repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
@@ -1091,7 +1108,7 @@ describe("What still changes at run time, without changing what the component is
         expect(d.newDiagnostics()).eqls([]);
 
         await d.setMath("n", "3");
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "＿" });
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "＿", p2: "＿" });
         expect(await d.typeOf("t")).eq("text");
         expect(d.newDiagnostics()).eqls([
             {
@@ -1099,14 +1116,14 @@ describe("What still changes at run time, without changing what the component is
                 type: "info",
                 line: 5,
                 message:
-                    "`$r[$n]` names nothing now, so this `<text>` has the value of `<text/>` until it does.",
+                    "`$r[$n]` names nothing now, so this `<text>` is missing until it does.",
             },
             {
                 code: "doenet-i0054",
                 type: "info",
                 line: 6,
                 message:
-                    "`$ml[$n]` names nothing now, so this `<math>` has the value of `<math/>` until it does.",
+                    "`$ml[$n]` names nothing now, so this `<math>` is missing until it does.",
             },
         ]);
 
@@ -1127,7 +1144,7 @@ describe("What still changes at run time, without changing what the component is
         // A blank index names nothing, too: the info alone, and no warning
         // that would outlast it.
         await d.setMath("n", "");
-        expect(await d.texts(["p1", "p2"])).eqls({ p1: "", p2: "＿" });
+        expect(await d.texts(["p1", "p2"])).eqls({ p1: "＿", p2: "＿" });
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
             ["doenet-i0054", 5],
             ["doenet-i0054", 6],
@@ -1167,7 +1184,7 @@ describe("What still changes at run time, without changing what the component is
         expect(infos.map((x: any) => x.code)).eqls([]);
     });
 
-    it("an index that names nothing keeps the tag's own children, however the index came to name nothing", async () => {
+    it("an index that names nothing makes the tag missing, without its own children, however the index came to name nothing", async () => {
         const d = await setup(`
 <mathInput name="n"/>
 <repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
@@ -1175,12 +1192,12 @@ describe("What still changes at run time, without changing what the component is
 `);
         const names = ["p1"];
         const steps: [string, string, boolean][] = [
-            ["", "!", true],
+            ["", "＿", true],
             ["1", "a!", false],
-            ["", "!", true],
-            ["5", "!", true],
+            ["", "＿", true],
+            ["5", "＿", true],
             ["2", "b!", false],
-            ["3", "!", true],
+            ["3", "＿", true],
         ];
         for (const [step, [index, shown, info]] of steps.entries()) {
             if (step > 0) {
@@ -1202,22 +1219,22 @@ describe("What still changes at run time, without changing what the component is
 <repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
 <p name="p1"><text copy="$r[$n]">!</text></p>
 `);
-        expect(await d.texts(["p1"])).eqls({ p1: "!" });
+        expect(await d.texts(["p1"])).eqls({ p1: "＿" });
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
             ["doenet-i0054", 4],
         ]);
         // A copy stays as it was made.
         await d.setMath("n", "1");
-        expect(await d.texts(["p1"])).eqls({ p1: "!" });
+        expect(await d.texts(["p1"])).eqls({ p1: "＿" });
 
         await d.reload();
-        expect(await d.texts(["p1"])).eqls({ p1: "!" });
+        expect(await d.texts(["p1"])).eqls({ p1: "＿" });
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
             ["doenet-i0054", 4],
         ]);
     });
 
-    it("an input reached by an index is a plain input while the index names nothing, and the link wins when the iteration returns", async () => {
+    it("an input reached by an index is a missing input while the index names nothing, and the link wins when the iteration returns", async () => {
         const d = await setup(`
 <mathInput name="k" prefill="1"/>
 <repeat name="r" for="5 6" valueName="v"><mathInput prefill="$v"/></repeat>
@@ -1346,8 +1363,9 @@ describe("What still changes at run time, without changing what the component is
 <p name="p3"><group name="k1"><math extend="$k2"/></group><group name="k2"><math extend="$k3"/></group><group name="k3"><math extend="$k1"/></group></p>
 `);
         // The else of `cc` holds two components, decided when the document
-        // loads; the others are circular, as on main, reported once for
-        // each cycle.
+        // loads, for the tag in each case of `cc`, reported then though the
+        // case is not shown (DIAG-7); the others are circular, as on main,
+        // reported once for each cycle.
         expect(await d.texts(["p1", "p2", "p3"])).eqls({
             p1: "x",
             p2: "12",
@@ -1357,8 +1375,11 @@ describe("What still changes at run time, without changing what the component is
             "doenet-e0005",
             "doenet-e0005",
             "doenet-e0064",
+            "doenet-e0064",
         ]);
 
+        // `c1` and `c2` extending each other still report their cycle again
+        // when the cases change (B32, #2439, a known violation of DIAG-7).
         await d.setBoolean("b", true);
         expect(await d.texts(["p2", "p3"])).eqls({ p2: "＿", p3: "" });
 
@@ -1381,11 +1402,8 @@ describe("What still changes at run time, without changing what the component is
 `);
         const names = ["p1", "p2", "p3"];
         const states: [() => Promise<void>, Record<string, string>][] = [
-            [async () => {}, { p1: "no", p2: "(0, 0)", p3: "(0, 0)" }],
-            [
-                () => d.setBoolean("b", true),
-                { p1: "yes", p2: "(0, 0)", p3: "(0, 0)" },
-            ],
+            [async () => {}, { p1: "no", p2: "＿", p3: "＿" }],
+            [() => d.setBoolean("b", true), { p1: "yes", p2: "＿", p3: "＿" }],
             [
                 () => d.setMath("mi", "(1,2)"),
                 { p1: "yes", p2: "(1, 2)", p3: "(1, 2)" },
@@ -1394,10 +1412,7 @@ describe("What still changes at run time, without changing what the component is
                 () => d.setBoolean("b", false),
                 { p1: "no", p2: "(1, 2)", p3: "(1, 2)" },
             ],
-            [
-                () => d.setMath("mi", "y"),
-                { p1: "no", p2: "(0, 0)", p3: "(0, 0)" },
-            ],
+            [() => d.setMath("mi", "y"), { p1: "no", p2: "＿", p3: "＿" }],
         ];
         for (const [change, shown] of states) {
             await change();
@@ -1413,7 +1428,7 @@ describe("What still changes at run time, without changing what the component is
             );
             // An info is reported again where it lasts.
             expect(d.newDiagnostics().map((x) => x.code)).eqls(
-                shown.p2 === "(0, 0)" ? ["doenet-i0053"] : [],
+                shown.p2 === "＿" ? ["doenet-i0053"] : [],
             );
             expect(d.errors()).eqls([]);
         }

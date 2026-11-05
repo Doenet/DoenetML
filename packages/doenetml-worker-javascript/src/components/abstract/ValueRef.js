@@ -9,6 +9,7 @@ import {
     valueMissingDefinition,
 } from "./referenceSlotDefinitions";
 import { currentReferentValue } from "../../utils/referentDescription";
+import { BLANK_RENDERER_TYPE } from "../../utils/missing";
 import { LIST_ENTRY_PREFIX } from "../../utils/listEntryReference";
 import {
     CONTEXT_ATTRIBUTES,
@@ -195,6 +196,11 @@ export default class ValueRef extends BaseComponent {
         if (!this.isDrawn) {
             return undefined;
         }
+        // While it has nothing to read, it is drawn as a blank (D37), as
+        // `RendererInstructionBuilder.updateDrawnMissing` records.
+        if (this.drawnMissing) {
+            return BLANK_RENDERER_TYPE;
+        }
         return this.componentInfoObjects.allComponentClasses[
             this.presentedComponentType
         ]?.rendererType;
@@ -346,11 +352,13 @@ export default class ValueRef extends BaseComponent {
         // A reference is hidden with its parent or with the composite that
         // made it. One that is read for its value is never hidden with its
         // referent: `<math>$n+1</math>` uses the value of a hidden `n`. One
-        // that is drawn is hidden where the copy made for it would not have
-        // been shown: when it has nothing to read (`valueMissing`; the copy
-        // made no component) and, when it stands for a copy of its referent
+        // that is drawn is hidden, when it stands for a copy of its referent
         // (`copiesReferent`), with the referent's `hide`, which that copy
-        // shadowed (`$t` of `<text hide>`; not `$t.value`).
+        // shadowed (`$t` of `<text hide>`; not `$t.value`). One that has
+        // nothing to read (`valueMissing`) is not hidden but drawn as a blank
+        // (D37); `hidden` reads it so that a change to it updates the
+        // children its parent renders (`markStale`), which then draws it as
+        // a blank or as its type (`RendererInstructionBuilder`).
         stateVariableDefinitions.hidden = {
             stateVariablesDeterminingDependencies: ["referentInfo"],
             returnDependencies({ stateValues = {} }) {
@@ -368,12 +376,10 @@ export default class ValueRef extends BaseComponent {
                 if (!component.isDrawn) {
                     return dependencies;
                 }
-                if (!component.fixedReferent) {
-                    dependencies.valueMissing = {
-                        dependencyType: "stateVariable",
-                        variableName: "valueMissing",
-                    };
-                }
+                dependencies.valueMissing = {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
+                };
                 const referentInfo =
                     component.fixedReferent ?? stateValues.referentInfo;
                 if (component.doenetAttributes.copiesReferent && referentInfo) {
@@ -401,7 +407,6 @@ export default class ValueRef extends BaseComponent {
                         hidden: Boolean(
                             dependencyValues.parentHidden ||
                             dependencyValues.sourceCompositeHidden ||
-                            dependencyValues.valueMissing ||
                             dependencyValues.referentHide ||
                             entryHide,
                         ),
@@ -650,7 +655,8 @@ export default class ValueRef extends BaseComponent {
      * and `componentTypeAsResponse` (`valueAsResponseDefinition`), which only
      * an `<answer>` (of the references in its awards) and a
      * `<considerAsResponses>` (of its children) ask for. A reference a copy
-     * made at run time has no `valueMissing`, but has the other two.
+     * made at run time is missing only when its referent is a missing
+     * component (`fixedReferentMissingDefinition`).
      * `pastEndOfList` (`pastEndOfListDefinition`), which a list asks of its
      * children, is likewise the reference's own.
      */
@@ -659,9 +665,14 @@ export default class ValueRef extends BaseComponent {
         classDefinitions,
     }) {
         if (stateVariable === "valueMissing") {
-            return this.fixedReferent
-                ? []
-                : [[stateVariable, valueMissingDefinition()]];
+            return [
+                [
+                    stateVariable,
+                    this.fixedReferent
+                        ? fixedReferentMissingDefinition(this.fixedReferent)
+                        : valueMissingDefinition(),
+                ],
+            ];
         }
         if (stateVariable === "pastEndOfList") {
             return this.fixedReferent
@@ -975,8 +986,9 @@ function pastEndOfListDefinition() {
  * operands of an operator such as `<sum>` or `<and>`) or an empty text (in a
  * `<text>`), so that the number of responses does not depend on where the
  * answer is or whether an entry is there. A reference a copy made at run
- * time has no `valueMissing` and is never missing: the copy makes no
- * reference for an entry that is not there.
+ * time is missing only when its referent is a missing component (D37,
+ * `fixedReferentMissingDefinition`): the copy makes no reference for an
+ * entry that is not there.
  *
  * A variable that is there but holds no value is recorded as the empty value
  * of the referenced type (`referencedComponentType`), as the copy's
@@ -990,14 +1002,14 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
     const definition = {
         returnDependencies({ stateValues = {} }) {
             const referentInfo = fixedReferent ?? stateValues.referentInfo;
-            const dependencies = fixedReferent
-                ? {}
-                : {
-                      valueMissing: {
-                          dependencyType: "stateVariable",
-                          variableName: "valueMissing",
-                      },
-                  };
+            // A reference a copy made at run time is missing when its
+            // referent is (`fixedReferentMissingDefinition`).
+            const dependencies = {
+                valueMissing: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
+                },
+            };
             if (referentInfo) {
                 dependencies.referenced = {
                     dependencyType: "stateVariable",
@@ -1034,29 +1046,53 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
  * The definition of `componentTypeAsResponse`, made on demand: the type of
  * `valueAsResponse`. That is the type of the referenced variable
  * (`referencedComponentType`, `$P.x` a `math`), or `math` for the blank math
- * recorded when there is nothing to read (never, for a reference a copy
- * made at run time).
+ * recorded when there is nothing to read (for a reference a copy made at
+ * run time, only when its referent is a missing component).
  */
 function componentTypeAsResponseDefinition(
     referencedComponentType,
     fixedReferent,
 ) {
     return {
-        returnDependencies: () =>
-            fixedReferent
-                ? {}
-                : {
-                      valueMissing: {
-                          dependencyType: "stateVariable",
-                          variableName: "valueMissing",
-                      },
-                  },
+        returnDependencies: () => ({
+            valueMissing: {
+                dependencyType: "stateVariable",
+                variableName: "valueMissing",
+            },
+        }),
         definition({ dependencyValues }) {
             return {
                 setValue: {
                     componentTypeAsResponse: dependencyValues.valueMissing
                         ? "math"
                         : referencedComponentType,
+                },
+            };
+        },
+    };
+}
+
+/**
+ * The definition of `valueMissing` of a reference a copy made at run time
+ * (`fixedReferent`): whether its referent is a missing component (D37,
+ * `BaseComponent.isMissing`), as `$r[1].n.value` of an iteration whose `n`
+ * is missing. Its other ways of having nothing to read are the copy's,
+ * which makes no reference for an entry that is not there.
+ */
+function fixedReferentMissingDefinition(fixedReferent) {
+    return {
+        returnDependencies: () => ({
+            targetMissing: {
+                dependencyType: "stateVariable",
+                componentIdx: fixedReferent.componentIdx,
+                variableName: "valueMissing",
+                variablesOptional: true,
+            },
+        }),
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    valueMissing: Boolean(dependencyValues.targetMissing),
                 },
             };
         },

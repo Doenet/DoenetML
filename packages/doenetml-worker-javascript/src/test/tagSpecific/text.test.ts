@@ -222,9 +222,10 @@ describe("Text tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
+        // `$nothing` is a blank in the text (D37), which is not `""`
         expect(
             stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
-        ).to.be.true;
+        ).to.be.false;
     });
 
     it("text in graph", async () => {

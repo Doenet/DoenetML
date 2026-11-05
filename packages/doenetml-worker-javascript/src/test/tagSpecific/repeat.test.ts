@@ -1318,12 +1318,12 @@ describe("Repeat tag tests @group1", async () => {
                         stateVariables[
                             await resolvePathToNodeIdx(pNames1[n][i])
                         ].stateValues.text,
-                    ).eq(point1Texts[n] || "");
+                    ).eq(point1Texts[n] || "＿");
                     expect(
                         stateVariables[
                             await resolvePathToNodeIdx(pNames2[n][i])
                         ].stateValues.text,
-                    ).eq(point2Texts[n] || "");
+                    ).eq(point2Texts[n] || "＿");
                 }
             }
         }

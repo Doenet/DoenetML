@@ -193,7 +193,7 @@ $fi.iterates
         cy.get(cesc("#sec1.p2")).should("have.text", pText);
         cy.get(cesc("#sec2.p")).should("have.text", pText);
         cy.get(cesc("#sec2.p2")).should("have.text", pText);
-        cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: , ");
+        cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: ＿, ＿");
         cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: -8, -8");
 
         // Add another replacement, shifting so that the third entry comes from the sequence
@@ -222,8 +222,14 @@ $fi.iterates
                 cy.get(cesc("#sec1.p2")).should("have.text", pText);
                 cy.get(cesc("#sec2.p")).should("have.text", pText);
                 cy.get(cesc("#sec2.p2")).should("have.text", pText);
-                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: , ");
-                cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: , ");
+                cy.get(cesc("#sec1.p3")).should(
+                    "have.text",
+                    "3rd entry: ＿, ＿",
+                );
+                cy.get(cesc("#sec2.p3")).should(
+                    "have.text",
+                    "3rd entry: ＿, ＿",
+                );
             });
 
         // Add three replacements, so that third entry is again a number
@@ -252,7 +258,10 @@ $fi.iterates
                 cy.get(cesc("#sec1.p2")).should("have.text", pText);
                 cy.get(cesc("#sec2.p")).should("have.text", pText);
                 cy.get(cesc("#sec2.p2")).should("have.text", pText);
-                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: , ");
+                cy.get(cesc("#sec1.p3")).should(
+                    "have.text",
+                    "3rd entry: ＿, ＿",
+                );
                 cy.get(cesc("#sec2.p3")).should(
                     "have.text",
                     "3rd entry: -8, -8",

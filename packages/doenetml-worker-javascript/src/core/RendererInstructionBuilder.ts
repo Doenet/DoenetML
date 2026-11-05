@@ -5,6 +5,7 @@ import {
 } from "./ChildMatcher";
 import { removeFunctionsMathExpressionClass } from "../utils/math";
 import { addOnDemandStateVariables } from "./StateVariableInitializer";
+import { BLANK_RENDERER_TYPE } from "../utils/missing";
 
 /**
  * How long a drag must go quiet before the deferred half of its renderer
@@ -322,12 +323,13 @@ export class RendererInstructionBuilder {
                             currentChildIdentifiers.push("");
                         } else if (item.child.rendererType) {
                             // a value reference as the type it is drawn as,
-                            // which its instruction records
+                            // which its instruction records, and whether it
+                            // is drawn as a blank (D37)
                             currentChildIdentifiers.push(
                                 `nameType:${item.child.componentIdx};${
                                     item.child.presentedComponentType ??
                                     item.child.componentType
-                                }`,
+                                }${blankSuffix(item.child.rendererType)}`,
                             );
                         } else if (typeof item.child === "string") {
                             currentChildIdentifiers.push(
@@ -359,7 +361,7 @@ export class RendererInstructionBuilder {
                         previousChildIdentifiers.push("");
                     } else if (child.componentIdx != undefined) {
                         previousChildIdentifiers.push(
-                            `nameType:${child.componentIdx};${child.componentType}`,
+                            `nameType:${child.componentIdx};${child.componentType}${blankSuffix(child.rendererType)}`,
                         );
                     } else if (typeof child === "string") {
                         previousChildIdentifiers.push(`string${ind}:${child}`);
@@ -667,6 +669,22 @@ export class RendererInstructionBuilder {
     ): Promise<{ stateValues: Record<string, any>; alwaysUpdate: boolean }> {
         const stateValues: Record<string, any> = {};
         let alwaysUpdate = false;
+        if (component.rendererConstants && component.drawnMissing) {
+            // A reference drawn as a blank (D37, `updateDrawnMissing`), whose
+            // renderer reads only whether it is hidden: the rest of what the
+            // type it presents as draws is not calculated while it is. It is
+            // drawn anew, with all of it, once it has something to read
+            // (`blankSuffix`). A missing tag is still sent its type's state,
+            // which what acts on it reads (the value a missing
+            // `<mathInput>` is given).
+            addOnDemandStateVariables({
+                core: this.core,
+                component,
+                stateVariables: ["hidden"],
+            });
+            stateValues.hidden = await component.state.hidden.value;
+            return { stateValues, alwaysUpdate };
+        }
         if (component.rendererConstants) {
             Object.assign(stateValues, component.rendererConstants);
             const names = Object.keys(component.rendererVariables);
@@ -729,10 +747,35 @@ export class RendererInstructionBuilder {
                     );
                 }
             } else {
+                await this.updateDrawnMissing(child);
                 items.push({ child });
             }
         }
         return { items };
+    }
+
+    /**
+     * Record on `child`, when it is a drawn value reference, whether it has
+     * nothing to read now (`valueMissing`), so it is
+     * drawn as a blank while it has nothing (D37, `ValueRef.rendererType`).
+     * Its `hidden` reads `valueMissing`, so a change to it updates the
+     * children its parent renders, which calls this again.
+     */
+    async updateDrawnMissing(child: any): Promise<void> {
+        if (
+            typeof child !== "object" ||
+            child === null ||
+            !child.rendererConstants ||
+            child.rendererType === undefined
+        ) {
+            return;
+        }
+        addOnDemandStateVariables({
+            core: this.core,
+            component: child,
+            stateVariables: ["valueMissing"],
+        });
+        child.drawnMissing = Boolean(await child.stateValues.valueMissing);
     }
 
     /**
@@ -1579,4 +1622,15 @@ export class RendererInstructionBuilder {
             { deferred: true },
         );
     }
+}
+
+/**
+ * What the identifier of a rendered child adds for a child drawn as a blank
+ * (D37), so a value reference that comes to have nothing to read, or comes
+ * to have something again, is drawn anew.
+ */
+function blankSuffix(rendererType: string | undefined): string {
+    return rendererType === BLANK_RENDERER_TYPE
+        ? `;${BLANK_RENDERER_TYPE}`
+        : "";
 }

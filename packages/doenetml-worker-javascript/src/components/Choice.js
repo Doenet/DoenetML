@@ -91,7 +91,11 @@ export default class Choice extends InlineComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["children"],
-                    variableNames: ["text", "hiddenIgnoreParent"],
+                    variableNames: [
+                        "text",
+                        "hiddenIgnoreParent",
+                        "valueMissing",
+                    ],
                     variablesOptional: true,
                 },
             }),

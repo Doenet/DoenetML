@@ -300,6 +300,7 @@ export type MessageKey =
     | "ion-name-oxidation-state"
     | "chemistry-invalid-symbol"
     | "chemistry-invalid-ionic-compound"
+    | "missing-value-blank"
     | "math-embedded-input-blank"
     | "math-embedded-input-blank-ordinal"
     | "chart-box-summary"
@@ -494,6 +495,7 @@ export type MessageKey =
     | "type-change-composite-types-differ"
     | "type-change-composite-type-unknown"
     | "type-change-index-names-nothing"
+    | "type-change-composite-holds-nothing"
     | "type-change-value-not-convertible"
     | "children-invalid-attribute-format"
     | "children-invalid"
@@ -970,6 +972,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "ion-name-oxidation-state",
     "chemistry-invalid-symbol",
     "chemistry-invalid-ionic-compound",
+    "missing-value-blank",
     "math-embedded-input-blank",
     "math-embedded-input-blank-ordinal",
     "chart-box-summary",
@@ -1164,6 +1167,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "type-change-composite-types-differ",
     "type-change-composite-type-unknown",
     "type-change-index-names-nothing",
+    "type-change-composite-holds-nothing",
     "type-change-value-not-convertible",
     "children-invalid-attribute-format",
     "children-invalid",

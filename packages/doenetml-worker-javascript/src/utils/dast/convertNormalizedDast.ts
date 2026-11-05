@@ -35,7 +35,10 @@ import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
 import { convertCopiesToValueReferences } from "./valueReferences";
 import { convertToListForms } from "./listForms";
-import { checkTypeChangesAtLoad } from "./typeChangeAtLoad";
+import {
+    checkTypeChangesAtLoad,
+    reportTypeChangesAtLoad,
+} from "./typeChangeAtLoad";
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
 import { DiagnosticRecord } from "@doenet/utils";
@@ -182,11 +185,76 @@ export async function normalizedDastToSerializedComponents(
      * Convert Errors to a `componentType` of "_error".
      */
     /**
-     * The `_error`s made for a reference in an `extend` or `copy` attribute
-     * that names nothing, or more than one thing: the tag cannot be made
-     * (D36), so the error is shown in its place.
+     * The placeholders made for a reference in an `extend` or `copy`
+     * attribute that names nothing, or more than one thing: the tag is then
+     * missing (D37), whatever it adds, with the warning the same reference
+     * written bare gives. The placeholder is replaced by the missing tag
+     * (`missingTag`).
      */
-    const errorsInPlaceOfTag = new Set<UnflattenedComponent>();
+    const missingInPlaceOfTag = new Set<UnflattenedComponent>();
+
+    /**
+     * The missing tag (`BaseComponent.isMissing`) for the element `node`,
+     * whose `extend` or `copy` names nothing, under its own index: a
+     * component of its type with its own attributes, but not its children,
+     * which are not drawn. A composite, such as a `<group>`, has nothing of
+     * its type to be missing as, and a list is drawn as its entries, so each
+     * is a `_missing` (`Missing.js`) with its name and `hide`.
+     */
+    function missingTag(
+        node: FlatElement,
+        componentIdx: number,
+        diagnostics: DiagnosticRecord[],
+    ): UnflattenedComponent {
+        const componentType = getComponentType(node);
+        const mapped =
+            componentInfoObjects.componentTypeLowerCaseMapping[
+                componentType.toLowerCase()
+            ];
+        // A list is drawn as its entries, and a missing one has none, so it
+        // is a `_missing` too, to be drawn and read as one blank.
+        const isComposite =
+            mapped !== undefined &&
+            (componentInfoObjects.isCompositeComponent({
+                componentType: mapped,
+                includeNonStandard: true,
+            }) ||
+                componentInfoObjects.allComponentClasses[mapped]
+                    ?.listEntryComponentType !== undefined);
+        // A division's `type` is its component type (`getComponentType`),
+        // not an attribute, as for a tag that is not missing.
+        const attributes = node.attributes.filter(
+            (attribute) =>
+                !(attribute.name === "type" && node.name === "division") &&
+                (!isComposite ||
+                    attribute.name === "name" ||
+                    attribute.name.toLowerCase() === "hide"),
+        );
+        return {
+            type: "unflattened",
+            componentType: isComposite ? "_missing" : componentType,
+            componentIdx,
+            attributes: Object.fromEntries(
+                attributes.map((attribute) => [
+                    attribute.name,
+                    {
+                        name: attribute.name,
+                        children: unflattenDastNodes(
+                            attribute.children,
+                            diagnostics,
+                        ),
+                        position: attribute.position,
+                        sourceDoc: attribute.sourceDoc,
+                    },
+                ]),
+            ),
+            position: node.position,
+            sourceDoc: node.sourceDoc,
+            doenetAttributes: isComposite ? {} : { missing: true },
+            children: [],
+            state: {},
+        };
+    }
 
     function unflattenDastNodes(
         indicesOrStrings: UntaggedContent[],
@@ -205,36 +273,18 @@ export async function normalizedDastToSerializedComponents(
                         node.children,
                         diagnostics,
                     );
-                    const inPlaceOfTag = children.find(
-                        (child): child is UnflattenedComponent =>
+                    const inPlaceOfTag = children.some(
+                        (child) =>
                             typeof child === "object" &&
-                            errorsInPlaceOfTag.has(child),
+                            missingInPlaceOfTag.has(child),
                     );
                     if (inPlaceOfTag) {
-                        // The tag, with what its `extend` or `copy`
-                        // names unresolved, is shown as the error, under
-                        // its own index and name, so a reference to it
-                        // finds the error.
-                        const nameAttribute = node.attributes.find(
-                            (attribute) => attribute.name === "name",
+                        // The tag, with what its `extend` or `copy` names
+                        // unresolved, is missing (D37), under its own index
+                        // and name, so a reference to it reads as missing.
+                        unflattenedNodes.push(
+                            missingTag(node, idxOrString, diagnostics),
                         );
-                        unflattenedNodes.push({
-                            ...inPlaceOfTag,
-                            componentIdx: idxOrString,
-                            attributes: nameAttribute
-                                ? {
-                                      name: {
-                                          name: "name",
-                                          children: unflattenDastNodes(
-                                              nameAttribute.children,
-                                              diagnostics,
-                                          ),
-                                          position: nameAttribute.position,
-                                          sourceDoc: nameAttribute.sourceDoc,
-                                      },
-                                  }
-                                : {},
-                        });
                         continue;
                     }
                     unflattenedNodes.push({
@@ -330,6 +380,9 @@ export async function normalizedDastToSerializedComponents(
                                 attributes: {},
                                 position: node.position,
                                 sourceDoc: node.sourceDoc,
+                                // a blank, as `<T extend="$nothing"/>` is
+                                // (D37, `Copy.js`)
+                                doenetAttributes: { noReferent: true },
                                 extending: {
                                     Ref: {
                                         nodeIdx: -1,
@@ -348,28 +401,30 @@ export async function normalizedDastToSerializedComponents(
                     ) {
                         // A reference in the `extend` or `copy` attribute
                         // of a tag that names nothing, or more than one
-                        // thing (`ref_expand.rs`). Quoted as a reference
-                        // written as text is, at the error level.
-                        const diagnostic = unresolvedReferenceDiagnostic(
-                            node,
-                            normalized_root.sources,
-                            "error",
+                        // thing (`ref_expand.rs`, which marks it as an
+                        // error, as the attribute failed). Quoted as a
+                        // reference written as text is, at the warning
+                        // level the same reference written bare is (D37):
+                        // the tag is missing (`missingTag`).
+                        diagnostics.push(
+                            unresolvedReferenceDiagnostic(
+                                node,
+                                normalized_root.sources,
+                                "warning",
+                            ),
                         );
-                        const error: UnflattenedComponent = {
+                        const placeholder: UnflattenedComponent = {
                             type: "unflattened",
-                            componentType: "_error",
+                            componentType: "_missing",
                             componentIdx: idxOrString,
                             attributes: {},
                             position: node.position,
                             sourceDoc: node.sourceDoc,
-                            state: errorComponentState(
-                                diagnostic.message,
-                                diagnostic,
-                            ),
+                            state: {},
                             children: [],
                         };
-                        errorsInPlaceOfTag.add(error);
-                        unflattenedNodes.push(error);
+                        missingInPlaceOfTag.add(placeholder);
+                        unflattenedNodes.push(placeholder);
                     } else {
                         unflattenedNodes.push({
                             type: "unflattened",
@@ -540,28 +595,48 @@ export async function normalizedDastToSerializedComponents(
     // A reference to a name the branches of a `<conditionalContent>` or a
     // one-pick `<select>` do not all declare with one tag names nothing
     // (D13, D22), so that what it names never changes type with the active
-    // branch.
+    // branch. A name the branches declare with different types is an error,
+    // shown in place of the reference, as it is for the reference written as
+    // a tag (`doenet-e0066`): only a name a branch lacks is a warning, with a
+    // blank (D37).
     for (const { copy, code, args } of branchNameWarnings) {
         const ref: any = (copy.extending as any)?.Ref;
         const originalPath = ref?.originalPath;
-        diagnostics.push(
-            codedDiagnostic({
-                type: "warning",
-                code: code as any,
-                args: {
-                    ...args,
-                    reference: `${doenetMLDollarsForReference(
-                        originalPath,
-                        normalized_root.sources,
-                    )}${doenetMLStringForReference(
-                        originalPath,
-                        normalized_root.sources,
-                    )}`,
-                },
-                position: copy.position,
-                sourceDoc: copy.sourceDoc,
-            }),
-        );
+        const isError = code === "doenet-w0184";
+        const diagnostic = codedDiagnostic({
+            type: isError ? "error" : "warning",
+            code: code as any,
+            args: {
+                ...args,
+                reference: `${doenetMLDollarsForReference(
+                    originalPath,
+                    normalized_root.sources,
+                )}${doenetMLStringForReference(
+                    originalPath,
+                    normalized_root.sources,
+                )}`,
+            },
+            position: copy.position,
+            sourceDoc: copy.sourceDoc,
+        });
+        if (isError) {
+            // Reported now, as the `_error` may be made only after an
+            // interaction (in a case not yet true), and again, the same, kept
+            // once, when the `_error` is made (`ComponentBuilder`).
+            diagnostics.push(diagnostic);
+            const errorComponent = copy as any;
+            errorComponent.componentType = "_error";
+            errorComponent.state = errorComponentState(
+                diagnostic.message,
+                diagnostic,
+            );
+            errorComponent.attributes = {};
+            errorComponent.children = [];
+            errorComponent.doenetAttributes = {};
+            delete errorComponent.extending;
+            continue;
+        }
+        diagnostics.push(diagnostic);
         if (ref) {
             copy.extending = {
                 Ref: {
@@ -571,8 +646,25 @@ export async function normalizedDastToSerializedComponents(
                     nodesInResolvedPath: [],
                 },
             } as any;
+            // a blank, as a reference to one thing that names nothing is
+            // (D37, `Copy.js`)
+            copy.doenetAttributes = {
+                ...copy.doenetAttributes,
+                noReferent: true,
+            };
         }
     }
+
+    // What was decided of each reference written as a tag is reported now,
+    // though the tag may be made only after an interaction, as in a case that
+    // is not true yet: an error never first shows to a student.
+    diagnostics.push(
+        ...reportTypeChangesAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
 
     // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
     // the values it reads, and before the value references, so that a

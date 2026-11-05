@@ -1,4 +1,5 @@
 import createStateProxyHandler from "../../StateProxyHandler";
+import { BLANK_RENDERER_TYPE } from "../../utils/missing";
 import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefinitionFactory";
 import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
@@ -118,6 +119,10 @@ export default class BaseComponent {
                 this.doenetAttributes,
                 serializedComponent.doenetAttributes,
             );
+        }
+
+        if (this.doenetAttributes.missing) {
+            this.state.valueMissing = missingDefinition();
         }
 
         if (serializedComponent.variants !== undefined) {
@@ -246,8 +251,32 @@ export default class BaseComponent {
         }
     }
 
+    /**
+     * The renderer this component is drawn by: its class's, or, for a
+     * missing component (`isMissing`), the blank renderer, which shows `＿`
+     * inline, is not drawn in a graph, and draws none of its children (D37,
+     * VAL-5).
+     */
     get rendererType() {
+        if (this.isMissing && this.constructor.rendererType !== undefined) {
+            return BLANK_RENDERER_TYPE;
+        }
         return this.constructor.rendererType;
+    }
+
+    /**
+     * Whether this component is missing (D37): a tag whose source is
+     * missing (`<math extend="$nothing"/>`, `<p extend="$r[$i]">` while the
+     * index names nothing, `<point extend="$m"/>` while `m` is not a tuple),
+     * which a copy makes with `doenetAttributes.missing` (`Copy.js`,
+     * `convertNormalizedDast.ts`). It is a component of its type, holding the
+     * value `<T/>` holds, but it is not `<T/>`: its `valueMissing` is `true`,
+     * so it never equals anything, a reference to it reads as missing, and it
+     * is drawn as a blank. It is decided when it is made and does not change:
+     * a copy makes it again from its source when the source is there again.
+     */
+    get isMissing() {
+        return Boolean(this.doenetAttributes.missing);
     }
 
     /**
@@ -257,7 +286,8 @@ export default class BaseComponent {
     get allPotentialRendererTypes() {
         // `_error` is seeded here rather than contributed by a component: the
         // viewer needs the error renderer available for any document at all.
-        const rendererTypes = new Set(["_error"]);
+        // So is the blank renderer, which draws whatever is missing (D37).
+        const rendererTypes = new Set(["_error", BLANK_RENDERER_TYPE]);
         this.addPotentialRendererTypes(rendererTypes, new Set());
         return [...rendererTypes];
     }
@@ -302,6 +332,11 @@ export default class BaseComponent {
     addOwnPotentialRendererTypes(rendererTypes, visited) {
         if (this.rendererType) {
             rendererTypes.add(this.rendererType);
+        }
+        // A missing component is drawn as its type once its source is there
+        // again.
+        if (this.isMissing && this.constructor.rendererType) {
+            rendererTypes.add(this.constructor.rendererType);
         }
 
         // include any potential renderer type that could be
@@ -2446,4 +2481,16 @@ async function snapshotListEntrySource(serializedComponent, parameters) {
             };
         }
     }
+}
+
+/**
+ * The definition of `valueMissing` of a missing component (`isMissing`):
+ * always `true`. A component that is not missing has no `valueMissing`, and
+ * a dependency that asks for it optionally reads it as `undefined`.
+ */
+function missingDefinition() {
+    return {
+        returnDependencies: () => ({}),
+        definition: () => ({ setValue: { valueMissing: true } }),
+    };
 }

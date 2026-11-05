@@ -231,7 +231,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(mState.renderMode).eq("display");
         });
 
-        it("a reference with nothing to read draws nothing, until it has something", async () => {
+        it("a reference with nothing to read draws a blank, until it has something", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <numberList name="l">1 2</numberList>
@@ -240,10 +240,16 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     `,
             });
 
-            expect(await textOf(core, resolvePathToNodeIdx, "p")).eq("[]");
+            expect(await textOf(core, resolvePathToNodeIdx, "p")).eq("[＿]");
             expect(await drawn(core, resolvePathToNodeIdx, "p")).eqls([
                 "[",
+                ["_blank", "number", undefined],
                 "]",
+            ]);
+            // A blank is sent only whether it is hidden, all its renderer
+            // reads, not the renderer state of a `<number>`.
+            expect(await drawnStates(core, resolvePathToNodeIdx, "p")).eqls([
+                { hidden: false },
             ]);
 
             await updateMathInputValue({
@@ -379,7 +385,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 componentIdx: await resolvePathToNodeIdx("i"),
                 core,
             });
-            expect(await textOf(core, resolvePathToNodeIdx, "p")).eq("[]");
+            expect(await textOf(core, resolvePathToNodeIdx, "p")).eq("[＿]");
             expect(await textOf(core, resolvePathToNodeIdx, "pc")).eq("[]");
 
             await updateMathInputValue({

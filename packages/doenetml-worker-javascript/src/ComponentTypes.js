@@ -221,6 +221,7 @@ import VariableName from "./components/abstract/VariableName";
 import ListOfNumberLists from "./components/abstract/ListOfNumberLists";
 import DirectionComponent from "./components/abstract/DirectionComponent";
 import ErrorComponent from "./components/abstract/Error";
+import Missing from "./components/abstract/Missing";
 import Comment from "./components/abstract/Comment";
 
 const componentTypeArray = [
@@ -446,6 +447,7 @@ const componentTypeArray = [
     ListOfNumberLists,
     DirectionComponent,
     ErrorComponent,
+    Missing,
     Comment,
 ];
 

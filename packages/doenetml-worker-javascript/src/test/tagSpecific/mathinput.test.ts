@@ -11857,11 +11857,11 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p3")].stateValues
                         .text,
-                ).eq(`y: `);
+                ).eq(`y: ＿`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p6")].stateValues
                         .text,
-                ).eq(`x2: `);
+                ).eq(`x2: ＿`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                         .x2,
@@ -11885,11 +11885,11 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p4")].stateValues
                         .text,
-                ).eq(`z: `);
+                ).eq(`z: ＿`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p7")].stateValues
                         .text,
-                ).eq(`x3: `);
+                ).eq(`x3: ＿`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                         .x3,
@@ -11909,7 +11909,7 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p8")].stateValues
                         .text,
-                ).eq(`x4: `);
+                ).eq(`x4: ＿`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                         .x4,
@@ -11948,7 +11948,7 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p10")]
                         .stateValues.text,
-                ).eq(`v[${i}]: `);
+                ).eq(`v[${i}]: ＿`);
             }
 
             expect(
@@ -12021,7 +12021,7 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]
                         .stateValues.text,
-                ).eq(`Matrix[${i}]: `);
+                ).eq(`Matrix[${i}]: ＿`);
             }
 
             if (i === 1) {
@@ -12038,7 +12038,7 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p16")]
                         .stateValues.text,
-                ).eq(`Matrix[${i}][1]: `);
+                ).eq(`Matrix[${i}][1]: ＿`);
             }
 
             expect(

@@ -937,7 +937,8 @@ describe("Group tag tests @group2", async () => {
             ).eq(text);
         }
 
-        await check("7 8 1 2 9 ");
+        // an index past what the group holds is a blank (D37)
+        await check("7 8 1 2 9 ＿");
 
         // A longer sequence moves the items after it along.
         await updateMathInputValue({
@@ -952,7 +953,7 @@ describe("Group tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        await check("7 8 1 9  ");
+        await check("7 8 1 9 ＿ ＿");
     });
 
     it("index into a group holding a reference to a group whose items contain references", async () => {

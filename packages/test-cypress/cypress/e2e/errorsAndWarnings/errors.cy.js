@@ -61,29 +61,33 @@ describe("Error Tests", { tags: ["@group2"] }, function () {
             expect(diagnosticsByType.errors.length).eq(3);
             expect(diagnosticsByType.warnings.length).eq(0);
 
-            expect(diagnosticsByType.errors[0].message).contain(
+            // Each error once, in whatever order they were reported: the
+            // errors of converting the document are reported when it loads,
+            // and those of the `_error` components as they are made.
+            const errorWith = (text) =>
+                diagnosticsByType.errors.find((error) =>
+                    error.message.includes(text),
+                );
+
+            const noClosingTag = errorWith(
                 'The tag `<a name="a1">` has no closing tag.',
             );
-            expect(diagnosticsByType.errors[0].position.start.line).eq(5);
-            expect(diagnosticsByType.errors[0].position.start.column).eq(5);
-            expect(diagnosticsByType.errors[0].position.end.line).eq(5);
-            expect(diagnosticsByType.errors[0].position.end.column).eq(18);
+            expect(noClosingTag.position.start.line).eq(5);
+            expect(noClosingTag.position.start.column).eq(5);
+            expect(noClosingTag.position.end.line).eq(5);
+            expect(noClosingTag.position.end.column).eq(18);
 
-            expect(diagnosticsByType.errors[1].message).contain(
-                "Invalid component type: `<a>`",
-            );
-            expect(diagnosticsByType.errors[1].position.start.line).eq(5);
-            expect(diagnosticsByType.errors[1].position.start.column).eq(5);
-            expect(diagnosticsByType.errors[1].position.end.line).eq(6);
-            expect(diagnosticsByType.errors[1].position.end.column).eq(3);
+            const invalidType = errorWith("Invalid component type: `<a>`");
+            expect(invalidType.position.start.line).eq(5);
+            expect(invalidType.position.start.column).eq(5);
+            expect(invalidType.position.end.line).eq(6);
+            expect(invalidType.position.end.column).eq(3);
 
-            expect(diagnosticsByType.errors[2].message).contain(
-                "was not closed",
-            );
-            expect(diagnosticsByType.errors[2].position.start.line).eq(10);
-            expect(diagnosticsByType.errors[2].position.start.column).eq(3);
-            expect(diagnosticsByType.errors[2].position.end.line).eq(10);
-            expect(diagnosticsByType.errors[2].position.end.column).eq(9);
+            const notClosed = errorWith("was not closed");
+            expect(notClosed.position.start.line).eq(10);
+            expect(notClosed.position.start.column).eq(3);
+            expect(notClosed.position.end.line).eq(10);
+            expect(notClosed.position.end.column).eq(9);
         });
     });
 });

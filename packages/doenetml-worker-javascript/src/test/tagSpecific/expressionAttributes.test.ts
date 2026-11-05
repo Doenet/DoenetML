@@ -875,9 +875,12 @@ describe("Lists held by what searches for them @group4", () => {
         });
         expect(steps[0].ofDyn.targets).toEqual(["1", "3"]);
         expect(steps[1].ofDyn.targets).toEqual(["1", "5"]);
-        expect(steps[0].ofShown.targets).toEqual([]);
+        // While its case is not active, `$cc.shown` names nothing: one
+        // thing, missing, so the target is a blank (D37), which never
+        // equals anything.
+        expect(steps[0].ofShown.targets).toEqual(["NaN"]);
         expect(steps[1].ofShown.targets).toEqual(["4", "5"]);
-        expect(steps[2].ofShown.targets).toEqual([]);
+        expect(steps[2].ofShown.targets).toEqual(["NaN"]);
         expect(steps[0].ofIteration.targets).toEqual(["2", "9"]);
         expect(steps[0]["rp[1].ri"].targets).toEqual(["1", "7"]);
         expect(steps[0]["rp[2].ri"].targets).toEqual(["2", "7"]);

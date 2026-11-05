@@ -1,12 +1,4 @@
-import {
-    AccessibilityRecord,
-    DiagnosticRecord,
-    InfoRecord,
-    WarningRecord,
-} from "@doenet/utils";
-
-type NonErrorDiagnosticRecord =
-    WarningRecord | InfoRecord | AccessibilityRecord;
+import { DiagnosticRecord } from "@doenet/utils";
 
 /**
  * A diagnostic a condition gives ({@link DiagnosticsManager.setConditionDiagnostics}),
@@ -66,6 +58,11 @@ export class DiagnosticsManager {
      * not make it, reports none of it (DIAG-6).
      */
     isShown: (componentIdx: number) => boolean;
+    /**
+     * The DoenetML of each source document, by `sourceDoc`, which Core sets:
+     * where the start tag of a tag ends (`withoutExplainedIndexInfos`).
+     */
+    sources: readonly string[] = [];
 
     constructor({
         preliminaryDiagnostics,
@@ -81,27 +78,25 @@ export class DiagnosticsManager {
         // happen once. Deduping through a `Set` of keys is a single pass, so the
         // O(n²) that once argued against doing it here does not apply.
         //
-        // Errors are ignored here; we'll gather those from the dast when
-        // processing it.
+        // Errors are kept too, though the `_error` components built from the
+        // document raise most of them again, which is kept once: an `_error`
+        // in content made only after an interaction, as in a case that is not
+        // true yet, is reported now, where the author sees it, not first to a
+        // student.
         this._diagnosticKeys = new Set<string>();
         this._conditionDiagnostics = new Map();
         this._watchedConditions = new Map();
         this._refreshing = false;
         this.isShown = () => true;
-        this._queue = preliminaryDiagnostics.filter(
-            (diagnostic): diagnostic is NonErrorDiagnosticRecord => {
-                if (diagnostic.type === "error") {
-                    return false;
-                }
-                this.assertDiagnosticIsValid(diagnostic);
-                const key = diagnosticDedupKey(diagnostic);
-                if (this._diagnosticKeys.has(key)) {
-                    return false;
-                }
-                this._diagnosticKeys.add(key);
-                return true;
-            },
-        );
+        this._queue = preliminaryDiagnostics.filter((diagnostic) => {
+            this.assertDiagnosticIsValid(diagnostic);
+            const key = diagnosticDedupKey(diagnostic);
+            if (this._diagnosticKeys.has(key)) {
+                return false;
+            }
+            this._diagnosticKeys.add(key);
+            return true;
+        });
         this._queueSeq = this._queue.map((_, ind) => ind);
         this._seq = this._queue.length;
 
@@ -136,9 +131,12 @@ export class DiagnosticsManager {
                 }
             }
         }
-        return merged
-            .sort((a, b) => a.seq - b.seq)
-            .map((entry) => entry.diagnostic);
+        return withoutExplainedIndexInfos(
+            this.sources,
+            merged
+                .sort((a, b) => a.seq - b.seq)
+                .map((entry) => entry.diagnostic),
+        );
     }
 
     /**
@@ -392,6 +390,120 @@ export class DiagnosticsManager {
             diagnostics ?? [],
         );
     }
+}
+
+/**
+ * `diagnostics` without each info that the index of a reference written as
+ * a tag names nothing now (`doenet-i0054`) where a warning or error at the
+ * reference already says why: a property the referent does not have
+ * (`$n.nonexistent[1]`), an index into a value that is a scalar
+ * (`doenet-w0100`), or a literal index below 1. The tag then reports what
+ * the bare reference reports (D37). The info spans the whole tag, children
+ * and all, so only a diagnostic at the whole tag (as `doenet-w0100` is) or in
+ * the value of its `extend` or `copy` attribute (`referenceSpan`) explains
+ * it, not one in another attribute (`displayDigits="$nothing"`) or in what
+ * is written in the tag (`<p extend="$g[$i]">$nothing</p>`). `sources` is
+ * the DoenetML of each source document.
+ */
+function withoutExplainedIndexInfos(
+    sources: readonly string[],
+    diagnostics: DiagnosticRecord[],
+): DiagnosticRecord[] {
+    if (!diagnostics.some((d) => d.code === "doenet-i0054")) {
+        return diagnostics;
+    }
+    const explaining = diagnostics.filter(
+        (d) => d.type === "warning" || d.type === "error",
+    );
+    return diagnostics.filter((info) => {
+        if (info.code !== "doenet-i0054") {
+            return true;
+        }
+        const start = info.position?.start?.offset;
+        const end = info.position?.end?.offset;
+        if (start === undefined || end === undefined) {
+            return true;
+        }
+        const reference = referenceSpan(
+            sources[info.sourceDoc ?? 0],
+            start,
+            end,
+        );
+        return !explaining.some((d) => {
+            const dStart = d.position?.start?.offset;
+            const dEnd = d.position?.end?.offset;
+            return (
+                dStart !== undefined &&
+                dEnd !== undefined &&
+                ((dStart === start && dEnd === end) ||
+                    (reference !== undefined &&
+                        dStart >= reference.start &&
+                        dEnd <= reference.end)) &&
+                (d.sourceDoc ?? 0) === (info.sourceDoc ?? 0)
+            );
+        });
+    });
+}
+
+/**
+ * The offsets of the value of the `extend` or `copy` attribute, inside its
+ * quotes, in the start tag of the tag written at `start` in `source`, which
+ * ends by `end`: the reference the tag is made from. `undefined` when there
+ * is no such attribute there, or the source is not a tag.
+ */
+function referenceSpan(
+    source: string | undefined,
+    start: number,
+    end: number,
+): { start: number; end: number } | undefined {
+    if (source?.[start] !== "<") {
+        return undefined;
+    }
+    // Attributes are read in order, so a quote inside one value is not taken
+    // for the start of another.
+    let i = start + 1;
+    while (i < end && /[^\s/>]/.test(source[i])) {
+        i++;
+    }
+    while (i < end) {
+        while (i < end && /\s/.test(source[i])) {
+            i++;
+        }
+        if (i >= end || source[i] === ">" || source[i] === "/") {
+            return undefined;
+        }
+        const nameStart = i;
+        while (i < end && /[^\s=/>]/.test(source[i])) {
+            i++;
+        }
+        const name = source.slice(nameStart, i);
+        while (i < end && /\s/.test(source[i])) {
+            i++;
+        }
+        if (source[i] !== "=") {
+            continue;
+        }
+        i++;
+        while (i < end && /\s/.test(source[i])) {
+            i++;
+        }
+        const quote = source[i];
+        if (quote !== '"' && quote !== "'") {
+            return undefined;
+        }
+        const valueStart = i + 1;
+        const valueEnd = source.indexOf(quote, valueStart);
+        if (valueEnd === -1 || valueEnd >= end) {
+            return undefined;
+        }
+        // attribute names are case-insensitive, as the resolver reads them
+        const lowerName = name.toLowerCase();
+        if (lowerName === "extend" || lowerName === "copy") {
+            return { start: valueStart, end: valueEnd };
+        }
+        i = valueEnd + 1;
+    }
+    return undefined;
 }
 
 /**
