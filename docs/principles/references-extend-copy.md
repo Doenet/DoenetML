@@ -749,7 +749,8 @@ of a `<conditionalContent>` or `<repeat>` decides its own case or iterations.
 (CPY-8).
 
 **Known violation:** through 0.7 `copy` carries state and choices; `copyWithState` doesn't exist
-yet (D33).
+yet (D33). The `v07-to-v08` converter renames existing `copy` to `copyWithState`, except copies of
+a module and copies that change what is chosen (#2457).
 
 Evidence:
 - `T/copying/unlinked copy.test.ts:285` "copy no link, base test";
