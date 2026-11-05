@@ -14,7 +14,11 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/`, `W/` is
 |---|---|---|---|
 | `$x` | x itself, shown again | shared with x | keep the meaning they have in x |
 | `<T extend="$x" …/>` | x itself, with the changes written on it | shared with x | keep the meaning they have in x |
-| `<T copy="$x" …/>` | x's DoenetML pasted here, with the reader's current state | its own, starting from x's | looked up again where the copy lands |
+| `<T copy="$x" …/>` | x's DoenetML written again here: no reader state, its own random choices | its own, starting as written | keep the meaning they have in x (CPY-6) |
+| `<T copyWithState="$x" …/>` | x's DoenetML pasted here, with the reader's current state and x's random choices | its own, starting from x's | keep the meaning they have in x (CPY-6) |
+
+`copy` and `copyWithState` are D33's two forms. Through 0.7, `copy` meant what `copyWithState`
+means now. Below, "a copy" means either form unless a principle names one.
 
 Everything below refines this table.
 
@@ -250,7 +254,7 @@ Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThro
 
 ### REF-0: a tag you write makes that tag (Tier 1; D36, D37)
 In a document without errors, `<T extend="$x" …>…</T>` always makes exactly one T, whatever x
-holds. The same holds for `copy` and D33's fresh form. An author who writes `<math>` can rely on
+holds. The same holds for `copy` and `copyWithState`. An author who writes `<math>` can rely on
 a math: `$x + 1`, `$x.value` and an answer that checks `$x` all read one.
 
 **The T can be missing** (D37, VAL-5). A tag whose source is missing is itself missing, whatever
@@ -457,7 +461,7 @@ component with a single-child group ([testing-principles.md](testing-principles.
 
 ### REF-5: a different tag is allowed only between related types; any other pair is an error (Tier 2)
 `<T extend="$x"/>` with T different from x's type asks for a T made from x. The same table decides
-`copy` and D33's fresh form (D26). The allowed cases:
+`copy` and `copyWithState` (D26). The allowed cases:
 - **between value types:**
   - math, number, text and boolean, among each other. A boolean is `1` or `0` as a number or a
     math;
@@ -728,12 +732,24 @@ the same content".
 
 ## 3. `copy`
 
-### CPY-1: `copy` behaves as the source's DoenetML pasted in place (Tier 1)
-`<T copy="$x" …/>` behaves as if x's DoenetML were pasted at that spot:
+### CPY-1: a copy behaves as the source's DoenetML pasted in place (Tier 1)
+`<T copy="$x" …/>` and `<T copyWithState="$x" …/>` behave as if x's DoenetML were pasted at that
+spot:
 - attributes written on the copy override x's, as in REF-3;
 - children written inside it are appended, as in REF-4;
 - the link to x itself is cut, so later changes to x do not reach the copy, and the copy's
   changes do not reach x.
+
+**`copy` is only that** (D33): it carries no reader state and no random choices, and starts as
+written content does. `<mathInput copy="$mi"/>` starts at mi's prefill, whatever the reader typed.
+Its random components draw their own values, fixed for a given variant and kept through a
+reload; two copies of one source differ (D17). A copy of a choosing tag chooses again, and a copy
+of a `<conditionalContent>` or `<repeat>` decides its own case or iterations.
+**`copyWithState` adds** the reader's current state (CPY-2) and the source's random choices
+(CPY-8).
+
+**Known violation:** through 0.7 `copy` carries state and choices; `copyWithState` doesn't exist
+yet (D33).
 
 Evidence:
 - `T/copying/unlinked copy.test.ts:285` "copy no link, base test";
@@ -751,8 +767,10 @@ What the copy does *not* take from x:
   (`context_attributes.test.ts:525`, `:563`).
 - **`labelIsName`.** It is deliberately not pasted (`Copy.js:1566`), an exception noted in D19.
 
-### CPY-2: a copy starts from the source's current reader state, and keeps that snapshot (Tier 1)
-A copy made after the reader has interacted with x starts where x is now, not from x's prefill.
+### CPY-2: `copyWithState` starts from the source's current reader state, and keeps that snapshot (Tier 1)
+A `copyWithState` made after the reader has interacted with x starts where x is now, not from
+x's prefill. (Below, "copy" in this principle means `copyWithState`; examples written with `copy`
+show behavior through 0.7, D33.)
 - **[probe]** `mi` was typed to 5 and `P` dragged to (7,8). A `<conditionalContent>` then
   revealed `<mathInput copy="$mi"/>` and `<point copy="$P"/>`. They show 5 and (7,8).
 - A copy made at load stays at the prefill after `mi` changes.
@@ -764,8 +782,8 @@ A copy made after the reader has interacted with x starts where x is now, not fr
   `<p copy="$cc.p"/>`, is remade on load from the case active then (B35, #2446). A `<group copy>` of a
   `<collect>` whose collected input changed type throws on reload (B36, #2446).
 
-This is how authors freeze a reader's work, and it is why `copy` is "pasted DoenetML *plus the
-current state*", not pure paste.
+This is how authors freeze a reader's work, and it is why `copyWithState` is "pasted DoenetML
+*plus the current state*", not pure paste. `copy` is pure paste (CPY-1).
 
 Evidence:
 - `T/copying/unlinked copy.test.ts:2112-2312` "create snapshot of group/repeat with
@@ -784,8 +802,8 @@ Cost: the reload half is expensive in the current core.
 A core that records the copy's own state when it is made gets the same author-visible result
 for free. Keep the behavior and drop the mechanism.
 
-### CPY-8: a copy keeps its source's random choices, however deeply nested; a child added to a copy draws its own (Tier 1)
-Random choices are part of the state a copy carries (CPY-2), so a copy of anything holding a
+### CPY-8: `copyWithState` keeps its source's random choices, however deeply nested; a child added to a copy draws its own (Tier 1)
+Random choices are part of the state `copyWithState` carries (CPY-2), so a `copyWithState` of anything holding a
 `<select>`, `<selectFromSequence>`, `<shuffle>` or sampler shows the same values as its source.
 That holds at any depth inside the copied content. A child written inside the copy is new
 content: it draws its own value, which is fixed for a given variant, and never repeats one of
@@ -815,7 +833,7 @@ Code: `copyVariants` in `W/components/abstract/Copy.js`. It gives each serialize
 random children a seed of its own. **[probe]** on main, for variants 1–3: the nested value matches
 its source, and an added child draws its own (`323 109` becomes `323 109 722`).
 
-**Open: a copy that changes what is chosen (#2389, defect B11).** CPY-8 says a copy keeps its
+**Decided (D33): a copy that changes what is chosen (#2389, defect B11).** CPY-8 says a copy keeps its
 source's random choices, and D4 says the attributes written on a copy override. They conflict
 when the copy changes what is chosen, as `<select copy="$x" numToSelect="4"/>` of a two-pick
 select does. The copy cannot keep two picks and make four. Today (**[probe]**):
@@ -823,12 +841,17 @@ select does. The copy cannot keep two picks and make four. Today (**[probe]**):
 - `<selectFromSequence>` shows nothing, with error `doenet-e0037`;
 - `<sampleRandomNumbers copy numSamples="4">` makes four new samples.
 
-Proposed in D33: a copy always keeps its source's choices. Writing on it an attribute that decides
-what is chosen, or adding options, is an error. A change that reaches nested content, known only
-at run time, gives a warning, and the carried choices win. Content that should choose again is
-written with a second form, "written again here", which carries no state and no choices (name
-open). That replaces an earlier proposal that a copy changing what is chosen chooses again, which
-made the result depend on the value written.
+Decided in D33:
+- **`copy` chooses again**: `<select copy="$x" numToSelect="4"/>` is a new select with four picks.
+- **`copyWithState` always keeps its source's choices.** Writing on it an attribute that decides
+  what is chosen (`numToSelect`, `withReplacement`, a range, `exclude`, a sampler's `numSamples`
+  or distribution), or adding options, is an error that says to use `copy`. The check goes by
+  attribute name, so `numToSelect="2"` and `"3"` behave the same. A change that reaches nested
+  content, known only at run time (`<module copyWithState="$m" k="4"/>` where `k` sets a nested
+  `numToSelect`), gives a warning, and the carried choices win (DIAG-1).
+
+That replaces an earlier proposal that a copy changing what is chosen chooses again, which made
+the result depend on the value written.
 
 ### CPY-3: references inside a copy stay live; ones that pointed into the source now point into the copy (Tier 1)
 ```xml
@@ -889,7 +912,8 @@ copy of an extend do not reach the copy's descendants. See the TODO with a comme
 assertion at `T/copying/unlinked copy.test.ts:1967-2002` (`g3.B` `styleNumber`).
 
 ### CPY-5: a copy of a property or a list entry holds a value (Tier 1)
-`copy="$P.x"` has no DoenetML to paste, so it holds the value it had when the copy was made. It
+`copy="$P.x"` has no DoenetML to paste, so it holds the value it had when the copy was made. This
+holds for both forms: for `copy` the value is its only content. It
 also keeps the display settings it showed. Attributes written on the copy still apply.
 
 Evidence:
@@ -970,7 +994,8 @@ a caller passes a reference. Copying the value avoids every one of these failure
 How to say it to authors:
 
 > `copy` copies a definition. To start a new value from where something is now, copy its
-> value: `copy="$x.value"`.
+> value: `copy="$x.value"`. (`copyWithState="$x"` also starts from where x is now, but it
+> copies the definition too, so its references stay live.)
 
 This belongs on the `<module>` and `<moduleAttributes>` reference pages, next to the existing
 advice to use `copy` so that each instance is independent. No test pins any row of the table
@@ -982,8 +1007,8 @@ above. D28 asks whether the model can make the natural spelling work.
 
 When references are chained, each link follows its own rule:
 - **an `extend`** keeps the meaning its source's references already have (REF-6);
-- **a `copy`** pastes the source's DoenetML, and keeps what its names meant there too (CPY-6,
-  #2397).
+- **a `copy` or `copyWithState`** pastes the source's DoenetML, and keeps what its names meant
+  there too (CPY-6, #2397).
 
 The example below chains extends and copies of one group. The group holds a paragraph that
 shows `$n`, and every section except F has its own number named `n`.
