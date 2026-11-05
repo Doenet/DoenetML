@@ -52,7 +52,7 @@ impl<'a> Compiler<'a> {
                             break;
                         }
                     }
-                    let entries = super::expr::tuple_entries(&toks[start..i]).unwrap();
+                    let entries = expr::tuple_entries(&toks[start..i]).unwrap();
                     out.push(GivenPoint::Tuple(self.point_from_entries(&entries, src)?));
                 }
                 Token::Comma => i += 1,

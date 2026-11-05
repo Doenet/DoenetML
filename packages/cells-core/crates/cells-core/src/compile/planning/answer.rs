@@ -21,19 +21,12 @@
 //! or the most any award gives (`credit` × holds). Other content is
 //! refused, never left blank.
 
+use crate::compile::answer::AwardForm;
 use crate::compile::*;
 use crate::components::prop::{
     answer, award, choice, choice_input, math_input, response, text_input, when,
 };
 use crate::limits::MAX_CHOICES;
-
-/// An `<award>` as read from the DAST: its `<when>`, or its content.
-pub(in crate::compile) struct AwardForm {
-    pub(in crate::compile) e: ElemId,
-    pub(in crate::compile) el: NodeId,
-    pub(in crate::compile) when: Option<(ElemId, NodeId)>,
-    pub(in crate::compile) nodes: Vec<NodeId>,
-}
 
 impl<'a> Compiler<'a> {
     pub(in crate::compile) fn plan_answer(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
@@ -326,133 +319,6 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// Attributes that change what an answer checks and are out of scope.
-    /// Returns whether the answer is `type="text"`.
-    pub(in crate::compile) fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {
-        let d = self.dast;
-        self.reject_compare_attrs(el, "answer")?;
-        let mut text = false;
-        if let Some(a) = d.attr(el, "type") {
-            let ty = self.attr_text(a).unwrap_or_default();
-            match ty.trim() {
-                "math" => {}
-                "text" => text = true,
-                other => {
-                    return Err(Error::Unsupported(format!("<answer type=\"{other}\">")));
-                }
-            }
-        }
-        if self.attr_on(el, "matchPartial") {
-            return Err(Error::Unsupported("<answer matchPartial>".into()));
-        }
-        if let Some(a) = d.attr(el, "numAwardsCredited")
-            && self.attr_text(a).unwrap_or_default().trim() != "1"
-        {
-            return Err(Error::Unsupported("<answer numAwardsCredited>".into()));
-        }
-        Ok(text)
-    }
-
-    /// Attributes of an answer or award that change how responses compare
-    /// and are not modelled: refused, never ignored.
-    fn reject_compare_attrs(&self, el: NodeId, tag: &str) -> Result<()> {
-        const OUT_OF_SCOPE: &[&str] = &[
-            "allowedErrorInNumbers",
-            "allowedErrorIsAbsolute",
-            "includeErrorInNumberExponents",
-            "nSignErrorsMatched",
-            "nPeriodicSetMatchesRequired",
-            "unorderedCompare",
-            "matchByExactPositions",
-            "caseInsensitiveMatch",
-            "matchBlanks",
-            "splitSymbols",
-        ];
-        for &name in OUT_OF_SCOPE {
-            if self.dast.attr(el, name).is_some() {
-                return Err(Error::Unsupported(format!("<{tag} {name}>")));
-            }
-        }
-        Ok(())
-    }
-
-    /// The element children of `e`.
-    pub(in crate::compile) fn elem_children(&self, t: TemplateId, e: ElemId) -> Vec<ElemId> {
-        self.outlined(t).elems[e.index()]
-            .children
-            .iter()
-            .filter_map(|c| match c {
-                Child::Elem(k) => Some(*k),
-                _ => None,
-            })
-            .collect()
-    }
-
-    /// The text and `$ref` nodes of an element, blanks left out.
-    pub(in crate::compile) fn content_nodes(&self, el: NodeId) -> Vec<NodeId> {
-        let d = self.dast;
-        d.children(el)
-            .iter()
-            .copied()
-            .filter(|&n| d.kind(n) != NodeKind::Element && !self.is_blank(n))
-            .collect()
-    }
-
-    pub(in crate::compile) fn award_form(&self, t: TemplateId, a: ElemId) -> Result<AwardForm> {
-        let d = self.dast;
-        let el = self.outlined(t).elems[a.index()].node;
-        if d.attr(el, "feedback").is_some() {
-            return Err(Error::Unsupported("<award feedback>".into()));
-        }
-        if d.attr(el, "extend").is_some() {
-            return Err(Error::Unsupported("<award extend>".into()));
-        }
-        self.reject_compare_attrs(el, "award")?;
-        let mut when = None;
-        // `<award><math>2 + $a</math></award>`: the math is the content.
-        let mut math_child = None;
-        for k in self.elem_children(t, a) {
-            match self.outlined(t).elems[k.index()].component_type {
-                ComponentType::When if when.is_none() => {
-                    when = Some((k, self.outlined(t).elems[k.index()].node))
-                }
-                ComponentType::Math if math_child.is_none() && when.is_none() => {
-                    math_child = Some(self.outlined(t).elems[k.index()].node)
-                }
-                ComponentType::When => {
-                    return Err(Error::Unsupported("two <when>s in an <award>".into()));
-                }
-                other => {
-                    return Err(Error::Unsupported(format!(
-                        "a <{}> inside an <award>",
-                        other.tag()
-                    )));
-                }
-            }
-        }
-        let nodes = match math_child {
-            Some(m) if self.content_nodes(el).is_empty() => self.content_nodes(m),
-            Some(_) => {
-                return Err(Error::Unsupported(
-                    "an <award> with both a <math> and text".into(),
-                ));
-            }
-            None => self.content_nodes(el),
-        };
-        match (when, nodes.is_empty()) {
-            (Some(_), false) => Err(Error::Unsupported(
-                "an <award> with both a <when> and content".into(),
-            )),
-            (None, true) => Err(Error::Unsupported("an empty <award>".into())),
-            _ => Ok(AwardForm {
-                e: a,
-                el,
-                when,
-                nodes,
-            }),
-        }
-    }
-
     /// `awarded` of one award: its `credit` times whether it holds.
     fn plan_award(
         &mut self,
@@ -522,26 +388,6 @@ impl<'a> Compiler<'a> {
         });
         self.tables[t.index()].plans[form.e.index()].props = wiring.finish().0;
         Ok(())
-    }
-
-    /// The input a reference plan names (`$mi`, `$mi.value`), as (hops,
-    /// element) and its type; None for anything else.
-    pub(in crate::compile) fn input_named(
-        &self,
-        t: TemplateId,
-        p: RefId,
-    ) -> Option<((u32, ElemId), ComponentType)> {
-        let r = &self.compiled.refs[p.index()];
-        if !r.prop.is_none_or(|p| p.is("value")) {
-            return None;
-        }
-        let (cur_t, x) = self.static_target(t, p)?;
-        let input_type = self.outlined(cur_t).elems[x.index()].component_type;
-        matches!(
-            input_type,
-            ComponentType::MathInput | ComponentType::BooleanInput
-        )
-        .then_some(((r.hops, x), input_type))
     }
 
     /// An award's `credit`: what the attribute says (1 without one), which

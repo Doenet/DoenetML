@@ -11,7 +11,6 @@ pub(in crate::compile) mod ctx;
 mod fix;
 mod iterates;
 pub(in crate::compile) mod planner;
-mod points;
 
 use crate::compile::*;
 

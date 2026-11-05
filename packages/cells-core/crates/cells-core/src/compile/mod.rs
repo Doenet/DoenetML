@@ -37,6 +37,7 @@ use crate::sym::Tree;
 use expr::{Arena, Expr, ExprId, Parser, Token};
 use plan::*;
 
+mod answer;
 pub(crate) mod api;
 mod boxes;
 mod check;
@@ -50,12 +51,14 @@ mod outline;
 mod parse;
 pub(crate) mod plan;
 mod planning;
+mod points;
 pub(crate) mod rebase;
 pub(crate) mod record;
 mod refs;
 mod seal;
 mod share;
 mod source;
+mod values;
 
 pub use check::diagnose;
 pub(crate) use check::{CompileOutput, compile};

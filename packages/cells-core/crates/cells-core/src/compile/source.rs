@@ -1,5 +1,5 @@
 //! Reading the source, which every stage does: an element's literal
-//! attributes and which of its children are content.
+//! attributes, its children, and which of them are content.
 
 use crate::compile::*;
 
@@ -97,5 +97,27 @@ impl Compiler<'_> {
             attr: name.into(),
             text,
         })
+    }
+
+    /// The element children of `e`.
+    pub(in crate::compile) fn elem_children(&self, t: TemplateId, e: ElemId) -> Vec<ElemId> {
+        self.outlined(t).elems[e.index()]
+            .children
+            .iter()
+            .filter_map(|c| match c {
+                Child::Elem(k) => Some(*k),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// The text and `$ref` nodes of an element, blanks left out.
+    pub(in crate::compile) fn content_nodes(&self, el: NodeId) -> Vec<NodeId> {
+        let d = self.dast;
+        d.children(el)
+            .iter()
+            .copied()
+            .filter(|&n| d.kind(n) != NodeKind::Element && !self.is_blank(n))
+            .collect()
     }
 }

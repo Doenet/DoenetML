@@ -295,3 +295,17 @@ otherwise.
    `compile::plan` is the compile's output types, which the rest of the
    crate reads. `compile::keys` is still the keys' path, re-exported.
    No code changed but its place and what it may be called from.
+
+   Amended 2026-11-05: a trace of which stage reaches each method found
+   three sets filed under planning that planning did not own. The point
+   lists (`points.rs`) were reached from parsing alone, through the
+   records; the value planners (a literal or reference, a math, a tuple,
+   a point, whether a reference reads text) from parsing and planning
+   both; and six readers of an answer's source from outlining and
+   planning both. Each now has a module of its own: `points.rs` and
+   `values.rs` beside `maths.rs`, `answer.rs` beside `refs.rs` for what
+   both stages read of an answer (its out-of-scope attributes, each
+   award's form, which input a reference names), and the two generic
+   readers (an element's element children, its content nodes) in
+   `source.rs`. `planning/attrs.rs` keeps what plans a type's props from
+   its record and the maths a plan inlines.
