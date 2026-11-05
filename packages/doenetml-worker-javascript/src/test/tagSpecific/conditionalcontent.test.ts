@@ -604,11 +604,11 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(`pc2`)].stateValues
                     .text,
-            ).eq("");
+            ).eq("＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx(`pc3`)].stateValues
                     .text,
-            ).eq("");
+            ).eq("＿");
 
             expect(stateVariables[await resolvePathToNodeIdx(`cc3.d`)]).eq(
                 undefined,

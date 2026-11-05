@@ -67,7 +67,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
-            ).eq(`Selected index: ${selectedIndex ?? ""}`);
+            ).eq(`Selected index: ${selectedIndex ?? "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCat")].stateValues
                     .text,
@@ -412,7 +412,9 @@ describe("ChoiceInput tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
             ).eq(
-                `Selected indices: ${selectedIndex ? Array(4).fill(selectedIndex).join(", ") : ""}`,
+                `Selected indices: ${Array(4)
+                    .fill(selectedIndex ?? "＿")
+                    .join(", ")}`,
             );
 
             for (let i = 1; i <= 4; i++) {
@@ -528,7 +530,9 @@ describe("ChoiceInput tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
             ).eq(
-                `Selected indices: ${selectedIndex ? Array(2).fill(selectedIndex).join(", ") : ""}`,
+                `Selected indices: ${Array(2)
+                    .fill(selectedIndex ?? "＿")
+                    .join(", ")}`,
             );
 
             for (let i = 1; i <= 2; i++) {
@@ -641,7 +645,9 @@ describe("ChoiceInput tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
             ).eq(
-                `Selected indices: ${selectedIndex ? Array(2).fill(selectedIndex).join(", ") : ""}`,
+                `Selected indices: ${Array(2)
+                    .fill(selectedIndex ?? "＿")
+                    .join(", ")}`,
             );
 
             for (let i = 1; i <= 2; i++) {
@@ -1237,7 +1243,9 @@ describe("ChoiceInput tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
             ).eq(
-                `Selected indices: ${selectedIndex ? Array(2).fill(selectedIndex).join(", ") : ""}`,
+                `Selected indices: ${Array(2)
+                    .fill(selectedIndex ?? "＿")
+                    .join(", ")}`,
             );
 
             for (let i = 1; i <= 2; i++) {
@@ -1515,7 +1523,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
-            ).eq(`Selected index: ${selectedIndex ?? ""}`);
+            ).eq(`Selected index: ${selectedIndex ?? "＿"}`);
 
             expect(
                 stateVariables[await resolvePathToNodeIdx(`ci`)].stateValues
@@ -1753,7 +1761,9 @@ describe("ChoiceInput tag tests @group4", async () => {
         let choicesSimp = ["x", "y", "z", "u"].map((v) => `2 ${v}`);
 
         async function check_items(selectedIndex?: number) {
-            let selectedValue = selectedIndex ? choices[selectedIndex - 1] : "";
+            let selectedValue = selectedIndex
+                ? choices[selectedIndex - 1]
+                : "＿";
             let selectedValueSimp = selectedIndex
                 ? choicesSimp[selectedIndex - 1]
                 : "\uff3f";
@@ -1770,7 +1780,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
-            ).eq(`Selected index: ${selectedIndex ?? ""}`);
+            ).eq(`Selected index: ${selectedIndex ?? "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("psv2")].stateValues
                     .text,
@@ -2022,7 +2032,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
-            ).eq(`Selected index: ${selectedIndex ?? ""}`);
+            ).eq(`Selected index: ${selectedIndex ?? "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCat")].stateValues
                     .text,
@@ -2130,7 +2140,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi")].stateValues
                     .text,
-            ).eq(`Selected index: ${selectedIndex ?? ""}`);
+            ).eq(`Selected index: ${selectedIndex ?? "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCat")].stateValues
                     .text,
@@ -2252,7 +2262,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi1")].stateValues
                     .text,
-            ).eq(`Selected index 1: ${selectedIndex1 ?? ""}`);
+            ).eq(`Selected index 1: ${selectedIndex1 ?? "＿"}`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("psv2")].stateValues
                     .text,
@@ -2260,7 +2270,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("psi2")].stateValues
                     .text,
-            ).eq(`Selected index 2: ${selectedIndex2 ?? ""}`);
+            ).eq(`Selected index 2: ${selectedIndex2 ?? "＿"}`);
 
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCat0")].stateValues
