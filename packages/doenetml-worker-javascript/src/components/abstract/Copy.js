@@ -6964,7 +6964,6 @@ async function indexNamesNothing({
             type: "info",
             code: "doenet-i0054",
             args: {
-                isTag: "true",
                 componentType: writtenType,
                 source:
                     workspace.referenceAsWritten ??

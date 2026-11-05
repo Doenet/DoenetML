@@ -744,12 +744,6 @@ export default class Core {
             }
         }
 
-        // A condition that could not be decided while a reference was being
-        // resolved, as whether its index names something
-        // (`watchIndexNamesNothing`), is decided now that the document is
-        // made, as it is after each update.
-        await this.diagnosticsManager.refreshWatchedConditions();
-
         let diagnostics: any = undefined;
         if (this.hasPendingDiagnostics) {
             diagnostics = this.getDiagnostics().diagnostics;

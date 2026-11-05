@@ -210,9 +210,8 @@ a while, shown as `＿`, with an info, and none changes its type:
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
   iterations of `r` is missing, and is made from the iteration again, with the
   tag's own children, when the index names one. The bare reference `$r[$i]`
-  shows `＿` with the same info: past the end, literal or not, or below 1
-  while the index is written as a reference. A literal index below 1, such as
-  `$l[0]`, never names anything, and is a warning instead.
+  shows `＿` too, without the info. A literal index below 1, such as `$l[0]`,
+  never names anything, and is a warning in either form.
 * **A composite that holds nothing.** `<math extend="$cc"/>{:dn}` of a
   `<conditionalContent>` with no `<else>` is missing while no case is true.
 

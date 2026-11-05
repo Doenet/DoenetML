@@ -136,8 +136,8 @@ describe("An index selects instances, not children @group4", async () => {
         // `$a[2][1][3]` used to be iteration 3 of the repeat that is the first
         // child of iteration 2. It is now iteration 1 of that repeat, then
         // index 3 into that iteration, which holds only one `<number>`, so it
-        // names nothing now, with the usual info (`doenet-i0054`).
-        const { text, warnings, infos } = await shownAndReported(`
+        // names nothing, with the usual warning.
+        const { text, warnings } = await shownAndReported(`
     <repeatForSequence from="1" to="3" valueName="i" name="a">
       <repeatForSequence from="1" to="3" valueName="j" name="b">
         <number name="c">$i + 3$j</number>
@@ -146,9 +146,8 @@ describe("An index selects instances, not children @group4", async () => {
     <p name="p">[$a[2][3]] [$a[2][3].c] [$a[2][1][3]]</p>
     `);
         expect(text).eq("[11] [11] [＿]");
-        expect(warnings).eqls([]);
-        expect(infos.map((i) => i.code)).eqls(["doenet-i0054"]);
-        expect(infos[0].args?.source).eq("$a[2][1][3]");
+        expect(warnings.map((w) => w.code)).eqls(["doenet-w0104"]);
+        expect(warnings[0].args).eqls({ reference: "$a[2][1][3]" });
     });
 
     it("passes an index through a pick holding one list", async () => {
@@ -273,7 +272,7 @@ describe("An index selects instances, not children @group4", async () => {
                 "$g[1][5]",
             ],
         ]) {
-            const { text, warnings, infos } = await shownAndReported(
+            const { text, warnings } = await shownAndReported(
                 `${setup}${body}<p name="p">[$${name}[2]] [${past}]</p>`,
             );
             expect(text, body).eq(
@@ -282,12 +281,7 @@ describe("An index selects instances, not children @group4", async () => {
             expect(
                 warnings.map((w) => w.code),
                 body,
-            ).eqls(["doenet-w0179"]);
-            // past the items, an index names nothing now (`doenet-i0054`)
-            expect(
-                infos.map((i) => i.code),
-                body,
-            ).eqls(["doenet-i0054"]);
+            ).eqls(["doenet-w0179", "doenet-w0104"]);
         }
     });
 

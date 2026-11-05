@@ -2761,15 +2761,15 @@ describe("RepeatForSequence tag tests @group3", async () => {
         expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
 
-    it("reference to an iteration still reports when the nested reference resolves nowhere", async () => {
+    it("reference to an iteration still warns when the nested reference resolves nowhere", async () => {
         // The counterpart of the two cases above: falling back to the origins up the
         // `shadows` chain must not swallow a reference that has no referent anywhere.
         //
         // With the `<mathInput>` left blank, `$n` is not an index the resolver can use,
         // so `$g[$n]` has no referent — not from inside the iteration where it was
         // written, and not from the copy `$r[3]` lifts into the `<div>`. Every candidate
-        // origin therefore throws, and the index names nothing now, which is
-        // reported once, as an info that lasts while it does (`doenet-i0054`),
+        // origin therefore throws, and the diagnostic that follows the candidate loop is
+        // still raised: once (identical warnings are deduplicated by source position),
         // reported against `$g[$n]` as the author wrote it rather than against `$r[3]`.
         //
         // The reference has to fail on an *index* to reach that loop at all: a name the
@@ -2779,6 +2779,9 @@ describe("RepeatForSequence tag tests @group3", async () => {
         // either — the resolution succeeds and the missing replacement is reported
         // further down, at a site this change does not touch.
         //
+        // The reference is bare: written as a tag (`<number extend="$g[$n]"/>`),
+        // an index that names nothing is an info the copy reports while it
+        // lasts, not this warning (D36).
         let { core } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
@@ -2792,13 +2795,10 @@ describe("RepeatForSequence tag tests @group3", async () => {
     `,
         });
 
-        // The index, blank, names nothing now: the info that says so, bare
-        // as on a tag (D37), reported once.
-        const { warnings, infos } = getDiagnosticsByType(core);
-        expect(warnings).eqls([]);
-        expect(infos.map((i) => [i.code, i.args?.source])).eqls([
-            ["doenet-i0054", "$g[$n]"],
-        ]);
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0104");
+        expect(warnings[0].args).eqls({ reference: "$g[$n]" });
     });
 
     it("reference to an iteration keeps the nested referent when the index changes", async () => {

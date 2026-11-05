@@ -57,50 +57,6 @@ function indexFromValue(component: any, value: any): string {
     ).toString();
 }
 
-/**
- * Whether the index `index` of a reference's path, as the author wrote it,
- * is literal (`$l[2]`), rather than written with a reference (`$l[$i]`).
- */
-function isLiteralIndex(index: any): boolean {
-    return (index?.value ?? []).every((x: any) => typeof x === "string");
-}
-
-/**
- * Whether what `component` shows is only missing values (D37): it is
- * missing, a value reference with nothing to read, or a composite whose
- * shown replacements are all such.
- */
-async function showsOnlyMissing(component: any): Promise<boolean> {
-    if (component.componentType === "_missing" || component.isMissing) {
-        return true;
-    }
-    if (component.componentType === "_ref") {
-        return Boolean(await component.stateValues.valueMissing);
-    }
-    if (!component.isExpanded || !component.replacements) {
-        return false;
-    }
-    const shown = component.replacements
-        .slice(
-            0,
-            component.replacements.length -
-                (component.replacementsToWithhold ?? 0),
-        )
-        .filter((replacement: any) => typeof replacement !== "string");
-    if (shown.length === 0) {
-        return false;
-    }
-    for (const replacement of shown) {
-        if (!(await showsOnlyMissing(replacement))) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/** The lists of a repeat's own values and indices (`Repeat.js`). */
-const ITERATION_LIST_TYPES = new Set(["_repeatValues", "_repeatIndices"]);
-
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
 
@@ -460,9 +416,6 @@ export class RefResolutionDependency extends Dependency {
 
     async determineDownstreamComponents({ force = false } = {}) {
         this.compositeReplacementDependencies = [];
-        // Set where a warning says why the index names nothing, which then
-        // needs no info (`watchIndexNamesNothing`).
-        this.indexNamesNothingWarned = false;
 
         let composite = this.dependencyHandler._components[this.compositeIdx];
 
@@ -552,7 +505,6 @@ export class RefResolutionDependency extends Dependency {
             // component sitting in the index has almost always reported an error
             // of its own already, and that is the one the author needs; this says
             // why the reference then came up empty (#1917).
-            this.indexNamesNothingWarned = true;
             this.dependencyHandler.core.addDiagnostic(
                 codedDiagnostic({
                     type: "warning",
@@ -603,8 +555,6 @@ export class RefResolutionDependency extends Dependency {
         }
 
         this.originalPath = resolveComponentResult.path;
-
-        await this.watchIndexNamesNothing(composite);
 
         const refComponent = this.dependencyHandler._components[nodeIdx];
 
@@ -735,31 +685,15 @@ export class RefResolutionDependency extends Dependency {
             // while it does (`doenet-i0054`, `indexNamesNothing` in
             // `Copy.js`), as for an index past what a composite made
             // (below).
-            // A bare reference whose index, written as a reference, is not
-            // a positive integer now (`$l[$i]` while `i` is 0) says so as
-            // an info that lasts while it does (`watchIndexNamesNothing`),
-            // as the tag does; a literal one (`$l[0]`) never names anything,
-            // and is a warning.
-            const nonPositiveIndex = resolveComponentResult.path.some(
-                (part: any, partInd: number) =>
-                    part.index.some(
-                        (index: any, indexInd: number) =>
-                            !/^[1-9]\d*$/.test(String(index.value[0])) &&
-                            (this.isScalarTag(composite) ||
-                                !isLiteralIndex(
-                                    this.refResolutionOf(composite)
-                                        .originalPath[partInd]?.index[indexInd],
-                                )),
-                    ),
-            );
             const reportedByCopy =
                 firstResolutionError === "NoReferent" &&
-                nonPositiveIndex &&
-                (this.isScalarTag(composite) ||
-                    this.isBareIndexedReference(composite));
-            if (!reportedByCopy) {
-                this.indexNamesNothingWarned = true;
-            }
+                this.isScalarTag(composite) &&
+                resolveComponentResult.path.some((part: any) =>
+                    part.index.some(
+                        (index: any) =>
+                            !/^[1-9]\d*$/.test(String(index.value[0])),
+                    ),
+                );
 
             // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
             // Rather than duplicating code to make the messages,
@@ -918,9 +852,8 @@ export class RefResolutionDependency extends Dependency {
 
             // An iteration or pick holding only a reference to a list or to a
             // composite with instances is indexed as that list or composite
-            // (`referencedIndexable`). An index past its items names nothing
-            // now (`doenet-i0054`), except a literal one past what a selector
-            // picks, which never names anything and says how many it made.
+            // (`referencedIndexable`): past a list's entries is silent
+            // (#1499), and past a composite's instances says how many it made.
             const referenced = this.referencedIndexable(
                 newRefComponent.componentIdx,
             );
@@ -929,26 +862,12 @@ export class RefResolutionDependency extends Dependency {
 
             // A composite that produces instances says how many it made
             // (`doenet-w0181`), naming what the author wrote (D27).
-            const literalPath = this.refResolutionOf(
-                composite,
-            ).originalPath.every((part: any) =>
-                part.index.every((index: any) => isLiteralIndex(index)),
-            );
             if (this.isScalarTag(composite)) {
                 // Reported by the copy as an info that lasts while the
                 // index names nothing (`doenet-i0054`), or, for a literal
                 // index past what a selector picks, as an error when the
                 // document loaded (D36, `typeChangeAtLoad.ts`).
-            } else if (
-                this.isBareIndexedReference(composite) &&
-                !(instanceKind && literalPath)
-            ) {
-                // An info that lasts while the index names nothing
-                // (`watchIndexNamesNothing`), as for the tag. Only a literal
-                // index past what a selector picks, which never changes, is
-                // the warning below.
             } else if (instanceKind) {
-                this.indexNamesNothingWarned = true;
                 this.dependencyHandler.core.addDiagnostic(
                     codedDiagnostic({
                         type: "warning",
@@ -964,7 +883,6 @@ export class RefResolutionDependency extends Dependency {
                     }),
                 );
             } else if (!referenced) {
-                this.indexNamesNothingWarned = true;
                 this.dependencyHandler.core.addDiagnostic(
                     codedDiagnostic({
                         type: "warning",
@@ -985,112 +903,6 @@ export class RefResolutionDependency extends Dependency {
         }
 
         return this.foundExtend();
-    }
-
-    /**
-     * Whether `composite` is a reference written bare (`$l[$i]`, not as a
-     * tag) whose path has an index the author wrote: a `_copy` or a value
-     * reference (`_ref`). The `$v` of a repeat whose values are a list of
-     * its own (`_repeatValues`, `_repeatIndices`) reads its iteration's
-     * entry, an index the iteration adds before any the author wrote
-     * (`remapRefResolutionForIteration` in `Repeat.js`), which always names
-     * that entry and is not counted.
-     */
-    isBareIndexedReference(composite: any) {
-        if (
-            (composite.componentType !== "_copy" &&
-                composite.componentType !== "_ref") ||
-            composite.attributes?._copyInChildren?.primitive?.value ||
-            composite.doenetAttributes?.forList !== undefined
-        ) {
-            return false;
-        }
-        const refResolution = this.refResolutionOf(composite);
-        const iterationEntry = ITERATION_LIST_TYPES.has(
-            this.dependencyHandler._components[refResolution.nodeIdx]
-                ?.componentType,
-        );
-        return (refResolution.originalPath ?? []).some(
-            (part: any, partInd: number) =>
-                part.index.length > (iterationEntry && partInd === 0 ? 1 : 0),
-        );
-    }
-
-    /**
-     * Report, for a bare reference with an index (`isBareIndexedReference`),
-     * the info that its index names nothing now (`doenet-i0054`), while it
-     * is a blank because it does: an index past the end, below 1 while
-     * written as a reference, or past what a composite made. It appears and
-     * goes away as the index changes, as for the reference written as a tag
-     * (`indexNamesNothing` in `Copy.js`), so the bare form and the tag
-     * report the same (D37). A warning that says why the index names
-     * nothing (`indexNamesNothingWarned`), as for an index that is not a
-     * number or a literal index below 1, needs no info, nor does one at the
-     * same reference (`withoutExplainedIndexInfos` in `DiagnosticsManager`).
-     */
-    async watchIndexNamesNothing(composite: any) {
-        if (!this.isBareIndexedReference(composite)) {
-            return;
-        }
-        const core = this.dependencyHandler.core;
-        const originalPath = this.refResolutionOf(composite).originalPath;
-        // What the author wrote: the reference, whose path may end before a
-        // name after the index (`$r[3].m`), or the tag a value reference was
-        // made from (`<math extend="$P.xs[$i]"/>`, `valueReferences.ts`).
-        const written = core.allDoenetMLs?.[
-            composite.sourceDoc ?? 0
-        ]?.substring(
-            composite.position?.start.offset ?? 0,
-            composite.position?.end.offset ?? 0,
-        );
-        const isTag = written?.startsWith("<") ?? false;
-        const presentedType =
-            composite.presentedComponentType ??
-            composite.doenetAttributes?.presentedComponentType;
-        const diagnostic = codedDiagnostic({
-            type: "info",
-            code: "doenet-i0054",
-            args: {
-                isTag: isTag && presentedType ? "true" : "false",
-                componentType: (isTag && presentedType) || "",
-                source:
-                    written?.startsWith("$") && !/\s/.test(written)
-                        ? written
-                        : `${doenetMLDollarsForReference(
-                              originalPath,
-                              core.allDoenetMLs,
-                          )}${doenetMLStringForReference(
-                              originalPath,
-                              core.allDoenetMLs,
-                          )}`,
-            },
-            position: composite.position,
-            sourceDoc: composite.sourceDoc,
-        });
-        const componentIdx = composite.componentIdx;
-        let first = true;
-        const decide = async () => {
-            const component = this.dependencyHandler._components[componentIdx];
-            if (!component) {
-                return null;
-            }
-            if (first) {
-                // Decided while the reference is resolved, before what it
-                // shows can be read; decided again before what it shows is
-                // drawn (`refreshWatchedConditions`).
-                first = false;
-                return [];
-            }
-            return !this.indexNamesNothingWarned &&
-                (await showsOnlyMissing(component))
-                ? [diagnostic]
-                : [];
-        };
-        await core.diagnosticsManager.watchCondition(
-            componentIdx,
-            "indexNamesNothing",
-            decide,
-        );
     }
 
     /**

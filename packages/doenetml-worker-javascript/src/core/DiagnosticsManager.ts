@@ -393,14 +393,13 @@ export class DiagnosticsManager {
 }
 
 /**
- * `diagnostics` without each info that an index names nothing now
- * (`doenet-i0054`) where a warning or error at the same reference, or within
- * it, already says why: a property the referent does not have
+ * `diagnostics` without each info that the index of a reference written as
+ * a tag names nothing now (`doenet-i0054`) where a warning or error at the
+ * reference already says why: a property the referent does not have
  * (`$n.nonexistent[1]`), an index into a value that is a scalar
- * (`doenet-w0100`), or a literal index below 1. A reference whose index
- * names nothing is then reported once, the same way whether it is bare or
- * a tag (D37). The info of a tag (`isTag`) spans the whole tag, children and
- * all, so there only a diagnostic in its start tag, at the reference or
+ * (`doenet-w0100`), or a literal index below 1. The tag then reports what
+ * the bare reference reports (D37). The info spans the whole tag, children
+ * and all, so only a diagnostic in its start tag, at the reference or
  * another attribute, explains it, not one of what is written in it
  * (`<p extend="$g[$i]">$nothing</p>`). `sources` is the DoenetML of each
  * source document.
@@ -424,10 +423,7 @@ function withoutExplainedIndexInfos(
         if (start === undefined || end === undefined) {
             return true;
         }
-        const within =
-            (info as any).args?.isTag === "true"
-                ? startTagEnd(sources[info.sourceDoc ?? 0], start, end)
-                : end;
+        const within = startTagEnd(sources[info.sourceDoc ?? 0], start, end);
         return !explaining.some((d) => {
             const dStart = d.position?.start?.offset;
             const dEnd = d.position?.end?.offset;

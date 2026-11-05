@@ -218,12 +218,8 @@ describe("Missing values and missing tags (D37) @group2", () => {
     <p name="p">[$l[$i]][<math extend="$l[$i]"/>]</p>
     `);
         expect(text).eq("[＿][＿]");
-        // one for each reference, bare or a tag
-        expect(infos.map((i) => i.code)).eqls([
-            "doenet-i0054",
-            "doenet-i0054",
-            "doenet-i0054",
-        ]);
+        // one for each tag; the bare reference reports nothing past the end
+        expect(infos.map((i) => i.code)).eqls(["doenet-i0054", "doenet-i0054"]);
         expect(infos[0].message).contain("is missing until it does");
 
         async function shownParagraph() {
@@ -265,7 +261,6 @@ describe("Missing values and missing tags (D37) @group2", () => {
         ).eq("[＿][＿]");
         expect((await shownParagraph()).missing).eq(true);
         expect(getDiagnosticsByType(core).infos.map((i) => i.code)).eqls([
-            "doenet-i0054",
             "doenet-i0054",
             "doenet-i0054",
         ]);
@@ -437,11 +432,13 @@ describe("Missing values and missing tags (D37) @group2", () => {
         expect(target.activeChildren).eqls([]);
     });
 
-    it("reports an index that names nothing the same, bare or as a tag", async () => {
-        // `$x` is `<X extend="$x"/>` (rule 5): an index that names nothing
-        // now is the info `doenet-i0054` in both forms, a literal one that
-        // never names anything the same warning, and a name of different
-        // types in the branches the same error (only type is an error).
+    it("shows an index that names nothing the same, bare or as a tag", async () => {
+        // `$x` is `<X extend="$x"/>` (rule 5): both show a blank while an
+        // index names nothing, and a name of different types in the branches
+        // is the same error (only type is an error). The tag says so with the
+        // info `doenet-i0054` while the index names nothing now, or the
+        // warning that says why it never does; the bare reference reports
+        // only those warnings (its info is left for the new core, #2281).
         const before = `<mathInput name="mi" prefill="7"/><number name="i">$mi</number><mathList name="l">1 2 3</mathList><number name="n">5</number><repeatForSequence name="r" length="2"><math name="m">x</math></repeatForSequence><group name="g"><math>a</math></group><select name="s" numToSelect="1"><option><math name="q">q</math></option></select><booleanInput name="b"/><conditionalContent name="cc"><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>`;
         const pairs: [string, string, string, string[]][] = [
             ["$l[$i]", "math", "＿", ["I doenet-i0054"]],
@@ -456,25 +453,30 @@ describe("Missing values and missing tags (D37) @group2", () => {
             ["$x", "math", "", ["E"]],
             ["$cc.x", "math", "", ["E"]],
         ];
-        for (const [reference, tag, shown, reported] of pairs) {
-            for (const written of [
-                reference,
-                `<${tag} extend="${reference}"/>`,
-            ]) {
+        for (const [reference, tag, shown, reportedOnTag] of pairs) {
+            const reported = async (written: string) => {
                 const { text, warnings, errors, infos } =
                     await shownAndReported(
                         `${before}<p name="p">[${written}]</p>`,
                     );
                 expect(text, written).eq(`[${shown}]`);
-                expect(
-                    [
-                        ...errors.map(() => "E"),
-                        ...warnings.map((w) => `W ${w.code}`),
-                        ...infos.map((i) => `I ${i.code}`),
-                    ],
-                    written,
-                ).eqls(reported);
-            }
+                return [
+                    ...errors.map(() => "E"),
+                    ...warnings.map((w) => `W ${w.code}`),
+                    ...infos.map((i) => `I ${i.code}`),
+                ];
+            };
+            const onTag = await reported(`<${tag} extend="${reference}"/>`);
+            expect(onTag, reference).eqls(reportedOnTag);
+            const bare = await reported(reference);
+            expect(
+                bare.filter((d) => d === "E"),
+                reference,
+            ).eqls(onTag.filter((d) => d === "E"));
+            expect(
+                bare.filter((d) => d.startsWith("I")),
+                reference,
+            ).eqls([]);
         }
 
         // once the index names something, nothing is reported

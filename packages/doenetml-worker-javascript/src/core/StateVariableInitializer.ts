@@ -2287,18 +2287,6 @@ async function reportIndexIntoScalarAsMade({
     );
 }
 
-/**
- * Whether an index in `path`, a reference's `originalPath`, is written as a
- * reference (`$l[$i]`) rather than literally (`$l[2]`).
- */
-export function pathHasDynamicIndex(path: any[] | undefined): boolean {
-    return (path ?? []).some((part: any) =>
-        (part.index ?? []).some((index: any) =>
-            (index.value ?? []).some((x: any) => typeof x !== "string"),
-        ),
-    );
-}
-
 // arrayEntryNamesFromPropIndex is essentially a wrapper around
 // stateVarObj.arrayVarNameFromPropIndex.
 // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
@@ -2343,13 +2331,6 @@ export async function arrayEntryNamesFromPropIndex({
         text: string;
         position?: Position;
         sourceDoc?: number;
-        /**
-         * Whether an index of the reference is written as a reference
-         * (`$P.xs[$i]`), so that it names nothing only for now: it is then
-         * not a warning below 1, but the info the reference gives while it
-         * names nothing (`doenet-i0054`, `watchIndexNamesNothing`).
-         */
-        indexIsDynamic?: boolean;
     };
     /**
      * Who the reference belongs to, so that whether an index into a value
@@ -2503,7 +2484,7 @@ export async function arrayEntryNamesFromPropIndex({
     }
 
     // Once, however many of the variables the index was applied to.
-    if (reportBelowOne && reference && !reference.indexIsDynamic) {
+    if (reportBelowOne && reference) {
         core.addDiagnostic(
             codedDiagnostic({
                 type: "warning",
