@@ -741,9 +741,9 @@ export class RendererInstructionBuilder {
     /**
      * Record on `child`, when it is a drawn value reference that resolves
      * itself, whether it has nothing to read now (`valueMissing`), so it is
-     * drawn as a blank while it does not (D37, `ValueRef.rendererType`). Its
-     * `hidden` reads `valueMissing`, so a change to it updates the children
-     * its parent renders, which calls this again.
+     * drawn as a blank while it has nothing (D37, `ValueRef.rendererType`).
+     * Its `hidden` reads `valueMissing`, so a change to it updates the
+     * children its parent renders, which calls this again.
      */
     async updateDrawnMissing(child: any): Promise<void> {
         if (

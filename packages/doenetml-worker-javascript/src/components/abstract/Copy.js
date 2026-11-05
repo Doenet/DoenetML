@@ -1505,9 +1505,9 @@ export default class Copy extends CompositeComponent {
      * the save also holds what decided what the copy made
      * (`heldCopySnapshot`), and a copy made again is made as it was: from
      * the case it was made from (`heldCaseSource`), and from its source or
-     * as `<T/>`, as it was when written as a different tag
-     * (`heldTypeChange`). A copy made
-     * again with a different shape all the same (one whose shape no held
+     * missing (`missingOfWrittenType`), as it was when written as a
+     * different tag (`heldTypeChange`). A copy made again with a different
+     * shape all the same (one whose shape no held
      * case decides, as of a `<collect>` or of `$cc.p`, or one from a save
      * that held the snapshot alone) is made from its source as restored, and
      * keeps nothing it cannot apply: it records only its own snapshot.
@@ -2522,7 +2522,9 @@ export default class Copy extends CompositeComponent {
             if (
                 key === workspace.typeChangeKey &&
                 (atLoad.level === "warning"
-                    ? component.replacements.every((x) => x.isMissing)
+                    ? component.replacements.every(
+                          (x) => x.isMissing || x.componentType === "_missing",
+                      )
                     : component.replacements.length === 1 &&
                       component.replacements[0].componentType === "_error")
             ) {
@@ -5569,9 +5571,10 @@ function retypeTextPieces({
 /**
  * What `typeChangeStatus` decided, as a string to compare with what it
  * decided before: `undefined` when there was nothing to decide, `"allowed"`,
- * or `"mismatch:"` and the error shown, or, for an info, during which the
- * copy is `<T/>`, its code. The message of an info names the source's value
- * (`doenet-i0053`), which can change while the copy stays `<T/>`; it
+ * or `"mismatch:"` and the error or warning shown, or, for an info, during
+ * which the copy is missing, its code. The message of an info names the
+ * source's value (`doenet-i0053`), which can change while the copy stays
+ * missing; it
  * replaces the info before it without making the replacements again
  * (`calculateReplacementChanges`, `reportTypeChange`).
  */
@@ -5597,9 +5600,10 @@ function typeChangeKey(typeChange) {
  * (B33, #2442). Called wherever it is decided again; a path that does not
  * decide it leaves it as it was.
  *
- * An error is not reported here: it is decided by what the author wrote
- * (`typeChangeAtLoad`), so it does not come and go, and it is returned with
- * the replacements, as the `_error` it is shown as is.
+ * An error, or the warning of a reference that names nothing when the
+ * document loads, is not reported here: it is decided by what the author
+ * wrote (`typeChangeAtLoad`), so it does not come and go, and it is returned
+ * with the replacements (`inPlaceOfCopy`).
  */
 function reportTypeChange(workspace, typeChange) {
     workspace.conditionDiagnostics = {
@@ -5610,9 +5614,9 @@ function reportTypeChange(workspace, typeChange) {
 
 /**
  * Record, for a save to hold (`heldCopySnapshot`), that an unlinked copy was
- * made as `<T/>` because its index named nothing (`info`, from
+ * made missing because its index named nothing (`info`, from
  * `indexNamesNothing`), as a value that does not convert is
- * (`heldTypeChange`): a reload makes it `<T/>` again, with the info, though
+ * (`heldTypeChange`): a reload makes it missing again, with the info, though
  * its index names something by then.
  */
 function recordIndexNamesNothing(workspace, info) {
@@ -6082,12 +6086,13 @@ async function heldCaseSource({ caseSource, components, heldMadeFrom }) {
  * value at run time (allowed, or an info) is the one made before, so the
  * copy is made as it was: one made from a math while its value was a
  * tuple, which is not one now, is still made from it, and one made while
- * it was not is still `<T/>`, as is one made while its index named nothing
+ * it was not is still missing, as is one made while its index named nothing
  * (`doenet-i0054`, `recordIndexNamesNothing`). What a composite holds is
  * decided when the document loads (D36), so only a value or an index
  * decides it here. A
- * decision that follows from what the author wrote (an error, or nothing
- * to decide when it was made) is the same on every load, and is kept.
+ * decision that follows from what the author wrote (an error, a warning,
+ * or nothing to decide when it was made) is the same on every load, and is
+ * kept.
  */
 function heldTypeChange(typeChange, heldMadeFrom) {
     const held = heldMadeFrom?.typeChange;
@@ -6362,7 +6367,8 @@ function typeHasProperty({ componentType, propName, componentInfoObjects }) {
  * `missingPropertyError`): an `_error` for an error, and for a warning (a
  * reference that names nothing) the missing tag (`missingOfWrittenType`,
  * D37), or nothing for the copy that fills a list (`forList`), whose list
- * then has no entries from it. `{ replacements, nComponents }`.
+ * then has no entries from it, and for a copy not written as a tag.
+ * `{ replacements, nComponents }`.
  */
 function inPlaceOfCopy({
     component,
@@ -6414,9 +6420,12 @@ function inPlaceOfCopy({
  * that is not a collection named as a whole. Such a reference that makes
  * nothing is a blank (`missingReplacement`). A reference to a collection as
  * a whole, a composite or a list (`$r` or `$r.y` of a `<repeat>`, `$g` of a
- * `<group>`), gives its members, possibly none. A parent that needs every composite to make
- * something (`compositesMustHaveAReplacement`, a `<math>`) gets its blank
- * of the type it needs instead (`verifyReplacementsMatchSpecifiedType`).
+ * `<group>`), gives its members, possibly none. A parent that needs every
+ * composite to make something (`compositesMustHaveAReplacement`, a
+ * `<math>`) gets its blank of the type it needs instead
+ * (`verifyReplacementsMatchSpecifiedType`). With `withheld`, what it names
+ * is withheld, as in a case that is not active, so any name after the
+ * first is one thing.
  */
 async function isBareReferenceToOneThing(
     component,
@@ -6438,13 +6447,12 @@ async function isBareReferenceToOneThing(
     if (!extended) {
         return false;
     }
-    const originalPath = await component.stateValues.originalPath;
-    const hasIndex = originalPath?.some((part) => part.index.length > 0);
-    const unresolvedPath = await component.stateValues.unresolvedPath;
     if (extended.componentType === "setup") {
         return false;
     }
-    if (hasIndex) {
+    const originalPath = await component.stateValues.originalPath;
+    const unresolvedPath = await component.stateValues.unresolvedPath;
+    if (originalPath?.some((part) => part.index.length > 0)) {
         return true;
     }
     if (withheld && originalPath?.length > 1) {
@@ -6710,10 +6718,10 @@ function errorInPlaceOfCopy({
  * index that names nothing now, `doenet-i0054`), while the value it is made
  * from does not convert (`doenet-i0053`), and while the composite it is made
  * from holds nothing (`doenet-i0055`). It is a `T` with the tag's own
- * attributes, so `hide` still hides it, but without its children, which are
- * not drawn: it is drawn as a blank, and its value, `<T/>`'s, never equals
- * anything. It is made from its source again, with its children, once the
- * source is there.
+ * attributes, so `hide` still hides it, but without its children: it is
+ * drawn as a blank, and the value it holds, `<T/>`'s, never equals anything.
+ * A composite `T`, such as a `<group>`, is a `_missing` instead. It is made
+ * from its source again, with its children, once the source is there.
  */
 function missingOfWrittenType({
     component,

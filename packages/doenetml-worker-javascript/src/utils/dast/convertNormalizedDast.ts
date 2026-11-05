@@ -214,6 +214,8 @@ export async function normalizedDastToSerializedComponents(
                 componentType: mapped,
                 includeNonStandard: true,
             });
+        // A division's `type` is its component type (`getComponentType`),
+        // not an attribute, as for a tag that is not missing.
         const attributes = node.attributes.filter(
             (attribute) =>
                 !(attribute.name === "type" && node.name === "division") &&

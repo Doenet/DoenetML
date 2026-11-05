@@ -1330,12 +1330,14 @@ export function checkTypeChangesAtLoad({
         sourceTag: string,
         direct: boolean,
     ): TypeChangeAtLoadError | undefined {
-        if (held.notOne?.reason === "count" && held.notOne.count === 0) {
-            // What holds nothing gives a missing tag while it does (D37):
-            // a case or option holding nothing, as a `<conditionalContent>`
-            // with no case true.
-        } else if (held.notOne) {
-            const notOne = held.notOne;
+        // What holds nothing gives a missing tag while it does (D37): a case
+        // or option holding nothing, as a `<conditionalContent>` with no
+        // case true. Only what can hold several is an error.
+        const notOne =
+            held.notOne?.reason === "count" && held.notOne.count === 0
+                ? undefined
+                : held.notOne;
+        if (notOne) {
             const tag = held.notOneTag ?? sourceTag;
             return {
                 code: "doenet-e0064",
@@ -1344,7 +1346,7 @@ export function checkTypeChangesAtLoad({
                     sourceType: tag,
                     ...(notOne.reason === "count" && {
                         count: notOne.count,
-                        holdsNothing: notOne.count === 0 ? "true" : "false",
+                        holdsNothing: "false",
                         part: notOne.part,
                     }),
                     ...(notOne.reason === "numToSelect" && {

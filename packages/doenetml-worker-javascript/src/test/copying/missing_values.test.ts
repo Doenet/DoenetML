@@ -24,7 +24,10 @@ vi.mock("hyperformula");
  *   level: only a type is a load-time error.
  */
 
-/** The text of `p`, and the diagnostics, of `doenetML`. */
+/**
+ * The text of `p`, and the diagnostics, of `doenetML`, with the core it
+ * made.
+ */
 async function shownAndReported(doenetML: string) {
     const { core, resolvePathToNodeIdx } = await createTestCore({
         doenetML,
@@ -36,7 +39,7 @@ async function shownAndReported(doenetML: string) {
     return { text, warnings, errors, infos, core, resolvePathToNodeIdx };
 }
 
-/** What the renderer of each child of `name` is. */
+/** The renderer type of each component child the renderer of `componentIdx` draws. */
 function rendererTypesOf(core: any, componentIdx: number) {
     const rendererState = core.core.rendererInstructionBuilder.rendererState;
     return rendererState[componentIdx].childrenInstructions
@@ -244,6 +247,22 @@ describe("Missing values and missing tags (D37) @group2", () => {
         ).eq("[2][2]");
         expect(await shownParagraph()).eqls({ missing: false, text: "2note" });
         expect(getDiagnosticsByType(core).infos).eqls([]);
+
+        // past the end again, at run time
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        const stateVariables2 = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables2[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[＿][＿]");
+        expect((await shownParagraph()).missing).eq(true);
+        expect(getDiagnosticsByType(core).infos.map((i) => i.code)).eqls([
+            "doenet-i0054",
+            "doenet-i0054",
+        ]);
     });
 
     it("makes a tag whose value doesn't convert missing", async () => {
