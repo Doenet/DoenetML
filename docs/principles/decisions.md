@@ -56,7 +56,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B35 | (#2446) A copy of a component named inside a `<conditionalContent>`, `<p copy="$cc.p"/>`, is remade on load from the case active then, not the case it was made from. Only a copy of the `<conditionalContent>` itself keeps its case. Breaks SAVE-1 and CPY-2. | #2443, "Known limits" | #2443's held case is recorded only for a copy of the `<conditionalContent>` |
 | B36 | (#2446) `<group copy="$col"/>` of a `<collect>` whose collected `<mathInput>` the reader typed into throws on reload (`dependencyValues.value.trim is not a function`) once the collect holds a `<textInput>` instead, because its case changed. The saved value reaches the new textInput through the per-`stateId` restore. Breaks SAVE-1, SAVE-3 and DIAG-5. On main before #2443 too. | #2443, "Known limits" | a restored value is matched by `stateId`, not checked against the new component's type |
 | B37 | A copy that made nothing, and would make nothing again, is not held in a save, so a reload can report a different info for why it shows nothing: `doenet-i0053` "the math is not a tuple" before, `doenet-e0065` "a text" after, when its case changed. What is shown is the same. Breaks DIAG-6. #2447 removed the run-time `e0065`, so this example no longer arises. Whether two other infos can still differ is not checked. | #2443, "Known limits" | a save holds a copy only when its remake would differ |
-| B38 | (#2449) `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written, because `$m` copies the `_error` now in m's place. The cause is at m alone (DIAG-4). | #2447, "Deviations" | a reference to an error component copies the `_error` |
+| B38 | (#2449) `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written, because `$m` copies the `_error` now in m's place. The cause is at m alone (DIAG-4). Decided: a reference to a component in error shows a blank and reports nothing more. Under D37 this example's `m` is no longer an error; the issue applies to the errors that remain. | #2447, "Deviations" | a reference to an error component copies the `_error` |
 | B39 | (#2448) A `<select>` whose options are all written with `copy` fails to load: "Number of indices specified for select must match number to select". Breaks DIAG-5. On main before #2447 too. | #2447, "Deviations" | not traced |
 | B40 | (#2453) `<group extend="$cc.x"/>`, and since #2451 `<group extend="$x"/>`, of a name every case declares with one type, shows the active case's `x` until the case changes. The first switch reports a spurious `doenet-e0005`, and after it the group is empty for good. `<math extend="$cc.x"/>` and bare `$cc.x` follow the case. Breaks COMP-11 and NAME-7. Same on main before #2451. | #2451, "Not changed" | the copy recomputes its replacement changes in a loop when the case changes; not pinned down |
 
@@ -435,10 +435,12 @@ above. Both options are simpler than today's split.
 
 Whether hidden *entries* inside a list are drawn is a separate question, D29.
 
-## D10. One way to show a missing value
+## D10. One way to show a missing value (decided by D37)
 
-**Settled by D37:** a missing value is a blank, `＿` inline and not drawn in a
-graph, distinct from `<T/>`'s default.
+**Decided by D37.** A missing value is a blank: `＿` inline, not drawn in a graph, and distinct
+from `<T/>`'s default. Operators treat it as a blank, and it never equals anything. VAL-5 states
+it, and #2456 implements it. The text below is the original recommendation, which D37 replaced:
+"the empty value of the type, drawn as nothing" became "missing, drawn as a blank".
 
 **Today** (VAL-5) a missing reference shows as `[]`, `[NaN]`, `＿`, `NaN`, `""` or `[＿, ＿]`,
 depending on the parent and on the spelling.
@@ -2006,7 +2008,9 @@ extended as a scalar picks one.
 
 ## D37. A missing value is a blank, and a bare reference is its extend again (decided, Tier 1; revises D10, D36, REF-0, REF-1)
 
-**Decided.** REF-0, REF-1, REF-5, VAL-5, COMP-11 and DIAG-1 state it. It reverses parts of #2447
+**Decided**, and with it D10. REF-0, REF-1, REF-5, VAL-5, COMP-11, DIAG-1 and DIAG-5 state it.
+A reference to a component in error is missing too, and shows a blank (decided after D37, for
+#2449). It reverses parts of #2447
 and #2451 (below), and changes what 0.7 documents show for missing values. The implementation is #2456.
 
 **Today** (**[probe]** on main at `55db31b`) a missing value shows differently by where it is:
