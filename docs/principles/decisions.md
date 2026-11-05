@@ -2056,7 +2056,7 @@ missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a 
      `false`, `<point/>` (0, 0);
    - a name on a missing tag reads it as missing: `$m.value` of `<math name="m"
      extend="$nothing"/>` is missing;
-   - `hide` still hides it (question 4);
+   - `hide` still hides it, a blank included (question 4);
    - a missing input shows no box, so the reader can't type into something the link will later
      replace. This removes D36's question about inputs reached through an index.
 
@@ -2114,14 +2114,17 @@ missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a 
 1. **A missing component that isn't a value** (decided, rule 4). `$sec.p` for a `<p>` that
    doesn't exist, an iteration past the end of a repeat of paragraphs, and `<p
    extend="$nothing">hi</p>` are all blanks.
-2. **Operators.** Recommendation: a missing operand is a blank, as `<math>` already does, so
+2. **Operators** (decided). A missing operand is a blank, as `<math>` already does, so
    `<sum>$l[5] 3</sum>` is missing rather than `3`. A missing number shows `＿`, and `NaN` stays
-   for a computation that has no value.
+   for a computation that has no value. This reverses VAL-5's Tier 2 rule that operators leave a
+   missing operand out.
 3. **D36's presence rules.** Recommendation: "no `<else>`", "no case active" and "a name in no
    case" give a missing T and an info. Mixed and unrelated types stay load-time
    errors. That keeps the type safety, and drops the requirement to write an `<else>`.
-4. **Hidden referents (D9).** "Always shows something" means missing shows as blank, not that
-   hidden content shows. A hidden referent stays hidden.
+4. **Hidden referents** (decided). "Always shows something" means missing shows as blank, not
+   that hidden content shows. `hide` still hides a reference, a blank included: a hidden referent
+   stays hidden as VAL-10 says, and `<math extend="$nothing" hide/>` shows nothing. D9 (whether
+   a reference to a hidden component is hidden) is unchanged.
 
 ### Cost and compatibility
 
@@ -2155,6 +2158,9 @@ Most of the plumbing exists for value references, and can be made general:
 - **Consumers.** `MathBaseOperator`, `BooleanBaseOperator`, comparisons
   (`returnChildrenByCodeStateVariableDefinitions` in `W/utils/booleanLogic.js`), `<answer>` and
   `CollectList` already read `valueMissing`. Operators change from leaving a missing operand out
-  to using a blank, if question 2 is decided that way.
+  to using a blank (question 2). Comparisons and answers keep treating it as never equal to
+  anything (rule 1).
+- **Hiding.** The blank renderer is chosen only for a component that is shown. One that is
+  hidden, by its own `hide` or with its referent or parent, stays hidden (question 4).
 - **Coming back.** When the source exists again (an index names something, a case becomes
   active), the component is made from it again, with its own children and attributes.
