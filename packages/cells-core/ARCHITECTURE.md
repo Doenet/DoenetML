@@ -156,7 +156,9 @@ The result is `Compiled` (`plan.rs`): the source and the `Plans` made from
 it, which are the templates, their plans, the abstract build's records and
 the source's diagnostics, the abstract build's warnings included. The
 stages read the source as a borrow, given to each stage that needs it, and
-make `Plans`; only the finished `Compiled` owns the source.
+make `Plans`; only the finished `Compiled` owns the source. A build reads
+the two as a `CompiledRef`, borrowed: from the check, from the source it
+planned, and from a `Compiled` a document keeps (`Compiled::view`).
 
 ### Build (`build/`)
 
@@ -362,7 +364,7 @@ the other action: it sets each `<updateValue>`'s target.
 |---|---|---|
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. |
 | `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
-| `Compiled`, `Plans`, `Template` | `compile/plan.rs` | The compile's output: the source and its `Plans`, one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
+| `Compiled`, `CompiledRef`, `Plans`, `Template` | `compile/plan.rs` | The compile's output: the source and its `Plans`, one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. A build reads it as a `CompiledRef`. |
 | `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Abstract`, which folds every iteration into one (`build/abstract_build.rs`). |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
 | `Session`, `Counts`, `Pool` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine, the constant pool (ADR 0028); and the counts a build stamps. |

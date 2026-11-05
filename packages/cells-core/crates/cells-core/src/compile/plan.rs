@@ -1404,11 +1404,21 @@ impl GivenPoint {
     }
 }
 
-/// A document as compiled: its source and the plans made from it, once.
+/// A document as compiled, kept: its source and the plans made from it,
+/// once. What a load keeps to rebuild from, and what a test builds again.
 #[derive(Debug)]
 pub struct Compiled {
     pub(crate) dast: Dast,
     pub(crate) plans: Plans,
+}
+
+/// What a build reads: a source and the plans made from it, borrowed.
+/// Made only from a [`Compiled`] or by the compile's loop from the source
+/// it planned, so the plans always index into the source beside them.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CompiledRef<'a> {
+    pub(crate) dast: &'a Dast,
+    pub(crate) plans: &'a Plans,
 }
 
 /// What the compile makes from a source: its templates and plans. A stage
@@ -1487,14 +1497,24 @@ impl Compiled {
         self.plans.port_type(template, slot)
     }
 
+    /// The source and the plans, borrowed, as a build reads them.
+    pub(crate) fn view(&self) -> CompiledRef<'_> {
+        CompiledRef {
+            dast: &self.dast,
+            plans: &self.plans,
+        }
+    }
+}
+
+impl<'a> CompiledRef<'a> {
     /// How plan `p` is shown in an error.
-    pub(crate) fn ref_display(&self, p: RefId) -> String {
-        self.plans.ref_display(&self.dast, p)
+    pub(crate) fn ref_display(self, p: RefId) -> String {
+        self.plans.ref_display(self.dast, p)
     }
 
     /// How `plan` is shown in an error.
-    pub(crate) fn display_of(&self, plan: &RefPlan) -> String {
-        display_of(&self.dast, plan)
+    pub(crate) fn display_of(self, plan: &RefPlan) -> String {
+        display_of(self.dast, plan)
     }
 }
 

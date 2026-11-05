@@ -92,7 +92,7 @@ impl BuildOutput {
     /// to the version before them).
     pub(crate) fn signature(
         &self,
-        compiled: &Compiled,
+        compiled: CompiledRef,
         rename: &dyn Fn(&str) -> String,
     ) -> Signature {
         Signer::new(self, compiled, rename).sign()
@@ -107,7 +107,7 @@ type Found = (CompIdx, Vec<(String, CellIdx)>, usize);
 /// hashes found so far.
 struct Signer<'a> {
     out: &'a BuildOutput,
-    compiled: &'a Compiled,
+    compiled: CompiledRef<'a>,
     rename: &'a dyn Fn(&str) -> String,
     /// The instruction writing each derived cell, and which of its outputs
     /// the cell is.
@@ -136,7 +136,7 @@ fn bits(v: f64) -> u64 {
 impl<'a> Signer<'a> {
     fn new(
         out: &'a BuildOutput,
-        compiled: &'a Compiled,
+        compiled: CompiledRef<'a>,
         rename: &'a dyn Fn(&str) -> String,
     ) -> Self {
         let n = out.cells.len();

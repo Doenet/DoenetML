@@ -25,7 +25,7 @@ pub struct AbstractEdges {
 pub fn abstract_edges(compiled: &Compiled) -> std::result::Result<AbstractEdges, String> {
     let session = Session::new(0);
     let mut engine = Engine::new();
-    let b = staged(compiled, &session, &mut engine, &View::Abstract)?;
+    let b = staged(compiled.view(), &session, &mut engine, &View::Abstract)?;
     let depth = b.scope_depths();
     let mut deps: HashMap<Key, Vec<(Key, Vec<Coord>)>> = HashMap::new();
     for u in SlotId::below(b.sources.len()) {
@@ -52,7 +52,7 @@ pub fn uncovered(
 ) -> std::result::Result<Vec<String>, String> {
     let mut engine = Engine::new();
     let view = View::Stamped { counts };
-    let b = staged(compiled, session, &mut engine, &view)?;
+    let b = staged(compiled.view(), session, &mut engine, &view)?;
     let depth = b.scope_depths();
     let mut out = Vec::new();
     for u in SlotId::below(b.sources.len()) {
@@ -80,7 +80,7 @@ pub fn uncovered(
 /// A builder through `view` with every template expanded and every
 /// reference resolved: the whole graph, before cells are made.
 fn staged<'c>(
-    compiled: &'c Compiled,
+    compiled: CompiledRef<'c>,
     session: &'c Session,
     engine: &'c mut Engine,
     view: &'c View<'c>,

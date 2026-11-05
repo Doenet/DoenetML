@@ -24,7 +24,7 @@ impl<'c> Builder<'c> {
                 reason: "no math text recorded".into(),
             })?;
         // Spelled only to parse once, or for an error.
-        let text = || sym.spell(&compiled.dast);
+        let text = || sym.spell(compiled.dast);
         if compiled.plans.arena.has_call(expr) {
             return Err(Error::BadMath {
                 text: text(),

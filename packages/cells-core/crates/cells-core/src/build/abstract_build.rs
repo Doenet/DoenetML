@@ -31,7 +31,7 @@ pub(in crate::build) enum Coord {
 /// on the referents of every count and every option. It reads a session of
 /// its own.
 pub(crate) fn abstract_build(
-    compiled: &Compiled,
+    compiled: CompiledRef,
     checks: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
     let session = Session::new(0);

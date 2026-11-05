@@ -77,7 +77,7 @@ use view::{CollectCount, Options, Plans, View};
 /// Expand, resolve, optionally run the abstract build's count and loop
 /// checks, and emit, through `view`. The failure names the element to box.
 pub(in crate::build) fn build_with(
-    compiled: &Compiled,
+    compiled: CompiledRef,
     session: &Session,
     reseed: bool,
     engine: &mut Engine,
@@ -185,7 +185,7 @@ pub fn build(
 ) -> std::result::Result<BuildOutput, BuildError> {
     let view = View::Stamped { counts };
     let mut engine = session.engine.borrow_mut();
-    build_with(compiled, session, reseed, &mut engine, &view, false)
+    build_with(compiled.view(), session, reseed, &mut engine, &view, false)
         .map_err(|f| BuildError::Unchecked(f.error.to_string()))
 }
 

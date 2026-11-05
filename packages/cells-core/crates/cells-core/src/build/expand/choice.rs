@@ -12,7 +12,7 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         comp: CompIdx,
     ) -> Result<Vec<ChildEntry>> {
-        let c = &self.compiled.plans;
+        let c = self.compiled.plans;
         let def = &c.choices[cid.index()];
         let every_option = !def.reactive && self.view.options() == Options::Every;
         let mut inst = ChoiceInst {

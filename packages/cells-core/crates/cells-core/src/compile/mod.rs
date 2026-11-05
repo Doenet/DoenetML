@@ -63,6 +63,7 @@ mod values;
 pub use check::diagnose;
 pub(crate) use check::{CompileOutput, compile};
 pub use plan::Compiled;
+pub(crate) use plan::CompiledRef;
 
 /// A failed compile, check or first build: the error, and the node of the
 /// element it is about when there is one. `compile` boxes that element and

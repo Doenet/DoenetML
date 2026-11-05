@@ -2,8 +2,9 @@
 
 Status: accepted 2026-11-02. Proposed 2026-11-02; every step is done (see
 Migration). Amended 2026-11-05: `Compiler` holds no stage's own state,
-and the stages read the source as a borrow, never through the compile
-(see the notes after step 7). Amends ADR
+the stages read the source as a borrow, never through the compile, and a
+build borrows the compile rather than owning it (see the notes after step
+7). Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -329,6 +330,24 @@ otherwise.
    both through `Compiled`; the label of a cycle's cell is handed the
    source rather than keeping a handle to it. The reference table of the
    note above is `Plans::refs`. No behavior changed.
+
+   Amended 2026-11-05, after that: a build borrows the source and its
+   plans. Every build only reads them, but it took `&Compiled`, the owned
+   pair, so the compile's loop moved its source into a `Compiled` to run
+   the abstract build and took it back when the attempt was boxed, and
+   `diagnose` and `signature_renamed`, given a `&Dast`, copied the whole
+   source to make one. A build now reads `CompiledRef` (`plan.rs`), the
+   source and the plans as two borrows, and `Compiled` is only the pair
+   something keeps: a document with a repeat, to rebuild from, and a test
+   that builds one compile many times. `Compiled::view` lends it to a
+   build, and the public entry points (`build::build`, the coverage
+   checks) still take `&Compiled`. `plan_and_check` borrows the source
+   from start to end: each attempt plans from it, `check` reads it with
+   the attempt's plans, and the loop returns the `Plans` that checked,
+   which `compile` pairs with the source it was given. `diagnose` and
+   `signature_renamed` copy nothing. A `CompiledRef` is made only from a
+   `Compiled` or by the check from the source it planned, so its plans
+   always index into its source. No behavior changed.
 8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`
    name the new paths. Done: `outline/` (the walk; `copies.rs`,
    `choice.rs`, `answer.rs` for what outlining makes of each), `parse.rs`,

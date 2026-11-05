@@ -124,7 +124,7 @@ pub(in crate::build) struct Instance {
 }
 
 pub(in crate::build) struct Builder<'c> {
-    pub(in crate::build) compiled: &'c Compiled,
+    pub(in crate::build) compiled: CompiledRef<'c>,
     /// The session the build reads: carried values, scopes.
     pub(in crate::build) session: &'c Session,
     /// Seed seeded cells again whatever the session carries: a later pass
@@ -230,7 +230,7 @@ pub(in crate::build) struct Builder<'c> {
 
 impl<'c> Builder<'c> {
     pub(in crate::build) fn new(
-        c: &'c Compiled,
+        c: CompiledRef<'c>,
         session: &'c Session,
         reseed: bool,
         engine: &'c mut Engine,
@@ -823,7 +823,7 @@ impl<'c> Builder<'c> {
         let mut flags_of: HashMap<CompIdx, Vec<SlotId>> = HashMap::new();
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
-            let c = &self.compiled.plans;
+            let c = self.compiled.plans;
             let flags = match &c.templates[inst.template.index()].plan(inst.elem).hold {
                 Hold::Off => continue,
                 Hold::Always => vec![self.const_slot(1.0)],
@@ -1283,7 +1283,7 @@ impl<'c> Builder<'c> {
             }
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
-            let c = &self.compiled.plans;
+            let c = self.compiled.plans;
             let plan = &c.templates[inst.template.index()].plan(inst.elem).props[pi];
             if matches!(plan, Source::Flow(Flow::Aggregate(_))) {
                 continue; // materialized from the tree (`fill_aggregate`)
@@ -1327,7 +1327,7 @@ impl<'c> Builder<'c> {
         let comp = inst.comp;
         let s = self.slot(comp, pi);
         let component_type = self.components.component_type[comp.index()];
-        let c = &self.compiled.plans;
+        let c = self.compiled.plans;
         Ok(match plan {
             Source::Specialize(..) => unreachable!("a nested specialization"),
             Source::Leaf(leaf) => match leaf {

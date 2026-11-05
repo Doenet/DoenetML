@@ -755,7 +755,7 @@ impl<'c> Builder<'c> {
                         node,
                         format!(
                             "a request on '{prop}' is refused: the value it would write, '{}', reaches it along more than one path, so the request could not land where it asks",
-                            cell_label(source, &self.compiled.dast)
+                            cell_label(source, self.compiled.dast)
                         ),
                     ),
                     crate::program::refuse::Finding::Drops => Diagnostic::info(
