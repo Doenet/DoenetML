@@ -1541,8 +1541,8 @@ they need no rewriting to `$x`.
 **Decided.** `copy` is the fresh form: the source's DoenetML written again here, with no reader
 state and random choices of its own. `copyWithState` is the duplicating form: what `copy` did
 through 0.7, the DoenetML plus the reader's current state and the source's random choices. CPY-1,
-CPY-2 and CPY-8 state them. Existing documents are migrated by the `v07-to-v08` converter
-(#2457). Open: the two smaller points at the end.
+CPY-2 and CPY-8 state them. The implementation is #2459. Existing documents are migrated by the
+`v07-to-v08` converter (#2457). Open: the two smaller points at the end.
 
 **Today** a `copy` carries its source's reader state and random choices (CPY-2, CPY-8), and the
 attributes written on it override the source's (CPY-1, D4). The two conflict when what is written
