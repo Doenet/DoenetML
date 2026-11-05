@@ -11,7 +11,28 @@ import {
     UnflattenedPathPart,
     UnflattenedRefResolution,
 } from "./intermediateTypes";
-import { addSource, unwrapSource } from "./convertNormalizedDast";
+import { addSource, isCopySource, unwrapSource } from "./convertNormalizedDast";
+
+/**
+ * The settings of the `_copy` an unlinked copy is made into: `_link` false,
+ * and, for `copyWithState`, `_copyWithState`, so the copy carries its
+ * source's reader state and random choices (D33). A `copy` carries neither:
+ * it is the source's DoenetML pasted (CPY-1).
+ */
+function unlinkedCopyAttributes(
+    extending: Parameters<typeof isCopySource>[0],
+): Record<string, UnflattenedAttribute> {
+    const attributes: Record<string, UnflattenedAttribute> = {
+        _link: { name: "_link", children: ["false"] },
+    };
+    if ("CopyWithStateAttribute" in extending) {
+        attributes._copyWithState = {
+            name: "_copyWithState",
+            children: ["true"],
+        };
+    }
+    return attributes;
+}
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -102,11 +123,11 @@ export function convertRefsToCopies({
 
         let wrappingComponent: UnflattenedComponent | null = null;
 
-        // If the reference was is an ExtendAttribute or CopyAttribute
-        // then we know the resulting componentType
+        // If the reference is an ExtendAttribute, CopyAttribute or
+        // CopyWithStateAttribute, then we know the resulting componentType
         // and we make the name and componentIdx the component be assigned to the eventual replacement
 
-        if ("ExtendAttribute" in extending || "CopyAttribute" in extending) {
+        if ("ExtendAttribute" in extending || isCopySource(extending)) {
             if (
                 newComponent.componentType.endsWith("List") &&
                 !["asList", "convertSetToList"].includes(
@@ -160,11 +181,11 @@ export function convertRefsToCopies({
                     addNodesToResolver(flatFragment, "None");
                 }
 
-                if ("CopyAttribute" in extending) {
-                    newComponent.attributes._link = {
-                        name: "_link",
-                        children: ["false"],
-                    };
+                if (isCopySource(extending)) {
+                    Object.assign(
+                        newComponent.attributes,
+                        unlinkedCopyAttributes(extending),
+                    );
 
                     wrappingComponent.doenetAttributes.copyListViaComposite =
                         newComponent.componentIdx;
@@ -245,11 +266,11 @@ export function convertRefsToCopies({
                     children: ["true"],
                 };
 
-                if ("CopyAttribute" in extending) {
-                    outerAttributes._link = {
-                        name: "_link",
-                        children: ["false"],
-                    };
+                if (isCopySource(extending)) {
+                    Object.assign(
+                        outerAttributes,
+                        unlinkedCopyAttributes(extending),
+                    );
                 }
             }
         }

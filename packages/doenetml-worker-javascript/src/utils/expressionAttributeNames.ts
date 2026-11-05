@@ -52,16 +52,24 @@ export function expressionAttributeVariable(
  * The expression attribute an unlinked copy of `owner` takes in place of
  * `attribute`: its references, which the copy resolves from where it is,
  * and the text written to its nodes as it is now, as a copy of the
- * attribute component held its state.
+ * attribute component held its state. Without `withWrites`, as for a
+ * `copy`, which carries no reader state (D33), it takes only what the
+ * attribute was made with.
  */
-export function copyOfExpressionAttribute(attribute: any, owner: any) {
+export function copyOfExpressionAttribute(
+    attribute: any,
+    owner: any,
+    withWrites = true,
+) {
     const { writes, ...rest } = attribute;
     // what was written to it, or, while nothing has been, what it was made
     // with (an unlinked copy's, which is its default)
     const written =
-        owner.essentialState?.[
-            `${expressionAttributePrefix(attribute.name)}writes`
-        ] ?? writes;
+        (withWrites
+            ? owner.essentialState?.[
+                  `${expressionAttributePrefix(attribute.name)}writes`
+              ]
+            : undefined) ?? writes;
     return {
         ...structuredClone(rest),
         ...(written && Object.keys(written).length > 0

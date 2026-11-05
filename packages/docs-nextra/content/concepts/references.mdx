@@ -40,6 +40,48 @@ Writing `$p` is the same as writing `<point extend="$p"/>{:dn}`, and an
 different, but it can't change what the component makes or what its state can
 hold, and trying to is an error that says what to write instead.
 
+### Making an independent copy: `copy` and `copyWithState`
+
+An `extend` is the same component again. To make a new component that starts
+from another and then changes on its own, use `copy` or `copyWithState`.
+
+- `<T copy="$x"/>{:dn}` is as if `x`'s DoenetML were written again in its place.
+  Attributes written on the copy override `x`'s, and children written inside it
+  are added. It starts as written content does: an input starts at its
+  `prefill`, a point where it was written, whatever the reader has done to `x`.
+  A random component inside it, such as a `<select>{:dn}`, makes its own random
+  choices, so two copies of one source can differ. Its choices are fixed for a
+  given variant and kept through a reload.
+- `<T copyWithState="$x"/>{:dn}` is a copy that also starts with `x`'s current
+  state: what the reader has entered or moved, and the random choices of `x`
+  and of everything inside it. It keeps that snapshot through a reload.
+
+Below, type in the first input and drag the point, then check the box. The
+`copy` starts at the prefill and where the point was written, while the
+`copyWithState` starts where you left them.
+
+```doenet-editor-horiz
+<mathInput name="mi" prefill="1"/>
+<graph size="small">
+  <shortDescription>A graph with a draggable point P</shortDescription>
+  <point name="P">(1,2)</point>
+</graph>
+<booleanInput name="show"><label>Show copies</label></booleanInput>
+<conditionalContent condition="$show">
+  <p>copy: <mathInput copy="$mi"/>, <point copy="$P"/></p>
+  <p>copyWithState: <mathInput copyWithState="$mi"/>, <point copyWithState="$P"/></p>
+</conditionalContent>
+```
+
+An attribute that decides what a random component chooses, such as
+`numToSelect` on a `<select>{:dn}`, can't be written on a `copyWithState`, which
+keeps the choices it copies; that is an error that says to use `copy`, which
+makes a new component that chooses again. Neither form follows later changes
+to `x`, and neither changes `x`.
+
+A copy of a property, such as `<math copy="$P.x"/>{:dn}`, has no DoenetML to
+write again, so it holds the value the property had when the copy was made.
+
 <Callout type="info">
 **DoenetML naming convention:**
 * Can only contain numbers, letters, and underscores

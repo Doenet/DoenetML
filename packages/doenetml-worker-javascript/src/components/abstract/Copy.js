@@ -41,6 +41,7 @@ import {
     shadowAttributeReference,
 } from "../../utils/variableRefAttribute";
 import { errorComponentState } from "../../utils/dast/errors";
+import { unwrapSource } from "../../utils/dast/convertNormalizedDast";
 import {
     CONTEXT_ATTRIBUTES,
     writtenEntryAttributeComponent,
@@ -104,6 +105,14 @@ export default class Copy extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "link",
             defaultValue: true,
+        };
+        // Set for `copyWithState`: an unlinked copy that also carries its
+        // source's reader state and random choices (CPY-2, CPY-8). A `copy`
+        // carries neither: it is its source's DoenetML pasted (CPY-1, D33).
+        attributes._copyWithState = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "copyWithState",
+            defaultValue: false,
         };
 
         // Note: only implemented with no wrapping components
@@ -1530,15 +1539,23 @@ export default class Copy extends CompositeComponent {
                   ),
               )
             : undefined;
+        // Only a `copyWithState` carries its source's state, so only it has
+        // a snapshot of that state. A `copy` still keeps what decided what it
+        // made (`madeFrom`), so a reload makes it from the same case; its
+        // components save their own state, as written content's do (D33).
+        const withState =
+            unlinked && (await component.stateValues.copyWithState);
+        const snapshotOf = (replacements) =>
+            withState ? copySnapshotOf(replacements) : [];
         const result = await this.createReplacementsFromSources({
             ...args,
             heldMadeFrom: held?.madeFrom,
         });
         if (unlinked) {
-            if (held) {
+            if (held && withState) {
                 applyCopySnapshot(result.replacements, held.snapshot);
             }
-            component.unlinkedSnapshot = copySnapshotOf(result.replacements);
+            component.unlinkedSnapshot = snapshotOf(result.replacements);
             component.unlinkedMadeFrom = args.workspace.madeFrom;
             component.freshUnlinkedSnapshot = async () => {
                 const workspace = {};
@@ -1548,7 +1565,7 @@ export default class Copy extends CompositeComponent {
                         workspace,
                     });
                 return {
-                    snapshot: copySnapshotOf(replacements),
+                    snapshot: snapshotOf(replacements),
                     madeFrom: workspace.madeFrom,
                 };
             };
@@ -2084,6 +2101,7 @@ export default class Copy extends CompositeComponent {
                   sourceNum
               ];
         let link = await component.stateValues.link;
+        const withState = !link && (await component.stateValues.copyWithState);
         if (
             !heldCase &&
             (!link ||
@@ -2203,9 +2221,12 @@ export default class Copy extends CompositeComponent {
                           components: link ? undefined : components,
                           copyAll: !link,
                           componentSourceAttributesToIgnore: ["labelIsName"],
-                          copyVariants: !link,
+                          // the source's DoenetML, and, for `copyWithState`,
+                          // its reader state and random choices (D33)
+                          copyVariants: withState,
                           copyPrimaryEssentialIfShadow: !link,
-                          copyEssentialStateIfShadow: !link,
+                          copyEssentialStateIfShadow: withState,
+                          withoutReaderState: !link && !withState,
                           errorIfEncounterComponent: [component.componentIdx],
                           namesReachedThroughCopy:
                               link && namesReachedThroughCopy(component),
@@ -2377,52 +2398,72 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
             });
 
-            if (link) {
-                const errors = extendChangesContentErrors({
-                    replacementType: repl.componentType,
-                    writtenType:
-                        component.attributes._createComponentOfType?.primitive
-                            ?.value,
-                    copyInChildren,
-                    attributeNames: Object.keys(attributesFromComposite),
-                    copyAttributeNames: Object.keys(compositeAttributesObj),
-                    children: component.serializedChildren,
-                    sourceChildren: repl.children,
-                    source: referenceAsWritten(
-                        await component.stateValues.originalPath,
-                        replacementSourceComponent,
-                    ),
-                    componentInfoObjects,
-                });
-                if (errors.length > 0) {
-                    // What the extend would change is what it shares with its
-                    // source, so it shows an error in place of the content.
-                    // One, as an extend makes one replacement, which takes its
-                    // place (`adjustForCreateComponentIdxName`); each error
-                    // is still reported.
-                    diagnostics.push(...errors);
-                    return {
-                        serializedReplacements: [
-                            {
-                                type: "serialized",
-                                componentType: "_error",
-                                componentIdx: nComponents++,
-                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                                state: errorComponentState(
-                                    errors[0].message,
-                                    errors[0],
-                                ),
-                                attributes: {},
-                                // Not given the type the extend is written
-                                // as (`verifyReplacementsMatchSpecifiedType`)
-                                doenetAttributes: { inPlaceOfExtend: true },
-                                children: [],
-                            },
-                        ],
-                        diagnostics,
-                        nComponents,
-                    };
-                }
+            const errors = link
+                ? extendChangesContentErrors({
+                      replacementType: repl.componentType,
+                      writtenType:
+                          component.attributes._createComponentOfType?.primitive
+                              ?.value,
+                      copyInChildren,
+                      attributeNames: Object.keys(attributesFromComposite),
+                      copyAttributeNames: Object.keys(compositeAttributesObj),
+                      children: component.serializedChildren,
+                      sourceChildren: repl.children,
+                      source: referenceAsWritten(
+                          await component.stateValues.originalPath,
+                          replacementSourceComponent,
+                      ),
+                      componentInfoObjects,
+                  })
+                : withState && copyInChildren
+                  ? await copyWithStateChangesChoicesErrors({
+                        replacementType: repl.componentType,
+                        attributeNames: Object.keys(attributesFromComposite),
+                        children: component.serializedChildren,
+                        source: replacementSourceComponent,
+                        componentInfoObjects,
+                    })
+                  : [];
+            if (errors.length > 0) {
+                // What the extend would change is what it shares with its
+                // source, and what the `copyWithState` would change is what
+                // it carries from its source, so it shows an error in place
+                // of the content. One, as an extend makes one replacement,
+                // which takes its place (`adjustForCreateComponentIdxName`);
+                // each error is still reported.
+                diagnostics.push(...errors);
+                return {
+                    serializedReplacements: [
+                        {
+                            type: "serialized",
+                            componentType: "_error",
+                            componentIdx: nComponents++,
+                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                            state: errorComponentState(
+                                errors[0].message,
+                                errors[0],
+                            ),
+                            attributes: {},
+                            // Not given the type the extend is written
+                            // as (`verifyReplacementsMatchSpecifiedType`)
+                            doenetAttributes: { inPlaceOfExtend: true },
+                            children: [],
+                        },
+                    ],
+                    diagnostics,
+                    nComponents,
+                };
+            }
+
+            if (withState && copyInChildren) {
+                diagnostics.push(
+                    ...(await keepChoicesReachedByModuleAttributes({
+                        replacement: repl,
+                        attributeNames: Object.keys(attributesFromComposite),
+                        components,
+                        componentInfoObjects,
+                    })),
+                );
             }
 
             if (link && copyInChildren) {
@@ -7517,6 +7558,215 @@ const PARTS_OF_CHOOSING_TAGS = {
     else: "conditionalContent",
     option: "select",
 };
+
+/**
+ * For a `copyWithState` of a `<module>` (`replacement`), keep the choices it
+ * carries where a module attribute written on it (`attributeNames`, among
+ * those its `<moduleAttributes>` declares) reaches an attribute that decides
+ * what a choosing tag inside it chooses (`attributesDeterminingChoices`), as
+ * `k` in `<module copyWithState="$m" k="4"/>` does where `m` holds
+ * `<select numToSelect="$k">`. That attribute of the choosing tag is given
+ * the value it had in the source, so the carried choices still fit, and the
+ * module attribute itself takes the written value. Each such module attribute
+ * gets a warning (`doenet-w0186`), which says to use `copy` to choose again.
+ * It is found as the copy is made, as what a module attribute reaches is
+ * only known from the module's content (DIAG-2).
+ */
+async function keepChoicesReachedByModuleAttributes({
+    replacement,
+    attributeNames,
+    components,
+    componentInfoObjects,
+}) {
+    const moduleClass = componentInfoObjects.allComponentClasses.module;
+    const replacementClass =
+        componentInfoObjects.allComponentClasses[replacement.componentType];
+    if (
+        !replacementClass ||
+        !(
+            replacementClass === moduleClass ||
+            replacementClass.prototype instanceof moduleClass
+        )
+    ) {
+        return [];
+    }
+    // The module attributes written on the copy, by the index of the
+    // component in the copy's `<moduleAttributes>` that declares each
+    const writtenByIdx = new Map();
+    const writtenNames = new Map(
+        attributeNames.map((name) => [name.toLowerCase(), name]),
+    );
+    for (const declaration of (replacement.children ?? [])
+        .filter((child) => child?.componentType === "moduleAttributes")
+        .flatMap((child) => child.children ?? [])) {
+        const name =
+            declaration?.attributes?.name?.primitive?.value?.toLowerCase();
+        if (name && writtenNames.has(name)) {
+            writtenByIdx.set(declaration.componentIdx, writtenNames.get(name));
+        }
+    }
+    if (writtenByIdx.size === 0) {
+        return [];
+    }
+
+    /** The written module attributes `component` refers to. */
+    function referencedModuleAttributes(component, found = new Set()) {
+        if (typeof component !== "object" || component === null) {
+            return found;
+        }
+        const ref = component.extending && unwrapSource(component.extending);
+        if (ref && writtenByIdx.has(ref.nodeIdx)) {
+            found.add(writtenByIdx.get(ref.nodeIdx));
+        }
+        for (const child of component.children ?? []) {
+            referencedModuleAttributes(child, found);
+        }
+        for (const attribute of Object.values(component.attributes ?? {})) {
+            referencedModuleAttributes(attribute?.component, found);
+            for (const reference of attribute?.references ?? []) {
+                referencedModuleAttributes(reference, found);
+            }
+        }
+        return found;
+    }
+
+    const reaching = new Set();
+    async function visit(component) {
+        if (typeof component !== "object" || component === null) {
+            return;
+        }
+        const choiceAttributes = new Set(
+            (
+                componentInfoObjects.allComponentClasses[
+                    component.componentType
+                ]?.attributesDeterminingChoices ?? []
+            ).map((name) => name.toLowerCase()),
+        );
+        for (const [attrName, attribute] of Object.entries(
+            component.attributes ?? {},
+        )) {
+            if (
+                !choiceAttributes.has(attrName.toLowerCase()) ||
+                attribute?.type !== "component"
+            ) {
+                continue;
+            }
+            const names = referencedModuleAttributes(attribute.component);
+            if (names.size === 0) {
+                continue;
+            }
+            const sourceAttribute = components[attribute.component.originalIdx];
+            const value = await sourceAttribute?.stateValues?.value;
+            if (value === undefined || value === null) {
+                continue;
+            }
+            // the value the source chose with, written in place of what
+            // refers to the module attribute (a value reference, `_ref`, of
+            // the type it is presented as, when it is only the reference)
+            const attributeComponent = attribute.component;
+            const presentedType =
+                attributeComponent.doenetAttributes?.presentedComponentType;
+            if (
+                ["_ref", "_copy"].includes(attributeComponent.componentType) &&
+                presentedType
+            ) {
+                attributeComponent.componentType = presentedType;
+            }
+            delete attributeComponent.extending;
+            attributeComponent.attributes = {};
+            attributeComponent.state = {};
+            attributeComponent.children = [
+                typeof value === "object" ? value.toString() : String(value),
+            ];
+            for (const name of names) {
+                reaching.add(name);
+            }
+        }
+        for (const child of component.children ?? []) {
+            await visit(child);
+        }
+    }
+    await visit(replacement);
+
+    return [...reaching].map((attribute) =>
+        codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0186",
+            args: { attribute },
+        }),
+    );
+}
+
+/**
+ * The errors of a `copyWithState` that writes what decides what its source
+ * chooses (D33): an attribute in the class's `attributesDeterminingChoices`,
+ * as `numToSelect` on a `<select>`, `doenet-e0068`; or a child added to a
+ * tag whose children are what it chooses from (`childrenDetermineChoices`),
+ * as an `<option>` added to a `<select>`, `doenet-e0069`. For a
+ * `<choiceInput>` (`"whenShuffled"`), a child is an error only when its
+ * source shuffles its choices. A `copyWithState` keeps its source's choices,
+ * so it could not apply them. The check goes by name, whatever the value
+ * written, so `numToSelect="2"` and `numToSelect="$n"` are the same; it is
+ * known when the document loads. Only what the author wrote on the copy
+ * (`copyInChildren`) is checked, and `copy` instead makes a new component
+ * that chooses again.
+ */
+async function copyWithStateChangesChoicesErrors({
+    replacementType,
+    attributeNames,
+    children,
+    source,
+    componentInfoObjects,
+}) {
+    // the tag a list form (`_shuffleList`) is made of, whose choices it makes
+    const tag = TAGS_OF_LIST_FORMS[replacementType] ?? replacementType;
+    const replacementClass = componentInfoObjects.allComponentClasses[tag];
+    if (!replacementClass) {
+        return [];
+    }
+    const errors = [];
+    const choiceAttributes = new Set(
+        (replacementClass.attributesDeterminingChoices ?? []).map((name) =>
+            name.toLowerCase(),
+        ),
+    );
+    for (const attribute of attributeNames) {
+        if (choiceAttributes.has(attribute.toLowerCase())) {
+            errors.push(
+                codedDiagnostic({
+                    type: "error",
+                    code: "doenet-e0068",
+                    args: { attribute, componentType: tag },
+                }),
+            );
+        }
+    }
+
+    const childrenDetermineChoices =
+        replacementClass.childrenDetermineChoices === "whenShuffled"
+            ? Boolean(await source?.stateValues?.shuffleOrder)
+            : Boolean(replacementClass.childrenDetermineChoices);
+    const addedChild = childrenDetermineChoices
+        ? (children ?? []).find(
+              (child) => typeof child === "object" && child !== null,
+          )
+        : undefined;
+    if (addedChild) {
+        errors.push(
+            codedDiagnostic({
+                type: "error",
+                code: "doenet-e0069",
+                args: {
+                    childType:
+                        addedChild.attributes?._createComponentOfType?.primitive
+                            ?.value ?? addedChild.componentType,
+                    componentType: tag,
+                },
+            }),
+        );
+    }
+    return errors;
+}
 
 /**
  * The errors for an `extend` that would change what its source makes (D32,

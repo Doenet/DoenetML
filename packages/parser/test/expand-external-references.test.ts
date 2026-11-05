@@ -45,6 +45,38 @@ function fetchExternalDoenetML(sourceUri: string) {
 }
 
 describe("Expand external references", async () => {
+    it("makes a copyWithState of a URI as a copy, with a warning", async () => {
+        const withState = await expandExternalReferences(
+            lezerToDast(`<p copyWithState="doenet:abcdef" />`),
+            fetchExternalDoenetML,
+        );
+        const copy = await expandExternalReferences(
+            lezerToDast(`<p copy="doenet:abcdef" />`),
+            fetchExternalDoenetML,
+        );
+        const warnings = extractDastErrors(withState);
+        expect(warnings.length).toBe(1);
+        expect(warnings[0]).toMatchObject({
+            code: "doenet-w0185",
+            error_type: "warning",
+            args: { uri: "doenet:abcdef" },
+        });
+        expect(extractDastErrors(copy)).toEqual([]);
+        // Apart from the warning, it is what `copy` makes.
+        const withoutWarning = (dast: DastRoot) =>
+            filterPositionInfo(dast).children.map((child: any) =>
+                child.type === "element"
+                    ? {
+                          ...child,
+                          children: child.children.filter(
+                              (c: any) => c.type !== "error",
+                          ),
+                      }
+                    : child,
+            );
+        expect(withoutWarning(withState)).toEqual(withoutWarning(copy));
+    });
+
     it("fetches an external reference written inside index brackets", async () => {
         // An element written between a reference's brackets is nobody's child,
         // so the scan for `doenet:` attributes walks past it unless it is told

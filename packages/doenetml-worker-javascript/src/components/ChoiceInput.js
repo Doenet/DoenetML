@@ -41,6 +41,15 @@ export default class Choiceinput extends Input {
 
     static createsVariants = true;
 
+    // Writing one of these on a `copyWithState` is an error, as it would
+    // change what is chosen, which a `copyWithState` keeps
+    // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
+    static attributesDeterminingChoices = ["shuffleOrder"];
+    // Adding a `<choice>` to a `copyWithState` of one that shuffles its
+    // choices is an error, as it would change the order chosen
+    // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
+    static childrenDetermineChoices = "whenShuffled";
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

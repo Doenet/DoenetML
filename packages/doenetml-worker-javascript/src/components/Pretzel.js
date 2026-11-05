@@ -139,6 +139,12 @@ export default class Pretzel extends BlockScoredComponent {
     static additionalSchemaChildren = ["problem"];
     static additionalSchemaChildrenDoNotInherit = true;
 
+    // Writing `mode` on a `copyWithState`, or adding problems to it, is an
+    // error, as it would change the order chosen, which a `copyWithState`
+    // keeps (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
+    static attributesDeterminingChoices = ["mode"];
+    static childrenDetermineChoices = true;
+
     static createAttributesObject() {
         const attributes = super.createAttributesObject();
 

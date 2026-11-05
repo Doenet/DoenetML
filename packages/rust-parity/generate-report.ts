@@ -41,9 +41,14 @@ const RESULTS_PATH = path.join(OUT_DIR, "test-results.json");
 /**
  * Attributes that the Rust core handles for every component while building the
  * document, rather than through a component's own attribute list: `name` in
- * the resolver, `extend` and `copy` in reference expansion.
+ * the resolver, `extend`, `copy` and `copyWithState` in reference expansion.
  */
-const STRUCTURAL_ATTRIBUTES = new Set(["name", "extend", "copy"]);
+const STRUCTURAL_ATTRIBUTES = new Set([
+    "name",
+    "extend",
+    "copy",
+    "copyWithState",
+]);
 
 // ---------------------------------------------------------------------------
 // Inputs

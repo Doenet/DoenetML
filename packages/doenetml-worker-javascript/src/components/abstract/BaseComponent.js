@@ -643,8 +643,8 @@ export default class BaseComponent {
                     "A persistent identifier for this component, stable across edits (currently unused but present for compatibility).",
             },
 
-            // Adding `extend` and `copy` attributes so they are in the schema for all components.
-            // These attributes are unused, as the `extend` and `copy` attributes are removed
+            // Adding `extend`, `copy` and `copyWithState` attributes so they are in the schema for all components.
+            // These attributes are unused, as the `extend`, `copy` and `copyWithState` attributes are removed
             // from the dast when references are expanded.
             extend: {
                 createReferences: true,
@@ -654,7 +654,12 @@ export default class BaseComponent {
             copy: {
                 createReferences: true,
                 description:
-                    "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "Create an independent copy of another component by reference, as if its DoenetML were written here: it starts fresh, without the reader's changes, and makes its own random choices. Enter a reference as `$name`.",
+            },
+            copyWithState: {
+                createReferences: true,
+                description:
+                    "Create an independent copy of another component by reference that starts with that component's current state, including the reader's changes and its random choices. Enter a reference as `$name`.",
             },
         };
     }
@@ -1565,9 +1570,17 @@ export default class BaseComponent {
                     }
                 }
             } else {
-                for (let child of this.definingChildren) {
+                for (const [ind, child] of this.definingChildren.entries()) {
                     if (typeof child !== "object") {
-                        serializedChildren.push(child);
+                        // A `copy` takes the text as authored, not as a
+                        // reader rewrote it (dragging `<point>(1,2)</point>`)
+                        serializedChildren.push(
+                            parameters.withoutReaderState &&
+                                this.authoredPrimitiveChildren &&
+                                ind in this.authoredPrimitiveChildren
+                                ? this.authoredPrimitiveChildren[ind]
+                                : child,
+                        );
                     } else {
                         serializedChildren.push(
                             await child.serialize(parametersForChildren),
@@ -1629,7 +1642,11 @@ export default class BaseComponent {
                     !componentSourceAttributesToIgnore.includes(attrName)
                 ) {
                     serializedComponent.attributes[attrName] =
-                        copyOfLiteralAttribute(attribute, this);
+                        copyOfLiteralAttribute(
+                            attribute,
+                            this,
+                            !parameters.withoutReaderState,
+                        );
                 }
             } else if (attribute.type === "expression") {
                 // Like the attribute component it stands for: a linked copy
@@ -1641,7 +1658,11 @@ export default class BaseComponent {
                     !componentSourceAttributesToIgnore.includes(attrName)
                 ) {
                     serializedComponent.attributes[attrName] =
-                        copyOfExpressionAttribute(attribute, this);
+                        copyOfExpressionAttribute(
+                            attribute,
+                            this,
+                            !parameters.withoutReaderState,
+                        );
                 }
             } else if (attribute.type === "variableRef") {
                 // Like the attribute component it stands for: copied only
@@ -1708,7 +1729,11 @@ export default class BaseComponent {
         // would otherwise decide over where a reference made after it sits,
         // as one made before it is not given it. A component inside the copy
         // keeps it, as one made before it does (`EssentialValueWriter`).
+        // A `copy` (`withoutReaderState`) starts as written content does,
+        // with none: its source's essential state holds what the reader did
+        // and what was drawn at random (D33).
         if (
+            !parameters.withoutReaderState &&
             this.essentialState &&
             Object.keys(this.essentialState).length > 0
         ) {

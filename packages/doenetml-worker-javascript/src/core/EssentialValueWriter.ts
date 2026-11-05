@@ -539,6 +539,7 @@ export class EssentialValueWriter {
                     if (match) {
                         let childInd = Number(match[1]);
 
+                        recordAuthoredPrimitiveChild(comp, childInd);
                         comp.definingChildren[childInd] =
                             newComponentStateVariables[vName];
 
@@ -555,6 +556,7 @@ export class EssentialValueWriter {
                         if (match) {
                             let childInd = Number(match[1]);
 
+                            recordAuthoredPrimitiveChild(comp, childInd);
                             comp.definingChildren[childInd] =
                                 newComponentStateVariables[vName];
 
@@ -2020,4 +2022,18 @@ function setNestedArrayValue(arrayValues: any[], index: number[], value: any) {
         drillDown = drillDown[ind];
     }
     drillDown[index[index.length - 1]] = value;
+}
+
+/**
+ * Before a write replaces the primitive defining child `childInd` of `comp`
+ * (dragging `<point>(1,2)</point>` rewrites its text), keep the child as
+ * authored, the first time only. A `copy` of `comp` takes it, as it carries
+ * no reader state (`withoutReaderState` in `BaseComponent.serialize`, D33).
+ */
+function recordAuthoredPrimitiveChild(comp: any, childInd: number) {
+    comp.authoredPrimitiveChildren ??= {};
+    if (!(childInd in comp.authoredPrimitiveChildren)) {
+        comp.authoredPrimitiveChildren[childInd] =
+            comp.definingChildren[childInd];
+    }
 }

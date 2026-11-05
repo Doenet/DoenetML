@@ -423,14 +423,18 @@ export function serializedAttributeComponent(
  * A copy of the literal attribute `attribute` of the component `owner`, with
  * the value a reader wrote over it (`literalAttributeWrites`) in place of
  * what the author wrote, as a copy of the attribute component it stands for
- * took that component's essential state.
+ * took that component's essential state. Without `withWrites`, as for a
+ * `copy`, which carries no reader state (D33), it is as the author wrote it.
  */
 export function copyOfLiteralAttribute(
     attribute: LiteralAttribute,
     owner: any,
+    withWrites = true,
 ): LiteralAttribute {
     const literal: LiteralAttribute = JSON.parse(JSON.stringify(attribute));
-    const writes = owner.essentialState?.literalAttributeWrites;
+    const writes = withWrites
+        ? owner.essentialState?.literalAttributeWrites
+        : undefined;
     if (writes && attribute.name in writes) {
         delete literal.text;
         literal.value = writes[attribute.name];
