@@ -45,8 +45,8 @@ Sub-rules. All three are Tier 2: they rarely matter, but they keep the rule tota
   - **Names in a `case` or `else`, or in the options of a one-pick select, are visible** when
     every branch declares them with the same type. Otherwise the reference names nothing, with
     a warning (COMP-11; D13, D22). Branches of one choice don't make a name ambiguous.
-  - **Today** they are private like the rest: a plain `$x` from outside reports "No referent
-    found", and `$cc.x` follows the active case whatever the others hold (#2450).
+  - Done by #2451: `Ref::Branches` in the resolver merges the same name in sibling branches
+    into one entry, and an `x` beside the container still makes it ambiguous.
 
 Evidence:
 - `packages/docs-nextra/content/concepts/references.mdx` ("Resolving to the nearest match",
@@ -246,6 +246,10 @@ Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThro
 ## 2. Bare references and `extend`
 
 ### REF-0: a tag you write makes that tag (Tier 1; D36)
+**D37 (proposed)** would keep the guarantee but change two parts: a missing referent on a tag
+would be a warning, not an error, and a tag with nothing to show would have a missing value,
+shown as a blank, not `<T/>`'s. It would make REF-1 two-way again.
+
 In a document without errors, `<T extend="$x" …>…</T>` always makes exactly one T, whatever x
 holds. The same holds for `copy` and D33's fresh form. An author who writes `<math>` can rely on
 a math: `$x + 1`, `$x.value` and an answer that checks `$x` all read one.
