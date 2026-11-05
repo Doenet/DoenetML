@@ -28,8 +28,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get("#p1").should("have.text", "Selected value: ");
-        cy.get("#p2").should("have.text", "Selected index: ");
+        cy.get("#p1").should("have.text", "Selected value: ＿");
+        cy.get("#p2").should("have.text", "Selected index: ＿");
 
         let choices, choiceOrder;
         cy.window().then(async (win) => {
@@ -178,8 +178,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get("#p1").should("have.text", "Selected value: ");
-        cy.get("#p2").should("have.text", "Selected index: ");
+        cy.get("#p1").should("have.text", "Selected value: ＿");
+        cy.get("#p2").should("have.text", "Selected index: ＿");
 
         let choices, choiceOrder;
         cy.window().then(async (win) => {
@@ -324,8 +324,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get("#p1").should("have.text", "Selected value: ");
-        cy.get("#p2").should("have.text", "Selected index: ");
+        cy.get("#p1").should("have.text", "Selected value: ＿");
+        cy.get("#p2").should("have.text", "Selected index: ＿");
 
         let choices;
         cy.window().then(async (win) => {
@@ -1032,8 +1032,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get("#p1").should("have.text", "Selected value: ");
-        cy.get("#p2").should("have.text", "Selected index: ");
+        cy.get("#p1").should("have.text", "Selected value: ＿");
+        cy.get("#p2").should("have.text", "Selected index: ＿");
 
         let choices;
         cy.window().then(async (win) => {

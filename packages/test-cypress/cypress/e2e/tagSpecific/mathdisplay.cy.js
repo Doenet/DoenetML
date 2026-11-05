@@ -174,9 +174,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#pm${i}`)).should(
                         "have.text",
-                        `m${i}: , equation ???`,
+                        `m${i}: ＿, equation ???`,
                     );
-                    cy.get(cesc(`#etm${i}`)).should("have.text", "");
+                    cy.get(cesc(`#etm${i}`)).should("have.text", "＿");
                     cy.get(cesc(`#rm${i}`)).should("have.text", `???`);
                     // cy.get(cesc(`#rm${i}`)).click();
                     // cy.window().then(async (win) => {
@@ -238,9 +238,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#pn${i}`)).should(
                         "have.text",
-                        `n${i}: , equation ???`,
+                        `n${i}: ＿, equation ???`,
                     );
-                    cy.get(cesc(`#etn${i}`)).should("have.text", "");
+                    cy.get(cesc(`#etn${i}`)).should("have.text", "＿");
                     cy.get(cesc(`#rn${i}`)).should("have.text", `???`);
                     // cy.get(cesc(`#rn${i}`)).click();
                     // cy.window().then(async (win) => {
@@ -416,9 +416,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#pm${i}`)).should(
                         "have.text",
-                        `m${i}: , equation ???`,
+                        `m${i}: ＿, equation ???`,
                     );
-                    cy.get(cesc(`#etm${i}`)).should("have.text", "");
+                    cy.get(cesc(`#etm${i}`)).should("have.text", "＿");
                     cy.get(cesc(`#rm${i}`)).should("have.text", `???`);
                     // cy.get(cesc(`#rm${i}`)).click();
                     // cy.window().then(async (win) => {
@@ -488,9 +488,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#pn${i}`)).should(
                         "have.text",
-                        `n${i}: , equation ???`,
+                        `n${i}: ＿, equation ???`,
                     );
-                    cy.get(cesc(`#etn${i}`)).should("have.text", "");
+                    cy.get(cesc(`#etn${i}`)).should("have.text", "＿");
                     cy.get(cesc(`#rn${i}`)).should("have.text", `???`);
                     // cy.get(cesc(`#rn${i}`)).click();
                     // cy.window().then(async (win) => {
@@ -692,9 +692,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#pm${i}`)).should(
                         "have.text",
-                        `m${i}: , equation ???`,
+                        `m${i}: ＿, equation ???`,
                     );
-                    cy.get(cesc(`#etm${i}`)).should("have.text", "");
+                    cy.get(cesc(`#etm${i}`)).should("have.text", "＿");
                     cy.get(cesc(`#rm${i}`)).should("have.text", `???`);
                     cy.get(cesc(`#rm${i}`)).click();
                     cy.url().should("match", RegExp(`#$`));
@@ -788,9 +788,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#pn${i}`)).should(
                         "have.text",
-                        `n${i}: , equation ???`,
+                        `n${i}: ＿, equation ???`,
                     );
-                    cy.get(cesc(`#etn${i}`)).should("have.text", "");
+                    cy.get(cesc(`#etn${i}`)).should("have.text", "＿");
                     cy.get(cesc(`#rn${i}`)).should("have.text", `???`);
                     cy.get(cesc(`#rn${i}`)).click();
                     cy.url().should("match", RegExp(`#$`));
