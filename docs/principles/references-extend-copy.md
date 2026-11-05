@@ -24,7 +24,8 @@ Everything below refines this table.
 
 ### NAME-1: nearest match wins; a tie is an error, not a guess (Tier 1)
 `$x` means the `x` in the nearest enclosing scope that contains one. If that scope contains two,
-the reference is ambiguous: it reports `doenet-w0105` "Multiple referents" and shows nothing.
+the reference is ambiguous: it reports `doenet-w0105` "Multiple referents" and is missing, shown
+as a blank `＿` (VAL-5, D37). Today it shows nothing.
 
 ```xml
 <section><number name="n">10</number><p>$n</p></section>   <!-- 10 -->
@@ -43,8 +44,8 @@ Sub-rules. All three are Tier 2: they rarely matter, but they keep the rule tota
   (`elements_with_children_invisible_to_their_grandparents`, `RS/resolve.rs:64`). The privacy
   is needed, because these make several instances of a name.
   - **Names in a `case` or `else`, or in the options of a one-pick select, are visible** when
-    every branch declares them with the same type. Otherwise the reference names nothing, with
-    a warning (COMP-11; D13, D22). Branches of one choice don't make a name ambiguous.
+    every branch declares them with the same type. Otherwise the reference names nothing (a
+    blank, VAL-5), with a warning (COMP-11; D13, D22). Branches of one choice don't make a name ambiguous.
   - Done by #2451: `Ref::Branches` in the resolver merges the same name in sibling branches
     into one entry, and an `x` beside the container still makes it ambiguous.
 
@@ -68,6 +69,8 @@ something that exists gives `doenet-w0104` quoting the whole reference, literal 
 the end is silent while the length can change (#1499). An index that cannot apply, such as
 `$n.value[1]`, and an index into a scalar (`$ms[1]`, `$n[1]`), give `doenet-w0100` and name
 nothing (#2431). List entries (#2431) and function references (#2432) follow the same rule.
+A reference that names nothing is missing, shown as `＿`, bare or as a tag (VAL-5, D37, #2456);
+today a bare one shows nothing.
 
 Evidence:
 - `T/copying/extend_references.test.ts`: `:2401` "extending repetitively" (`$g12.Pa` four levels
