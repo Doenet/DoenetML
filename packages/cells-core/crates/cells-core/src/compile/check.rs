@@ -19,7 +19,8 @@ pub(crate) struct CompileOutput {
 /// fails it.
 ///
 /// For tests, `check_cycles` off skips the abstract build's loop checks,
-/// and `classify` off makes every value slot essential.
+/// and `classify` off makes every port writable, so every value slot is
+/// essential.
 pub(crate) fn compile(
     dast: Dast,
     check_cycles: bool,
@@ -38,10 +39,14 @@ pub(crate) fn compile(
         let _s = crate::trace::span("abstract build");
         let findings = build::abstract_build(CompiledRef { dast, plans }, check_cycles)?;
         plans.structural_depth = findings.structural_depth;
-        plans.classes = classify.then_some(findings.writable);
-        plans.live = findings.live;
-        plans.counted = findings.counted;
-        plans.document_constants = findings.document_constants;
+        for (tpl, mut attrs) in plans.templates.iter_mut().zip(findings.attrs) {
+            if !classify {
+                for a in &mut attrs {
+                    *a |= PortAttrs::WRITABLE;
+                }
+            }
+            tpl.checked = Checked { attrs };
+        }
         // The abstract build's warnings are the document's: no build finds
         // one the abstract build did not (ADR 0014).
         Arc::make_mut(&mut plans.diagnostics).extend(findings.warnings);

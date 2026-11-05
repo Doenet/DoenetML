@@ -69,8 +69,9 @@ fn with_abstract<T>(
 }
 
 impl<'c> Builder<'c> {
-    /// What the abstract build found for the compile to keep: the records
-    /// of what its walks classed and what it counted, and its warnings.
+    /// What the abstract build found for the compile to keep: the
+    /// attributes of the ports its walks classed and it counted, and its
+    /// warnings.
     fn findings(&mut self, defined: &Defined) -> AbstractFindings {
         let n = self.sources.len();
         let Defined {
@@ -93,36 +94,39 @@ impl<'c> Builder<'c> {
                 _ => false,
             };
         }
+        let mut attrs: Vec<Vec<PortAttrs>> = self
+            .compiled
+            .plans
+            .templates
+            .iter()
+            .map(|t| vec![PortAttrs::default(); t.sealed.n_slots as usize])
+            .collect();
+        for (marked, attr) in [
+            (essential, PortAttrs::WRITABLE),
+            (live, PortAttrs::LIVE),
+            (&counted, PortAttrs::COUNTED),
+            (&document, PortAttrs::DOCUMENT_CONSTANT),
+        ] {
+            self.mark_ports(marked, attr, &mut attrs);
+        }
         // Requests the program cannot land (ADR 0026), each interactive
         // prop once, by its template element.
         let mut warnings = std::mem::take(&mut self.diagnostics);
         warnings.extend(self.refuse_warnings(slot_cells, essential));
         AbstractFindings {
             structural_depth: self.structural_depth,
-            writable: self.record_of(essential),
-            live: self.record_of(live),
-            counted: self.record_of(&counted),
-            document_constants: self.record_of(&document),
+            attrs,
             warnings,
         }
     }
 
-    /// The template slots of the slots `marked`, per template: the record
-    /// every later build reads.
-    fn record_of(&self, marked: &[bool]) -> Record {
-        let mut record: Vec<Vec<u64>> = self
-            .compiled
-            .plans
-            .templates
-            .iter()
-            .map(|t| vec![0; (t.sealed.n_slots as usize).div_ceil(64)])
-            .collect();
-        for (s, _) in marked.iter().enumerate().filter(|(_, w)| **w) {
+    /// Give `attr` to the port of every slot `marked` that has one.
+    fn mark_ports(&self, marked: &[bool], attr: PortAttrs, attrs: &mut [Vec<PortAttrs>]) {
+        for (s, _) in marked.iter().enumerate().filter(|(_, m)| **m) {
             if let Some((t, ts)) = self.template_slot(SlotId::from_index(s)) {
-                record[t.index()][ts.index() / 64] |= 1 << (ts.index() % 64);
+                attrs[t.index()][ts.index()] |= attr;
             }
         }
-        Record(record)
     }
 }
 

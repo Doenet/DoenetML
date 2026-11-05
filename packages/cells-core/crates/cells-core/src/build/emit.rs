@@ -58,7 +58,7 @@ impl<'c> Builder<'c> {
             }
         }
         // The document constants go to the pool (ADR 0028): a template
-        // slot the compile's record makes one, an operator's constant, the
+        // slot whose port is one, an operator's constant, the
         // missing-referent cell.
         let pooled = |s: usize| {
             (match self.sources[s] {
@@ -68,11 +68,8 @@ impl<'c> Builder<'c> {
             }) && (Some(SlotId::from_index(s)) == self.missing
                 || self.consts.values().any(|&k| k.index() == s)
                 || self
-                    .template_slot(SlotId::from_index(s))
-                    .is_some_and(|(t, ts)| {
-                        !self.compiled.plans.document_constants.0.is_empty()
-                            && self.compiled.plans.document_constants.marks(t, ts)
-                    }))
+                    .port_attrs(SlotId::from_index(s))
+                    .has(PortAttrs::DOCUMENT_CONSTANT))
         };
         let mut pool = self.session.pool.clone();
         let mut essential_slots: Vec<(ScopeId, TemplateSlot)> = Vec::with_capacity(counts[0]);
@@ -462,8 +459,8 @@ impl<'c> Builder<'c> {
                             document: self
                                 .compiled
                                 .plans
-                                .document_constants
-                                .marks(template, tslot),
+                                .port_attrs(template, tslot)
+                                .has(PortAttrs::DOCUMENT_CONSTANT),
                         },
                         _ => SlotClass::Derived,
                     };
@@ -680,12 +677,7 @@ impl<'c> Builder<'c> {
         if !self.compiled.plans.fold {
             return fold;
         }
-        let counted = |s: SlotId| {
-            !self.compiled.plans.counted.0.is_empty()
-                && self
-                    .template_slot(s)
-                    .is_some_and(|(t, ts)| self.compiled.plans.counted.marks(t, ts))
-        };
+        let counted = |s: SlotId| self.port_attrs(s).has(PortAttrs::COUNTED);
         let candidates: Vec<SlotId> = SlotId::below(n)
             .filter(|&s| {
                 slot_cells.defines(s)
@@ -752,7 +744,8 @@ impl<'c> Builder<'c> {
     }
 
     /// A component slot's template and template slot (the element's slot
-    /// offset plus the prop's position), what a `Record` is indexed by; None
+    /// offset plus the prop's position), what a port's attributes are
+    /// indexed by; None
     /// for a slot of no element, or past the slots its element reserves.
     pub(in crate::build) fn template_slot(
         &self,
@@ -777,6 +770,14 @@ impl<'c> Builder<'c> {
             .sealed
             .elems[inst.elem.index()];
         Some((inst.template, sealed.slot_off.offset(pi as usize)))
+    }
+
+    /// What the check found of slot `slot`'s port: nothing for a slot with
+    /// no template slot.
+    pub(in crate::build) fn port_attrs(&self, slot: SlotId) -> PortAttrs {
+        self.template_slot(slot)
+            .map(|(t, ts)| self.compiled.plans.port_attrs(t, ts))
+            .unwrap_or_default()
     }
 
     /// An essential slot's key: its scope, its template slot (the element's

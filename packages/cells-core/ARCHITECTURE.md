@@ -127,7 +127,8 @@ Runs once per load and depends on the source alone.
   else the lowest, is kept. So an extend that overrides nothing an
   instruction reads shares the referent's instruction whatever its
   planner did, and so do two unrelated elements computing the same thing;
-  every build and the abstract build's records see it as a plan fact, and
+  every build and the abstract build's port attributes see it as a plan
+  fact, and
   no build pays to find it. It also classes the math expressions
   (`Plans::expr_class`), so a build lowers a subexpression two of a
   scope's maths share once (`Builder::lower`); the **abstract build**
@@ -143,7 +144,7 @@ Runs once per load and depends on the source alone.
   iteration into one and builds every option of every select, so its graph
   holds every edge any count or pick could create. It rejects any
   dependency loop that could close at some count, and from the definitions
-  records what every build reads (below), the document's structural depth
+  finds what every build reads of each port (below), the document's structural depth
   and a warning for each request no build could land (ADR 0026). It stops
   at define and makes no program (ADR 0035). Every document goes through
   the abstract build, with or without repeats: a load is one sequence of
@@ -158,7 +159,8 @@ Each stage keeps its own table (ADR 0031): a template is outlining's part
 when the compile is done.
 
 The result is `Compiled` (`plan.rs`): the source and the `Plans` made from
-it, which are the templates, their plans, the abstract build's records and
+it, which are the templates, their plans, the ports' attributes the
+abstract build found and
 the source's diagnostics, the abstract build's warnings included. The
 stages read the source as a borrow, given to each stage that needs it, and
 make `Plans`; only the finished `Compiled` owns the source. A build reads
@@ -187,18 +189,18 @@ draw for every select.
   source reads, and the flags that hold it) and where a request on it goes
   (what its inverse may write, nowhere past a constant hold).
   `Program::needs` is the first over the cells a build made. The abstract
-  build runs the walk and records the writable template slots in `Plans`
-  (a `Record`), and every build classes by that record, so a slot's class is
-  the same in every build. A class is computed only when it is live (ADR
+  build runs the walk and marks the writable ports, a *port attribute*
+  (`PortAttrs`) kept by template slot in the check's table of each
+  template (`Checked`), and every build classes by the attributes, so a
+  slot's class is the same in every build. A class is computed only when it is live (ADR
   0019): `build/live.rs` walks back from every root (the rendered props of
   rendered components, scores, inputs, what an action or snapping reads,
-  repeat counts) through what each cell needs. The abstract build records
-  the live template slots in `Plans::live` as it records the writable
-  ones; a class the record cannot name (a synthesized component's, such as a
-  choice's interface) is live when something live reads it. Which way a
-  build classes is its caller's choice (`Defined::by_walk` in the abstract
-  build, `Defined::by_record` in every other), so define has no branch for
-  it. What define makes, `Defined`, is what emit reads, and what the
+  repeat counts) through what each cell needs. The abstract build marks
+  the live ports as it marks the writable ones; a class no port names (a
+  synthesized component's, such as a choice's interface) is live when
+  something live reads it. Which way a build classes is its caller's
+  choice (`Defined::by_walk` in the abstract build, `Defined::by_attributes`
+  in every other), so define has no branch for it. What define makes, `Defined`, is what emit reads, and what the
   abstract build hands its readers: its findings, the input signature,
   and the refuse analysis (`program/refuse.rs`), one rule over a graph
   that the abstract build asks of the definitions (`build/refuse.rs`) and
@@ -213,7 +215,7 @@ draw for every select.
   computes every class.
 
   Emit also makes the constants (ADR 0028). A document constant, by the
-  abstract build's record (`Plans::document_constants`), an operator's
+  port's attribute (`PortAttrs::DOCUMENT_CONSTANT`), an operator's
   constant and the missing-referent cell name a cell of the session's
   **constant pool**, one per distinct value, which every build starts its
   cells from and appends to; a document constant's cell index is the same in
@@ -224,8 +226,8 @@ draw for every select.
   the program keeps no instruction for it. A *counted value*, which a build
   counts from the structure it stamped (a collect's count from a repeat, a
   section's number after one), is a derived cell in every build, never a
-  constant; the abstract build records which slots hold one
-  (`Plans::counted`).
+  constant; the abstract build marks the ports that hold one
+  (`PortAttrs::COUNTED`).
 
 A build learns the document's structure only through the **structure view**
 (`View`, `build/view.rs`): iteration counts, which iteration or item an
@@ -247,7 +249,7 @@ about how a cell is numbered or an instruction bound belongs in emit. A
 diagnostic raised in emit is misplaced, and a view read in emit is a bug.
 A stamped build reads the compile and the session, never the abstract
 build's graph: what the abstract build hands it is facts about template
-slots, the records and the depth, and its builder is dropped with the
+slots, the port attributes and the depth, and its builder is dropped with the
 check (ADR 0036).
 
 A build reads the `Session` (`session.rs`) and returns the next one. The
@@ -286,7 +288,7 @@ downstream, and report a `TickOutcome`. See
 
 1. The bytes become a `Dast`.
 2. The compile runs once: lint, plan, check. The check's abstract build also
-   records which template slots are writable (ADR 0018), which are
+   marks which ports are writable (ADR 0018), which are
    live (ADR 0019), which are document constants and which hold counted
    values (ADR 0028), which every build reads, and the structural depth,
    which bounds the passes below.
@@ -398,7 +400,7 @@ the other action: it sets each `<updateValue>`'s target.
 | `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
 | `Compiled`, `CompiledRef`, `Plans`, `Template` | `compile/plan.rs` | The compile's output: the source and its `Plans`, one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. A build reads it as a `CompiledRef`. |
 | `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Abstract`, which folds every iteration into one (`build/abstract_build.rs`). |
-| `Defined` | `build/define.rs` | What define made of a build's resolved slots: the cells they will make (`SlotCells`) and each slot's class, essential and live, by the build's own walks in the abstract build or by the compile's records in a stamped one (ADR 0035). What emit reads; in the abstract build, what its findings (`AbstractFindings`) and the input signature read. |
+| `Defined` | `build/define.rs` | What define made of a build's resolved slots: the cells they will make (`SlotCells`) and each slot's class, essential and live, by the build's own walks in the abstract build or by the ports' attributes the compile keeps in a stamped one (ADR 0035). What emit reads; in the abstract build, what its findings (`AbstractFindings`) and the input signature read. |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one stamped build, before scheduling. The abstract build makes none. |
 | `Session`, `Counts`, `Pool` | `session.rs` | What survives every build: scopes, essential values, strings, seed, the constant pool (ADR 0028); and the counts a build stamps. |
 | `MathStore` | `session.rs` | The math engine and the handles of the source's constant expressions, which the document owns beside the session and lends to each build and tick (ADR 0015's amendment of 2026-11-05). |
@@ -647,10 +649,10 @@ the core does not compute it, and the viewer's test, which checks every
   has, with a label its iterations satisfy. This tests the assumptions the
   cycle check rests on directly, instead of waiting for a missed cycle. The
   same holds for the classing (ADR 0018): at each count and seed, nothing a
-  build's own walk finds writable is missing from the abstract build's
-  record, and every request on an interactive cell, submit and trigger, made
+  build's own walk finds writable is a port the abstract build did not
+  mark writable, and every request on an interactive cell, submit and trigger, made
   with every value essential (`LoadOptions::classify` off), writes only
-  cells the record makes essential. And for the constants (ADR 0028): a slot
+  cells the attributes make essential. And for the constants (ADR 0028): a slot
   that is a constant in one build of a scope is the same constant in every
   build of it, at every count, and a document constant the same in every
   scope of its template.
@@ -670,7 +672,7 @@ the core does not compute it, and the viewer's test, which checks every
   document and ticks a pruned one beside it, which must agree on every
   live cell (`testing::live_cells_agree`), and its cost snapshot is the
   pruned one's.
-- `tests/live.rs` checks the live record (ADR 0019) at every golden
+- `tests/live.rs` checks the live attribute (ADR 0019) at every golden
   document and `sir.doenet`, four seeds and counts 0 to 4: nothing a
   build's own walk finds live is missing from it, every output and every
   essential cell is live, every live cell's `Program::needs` is live, a

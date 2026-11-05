@@ -150,8 +150,8 @@ a sticky group reads.
 
 **Live cell** — A root, or a cell some root reads, through aliases and
 every input of the instructions that compute it. The compile finds the live template
-slots once, through the abstract build (the *live record*), and every build
-reads it. Every essential cell is live. A cell that is not live is **dead**:
+slots once, through the abstract build, as a *port attribute*
+(`PortAttrs::LIVE`), and every build reads it. Every essential cell is live. A cell that is not live is **dead**:
 a load with `LoadOptions::prune`, the default, gives it no cell, and every
 prop that would name it names the one **dead cell** instead, a constant NaN
 that nothing computes. Unpruned, every cell is computed and
@@ -324,9 +324,9 @@ _Avoid_: literal (a literal is text written in the source)
 which follows the iteration counts (ADR 0028): a collect's count from a
 repeat, a section's number after one, the credit of a section whose answers
 are all in repeats. A derived cell in every build, holding the number its build
-counted; the abstract build records which template slots hold one
-(`Plans::counted`), since at a count with nothing to count a build cannot
-tell. Never a constant.
+counted; the abstract build finds which template slots hold one, a *port
+attribute* (`PortAttrs::COUNTED`), since at a count with nothing to count a
+build cannot tell. Never a constant.
 
 **Hold** — What `fixed` (or `fixAxes`) puts on an element: every cell of
 it refuses a request while one of its flags is nonzero (`Program::holds`);
@@ -350,7 +350,11 @@ point, then the hidden ports. Every port has a **port type** (`PortType`,
 ADR 0032): a number, text or math, which the compile infers once from the
 port's source and the ports it reads (`compile/seal/types.rs`) and every
 build reads to decide what the port's cell holds, whether a `<math>` is a
-math cell, and which reference leaf inside math is a math leaf.
+math cell, and which reference leaf inside math is a math leaf. Every port
+also has **port attributes** (`PortAttrs`, ADR 0032 step 8, ADR 0036):
+what the check found of it, which every build reads, a bit each for
+writable, live, a counted value and a document constant, kept by template
+slot in the check's table of each template (`Checked`).
 _Avoid_: slot (a slot is the build's numbering of a port)
 
 **Slot** — At build time, one port of one component instance, before

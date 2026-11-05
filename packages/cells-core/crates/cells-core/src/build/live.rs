@@ -4,8 +4,8 @@
 //! repeat's count, what snapping reads), and goes backward over the cells
 //! the slots will make to what each needs. A cell it reaches is live. When
 //! the view folds iterations, the walk also follows a slot's later sources.
-//! The abstract build records what it finds by template slot, and every
-//! other build reads the record.
+//! The abstract build gives each port what it finds, and every other build
+//! reads the ports' attributes.
 
 use super::*;
 
@@ -20,22 +20,18 @@ impl<'c> Builder<'c> {
             .collect()
     }
 
-    /// Per slot, whether the abstract build's record makes its cell live: a
-    /// cell with a template slot the record marks. A cell with no template
-    /// slot is live when a root or a live cell needs it. A cell the record
-    /// names and does not mark stays dead whatever needs it.
-    pub(in crate::build) fn live_by_record(
-        &self,
-        record: &Record,
-        slot_cells: &SlotCells,
-    ) -> Vec<bool> {
+    /// Per slot, whether the ports' attributes make its cell live: a cell
+    /// with a template slot whose port is live. A cell with no template
+    /// slot is live when a root or a live cell needs it. A cell with a
+    /// template slot whose port is not live stays dead whatever needs it.
+    pub(in crate::build) fn live_by_attributes(&self, slot_cells: &SlotCells) -> Vec<bool> {
         let n = self.sources.len();
         let (mut live, mut named) = (vec![false; n], vec![false; n]);
         for s in SlotId::below(n) {
             if let Some((t, ts)) = self.template_slot(s) {
                 let cell = slot_cells.cell_of(s);
                 named[cell.index()] = true;
-                if record.marks(t, ts) {
+                if self.compiled.plans.port_attrs(t, ts).has(PortAttrs::LIVE) {
                     live[cell.index()] = true;
                 }
             }

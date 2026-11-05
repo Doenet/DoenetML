@@ -228,10 +228,6 @@ impl Compiler<'_> {
                 extra_strings: Vec::new(),
                 diagnostics: Arc::default(),
                 structural_depth: 0,
-                classes: None,
-                live: Record::default(),
-                counted: Record::default(),
-                document_constants: Record::default(),
                 prune: false,
                 fold: false,
                 expr_class: Vec::new(),
@@ -293,6 +289,7 @@ impl Compiler<'_> {
                 outlined,
                 tables,
                 sealed,
+                checked: Checked::default(),
             })
             .collect();
         plans.choices = (choices.into_iter().zip(choice_seals))

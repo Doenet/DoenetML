@@ -8,9 +8,9 @@ use super::*;
 
 /// What define made of the resolved slots: the cells they will make, and
 /// each slot's class (ADR 0018, ADR 0019). The abstract build classes by
-/// its own walks and records what it found; every stamped build classes
-/// by the records, so a slot's class is the same in every build. The
-/// caller chooses, so define has no branch for it.
+/// its own walks and gives each port what it found; every stamped build
+/// classes by the ports' attributes, so a slot's class is the same in
+/// every build. The caller chooses, so define has no branch for it.
 pub(in crate::build) struct Defined {
     pub(in crate::build) slot_cells: SlotCells,
     /// Per slot, whether it is a given value a student's action can
@@ -32,18 +32,17 @@ impl Defined {
         }
     }
 
-    /// The definitions classed by the compile's records: every stamped
-    /// build's. With the classing off (no record), every given value is
-    /// essential.
-    pub(in crate::build) fn by_record(b: &Builder<'_>, slot_cells: SlotCells) -> Defined {
-        let n = b.sources.len();
-        let essential = match &b.compiled.plans.classes {
-            None => vec![true; n],
-            Some(r) => SlotId::below(n)
-                .map(|s| b.template_slot(s).is_none_or(|(t, ts)| r.marks(t, ts)))
-                .collect(),
-        };
-        let live = b.live_by_record(&b.compiled.plans.live, &slot_cells);
+    /// The definitions classed by the ports' attributes, which the compile
+    /// keeps: every stamped build's.
+    pub(in crate::build) fn by_attributes(b: &Builder<'_>, slot_cells: SlotCells) -> Defined {
+        let plans = b.compiled.plans;
+        let essential = SlotId::below(b.sources.len())
+            .map(|s| {
+                b.template_slot(s)
+                    .is_none_or(|(t, ts)| plans.port_attrs(t, ts).has(PortAttrs::WRITABLE))
+            })
+            .collect();
+        let live = b.live_by_attributes(&slot_cells);
         Defined {
             slot_cells,
             essential,

@@ -747,6 +747,8 @@ pub(crate) struct Template {
     pub(crate) tables: Tables,
     /// What sealing made, parallel to `elems`.
     pub(crate) sealed: SealedTemplate,
+    /// What the check found, by template slot.
+    pub(crate) checked: Checked,
 }
 
 impl std::ops::Deref for Template {
@@ -1448,18 +1450,6 @@ pub(crate) struct Plans {
     /// The document's structural depth, which bounds every build's: 0
     /// without a repeat, and 0 when a test load skips the count check.
     pub(crate) structural_depth: u32,
-    /// The value slots a student's action can write, which are essential;
-    /// None with the classing off, when every value slot is essential.
-    pub(crate) classes: Option<Record>,
-    /// The live slots.
-    pub(crate) live: Record,
-    /// The counted values: slots whose value a build counts from the
-    /// structure it stamped (a collect's count). Always a derived cell,
-    /// never a constant.
-    pub(crate) counted: Record,
-    /// The document constants: slots whose constant is the same in every
-    /// instance. Every other constant is a scope constant.
-    pub(crate) document_constants: Record,
     /// Whether a build gives a dead slot no cell; never in the abstract
     /// build.
     pub(crate) prune: bool,
@@ -1471,17 +1461,43 @@ pub(crate) struct Plans {
     pub(crate) expr_class: Vec<ExprId>,
 }
 
-/// What the abstract build records of a document: per template, a bit per
-/// template slot (`slot_off + pi`).
-#[derive(Debug, Clone, Default, PartialEq)]
-pub(crate) struct Record(pub(crate) Vec<Vec<u64>>);
+/// What the check makes of a template: what it found of each port, by
+/// template slot (`slot_off` plus the port's position). Empty until the
+/// check has run.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct Checked {
+    pub(crate) attrs: Vec<PortAttrs>,
+}
 
-impl Record {
-    /// Whether the record marks template slot `slot` of `template`.
-    pub(crate) fn marks(&self, template: TemplateId, slot: TemplateSlot) -> bool {
-        self.0[template.index()]
-            .get(slot.index() / 64)
-            .is_some_and(|w| w & (1 << (slot.index() % 64)) != 0)
+/// What the check found of a port, which every build reads (ADR 0036): a
+/// bit per fact, the same in every instance of the port's template slot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub(crate) struct PortAttrs(u8);
+
+impl PortAttrs {
+    /// A given value a student's action can write: essential, where any
+    /// other given value is a constant (ADR 0018). With the classing off,
+    /// every port.
+    pub(crate) const WRITABLE: PortAttrs = PortAttrs(1);
+    /// The document computes its cell (ADR 0019).
+    pub(crate) const LIVE: PortAttrs = PortAttrs(1 << 1);
+    /// A counted value: a build counts it from the structure it stamped (a
+    /// collect's count), so it is a derived cell, never a constant (ADR
+    /// 0028).
+    pub(crate) const COUNTED: PortAttrs = PortAttrs(1 << 2);
+    /// A document constant: its constant is the same in every instance.
+    /// Every other constant is a scope constant (ADR 0028).
+    pub(crate) const DOCUMENT_CONSTANT: PortAttrs = PortAttrs(1 << 3);
+
+    /// Whether it has every fact of `a`.
+    pub(crate) fn has(self, a: PortAttrs) -> bool {
+        self.0 & a.0 == a.0
+    }
+}
+
+impl std::ops::BitOrAssign for PortAttrs {
+    fn bitor_assign(&mut self, a: PortAttrs) {
+        self.0 |= a.0;
     }
 }
 
@@ -1523,6 +1539,13 @@ impl Plans {
     /// settled it.
     pub(crate) fn port_type(&self, template: usize, slot: TemplateSlot) -> PortType {
         self.templates[template].sealed.types[slot.index()]
+    }
+
+    /// What the check found of template slot `slot` of `template`: nothing
+    /// before it has run.
+    pub(crate) fn port_attrs(&self, template: TemplateId, slot: TemplateSlot) -> PortAttrs {
+        let attrs = &self.templates[template.index()].checked.attrs;
+        attrs.get(slot.index()).copied().unwrap_or_default()
     }
 
     /// Drop the plans' spare capacity once planning is done.

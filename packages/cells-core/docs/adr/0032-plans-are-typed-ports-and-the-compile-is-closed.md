@@ -1,7 +1,7 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done;
-see Migration. Builds on
+Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done,
+and the first part of step 8; see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -662,6 +662,71 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
    and its attributes, never the abstract analysis's graph.
    Test: `tests/every_count.rs` and `tests/live.rs`, which check the
    records against real builds at every count and seed, unchanged.
+
+   It lands in six parts, each alone with the golden diff unchanged. The
+   order follows from ADR 0036: what the abstract build hands over stays
+   facts about ports, never an edge, so the template graph is the
+   compile's own from its first part, made from the IR, and is tested
+   against the abstract build while both exist; no part reads the graph
+   off the abstract builder.
+
+   1. **Port attributes.** The four records become attributes of
+      ports, a bit per fact by template slot, in a table of the check's
+      own (ADR 0031). Test: every test unchanged.
+
+      Done. `PortAttrs` (`compile/plan.rs`) is `WRITABLE`, `LIVE`,
+      `COUNTED` and `DOCUMENT_CONSTANT`; each template carries the
+      check's table, `Checked`, beside sealing's, and a build reads a
+      port's attributes through `Plans::port_attrs`
+      (`Builder::port_attrs` for a slot), so `Plans::classes`,
+      `Plans::live`, `Plans::counted`, `Plans::document_constants` and
+      the bitset `Record` of `compile/plan.rs` are gone, which leaves
+      `Record` naming only an element's attribute record (ADR 0034). The
+      classing off marks every port writable rather than leaving the
+      record out. A stamped build classes by the attributes
+      (`Defined::by_attributes`, `Builder::live_by_attributes`). The
+      abstract build still finds them, by its walks over its own slots,
+      and gives each port what its slots were found to be
+      (`AbstractFindings::attrs`). The golden diff is unchanged.
+   2. **The template graph.** The compile stamps each template once in
+      the abstract from the closed IR: a node per port and per value a
+      plan makes inside one (an operator of lowered math, a constant),
+      an edge per read, labelled by the reference's steps (an `Iter`
+      step's affine shift, `Coord::Keep`, or `Coord::Reset`, as
+      `index_coord` decides now), a choice's interface a join over its
+      branches, a collection's items and counts by the repeats it
+      crosses, and a specialization giving both of its sources. Nothing
+      reads it yet. Test: between element ports it has the dependencies
+      the abstract build has, with the same labels
+      (`testing::abstract_edges`), on the golden set and every fixture,
+      and it covers every stamped build at every count and seed
+      (`tests/every_count.rs`'s `admits`).
+   3. **The cycle and count checks over the graph.** The Tarjan walk
+      with its Bellman-Ford per component (ADR 0012), the loop on the
+      graph of repeats and the structural depth are passes of the
+      compile over the template graph; `check_loops`, `check_scc` and
+      `check_counts` leave the builder. Test: `tests/cycles.rs`,
+      `tests/rebuild_cycles.rs`, the depths of `tests/repeat.rs` and
+      `tests/load_errors.rs`, and `tests/every_count.rs`, unchanged.
+   4. **Define over the graph.** Which nodes merge into one cell, each
+      cell's definition, what it needs and where a request on it goes
+      (`Def`), and from them the writable and live walks, the counted
+      and document-constant classing, the prefill rule and the refuse
+      warnings (ADR 0026), as passes that set the ports' attributes.
+      Test: `tests/writable.rs`, `tests/live.rs`, `tests/refuse.rs` and
+      the classing checks of `tests/every_count.rs`, unchanged.
+   5. **The input signature over the graph.** ADR 0035's signature
+      reads the graph's definitions instead of the abstract build's.
+      Test: `tests/safe_edits.rs` unchanged.
+   6. **The abstract build goes.** What expand and resolve raise in the
+      abstract build today, an element that cannot be built, is raised
+      by the template pass and boxed in place, as step 7's fixpoint
+      boxes; `build/abstract_build.rs`, `View::Abstract` and the fields
+      that exist for folding (`later_sources`, `stand_ins`,
+      `pick_stand_ins`, `labels`, `counted_slots`, `document_slots`,
+      `Plans::Both`) leave the build, and `tests/every_count.rs` checks
+      every stamped build against the template graph. Test:
+      `tests/diagnostics.rs` and `tests/every_count.rs`, unchanged.
 9. **Capped lists.** `List(T, cap)` with a length port, for
    `<intersection>` first, as the test of the form the last section
    needs. The spreadsheet operator and the pool for `addChildren` are

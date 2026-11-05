@@ -181,7 +181,7 @@ pub fn build(
     let built = (|| {
         b.stage(false)?;
         let slot_cells = crate::trace::span("define").run(|| b.define())?;
-        let defined = Defined::by_record(&b, slot_cells);
+        let defined = Defined::by_attributes(&b, slot_cells);
         let _s = crate::trace::span("emit");
         let u = b.emit(defined)?;
         crate::trace::count("cells", u.cells.len());
@@ -258,14 +258,10 @@ pub struct BuildOutput {
 pub(crate) struct AbstractFindings {
     /// The structural depth.
     pub(crate) structural_depth: u32,
-    /// The template slots a student's action can write.
-    pub(crate) writable: Record,
-    /// The live template slots.
-    pub(crate) live: Record,
-    /// The counted values' template slots.
-    pub(crate) counted: Record,
-    /// The document constants' template slots.
-    pub(crate) document_constants: Record,
+    /// What it found of each port, per template by template slot: which a
+    /// student's action can write, which are live, counted values and
+    /// document constants.
+    pub(crate) attrs: Vec<Vec<PortAttrs>>,
     /// The warnings.
     pub(crate) warnings: Vec<Diagnostic>,
 }

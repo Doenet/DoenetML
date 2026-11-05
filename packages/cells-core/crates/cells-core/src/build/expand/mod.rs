@@ -202,7 +202,7 @@ pub(in crate::build) struct Builder<'c> {
     /// repeats they gather from.
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
     /// The slots of the counted values (ADR 0028): found by the abstract
-    /// build, read from the record by every other.
+    /// build, read from the ports' attributes by every other.
     pub(in crate::build) counted_slots: Vec<SlotId>,
     /// When the view folds iterations: the slots whose plan gives a
     /// document constant if they are constants.
@@ -449,15 +449,14 @@ impl<'c> Builder<'c> {
 
     /// Whether slot `s` holds a counted value: one the build counts from the
     /// structure it stamped, so it follows the counts. In the abstract build
-    /// `found` says whether it is; every other build reads the record. A
-    /// counted slot is kept in `counted_slots`, which the abstract build
-    /// records and the prefill rule reads.
+    /// `found` says whether it is; every other build reads its port's
+    /// attributes. A counted slot is kept in `counted_slots`, which the
+    /// abstract build gives its port and the prefill rule reads.
     pub(in crate::build) fn is_counted(&mut self, s: SlotId, found: bool) -> bool {
         let counted = if self.view.folds_iterations() {
             found
         } else {
-            self.template_slot(s)
-                .is_some_and(|(t, ts)| self.compiled.plans.counted.marks(t, ts))
+            self.port_attrs(s).has(PortAttrs::COUNTED)
         };
         if counted {
             self.counted_slots.push(s);
