@@ -321,7 +321,7 @@ describe("Displayed math tag tests @group1", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
                         .stateValues.text,
-                ).eq(`n${i}: , equation ???`);
+                ).eq(`n${i}: ＿, equation ???`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`etn${i}`)]
                         .stateValues.text,
@@ -753,7 +753,7 @@ describe("Displayed math tag tests @group1", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
                         .stateValues.text,
-                ).eq(`n${i}: , equation ???`);
+                ).eq(`n${i}: ＿, equation ???`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`etn${i}`)]
                         .stateValues.text,
@@ -954,7 +954,7 @@ describe("Displayed math tag tests @group1", async () => {
                         expect(
                             stateVariables[await resolvePathToNodeIdx(`pm${i}`)]
                                 .stateValues.text,
-                        ).eq(`m${i}: ＿, equation ???`);
+                        ).eq(`m${i}: , equation ???`);
                         expect(
                             stateVariables[
                                 await resolvePathToNodeIdx(`etm${i}`)
@@ -1064,7 +1064,7 @@ describe("Displayed math tag tests @group1", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
                         .stateValues.text,
-                ).eq(`n${i}: , equation ???`);
+                ).eq(`n${i}: ＿, equation ???`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`etn${i}`)]
                         .stateValues.text,

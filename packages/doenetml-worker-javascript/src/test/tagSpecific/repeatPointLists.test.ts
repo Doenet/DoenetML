@@ -726,12 +726,14 @@ describe("Repeats whose template is one point @group4", () => {
             names: ["px", "py", "py2", "sy", "pz", "pz2"],
             graphs: ["g", "g2"],
         });
+        // of every point, a coordinate they do not have is nothing; of one
+        // point, it is missing (D37)
         expect(result).toMatchObject({
             px: "1, 2, 3",
             py: "",
-            py2: "",
+            py2: "＿",
             pz: "",
-            pz2: "",
+            pz2: "＿",
         });
     });
 
