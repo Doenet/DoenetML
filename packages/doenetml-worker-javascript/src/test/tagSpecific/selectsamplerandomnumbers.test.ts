@@ -3958,35 +3958,50 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
         ).eq(
             nums1
-                .map((v, i) => `${l[i]}1=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
+                .map(
+                    (v, i) =>
+                        `${l[i]}1=${v ? Math.round(v * 1e9) / 1e9 : "＿"}`,
+                )
                 .join(", "),
         );
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq(
             nums2
-                .map((v, i) => `${l[i]}2=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
+                .map(
+                    (v, i) =>
+                        `${l[i]}2=${v ? Math.round(v * 1e9) / 1e9 : "＿"}`,
+                )
                 .join(", "),
         );
         expect(
             stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
         ).eq(
             nums3
-                .map((v, i) => `${l[i]}3=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
+                .map(
+                    (v, i) =>
+                        `${l[i]}3=${v ? Math.round(v * 1e9) / 1e9 : "＿"}`,
+                )
                 .join(", "),
         );
         expect(
             stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
         ).eq(
             nums4
-                .map((v, i) => `${l[i]}4=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
+                .map(
+                    (v, i) =>
+                        `${l[i]}4=${v ? Math.round(v * 1e9) / 1e9 : "＿"}`,
+                )
                 .join(", "),
         );
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
         ).eq(
             nums5
-                .map((v, i) => `${l[i]}5=${v ? Math.round(v * 1e9) / 1e9 : ""}`)
+                .map(
+                    (v, i) =>
+                        `${l[i]}5=${v ? Math.round(v * 1e9) / 1e9 : "＿"}`,
+                )
                 .join(", "),
         );
     });
