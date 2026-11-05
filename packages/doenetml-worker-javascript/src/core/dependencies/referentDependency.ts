@@ -5,7 +5,10 @@
  */
 
 import { Dependency } from "./Dependency";
-import { arrayEntryNamesFromPropIndex } from "../StateVariableInitializer";
+import {
+    arrayEntryNamesFromPropIndex,
+    pathHasDynamicIndex,
+} from "../StateVariableInitializer";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
@@ -201,6 +204,9 @@ export class ReferentDependency extends Dependency {
                           text: `$${referenceText}`,
                           position: referringComponent?.position,
                           sourceDoc: referringComponent?.sourceDoc,
+                          indexIsDynamic: pathHasDynamicIndex(
+                              referringComponent?.refResolution?.originalPath,
+                          ),
                       }
                     : undefined,
                 watch: {

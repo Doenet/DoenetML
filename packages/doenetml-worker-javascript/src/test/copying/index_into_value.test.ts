@@ -21,7 +21,9 @@ vi.mock("hyperformula");
  * - `$x.value[i]` is `$x[i]`.
  * - A scalar has no entries: `$m[1]` of `<math>5</math>` names nothing and is
  *   reported (`doenet-w0100`), as `$n[1]` and `$t[1]` are.
- * - An index below 1 is `doenet-w0104`; past the end is silent (#1499).
+ * - A literal index below 1 is `doenet-w0104`. An index that names nothing
+ *   now, past the end or below 1 while written as a reference, is the info
+ *   `doenet-i0054`, while it does, as on a tag (D37).
  * - Indices pass through the entries of a list (`$pl[2][1]`).
  * - A `<spreadsheet>` is selected through `cells` (`doenet-w0182`).
  */
@@ -119,15 +121,24 @@ describe("An index into a value with entries @group4", async () => {
         ]);
     });
 
-    it("names nothing past the end, silently", async () => {
-        await expectShownSilently([
-            ["$P[3]", "＿"],
-            ["$mt[3]", "＿"],
-            ["$M[3]", "＿"],
-            ["$M[1][3]", "＿"],
-            ["$mi[3]", "＿"],
-            ["$x[3]", "＿"],
-        ]);
+    it("names nothing past the end, with the info that it does now", async () => {
+        for (const reference of [
+            "$P[3]",
+            "$mt[3]",
+            "$M[3]",
+            "$M[1][3]",
+            "$mi[3]",
+            "$x[3]",
+        ]) {
+            const { text, warnings, errors, infos } =
+                await shownAndReported(reference);
+            expect(text, reference).eq("[＿]");
+            expect([...warnings, ...errors], reference).eqls([]);
+            expect(
+                infos.map((i) => [i.code, i.args?.source]),
+                reference,
+            ).eqls([["doenet-i0054", reference]]);
+        }
     });
 
     it("names nothing in a scalar, reported the same way for every type", async () => {
@@ -153,7 +164,7 @@ describe("An index into a value with entries @group4", async () => {
         }
     });
 
-    it("reports an index past a composite's items once, not again as an index into a scalar", async () => {
+    it("reports an index past a composite's items once, not as an index into a scalar", async () => {
         // `$g[2]` is past the one item of the group; it is tried on the
         // `<math>5</math>` the group holds, which is not reported again as
         // an index into a scalar.
@@ -162,8 +173,8 @@ describe("An index into a value with entries @group4", async () => {
             `<group name="g"><math>5</math></group>`,
         );
         expect(text).eq("[＿]");
-        expect([...errors, ...infos]).eqls([]);
-        expect(warnings.map((w) => w.code)).eqls(["doenet-w0104"]);
+        expect([...errors, ...warnings]).eqls([]);
+        expect(infos.map((i) => i.code)).eqls(["doenet-i0054"]);
     });
 
     it("does not read the entries by a name of their own", async () => {
@@ -299,11 +310,14 @@ describe("An index into a value with entries @group4", async () => {
         expect(reported()).eqls([]);
     });
 
-    it("does not report an index into an input with nothing entered", async () => {
-        await expectShownSilently(
-            [["$e[1]", "＿"]],
+    it("reports an index into an input with nothing entered only as naming nothing now", async () => {
+        const { text, warnings, errors, infos } = await shownAndReported(
+            "$e[1]",
             `<mathInput name="e"><label>e</label></mathInput>`,
         );
+        expect(text).eq("[＿]");
+        expect([...errors, ...warnings]).eqls([]);
+        expect(infos.map((i) => i.code)).eqls(["doenet-i0054"]);
     });
 
     it("writes through an index to the entry", async () => {

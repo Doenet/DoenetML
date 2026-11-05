@@ -6,6 +6,7 @@ import {
     addOnDemandStateVariables,
     arrayEntryNamesFromPropIndex,
     ensureStateVariableMaterialized,
+    pathHasDynamicIndex,
 } from "../StateVariableInitializer";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
 
@@ -600,6 +601,11 @@ export class Dependency {
                               // be found.
                               position: referringComponent?.position,
                               sourceDoc: referringComponent?.sourceDoc,
+                              indexIsDynamic: pathHasDynamicIndex(
+                                  this.definition.referenceOriginalPath ??
+                                      referringComponent?.refResolution
+                                          ?.originalPath,
+                              ),
                           }
                         : undefined,
                 });

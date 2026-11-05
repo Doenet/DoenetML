@@ -424,9 +424,9 @@ describe("coded diagnostics reach the record @group4", () => {
         // The resolver hands back `g` with the index still unresolved, so this
         // is `RefResolutionDependency`'s *later* warning — the one for an
         // expanded composite with no replacement at that index — and not the
-        // one the test below reaches. The reference is bare: written as a tag,
-        // `<text extend="$g[1]"/>`, it is `<text/>` with an info instead
-        // (`doenet-i0054`, D36).
+        // one the test below reaches. An index past a composite's items names
+        // nothing now, so it is the info `doenet-i0054`, bare as on a tag
+        // (D37), coded with the reference as written.
         const { core } = await createTestCore({
             doenetML: `
 <group name="g"></group>
@@ -434,12 +434,17 @@ describe("coded diagnostics reach the record @group4", () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
-        expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0104");
-        expect(warnings[0].args).eqls({ reference: "$g[1]" });
-        expect(warnings[0].message).eq(
-            "No referent found for reference: `$g[1]`",
+        const { warnings, infos } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
+        expect(infos.length).eq(1);
+        expect(infos[0].code).eq("doenet-i0054");
+        expect(infos[0].args).eqls({
+            isTag: "false",
+            componentType: "",
+            source: "$g[1]",
+        });
+        expect(infos[0].message).eq(
+            "`$g[1]` names nothing now, so it is a blank until it does.",
         );
     });
 

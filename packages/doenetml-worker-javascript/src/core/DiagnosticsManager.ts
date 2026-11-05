@@ -136,9 +136,11 @@ export class DiagnosticsManager {
                 }
             }
         }
-        return merged
-            .sort((a, b) => a.seq - b.seq)
-            .map((entry) => entry.diagnostic);
+        return withoutExplainedIndexInfos(
+            merged
+                .sort((a, b) => a.seq - b.seq)
+                .map((entry) => entry.diagnostic),
+        );
     }
 
     /**
@@ -392,6 +394,47 @@ export class DiagnosticsManager {
             diagnostics ?? [],
         );
     }
+}
+
+/**
+ * `diagnostics` without each info that an index names nothing now
+ * (`doenet-i0054`) where a warning or error at the same reference, or within
+ * it, already says why: a property the referent does not have
+ * (`$n.nonexistent[1]`), an index into a value that is a scalar
+ * (`doenet-w0100`), or a literal index below 1. A reference whose index
+ * names nothing is then reported once, the same way whether it is bare or
+ * a tag (D37).
+ */
+function withoutExplainedIndexInfos(
+    diagnostics: DiagnosticRecord[],
+): DiagnosticRecord[] {
+    if (!diagnostics.some((d) => d.code === "doenet-i0054")) {
+        return diagnostics;
+    }
+    const explaining = diagnostics.filter(
+        (d) => d.type === "warning" || d.type === "error",
+    );
+    return diagnostics.filter((info) => {
+        if (info.code !== "doenet-i0054") {
+            return true;
+        }
+        const start = info.position?.start?.offset;
+        const end = info.position?.end?.offset;
+        if (start === undefined || end === undefined) {
+            return true;
+        }
+        return !explaining.some((d) => {
+            const dStart = d.position?.start?.offset;
+            const dEnd = d.position?.end?.offset;
+            return (
+                dStart !== undefined &&
+                dEnd !== undefined &&
+                dStart >= start &&
+                dEnd <= end &&
+                (d.sourceDoc ?? 0) === (info.sourceDoc ?? 0)
+            );
+        });
+    });
 }
 
 /**

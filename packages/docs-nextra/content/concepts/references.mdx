@@ -209,7 +209,10 @@ a while, shown as `＿`, with an info, and none changes its type:
   missing until the value converts.
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
   iterations of `r` is missing, and is made from the iteration again, with the
-  tag's own children, when the index names one.
+  tag's own children, when the index names one. The bare reference `$r[$i]`
+  shows `＿` with the same info: past the end, literal or not, or below 1
+  while the index is written as a reference. A literal index below 1, such as
+  `$l[0]`, never names anything, and is a warning instead.
 * **A composite that holds nothing.** `<math extend="$cc"/>{:dn}` of a
   `<conditionalContent>` with no `<else>` is missing while no case is true.
 
@@ -304,10 +307,10 @@ The reference works only if **every case declares the name, with the same
 type**, so that what it names never changes type when another case is shown.
 "Every case" means each `<case>` written and the `<else>`, if there is one.
 With no `<else>`, an `x` in every case is enough: while no case is true, `$x`
-names nothing, and shows `＿`. If a case lacks `x`, or two cases declare it with
-different types, `$x` and `$cc.x` name nothing, with a warning that says which.
-Written as a tag, such as `<math extend="$x"/>{:dn}`, a name a case lacks is
-missing, with the same warning, and types that differ are an error. On a tag, a type that
+names nothing, and shows `＿`. If a case lacks `x`, `$x` and `$cc.x` name
+nothing, with a warning that says which; written as a tag, such as
+`<math extend="$x"/>{:dn}`, it is missing, with the same warning. If two cases
+declare `x` with different types, `$x`, `$cc.x` and the tag are an error. On a tag, a type that
 already is the tag counts as it: with an `<integer name="x">{:dn}` in one case
 and a `<number name="x">{:dn}` in another, `<number extend="$x"/>{:dn}` and
 `<number extend="$x.value"/>{:dn}` work, while `$x` alone does not. A name after it is held

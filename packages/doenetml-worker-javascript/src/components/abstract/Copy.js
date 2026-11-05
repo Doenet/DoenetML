@@ -6446,13 +6446,15 @@ async function isBareReferenceToOneThing(
         return true;
     }
     const extended = await component.stateValues.extendedComponent;
+    const originalPath = await component.stateValues.originalPath;
     if (!extended) {
-        return false;
+        // An index that names nothing now, as one below 1 (`$r[$i]` while
+        // `i` is 0), leaves no referent: what it names is one thing.
+        return Boolean(originalPath?.some((part) => part.index.length > 0));
     }
     if (extended.componentType === "setup") {
         return false;
     }
-    const originalPath = await component.stateValues.originalPath;
     const unresolvedPath = await component.stateValues.unresolvedPath;
     if (originalPath?.some((part) => part.index.length > 0)) {
         return true;
@@ -6977,6 +6979,7 @@ async function indexNamesNothing({
             type: "info",
             code: "doenet-i0054",
             args: {
+                isTag: "true",
                 componentType: writtenType,
                 source:
                     workspace.referenceAsWritten ??

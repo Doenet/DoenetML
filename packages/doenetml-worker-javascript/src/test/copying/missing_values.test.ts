@@ -218,8 +218,12 @@ describe("Missing values and missing tags (D37) @group2", () => {
     <p name="p">[$l[$i]][<math extend="$l[$i]"/>]</p>
     `);
         expect(text).eq("[＿][＿]");
-        // one for each tag
-        expect(infos.map((i) => i.code)).eqls(["doenet-i0054", "doenet-i0054"]);
+        // one for each reference, bare or a tag
+        expect(infos.map((i) => i.code)).eqls([
+            "doenet-i0054",
+            "doenet-i0054",
+            "doenet-i0054",
+        ]);
         expect(infos[0].message).contain("is missing until it does");
 
         async function shownParagraph() {
@@ -261,6 +265,7 @@ describe("Missing values and missing tags (D37) @group2", () => {
         ).eq("[＿][＿]");
         expect((await shownParagraph()).missing).eq(true);
         expect(getDiagnosticsByType(core).infos.map((i) => i.code)).eqls([
+            "doenet-i0054",
             "doenet-i0054",
             "doenet-i0054",
         ]);
@@ -430,5 +435,61 @@ describe("Missing values and missing tags (D37) @group2", () => {
         const target = stateVariables[await resolvePathToNodeIdx("target")];
         expect(target.stateValues.valueMissing).eq(true);
         expect(target.activeChildren).eqls([]);
+    });
+
+    it("reports an index that names nothing the same, bare or as a tag", async () => {
+        // `$x` is `<X extend="$x"/>` (rule 5): an index that names nothing
+        // now is the info `doenet-i0054` in both forms, a literal one that
+        // never names anything the same warning, and a name of different
+        // types in the branches the same error (only type is an error).
+        const before = `<mathInput name="mi" prefill="7"/><number name="i">$mi</number><mathList name="l">1 2 3</mathList><number name="n">5</number><repeatForSequence name="r" length="2"><math name="m">x</math></repeatForSequence><group name="g"><math>a</math></group><select name="s" numToSelect="1"><option><math name="q">q</math></option></select><booleanInput name="b"/><conditionalContent name="cc"><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>`;
+        const pairs: [string, string, string, string[]][] = [
+            ["$l[$i]", "math", "＿", ["I doenet-i0054"]],
+            ["$l[5]", "math", "＿", ["I doenet-i0054"]],
+            ["$l[0]", "math", "＿", ["W doenet-w0104"]],
+            ["$r[$i].m", "math", "＿", ["I doenet-i0054"]],
+            ["$r[3].m", "math", "＿", ["I doenet-i0054"]],
+            ["$g[2]", "math", "＿", ["I doenet-i0054"]],
+            ["$s[$i]", "math", "＿", ["I doenet-i0054"]],
+            ["$s[3]", "math", "＿", ["W doenet-w0181"]],
+            ["$n[1]", "number", "＿", ["W doenet-w0100"]],
+            ["$x", "math", "", ["E"]],
+            ["$cc.x", "math", "", ["E"]],
+        ];
+        for (const [reference, tag, shown, reported] of pairs) {
+            for (const written of [
+                reference,
+                `<${tag} extend="${reference}"/>`,
+            ]) {
+                const { text, warnings, errors, infos } =
+                    await shownAndReported(
+                        `${before}<p name="p">[${written}]</p>`,
+                    );
+                expect(text, written).eq(`[${shown}]`);
+                expect(
+                    [
+                        ...errors.map(() => "E"),
+                        ...warnings.map((w) => `W ${w.code}`),
+                        ...infos.map((i) => `I ${i.code}`),
+                    ],
+                    written,
+                ).eqls(reported);
+            }
+        }
+
+        // once the index names something, nothing is reported
+        const { core, resolvePathToNodeIdx } = await shownAndReported(
+            `${before}<p name="p">[$l[$i]][<math extend="$l[$i]"/>]</p>`,
+        );
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[2][2]");
+        expect(getDiagnosticsByType(core).infos).eqls([]);
     });
 });

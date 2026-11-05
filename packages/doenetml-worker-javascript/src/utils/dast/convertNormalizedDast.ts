@@ -592,28 +592,46 @@ export async function normalizedDastToSerializedComponents(
     // A reference to a name the branches of a `<conditionalContent>` or a
     // one-pick `<select>` do not all declare with one tag names nothing
     // (D13, D22), so that what it names never changes type with the active
-    // branch.
+    // branch. A name the branches declare with different types is an error,
+    // shown in place of the reference, as it is for the reference written as
+    // a tag (`doenet-e0066`): only a name a branch lacks is a warning, with a
+    // blank (D37).
     for (const { copy, code, args } of branchNameWarnings) {
         const ref: any = (copy.extending as any)?.Ref;
         const originalPath = ref?.originalPath;
-        diagnostics.push(
-            codedDiagnostic({
-                type: "warning",
-                code: code as any,
-                args: {
-                    ...args,
-                    reference: `${doenetMLDollarsForReference(
-                        originalPath,
-                        normalized_root.sources,
-                    )}${doenetMLStringForReference(
-                        originalPath,
-                        normalized_root.sources,
-                    )}`,
-                },
-                position: copy.position,
-                sourceDoc: copy.sourceDoc,
-            }),
-        );
+        const isError = code === "doenet-w0184";
+        const diagnostic = codedDiagnostic({
+            type: isError ? "error" : "warning",
+            code: code as any,
+            args: {
+                ...args,
+                reference: `${doenetMLDollarsForReference(
+                    originalPath,
+                    normalized_root.sources,
+                )}${doenetMLStringForReference(
+                    originalPath,
+                    normalized_root.sources,
+                )}`,
+            },
+            position: copy.position,
+            sourceDoc: copy.sourceDoc,
+        });
+        if (isError) {
+            // The `_error` raises the diagnostic when it is made
+            // (`ComponentBuilder`).
+            const errorComponent = copy as any;
+            errorComponent.componentType = "_error";
+            errorComponent.state = errorComponentState(
+                diagnostic.message,
+                diagnostic,
+            );
+            errorComponent.attributes = {};
+            errorComponent.children = [];
+            errorComponent.doenetAttributes = {};
+            delete errorComponent.extending;
+            continue;
+        }
+        diagnostics.push(diagnostic);
         if (ref) {
             copy.extending = {
                 Ref: {

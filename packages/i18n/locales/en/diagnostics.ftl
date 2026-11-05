@@ -892,8 +892,13 @@ type-change-composite-type-unknown =
 
 # The index of `$source` names nothing now, such as an iteration past the
 # last one, so the tag $componentType is missing, and shown as a blank, until
-# the index names something again.
-type-change-index-names-nothing = `{ $source }` names nothing now, so this `<{ $componentType }>` is missing until it does.
+# the index names something again. $isTag is `false` for a reference written
+# bare, such as `$l[$i]`, which is then a blank, and has no $componentType.
+type-change-index-names-nothing =
+    { $isTag ->
+        [false] `{ $source }` names nothing now, so it is a blank until it does.
+       *[other] `{ $source }` names nothing now, so this `<{ $componentType }>` is missing until it does.
+    }
 
 # `$source` is a composite that holds nothing now, such as a
 # `<conditionalContent>` with no case true and no `<else>`, or one whose
