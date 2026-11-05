@@ -94,10 +94,11 @@ impl Compiler<'_> {
         self.with_clones(o, |cp, _| cp.ref_target(t, p).map(drop))?;
         self.referent_type(&mut o.work.reads, t, e, p)?;
         let scope = self.child_scope(t, e);
-        let mut kids = self.clone_children(o, t, r, scope, e)?;
-        let own = std::mem::take(&mut self.outlined_mut(t).elems[e.index()].children);
-        kids.extend(own);
-        self.outlined_mut(t).elems[e.index()].children = kids;
+        let kids = self.clone_children(o, t, r, scope, e)?;
+        // The clones come first, then the copy's own children.
+        self.outlined_mut(t).elems[e.index()]
+            .children
+            .splice(0..0, kids);
         Ok(())
     }
 
