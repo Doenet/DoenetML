@@ -10,6 +10,7 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import { textFromChildren } from "../utils/text";
+import { MISSING_TEXT } from "../utils/missing";
 import { latexToText, textToLatex } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { addClickTargetStateVariableDefinition } from "../utils/triggering";
@@ -151,6 +152,7 @@ export default class Label extends InlineComponent {
                         "value",
                         "hasLatex",
                         "renderAsMath",
+                        "valueMissing",
                     ],
                     variablesOptional: true,
                 },
@@ -172,6 +174,8 @@ export default class Label extends InlineComponent {
                 let hasLatex = false;
                 for (let comp of dependencyValues.inlineChildren) {
                     if (typeof comp !== "object") {
+                    } else if (comp.stateValues.valueMissing) {
+                        // a missing child is the plain blank `＿` (D37)
                     } else if (
                         typeof comp.stateValues.hasLatex === "boolean" &&
                         typeof comp.stateValues.value === "string" &&
@@ -243,6 +247,7 @@ export default class Label extends InlineComponent {
                         "hasLatex",
                         "renderAsMath",
                         "hidden",
+                        "valueMissing",
                     ],
                     variablesOptional: true,
                 },
@@ -278,6 +283,11 @@ export default class Label extends InlineComponent {
                         return comp.toString();
                     } else if (comp.stateValues.hidden) {
                         return "";
+                    } else if (comp.stateValues.valueMissing) {
+                        // A missing child reads as a blank (D37), as in a
+                        // `<text>` (`textFromComponent`), not as the value of
+                        // `<T/>` it holds.
+                        return MISSING_TEXT;
                     } else if (
                         typeof comp.stateValues.hasLatex === "boolean" &&
                         typeof comp.stateValues.value === "string"
@@ -316,6 +326,8 @@ export default class Label extends InlineComponent {
                         return comp.toString();
                     } else if (comp.stateValues.hidden) {
                         return "";
+                    } else if (comp.stateValues.valueMissing) {
+                        return MISSING_TEXT;
                     } else if (
                         typeof comp.stateValues.text === "string" &&
                         !preferLatex

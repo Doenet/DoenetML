@@ -358,6 +358,37 @@ describe("Missing values and missing tags (D37) @group2", () => {
         expect(text).eq("[＿][＿][＿]");
     });
 
+    it("reads a missing child of a label as a blank, as a text does", async () => {
+        // A `<label>` makes its text with converters of its own; a missing
+        // child is the plain blank there too, not `<T/>`'s value, on its own,
+        // on a point and on an input.
+        const { core, resolvePathToNodeIdx } = await shownAndReported(`
+    <number name="nm" extend="$nothing"/>
+    <label name="l1">A <number extend="$nothing"/> B</label>
+    <label name="l2">A $nm B</label>
+    <label name="l3">A <boolean extend="$nothing"/> B</label>
+    <label name="l4">A <text extend="$nothing"/> B</label>
+    <label name="l5">A <point extend="$nothing"/> B</label>
+    <label name="l6">A <math extend="$nothing"/> B</label>
+    <graph><point name="P"><label>A <number extend="$nothing"/> B</label></point></graph>
+    <mathInput name="mi"><label>A <boolean extend="$nothing"/> B</label></mathInput>
+    <p name="p">x</p>
+    `);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["l1", "l2", "l3", "l4", "l5", "l6"]) {
+            const label = stateVariables[await resolvePathToNodeIdx(name)];
+            expect(label.stateValues.text, name).eq("A ＿ B");
+            expect(label.stateValues.value, name).eq("A ＿ B");
+            expect(label.stateValues.hasLatex, name).eq(false);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.label,
+        ).eq("A ＿ B");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.label,
+        ).eq("A ＿ B");
+    });
+
     it("reads a missing child of a text as a blank, hidden or not", async () => {
         // A `<text>` reads its children's values and ignores their `hide`,
         // as a `<math>` does, so a missing child is a blank in it either way.
