@@ -27,6 +27,10 @@ name: VS Code Extension Pre-release
 # however long main stays quiet.  When there is no usable record — the first
 # run, or a baseline that is no longer on main — the baseline falls back to
 # main as it was 24 hours ago, and is carried from then on like a recorded one.
+# To move the baseline by hand (say, one that no longer installs keeps failing
+# the run), dispatch this workflow on main with `dry_run` off, `force` on, and
+# a `window_hours` reaching back past the last merge: publishing records the
+# tip as the new baseline.
 #
 # Both revisions are deliberately built in the *same* working directory, one
 # after the other: bundlers and rustc bake absolute paths into their output,
