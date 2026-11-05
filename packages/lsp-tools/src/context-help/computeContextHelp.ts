@@ -1357,7 +1357,9 @@ async function helpForRefNameByName(
     offset: number,
     refName: string,
 ): Promise<HelpContent> {
-    const resolved = completer.resolveRefNameForHelp(offset, refName);
+    const resolved =
+        completer.resolveRefNameForHelp(offset, refName) ??
+        (await completer.resolveBranchNameForHelp(offset, refName));
     if (resolved) {
         const { referent, line } = resolved;
         return {

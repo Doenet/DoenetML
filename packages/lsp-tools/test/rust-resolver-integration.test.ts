@@ -545,41 +545,161 @@ describe.skipIf(!wasmAvailable)(
             expect(adapter.isEnabled()).toBe(true);
         });
 
-        // ---- conditionalContent / select sugar visibility ----
+        // ---- names in the branches of conditionalContent / select ----
+        //
+        // A name declared in the cases of a `<conditionalContent>` or the
+        // options of a one-pick `<select>` is visible outside the container
+        // when every branch declares it with the same tag (D13, D22, issue
+        // #2455). Otherwise it is missing at run time (`doenet-w0183` /
+        // `doenet-w0184`), and autocomplete leaves it out.
 
-        it("isNameAddressableFromOffset returns false for names inside sugared conditionalContent from outside", async () => {
-            // In raw DAST, <math name="inside"> is a direct child of <conditionalContent>.
-            // At runtime, sugar wraps it in <case><group>…</group></case>, hiding it.
+        /** Labels `$` completion offers at the end of `source`. */
+        async function refNameLabels(source: string) {
+            const { completer } = await createCompleterWithAdapter(source);
+            const items = await completer.getCompletionItems(source.length);
+            return items.map((i) => i.label);
+        }
+
+        /** `visibleDescendantNames` for `pathParts` at the end of `source`. */
+        async function memberNames(
+            source: string,
+            pathParts: string[],
+            pathPartHasIndex?: boolean[],
+        ) {
+            const { adapter } = await createCoreAndAdapter(source);
+            const result = await adapter.createResolver()({
+                offset: source.length,
+                pathParts,
+                pathPartHasIndex,
+            });
+            return result;
+        }
+
+        it("a name in the one case of a sugared conditionalContent is addressable from outside", async () => {
+            // Sugar wraps the children in one `<case>`; with no `<else>`, the
+            // name is in every case, and names nothing while none is active.
             const source = `<conditionalContent name="cc" condition="$x"><math name="inside">x</math></conditionalContent>\n$ins`;
             const { adapter } = await createCoreAndAdapter(source);
 
             const outsideOffset = source.lastIndexOf("$ins") + 1;
-            // "inside" should NOT be addressable from outside cc
             expect(
                 await adapter.isNameAddressableFromOffset(
                     outsideOffset,
                     "inside",
                 ),
-            ).toBe(false);
-            // "cc" SHOULD be addressable from outside
+            ).toBe(true);
             expect(
                 await adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
             ).toBe(true);
         });
 
-        it("isNameAddressableFromOffset returns false for names inside sugared select from outside", async () => {
+        it("offers a name every case and the else declare with one tag (issue example)", async () => {
+            const source = `<booleanInput name="b"/>
+<conditionalContent name="cc">
+  <case condition="$b"><math name="x">1</math></case>
+  <else><math name="x">2</math></else>
+</conditionalContent>
+<p>$`;
+            const { completer } = await createCompleterWithAdapter(source);
+            const items = await completer.getCompletionItems(source.length);
+            const x = items.find((i) => i.label === "x");
+            expect(x).toBeDefined();
+            // The detail describes the first branch's declaration.
+            expect(x!.detail).toBe("(<math>, line 3)");
+            expect(items.map((i) => i.label)).toEqual(
+                expect.arrayContaining(["b", "cc", "x"]),
+            );
+        });
+
+        it("offers a name every case declares when there is no else", async () => {
+            const labels = await refNameLabels(
+                `<conditionalContent><case condition="true"><text name="t">a</text></case><case condition="false"><text name="t">b</text></case></conditionalContent>\n$`,
+            );
+            expect(labels).toContain("t");
+        });
+
+        it("leaves out a name a branch lacks (w0183)", async () => {
+            const labels = await refNameLabels(
+                `<conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="y">2</math></else></conditionalContent>\n$`,
+            );
+            expect(labels).not.toContain("x");
+            expect(labels).not.toContain("y");
+        });
+
+        it("leaves out a name branches declare with different tags (w0184)", async () => {
+            const labels = await refNameLabels(
+                `<conditionalContent><case condition="true"><math name="x">1</math></case><else><text name="x">2</text></else></conditionalContent>\n$`,
+            );
+            expect(labels).not.toContain("x");
+        });
+
+        it("leaves out a name a branch declares twice", async () => {
+            const labels = await refNameLabels(
+                `<conditionalContent><case condition="true"><math name="x">1</math><math name="x">3</math></case><else><math name="x">2</math></else></conditionalContent>\n$`,
+            );
+            expect(labels).not.toContain("x");
+        });
+
+        it("leaves out a branch name also declared outside the container (ambiguous)", async () => {
+            const labels = await refNameLabels(
+                `<math name="x">0</math><conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>\n$`,
+            );
+            expect(labels).not.toContain("x");
+        });
+
+        it("offers a name found through a group in each branch", async () => {
+            const labels = await refNameLabels(
+                `<conditionalContent><case condition="true"><group><math name="x">1</math></group></case><else><p><math name="x">2</math></p></else></conditionalContent>\n$`,
+            );
+            expect(labels).toContain("x");
+        });
+
+        it("offers a name every branch of a nested conditionalContent declares", async () => {
+            const labels = await refNameLabels(
+                `<conditionalContent><case condition="true"><conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent></case><else><math name="x">3</math></else></conditionalContent>\n$`,
+            );
+            expect(labels).toContain("x");
+        });
+
+        it("offers a name every option of a one-pick select declares", async () => {
+            for (const picks of ["", ` numToSelect="1"`]) {
+                const labels = await refNameLabels(
+                    `<select name="s"${picks}><option><math name="x">1</math></option><option><math name="x">2</math></option></select>\n$`,
+                );
+                expect(labels).toContain("s");
+                expect(labels).toContain("x");
+            }
+        });
+
+        it("$s. for a one-pick select lists the names every option shares", async () => {
+            const source = `<select name="s"><option><math name="x">1</math><math name="y">1</math></option><option><math name="x">2</math></option></select>\n$s.`;
+            const result = await memberNames(source, ["s", ""]);
+            expect(result!.visibleDescendantNames).toEqual(["x"]);
+        });
+
+        it("keeps the option names of a select that picks several private", async () => {
+            for (const picks of [` numToSelect="2"`, ` numToSelect="$n"`]) {
+                const labels = await refNameLabels(
+                    `<number name="n">1</number><select name="s"${picks}><option><math name="x">1</math></option><option><math name="x">2</math></option></select>\n$`,
+                );
+                expect(labels).toContain("s");
+                expect(labels).not.toContain("x");
+            }
+        });
+
+        it("isNameAddressableFromOffset returns false for a select child that is not an option", async () => {
+            // `selectSugar` wraps only text and references in options, so a
+            // `<math>` written beside them is not an option.
             const source = `<select name="sel"><math name="x">1</math><math name="y">2</math></select>\n$x`;
             const { adapter } = await createCoreAndAdapter(source);
 
             const outsideOffset = source.lastIndexOf("$x") + 1;
-            // "x" and "y" should NOT be addressable from outside select
             expect(
                 await adapter.isNameAddressableFromOffset(outsideOffset, "x"),
             ).toBe(false);
             expect(
                 await adapter.isNameAddressableFromOffset(outsideOffset, "y"),
             ).toBe(false);
-            // "sel" SHOULD be addressable
             expect(
                 await adapter.isNameAddressableFromOffset(outsideOffset, "sel"),
             ).toBe(true);
@@ -603,124 +723,140 @@ describe.skipIf(!wasmAvailable)(
             const { adapter } = await createCoreAndAdapter(source);
 
             const outsideOffset = source.lastIndexOf("$pos") + 1;
-            // "positiveCase" is a direct child of cc — should be addressable
             expect(
                 await adapter.isNameAddressableFromOffset(
                     outsideOffset,
                     "positiveCase",
                 ),
             ).toBe(true);
-            // "cc" also addressable
             expect(
                 await adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
             ).toBe(true);
         });
 
-        it("end-to-end: getCompletionItems omits names inside sugared cc from outside", async () => {
-            // Outside cc: "inside" should not be offered
-            {
-                const source = `<conditionalContent name="cc" condition="$x"><math name="inside">x</math></conditionalContent>\n$`;
-                const { completer } = await createCompleterWithAdapter(source);
-                const items = await completer.getCompletionItems(source.length);
-                const labels = items.map((i) => i.label);
-                expect(labels).toContain("cc");
-                expect(labels).not.toContain("inside");
-            }
+        it("classifyReferenceFromOffset finds a branch name only when every branch declares it", async () => {
+            const shared = `<conditionalContent name="cc"><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>\n$x`;
+            const { adapter: sharedAdapter } =
+                await createCoreAndAdapter(shared);
+            expect(
+                await sharedAdapter.classifyReferenceFromOffset(shared.length, [
+                    "x",
+                ]),
+            ).toBe("found");
+            expect(
+                await sharedAdapter.classifyReferenceFromOffset(shared.length, [
+                    "cc",
+                    "x",
+                ]),
+            ).toBe("found");
 
-            // Outside select: "x" should not be offered
-            {
-                const source = `<select name="sel"><math name="x">1</math></select>\n$`;
-                const { completer } = await createCompleterWithAdapter(source);
-                const items = await completer.getCompletionItems(source.length);
-                const labels = items.map((i) => i.label);
-                expect(labels).toContain("sel");
-                expect(labels).not.toContain("x");
-            }
+            const lacking = `<conditionalContent name="cc"><case condition="true"><math name="x">1</math></case><else><math name="y">2</math></else></conditionalContent>\n$x`;
+            const { adapter: lackingAdapter } =
+                await createCoreAndAdapter(lacking);
+            expect(
+                await lackingAdapter.classifyReferenceFromOffset(
+                    lacking.length,
+                    ["x"],
+                ),
+            ).not.toBe("found");
         });
 
-        it("visibleDescendantNames for $cc. includes names from explicit case children", async () => {
-            // <text name="animal"> is inside <case>, which normally blocks
-            // visibility in the Rust resolver.  But for cc member access,
-            // we walk through case/else transparently.
+        it("resolveBranchNameForHelp describes the first branch's declaration", async () => {
+            const source = `<conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>\n$x`;
+            const { completer } = await createCompleterWithAdapter(source);
+            const help = await completer.resolveBranchNameForHelp(
+                source.length,
+                "x",
+            );
+            expect(help?.referent.name).toBe("math");
+            expect(help?.line).toBe(1);
+
+            const lacking = `<conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="y">2</math></else></conditionalContent>\n$x`;
+            const { completer: lackingCompleter } =
+                await createCompleterWithAdapter(lacking);
+            expect(
+                await lackingCompleter.resolveBranchNameForHelp(
+                    lacking.length,
+                    "x",
+                ),
+            ).toBeNull();
+        });
+
+        it("visibleDescendantNames for $cc. lists the names every branch shares", async () => {
             const source = `<conditionalContent name="cc"><case condition="true"><text name="animal">dog</text></case><else><text name="animal">cat</text></else></conditionalContent>\n$cc.`;
-            const { adapter } = await createCoreAndAdapter(source);
-
-            const resolver = adapter.createResolver();
-            const result = await resolver({
-                offset: source.indexOf("$cc.") + "$cc.".length,
-                pathParts: ["cc", ""],
-            });
-
-            expect(result).not.toBeNull();
-            expect(result!.visibleDescendantNames).toBeDefined();
-            expect(result!.visibleDescendantNames).toContain("animal");
+            const result = await memberNames(source, ["cc", ""]);
+            expect(result!.visibleDescendantNames).toEqual(["animal"]);
         });
 
-        it("visibleDescendantNames for $cc. includes names from mixed case children", async () => {
-            // Two cases with different unique names + one shared name
+        it("visibleDescendantNames for $cc. leaves out names only some branches declare", async () => {
             const source = `<conditionalContent name="cc"><case condition="true"><text name="a">1</text><text name="shared">s</text></case><case condition="false"><text name="b">2</text><text name="shared">s</text></case></conditionalContent>\n$cc.`;
-            const { adapter } = await createCoreAndAdapter(source);
-
-            const resolver = adapter.createResolver();
-            const result = await resolver({
-                offset: source.indexOf("$cc.") + "$cc.".length,
-                pathParts: ["cc", ""],
-            });
-
-            expect(result).not.toBeNull();
-            expect(result!.visibleDescendantNames).toContain("a");
-            expect(result!.visibleDescendantNames).toContain("b");
+            const result = await memberNames(source, ["cc", ""]);
             expect(result!.visibleDescendantNames).toContain("shared");
+            expect(result!.visibleDescendantNames).not.toContain("a");
+            expect(result!.visibleDescendantNames).not.toContain("b");
         });
 
-        it("visibleDescendantNames for $cc. excludes ambiguous names within a single case", async () => {
-            // "dup" appears twice in the SAME case → not contributed by that case
-            // It appears once in the other case → still contributed
-            const source = `<conditionalContent name="cc"><case condition="true"><text name="dup">1</text><text name="dup">2</text></case><case condition="false"><text name="dup">3</text></case></conditionalContent>\n$cc.`;
-            const { adapter } = await createCoreAndAdapter(source);
-
-            const resolver = adapter.createResolver();
-            const result = await resolver({
-                offset: source.indexOf("$cc.") + "$cc.".length,
-                pathParts: ["cc", ""],
-            });
-
-            expect(result).not.toBeNull();
-            // "dup" is unique in the second case, so it should be included
-            expect(result!.visibleDescendantNames).toContain("dup");
+        it("visibleDescendantNames for $cc. leaves out names with different tags or declared twice in a branch", async () => {
+            const source = `<conditionalContent name="cc"><case condition="true"><text name="dup">1</text><text name="dup">2</text><math name="typed">1</math></case><case condition="false"><text name="dup">3</text><text name="typed">t</text></case></conditionalContent>\n$cc.`;
+            const result = await memberNames(source, ["cc", ""]);
+            expect(result!.visibleDescendantNames).not.toContain("dup");
+            expect(result!.visibleDescendantNames).not.toContain("typed");
         });
 
         it("visibleDescendantNames for sugared cc (no explicit case) includes children", async () => {
-            // Sugared form: children are direct, not wrapped in case/else
             const source = `<conditionalContent name="cc" condition="true"><math name="m1">1</math><math name="m2">2</math></conditionalContent>\n$cc.`;
-            const { adapter } = await createCoreAndAdapter(source);
-
-            const resolver = adapter.createResolver();
-            const result = await resolver({
-                offset: source.indexOf("$cc.") + "$cc.".length,
-                pathParts: ["cc", ""],
-            });
-
-            expect(result).not.toBeNull();
+            const result = await memberNames(source, ["cc", ""]);
             expect(result!.visibleDescendantNames).toContain("m1");
             expect(result!.visibleDescendantNames).toContain("m2");
         });
 
         it("visibleDescendantNames for sugared cc excludes ambiguous direct child names", async () => {
-            // Sugared form: duplicate direct child names are ambiguous and
-            // should not be offered as visible descendants.
             const source = `<conditionalContent name="cc" condition="true"><math name="dup">1</math><math name="dup">2</math><math name="unique">3</math></conditionalContent>\n$cc.`;
-            const { adapter } = await createCoreAndAdapter(source);
-
-            const resolver = adapter.createResolver();
-            const result = await resolver({
-                offset: source.indexOf("$cc.") + "$cc.".length,
-                pathParts: ["cc", ""],
-            });
-
-            expect(result).not.toBeNull();
+            const result = await memberNames(source, ["cc", ""]);
             expect(result!.visibleDescendantNames).toContain("unique");
             expect(result!.visibleDescendantNames).not.toContain("dup");
+        });
+
+        it("$g. for a branch name resolves to its declaration and lists what every branch's shares", async () => {
+            const source = `<conditionalContent><case condition="true"><group name="g"><math name="m">1</math></group></case><else><group name="g"><math name="m">2</math><text name="t">t</text></group></else></conditionalContent>\n$g.`;
+            const result = await memberNames(source, ["g", ""]);
+            expect(result!.node?.name).toBe("group");
+            expect(result!.visibleDescendantNames).toEqual(["m"]);
+
+            // and through the container's name
+            const named = source
+                .replace(
+                    "<conditionalContent>",
+                    `<conditionalContent name="cc">`,
+                )
+                .replace("$g.", "$cc.g.");
+            const throughName = await memberNames(named, ["cc", "g", ""]);
+            expect(throughName!.node?.name).toBe("group");
+            expect(throughName!.visibleDescendantNames).toEqual(["m"]);
+        });
+
+        it("$x. for a branch name the branches do not share resolves to nothing", async () => {
+            const source = `<conditionalContent><case condition="true"><group name="g"/></case><else><p name="g"/></else></conditionalContent>\n$g.`;
+            const result = await memberNames(source, ["g", ""]);
+            expect(result?.node ?? null).toBeNull();
+        });
+
+        it("$x.value. for a branch name leaves the property unresolved on the declaration", async () => {
+            const source = `<conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>\n$x.value.`;
+            const result = await memberNames(source, ["x", "value", ""]);
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual(["value"]);
+            expect(result!.partiallyResolvedNode?.name).toBe("math");
+        });
+
+        it("end-to-end: $cc. offers the shared name and $x. offers its properties", async () => {
+            const source = `<conditionalContent name="cc"><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>\n$cc.`;
+            const labels = await refNameLabels(source);
+            expect(labels).toContain("x");
+
+            const props = await refNameLabels(source.replace("$cc.", "$x."));
+            // A math's properties, such as `value`.
+            expect(props).toContain("value");
         });
 
         // ---- Index bracket parsing & pathPartHasIndex wiring ----
@@ -729,7 +865,11 @@ describe.skipIf(!wasmAvailable)(
             // Use `numToSelect="2"` so the bare $sel. case still exercises
             // the takesIndex-without-index suppression (issue #1181's implicit
             // single-index shorthand would otherwise resurface descendants).
-            const source = `<select name="sel" numToSelect="2"><option><math name="a">1</math></option><option><math name="b">2</math></option></select>\n$sel[1].`;
+            // After an index into its picks, a select of any number of picks
+            // shows one option there, so the names every option declares
+            // with one tag are offered (D27, issue #2455), and a name only
+            // one option declares is not.
+            const source = `<select name="sel" numToSelect="2"><option><math name="a">1</math><math name="b">1</math></option><option><math name="a">2</math><text name="b">2</text></option></select>\n$sel[1].`;
             const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
@@ -748,8 +888,7 @@ describe.skipIf(!wasmAvailable)(
                 pathPartHasIndex: [true, false],
             });
             expect(withIndex).not.toBeNull();
-            expect(withIndex!.visibleDescendantNames).toContain("a");
-            expect(withIndex!.visibleDescendantNames).toContain("b");
+            expect(withIndex!.visibleDescendantNames).toEqual(["a"]);
         });
 
         it("$rep[2]. with pathPartHasIndex shows descendants inside repeat", async () => {
@@ -779,16 +918,15 @@ describe.skipIf(!wasmAvailable)(
             // $sel[1]. should show descendants of select option children
             // but NOT properties of select (the referent is a child, not the select)
             {
-                const source = `<select name="sel"><option><math name="a">1</math></option><option><math name="b">2</math></option></select>\n$sel[1].`;
+                const source = `<select name="sel"><option><math name="a">1</math></option><option><math name="a">2</math></option></select>\n$sel[1].`;
                 const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
                 const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
-                // Should include descendant names from inside options
+                // Should include the name every option declares
                 expect(labels).toContain("a");
-                expect(labels).toContain("b");
                 // Should NOT include properties of the select element itself
                 const kinds = items.map((i) => i.kind);
                 expect(kinds).not.toContain(CompletionItemKind.Property);

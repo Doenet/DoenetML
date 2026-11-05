@@ -977,8 +977,22 @@ export async function getCompletionItems(
         // Inject additional names (e.g. repeat valueName/indexName) that
         // don't exist in the raw DAST but are valid at runtime.
         const additionalNames = this.getAdditionalRefNames(offset);
+        // Names every branch of a `<conditionalContent>` or one-pick
+        // `<select>` declares, which the walk above drops for being declared
+        // more than once, but which resolve through the container to the
+        // active branch's (issue #2455). `isNameAddressable` below decides
+        // whether each is reachable from here.
+        const branchNames =
+            this._rustResolverAdapter &&
+            typeof this._rustResolverAdapter.getBranchSharedNames === "function"
+                ? this._rustResolverAdapter.getBranchSharedNames()
+                : [];
         const uniqueNames = [
-            ...new Set([...addressableNames, ...additionalNames]),
+            ...new Set([
+                ...addressableNames,
+                ...additionalNames,
+                ...branchNames,
+            ]),
         ];
         const isAddressableFlags = await Promise.all(
             uniqueNames.map((name) => this.isNameAddressable(offset, name)),
@@ -1002,7 +1016,9 @@ export async function getCompletionItems(
         };
         const referentInfoByName = new Map<string, ReferentInfo>();
         for (const name of filteredNames) {
-            const resolved = this.resolveRefNameForHelp(offset, name);
+            const resolved =
+                this.resolveRefNameForHelp(offset, name) ??
+                (await this.resolveBranchNameForHelp(offset, name));
             if (!resolved) continue;
             const { referent, line, ownEntry, effectiveEntry } = resolved;
             const detail =
