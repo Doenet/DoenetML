@@ -34,7 +34,7 @@ is not maintained.
 |---|---|---|
 | push to `main`, CI green | `publish.yml` → `dev-release` | `X.Y.Z-dev.<run>` under `dev` |
 | a `dev-release` publish on `main` | `purge-jsdelivr-dev.yml` | nothing; moves jsDelivr's `@dev` URLs to that release once npm serves it |
-| push to `main`, CI green | `publish.yml` → `dev-vscode-extension` | a Marketplace and Open VSX **pre-release**, versioned `X.Y.<run + 10000>` |
+| daily, 07:17 UTC | `vscode-prerelease.yml` | a Marketplace and Open VSX **pre-release** of `main`'s tip, versioned `X.Y.<hours since the Unix epoch>` — only when its build differs from the last one published |
 | GitHub Release on `main` | `publish.yml` → `production-release` | `X.Y.Z` under `latest`, plus the stable extension on both registries |
 | GitHub Release on `0.7` | `publish.yml` → `production-release` | `0.7.Z` under `0.7-stable`; no extension |
 | GitHub Release on either | `publish-doenetml-to-pretext-python.yml` | the PyPI wheel |
@@ -221,6 +221,8 @@ cherry-picked backport touches none of them, so the lines do not contend.
   dispatch path that step requires `HEAD` to be reachable from `origin/main`,
   which a maintenance-branch commit is not — so deleting the file removes a
   confusing button rather than the only thing standing in the way.
+- `vscode-prerelease.yml` → **deleted**. The line publishes no extension, and the
+  workflow always builds and publishes `main`'s tip, whichever branch runs it.
 - `gh-pages-docs.yml` → manual only. The docs site is a single unversioned build
   from `main`.
 - The branch also carries its own copies of `AGENTS.md`, this repo's changesets
