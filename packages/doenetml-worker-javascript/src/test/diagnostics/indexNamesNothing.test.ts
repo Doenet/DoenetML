@@ -399,6 +399,22 @@ describe("An index that names nothing @group4", async () => {
         }
     });
 
+    it("keeps the info of a tag whose child has a warning of its own", async () => {
+        // A warning in what is written in the tag says nothing about its
+        // index; one in its reference (`$l[$nothing]`) does, as bare.
+        const { warnings, errors, infos } = await shownAndReported(
+            `<mathInput name="i" prefill="5"/><group name="pg"><text>a</text><text>b</text></group><p name="p"><text extend="$pg[$i]">$nothing</text><math extend="$l[$nothing]"/></p>`,
+        );
+        expect(errors).eqls([]);
+        expect(warnings.map((w) => w.args)).eqls([
+            { reference: "$nothing" },
+            { reference: "$nothing" },
+        ]);
+        expect(infos.map((i) => [i.code, i.args?.source])).eqls([
+            ["doenet-i0054", "$pg[$i]"],
+        ]);
+    });
+
     it("codes a name that names more than one thing", async () => {
         const { warnings } = await shownAndReported(
             `<group><text name="t">a</text><text name="t">b</text></group><p name="p">[$t]</p>`,

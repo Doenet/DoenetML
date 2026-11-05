@@ -58,6 +58,11 @@ export class DiagnosticsManager {
      * not make it, reports none of it (DIAG-6).
      */
     isShown: (componentIdx: number) => boolean;
+    /**
+     * The DoenetML of each source document, by `sourceDoc`, which Core sets:
+     * where the start tag of a tag ends (`withoutExplainedIndexInfos`).
+     */
+    sources: readonly string[] = [];
 
     constructor({
         preliminaryDiagnostics,
@@ -127,6 +132,7 @@ export class DiagnosticsManager {
             }
         }
         return withoutExplainedIndexInfos(
+            this.sources,
             merged
                 .sort((a, b) => a.seq - b.seq)
                 .map((entry) => entry.diagnostic),
@@ -393,9 +399,14 @@ export class DiagnosticsManager {
  * (`$n.nonexistent[1]`), an index into a value that is a scalar
  * (`doenet-w0100`), or a literal index below 1. A reference whose index
  * names nothing is then reported once, the same way whether it is bare or
- * a tag (D37).
+ * a tag (D37). The info of a tag (`isTag`) spans the whole tag, children and
+ * all, so there only a diagnostic in its start tag, at the reference or
+ * another attribute, explains it, not one of what is written in it
+ * (`<p extend="$g[$i]">$nothing</p>`). `sources` is the DoenetML of each
+ * source document.
  */
 function withoutExplainedIndexInfos(
+    sources: readonly string[],
     diagnostics: DiagnosticRecord[],
 ): DiagnosticRecord[] {
     if (!diagnostics.some((d) => d.code === "doenet-i0054")) {
@@ -413,6 +424,10 @@ function withoutExplainedIndexInfos(
         if (start === undefined || end === undefined) {
             return true;
         }
+        const within =
+            (info as any).args?.isTag === "true"
+                ? startTagEnd(sources[info.sourceDoc ?? 0], start, end)
+                : end;
         return !explaining.some((d) => {
             const dStart = d.position?.start?.offset;
             const dEnd = d.position?.end?.offset;
@@ -420,11 +435,36 @@ function withoutExplainedIndexInfos(
                 dStart !== undefined &&
                 dEnd !== undefined &&
                 dStart >= start &&
-                dEnd <= end &&
+                (dEnd <= within || (dStart === start && dEnd === end)) &&
                 (d.sourceDoc ?? 0) === (info.sourceDoc ?? 0)
             );
         });
     });
+}
+
+/**
+ * The offset just past the start tag of the tag written at `start` in
+ * `source`, which ends by `end` (the `>` outside quotes), or `end` when it
+ * cannot be found.
+ */
+function startTagEnd(source: string | undefined, start: number, end: number) {
+    if (source?.[start] !== "<") {
+        return end;
+    }
+    let quote: string | undefined;
+    for (let i = start + 1; i < end; i++) {
+        const c = source[i];
+        if (quote) {
+            if (c === quote) {
+                quote = undefined;
+            }
+        } else if (c === '"' || c === "'") {
+            quote = c;
+        } else if (c === ">") {
+            return i + 1;
+        }
+    }
+    return end;
 }
 
 /**

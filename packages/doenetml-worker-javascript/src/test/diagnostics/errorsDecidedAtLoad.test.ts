@@ -81,6 +81,12 @@ const documents: [string, string, string[]][] = [
         ["doenet-e0064"],
     ],
     [
+        "a list tag in a repeat, of a group of two types",
+        inRepeat(`<mathList extend="$gg"/>`) +
+            `<group name="gg"><math>1</math><text>a</text></group>`,
+        ["doenet-e0066"],
+    ],
+    [
         "a tag in a case, of the conditionalContent holding it",
         inCase(`<math extend="$cc"/>`),
         ["doenet-e0005"],
@@ -117,4 +123,17 @@ describe("Errors are decided when the document loads (DIAG-7) @group4", () => {
             expect(errorCodes(), "after").eqls(codes);
         });
     }
+});
+
+describe("A tag in what it is of @group4", () => {
+    it("is made from what a group holds when it is in the group's setup", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<group name="g"><setup><math extend="$g" name="z"/></setup><math>1</math></group><p name="out">$z</p>`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("out")].stateValues.text,
+        ).eq("1");
+    });
 });

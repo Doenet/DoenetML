@@ -6135,9 +6135,13 @@ async function typeChangeAtLoadError({
         return undefined;
     }
     const forList = component.doenetAttributes.forList;
+    // The list the copy fills is its parent; `forList` is the index of the
+    // list as written, which in an iteration of a repeat is in the template,
+    // not made.
     const writtenValue =
         forList !== undefined
-            ? components[forList]?.componentType
+            ? (components[forList] ?? components[component.parentIdx])
+                  ?.componentType
             : component.attributes._createComponentOfType?.primitive?.value;
     const writtenType =
         writtenValue &&

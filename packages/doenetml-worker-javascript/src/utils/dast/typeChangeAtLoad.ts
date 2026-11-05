@@ -223,10 +223,6 @@ const INDEX = "[]";
 const HOLD_CHILDREN = new Set(["group", "sort", "shuffle"]);
 
 /**
- * Check every reference written as a tag in `serializedComponents`, marking
- * what is found on it (see above).
- */
-/**
  * The codes of what `checkTypeChangesAtLoad` finds that make a reference
  * written as a tag name nothing (D37): a literal index past the picks
  * (`doenet-w0181`), and a name the every-branch rule rejects for a branch
@@ -362,6 +358,10 @@ export function reportTypeChangesAtLoad({
     return diagnostics;
 }
 
+/**
+ * Check every reference written as a tag in `serializedComponents`, marking
+ * what is found on it (see above).
+ */
 export function checkTypeChangesAtLoad({
     serializedComponents,
     componentInfoObjects,
@@ -1484,14 +1484,18 @@ export function checkTypeChangesAtLoad({
         return made === undefined || made === writtenType;
     }
 
-    /** Whether the component `componentIdx` is written in `node`. */
+    /**
+     * Whether the component `componentIdx` is written in `node`, other than
+     * in a `<setup>`, which is not part of what `node` shows: a tag there
+     * made from `node` is made from what `node` holds, not from itself.
+     */
     function contains(node: SerializedComponent, componentIdx: number) {
         const stack: (SerializedComponent | string)[] = [
             ...(node.children ?? []),
         ];
         while (stack.length > 0) {
             const child = stack.pop()!;
-            if (typeof child !== "object") {
+            if (typeof child !== "object" || child.componentType === "setup") {
                 continue;
             }
             if (child.componentIdx === componentIdx) {
