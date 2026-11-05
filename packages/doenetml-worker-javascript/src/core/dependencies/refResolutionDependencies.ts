@@ -98,6 +98,9 @@ async function showsOnlyMissing(component: any): Promise<boolean> {
     return true;
 }
 
+/** The lists of a repeat's own values and indices (`Repeat.js`). */
+const ITERATION_LIST_TYPES = new Set(["_repeatValues", "_repeatIndices"]);
+
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
 
@@ -985,24 +988,31 @@ export class RefResolutionDependency extends Dependency {
     }
 
     /**
-     * Whether `composite` is a reference written as a tag that is not a list
-     * or a `<group>` (`<math extend="$r[1]"/>`), which always makes that tag
-     * (D36): it is `<T/>` while its index names nothing, and says so itself
-     * (`indexNamesNothing` in `Copy.js`).
-     */
-    /**
      * Whether `composite` is a reference written bare (`$l[$i]`, not as a
-     * tag) whose path has an index: a `_copy` or a value reference (`_ref`).
+     * tag) whose path has an index the author wrote: a `_copy` or a value
+     * reference (`_ref`). The `$v` of a repeat whose values are a list of
+     * its own (`_repeatValues`, `_repeatIndices`) reads its iteration's
+     * entry, an index the iteration adds before any the author wrote
+     * (`remapRefResolutionForIteration` in `Repeat.js`), which always names
+     * that entry and is not counted.
      */
     isBareIndexedReference(composite: any) {
-        return (
-            (composite.componentType === "_copy" ||
-                composite.componentType === "_ref") &&
-            !composite.attributes?._copyInChildren?.primitive?.value &&
-            composite.doenetAttributes?.forList === undefined &&
-            (this.refResolutionOf(composite).originalPath ?? []).some(
-                (part: any) => part.index.length > 0,
-            )
+        if (
+            (composite.componentType !== "_copy" &&
+                composite.componentType !== "_ref") ||
+            composite.attributes?._copyInChildren?.primitive?.value ||
+            composite.doenetAttributes?.forList !== undefined
+        ) {
+            return false;
+        }
+        const refResolution = this.refResolutionOf(composite);
+        const iterationEntry = ITERATION_LIST_TYPES.has(
+            this.dependencyHandler._components[refResolution.nodeIdx]
+                ?.componentType,
+        );
+        return (refResolution.originalPath ?? []).some(
+            (part: any, partInd: number) =>
+                part.index.length > (iterationEntry && partInd === 0 ? 1 : 0),
         );
     }
 
@@ -1083,6 +1093,12 @@ export class RefResolutionDependency extends Dependency {
         );
     }
 
+    /**
+     * Whether `composite` is a reference written as a tag that is not a list
+     * or a `<group>` (`<math extend="$r[1]"/>`), which always makes that tag
+     * (D36): it is `<T/>` while its index names nothing, and says so itself
+     * (`indexNamesNothing` in `Copy.js`).
+     */
     isScalarTag(composite: any) {
         const written =
             composite.attributes?._createComponentOfType?.primitive?.value;

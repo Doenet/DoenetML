@@ -2287,14 +2287,6 @@ async function reportIndexIntoScalarAsMade({
     );
 }
 
-// arrayEntryNamesFromPropIndex is essentially a wrapper around
-// stateVarObj.arrayVarNameFromPropIndex.
-// (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
-// It calls arrayVarNameFromPropIndex on each of an array of stateVariables,
-// first creating any missing array entry state variables,
-// reports the ones it cannot map,
-// and returns an array of the resulting state variables,
-// with `INDEX_NAMES_NOTHING` in place of each one it cannot map.
 /**
  * Whether an index in `path`, a reference's `originalPath`, is written as a
  * reference (`$l[$i]`) rather than literally (`$l[2]`).
@@ -2307,6 +2299,14 @@ export function pathHasDynamicIndex(path: any[] | undefined): boolean {
     );
 }
 
+// arrayEntryNamesFromPropIndex is essentially a wrapper around
+// stateVarObj.arrayVarNameFromPropIndex.
+// (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
+// It calls arrayVarNameFromPropIndex on each of an array of stateVariables,
+// first creating any missing array entry state variables,
+// reports the ones it cannot map,
+// and returns an array of the resulting state variables,
+// with `INDEX_NAMES_NOTHING` in place of each one it cannot map.
 export async function arrayEntryNamesFromPropIndex({
     core,
     stateVariables,

@@ -415,6 +415,28 @@ describe("An index that names nothing @group4", async () => {
         ]);
     });
 
+    it("watches only an index the author wrote, not a repeat's value or index", async () => {
+        // `$v` and `$i` read their iteration's entry of the repeat's values
+        // and indices, an index the iteration adds, which always names it:
+        // watching each would be decided again after every update, in every
+        // iteration, for nothing. `$l[$v]` is watched.
+        const { core } = await createTestCore({
+            doenetML: `<mathList name="l">1 2</mathList><repeatForSequence length="3" valueName="v" indexName="i"><p>$v $i</p><p>$l[$v]</p></repeatForSequence>`,
+        });
+        const watched = [
+            ...(core.core as any).diagnosticsManager._watchedConditions.keys(),
+        ].map((idx: number) => {
+            const { start, end } = (core.core as any)._components[idx].position;
+            return [start.offset, end.offset];
+        });
+        expect(watched.length).eq(3);
+        expect(new Set(watched.map((w) => w.join("-"))).size).eq(1);
+        const infos = getDiagnosticsByType(core).infos;
+        expect(infos.map((i) => [i.code, i.args?.source])).eqls([
+            ["doenet-i0054", "$l[$v]"],
+        ]);
+    });
+
     it("codes a name that names more than one thing", async () => {
         const { warnings } = await shownAndReported(
             `<group><text name="t">a</text><text name="t">b</text></group><p name="p">[$t]</p>`,
