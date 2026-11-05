@@ -135,12 +135,23 @@ jobs:
                       BASE_SOURCE=override
                   else
                       # The newest baseline record a run on main uploaded.
+                      # A pull request from a fork's own `main` branch also
+                      # runs with head_branch "main", under workflows the
+                      # pull request itself supplies, so only runs from this
+                      # repository count.
                       RUN_ID=$(gh api "repos/${REPO}/actions/artifacts?name=vscode-prerelease-baseline&per_page=100" \
-                          --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main")] | sort_by(.created_at) | last | .workflow_run.id // empty' \
+                          --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main" and .workflow_run.head_repository_id == .workflow_run.repository_id)] | sort_by(.created_at) | last | .workflow_run.id // empty' \
                           || true)
                       if [ -n "${RUN_ID}" ] && gh run download "${RUN_ID}" -R "${REPO}" \
                               -n vscode-prerelease-baseline -D "$RUNNER_TEMP/recorded"; then
                           RECORDED_SHA=$(tr -d '[:space:]' < "$RUNNER_TEMP/recorded/sha")
+                      fi
+                      # The record must be a full commit SHA.  Git would also
+                      # resolve a revision expression such as `:/<regex>`,
+                      # which may contain shell syntax.
+                      if [ -n "${RECORDED_SHA}" ] && ! [[ "${RECORDED_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+                          echo "::warning::Ignoring a baseline record that is not a commit SHA."
+                          RECORDED_SHA=""
                       fi
                       if [ -n "${RECORDED_SHA}" ] && git merge-base --is-ancestor "${RECORDED_SHA}" HEAD 2>/dev/null; then
                           BASE_SHA="${RECORDED_SHA}"
@@ -199,7 +210,9 @@ jobs:
 
             - name: Check out the baseline commit
               if: steps.decide.outputs.proceed == 'true' && steps.decide.outputs.base_sha != ''
-              run: git checkout --force --detach ${{ steps.decide.outputs.base_sha }}
+              env:
+                  BASE_SHA: ${{ steps.decide.outputs.base_sha }}
+              run: git checkout --force --detach "${BASE_SHA}"
 
             - name: Install dependencies (baseline)
               if: steps.decide.outputs.proceed == 'true' && steps.decide.outputs.base_sha != ''
@@ -236,11 +249,13 @@ jobs:
 
             - name: Check out the current commit
               if: steps.decide.outputs.proceed == 'true'
+              env:
+                  HEAD_SHA: ${{ steps.decide.outputs.head_sha }}
               run: |
                   set -euo pipefail
                   # --force because the baseline's package versions were
                   # rewritten, and a build may have touched tracked files.
-                  git checkout --force --detach ${{ steps.decide.outputs.head_sha }}
+                  git checkout --force --detach "${HEAD_SHA}"
                   # Discard everything the baseline build left behind, so a
                   # file the current commit no longer produces cannot survive
                   # into the current build's fingerprint.  node_modules is
