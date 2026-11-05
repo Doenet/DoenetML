@@ -16,7 +16,9 @@ use crate::compile::*;
 
 /// Planning's working set: what parsing made, which planning reads and
 /// never changes, and what it makes for linking and sealing.
-pub(in crate::compile) struct Planning {
+pub(in crate::compile) struct Planning<'a> {
+    /// What boxing records, planning's while it runs.
+    pub(in crate::compile) boxes: Boxes<'a>,
     pub(in crate::compile) parsed: Parsed,
     pub(in crate::compile) planned: Planned,
 }
@@ -31,24 +33,25 @@ enum ElemShape {
     ByType(Option<RefId>),
 }
 
-impl Compiler<'_> {
+impl<'a> Compiler<'a> {
     /// Plan every element and every `$ref` child. What fails is boxed in
     /// place; a `$ref` child that cannot be planned gets a box as its plan.
     pub(in crate::compile) fn plan_all(
         &mut self,
+        boxes: Boxes<'a>,
         parsed: Parsed,
         to_plan: Vec<(TemplateId, ElemId)>,
         ref_children: Vec<(TemplateId, RefChildId)>,
         reads: Vec<Read>,
-    ) -> Planned {
+    ) -> (Planned, Boxes<'a>) {
         let mut pl = Planning {
+            boxes,
             parsed,
             planned: Planned {
                 reads,
                 ..Default::default()
             },
         };
-        let pl = &mut pl;
         // Planning's table, a row per element, made here (ADR 0031).
         for t in 0..self.n_templates() {
             let n = self.outlined(TemplateId::from_index(t)).elems.len();
@@ -58,7 +61,7 @@ impl Compiler<'_> {
             let _s = crate::trace::span("elements");
             crate::trace::count("elements", to_plan.len());
             for (t, e) in to_plan {
-                self.plan_elem(pl, t, e);
+                self.plan_elem(&mut pl, t, e);
             }
         }
         let _s = crate::trace::span("refs");
@@ -90,19 +93,23 @@ impl Compiler<'_> {
                 // A reference that cannot be planned is boxed where it
                 // stands (ADR 0027).
                 Err(error) => {
-                    self.errors.push(Diagnostic::error(Some(m), &error));
-                    self.boxed_here.insert(m);
+                    pl.boxes.record(m, &error);
                     RefChildPlan::Boxed
                 }
             };
             self.tables[t.index()].ref_child_plans[id.index()] = plan;
         }
-        std::mem::take(&mut pl.planned)
+        (pl.planned, pl.boxes)
     }
 
     /// Plans element `e`, and records what holds it beside its plans.
     /// Elements are planned in any order, each once.
-    pub(in crate::compile) fn plan_elem(&mut self, pl: &mut Planning, t: TemplateId, e: ElemId) {
+    pub(in crate::compile) fn plan_elem(
+        &mut self,
+        pl: &mut Planning<'a>,
+        t: TemplateId,
+        e: ElemId,
+    ) {
         // A box, made when outlining or boxed in place, is planned as it is.
         if self.is_box(t, e) {
             return;
@@ -116,11 +123,11 @@ impl Compiler<'_> {
         });
         // Boxed where it fails; what reads it reads the box.
         if let Err(error) = r {
-            self.box_in_place(t, e, error);
+            self.box_in_place(&mut pl.boxes, t, e, error);
         }
     }
 
-    fn plan_elem_inner(&mut self, pl: &mut Planning, t: TemplateId, e: ElemId) -> Result<()> {
+    fn plan_elem_inner(&mut self, pl: &mut Planning<'a>, t: TemplateId, e: ElemId) -> Result<()> {
         let component_type = self.outlined(t).elems[e.index()].planned_as;
         match self.elem_shape(pl, t, e)? {
             // Every public prop aliases the original's; nothing else to
@@ -202,7 +209,7 @@ impl Compiler<'_> {
     /// machinery plans it.
     fn plan_machinery(
         &mut self,
-        pl: &mut Planning,
+        pl: &mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
         m: Machinery,
@@ -269,7 +276,7 @@ impl Compiler<'_> {
     /// Which way an element is planned, decided from its `extend` attribute
     /// (and whether its type is a container) before any prop is looked at.
     /// Records the extend plan on the element.
-    fn elem_shape(&mut self, pl: &mut Planning, t: TemplateId, e: ElemId) -> Result<ElemShape> {
+    fn elem_shape(&mut self, pl: &mut Planning<'a>, t: TemplateId, e: ElemId) -> Result<ElemShape> {
         let Elem {
             node: el,
             component_type,

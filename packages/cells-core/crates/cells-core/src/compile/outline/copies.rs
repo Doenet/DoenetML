@@ -20,7 +20,7 @@ impl Compiler<'_> {
                 continue;
             }
             if let Err(error) = self.with_clones(o, |cp| cp.plan_extend(t, e)) {
-                self.box_in_place(t, e, error);
+                self.box_in_place(&mut o.boxes, t, e, error);
             }
         }
     }
@@ -32,7 +32,7 @@ impl Compiler<'_> {
             // Nothing is expanding between two copies here, so none is
             // reached again; were one, it is boxed like any failure.
             if let Err(error) = self.expand_container_copy(o, t, e) {
-                self.box_in_place(t, e, error);
+                self.box_in_place(&mut o.boxes, t, e, error);
             }
         }
     }
@@ -44,7 +44,7 @@ impl Compiler<'_> {
     /// a cycle, which is its reader's failure.
     pub(in crate::compile) fn expand_container_copy(
         &mut self,
-        o: &mut Outlining,
+        o: &mut Outlining<'_>,
         t: TemplateId,
         e: ElemId,
     ) -> Result<()> {
@@ -65,16 +65,16 @@ impl Compiler<'_> {
         self.outlined_mut(t).elems[e.index()].clones_pending = false;
         if let Err(error) = r {
             for x in n..self.outlined(t).elems.len() {
-                self.make_box(t, ElemId::from_index(x), true);
+                self.make_box(&mut o.boxes, t, ElemId::from_index(x), true);
             }
-            self.box_in_place(t, e, error);
+            self.box_in_place(&mut o.boxes, t, e, error);
         }
         Ok(())
     }
 
     fn expand_container_copy_inner(
         &mut self,
-        o: &mut Outlining,
+        o: &mut Outlining<'_>,
         t: TemplateId,
         e: ElemId,
     ) -> Result<()> {
@@ -103,7 +103,7 @@ impl Compiler<'_> {
 
     pub(in crate::compile) fn clone_children(
         &mut self,
-        o: &mut Outlining,
+        o: &mut Outlining<'_>,
         t: TemplateId,
         from: ElemId,
         scope: ElemId,
@@ -189,7 +189,7 @@ impl Compiler<'_> {
     /// (`Error::AwaitsClones`), make them, and run it again from the start.
     pub(in crate::compile) fn with_clones<T>(
         &mut self,
-        o: &mut Outlining,
+        o: &mut Outlining<'_>,
         mut f: impl FnMut(&mut Self) -> Result<T>,
     ) -> Result<T> {
         loop {

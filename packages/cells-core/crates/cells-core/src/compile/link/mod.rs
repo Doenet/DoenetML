@@ -13,24 +13,25 @@ impl Compiler<'_> {
     /// between the elements left.
     pub(in crate::compile) fn link(
         &mut self,
+        bx: &mut Boxes<'_>,
         planned: &mut Planned,
     ) -> std::result::Result<(), Failure> {
         let readers = &planned.reads;
-        let box_readers = |cp: &mut Self| {
+        let box_readers = |cp: &mut Self, bx: &mut Boxes<'_>| {
             crate::trace::span("box readers")
-                .run(|| cp.box_readers_of_boxes(readers))
+                .run(|| cp.box_readers_of_boxes(bx, readers))
                 .map_err(|error| Failure { error, node: None })
         };
-        box_readers(self)?;
-        crate::trace::span("unread attributes").run(|| self.box_unread_attributes());
-        box_readers(self)?;
+        box_readers(self, bx)?;
+        crate::trace::span("unread attributes").run(|| self.box_unread_attributes(bx));
+        box_readers(self, bx)?;
         crate::trace::span("given leaves").run(|| self.link_given_leaves(planned));
         Ok(())
     }
 
     /// Box in place every element in `readers` whose referent is now a
     /// box, to a fixpoint: a copy of a copy of a box is boxed too.
-    fn box_readers_of_boxes(&mut self, readers: &[Read]) -> Result<()> {
+    fn box_readers_of_boxes(&mut self, bx: &mut Boxes<'_>, readers: &[Read]) -> Result<()> {
         loop {
             let mut boxed_one = false;
             for &(t, e, p) in readers {
@@ -39,7 +40,7 @@ impl Compiler<'_> {
                 }
                 match self.read_referent(t, p) {
                     Err(error @ Error::BoxedReferent(_)) => {
-                        self.box_in_place(t, e, error);
+                        self.box_in_place(bx, t, e, error);
                         boxed_one = true;
                     }
                     Err(error) => return Err(error),

@@ -278,6 +278,18 @@ otherwise.
    linking reads one list. The compile-time guarantee that nothing after
    outlining changes what it settled is a runtime assertion now; the
    guarantee that planning takes what it reads as arguments is the type.
+
+   Amended 2026-11-05, later: what boxing records left `Compiler` too.
+   `Boxes` (`boxes.rs`) holds the nodes an earlier compile boxed, the
+   nodes boxed here with their errors, and the first failure no element
+   could carry. The driver makes one and hands it to outlining, planning
+   and linking in turn, each returning it (outlining's and planning's
+   working states carry it while they run), and never to parsing or
+   sealing: every write to the box table goes through a `Boxes`
+   (`mark`), so a stage without one cannot box, which the compiler
+   checks. Every stage still reads the box table through `Compiler`
+   (`is_box`), and `Compiler::stage` still says which stage a box was
+   made in.
 8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`
    name the new paths. Done: `outline/` (the walk; `copies.rs`,
    `choice.rs`, `answer.rs` for what outlining makes of each), `parse.rs`,

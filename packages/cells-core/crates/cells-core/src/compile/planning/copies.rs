@@ -52,7 +52,7 @@ impl<'a> Compiler<'a> {
     /// from outlining.
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
-        pl: &mut Planning,
+        pl: &mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
         p: RefId,
@@ -117,7 +117,7 @@ impl<'a> Compiler<'a> {
     /// referent's port holding it.
     pub(in crate::compile) fn plan_with_extend(
         &mut self,
-        pl: &mut Planning,
+        pl: &mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,

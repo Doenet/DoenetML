@@ -2,8 +2,78 @@
 //! fails becomes an `_error` element where it fails, keeping its name, and
 //! what is under it dies with it. Boxing writes only its own table; the
 //! build reads the box's row instead of what other stages made of it.
+//! What it records is a [`Boxes`], which the driver hands to each stage
+//! that boxes and to no other: a stage without one cannot box.
 
 use crate::compile::*;
+
+/// What boxing records: the nodes an earlier compile boxed, the nodes
+/// boxed here with their errors, and the first failure no element could
+/// carry. Every stage reads the box table (`Tables::boxes`); only what
+/// holds a `Boxes` writes it (`mark`).
+pub(in crate::compile) struct Boxes<'a> {
+    /// Nodes an earlier compile could not build: outlining compiles each
+    /// as an `_error` element with its name but no children and no props.
+    pub(in crate::compile) prior: &'a HashSet<NodeId>,
+    /// Elements boxed where they failed, with their errors.
+    errors: Vec<Diagnostic>,
+    here: HashSet<NodeId>,
+    /// The first failure no element could carry: the stage goes on, and
+    /// the compile ends with it once the stage is done.
+    restart: Option<Failure>,
+}
+
+impl<'a> Boxes<'a> {
+    pub(in crate::compile) fn new(prior: &'a HashSet<NodeId>) -> Self {
+        Boxes {
+            prior,
+            errors: Vec::new(),
+            here: HashSet::new(),
+            restart: None,
+        }
+    }
+
+    /// Records `node` as boxed here, with its error.
+    pub(in crate::compile) fn record(&mut self, node: NodeId, error: &Error) {
+        self.errors.push(Diagnostic::error(Some(node), error));
+        self.here.insert(node);
+    }
+
+    /// A failure no element can carry: kept, the first of them, for the
+    /// compile to end with once the stage is done.
+    pub(in crate::compile) fn fail(&mut self, error: Error, node: Option<NodeId>) {
+        self.restart.get_or_insert(Failure { error, node });
+    }
+
+    /// The failure to compile again from, when a stage recorded one.
+    pub(in crate::compile) fn restart_if_needed(&mut self) -> std::result::Result<(), Failure> {
+        self.restart.take().map_or(Ok(()), Err)
+    }
+
+    /// Every node boxed, by an earlier compile or this one.
+    pub(in crate::compile) fn all(&self) -> HashSet<NodeId> {
+        let mut all = self.prior.clone();
+        all.extend(self.here.iter().copied());
+        all
+    }
+
+    /// Marks element `e` a box in `boxes`, a template's box table: the
+    /// one write to that table, which only a holder of a `Boxes` makes.
+    fn mark(&self, boxes: &mut [BoxState], e: ElemId, state: BoxState) {
+        boxes[e.index()] = state;
+    }
+
+    /// Drops the errors reported on `nodes`.
+    fn drop_errors_on(&mut self, nodes: &HashSet<NodeId>) {
+        self.errors
+            .retain(|d| !d.node.is_some_and(|n| nodes.contains(&n)));
+    }
+
+    /// The errors of the elements boxed here, once every stage is done.
+    pub(in crate::compile) fn into_errors(self) -> Vec<Diagnostic> {
+        self.errors
+    }
+}
 
 impl Compiler<'_> {
     /// Whether element `e` is a box: boxed when outlining, boxed in place, or
@@ -29,24 +99,29 @@ impl Compiler<'_> {
     /// A clone is boxed silently. Any other element with no node is boxed
     /// all the same, and the failure recorded (the first, when there are
     /// several) to fail the compile once the stage is done.
-    pub(in crate::compile) fn box_in_place(&mut self, t: TemplateId, e: ElemId, error: Error) {
+    pub(in crate::compile) fn box_in_place(
+        &mut self,
+        bx: &mut Boxes<'_>,
+        t: TemplateId,
+        e: ElemId,
+        error: Error,
+    ) {
         let Elem { node, cloned, .. } = self.outlined(t).elems[e.index()];
         let doomed = self.subtree(t, e);
         if node != NodeId::NONE {
-            self.errors.push(Diagnostic::error(Some(node), &error));
-            self.boxed_here.insert(node);
+            bx.record(node, &error);
         } else if !cloned {
-            self.restart.get_or_insert(Failure { error, node: None });
+            bx.fail(error, None);
         }
         for (dt, de) in doomed {
-            self.make_box(dt, de, (dt, de) != (t, e));
+            self.make_box(bx, dt, de, (dt, de) != (t, e));
         }
     }
 
     /// Drop what boxes leave out of the diagnostics, once every stage that
     /// boxes is done: a box reports its error and nothing else, and what is
     /// under a box reports nothing.
-    pub(in crate::compile) fn drop_reports_of_boxes(&mut self) {
+    pub(in crate::compile) fn drop_reports_of_boxes(&mut self, bx: &mut Boxes<'_>) {
         let mut boxes = HashSet::new();
         let mut dead = HashSet::new();
         for t in 0..self.n_templates() {
@@ -86,9 +161,9 @@ impl Compiler<'_> {
         if boxes.is_empty() && dead.is_empty() {
             return;
         }
-        let on = |set: &HashSet<NodeId>, d: &Diagnostic| d.node.is_some_and(|n| set.contains(&n));
-        self.errors.retain(|d| !on(&dead, d));
-        Arc::make_mut(&mut self.compiled.diagnostics).retain(|d| !on(&boxes, d));
+        bx.drop_errors_on(&dead);
+        Arc::make_mut(&mut self.compiled.diagnostics)
+            .retain(|d| !d.node.is_some_and(|n| boxes.contains(&n)));
     }
 
     /// Element `e` and everything under it: its children, theirs, and
@@ -134,6 +209,7 @@ impl Compiler<'_> {
     /// reads as undefined. A name a sibling already holds is left off.
     pub(in crate::compile) fn push_error_elem(
         &mut self,
+        bx: &mut Boxes<'_>,
         t: TemplateId,
         node: NodeId,
         name_scope: ElemId,
@@ -147,7 +223,7 @@ impl Compiler<'_> {
         let e = ElemId::from_index(self.outlined(t).elems.len());
         let _ = self.push_elem(t, node, ComponentType::Error, name, name_scope);
         self.drop_unregistered_name(t, e);
-        self.make_box(t, e, false);
+        self.make_box(bx, t, e, false);
         e
     }
 
@@ -171,10 +247,20 @@ impl Compiler<'_> {
     /// Makes `e` a box in boxing's table: an `_error` element with no
     /// props, children or body as the build sees it, or, `dead`, one under
     /// a box, which no build makes.
-    pub(in crate::compile) fn make_box(&mut self, t: TemplateId, e: ElemId, dead: bool) {
+    pub(in crate::compile) fn make_box(
+        &mut self,
+        bx: &mut Boxes<'_>,
+        t: TemplateId,
+        e: ElemId,
+        dead: bool,
+    ) {
         let by = self.stage;
         let row = Box::new(self.elem(t, e).as_box());
-        self.tables[t.index()].boxes[e.index()] = BoxState::Boxed { row, by, dead };
+        bx.mark(
+            &mut self.tables[t.index()].boxes,
+            e,
+            BoxState::Boxed { row, by, dead },
+        );
     }
 }
 

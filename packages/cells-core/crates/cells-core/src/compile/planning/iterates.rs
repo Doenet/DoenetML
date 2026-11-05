@@ -33,7 +33,7 @@ impl<'a> Compiler<'a> {
     /// the body, so its references resolve from the `<functionIterates>`.
     pub(super) fn plan_function_iterates(
         &mut self,
-        pl: &mut Planning,
+        pl: &mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
     ) -> Result<()> {

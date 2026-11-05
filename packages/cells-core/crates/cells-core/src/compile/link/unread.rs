@@ -9,10 +9,8 @@ impl Compiler<'_> {
     /// nothing read while planning; what is under it is left out of the
     /// diagnostics. A node the check names with no element made for it is
     /// boxed by compiling again.
-    pub(in crate::compile) fn box_unread_attributes(&mut self) {
-        let mut outside: HashSet<NodeId> = self.boxed.clone();
-        outside.extend(self.boxed_here.iter().copied());
-        let unread = unread_attributes(self.dast, &outside);
+    pub(in crate::compile) fn box_unread_attributes(&mut self, bx: &mut Boxes<'_>) {
+        let unread = unread_attributes(self.dast, &bx.all());
         if unread.is_empty() {
             return;
         }
@@ -32,13 +30,10 @@ impl Compiler<'_> {
         }
         for (node, error) in unread {
             let Some(&(t, e)) = at.get(&node) else {
-                self.restart.get_or_insert(Failure {
-                    error,
-                    node: Some(node),
-                });
+                bx.fail(error, Some(node));
                 continue;
             };
-            self.box_in_place(t, e, error);
+            self.box_in_place(bx, t, e, error);
         }
     }
 }

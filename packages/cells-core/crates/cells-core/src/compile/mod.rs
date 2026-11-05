@@ -78,6 +78,7 @@ impl From<Failure> for Error {
     }
 }
 
+use boxes::Boxes;
 use names::*;
 use parse::Parsed;
 use planning::ctx::PlanCtx;
@@ -93,8 +94,8 @@ pub(in crate::compile) struct Attempt {
 }
 
 /// What every stage of one compile works on, outline to seal: the source,
-/// the compile being made in its parts, which stage runs, the boxes, and
-/// two caches.
+/// the compile being made in its parts, which stage runs, and two caches.
+/// What boxing records is a [`Boxes`], given only to the stages that box.
 pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled, the same as `compiled.dast`.
     pub(in crate::compile) dast: &'a Dast,
@@ -110,15 +111,6 @@ pub(in crate::compile) struct Compiler<'a> {
     /// Every string's canonical id, over the DAST table and then
     /// `extra_strings`; built when first needed. A cache.
     pub(in crate::compile) string_ids: Option<HashMap<String, StrId>>,
-    /// Nodes an earlier compile could not build: compiled as `_error`
-    /// elements with their names but no children and no props.
-    pub(in crate::compile) boxed: &'a HashSet<NodeId>,
-    /// The first failure no element could carry: the stage goes on, and the
-    /// compile ends with it once the stage is done.
-    restart: Option<Failure>,
-    /// Elements boxed where they failed, with their errors.
-    errors: Vec<Diagnostic>,
-    boxed_here: HashSet<NodeId>,
     /// By DAST string, the prop a reference spelled with it last named,
     /// with the type it named it on. A cache.
     pub(in crate::compile) prop_sels: Vec<Option<(ComponentType, Option<PropSel>)>>,
@@ -216,9 +208,9 @@ impl Compiler<'_> {
     /// Compile `dast`, with the nodes in `boxed` as `_error` elements, and
     /// every element that fails to plan boxed where it fails. A failure
     /// names the node to box before compiling again, when there is one.
-    pub(in crate::compile) fn compile(
-        dast: &Arc<Dast>,
-        boxed: &HashSet<NodeId>,
+    pub(in crate::compile) fn compile<'a>(
+        dast: &'a Arc<Dast>,
+        boxed: &'a HashSet<NodeId>,
         share: bool,
     ) -> std::result::Result<Attempt, Failure> {
         let mut cp = Compiler {
@@ -249,19 +241,18 @@ impl Compiler<'_> {
             tables: Vec::new(),
             stage: Stage::Outline,
             string_ids: None,
-            boxed,
-            restart: None,
-            errors: Vec::new(),
-            boxed_here: HashSet::new(),
             prop_sels: Vec::new(),
         };
+        // What boxing records, handed to each stage that boxes.
+        let boxes = Boxes::new(boxed);
+        let (outline, mut boxes) = crate::trace::span("outline").run(|| cp.outline(boxes));
         let Outline {
             to_plan,
             macros,
             math_texts,
             reads,
-        } = crate::trace::span("outline").run(|| cp.outline());
-        cp.restart_if_needed()?;
+        } = outline;
+        boxes.restart_if_needed()?;
         // From here on, every stage reads what outlining settled and none
         // changes it. The element set is outlining's (ADR 0030, ADR 0031):
         // planning and linking make none.
@@ -271,22 +262,22 @@ impl Compiler<'_> {
             crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
         crate::trace::span("parse records").run(|| cp.parse_records(&to_plan, &mut parsed));
         cp.stage = Stage::Plan;
-        let mut planned =
-            crate::trace::span("plan all").run(|| cp.plan_all(parsed, to_plan, macros, reads));
-        cp.restart_if_needed()?;
+        let (mut planned, mut boxes) = crate::trace::span("plan all")
+            .run(|| cp.plan_all(boxes, parsed, to_plan, macros, reads));
+        boxes.restart_if_needed()?;
         cp.stage = Stage::Link;
-        crate::trace::span("link").run(|| cp.link(&mut planned))?;
+        crate::trace::span("link").run(|| cp.link(&mut boxes, &mut planned))?;
         debug_assert_eq!(cp.elem_count(), outlined, "only outlining makes elements");
-        cp.restart_if_needed()?;
+        boxes.restart_if_needed()?;
         cp.stage = Stage::Seal;
         let (sealed, choice_seals) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
         let _s = crate::trace::span("finish");
-        cp.drop_reports_of_boxes();
+        cp.drop_reports_of_boxes(&mut boxes);
+        let errors = boxes.into_errors();
         // Each stage's tables put together, as the build reads them (ADR
         // 0031).
         let Compiler {
             mut compiled,
-            errors,
             tables,
             settled,
             ..
@@ -412,11 +403,6 @@ impl Compiler<'_> {
         (0..self.n_templates())
             .map(|t| self.outlined(TemplateId::from_index(t)).elems.len())
             .sum()
-    }
-
-    /// The failure to compile again from, when a stage recorded one.
-    fn restart_if_needed(&mut self) -> std::result::Result<(), Failure> {
-        self.restart.take().map_or(Ok(()), Err)
     }
 
     pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {

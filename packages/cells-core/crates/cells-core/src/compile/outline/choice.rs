@@ -9,7 +9,7 @@ impl Compiler<'_> {
     /// is a conditional content with one case.
     pub(in crate::compile) fn add_choice(
         &mut self,
-        o: &mut Outlining,
+        o: &mut Outlining<'_>,
         t: TemplateId,
         e: ElemId,
         el: NodeId,

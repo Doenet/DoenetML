@@ -8,7 +8,7 @@ impl Compiler<'_> {
     /// Add every answer's synthetic children, in the order the walk made
     /// the answers, after every element the walk and the container copies
     /// made.
-    pub(in crate::compile) fn add_answer_children(&mut self, o: &Outlining) {
+    pub(in crate::compile) fn add_answer_children(&mut self, o: &Outlining<'_>) {
         let made = o.work.to_plan.clone();
         let answers: Vec<(TemplateId, ElemId)> = made
             .into_iter()

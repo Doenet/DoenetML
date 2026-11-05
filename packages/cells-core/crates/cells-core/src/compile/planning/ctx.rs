@@ -13,7 +13,7 @@ use crate::components::ConstrainTarget;
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
     /// Planning's working set.
-    p: &'c mut Planning,
+    p: &'c mut Planning<'a>,
     t: TemplateId,
     e: ElemId,
     /// The element's record: its own, merged under its `extend` referent's
@@ -37,7 +37,7 @@ struct Base {
 impl<'c, 'a> PlanCtx<'c, 'a> {
     pub(in crate::compile) fn new(
         c: &'c mut Compiler<'a>,
-        p: &'c mut Planning,
+        p: &'c mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
         record: record::Record,
