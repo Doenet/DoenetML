@@ -357,11 +357,13 @@ describe("Missing values and missing tags (D37) @group2", () => {
         expect(text).eq("[＿][＿][＿]");
     });
 
-    it("leaves out a missing child of a text that its own hide hides", async () => {
+    it("reads a missing child of a text as a blank, hidden or not", async () => {
+        // A `<text>` reads its children's values and ignores their `hide`,
+        // as a `<math>` does, so a missing child is a blank in it either way.
         const { text } = await shownAndReported(
-            `<p name="p">[<text>x <text extend="$nothing" hide/></text>][<text>x <text extend="$nothing"/></text>]</p>`,
+            `<p name="p">[<text>x <text extend="$nothing" hide/></text>][<text>x <text extend="$nothing"/></text>][<text>x <text hide>y</text></text>]</p>`,
         );
-        expect(text).eq("[x ][x ＿]");
+        expect(text).eq("[x ＿][x ＿][x y]");
     });
 
     it("shows a missing list tag as one blank", async () => {

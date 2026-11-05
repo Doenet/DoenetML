@@ -10,9 +10,7 @@ import {
 import {
     returnTextPieceStateVariableDefinitions,
     textFromChildren,
-    textFromComponent,
 } from "../utils/text";
-import { MISSING_TEXT } from "../utils/missing";
 import { plainComplex } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
@@ -153,13 +151,11 @@ export default class Text extends InlineComponent {
                 textLikeChildren: {
                     dependencyType: "child",
                     childGroups: ["textLike"],
-                    // a missing child reads as a blank, and as nothing when
-                    // its own `hide` hides it (D37)
-                    variableNames: [
-                        "text",
-                        "valueMissing",
-                        "hiddenIgnoreParent",
-                    ],
+                    // a missing child reads as a blank (`textFromComponent`,
+                    // D37); like any child, whether or not it is hidden, as
+                    // a `<text>` reads its children's values and ignores
+                    // their `hide`
+                    variableNames: ["text", "valueMissing"],
                     variablesOptional: true,
                 },
             }),
@@ -174,10 +170,7 @@ export default class Text extends InlineComponent {
                     };
                 }
 
-                let value = textFromChildren(
-                    dependencyValues.textLikeChildren,
-                    textOfTextLikeChild,
-                );
+                let value = textFromChildren(dependencyValues.textLikeChildren);
 
                 return { setValue: { value } };
             },
@@ -411,23 +404,4 @@ export default class Text extends InlineComponent {
             });
         }
     }
-}
-
-/**
- * The text a `<text>` reads from one of its children: its `text`, or a
- * blank for a missing child (D37), unless that child is hidden by its own
- * `hide`. A child that is not missing is read whether or not it is hidden,
- * as a `<text>` always has.
- */
-function textOfTextLikeChild(child) {
-    if (typeof child !== "object") {
-        return child.toString();
-    }
-    if (child.stateValues.valueMissing) {
-        return child.stateValues.hiddenIgnoreParent ? "" : MISSING_TEXT;
-    }
-    return textFromComponent({
-        ...child,
-        stateValues: { ...child.stateValues, hidden: false },
-    });
 }
