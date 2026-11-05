@@ -7,6 +7,12 @@ pub mod choice_input;
 pub mod math_input;
 pub mod text_input;
 
+/// The slider's spec: `slider` is an inline module below, so its spec file
+/// sits beside this one.
+#[cfg(all(test, feature = "testing"))]
+#[path = "slider.spec.rs"]
+mod slider_spec;
+
 pub mod number_input {
     use super::*;
 

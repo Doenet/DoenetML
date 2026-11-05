@@ -233,3 +233,7 @@ fn direction(
     }
     Ok(wiring.hidden_point(&p))
 }
+
+#[cfg(all(test, feature = "testing"))]
+#[path = "line.spec.rs"]
+mod spec;

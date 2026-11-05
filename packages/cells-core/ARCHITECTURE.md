@@ -586,16 +586,19 @@ the core does not compute it, and the viewer's test, which checks every
 - `testing/dast.rs` builds a DAST in Rust, for a unit test of the core that
   needs neither the parser nor node; `tests/dast_builder.rs` checks it
   against the parser.
-- `tests/specs/` holds the component specs (`testing/spec.rs`, ADR 0016),
-  laid out as `src/components/` is: `tests/specs/geometry/circle.rs` is the
-  spec of `components/geometry/circle.rs`, and a type defined in its family's
-  `mod.rs` (the slider) has a file of its own (`tests/specs/inputs/slider.rs`).
+- A component's spec (`testing/spec.rs`, ADR 0016) sits beside its
+  definition: `components/geometry/circle.spec.rs` is the spec of
+  `components/geometry/circle.rs`, which includes it as a test-only module
+  (`#[path = "circle.spec.rs"] mod spec;`); a type defined in its family's
+  `mod.rs` (the slider) has its spec beside that `mod.rs`
+  (`components/inputs/slider.spec.rs`), included there.
   Each `spec!` case gives DoenetML, a sequence of requests, and the values an
   author should see after each. Every case is also checked against the
   reference evaluator and the component's cost snapshot in
-  `tests/specs/snapshots/`. `SPEC_UPDATE=1` rewrites a snapshot; review the
+  `components/snapshots/`. `SPEC_UPDATE=1` rewrites a snapshot; review the
   change alongside the code that caused it. A new component comes with its
-  spec: a unit test (`components/mod.rs`) fails for one without, unless
+  spec: a unit test (`components/mod.rs`) fails for one without (or with a
+  spec file its definition does not include), unless
   it is in `WITHOUT_SPEC`, a list that only shrinks; writing a listed
   type's spec means taking it off the list.
 - `tests/every_count.rs` builds every golden document and fixture at

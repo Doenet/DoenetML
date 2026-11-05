@@ -15,6 +15,10 @@
 //! }
 //! ```
 //!
+//! A component's spec sits beside its definition: `geometry/circle.spec.rs`
+//! for `components/geometry/circle.rs`, included from there as a test-only
+//! module (`#[path = "circle.spec.rs"] mod spec;`).
+//!
 //! `spec!` makes one `#[test]` named for the component, running every case
 //! and reporting every failure. A case is its source, then any of:
 //!
@@ -33,7 +37,7 @@
 //! Every case is also checked, after the load and every tick, against the
 //! reference evaluator and against a pruned load on every live cell; the
 //! pruned load's cost against the component's snapshot under
-//! `tests/specs/snapshots/`; and, after the load, by the round trip of
+//! `src/components/snapshots/`; and, after the load, by the round trip of
 //! every interactive cell, where no request may come out unstable.
 //! `SPEC_UPDATE=1` rewrites a snapshot instead of comparing it.
 
@@ -377,7 +381,7 @@ fn request(
 
 fn check_snapshot(component: &str, costs: &str) -> Result<(), String> {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/specs/snapshots")
+        .join("src/components/snapshots")
         .join(format!("{component}.cost"));
     if std::env::var_os("SPEC_UPDATE").is_some() {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();

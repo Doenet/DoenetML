@@ -2,7 +2,7 @@
 //! equation; what it shows, and where a drag of a point or the whole line
 //! lands.
 
-use cells_core::spec;
+use crate::spec;
 
 const NAN: f64 = f64::NAN;
 

@@ -64,3 +64,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     wiring.set_public(Props { x1, y1, x2, y2 });
     Ok(wiring)
 }
+
+#[cfg(all(test, feature = "testing"))]
+#[path = "segment.spec.rs"]
+mod spec;

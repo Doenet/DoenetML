@@ -81,3 +81,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         ],
     )
 }
+
+#[cfg(all(test, feature = "testing"))]
+#[path = "triangle.spec.rs"]
+mod spec;

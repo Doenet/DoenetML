@@ -210,3 +210,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     wiring.set_list(through_points);
     Ok(wiring)
 }
+
+#[cfg(all(test, feature = "testing"))]
+#[path = "circle.spec.rs"]
+mod spec;

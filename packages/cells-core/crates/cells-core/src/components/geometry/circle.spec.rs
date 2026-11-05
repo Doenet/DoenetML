@@ -3,7 +3,7 @@
 //! its radius lands. No renderer requests a radius: a change of it comes
 //! through an input bound to it.
 
-use cells_core::spec;
+use crate::spec;
 use std::f64::consts::{PI, TAU};
 
 spec! {

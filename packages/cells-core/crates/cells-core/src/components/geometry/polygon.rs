@@ -220,3 +220,7 @@ pub(super) fn plan_vertices(
     wiring.set_list(points);
     Ok(wiring)
 }
+
+#[cfg(all(test, feature = "testing"))]
+#[path = "polygon.spec.rs"]
+mod spec;

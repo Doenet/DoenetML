@@ -1079,7 +1079,8 @@ mod tests {
     }
 
     /// No component file but `define.rs` writes `f64::NAN` itself: NaN
-    /// is `NO_VALUE` or `Wire::undefined` / `Source::undefined`.
+    /// is `NO_VALUE` or `Wire::undefined` / `Source::undefined`. A spec
+    /// (`*.spec.rs`) may expect one.
     #[test]
     fn components_write_no_nan_of_their_own() {
         // Spelled in two halves, so this file does not find itself.
@@ -1089,7 +1090,11 @@ mod tests {
         sources(&dir, &mut files);
         let found: Vec<String> = files
             .iter()
-            .filter(|p| p.file_name().is_some_and(|n| n != "define.rs"))
+            .filter(|p| {
+                p.file_name()
+                    .and_then(|n| n.to_str())
+                    .is_some_and(|n| n != "define.rs" && !n.ends_with(".spec.rs"))
+            })
             .flat_map(|p| {
                 let text = std::fs::read_to_string(p).unwrap();
                 text.lines()
@@ -1269,12 +1274,13 @@ mod tests {
         ]
     };
 
-    /// Every type an author writes has a spec at
-    /// `tests/specs/<family>/<file>.rs` exactly when it is not in
-    /// `WITHOUT_SPEC`.
+    /// Every type an author writes has a spec beside its definition,
+    /// `<family>/<file>.spec.rs`, included by the file that defines it,
+    /// exactly when it is not in `WITHOUT_SPEC`. A spec nothing includes
+    /// would never run, so it counts as missing.
     #[test]
     fn every_component_has_a_spec() {
-        let specs = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/specs");
+        let components = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/components");
         let mut missing = Vec::new();
         let mut listed_with_spec = Vec::new();
         for &(component_type, defined_in) in super::DEFINED_IN {
@@ -1282,13 +1288,29 @@ mod tests {
             if component_type.def().flags.internal || component_type.def().flags.owned {
                 continue;
             }
-            // `geometry::circle::DEFINITION` is `geometry/circle.rs`.
+            // `geometry::circle::DEFINITION` is `geometry/circle.rs`, its
+            // spec `geometry/circle.spec.rs`; a type in an inline module of
+            // its family's `mod.rs` (`inputs::slider`) has its spec beside
+            // that `mod.rs`, which includes it.
             let (module, _) = defined_in.rsplit_once("::").unwrap();
-            let file = format!("{}.rs", module.replace("::", "/"));
-            let has_spec = specs.join(&file).is_file();
+            let stem = module.replace("::", "/");
+            let spec_file = format!("{stem}.spec.rs");
+            let (family, name) = stem.rsplit_once('/').unwrap_or(("", &stem));
+            let defining = components.join(format!("{stem}.rs"));
+            let defining = if defining.is_file() {
+                defining
+            } else {
+                components.join(family).join("mod.rs")
+            };
+            let include = format!("#[path = \"{name}.spec.rs\"]");
+            let has_spec = components.join(&spec_file).is_file()
+                && std::fs::read_to_string(&defining).is_ok_and(|src| src.contains(&include));
             let listed = WITHOUT_SPEC.contains(&component_type);
             if !has_spec && !listed {
-                missing.push(format!("{component_type:?} (tests/specs/{file})"));
+                missing.push(format!(
+                    "{component_type:?} (src/components/{spec_file}, included by {})",
+                    defining.strip_prefix(&components).unwrap().display()
+                ));
             }
             if has_spec && listed {
                 listed_with_spec.push(format!("{component_type:?}"));
