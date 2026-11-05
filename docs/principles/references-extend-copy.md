@@ -29,7 +29,7 @@ Everything below refines this table.
 ### NAME-1: nearest match wins; a tie is an error, not a guess (Tier 1)
 `$x` means the `x` in the nearest enclosing scope that contains one. If that scope contains two,
 the reference is ambiguous: it reports `doenet-w0105` "Multiple referents" and is missing, shown
-as a blank `＿` (VAL-5, D37). Today it shows nothing.
+as a blank `＿` (VAL-5, D37, #2458).
 
 ```xml
 <section><number name="n">10</number><p>$n</p></section>   <!-- 10 -->
@@ -73,8 +73,7 @@ something that exists gives `doenet-w0104` quoting the whole reference, literal 
 the end is silent while the length can change (#1499). An index that cannot apply, such as
 `$n.value[1]`, and an index into a scalar (`$ms[1]`, `$n[1]`), give `doenet-w0100` and name
 nothing (#2431). List entries (#2431) and function references (#2432) follow the same rule.
-A reference that names nothing is missing, shown as `＿`, bare or as a tag (VAL-5, D37, #2456);
-today a bare one shows nothing.
+A reference that names nothing is missing, shown as `＿`, bare or as a tag (VAL-5, D37, #2458).
 
 Evidence:
 - `T/copying/extend_references.test.ts`: `:2401` "extending repetitively" (`$g12.Pa` four levels
@@ -287,32 +286,56 @@ hold nothing, the tag is missing while it does:
 
 So the bare form and the tag report the same diagnostics, at the same level (REF-1).
 
-**Known violations (D37 not yet implemented):**
-- on a tag, a missing referent, an ambiguous name, a missing property, a literal index past the
-  picks, and `w0183` are errors with an `_error` in the tag's place (#2447, #2451);
-- a `<conditionalContent>` with no `<else>`, written as a scalar tag, is `e0064` (`noElse`) at
-  load (#2447, #2451);
-- an index that names nothing and a value that doesn't convert give `<T/>`, with its own
-  attributes and children, not a missing T (#2447);
-- an input reached through such an index is a plain input the reader can type into;
-- a bare reference that names nothing shows nothing, not `＿` (VAL-5);
+**Done by #2458** (closing #2456):
+- a missing tag is a component of its type, with its own attributes (so `hide` hides it) and none
+  of its children, holding `<T/>`'s value with `valueMissing` true. It is drawn by the shared
+  `_blank` renderer. A composite or list tag whose source is missing (`<group extend="$nothing"/>`,
+  `<numberList extend="$nothing"/>`) is a `_missing`, one blank;
+- on a tag, `w0104`, `w0105`, `w0181` and `w0183` are warnings with the tag missing. The `noElse`
+  reason of `e0064` is gone. A `<conditionalContent>` with no `<else>`, or a branch holding
+  nothing, gives a missing tag with the new info **`doenet-i0055`** while no case is true;
+- `i0053` and `i0054` say the tag is missing. A tag's `i0054` is left out where a warning or
+  error at the tag, or in its `extend`/`copy` reference, already says why.
+
+**Known violations and gaps:**
+- **A bare reference's index info is postponed to the new core (#2281).** A bare `$r[$i]` that
+  names nothing shows `＿` but reports as before D37: silent past the end, a `w0104` for a
+  dynamic index below 1 that stays after the index changes, and `w0181` past what a composite
+  made, which can go stale. Deciding its info again after every update made a 1000-iteration
+  repeat with 2000 bare indexed references about 30 ms slower per update, so it was taken out.
+  The tag form has its `i0054`;
+- a list tag over an index that names nothing at run time (`<numberList extend="$l[$i]"/>` out of
+  range) is an empty list, not one blank, and a list leaves out a missing entry
+  (`<mathList>$l[5] 2</mathList>` holds only `2`). Decided with #2461;
+- a `<group>` tag of an index that names nothing (`<group extend="$r[$i]"/>`) shows nothing with
+  `w0181`/`w0104`. It is not a scalar tag, so it is not made missing;
+- a tag of an iteration has its `i0054` until the iteration is made, but not again once the
+  repeat shrinks past it: the iteration is withheld, and the tag is missing with no info;
+- a `<group>` holding a `<conditionalContent>` with no `<else>`, as a scalar tag, is missing
+  without `i0055`, and so is a tag of a case or option written empty;
+- **a deliberate exception:** a tag of an array entry that has no value yet but can be written
+  (`<text extend="$ci.selectedValue"/>` before a choice, `<feedback extend="$award.feedback"/>`)
+  is not missing, because it is linked to the entry so that a write reaches it. The bare
+  `$ci.selectedValue` is `＿`;
+- a missing `<label>` used as a point's or input's label shows `""`, and a bare reference to a
+  missing `<label>` reads `""`, since it is a copy rather than a value reference;
+- an entry of `_repeatValueList` (a repeat whose iteration is one `<number>`) does not carry
+  missingness, so `$r[1].m.value` of a missing `m` reads `NaN`;
 - `<group><group/><math/></group>`, one component beside a child that holds nothing, is not
   decided at load;
 - a `<conditionalContent>` or `<select>` nested in a case or option is allowed at load but shows
-  `<T/>`'s default with no info (B22, #2437);
-- `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written
-  (B38, #2449). Under D37 this example goes away, since that tag is no longer an error.
+  `<T/>`'s default with no info (B22, #2437).
 
 History: #2447 (closing #2445) implemented D36, deciding at load and making a missing referent on
-a tag an error. D37 keeps the load-time type check and reverses the errors for missing.
+a tag an error. D37 kept the load-time type check and reversed the errors for missing (#2458).
 
 ### REF-1: `$x` is shorthand for the unadorned `extend` (Tier 1 for the meaning, Tier 2 for exact parity)
 `$x` means `<T extend="$x"/>`, where T is the referent's own tag. Write the `extend` out only to
 change the type, or to add a name, attributes or children.
 
-The equivalence holds both ways, missing included (D37). With no referent, `$m` and
-`<math extend="$m"/>` are both a blank, with the same warning. **Known violation:** since #2447,
-`$m` shows nothing and `<math extend="$m"/>` is an error (REF-0).
+The equivalence holds both ways, missing included (D37, #2458). With no referent, `$m` and
+`<math extend="$m"/>` are both a blank, with the same warning. **Known violation:** an index that
+names nothing has `i0054` on a tag but not bare (REF-0; postponed to the new core).
 
 The two forms are built the same way, so they behave the same in every container. That
 includes `fixed` containers, `<math>…+1</math>` and `<text>…!</text>`, and holds before and after
@@ -513,7 +536,7 @@ Not allowed, each an error whose message gives the clearer form (DIAG-3):
     `<intersection>` ("use `$x[1]`").
   `<point extend="$i"/>` of an intersection is `<point extend="$i[1]"/>`.
   A literal index past what a selector picks (`$s[2]` of a one-pick select) is warning
-  `doenet-w0181`, and the tag is missing (D37; since #2447 it is an error on a scalar tag).
+  `doenet-w0181`, and the tag is missing (D37, #2458; #2447 had made it an error on a scalar tag).
 - **a list from components of more than one type** ("wrap it: `<mathList>$g</mathList>`").
 - **any other pair.**
 
@@ -542,13 +565,13 @@ Diagnostics:
   `$p.text`;
 - **`doenet-e0064`:** a composite that can hold several components. Its reason says why:
   `numToSelect`, any number, or a case, option or iteration holding several. Under D37 its
-  `noElse` reason, and a part holding nothing, become a missing tag with an info;
+  `noElse` reason is gone since #2458: a part holding nothing gives a missing tag, with info
+  **`doenet-i0055`** while no case of a `<conditionalContent>` with no `<else>` is true;
 - **`doenet-e0065`:** any other pair;
 - **`doenet-e0066`:** different types, suggesting `<T>$x</T>`, for a scalar or a list tag;
 - **`doenet-e0067`:** a property or a repeat's value, whose type isn't known at load;
 - **`doenet-i0053`:** an info for a value that does not allow the tag (a point from a non-tuple,
-  a boolean from a math that is not true or false). The tag is missing (D37; today it has
-  `<T/>`'s value);
+  a boolean from a math that is not true or false). The tag is missing (D37, #2458);
 - **`doenet-i0054`:** an info for an index that names nothing now (REF-0).
 
 The run-time `e0064` and `e0065` infos from #2436 are gone (#2447).
