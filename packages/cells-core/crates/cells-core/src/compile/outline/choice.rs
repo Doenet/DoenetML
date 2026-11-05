@@ -1,6 +1,7 @@
 //! A choice's branches made when outlining: one template per case or
 //! option, its content outlined like any other.
 
+use super::Outlining;
 use crate::compile::*;
 
 impl Compiler<'_> {
@@ -8,6 +9,7 @@ impl Compiler<'_> {
     /// is a conditional content with one case.
     pub(in crate::compile) fn add_choice(
         &mut self,
+        o: &mut Outlining,
         t: TemplateId,
         e: ElemId,
         el: NodeId,
@@ -115,12 +117,12 @@ impl Compiler<'_> {
         let mut templates = Vec::with_capacity(branches.len());
         for (_, nodes, _) in &branches {
             let sub = self.push_template(Some((t, e)));
-            let kids = self.add_children(sub, None, ROOT_SCOPE, nodes);
+            let kids = self.add_children(o, sub, None, ROOT_SCOPE, nodes);
             self.outlined_mut(sub).children = kids;
             templates.push(sub);
         }
-        let id = self.outlining().work.settled.choices.len();
-        self.outlining().work.settled.choices.push(ChoiceDef {
+        let id = self.settled.choices.len();
+        self.settled_mut().choices.push(ChoiceDef {
             at: (t, e),
             reactive,
             branches: templates,

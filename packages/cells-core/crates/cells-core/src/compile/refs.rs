@@ -845,7 +845,7 @@ impl Compiler<'_> {
                 r.display = RefDisplay::Prop(Box::new(base), dp);
             }
         }
-        debug_assert!(self.outlining.is_some(), "only outlining plans an extend");
+        debug_assert_eq!(self.stage, Stage::Outline, "only outlining plans an extend");
         self.outlined_mut(t).elems[e.index()].extend = Some(p);
         Ok(Some(p))
     }
@@ -855,14 +855,15 @@ impl Compiler<'_> {
     /// no type to plan from, so `e` is boxed in turn, its referent's box
     /// the cause: here for a referent already boxed, when linking for one
     /// boxed after `e` is planned (`box_readers_of_boxes`). The read is
-    /// recorded (`record_read`).
+    /// recorded (`record_read`) in `reads`, the stage's.
     pub(in crate::compile) fn referent_type(
         &mut self,
+        reads: &mut Vec<Read>,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
-        self.record_read(t, e, p);
+        Self::record_read(reads, t, e, p);
         self.read_referent(t, p)
     }
 
@@ -870,13 +871,16 @@ impl Compiler<'_> {
     /// element `e` of template `t` read the facts of what `p` names (its
     /// type, its row, its children), so what it planned stands only while
     /// they do. Linking boxes every reader of a box, to a fixpoint
-    /// (`box_readers_of_boxes`), so no element is compiled twice. Kept by
-    /// the stage that records it (ADR 0030).
-    pub(in crate::compile) fn record_read(&mut self, t: TemplateId, e: ElemId, p: RefId) {
-        match &mut self.outlining {
-            Some(o) => o.work.settled.reads.push((t, e, p)),
-            None => self.planning().reads.push((t, e, p)),
-        }
+    /// (`box_readers_of_boxes`), so no element is compiled twice. `reads`
+    /// is the recording stage's (`Outline::reads`, `Planned::reads`, ADR
+    /// 0030).
+    pub(in crate::compile) fn record_read(
+        reads: &mut Vec<Read>,
+        t: TemplateId,
+        e: ElemId,
+        p: RefId,
+    ) {
+        reads.push((t, e, p));
     }
 
     /// The type of what `p` names, or, when it is a box this stage may see

@@ -5,6 +5,7 @@
 //! prop, and a copy with its own attributes keeps the shared state they
 //! supply and shares the rest, which linking ties (`link/mod.rs`).
 
+use super::Planning;
 use crate::compile::*;
 
 impl<'a> Compiler<'a> {
@@ -53,14 +54,15 @@ impl<'a> Compiler<'a> {
     /// from outlining (`expand_container_copy`).
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
+        pl: &mut Planning,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<()> {
         let component_type = self.outlined(t).elems[e.index()].planned_as;
         match Self::planner(component_type) {
-            Planner::Plan(plan) => self.plan_with_extend(t, e, Some(p), plan),
-            _ => self.plan_attrs(t, e, Some(p)),
+            Planner::Plan(plan) => self.plan_with_extend(pl, t, e, Some(p), plan),
+            _ => self.plan_attrs(&pl.parsed, t, e, Some(p)),
         }
     }
 
@@ -120,6 +122,7 @@ impl<'a> Compiler<'a> {
     /// holding it (`link_given_leaves`).
     pub(in crate::compile) fn plan_with_extend(
         &mut self,
+        pl: &mut Planning,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
@@ -139,7 +142,7 @@ impl<'a> Compiler<'a> {
             self.plan_bare_copy(t, e);
             return Ok(());
         }
-        let mut record = self.parsed().record(t, e)?;
+        let mut record = pl.parsed.record(t, e)?;
         let referent = match extend {
             Some(p) => {
                 let r = self.extend_referent(t, p).ok_or_else(|| {
@@ -154,8 +157,8 @@ impl<'a> Compiler<'a> {
                 };
                 // A referent whose record did not parse is boxed by its
                 // own error; the copy is boxed as its reader (ADR 0027).
-                let theirs = self
-                    .parsed()
+                let theirs = pl
+                    .parsed
                     .record(rt, re)
                     .map_err(|_| Error::BoxedReferent(self.compiled.ref_display(p)))?;
                 let theirs = match r {
@@ -171,7 +174,7 @@ impl<'a> Compiler<'a> {
             Some(Referent::Here(r)) => Some(r),
             _ => None,
         };
-        let wiring = plan(&mut PlanCtx::new(self, t, e, record, here))?;
+        let wiring = plan(&mut PlanCtx::new(self, pl, t, e, record, here))?;
         // A given leaf the copy did not give itself is the referent's: the
         // current core's copies share their essential state variables. The
         // copy names what it shares, and linking ties it to the port the
@@ -188,7 +191,7 @@ impl<'a> Compiler<'a> {
                 if own || !wiring.is_given(port) {
                     continue;
                 }
-                self.planning().shares.push(Share {
+                pl.planned.shares.push(Share {
                     t,
                     e,
                     port,
@@ -198,7 +201,7 @@ impl<'a> Compiler<'a> {
             }
         }
         if !wiring.given().is_empty() {
-            self.planning()
+            pl.planned
                 .given
                 .insert((t.get(), e.get()), wiring.given().clone());
         }

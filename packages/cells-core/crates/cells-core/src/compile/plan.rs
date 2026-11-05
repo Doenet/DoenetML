@@ -659,14 +659,17 @@ pub(crate) enum RefChildPlan {
     Boxed,
 }
 
-/// The stage that made a box (ADR 0031): a reader of a referent's type
-/// while planning sees only outlining's, so planning does not depend on
-/// its own order.
+/// A stage of the compile (`Compiler::stage`), as boxing records which
+/// made a box (ADR 0031): a reader of a referent's type while planning
+/// sees only outlining's, so planning does not depend on its own order.
+/// Parsing and sealing box nothing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Stage {
     Outline,
+    Parse,
     Plan,
     Link,
+    Seal,
 }
 
 /// Whether an element is a box (ADR 0031): boxing's own table, parallel to

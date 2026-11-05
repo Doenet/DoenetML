@@ -1,7 +1,8 @@
 # Each stage of the compile is a function of what it reads
 
 Status: accepted 2026-11-02. Proposed 2026-11-02; every step is done (see
-Migration). Amends ADR
+Migration). Amended 2026-11-05: `Compiler` holds no stage's own state
+(see the note after step 7). Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -258,6 +259,25 @@ otherwise.
    the caches (`extend_refs`, `string_ids`, `prop_sels`, `ref_subst`). The
    earlier steps' notes name `compile_all`; its body is now
    `Compiler::compile`'s.
+
+   Amended 2026-11-05: the `Option`s went. `Settled` was held twice, in
+   the `Outlining` while outlining ran and as `settled: &Settled` after,
+   and every accessor chose between them; it is now one owned field of
+   `Compiler`, written by outlining alone (`settled_mut`, which asserts
+   the stage) and read by every later stage. What a stage needs only
+   while it runs is a local of the stage's function, handed down to what
+   it calls: `Outlining` (`outline/mod.rs`: the work lists and the
+   copies expanding) is `outline`'s, passed through the walk, and
+   `Planning` (`planning/mod.rs`: `Parsed`, which it owns from here on,
+   and the `Planned` it fills) is `plan_all`'s, which the planners reach
+   through their `PlanCtx`. The stage running is a field (`stage`, set by
+   `compile` at each boundary), which boxing reads rather than inferring
+   it from which `Option` was `Some`; `Stage` names parsing and sealing
+   too, which box nothing. The reads outlining records go in its
+   `Outline`, and planning's `Planned::reads` starts from them, so
+   linking reads one list. The compile-time guarantee that nothing after
+   outlining changes what it settled is a runtime assertion now; the
+   guarantee that planning takes what it reads as arguments is the type.
 8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`
    name the new paths. Done: `outline/` (the walk; `copies.rs`,
    `choice.rs`, `answer.rs` for what outlining makes of each), `parse.rs`,

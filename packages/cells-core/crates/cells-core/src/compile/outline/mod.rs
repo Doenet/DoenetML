@@ -12,15 +12,34 @@ mod copies;
 
 use crate::compile::*;
 
+/// Outlining's working state, a local of `Compiler::outline` handed down
+/// the walk: the `Outline` it fills for the stages after it, and what it
+/// needs only while it runs.
+#[derive(Default)]
+pub(in crate::compile) struct Outlining {
+    /// What outlining hands on, as it fills it.
+    pub(in crate::compile) work: Outline,
+    /// The container copies (`<graph extend="$g"/>`) the walk found, which
+    /// get their clones once every name is in the table
+    /// (`expand_container_copies`).
+    pub(in crate::compile) container_copies: Vec<(TemplateId, ElemId)>,
+    /// By (template, element), the container copies expanding now and
+    /// those done: one reached again while it expands is a cycle.
+    pub(in crate::compile) expanding: HashSet<(u32, u32)>,
+    pub(in crate::compile) expanded: HashSet<(u32, u32)>,
+}
+
 impl Compiler<'_> {
     /// Outlining: every element, template and name, and what a reference
     /// reads of each that its own source settles (`settle_outline`); once
     /// every name is in the table, container copies get their clones,
     /// which completes the element set. Nothing is planned. Returns the
-    /// work it found for the stages after it.
+    /// work it found for the stages after it; what it settled is
+    /// `Compiler::settled`.
     pub(in crate::compile) fn outline(&mut self) -> Outline {
         let dast = self.dast;
-        self.outlining = Some(Outlining::default());
+        let mut o = Outlining::default();
+        let o = &mut o;
         // Template 0, the document's.
         self.push_template(None);
         // Template 0 is the document: its one child is the root component.
@@ -31,6 +50,7 @@ impl Compiler<'_> {
             .find(|&n| dast.kind(n) == NodeKind::Element && dast.str(n) == "document");
         let children = match doc_el {
             Some(el) => vec![Child::Elem(self.add_elem(
+                o,
                 TemplateId::new(0),
                 el,
                 ROOT_SCOPE,
@@ -40,8 +60,9 @@ impl Compiler<'_> {
                 // planned with every element (`plan_synthetic`).
                 let e =
                     self.add_synthetic(TemplateId::new(0), ComponentType::Document, StrId::NONE);
-                self.outlining().work.to_plan.push((TemplateId::new(0), e));
+                o.work.to_plan.push((TemplateId::new(0), e));
                 let kids = self.add_children(
+                    o,
                     TemplateId::new(0),
                     Some(e),
                     ROOT_SCOPE,
@@ -54,19 +75,12 @@ impl Compiler<'_> {
         self.outlined_mut(TemplateId::new(0)).children = children;
         {
             let _s = crate::trace::span("container copies");
-            crate::trace::count("copies", self.outlining().container_copies.len());
-            self.expand_container_copies();
+            crate::trace::count("copies", o.container_copies.len());
+            self.expand_container_copies(o);
         }
-        crate::trace::span("extends").run(|| self.plan_extends());
-        crate::trace::span("answer children").run(|| self.add_answer_children());
-        self.outlining.take().expect("outlining").work
-    }
-
-    /// Outlining's state; only outlining reaches it.
-    pub(in crate::compile) fn outlining(&mut self) -> &mut Outlining {
-        self.outlining
-            .as_mut()
-            .expect("only outlining makes elements and work for later stages (ADR 0030)")
+        crate::trace::span("extends").run(|| self.plan_extends(o));
+        crate::trace::span("answer children").run(|| self.add_answer_children(o));
+        std::mem::take(&mut o.work)
     }
 
     pub(in crate::compile) fn push_elem(
@@ -97,10 +111,7 @@ impl Compiler<'_> {
         self.tables[t.index()].boxes.push(BoxState::Live);
         let Settled {
             names, templates, ..
-        } = &mut (self.outlining.as_mut())
-            .expect("only outlining makes elements (ADR 0030)")
-            .work
-            .settled;
+        } = self.settled_mut();
         let tpl = &mut templates[t.index()];
         let name_id = (name != StrId::NONE).then(|| {
             let s = dast.strings.get(name).trim();
@@ -172,6 +183,7 @@ impl Compiler<'_> {
     /// `el` boxes the innermost failing element and leaves `el` be.
     pub(in crate::compile) fn add_elem(
         &mut self,
+        o: &mut Outlining,
         t: TemplateId,
         el: NodeId,
         name_scope: ElemId,
@@ -180,7 +192,7 @@ impl Compiler<'_> {
             return self.push_error_elem(t, el, name_scope);
         }
         let n = self.outlined(t).elems.len();
-        match self.add_elem_inner(t, el, name_scope) {
+        match self.add_elem_inner(o, t, el, name_scope) {
             Ok(e) => e,
             // The element is boxed where it fails (ADR 0027): the one
             // made for it, when it got that far, else a new one.
@@ -200,7 +212,13 @@ impl Compiler<'_> {
         }
     }
 
-    fn add_elem_inner(&mut self, t: TemplateId, el: NodeId, name_scope: ElemId) -> Result<ElemId> {
+    fn add_elem_inner(
+        &mut self,
+        o: &mut Outlining,
+        t: TemplateId,
+        el: NodeId,
+        name_scope: ElemId,
+    ) -> Result<ElemId> {
         let d = self.dast;
         let tag = d.str(el);
         let component_type =
@@ -219,9 +237,9 @@ impl Compiler<'_> {
         }
         let name = self.attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
-        self.outlining().work.to_plan.push((t, e));
+        o.work.to_plan.push((t, e));
         if self.is_container_copy(t, e) {
-            self.outlining().container_copies.push((t, e));
+            o.container_copies.push((t, e));
             self.outlined_mut(t).elems[e.index()].clones_pending = true;
         }
         let child_scope = e;
@@ -251,13 +269,13 @@ impl Compiler<'_> {
                 if let Some(iname) = self.attr_name_str(el, "indexName") {
                     self.add_synthetic(sub, ComponentType::Number, iname);
                 }
-                let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el));
+                let kids = self.add_children(o, sub, None, ROOT_SCOPE, d.children(el));
                 self.outlined_mut(sub).children = kids;
                 self.outlined_mut(t).elems[e.index()].body = Body::Repeat { template: sub };
             }
             ComponentType::Collect | ComponentType::PointList => {}
             ComponentType::ConditionalContent | ComponentType::Select => {
-                self.add_choice(t, e, el)?
+                self.add_choice(o, t, e, el)?
             }
             // An answer's and an award's element children are components
             // (inputs, awards, whens); their text and `$ref`s are math the
@@ -266,7 +284,7 @@ impl Compiler<'_> {
                 let mut kids = Vec::new();
                 for &n in d.children(el) {
                     if d.kind(n) == NodeKind::Element {
-                        kids.push(Child::Elem(self.add_elem(t, n, child_scope)));
+                        kids.push(Child::Elem(self.add_elem(o, t, n, child_scope)));
                     }
                 }
                 self.outlined_mut(t).elems[e.index()].children = kids;
@@ -284,16 +302,16 @@ impl Compiler<'_> {
                     .filter(|&n| self.is_presentation_child(n))
                     .collect();
                 if !presentational.is_empty() {
-                    let kids = self.add_children(t, Some(e), child_scope, &presentational);
+                    let kids = self.add_children(o, t, Some(e), child_scope, &presentational);
                     self.outlined_mut(t).elems[e.index()].children = kids;
                 }
             }
             _ => {
-                let kids = self.add_children(t, Some(e), child_scope, d.children(el));
+                let kids = self.add_children(o, t, Some(e), child_scope, d.children(el));
                 self.outlined_mut(t).elems[e.index()].children = kids;
             }
         }
-        self.settle_outline(t, e, el)?;
+        self.settle_outline(o, t, e, el)?;
         Ok(e)
     }
 
@@ -303,7 +321,13 @@ impl Compiler<'_> {
     /// `<collect>` (its `componentType`) or a `<polyline>` (points)
     /// collects. Its planner plans as this says, and adds a collect's
     /// `from`.
-    fn settle_outline(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<()> {
+    fn settle_outline(
+        &mut self,
+        o: &mut Outlining,
+        t: TemplateId,
+        e: ElemId,
+        el: NodeId,
+    ) -> Result<()> {
         let d = self.dast;
         let elem = &self.outlined(t).elems[e.index()];
         let component_type = match elem.component_type {
@@ -314,7 +338,7 @@ impl Compiler<'_> {
                     Err(_) => ComponentType::Math,
                 };
                 self.outlined_mut(t).elems[e.index()].component_type = k;
-                self.outlining().work.math_texts.push(((t, e), mt));
+                o.work.math_texts.push(((t, e), mt));
                 return Ok(());
             }
             ComponentType::Collect => crate::components::structure::collect::collected_type(
@@ -329,6 +353,7 @@ impl Compiler<'_> {
 
     pub(in crate::compile) fn add_children(
         &mut self,
+        o: &mut Outlining,
         t: TemplateId,
         owner: Option<ElemId>,
         name_scope: ElemId,
@@ -345,7 +370,7 @@ impl Compiler<'_> {
                     if tag == "_dynamicChildren" || tag == "_repeatSetup" {
                         continue;
                     }
-                    kids.push(Child::Elem(self.add_elem(t, n, name_scope)));
+                    kids.push(Child::Elem(self.add_elem(o, t, n, name_scope)));
                 }
                 // Whitespace-only text between lines is layout and would only
                 // become a DOM node; a space between inline items is content
@@ -366,7 +391,7 @@ impl Compiler<'_> {
                         owner,
                         has_index: d.macro_has_index(n),
                     });
-                    self.outlining().work.macros.push((t, id));
+                    o.work.macros.push((t, id));
                     kids.push(Child::Macro(id));
                 }
                 NodeKind::Other => {}

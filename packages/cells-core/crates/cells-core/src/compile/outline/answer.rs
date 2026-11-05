@@ -2,6 +2,7 @@
 //! implicit `<mathInput>` and a `response` per input its whens read. The
 //! answer's planner (`planning/answer.rs`) plans them.
 
+use super::Outlining;
 use crate::compile::*;
 
 impl Compiler<'_> {
@@ -9,8 +10,8 @@ impl Compiler<'_> {
     /// its implicit `<mathInput>` and a `response` per input its whens
     /// read, in the order the walk made the answers. They follow every
     /// element the walk and the container copies made.
-    pub(in crate::compile) fn add_answer_children(&mut self) {
-        let made = self.outlining().work.to_plan.clone();
+    pub(in crate::compile) fn add_answer_children(&mut self, o: &Outlining) {
+        let made = o.work.to_plan.clone();
         let answers: Vec<(TemplateId, ElemId)> = made
             .into_iter()
             .filter(|&(t, e)| {
@@ -70,16 +71,14 @@ impl Compiler<'_> {
                     continue;
                 }
                 let p = self.plan_ref(t, w, m)?;
-                self.outlining().work.settled.when_refs.insert(m, p);
+                self.settled_mut().when_refs.insert(m, p);
                 if let Some((key, _)) = self.input_named(t, p) {
                     let r = match keys.iter().find(|(k, _)| *k == key) {
                         Some(&(_, r)) => r,
                         None => {
                             let r = self.add_response(t, e);
                             keys.push((key, r));
-                            self.outlining()
-                                .work
-                                .settled
+                            self.settled_mut()
                                 .answer_responses
                                 .entry((t.get(), e.get()))
                                 .or_default()
@@ -88,7 +87,7 @@ impl Compiler<'_> {
                         }
                     };
                     // The `$mi` stands for the submitted copy, from here on.
-                    self.outlining().work.settled.submitted.insert(m, r);
+                    self.settled_mut().submitted.insert(m, r);
                 }
             }
         }

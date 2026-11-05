@@ -1,5 +1,6 @@
 //! [`PlanCtx`]: what every planner in `components/` is given (ADR 0016).
 
+use super::Planning;
 use crate::compile::*;
 use crate::components::ConstrainTarget;
 
@@ -17,6 +18,9 @@ use crate::components::ConstrainTarget;
 /// methods, so that it grows deliberately.
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
+    /// Planning's working set: what parsing made, what it records for
+    /// linking.
+    p: &'c mut Planning,
     t: TemplateId,
     e: ElemId,
     /// The element's record (ADR 0032, ADR 0034): its own, merged under
@@ -40,6 +44,7 @@ struct Base {
 impl<'c, 'a> PlanCtx<'c, 'a> {
     pub(in crate::compile) fn new(
         c: &'c mut Compiler<'a>,
+        p: &'c mut Planning,
         t: TemplateId,
         e: ElemId,
         record: record::Record,
@@ -70,6 +75,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         });
         PlanCtx {
             c,
+            p,
             t,
             e,
             record,
@@ -163,7 +169,9 @@ impl<'a> PlanCtx<'_, 'a> {
     /// outlining settled it (a `<math>` may be a point).
     pub(crate) fn reference_type(&mut self, p: RefId) -> Result<Option<ComponentType>> {
         match self.c.plan_elem_target(self.t, p) {
-            Some(_) => self.c.referent_type(self.t, self.e, p),
+            Some(_) => self
+                .c
+                .referent_type(&mut self.p.planned.reads, self.t, self.e, p),
             None => Ok(None),
         }
     }
@@ -236,7 +244,7 @@ impl<'a> PlanCtx<'_, 'a> {
             c.parse_tokens(&sides[1], src)?,
         );
         let diff = c.compiled.arena.push(Expr::Sub(lhs, rhs));
-        let diff = c.inline_symbolic_maths(t, diff);
+        let diff = c.inline_symbolic_maths(&self.p.parsed, t, diff);
         Ok(
             super::expr::linear_coeffs(&mut c.compiled.arena, diff, vx, vy).map(|[a, b, k]| {
                 [
@@ -277,7 +285,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// The element's `<math>` text as it was parsed (ADR 0029), or the
     /// error parsing it met.
     pub(crate) fn parsed_math(&self) -> Result<ParsedMath> {
-        match self.c.parsed().math(self.t, self.e) {
+        match self.p.parsed.math(self.t, self.e) {
             Some(parsed) => parsed.clone(),
             None => Err(Error::Internal("a <math> that was never parsed".into())),
         }

@@ -25,12 +25,15 @@
 //! (`Compiler::compile`), then the abstract build, which stands for every
 //! count and pick (ADR 0012, ADR 0014), and compiles again when a failure
 //! could not be boxed where it arose (ADR 0013). Each stage returns what
-//! it makes for later ones, and `Compiler::compile` hands it on: work
-//! lists as arguments, and what outlining settled ([`Settled`]) and
-//! parsing made ([`Parsed`]) as shared references the `Compiler` holds,
-//! which the planners read through their context and cannot change. What
-//! a stage is still making lives on `Compiler` only while it runs
-//! (`outlining`, `planning`). All of them write the compile itself
+//! it makes for later ones, and `Compiler::compile` hands it on as
+//! arguments: outlining's work lists and the reads it recorded
+//! ([`Outline`]), what parsing made ([`Parsed`]), what planning made
+//! ([`Planned`]). What outlining settles ([`Settled`]) is the one result
+//! every later stage reads, so it is on `Compiler`, written by outlining
+//! alone. What a stage needs only while it runs is a local of the stage's
+//! function, handed down to what it calls (`outline/mod.rs`'s
+//! `Outlining`, `planning/mod.rs`'s `Planning`, which the planners reach
+//! through their context). All of them write the compile itself
 //! (`Compiled`), each in its own way (see the field's doc).
 //!
 //! Files follow the stages (ADR 0030). This one has the driver
@@ -128,18 +131,18 @@ pub(in crate::compile) struct Attempt {
     pub(in crate::compile) errors: Vec<Diagnostic>,
 }
 
-/// The state of one compile, outline to seal (ADR 0030). Each stage's
-/// result is a value: outlining's `Outline` (its work lists, passed to
-/// parsing and planning, and its `Settled`), parsing's `Parsed` and
-/// planning's `Planned`, passed to linking and sealing. What a stage reads
-/// of an earlier one's result it reads through a shared reference
-/// (`settled`, `parsed`), so it cannot change it; what a stage is making
-/// lives in an `Option` that is `Some` only while that stage runs
-/// (`outlining`, `planning`). The rest is the compile itself, its boxes
-/// and planning's caches. Each field says which stage writes it (*W*) and
+/// What every stage of one compile works on, outline to seal (ADR 0030):
+/// the source, the compile being made in its parts (`compiled`, what
+/// outlining `settled`, the later stages' `tables`), which stage runs,
+/// the boxes, and two caches. Nothing here is one stage's own: a stage's
+/// working state is a local of its function, and what a stage makes for
+/// a later one is its return value and the other's argument (`Outline`,
+/// `Parsed`, `Planned`). Each field says which stage writes it (*W*) and
 /// which read it (*R*).
 pub(in crate::compile) struct Compiler<'a> {
-    /// The source being compiled; `compiled` keeps it too. R: every stage.
+    /// The source being compiled. `compiled.dast` is the same source; this
+    /// reference is copied out (`let d = self.dast;`) so a method can read
+    /// it while it writes the rest of `self`. R: every stage.
     pub(in crate::compile) dast: &'a Dast,
     /// What the compile makes. W: every stage. Outlining pushes every
     /// element (an answer's synthetic ones too, `add_answer_children`),
@@ -153,22 +156,22 @@ pub(in crate::compile) struct Compiler<'a> {
     /// aliases shared ports in `plans`; sealing makes `sealed` and choice
     /// interfaces (ADR 0031).
     pub(in crate::compile) compiled: Compiled,
-    /// Outlining's own state, and the `Outline` it is filling: `Some`
-    /// only while outlining runs (`outline`), so nothing after it can add
-    /// an element or work for a later stage (ADR 0030).
-    outlining: Option<Outlining>,
-    /// What outlining settled, from parsing on. R: parse, plan, link.
-    settled: Option<&'a Settled>,
-    /// What parsing made, from planning on. R: plan (the math's planner;
-    /// a line's equation, which inlines a parse).
-    parsed: Option<&'a Parsed>,
-    /// What planning is making: `Some` only while it runs (`plan_all`).
-    planning: Option<Planned>,
+    /// What outlining settles, which every stage after it reads and none
+    /// changes (ADR 0030). W: outline, through `outlined_mut` and the
+    /// walk (`push_elem_visible_to`, `push_template`), which `stage`
+    /// guards. R: every stage after outlining, through `settled`,
+    /// `outlined`, `names`, `choice` and `submitted`.
+    settled: Settled,
     /// Boxing's and planning's tables, by `TemplateId` (ADR 0031): what
     /// the stages after outlining write, beside outlining's part
     /// (`Settled::templates`), which they only read. W: boxing (outline,
     /// plan, link), plan; link aliases shared slots in `plans`.
     tables: Vec<Tables>,
+    /// The stage running now. W: `compile`, at each stage boundary. R:
+    /// boxing, which records it on each box (`make_box`) and reads it to
+    /// decide which boxes a reader sees (`is_visible_box`), and the checks
+    /// that only outlining makes elements and plans extends.
+    stage: Stage,
     /// Every string's canonical id, over the DAST table (built when first
     /// needed) and then `extra_strings`: see `intern_literal`. A cache.
     /// W, R: plan (`intern_literal`).
@@ -211,8 +214,11 @@ pub(in crate::compile) struct Outline {
     /// Each `<math>`'s text, tokenized where its type was settled
     /// (`parse_maths`).
     math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
-    /// What it settled for every later stage to read.
-    settled: Settled,
+    /// Every read outlining recorded (`record_read`): a container copy's
+    /// of its referent's type, and each clone's of its original. Planning
+    /// adds its own (`Planned::reads`); linking boxes the readers of
+    /// boxes among them (`box_readers_of_boxes`).
+    reads: Vec<Read>,
 }
 
 /// What outlining settles that the stages after it read and never change
@@ -244,10 +250,6 @@ pub(in crate::compile) struct Settled {
     /// its whens read, keyed as `input_named` keys them. R: plan
     /// (`plan_award`).
     answer_responses: HashMap<(u32, u32), Vec<(InputKey, ElemId)>>,
-    /// Every read outlining recorded (`record_read`): a container copy's
-    /// of its referent's type, and each clone's of its original. R: link
-    /// (`box_readers_of_boxes`).
-    reads: Vec<Read>,
 }
 
 /// A recorded cross-element read (`Compiler::record_read`): the reader,
@@ -266,28 +268,14 @@ pub(in crate::compile) struct Planned {
     /// 0032): what a copy shares with its original. R: link
     /// (`link_given_leaves`), seal (`assign_keys`).
     given: HashMap<(u32, u32), HashMap<GivenId, Port>>,
-    /// Every read planning recorded (`record_read`): an element whose
-    /// plan read the type of what a reference names. R: link
+    /// Every read recorded (`record_read`): outlining's (`Outline::reads`,
+    /// which planning starts from) and planning's, an element whose plan
+    /// read the type of what a reference names. R: link
     /// (`box_readers_of_boxes`), which boxes one whose referent is a box.
     reads: Vec<Read>,
     /// The extends whose referent is in another template, as linking tied
     /// them (`link_given_leaves`). R: share (`compile/share.rs`).
     paths: Vec<share::PathExtend>,
-}
-
-/// Outlining's state while it runs (`Compiler::outlining`).
-#[derive(Default)]
-pub(in crate::compile) struct Outlining {
-    /// What outlining hands on, as it fills it.
-    work: Outline,
-    /// The container copies (`<graph extend="$g"/>`) the walk found, which
-    /// get their clones once every name is in the table
-    /// (`expand_container_copies`).
-    container_copies: Vec<(TemplateId, ElemId)>,
-    /// By (template, element), the container copies expanding now and
-    /// those done: one reached again while it expands is a cycle.
-    expanding: HashSet<(u32, u32)>,
-    expanded: HashSet<(u32, u32)>,
 }
 
 /// A given leaf copy `e` shares with its referent (ADR 0023, ADR 0032):
@@ -362,11 +350,9 @@ impl Compiler<'_> {
                 fold: false,
                 expr_class: Vec::new(),
             },
-            outlining: None,
-            settled: None,
-            parsed: None,
-            planning: None,
+            settled: Settled::default(),
             tables: Vec::new(),
+            stage: Stage::Outline,
             string_ids: None,
             boxed,
             restart: None,
@@ -374,26 +360,26 @@ impl Compiler<'_> {
             boxed_here: HashSet::new(),
             prop_sels: Vec::new(),
         };
-        let outline = crate::trace::span("outline").run(|| cp.outline());
-        cp.restart_if_needed()?;
         let Outline {
             to_plan,
             macros,
             math_texts,
-            settled,
-        } = outline;
+            reads,
+        } = crate::trace::span("outline").run(|| cp.outline());
+        cp.restart_if_needed()?;
         // From here on, every stage reads what outlining settled and none
-        // can change it.
-        cp.settled = Some(&settled);
-        // The element set is outlining's (ADR 0030, ADR 0031): planning and
-        // linking make none.
+        // changes it. The element set is outlining's (ADR 0030, ADR 0031):
+        // planning and linking make none.
         let outlined = cp.elem_count();
+        cp.stage = Stage::Parse;
         let mut parsed: Parsed =
             crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
         crate::trace::span("parse records").run(|| cp.parse_records(&to_plan, &mut parsed));
-        cp.parsed = Some(&parsed);
-        let mut planned = crate::trace::span("plan all").run(|| cp.plan_all(to_plan, macros));
+        cp.stage = Stage::Plan;
+        let mut planned =
+            crate::trace::span("plan all").run(|| cp.plan_all(parsed, to_plan, macros, reads));
         cp.restart_if_needed()?;
+        cp.stage = Stage::Link;
         crate::trace::span("link").run(|| cp.link(&mut planned))?;
         debug_assert_eq!(
             cp.elem_count(),
@@ -401,15 +387,17 @@ impl Compiler<'_> {
             "only outlining makes elements (ADR 0030, ADR 0031)"
         );
         cp.restart_if_needed()?;
+        cp.stage = Stage::Seal;
         let (sealed, choice_seals) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
         let _s = crate::trace::span("finish");
         cp.drop_reports_of_boxes();
         // Each stage's tables put together, as the build reads them (ADR
-        // 0031): outlining's part, released by every stage that read it.
+        // 0031).
         let Compiler {
             mut compiled,
             errors,
             tables,
+            settled,
             ..
         } = cp;
         let Settled {
@@ -440,55 +428,41 @@ impl Compiler<'_> {
     }
 }
 
-impl<'a> Compiler<'a> {
-    /// What outlining settled; after outlining only.
-    pub(in crate::compile) fn settled(&self) -> &'a Settled {
-        self.settled
-            .expect("what outlining settled is read after it (ADR 0030)")
+impl Compiler<'_> {
+    /// What outlining settled, which it alone makes (ADR 0030).
+    pub(in crate::compile) fn settled(&self) -> &Settled {
+        &self.settled
     }
 
-    /// What parsing made; from planning on.
-    pub(in crate::compile) fn parsed(&self) -> &'a Parsed {
-        self.parsed
-            .expect("what parsing made is read after it (ADR 0030)")
+    /// What outlining settled, to make; only outlining reaches it.
+    pub(in crate::compile) fn settled_mut(&mut self) -> &mut Settled {
+        debug_assert_eq!(
+            self.stage,
+            Stage::Outline,
+            "only outlining makes what it settled (ADR 0030)"
+        );
+        &mut self.settled
     }
 
-    /// What planning is making; only planning reaches it.
-    pub(in crate::compile) fn planning(&mut self) -> &mut Planned {
-        self.planning
-            .as_mut()
-            .expect("only planning makes what linking reads (ADR 0030)")
-    }
-
-    /// The name table: outlining's while it is made, then what it settled.
+    /// The name table.
     pub(in crate::compile) fn names(&self) -> &NameTable {
-        match &self.outlining {
-            Some(o) => &o.work.settled.names,
-            None => &self.settled().names,
-        }
+        &self.settled.names
     }
 
     /// The answer's `response` a `$mi` in a `<when>` stands for
-    /// (`Settled::submitted`), as `names` does.
+    /// (`Settled::submitted`).
     pub(in crate::compile) fn submitted(&self, m: NodeId) -> Option<ElemId> {
-        match &self.outlining {
-            Some(o) => o.work.settled.submitted.get(&m).copied(),
-            None => self.settled().submitted.get(&m).copied(),
-        }
+        self.settled.submitted.get(&m).copied()
     }
 
-    /// Outlining's part of template `t`: outlining's own while it makes it,
-    /// then what it settled, read-only (ADR 0031).
+    /// Outlining's part of template `t`, read-only (ADR 0031).
     pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &Outlined {
-        match &self.outlining {
-            Some(o) => &o.work.settled.templates[t.index()],
-            None => &self.settled().templates[t.index()],
-        }
+        &self.settled.templates[t.index()]
     }
 
     /// Outlining's part of template `t`, to make; only outlining reaches it.
     pub(in crate::compile) fn outlined_mut(&mut self, t: TemplateId) -> &mut Outlined {
-        &mut self.outlining().work.settled.templates[t.index()]
+        &mut self.settled_mut().templates[t.index()]
     }
 
     /// Element `e` of template `t` as outlining made it.
@@ -511,10 +485,7 @@ impl<'a> Compiler<'a> {
 
     /// Choice `cid` as outlining made it.
     pub(in crate::compile) fn choice(&self, cid: ChoiceId) -> &ChoiceDef {
-        match &self.outlining {
-            Some(o) => &o.work.settled.choices[cid.index()],
-            None => &self.settled().choices[cid.index()],
-        }
+        &self.settled.choices[cid.index()]
     }
 
     /// Adds a template to outlining's part and to the tables; only
@@ -524,7 +495,7 @@ impl<'a> Compiler<'a> {
         parent: Option<(TemplateId, ElemId)>,
     ) -> TemplateId {
         let t = TemplateId::from_index(self.tables.len());
-        self.outlining().work.settled.templates.push(Outlined {
+        self.settled_mut().templates.push(Outlined {
             parent,
             ..Default::default()
         });

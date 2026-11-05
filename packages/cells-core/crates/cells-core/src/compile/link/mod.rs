@@ -18,13 +18,10 @@ impl Compiler<'_> {
         &mut self,
         planned: &mut Planned,
     ) -> std::result::Result<(), Failure> {
-        let readers: Vec<Read> = (self.settled().reads.iter())
-            .chain(&planned.reads)
-            .copied()
-            .collect();
+        let readers = &planned.reads;
         let box_readers = |cp: &mut Self| {
             crate::trace::span("box readers")
-                .run(|| cp.box_readers_of_boxes(&readers))
+                .run(|| cp.box_readers_of_boxes(readers))
                 .map_err(|error| Failure { error, node: None })
         };
         box_readers(self)?;

@@ -1,6 +1,7 @@
 //! `<functionIterates>` and the `<repeat for>` over its iterates: the
 //! planners of types whose contents follow a list.
 
+use super::Planning;
 use crate::compile::*;
 use crate::components::MAX_TUPLE;
 use crate::components::prop::function_iterates;
@@ -30,8 +31,13 @@ impl<'a> Compiler<'a> {
     /// each variable replaced by the matching entry of iteration `k - 1`,
     /// lowered to numeric operators. The function's text is re-planned from
     /// the body, so its references resolve from the `<functionIterates>`.
-    pub(super) fn plan_function_iterates(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        self.plan_table(t, e, None, true)?;
+    pub(super) fn plan_function_iterates(
+        &mut self,
+        pl: &mut Planning,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<()> {
+        self.plan_table(&pl.parsed, t, e, None, true)?;
         let ports = function_iterates::Props::PORTS;
         self.tables[t.index()].plans[e.index()].props[ports.allIteratesWithInitial.index()] =
             Source::own(ports.count);
@@ -46,7 +52,7 @@ impl<'a> Compiler<'a> {
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
         let fp = self.plan_ref(t, scope, fm)?;
-        self.referent_type(t, e, fp)?;
+        self.referent_type(&mut pl.planned.reads, t, e, fp)?;
         let (ft, fe) = self
             .static_target(t, fp)
             .filter(|&(ft, fe)| {

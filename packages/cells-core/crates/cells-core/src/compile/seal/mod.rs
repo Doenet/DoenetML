@@ -136,7 +136,7 @@ impl Compiler<'_> {
         &mut self,
         planned: &Planned,
     ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>), Failure> {
-        let settled = self.settled();
+        let settled = &self.settled;
         seal::Seal {
             compiled: &mut self.compiled,
             dast: self.dast,

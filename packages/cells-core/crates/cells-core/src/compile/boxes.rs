@@ -17,17 +17,6 @@ impl Compiler<'_> {
         self.view(t).is_box(e)
     }
 
-    /// The stage running now, which a box records (`BoxState::Boxed::by`).
-    fn stage(&self) -> Stage {
-        if self.outlining.is_some() {
-            Stage::Outline
-        } else if self.planning.is_some() {
-            Stage::Plan
-        } else {
-            Stage::Link
-        }
-    }
-
     /// Whether element `e` is a box a reader of its type may see now: while
     /// planning, only outlining's, so that planning does not depend on its
     /// own order (ADR 0031); a reader of a box made while planning is boxed
@@ -35,7 +24,7 @@ impl Compiler<'_> {
     pub(in crate::compile) fn is_visible_box(&self, t: TemplateId, e: ElemId) -> bool {
         match &self.tables[t.index()].boxes[e.index()] {
             BoxState::Live => false,
-            BoxState::Boxed { by, .. } => self.planning.is_none() || *by == Stage::Outline,
+            BoxState::Boxed { by, .. } => self.stage != Stage::Plan || *by == Stage::Outline,
         }
     }
 
@@ -205,7 +194,7 @@ impl Compiler<'_> {
     /// `dead`, one under a box, which no build makes. What other stages
     /// made of it stays as they made it.
     pub(in crate::compile) fn make_box(&mut self, t: TemplateId, e: ElemId, dead: bool) {
-        let by = self.stage();
+        let by = self.stage;
         let row = Box::new(self.elem(t, e).as_box());
         self.tables[t.index()].boxes[e.index()] = BoxState::Boxed { row, by, dead };
     }

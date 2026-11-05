@@ -10,17 +10,19 @@ impl<'a> Compiler<'a> {
     /// a type with one is planned by a function.
     pub(in crate::compile) fn plan_attrs(
         &mut self,
+        parsed: &Parsed,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
     ) -> Result<()> {
-        self.plan_table(t, e, extend, false)
+        self.plan_table(parsed, t, e, extend, false)
     }
 
     /// `plan_attrs` for machinery that plans the `by_planner` props itself
     /// after the table (`plan_function_iterates`): they are left absent.
     pub(in crate::compile) fn plan_table(
         &mut self,
+        parsed: &Parsed,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
@@ -43,7 +45,7 @@ impl<'a> Compiler<'a> {
         // The element's own children, as its type reads them (ADR 0034):
         // what a `PropFrom::Children` prop is planned from.
         let children = if component_type.def().children.kind == ChildrenKind::Value {
-            self.parsed().record(t, e)?.child_value()
+            parsed.record(t, e)?.child_value()
         } else {
             ValueChildren::blank()
         };
@@ -396,15 +398,22 @@ impl<'a> Compiler<'a> {
     /// plan (ADR 0029).
     pub(in crate::compile) fn inline_symbolic_maths(
         &mut self,
+        parsed: &Parsed,
         t: TemplateId,
         id: ExprId,
     ) -> ExprId {
-        self.inline_maths(t, id, &mut Vec::new())
+        self.inline_maths(parsed, t, id, &mut Vec::new())
     }
 
     /// `inline_symbolic_maths`, with the maths being inlined around `id`:
     /// one reached again (two maths naming each other) is left a cell.
-    fn inline_maths(&mut self, t: TemplateId, id: ExprId, inlining: &mut Vec<ElemId>) -> ExprId {
+    fn inline_maths(
+        &mut self,
+        parsed: &Parsed,
+        t: TemplateId,
+        id: ExprId,
+        inlining: &mut Vec<ElemId>,
+    ) -> ExprId {
         let e = self.compiled.arena.get(id).clone();
         match e {
             Expr::Cell(p) => {
@@ -415,7 +424,7 @@ impl<'a> Compiler<'a> {
                 };
                 // Every `<math>` is parsed before planning; one that did not parse is
                 // left a cell, its error its own.
-                let Some(Ok(ParsedMath::Expr(inner))) = self.parsed().math(t, target) else {
+                let Some(Ok(ParsedMath::Expr(inner))) = parsed.math(t, target) else {
                     return id;
                 };
                 let inner = *inner;
@@ -428,19 +437,19 @@ impl<'a> Compiler<'a> {
                     return id;
                 }
                 inlining.push(target);
-                let inlined = self.inline_maths(t, inner, inlining);
+                let inlined = self.inline_maths(parsed, t, inner, inlining);
                 inlining.pop();
                 inlined
             }
             Expr::Num(_) | Expr::Sym(_) => id,
             Expr::Neg(a) => {
-                let a = self.inline_maths(t, a, inlining);
+                let a = self.inline_maths(parsed, t, a, inlining);
                 self.compiled.arena.push(Expr::Neg(a))
             }
             Expr::Call(f, args) => {
                 let args = args
                     .into_iter()
-                    .map(|a| self.inline_maths(t, a, inlining))
+                    .map(|a| self.inline_maths(parsed, t, a, inlining))
                     .collect();
                 self.compiled.arena.push(Expr::Call(f, args))
             }
@@ -450,8 +459,8 @@ impl<'a> Compiler<'a> {
             | Expr::Div(a, b)
             | Expr::Pow(a, b) => {
                 let (na, nb) = (
-                    self.inline_maths(t, a, inlining),
-                    self.inline_maths(t, b, inlining),
+                    self.inline_maths(parsed, t, a, inlining),
+                    self.inline_maths(parsed, t, b, inlining),
                 );
                 self.compiled.arena.push(e.with_operands(na, nb))
             }
