@@ -12,7 +12,7 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         comp: CompIdx,
     ) -> Result<Vec<ChildEntry>> {
-        let c: &'c Compiled = self.compiled;
+        let c = &self.compiled.plans;
         let def = &c.choices[cid.index()];
         let every_option = !def.reactive && self.view.options() == Options::Every;
         let mut inst = ChoiceInst {
@@ -262,7 +262,7 @@ impl<'c> Builder<'c> {
         id: NameId,
         cur: Resolved,
     ) -> (Resolved, ScopeId) {
-        let def = &self.compiled.choices[cid.index()];
+        let def = &self.compiled.plans.choices[cid.index()];
         let u = def.used_at[&id];
         let elems = &def.iface[&def.used[u.index()]].1;
         let in_branch = |inst: &ChoiceInst, j: usize| {
@@ -302,11 +302,11 @@ impl<'c> Builder<'c> {
     /// every version of the document that keeps the element's key.
     pub(super) fn seeded_stream(&self, scope: ScopeId, key: ElemKey) -> u64 {
         let mut h = splitmix(self.session.seed ^ 0x5eed_5e1e_c7ed_0001);
-        h = splitmix(h ^ stable_hash(self.compiled.keys.key_text(key).as_bytes()));
+        h = splitmix(h ^ stable_hash(self.compiled.plans.keys.key_text(key).as_bytes()));
         let mut s = scope;
         while s != ScopeId::DOCUMENT {
             let (parent, n, k) = self.scopes[s];
-            let level = self.compiled.keys.scope_level(n, k).to_string();
+            let level = self.compiled.plans.keys.scope_level(n, k).to_string();
             h = splitmix(h ^ stable_hash(level.as_bytes()));
             s = parent;
         }

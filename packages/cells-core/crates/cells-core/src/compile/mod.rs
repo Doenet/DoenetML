@@ -90,18 +90,19 @@ pub(crate) use seal::keys;
 /// A compile that planned: what it planned, and the errors of the
 /// elements it boxed where they failed.
 pub(in crate::compile) struct Attempt {
-    pub(in crate::compile) compiled: Compiled,
+    pub(in crate::compile) plans: Plans,
     pub(in crate::compile) errors: Vec<Diagnostic>,
 }
 
 /// What every stage of one compile works on, outline to seal: the source,
-/// the compile being made in its parts, which stage runs, and two caches.
+/// read-only, the plans being made in their parts, which stage runs, and a
+/// cache.
 /// What boxing records is a [`Boxes`], given only to the stages that box.
 pub(in crate::compile) struct Compiler<'a> {
-    /// The source being compiled, the same as `compiled.dast`.
+    /// The source being compiled. Only the finished `Compiled` owns it.
     pub(in crate::compile) dast: &'a Dast,
-    /// What the compile makes.
-    pub(in crate::compile) compiled: Compiled,
+    /// What the compile makes from it.
+    pub(in crate::compile) plans: Plans,
     /// What outlining settles, which every stage after it reads and none
     /// changes.
     settled: Settled,
@@ -207,14 +208,13 @@ impl Compiler<'_> {
     /// every element that fails to plan boxed where it fails. A failure
     /// names the node to box before compiling again, when there is one.
     pub(in crate::compile) fn compile<'a>(
-        dast: &'a Arc<Dast>,
+        dast: &'a Dast,
         boxed: &'a HashSet<NodeId>,
         share: bool,
     ) -> std::result::Result<Attempt, Failure> {
         let mut cp = Compiler {
             dast,
-            compiled: Compiled {
-                dast: dast.clone(),
+            plans: Plans {
                 // Put together once the compile is done (ADR 0031).
                 templates: Vec::new(),
                 refs: Vec::new(),
@@ -278,7 +278,8 @@ impl Compiler<'_> {
         // Each stage's tables put together, as the build reads them (ADR
         // 0031).
         let Compiler {
-            mut compiled,
+            dast,
+            mut plans,
             tables,
             settled,
             ..
@@ -286,28 +287,31 @@ impl Compiler<'_> {
         let Settled {
             templates, choices, ..
         } = settled;
-        compiled.templates = (templates.into_iter().zip(tables).zip(sealed))
+        plans.templates = (templates.into_iter().zip(tables).zip(sealed))
             .map(|((outlined, tables), sealed)| Template {
                 outlined,
                 tables,
                 sealed,
             })
             .collect();
-        compiled.choices = (choices.into_iter().zip(choice_seals))
+        plans.choices = (choices.into_iter().zip(choice_seals))
             .map(|(def, seal)| seal.into_def(def))
             .collect();
         // Equal computations share one cell (ADR 0033), once every port's
         // type is known.
         if share {
-            let shared = crate::trace::span("share").run(|| compiled.share(&planned.paths));
+            let shared = crate::trace::span("share").run(|| plans.share(dast, &planned.paths));
             crate::trace::count("shared ports", shared);
         }
-        let c = &mut compiled;
-        c.shrink_to_fit();
-        if c.has_repeats() {
-            c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
+        plans.shrink_to_fit();
+        if plans.has_repeats() {
+            plans.sym_trees = plans
+                .sym_text
+                .keys()
+                .map(|&k| (k, OnceLock::new()))
+                .collect();
         }
-        Ok(Attempt { compiled, errors })
+        Ok(Attempt { plans, errors })
     }
 }
 
@@ -393,9 +397,11 @@ impl Compiler<'_> {
         code: &'static str,
         message: &str,
     ) -> Warned {
-        Arc::make_mut(&mut self.compiled.diagnostics).push(
-            crate::diagnostics::Diagnostic::warning(code, Some(node), message.into()),
-        );
+        Arc::make_mut(&mut self.plans.diagnostics).push(crate::diagnostics::Diagnostic::warning(
+            code,
+            Some(node),
+            message.into(),
+        ));
         Warned::raised()
     }
 

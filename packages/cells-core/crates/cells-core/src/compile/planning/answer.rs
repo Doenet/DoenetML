@@ -445,12 +445,12 @@ impl<'a> Compiler<'a> {
         p: RefId,
         input_type: ComponentType,
     ) {
-        let mut live = self.compiled.refs[p.index()].clone();
+        let mut live = self.plans.refs[p.index()].clone();
         let math = input_type == ComponentType::MathInput;
         let name = if math { "expr" } else { "value" };
         live.prop = RefProp::named(input_type, name);
         debug_assert!(live.prop.is_some(), "an input has its value prop");
-        let live = Source::reference(rf.push(&mut self.compiled.refs, live));
+        let live = Source::reference(rf.push(&mut self.plans.refs, live));
         let submitted_port = response::Props::PORTS.submitted;
         let (submitted, value) = if math {
             (

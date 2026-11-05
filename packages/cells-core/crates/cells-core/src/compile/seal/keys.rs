@@ -219,7 +219,7 @@ impl super::Seal<'_> {
         keys.ends.shrink_to_fit();
         keys.types.shrink_to_fit();
         keys.n_public.shrink_to_fit();
-        self.compiled.keys = Arc::new(keys);
+        self.plans.keys = Arc::new(keys);
         elem_keys
     }
 }

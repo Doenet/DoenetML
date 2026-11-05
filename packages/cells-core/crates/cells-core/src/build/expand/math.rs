@@ -15,13 +15,17 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
     ) -> Result<BuiltSource> {
         let compiled = self.compiled;
-        let sym = compiled.sym_text.get(&expr).ok_or_else(|| Error::BadMath {
-            text: format!("{:?}", self.compiled.arena.get(expr)),
-            reason: "no math text recorded".into(),
-        })?;
+        let sym = compiled
+            .plans
+            .sym_text
+            .get(&expr)
+            .ok_or_else(|| Error::BadMath {
+                text: format!("{:?}", self.compiled.plans.arena.get(expr)),
+                reason: "no math text recorded".into(),
+            })?;
         // Spelled only to parse once, or for an error.
         let text = || sym.spell(&compiled.dast);
-        if compiled.arena.has_call(expr) {
+        if compiled.plans.arena.has_call(expr) {
             return Err(Error::BadMath {
                 text: text(),
                 reason: "round, floor, min, max and clamp are for numeric math only".into(),
@@ -34,7 +38,7 @@ impl<'c> Builder<'c> {
             return Ok(BuiltSource::Const(h.to_value()));
         }
         let parsed;
-        let tree = if let Some(cached) = compiled.sym_trees.get(&expr) {
+        let tree = if let Some(cached) = compiled.plans.sym_trees.get(&expr) {
             cached.get_or_init(|| self.engine.parse_tree(&text()))
         } else {
             parsed = self.engine.parse_tree(&text());
@@ -192,7 +196,7 @@ impl<'c> Builder<'c> {
             return ValueType::Number;
         }
         if let Some((t, ts)) = self.template_slot(slot) {
-            return self.compiled.port_type(t.index(), ts).value_type();
+            return self.compiled.plans.port_type(t.index(), ts).value_type();
         }
         if let BuiltSource::Alias(t) = self.sources[slot.index()] {
             return self.value_type_within(t, depth - 1);
@@ -241,18 +245,18 @@ impl<'c> Builder<'c> {
         id: ExprId,
         scope: ScopeId,
     ) -> Result<ExprId> {
-        // Equal math is one class (ADR 0033, `Compiled::expr_class`): a
+        // Equal math is one class (ADR 0033, `Plans::expr_class`): a
         // class is instantiated once per scope, for an element no hold
         // makes its own (`share_math`).
         let class = self
             .share_math
-            .then(|| (self.compiled.expr_class[id.index()], scope));
+            .then(|| (self.compiled.plans.expr_class[id.index()], scope));
         if let Some(key) = class
             && let Some(&done) = self.instantiated.get(&key)
         {
             return Ok(done);
         }
-        let e = self.compiled.arena.get(id).clone();
+        let e = self.compiled.plans.arena.get(id).clone();
         let out = match e {
             Expr::Num(v) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),

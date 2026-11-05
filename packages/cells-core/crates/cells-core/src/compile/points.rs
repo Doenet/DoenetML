@@ -90,7 +90,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<usize>> {
-        let Some(prop) = &self.compiled.refs[p.index()].prop else {
+        let Some(prop) = &self.plans.refs[p.index()].prop else {
             return Ok(None);
         };
         // The element the path ends at, if it is in this template chain.

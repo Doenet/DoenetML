@@ -9,7 +9,7 @@ use super::*;
 pub(in crate::compile) type RefTarget = (Option<ComponentType>, Option<(TemplateId, ElemId)>);
 
 /// Reference planning's working state: the one writer of the reference
-/// table (`Compiled::refs`), which every stage reads, and its cache of
+/// table (`Plans::refs`), which every stage reads, and its cache of
 /// prop spellings. The driver hands it to outlining, parsing and planning,
 /// which plan references, and to no other stage.
 #[derive(Default)]
@@ -70,10 +70,10 @@ impl<'a> Compiler<'a> {
         prop: &'static str,
     ) -> Result<RefId> {
         let named = self.prop_named(t, p, prop)?;
-        let mut plan = self.compiled.refs[p.index()].clone();
+        let mut plan = self.plans.refs[p.index()].clone();
         plan.prop = named;
         plan.display = RefDisplay::Prop(Box::new(plan.display), prop);
-        Ok(rf.push(&mut self.compiled.refs, plan))
+        Ok(rf.push(&mut self.plans.refs, plan))
     }
 
     /// Prop `name` of what plan `p`, planned from `t`, names, resolved on
@@ -91,7 +91,7 @@ impl<'a> Compiler<'a> {
             Some(ty) => RefProp::named(ty, name)
                 .map(Some)
                 .ok_or_else(|| Error::UnknownProp {
-                    name: self.compiled.ref_display(p),
+                    name: self.plans.ref_display(self.dast, p),
                     prop: name.into(),
                 }),
         }
@@ -118,7 +118,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Option<(TemplateId, ElemId)> {
-        let plan = &self.compiled.refs[p.index()];
+        let plan = &self.plans.refs[p.index()];
         let mut last = None;
         for step in &plan.steps {
             match step {
@@ -132,7 +132,7 @@ impl<'a> Compiler<'a> {
     /// The element a plan names, if it is in template `t` itself (a path of
     /// names without indices, no prop).
     pub(in crate::compile) fn plan_elem_target(&self, t: TemplateId, p: RefId) -> Option<ElemId> {
-        let plan = &self.compiled.refs[p.index()];
+        let plan = &self.plans.refs[p.index()];
         if plan.hops != 0 || plan.prop.is_some() {
             return None;
         }
@@ -154,7 +154,7 @@ impl<'a> Compiler<'a> {
     /// `ref_target_type`, and the last element the path named on the way
     /// (the target, or the collect an index steps into).
     pub(in crate::compile) fn ref_target(&mut self, t: TemplateId, p: RefId) -> Result<RefTarget> {
-        let hops = self.compiled.refs[p.index()].hops;
+        let hops = self.plans.refs[p.index()].hops;
         let mut t = t;
         for _ in 0..hops {
             let Some((pt, _)) = self.outlined(t).parent else {
@@ -165,8 +165,8 @@ impl<'a> Compiler<'a> {
         let mut cur: Option<ElemId> = None;
         let mut last = None;
         let mut ty = None;
-        for i in 0..self.compiled.refs[p.index()].steps.len() {
-            match self.compiled.refs[p.index()].steps[i].clone() {
+        for i in 0..self.plans.refs[p.index()].steps.len() {
+            match self.plans.refs[p.index()].steps[i].clone() {
                 Step::Elem(e) => {
                     cur = Some(e);
                     last = Some((t, e));
@@ -653,7 +653,7 @@ impl<'a> Compiler<'a> {
             display: RefDisplay::Written,
             node: m,
         };
-        Ok(rf.push(&mut self.compiled.refs, plan))
+        Ok(rf.push(&mut self.plans.refs, plan))
     }
 
     /// A literal integer index (list props are static, so `[$n]` is not
@@ -848,7 +848,7 @@ impl Compiler<'_> {
         // known. A container copy names its referent itself.
         let component_type = self.outlined(t).elems[e.index()].component_type;
         if !component_type.container()
-            && self.compiled.refs[p.index()].prop.is_none()
+            && self.plans.refs[p.index()].prop.is_none()
             && let Ok(Some(rt)) = self.ref_target_type(t, p)
             && rt != component_type
         {
@@ -864,7 +864,7 @@ impl Compiler<'_> {
             };
             if let Some(dp) = dp {
                 let named = self.prop_named(t, p, dp)?;
-                let r = rf.plan_mut(&mut self.compiled.refs, p);
+                let r = rf.plan_mut(&mut self.plans.refs, p);
                 r.prop = named;
                 let base = std::mem::replace(&mut r.display, RefDisplay::Written);
                 r.display = RefDisplay::Prop(Box::new(base), dp);
@@ -912,7 +912,7 @@ impl Compiler<'_> {
         let boxed = ty == Some(ComponentType::Error)
             || last.is_some_and(|(lt, le)| self.is_visible_box(lt, le));
         if boxed {
-            return Err(Error::BoxedReferent(self.compiled.ref_display(p)));
+            return Err(Error::BoxedReferent(self.plans.ref_display(self.dast, p)));
         }
         Ok(ty)
     }

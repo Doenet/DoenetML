@@ -146,7 +146,7 @@ impl<'a> Signer<'a> {
                 producer[instr.out.index() + k] = (InstrIdx::from_index(i), k as u8);
             }
         }
-        let keys = &compiled.keys;
+        let keys = &compiled.plans.keys;
         let mut named = HashMap::new();
         for (i, &(key, prop)) in out.structure.essential_keys.iter().enumerate() {
             let prop = keys
@@ -297,7 +297,7 @@ impl<'a> Signer<'a> {
 
     /// A key's text, renamed.
     fn key(&self, key: ElemKey) -> String {
-        (self.rename)(self.compiled.keys.key_text(key))
+        (self.rename)(self.compiled.plans.keys.key_text(key))
     }
 
     /// The essential cells the closure of `seeds` reads.
@@ -444,9 +444,9 @@ impl<'a> Signer<'a> {
         match ty {
             ComponentType::Select => {
                 let key = out.comp_keys[c.index()];
-                let templates = &self.compiled.templates;
+                let templates = &self.compiled.plans.templates;
                 let def =
-                    self.compiled.choices.iter().find(|d| {
+                    self.compiled.plans.choices.iter().find(|d| {
                         templates[d.at.0.index()].sealed.elems[d.at.1.index()].key == key
                     });
                 if let Some(def) = def {

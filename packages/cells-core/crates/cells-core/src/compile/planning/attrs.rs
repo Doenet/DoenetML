@@ -156,8 +156,8 @@ impl<'a> Compiler<'a> {
         if let Some(&id) = ids.get(text) {
             return id;
         }
-        let id = StrId::from_index(d.strings.len() + self.compiled.extra_strings.len());
-        self.compiled.extra_strings.push(text.to_string());
+        let id = StrId::from_index(d.strings.len() + self.plans.extra_strings.len());
+        self.plans.extra_strings.push(text.to_string());
         ids.insert(text.to_string(), id);
         id
     }
@@ -183,10 +183,10 @@ impl<'a> Compiler<'a> {
         id: ExprId,
         inlining: &mut Vec<ElemId>,
     ) -> ExprId {
-        let e = self.compiled.arena.get(id).clone();
+        let e = self.plans.arena.get(id).clone();
         match e {
             Expr::Cell(p) => {
-                let plan = &self.compiled.refs[p.index()];
+                let plan = &self.plans.refs[p.index()];
                 let is_value = plan.prop.is_none_or(|pr| pr.is("value"));
                 let Some(target) = (is_value).then(|| self.plan_elem_target(t, p)).flatten() else {
                     return id;
@@ -201,7 +201,7 @@ impl<'a> Compiler<'a> {
                     return id;
                 }
                 let mut syms = Vec::new();
-                self.compiled.arena.symbols(inner, &mut syms);
+                self.plans.arena.symbols(inner, &mut syms);
                 if syms.is_empty() {
                     return id;
                 }
@@ -213,14 +213,14 @@ impl<'a> Compiler<'a> {
             Expr::Num(_) | Expr::Sym(_) => id,
             Expr::Neg(a) => {
                 let a = self.inline_maths(parsed, t, a, inlining);
-                self.compiled.arena.push(Expr::Neg(a))
+                self.plans.arena.push(Expr::Neg(a))
             }
             Expr::Call(f, args) => {
                 let args = args
                     .into_iter()
                     .map(|a| self.inline_maths(parsed, t, a, inlining))
                     .collect();
-                self.compiled.arena.push(Expr::Call(f, args))
+                self.plans.arena.push(Expr::Call(f, args))
             }
             Expr::Add(a, b)
             | Expr::Sub(a, b)
@@ -231,7 +231,7 @@ impl<'a> Compiler<'a> {
                     self.inline_maths(parsed, t, a, inlining),
                     self.inline_maths(parsed, t, b, inlining),
                 );
-                self.compiled.arena.push(e.with_operands(na, nb))
+                self.plans.arena.push(e.with_operands(na, nb))
             }
         }
     }

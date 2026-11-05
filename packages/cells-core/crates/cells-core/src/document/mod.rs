@@ -161,11 +161,11 @@ impl Document {
             session,
             loaded: Loaded {
                 literal_attrs: Arc::default(),
-                keys: compiled.keys.clone(),
-                structural_depth: compiled.structural_depth,
-                version: compiled.version,
-                diagnostics: compiled.diagnostics.clone(),
-                compiled: compiled.has_repeats().then_some(compiled),
+                keys: compiled.plans.keys.clone(),
+                structural_depth: compiled.plans.structural_depth,
+                version: compiled.plans.version,
+                diagnostics: compiled.plans.diagnostics.clone(),
+                compiled: compiled.plans.has_repeats().then_some(compiled),
             },
             recompute: Recompute::default(),
         };

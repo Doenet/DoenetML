@@ -8,7 +8,7 @@ impl Seal<'_> {
     /// Every choice's `used`: the interface names reference plans step
     /// into, in the order the plans first name them, and where each is.
     pub(in crate::compile) fn gather_used_names(&mut self) {
-        for r in &self.compiled.refs {
+        for r in &self.plans.refs {
             for step in &r.steps {
                 if let Step::Iface(cid, id) = *step {
                     let def = &mut self.choice_seals[cid.index()];

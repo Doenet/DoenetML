@@ -236,10 +236,10 @@ impl<'a> PlanCtx<'_, 'a> {
             c.parse_tokens(&sides[0], src)?,
             c.parse_tokens(&sides[1], src)?,
         );
-        let diff = c.compiled.arena.push(Expr::Sub(lhs, rhs));
+        let diff = c.plans.arena.push(Expr::Sub(lhs, rhs));
         let diff = c.inline_symbolic_maths(&self.p.parsed, t, diff);
         Ok(
-            super::expr::linear_coeffs(&mut c.compiled.arena, diff, vx, vy).map(|[a, b, k]| {
+            super::expr::linear_coeffs(&mut c.plans.arena, diff, vx, vy).map(|[a, b, k]| {
                 [
                     c.plan_from_expr(a),
                     c.plan_from_expr(b),

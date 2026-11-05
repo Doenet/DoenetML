@@ -144,10 +144,10 @@ impl LoadTimings {
 
 /// The bytes of either wire format (JSON or binary), detected by content,
 /// read into a DAST.
-fn deserialize(bytes: &[u8]) -> crate::Result<Arc<Dast>> {
+fn deserialize(bytes: &[u8]) -> crate::Result<Dast> {
     let _s = crate::trace::span("deserialize");
     crate::trace::count("bytes", bytes.len());
-    let dast = Arc::new(crate::dast::load(bytes)?);
+    let dast = crate::dast::load(bytes)?;
     crate::trace::count("dast_nodes", dast.len());
     Ok(dast)
 }
@@ -180,10 +180,7 @@ impl Document {
     }
 
     /// `load` from a deserialized DAST.
-    pub fn load_dast(
-        dast: Arc<Dast>,
-        options: LoadOptions,
-    ) -> crate::Result<(Document, LoadTimings)> {
+    pub fn load_dast(dast: Dast, options: LoadOptions) -> crate::Result<(Document, LoadTimings)> {
         Self::load_with(options, || Ok(dast))
     }
 
@@ -191,7 +188,7 @@ impl Document {
     /// build until the structure settles.
     fn load_with(
         options: LoadOptions,
-        dast: impl FnOnce() -> crate::Result<Arc<Dast>>,
+        dast: impl FnOnce() -> crate::Result<Dast>,
     ) -> crate::Result<(Document, LoadTimings)> {
         crate::trace::start();
         let loaded = (|| {
@@ -206,7 +203,7 @@ impl Document {
 
     /// Compile, then build until the structure settles; with the document,
     /// its structural depth as the check bounded it.
-    fn settle_load(dast: Arc<Dast>, options: LoadOptions) -> crate::Result<(Document, u32)> {
+    fn settle_load(dast: Dast, options: LoadOptions) -> crate::Result<(Document, u32)> {
         let session = Session {
             #[cfg(feature = "testing")]
             sample_with_engine: options.sample_with_engine,
@@ -216,7 +213,7 @@ impl Document {
         let crate::compile::CompileOutput { compiled } = {
             let _s = crate::trace::span("compile");
             crate::compile::compile(
-                &dast,
+                dast,
                 options.checks(),
                 options.classifies(),
                 options.prune,
@@ -228,8 +225,8 @@ impl Document {
         // seeded cell takes its seed again, from the counts the pass stamps.
         let (mut doc, _) = settle(&compiled, &session, Counts::default(), true)?;
         let _s = crate::trace::span("attributes");
-        doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
-        Ok((doc, compiled.structural_depth))
+        doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&compiled.dast));
+        Ok((doc, compiled.plans.structural_depth))
     }
 
     /// This document's session with its essential values recorded, taken
@@ -339,7 +336,7 @@ fn settle(
     mut counts: Counts,
     reseed: bool,
 ) -> crate::Result<(Document, u32)> {
-    let passes = compiled.passes(MAX_PASSES);
+    let passes = compiled.plans.passes(MAX_PASSES);
     // The session a later pass reads: the last pass's.
     let mut next: Option<Session> = None;
     for pass in 0..passes {

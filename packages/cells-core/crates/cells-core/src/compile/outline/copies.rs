@@ -83,7 +83,7 @@ impl Compiler<'_> {
             .expect("a container copy extends");
         // `<graph extend="$x.prop"/>` is no container copy: planning refuses
         // it as an extend of a prop.
-        if self.compiled.refs[p.index()].prop.is_some() {
+        if self.plans.refs[p.index()].prop.is_some() {
             return Ok(());
         }
         let r = self
@@ -150,7 +150,7 @@ impl Compiler<'_> {
                         ),
                         node: NodeId::NONE,
                     };
-                    let ep = o.refs.push(&mut self.compiled.refs, plan);
+                    let ep = o.refs.push(&mut self.plans.refs, plan);
                     {
                         let el = &mut self.outlined_mut(t).elems[ne.index()];
                         el.extend = Some(ep);
@@ -193,11 +193,11 @@ impl Compiler<'_> {
         mut f: impl FnMut(&mut Self, &mut Refs) -> Result<T>,
     ) -> Result<T> {
         loop {
-            let n = self.compiled.refs.len();
+            let n = self.plans.refs.len();
             match f(self, &mut o.refs) {
                 Err(Error::AwaitsClones { template, elem }) => {
                     // What the attempt planned is planned again.
-                    o.refs.truncate(&mut self.compiled.refs, n);
+                    o.refs.truncate(&mut self.plans.refs, n);
                     self.expand_container_copy(o, TemplateId::new(template), ElemId::new(elem))?;
                 }
                 r => return r,
@@ -213,7 +213,7 @@ mod tests {
 
     /// Template and element of the element named `name`.
     fn find(compiled: &Compiled, name: &str) -> (TemplateId, ElemId) {
-        for (ti, tpl) in compiled.templates.iter().enumerate() {
+        for (ti, tpl) in compiled.plans.templates.iter().enumerate() {
             for (ei, e) in tpl.elems.iter().enumerate() {
                 if e.name != StrId::NONE && compiled.dast.strings.get(e.name).trim() == name {
                     return (TemplateId::from_index(ti), ElemId::from_index(ei));
@@ -236,7 +236,7 @@ mod tests {
         let compiled = crate::testing::compile(&dast).unwrap();
         for (name, copy) in [("Q", true), ("R", false)] {
             let (t, e) = find(&compiled, name);
-            let tpl = &compiled.templates[t.index()];
+            let tpl = &compiled.plans.templates[t.index()];
             assert!(tpl.elems[e.index()].extend.is_some(), "{name}");
             assert_eq!(tpl.plan(e).extend.is_some(), copy, "{name}");
         }

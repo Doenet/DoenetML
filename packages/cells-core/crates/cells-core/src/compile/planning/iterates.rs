@@ -18,8 +18,7 @@ fn tuple_ref_prop(i: usize) -> RefProp {
 
 impl<'a> Compiler<'a> {
     fn attr_macro(&self, el: NodeId, tag: &str, attr: &str) -> Result<NodeId> {
-        self.compiled
-            .dast
+        self.dast
             .attr(el, attr)
             .and_then(|a| self.single_macro(a))
             .ok_or_else(|| Error::Unsupported(format!("<{tag}> needs {attr}=\"$name\"")))
@@ -81,7 +80,7 @@ impl<'a> Compiler<'a> {
                     display: RefDisplay::Spelled(format!("(previous iterate).{}", vars[j]).into()),
                     node: NodeId::NONE,
                 };
-                pl.refs.push(&mut self.compiled.refs, plan)
+                pl.refs.push(&mut self.plans.refs, plan)
             })
             .collect();
         for tok in &mut toks {
@@ -107,7 +106,7 @@ impl<'a> Compiler<'a> {
         for part in &parts {
             let id = self.parse_tokens(part, src)?;
             let mut syms = Vec::new();
-            self.compiled.arena.symbols(id, &mut syms);
+            self.plans.arena.symbols(id, &mut syms);
             if !syms.is_empty() {
                 return Err(Error::BadMath {
                     text: src.text(self.dast),
@@ -185,8 +184,7 @@ impl<'a> Compiler<'a> {
     /// absent.
     pub(super) fn function_variables(&self, fnode: NodeId) -> Vec<String> {
         crate::components::values::curve::variables(
-            self.compiled
-                .dast
+            self.dast
                 .attr(fnode, "variables")
                 .and_then(|a| self.attr_text(a)),
         )
@@ -265,14 +263,14 @@ impl<'a> Compiler<'a> {
                     .into(),
             )
         };
-        let offset = match self.compiled.refs[fp.index()].prop {
+        let offset = match self.plans.refs[fp.index()].prop {
             Some(p) if p.is("allIteratesWithInitial") => 0,
             Some(p) if p.is("iterates") => 1,
             _ => return Err(unsupported()),
         };
-        let mut base = self.compiled.refs[fp.index()].clone();
+        let mut base = self.plans.refs[fp.index()].clone();
         base.prop = None;
-        let base_id = rf.push(&mut self.compiled.refs, base.clone()).index();
+        let base_id = rf.push(&mut self.plans.refs, base.clone()).index();
         match self.static_target(t, RefId::from_index(base_id)) {
             Some((ft, fe))
                 if self.outlined(ft).elems[fe.index()].component_type
@@ -301,11 +299,11 @@ impl<'a> Compiler<'a> {
                         steps: steps.clone(),
                         prop: Some(tuple_ref_prop(i)),
                         display: RefDisplay::Spelled(
-                            format!("({}[i]).{prop}", self.compiled.display_of(&base)).into(),
+                            format!("({}[i]).{prop}", display_of(self.dast, &base)).into(),
                         ),
                         node: NodeId::NONE,
                     };
-                    Source::reference(rf.push(&mut self.compiled.refs, plan))
+                    Source::reference(rf.push(&mut self.plans.refs, plan))
                 })
                 .collect();
             self.tables[sub.index()].plans[0].props = props;

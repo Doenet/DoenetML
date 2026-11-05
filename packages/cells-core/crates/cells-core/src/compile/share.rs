@@ -235,24 +235,26 @@ impl Nodes {
     }
 }
 
-/// The compile's plans, read while this stage decides, and its classes of
-/// references and maths.
+/// The compile's plans and its source, read while this stage decides, and
+/// its classes of references and maths.
 struct Share<'c> {
-    c: &'c Compiled,
+    c: &'c Plans,
+    dast: &'c Dast,
     refs: RefClasses<'c>,
     /// Math classes: (expression class, symbolic text) per math text.
     math: HashMap<(u32, String), u32>,
 }
 
-impl Compiled {
+impl Plans {
     /// Sharing: the expression classes, then every equal pair of derived
-    /// ports made one, each but the kept one an alias. Returns how many
-    /// ports it made aliases.
-    pub(in crate::compile) fn share(&mut self, paths: &[PathExtend]) -> usize {
+    /// ports made one, each but the kept one an alias, reading the maths'
+    /// text from `dast`. Returns how many ports it made aliases.
+    pub(in crate::compile) fn share(&mut self, dast: &Dast, paths: &[PathExtend]) -> usize {
         self.expr_class = crate::trace::span("expressions")
             .run(|| expr_classes(&self.arena, &self.refs, &mut RefClasses::default()));
         let mut s = Share {
             c: self,
+            dast,
             refs: RefClasses::default(),
             math: HashMap::new(),
         };
@@ -393,8 +395,8 @@ impl Share<'_> {
                 let mut text = String::new();
                 let mut plans = plans.iter();
                 for &n in nodes.iter() {
-                    match self.c.dast.kind(n) {
-                        NodeKind::Text => text.push_str(self.c.dast.str(n)),
+                    match self.dast.kind(n) {
+                        NodeKind::Text => text.push_str(self.dast.str(n)),
                         NodeKind::Macro => {
                             let p = *plans.next().expect("a plan per reference");
                             text.push('\u{0}');
@@ -744,7 +746,7 @@ mod tests {
             share,
             ..Default::default()
         };
-        let dast = std::sync::Arc::new(document(nodes));
+        let dast = document(nodes);
         let doc = Document::load_dast(dast, options).unwrap().0;
         assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
         doc
@@ -773,7 +775,7 @@ mod tests {
     #[test]
     fn the_plans_alias_the_shared_port() {
         let compiled = crate::testing::compile(&document(shape_and_copy())).unwrap();
-        let tpl = &compiled.templates[0];
+        let tpl = &compiled.plans.templates[0];
         let named = |name: &str| {
             (0..tpl.elems.len())
                 .find(|&e| {

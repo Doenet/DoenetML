@@ -12,7 +12,7 @@ use crate::compile::*;
 /// Sealing's state: every earlier stage's tables, read-only, and what it
 /// finds of each choice. Of the compile it writes only the keys.
 pub(in crate::compile) struct Seal<'a> {
-    pub(in crate::compile) compiled: &'a mut Compiled,
+    pub(in crate::compile) plans: &'a mut Plans,
     pub(in crate::compile) dast: &'a Dast,
     pub(in crate::compile) names: &'a NameTable,
     /// Outlining's part of every template.
@@ -134,7 +134,7 @@ impl Compiler<'_> {
     ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>), Failure> {
         let settled = &self.settled;
         seal::Seal {
-            compiled: &mut self.compiled,
+            plans: &mut self.plans,
             dast: self.dast,
             names: &settled.names,
             templates: &settled.templates,

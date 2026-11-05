@@ -32,7 +32,7 @@ impl<'a> Compiler<'a> {
     /// Whether planned ref `p`, planned from template `t`, reads a text
     /// value.
     pub(in crate::compile) fn ref_is_text(&self, t: TemplateId, p: RefId) -> bool {
-        let r = &self.compiled.refs[p.index()];
+        let r = &self.plans.refs[p.index()];
         let Some((cur_t, e)) = self.static_target(t, p) else {
             return false;
         };
@@ -98,9 +98,9 @@ impl<'a> Compiler<'a> {
         match (macros, texts) {
             (1, 0) => {
                 let p = self.plan_ref(rf, t, scope, macro_node)?;
-                if let (None, Some(rp)) = (&self.compiled.refs[p.index()].prop, ref_prop) {
+                if let (None, Some(rp)) = (&self.plans.refs[p.index()].prop, ref_prop) {
                     let named = self.prop_named(t, p, rp)?;
-                    rf.plan_mut(&mut self.compiled.refs, p).prop = named;
+                    rf.plan_mut(&mut self.plans.refs, p).prop = named;
                 }
                 Ok(Some(Source::reference(p)))
             }
@@ -169,7 +169,7 @@ impl<'a> Compiler<'a> {
     /// A source from an expression template: a constant is an essential
     /// literal, a lone reference an alias, anything else a lowered math.
     pub(in crate::compile) fn plan_from_expr(&mut self, id: ExprId) -> Source {
-        match self.compiled.arena.get(id) {
+        match self.plans.arena.get(id) {
             Expr::Num(v) => Source::given(*v),
             Expr::Cell(p) => Source::reference(*p),
             _ => Source::math(id),

@@ -241,8 +241,13 @@ impl<'c> Builder<'c> {
         // eighth to spare when there was one. In wasm, capacity reserved and
         // never used still raises the high-water mark.
         let (last_comps, last_slots) = session.last_build;
-        let elems: usize = c.templates.iter().map(|t| t.elems.len()).sum();
-        let n_slots: usize = c.templates.iter().map(|t| t.sealed.n_slots as usize).sum();
+        let elems: usize = c.plans.templates.iter().map(|t| t.elems.len()).sum();
+        let n_slots: usize = c
+            .plans
+            .templates
+            .iter()
+            .map(|t| t.sealed.n_slots as usize)
+            .sum();
         let guess = elems.max(last_comps);
         let guess = guess + guess / 8;
         let slots = n_slots.max(last_slots);
@@ -447,7 +452,7 @@ impl<'c> Builder<'c> {
             return found;
         }
         self.template_slot(s)
-            .is_some_and(|(t, ts)| self.compiled.counted.marks(t, ts))
+            .is_some_and(|(t, ts)| self.compiled.plans.counted.marks(t, ts))
     }
 
     /// Slot `s`'s source when this build counted `v` for it: a constant,
@@ -547,7 +552,7 @@ impl<'c> Builder<'c> {
             self.scope_comps.resize(s + 1, Vec::new());
         }
         self.scope_comps[s] =
-            vec![CompIdx::NONE; self.compiled.templates[template.index()].elems.len()];
+            vec![CompIdx::NONE; self.compiled.plans.templates[template.index()].elems.len()];
     }
 
     // ---- expansion -----------------------------------------------------------
@@ -570,14 +575,14 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         parent: CompIdx,
     ) -> Result<Vec<ChildEntry>> {
-        let n_elems = self.compiled.templates[t.index()].elems.len();
+        let n_elems = self.compiled.plans.templates[t.index()].elems.len();
         // Create every element's component first so children can refer to them.
         for e in 0..n_elems {
             // What is under a box is not built (ADR 0027).
-            if self.compiled.templates[t.index()].is_dead(ElemId::from_index(e)) {
+            if self.compiled.plans.templates[t.index()].is_dead(ElemId::from_index(e)) {
                 continue;
             }
-            let tpl = &self.compiled.templates[t.index()];
+            let tpl = &self.compiled.plans.templates[t.index()];
             let (el, plan) = (
                 tpl.row(ElemId::from_index(e)),
                 tpl.plan(ElemId::from_index(e)),
@@ -614,12 +619,12 @@ impl<'c> Builder<'c> {
             if comp == CompIdx::NONE {
                 continue;
             }
-            let kids = match self.compiled.templates[t.index()]
+            let kids = match self.compiled.plans.templates[t.index()]
                 .row(ElemId::from_index(e))
                 .body
             {
                 Body::Repeat { template } => {
-                    let node = self.compiled.templates[t.index()]
+                    let node = self.compiled.plans.templates[t.index()]
                         .row(ElemId::from_index(e))
                         .node;
                     let n = self.view.iterations(scope, node);
@@ -651,7 +656,7 @@ impl<'c> Builder<'c> {
                     Vec::new()
                 }
                 Body::Choice(cid) => {
-                    let node = self.compiled.templates[t.index()]
+                    let node = self.compiled.plans.templates[t.index()]
                         .row(ElemId::from_index(e))
                         .node;
                     match self.expand_choice(cid, node, scope, comp) {
@@ -662,7 +667,7 @@ impl<'c> Builder<'c> {
                         }
                     }
                 }
-                _ if self.compiled.templates[t.index()]
+                _ if self.compiled.plans.templates[t.index()]
                     .row(ElemId::from_index(e))
                     .component_type
                     == ComponentType::PointList =>
@@ -682,9 +687,9 @@ impl<'c> Builder<'c> {
             }
         }
         // The template's own children (the repeat body); their parent is the repeat.
-        let mut out = Vec::with_capacity(self.compiled.templates[t.index()].children.len());
-        for i in 0..self.compiled.templates[t.index()].children.len() {
-            let ch = &self.compiled.templates[t.index()].children[i];
+        let mut out = Vec::with_capacity(self.compiled.plans.templates[t.index()].children.len());
+        for i in 0..self.compiled.plans.templates[t.index()].children.len() {
+            let ch = &self.compiled.plans.templates[t.index()].children[i];
             out.push(self.child_entry(t, ch, scope, parent));
         }
         Ok(out)
@@ -697,10 +702,13 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         parent: CompIdx,
     ) -> Vec<ChildEntry> {
-        let n = self.compiled.templates[t.index()].row(e).children.len();
+        let n = self.compiled.plans.templates[t.index()]
+            .row(e)
+            .children
+            .len();
         let mut kids = Vec::with_capacity(n);
         for i in 0..n {
-            let ch = &self.compiled.templates[t.index()].row(e).children[i];
+            let ch = &self.compiled.plans.templates[t.index()].row(e).children[i];
             kids.push(self.child_entry(t, ch, scope, parent));
         }
         kids
@@ -717,7 +725,7 @@ impl<'c> Builder<'c> {
             Child::Elem(e) => ChildEntry::comp(self.scope_comps[scope.index()][e.index()]),
             Child::Text(s) => ChildEntry::text(s),
             Child::Macro(id) => {
-                let tpl = &self.compiled.templates[t.index()];
+                let tpl = &self.compiled.plans.templates[t.index()];
                 let rc = tpl.ref_children[id.index()];
                 match tpl.tables.ref_child_plans[id.index()] {
                     RefChildPlan::Ref(plan) => {
@@ -770,7 +778,7 @@ impl<'c> Builder<'c> {
         let pending = std::mem::take(&mut self.pending);
         for &(idx, plan, scope, _) in pending.iter().filter(|p| !p.3) {
             if let Err(e) = self.place(idx, plan, scope) {
-                self.fail_at(self.compiled.refs[plan.index()].node);
+                self.fail_at(self.compiled.plans.refs[plan.index()].node);
                 return Err(e);
             }
         }
@@ -790,7 +798,7 @@ impl<'c> Builder<'c> {
         }
         for &(idx, plan, scope, _) in pending.iter().filter(|p| p.3) {
             if let Err(e) = self.place(idx, plan, scope) {
-                self.fail_at(self.compiled.refs[plan.index()].node);
+                self.fail_at(self.compiled.plans.refs[plan.index()].node);
                 return Err(e);
             }
         }
@@ -815,7 +823,7 @@ impl<'c> Builder<'c> {
         let mut flags_of: HashMap<CompIdx, Vec<SlotId>> = HashMap::new();
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
-            let c: &'c Compiled = self.compiled;
+            let c = &self.compiled.plans;
             let flags = match &c.templates[inst.template.index()].plan(inst.elem).hold {
                 Hold::Off => continue,
                 Hold::Always => vec![self.const_slot(1.0)],
@@ -1026,7 +1034,7 @@ impl<'c> Builder<'c> {
     /// list it is a copy of.
     pub(in crate::build) fn expand_pointlist(&mut self, comp: CompIdx) -> Result<()> {
         let inst = self.instances[self.comp_instance[comp.index()].index()];
-        let tpl = &self.compiled.templates[inst.template.index()];
+        let tpl = &self.compiled.plans.templates[inst.template.index()];
         let plan = tpl.plan(inst.elem);
         let mut kids = Vec::new();
         match (plan.from, plan.extend) {
@@ -1159,7 +1167,7 @@ impl<'c> Builder<'c> {
     /// missing holds the missing value. `visiting` holds the copies being
     /// placed, so a loop of them is a cycle.
     fn place_list_copy(&mut self, inst: Instance, visiting: &mut Vec<CompIdx>) -> Result<()> {
-        let tpl = &self.compiled.templates[inst.template.index()];
+        let tpl = &self.compiled.plans.templates[inst.template.index()];
         let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
         let (component_type, extend_plan, n_props) =
             (el.component_type, plan.extend, plan.props.len());
@@ -1225,7 +1233,7 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
         let (component_type, extend_plan) = {
-            let tpl = &self.compiled.templates[inst.template.index()];
+            let tpl = &self.compiled.plans.templates[inst.template.index()];
             (
                 tpl.row(inst.elem).component_type,
                 tpl.plan(inst.elem).extend,
@@ -1241,22 +1249,24 @@ impl<'c> Builder<'c> {
         }
         // A copy of a type with a list was made whole by `place_list_copy`.
         if extend.is_some()
-            && self.compiled.templates[inst.template.index()]
+            && self.compiled.plans.templates[inst.template.index()]
                 .plan(inst.elem)
                 .list
                 == ListLen::AsReferent
         {
             return Ok(());
         }
-        let n_props = self.compiled.templates[inst.template.index()]
+        let n_props = self.compiled.plans.templates[inst.template.index()]
             .plan(inst.elem)
             .props
             .len();
-        let slot_off =
-            self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].slot_off;
-        self.share_math = !self.compiled.expr_class.is_empty()
+        let slot_off = self.compiled.plans.templates[inst.template.index()]
+            .sealed
+            .elems[inst.elem.index()]
+        .slot_off;
+        self.share_math = !self.compiled.plans.expr_class.is_empty()
             && matches!(
-                self.compiled.templates[inst.template.index()]
+                self.compiled.plans.templates[inst.template.index()]
                     .plan(inst.elem)
                     .hold,
                 Hold::Off
@@ -1266,13 +1276,14 @@ impl<'c> Builder<'c> {
             // What the cell holds is the port's type (ADR 0032).
             let port_type = self
                 .compiled
+                .plans
                 .port_type(inst.template.index(), slot_off.offset(pi));
             if port_type != PortType::Num {
                 self.typed_slots.push((s, port_type.value_type()));
             }
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
-            let c: &'c Compiled = self.compiled;
+            let c = &self.compiled.plans;
             let plan = &c.templates[inst.template.index()].plan(inst.elem).props[pi];
             if matches!(plan, Source::Flow(Flow::Aggregate(_))) {
                 continue; // materialized from the tree (`fill_aggregate`)
@@ -1316,7 +1327,7 @@ impl<'c> Builder<'c> {
         let comp = inst.comp;
         let s = self.slot(comp, pi);
         let component_type = self.components.component_type[comp.index()];
-        let c: &'c Compiled = self.compiled;
+        let c = &self.compiled.plans;
         Ok(match plan {
             Source::Specialize(..) => unreachable!("a nested specialization"),
             Source::Leaf(leaf) => match leaf {
@@ -1360,7 +1371,7 @@ impl<'c> Builder<'c> {
                         {
                             return Err(Error::Unsupported(format!(
                                 "a text value (${}) used as a number",
-                                c.ref_display(p)
+                                self.compiled.ref_display(p)
                             )));
                         }
                         self.op_inputs.push(slot);
@@ -1383,6 +1394,7 @@ impl<'c> Builder<'c> {
                     // Symbolic when the compile typed the port math (ADR 0032).
                     if self
                         .compiled
+                        .plans
                         .port_type(inst.template.index(), slot_off_of(self, inst).offset(pi))
                         == PortType::Math
                     {
@@ -1457,7 +1469,10 @@ impl<'c> Builder<'c> {
 
 /// The slot offset of instance `inst`'s element in its template.
 fn slot_off_of(b: &Builder<'_>, inst: Instance) -> TemplateSlot {
-    b.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].slot_off
+    b.compiled.plans.templates[inst.template.index()]
+        .sealed
+        .elems[inst.elem.index()]
+    .slot_off
 }
 
 /// Inheritance as the build makes it, against

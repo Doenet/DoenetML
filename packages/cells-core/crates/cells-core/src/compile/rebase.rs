@@ -51,7 +51,7 @@ impl<'a> Compiler<'a> {
     /// How many templates the steps of `path` enter: an index into a
     /// repeat or a select, an interface name into a branch.
     fn levels_entered(&self, path: RefId) -> u32 {
-        let plan = &self.compiled.refs[path.index()];
+        let plan = &self.plans.refs[path.index()];
         plan.steps.iter().filter(|s| enters_template(s)).count() as u32
     }
 
@@ -67,8 +67,8 @@ impl<'a> Compiler<'a> {
         down: u32,
         inner: RefId,
     ) -> RefId {
-        let path_plan = self.compiled.refs[path.index()].clone();
-        let inner_plan = self.compiled.refs[inner.index()].clone();
+        let path_plan = self.plans.refs[path.index()].clone();
+        let inner_plan = self.plans.refs[inner.index()].clone();
         let (hops, mut steps) = if inner_plan.hops >= down {
             (path_plan.hops + inner_plan.hops - down, Vec::new())
         } else {
@@ -146,20 +146,20 @@ impl<'a> Compiler<'a> {
             display: RefDisplay::Spelled(
                 format!(
                     "{} (of {})",
-                    self.compiled.display_of(&inner_plan),
-                    self.compiled.display_of(&path_plan)
+                    display_of(self.dast, &inner_plan),
+                    display_of(self.dast, &path_plan)
                 )
                 .into(),
             ),
             node: inner_plan.node,
         };
-        rf.push(&mut self.compiled.refs, plan)
+        rf.push(&mut self.plans.refs, plan)
     }
 
     /// Expression `id`, its cell leaves rebased (`rebase_ref`), as a new
     /// expression; its symbolic text, when it has one, rebased with it.
     fn rebase_expr(&mut self, rf: &mut Refs, path: RefId, down: u32, id: ExprId) -> ExprId {
-        let e = self.compiled.arena.get(id).clone();
+        let e = self.plans.arena.get(id).clone();
         let out = match e {
             Expr::Num(v) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
@@ -187,8 +187,8 @@ impl<'a> Compiler<'a> {
                 e.with_operands(na, nb)
             }
         };
-        let new = self.compiled.arena.push(out);
-        if let Some(text) = self.compiled.sym_text.get(&id).cloned() {
+        let new = self.plans.arena.push(out);
+        if let Some(text) = self.plans.sym_text.get(&id).cloned() {
             let text = match text {
                 SymText::Nodes { nodes, plans } => SymText::Nodes {
                     nodes,
@@ -200,7 +200,7 @@ impl<'a> Compiler<'a> {
                 SymText::Leaf(p) => SymText::Leaf(self.rebase_ref(rf, path, down, p)),
                 SymText::Spelled(s) => SymText::Spelled(s),
             };
-            self.compiled.sym_text.insert(new, text);
+            self.plans.sym_text.insert(new, text);
         }
         new
     }

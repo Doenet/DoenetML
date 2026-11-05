@@ -243,8 +243,8 @@ impl<'a> Compiler<'a> {
     ) -> Port {
         // The arena only needs an id to key the text by; the engine parses
         // the text itself when the element expands (`sym_source`).
-        let id = self.compiled.arena.push(Expr::Sym(sym.clone()));
-        self.compiled.sym_text.insert(id, SymText::Spelled(sym));
+        let id = self.plans.arena.push(Expr::Sym(sym.clone()));
+        self.plans.sym_text.insert(id, SymText::Spelled(sym));
         wiring.hidden(Source::sym_expr(id, post))
     }
 }
@@ -412,9 +412,9 @@ impl CondParser<'_> {
             [] => return Err(self.err("expected a value".into())),
             [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(Source::constant(1.0)),
             [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(Source::constant(0.0)),
-            _ => match Parser::parse(toks, &mut cp.compiled.arena) {
-                Ok(id) if cp.compiled.arena.is_numeric(id) => {
-                    Some(match cp.compiled.arena.get(id) {
+            _ => match Parser::parse(toks, &mut cp.plans.arena) {
+                Ok(id) if cp.plans.arena.is_numeric(id) => {
+                    Some(match cp.plans.arena.get(id) {
                         // A constant in a condition is not state.
                         Expr::Num(v) => Source::constant(*v),
                         // A lone reference too, so expand checks it is a

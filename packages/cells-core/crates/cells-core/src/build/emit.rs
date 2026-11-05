@@ -68,7 +68,7 @@ impl<'c> Builder<'c> {
             let record = self.record_of(&writable);
             (writable, record)
         } else {
-            let essential = match &self.compiled.classes {
+            let essential = match &self.compiled.plans.classes {
                 None => vec![true; n],
                 Some(r) => SlotId::below(n)
                     .map(|s| self.template_slot(s).is_none_or(|(t, ts)| r.marks(t, ts)))
@@ -84,7 +84,7 @@ impl<'c> Builder<'c> {
             let record = self.record_of(&live);
             (live, record)
         } else {
-            let live = self.live_by_record(&self.compiled.live, &slot_cells);
+            let live = self.live_by_record(&self.compiled.plans.live, &slot_cells);
             (live, Record::default())
         };
         // The counted values the abstract build found (ADR 0028).
@@ -124,7 +124,7 @@ impl<'c> Builder<'c> {
         // where the load asked for every cell (`LoadOptions::prune`). An
         // essential slot is always live; were one not, it would be kept. A
         // vector output goes with its head, whose instruction writes it.
-        let prune = self.compiled.prune && !folds;
+        let prune = self.compiled.plans.prune && !folds;
         let pruned = |s: usize| {
             let s = match self.sources[s] {
                 BuiltSource::VecOut(head, _) => head.index(),
@@ -169,8 +169,8 @@ impl<'c> Builder<'c> {
                     || self
                         .template_slot(SlotId::from_index(s))
                         .is_some_and(|(t, ts)| {
-                            !self.compiled.document_constants.0.is_empty()
-                                && self.compiled.document_constants.marks(t, ts)
+                            !self.compiled.plans.document_constants.0.is_empty()
+                                && self.compiled.plans.document_constants.marks(t, ts)
                         }))
         };
         let mut pool = self.session.pool.clone();
@@ -565,7 +565,11 @@ impl<'c> Builder<'c> {
                         | BuiltSource::VecOut(..) => SlotClass::Constant {
                             value: cells[slot_to_cell[s.index()].index()],
                             document: !folds
-                                && self.compiled.document_constants.marks(template, tslot),
+                                && self
+                                    .compiled
+                                    .plans
+                                    .document_constants
+                                    .marks(template, tslot),
                         },
                         _ => SlotClass::Derived,
                     };
@@ -631,7 +635,10 @@ impl<'c> Builder<'c> {
                     return ElemKey::NONE;
                 }
                 let inst = self.instances[i.index()];
-                self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].key
+                self.compiled.plans.templates[inst.template.index()]
+                    .sealed
+                    .elems[inst.elem.index()]
+                .key
             })
             .collect();
         let structure = Structure {
@@ -652,8 +659,7 @@ impl<'c> Builder<'c> {
         let slot_base = self.slot_base;
         let component_types = self.components.component_type.clone();
         let names = self.components.name.clone();
-        let dast = self.compiled.dast.clone();
-        let cell_label = Box::new(move |cell: CellIdx| {
+        let cell_label = Box::new(move |cell: CellIdx, dast: &crate::dast::Dast| {
             let slot = cell_def_slot[cell.index()];
             if slot == SlotId::NONE {
                 return "(a pooled constant)".to_string();
@@ -674,7 +680,7 @@ impl<'c> Builder<'c> {
         });
 
         let mut strings = self.compiled.dast.strings.clone();
-        for s in &self.compiled.extra_strings {
+        for s in &self.compiled.plans.extra_strings {
             strings.push(s);
         }
         let mut components = self.components;
@@ -749,7 +755,7 @@ impl<'c> Builder<'c> {
                         node,
                         format!(
                             "a request on '{prop}' is refused: the value it would write, '{}', reaches it along more than one path, so the request could not land where it asks",
-                            cell_label(source)
+                            cell_label(source, &self.compiled.dast)
                         ),
                     ),
                     crate::program::refuse::Finding::Drops => Diagnostic::info(
@@ -922,14 +928,14 @@ impl<'c> Builder<'c> {
     ) -> Vec<bool> {
         let n = self.sources.len();
         let mut fold = vec![false; n];
-        if !self.compiled.fold || self.view.folds_iterations() {
+        if !self.compiled.plans.fold || self.view.folds_iterations() {
             return fold;
         }
         let counted = |s: SlotId| {
-            !self.compiled.counted.0.is_empty()
+            !self.compiled.plans.counted.0.is_empty()
                 && self
                     .template_slot(s)
-                    .is_some_and(|(t, ts)| self.compiled.counted.marks(t, ts))
+                    .is_some_and(|(t, ts)| self.compiled.plans.counted.marks(t, ts))
         };
         let candidates: Vec<SlotId> = SlotId::below(n)
             .filter(|&s| {
@@ -998,13 +1004,15 @@ impl<'c> Builder<'c> {
             return None;
         }
         let inst = self.instances[i.index()];
-        let tpl = &self.compiled.templates[inst.template.index()];
+        let tpl = &self.compiled.plans.templates[inst.template.index()];
         let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
         let pi = slot.get() - self.slot_base[comp.index()].get();
         if pi as usize >= plan.props.len().max(el.component_type.prop_defs().len()) {
             return None;
         }
-        let sealed = self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()];
+        let sealed = self.compiled.plans.templates[inst.template.index()]
+            .sealed
+            .elems[inst.elem.index()];
         Some((inst.template, sealed.slot_off.offset(pi as usize)))
     }
 
@@ -1013,6 +1021,7 @@ impl<'c> Builder<'c> {
     fn record_of(&self, marked: &[bool]) -> Record {
         let mut record: Vec<Vec<u64>> = self
             .compiled
+            .plans
             .templates
             .iter()
             .map(|t| vec![0; (t.sealed.n_slots as usize).div_ceil(64)])
@@ -1036,7 +1045,9 @@ impl<'c> Builder<'c> {
         let comp = self.slot_comp[slot.index()];
         let inst = self.instances[self.comp_instance[comp.index()].index()];
         let pi = slot.get() - self.slot_base[comp.index()].get();
-        let sealed = self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()];
+        let sealed = self.compiled.plans.templates[inst.template.index()]
+            .sealed
+            .elems[inst.elem.index()];
         (
             inst.scope,
             sealed.slot_off.offset(pi as usize),

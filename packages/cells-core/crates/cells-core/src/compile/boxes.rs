@@ -162,7 +162,7 @@ impl Compiler<'_> {
             return;
         }
         bx.drop_errors_on(&dead);
-        Arc::make_mut(&mut self.compiled.diagnostics)
+        Arc::make_mut(&mut self.plans.diagnostics)
             .retain(|d| !d.node.is_some_and(|n| boxes.contains(&n)));
     }
 
@@ -271,7 +271,7 @@ mod tests {
 
     /// Template and element of the element named `name`.
     fn find(compiled: &Compiled, name: &str) -> (TemplateId, ElemId) {
-        for (ti, tpl) in compiled.templates.iter().enumerate() {
+        for (ti, tpl) in compiled.plans.templates.iter().enumerate() {
             for (ei, e) in tpl.elems.iter().enumerate() {
                 if e.name != StrId::NONE && compiled.dast.strings.get(e.name).trim() == name {
                     return (TemplateId::from_index(ti), ElemId::from_index(ei));
@@ -293,7 +293,7 @@ mod tests {
         let compiled = crate::testing::compile(&dast).unwrap();
         let (t, g) = find(&compiled, "g");
         let (_, a) = find(&compiled, "a");
-        let tpl = &compiled.templates[t.index()];
+        let tpl = &compiled.plans.templates[t.index()];
         assert!(tpl.view().is_box(g) && !tpl.is_dead(g));
         assert_eq!(tpl.elems[g.index()].component_type, ComponentType::Graph);
         assert_eq!(tpl.elems[g.index()].children.len(), 1);
@@ -311,7 +311,7 @@ mod tests {
         let dast = document([el("p").name("p").child(mac("nope"))]);
         let compiled = crate::testing::compile(&dast).unwrap();
         let (t, p) = find(&compiled, "p");
-        let tpl = &compiled.templates[t.index()];
+        let tpl = &compiled.plans.templates[t.index()];
         assert!(
             tpl.elems
                 .iter()
@@ -323,6 +323,7 @@ mod tests {
         assert_eq!(tpl.tables.ref_child_plans[id.index()], RefChildPlan::Boxed);
         assert!(
             compiled
+                .plans
                 .diagnostics
                 .iter()
                 .any(|d| d.code == "doenet-w0104")

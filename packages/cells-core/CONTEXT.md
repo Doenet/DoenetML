@@ -325,7 +325,7 @@ which follows the iteration counts (ADR 0028): a collect's count from a
 repeat, a section's number after one, the credit of a section whose answers
 are all in repeats. A derived cell in every build, holding the number its build
 counted; the abstract build records which template slots hold one
-(`Compiled::counted`), since at a count with nothing to count a build cannot
+(`Plans::counted`), since at a count with nothing to count a build cannot
 tell. Never a constant.
 
 **Hold** — What `fixed` (or `fixAxes`) puts on an element: every cell of

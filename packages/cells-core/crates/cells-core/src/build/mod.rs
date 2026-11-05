@@ -189,6 +189,10 @@ pub fn build(
         .map_err(|f| BuildError::Unchecked(f.error.to_string()))
 }
 
+/// A cell's human-readable owner, read from the compile's source, which
+/// the closure is handed rather than keeping.
+type CellLabel = Box<dyn Fn(CellIdx, &crate::dast::Dast) -> String>;
+
 /// A built document whose program has not yet been scheduled.
 pub struct BuildOutput {
     cells: Vec<f64>,
@@ -210,7 +214,7 @@ pub struct BuildOutput {
     /// makes (a case).
     comp_keys: Vec<ElemKey>,
     /// Human-readable owner of a cell, e.g. "p1.x".
-    cell_label: Box<dyn Fn(CellIdx) -> String>,
+    cell_label: CellLabel,
     /// Which cells the document computes.
     live: Live,
     /// What the abstract build found for the compile to keep: empty in any
@@ -273,7 +277,7 @@ impl BuildOutput {
                 p
             }
             Err(cell) => {
-                let cycle = Error::Cycle((self.cell_label)(cell));
+                let cycle = Error::Cycle((self.cell_label)(cell, &compiled.dast));
                 return Err(BuildError::Unchecked(cycle.to_string()));
             }
         };

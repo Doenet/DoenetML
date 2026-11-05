@@ -54,8 +54,7 @@ pub fn par_map<'a, T: Sync, R: Send>(items: &'a [T], f: impl Fn(&'a T) -> R + Sy
 pub fn compile(
     dast: &crate::dast::Dast,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
-    let dast = std::sync::Arc::new(dast.clone());
-    Ok(crate::compile::compile(&dast, true, true, true, true, true)?.compiled)
+    Ok(crate::compile::compile(dast.clone(), true, true, true, true, true)?.compiled)
 }
 
 /// `compile`, with every value slot essential (`LoadOptions::classify`
@@ -63,8 +62,7 @@ pub fn compile(
 pub fn compile_unclassified(
     dast: &crate::dast::Dast,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
-    let dast = std::sync::Arc::new(dast.clone());
-    Ok(crate::compile::compile(&dast, true, false, true, true, true)?.compiled)
+    Ok(crate::compile::compile(dast.clone(), true, false, true, true, true)?.compiled)
 }
 
 /// The value of the one-cell prop at `path` (`"c.radius"`), for a unit
@@ -152,10 +150,13 @@ pub fn inputs(
     use crate::components::ComponentType;
 
     let mut key_of = std::collections::HashMap::new();
-    for t in &compiled.templates {
+    for t in &compiled.plans.templates {
         for (el, sealed) in t.elems.iter().zip(&t.sealed.elems) {
             if el.node != crate::dast::NodeId::NONE {
-                key_of.insert(el.node, compiled.keys.key_text(sealed.key).to_string());
+                key_of.insert(
+                    el.node,
+                    compiled.plans.keys.key_text(sealed.key).to_string(),
+                );
             }
         }
     }

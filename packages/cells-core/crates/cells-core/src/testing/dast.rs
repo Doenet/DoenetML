@@ -240,5 +240,5 @@ pub fn load(dast: Dast) -> crate::Result<crate::Document> {
         prune: false,
         ..Default::default()
     };
-    Ok(crate::Document::load_dast(std::sync::Arc::new(dast), options)?.0)
+    Ok(crate::Document::load_dast(dast, options)?.0)
 }

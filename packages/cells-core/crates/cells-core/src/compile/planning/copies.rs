@@ -31,8 +31,8 @@ impl<'a> Compiler<'a> {
             | ComponentType::Boolean
             | ComponentType::BooleanInput => vec![Source::reference(p)],
             ComponentType::Math => {
-                let id = self.compiled.arena.push(Expr::Cell(p));
-                self.compiled.sym_text.insert(id, SymText::Leaf(p));
+                let id = self.plans.arena.push(Expr::Cell(p));
+                self.plans.sym_text.insert(id, SymText::Leaf(p));
                 prop::math::props_of(id, Post::None)
             }
             // Its points are the list's, synthesized when built.
@@ -40,7 +40,7 @@ impl<'a> Compiler<'a> {
                 self.tables[t.index()].plans[e.index()].from = Some(p);
                 Vec::new()
             }
-            _ => return Err(Error::PathTooDeep(self.compiled.ref_display(p))),
+            _ => return Err(Error::PathTooDeep(self.plans.ref_display(self.dast, p))),
         };
         self.tables[t.index()].plans[e.index()].props = props;
         Ok(())
@@ -101,7 +101,7 @@ impl<'a> Compiler<'a> {
         let (rt, re) = last?;
         // The path ends at the element (not at a collect an index steps
         // into), which is one the author wrote.
-        let plan = &self.compiled.refs[p.index()];
+        let plan = &self.plans.refs[p.index()];
         let ends_at_elem = matches!(plan.steps.last(), Some(Step::Elem(_))) && plan.prop.is_none();
         (ends_at_elem
             && ty.is_some()
@@ -143,7 +143,7 @@ impl<'a> Compiler<'a> {
                 let r = self.extend_referent(t, p).ok_or_else(|| {
                     Error::Unsupported(format!(
                         "attributes or children on an extend of '${}', which names no element; a bare extend of it works",
-                        self.compiled.ref_display(p)
+                        self.plans.ref_display(self.dast, p)
                     ))
                 })?;
                 let (rt, re) = match r {
@@ -155,7 +155,7 @@ impl<'a> Compiler<'a> {
                 let theirs = pl
                     .parsed
                     .record(rt, re)
-                    .map_err(|_| Error::BoxedReferent(self.compiled.ref_display(p)))?;
+                    .map_err(|_| Error::BoxedReferent(self.plans.ref_display(self.dast, p)))?;
                 let theirs = match r {
                     Referent::Here(_) => theirs,
                     Referent::Path(p, ..) => self.rebase_record(&mut pl.refs, p, theirs),

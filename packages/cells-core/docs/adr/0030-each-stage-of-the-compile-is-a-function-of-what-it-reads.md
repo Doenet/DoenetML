@@ -1,8 +1,9 @@
 # Each stage of the compile is a function of what it reads
 
 Status: accepted 2026-11-02. Proposed 2026-11-02; every step is done (see
-Migration). Amended 2026-11-05: `Compiler` holds no stage's own state
-(see the note after step 7). Amends ADR
+Migration). Amended 2026-11-05: `Compiler` holds no stage's own state,
+and the stages read the source as a borrow, never through the compile
+(see the notes after step 7). Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -305,6 +306,29 @@ otherwise.
    the planners reach it through their context. A record read through a
    path is rebased by a `Rebaser` (`rebase.rs`), which carries the `Refs`
    where two closures used to share it.
+
+   Amended 2026-11-05, last: the source left what the stages make. Every
+   stage reads the DAST, and none changes it, but `Compiled` held it
+   (`Arc<Dast>`) while `Compiler` borrowed it too (`dast: &Dast`). That
+   left two ways to reach one input. The sharing stage, sealing, and the
+   planners that spell a reference in an error (`ref_display`) read it
+   through the compile being made, so the stage that read it was not
+   stated in its signature, and the source could not have one owner.
+   What the stages make is now `Plans` (`plan.rs`): what `Compiled` held,
+   less the source. `Compiler` holds the `Plans` it fills and the source
+   as a borrow (`Compiler::dast`), which is the only way a stage reaches
+   it. A stage that reads the source while the `Plans` are made is given
+   it: sharing takes `&Dast` (`Plans::share`), sealing has it in its
+   `Seal`, and a reference's spelling is `Plans::ref_display(dast, p)` and
+   `display_of(dast, plan)`. `Compiled` is the source and its `Plans`,
+   put together when an attempt has planned: `plan_and_check` owns the
+   source, plans from a borrow, pairs the source with the attempt's
+   `Plans` for the abstract build, and takes it back when the attempt is
+   boxed and planned again. A load moves its source into the compile, so
+   one `Dast` exists per load and nothing shares it. The build reads
+   both through `Compiled`; the label of a cycle's cell is handed the
+   source rather than keeping a handle to it. The reference table of the
+   note above is `Plans::refs`. No behavior changed.
 8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`
    name the new paths. Done: `outline/` (the walk; `copies.rs`,
    `choice.rs`, `answer.rs` for what outlining makes of each), `parse.rs`,

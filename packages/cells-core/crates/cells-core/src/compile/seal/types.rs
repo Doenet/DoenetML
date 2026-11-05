@@ -241,7 +241,7 @@ impl Types<'_, '_> {
                                 e,
                                 Error::Unsupported(format!(
                                     "a text value (${}) used as a number",
-                                    self.seal.compiled.ref_display(*p)
+                                    self.seal.plans.ref_display(self.seal.dast, *p)
                                 )),
                             ));
                         }
@@ -308,7 +308,7 @@ impl Types<'_, '_> {
     /// `id` is a math cell: its text has a free symbol, or a leaf that
     /// stands for an expression (`stands_for_expression`).
     fn symbolic(&self, t: TemplateId, id: ExprId) -> std::result::Result<bool, Failure> {
-        let arena = &self.seal.compiled.arena;
+        let arena = &self.seal.plans.arena;
         let has_symbol = *self.has_symbol.borrow_mut().entry(id).or_insert_with(|| {
             let mut syms = Vec::new();
             arena.symbols(id, &mut syms);
@@ -367,7 +367,7 @@ impl Types<'_, '_> {
         id: ExprId,
     ) -> std::result::Result<(), Failure> {
         let mut leaves = Vec::new();
-        self.seal.compiled.arena.cell_leaves(id, &mut leaves);
+        self.seal.plans.arena.cell_leaves(id, &mut leaves);
         for p in leaves {
             let ty = self.one_cell(t, e, p, ArityOf::MathLeaf)?;
             if ty == PortType::Text {
@@ -376,7 +376,7 @@ impl Types<'_, '_> {
                     e,
                     Error::Unsupported(format!(
                         "a text value (${}) inside math",
-                        self.seal.compiled.ref_display(p)
+                        self.seal.plans.ref_display(self.seal.dast, p)
                     )),
                 ));
             }
@@ -420,7 +420,7 @@ impl Types<'_, '_> {
         let component_type = self.row(t, e).component_type;
         let error = match of {
             ArityOf::MathLeaf => Error::BadMath {
-                text: self.seal.compiled.ref_display(cells.plan),
+                text: self.seal.plans.ref_display(self.seal.dast, cells.plan),
                 reason: "a reference inside math must name one cell".into(),
             },
             ArityOf::Coords => Error::ArityMismatch {
@@ -456,7 +456,7 @@ impl Types<'_, '_> {
         p: RefId,
         check: bool,
     ) -> std::result::Result<Cells, Failure> {
-        let plan = &self.seal.compiled.refs[p.index()];
+        let plan = &self.seal.plans.refs[p.index()];
         let Target { at, lands } = self.walk(t, p);
         let mut cells = Cells {
             plan: p,
@@ -585,7 +585,7 @@ impl Types<'_, '_> {
     }
 
     fn walk_uncached(&self, t: TemplateId, p: RefId) -> Target {
-        let plan = &self.seal.compiled.refs[p.index()];
+        let plan = &self.seal.plans.refs[p.index()];
         let mut t = t;
         for _ in 0..plan.hops {
             let Some((pt, _)) = self.seal.templates[t.index()].parent else {
@@ -794,7 +794,7 @@ impl Types<'_, '_> {
                 // component of the type, with the original's ports.
                 Child::Macro(id) => {
                     if let RefChildPlan::Ref(p) = tpl.tables.ref_child_plans[id.index()]
-                        && self.seal.compiled.refs[p.index()].prop.is_none()
+                        && self.seal.plans.refs[p.index()].prop.is_none()
                         && let Walk::Elems(es) = self.walk(t, p).at
                     {
                         for (ct, ce) in es {

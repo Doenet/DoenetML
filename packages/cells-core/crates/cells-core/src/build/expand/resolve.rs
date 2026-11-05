@@ -80,7 +80,7 @@ impl<'c> Builder<'c> {
         plan: RefId,
         scope: ScopeId,
     ) -> Result<(Resolved, Option<RefProp>)> {
-        let c: &'c Compiled = self.compiled;
+        let c = &self.compiled.plans;
         let p = &c.refs[plan.index()];
         let labelling = self.view.folds_iterations();
         let src_depth = if labelling {

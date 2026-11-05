@@ -946,23 +946,23 @@ pub(crate) enum RefDisplay {
     Spelled(Box<str>),
 }
 
-impl Compiled {
-    /// How plan `p` is shown in an error.
-    pub(crate) fn ref_display(&self, p: RefId) -> String {
-        self.display_of(&self.refs[p.index()])
+impl Plans {
+    /// How plan `p` is shown in an error, spelled from `dast`.
+    pub(crate) fn ref_display(&self, dast: &Dast, p: RefId) -> String {
+        display_of(dast, &self.refs[p.index()])
     }
+}
 
-    /// How `plan` is shown in an error.
-    pub(crate) fn display_of(&self, plan: &RefPlan) -> String {
-        self.spell_display(&plan.display, plan.node)
-    }
+/// How `plan` is shown in an error, spelled from `dast`.
+pub(crate) fn display_of(dast: &Dast, plan: &RefPlan) -> String {
+    spell_display(dast, &plan.display, plan.node)
+}
 
-    fn spell_display(&self, display: &RefDisplay, node: NodeId) -> String {
-        match display {
-            RefDisplay::Written => self.dast.macro_display(node).to_string(),
-            RefDisplay::Prop(base, prop) => format!("{}.{prop}", self.spell_display(base, node)),
-            RefDisplay::Spelled(text) => text.to_string(),
-        }
+fn spell_display(dast: &Dast, display: &RefDisplay, node: NodeId) -> String {
+    match display {
+        RefDisplay::Written => dast.macro_display(node).to_string(),
+        RefDisplay::Prop(base, prop) => format!("{}.{prop}", spell_display(dast, base, node)),
+        RefDisplay::Spelled(text) => text.to_string(),
     }
 }
 
@@ -1404,11 +1404,17 @@ impl GivenPoint {
     }
 }
 
-/// A document as compiled: its templates and plans, made once from its
-/// source.
+/// A document as compiled: its source and the plans made from it, once.
 #[derive(Debug)]
 pub struct Compiled {
-    pub(crate) dast: Arc<Dast>,
+    pub(crate) dast: Dast,
+    pub(crate) plans: Plans,
+}
+
+/// What the compile makes from a source: its templates and plans. A stage
+/// that reads the source is given it; the plans never hold it.
+#[derive(Debug)]
+pub(crate) struct Plans {
     pub(crate) templates: Vec<Template>,
     pub(crate) refs: Vec<RefPlan>,
     /// Expression templates: cell leaves hold plan ids.
@@ -1471,13 +1477,31 @@ impl Record {
 
 impl Compiled {
     /// The source it was compiled from.
-    pub fn dast(&self) -> &Arc<Dast> {
+    pub fn dast(&self) -> &Dast {
         &self.dast
     }
 
     /// The type of template slot `slot` of `template`, as the type pass
     /// settled it.
     pub fn port_type(&self, template: usize, slot: TemplateSlot) -> PortType {
+        self.plans.port_type(template, slot)
+    }
+
+    /// How plan `p` is shown in an error.
+    pub(crate) fn ref_display(&self, p: RefId) -> String {
+        self.plans.ref_display(&self.dast, p)
+    }
+
+    /// How `plan` is shown in an error.
+    pub(crate) fn display_of(&self, plan: &RefPlan) -> String {
+        display_of(&self.dast, plan)
+    }
+}
+
+impl Plans {
+    /// The type of template slot `slot` of `template`, as the type pass
+    /// settled it.
+    pub(crate) fn port_type(&self, template: usize, slot: TemplateSlot) -> PortType {
         self.templates[template].sealed.types[slot.index()]
     }
 

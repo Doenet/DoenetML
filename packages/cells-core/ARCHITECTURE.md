@@ -128,7 +128,7 @@ Runs once per load and depends on the source alone.
   planner did, and so do two unrelated elements computing the same thing;
   every build and the abstract build's records see it as a plan fact, and
   no build pays to find it. It also classes the math expressions
-  (`Compiled::expr_class`), so a build lowers a subexpression two of a
+  (`Plans::expr_class`), so a build lowers a subexpression two of a
   scope's maths share once (`Builder::lower`); the **abstract build**
   (below) comes last. What more than one stage uses
   has a module of its own (`names.rs`, `refs.rs`, `maths.rs`,
@@ -149,12 +149,14 @@ Runs once per load and depends on the source alone.
 
 Each stage keeps its own table (ADR 0031): a template is outlining's part
 (`Outlined`, read-only once outlining is done), boxing's and planning's
-(`Tables`) and sealing's (`SealedTemplate`), put together into `Compiled`
+(`Tables`) and sealing's (`SealedTemplate`), put together into `Plans`
 when the compile is done.
 
-The result is `Compiled` (`plan.rs`): the templates, their plans, the
-abstract build's records and the source's diagnostics, the abstract build's
-warnings included.
+The result is `Compiled` (`plan.rs`): the source and the `Plans` made from
+it, which are the templates, their plans, the abstract build's records and
+the source's diagnostics, the abstract build's warnings included. The
+stages read the source as a borrow, given to each stage that needs it, and
+make `Plans`; only the finished `Compiled` owns the source.
 
 ### Build (`build/`)
 
@@ -177,13 +179,13 @@ draw for every select.
   source reads, and the flags that hold it) and where a request on it goes
   (what its inverse may write, nowhere past a constant hold).
   `Program::needs` is the first over the cells a build made. The abstract
-  build runs the walk and records the writable template slots in `Compiled`
+  build runs the walk and records the writable template slots in `Plans`
   (a `Record`), and every build classes by that record, so a slot's class is
   the same in every build. A class is computed only when it is live (ADR
   0019): `build/live.rs` walks back from every root (the rendered props of
   rendered components, scores, inputs, what an action or snapping reads,
   repeat counts) through what each cell needs. The abstract build records
-  the live template slots in `Compiled::live` as it records the writable
+  the live template slots in `Plans::live` as it records the writable
   ones; a class the record cannot name (a synthesized component's, such as a
   choice's interface) is live when something live reads it. A dead class
   gets no cell: its props name the one dead cell, a constant NaN, and its
@@ -192,7 +194,7 @@ draw for every select.
   (`Error::Unchecked`). `LoadOptions::prune` off computes every class.
 
   Emit also makes the constants (ADR 0028). A document constant, by the
-  abstract build's record (`Compiled::document_constants`), an operator's
+  abstract build's record (`Plans::document_constants`), an operator's
   constant and the missing-referent cell name a cell of the session's
   **constant pool**, one per distinct value, which every build starts its
   cells from and appends to; a document constant's cell index is the same in
@@ -204,7 +206,7 @@ draw for every select.
   counts from the structure it stamped (a collect's count from a repeat, a
   section's number after one), is a derived cell in every build, never a
   constant; the abstract build records which slots hold one
-  (`Compiled::counted`).
+  (`Plans::counted`).
 
 A build learns the document's structure only through the **structure view**
 (`View`, `build/view.rs`): iteration counts, which iteration or item an
@@ -360,7 +362,7 @@ the other action: it sets each `<updateValue>`'s target.
 |---|---|---|
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. |
 | `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
-| `Compiled`, `Template` | `compile/plan.rs` | The compile's output: one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
+| `Compiled`, `Plans`, `Template` | `compile/plan.rs` | The compile's output: the source and its `Plans`, one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
 | `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Abstract`, which folds every iteration into one (`build/abstract_build.rs`). |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
 | `Session`, `Counts`, `Pool` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine, the constant pool (ADR 0028); and the counts a build stamps. |

@@ -256,7 +256,7 @@ impl<'a> Compiler<'a> {
             .and_then(|a| self.single_macro(a))
             .ok_or(refused)?;
         let p = self.plan_ref(rf, t, scope, m)?;
-        if self.compiled.refs[p.index()].prop.is_some() {
+        if self.plans.refs[p.index()].prop.is_some() {
             return Err(if polyline {
                 Error::Unsupported(
                     "<polyline vertices> must name a component holding points".into(),
@@ -301,7 +301,7 @@ impl<'a> Compiler<'a> {
         let extend = self.outlined(t).elems[e.index()].extend;
         if let Some(p) = extend
             && component_type.container()
-            && self.compiled.refs[p.index()].prop.is_none()
+            && self.plans.refs[p.index()].prop.is_none()
         {
             self.tables[t.index()].plans[e.index()].extend = Some(p);
             return Ok(ElemShape::ContainerCopy(p));
@@ -315,7 +315,7 @@ impl<'a> Compiler<'a> {
                 // props alias the named prop. An extend across related
                 // types names the referent's default prop already
                 // (`plan_extend`).
-                if self.compiled.refs[p.index()].prop.is_some() {
+                if self.plans.refs[p.index()].prop.is_some() {
                     return Ok(ElemShape::ExtendProp(p));
                 }
                 Some(p)
@@ -353,7 +353,7 @@ impl<'a> Compiler<'a> {
             display: RefDisplay::Spelled(format!("(repeat).{prop}").into()),
             node: NodeId::NONE,
         };
-        rf.push(&mut self.compiled.refs, plan)
+        rf.push(&mut self.plans.refs, plan)
     }
 }
 

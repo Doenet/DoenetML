@@ -97,7 +97,7 @@ impl<'a> Compiler<'a> {
                 text: self.attr_text(a).unwrap_or_default(),
             })?;
             let p = self.plan_ref(rf, at, name_scope, m)?;
-            self.compiled.refs[p.index()].hops += hops;
+            self.plans.refs[p.index()].hops += hops;
             flags.push(p);
         }
         Ok(if flags.is_empty() {
@@ -151,7 +151,7 @@ mod tests {
     /// The plan of the element named `name` in the compile, in any
     /// template: nothing when it was boxed.
     fn plan<'c>(compiled: &'c Compiled, name: &str) -> Option<&'c ElemPlan> {
-        compiled.templates.iter().find_map(|t| {
+        compiled.plans.templates.iter().find_map(|t| {
             let e = t.elems.iter().position(|e| {
                 e.name != StrId::NONE && compiled.dast.strings.get(e.name).trim() == name
             })?;
@@ -169,6 +169,7 @@ mod tests {
         // The accessibility lint is about the document (a graph without a
         // description), not the attribute.
         let clean = compiled
+            .plans
             .diagnostics
             .iter()
             .all(|d| d.kind == crate::DiagnosticKind::Accessibility);

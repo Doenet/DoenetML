@@ -124,7 +124,7 @@ impl Compiler<'_> {
     ) -> Result<ExprId> {
         let (toks, plans) = self.resolve_math(rf, t, scope, mt)?;
         let id = self.parse_tokens(&toks, mt.src())?;
-        self.compiled.sym_text.insert(
+        self.plans.sym_text.insert(
             id,
             SymText::Nodes {
                 nodes: mt.nodes.clone(),
@@ -163,7 +163,7 @@ impl Compiler<'_> {
         src: MathSrc<'_>,
     ) -> Result<ExprId> {
         let _s = crate::trace::tally("parse");
-        Parser::parse(toks, &mut self.compiled.arena).map_err(|reason| Error::BadMath {
+        Parser::parse(toks, &mut self.plans.arena).map_err(|reason| Error::BadMath {
             text: src.text(self.dast),
             reason,
         })

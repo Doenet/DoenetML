@@ -125,7 +125,7 @@ impl Compiler<'_> {
         t: TemplateId,
         p: RefId,
     ) -> Option<((u32, ElemId), ComponentType)> {
-        let r = &self.compiled.refs[p.index()];
+        let r = &self.plans.refs[p.index()];
         if !r.prop.is_none_or(|p| p.is("value")) {
             return None;
         }
