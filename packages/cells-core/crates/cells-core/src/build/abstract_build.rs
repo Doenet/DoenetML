@@ -51,17 +51,17 @@ pub(crate) fn abstract_signature(
     rename: &dyn Fn(&str) -> String,
 ) -> std::result::Result<signature::Signature, Failure> {
     with_abstract(compiled, true, |b, defined| {
-        signature::sign(b, defined, rename)
+        signature::sign(&b, defined, rename)
     })
 }
 
 /// Expand, resolve, optionally check counts and loops, and define through
-/// the abstract view, then `read` the definitions. The failure names the
-/// element to box.
+/// the abstract view, then `read` the builder, which it is given, and the
+/// definitions. The failure names the element to box.
 fn with_abstract<T>(
     compiled: CompiledRef,
     checks: bool,
-    read: impl FnOnce(&mut Builder<'_>, &Defined) -> T,
+    read: impl FnOnce(Builder<'_>, &Defined) -> T,
 ) -> std::result::Result<T, Failure> {
     // A session and math of its own: no handle it makes reaches a
     // document.
@@ -71,14 +71,14 @@ fn with_abstract<T>(
     b.stage(checks)?;
     let slot_cells = crate::trace::span("define").run(|| b.define())?;
     let defined = Defined::by_walk(&b, slot_cells);
-    Ok(read(&mut b, &defined))
+    Ok(read(b, &defined))
 }
 
 impl<'c> Builder<'c> {
     /// What the abstract build found for the compile to keep: the
     /// attributes of the ports its walks classed and it counted, and its
-    /// warnings.
-    fn findings(&mut self, defined: &Defined) -> AbstractFindings {
+    /// warnings. The build ends here: its own warnings move out of it.
+    fn findings(self, defined: &Defined) -> AbstractFindings {
         let n = self.sources.len();
         let Defined {
             slot_cells,
@@ -116,11 +116,13 @@ impl<'c> Builder<'c> {
             self.mark_ports(marked, attr, &mut attrs);
         }
         // Requests the program cannot land (ADR 0026), each interactive
-        // prop once, by its template element.
-        let mut warnings = std::mem::take(&mut self.diagnostics);
-        warnings.extend(self.refuse_warnings(slot_cells, essential));
+        // prop once, by its template element, after the build's own.
+        let refused = self.refuse_warnings(slot_cells, essential);
+        let structural_depth = self.structural_depth;
+        let mut warnings = self.diagnostics;
+        warnings.extend(refused);
         AbstractFindings {
-            structural_depth: self.structural_depth,
+            structural_depth,
             attrs,
             warnings,
         }
