@@ -613,9 +613,6 @@ export async function verifyReplacementsMatchSpecifiedType({
                     }
 
                     if (stateVarObj) {
-                        // Not missing: it holds what a write gives the
-                        // array, which may be empty now.
-                        replacements[0].doenetAttributes = {};
                         replacements[0].downstreamDependencies = {
                             [replacementSource.componentIdx]: [
                                 {

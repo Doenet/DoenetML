@@ -195,8 +195,8 @@ export async function normalizedDastToSerializedComponents(
      * whose `extend` or `copy` names nothing, under its own index: a
      * component of its type with its own attributes, but not its children,
      * which are not drawn. A composite, such as a `<group>`, has nothing of
-     * its type to be missing as, so it is a `_missing` (`Missing.js`) with
-     * its name and `hide`.
+     * its type to be missing as, and a list is drawn as its entries, so each
+     * is a `_missing` (`Missing.js`) with its name and `hide`.
      */
     function missingTag(
         node: FlatElement,
@@ -208,12 +208,16 @@ export async function normalizedDastToSerializedComponents(
             componentInfoObjects.componentTypeLowerCaseMapping[
                 componentType.toLowerCase()
             ];
+        // A list is drawn as its entries, and a missing one has none, so it
+        // is a `_missing` too, to be drawn and read as one blank.
         const isComposite =
             mapped !== undefined &&
-            componentInfoObjects.isCompositeComponent({
+            (componentInfoObjects.isCompositeComponent({
                 componentType: mapped,
                 includeNonStandard: true,
-            });
+            }) ||
+                componentInfoObjects.allComponentClasses[mapped]
+                    ?.listEntryComponentType !== undefined);
         // A division's `type` is its component type (`getComponentType`),
         // not an attribute, as for a tag that is not missing.
         const attributes = node.attributes.filter(

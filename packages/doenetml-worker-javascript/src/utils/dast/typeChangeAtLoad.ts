@@ -507,6 +507,31 @@ export function checkTypeChangesAtLoad({
      * What one of `holdings` holds, where which one is not known from the
      * DoenetML (each a component of one name in a different option).
      */
+    /**
+     * Of `current`, the branch kept so far for why what holds them does not
+     * hold one component, and `next`, the one to keep: the first that does
+     * not, except that a branch holding nothing, which gives a missing tag
+     * while it is chosen (D37), gives way to a later one that holds several
+     * or a varying number, which is an error whichever is first.
+     */
+    function preferredNotOne(
+        current: Holding | undefined,
+        next: Holding,
+    ): Holding | undefined {
+        if (!next.notOne) {
+            return current;
+        }
+        if (!current || (holdsNothing(current) && !holdsNothing(next))) {
+            return next;
+        }
+        return current;
+    }
+
+    /** Whether `h` fails to hold one component only by holding nothing. */
+    function holdsNothing(h: Holding) {
+        return h.notOne?.reason === "count" && h.notOne.count === 0;
+    }
+
     function eitherOf(holdings: Holding[]): Holding {
         if (holdings.length === 1) {
             return holdings[0];
@@ -520,7 +545,7 @@ export function checkTypeChangesAtLoad({
             }
             holding.types.forEach((type) => types.add(type));
             unknown ??= holding.unknown;
-            notOneOf ??= holding.notOne ? holding : undefined;
+            notOneOf = preferredNotOne(notOneOf, holding);
         }
         return {
             ...(notOneOf && {
@@ -1158,9 +1183,7 @@ export function checkTypeChangesAtLoad({
             }
             part.types.forEach((type) => types.add(type));
             unknown ??= part.unknown;
-            if (part.notOne && !partNotOne) {
-                partNotOne = part;
-            }
+            partNotOne = preferredNotOne(partNotOne, part);
         }
         if (notOne) {
             return { notOne, notOneTag: tag, types, unknown };

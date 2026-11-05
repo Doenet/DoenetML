@@ -1515,6 +1515,7 @@ export default class Copy extends CompositeComponent {
     static async createSerializedReplacements(args) {
         const result = await this.createSerializedReplacementsOfCopy(args);
         await reportMissingProperty(args);
+        await missingSourceInPlace({ ...args, result });
         return result;
     }
 
@@ -2482,6 +2483,7 @@ export default class Copy extends CompositeComponent {
         const result = await this.calculateReplacementChangesOfCopy(args);
         await reportMissingProperty(args);
         await blankInPlaceOfNothing({ ...args, result });
+        await missingSourceInPlace({ ...args, result });
         return result;
     }
 
@@ -6662,6 +6664,95 @@ function missingInPlaceOfReplacements({
         ],
         nComponents,
     };
+}
+
+/**
+ * Make the replacements of the copy `component`, written as a tag, the
+ * missing tag (`missingOfWrittenType`) when what it names is itself missing
+ * (`BaseComponent.isMissing`): a property of a missing component is missing
+ * (D37), so `<number extend="$n.value"/>` of a missing `n` is missing, not a
+ * `<number>` holding `NaN`. `result` holds the replacements a copy is first
+ * made with (`replacements`), or the changes it makes to them
+ * (`replacementChanges`), which this replaces with one change to the
+ * missing tag unless it is missing already. A copy of a component, not of
+ * a property of it, is made missing already, as it serializes the source's
+ * `doenetAttributes`. When the source is there again, it is a new
+ * component, and the copy is made from it.
+ */
+async function missingSourceInPlace({
+    component,
+    components,
+    componentInfoObjects,
+    workspace,
+    result,
+}) {
+    if (
+        component.componentType !== "_copy" ||
+        !component.attributes._copyInChildren?.primitive?.value ||
+        !component.attributes._createComponentOfType?.primitive?.value ||
+        component.doenetAttributes?.forList !== undefined
+    ) {
+        return;
+    }
+    const extended = await component.stateValues.extendedComponent;
+    if (!components[extended?.componentIdx]?.isMissing) {
+        return;
+    }
+    const stateIdInfo = {
+        prefix: `${component.stateId}|`,
+        num: workspace.replacementsCreated,
+    };
+    if (result.replacements) {
+        if (
+            result.replacements.length > 0 &&
+            result.replacements.every(
+                (x) =>
+                    x.doenetAttributes?.missing ||
+                    x.componentType === "_missing",
+            )
+        ) {
+            return;
+        }
+    } else if (
+        !result.replacementChanges?.length &&
+        component.replacements.length > 0 &&
+        component.replacements.every(
+            (x) => x.isMissing || x.componentType === "_missing",
+        )
+    ) {
+        return;
+    }
+    const missing = missingOfWrittenType({
+        component,
+        componentInfoObjects,
+        compositeAttributesObj: component.constructor.createAttributesObject(),
+        nComponents: result.nComponents,
+        stateIdInfo,
+    });
+    addAttributesToSingleReplacement(
+        missing.replacements,
+        component,
+        componentInfoObjects,
+    );
+    result.nComponents = missing.nComponents;
+    workspace.replacementsCreated = stateIdInfo.num;
+    workspace.numReplacementsBySource = [missing.replacements.length];
+    workspace.numNonStringReplacementsBySource = [missing.replacements.length];
+    workspace.propVariablesCopiedBySource = [];
+    if (result.replacements) {
+        result.replacements = missing.replacements;
+        return;
+    }
+    result.replacementChanges = [
+        ...unwithheldChanges(component),
+        {
+            changeType: "add",
+            changeTopLevelReplacements: true,
+            firstReplacementInd: 0,
+            numberReplacementsToReplace: component.replacements.length,
+            serializedReplacements: missing.replacements,
+        },
+    ];
 }
 
 /** A `_missing` (`Missing.js`), as the one replacement of a copy. */

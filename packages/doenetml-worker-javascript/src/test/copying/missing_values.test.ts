@@ -4,6 +4,7 @@ import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
 } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -345,5 +346,66 @@ describe("Missing values and missing tags (D37) @group2", () => {
         expect(getDiagnosticsByType(core).infos.map((i: any) => i.code)).eqls([
             "doenet-i0054",
         ]);
+    });
+
+    it("keeps a tag made from a property of a missing component missing", async () => {
+        const { text, errors } = await shownAndReported(`
+    <number name="n" extend="$nothing"/>
+    <p name="p">[<number extend="$n.value"/>][<number copy="$n.value"/>][$n.value]</p>
+    `);
+        expect(errors).eqls([]);
+        expect(text).eq("[＿][＿][＿]");
+    });
+
+    it("leaves out a missing child of a text that its own hide hides", async () => {
+        const { text } = await shownAndReported(
+            `<p name="p">[<text>x <text extend="$nothing" hide/></text>][<text>x <text extend="$nothing"/></text>]</p>`,
+        );
+        expect(text).eq("[x ][x ＿]");
+    });
+
+    it("shows a missing list tag as one blank", async () => {
+        const { text, warnings } = await shownAndReported(
+            `<p name="p">[<numberList extend="$nothing"/>][<mathList name="ml" extend="$nothing"/>$ml]</p>`,
+        );
+        expect(text).eq("[＿][＿＿]");
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0104",
+            "doenet-w0104",
+        ]);
+    });
+
+    it("keeps a tag of a choice input's selected value missing until a choice is made", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
+    <p name="p">[<text extend="$ci.selectedValue"/>][$ci.selectedValue]</p>
+    `);
+        expect(text).eq("[＿][＿]");
+        await updateSelectedIndices({
+            selectedIndices: [2],
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[b][b]");
+    });
+
+    it("still reports a later branch holding several components after an empty one", async () => {
+        for (const branches of [
+            `<case condition="$b"></case><else><math>1</math><math>2</math></else>`,
+            `<case condition="$b"><math>1</math><math>2</math></case><else></else>`,
+        ]) {
+            const { errors } = await shownAndReported(`
+    <boolean name="b">true</boolean>
+    <conditionalContent name="cc">${branches}</conditionalContent>
+    <p name="p"><math extend="$cc"/></p>
+    `);
+            expect(
+                errors.map((e) => [e.code, e.args?.reason]),
+                branches,
+            ).eqls([["doenet-e0064", "count"]]);
+        }
     });
 });
