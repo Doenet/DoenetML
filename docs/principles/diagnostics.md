@@ -23,7 +23,7 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
   - a deprecated form;
   - an ambiguous name (`doenet-w0105`);
   - a literal `$l[0]`;
-  - a copy whose nested choices kept the source's (D33).
+  - a `copyWithState` whose nested choices kept the source's (D33).
 - **Info:** the DoenetML is valid, and with the values it has now, part of it is missing (a blank)
   or degenerate. The diagnostic only explains why, so that the author is not confused.
   Nothing needs to change. Examples:
@@ -46,9 +46,9 @@ as, and each call site picks the level (`packages/i18n/README.md`).
 - **From values that can change** (inputs, references, which case or option is active, a random
   choice), it is an info. `$l[$i]` with `i` = 0 is an info.
 
-Run-time detection alone does not make a diagnostic an info. D33's warning about a copy's nested
-choices is found only at run time, but stays a warning, because the author should write the fresh
-form instead.
+Run-time detection alone does not make a diagnostic an info. D33's warning about a
+`copyWithState`'s nested choices is found only at run time, but stays a warning, because the
+author should write `copy` instead.
 
 **Known violations:** many warnings fire for value-driven conditions. **[probe]** on main, built
 from `7c2bb1f`:
