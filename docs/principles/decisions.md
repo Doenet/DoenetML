@@ -2195,3 +2195,23 @@ Most of the plumbing exists for value references, and can be made general:
   hidden, by its own `hide` or with its referent or parent, stays hidden (question 4).
 - **Coming back.** When the source exists again (an index names something, a case becomes
   active), the component is made from it again, with its own children and attributes.
+
+## D38. Errors are decided at load, the same for every variant (decided, Tier 1)
+
+**Decided.** DIAG-7 states it. The implementation is #2463.
+
+**Today** nothing stops an error from appearing while a reader works, or from appearing in some
+variants only. Errors are drawn in the document, so a reader sees them. **[examples]**
+`<group extend="$cc.x"/>` reports `doenet-e0005` only after the case changes (#2453), and
+`<selectFromSequence to="$a" numToSelect="3"/>` with a random `a` errors only in the variants
+where `a` is below 3.
+
+**Rule:** an error is decided at load from the DoenetML alone, never from values, the reader's
+actions or the variant. A problem that depends on them is missing (D37) with an info, or a
+warning when the author should write something else (DIAG-2).
+
+**Guarantee:** only load-time code may report an error. After load, an error-level report is an
+assertion in development and tests, and a warning in production. A variant-sweep test helper
+checks that a document's errors are the same across variants.
+
+**Not changed:** an error found at load is shown to readers too. The author sees it first.
