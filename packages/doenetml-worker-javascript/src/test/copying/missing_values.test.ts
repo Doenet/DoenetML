@@ -411,4 +411,22 @@ describe("Missing values and missing tags (D37) @group2", () => {
             ).eqls([["doenet-e0064", "count"]]);
         }
     });
+
+    it("gives a missing source's missing value to a math, a fixed reference and a tag", async () => {
+        const { text, errors, core, resolvePathToNodeIdx } =
+            await shownAndReported(`
+    <number name="n" extend="$nothing"/>
+    <group name="g" extend="$nothing"/>
+    <repeatForSequence name="r" length="1"><number name="m" extend="$nothing"/><text>t</text></repeatForSequence>
+    <p name="src" extend="$nothing"/>
+    <p name="p">[<math>$n + 1</math>][<math extend="$g"/>][$r[1].m.value]</p>
+    <section name="sec"><p name="target" extend="$src"><text name="child">note</text></p></section>
+    `);
+        expect(errors).eqls([]);
+        expect(text).eq("[＿ + 1][＿][＿]");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const target = stateVariables[await resolvePathToNodeIdx("target")];
+        expect(target.stateValues.valueMissing).eq(true);
+        expect(target.activeChildren).eqls([]);
+    });
 });

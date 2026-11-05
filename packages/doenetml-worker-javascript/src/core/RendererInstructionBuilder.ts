@@ -739,8 +739,8 @@ export class RendererInstructionBuilder {
     }
 
     /**
-     * Record on `child`, when it is a drawn value reference that resolves
-     * itself, whether it has nothing to read now (`valueMissing`), so it is
+     * Record on `child`, when it is a drawn value reference, whether it has
+     * nothing to read now (`valueMissing`), so it is
      * drawn as a blank while it has nothing (D37, `ValueRef.rendererType`).
      * Its `hidden` reads `valueMissing`, so a change to it updates the
      * children its parent renders, which calls this again.
@@ -750,7 +750,6 @@ export class RendererInstructionBuilder {
             typeof child !== "object" ||
             child === null ||
             !child.rendererConstants ||
-            child.fixedReferent ||
             child.rendererType === undefined
         ) {
             return;

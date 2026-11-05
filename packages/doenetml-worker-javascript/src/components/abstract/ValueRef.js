@@ -376,12 +376,10 @@ export default class ValueRef extends BaseComponent {
                 if (!component.isDrawn) {
                     return dependencies;
                 }
-                if (!component.fixedReferent) {
-                    dependencies.valueMissing = {
-                        dependencyType: "stateVariable",
-                        variableName: "valueMissing",
-                    };
-                }
+                dependencies.valueMissing = {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
+                };
                 const referentInfo =
                     component.fixedReferent ?? stateValues.referentInfo;
                 if (component.doenetAttributes.copiesReferent && referentInfo) {
@@ -657,7 +655,8 @@ export default class ValueRef extends BaseComponent {
      * and `componentTypeAsResponse` (`valueAsResponseDefinition`), which only
      * an `<answer>` (of the references in its awards) and a
      * `<considerAsResponses>` (of its children) ask for. A reference a copy
-     * made at run time has no `valueMissing`, but has the other two.
+     * made at run time is missing only when its referent is a missing
+     * component (`fixedReferentMissingDefinition`).
      * `pastEndOfList` (`pastEndOfListDefinition`), which a list asks of its
      * children, is likewise the reference's own.
      */
@@ -666,9 +665,14 @@ export default class ValueRef extends BaseComponent {
         classDefinitions,
     }) {
         if (stateVariable === "valueMissing") {
-            return this.fixedReferent
-                ? []
-                : [[stateVariable, valueMissingDefinition()]];
+            return [
+                [
+                    stateVariable,
+                    this.fixedReferent
+                        ? fixedReferentMissingDefinition(this.fixedReferent)
+                        : valueMissingDefinition(),
+                ],
+            ];
         }
         if (stateVariable === "pastEndOfList") {
             return this.fixedReferent
@@ -1064,6 +1068,33 @@ function componentTypeAsResponseDefinition(
                     componentTypeAsResponse: dependencyValues.valueMissing
                         ? "math"
                         : referencedComponentType,
+                },
+            };
+        },
+    };
+}
+
+/**
+ * The definition of `valueMissing` of a reference a copy made at run time
+ * (`fixedReferent`): whether its referent is a missing component (D37,
+ * `BaseComponent.isMissing`), as `$r[1].n.value` of an iteration whose `n`
+ * is missing. Its other ways of having nothing to read are the copy's,
+ * which makes no reference for an entry that is not there.
+ */
+function fixedReferentMissingDefinition(fixedReferent) {
+    return {
+        returnDependencies: () => ({
+            targetMissing: {
+                dependencyType: "stateVariable",
+                componentIdx: fixedReferent.componentIdx,
+                variableName: "valueMissing",
+                variablesOptional: true,
+            },
+        }),
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    valueMissing: Boolean(dependencyValues.targetMissing),
                 },
             };
         },

@@ -6676,7 +6676,8 @@ function missingInPlaceOfReplacements({
  * (`replacementChanges`), which this replaces with one change to the
  * missing tag unless it is missing already. A copy of a component, not of
  * a property of it, is made missing already, as it serializes the source's
- * `doenetAttributes`. When the source is there again, it is a new
+ * `doenetAttributes`, and is left without the children it adds. A copy of a
+ * `_missing` (a missing `<group>`) is missing too. When the source is there again, it is a new
  * component, and the copy is made from it.
  */
 async function missingSourceInPlace({
@@ -6695,7 +6696,8 @@ async function missingSourceInPlace({
         return;
     }
     const extended = await component.stateValues.extendedComponent;
-    if (!components[extended?.componentIdx]?.isMissing) {
+    const source = components[extended?.componentIdx];
+    if (!source?.isMissing && source?.componentType !== "_missing") {
         return;
     }
     const stateIdInfo = {
@@ -6711,8 +6713,32 @@ async function missingSourceInPlace({
                     x.componentType === "_missing",
             )
         ) {
+            // A missing tag holds none of the children it adds
+            // (`addChildrenFromComposite`), which are not made while it is
+            // missing.
+            for (const replacement of result.replacements) {
+                replacement.children = [];
+            }
             return;
         }
+    } else if (
+        result.replacementChanges?.length > 0 &&
+        result.replacementChanges.every(
+            (change) =>
+                change.changeType !== "add" ||
+                change.serializedReplacements.every(
+                    (x) =>
+                        x.doenetAttributes?.missing ||
+                        x.componentType === "_missing",
+                ),
+        )
+    ) {
+        for (const change of result.replacementChanges) {
+            for (const replacement of change.serializedReplacements ?? []) {
+                replacement.children = [];
+            }
+        }
+        return;
     } else if (
         !result.replacementChanges?.length &&
         component.replacements.length > 0 &&
@@ -7110,7 +7136,8 @@ async function typeChangeStatus({
         const valueOnly = level === "info";
         if (
             replacementIsOfType(sourceType, writtenType) ||
-            sourceType === "_error"
+            sourceType === "_error" ||
+            sourceType === "_missing"
         ) {
             // An error in place of what is referenced has been reported
             // already, and is not a type the author wrote.
@@ -7183,7 +7210,13 @@ async function typeChangeStatus({
     }
 
     const sourceType = typeStoodFor(sourceComponent);
-    if (sourceType === "_error" || sourceType === "setup") {
+    if (
+        sourceType === "_error" ||
+        sourceType === "setup" ||
+        // what is missing with no type to be missing as (`Missing.js`), as a
+        // missing `<group>`: the copy is missing too (`missingSourceInPlace`)
+        sourceType === "_missing"
+    ) {
         // An error is reported already, where it was made. A `<setup>`,
         // reached by name or by the deprecated index of a child (`$g[1]`,
         // `doenet-w0179`), is not content written to be shown.
