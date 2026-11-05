@@ -1630,6 +1630,8 @@ reader state and random choices (CPY-2, CPY-8), whatever is written on it.
   source's choices. `k` itself still takes the written value. Only the nested choice, which
   nothing written on the copy names, keeps the source's, so the result does not depend on the
   value of `k`.
+- **A URI has no state → warning.** `<T copyWithState="doenet:…"/>` has nothing to carry beyond
+  what `copy` gives. It behaves as `copy`, with a warning that says to write `copy`.
 - **Everything else is allowed** and keeps the rest of the state: appearance attributes (`hide`,
   `displayDigits`, `styleNumber`), `disabled`, `fixed`, and children added to a group or
   section (a random child added there draws its own value, as #2344 settled).
@@ -1672,7 +1674,9 @@ again.
 ### Migration (decided)
 
 DoenetML 0.8 ships a `v07-to-v08` converter, modeled on `packages/v06-to-v07`. It renames `copy`
-to `copyWithState`, so a 0.7 document keeps its meaning, with two exceptions that stay `copy`:
+to `copyWithState`, so a 0.7 document keeps its meaning, with three exceptions that stay `copy`:
+- **a copy of a URI** (`copy="doenet:…"`): a document loaded from a URI has no reader state, so
+  there is nothing for `copyWithState` to carry;
 - **a copy of a module:** written as a `<module>` (or a type inheriting from it), or whose
   referent is one. Authors use `<module copy>` to reuse a module and expect each use to have its
   own random values, which 0.8's `copy` gives;

@@ -749,8 +749,8 @@ of a `<conditionalContent>` or `<repeat>` decides its own case or iterations.
 (CPY-8).
 
 **Known violation:** through 0.7 `copy` carries state and choices; `copyWithState` doesn't exist
-yet (D33). The `v07-to-v08` converter renames existing `copy` to `copyWithState`, except copies of
-a module and copies that change what is chosen (#2457).
+yet (D33). The `v07-to-v08` converter renames existing `copy` to `copyWithState`, except copies of a
+URI, copies of a module, and copies that change what is chosen (#2457).
 
 Evidence:
 - `T/copying/unlinked copy.test.ts:285` "copy no link, base test";
@@ -785,6 +785,9 @@ show behavior through 0.7, D33.)
 
 This is how authors freeze a reader's work, and it is why `copyWithState` is "pasted DoenetML
 *plus the current state*", not pure paste. `copy` is pure paste (CPY-1).
+
+A document loaded from a URI has no reader state, so `copyWithState="doenet:…"` carries nothing
+more than `copy`: it behaves as `copy`, with a warning that says to write `copy` (D33).
 
 Evidence:
 - `T/copying/unlinked copy.test.ts:2112-2312` "create snapshot of group/repeat with

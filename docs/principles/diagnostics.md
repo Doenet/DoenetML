@@ -23,7 +23,8 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
   - a deprecated form;
   - an ambiguous name (`doenet-w0105`);
   - a literal `$l[0]`;
-  - a `copyWithState` whose nested choices kept the source's (D33).
+  - a `copyWithState` whose nested choices kept the source's, and a `copyWithState` of a URI,
+    which has no state to carry (D33).
 - **Info:** the DoenetML is valid, and with the values it has now, part of it is missing (a blank)
   or degenerate. The diagnostic only explains why, so that the author is not confused.
   Nothing needs to change. Examples:
