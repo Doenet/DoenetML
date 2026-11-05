@@ -1497,13 +1497,14 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             );
 
             // the sequence shrinks below the second item: `n2` is made with
-            // nothing to extend and holds `NaN`, and the reference follows it
+            // nothing to extend, so it is missing, a blank (D37), and the
+            // reference follows it
             await updateMathInputValue({
                 latex: "1",
                 componentIdx: kIdx,
                 core,
             });
-            expect(await mValue()).eqls(["+", NaN, 1]);
+            expect(await mValue()).eqls(["+", "＿", 1]);
             expect(refInM()).toBe(ref);
 
             await updateMathInputValue({
