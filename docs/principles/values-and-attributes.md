@@ -160,8 +160,33 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
 - `:2133`, `:2275`, `:2358`, `:2513`, `:2556`, `:2671`;
 - and the responses section at `:2764`.
 
-**Known violation:** today what it looks like depends on the parent and on the spelling
-(**[probe]**):
+**Done by #2458** (closing #2456). How the rules land:
+- **Operators:** `<sum>$l[5] 3</sum>` and `<sum>$nothing 3</sum>` are `＿ + 3`; a numeric operator
+  becomes symbolic. `<count>` counts a missing operand. A boolean operator takes it as not true.
+- **`<text>` and `<label>`** read a missing child as `＿`: `<text>x $tl[5] y</text>` is `x ＿ y`.
+  A `<text>` reads its children's values and ignores their `hide`, so a hidden missing child is a
+  blank in it too. A `<label>` honours its children's `hide`, as a `<p>` does.
+- **Answers:** a missing component, or a reference to one, is recorded as one blank math and
+  counted as one response, wherever it is.
+- **Collections:** `$r`, `$r.y`, `$g`, a list, and an array property (`$ci.selectedValues`,
+  `$f.minima`) give their members, possibly none.
+
+**Known violations and open questions:**
+- **A tag whose content holds a missing reference** (`<T>$nonexistent</T>`) is not covered by
+  D37, which is about a tag whose *source* is missing. Some parents show the blank (`<point>`,
+  `<text>`, `<p>`); some equal `<T/>` by coincidence (`<math>`, `<number>`); some ignore the
+  reference (`<boolean>`, `<function>`, the shapes, `<mathInput>`, the lists). #2461 proposes
+  that such a component is itself missing, except containers and where the blank takes part in
+  an expression.
+- **`null` and `NaN` shown to authors** (#2460). No case of `null` on the page is known, but
+  `<median>` of a blank and `<clampNumber>` of nothing show `NaN`. #2460 asks for one rule.
+- `<text>$n.nonexistent</text>` reads `""`: the blank a `<text>` makes is missing only for a
+  reference with no referent.
+- a bare reference to a name in a branch that isn't active is a blank whatever it names, so
+  `<indexOf target="$cc.shown">` of a `<numberList>` in that case has one blank target.
+- a bare text child of `<considerAsResponses>` beside a component throws (as before #2458).
+
+Before #2458, what it looked like depended on the parent and on the spelling (**[probe]**):
 
 | Where | Shows |
 |---|---|
@@ -175,14 +200,14 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
 | `<sum>$l[5] 3</sum>` | `3` |
 
 How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
-`$n.value[1]`, `$ms[1]` and `$pl[2].coords[1]` name nothing; under D37 they are missing and
-show `＿`, where today they show nothing. An index into a scalar entry of a
+`$n.value[1]`, `$ms[1]` and `$pl[2].coords[1]` name nothing; since #2458 they are missing and
+show `＿`. An index into a scalar entry of a
 list still gives `＿` (B34, #2438). A property with no value, such as `$c.maxNumber` with no
 limit, shows `NaN` (#2416). Under D37 it is missing and shows `＿`.
 
 **A property the source doesn't have** is a mistake in what the author wrote, so it is warning
 `doenet-w0104` (DIAG-2), bare or on a tag, and the reference is missing (D37). Since #2447 it is
-an error on a tag, which D37 reverses (#2456). Examples: `$n.nonexistent`,
+an error on a tag, which D37 reversed (#2458). Examples: `$n.nonexistent`,
 `$$f.x(2)`, and `$cc.notThere`. It is decided in this order:
 1. **A name first.** `.notThere` is a property only if no component of the document has that
    name (#2447's `pathStartsWithProperty`).
@@ -196,8 +221,7 @@ an error on a tag, which D37 reverses (#2456). Examples: `$n.nonexistent`,
 
 Decided with D22 (#2434 item 1). **Done by #2451** (closing #2450), including after names
 (`$x.nonexistent`) and after an index (`$s[1].nonexistent`, `$r[1].nonexistent`). On a tag it
-is an error today, where `<math extend="$r[1].nonexistent"/>` used to give a blank math. Under
-D37 it is the same warning as the bare form, and the tag is missing (#2456).
+is, since #2458 (D37), the same warning as the bare form, and the tag is missing.
 
 **Open (#2452):** a property that only some of what a composite holds has is skipped silently
 for the rest. Nothing is named `x`, so `$cc1.x` of a case holding a math, a text and a number
@@ -205,13 +229,8 @@ shows only the math's `x`, and `$cc1.latex` leaves out the text. The proposal is
 some, but not all, of the components have it. Still open: whether that is decided at load or
 from what the composite holds now, whether it is an error on a tag, and how lists count.
 
-That table is an accident of which internal form was built. D37 chooses one representation:
-missing, drawn as a blank. Also, a bare reference to one thing that isn't there shows nothing
-(`a $l[5] b` is `a  b`), and `<sum>` leaves a missing operand out. Tests that lock the current
-table, and change:
-- `drawn_value_references.test.ts:234`;
-- `extend_references.test.ts:4790-4830`, `:7507-7616`;
-- `expressionAttributes.test.ts:400`.
+Before #2458 that table held, a bare reference to one thing that isn't there showed nothing
+(`a $l[5] b` was `a  b`), and `<sum>` left a missing operand out.
 
 ### VAL-10: `hide` and `fixed` do not pass through value positions (Tier 2)
 These are hidden with their referent:

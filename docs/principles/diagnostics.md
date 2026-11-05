@@ -136,7 +136,8 @@ A reload restores what the reader saw (SAVE-1), and that includes the diagnostic
 - an index past the end of a repeat that shrank adds a diagnostic only after a reload (#1499).
   Under DIAG-2 it is an info, reported the same way before and after. On a tag it is info
   `doenet-i0054` since #2447, which follows the index. A bare reference still has the late
-  `w0181`;
+  `w0181`: its info was postponed to the new core (#2281), because deciding it again after every
+  update cost too much (REF-0);
 - a copy that made nothing is not held in a save, so a reload can report a different info for
   why it shows nothing, when its source's case changed (B37, from #2443).
 
@@ -166,7 +167,23 @@ write something else (DIAG-2).
 The load-time checks of D22, D26, D32 and D36 follow it already, since each reads only the
 DoenetML.
 
-**Known violations:**
+**Done by #2458:** an error decided from the DoenetML is reported at load wherever its content
+is, also in a case not yet true, an iteration not yet made or an option not picked, and the same
+error is kept once when the content is made (`T/diagnostics/errorsDecidedAtLoad.test.ts`). That
+covers a tag's type errors there (`fixedTypeError` and `reportTypeChangesAtLoad` in
+`typeChangeAtLoad.ts`), a bare reference of mixed types (`w0184`), a tag extending the
+`<conditionalContent>` holding it (`e0005`), and a conversion error such as an unknown tag
+(`e0002`).
+
+**Known violations** (#2463):
+- there is no assertion yet that no error appears after load;
+- choice errors in content made later: `<select numToSelect="3">` with one option, in a case not
+  yet true, gives `e0035` only once it is made. With literal attributes it can be checked at
+  load;
+- the errors of an extend that can't change content (`extendChangesContentErrors` in `Copy.js`:
+  `e0061`, `e0059`, …), in content made later;
+- `e0064` of an authored list whose count changes (`<mathList maxNumber="$n">` as a scalar tag):
+  it depends on a value, so it should be a missing tag with an info;
 - cycles that appear after a change: `<group extend="$cc.x"/>` gives `doenet-e0005` after the
   case changes (B40, #2453), an iteration withheld and shown again gives `e0005` (#2430), and two
   `<conditionalContent>`s extending each other (B32, #2439). A reference cycle can be found at
@@ -176,5 +193,6 @@ DoenetML.
   requested variant (#2389 item 1), and from a `numToSelect` or range computed from another
   random choice, such as `<selectFromSequence to="$a" numToSelect="3"/>` with a random `a` that
   is sometimes below 3;
-- state-variable cycles that throw (D14), which can depend on values;
+- state-variable cycles that throw (D14), even at the top level: `<math name="z" extend="$z"/>`,
+  and two maths reading each other;
 - exceptions during interaction, such as B36's on reload (DIAG-5).

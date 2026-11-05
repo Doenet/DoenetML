@@ -282,6 +282,11 @@ marked "just submitted" (#2325).
   Give it one, or use a name every case has"). Two tags are **`doenet-w0184`** ("`x` is a
   `<math>` in one case of `cc` and a `<text>` in another"). Both name the reference, which names
   nothing.
+- **Since #2458 (D37):** `w0183` is a warning, bare or on a tag, and the reference is missing
+  (`＿`). A mix of types is an **error in both forms**: a bare reference the branches declare
+  with different types (`w0184`) is an error shown in its place at load, as `<math extend="$x"/>`
+  is `e0066`. That makes a type error the same bare or as a tag (REF-1) and decided at load
+  (DIAG-7).
 - **Indexed forms follow the same rule:** `$s[1].x` of a one-pick select, `$s[2].x` of a
   multi-pick one, and `$cc[1].x`.
 - **Names after the name are held to it too.** `$h.x`, of a `<group name="h">` in every case,
