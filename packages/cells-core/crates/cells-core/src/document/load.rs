@@ -1,5 +1,5 @@
 //! Loading a document and rebuilding it: build, schedule and compute until
-//! every repeat's iteration count matches its `count` cell (ADR 0004).
+//! every repeat's iteration count matches its `count` cell.
 
 use super::*;
 use crate::compile::Compiled;
@@ -167,9 +167,7 @@ impl Document {
     }
 
     /// `load` taking the wire-format bytes, which it frees once the DAST is
-    /// read, before the compile and the first build: in wasm the heap's
-    /// high-water mark is what a page keeps, and the bytes are often the
-    /// largest single block of a load.
+    /// read, before the compile.
     pub fn load_owned(
         bytes: Vec<u8>,
         options: LoadOptions,
@@ -189,9 +187,8 @@ impl Document {
         Self::load_with(options, || Ok(dast))
     }
 
-    /// A load, recording its spans (`crate::trace`), which it owns: the
-    /// DAST from `dast`, then compile, then build until the structure
-    /// settles (ADR 0015).
+    /// A load, recording its spans: the DAST from `dast`, then compile, then
+    /// build until the structure settles.
     fn load_with(
         options: LoadOptions,
         dast: impl FnOnce() -> crate::Result<Arc<Dast>>,
@@ -207,8 +204,8 @@ impl Document {
         Ok((doc, LoadTimings::of(spans, depth)))
     }
 
-    /// Compile, then build until the structure settles (ADR 0015); with
-    /// the document, its structural depth as the check bounded it.
+    /// Compile, then build until the structure settles; with the document,
+    /// its structural depth as the check bounded it.
     fn settle_load(dast: Arc<Dast>, options: LoadOptions) -> crate::Result<(Document, u32)> {
         let session = Session {
             #[cfg(feature = "testing")]
@@ -246,12 +243,10 @@ impl Document {
         session
     }
 
-    /// What the build reported about the elements it stamped (ADR 0013):
-    /// the errors of the elements that became `_error` components and the
-    /// warnings of the rest, in node order. This is the list for rendering
-    /// error boxes. It is settled at load and depends on the source alone:
-    /// the same at every count and every seed, every option of every select
-    /// included (ADR 0014), so it is [`crate::diagnose`]'s list.
+    /// What the build reported about the elements it stamped: the errors of
+    /// the elements that became `_error` components and the warnings of the
+    /// rest, in node order. It depends on the source alone: the same at every
+    /// count and every seed, and equal to [`crate::diagnose`]'s list.
     pub fn diagnostics(&self) -> &[crate::Diagnostic] {
         &self.loaded.diagnostics
     }
@@ -288,13 +283,9 @@ impl Document {
         }
     }
 
-    /// Build again from the compile (ADR 0015) at the counts the count
-    /// cells hold, reading the session, until the structure settles. The
-    /// document is replaced only when that succeeds; on error it is left
-    /// as it was, since a build reads the session and moves nothing out of
-    /// the document. The math engine may have grown, which leaves every
-    /// handle the document holds valid.
-    /// Returns how many passes it took.
+    /// Build again from the compile at the counts the count cells hold,
+    /// until the structure settles. Returns how many passes it took. On
+    /// error the document is left as it was.
     pub fn rebuild(&mut self) -> crate::Result<u32> {
         // The rebuild's spans are recorded only for the profile: a tick
         // records nothing otherwise.
@@ -339,10 +330,9 @@ impl Document {
 
 /// Build `compiled` at `counts`, reading `session`, schedule and compute,
 /// and again at the counts the count cells then hold, until every repeat
-/// was built with the count its cell asks for (ADR 0004): the document and
-/// how many passes it took. With `reseed`, every pass after the first
-/// stamps seeded cells afresh (a load). `session` is only read, so a
-/// caller that fails here is left as it was.
+/// was built with the count its cell asks for: the document and how many
+/// passes it took. With `reseed`, every pass after the first stamps seeded
+/// cells afresh (a load). `session` is only read.
 fn settle(
     compiled: &Arc<Compiled>,
     session: &Session,
@@ -379,10 +369,8 @@ fn settle(
     Err(unsettled(passes))
 }
 
-/// The structure did not settle in the passes allowed: a core bug, since
-/// the document's structural depth, which the check bounded, says how many
-/// passes it needs (ADR 0014). Only a test load without the check can fail
-/// this way by itself.
+/// The structure did not settle in the passes allowed: a core bug, unless a
+/// test load skipped the check.
 fn unsettled(passes: usize) -> crate::Error {
     crate::Error::Unchecked(format!(
         "the structure did not settle in {passes} passes, more than its structural depth allows"

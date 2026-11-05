@@ -1,15 +1,13 @@
 //! Which cells a renderer may request: the cells of the props each
-//! component's definition marks `interactive` (ADR 0017's inputs). The core
-//! accepts a request only on one of these (ADR 0018); a submit and a
-//! trigger are actions, which write the cells they write themselves.
+//! component's definition marks `interactive`. The core accepts a request
+//! only on one of these.
 
 use super::*;
 
 impl Document {
-    /// One bit per cell, set for an interactive one; made once per build,
-    /// so a tick checks a request without reading components. A cell
-    /// several components share (a copy and its original) is interactive
-    /// when any of them marks it.
+    /// One bit per cell, set for an interactive one. A cell several
+    /// components share (a copy and its original) is interactive when any of
+    /// them marks it.
     pub(crate) fn interactive_bits(&self) -> Vec<u64> {
         let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
         for c in CompIdx::below(self.components.len()) {
@@ -32,9 +30,7 @@ impl Document {
     }
 
     /// One bit per interactive cell whose inverse would write a value that
-    /// reaches it along more than one path, where a request is refused
-    /// (ADR 0026, `program::refuse`). Made once per build, after
-    /// `interactive_bits`.
+    /// reaches it along more than one path, where a request is refused.
     pub(crate) fn refused_bits(&self) -> Vec<u64> {
         let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
         let found = crate::program::refuse::analyze(
@@ -55,7 +51,7 @@ impl Document {
     }
 
     /// Whether a request on `cell` is refused: its inverse would write a
-    /// value that reaches it along more than one path (ADR 0026).
+    /// value that reaches it along more than one path.
     #[inline]
     pub fn is_refused(&self, cell: CellIdx) -> bool {
         self.refused
@@ -63,7 +59,7 @@ impl Document {
             .is_some_and(|w| w & (1 << (cell.index() % 64)) != 0)
     }
 
-    /// Whether a renderer may request `cell`; see `interactive_cells`.
+    /// Whether a renderer may request `cell`.
     #[inline]
     pub fn is_interactive(&self, cell: CellIdx) -> bool {
         self.interactive

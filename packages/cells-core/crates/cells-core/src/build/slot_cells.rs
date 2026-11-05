@@ -1,26 +1,16 @@
-//! The cells a build's slots will make, and what each depends on, defined
-//! once. Emit merges aliased slots into the cells they will share
-//! ([`SlotCells`]); every walk over them reads a cell through its definition
-//! ([`Def`]), which offers the two relations a walk may follow and no other:
+//! The cells a build's slots will make, and what each depends on. Emit
+//! merges aliased slots into the cells they will share ([`SlotCells`]);
+//! every walk over them reads a cell through its definition ([`Def`]),
+//! which offers the two relations a walk may follow:
 //!
-//! - [`Def::needs`]: what the cell needs to be right. What its defining
-//!   source reads, and the flags that hold it (ADR 0022, `Program::holds`),
-//!   which a request on it reads. The live walk (ADR 0019) follows it, and
-//!   emit checks that a live cell needs no dead one.
-//! - [`Def::request_targets`]: where a request on the cell goes. The inputs
-//!   its inverse may write (`OpSpec::writes`), and nowhere when a constant
-//!   flag holds it. The writable walk (ADR 0018) follows it. A flag is
-//!   never a target: it decides whether a request passes, and no request
-//!   writes it.
+//! - [`Def::needs`]: what the cell needs to be right: what its defining
+//!   source reads, and the flags that hold it. The live walk follows it.
+//! - [`Def::request_targets`]: where a request on the cell goes: the inputs
+//!   its inverse may write, and nowhere when a constant flag holds it. The
+//!   writable walk follows it. A flag is never a target.
 //!
-//! Evaluation order is neither: a flag is read only when a request
-//! arrives, so it orders nothing. The cycle check reads a source's
-//! [`BuiltSource::eval_inputs`], as `Program::schedule` reads an
-//! instruction's inputs; `Program::needs` is the first relation over the
-//! cells a build made.
-//!
-//! What a source reads is private to this module, so a walk cannot follow
-//! a cell without choosing a relation by name, and both account for holds.
+//! Evaluation order is neither: the cycle check reads a source's
+//! [`BuiltSource::eval_inputs`].
 
 use super::*;
 
@@ -42,8 +32,8 @@ impl BuiltSource {
     }
 
     /// What evaluating this source reads, which decides the order slots
-    /// are computed in and nothing else: the cycle check's graph. A flag
-    /// that holds the slot is not among them (`Def::needs` has it).
+    /// are computed in: the cycle check's graph. A flag that holds the slot
+    /// is not among them.
     pub(in crate::build) fn eval_inputs<'a>(
         &self,
         op_inputs: &'a [SlotId],
@@ -52,8 +42,8 @@ impl BuiltSource {
     }
 
     /// Of what this source reads, what a request on it could write through:
-    /// an operator's inputs its inverse may write (`OpSpec::writes`); all of
-    /// an alias's or a vector output's.
+    /// an operator's inputs its inverse may write; all of an alias's or a
+    /// vector output's.
     fn writes_through<'a>(&self, op_inputs: &'a [SlotId]) -> impl Iterator<Item = SlotId> + 'a {
         let mask = match self {
             BuiltSource::Op(spec, ..) => spec.writes(),

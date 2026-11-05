@@ -3,30 +3,18 @@
 //!
 //! The form is `{"v": 3, "core": release, "doc": signature, "state":
 //! [[path, element, prop, kind, value, view default?], ...]}` with one entry
-//! per essential cell a student touched (ADR 0017, step 2): one a request
-//! wrote, or one restored from a save that held it, whether or not it
-//! equals its default. An untouched cell takes the version's default. A
-//! graph's own bounds are view state, saved with the default they had and
-//! dropped on restore when the default changed, so an author's new bounds
-//! win over a student's old pan. `core` is the release
-//! that saved it (`crate::RELEASE`), and only that release restores it
-//! (ADR 0017, step 6); `doc` names the document version it was made in, by
-//! a hash of its source, for a platform that must not let a tab still open
-//! on an older version overwrite state moved to a newer one.
+//! per essential cell a student touched. A graph's own bounds are view
+//! state, saved with the default they had and dropped on restore when the
+//! default changed. Only the release in `core` restores it; `doc` is a hash
+//! of the source it was made in.
 //!
-//! An entry names its cell by keys an ordinary edit does not move (ADR
-//! 0017, step 1; `compile/seal/keys.rs`): `path` is the cell's scope from the
-//! document down, one level per repeat iteration (`[repeat, k]`),
+//! An entry names its cell by keys an ordinary edit does not move: `path`
+//! is the cell's scope, one level per repeat iteration (`[repeat, k]`),
 //! conditional branch (`[choice, branch]`) or select pick (`[select,
 //! option, m]`); `element` is the element's stable key and `prop` the
-//! prop's name, or for a hidden slot the shared state it holds. None
-//! depends on the order a session made scopes or on which elements were
-//! boxed, including for iterations that exist only after a count changes:
-//! an entry whose scope is not live is parked for the build that stamps
-//! it. An entry this version has no cell for is dropped. `kind` is `"n"` (a
-//! number; `null` is NaN, an emptied input), `"t"` (text) or `"m"` (an
-//! expression as text), and a value is restored only into a cell of its
-//! kind.
+//! prop's name. `kind` is `"n"` (a number; `null` is NaN), `"t"` (text) or
+//! `"m"` (an expression as text), and a value is restored only into a cell
+//! of its kind.
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -44,7 +32,7 @@ use crate::session::Parked;
 const FORMAT: u64 = 3;
 
 impl Document {
-    /// The essential values a student touched (ADR 0017, step 2), as JSON,
+    /// The essential values a student touched, as JSON,
     /// whether or not they equal their defaults; view state with the
     /// default it had.
     pub fn save_state(&self) -> String {
@@ -211,7 +199,7 @@ impl Document {
     }
 
     /// `scope`'s path from the document, one stable level per repeat
-    /// iteration or choice branch (`Keys::scope_level`).
+    /// iteration or choice branch.
     fn scope_path(&self, mut scope: ScopeId) -> Value {
         let mut path = Vec::new();
         while scope != ScopeId::DOCUMENT {

@@ -1,20 +1,11 @@
-//! Choices (ADR 0009): `<conditionalContent>` and `<select>`, as planned.
-//! Their branches are made when outlining (`outline/choice.rs`) and their
-//! interfaces finished when sealing (`seal/choice.rs`).
+//! Choices: `<conditionalContent>` and `<select>`, as planned.
 //!
 //! Each branch (a case or an option) is its own template, so the names
-//! inside it are private, as a repeat's are. What the rest of the document
-//! may reach is the branch interface: the names every branch declares, each
-//! with the same type in every branch, checked once every element is
-//! planned.
-//!
-//! A select picks its options while the document is built, from the
-//! document seed: unchosen options are never expanded. A conditional
-//! content's `choice` cell is the first case whose condition holds. Every
-//! case is built, inside a `Case` component whose `active` cell says
-//! whether it is shown, and an interface name is a `Choose` over the
-//! branches' cells, so a flip is an ordinary tick. (Rebuilding with only
-//! the active case lost on every tick; see ADR 0009.)
+//! inside it are private. The rest of the document may reach the branch
+//! interface: the names every branch declares, each with the same type in
+//! every branch. A select picks its options at build time from the
+//! document seed; a conditional content's `choice` cell is the first case
+//! whose condition holds, and every case is built.
 
 use crate::compile::*;
 use crate::components::prop::conditional_content;

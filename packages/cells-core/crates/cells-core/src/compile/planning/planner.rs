@@ -5,8 +5,7 @@ use super::ctx::PlanCtx;
 use crate::compile::*;
 
 /// Returns the element's plan, its attributes merged over those of the
-/// element it extends; `plan_with_extend` applies the copy rules around
-/// it.
+/// element it extends.
 pub(crate) type PlanFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemWiring>;
 
 /// How an element is planned once the cases that do not depend on its type

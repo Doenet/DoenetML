@@ -1,18 +1,12 @@
 //! The structure view: the one interface through which a build learns the
-//! document's structure beyond its templates. Templates never change
-//! between builds; what does is how many iterations each repeat has, which
-//! options a select drew, and therefore which referents exist. Expand and
-//! emit read those only through a [`View`], so a build is a function of the
-//! templates and the view.
+//! document's structure beyond its templates: how many iterations each
+//! repeat has, which options a select drew, and so which referents exist.
+//! A build is a function of the templates and the view.
 //!
-//! Two views exist. `View::Stamped` answers from the counts a build is
-//! asked for, so the build stamps every iteration it has and a reference
-//! past the count is missing. The cycle check's `View::Abstract`
-//! (`abstract_build.rs`, ADR 0012) folds every iteration into one, so the
-//! graph it builds holds every edge some count would create. A structural
-//! read that bypasses the view is one the abstract build cannot model;
-//! `tests/every_count.rs` builds every document at several counts and seeds
-//! to catch one.
+//! `View::Stamped` answers from the counts a build is asked for.
+//! `View::Abstract` folds every iteration into one, so the graph it builds
+//! holds every edge some count would create. A structural read that
+//! bypasses the view is one the abstract build cannot model.
 
 use super::*;
 
@@ -81,10 +75,8 @@ impl View<'_> {
     }
 
     /// Whether one stamped iteration stands for every iteration. Then
-    /// reference edges are labelled with how they move through the
-    /// iterations (`Builder::resolve`), and a loop of aliases may be a
-    /// recurrence folded onto itself rather than a cycle: the cycle check
-    /// decides, not emit.
+    /// reference edges are labelled, and a loop of aliases may be a
+    /// recurrence folded onto itself rather than a cycle.
     pub(in crate::build) fn folds_iterations(&self) -> bool {
         matches!(self, View::Abstract)
     }

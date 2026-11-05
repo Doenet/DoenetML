@@ -1,36 +1,17 @@
-//! Orientation (ADR 0026): a binary scalar operator's inverse writes its
-//! first input, so the input whose sources include state should be first.
-//! After planning and before the writable walk, every binary operator
-//! lowered from the author's math (`Builder::author_ops`) whose second input
-//! leads to state and whose first does not is turned round:
-//! `Add`, `Mul`, `Min` and `Max` swap their inputs, `Sub` becomes `RSub` and
-//! `Div` becomes `RDiv` with theirs swapped, so the operator computes the
-//! same value and a request writes the input that leads somewhere.
+//! Orientation: a binary scalar operator's inverse writes its first input,
+//! so the input whose sources include state should be first. Before the
+//! writable walk, every binary operator lowered from the author's math
+//! whose second input leads to state and whose first does not is turned
+//! round: `Add`, `Mul`, `Min` and `Max` swap their inputs, `Sub` becomes
+//! `RSub` and `Div` becomes `RDiv` with theirs swapped, so the operator
+//! computes the same value and a request writes the input that leads
+//! somewhere. An input *leads to state* when the writable walk from it
+//! reaches a value slot no constant flag holds.
 //!
-//! An input *leads to state* when the walk the writable walk takes from it
-//! (`writable.rs`, `slot_cells::Def::request_targets`: through an operator
-//! to the inputs its inverse writes, from a vector output to its head, and
-//! nowhere from a cell a constant flag holds) reaches a value slot, a
-//! literal no constant flag holds. Where both inputs lead to state the first
-//! is written, as before (ADR 0018: `<point x="$k $n"/>` writes `k`); where
-//! neither does, a request drops, as before. Turning an operator round only
-//! gives a request somewhere to land where it had none.
-//!
-//! A component's own table keeps its operators as written: its author
-//! orders their inputs, and the order can be what keeps a request from a
-//! parameter. A sequence's value is `from + (k − 1)·step`; turned round,
-//! dragging a point at a sequence value would write the sequence's `from`
-//! and move every point, where the current core drops the drag.
-//!
-//! Whether an input leads to state depends on how the operators below it
-//! are oriented, so operators are oriented from their inputs up, by a
-//! depth-first walk over cells along what each needs
-//! (`slot_cells::Def::needs`), from the author's operators: what no author
-//! operator needs is never visited, and a document without one costs
-//! nothing. A loop of classes (a recurrence the view folds) counts as not
-//! leading where it closes. The walk follows a slot's later sources too
-//! (`Builder::later_sources`), as the writable walk does, so the abstract
-//! build orients what later iterations plan.
+//! A component's own table keeps its operators as written. Operators are
+//! oriented from their inputs up, by a depth-first walk from the author's
+//! operators; a loop (a recurrence the view folds) counts as not leading
+//! where it closes.
 
 use super::*;
 
@@ -76,8 +57,8 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// Orient every binary operator lowered from the author's math; see the
-    /// module documentation. Before the walks, which read the orientation.
+    /// Orient every binary operator lowered from the author's math. Runs
+    /// before the walks, which read the orientation.
     pub(in crate::build) fn orient(&mut self, slot_cells: &SlotCells) {
         if self.author_ops.is_empty() {
             return;

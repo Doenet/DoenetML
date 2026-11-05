@@ -101,10 +101,9 @@ pub(super) const fn by_planner(name: &'static str) -> Prop {
     prop_from(name, f64::NAN, DeclaredSource::ByPlanner)
 }
 
-/// `op` over the collection `over` (ADR 0032, decision 4), wired by the
-/// build from the tree it stamped. An operator fits its collection: credit
-/// is a mean over scored items, a count is of sections or of what the
-/// element gathers.
+/// `op` over the collection `over`, wired by the build. Credit is over
+/// scored items only, a count over sections or what the element gathers;
+/// any other pairing fails to compile.
 pub(super) const fn aggregate(name: &'static str, op: AggOp, over: Collection) -> Prop {
     assert!(
         matches!(
@@ -144,45 +143,41 @@ impl Prop {
         self.def.ref_prop = Some(prop);
         self
     }
-    /// The prop holds text, a string id, whatever gives it (ADR 0032).
+    /// The prop holds text, a string id, whatever gives it.
     pub(super) const fn text(mut self) -> Self {
         self.def.text = true;
         self
     }
-    /// A renderer may request this prop: a student's action writes it
-    /// (ADR 0017's inputs).
+    /// A renderer may request this prop: a student's action writes it.
     pub(super) const fn interactive(mut self) -> Self {
         self.def.interactive = true;
         self
     }
-    /// An action writes this prop (`Document::submit`, `trigger`), so it
-    /// is student state though no renderer requests it (ADR 0018).
+    /// An action writes this prop (a submit, a trigger): student state,
+    /// though no renderer requests it.
     pub(super) const fn written_by_action(mut self) -> Self {
         self.def.written_by_action = true;
         self
     }
     /// A renderer reads this prop: an output when its component is
-    /// rendered (ADR 0019).
+    /// rendered.
     pub(super) const fn rendered(mut self) -> Self {
         self.def.rendered = true;
         self
     }
-    /// A grader reads this prop: an output wherever its component is
-    /// (ADR 0019).
+    /// A grader reads this prop: an output wherever its component is.
     pub(super) const fn score(mut self) -> Self {
         self.def.score = true;
         self
     }
-    /// An action reads this prop (`Document::submit`, `trigger`), so the
-    /// core needs its value though no renderer may read it (ADR 0019).
+    /// An action reads this prop (a submit, a trigger), so the core needs
+    /// its value though no renderer may read it.
     pub(super) const fn read_by_action(mut self) -> Self {
         self.def.read_by_action = true;
         self
     }
-    /// The first of `SAMPLES` consecutive cells (a curve's samples), which
-    /// a renderer reads together, when the prop `when` is nonzero: then,
-    /// when it is an output, all of them are. When `when` is 0 the planner
-    /// left the run absent, one cell.
+    /// The first of `SAMPLES` consecutive cells (a curve's samples) when
+    /// the prop `when` is nonzero; one cell when it is 0.
     pub(super) const fn sampled(mut self, when: &'static str) -> Self {
         self.def.span = crate::program::SAMPLES;
         self.sampled_when = Some(when);
@@ -275,17 +270,14 @@ pub(super) const fn definition(
 }
 
 impl ComponentDef {
-    /// See [`super::ComponentType::copyable`].
     pub(super) const fn copyable(mut self) -> Self {
         self.flags.copyable = true;
         self
     }
-    /// See [`super::ComponentType::container`].
     pub(super) const fn container(mut self) -> Self {
         self.flags.container = true;
         self
     }
-    /// See [`super::ComponentType::symbolic`].
     pub(super) const fn symbolic(mut self) -> Self {
         self.flags.symbolic = true;
         self
@@ -295,37 +287,31 @@ impl ComponentDef {
         self.flags.internal = true;
         self
     }
-    /// See [`super::Flags::owned`].
     pub(super) const fn owned(mut self) -> Self {
         self.flags.owned = true;
         self
     }
-    /// See [`super::Flags::not_extendable`].
     pub(super) const fn not_extendable(mut self) -> Self {
         self.flags.not_extendable = true;
         self
     }
-    /// See [`super::ComponentDef::machinery`].
     pub(super) const fn machinery(mut self, machinery: super::Machinery) -> Self {
         self.machinery = Some(machinery);
         self
     }
-    /// See [`super::ComponentDef::constrain_target`].
     pub(super) const fn constrain_target(mut self, target: super::ConstrainTarget) -> Self {
         self.constrain_target = Some(target);
         self
     }
-    /// See [`super::ComponentDef::owner`].
     pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
         self.owner = Some(owner);
         self
     }
-    /// See [`super::Flags::located`].
     pub(super) const fn located(mut self) -> Self {
         self.flags.located = true;
         self
     }
-    /// Where a component of the type is drawn (ADR 0019).
+    /// Where a component of the type is drawn.
     pub(super) const fn renders(mut self, renders: super::Renders) -> Self {
         self.renders = renders;
         self
@@ -344,7 +330,7 @@ impl ComponentDef {
         self.attributes = attributes;
         self
     }
-    /// How the type reads its children (`children:`, ADR 0034).
+    /// How the type reads its children.
     pub(super) const fn children(mut self, children: super::ChildrenDecl) -> Self {
         self.children = children;
         self
@@ -379,16 +365,13 @@ impl ComponentDef {
         self.presentation = presentation;
         self
     }
-    /// See [`super::ComponentDef::reads_as`].
     pub(super) const fn reads_as(mut self, component_type: super::ComponentType) -> Self {
         self.reads_as = Some(component_type);
         self
     }
-    /// A sticky group member of `shape`, its points where the type already
-    /// says they are: its list's points (a polygon's vertices, or a
-    /// segment's two endpoints among the table's props), or, with no list,
-    /// the coordinates of its default prop, a combined prop (a point's
-    /// `coords`).
+    /// A sticky group member of `shape`: its points are its list's, or,
+    /// with no list, its default prop's, a combined prop of coordinates.
+    /// Panics at compile time when it has neither.
     pub(super) const fn sticky(mut self, shape: crate::tick::snap::Shape) -> Self {
         let points = match &self.list {
             Some(list) => match list.points {
@@ -509,73 +492,53 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 
 /// A component type's whole definition in one block: its tags, flags,
 /// props, combined props, list, alternate names, attributes, parameters
-/// and planner. It makes the row `DEFINITION`, which `component_types!`
-/// registers, the table `PROPS`, the typed plan `Props` and the typed
-/// record `Attrs`. Each prop is named once, as an identifier, so a
-/// combined prop or a computed prop naming one the table lacks fails to
-/// compile. The sections come in the order below; only `tags`, `props`
-/// and `planner` are required.
+/// and planner. It makes the row `DEFINITION`, the table `PROPS`, the
+/// typed plan `Props` and the typed record `Attrs`. Each prop is named
+/// once, as an identifier, so a combined or computed prop naming one the
+/// table lacks fails to compile. The sections come in the order below;
+/// only `tags`, `props` and `planner` are required.
 ///
 /// `reads_as: T` says a bare reference to a component of this type is a
 /// `T` holding its value, not a copy (`$mi` of a `<mathInput>` is a
-/// `<math>`; ADR 0025); its props alias the referent's of the same name.
+/// `<math>`); its props alias the referent's of the same name.
 ///
-/// `Props<T>` is a struct with one field per prop of the table, named as
-/// the props are, in table order, and generic over what each field holds:
-/// a planner fills `Props<Wire>` (`compile::plan::Wire`) as a struct
-/// literal, so a prop left unplanned does not compile; `Props::PORTS`
-/// holds every prop's port (`compile::plan::Port`, ADR 0032), which is
-/// how a planner names one in its wiring; and `Props::<usize>::AT` holds
-/// every prop's position, for what reads a built component by position.
+/// `Props<T>` has one field per prop of the table, in table order: a
+/// planner fills `Props<Wire>` as a struct literal, so a prop left
+/// unplanned does not compile; `Props::PORTS` holds every prop's port, by
+/// which a planner names it in its wiring; `Props::<usize>::AT` holds
+/// every prop's position.
 ///
 /// `params { .. }` names the parameters the planner introduces that no
-/// attribute gives (`compile::plan::Param`, ADR 0032): named given leaves
-/// with a default (a line's distance along its direction), which a copy
-/// shares with its original, as constants of a `param` module beside the
-/// props.
+/// attribute gives: named given leaves with a default (a line's distance
+/// along its direction), shared by a copy, as constants of a `param`
+/// module.
 ///
 /// `presentation { .. }` names the attributes of this type that a renderer
-/// reads from the document's literal attributes (a `<ref>`'s `to`), which
-/// the core itself never looks up; with `PRESENTATION_ATTRS`, the ones
-/// every type may carry, they are the attributes the check accepts
-/// without a planner reading them (`compile/check.rs`).
+/// reads and the core does not (a `<ref>`'s `to`).
 ///
 /// `attributes { .. }` declares the attributes the type's planner reads,
-/// each with its kind (ADR 0032): `center: Point`, `radius: Scalar`,
+/// each with its kind: `center: Point`, `radius: Scalar`,
 /// `through: Points(3)`, `hide: Flag(false)`, `rigid: Bool(false)`,
 /// `minShrink: Number(0.1)`, `rotateAround: Text`, `equation: Math`,
-/// `function: Ref`. The compile
-/// parses them into the element's record before the planner runs, and the
-/// planner reads them typed, as the struct `Attrs` (`Attrs::of(ctx.record())`),
-/// with one field per attribute. A module `attr` holds one
-/// `compile::api::Attr` per name (`attr::radius`), which is how a planner
-/// says what gave a given leaf (`Wire::given_by(attr::radius, v)`), so a
-/// copy giving the same attribute keeps it as its own. Only the macro
-/// makes an `Attr`, so a planner names only attributes its type declares,
-/// and a misspelling does not compile.
+/// `function: Ref`. The planner reads them typed, as the struct `Attrs`
+/// (`Attrs::of(ctx.record())`). A module `attr` holds one
+/// `compile::api::Attr` per name (`attr::radius`), by which a planner says
+/// what gave a given leaf (`Wire::given_by(attr::radius, v)`); a
+/// misspelling does not compile.
 ///
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
 /// `attr(default)`, `attr_or(other)`, `computed(op, [args])` or
-/// `aggregate(op, collection)` (ADR 0032, decision 4), where an
-/// arg is a prop or a literal in parentheses (`[radius, (2.0)]`),
-/// optionally followed by `{ attribute: a, bind: b, ref_prop: p, text,
-/// interactive, written_by_action, rendered, score, read_by_action,
-/// sampled: p }`. `text` says the prop holds a string id whatever gives
-/// it (a `<text>`'s `value`), so a reference to it reads as text.
-/// `interactive` marks a prop a renderer may request (ADR 0017's inputs);
-/// a list ending `interactive: true` has every point interactive, for a
-/// shape a drag of one point or of the whole shape moves.
-/// `written_by_action` marks a prop an action writes instead (a submit, a
-/// trigger; ADR 0018). `rendered` marks a prop a renderer reads, `score`
-/// one a grader reads and `read_by_action` one an action reads: what the
-/// core must compute (ADR 0019). A list ending `rendered: true` has every
-/// point rendered.
+/// `aggregate(op, collection)`, where an arg is a prop or a literal in
+/// parentheses (`[radius, (2.0)]`), optionally followed by `{ attribute:
+/// a, bind: b, ref_prop: p, text, interactive, written_by_action,
+/// rendered, score, read_by_action, sampled: p }`, each as the [`Prop`]
+/// builder of that name. A list ending `interactive: true` or `rendered:
+/// true` marks every point so.
 ///
 /// `renders: Never` or `renders: InGraph`, after `flags`, says where a
-/// component of the type is drawn ([`super::Renders`]); by default it is
-/// drawn wherever it is. `sticky: shape` makes the type a sticky group
-/// member (ADR 0007) whose points are its list's, or its default prop's
-/// coordinates.
+/// component of the type is drawn ([`super::Renders`]); by default
+/// wherever it is. `sticky: shape` makes the type a sticky group member
+/// whose points are its list's, or its default prop's coordinates.
 ///
 /// ```ignore
 /// component! {
@@ -703,8 +666,7 @@ macro_rules! component {
 
         $(
             /// The parameters this type's planner introduces that no
-            /// attribute gives (`params { .. }`): named given leaves,
-            /// which a copy shares with its original (ADR 0032).
+            /// attribute gives: named given leaves, shared by a copy.
             #[allow(non_upper_case_globals, dead_code)]
             pub(crate) mod param {
                 $(
@@ -733,8 +695,7 @@ macro_rules! component {
         #[allow(dead_code)]
         const PROPS_LEN: usize = PROPS.len();
 
-        /// The props in table order, with no allocation: what
-        /// `ElemWiring::set_public` takes.
+        /// The props in table order, with no allocation.
         impl<T> IntoIterator for Props<T> {
             type Item = T;
             type IntoIter = std::array::IntoIter<T, PROPS_LEN>;
@@ -745,9 +706,7 @@ macro_rules! component {
 
         #[allow(dead_code)]
         impl Props<usize> {
-            /// Each prop's position in the table: the slot the build
-            /// numbers its port to, for what reads a built component's
-            /// props by position (`components::prop`).
+            /// Each prop's position in the table.
             pub(crate) const AT: Props<usize> = Props {
                 $($pname: $crate::components::define::at(PROPS, stringify!($pname)),)+
             };
@@ -755,8 +714,8 @@ macro_rules! component {
 
         #[allow(dead_code)]
         impl Props<$crate::compile::api::Port> {
-            /// Each prop's port (ADR 0032): how a planner names a table
-            /// prop in its wiring (`ports.cx`), never by its position.
+            /// Each prop's port: how a planner names a table prop in its
+            /// wiring (`ports.cx`).
             pub(crate) const PORTS: Props<$crate::compile::api::Port> = Props {
                 $($pname: $crate::compile::api::Port::table(
                     $crate::components::define::at(PROPS, stringify!($pname))
@@ -795,9 +754,7 @@ macro_rules! component {
         [$($aname:ident : $akind:ident $(($($akarg:tt)*))?),*]
         [$($ckind:ident $([$($gname:ident : [$($gty:ident),*]),*])?)?]
     ) => {
-        /// The attributes this type's planner reads (`attributes { .. }`),
-        /// each with its kind: what `DEFINITION` declares and the
-        /// compile parses into the element's record (ADR 0032).
+        /// The attributes this type's planner reads, each with its kind.
         const ATTRS: &[$crate::components::AttrDecl] = &[$(
             $crate::components::AttrDecl {
                 name: $crate::components::define::raw_name(stringify!($aname)),
@@ -805,8 +762,7 @@ macro_rules! component {
             }
         ),*];
 
-        /// How this type reads its children (`children:`, ADR 0034):
-        /// what the compile parses them into, beside the attributes.
+        /// How this type reads its children.
         const CHILDREN: $crate::components::ChildrenDecl =
             $crate::components::define::component!(@children $($ckind $([$($gname : [$($gty),*]),*])?)?);
 

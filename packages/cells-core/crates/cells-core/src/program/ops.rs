@@ -1,25 +1,20 @@
-//! `scalar_ops!`: every scalar operator from one entry (ADR 0016). An entry
-//! names the operator and its inputs (`Mul(a, b)`, at most two, so an
-//! instruction stays 16 bytes), its
-//! evaluation, and its inverse as one of
+//! `scalar_ops!`: every scalar operator from one entry. An entry names the
+//! operator and its inputs (`Mul(a, b)`, at most two), its evaluation, and its
+//! inverse as one of
 //!
 //! - `exact |d| ..`: the input to write and its value, or None to drop the
 //!   request; where it writes, evaluating again gives `d`;
 //! - `projection |d| ..`: likewise, and evaluating again gives the operator
-//!   applied with `d` in the written input (ADR 0003);
+//!   applied with `d` in the written input;
 //! - `drops`: no request passes.
 //!
 //! In both expressions the inputs are their cells' values; an inverse names
 //! the input it writes by position, `A` for the first. A literal an
-//! operator reads is an input like any other, a constant
-//! (`Builder::const_slot`). From the entries the macro makes `Op` and
-//! `OpSpec` (with the vector and symbolic variants, whose rules are in
-//! `vector.rs` and the engine), `Op::eval`, `Op::invert`,
-//! `Op::scalar_inputs`, `OpSpec::scalar_arity`, `OpSpec::bind_scalar`,
-//! `OpSpec::inverse` and `OpSpec::scalars`, which the `inverses` tests in
-//! `scalar.rs` check every inverse against over a fixed table of values,
-//! and `OpSpec::writes`, the inputs an inverse may write (ADR 0018): an
-//! `exact` or `projection` inverse its first, a `drops` one none.
+//! operator reads is a constant input. From the entries the macro makes `Op`
+//! and `OpSpec` (with the vector and symbolic variants), `Op::eval`,
+//! `Op::invert`, `Op::scalar_inputs`, `OpSpec::scalar_arity`,
+//! `OpSpec::bind_scalar`, `OpSpec::inverse`, `OpSpec::scalars` and
+//! `OpSpec::writes`.
 //!
 //! ```ignore
 //! scalar_ops! {
@@ -122,9 +117,8 @@ macro_rules! scalar_ops {
             }
 
             /// The input positions its inverse may write, as a mask over
-            /// `Op::inputs`: bit `k` for input `k`, as `OpSpec::writes`. A
-            /// vector or symbolic operator's kind is in the program's
-            /// tables (`Program::vecs`, `Program::syms`).
+            /// `Op::inputs`: bit `k` for input `k`. `vecs` and `syms` are the
+            /// program's tables.
             pub fn writes(&self, vecs: &[VecOp], syms: &[crate::program::SymEntry]) -> u64 {
                 match *self {
                     $(Op::$name(..) => scalar_ops!(@writes $kind),)*
@@ -192,10 +186,8 @@ macro_rules! scalar_ops {
             }
 
             /// The input positions its inverse may write, as a mask: bit
-            /// `k` for input `k` (ADR 0018). It may name an input the
-            /// inverse writes only for some values, and never leaves one
-            /// out; the `inverses` tests in `scalar.rs` and the `writes`
-            /// tests in `vector.rs` check it.
+            /// `k` for input `k`. It may name an input the inverse writes
+            /// only for some values, and never leaves one out.
             pub fn writes(&self) -> u64 {
                 match self {
                     $(OpSpec::$name => scalar_ops!(@writes $kind),)*

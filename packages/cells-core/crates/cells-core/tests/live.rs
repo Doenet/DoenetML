@@ -1,7 +1,7 @@
-//! Which cells a document computes (ADR 0019, phase 2): the census of live
-//! cells over the golden set and `fixtures/sir.doenet`, and the checks the
-//! compile's record must pass at every count a student can reach. Nothing
-//! is pruned yet; this measures what pruning will remove.
+//! Which cells a document computes: the census of live cells over the
+//! golden set and `sir.doenet`, the checks the compile's record must pass
+//! at every count a student can reach, and that pruning, folding and
+//! sharing change no value anything reads.
 
 mod common;
 
@@ -35,9 +35,8 @@ fn documents() -> Vec<(String, String)> {
 
 const SEEDS: [u64; 4] = [0, 1, 2, 3];
 
-/// `f` of every document at every seed, on every core (`par_map`): each
-/// document's results in seed order, by document. A document's seeds are
-/// independent loads, so each is a job of its own.
+/// `f` of every document at every seed, in parallel: each document's
+/// results in seed order, by document.
 fn at_every_seed<R: Send>(f: impl Fn(&str, &str, u64) -> R + Sync) -> Vec<(String, Vec<R>)> {
     let docs = documents();
     let jobs: Vec<(&str, &str, u64)> = docs
@@ -64,7 +63,7 @@ fn load_seeded(src: &str, seed: u64, prune: bool) -> Document {
 /// What every build must hold, by the record and by its own walk: the
 /// walk finds nothing live the record leaves out, and every output and
 /// every essential cell is live. Returns how many cells the record keeps
-/// that the walk does not: what deciding per template slot costs.
+/// that the walk does not.
 fn check(doc: &Document, at: &str) -> usize {
     let walked = doc.live_cells_walked();
     let missed: Vec<CellIdx> = walked
@@ -92,9 +91,8 @@ fn check(doc: &Document, at: &str) -> usize {
     doc.live_cells().len() - walked.len()
 }
 
-/// What a cell depends on is defined once (`Program::needs`, and in the
-/// build `slot_cells::Def`), and every build holds to it: what is live is
-/// closed under what it needs, a cell's hold flags included, and a cell a
+/// Every build holds to what a cell depends on: what is live is closed
+/// under what it needs, a cell's hold flags included, and a cell a
 /// constant flag holds takes no request. Returns how many requests it
 /// tried on such cells.
 fn relations_hold(doc: &mut Document, at: &str) -> usize {
@@ -214,8 +212,8 @@ fn census() {
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record
 /// holds everything each build's own walk finds live, and the relations a
-/// cell's dependencies are defined by hold (`relations_hold`); what the
-/// record keeps beyond the walk is printed.
+/// cell's dependencies are defined by hold; what the record keeps beyond
+/// the walk is printed.
 #[test]
 fn the_record_holds_every_build() {
     let mut held = 0;
@@ -263,9 +261,8 @@ fn cells(doc: &Document, name: &str, prop: &str) -> Vec<CellIdx> {
 /// What the walk keeps and what it leaves, on small documents: a value
 /// in `<setup>` that a rendered number reads is live, one nothing reads is
 /// not; a circle's area is not. A line outside a graph is not drawn, but
-/// its points are inputs, which are live wherever they are, as the
-/// writable walk starts from every input (ADR 0018): only what nothing
-/// but its drawing reads, its slope, is dead.
+/// its points are inputs, which are live wherever they are: only what
+/// nothing but its drawing reads, its slope, is dead.
 #[test]
 fn what_is_live() {
     let doc = load(
@@ -422,7 +419,7 @@ fn pruning_keeps_every_live_value() {
     loads_agree(prune(false), prune(true));
 }
 
-/// Folding changes no value either (ADR 0028): a load that folds every
+/// Folding changes no value either: a load that folds every
 /// instruction over constants and one that folds none, both pruned, given
 /// the same requests and actions at four seeds and every repeat at 0 to 4
 /// iterations, hold the same value in every live cell.
@@ -438,7 +435,7 @@ fn folding_keeps_every_live_value() {
     loads_agree(fold(false), fold(true));
 }
 
-/// Sharing changes no value either (ADR 0033): a load that merges equal
+/// Sharing changes no value either: a load that merges equal
 /// computations and one that keeps every instruction, both pruned, given
 /// the same requests and actions at four seeds and every repeat at 0 to 4
 /// iterations, hold the same value in every live cell.

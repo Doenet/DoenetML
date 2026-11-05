@@ -1,5 +1,4 @@
-//! `<select>`: its definition and its planner (ADR 0016). How a choice
-//! is planned is the machinery in `compile/planning/choice.rs`.
+//! `<select>`: its definition and its planner.
 
 use crate::components::define::*;
 

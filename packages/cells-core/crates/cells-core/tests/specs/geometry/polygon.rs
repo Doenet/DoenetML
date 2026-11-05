@@ -1,5 +1,4 @@
-//! `<polygon>`: its vertices are a list as long as the author gave
-//! (ADR 0016).
+//! `<polygon>`: its vertices are a list as long as the author gave.
 
 use cells_core::spec;
 

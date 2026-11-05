@@ -1,19 +1,18 @@
-//! Browser binding. The renderer reads cells through a `Float64Array` view
-//! over wasm memory (see `cells_ptr`/`cells_len`), reads the component
-//! tables the same way, and writes with cell-addressed requests. See ADR 0001.
+//! Browser binding. The renderer reads cells and component tables through
+//! typed-array views over wasm memory and writes with cell-addressed
+//! requests.
 
 use cells_core::build::ScopeId;
 use cells_core::dast::{NodeId, StrId};
 use cells_core::{CellIdx, CompIdx, Document, LoadOptions, PointRequest, Request};
 use wasm_bindgen::prelude::*;
 
-/// Every diagnostic of a document (ADR 0013), as a JSON array, from one
-/// build through the exhaustive view: every option of every select and
-/// every repeat body, whatever the seed or the counts. A function of the
-/// wire-format bytes alone; no `Core` is made. For the language server.
-/// Each entry has `kind` (error, warning, info, accessibility), `code`,
-/// `message`, `node` (the DAST node, absent for a finding about the whole
-/// document), and `level` and `args` where the kind has them.
+/// Every diagnostic of a document, as a JSON array, from one build through
+/// the exhaustive view: every option of every select and every repeat body,
+/// whatever the seed or the counts. A function of the wire-format bytes
+/// alone. Each entry has `kind` (error, warning, info, accessibility),
+/// `code`, `message`, `node` (the DAST node, absent for a finding about the
+/// whole document), and `level` and `args` where the kind has them.
 #[wasm_bindgen]
 pub fn diagnose_json(dast: &[u8]) -> Result<String, JsError> {
     let dast = cells_core::dast::load(dast).map_err(|e| JsError::new(&e.to_string()))?;
@@ -21,8 +20,8 @@ pub fn diagnose_json(dast: &[u8]) -> Result<String, JsError> {
 }
 
 /// Whether publishing the document `new` over `old` is safe for every
-/// student (ADR 0017): their saved state then carries over exactly. Both
-/// are DAST bytes in either wire format; `renames` is a JSON array of
+/// student: their saved state then carries over exactly. Both are DAST
+/// bytes in either wire format; `renames` is a JSON array of
 /// `[oldKey, newKey]` pairs an editor recorded. The result is JSON: `safe`,
 /// and `failures`, each with the input's `key`, the `condition` (1 to 3)
 /// it fails, its DAST `node` in `new` and `oldNode` in `old` where it has
@@ -65,15 +64,12 @@ pub struct Core {
 
 #[wasm_bindgen]
 impl Core {
-    /// Load a document from either wire format (DAST JSON or binary CDST,
-    /// detected by content) and compute its initial values. The bytes are
-    /// taken, not borrowed, so the load frees them once they are read.
-    /// `seed` is the document seed load-time choices draw from (ADR 0009;
-    /// 0 without one). With `prune` false every prop of every component is
-    /// computed (ADR 0019; pruned without it), for a reader of props no
-    /// renderer reads, as the JavaScript worker's parity harness is. With
-    /// `state`, `save_state`'s JSON, the document comes back where the
-    /// session left it (ADR 0017).
+    /// Load a document from either wire format (detected by content) and
+    /// compute its initial values. `seed` is the document seed load-time
+    /// choices draw from (0 without one). With `prune` false every prop of
+    /// every component is computed, for a reader of props no renderer reads.
+    /// With `state`, `save_state`'s JSON, the document comes back where the
+    /// session left it.
     #[wasm_bindgen(constructor)]
     pub fn new(
         dast: Vec<u8>,
@@ -103,8 +99,8 @@ impl Core {
         })
     }
 
-    /// This core's release id (ADR 0017): saved state records it, and only
-    /// a core with the same id restores it.
+    /// This core's release id: saved state records it, and only a core with
+    /// the same id restores it.
     pub fn release_id() -> String {
         cells_core::RELEASE.to_string()
     }
@@ -116,7 +112,7 @@ impl Core {
     }
 
     /// The session's state as JSON: every essential cell that differs from
-    /// its default, by essential key (`Document::save_state`).
+    /// its default, by essential key.
     pub fn save_state(&self) -> String {
         self.doc.save_state()
     }
@@ -148,9 +144,9 @@ impl Core {
         self.doc.n_essential
     }
 
-    /// The load's spans as JSON (`cells_core::trace::to_json`): name, depth,
-    /// start and duration in milliseconds from the start of the load, and
-    /// the work counted inside each.
+    /// The load's spans as JSON: name, depth, start and duration in
+    /// milliseconds from the start of the load, and the work counted inside
+    /// each.
     pub fn load_trace_json(&self) -> String {
         cells_core::trace::to_json(&self.timings.spans)
     }
@@ -248,7 +244,7 @@ impl Core {
     pub fn comp_scope_ptr(&self) -> *const u32 {
         ScopeId::as_u32s(&self.doc.components.scope).as_ptr()
     }
-    /// The component each one is a reference to, or `u32::MAX` (ADR 0024).
+    /// The component each one is a reference to, or `u32::MAX`.
     pub fn comp_referent_ptr(&self) -> *const u32 {
         CompIdx::as_u32s(&self.doc.components.referent).as_ptr()
     }
@@ -288,7 +284,7 @@ impl Core {
     /// Apply cell-addressed requests. Returns the changed cell indices. When
     /// the tick rebuilt the document (`last_rebuilt`), the list is empty and
     /// every pointer and length above must be re-read. A request on a cell
-    /// that is not interactive (`interactive_cells`) is refused (ADR 0018).
+    /// that is not interactive (`interactive_cells`) is refused.
     pub fn request(&mut self, cells: &[u32], values: &[f64]) -> Vec<u32> {
         let reqs: Vec<Request> = cells
             .iter()
@@ -301,8 +297,8 @@ impl Core {
         self.apply(&reqs, &[])
     }
 
-    /// Points dragged together, as `x0, y0, x1, y1, ...`: one point group
-    /// (ADR 0006), so a constrained point carries the others with it.
+    /// Points dragged together, as `x0, y0, x1, y1, ...`: one point group,
+    /// so a constrained point carries the others with it.
     pub fn request_points(&mut self, cells: &[u32], values: &[f64]) -> Vec<u32> {
         let pts: Vec<PointRequest> = cells
             .as_chunks::<2>()
@@ -337,7 +333,7 @@ impl Core {
         self.act(|doc| doc.trigger(CompIdx::new(comp)))
     }
 
-    /// The inputs an answer's responses read (`Document::answer_inputs`).
+    /// The inputs an answer's responses read.
     pub fn answer_inputs(&self, answer: u32) -> Vec<u32> {
         if (answer as usize) >= self.doc.n_components() {
             return Vec::new();
@@ -345,8 +341,7 @@ impl Core {
         raw_comps(self.doc.answer_inputs(CompIdx::new(answer)))
     }
 
-    /// An answer's submitted cells, one per response
-    /// (`Document::answer_responses`).
+    /// An answer's submitted cells, one per response.
     pub fn answer_submitted(&self, answer: u32) -> Vec<u32> {
         if (answer as usize) >= self.doc.n_components() {
             return Vec::new();
@@ -423,8 +418,8 @@ impl Core {
         raw_cells(self.doc.interactive_cells())
     }
 
-    /// Every cell a renderer may read or a grader reads, ascending (ADR
-    /// 0019); new indices after a rebuild.
+    /// Every cell a renderer may read or a grader reads, ascending; new
+    /// indices after a rebuild.
     pub fn output_cells(&self) -> Vec<u32> {
         raw_cells(self.doc.output_cells())
     }
@@ -453,16 +448,15 @@ impl Core {
     }
 
     /// LaTeX of the expression a math cell holds, for a renderer that draws
-    /// math (the bridge, ADR 0020); empty for a NaN handle.
+    /// math; empty for a NaN handle.
     pub fn expr_latex(&self, cell: u32) -> String {
         self.doc.math_latex(CellIdx::new(cell))
     }
 
-    /// What the load reported about the elements it stamped (ADR 0013),
-    /// as a JSON array of diagnostics: the errors behind the document's
-    /// `_error` components (each names the component's DAST node) and the
-    /// lint findings and warnings of the rest. Per seed and per count, since
-    /// only stamped elements are in it; the document's own list is
+    /// What the load reported about the elements it stamped, as a JSON array
+    /// of diagnostics: the errors behind the document's `_error` components
+    /// and the lint findings and warnings of the rest. Per seed and per count,
+    /// since only stamped elements are in it; the document's own list is
     /// `diagnose_json`'s.
     pub fn diagnostics_json(&self) -> String {
         serde_json::to_string(self.doc.diagnostics()).unwrap()

@@ -1,20 +1,17 @@
-//! The input signature (ADR 0017, step 3): what students can act on in a
-//! document, and what decides what each input shows and whether it exists
-//! or can be acted on, named by stable keys and literals only. It is a
-//! function of the source, read off the build the check makes (the abstract
-//! build), whose graph holds every edge any count or pick can create, so an
-//! input in any iteration or branch is covered by its template's.
+//! The input signature: what students can act on in a document, and what
+//! decides what each input shows and whether it exists or can be acted on,
+//! named by stable keys and literals only. It is read off the abstract
+//! build, so an input in any iteration or branch is covered by its
+//! template's.
 //!
 //! An input's *derivation* is a hash over the backward closure of its
 //! interactive props and of what decides whether it exists or can be acted
-//! on: the `hide` of it and its ancestors, the cases and conditionals
-//! around it, the repeats around it. Each cell of the closure hashes as
-//! what it is: an essential cell by its key and prop, a constant by its
-//! value, a derived cell by its operator over its inputs' hashes; never by a cell index. The defaults of the essential
-//! cells in the closure are kept beside it, with whether each is the
-//! input's starting value, which an author may change: a cell that is one
-//! of the input's props itself, that no operator around the input mixes
-//! into anything else, and that no other input's closure reaches.
+//! on (the `hide` of it and its ancestors, the cases, conditionals and
+//! repeats around it). Each cell hashes as what it is, never by its index:
+//! an essential cell by its key and prop, a constant by its value, a
+//! derived cell by its operator over its inputs' hashes. The defaults of
+//! the essential cells in the closure are kept beside it, with whether each
+//! is the input's starting value.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -340,16 +337,15 @@ impl<'a> Signer<'a> {
         read
     }
 
-    /// What `cell` needs (`program::Needs`): the one relation the closure
-    /// and the hash follow.
+    /// What `cell` needs: the one relation the closure and the hash
+    /// follow.
     fn needs(&self, cell: CellIdx) -> Needs<'a> {
         let (i, _) = self.producer[cell.index()];
         let instr = (i != u32::MAX).then(|| &self.out.instrs[i as usize]);
         Needs::new(instr, &self.out.operands.cells, &self.out.holds, cell)
     }
 
-    /// A cell's hash: what it is, never where it is, and what holds it
-    /// (`Program::holds`).
+    /// A cell's hash: what it is, never where it is, and what holds it.
     fn hash(&mut self, cell: CellIdx) -> u64 {
         // Post-order without recursion: a chain of cells may be long.
         let mut stack = vec![(cell, false)];
@@ -534,7 +530,6 @@ impl<'a> Signer<'a> {
     }
 }
 
-/// The cells of component `c`'s props.
 /// Component `c`'s component children.
 fn children(t: &ComponentTable, c: CompIdx) -> Vec<CompIdx> {
     let (s, n) = (

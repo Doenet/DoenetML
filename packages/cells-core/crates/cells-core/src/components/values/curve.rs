@@ -1,5 +1,5 @@
 //! `<function>` and `<derivative>`, which share their table: their
-//! definitions and their planner (ADR 0016).
+//! definitions and their planner.
 
 use crate::compile::api::*;
 use crate::components::define::*;

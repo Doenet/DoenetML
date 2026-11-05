@@ -1,12 +1,6 @@
-//! Helpers for tests and benches: turn DoenetML source into DAST JSON by
-//! running the TypeScript parser through node, mirroring how the current core
-//! gets its DAST.
-//!
-//! Starting node costs about 60 ms, far more than a parse, and the suite
-//! parses thousands of sources. So a process keeps `parse-dast.mjs --serve`
-//! running and sends it each source (`Parser`), one parser per thread that
-//! parses at once, and remembers every source it parsed (`CACHE`): a sweep
-//! that loads a document at several seeds parses it once.
+//! Helpers for tests and benches: turn DoenetML source into DAST by running
+//! the TypeScript parser through node. Parser processes are kept running
+//! and reused, and every parsed source is cached.
 
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Read, Write};
@@ -21,14 +15,13 @@ pub fn repo_root() -> PathBuf {
         .unwrap()
 }
 
-/// Parse DoenetML source to DAST JSON via `scripts/parse-dast.mjs`.
+/// Parse DoenetML source to DAST JSON.
 pub fn dast_json(source: &str) -> String {
     String::from_utf8(parse_dast(source, Format::Json).to_vec()).unwrap()
 }
 
-/// Parse DoenetML source to the binary wire format via
-/// `scripts/parse-dast.mjs --binary` (the JavaScript encoder,
-/// `scripts/cdast-encode.mjs`), to check against `Dast::to_binary`.
+/// Parse DoenetML source to the binary wire format with the JavaScript
+/// encoder.
 pub fn dast_binary(source: &str) -> Vec<u8> {
     parse_dast(source, Format::Binary).to_vec()
 }
@@ -116,9 +109,8 @@ pub fn load(source: &str) -> crate::Result<crate::Document> {
     crate::Document::from_bytes(dast_json(source).as_bytes())
 }
 
-/// `load`, with every prop computed (`LoadOptions::prune` off, ADR 0019):
-/// for a test that reads a prop no renderer reads (a circle's area, a
-/// line's slope), as the current core's state variables let a reader.
+/// `load`, with every prop computed (`LoadOptions::prune` off), for a test
+/// that reads a prop no renderer reads.
 pub fn load_unpruned(source: &str) -> crate::Result<crate::Document> {
     let json = dast_json(source);
     let (doc, _) = crate::Document::load(
@@ -131,10 +123,8 @@ pub fn load_unpruned(source: &str) -> crate::Result<crate::Document> {
     Ok(doc)
 }
 
-/// The first error the load reported (ADR 0013): its code and message.
-/// An element that cannot be built does not fail the load; it becomes
-/// an `_error` component with this diagnostic. Panics when the document
-/// loads without one, or does not load at all.
+/// The first error diagnostic the load reported: its code and message.
+/// Panics when the document loads without one, or does not load at all.
 pub fn load_error(source: &str) -> (&'static str, String) {
     let doc = load(source).unwrap_or_else(|e| panic!("{source}: did not load: {e}"));
     doc.diagnostics()
@@ -152,7 +142,7 @@ pub fn load_via_binary(source: &str) -> crate::Result<crate::Document> {
     crate::Document::from_bytes(&bytes)
 }
 
-/// `load` with a document seed (ADR 0009), for load-time choices.
+/// `load` with a document seed, for load-time choices.
 pub fn load_with_seed(source: &str, seed: u64) -> crate::Result<crate::Document> {
     let json = dast_json(source);
     let (doc, _) = crate::Document::load(

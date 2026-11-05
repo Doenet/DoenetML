@@ -15,16 +15,13 @@ impl Compiler<'_> {
 
     /// Whether a child node is presentation a renderer reads rather than
     /// content a planner does: a `<label>` or `<shortDescription>` element.
-    /// Every type keeps such a child as a component (ADR 0024); a planner
-    /// reading its element children passes over them.
     pub(in crate::compile) fn is_presentation_child(&self, n: NodeId) -> bool {
         self.dast.kind(n) == NodeKind::Element
             && matches!(self.dast.str(n), "label" | "shortDescription")
     }
 
     /// Whether a child node is no content of its element: layout
-    /// (`is_blank`) or presentation (`is_presentation_child`). What
-    /// decides an element's value from its children looks past these.
+    /// (`is_blank`) or presentation (`is_presentation_child`).
     pub(in crate::compile) fn is_not_content(&self, n: NodeId) -> bool {
         self.is_blank(n) || self.is_presentation_child(n)
     }

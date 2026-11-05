@@ -1,6 +1,6 @@
 //! The inversion engine: requests are gathered per producing instruction,
 //! highest schedule position first, and inverted once; point groups are
-//! kept together through lookahead (ADR 0006).
+//! kept together through lookahead.
 
 use std::collections::BinaryHeap;
 use std::hash::{BuildHasherDefault, Hasher};
@@ -59,10 +59,10 @@ pub struct Inversion {
 /// request on an instruction's outputs is known before it is inverted
 /// once; the input requests an inverse produces join the queue. Cells
 /// in `essentials` are essential; a request landing on another
-/// producer-less cell (a constant), or on a cell a `fixed` holds
-/// (`Program::holds`), is dropped.
+/// producer-less cell (a constant), or on a cell a `fixed` holds, is
+/// dropped.
 ///
-/// `groups` are points requested together (ADR 0006): before such a
+/// `groups` are points requested together: before such a
 /// group is queued the engine asks what each point would actually
 /// become, and if a strict subset is held back, all by the same shift,
 /// the shift is applied to the rest, so a shape dragged against a
@@ -115,12 +115,8 @@ pub fn invert_requests(
 /// What `cells` would hold for each requested cell if the requests were
 /// applied: invert, overlay the essential writes on a copy, and evaluate
 /// forward the instructions that read a changed value, up to the last
-/// requested cell. The cells are not written. A symbolic instruction's
-/// memo and the session's engine are, as any step writes them, and may
-/// keep what the lookahead found: the memo is keyed by the values it last
-/// ran on, so it answers the next real step right whatever it holds, and
-/// the engine only grows and finds an expression it already has (ADR
-/// 0006, amended).
+/// requested cell. The cells are not written; a symbolic instruction's
+/// memo and the session's engine may be.
 pub fn realize(
     program: &Program,
     sym: &mut SymRun,
@@ -200,11 +196,9 @@ impl RequestEngine<'_> {
         }
     }
 
-    /// A lone request: nothing else is pending (an empty heap means an
-    /// empty `pending`), so no other request can reach the instructions it
-    /// passes through and there is nothing to gather. Invert straight down
-    /// through scalar operators, as the queue would one step at a time, and
-    /// hand back to the queue at a vector or symbolic operator.
+    /// A lone request, with nothing else pending: invert straight down
+    /// through scalar operators, and hand back to the queue at a vector or
+    /// symbolic operator.
     fn walk(&mut self, mut cell: CellIdx, mut value: f64, origin: Request) {
         loop {
             let p = self.program.producer[cell.index()];
@@ -227,7 +221,7 @@ impl RequestEngine<'_> {
         }
     }
 
-    /// Queue a point group after the equal-shift rule (see `invert_requests`).
+    /// Queue a point group after the equal-shift rule.
     fn push_group(&mut self, mut pts: Vec<PointRequest>, origin: Request) {
         if pts.len() >= 2 {
             let reqs: Vec<(CellIdx, f64)> = pts

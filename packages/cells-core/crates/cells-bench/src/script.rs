@@ -1,8 +1,7 @@
-//! The golden script (`examples/golden.rs`): every document of the golden
-//! set and a fixed list of requests per document, addressed by tree path so
-//! they survive rebuilds. Shared with the tests that tick documents through
-//! it (`tests/evaluators.rs`). Every request is one a renderer makes, on
-//! an input's cell (ADR 0018), and an answer's submit is an action.
+//! The golden script: every document of the golden set and a fixed list of
+//! requests per document, addressed by tree path so they survive rebuilds.
+//! Every request is one a renderer makes, on an input's cell, and an
+//! answer's submit is an action.
 
 use cells_core::CellIdx;
 use cells_core::{Child, CompIdx, Document, PointRequest, Request, TickOutcome};

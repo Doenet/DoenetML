@@ -1,4 +1,4 @@
-//! `<when>`: its definition and its planner (ADR 0016).
+//! `<when>`: its definition and its planner.
 
 use crate::components::define::*;
 

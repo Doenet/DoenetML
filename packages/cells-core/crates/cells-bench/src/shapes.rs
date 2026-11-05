@@ -1,9 +1,7 @@
-//! Synthetic documents for timing the tick (`examples/tick_cost.rs`), built
-//! in Rust with `testing::dast`, so neither the parser nor node is needed.
-//! Each shape is driven by dragging one coordinate of a point between two
-//! values, and knows what it computes: after a drag to `check.0`, the props
-//! in `check.1` must hold their values, or the shape was not built as
-//! meant. `docs/tick-design-decisions.md` says which decision each serves.
+//! Synthetic documents for timing the tick, built in Rust with
+//! `testing::dast`. Each shape is driven by dragging one coordinate of a
+//! point between two values, and knows what it computes: after a drag to
+//! `check.0`, the props in `check.1` must hold their values.
 
 use std::sync::Arc;
 

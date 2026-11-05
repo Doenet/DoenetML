@@ -1,5 +1,5 @@
 //! Shared fixture loading for the stats binary and the examples, and the
-//! golden script (`script`).
+//! golden script.
 
 use std::path::PathBuf;
 
@@ -15,8 +15,7 @@ pub fn fixtures_dir() -> PathBuf {
     repo_root().join("fixtures")
 }
 
-/// The binary wire-format bytes of a fixture, if `scripts/gen-fixtures.sh`
-/// produced them.
+/// The binary wire-format bytes of a fixture, if generated.
 pub fn fixture_binary(spec: &str) -> Option<Vec<u8>> {
     std::fs::read(fixtures_dir().join(format!("{spec}.cdast"))).ok()
 }

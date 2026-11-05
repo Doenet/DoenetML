@@ -1,7 +1,6 @@
-//! `<circle>` in its nine specifications, dragged as the current
-//! core's tests drag it. No renderer requests a circle's radius, so a
-//! request on it goes through an input bound to it, as in a document
-//! (ADR 0018).
+//! `<circle>` in its nine specifications, dragged as the current core's
+//! tests drag it. A request on the radius goes through an input bound to
+//! it.
 
 mod common;
 use cells_core::Request;

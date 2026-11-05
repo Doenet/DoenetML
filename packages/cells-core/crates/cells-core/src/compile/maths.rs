@@ -1,6 +1,4 @@
-//! Math text, which three stages read: outlining tokenizes it (`math_text`)
-//! to settle a `<math>`'s type, parsing parses it (`parse_math`), and
-//! planners plan other elements' math from it.
+//! Math text: tokenizing it, planning its `$ref`s and parsing it.
 
 use crate::compile::*;
 
@@ -18,9 +16,8 @@ impl Compiler<'_> {
         Ok((toks, MathSrc(nodes)))
     }
 
-    /// Math text tokenized: the one tokenizer of math text. Its `$ref`s
-    /// are placeholders, planned by `resolve_math`, so tokenizing reads no
-    /// other element and may run while outlining (a `<math>`'s, ADR 0029).
+    /// Math text tokenized, its `$ref`s placeholders; reads no other
+    /// element, so it may run while outlining.
     pub(in crate::compile) fn math_text(&self, nodes: &[NodeId]) -> Result<MathText> {
         let (toks, macros) = self.tokenize_math(nodes)?;
         Ok(MathText {
@@ -133,8 +130,8 @@ impl Compiler<'_> {
         Ok(id)
     }
 
-    /// A `<math>`'s text parsed (when parsing, ADR 0029) as the type outlining
-    /// settled for it: one expression, or a tuple's entries.
+    /// A `<math>`'s text parsed as the type outlining settled for it: one
+    /// expression, or a tuple's entries.
     pub(in crate::compile) fn parse_math(
         &mut self,
         t: TemplateId,

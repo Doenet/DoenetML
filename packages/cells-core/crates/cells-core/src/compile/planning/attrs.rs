@@ -1,6 +1,5 @@
 //! Attributes and math, as planned: each prop's source from a literal, a
-//! reference, or math text. Reading attribute text is `source.rs`'s, and
-//! math text `maths.rs`'s.
+//! reference, or math text.
 
 use crate::compile::*;
 
@@ -19,7 +18,7 @@ impl<'a> Compiler<'a> {
     }
 
     /// `plan_attrs` for machinery that plans the `by_planner` props itself
-    /// after the table (`plan_function_iterates`): they are left absent.
+    /// after the table: they are left absent.
     pub(in crate::compile) fn plan_table(
         &mut self,
         parsed: &Parsed,
@@ -119,10 +118,8 @@ impl<'a> Compiler<'a> {
     }
 
     /// Children or an attribute read as a value (`ValueChildren`), not
-    /// blank: a reference, a literal, or math text. A literal (`<number>3
-    /// </number>`, an input's initial state) is a value slot: the classing
-    /// (ADR 0018) makes it essential when an input or an action can reach
-    /// it, a constant otherwise.
+    /// blank: a reference, a literal, or math text. A literal is a value
+    /// slot.
     pub(in crate::compile) fn plan_value_children(
         &mut self,
         t: TemplateId,
@@ -139,10 +136,8 @@ impl<'a> Compiler<'a> {
         })
     }
 
-    /// The canonical string id of `text`: the DAST's if it has one (its
-    /// table is deduplicated), else from `extra_strings`, appended after
-    /// the DAST's in every build. Two text cells holding equal text hold
-    /// equal ids, so text equality is `Eq` on ids (`plan_text_condition`).
+    /// The canonical string id of `text`: the DAST's if it has one, else
+    /// from `extra_strings`. Equal text has equal ids.
     pub(in crate::compile) fn intern_literal(&mut self, text: &str) -> StrId {
         let d = self.dast;
         let ids = self.string_ids.get_or_insert_with(|| {
@@ -162,11 +157,8 @@ impl<'a> Compiler<'a> {
     }
 
     /// Whether `m`, a `$t` or `$t.prop` not yet planned, reads a text
-    /// value: the prop its referent's type declares as text (`PropDef::text`,
-    /// a `<text>`'s or `<textInput>`'s `value`), read when planning so a
-    /// text cell never reaches a numeric comparison (ADR 0032). The type is
-    /// read first: only a text referent's path is spelled out. A path with
-    /// an index is read from its plan (`ref_is_text`).
+    /// value: a prop its referent's type declares as text (a `<text>`'s or
+    /// `<textInput>`'s `value`).
     pub(in crate::compile) fn macro_reads_text(
         &self,
         t: TemplateId,
@@ -188,8 +180,7 @@ impl<'a> Compiler<'a> {
     }
 
     /// Whether planned ref `p`, planned from template `t`, reads a text
-    /// value: `macro_reads_text` from the plan, with no second lookup, for
-    /// any path the templates follow to an element.
+    /// value.
     pub(in crate::compile) fn ref_is_text(&self, t: TemplateId, p: RefId) -> bool {
         let r = &self.compiled.refs[p.index()];
         let Some((cur_t, e)) = self.static_target(t, p) else {
@@ -224,8 +215,7 @@ impl<'a> Compiler<'a> {
     }
 
     /// `plan_value`, with `None` for what is not a single literal or
-    /// reference (math text, most often): reading the nodes builds no
-    /// string, so a caller that goes on to plan math pays for none.
+    /// reference (math text, most often).
     pub(in crate::compile) fn try_value(
         &mut self,
         t: TemplateId,
@@ -393,9 +383,8 @@ impl<'a> Compiler<'a> {
     }
 
     /// Replace cell leaves that name a `<math>` element of this template
-    /// with that math's own expression when it has free symbols: the
-    /// expression parsed when parsing, which its planner plans from too, not its
-    /// plan (ADR 0029).
+    /// with that math's own expression, as parsed, when it has free
+    /// symbols.
     pub(in crate::compile) fn inline_symbolic_maths(
         &mut self,
         parsed: &Parsed,
@@ -468,9 +457,6 @@ impl<'a> Compiler<'a> {
     }
 }
 
-/// The copy rules of `plan_attrs` (ADR 0016, Migration step 8), against
-/// `<testValue>`: under `extend`, a prop without its attribute is its
-/// referent's, and one with it is the copy's own.
 /// A literal value: `true`, `false` or a number.
 fn literal_value(text: &str) -> Option<Source> {
     match text {
@@ -481,7 +467,7 @@ fn literal_value(text: &str) -> Option<Source> {
 }
 
 /// Whether prop `prop` (the default prop when `None`) of `component_type`
-/// holds text, as its table declares (`PropDef::text`).
+/// holds text, as its table declares.
 fn prop_is_text(component_type: ComponentType, prop: Option<&str>) -> bool {
     let sel = match prop {
         Some(name) => component_type.resolve_prop(component_type.canonical_prop(name)),

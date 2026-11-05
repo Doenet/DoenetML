@@ -1,11 +1,7 @@
-//! Sealing, the compile's last stage before the abstract build (ADR 0027):
-//! what needs every element planned and linked, from the plans, the source
-//! and the name table alone, changing no plan. The branch interface of
-//! every choice (`choice.rs`), the arity of every operator a plan names,
-//! every element's key (`keys.rs`), the slot offsets, and every port's
-//! type (`types.rs`, ADR 0032). What fails here is boxed by compiling
-//! again, not in place: other elements' plans may already name what it
-//! would box.
+//! Sealing: what needs every element planned and linked, changing no
+//! plan. The branch interface of every choice, operator arity, every
+//! element's key, the slot offsets, and every port's type. What fails here
+//! is boxed by compiling again, not in place.
 
 pub(in crate::compile) mod choice;
 pub(crate) mod keys;
@@ -74,8 +70,7 @@ impl<'a> Seal<'a> {
     }
 
     /// Every operator a plan names reads as many inputs as it takes. One
-    /// that does not is a core bug, reported on its element here rather
-    /// than when a build binds it (`OpSpec::bind`).
+    /// that does not is a core bug, reported on its element.
     fn check_arity(&self) -> std::result::Result<(), Failure> {
         fn misbound(p: &Source) -> Option<(OpSpec, usize)> {
             match p {
@@ -129,8 +124,7 @@ impl<'a> Seal<'a> {
 }
 
 impl Compiler<'_> {
-    /// Sealing (`seal.rs`): what reads every plan, the source and the name
-    /// table, and changes no plan; what fails is boxed by compiling again.
+    /// Seal the planned compile; what fails is boxed by compiling again.
     pub(in crate::compile) fn seal(
         &mut self,
         planned: &Planned,

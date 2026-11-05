@@ -1,7 +1,7 @@
 //! `<circle>`, from every combination of `center`, `radius` and
 //! `through`: what it shows, and where a drag of its center or a change of
 //! its radius lands. No renderer requests a radius: a change of it comes
-//! through an input bound to it, as in a document (ADR 0018).
+//! through an input bound to it.
 
 use cells_core::spec;
 use std::f64::consts::{PI, TAU};

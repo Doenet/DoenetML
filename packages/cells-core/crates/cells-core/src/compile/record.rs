@@ -1,11 +1,7 @@
-//! An element's record (ADR 0032, decision 3; ADR 0034, decision 2):
-//! every attribute its type declares (`attributes { .. }`) and its
-//! children as the type reads them (`children:`), parsed once by the
-//! compile into typed values, each in the scope it was written in. A
-//! planner reads the record, never the source; what a planner of a `Plan`
-//! type reads of an `extend` referent is the referent's record merged
-//! under the element's own (`Record::merged_over`), so an extend with
-//! overrides is the referent with those changes wherever the referent sits.
+//! An element's record: every attribute its type declares and its children
+//! as the type reads them, parsed once by the compile into typed values,
+//! each in the scope it was written in. A planner reads the record, never
+//! the source; an extend's record is its own merged over the referent's.
 
 use crate::compile::*;
 use crate::components::{AttrDecl, AttrKind, ChildrenDecl, ChildrenKind};
@@ -233,7 +229,7 @@ impl Record {
         }
     }
 
-    /// Read by `Attrs::of` for the `Ref` kind, which no type declares yet.
+    /// A `Ref`: the reference, none when absent. No type declares one yet.
     #[allow(dead_code)]
     pub(crate) fn reference(&self, attr: Attr) -> Option<RefId> {
         match self.get(attr) {
@@ -263,12 +259,11 @@ impl Record {
         self.children.groups.get(i).cloned().unwrap_or_default()
     }
 
-    /// The record with every absent value taken from `referent`'s, the
-    /// merge an extend with overrides is planned from (ADR 0032, decision
-    /// 3): the element's own values over the referent's. Children merge
-    /// the same way, each part on its own: the referent's math text or
-    /// value when the element has none, and the referent's members of a
-    /// group of which the element has none.
+    /// The record with every absent value taken from `referent`'s: the
+    /// element's own values over the referent's. Children merge the same
+    /// way, each part on its own: the referent's math text or value when
+    /// the element has none, and the referent's members of a group of which
+    /// the element has none.
     pub(crate) fn merged_over(mut self, referent: &Record) -> Record {
         let n = self.values.len().max(referent.values.len());
         self.values.resize(n, AttrValue::Absent);
@@ -295,8 +290,8 @@ impl Record {
         self
     }
 
-    /// Every reference and math text the record holds rewritten, when the
-    /// record is read from another template (`Compiler::rebase_record`).
+    /// Every reference and math text the record holds rewritten, for a
+    /// record read from another template.
     pub(in crate::compile) fn rebase<'a>(
         &mut self,
         cp: &mut Compiler<'a>,
@@ -371,8 +366,7 @@ fn rebase_point<'a>(
 impl Compiler<'_> {
     /// Element `e`'s record: every attribute its planner's type declares,
     /// and its children as the type reads them, parsed from the element's
-    /// own source where the element sits. Parsed once, when parsing (ADR
-    /// 0030); a planner reads it through `PlanCtx::record`.
+    /// own source where the element sits.
     pub(in crate::compile) fn parse_record(&mut self, t: TemplateId, e: ElemId) -> Result<Record> {
         let Elem {
             node,
@@ -420,7 +414,7 @@ impl Compiler<'_> {
     }
 
     /// The children of `node` as `decl` reads them, planned from `scope`.
-    /// Layout and presentation (ADR 0024) are no content. An element child
+    /// Layout and presentation are no content. An element child
     /// is a member of the group that names its type, directly or inside a
     /// wrapper named as the group is; one no group takes is an error when
     /// the type has groups, and math text's (as written) when it has none.
@@ -627,10 +621,9 @@ impl Compiler<'_> {
     }
 }
 
-/// The parse of children into the record (ADR 0034, decision 2), each
-/// kind against a type that declares it, and the merge an extend with
-/// overrides is planned from: the element's own children over its
-/// referent's, each part on its own.
+/// The parse of children into the record, each kind against a type that
+/// declares it, and the merge of an element's own children over its
+/// referent's.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -648,8 +641,7 @@ mod tests {
     }
 
     /// `children: Value`: a literal, one reference, math text and a
-    /// blank, presentation passed over (a `<number>`'s, read by
-    /// `plan_attrs`).
+    /// blank, presentation passed over.
     #[test]
     fn value_children_are_a_literal_a_reference_math_or_blank() {
         let doc = load(document([

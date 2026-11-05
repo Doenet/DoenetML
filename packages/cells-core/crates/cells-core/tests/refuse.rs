@@ -1,7 +1,6 @@
-//! Refusal (ADR 0026, `program::refuse`): a request whose inverse would
-//! write a value that reaches the requested cell along more than one path
-//! is refused, and the build warns of the prop. Each refused request here
-//! once landed on a wrong value that asking again moved.
+//! Refusal: a request whose inverse would write a value that reaches the
+//! requested cell along more than one path is refused, and the build warns
+//! of the prop.
 
 use cells_core::testing::test_utils::load;
 use cells_core::{Document, PointRequest, Request};

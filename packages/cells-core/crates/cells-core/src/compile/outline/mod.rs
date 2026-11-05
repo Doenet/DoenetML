@@ -1,10 +1,7 @@
-//! Outlining, the compile's first stage (ADR 0027, ADR 0029, ADR 0030):
-//! every element, template and name from the DAST, what a reference reads
-//! of each that its own source settles (`settle_outline`), container
-//! copies' clones (`copies.rs`), a choice's branches (`choice.rs`) and an
-//! answer's synthetic children (`answer.rs`). It plans nothing; it returns
-//! the work it found for parsing and planning (`Outline`) and what it
-//! settled for every later stage (`Settled`).
+//! Outlining, the compile's first stage: every element, template and name
+//! from the DAST, what a reference reads of each that its own source
+//! settles, container copies' clones, a choice's branches and an answer's
+//! synthetic children. It plans nothing.
 
 mod answer;
 mod choice;
@@ -28,12 +25,8 @@ pub(in crate::compile) struct Outlining {
 }
 
 impl Compiler<'_> {
-    /// Outlining: every element, template and name, and what a reference
-    /// reads of each that its own source settles (`settle_outline`); once
-    /// every name is in the table, container copies get their clones,
-    /// which completes the element set. Nothing is planned. Returns the
-    /// work it found for the stages after it; what it settled is
-    /// `Compiler::settled`.
+    /// Outline the document. Returns the work found for the stages after
+    /// it; what it settled is in `Compiler::settled`.
     pub(in crate::compile) fn outline(&mut self) -> Outline {
         let dast = self.dast;
         let mut o = Outlining::default();
@@ -313,12 +306,9 @@ impl Compiler<'_> {
         Ok(e)
     }
 
-    /// What a reference to `e` reads that its own source settles, read here
-    /// so no planner reads another's plan (ADR 0029): a `<math>`'s type,
-    /// from its text, tokenized here once (`math::settled_type`); what a
-    /// `<collect>` (its `componentType`) or a `<polyline>` (points)
-    /// collects. Its planner plans as this says, and adds a collect's
-    /// `from`.
+    /// Settle what a reference to `e` reads that its own source settles: a
+    /// `<math>`'s type, from its tokenized text; what a `<collect>` (its
+    /// `componentType`) or a `<polyline>` (points) collects.
     fn settle_outline(
         &mut self,
         o: &mut Outlining,

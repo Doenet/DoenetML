@@ -1,10 +1,6 @@
-//! Planning (ADR 0029, ADR 0030): every element on its own, from the
-//! source and what outlining settled and parsing made, never from another
-//! element's plan. `plan_all` returns what it makes for linking and
-//! sealing (`Planned`). Each type's planner is in its file under
-//! `components/` (ADR 0016), reached through `planner.rs` and given a
-//! `PlanCtx` (`ctx.rs`); `api.rs` is all of `compile/` a planner may use.
-//! The rest of this directory is the machinery planners build on.
+//! Planning: every element on its own, from the source and what outlining
+//! settled and parsing made, never from another element's plan. This
+//! directory holds the machinery each type's planner builds on.
 
 mod answer;
 pub(in crate::compile) mod attrs;
@@ -37,12 +33,8 @@ enum ElemShape {
 }
 
 impl Compiler<'_> {
-    /// Planning: every element and every `$ref` child, each from the
-    /// source and what outlining and parsing made alone, never from
-    /// another element's plan (ADR 0029). What fails is boxed in place. A
-    /// `$ref` child's plan goes in its template's `ref_child_plans`, a box
-    /// among them for one that cannot be planned: planning makes no
-    /// element and writes no child list (ADR 0031).
+    /// Plan every element and every `$ref` child. What fails is boxed in
+    /// place; a `$ref` child that cannot be planned gets a box as its plan.
     pub(in crate::compile) fn plan_all(
         &mut self,
         parsed: Parsed,
@@ -109,12 +101,8 @@ impl Compiler<'_> {
         std::mem::take(&mut pl.planned)
     }
 
-    /// Plans element `e`, and records what holds it (`plan_hold`,
-    /// ADR 0022) beside its plans. Every element is planned here and
-    /// nowhere else, so `fixed` holds whatever planned it: no planner
-    /// applies it, and none can leave it out. A planner reads the source,
-    /// the name table and what outlining made, never another element's plan
-    /// (ADR 0029), so elements are planned in any order, each once.
+    /// Plans element `e`, and records what holds it beside its plans.
+    /// Elements are planned in any order, each once.
     pub(in crate::compile) fn plan_elem(&mut self, pl: &mut Planning, t: TemplateId, e: ElemId) {
         // A box, made when outlining or boxed in place, is planned as it is.
         if self.is_box(t, e) {
@@ -211,8 +199,8 @@ impl Compiler<'_> {
         }))
     }
 
-    /// An element of a type that names machinery (`machinery:`, ADR 0034):
-    /// the machinery plans it.
+    /// An element of a type that names machinery (`machinery:`): the
+    /// machinery plans it.
     fn plan_machinery(
         &mut self,
         pl: &mut Planning,
@@ -234,8 +222,8 @@ impl Compiler<'_> {
 
     /// Makes the element's children copies of the components under what
     /// its `from` (a `<polyline>`'s `vertices`) names, of the type
-    /// outlining recorded it collects (ADR 0029), gathered when it expands
-    /// (`Collection::Gathered`); its count is an aggregate over them.
+    /// outlining recorded it collects, gathered when it expands; its count
+    /// is an aggregate over them.
     fn plan_collect(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let Elem {
             node,
@@ -362,8 +350,8 @@ impl Compiler<'_> {
 mod tests {
     use crate::testing::dast::{document, el, load, mac};
 
-    /// An owned type standing free is refused, naming what owns it (ADR
-    /// 0034): a constraint outside a point, an award outside an answer.
+    /// An owned type standing free is refused, naming what owns it: a
+    /// constraint outside a point, an award outside an answer.
     #[test]
     fn a_free_owned_element_is_refused() {
         for (free, said) in [
@@ -402,9 +390,8 @@ mod tests {
         );
     }
 
-    /// A constraint target is a type that declares how a point is
-    /// constrained to it (`constrain_target`, ADR 0034); one that does not
-    /// is refused as a target, and one that does is wired by it.
+    /// A type that does not declare `constrain_target` is refused as a
+    /// constraint target, and one that does is wired by it.
     #[test]
     fn a_type_without_a_constrain_target_is_no_target() {
         let doc = load(document([el("graph")

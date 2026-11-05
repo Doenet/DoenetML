@@ -1,12 +1,8 @@
 //! A compiled numeric program for sampling one expression at many values of
 //! its variable. Built once, when the document is built, from an expression
 //! whose cell leaves are all numbers: those leaves become parameters, read
-//! from the cells on each run, so a coefficient drag reruns the tape without
-//! building or simplifying any expression.
-//!
-//! The tape is a stack program evaluated a column at a time: each op works on
-//! whole columns of `n` samples, so the inner loops are plain slice loops the
-//! compiler vectorizes.
+//! from the cells on each run. The tape is a stack program evaluated a
+//! column at a time: each op works on whole columns of `n` samples.
 
 use super::Tree;
 use crate::document::CellIdx;
@@ -201,9 +197,8 @@ impl Tape {
     }
 }
 
-/// `b^e`, with integer exponents by repeated multiplication (as fast as a
-/// multiply for squares and cubes) and the real odd root of a negative base,
-/// as `x^(1/3)` is evaluated numerically.
+/// `b^e`, with integer exponents by repeated multiplication and the real odd
+/// root of a negative base, as `x^(1/3)` is evaluated numerically.
 #[inline]
 fn pow(b: f64, e: f64) -> f64 {
     if e == 2.0 {

@@ -1,12 +1,9 @@
-//! What composed inverses do on real documents (ADR 0026): the round trip
-//! of `cells_core::testing::round_trip` on every document of the golden
-//! set, `fixtures/sir.doenet` and the smallest fixture of each shape
-//! (`cells_bench::script::sources`), or on the documents named on the
-//! command line. Every interactive number cell is requested at several
-//! values on a fresh copy, an x/y pair as a point group, and each request
-//! is classed (exact, projected, unchanged, dropped, rebuilt, unstable),
-//! and marked multipath when the essential cell it wrote reaches a
-//! requested cell along more than one path.
+//! The round trip of `cells_core::testing::round_trip` on every document
+//! of the golden set, `fixtures/sir.doenet` and the smallest fixture of
+//! each shape, or on the documents named on the command line. Each request
+//! is classed (exact, projected, unchanged, dropped, rebuilt, unstable) and
+//! marked multipath when the essential cell it wrote reaches a requested
+//! cell along more than one path.
 //!
 //! The first table counts each class over everything; the second counts
 //! them for each document's props, over every component of a type.

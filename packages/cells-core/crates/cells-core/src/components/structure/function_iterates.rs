@@ -1,6 +1,4 @@
-//! `<functionIterates>`: its definition and its planner (ADR 0016). How
-//! its iterates are built as a repeat is the machinery in
-//! `compile/planning/iterates.rs`.
+//! `<functionIterates>`: its definition and its planner.
 
 use crate::components::define::*;
 use crate::program::VecOp;

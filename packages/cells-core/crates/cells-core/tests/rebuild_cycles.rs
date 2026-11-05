@@ -1,9 +1,6 @@
-//! The holes the rebuild-cycle survey found
-//! (`docs/rebuild-cycles-survey.md`): documents that loaded without a cycle
-//! error and hit one on a rebuild. The abstract build (ADR 0012) now models
-//! each one and rejects the document at load, which each test asserts; the
-//! rebuild failure path is tested with the check switched off, since no
-//! document that passes it is known to fail on rebuild.
+//! Documents that once loaded without a cycle error and hit one on a
+//! rebuild. The abstract build now rejects each at load; the rebuild
+//! failure path is tested with the check switched off.
 
 mod common;
 use common::{set, type_into, v};

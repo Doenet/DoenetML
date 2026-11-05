@@ -1,12 +1,12 @@
 //! Compile's output, which expand reads: one [`Template`] per repeat body,
 //! choice branch and the document, with a plan for every element's props
-//! and every reference. Nothing here names an iteration; see `build/mod.rs`.
+//! and every reference. Nothing here names an iteration.
 
 use super::*;
 use crate::components::{Aggregate, ArgFrom, Collection, PropFrom};
 
 crate::index::index_type! {
-    /// An element's stable key, as an index into the compile's [`Keys`]:
+    /// An element's stable key, as an index into the compile's `Keys`:
     /// what saved state names it by. Every instance of a template element
     /// shares its key; the scope tells them apart.
     pub struct ElemKey;
@@ -107,9 +107,7 @@ pub(crate) enum Sel {
 /// A value not given (yet): an attribute's default when it has no value
 /// of its own, an emptied input, an answer not submitted, an entry past a
 /// tuple's end, an operator input left out. A component writes NaN only
-/// as this, or as `Wire::undefined`/`Source::undefined` after a warning
-/// (ADR 0016, "No silent NaN"); a test in `components/mod.rs` holds it to
-/// that.
+/// as this, or as `Wire::undefined`/`Source::undefined` after a warning.
 pub(crate) const NO_VALUE: f64 = f64::NAN;
 
 /// Proof that the element's diagnostic was raised, required to make a
@@ -207,18 +205,18 @@ pub(crate) enum ScopePred {
 }
 
 impl Leaf {
-    /// Whether the leaf is a document constant when it is a constant (ADR
-    /// 0028): the same in every instance of its template slot. A scope
-    /// constant is not.
+    /// Whether the leaf is a document constant when it is a constant: the
+    /// same in every instance of its template slot. A scope constant is
+    /// not.
     pub(crate) fn is_document_constant(&self) -> bool {
         !matches!(self, Leaf::Scope(_))
     }
 }
 
 impl Flow {
-    /// Whether a constant this expression gives is a document constant
-    /// (ADR 0028): math text with nothing to read is the same in every
-    /// instance; an alias or an operator is what it reads.
+    /// Whether a constant this expression gives is a document constant:
+    /// math text with nothing to read is; an alias or an operator is what
+    /// it reads.
     pub(crate) fn is_document_constant(&self) -> bool {
         matches!(
             self,
@@ -228,11 +226,9 @@ impl Flow {
 }
 
 impl Source {
-    /// Whether a constant this plan gives is a document constant (ADR
-    /// 0028): one made from the source alone, the same in every instance
-    /// of its template slot. A match on the leaf and expression types
-    /// alone: a specialization depends on the scope, an aggregate on the
-    /// tree.
+    /// Whether a constant this plan gives is a document constant: one made
+    /// from the source alone, the same in every instance of its template
+    /// slot.
     pub(crate) fn gives_document_constant(&self) -> bool {
         match self {
             Source::Leaf(leaf) => leaf.is_document_constant(),
@@ -242,16 +238,16 @@ impl Source {
     }
 
     /// Port `k` of the element `p` names, whatever prop it is: a copy's
-    /// port aliasing its referent's (ADR 0032).
+    /// port aliasing its referent's.
     pub(crate) fn port_of(p: RefId, k: usize) -> Self {
         Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Port(byte(k)))))
     }
 
-    /// A given value (ADR 0028).
+    /// A given value.
     pub(crate) fn given(v: f64) -> Self {
         Source::Leaf(Leaf::Given(v))
     }
-    /// A constant (ADR 0028).
+    /// A constant.
     pub(crate) fn constant(v: f64) -> Self {
         Source::Leaf(Leaf::Const(v))
     }
@@ -458,7 +454,7 @@ pub(crate) enum SymText {
 }
 
 impl SymText {
-    /// The text, each `$ref` written `cellN<plan>` (`sym::engine::leaf_name`).
+    /// The text, each `$ref` written `cellN<plan>`.
     pub(crate) fn spell(&self, dast: &Dast) -> String {
         let leaf = |p: RefId| crate::sym::engine::leaf_name(p.get(), false);
         match self {
@@ -539,7 +535,7 @@ pub(crate) struct Elem {
 }
 
 impl Elem {
-    /// This element as its box (ADR 0013, ADR 0027): an `_error` element
+    /// This element as its box: an `_error` element
     /// with its node and name, and no props, children, body or extend.
     pub(crate) fn as_box(&self) -> Elem {
         Elem {
@@ -1017,10 +1013,9 @@ pub(crate) enum GivenId {
 }
 
 impl GivenId {
-    /// What saved state names a hidden port holding it by (ADR 0017): the
-    /// attribute's or the parameter's name, and the leaf's position after
-    /// the first (`_through3`), under a `_` so it is never a prop's name
-    /// (a circle's given radius beside its `radius` prop).
+    /// What saved state names a hidden port holding it by: the attribute's
+    /// or the parameter's name, and the leaf's position after the first
+    /// (`_through3`), under a `_` so it is never a prop's name.
     pub(crate) fn key(self) -> String {
         match self {
             GivenId::Attr(a, 0) => format!("_{}", a.name()),
@@ -1033,8 +1028,7 @@ impl GivenId {
 }
 
 /// A point a planner uses when the author gives none: the parameters its
-/// coordinates are, and their value. Both are a component's to say (the
-/// line's and segment's values are in `components/geometry/mod.rs`).
+/// coordinates are, and their value.
 pub(crate) type DefaultPoint = ([Param; 2], [f64; 2]);
 
 /// One port's source and, when it is a given leaf, what gave it.
@@ -1055,7 +1049,7 @@ impl From<Source> for Wire {
 
 impl Wire {
     /// A given value `v`, the `k`-th leaf of what `id` gives: state when a
-    /// student's action can write it (ADR 0018).
+    /// student's action can write it.
     pub(crate) fn given(id: GivenId, v: f64) -> Self {
         Wire {
             source: Source::given(v),
@@ -1077,7 +1071,7 @@ impl Wire {
             given: Some(id),
         }
     }
-    /// A constant (ADR 0028), not NaN: a value not given is
+    /// A constant, not NaN: a value not given is
     /// `absent`, one the element cannot have `undefined`.
     pub(crate) fn constant(v: f64) -> Self {
         assert!(
@@ -1354,8 +1348,7 @@ impl ElemWiring {
         })
     }
 
-    /// Which port holds each given leaf, by what gave it
-    /// (`plan_with_extend`).
+    /// Which port holds each given leaf, by what gave it.
     pub(in crate::compile) fn given(&self) -> &HashMap<GivenId, Port> {
         &self.given
     }
@@ -1475,17 +1468,13 @@ impl Compiled {
         &self.dast
     }
 
-    /// The type of template slot `slot` of `template` (ADR 0032): what the
-    /// type pass settled for the port, which every build reads.
+    /// The type of template slot `slot` of `template`, as the type pass
+    /// settled it.
     pub fn port_type(&self, template: usize, slot: u32) -> PortType {
         self.templates[template].sealed.types[slot as usize]
     }
 
-    /// Drop the plans' spare capacity once planning is done, before the
-    /// check builds, so the build reuses that memory rather than raising
-    /// the load's peak, which in wasm is what the page keeps. (What only
-    /// planning reads, the name table and shared state, is the `Compiler`'s and
-    /// goes with it.)
+    /// Drop the plans' spare capacity once planning is done.
     pub(crate) fn shrink_to_fit(&mut self) {
         self.templates.shrink_to_fit();
         for tpl in &mut self.templates {
@@ -1529,10 +1518,8 @@ mod tests {
     use super::*;
     use crate::components::{AggOp, Collection};
 
-    /// What a plan gives is classed by its kind alone (ADR 0032, step 3):
-    /// every leaf but a scope constant is a document constant when it is a
-    /// constant, every math expression is, and nothing that reads a port,
-    /// chooses by the scope or waits for the tree is.
+    /// Whether a plan gives a document constant is decided by its kind
+    /// alone.
     #[test]
     fn document_constants_are_classed_by_kind() {
         let p = RefId::new(0);

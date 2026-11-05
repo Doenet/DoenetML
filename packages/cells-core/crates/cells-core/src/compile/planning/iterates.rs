@@ -190,8 +190,7 @@ impl<'a> Compiler<'a> {
     /// for its `valueName` and `indexName`: a `<repeatForSequence>`'s value
     /// is `from + (k - 1) * step`, its `from` and `step` aliasing the
     /// repeat's own (one hop up) and `k` the iteration's position; either
-    /// repeat's index is the iteration's position. A `<repeat>`'s value, a
-    /// tuple, is `plan_repeat_for`'s.
+    /// repeat's index is the iteration's position.
     pub(in crate::compile) fn plan_iteration_names(&mut self, t: TemplateId, e: ElemId) {
         let Body::Repeat { template: sub } = self.outlined(t).elems[e.index()].body else {
             return;

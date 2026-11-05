@@ -92,7 +92,7 @@ impl ComponentTable {
     }
 
     /// Per component, whether it is rendered, and whether a sticky group
-    /// is above it (ADR 0019), walking children down from `root`, as a
+    /// is above it, walking children down from `root`, as a
     /// renderer does: the root is rendered, and a child is when its parent
     /// is and its type's rule (`Renders`) allows it where it is, `InGraph`
     /// only with a `<graph>` above it. A component no children list

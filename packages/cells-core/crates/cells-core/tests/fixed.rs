@@ -1,10 +1,7 @@
-//! `fixed` (and a graph's `fixAxes`) given by a reference: the element's
-//! cells are held by the flag (`Program::holds`), so requests through the
-//! element are dropped while the flag is set, and the element follows its
-//! sources either way. A literal `fixed` holds them always, so the classing
-//! makes its values constants. A prop no
-//! renderer requests, a circle's radius, is requested through an input
-//! bound to it, as in a document (ADR 0018).
+//! `fixed` (and a graph's `fixAxes`) given by a reference: requests through
+//! the element are dropped while the flag is set, and the element follows
+//! its sources either way. A literal `fixed` makes its values constants. A
+//! circle's radius is requested through an input bound to it.
 
 mod common;
 use common::*;
@@ -66,8 +63,8 @@ fn a_copy_of_a_dynamically_fixed_point_is_fixed() {
     assert_eq!(v(&doc, "P", "x"), 5.0);
 }
 
-/// Requests on a circle's center invert through `CircleCenterPoint` into its
-/// own center and through-point slots, which are held.
+/// Requests on a circle's center invert into its own center and
+/// through-point slots, which are held.
 #[test]
 fn a_circle_with_dynamic_fixed() {
     let mut doc = load(
@@ -350,12 +347,10 @@ fn fix_location_leaves_a_value_writable() {
     assert_eq!(v(&doc, "n", "value"), 5.0);
 }
 
-/// What holds an element is decided beside its plans, whatever planned it
-/// (`Compiler::plan_hold`), and held in its cells, so it holds the
-/// elements no planner of the prop table or `extend` handles: a type with a planner of its own (a
-/// `<math>`, reached through an input bound to it), an `extend` of a
-/// prop, and an essential math (an unbound `<mathInput>`'s expression).
-/// Each once took the write.
+/// Whatever planned an element, its hold applies: a type with a planner of
+/// its own (a `<math>`, reached through an input bound to it), an `extend`
+/// of a prop, and an essential math (an unbound `<mathInput>`'s
+/// expression).
 #[test]
 fn fixed_holds_however_an_element_is_planned() {
     let mut doc = load(

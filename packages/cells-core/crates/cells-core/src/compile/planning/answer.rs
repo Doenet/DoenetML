@@ -5,7 +5,7 @@
 //! - `<answer response="$mi">x</answer>`: the response is the named
 //!   input's expression; `x` is the correct expression.
 //! - `<answer>x</answer>`: the answer owns an implicit `<mathInput>`,
-//!   a synthetic child outlining makes (`add_answer_children`).
+//!   a synthetic child outlining makes.
 //! - `<answer><mathInput name="mi"/>x</answer>`: the input child is the
 //!   response.
 //! - `<answer><award>x</award><award credit="0.5">y</award></answer>`:
@@ -17,14 +17,9 @@
 //!   one per input referenced, which outlining makes), so credit changes
 //!   only on submit. No implicit input is made.
 //!
-//! Outlining makes the synthetic children, so the element set is fixed
-//! before anything is planned (ADR 0030); the answer's planner plans them.
-//! Outlining decides them from the source as the planner does, and where
-//! the planner would refuse the answer, they die with its box.
-//!
 //! In every form `credit` is what a submit earns: equality with `correct`,
-//! or the most any award gives (`credit` × holds). Other content (choices,
-//! text answers, `matchPartial`, feedback) is refused, never left blank.
+//! or the most any award gives (`credit` × holds). Other content is
+//! refused, never left blank.
 
 use crate::compile::*;
 use crate::components::prop::{

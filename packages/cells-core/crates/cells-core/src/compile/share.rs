@@ -1,35 +1,16 @@
-//! Sharing (ADR 0033), the compile's last stage before the abstract
-//! build: two ports that compute the same thing from the same cells
-//! become one, by an alias in the plans. Every build, the abstract build
-//! and its records (writable, live, counted, ADR 0018, ADR 0019, ADR 0028)
-//! then see the sharing as a fact of the plans, and no build pays for
-//! finding it.
+//! Sharing, the compile's last stage before the abstract build: two ports
+//! that compute the same thing from the same cells become one, by an alias
+//! in the plans.
 //!
-//! Per template, a union-find over the cells its ports will make: a port
-//! of one of its elements (`Node::Local`), what a reference names
-//! (`Node::Ext`, by the reference's plan, which resolves the same from
-//! every element of the template; one that names a port of an element of
-//! the template is that port), and a constant. Aliases are merged first.
-//! Then two derived ports are equal when they apply the same operator to
-//! the same input cells, are the same output of two equal vector heads,
-//! or are the same math text (`Compiled::expr_class`) made the same way;
-//! they are merged, to a fixpoint. An extend whose referent is in another
-//! template (`Referent::Path`) sees the referent's ports through its path,
-//! `Ref(path, Port(k))`, so its derived ports match the referent's.
-//!
-//! Two ports merge only when the cells they make would carry the same
-//! request marks (`interactive`, written by an action), the same port types
-//! and the same hold (ADR 0022): a merge changes nothing about a cell but
-//! how many instructions compute it. The kept port is the referent's
-//! where an extend's matches one, else the lowest; every other is
-//! rewritten as an alias of it. A leaf, a scope specialization, an
-//! aggregate and a copy (`OpSpec::Copy`, a counted value's or a hold's)
-//! are never merged.
-//!
-//! Math also shares within an expression: `Compiled::expr_class` names
-//! each node of the expression arena by its class of structurally equal
-//! nodes (leaves by their references' plans), and a build lowers each class
-//! once per scope (`build/expand/math.rs`).
+//! Per template, a union-find over the cells its ports will make: an
+//! element's port, what a reference names, and a constant. Two derived
+//! ports are equal when they apply the same operator to the same input
+//! cells, are the same output of two equal vector heads, or are the same
+//! math text made the same way; they are merged to a fixpoint. Two ports
+//! merge only when their cells would carry the same request marks, port
+//! types and hold. The kept port is the referent's where an extend's
+//! matches one, else the lowest. A leaf, a scope specialization, an
+//! aggregate and a copy are never merged.
 
 use crate::compile::*;
 
@@ -264,9 +245,9 @@ struct Share<'c> {
 }
 
 impl Compiled {
-    /// Sharing (ADR 0033): the expression classes, then every equal pair
-    /// of derived ports made one, each but the kept one an alias. Returns
-    /// how many ports it made aliases.
+    /// Sharing: the expression classes, then every equal pair of derived
+    /// ports made one, each but the kept one an alias. Returns how many
+    /// ports it made aliases.
     pub(in crate::compile) fn share(&mut self, paths: &[PathExtend]) -> usize {
         self.expr_class = crate::trace::span("expressions")
             .run(|| expr_classes(&self.arena, &self.refs, &mut RefClasses::default()));
@@ -358,8 +339,7 @@ impl Share<'_> {
 
     /// The port of an element of template `t` that reference `r` names
     /// with `sel`, when that is fixed: a path of one step to an element of
-    /// the template, naming one of its ports, as the build resolves it
-    /// (`Builder::arg_slot`, `Builder::sel_slots`, `Builder::resolve_items`).
+    /// the template, naming one of its ports, as the build resolves it.
     fn port_of_ref(&self, t: TemplateId, r: RefId, sel: Sel) -> Option<Node> {
         let plan = &self.c.refs[r.index()];
         let [Step::Elem(e)] = plan.steps[..] else {
@@ -748,9 +728,9 @@ fn expr_classes<'c>(
     out
 }
 
-/// Equal computations share one cell (ADR 0033), over the test-only
-/// components: `<testShape>`'s `sum` adds its `a` and `b`, and
-/// `<testValue>`'s `double` doubles its `value`.
+/// Equal computations share one cell, over the test-only components:
+/// `<testShape>`'s `sum` adds its `a` and `b`, and `<testValue>`'s
+/// `double` doubles its `value`.
 #[cfg(test)]
 mod tests {
     use crate::Document;
@@ -866,9 +846,8 @@ mod tests {
         assert_eq!(doc.program.instrs.len() + 3, unshared.program.instrs.len());
     }
 
-    /// A `fixed` copy holds every cell of its own (ADR 0022): its leaves
-    /// are copies of the referent's (`hold_all`), so its sum reads its own
-    /// cells and stays its own.
+    /// A `fixed` copy holds every cell of its own: its leaves are copies of
+    /// the referent's, so its sum reads its own cells and stays its own.
     #[test]
     fn a_fixed_copy_does_not_merge() {
         let doc = load(
@@ -885,11 +864,9 @@ mod tests {
         assert_eq!(doc.value("u", "sum"), Some(3.0));
     }
 
-    /// Two equal copies merge only when the same flags hold them: a held
-    /// element's copy of another's cell is a cell of its own (`hold_all`),
-    /// so two elements held alike that copy one cell share the copy, and
-    /// what they compute from it (the compile shares a port between
-    /// elements held alike), and one held by another flag keeps its own.
+    /// Two equal copies merge only when the same flags hold them: two
+    /// elements held alike that copy one cell share the copy and what they
+    /// compute from it, and one held by another flag keeps its own.
     #[test]
     fn copies_merge_only_under_the_same_holds() {
         let doc = load(

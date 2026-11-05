@@ -1,5 +1,5 @@
-//! Whether an edit is safe for every student (ADR 0017, step 4): the two
-//! versions' input signatures compared, from the sources alone.
+//! Whether an edit is safe for every student: the two versions' input
+//! signatures compared, from the sources alone.
 
 use super::check::signature_renamed;
 use super::*;
@@ -18,7 +18,7 @@ impl EditReport {
     }
 }
 
-/// One input failing one condition of step 4.
+/// One input failing one condition of the edit check.
 #[derive(Debug, Clone, PartialEq)]
 pub struct EditFailure {
     /// The input's key, in the new version's names.
@@ -33,13 +33,13 @@ pub struct EditFailure {
     pub reason: String,
 }
 
-/// The input signature of `dast` (ADR 0017, step 3).
+/// The input signature of `dast`.
 pub fn input_signature(dast: &Dast) -> Result<Signature> {
     signature_renamed(dast, &|k| k.to_string())
 }
 
-/// Whether publishing `new` over `old` is safe for every student (ADR
-/// 0017, step 4), and if not, which inputs fail which condition.
+/// Whether publishing `new` over `old` is safe for every student, and if
+/// not, which inputs fail which condition.
 /// `renames` maps an element's key in `old` to its key in `new`, as an
 /// editor that made the rename records it; a key under a renamed one is
 /// renamed with it.
@@ -63,9 +63,8 @@ pub fn compare_versions(
     Ok(compare_signatures(&old, &new))
 }
 
-/// Step 4's three conditions, between the published version's signature and
-/// the draft's: `compare_versions` for a caller that keeps the published
-/// version's signature rather than computing it for every draft.
+/// `compare_versions` from the published version's signature and the
+/// draft's, already computed.
 pub fn compare_signatures(old: &Signature, new: &Signature) -> EditReport {
     let mut failures = Vec::new();
     let mut fail = |key: &str, condition, o: Option<&Input>, n: Option<&Input>, reason: String| {

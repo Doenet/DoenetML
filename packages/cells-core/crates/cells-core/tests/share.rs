@@ -1,4 +1,4 @@
-//! Equal computations share one cell (ADR 0033), decided by the compile:
+//! Equal computations share one cell, decided by the compile:
 //! the plans alias a derived port to an equal one, and a math expression's
 //! equal subexpressions are lowered once.
 
@@ -69,7 +69,7 @@ fn a_shared_subexpression_is_lowered_once() {
 }
 
 /// Two unrelated elements with the same math share it, as two extends do;
-/// a held one keeps its own (ADR 0022), and so does a draggable point's
+/// a held one keeps its own, and so does a draggable point's
 /// coordinate beside a number's value, whose cells carry different marks.
 #[test]
 fn equal_math_shares_unless_marks_or_holds_differ() {

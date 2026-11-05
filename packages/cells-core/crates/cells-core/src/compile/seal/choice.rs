@@ -6,9 +6,7 @@ use crate::compile::*;
 
 impl Seal<'_> {
     /// Every choice's `used`: the interface names reference plans step
-    /// into, in the order the plans first name them, and where each is
-    /// (`used_at`). Gathered here from the plans, so no stage that plans a
-    /// reference writes a choice (ADR 0031).
+    /// into, in the order the plans first name them, and where each is.
     pub(in crate::compile) fn gather_used_names(&mut self) {
         for r in &self.compiled.refs {
             for step in &r.steps {

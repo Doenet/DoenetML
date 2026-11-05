@@ -270,8 +270,7 @@ pub fn circles3(n: usize) -> String {
 
 /// One circle through three points, the first driven by a numberInput,
 /// and N extends of it, each giving a `styleNumber` its geometry does not
-/// read (ADR 0033): every extend is planned again from its own record
-/// (ADR 0032) and shares the referent's derived cells only by emit's
+/// read: every extend shares the referent's derived cells only by the
 /// merge of equal computations.
 pub fn extends(n: usize) -> String {
     let mut s = String::from(
@@ -583,9 +582,8 @@ pub fn from_spec(spec: &str) -> Option<String> {
     })
 }
 
-/// The fixture set `scripts/gen-fixtures.sh` generates: one to three sizes
-/// per shape. The smallest size of each shape is also a golden document
-/// (`crates/cells-bench/examples/golden.rs`).
+/// The fixture set: one to three sizes per shape. The smallest size of
+/// each shape is also a golden document.
 pub const DEFAULT_SWEEP: &[&str] = &[
     "points-100",
     "points-1000",

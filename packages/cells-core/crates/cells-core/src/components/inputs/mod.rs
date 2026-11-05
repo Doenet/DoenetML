@@ -63,9 +63,8 @@ pub mod slider {
     use super::*;
 
     component! {
-        /// `<slider>` in numeric mode. Its whole value chain is computed props,
-        /// so it needs no code of its own; the chain reproduces the current
-        /// core's `numItems`, `index` and `value` definitions:
+        /// `<slider>` in numeric mode. Its whole value chain is computed
+        /// props:
         ///
         /// ```text
         /// maxIndex = floor((to - from) / step + 1e-10)

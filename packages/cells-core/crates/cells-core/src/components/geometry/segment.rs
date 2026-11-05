@@ -1,6 +1,6 @@
-//! `<lineSegment>`: its definition and its planner (ADR 0016). Its two
-//! endpoints are its own state, or the points `endpoints` names; a
-//! missing endpoint is essential state at the current core's default.
+//! `<lineSegment>`: its definition and its planner. Its two endpoints are
+//! its own state, or the points `endpoints` names; a missing endpoint is
+//! essential state at its default.
 
 use super::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT};
 use crate::compile::api::*;

@@ -1,6 +1,5 @@
-//! Parsing (ADR 0029): every `<math>`'s text, tokenized when outlining,
-//! parsed once as the type outlining settled. Its result, `Parsed`, is
-//! read and never changed by planning.
+//! Parsing: every `<math>`'s text, parsed once as the type outlining
+//! settled, and every element's record.
 
 use crate::compile::*;
 
@@ -34,10 +33,8 @@ impl Parsed {
 }
 
 impl Compiler<'_> {
-    /// Parsing (ADR 0029): every `<math>`'s text, tokenized when outlining,
-    /// parsed once as the type outlining settled, its `$ref`s planned where
-    /// the math sits; what its planner plans from, and what a line's
-    /// equation inlines.
+    /// Parse every `<math>`'s text once as the type outlining settled, its
+    /// `$ref`s planned where the math sits.
     pub(in crate::compile) fn parse_maths(
         &mut self,
         math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
@@ -58,10 +55,8 @@ impl Compiler<'_> {
         parsed
     }
 
-    /// Parsing (ADR 0032, ADR 0034): every element's record, each
-    /// attribute its type declares and its children as the type reads
-    /// them parsed where the element sits; what its planner reads, and
-    /// what a copy of it merges its own under.
+    /// Parse every element's record: each attribute its type declares and
+    /// its children as the type reads them, parsed where the element sits.
     pub(in crate::compile) fn parse_records(
         &mut self,
         to_plan: &[(TemplateId, ElemId)],

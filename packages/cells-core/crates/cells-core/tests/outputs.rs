@@ -1,8 +1,6 @@
-//! Which cells leave the core (`Document::output_cells`, ADR 0019): the
-//! props each definition marks `rendered`, of the components that are
-//! rendered, and the props it marks `score`. The viewer's test checks its
-//! renderers' reads against these; this checks the marks and the rule for
-//! which components are rendered.
+//! Which cells leave the core (`Document::output_cells`): the props each
+//! definition marks `rendered`, of the components that are rendered, and
+//! the props it marks `score`.
 
 mod common;
 

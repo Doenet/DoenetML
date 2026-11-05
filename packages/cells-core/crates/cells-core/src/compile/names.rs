@@ -1,5 +1,4 @@
-//! The name table (ADR 0027): made while outlining, read by every later
-//! stage (`Settled::names`).
+//! The name table: made while outlining, read by every later stage.
 
 use crate::compile::*;
 
@@ -25,7 +24,7 @@ pub(in crate::compile) struct NameTable {
     pub(in crate::compile) siblings: HashSet<(u32, u32, u32)>,
 }
 
-/// A string no element is named by exactly (`NameTable::by_str`).
+/// A string no element is named by exactly.
 pub(in crate::compile) const NO_NAME: u32 = u32::MAX;
 
 impl NameTable {

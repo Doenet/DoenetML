@@ -1,9 +1,8 @@
-//! What the abstract build (ADR 0012, ADR 0015) costs a load: every fixture
-//! loaded with the abstract build's loop checks off and on, interleaved,
-//! with the medians printed as a Markdown table; "check" is the whole
-//! abstract build (`LoadTimings::cycle_check`), which every load runs.
-//! `CELLS_FIXTURES` restricts the set, `CELLS_ROUNDS` sets the loads per
-//! side (default 7).
+//! What the abstract build costs a load: every fixture loaded with the
+//! abstract build's loop checks off and on, interleaved, with the medians
+//! printed as a Markdown table; "check" is the whole abstract build
+//! (`LoadTimings::cycle_check`). `CELLS_FIXTURES` restricts the set,
+//! `CELLS_ROUNDS` sets the loads per side (default 7).
 //!
 //!   cargo run --release -p cells-bench --example cycle_check_cost
 

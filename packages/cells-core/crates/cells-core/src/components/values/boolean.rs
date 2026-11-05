@@ -1,10 +1,6 @@
-//! `<boolean>`: its definition and its planner (ADR 0016). Literal
-//! content (`true`, `false`, a number, nothing) is an essential 0/1 cell,
-//! since DoenetML's boolean value is state (`<updateValue>` writes it). A
-//! lone `$ref` aliases the referent. Anything else is a condition
-//! (`compile/planning/condition.rs`): comparisons and connectives over numeric
-//! math, with `=` between expressions compared in the engine under the
-//! compare attributes.
+//! `<boolean>`: its definition and its planner. Literal content is an
+//! essential 0/1 cell, a lone `$ref` aliases the referent, and anything
+//! else is a condition.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
@@ -14,7 +10,7 @@ use crate::error::{Error, Result};
 component! {
     /// `<boolean>`: `value` is a 0/1 cell. Literal content (`true`, `false`,
     /// nothing) makes it essential; a lone `$ref` aliases the referent; a
-    /// condition or a comparison of expressions makes it derived (`plan`). The
+    /// condition or a comparison of expressions makes it derived. The
     /// compare attributes `symbolicEquality`, `simplifyOnCompare` and
     /// `expandOnCompare` are read at plan time.
     tags: ["boolean"],
@@ -29,9 +25,7 @@ component! {
 
 pub const VALUE: usize = Props::AT.value;
 
-/// Its content: a literal, one reference, or a condition. (A boolean
-/// extending a component of another type reads its `value`, which
-/// outlining settles: `Compiler::plan_extend`.)
+/// Its content: a literal, one reference, or a condition.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let children = Attrs::of(ctx.record()).children;
     if let Some(tag) = &children.element {

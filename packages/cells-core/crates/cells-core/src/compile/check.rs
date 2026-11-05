@@ -1,9 +1,7 @@
-//! The check (ADR 0014, ADR 0015): plan the document, build it once
-//! through the abstract build, which stands for every count and every pick,
-//! and box every element that fails until every element builds (ADR 0013).
-//! What it finds is every error the document has; no later build finds
-//! another. What it finds depends on the source alone, never on the seed or
-//! the session, and so does the compile: no seed reaches it.
+//! The check: plan the document, build it once through the abstract
+//! build, which stands for every count and every pick, and box every
+//! element that fails until every element builds. It finds every error the
+//! document has, from the source alone.
 
 use super::*;
 use crate::build;
@@ -15,19 +13,13 @@ pub(crate) struct CompileOutput {
     pub(crate) compiled: Arc<Compiled>,
 }
 
-/// Compile `dast` (ADR 0015): plan it, check it through the abstract build
-/// (ADR 0012, ADR 0014), which stands for every count and every pick, and
-/// box every element that fails until every element builds. The abstract
-/// build also records what every build of the document reads: which
-/// template slots a student's action can write (ADR 0018), which are live
-/// (ADR 0019), and the structural depth. The compile holds the source's
-/// diagnostics: the lint findings, the boxed errors and the planners' and
-/// the abstract build's warnings. Only a cycle, which has no element to
-/// box, fails it.
+/// Compile `dast`: plan it, check it through the abstract build, and box
+/// every element that fails until every element builds. The compile holds
+/// the source's diagnostics. Only a cycle, which has no element to box,
+/// fails it.
 ///
-/// Two test loads vary this: `check_cycles` off runs the abstract build
-/// without its loop checks, so a document the check would reject loads; and
-/// `classify` off makes every value slot essential (no record to read).
+/// For tests, `check_cycles` off skips the abstract build's loop checks,
+/// and `classify` off makes every value slot essential.
 pub(crate) fn compile(
     dast: &Arc<Dast>,
     check_cycles: bool,
@@ -66,11 +58,8 @@ pub(crate) fn compile(
     })
 }
 
-/// Every diagnostic of the document, from one build through the abstract
-/// build (ADR 0013): one iteration per repeat, every option of every
-/// select, every branch of every choice. The list is a function of the DAST
-/// alone, and the same list a load reports, at any seed, count or state.
-/// For the language server, which has no document to load.
+/// Every diagnostic of the document, from the DAST alone: the same list a
+/// load reports, at any seed, count or state.
 pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let dast = Arc::new(dast.clone());
     let mut list = lint::lint(&dast);
@@ -86,8 +75,8 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     list
 }
 
-/// The input signature of `dast` (ADR 0017, step 3), from the check's
-/// build. Every key goes through `rename`.
+/// The input signature of `dast`, from the check's build. Every key goes
+/// through `rename`.
 pub(crate) fn signature_renamed(
     dast: &Dast,
     rename: &dyn Fn(&str) -> String,
@@ -99,15 +88,12 @@ pub(crate) fn signature_renamed(
     Ok(u.signature(&compiled, rename))
 }
 
-/// The compile's loop (ADR 0013, ADR 0027, ADR 0030): plan `dast`,
-/// boxing every element that fails where it fails, an element with an
-/// attribute nothing read among them (ADR 0021) and the readers of every
-/// box (ADR 0032); then run `check` on the plan. An element `check` fails
-/// on, or a failure no element could carry, is boxed and the plan made
-/// again.
+/// The compile's loop: plan `dast`, boxing every element that fails where
+/// it fails; then run `check` on the plan. An element `check` fails on, or
+/// a failure no element could carry, is boxed and the plan made again.
 /// Each box is an error in `errors`. Only a failure with no element to
 /// box, a cycle, fails it, after its error joins `errors` too. `share`
-/// runs the compile's sharing stage (ADR 0033, `LoadOptions::share`).
+/// runs the sharing stage.
 fn plan_and_check<T>(
     dast: &Arc<Dast>,
     errors: &mut Vec<Diagnostic>,

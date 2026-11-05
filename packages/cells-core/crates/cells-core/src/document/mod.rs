@@ -40,9 +40,8 @@ crate::index::index_type! {
     pub struct CompIdx;
 }
 
-/// Build passes allowed before the structure must have settled, at least:
-/// a document is allowed its structural depth plus one too
-/// (`Compiled::passes`).
+/// Build passes allowed before the structure must have settled, at least: a
+/// document is allowed its structural depth plus one too.
 const MAX_PASSES: usize = 8;
 
 pub const NONE: u32 = u32::MAX;
@@ -216,8 +215,7 @@ impl Document {
         }
     }
 
-    /// LaTeX of the expression a math cell holds, empty for a NaN handle:
-    /// what a renderer that draws math shows (ADR 0020).
+    /// LaTeX of the expression a math cell holds, empty for a NaN handle.
     pub fn math_latex(&self, cell: CellIdx) -> String {
         let h = self.cells[cell.index()];
         if h.is_nan() {
@@ -228,7 +226,7 @@ impl Document {
     }
 
     /// A `<mathInput>` holds any math value, infinity included; every other
-    /// request site rejects an infinite ask as the current core does.
+    /// request site rejects an infinite ask.
     fn accepts_infinity(&self, cell: CellIdx) -> bool {
         (CompIdx::below(self.components.len())).any(|c| {
             self.component_type(c) == ComponentType::MathInput
@@ -238,7 +236,7 @@ impl Document {
 
     /// Whether `cell` can hold `value`: any number for a number cell, NaN
     /// or a string id in the table for a text cell, NaN or a handle in the
-    /// engine for a math cell. Checked once per request, never in the tick.
+    /// engine for a math cell.
     pub(super) fn can_hold(&self, cell: CellIdx, value: f64) -> bool {
         let index_below = |n: usize| value >= 0.0 && value.fract() == 0.0 && value < n as f64;
         match self.value_types[cell.index()] {
@@ -257,7 +255,7 @@ impl Document {
         self.essentials().contains(&cell.index())
     }
 
-    /// A constant (ADR 0028): a value no tick changes, such as an
+    /// A constant: a value no tick changes, such as an
     /// iteration index, a math handle or a `fixed` value. The constants
     /// come first, the pooled ones before the rest.
     pub fn is_const(&self, cell: CellIdx) -> bool {

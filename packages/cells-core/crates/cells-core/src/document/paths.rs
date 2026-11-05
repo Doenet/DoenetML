@@ -105,7 +105,7 @@ impl Document {
     /// document): a descendant not hidden inside a repeat, or `scope`
     /// itself. Several visible matches are ambiguous and resolve to nothing,
     /// except that repeat iterations fall back to the first in document
-    /// order so plain names inside a repeat keep working for tests.
+    /// order.
     fn find_in_scope(&self, scope: Option<CompIdx>, name: &str) -> Option<CompIdx> {
         if let Some(sc) = scope
             && self.name(sc) == Some(name)

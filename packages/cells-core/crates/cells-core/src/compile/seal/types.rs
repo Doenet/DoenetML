@@ -1,26 +1,11 @@
-//! The type pass (ADR 0032, step 2): every port's type, inferred once, when
-//! sealing, from its source and the ports it reads, and read by every
-//! build. A given number, an operator's output, an iteration's index are
-//! `Num`; a given string id is `Text`; a given expression, a symbolic
-//! math's template and a symbolic operator's output are `Math`; an alias
-//! holds what it aliases, a copy's inherited port what its referent's
-//! holds, a `<math>`'s handle is `Math` when its text has a free symbol or
-//! a leaf that stands for an expression. The pass is a fixpoint from `Num`
-//! up, over every template at once: through a repeat a port's type is the
-//! template's, and through a choice the join of the branches'. Every port
-//! is typed once, recording the ports it read; when a port's type rises,
-//! its readers are typed again, so a chain of references costs its
-//! length however it runs through the document.
-//!
-//! A reference is followed to the ports it names as far as the templates
-//! tell (`Walk`): an index into a repeat enters its body, into a collect
-//! the elements of the collected type under what it gathers from, into a
-//! select its options; an interface name the elements carrying it in every
-//! branch. Where the abstract build is sure to land on a component, what
-//! the build checked of a reference's shape is checked here instead: that
-//! a reference read as one cell names one, that a coordinate is of a
-//! point, that a reference inside math names one cell and no text, and
-//! that an interface name holds one kind of value in every branch.
+//! The type pass: every port's type, inferred once when sealing from its
+//! source and the ports it reads. It is a worklist fixpoint from `Num` up
+//! over every template at once; through a choice a port's type is the join
+//! of the branches'. A reference is followed to the ports it names as far
+//! as the templates tell, and where the abstract build is sure to land on a
+//! component, the reference's shape (one cell, a point's coordinates, no
+//! text inside math, one kind of value per interface name) is checked
+//! here.
 
 use super::Seal;
 use crate::compile::*;
@@ -54,9 +39,7 @@ struct Target {
 
 impl Seal<'_> {
     /// Every port's type, by template and template slot (`offs` are the
-    /// elements' slot offsets, `slot_offsets`), and the checks that need
-    /// them. A failure is boxed by compiling again, as every sealing
-    /// failure is.
+    /// elements' slot offsets), and the checks that need them.
     pub(in crate::compile) fn infer_types(
         &self,
         offs: &[(Vec<u32>, u32)],
@@ -338,8 +321,8 @@ impl Types<'_, '_> {
     }
 
     /// Whether the one cell reference `p` names inside math stands for an
-    /// expression, so the leaf is a math leaf bound to that expression (the
-    /// build's `math_target`): a symbolic math's, math input's or
+    /// expression, so the leaf is a math leaf bound to that expression: a
+    /// symbolic math's, math input's or
     /// function's `expr` or `value`, or an answer's or response's
     /// expression props when what it submits is one.
     fn math_leaf(&self, t: TemplateId, p: RefId) -> bool {
@@ -461,10 +444,9 @@ impl Types<'_, '_> {
 
     /// The cells reference `p`, planned from template `t` and read by
     /// element `e`, names: their types (the join over the branches or
-    /// candidates it may land on, as many as the most has), and the ports
-    /// they are when they are table props, for `math_leaf`. With `check`,
-    /// a whole pick's components are checked to hold one kind of value
-    /// (the build's check on its stand-in).
+    /// candidates it may land on), and the ports they are when they are
+    /// table props. With `check`, a whole pick's components are checked to
+    /// hold one kind of value.
     fn ref_cells(
         &self,
         t: TemplateId,
@@ -584,8 +566,7 @@ impl Types<'_, '_> {
     }
 
     /// Where reference `p`, planned from template `t`, lands, as far as
-    /// the templates tell: the build's `resolve`, over every iteration,
-    /// item and branch at once. Found once per reference.
+    /// the templates tell, over every iteration, item and branch at once.
     fn walk(&self, t: TemplateId, p: RefId) -> Target {
         let key = (t.get(), p.get());
         if let Some((at, lands)) = self.walks.borrow().get(&key) {
@@ -706,8 +687,7 @@ impl Types<'_, '_> {
     /// The elements collect `e` of template `t` gathers, as far as the
     /// templates tell: the elements of `component_type` under what it
     /// gathers from, not recursing into a match; and whether any sits in a
-    /// repeat's body, so the count follows the counts and the abstract
-    /// build's index into them lands.
+    /// repeat's body.
     fn collected(&self, t: TemplateId, e: ElemId, component_type: ComponentType) -> Collected {
         let key = (t.get(), e.get());
         if let Some(found) = self.collects.borrow().get(&key) {
@@ -829,8 +809,8 @@ impl Types<'_, '_> {
     }
 
     /// Every interface name a reference uses holds one kind of value per
-    /// prop in every branch (the build's `stand_in_sources` check), and so
-    /// does the one component of every option a whole pick names.
+    /// prop in every branch, and so does the one component of every option
+    /// a whole pick names.
     fn check_interfaces(&self) -> std::result::Result<(), Failure> {
         for (ci, def) in self.seal.choices.iter().enumerate() {
             let (t, e) = def.at;
@@ -856,9 +836,7 @@ impl Types<'_, '_> {
 
     /// `members`, the components an interface name or a whole pick stands
     /// for, hold one kind of value per prop: text in every branch or in
-    /// none. A math cell in one branch and a number in another join to a
-    /// math cell, as the build's stand-in has always held them (a symbolic
-    /// `<math>` in one case, a numeric one in another).
+    /// none. A math cell and a number join to a math cell.
     fn members_agree(
         &self,
         t: TemplateId,

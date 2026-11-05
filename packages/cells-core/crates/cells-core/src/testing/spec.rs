@@ -1,4 +1,4 @@
-//! Component specs (ADR 0016): what an author sees, written as DoenetML, a
+//! Component specs: what an author sees, written as DoenetML, a
 //! script of requests and what must hold after each, in public prop names.
 //! A spec says nothing about slots, shared state or operators, so a refactor of
 //! those is checked against it.
@@ -22,7 +22,7 @@
 //!   tuple for a prop of several cells (`"p.coords" = (1, 2)`), or an
 //!   array for a list's cells (`"t.vertices" = [1, 2, 3, 5]`).
 //! - `request { "name.prop" = value, .. }`: one tick. Numbers are scalar
-//!   requests; tuples are points dragged together (ADR 0006).
+//!   requests; tuples are points dragged together.
 //! - `dropped(n)`: the last tick dropped `n` requests. A tick not followed
 //!   by `dropped` must drop none.
 //! - `diagnostics["code", ..]`: every diagnostic's code, in order. A case
@@ -30,16 +30,11 @@
 //!   The accessibility lint's are left out: they are about the document a
 //!   case is written in, not the component.
 //!
-//! Every case is also checked by what its author does not write: after
-//! the load and after every tick, the scheduled program against the
-//! reference evaluator (`testing::reference`); a pruned load of the case
-//! (ADR 0019), ticked beside the one the case reads, which computes every
-//! prop, against it on every live cell; and the pruned load's cost (cells,
-//! instructions, components) against the component's snapshot,
-//! `tests/specs/snapshots/<component>.cost`, reviewed with the change that
-//! changes it; and the round trip of every interactive cell of the case's
-//! document after the load (`testing::round_trip`, ADR 0026), where no
-//! request may come out unstable.
+//! Every case is also checked, after the load and every tick, against the
+//! reference evaluator and against a pruned load on every live cell; the
+//! pruned load's cost against the component's snapshot under
+//! `tests/specs/snapshots/`; and, after the load, by the round trip of
+//! every interactive cell, where no request may come out unstable.
 //! `SPEC_UPDATE=1` rewrites a snapshot instead of comparing it.
 
 use crate::testing::reference;
@@ -192,7 +187,7 @@ fn round_trip(doc: &Document) -> Result<(), String> {
         Ok(())
     } else {
         Err(format!(
-            "requests that do not round-trip (ADR 0026): {}",
+            "requests that do not round-trip: {}",
             unstable.join("; ")
         ))
     }
@@ -290,10 +285,7 @@ fn run_case(case: &Case) -> Result<String, String> {
     Ok(cost)
 }
 
-/// The diagnostics a spec speaks about: all but the accessibility lint's,
-/// which are about the document a case is written in (an unlabeled input,
-/// a graph without a description), not the component, and have their own
-/// tests.
+/// The diagnostics a spec speaks about: all but the accessibility lint's.
 fn diagnostics(doc: &Document) -> impl Iterator<Item = &crate::Diagnostic> {
     doc.diagnostics()
         .iter()

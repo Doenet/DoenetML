@@ -1,10 +1,8 @@
 //! The request entry points: one tick, from a renderer's requests to the
-//! cells that changed. A renderer may request only an input's cell (ADR
-//! 0018, `interactive.rs`); a submit and a trigger are actions, which the
-//! core carries out as one tick of its own. The stages themselves are in `tick/`: the sticky
-//! pre-pass (`sticky.rs`, here because it reads the component table), then
-//! inversion (`tick/invert.rs`) and recompute (`tick/eval.rs`), then a
-//! rebuild if a structural cell changed (`load.rs`).
+//! cells that changed. A renderer may request only an input's cell; a submit
+//! and a trigger are actions, each carried out as one tick of its own. A
+//! tick runs the sticky pre-pass, inversion and recompute, then a rebuild if
+//! a structural cell changed.
 
 use std::sync::Arc;
 
@@ -23,7 +21,7 @@ impl Document {
     }
 
     /// Apply a point group: points dragged together, which keep their shape
-    /// when one of them is constrained (ADR 0006).
+    /// when one of them is constrained.
     pub fn request_points(&mut self, points: &[PointRequest]) -> TickOutcome {
         self.request_with_groups(&[], &[points.to_vec()])
     }
@@ -38,8 +36,7 @@ impl Document {
         self.tick(requests, groups, true)
     }
 
-    /// A tick on any cell, without the check that it is an input's: an
-    /// action's own writes, and `testing::request_unchecked`.
+    /// A tick on any cell, without the check that it is an input's.
     pub(crate) fn tick_unchecked(
         &mut self,
         requests: &[Request],
@@ -190,8 +187,8 @@ impl Document {
 }
 
 impl Document {
-    /// Press a `<triggerSet>` (or a lone `<updateValue>`), an action (ADR
-    /// 0018): every `<updateValue>` under it requests its `newValue`'s
+    /// Press a `<triggerSet>` (or a lone `<updateValue>`), an action: every
+    /// `<updateValue>` under it requests its `newValue`'s
     /// current value on its target's cell, all in one tick, in document
     /// order. A target is not interactive: only the press writes it.
     pub fn trigger(&mut self, comp: crate::document::CompIdx) -> TickOutcome {
@@ -236,8 +233,7 @@ impl Document {
     }
 
     /// Every literal attribute of every element (`name` aside), keyed by
-    /// DAST node, for a renderer that reads presentation once per build
-    /// instead of asking per component (`attr_text`).
+    /// DAST node.
     pub fn literal_attrs(&self) -> Vec<(crate::dast::NodeId, Vec<(&str, String)>)> {
         let literal = &self.loaded.literal_attrs;
         literal

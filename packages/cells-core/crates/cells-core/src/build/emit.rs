@@ -378,7 +378,7 @@ impl<'c> Builder<'c> {
                 if let Some(needed) = def.needs().find(|n| slot_to_cell[n.index()] == dead) {
                     return Err(Failure {
                         error: Error::Unchecked(format!(
-                            "{} needs {}, which has no cell: the live slots are not closed under what they need (ADR 0019)",
+                            "{} needs {}, which has no cell: the live slots are not closed under what they need",
                             self.slot_label(s),
                             self.slot_label(needed)
                         )),
@@ -827,13 +827,9 @@ impl<'c> Builder<'c> {
         h
     }
 
-    /// Give each seeded essential math cell (`Source::GivenMathFrom`)
-    /// its first expression: the source cell's value, unless the cell
-    /// carried a value over from an earlier build. The source must be
-    /// essential or a constant, so its value is known before anything computes;
-    /// that is checked by the source's kind (`def` gives a slot's class's
-    /// defining slot), so a seed no output reads, which has no cell
-    /// (`dead_cell`, ADR 0019), is checked all the same.
+    /// Give each seeded essential math cell its first expression: the
+    /// source cell's value, unless the cell carried a value over from an
+    /// earlier build. Fails unless the source is essential or a constant.
     fn seed_cells(
         &mut self,
         cells: &mut [f64],
@@ -911,17 +907,12 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
-    /// The instructions this build folds (ADR 0028): by defining slot, an
-    /// operator whose every input, and every flag that holds it, is a
-    /// constant (a given value no student can write, a constant, or
-    /// another fold), so it is evaluated once, as the build ends, and its
-    /// outputs are constants. Each constant read must be made in the
-    /// slot's own scope or one around it, which exists whatever the counts,
-    /// so whether a slot folds never turns on whether a referent exists
-    /// (the missing-referent cell is never read as one). A counted value
-    /// (ADR 0028) follows the counts, and is never folded. Nothing folds in
-    /// the abstract build, whose instructions never run, or where the load
-    /// asked for every instruction (`LoadOptions::fold`).
+    /// The instructions this build folds, by defining slot: an operator
+    /// whose every input, and every flag that holds it, is a constant made
+    /// in the slot's own scope or one around it, so it is evaluated once as
+    /// the build ends and its outputs are constants. A counted value is never
+    /// folded. Nothing folds in the abstract build or where the load asked
+    /// for every instruction.
     fn folded_slots(
         &self,
         slot_cells: &SlotCells,
@@ -991,11 +982,8 @@ impl<'c> Builder<'c> {
     }
 
     /// A component slot's template and template slot (the element's slot
-    /// offset plus the prop's position), what a `Record` is indexed
-    /// by; None for a slot of no element, or past the slots its element
-    /// reserves: a copy that takes its referent's list has as many points
-    /// as the referent (`place_list_copies`), and no template slot names
-    /// them.
+    /// offset plus the prop's position), what a `Record` is indexed by; None
+    /// for a slot of no element, or past the slots its element reserves.
     pub(in crate::build) fn template_slot(&self, slot: SlotId) -> Option<(usize, u32)> {
         let comp = self.slot_comp[slot.index()];
         if comp == CompIdx::NONE {
@@ -1017,8 +1005,7 @@ impl<'c> Builder<'c> {
     }
 
     /// The template slots of the slots `marked`, per template: the record
-    /// every later build reads, of the writable slots (ADR 0018) or the
-    /// live ones (ADR 0019).
+    /// every later build reads.
     fn record_of(&self, marked: &[bool]) -> Record {
         let mut record: Vec<Vec<u64>> = self
             .compiled
@@ -1035,9 +1022,8 @@ impl<'c> Builder<'c> {
     }
 
     /// An essential slot's key: its scope, its template slot (the element's
-    /// slot offset plus the port's position; a document's boxes are settled
-    /// at load, ADR 0014, so the offsets are the same in every build), and
-    /// its element's key and port (ADR 0032), which `Keys::prop_key` names.
+    /// slot offset plus the port's position), and its element's key and
+    /// port.
     #[inline]
     pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
         let comp = self.slot_comp[slot.index()];
@@ -1063,8 +1049,7 @@ fn has_math_leaf<L>(t: &Tree<L>) -> bool {
     }
 }
 
-/// Distinct cell leaves of a tree, rebound to cells (`rebind`), in
-/// first-seen order.
+/// Distinct cell leaves of a tree, in first-seen order.
 fn cell_leaves(t: &Tree<CellIdx>, out: &mut Vec<CellIdx>) {
     t.for_each_leaf(&mut |cell, _| {
         if !out.contains(&cell) {

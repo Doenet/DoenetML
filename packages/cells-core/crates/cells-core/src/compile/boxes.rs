@@ -1,12 +1,7 @@
-//! Boxing (ADR 0013, ADR 0027, ADR 0030, ADR 0031), which outlining,
-//! planning and linking all do: an element that fails becomes an `_error`
-//! element where it fails, keeping its name, and what is under it dies with
-//! it. Boxing writes only its own table (`Template::boxes`): what outlining
-//! and planning made of a box is left as they made it, and the build reads
-//! the box's row instead (`Template::row`). What read the box's facts is
-//! boxed in turn when linking (`box_readers_of_boxes`, ADR 0032). A
-//! failure no element can carry is recorded for `Compiler::compile` to
-//! restart from (`box_in_place`).
+//! Boxing, which outlining, planning and linking all do: an element that
+//! fails becomes an `_error` element where it fails, keeping its name, and
+//! what is under it dies with it. Boxing writes only its own table; the
+//! build reads the box's row instead of what other stages made of it.
 
 use crate::compile::*;
 
@@ -18,9 +13,7 @@ impl Compiler<'_> {
     }
 
     /// Whether element `e` is a box a reader of its type may see now: while
-    /// planning, only outlining's, so that planning does not depend on its
-    /// own order (ADR 0031); a reader of a box made while planning is boxed
-    /// when linking (`box_readers_of_boxes`).
+    /// planning, only outlining's.
     pub(in crate::compile) fn is_visible_box(&self, t: TemplateId, e: ElemId) -> bool {
         match &self.tables[t.index()].boxes[e.index()] {
             BoxState::Live => false,
@@ -28,22 +21,14 @@ impl Compiler<'_> {
         }
     }
 
-    /// Box element `e` where it failed (ADR 0027): it becomes an `_error`
-    /// element keeping its name, everything under it (its children, the
-    /// templates of its repeats and choices) is dead, and the compile goes
-    /// on. No plan reads another's (ADR 0029), so whatever was planned
-    /// under it is dropped unread; what read its facts (a container copy
-    /// that cloned what is under it, a clone of it, an extend of it) is
-    /// recorded, and boxed in turn when linking (ADR 0032).
+    /// Box element `e` where it failed: it becomes an `_error` element
+    /// keeping its name, everything under it (its children, the templates
+    /// of its repeats and choices) is dead, and the compile goes on. What
+    /// read its facts is boxed in turn when linking.
     ///
-    /// A clone has no node and no error of its own: boxed as a reader of
-    /// a box, it is boxed silently, its original's error the explanation.
-    /// Any other element with no node (a synthetic one) has nowhere to
-    /// carry the error: `e` is boxed all the same, so the stage runs on
-    /// over a consistent compile, and the failure is recorded (the first,
-    /// when there are several) for `compile` to end the compile with once
-    /// the stage is done, and the load fails. Every failure is handled
-    /// here the same way whatever failed before it.
+    /// A clone is boxed silently. Any other element with no node is boxed
+    /// all the same, and the failure recorded (the first, when there are
+    /// several) to fail the compile once the stage is done.
     pub(in crate::compile) fn box_in_place(&mut self, t: TemplateId, e: ElemId, error: Error) {
         let Elem { node, cloned, .. } = self.outlined(t).elems[e.index()];
         let doomed = self.subtree(t, e);
@@ -58,11 +43,9 @@ impl Compiler<'_> {
         }
     }
 
-    /// What boxes leave out of the diagnostics, once every stage that boxes
-    /// is done (ADR 0031): a box reports its error and nothing else, and
-    /// what is under a box reports nothing, whichever stage boxed it and
-    /// whatever was reported before. Boxing itself removes no other
-    /// stage's report.
+    /// Drop what boxes leave out of the diagnostics, once every stage that
+    /// boxes is done: a box reports its error and nothing else, and what is
+    /// under a box reports nothing.
     pub(in crate::compile) fn drop_reports_of_boxes(&mut self) {
         let mut boxes = HashSet::new();
         let mut dead = HashSet::new();
@@ -148,9 +131,7 @@ impl Compiler<'_> {
 
     /// The `_error` element standing for boxed node `node`: no children,
     /// no props, and the element's name, so a reference to it resolves and
-    /// reads as undefined rather than being an unknown reference of its
-    /// own (ADR 0027). A name a sibling already holds (the box of a
-    /// duplicate name) is left off.
+    /// reads as undefined. A name a sibling already holds is left off.
     pub(in crate::compile) fn push_error_elem(
         &mut self,
         t: TemplateId,
@@ -171,9 +152,7 @@ impl Compiler<'_> {
     }
 
     /// Leaves `e` its name only when the name table holds the name for it:
-    /// a box made for a duplicate name never registered it, and carries
-    /// none. Outlining's, where it pushes the element: only outlining names
-    /// elements, so a name a later stage boxes is registered.
+    /// a box made for a duplicate name carries none.
     pub(in crate::compile) fn drop_unregistered_name(&mut self, t: TemplateId, e: ElemId) {
         let el = &self.outlined(t).elems[e.index()];
         if el.name == StrId::NONE {
@@ -190,9 +169,8 @@ impl Compiler<'_> {
     }
 
     /// Makes `e` a box in boxing's table: an `_error` element with no
-    /// props, children or body as the build sees it (`Elem::as_box`), or,
-    /// `dead`, one under a box, which no build makes. What other stages
-    /// made of it stays as they made it.
+    /// props, children or body as the build sees it, or, `dead`, one under
+    /// a box, which no build makes.
     pub(in crate::compile) fn make_box(&mut self, t: TemplateId, e: ElemId, dead: bool) {
         let by = self.stage;
         let row = Box::new(self.elem(t, e).as_box());
@@ -217,7 +195,7 @@ mod tests {
         panic!("no element named {name}");
     }
 
-    /// Boxing writes only its own table (ADR 0031): an element boxed while
+    /// Boxing writes only its own table: an element boxed while
     /// planning keeps the row outlining made, and so does one under it,
     /// while the build reads the box's row and makes nothing under it.
     #[test]
@@ -240,8 +218,8 @@ mod tests {
     }
 
     /// A `$ref` child that cannot be planned is boxed in planning's table
-    /// of `$ref` children (ADR 0031): no element is made for it, and the
-    /// child list outlining made is left as it made it.
+    /// of `$ref` children: no element is made for it, and the child list
+    /// outlining made is left as it made it.
     #[test]
     fn a_ref_child_that_cannot_be_planned_is_boxed_in_planning_table() {
         let dast = document([el("p").name("p").child(mac("nope"))]);

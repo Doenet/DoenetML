@@ -2,7 +2,7 @@
 //! through `stateValues`, expressed as operator chains whose extra values are
 //! forward inputs. Each test names the current-core inverse it stands for.
 //! These test the core's inversion, so a request on a `<number>` no input
-//! reaches is unchecked (ADR 0018).
+//! reaches is unchecked.
 
 mod common;
 
@@ -70,7 +70,7 @@ fn wrap_read_from_a_sibling_is_a_forward_modulus() {
 /// `Graph.xMin` refuses a request when `stateValues.fixAxes`, and
 /// `Number.value` when `stateValues.canBeModified` is false: a gate the
 /// forward ignores. A `fixed` given by a reference holds the element's
-/// cells (`Program::holds`): only a request reads the flag.
+/// cells: only a request reads the flag.
 #[test]
 fn a_gate_drops_requests_while_its_flag_is_set() {
     let mut doc = load(

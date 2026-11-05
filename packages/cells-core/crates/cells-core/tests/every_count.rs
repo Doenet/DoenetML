@@ -1,29 +1,12 @@
-//! The promise of ADR 0012, checked independently of how the abstract build
-//! keeps it: a document that loads with the cycle check on has no
-//! dependency loop at any iteration count, and its structure settles at
-//! every count a student can reach.
+//! A document that loads with the cycle check on has no dependency loop at
+//! any iteration count, and its structure settles at every count a student
+//! can reach, checked independently of the abstract build.
 //!
-//! Every document of the golden set (`crates/cells-bench/golden`),
-//! `fixtures/sir.doenet`, every generated fixture (`npm run fixtures`;
-//! skipped when absent) and the documents of ADR 0012 and the rebuild-cycle
-//! survey ([`HOLES`]) is loaded at four seeds. When it loads, each repeat
-//! element is stamped at 0 to 4 iterations, one element at a time and all
-//! together, with the other repeats at the counts their cells settle to,
-//! and every such build is scheduled, which must not fail with
-//! `Error::Cycle`; from there every count is let settle, which it must
-//! within the passes a load allows. Then the same counts are requested on
-//! the count cells, and no tick may fail its rebuild with a cycle or an
-//! unsettled structure.
-//!
-//! Every build at those counts, and every rebuild, is a later build of the
-//! load, from the load's compile (ADR 0015): none may find an error the
-//! load did not report (ADR 0014), which is `Error::Unchecked`.
-//!
-//! This is the regression net for a structural read that bypasses the
-//! structure view (`build/view.rs`): the abstract build cannot model such a
-//! read, so a document it should reject loads, and a count here closes the
-//! loop. The documents in `HOLES` are rejected at load today and skipped;
-//! they are here for the day one is not.
+//! Every golden document, `sir.doenet`, every generated fixture (skipped
+//! when absent) and [`HOLES`] is loaded at four seeds, and each repeat is
+//! stamped and requested at 0 to 4 iterations, one at a time and all
+//! together. No build may fail with a cycle, an unsettled structure, or an
+//! error the load did not report.
 
 use cells_core::CompIdx;
 use std::collections::{BTreeSet, HashMap};
@@ -44,8 +27,7 @@ const COUNTS: std::ops::RangeInclusive<u32> = 0..=4;
 /// forced build it starts from.
 const MAX_PASSES: usize = 9;
 
-/// Documents at the holes ADR 0012 and `docs/rebuild-cycles-survey.md`
-/// closed: each loaded clean before and failed at a count a student
+/// Documents that once loaded clean and failed at a count a student
 /// reaches.
 const HOLES: &[(&str, &str)] = &[
     (
@@ -123,10 +105,10 @@ const HOLES: &[(&str, &str)] = &[
     ),
 ];
 
-/// Documents with a counted value (ADR 0028), a value that follows the
-/// counts: a collect's count, a section's number after a repeat, before a
-/// repeat inside an iteration, or after sections collected from one, and
-/// the credit of a section whose answers are all in a repeat.
+/// Documents with a counted value, one that follows the counts: a
+/// collect's count, a section's number after a repeat, before a repeat
+/// inside an iteration, or after sections collected from one, and the
+/// credit of a section whose answers are all in a repeat.
 const STRUCTURE_VALUES: &[(&str, &str)] = &[
     (
         "collect-count",
@@ -425,8 +407,7 @@ fn count_cell(doc: &Document, r: &Repeat) -> cells_core::CellIdx {
 }
 
 /// Whether a rebuild error is a cycle or an error the load did not report
-/// (an unsettled structure among them): a tick reports the error as text,
-/// so it is matched against the two messages.
+/// (an unsettled structure among them), matched on its message.
 fn structural(e: &str) -> bool {
     let prefix = |full: String, param: &str| full[..full.find(param).unwrap()].to_string();
     let cycle = prefix(Error::Cycle("\u{1}".into()).to_string(), "\u{1}");
@@ -435,8 +416,7 @@ fn structural(e: &str) -> bool {
 }
 
 /// Every dependency of the build at `counts` must be one the abstract
-/// build's graph has, with a label its iterations satisfy: what lets the
-/// compile's check stand for every build (ADR 0012, ADR 0014).
+/// build's graph has, with a label its iterations satisfy.
 fn covered(
     what: &str,
     edges: &AbstractEdges,
@@ -490,18 +470,14 @@ fn has_repeats(dast: &Dast) -> bool {
         .any(|(_, t)| t.count_prop().is_some())
 }
 
-/// ADR 0018: a value slot is essential when a student's action can write
-/// it, and the abstract build's record of those slots stands for every
-/// build. For every document, at every seed it draws with and every repeat
-/// at 0 to 4 iterations, two things are checked against builds at those
-/// counts:
+/// A value slot is essential when a student's action can write it, and
+/// the abstract build's record of those slots stands for every build. For
+/// every document, seed, and repeat count from 0 to 4:
 ///
-/// - every slot a build's own walk finds writable is one the record holds,
-///   so no build meets a write it did not expect;
+/// - every slot a build's own walk finds writable is one the record holds;
 /// - a request on every interactive cell, every submit and every trigger,
-///   made in the same build with every value essential (the classing off),
-///   writes only cells the record makes essential. That checks the walk
-///   against the inverses themselves, not against their declarations.
+///   made with the classing off, writes only cells the record makes
+///   essential.
 #[test]
 fn every_write_lands_on_a_cell_the_record_makes_essential() {
     let docs = documents();
@@ -594,7 +570,7 @@ fn settle_at(compiled: &Arc<Compiled>, seed: u64, c: Option<u32>) -> (Session, C
 }
 
 /// Every action a student can take on `doc`, each on a copy of it, with
-/// the essential keys it writes: those it touches (ADR 0017).
+/// the essential keys it writes.
 fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
     let mut out = Vec::new();
     let mut record = |action: String, tick: &dyn Fn(&mut Document)| {
@@ -632,13 +608,11 @@ fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
     out
 }
 
-/// ADR 0028: a constant depends on the source, the seed and its scope
-/// alone. For every document with a repeat, at every seed it draws with,
-/// every template slot that is a constant in one build of a scope is a
-/// constant in every build that stamps the scope, with the same value,
-/// whatever the counts: a rebuild changes no constant. And a document
-/// constant, by the compile's record, has the same value in every scope
-/// its template is stamped in.
+/// A constant depends on the source, the seed and its scope alone: for
+/// every document with a repeat, at every seed, a template slot that is a
+/// constant in one build of a scope is the same constant in every build of
+/// it, whatever the counts, and a document constant has the same value in
+/// every scope.
 #[test]
 fn a_constant_is_the_same_in_every_build() {
     let docs = documents();

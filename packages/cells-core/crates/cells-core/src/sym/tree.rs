@@ -2,8 +2,7 @@
 
 /// What a tree's `Cell` leaves name, by stage: a reference plan id in the
 /// compile's trees, a slot in a build's templates, a cell once rebound
-/// (`CellIdx`), which is what [`super::Engine::instantiate`] reads. The
-/// engine itself keeps a leaf as a symbol named by its number.
+/// (`CellIdx`).
 pub trait Leaf: Copy + PartialEq + std::fmt::Debug {
     fn raw(self) -> u32;
     fn from_raw(raw: u32) -> Self;

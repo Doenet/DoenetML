@@ -1,15 +1,10 @@
-//! Diagnostics (ADR 0013): what the build reports about a document beyond
-//! the cells it makes. An error names an element that could not be built
-//! and stands in the document as an `_error` component; a warning, an
-//! info or an accessibility finding names an element that was.
+//! Diagnostics: what the build reports about a document beyond the cells it
+//! makes. An error names an element that could not be built and stands in
+//! the document as an `_error` component; a warning, an info or an
+//! accessibility finding names an element that was.
 //!
-//! A diagnostic is a function of the document text alone. The build
-//! collects them (`BuildOutput::diagnostics`); [`crate::diagnose`] builds
-//! once through the abstract build, so the list covers every branch and
-//! every repeat body whatever the seed or the counts; a tick never
-//! produces one. Each names its node in the DAST, not a position: the
-//! caller that holds the parser's DAST (the language server, the viewer)
-//! maps the node to a position.
+//! A diagnostic is a function of the document text alone and names its
+//! DAST node, not a source position.
 
 use std::collections::BTreeMap;
 
@@ -119,10 +114,8 @@ pub fn sort(list: &mut [Diagnostic]) {
 }
 
 impl Error {
-    /// The code of the diagnostic an error becomes. A `doenet-` code where
-    /// the registry names the same situation (whatever letter it gives it:
-    /// the registry's letter is the current core's kind, ours is an error
-    /// because the element did not build); a `cells-` code otherwise.
+    /// The code of the diagnostic an error becomes: a `doenet-` code where
+    /// the registry names the same situation, a `cells-` code otherwise.
     pub fn code(&self) -> &'static str {
         use Error::*;
         match self {

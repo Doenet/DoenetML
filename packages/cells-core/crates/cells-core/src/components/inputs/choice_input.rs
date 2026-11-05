@@ -1,4 +1,4 @@
-//! `<choiceInput>`: its definition and its planner (ADR 0016).
+//! `<choiceInput>`: its definition and its planner.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
@@ -10,9 +10,8 @@ component! {
     /// `<choice>` child, 0 for none. The input's own state is
     /// `preliminaryIndex`, and `selectedIndex` is it when it names a choice,
     /// else 0, so a request for another index (NaN, a fraction, out of
-    /// range) chooses none, as in the current core. Choices are shown in
-    /// document order (`shuffleOrder` is not modelled); `selectMultiple` is
-    /// refused.
+    /// range) chooses none. Choices are shown in document order
+    /// (`shuffleOrder` is not modelled); `selectMultiple` is refused.
     tags: ["choiceInput"],
     flags: [copyable],
     default_prop: selectedIndex,

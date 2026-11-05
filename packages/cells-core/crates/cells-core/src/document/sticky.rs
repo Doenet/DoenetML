@@ -1,10 +1,7 @@
-//! Sticky groups as a pre-pass on the requests a tick receives
-//! (ADR 0007). After every build the document records each group's members
-//! as cells; a request that names a member's cell is snapped before it is
-//! inverted. Requests that reach a member's cells only through inversion
-//! (from a cell derived from a member) are not snapped: snapping is a
-//! response to a drag, and the pre-pass sees drags as the renderer sends
-//! them.
+//! Sticky groups as a pre-pass on the requests a tick receives. After every
+//! build the document records each group's members as cells; a request that
+//! names a member's cell is snapped before it is inverted. Requests that
+//! reach a member's cells only through inversion are not snapped.
 
 use std::borrow::Cow;
 use std::collections::HashSet;

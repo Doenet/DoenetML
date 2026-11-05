@@ -1,18 +1,16 @@
 //! Tick times on the synthetic shapes of `cells_bench::shapes`, under
 //! several evaluators interleaved tick by tick, each on its own copy of the
-//! document: the harness `docs/tick-design-decisions.md` measured each
-//! decision with.
+//! document.
 //!
 //! For each shape and size: a drag to the shape's check value must give the
 //! values it names under the first evaluator, and the same cells under
-//! every other; then each evaluator's copy has its dragged coordinate
-//! alternate between 2 and 3, 3 warm-up ticks and `CELLS_TICKS` (default
-//! 41) timed ticks per evaluator, after which every cell must again agree.
-//! The table gives the median ticks, and each evaluator's over the first's.
-//! `CELLS_OUT=file` also appends one JSON record per row, with every sample
+//! every other; then each copy's dragged coordinate alternates between 2
+//! and 3, 3 warm-up ticks and `CELLS_TICKS` (default 41) timed ticks per
+//! evaluator, after which every cell must again agree. The table gives the
+//! median ticks, and each evaluator's over the first's. `CELLS_OUT=file`
+//! also appends one JSON record per row, with every sample
 //! (`<evaluator>_ns`) and a fingerprint of the first evaluator's values
-//! after the check drag, which `scripts/tick-diff.sh` compares across
-//! commits.
+//! after the check drag.
 //!
 //! - `CELLS_SHAPES=depth,chain10`: shapes (default `shapes::SHAPES`).
 //! - `CELLS_SIZES=1000,10000`: sizes (default 1,000, 10,000 and 100,000).

@@ -1,14 +1,12 @@
 //! Container copies (`<graph extend="$g"/>`) given their clones when
-//! outlining, once every name is in the table (ADR 0027, step 5).
+//! outlining, once every name is in the table.
 
 use super::Outlining;
 use crate::compile::*;
 
 impl Compiler<'_> {
-    /// After the container copies have their clones, every other
-    /// element's `extend` is planned (ADR 0031), so planning reads the
-    /// reference from outlining's row. One that cannot be planned boxes its
-    /// element here, as planning did.
+    /// Plan every other element's `extend`, once the container copies
+    /// have their clones. One that cannot be planned boxes its element.
     pub(in crate::compile) fn plan_extends(&mut self, o: &mut Outlining) {
         let made = o.work.to_plan.clone();
         for (t, e) in made {
@@ -27,9 +25,7 @@ impl Compiler<'_> {
         }
     }
 
-    /// The end of outlining (ADR 0027): every container copy gets its
-    /// clones, now that every name is in the table, so the element set is
-    /// complete before anything is planned. A copy of a copy is expanded
+    /// Give every container copy its clones. A copy of a copy is expanded
     /// after its referent, whatever the document's order.
     pub(in crate::compile) fn expand_container_copies(&mut self, o: &mut Outlining) {
         for (t, e) in std::mem::take(&mut o.container_copies) {
@@ -43,10 +39,9 @@ impl Compiler<'_> {
 
     /// Give container copy `e` its children: clones of its referent's,
     /// named under the copy, followed by the children written inside the
-    /// copy (REF-4 of the principles: added after the referent's). A copy
-    /// that fails is boxed, and the clones it made die with it. The one
-    /// error returned is a copy reached again while it expands, a cycle,
-    /// which is its reader's failure.
+    /// copy. A copy that fails is boxed, and the clones it made die with
+    /// it. The one error returned is a copy reached again while it expands,
+    /// a cycle, which is its reader's failure.
     pub(in crate::compile) fn expand_container_copy(
         &mut self,
         o: &mut Outlining,
@@ -189,11 +184,9 @@ impl Compiler<'_> {
 }
 
 impl Compiler<'_> {
-    /// Run `f`, which reads what outlining made through references (ADR
-    /// 0031): when it reaches a container copy whose clones are not made
-    /// yet (`Error::AwaitsClones`), make them, and run it again from where
-    /// it began. A copy reached again while it is expanding is a cycle
-    /// (`expand_container_copy`), so this ends.
+    /// Run `f`, which reads what outlining made through references: when it
+    /// reaches a container copy whose clones are not made yet
+    /// (`Error::AwaitsClones`), make them, and run it again from the start.
     pub(in crate::compile) fn with_clones<T>(
         &mut self,
         o: &mut Outlining,
@@ -230,9 +223,8 @@ mod tests {
         panic!("no element named {name}");
     }
 
-    /// Every `extend` is planned when outlining, in outlining's row (ADR
-    /// 0031); whether the element is a copy of what it names is planning's:
-    /// a copy of a point is, a point extending a prop aliases it instead.
+    /// Every `extend` is planned when outlining; a copy of a point is a
+    /// copy, while a point extending a prop aliases it.
     #[test]
     fn outlining_plans_every_extend_and_planning_decides_the_copy() {
         let dast = document([

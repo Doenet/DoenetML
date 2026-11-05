@@ -1,4 +1,4 @@
-//! [`PlanCtx`]: what every planner in `components/` is given (ADR 0016).
+//! [`PlanCtx`]: what every component planner is given.
 
 use super::Planning;
 use crate::compile::*;
@@ -95,10 +95,9 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
-    /// The element's record (ADR 0032, ADR 0034): every attribute its
-    /// type declares and its children as the type reads them, parsed, the
-    /// element's own or its referent's. A planner reads it as its type's
-    /// `Attrs` (`Attrs::of(ctx.record())`).
+    /// The element's record: every attribute its type declares and its
+    /// children as the type reads them, parsed, the element's own or its
+    /// referent's.
     pub(crate) fn record(&self) -> &record::Record {
         &self.record
     }
@@ -170,7 +169,7 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// How a point is constrained to what `p` names: its type's
-    /// declaration (`constrain_target`, ADR 0034); an error when it names
+    /// `constrain_target` declaration; an error when it names
     /// no component in this template or one of a type that is no target.
     pub(crate) fn constrain_target(&mut self, p: RefId) -> Result<ConstrainTarget> {
         let target = self.reference_type(p)?.ok_or_else(|| {
@@ -249,7 +248,7 @@ impl<'a> PlanCtx<'_, 'a> {
         )
     }
 
-    /// The canonical string id of `text` (`Compiler::intern_literal`).
+    /// The canonical string id of `text`.
     pub(crate) fn intern(&mut self, text: &str) -> StrId {
         self.c.intern_literal(text)
     }
@@ -265,9 +264,8 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// Warns that the element cannot be what its attributes ask, with a
-    /// code and message of `packages/i18n/src/diagnostics.ts` (ADR 0013).
-    /// A planner warns rather than leave a NaN to explain itself: what it
-    /// cannot define is `Wire::undefined` of what this returns.
+    /// diagnostic code and message. What the planner cannot define is
+    /// `Wire::undefined` of what this returns.
     pub(crate) fn warn(&mut self, code: &'static str, message: &str) -> Warned {
         let node = self.node();
         self.c.warn(node, code, message)
@@ -275,7 +273,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     // The element's wiring.
 
-    /// The element's `<math>` text as it was parsed (ADR 0029), or the
+    /// The element's `<math>` text as it was parsed, or the
     /// error parsing it met.
     pub(crate) fn parsed_math(&self) -> Result<ParsedMath> {
         match self.p.parsed.math(self.t, self.e) {

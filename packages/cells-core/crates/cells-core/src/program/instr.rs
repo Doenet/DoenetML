@@ -1,6 +1,6 @@
 //! An instruction ([`Instr`]): an operator bound to its input cells and the
 //! cell it writes. [`OpSpec`] is the operator before its inputs are bound, as
-//! the build plans it; [`SymKind`] the symbolic instructions (ADR 0008).
+//! the build plans it; [`SymKind`] the symbolic instructions.
 
 use crate::document::CellIdx;
 use crate::program::{Op, OpSpec, VecOp};
@@ -62,9 +62,8 @@ impl SymKind {
         }
     }
 
-    /// The input positions its inverse may write (`OpSpec::writes`):
-    /// `Evaluate`'s expression, which a math input's value request writes
-    /// (`tick/invert.rs`); no other symbolic operator inverts.
+    /// The input positions its inverse may write: `Evaluate`'s expression;
+    /// no other symbolic operator inverts.
     pub fn writes(self) -> u64 {
         match self {
             SymKind::Evaluate => 1,
@@ -225,11 +224,7 @@ mod arity {
     use super::*;
     use crate::program::vector::{RigidOpts, VecOp};
 
-    /// Every operator: the scalar ones (`scalar_ops!` makes the list, so
-    /// none is missing), then every vector
-    /// and symbolic one. A vector or symbolic variant added does not compile
-    /// until `tag` gives it a number, and then this test fails until `every`
-    /// has one of it.
+    /// Every operator: the scalar ones, then every vector and symbolic one.
     fn every() -> Vec<OpSpec> {
         let mut ops = OpSpec::scalars();
         ops.extend([

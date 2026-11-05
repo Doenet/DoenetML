@@ -1,8 +1,7 @@
-//! ADR 0014: every error is a function of the document source. A load
-//! reports every error the document has; no count a student reaches, no
-//! pick a select draws in a new iteration and no restored state finds
-//! another. `tests/every_count.rs` checks the promise over every golden
-//! document and fixture; these are the constructs that once broke it.
+//! Every error is a function of the document source: a load reports every
+//! error the document has, and no count a student reaches, no pick a select
+//! draws in a new iteration and no restored state finds another. These are
+//! the constructs that once broke it.
 
 mod common;
 use common::{set, v};

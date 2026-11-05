@@ -1,23 +1,15 @@
-//! Requests whose inverse cannot land (ADR 0026, fix 2). A binary operator
-//! writes one input and holds the others at their current values. When an
-//! essential cell the request would write also reaches the requested cell
-//! along another path, the held inputs move with the write and the request
-//! misses: `i = max(f / b, n) + a` with `a`, `b` and `f` computed from `n`,
-//! or `S − b·S·I`. Asking again moves the cell elsewhere. Such a request is
-//! refused, as the current core's `<math>` inverse refuses an expression
-//! whose operands share a variable.
+//! Requests whose inverse cannot land. A binary operator writes one input and
+//! holds the others at their current values. When an essential cell the
+//! request would write also reaches the requested cell along another path
+//! (`S − b·S·I`), the held inputs move with the write and the request misses.
+//! Such a request is refused.
 //!
-//! A cell's *written* cells are the essential cells its inverse can reach:
-//! through each operator to the inputs it may write (`Op::writes`), as the
-//! writable walk goes (ADR 0018). Paths are counted from each written cell
-//! forward through every input of every instruction, saturating at 2. A
-//! vector operator counts as one node: its handwritten inverse is trusted
-//! with its own inputs together, so its outputs take the largest count of
-//! its inputs, not their sum.
-//!
-//! The analysis reads only the program, so the build can warn of a refused
-//! prop (`build/emit.rs`) and a document can refuse its requests
-//! (`document/request.rs`) from the same rule.
+//! A cell's *written* cells are the essential cells its inverse can reach,
+//! through each operator to the inputs it may write (`Op::writes`). Paths are
+//! counted from each written cell forward through every input of every
+//! instruction, saturating at 2. A vector operator counts as one node: its
+//! outputs take the largest count of its inputs, not their sum. The analysis
+//! reads only the program.
 
 use std::rc::Rc;
 
@@ -37,17 +29,9 @@ pub enum Finding {
 
 /// For each cell of `asked`, what its inverse runs into, if anything; in
 /// the order of `asked`, at most one finding each (`Twice` first).
-/// `held_always` has one entry per cell of the program: a cell it marks,
-/// which a constant flag holds (`Holds::held_always`, ADR 0022), takes no
-/// request, so its inverse writes nothing.
-///
-/// Each cell's written cells come from one walk down the program, shared
-/// between cells. Paths are counted once per written cell, over the
-/// instructions downstream of it in an order of their own, into a scratch
-/// array kept between them, so the cost is the program plus each written
-/// cell's downstream, restricted to the cells from which an asked cell can
-/// be reached. Where no instruction there joins two paths, nothing is
-/// counted. An instruction in a loop is never counted.
+/// `held_always` has one entry per cell of the program: a cell it marks, which
+/// a constant flag holds, takes no request, so its inverse writes nothing. An
+/// instruction in a loop is never counted.
 pub fn analyze(
     instrs: &[Instr],
     operands: &[CellIdx],
@@ -123,8 +107,7 @@ pub fn analyze(
 /// For each group of asked cells by the cell they write, count the paths
 /// from that cell, and record in `twice` the asked cells it reaches more
 /// than once. A group whose region has no instruction where paths join is
-/// reached once everywhere, and is not counted; the readers are indexed
-/// for the first group that is.
+/// reached once everywhere, and is not counted.
 fn count_groups(
     graph: &mut Graph,
     n_cells: usize,
@@ -294,8 +277,7 @@ impl Graph<'_> {
         );
     }
 
-    /// What an inverse from `cell` can write, memoized by cell; walked
-    /// without recursion, since a chain can be as long as the document.
+    /// What an inverse from `cell` can write, memoized by cell.
     fn walk(
         &self,
         cell: CellIdx,

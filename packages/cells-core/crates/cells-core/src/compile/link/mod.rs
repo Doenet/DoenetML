@@ -1,19 +1,16 @@
-//! Linking (ADR 0029, ADR 0030, ADR 0032): what planning leaves for once
-//! every element is planned. Readers of boxes are boxed to a fixpoint,
-//! elements with an attribute nothing read are boxed (`unread.rs`), and
-//! the given leaves copies share are tied between the elements left.
+//! Linking: what is left once every element is planned. Readers of boxes
+//! are boxed to a fixpoint, elements with an attribute nothing read are
+//! boxed, and the given leaves copies share are tied between the elements
+//! left.
 
 mod unread;
 
 use crate::compile::*;
 
 impl Compiler<'_> {
-    /// Linking: what planning left for once every element is planned. A
-    /// reader of a boxed referent is boxed (`box_readers_of_boxes`); an
-    /// element with an attribute nothing read is boxed, every attribute
-    /// having been read by now (`box_unread_attributes`), and its readers
-    /// in turn; then shared state is tied between the elements left
-    /// (`link_given_leaves`).
+    /// Linking: box the readers of boxes, then the elements with an
+    /// attribute nothing read and their readers, then tie shared state
+    /// between the elements left.
     pub(in crate::compile) fn link(
         &mut self,
         planned: &mut Planned,
@@ -31,12 +28,8 @@ impl Compiler<'_> {
         Ok(())
     }
 
-    /// Linking's first step (ADR 0029, ADR 0032): every element that read
-    /// another's facts (`record_read`: a referent's type, a clone's
-    /// original) and whose referent is now a box is boxed in place,
-    /// whichever was planned first, to a fixpoint: a copy of a copy of a
-    /// box is boxed too, and a container copy whose clones read what is
-    /// under a box, with its clones.
+    /// Box in place every element in `readers` whose referent is now a
+    /// box, to a fixpoint: a copy of a copy of a box is boxed too.
     fn box_readers_of_boxes(&mut self, readers: &[Read]) -> Result<()> {
         loop {
             let mut boxed_one = false;
@@ -59,10 +52,9 @@ impl Compiler<'_> {
         }
     }
 
-    /// Linking (ADR 0029, ADR 0032): each given leaf a copy shares aliases
-    /// the referent's port holding it, now that every element is planned.
-    /// A copy or referent that is a box shares nothing, and a copy keeps
-    /// its own given value for a leaf its referent has none of.
+    /// Alias each given leaf a copy shares to the referent's port holding
+    /// it. A copy or referent that is a box shares nothing, and a copy
+    /// keeps its own given value for a leaf its referent has none of.
     pub(in crate::compile) fn link_given_leaves(&mut self, planned: &mut Planned) {
         for s in std::mem::take(&mut planned.shares) {
             let (rt, re) = match s.referent {

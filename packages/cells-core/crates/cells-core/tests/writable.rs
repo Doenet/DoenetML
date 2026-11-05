@@ -1,6 +1,5 @@
-//! What a student can write (ADR 0018): the census of essential cells
-//! against those a student's action can write, over the golden set and
-//! `fixtures/sir.doenet`.
+//! What a student can write: the census of essential cells against those a
+//! student's action can write, over the golden set and `sir.doenet`.
 
 use std::path::Path;
 
@@ -37,10 +36,8 @@ fn load(src: &str, classify: bool) -> Document {
         .0
 }
 
-/// Every document's essential cells, as before ADR 0018 (every author's
-/// value) and as now (what a student's action can write). Context's walk
-/// through every input of every operator, an upper bound, counted 164
-/// writable on the golden set and 16 on `sir.doenet`.
+/// Every document's essential cells, with every author's value essential
+/// and with only what a student's action can write.
 #[test]
 fn census() {
     let (mut golden, mut sir) = ((0, 0), (0, 0));

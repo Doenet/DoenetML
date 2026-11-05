@@ -74,14 +74,12 @@ pub enum Error {
     BadMath { text: String, reason: String },
     #[error("unsupported: {0}")]
     Unsupported(String),
-    #[error(
-        "saved state from core release {saved} cannot be restored by release {core} (ADR 0017)"
-    )]
+    #[error("saved state from core release {saved} cannot be restored by release {core}")]
     OtherRelease { saved: String, core: String },
-    #[error("not allowed (ADR 0009): {0}")]
+    #[error("not allowed: {0}")]
     Banned(String),
     #[error(
-        "a build after the load found an error the load did not report, which the core must never let happen (ADR 0014): {0}"
+        "a build after the load found an error the load did not report, which the core must never let happen: {0}"
     )]
     Unchecked(String),
     #[error("the core planned an element it cannot build (a core bug): {0}")]

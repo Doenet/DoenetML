@@ -1,7 +1,7 @@
-//! `<triangle>`: a polygon of three vertices (ADR 0016), planned as the
-//! polygon is (`polygon::plan_vertices`). A vertex the author does not give
-//! is essential state at the current core's default: the first (0, 1), the
-//! second (1, 0), the third (0, 0); a fourth given is not read.
+//! `<triangle>`: a polygon of three vertices, planned as the polygon is. A
+//! vertex the author does not give is essential state at its default: the
+//! first (0, 1), the second (1, 0), the third (0, 0); a fourth given is not
+//! read.
 
 use super::polygon::plan_vertices;
 use crate::compile::api::*;
@@ -68,8 +68,7 @@ const _: () = assert!(
     "a triangle's props must be laid out as a polygon's"
 );
 
-/// Plans a triangle: a polygon whose three vertices default as the current
-/// core's do.
+/// Plans a triangle: a polygon whose three vertices have defaults.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     use param::*;
     plan_vertices(

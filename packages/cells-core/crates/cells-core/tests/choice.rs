@@ -1,5 +1,5 @@
-//! Choices (ADR 0009): `<conditionalContent>` under both
-//! mechanisms, the branch interface, conditions, and `<select>` picks.
+//! Choices: `<conditionalContent>` under both mechanisms, the branch
+//! interface, conditions, and `<select>` picks.
 
 mod common;
 
@@ -91,8 +91,8 @@ fn built_cases_report_which_is_active() {
     );
 }
 
-/// The error the load reports (ADR 0013): the choice, or the reference
-/// into it, is an `_error` component and the rest of the document loads.
+/// The error the load reports: the choice, or the reference into it, is
+/// an `_error` component and the rest of the document loads.
 fn load_err(src: &str) -> (&'static str, String) {
     load_error(src)
 }

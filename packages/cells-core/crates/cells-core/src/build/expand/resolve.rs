@@ -70,12 +70,11 @@ impl<'c> Builder<'c> {
     }
 
     /// Walk a plan from `scope`. Returns where it arrived and the port it
-    /// named, if any. Every step is an array read, its kind planning's
-    /// (ADR 0032, decision 5); an index reads the stamped entries through
-    /// the view, and one that reads a cell keeps every entry (`Chosen`).
-    /// When the view folds iterations, the walk is also labelled into
-    /// `self.label` (`build/abstract_build.rs`): one coordinate per level
-    /// of nesting of the target, kept with a shift or reset.
+    /// named, if any. An index reads the stamped entries through the view,
+    /// and one that reads a cell keeps every entry (`Chosen`). When the view
+    /// folds iterations, the walk is also labelled into `self.label`: one
+    /// coordinate per level of nesting of the target, kept with a shift or
+    /// reset.
     pub(in crate::build) fn resolve(
         &mut self,
         plan: RefId,
@@ -115,8 +114,7 @@ impl<'c> Builder<'c> {
     }
 
     /// One step of a walk from `cur`. Over a `Chosen`, the step applies to
-    /// every item; the label is pushed once (`push`), since every item
-    /// sits at the same depth.
+    /// every item; the label is pushed once.
     fn resolve_step(
         &mut self,
         cur: Resolved,
@@ -523,9 +521,9 @@ impl<'c> Builder<'c> {
         self.targets_of(target, prop, plan, expected, scope)
     }
 
-    /// The one slot a reference names. Errors with a
-    /// placeholder `ArityMismatch` (callers fill in type and prop) when the
-    /// reference names several cells.
+    /// The one slot a reference names. Errors with a placeholder
+    /// `ArityMismatch` (callers fill in type and prop) when the reference
+    /// names several cells.
     pub(in crate::build) fn resolve_one(&mut self, plan: RefId, scope: ScopeId) -> Result<SlotId> {
         let slots = self.resolve_ref(plan, scope, Some(1))?;
         match slots[..] {

@@ -1,38 +1,19 @@
-//! The build stage (ADR 0015): the compile stamped into a document at given
-//! iteration counts, reading the session. A load builds until the structure
-//! settles, and so does a rebuild in a tick. A build finds no error the
-//! compile did not (ADR 0014).
+//! The build stage: the compile stamped into a document at given iteration
+//! counts, reading the session. A build finds no error the compile did not.
 //!
 //! **Expand** stamps templates into components. Each instance of a template
 //! is a *scope*: scope 0 is the document, every iteration of a repeat is a
 //! scope whose parent is the scope the repeat sits in. Scopes carry dense
 //! tables (element -> component) so a reference plan resolves with array
-//! reads: walk `hops` parents, index the element table, follow indices into
-//! iteration scopes. Scope ids are stable for the session (the table only
-//! grows), which is how essential values carry over: they are stored per
-//! (scope, template slot).
+//! reads. Scope ids are stable for the session, so essential values carry
+//! over per (scope, template slot).
 //!
 //! **Emit**: union-find over aliases makes cells; cells are numbered
-//! (the constants, the session's pool first, then essential, then
-//! derived); and operators are bound.
-//! [`BuildOutput::schedule`] then orders the
-//! instructions, with a fast path when creation order is already a valid
-//! evaluation order.
+//! (constants, then essential, then derived); and operators are bound.
+//! [`BuildOutput::schedule`] then orders the instructions.
 //!
-//! Files: **`expand/`**: `mod.rs` holds the builder's state and stamps
-//! templates; `resolve.rs` follows reference plans, `math.rs` gives math
-//! its source per instance, `choice.rs` picks and wires branches, and
-//! `aggregate.rs` materializes aggregates (collects, credit, section
-//! numbers). **`emit.rs`** makes cells and instructions. **`view.rs`** is
-//! the structure view, the one interface
-//! through which expand and emit learn iteration counts, indexed referents,
-//! a collect's count and a select's options. **`abstract_build.rs`** is the
-//! abstract build, the build through a view that folds every iteration into
-//! one, which the compile's check runs (ADR 0012, ADR 0014). This file
-//! holds [`build`] and what a build returns ([`BuildOutput`]);
-//! `structure.rs` what a build records about the document's shape
-//! ([`Structure`], [`ScopeTable`], [`Repeat`]); `coverage.rs`, for tests,
-//! checks that the abstract build's graph covers a real build's.
+//! The *abstract build* is the build through a view that folds every
+//! iteration into one, which the compile's check runs.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -132,14 +113,11 @@ pub(in crate::build) fn build_with(
 }
 
 impl<'c> Builder<'c> {
-    /// The backward walk over the cells the slots will make that the
-    /// writable walk (`writable.rs`, ADR 0018) and the live walk
-    /// (`live.rs`, ADR 0019) share: from the cells on `stack`, each cell
-    /// `enter` admits is given to `edge` as its definition
-    /// (`slot_cells::Def`), then as each other source its slots have (its
-    /// later sources when the view folds iterations, and `extra`), and
-    /// `edge` pushes the cells to go on to, by one of the definition's
-    /// relations. A cell `enter` refuses is neither followed nor seen.
+    /// Walk backward over the cells the slots will make: from the cells on
+    /// `stack`, each cell `enter` admits is given to `edge` as its
+    /// definition, then as each other source its slots have (its later
+    /// sources and `extra`), and `edge` pushes the cells to go on to. A cell
+    /// `enter` refuses is neither followed nor seen.
     pub(in crate::build) fn walk_cells(
         &self,
         slot_cells: &SlotCells,
@@ -182,7 +160,7 @@ pub enum BuildError {
     /// Something the compile's check passed failed: an element, or the
     /// schedule, which found a cycle.
     #[error(
-        "a build after the load found an error the load did not report, which the core must never let happen (ADR 0014): {0}"
+        "a build after the load found an error the load did not report, which the core must never let happen: {0}"
     )]
     Unchecked(String),
 }
@@ -195,10 +173,10 @@ impl From<BuildError> for Error {
     }
 }
 
-/// A build (ADR 0015): the compile stamped with each repeat at its count
-/// in `counts`, reading the session. It compiles nothing and finds no error
-/// the compile did not (ADR 0014). With `reseed`, seeded cells take their
-/// seeds again whatever the session carries: a later pass of a load.
+/// A build: the compile stamped with each repeat at its count in `counts`,
+/// reading the session. It finds no error the compile did not. With
+/// `reseed`, seeded cells take their seeds again whatever the session
+/// carries: a later pass of a load.
 pub fn build(
     compiled: &Compiled,
     session: &Session,
@@ -270,7 +248,7 @@ pub(crate) struct Live {
 
 impl BuildOutput {
     /// Whether cell `i` is essential: the essential cells follow the
-    /// constants (ADR 0028).
+    /// constants.
     pub(crate) fn is_essential(&self, i: usize) -> bool {
         (self.n_const..self.n_const + self.n_essential).contains(&i)
     }

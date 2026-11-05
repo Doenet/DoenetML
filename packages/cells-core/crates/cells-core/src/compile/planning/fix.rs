@@ -1,18 +1,9 @@
 //! `fixed`, `fixLocation` and a graph's `fixAxes`: the attributes that
 //! hold an element, declared once in [`HOLD_ATTRS`]. What holds an element
-//! is a fact beside its plans ([`Hold`]), never a change to them: the
-//! element is what its planner says, and the build makes every cell of it
-//! refuse requests while the hold is set (`Program::holds`), so what reads
-//! the element reads it through the hold, as a reference to it does.
-//! `fixed` and `fixLocation` are inherited (ADR 0022): what an element
-//! does not give itself, the nearest element around it that gives decides,
-//! a container's content being held with the container unless it says
-//! otherwise.
-//!
-//! `plan_elem` decides the hold of every element (`Compiler::plan_hold`),
-//! whatever planned it, so the rules here hold for every component type
-//! and every way an element is planned: no planner applies them, and none
-//! can leave them out.
+//! is a fact beside its plans ([`Hold`]), never a change to them: every
+//! cell of a held element refuses requests while the hold is set. `fixed`
+//! and `fixLocation` are inherited: what an element does not give itself,
+//! the nearest element around it that gives decides.
 
 use crate::compile::*;
 
@@ -63,7 +54,7 @@ fn is_graph(component_type: ComponentType) -> bool {
 
 impl<'a> Compiler<'a> {
     /// How the attributes of [`HOLD_ATTRS`] reach element `e`: each its
-    /// own, else (an inherited one) the nearest ancestor's (ADR 0022). A
+    /// own, else (an inherited one) the nearest ancestor's. A
     /// literal true on any of them holds the element always; a reference
     /// holds it while its flag is set, several while any is.
     pub(in crate::compile) fn plan_hold(&mut self, t: TemplateId, e: ElemId) -> Result<Hold> {
@@ -153,7 +144,7 @@ mod tests {
     use crate::testing::dast::{Element, Nodes, el, mac};
 
     /// The plan of the element named `name` in the compile, in any
-    /// template: nothing when it was boxed (`Template::plan`).
+    /// template: nothing when it was boxed.
     fn plan<'c>(compiled: &'c Compiled, name: &str) -> Option<&'c ElemPlan> {
         compiled.templates.iter().find_map(|t| {
             let e = t.elems.iter().position(|e| {
@@ -164,8 +155,7 @@ mod tests {
     }
 
     /// Whether the element named `x` in `doc` is held, and whether `doc`
-    /// loads with no error (an attribute nothing reads is refused, ADR
-    /// 0021; a refused `x` is not held).
+    /// loads with no error (a refused `x` is not held).
     fn held_and_clean(doc: Vec<Element>) -> (bool, bool) {
         let mut all = vec![el("testValue").name("f").attr("value", "1")];
         all.extend(doc);
@@ -181,13 +171,9 @@ mod tests {
         (held, clean)
     }
 
-    /// Every row of `HOLD_ATTRS` holds as its row says, on a type it
-    /// holds: the element's own setting holds it and wins over its
-    /// containers'; an inherited one reaches through containers and the
-    /// repeats around them, a literal or a reference written there; an
-    /// own-only one is looked up on its element alone, and on a type it
-    /// does not hold is refused. One test of the table, whatever rows it
-    /// grows and whatever types they hold.
+    /// Every row of `HOLD_ATTRS` holds as its row says: an own setting
+    /// wins, an inherited one reaches through containers and repeats, and
+    /// an own-only one on a type it does not hold is refused.
     #[test]
     fn every_hold_attribute_holds_as_its_row_says() {
         for row in HOLD_ATTRS {

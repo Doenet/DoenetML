@@ -1,5 +1,5 @@
-//! Inversion through operators, the request engine's machinery: requests
-//! on `<number>`s no input reaches are unchecked (ADR 0018).
+//! Inversion through operators: requests on `<number>`s no input reaches
+//! are unchecked.
 
 mod common;
 
@@ -75,8 +75,8 @@ fn unary_inverses_round_trip() {
     assert_eq!(doc.value("n", "value"), Some(0.25));
 }
 
-/// ADR 0003: idempotent operators invert by projection, so the essential
-/// cell receives the clamped value, not the raw request.
+/// Idempotent operators invert by projection, so the essential cell
+/// receives the clamped value, not the raw request.
 #[test]
 fn clamp_inverts_by_projection() {
     let mut doc =

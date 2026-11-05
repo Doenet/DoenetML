@@ -1,6 +1,5 @@
 //! Choices at expansion: a select's picks from the document seed, a
 //! conditional content's cases, and references through a branch interface.
-//! The design is in `compile/planning/choice.rs`.
 
 use super::*;
 
@@ -110,8 +109,8 @@ impl<'c> Builder<'c> {
     }
 
     /// A component standing for `members`, of their type, with as many
-    /// props as the most any of them has: a list as long as the longest
-    /// (ADR 0016), the shorter ones missing past their end.
+    /// props as the most any of them has: a list as long as the longest,
+    /// the shorter ones missing past their end.
     fn stand_in(
         &mut self,
         component_type: ComponentType,
@@ -133,8 +132,7 @@ impl<'c> Builder<'c> {
 
     /// The abstract build's stand-in for a whole pick of select `c` built
     /// with every option, whose options each hold one component of one
-    /// type: it reads each option's component, so a rule about the referent
-    /// sees every option a later iteration may draw (ADR 0014).
+    /// type: it reads each option's component.
     pub(in crate::build) fn whole_pick(&mut self, c: CompIdx) -> Result<CompIdx> {
         if let Some(&w) = self.pick_stand_ins.get(&c) {
             return Ok(w);
@@ -156,8 +154,8 @@ impl<'c> Builder<'c> {
     /// Sources and kinds of stand-in `w` for `members`: each prop chooses
     /// among theirs by `choice` when it is given (a reactive choice), else
     /// only reads them (the abstract build's stand-in for a pick). The
-    /// members hold one kind of value per prop (checked when compiled,
-    /// ADR 0032), which the stand-in holds too.
+    /// members hold one kind of value per prop, which the stand-in holds
+    /// too.
     fn stand_in_sources(
         &mut self,
         w: CompIdx,
@@ -207,7 +205,6 @@ impl<'c> Builder<'c> {
     /// A select's picks: option indices drawn from a stream that depends on
     /// the document seed and the select's position (its element and the
     /// iteration chain it sits in), so it draws the same way in every build.
-    /// Compile has checked that the picks can be drawn (`plan_choice`).
     fn pick(&self, def: &ChoiceDef, scope: ScopeId, key: ElemKey) -> Vec<usize> {
         let n = def.branches.len();
         // A select with no options picks nothing.
@@ -240,8 +237,7 @@ impl<'c> Builder<'c> {
     /// Sources of the interface components of built choices: each public
     /// prop chooses among the branches' cells by the choice cell (a reactive
     /// choice), or only reads them (a select built with every option).
-    /// Runs before instance sources, so a symbolic interface math is known
-    /// to be one when its copies are planned.
+    /// Must run before instance sources.
     pub(in crate::build) fn choice_sources(&mut self) -> Result<()> {
         for i in 0..self.choice_insts.len() {
             let inst = self.choice_insts[i].clone();
@@ -302,7 +298,7 @@ impl<'c> Builder<'c> {
 impl<'c> Builder<'c> {
     /// The start of a load-time choice's stream: the document seed mixed
     /// with the element's stable key and the stable levels of the scope it
-    /// sits in (ADR 0017), so it draws the same way in every build and in
+    /// sits in, so it draws the same way in every build and in
     /// every version of the document that keeps the element's key.
     pub(super) fn seeded_stream(&self, scope: ScopeId, key: ElemKey) -> u64 {
         let mut h = splitmix(self.session.seed ^ 0x5eed_5e1e_c7ed_0001);

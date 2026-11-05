@@ -1,7 +1,7 @@
-//! The session (ADR 0015): what a student's session accumulates and every
-//! build of the document reads, so state survives a rebuild. A build reads
-//! the session and returns the next one; it never moves it out of the
-//! document, so a failed rebuild leaves the document as it was.
+//! The session: what a student's session accumulates and every build of
+//! the document reads, so state survives a rebuild. A build reads the
+//! session and returns the next one, so a failed rebuild leaves the
+//! document as it was.
 
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -66,7 +66,7 @@ impl Session {
     }
 
     /// Record a document's essential values (its essential cells and
-    /// their keys) in `values`, so the next build carries them.
+    /// their keys), so the next build carries them.
     pub fn record(&mut self, slots: &[(ScopeId, u32)], cells: &[f64]) {
         let values = Arc::make_mut(&mut self.values);
         // Never shrink: `restore_state` may have parked values for scopes
@@ -180,8 +180,7 @@ impl Counts {
     }
 
     /// Stamp repeat element `node` in `scope` with `n` iterations, whatever
-    /// its count cell says: building a document at a chosen count
-    /// (`tests/every_count.rs`).
+    /// its count cell says.
     pub fn set(&mut self, scope: ScopeId, node: NodeId, n: u32) {
         self.0.insert((scope, node), n);
     }

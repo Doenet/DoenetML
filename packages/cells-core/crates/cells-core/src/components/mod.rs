@@ -1,26 +1,13 @@
-//! Stripped-down component definitions: which props each tag has, where each
-//! prop's value comes from, and its default. This is the only place that
-//! knows DoenetML tag vocabulary.
+//! Component definitions: which props each tag has, where each prop's value
+//! comes from, and its default. This is the only place that knows DoenetML
+//! tag vocabulary.
 //!
-//! A component's props are its slots; a prop may be computed from the
-//! component's other props by an operator (`PropFrom::Computed`), which is how
-//! a component such as `<slider>` describes its whole value chain without any
-//! code of its own: the chain is data, and inversion through it is the
-//! generic operator inverse.
+//! A prop may be computed from the component's other props by an operator
+//! (`PropFrom::Computed`), so a value chain such as a `<slider>`'s is data,
+//! inverted by the generic operator inverse.
 //!
-//! This file holds the types, the lookups the build uses, and the list of
-//! every type (`component_types!`). Each type is one `component!` block
-//! (`define.rs`, ADR 0016): its tags, flags, props, combined props, list,
-//! alternate names, shared state and planner, with its docs. The blocks
-//! are in the families' directories: `containers/`, `geometry/`,
-//! `inputs/`, `structure/`, `values/`. A type with a planner of its own
-//! has a file of its own there, its block and its planner together
-//! (`geometry/circle.rs`); a type planned from its table alone, or whose
-//! planner only refuses it, has an inline module in the family's
-//! `mod.rs`, which also holds what the family's members share. `prop.rs`
-//! gathers the named positions. `test_only.rs` holds components that
-//! exist only in this crate's unit tests. ARCHITECTURE.md walks through adding a
-//! type.
+//! Each type is one `component!` block, grouped by family; the list of
+//! every type is `component_types!`.
 
 use crate::program::OpSpec;
 
@@ -36,13 +23,9 @@ pub(crate) mod values;
 
 pub use containers::SECTION_TAGS;
 
-/// Attributes a renderer reads from the document's literal attributes
-/// (`LiteralAttrs`, ADR 0020) rather than the core from the DAST: how a
-/// component is presented, which is document text, not state. The check
-/// accepts them on any element, since the core never looks them up
-/// (`compile/check.rs`); one a renderer reads of one type alone is in that
-/// type's `presentation { .. }`. Every other attribute must be read by the
-/// type's planner, or the element is refused.
+/// Presentation attributes a renderer reads and the core does not, accepted
+/// on any element. Every other attribute must be read by the type's
+/// planner, or the element is refused.
 pub const PRESENTATION_ATTRS: &[&str] = &[
     "displayDecimals",
     "label",
@@ -56,11 +39,8 @@ pub use values::MAX_TUPLE;
 
 /// Declares every component type from one list: the `ComponentType` enum,
 /// `ComponentType::ALL`, and `COMPONENT_DEFS`, all in list order. Each
-/// entry names its type's definition, a `component!` block's
-/// `DEFINITION`. The entries of the `#[cfg(test)]` section, after the
-/// `;`, exist only in this crate's unit tests (`test_only.rs`, ADR 0016);
-/// they come after every other type, so no other type's discriminant
-/// depends on them.
+/// entry names a `component!` block's `DEFINITION`. The `#[cfg(test)]`
+/// entries come last, so no other type's discriminant depends on them.
 macro_rules! component_types {
     (
         $($(#[$doc:meta])* $variant:ident => $def:expr,)*;
@@ -91,9 +71,8 @@ macro_rules! component_types {
             $(#[cfg(test)] $tdef,)*
         ];
 
-        /// Where each type (but the test-only ones) is defined, as its
-        /// entry names it (`geometry::circle::DEFINITION`): where its spec
-        /// is, under `tests/specs/` (`geometry/circle.rs`).
+        /// Each non-test type with the path its entry names
+        /// (`geometry::circle::DEFINITION`).
         #[cfg(test)]
         const DEFINED_IN: &[(ComponentType, &str)] =
             &[$((ComponentType::$variant, stringify!($def)),)*];
@@ -757,20 +736,20 @@ impl ComponentType {
 
     /// Whether prop `pi` of an element with `n_props` public props is
     /// interactive: marked so in the table, or a point of a list marked
-    /// so (ADR 0017).
+    /// so.
     pub fn is_interactive_prop(self, n_props: usize, pi: usize) -> bool {
         self.is_marked(n_props, pi, |d| d.interactive, |l| l.interactive)
     }
 
     /// Whether prop `pi` of an element with `n_props` public props is one
     /// a renderer reads: marked so in the table, or a point of a list
-    /// marked so (ADR 0019). An output when the component is rendered.
+    /// marked so. An output when the component is rendered.
     pub fn is_rendered_prop(self, n_props: usize, pi: usize) -> bool {
         self.is_marked(n_props, pi, |d| d.rendered, |l| l.rendered)
     }
 
     /// How many consecutive cells prop `pi` is the first of: 1 but for a
-    /// curve's samples (ADR 0019).
+    /// curve's samples.
     pub fn prop_span(self, pi: usize) -> usize {
         self.prop_defs().get(pi).map_or(1, |d| d.span)
     }
@@ -781,20 +760,19 @@ impl ComponentType {
         self.prop_defs().get(pi)?.span_when.map(usize::from)
     }
 
-    /// Whether prop `pi` is a score a grader reads (ADR 0019).
+    /// Whether prop `pi` is a score a grader reads.
     pub fn is_score_prop(self, pi: usize) -> bool {
         self.prop_defs().get(pi).is_some_and(|d| d.score)
     }
 
-    /// Whether prop `pi` is one an action reads (ADR 0019).
+    /// Whether prop `pi` is one an action reads.
     pub fn is_read_by_action_prop(self, pi: usize) -> bool {
         self.prop_defs().get(pi).is_some_and(|d| d.read_by_action)
     }
 
-    /// Whether prop `pi` is one the core reads itself whether or not the
-    /// component is rendered (ADR 0019): a score, an input, what an action
-    /// reads, or a repeat's count. With the rendered props of rendered
-    /// components, the roots of what a document computes.
+    /// Whether prop `pi` is one the core reads whether or not the
+    /// component is rendered: a score, an input, what an action reads, or
+    /// a repeat's count.
     pub fn is_root_prop(self, n_props: usize, pi: usize) -> bool {
         self.is_score_prop(pi)
             || self.is_input_prop(n_props, pi)
@@ -822,12 +800,12 @@ impl ComponentType {
         pi < n_props && self.list().is_some_and(list)
     }
 
-    /// Where a component of the type is drawn (ADR 0019).
+    /// Where a component of the type is drawn.
     pub fn renders(self) -> Renders {
         self.def().renders
     }
 
-    /// Whether prop `pi` is one an action writes (ADR 0018).
+    /// Whether prop `pi` is one an action writes.
     pub fn is_action_prop(self, pi: usize) -> bool {
         self.prop_defs()
             .get(pi)
@@ -861,22 +839,20 @@ impl ComponentType {
         self.def().flags.symbolic
     }
 
-    /// See [`Flags::located`].
+    /// Whether every value it holds is a location.
     pub fn located(self) -> bool {
         self.def().flags.located
     }
 
-    /// See [`ComponentDef::reads_as`].
+    /// The type a bare reference to a component of this type reads as.
     pub fn reads_as(self) -> Option<ComponentType> {
         self.def().reads_as
     }
 
-    /// Whether `<to extend="$x"/>` of an `x` of type `from` is a related
-    /// type's extend (REF-5 of the principles, D26): it gives `x`'s value
-    /// as a `to`. The pairs this core expresses: a number and a math; an
-    /// input and a value type it reads as or one related to it, either
-    /// way (`<math extend="$mi"/>`, `<mathInput extend="$n"/>`). Any other
-    /// pair is an error (ADR 0025).
+    /// Whether `<to extend="$x"/>` of an `x` of type `from` gives `x`'s
+    /// value as a `to`: a number and a math, or an input and a value type
+    /// it reads as or one related to it, either way (`<math
+    /// extend="$mi"/>`, `<mathInput extend="$n"/>`).
     pub fn extends_as(from: ComponentType, to: ComponentType) -> bool {
         use ComponentType::*;
         fn values(a: ComponentType, b: ComponentType) -> bool {
@@ -1046,9 +1022,8 @@ mod tests {
     use super::ComponentType;
     use std::path::Path;
 
-    /// Every prop of every type, resolved, spells back to a name that
-    /// resolves to the same place (`sel_name`): what the build looks a
-    /// prop up by on a component of another type, and an error shows.
+    /// Every prop of every type, resolved, spells back (`sel_name`) to a
+    /// name that resolves to the same place.
     #[test]
     fn a_resolved_prop_spells_back_to_itself() {
         for &ty in ComponentType::ALL {
@@ -1103,10 +1078,8 @@ mod tests {
         }
     }
 
-    /// No silent NaN (ADR 0016): a component writes NaN only as
-    /// `NO_VALUE` (a value not given) or as `Wire::undefined` /
-    /// `Source::undefined` after a warning, never as `f64::NAN`. Only
-    /// `define.rs`, the machinery of definitions, uses NaN itself.
+    /// No component file but `define.rs` writes `f64::NAN` itself: NaN
+    /// is `NO_VALUE` or `Wire::undefined` / `Source::undefined`.
     #[test]
     fn components_write_no_nan_of_their_own() {
         // Spelled in two halves, so this file does not find itself.
@@ -1133,10 +1106,8 @@ mod tests {
         );
     }
 
-    /// A planner names a port, never a position (ADR 0032): nothing under
-    /// `components/` computes where a value sits in an element's wiring.
-    /// `Port::table` is the macro's (`define.rs`), and `list_slot`, defined
-    /// here for the build, is called by no planner.
+    /// No planner computes a slot position (`list_slot`, `Port::table`):
+    /// it names a port.
     #[test]
     fn components_compute_no_slot_positions() {
         // Spelled in halves, so this file does not find itself.
@@ -1165,9 +1136,7 @@ mod tests {
         );
     }
 
-    /// A type planned from its table has no `by_planner` prop (ADR 0034):
-    /// the table says what every prop is, and `plan_attrs` refuses one it
-    /// cannot. A prop only a function or machinery plans needs one.
+    /// A type planned from its table has no `by_planner` prop.
     #[test]
     fn a_table_type_plans_every_prop() {
         let found: Vec<String> = ComponentType::ALL
@@ -1188,9 +1157,8 @@ mod tests {
         );
     }
 
-    /// A planner reads its record, never the source (ADR 0034, decision
-    /// 1): no file under `components/` reaches the DAST, a node, an
-    /// `extend` referent or the `extend` itself.
+    /// No planner reaches the DAST, a node, an `extend` referent or the
+    /// `extend` itself: it reads its record.
     #[test]
     fn components_read_no_source() {
         // Spelled in halves, so this file does not find itself.
@@ -1223,10 +1191,8 @@ mod tests {
         );
     }
 
-    /// What `PlanCtx` offers a planner (ADR 0034, decision 1): its record,
-    /// the planning of what the record holds, and `warn`. The count of its
-    /// methods is recorded here, so that it grows deliberately: a planner's
-    /// need is met by the record first.
+    /// `PlanCtx`'s planner methods match a recorded count, so the API
+    /// grows only deliberately.
     #[test]
     fn plan_ctx_grows_deliberately() {
         const PLAN_CTX_METHODS: usize = 19;
@@ -1242,9 +1208,7 @@ mod tests {
         );
     }
 
-    /// Types a spec is still to be written for (ADR 0016, Migration step
-    /// 8): the list only shrinks. A type with a spec must leave it, and a
-    /// new type comes with its spec.
+    /// Types a spec is still to be written for: the list only shrinks.
     const WITHOUT_SPEC: &[super::ComponentType] = {
         use super::ComponentType::*;
         &[
@@ -1306,8 +1270,8 @@ mod tests {
     };
 
     /// Every type an author writes has a spec at
-    /// `tests/specs/<family>/<file>.rs`, where its definition is, unless it
-    /// is in `WITHOUT_SPEC`; one in `WITHOUT_SPEC` has none.
+    /// `tests/specs/<family>/<file>.rs` exactly when it is not in
+    /// `WITHOUT_SPEC`.
     #[test]
     fn every_component_has_a_spec() {
         let specs = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/specs");

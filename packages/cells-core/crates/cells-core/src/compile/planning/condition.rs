@@ -1,13 +1,10 @@
 //! Conditions: comparisons and boolean operators over math, planned as
-//! hidden ports of an element. A `<case condition>` and a
-//! `<conditionalContent condition>` plan theirs on the choice element; a
-//! `<boolean>` plans its content on itself (`components/values/boolean.rs`).
+//! hidden ports of an element.
 //!
-//! An operand that lowers to numeric operators (ADR 0005) is compared
-//! numerically. One that does not (a free symbol, a function the lowering
-//! does not know) is a symbolic math source: `=` and `!=` then compare the
-//! two expressions in the engine, the way an `<answer>` does, and `<`, `>`
-//! and a lone operand evaluate the expression to a number first.
+//! An operand that lowers to numeric operators is compared numerically.
+//! One that does not is a symbolic math source: `=` and `!=` then compare
+//! the two expressions in the engine, and `<`, `>` and a lone operand
+//! evaluate the expression to a number first.
 
 use crate::compile::*;
 
@@ -60,11 +57,8 @@ impl<'a> Compiler<'a> {
 
     /// A condition over a text value: `$t = rain`, `rain != $t`, `$t = $ti`,
     /// one `=` or `!=` with a lone text reference or literal text on each
-    /// side. Equal text holds equal string ids (`intern_literal`,
-    /// `Document::intern`), so it is `Eq` on the two cells, the literal
-    /// side a constant with its id. `None` when no text value is
-    /// involved; any other use of one is refused by name, so a text cell
-    /// never compares as a number.
+    /// side, planned as `Eq` on string ids. `None` when no text value is
+    /// involved; any other use of one is refused.
     fn plan_text_condition(
         &mut self,
         t: TemplateId,
@@ -130,7 +124,7 @@ impl<'a> Compiler<'a> {
         }))
     }
 
-    /// A condition from tokens already made (`math_tokens`), with a say in
+    /// A condition from tokens already made, with a say in
     /// how expressions compare.
     pub(in crate::compile) fn plan_condition_tokens(
         &mut self,

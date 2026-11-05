@@ -1,10 +1,9 @@
 //! Index types: a position in one particular list, as its own type, so an
 //! index into one list cannot be passed where an index into another is
-//! meant. Each wraps a `u32` (`#[repr(transparent)]`, so no larger than
-//! one) and is read as a position only through `index()`.
+//! meant. Each wraps a `u32` and is read as a position through `index()`.
 
 /// Define an index type over `u32`. Its `Debug` and `Display` print the
-/// bare number, so dumps and messages read as they did with a `u32`.
+/// bare number.
 macro_rules! index_type {
     ($(#[$attr:meta])* $vis:vis struct $name:ident;) => {
         $(#[$attr])*

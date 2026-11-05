@@ -1,35 +1,19 @@
-//! The abstract build (ADR 0012, ADR 0014), the build the compile's check
-//! runs through, and the count-independent cycle check: a document is
-//! rejected at load when a dependency loop would close at an iteration
-//! count a repeat can reach, not only at the count it loads with.
+//! The abstract build, the build the compile's check runs through, and the
+//! count-independent cycle check: a document is rejected at load when a
+//! dependency loop would close at any iteration count a repeat can reach.
 //!
-//! The stamped graph has no edge for an indexed reference past the current
-//! count, since it resolves to the missing referent, so a loop that closes
-//! only at a count a student reaches is invisible to the schedule's check.
-//! This check builds the document once more through the *abstract view*, a
-//! structure view (`view.rs`) whose answers fold every iteration into one,
-//! and discards its cells: every repeat gets exactly one iteration, an
-//! index past it lands in it, and every reference edge is labelled with how
-//! it moves through the iterations, one entry per level of nesting of its
-//! target. `$r[$i-2].x` written inside `r` keeps the position and shifts it
-//! by minus two; `$r[2].x` resets it; a bare `$x` keeps it. A loop is a
-//! cycle when its shifts sum to zero in every coordinate it keeps; a loop
-//! that only marches through the iterations, a lagged recurrence, is not. A
-//! coordinate some edge of the loop resets is taken as free, which can only
-//! report a cycle, never miss one.
+//! The document is built once more through the abstract view: every repeat
+//! gets one iteration, an index past it lands in it, and every reference
+//! edge is labelled with how it moves through the iterations, one entry per
+//! level of nesting of its target. `$r[$i-2].x` inside `r` keeps the
+//! position and shifts it by minus two; `$r[2].x` resets it; a bare `$x`
+//! keeps it. A loop is a cycle when its shifts sum to zero in every
+//! coordinate it keeps; a lagged recurrence is not. A coordinate some edge
+//! of the loop resets is taken as free, which can only over-report.
 //!
 //! A count whose inputs reach a cell inside a repeat's iterations is a
-//! cycle of structure rather than of values: the repeats form a graph with
-//! an edge from the reading count's repeat to the one read (nesting adds no
-//! edge, since an inner count may read its outer iteration), and a loop on
-//! it, a self-loop included, is rejected here too. So the abstract build
-//! can see them, it answers that a collect's count reads the counts of the
-//! repeats it gathers from, and that a select builds every option, since an
-//! iteration or a seed may draw any of them.
-//!
-//! The abstract build runs emit too, so a rule emit applies to resolved
-//! sources (the prefill rule in `seed_cells`) is checked against the
-//! referents of every count, with no copy of it here.
+//! cycle of structure: a loop on the graph of repeats, a self-loop
+//! included, is rejected too.
 
 use super::*;
 
@@ -42,12 +26,10 @@ pub(in crate::build) enum Coord {
     Reset,
 }
 
-/// The abstract build (ADR 0012, ADR 0014): the compile built once through
-/// the abstract view, its graph tested for loops at any count, and emitted
-/// so emit's rules run on the referents of every count and every option. It
-/// reads a session of its own, so nothing a student's session holds (the
-/// seed above all) reaches what it finds. The compile's check and
-/// `compile::diagnose` keep only its failures and warnings.
+/// The abstract build: the compile built once through the abstract view,
+/// its graph tested for loops at any count, and emitted so emit's rules run
+/// on the referents of every count and every option. It reads a session of
+/// its own.
 pub(crate) fn abstract_build(
     compiled: &Compiled,
     checks: bool,
@@ -104,9 +86,8 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// Whether every slot reads only slots made before it, which no loop
-    /// can do: the common case, decided in one pass before any component
-    /// is searched.
+    /// Whether every slot reads only slots made before it, so no loop
+    /// exists.
     fn reads_only_earlier_slots(&self) -> bool {
         let earlier =
             |s: usize, src: &BuiltSource| src.eval_inputs(&self.op_inputs).all(|w| w.index() < s);
@@ -137,14 +118,10 @@ impl<'c> Builder<'c> {
     /// itself sits inside them (an inner count reading its outer iteration
     /// is legal). A self-loop is a count reading its own iterations.
     ///
-    /// Without a loop, the same edges give the document's structural depth
-    /// (`CONTEXT.md`): how many repeats must be expanded in sequence before
-    /// a count can be computed, plus one. Nesting adds one; an edge of the
-    /// graph, a count reading a cell inside another repeat's iterations,
-    /// adds one and is warned about, since authors can avoid it. The
-    /// abstract build stands for every count (ADR 0014), so no build
-    /// exceeds the depth it finds, and the load allows that many passes
-    /// (`Compiled::passes`).
+    /// Without a loop, the same edges give the document's structural depth:
+    /// how many repeats must be expanded in sequence before a count can be
+    /// computed, plus one. Nesting adds one; an edge of the graph adds one
+    /// and is warned about.
     pub(in crate::build) fn check_counts(&mut self) -> Result<()> {
         let n = self.repeats.len();
         let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];

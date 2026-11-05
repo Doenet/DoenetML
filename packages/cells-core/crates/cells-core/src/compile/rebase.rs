@@ -1,10 +1,7 @@
-//! Reading a record from another template (ADR 0032, decision 3): an
-//! extend whose referent sits in another template (`<point
-//! extend="$r[2].P" y="5"/>`) merges its own record under the referent's,
-//! whose references were planned where the referent sits. Each is rebased
-//! through the path the extend names: the plan from the copy's template
-//! to the referent, composed with the referent's plan, so a `$v` in the
-//! referent's attribute means what it means at the referent, in the
+//! Reading a record from another template: an extend whose referent sits
+//! in another template (`<point extend="$r[2].P" y="5"/>`) rebases each of
+//! the referent's references through the path the extend names, so a `$v`
+//! in the referent's attribute means what it means at the referent, in the
 //! iteration the path names.
 
 use crate::compile::*;

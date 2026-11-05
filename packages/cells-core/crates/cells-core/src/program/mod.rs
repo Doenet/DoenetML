@@ -1,9 +1,5 @@
-//! The instruction set: what the build emits and a tick runs. An
-//! instruction and its unbound spec are in `instr.rs`; the operator, with
-//! the scalar operators' evaluation and inverse rules, in `scalar.rs`; the
-//! vector operators and theirs in `vector.rs`. This file holds the
-//! instruction list and its topological schedule. The inversion engine that drives the inverses is
-//! `tick/invert.rs`.
+//! The instruction set: what the build emits and a tick runs. This module
+//! holds the instruction list and its topological schedule.
 
 use crate::sym::{Engine, Handle};
 
@@ -79,7 +75,7 @@ const NEVER: f64 = f64::from_bits(0x7ff8_dead_beef_0001);
 #[derive(Debug, Clone, Default)]
 pub struct Program {
     pub instrs: Vec<Instr>,
-    /// producer[cell] = index into `instrs` of the instruction writing that
+    /// `producer[cell]` = index into `instrs` of the instruction writing that
     /// cell, or `u32::MAX` for essential cells and constants. A vector
     /// instruction produces several consecutive cells.
     pub producer: Vec<u32>,
@@ -193,8 +189,8 @@ impl Holds {
     }
 
     /// Per cell of `cells`, whether a constant flag holds it: one of the
-    /// constants `constants` (`Document::n_const`) that is set, which no
-    /// request passes while the program stands.
+    /// constants `constants` that is set, which no request passes while the
+    /// program stands.
     pub fn held_always(&self, cells: &[f64], constants: std::ops::Range<usize>) -> Vec<bool> {
         let mut held = vec![false; cells.len()];
         for (&c, flags) in &self.0 {
@@ -214,13 +210,6 @@ fn differs(new: f64, old: f64) -> bool {
 impl Program {
     /// Orders `instrs` topologically. Returns the cell index of an output
     /// involved in a cycle on failure.
-    ///
-    /// Fast path: the builder emits instructions in creation order, which
-    /// for a template stamped per iteration is almost always already a valid
-    /// evaluation order (within an iteration the template is in document
-    /// order; a lag of `k - d` reads an earlier iteration). One linear pass
-    /// checks that every input is essential, a constant, or produced earlier; only
-    /// when that fails does the general sort run.
     pub fn schedule(
         instrs: Vec<Instr>,
         n_cells: usize,
@@ -371,10 +360,8 @@ impl Program {
         }
     }
 
-    /// A symbolic instruction: rerun only if an input changed since its last
-    /// run, then write the outputs of that run. Keyed on input values rather
-    /// than on a dirty flag, so stepping on a scratch copy (the reference
-    /// evaluator) gives the same answer as stepping on the cells.
+    /// A symbolic instruction: rerun only if an input value changed since its
+    /// last run, then write the outputs of that run.
     #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn step_sym(
@@ -455,8 +442,7 @@ impl Program {
     }
 
     /// Recompute every derived cell, appending the indices whose value
-    /// changed to `changed`. NaN to NaN counts as unchanged. Never inlined:
-    /// the tick's hot loop then compiles the same whatever its caller does.
+    /// changed to `changed`. NaN to NaN counts as unchanged.
     #[inline(never)]
     pub fn run_all_tracking(
         &self,

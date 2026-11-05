@@ -1,20 +1,14 @@
-//! Whether the abstract build's graph covers a real build's (ADR 0012, ADR
-//! 0014), for tests: the compile finds every cycle only if every dependency
-//! a build at any count and pick can have is one the abstract build has,
-//! with a label that admits it. That rests on conventions (every structural
-//! read goes through the view, every indexed edge is labelled right); this
-//! checks them on a given build instead of trusting them.
+//! Whether the abstract build's graph covers a real build's, for tests:
+//! the compile finds every cycle only if every dependency a build at any
+//! count and pick can have is one the abstract build has, with a label
+//! that admits it. This checks that on a given build.
 //!
-//! A slot of an element is known in both graphs by its template, element
-//! and position among the element's slots: the abstract build stamps each
-//! template once, so that names one abstract-build slot. Other slots (an
-//! operator's intermediates, the abstract build's stand-ins for a pick, the
-//! missing referent) are passed through: a dependency is from an element's
-//! slot to the element slots it reaches through them, its abstract-build
-//! label composed along the way. A real dependency is covered when the
-//! abstract build has one between the same slots whose label the real
-//! iterations satisfy: a kept coordinate at a level says the position there
-//! is shifted by its amount, a reset one says nothing.
+//! An element's slot is known in both graphs by its template, element and
+//! position among the element's slots. Other slots are passed through: a
+//! dependency is from an element's slot to the element slots it reaches
+//! through them, its label composed along the way. A real dependency is
+//! covered when the abstract build has one between the same slots whose
+//! label the real iterations satisfy.
 
 use super::*;
 
@@ -99,10 +93,8 @@ fn staged<'c>(
 
 /// Whether a real dependency, from a slot at scope positions `at_u` to one
 /// at `at_v` (per level from the document down: the repeat or choice
-/// element and the 1-based position), satisfies a abstract-build label. A
-/// kept coordinate relates positions, whatever repeat each is in
-/// (`$r[$k+1]` inside `q` keeps `q`'s position plus one): a loop comes back
-/// to the same slot, so the same repeat, and only the positions add up.
+/// element and the 1-based position), satisfies an abstract-build label. A
+/// kept coordinate relates positions, whatever repeat each is in.
 fn admits(label: &[Coord], at_u: &[(NodeId, u32)], at_v: &[(NodeId, u32)]) -> bool {
     label.iter().enumerate().all(|(j, c)| match c {
         Coord::Reset => true,

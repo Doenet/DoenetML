@@ -1,16 +1,9 @@
-//! Sticky groups (ADR 0007): the snapping rule. A member a request moves is
-//! pulled onto the vertices and edges of the group's other members when it
-//! comes within the threshold. This file is the rule only: a pure function
-//! of the dragged member's requested vertices and the other members'
-//! current ones. Which cells it reads and where its result goes is the
-//! request pre-pass's business (`document/sticky.rs`, ADR 0007).
-//!
-//! The rule is the current core's (`StickyGroup.js`, `constraints.js`,
-//! `constraintUtils.js`), ported line for line, including its quirks, so the
-//! oracle's numbers come out the same. What is left out is Tier 3 (ADR
-//! 0007's declared gap): a rigid or similarity shape dragged by one vertex
-//! (rotation snapping, which the current core does through a pre-snap
-//! reference cache). Such a drag is not snapped.
+//! Sticky groups: the snapping rule. A member a request moves is pulled onto
+//! the vertices and edges of the group's other members when it comes within
+//! the threshold. The rule is a pure function of the dragged member's
+//! requested vertices and the other members' current ones, ported from the
+//! current core including its quirks. A rigid or similarity shape dragged by
+//! one vertex is not snapped.
 
 pub type Pt = [f64; 2];
 
@@ -81,8 +74,8 @@ impl Attractors {
 /// unrequested ones at their current values) and receives the result.
 /// `moved` is the one vertex requested, when only one was: that vertex may
 /// distort the shape; otherwise the whole shape shifts. `rigid` marks a
-/// rigid or similarity shape, whose one-vertex drags are Tier 3 and pass
-/// through unsnapped.
+/// rigid or similarity shape, whose one-vertex drags pass through
+/// unsnapped.
 pub fn snap(
     shape: Shape,
     rigid: bool,
@@ -539,11 +532,9 @@ fn constrain_edges(
 }
 
 /// `attractSegment`: the closest other edge the segment can lie along, with
-/// its length kept, if within the threshold. The current core screens
-/// candidates against a threshold widened a thousandfold when rotation is
-/// allowed (for its rotation fallbacks, which are Tier 3), then keeps only a
-/// result within the real threshold; the screen is kept since it decides
-/// which candidates are seen.
+/// its length kept, if within the threshold. Candidates are first screened
+/// against a threshold widened a thousandfold when rotation is allowed, as
+/// the current core does.
 fn attract_segment(
     seg: [Pt; 2],
     allow_rotation: bool,

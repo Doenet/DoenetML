@@ -1,10 +1,8 @@
 //! A flat, columnar DAST. Nodes live in parallel arrays indexed by `NodeId`;
 //! every string (tag names, attribute names, text, reference path parts)
 //! lives once in a shared [`StringTable`]. Two loaders fill the same
-//! structure: [`Dast::from_json`] (`json.rs`) for the JSON emitted by
-//! `@doenet/parser`, and [`Dast::from_binary`] (`binary.rs`) for the compact
-//! wire format written by `scripts/cdast-encode.mjs` (see
-//! `docs/adr/0002-binary-wire-format.md`).
+//! structure: [`Dast::from_json`] for the JSON emitted by `@doenet/parser`,
+//! and [`Dast::from_binary`] for the compact binary wire format.
 //!
 //! Node 0 is a synthetic root element whose children are the document's
 //! top-level nodes. Macros (`$a.b`) reuse the attribute range fields to index
@@ -143,10 +141,8 @@ pub type PathPart = u32;
 impl Dast {
     pub const ROOT: NodeId = NodeId::new(0);
 
-    /// A hash of the whole tree, equal for equal trees: what saved state
-    /// names the document version it was made in by (ADR 0017). Not a
-    /// cryptographic hash, and fast: it runs once per load over the whole
-    /// tree.
+    /// A hash of the whole tree, equal for equal trees. Not a cryptographic
+    /// hash.
     pub fn version_hash(&self) -> u64 {
         fn words(h: u64, xs: &[u32]) -> u64 {
             let h = xs.iter().fold(h, |h, &x| {
@@ -249,7 +245,7 @@ impl Dast {
     }
 
     /// An attribute by name; DoenetML attribute names ignore case. A hit
-    /// is recorded as read (`attr_read`).
+    /// is recorded as read.
     pub fn attr(&self, n: NodeId, name: &str) -> Option<AttrId> {
         let a = self.attr_peek(n, name)?;
         self.attr_read.mark(a as usize);
@@ -257,17 +253,15 @@ impl Dast {
     }
 
     /// `attr` that records no read: for what looks at the source without
-    /// giving the attribute a meaning (lint, ADR 0027), so it may run
-    /// before or after the compile without changing which attributes
-    /// ADR 0021 refuses.
+    /// giving the attribute a meaning.
     pub fn attr_peek(&self, n: NodeId, name: &str) -> Option<AttrId> {
         self.attrs(n)
             .find(|&a| self.attr_name(a).eq_ignore_ascii_case(name))
     }
 
     /// Whether `attr` has looked attribute `a` up since the tree was made:
-    /// some part of the core read it, so the author's attribute means
-    /// something here. Listing a node's attributes (`attrs`) is not a read.
+    /// some part of the core read it. Listing a node's attributes is not a
+    /// read.
     pub fn attr_read(&self, a: AttrId) -> bool {
         self.attr_read.get(a as usize)
     }
@@ -282,7 +276,7 @@ impl Dast {
         &self.path[s..s + c]
     }
 
-    /// Positions of a macro's path parts, for `part_indices`.
+    /// Positions of a macro's path parts.
     #[inline]
     pub fn macro_parts(&self, n: NodeId) -> std::ops::Range<PathPart> {
         let s = self.a_start[n.index()];

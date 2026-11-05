@@ -1,25 +1,19 @@
-//! Operators: the numeric functions that compute derived cells. A literal
-//! an operator reads is a constant like any other input
-//! (`Builder::const_slot`). Every
-//! scalar operator is one `scalar_ops!` entry (`ops.rs`, ADR 0016): to add
-//! one, add an entry.
+//! Operators: the numeric functions that compute derived cells. Every scalar
+//! operator is one `scalar_ops!` entry: to add one, add an entry.
 //!
-//! Inverse rules for the scalar operators here (ADR 0003): a binary operator
-//! writes its first argument; an idempotent operator (Round, Floor, Clamp, Min, Max)
-//! inverts by projection, applying itself to the requested value; an inverse
-//! that is undefined for the current values, or whose requested value is
-//! outside the operator's domain (a non-finite ask on Round), returns `None`
-//! and the request is dropped. Vector operators (`Op::Vec`) carry their own
-//! rules in `vector.rs`, and may write several inputs; the request engine in
-//! `tick/invert.rs` gathers requests and keeps point groups together.
+//! Inverse rules for the scalar operators: a binary operator writes its first
+//! argument; an idempotent operator (Round, Floor, Clamp, Min, Max) inverts by
+//! projection, applying itself to the requested value; an inverse that is
+//! undefined for the current values, or whose requested value is outside the
+//! operator's domain (a non-finite ask on Round), returns `None` and the
+//! request is dropped.
 
 use super::ops::scalar_ops;
 use crate::document::CellIdx;
 use crate::program::{OperandIdx, SymIdx, SymKind, VecIdx, VecOp};
 
 /// `Math.round`: halves round toward positive infinity, unlike Rust's
-/// `round`, which rounds them away from zero. The current core is JavaScript,
-/// so a grid snap of -1.5 must give -1 here too.
+/// `round`, which rounds them away from zero.
 #[inline(always)]
 pub fn js_round(x: f64) -> f64 {
     (x + 0.5).floor()
@@ -132,8 +126,7 @@ scalar_ops! {
     }
     /// `a` when it is a whole number from 1 to `n`, else 0: a choice
     /// index, 0 meaning none is chosen. A request outside that set
-    /// (NaN, a fraction, out of range) chooses none, as the current
-    /// core's `selectedIndices` inverse does.
+    /// (NaN, a fraction, out of range) chooses none.
     ChoiceIndex(a, n) {
         eval: choice_index(a, n),
         projection |d| Some((A, choice_index(d, n))),
@@ -237,7 +230,7 @@ impl Op {
 }
 
 /// Every scalar operator's inverse, checked against what its entry
-/// declares (ADR 0016), over a fixed table of values for each input.
+/// declares, over a fixed table of values for each input.
 #[cfg(test)]
 mod inverses {
     use super::*;
@@ -278,7 +271,7 @@ mod inverses {
     }
 
     /// Every input an inverse writes is one its entry declares
-    /// (`OpSpec::writes`, ADR 0018).
+    /// (`OpSpec::writes`).
     #[test]
     fn every_inverse_writes_a_declared_input() {
         for spec in OpSpec::scalars() {

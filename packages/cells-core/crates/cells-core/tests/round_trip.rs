@@ -1,15 +1,7 @@
-//! The standing round trip of ADR 0026: every interactive number cell of
-//! the golden set (`crates/cells-bench/golden`) and `fixtures/sir.doenet`
-//! is requested at several values, an x/y pair as a point group
-//! (`testing::round_trip`). Each request must come out exact, projected,
-//! unchanged, dropped or rebuilt, never unstable. A request whose inverse
-//! would write a value reaching its cell along more than one path, which
-//! came out unstable before fix 2, is refused, so it comes out dropped
-//! (`program::refuse`).
-//!
-//! The generated fixtures (`npm run fixtures`) are left out: each is one
-//! synthetic shape at up to 100,000 elements, where a sweep, a copy of the
-//! document per request, costs the square of the size.
+//! The round trip over every interactive number cell of the golden set and
+//! `sir.doenet`: each request must come out exact, projected, unchanged,
+//! dropped or rebuilt, never unstable. The generated fixtures are left out,
+//! as a sweep costs the square of a document's size.
 
 use cells_core::testing::round_trip::{Class, sweep};
 use cells_core::testing::test_utils::{load, repo_root};

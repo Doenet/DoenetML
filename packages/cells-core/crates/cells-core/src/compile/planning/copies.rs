@@ -1,9 +1,7 @@
-//! Copies, as planned: `extend` with a prop path, container copies (whose
-//! clones outlining made, `outline/copies.rs`), the clone elements
-//! themselves, and `plan_with_extend`, which runs a `Planner::Plan` type's
-//! planner and applies the copy rules around it: a bare copy aliases every
-//! prop, and a copy with its own attributes keeps the shared state they
-//! supply and shares the rest, which linking ties (`link/mod.rs`).
+//! Copies, as planned: `extend` with a prop path, container copies, the
+//! clone elements themselves, and the copy rules around a `Planner::Plan`
+//! type's planner: a bare copy aliases every prop, and a copy with its own
+//! attributes keeps the shared state they supply and shares the rest.
 
 use super::Planning;
 use crate::compile::*;
@@ -51,7 +49,7 @@ impl<'a> Compiler<'a> {
     /// `<graph extend="$g" name="g2"/>`: the copy's props alias the
     /// original's, or, for a type planned by a function (a section), are
     /// planned with the copy rules around it. Its children, clones, it has
-    /// from outlining (`expand_container_copy`).
+    /// from outlining.
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
         pl: &mut Planning,
@@ -112,14 +110,11 @@ impl<'a> Compiler<'a> {
             .then_some(Referent::Path(p, rt, re))
     }
 
-    /// Runs a `Plan` type's planner (`plan`, from `planner`) with the copy
-    /// rules around it (ADR 0032, decision 3): a bare copy aliases every
-    /// prop; a copy with its own attributes or children is planned from
-    /// its record merged under the referent's, each value where its
-    /// writer sits (ADR 0023), the referent's rebased through the path
-    /// when the referent sits in another template; and every given leaf
-    /// the copy did not give itself is shared with the referent's port
-    /// holding it (`link_given_leaves`).
+    /// Runs a `Plan` type's planner `plan` with the copy rules around it: a
+    /// bare copy aliases every prop; a copy with its own attributes or
+    /// children is planned from its record merged under the referent's;
+    /// and every given leaf the copy did not give itself is shared with the
+    /// referent's port holding it.
     pub(in crate::compile) fn plan_with_extend(
         &mut self,
         pl: &mut Planning,
@@ -213,8 +208,8 @@ impl<'a> Compiler<'a> {
     }
 }
 
-/// The copy rules of `plan_with_extend` (ADR 0016, Migration step 8), against the
-/// test-only components: a bare copy aliases its referent; a copy with
+/// The copy rules of `plan_with_extend`, against the test-only
+/// components: a bare copy aliases its referent; a copy with
 /// its own attributes keeps the shared state those attributes supply, and
 /// shares the rest with its referent, in both directions.
 #[cfg(test)]

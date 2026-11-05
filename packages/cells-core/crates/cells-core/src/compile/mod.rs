@@ -1,66 +1,26 @@
-//! The compile (ADR 0015): the source made, once per load, into what
-//! every build stamps: one [`Template`](plan::Template) per repeat body,
-//! choice branch and the document, with a *plan* for every prop (a
-//! literal, a default, an operator over references, a math, a reference)
-//! and every reference (a path through the template nesting: how many
-//! levels up the name was found, which element, which `[index]` steps,
-//! which prop). Nothing in a plan depends on which iteration it will be
-//! stamped in, so all string work happens once per template element.
+//! The compile: the source made, once per load, into what every build
+//! stamps: one [`Template`] per repeat body, choice branch
+//! and the document, with a *plan* for every prop and a path through the
+//! template nesting for every reference. Nothing in a plan depends on which
+//! iteration it will be stamped in.
 //!
-//! The compile runs in stages (ADR 0027, ADR 0029, ADR 0030), each
-//! reading only what earlier stages made (`Compiler::compile`):
+//! The compile runs in stages, each reading only what earlier stages made:
 //!
-//! | Stage | Code | Makes |
-//! |---|---|---|
-//! | lint | `lint.rs` | findings from the DAST alone, first |
-//! | **outline** | `Compiler::outline` → `Outline` | every element and template, the name table, what a reference reads of each (`settle_outline`), container copies' clones (`copies.rs`), answers' synthetic children (`answer.rs`); no plans |
-//! | **parse** | `Compiler::parse_maths` → `Parsed` | every `<math>`'s text parsed, its `$ref`s planned |
-//! | **plan** | `Compiler::plan_all` → `Planned` | every element's plans and hold, every `$ref` child's plan |
-//! | **link** | `Compiler::link(&mut Planned)` | readers of boxed referents boxed, elements with an attribute nothing read boxed (`unread.rs`, ADR 0021), shared state tied |
-//! | **seal** | `seal.rs`, given `&Planned` | choice interfaces, arity, keys, slot offsets, port types |
-//! | **share** | `share.rs`, given `Planned::paths` | equal derived ports made aliases, the expression classes (ADR 0033) |
-//! | **abstract build** | `check.rs`, `build/abstract_build.rs` | cycles, writable and live records, structural depth |
+//! | Stage | Makes |
+//! |---|---|
+//! | lint | findings from the DAST alone |
+//! | outline | every element and template, the name table, what a reference reads of each; no plans |
+//! | parse | every `<math>`'s text parsed, its `$ref`s planned |
+//! | plan | every element's plans and hold, every `$ref` child's plan |
+//! | link | readers of boxed referents boxed, shared state tied |
+//! | seal | choice interfaces, arity, keys, slot offsets, port types |
+//! | share | equal derived ports made aliases, the expression classes |
+//! | abstract build | cycles, writable and live records, structural depth |
 //!
-//! `check.rs` drives them (`plan_and_check`): it runs outline to seal
-//! (`Compiler::compile`), then the abstract build, which stands for every
-//! count and pick (ADR 0012, ADR 0014), and compiles again when a failure
-//! could not be boxed where it arose (ADR 0013). Each stage returns what
-//! it makes for later ones, and `Compiler::compile` hands it on as
-//! arguments: outlining's work lists and the reads it recorded
-//! ([`Outline`]), what parsing made ([`Parsed`]), what planning made
-//! ([`Planned`]). What outlining settles ([`Settled`]) is the one result
-//! every later stage reads, so it is on `Compiler`, written by outlining
-//! alone. What a stage needs only while it runs is a local of the stage's
-//! function, handed down to what it calls (`outline/mod.rs`'s
-//! `Outlining`, `planning/mod.rs`'s `Planning`, which the planners reach
-//! through their context). All of them write the compile itself
-//! (`Compiled`), each in its own way (see the field's doc).
-//!
-//! Files follow the stages (ADR 0030). This one has the driver
-//! (`Compiler::compile`), `Compiler` and the stages' results. Each stage
-//! has its own module: `outline/`, `parse.rs`, `planning/`, `link/`,
-//! `seal/`; `check.rs` drives the compile and runs the abstract build,
-//! and `lint.rs` holds the rules that need only the DAST. What more than
-//! one stage uses has a module of its own: `names.rs` the name table,
-//! `refs.rs` reference paths, `maths.rs` math text, `source.rs` reading
-//! an element's attributes and children, `boxes.rs` boxing, and
-//! `expr.rs` the parse arena for math text. Planners are in their types'
-//! files under `components/` (ADR 0016) and use only what `api.rs`
-//! exports. What the compile produces is in `plan.rs`.
-//!
-//! An element that fails is boxed (ADR 0013, ADR 0027, ADR 0030): by
-//! `box_in_place`, while outlining, planning or linking, or by
-//! `push_error_elem` where no element was made for it yet (a node boxed by
-//! an earlier compile, an element that fails before it is pushed, a `$ref`
-//! child that cannot be planned). Every read of another element's facts
-//! is recorded (`record_read`, ADR 0032), and linking boxes the readers
-//! of every box to a fixpoint, so what a box's readers planned from it
-//! never stands: a container copy's clones of what is under a box die
-//! with the copy. A failure no element can carry (a synthetic element's)
-//! is recorded as `restart`, and ends the compile at the next stage
-//! boundary; so do sealing's failures. `plan_and_check` boxes the node of
-//! such a failure, and of an abstract build failure, from the start of a
-//! new compile. No failure's handling depends on what failed before it.
+//! An element that fails is boxed (compiled as an `_error` element) where
+//! it fails, and linking boxes the readers of every box to a fixpoint. A
+//! failure no element can carry ends the compile at the next stage
+//! boundary, and the compile is run again with that failure's node boxed.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
@@ -253,12 +213,6 @@ impl Compiler<'_> {
     /// Compile `dast`, with the nodes in `boxed` as `_error` elements, and
     /// every element that fails to plan boxed where it fails. A failure
     /// names the node to box before compiling again, when there is one.
-    ///
-    /// The compile's stages, in order (ADR 0027, ADR 0029, ADR 0030), each
-    /// given the results of those before it. A stage boxes every failure
-    /// where it arises and goes on; one that could not be boxed there
-    /// (`box_in_place`) ends the compile once its stage is done, for
-    /// `plan_and_check` to box its node and compile again.
     pub(in crate::compile) fn compile(
         dast: &Arc<Dast>,
         boxed: &HashSet<NodeId>,
@@ -319,11 +273,7 @@ impl Compiler<'_> {
         cp.restart_if_needed()?;
         cp.stage = Stage::Link;
         crate::trace::span("link").run(|| cp.link(&mut planned))?;
-        debug_assert_eq!(
-            cp.elem_count(),
-            outlined,
-            "only outlining makes elements (ADR 0030, ADR 0031)"
-        );
+        debug_assert_eq!(cp.elem_count(), outlined, "only outlining makes elements");
         cp.restart_if_needed()?;
         cp.stage = Stage::Seal;
         let (sealed, choice_seals) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
@@ -367,7 +317,7 @@ impl Compiler<'_> {
 }
 
 impl Compiler<'_> {
-    /// What outlining settled, which it alone makes (ADR 0030).
+    /// What outlining settled.
     pub(in crate::compile) fn settled(&self) -> &Settled {
         &self.settled
     }
@@ -377,7 +327,7 @@ impl Compiler<'_> {
         debug_assert_eq!(
             self.stage,
             Stage::Outline,
-            "only outlining makes what it settled (ADR 0030)"
+            "only outlining makes what it settled"
         );
         &mut self.settled
     }
@@ -387,13 +337,12 @@ impl Compiler<'_> {
         &self.settled.names
     }
 
-    /// The answer's `response` a `$mi` in a `<when>` stands for
-    /// (`Settled::submitted`).
+    /// The answer's `response` a `$mi` in a `<when>` stands for.
     pub(in crate::compile) fn submitted(&self, m: NodeId) -> Option<ElemId> {
         self.settled.submitted.get(&m).copied()
     }
 
-    /// Outlining's part of template `t`, read-only (ADR 0031).
+    /// Outlining's part of template `t`, read-only.
     pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &Outlined {
         &self.settled.templates[t.index()]
     }
@@ -441,10 +390,8 @@ impl Compiler<'_> {
         t
     }
 
-    /// A warning about the element at `node`: a fact about the source
-    /// (ADR 0014), kept with the compile's diagnostics. A planner that
-    /// cannot honor what the author wrote says so here rather than leaving
-    /// a NaN to explain itself (ADR 0016).
+    /// A warning about the element at `node`, kept with the compile's
+    /// diagnostics.
     pub(in crate::compile) fn warn(
         &mut self,
         node: NodeId,

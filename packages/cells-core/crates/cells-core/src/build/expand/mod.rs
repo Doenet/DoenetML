@@ -37,7 +37,7 @@ impl PlannedOp {
         }
     }
 
-    /// The inputs a request's inverse may write (`OpSpec::writes`).
+    /// The inputs a request's inverse may write.
     pub(in crate::build) fn writes(&self) -> u64 {
         match self {
             PlannedOp::Spec(spec) => spec.writes(),
@@ -127,7 +127,7 @@ pub(in crate::build) struct Builder<'c> {
     /// NONE: the table's.
     pub(in crate::build) n_public: Vec<u32>,
     pub(in crate::build) sources: Vec<BuiltSource>,
-    /// Owning component of each slot (prop index = slot - slot_base[comp]).
+    /// Owning component of each slot (prop index = `slot - slot_base[comp]`).
     pub(in crate::build) slot_comp: Vec<CompIdx>,
     pub(in crate::build) op_inputs: Vec<SlotId>,
     /// Carried over from the previous build and extended.
@@ -395,8 +395,8 @@ impl<'c> Builder<'c> {
     }
 
     /// A slot that belongs to no component, made for an element in `scope`:
-    /// a lowered math subexpression, a shared constant (`const_slot`), the
-    /// missing-referent cell.
+    /// a lowered math subexpression, a shared constant, the missing-referent
+    /// cell.
     pub(in crate::build) fn anon_slot(&mut self, source: BuiltSource, scope: ScopeId) -> SlotId {
         let s = SlotId::from_index(self.sources.len());
         self.sources.push(source);
@@ -406,9 +406,8 @@ impl<'c> Builder<'c> {
     }
 
     /// The one slot holding the constant `v` that operators and holds
-    /// read, so a literal in a repeat's body is one cell, not one per
-    /// iteration. Never alias a prop to it: every slot aliased to it
-    /// would be one cell.
+    /// read. Never alias a prop to it: every slot aliased to it would be
+    /// one cell.
     pub(in crate::build) fn const_slot(&mut self, v: f64) -> SlotId {
         if let Some(&s) = self.consts.get(&v.to_bits()) {
             return s;
@@ -418,11 +417,10 @@ impl<'c> Builder<'c> {
         s
     }
 
-    /// Whether slot `s` holds a counted value (ADR 0028): one the build
-    /// counts from the structure it stamped, so it follows the counts. The
-    /// abstract build finds them, `found` saying this one is, and records
-    /// them; every other build reads the record, since at some counts there
-    /// is nothing to count and a build cannot tell.
+    /// Whether slot `s` holds a counted value: one the build counts from the
+    /// structure it stamped, so it follows the counts. In the abstract build
+    /// `found` says whether it is, and is recorded; every other build reads
+    /// the record.
     pub(in crate::build) fn is_counted(&mut self, s: SlotId, found: bool) -> bool {
         if self.view.folds_iterations() {
             if found {
@@ -435,8 +433,7 @@ impl<'c> Builder<'c> {
     }
 
     /// Slot `s`'s source when this build counted `v` for it: a constant,
-    /// or for a counted value a derived cell holding `v`, so a value that
-    /// follows the counts is never a constant (ADR 0028).
+    /// or for a counted value a derived cell holding `v`.
     pub(in crate::build) fn counted(&mut self, s: SlotId, v: f64, found: bool) -> BuiltSource {
         if self.is_counted(s, found) {
             let k = self.const_slot(v);
@@ -791,15 +788,10 @@ impl<'c> Builder<'c> {
         self.hold_all()
     }
 
-    /// Hold every slot of every element the compile says is held
-    /// (`Elem::hold`, `compile/planning/fix.rs`), each by its flags: whatever planned
-    /// the element, and whatever its slots turned out to be, once each has
-    /// its source. A slot is held as its cell, so a reference to the
-    /// element is held with it. A slot that aliases another element's gets
-    /// a cell of its own first (`OpSpec::Copy`), so the hold is on this
-    /// element and not on the other, unless the other is held by the same
-    /// flags, whose cell the hold is on already (the compile shares a
-    /// port between two elements held alike, ADR 0033). Elements held by
+    /// Hold every slot of every element the compile says is held, each by
+    /// its flags, once each has its source. A slot that aliases another
+    /// element's gets a cell of its own first, so the hold is on this
+    /// element, unless the other is held by the same flags. Elements held by
     /// the same flags that copy one cell share the copy.
     fn hold_all(&mut self) -> Result<()> {
         let mut flags_of: HashMap<CompIdx, Vec<SlotId>> = HashMap::new();
@@ -934,7 +926,7 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
-    /// Make `idx` an `as_type` holding `referent`'s value (ADR 0025): each
+    /// Make `idx` an `as_type` holding `referent`'s value: each
     /// of its props aliases the referent's prop of the same name (a math's
     /// `value` and `expr` from a mathInput's), and one the referent lacks
     /// is the missing value.
@@ -1101,8 +1093,8 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// Descendants of `c` of `component_type`, in document order, not recursing into
-    /// a match (as the current core's `recurseToMatchedChildren: false`).
+    /// Descendants of `c` of `component_type`, in document order, not
+    /// recursing into a match.
     pub(in crate::build) fn collect_descendants(
         &self,
         c: CompIdx,
@@ -1144,10 +1136,9 @@ impl<'c> Builder<'c> {
     }
 
     /// Give a bare or cloned copy of a type with a list its slots, as many
-    /// as its referent has (ADR 0016), each an alias of the referent's; a
-    /// referent that is such a copy itself is placed first. A copy whose
-    /// referent is missing holds the table's props, which inherit the
-    /// missing value (`instance_sources`). `visiting` holds the copies being
+    /// as its referent has, each an alias of the referent's; a referent that
+    /// is such a copy itself is placed first. A copy whose referent is
+    /// missing holds the missing value. `visiting` holds the copies being
     /// placed, so a loop of them is a cycle.
     fn place_list_copy(&mut self, inst: Instance, visiting: &mut Vec<CompIdx>) -> Result<()> {
         let tpl = &self.compiled.templates[inst.template.index()];
@@ -1190,8 +1181,7 @@ impl<'c> Builder<'c> {
 
     /// The component an `extend` plan names from `scope`, of the copy's
     /// own type: None for an index past the count, when the copy holds the
-    /// missing value wherever it would inherit, as `$r[k].x` does (ADR
-    /// 0014).
+    /// missing value wherever it would inherit.
     fn extend_referent(
         &mut self,
         p: RefId,
@@ -1452,7 +1442,7 @@ fn slot_off_of(b: &Builder<'_>, inst: Instance) -> u32 {
     b.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].slot_off
 }
 
-/// Inheritance as the build makes it (ADR 0016, Migration step 8), against
+/// Inheritance as the build makes it, against
 /// the test-only components: a bare copy's prop aliases its referent's port
 /// in every instance, a copy of a list holds as many points as its
 /// referent, and a held copy reads its referent through a cell of its own.

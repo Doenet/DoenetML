@@ -1,8 +1,6 @@
-//! `<circle>`: its definition and its planner (ADR 0016). The table names
-//! the props; `plan` decides, from which of `center`, `radius` and
-//! `through` the author gave, which are essential state and which are
-//! derived, and through which operators (ADR 0006). The operators' inverses
-//! are in `program/vector.rs`.
+//! `<circle>`: its definition and its planner, which decides from which of
+//! `center`, `radius` and `through` the author gave which props are
+//! essential state and which are derived.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
@@ -13,11 +11,10 @@ use crate::program::VecOp;
 use std::f64::consts::TAU;
 
 component! {
-    /// `<circle>`: center and radius are derived or essential depending on how
-    /// the circle is specified (ADR 0006). `cx`, `cy`, `radius` are the
-    /// numerical center and radius; how they are produced depends on which of
-    /// `center`, `radius` and `through` the author gave (see `plan`). The
-    /// through points are its list, after these props.
+    /// `<circle>`: `cx`, `cy`, `radius` are the numerical center and radius,
+    /// derived or essential depending on which of `center`, `radius` and
+    /// `through` the author gave. The through points are its list, after
+    /// these props.
     tags: ["circle"],
     flags: [copyable, located],
     renders: InGraph,
@@ -65,8 +62,8 @@ component! {
     planner: Plan(plan),
 }
 
-/// Why a circle cannot be what its attributes ask, as the current core's
-/// warnings say it (codes of `packages/i18n/src/diagnostics.ts`).
+/// Why a circle cannot be what its attributes ask: warning code and
+/// message.
 const TOO_MANY_THROUGH: (&str, &str) = (
     "doenet-w0028",
     "Cannot calculate circle through more than 3 points.",

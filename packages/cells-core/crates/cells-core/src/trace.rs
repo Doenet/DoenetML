@@ -1,21 +1,13 @@
-//! The load trace: named, nested spans with the work each did. A load
-//! records its own (`LoadTimings::spans`), and reads its stage timings
-//! off them; the benchmark's trace layer (`packages/benchmark`,
-//! `METHOD.md`) puts them on one timeline with the page's own steps, and
-//! `profile` prints them to stderr for a person at a terminal.
+//! The load trace: named, nested spans with the work each did.
 //!
-//! Recording is off until `start` and costs one thread-local check per span
-//! when off. A span is opened by `span(name)` and closed when its guard
-//! drops; `count(name, n)` adds work to the innermost open span. Names are
-//! the step names the benchmark's glossary explains (`src/steps.mjs` there),
-//! so a span renamed here is renamed there.
+//! Recording is off until `start`. A span is opened by `span(name)` and
+//! closed when its guard drops; `count(name, n)` adds work to the innermost
+//! open span. Span names are shared with the benchmark, so keep them stable.
 //!
-//! A tally (`tally(name)`) is for work done many times inside one span,
-//! such as planning each element by its type: every opening of `name`
-//! under the same parent adds to one span, whose `n` counts the openings
-//! and whose duration is their sum (its start is the first opening's, so
-//! it is not a stretch of the timeline). Tallies cost two clock reads
-//! each, so they record only when the profile is on (`CELLS_BUILD_PROFILE`).
+//! A tally (`tally(name)`) is for work done many times inside one span:
+//! every opening of `name` under the same parent adds to one span, whose
+//! `n` counts the openings and whose duration is their sum. Tallies record
+//! only when the profile is on.
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -94,9 +86,7 @@ pub fn finish() -> Vec<Span> {
 }
 
 /// The spans with every span's children after it and before its next
-/// sibling. Without tallies the opening order is that already; a tally's
-/// span is made when it first opens, after spans opened later under its
-/// parent's earlier siblings, so it is moved under its parent.
+/// sibling.
 fn tree_order(rec: Recorder) -> Vec<Span> {
     if rec.tallies.is_empty() {
         return rec.spans;
@@ -155,7 +145,7 @@ pub fn span(name: &'static str) -> Guard {
 }
 
 /// Open the tally `name`, nested in whatever span is open, when the
-/// profile is on; see the module's doc.
+/// profile is on.
 pub fn tally(name: &'static str) -> Guard {
     if !crate::profile::enabled() {
         return Guard {

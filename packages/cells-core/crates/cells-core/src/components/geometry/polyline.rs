@@ -1,4 +1,4 @@
-//! `<polyline>`: its definition and its planner (ADR 0016).
+//! `<polyline>`: its definition and its planner.
 
 use crate::components::ComponentType;
 use crate::components::define::*;
@@ -19,5 +19,5 @@ component! {
 
 pub const NUM_VERTICES: usize = Props::AT.numVertices;
 
-/// What a `<polyline>` collects, which outlining records (ADR 0029).
+/// What a `<polyline>` collects.
 pub(crate) const COLLECTED: ComponentType = ComponentType::Point;

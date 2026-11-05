@@ -12,8 +12,7 @@ pub mod document {
 
     component! {
         /// The root. `creditAchieved` and `percentCreditAchieved` are
-        /// aggregates over the scored items (ADR 0032), materialized by the
-        /// build (`build/expand/aggregate.rs`).
+        /// aggregates over the scored items.
         tags: ["document"],
         props {
             creditAchieved: aggregate(Credit, ScoredItems) { score },
@@ -78,8 +77,8 @@ pub mod error {
 
     component! {
         /// `_error`: what an element that could not be built stands as in the
-        /// document (ADR 0013): no props; its DAST node names its diagnostic in
-        /// the document's list. Made by the build, never by a tag.
+        /// document: no props; its DAST node names its diagnostic. Made by
+        /// the build, never by a tag.
         tags: ["_error"],
         flags: [internal, owned],
     }
@@ -130,7 +129,7 @@ pub mod sticky_group {
 
     component! {
         /// `<stickyGroup>`: a container whose members snap to one another when
-        /// dragged (ADR 0007). `threshold` NaN means the default.
+        /// dragged. `threshold` NaN means the default.
         tags: ["stickyGroup"],
         flags: [container],
         props {
@@ -327,8 +326,8 @@ pub mod trigger_set {
 
     component! {
         /// `<triggerSet>`: a button that, when pressed, performs every
-        /// `<updateValue>` inside it at once (`Document::trigger`). Its
-        /// `<label>` is the button's text.
+        /// `<updateValue>` inside it at once. Its `<label>` is the button's
+        /// text.
         tags: ["triggerSet"],
         flags: [container],
         planner: Props,

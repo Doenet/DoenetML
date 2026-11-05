@@ -1,6 +1,4 @@
-//! `<answer>`: its definition and its planner (ADR 0016). How an answer
-//! compares its responses, with its inputs, awards and whens, is the
-//! machinery in `compile/planning/answer.rs`.
+//! `<answer>`: its definition and its planner.
 
 use crate::compile::api::*;
 use crate::components::define::*;
@@ -9,8 +7,7 @@ component! {
     /// `<answer>`: `submitted` is an essential math cell that a submit request
     /// sets to the response; `credit` compares it with `correct`
     /// (`symbolicEquality`: as written), or, with `<award>` children, is the
-    /// most any award gives. `numSubmissions` counts submits. See
-    /// `compile/planning/answer.rs` for the forms an answer takes.
+    /// most any award gives. `numSubmissions` counts submits.
     tags: ["answer"],
     flags: [copyable, symbolic],
     default_prop: credit,

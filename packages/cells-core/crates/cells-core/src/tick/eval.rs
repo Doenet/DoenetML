@@ -2,8 +2,7 @@
 //! cells it wrote, computes the derived cells and finds which changed.
 //! Both take the changed cells as seeds and append the derived cells whose
 //! value changed, and both give the same values; they differ only in how
-//! much work they do. Running every instruction is
-//! `Program::run_all_tracking`; the dirty closure is here.
+//! much work they do.
 
 use crate::document::CellIdx;
 use crate::program::{Program, SymRun};
@@ -12,7 +11,7 @@ use crate::program::{Program, SymRun};
 /// schedule order, by a bitset over schedule positions.
 #[derive(Debug, Clone)]
 pub struct DirtyClosure {
-    /// dependents[dep_start[cell]..dep_start[cell + 1]] = schedule
+    /// `dependents[dep_start[cell]..dep_start[cell + 1]]` = schedule
     /// positions of instructions reading `cell`, ascending, in
     /// compressed-sparse-row form.
     dep_start: Vec<u32>,
@@ -48,8 +47,8 @@ impl DirtyClosure {
     }
 
     /// Mark the readers of `cell`. Readers in word `w` go into `bits`, the
-    /// word being scanned, which the caller holds in a register; `hi` is
-    /// raised to the highest word marked in `dirty`.
+    /// word being scanned; `hi` is raised to the highest word marked in
+    /// `dirty`.
     #[inline(always)]
     fn mark_dependents(&mut self, cell: CellIdx, w: usize, bits: &mut u64, hi: &mut usize) {
         let (s, e) = (

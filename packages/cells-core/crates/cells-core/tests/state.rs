@@ -1,6 +1,6 @@
-//! Saved state (`document/state.rs`): what a session changed comes back
-//! after a reload, including text, expressions and iterations that exist
-//! only because a count changed.
+//! Saved state: what a session changed comes back after a reload,
+//! including text, expressions and iterations that exist only because a
+//! count changed.
 
 mod common;
 

@@ -1,7 +1,5 @@
-//! The binary wire format has two writers: `Dast::to_binary` and
-//! `scripts/cdast-encode.mjs` (which `parse-dast.mjs --binary` runs). Both
-//! hardcode the layout (magic, version, node kinds, field order, string
-//! interning), so they are pinned to each other byte for byte.
+//! The binary wire format has two writers, `Dast::to_binary` and the
+//! JavaScript encoder, pinned to each other byte for byte.
 use cells_core::dast::Dast;
 use cells_core::testing::test_utils::{dast_binary, dast_json};
 

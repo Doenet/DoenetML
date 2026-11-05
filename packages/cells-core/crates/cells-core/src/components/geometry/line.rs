@@ -1,7 +1,5 @@
-//! `<line>`: its definition and its planner (ADR 0016). A line is given by
-//! an equation, by two points, or by a point and a slope or direction;
-//! its own two points are derived cells (ADR 0006), and its slope,
-//! intercepts and coefficients follow from them or from the equation.
+//! `<line>`: its definition and its planner. A line is given by an
+//! equation, by two points, or by a point and a slope or direction.
 
 use super::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT};
 use crate::compile::api::*;
@@ -11,7 +9,7 @@ use crate::error::{Error, Result};
 use crate::program::VecOp;
 
 component! {
-    /// `<line>`: its own two points are derived cells (ADR 0006); slope,
+    /// `<line>`: its own two points are derived cells; slope,
     /// intercepts and coefficients follow from them or from the equation.
     tags: ["line"],
     flags: [copyable, located],

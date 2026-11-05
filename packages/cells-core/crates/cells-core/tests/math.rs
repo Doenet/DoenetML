@@ -1,6 +1,6 @@
 //! `<math>`: numeric expressions lower to operators at build time; symbolic
 //! ones are math cells holding engine handles, instantiated and evaluated by
-//! symbolic instructions (ADR 0008).
+//! symbolic instructions.
 
 mod common;
 

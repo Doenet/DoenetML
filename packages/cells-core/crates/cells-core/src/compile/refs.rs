@@ -5,7 +5,7 @@
 use super::*;
 
 /// What a reference names, as far as the templates tell: its type, and
-/// the last element its path named (`Compiler::ref_target`).
+/// the last element its path named.
 pub(in crate::compile) type RefTarget = (Option<ComponentType>, Option<(TemplateId, ElemId)>);
 
 impl<'a> Compiler<'a> {
@@ -43,10 +43,9 @@ impl<'a> Compiler<'a> {
     }
 
     /// Prop `name` of what plan `p`, planned from `t`, names, resolved on
-    /// the type the path reaches (ADR 0032, decision 5). None where the
-    /// templates reach no type: a box, or what is under one, which the
-    /// build reads as undefined, or a whole pick or iteration holding
-    /// several components, which the build refuses as it does a bare one.
+    /// the type the path reaches. None where the templates reach no type: a
+    /// box, what is under one, or a whole pick or iteration holding several
+    /// components.
     pub(in crate::compile) fn prop_named(
         &mut self,
         t: TemplateId,
@@ -107,13 +106,9 @@ impl<'a> Compiler<'a> {
     }
 
     /// The component type a plan names, when it can be told from the
-    /// templates alone (ADR 0032, decision 5): the element its path ends
-    /// at, as outlining made it (`outlined_elem`), through the repeats,
-    /// collects, point lists and picks an index steps into and the branch
-    /// an interface name enters (the first branch carrying the name
-    /// stands for every branch; the interface check makes their types
-    /// equal). `None` where the path cannot be followed, or names a whole
-    /// iteration or pick that holds several components.
+    /// templates alone: the type of the element its path ends at, as
+    /// outlining made it. `None` where the path cannot be followed, or
+    /// names a whole iteration or pick that holds several components.
     pub(in crate::compile) fn ref_target_type(
         &mut self,
         t: TemplateId,
@@ -212,12 +207,11 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    /// Find a name as the current core's resolver does: from the
-    /// referencing element `from` (or `ROOT_SCOPE`) walk up the ancestors;
-    /// at each, the ancestor's own name wins, then a unique descendant with
-    /// the name; several descendants are an ambiguity. Then continue in the
-    /// enclosing template from the repeat or choice element. Returns
-    /// (hops, element).
+    /// Find a name: from the referencing element `from` (or `ROOT_SCOPE`)
+    /// walk up the ancestors; at each, the ancestor's own name wins, then a
+    /// unique descendant with the name; several descendants are an
+    /// ambiguity. Then continue in the enclosing template from the repeat
+    /// or choice element. Returns (hops, element).
     pub(in crate::compile) fn lookup(
         &self,
         t: TemplateId,
@@ -648,9 +642,9 @@ impl<'a> Compiler<'a> {
     }
 
     /// An index expression: a sum of literal integers and iteration
-    /// indices, or one reference to a cell (`$r[$n]`, ADR 0032, decision
-    /// 5), which the build reads when the document runs. A cell plus a
-    /// literal is not read as a sum: the reference is the whole index.
+    /// indices, or one reference to a cell (`$r[$n]`), which the build
+    /// reads when the document runs. A cell plus a literal is not read as a
+    /// sum: the reference is the whole index.
     pub(in crate::compile) fn plan_index(
         &mut self,
         t: TemplateId,
@@ -744,9 +738,8 @@ impl std::fmt::Display for Written<'_> {
 }
 
 /// An integer as `str::parse::<i64>` reads it, from `chars` with no
-/// leading whitespace, trailing whitespace allowed (`str::trim`'s end):
-/// one optional sign, then ASCII digits, within `i64`. Reads the source
-/// in place: no string is built.
+/// leading whitespace, trailing whitespace allowed: one optional sign, then
+/// ASCII digits, within `i64`.
 fn parse_index(mut chars: impl Iterator<Item = char>) -> Option<i64> {
     let mut first = chars.next()?;
     let negative = first == '-';
@@ -776,10 +769,8 @@ fn parse_index(mut chars: impl Iterator<Item = char>) -> Option<i64> {
 /// plan, its referent's type, and a choice's interface a path steps into.
 impl Compiler<'_> {
     /// Element `e` as outlining made it, for a reference to read on
-    /// through. A container copy whose clones outlining has not made yet
-    /// is not there to read: the read fails naming it, for outlining to
-    /// make them and plan the reference again (`with_clones`). So planning
-    /// a reference makes nothing, in whichever stage (ADR 0031).
+    /// through. Fails naming a container copy whose clones outlining has
+    /// not made yet.
     pub(in crate::compile) fn outlined_elem(&self, t: TemplateId, e: ElemId) -> Result<&Elem> {
         let el = &self.outlined(t).elems[e.index()];
         if el.clones_pending {
@@ -792,9 +783,7 @@ impl Compiler<'_> {
     }
 
     /// The reference in `e`'s `extend`, planned once, when outlining, from
-    /// where `e` sits (ADR 0031): first for a container copy, which needs it
-    /// for its clones, then for every other element (`plan_extends`). It is
-    /// outlining's row's `extend`.
+    /// where `e` sits.
     pub(in crate::compile) fn plan_extend(
         &mut self,
         t: TemplateId,
@@ -849,12 +838,9 @@ impl Compiler<'_> {
         Ok(Some(p))
     }
 
-    /// The type of what `p` names, as outlining settled it, for `e`'s planner
-    /// to decide its plan by (an extend, `<constrainTo>`, ...). A box has
-    /// no type to plan from, so `e` is boxed in turn, its referent's box
-    /// the cause: here for a referent already boxed, when linking for one
-    /// boxed after `e` is planned (`box_readers_of_boxes`). The read is
-    /// recorded (`record_read`) in `reads`, the stage's.
+    /// The type of what `p` names, as outlining settled it, for `e`'s
+    /// planner to decide its plan by. Fails when the referent is a box, so
+    /// `e` is boxed in turn. The read is recorded in `reads`.
     pub(in crate::compile) fn referent_type(
         &mut self,
         reads: &mut Vec<Read>,
@@ -866,13 +852,9 @@ impl Compiler<'_> {
         self.read_referent(t, p)
     }
 
-    /// The one recorder of cross-element reads (ADR 0032, decision 6):
-    /// element `e` of template `t` read the facts of what `p` names (its
-    /// type, its row, its children), so what it planned stands only while
-    /// they do. Linking boxes every reader of a box, to a fixpoint
-    /// (`box_readers_of_boxes`), so no element is compiled twice. `reads`
-    /// is the recording stage's (`Outline::reads`, `Planned::reads`, ADR
-    /// 0030).
+    /// Record that element `e` of template `t` read the facts of what `p`
+    /// names (its type, its row, its children), so it is boxed when that
+    /// is.
     pub(in crate::compile) fn record_read(
         reads: &mut Vec<Read>,
         t: TemplateId,
@@ -882,9 +864,8 @@ impl Compiler<'_> {
         reads.push((t, e, p));
     }
 
-    /// The type of what `p` names, or, when it is a box this stage may see
-    /// (`is_visible_box`; one outlined as `Error` always), the error that
-    /// boxes what reads it.
+    /// The type of what `p` names, or, when it is a box this stage may see,
+    /// the error that boxes what reads it.
     pub(in crate::compile) fn read_referent(
         &mut self,
         t: TemplateId,
@@ -932,9 +913,9 @@ impl Compiler<'_> {
 mod tests {
     use super::parse_index;
 
-    /// `parse_index` reads as the string-building readers it replaced: a
-    /// `plan_index` term (whitespace stripped, leading `+`s dropped) and
-    /// a `literal_index` (trimmed).
+    /// `parse_index` reads as `str::parse` does a `plan_index` term
+    /// (whitespace stripped, leading `+`s dropped) and a `literal_index`
+    /// (trimmed).
     #[test]
     fn index_text_reads_as_parse_does() {
         let cases = [
