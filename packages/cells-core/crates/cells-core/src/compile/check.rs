@@ -88,28 +88,6 @@ pub(crate) fn signature_renamed(
     Ok(signature)
 }
 
-/// The abstract build's refuse warnings twice: read off its definitions,
-/// and off its program, as before ADR 0035. The two must agree
-/// (`tests/refuse_pair.rs`), until the second goes.
-#[cfg(feature = "testing")]
-pub fn refuse_pair(dast: &Dast) -> Result<(Vec<Diagnostic>, Vec<Diagnostic>)> {
-    let (_, u) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
-        build::abstract_build(CompiledRef { dast, plans }, true)
-    })?;
-    let from_program = u.program_refusals(dast);
-    let codes = [
-        "cells-request-reaches-its-source-twice",
-        "cells-request-meets-no-inverse",
-    ];
-    let from_definitions = u
-        .abstract_findings()
-        .warnings
-        .into_iter()
-        .filter(|d| codes.contains(&d.code))
-        .collect();
-    Ok((from_definitions, from_program))
-}
-
 /// The compile's loop: plan `dast`, boxing every element that fails where
 /// it fails; then run `check` on the plan. An element `check` fails on, or
 /// a failure no element could carry, is boxed and the plan made again.

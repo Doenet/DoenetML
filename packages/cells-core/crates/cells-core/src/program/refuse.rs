@@ -17,7 +17,6 @@
 //! abstract build's warnings (`build::refuse`), so a document refuses the
 //! requests the load warned of, from one rule (ADR 0015, ADR 0035).
 
-use std::borrow::Cow;
 use std::rc::Rc;
 
 use super::{Instr, InstrIdx, Op, Program, SymEntry, VecOp};
@@ -74,7 +73,7 @@ pub(crate) struct ProgramGraph<'a> {
     operands: &'a [CellIdx],
     vecs: &'a [VecOp],
     syms: &'a [SymEntry],
-    producer: Cow<'a, [InstrIdx]>,
+    producer: &'a [InstrIdx],
     essentials: std::ops::Range<usize>,
     /// Per cell, whether a constant flag holds it.
     held_always: &'a [bool],
@@ -92,28 +91,7 @@ impl<'a> ProgramGraph<'a> {
             operands: &program.operands,
             vecs: &program.vecs,
             syms: &program.syms,
-            producer: Cow::Borrowed(&program.producer),
-            essentials,
-            held_always,
-        }
-    }
-
-    /// The graph of instructions not yet scheduled, over `held_always.len()`
-    /// cells.
-    pub(crate) fn unscheduled(
-        instrs: &'a [Instr],
-        operands: &'a [CellIdx],
-        vecs: &'a [VecOp],
-        syms: &'a [SymEntry],
-        essentials: std::ops::Range<usize>,
-        held_always: &'a [bool],
-    ) -> Self {
-        ProgramGraph {
-            instrs,
-            operands,
-            vecs,
-            syms,
-            producer: Cow::Owned(Program::producers(instrs, held_always.len())),
+            producer: &program.producer,
             essentials,
             held_always,
         }

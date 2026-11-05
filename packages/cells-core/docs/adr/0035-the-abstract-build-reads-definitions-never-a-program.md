@@ -321,18 +321,42 @@ and tick, in instructions, as ADR 0015's steps were.
    input, printed as the engine prints it (`sym::engine::template_text`,
    a function of the tree with no engine), which is the text the program's
    signer hashed; a sampled curve as `Sample` over the shape it reads,
-   since the abstract build compiles no tape; a scalar operator still by
-   its printed unbound form; a seeded default by the text of the number
-   the seed imports. The golden dump now carries the signature, so
-   `scripts/golden-diff.sh` guards it for the steps after. In instructions
-   under callgrind, against the commit before: load of sir and a tick on
-   the mixed shape at 10,000 within the 0.1% that repeated runs of one
-   binary differ by; load of that shape 0.2% fewer, on every run.
+   since the abstract build compiles no tape; a seeded default by the
+   text of the number the seed imports. A scalar operator hashed at
+   first as the program's signer had, by a bound operator printed with
+   its inputs left out, to keep every hash; with step 2 it hashes by its
+   `OpSpec` printed, the one hash this ADR moves (a saved state never
+   carries a signature: `doc` is the source's hash, ADR 0017). The golden
+   dump now carries the signature, so `scripts/golden-diff.sh` guards it
+   for the steps after. In instructions under callgrind, against the
+   commit before: load of sir and a tick on the mixed shape at 10,000
+   within the 0.1% that repeated runs of one binary differ by; load of
+   that shape 0.2% fewer, on every run.
 2. **The refuse analysis onto a graph trait**, implemented by the program
    and by the definitions, with a test that both find the same refusals
    on every fixture; then the abstract build warns from the definitions
    and the `if folds` block in emit goes. `tests/refuse.rs` guards the
    warnings.
+
+   *Done.* As landed: `program::refuse::Graph` asks a graph for a
+   cell's producer and its inputs and outputs, an operator's written
+   inputs and kind (scalar, vector, symbolic), and whether a cell is
+   essential or held always; `analyze` is generic over it. The program
+   answers through `ProgramGraph` (the tick's `refused_bits`), the
+   definitions through `build/refuse.rs`, where a cell is the slot its
+   aliases merged under and a node an operator's defining slot, and
+   `Builder::refuse_warnings` names each asked cell by the first
+   component and prop that reaches it, as emit's block did. The
+   definitions answer "held always" by the program's rule, a set flag
+   that is any constant cell, a given value no input writes included,
+   where `Def::held_always` sees a `Const` alone; the gap is the writable
+   walk's, left for its own change. `tests/refuse_pair.rs` showed the two
+   equal, warning for warning, on the golden documents, every fixture and
+   six documents of what the analysis reads, and then went with the
+   program's side. Emit keeps one `if folds`, the call, until step 3.
+   In instructions under callgrind, against the commit before: load of
+   sir within the 0.1% that repeated runs of one binary differ by, load
+   of the mixed shape at 10,000 0.2% fewer.
 3. **Split `finish`.** Define and emit as separate functions with a named
    result between them; the abstract build stops at define and returns
    `AbstractFindings`; `BuildOutput` loses `findings`; the five class
