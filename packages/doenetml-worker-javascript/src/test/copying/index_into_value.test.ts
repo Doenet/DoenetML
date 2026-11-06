@@ -185,6 +185,32 @@ describe("An index into a value with entries @group4", async () => {
             ).eqls(["doenet-w0100"]);
             expect(warnings[0].args, reference).eqls({ reference });
         }
+
+        // and so does an index past the dimensions of an array property of
+        // another component, which also dropped it
+        const arrays = `<setup>
+<polygon name="poly" vertices="(1,2) (3,4) (5,1)"/>
+<line name="line" through="(1,2) (3,4)"/>
+<function name="f">x^3-x</function>
+<spreadsheet name="ss"><cell>a</cell><cell>b</cell></spreadsheet>
+</setup>`;
+        for (const reference of [
+            "$poly.vertices[1][2][1]",
+            "$line.points[1][2][1]",
+            "$f.maxima[1][2][1]",
+            "$ss.cells[1][1][1]",
+        ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                reference,
+                arrays,
+            );
+            expect(text, reference).eq("[＿]");
+            expect([...errors, ...infos], reference).eqls([]);
+            expect(
+                warnings.map((w) => w.code),
+                reference,
+            ).eqls(["doenet-w0100"]);
+        }
     });
 
     it("indexes a value at every level that has entries (#2438)", async () => {
@@ -576,6 +602,8 @@ describe("An index into an entry of a list @group4", async () => {
                 ["$l.value[2]", "2"],
                 ["$pl.value[2]", "(1, 2)"],
                 ["$tl.value[2][1]", "3"],
+                // past the end, as `$l[4]` is
+                ["$l.value[4]", "＿"],
                 ["$ml[1][1][2]", "2"],
                 ["$ml[1][2][1]", "3"],
                 ["$tl2[1][2]", "(3, 4)"],
@@ -598,6 +626,7 @@ describe("An index into an entry of a list @group4", async () => {
 <mathInput name="wrow1" bindValueTo="$lm[1][1]"><label>wrow1</label></mathInput>
 <mathInput name="wentry" bindValueTo="$lm[1][1][2]"><label>wentry</label></mathInput>
 <mathInput name="wpast" bindValueTo="$tl[1][3]"><label>wpast</label></mathInput>
+<mathInput name="wvalue" bindValueTo="$tl.value[2][1]"><label>wvalue</label></mathInput>
 <p name="ptl">$tl</p><p name="pml">$ml</p><p name="plm">$lm</p>`;
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
@@ -665,6 +694,14 @@ describe("An index into an entry of a list @group4", async () => {
             core,
         });
         expect(await textOf("plm")).eq("[[1, 0], [5, 6]], 5");
+
+        // and through an index into the list's value, as through `$tl[2][1]`
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: await resolvePathToNodeIdx("wvalue"),
+            core,
+        });
+        expect(await textOf("ptl")).eq("(1, 9), (8, 4)");
     });
 
     it("takes writes to one entry through a coordinate and through an index together", async () => {
