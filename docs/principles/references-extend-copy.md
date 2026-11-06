@@ -132,8 +132,9 @@ Evidence: `T/copying/indexSelectsInstances.test.ts`, `T/copying/index_into_value
 Known violations:
 - `$nl[2][1]` of a `<numberList>` or `<textList>` entry is silent; an extra index on an array
   entry named directly (`$line.point1[2][1]`) is dropped; `$pl[2].xs[1][1]` gives `w0180`; and
-  `<group extend="$r[1]"/>` of an iteration missing at load doesn't fully follow it appearing
-  (#2478);
+  `<group extend="$r[1]"/>` of an iteration missing at load doesn't fully follow it appearing;
+  and an index into a number a `<selectFromSequence>` picked (`$s[1][1]`) is `＿` with no
+  warning, where an index into a `<number>` gives `w0100` (#2478);
 - `w0181` is a warning even when the count comes from a value that can change, such as a repeat
   of `length="$n"`, which DIAG-2 makes an info (#2422).
 
