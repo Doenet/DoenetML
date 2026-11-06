@@ -660,6 +660,8 @@ describe("Hidden content nested inside a list @group4", async () => {
     <p name="p">${list}</p>
     <p name="entry">$l[1]</p>
     <p name="whole">$l</p>
+    <group name="g">$l</group>
+    <p name="viaGroup">$g</p>
     <p name="props">$l[1].hide $l[1].hidden</p>
     <choiceInput><choice name="ch">${list.replace(` name="l"`, "")}</choice></choiceInput>
     `,
@@ -678,6 +680,8 @@ describe("Hidden content nested inside a list @group4", async () => {
             // A reference to the whole list reproduces its content, the
             // hidden container included.
             expect(await text("whole")).eq(shown);
+            // and so does a reference to a group holding that reference
+            expect(await text("viaGroup")).eq(shown);
             if (!skipProps) {
                 expect(await text("props")).eq("false true");
             }

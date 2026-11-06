@@ -222,6 +222,16 @@ export function returnCopyReplacementsToHideDefinitions() {
                         variableName: "extendedReplacementsToHide",
                     },
                 };
+                if (stateValues.replacementsIfHiding.length > 0) {
+                    // A copy that shadows another copy of the composite
+                    // (`$g` of a `<group name="g">$s</group>`) is made of
+                    // copies of that copy's replacements, so it hides those
+                    // that copy hides.
+                    dependencies.copiedCopyReplacementsToHide = {
+                        dependencyType: "shadowSourceStateVariable",
+                        variableName: "replacementsToHide",
+                    };
+                }
                 for (const replacement of stateValues.replacementsIfHiding) {
                     if (typeof replacement === "object") {
                         dependencies[
@@ -235,7 +245,10 @@ export function returnCopyReplacementsToHideDefinitions() {
                 return dependencies;
             },
             definition({ dependencyValues }) {
-                const toHide = dependencyValues.extendedReplacementsToHide;
+                const toHide = [
+                    ...dependencyValues.extendedReplacementsToHide,
+                    ...(dependencyValues.copiedCopyReplacementsToHide ?? []),
+                ];
                 const replacementsToHide = [];
                 for (const [name, source] of Object.entries(dependencyValues)) {
                     if (
