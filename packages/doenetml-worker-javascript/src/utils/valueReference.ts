@@ -671,11 +671,13 @@ export function valueReferenceDiffers(current: any, serialized: any): boolean {
 
 /**
  * Whether a value reference can stand in for a component of
- * `componentType`: one of `VALUE_COMPONENT_TYPES` whose value is its
- * `value`, which a value reference holds the referenced value as. A
- * `<subsetOfReals>` is a math whose value is its `subsetValue`
- * (`stateVariableToBeShadowed`), from which its `value` is made: a reference
- * holding a subset as a math's `value` would read it as a math (#2429).
+ * `componentType`: one of `VALUE_COMPONENT_TYPES`, or a type that inherits
+ * from one, whose value (`stateVariableToBeShadowed`) is its `value`, which
+ * a value reference holds the referenced value as. That leaves out a
+ * `<subsetOfReals>`, a math whose value is its `subsetValue`, from which its
+ * `value` is made, so a reference holding a subset as a math's `value` would
+ * read it as a math (#2429), and a `<when>`, a boolean whose value is its
+ * `conditionSatisfied`.
  */
 export function isValueComponentType(
     componentType: string | undefined,

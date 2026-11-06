@@ -621,7 +621,7 @@ export default class Copy extends CompositeComponent {
 
                     // An input written as a related type is made from its
                     // value (D26, REF-5): `<point extend="$mi"/>` is a
-                    // point made from the math mi's value is, not from the
+                    // point made from mi's value, a math, not from the
                     // mathInput itself, which a point can't hold.
                     if (
                         varInfo.createComponentOfType !== undefined &&
@@ -5963,8 +5963,8 @@ let lastInstanceId = 0;
 
 /**
  * A number for the component object `component`, different for each
- * component made, though one made again keeps the index of the one it
- * replaced.
+ * component object made, including one made again with the `componentIdx`
+ * of the one it replaced.
  */
 function instanceId(component) {
     if (!instanceIds.has(component)) {

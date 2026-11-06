@@ -1995,8 +1995,7 @@ export default class Answer extends InlineComponent {
 
                     if (component.stateValues.subsetValue !== undefined) {
                         // A subset of the reals is recorded as its subset,
-                        // as a value reference to one is (`valueAsResponse`),
-                        // not as the math it is written as.
+                        // not as the math it inherits from.
                         currentResponses.push(
                             component.stateValues.subsetValue,
                         );

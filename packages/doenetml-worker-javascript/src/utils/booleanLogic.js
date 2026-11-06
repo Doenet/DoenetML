@@ -280,7 +280,8 @@ export function evaluateLogic({
                         // A boolean made from a text by a reference written
                         // as one (`<boolean extend="$t"/>`, D26, REF-5,
                         // `textAsWord`) is true or false while the text is
-                        // that word, and neither otherwise.
+                        // that word, and `valueOnInvalid` otherwise (the
+                        // type change makes it missing then).
                         const word = String(
                             dependencyValues.textChildrenByCode[logicTree]
                                 .stateValues.value,

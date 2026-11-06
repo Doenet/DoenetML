@@ -1187,9 +1187,10 @@ describe("A reference written as a different tag is allowed only between related
 
 describe("A related type is made from the value of what is referenced, not from the component (#2440, #2437) @group4", () => {
     it("a value type from an input, and the value types from one another", async () => {
-        // Each was the tag's default, with the source put in as a child it
-        // can't hold (`doenet-w0107`), before #2440. A boolean is `1` or `0`
-        // as a number or a math, and a text a boolean while it is the word.
+        // Each was the tag's default before #2440, most with the source put
+        // in as a child it can't hold (`doenet-w0107`). A boolean is `1` or
+        // `0` as a number or a math, and a text a boolean while it is the
+        // word.
         const { texts, typeChangeDiagnostics } = await setup(`
 <mathInput name="mi" prefill="(1,2)"/>
 <mathInput name="mi2" prefill="2"/>
