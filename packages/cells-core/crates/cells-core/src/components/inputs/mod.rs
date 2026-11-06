@@ -13,7 +13,7 @@ pub mod text_input;
 #[path = "slider.spec.rs"]
 mod slider_spec;
 
-pub mod number_input {
+pub(crate) mod number_input {
     use super::*;
 
     component! {
@@ -65,7 +65,7 @@ pub mod choice {
     pub const CREDIT: usize = Props::AT.credit;
 }
 
-pub mod slider {
+pub(crate) mod slider {
     use super::*;
 
     component! {

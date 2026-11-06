@@ -7,13 +7,13 @@ use super::plan::RefId;
 
 crate::index::index_type! {
     /// An expression: a position in an [`Arena`].
-    pub struct ExprId;
+    pub(crate) struct ExprId;
 }
 
 /// A math expression, a node of an [`Arena`]: over reference plans in the
 /// compile, over slots in a build.
 #[derive(Debug, Clone, PartialEq)]
-pub enum Expr<L> {
+pub(crate) enum Expr<L> {
     Num(f64),
     /// A free symbol such as `x`.
     Sym(String),
@@ -33,7 +33,7 @@ pub enum Expr<L> {
 
 /// The functions numeric math text can call, each lowered to its operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Func {
+pub(crate) enum Func {
     Round,
     Floor,
     Min,
@@ -43,7 +43,7 @@ pub enum Func {
 }
 
 impl Func {
-    pub fn named(name: &str) -> Option<Func> {
+    pub(crate) fn named(name: &str) -> Option<Func> {
         Some(match name {
             "round" => Func::Round,
             "floor" => Func::Floor,
@@ -78,7 +78,7 @@ impl Func {
 impl<L: Copy + PartialEq + std::fmt::Debug> Expr<L> {
     /// The same binary operator over new operands, in an arena of any
     /// leaves.
-    pub fn with_operands<M>(&self, a: ExprId, b: ExprId) -> Expr<M> {
+    pub(crate) fn with_operands<M>(&self, a: ExprId, b: ExprId) -> Expr<M> {
         match self {
             Expr::Add(..) => Expr::Add(a, b),
             Expr::Sub(..) => Expr::Sub(a, b),
@@ -92,7 +92,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Expr<L> {
 
 /// Parsed expressions whose leaves are `L`s.
 #[derive(Debug, Clone)]
-pub struct Arena<L> {
+pub(crate) struct Arena<L> {
     pub nodes: Vec<Expr<L>>,
 }
 
@@ -103,7 +103,7 @@ impl<L> Default for Arena<L> {
 }
 
 impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
-    pub fn push(&mut self, e: Expr<L>) -> ExprId {
+    pub(crate) fn push(&mut self, e: Expr<L>) -> ExprId {
         // Fold constants as they are built.
         let folded = match &e {
             Expr::Add(a, b) => self.fold2(*a, *b, |x, y| x + y),
@@ -136,13 +136,13 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
         }
     }
 
-    pub fn get(&self, id: ExprId) -> &Expr<L> {
+    pub(crate) fn get(&self, id: ExprId) -> &Expr<L> {
         &self.nodes[id.index()]
     }
 
     /// Whether the expression has no free symbols, so it can be lowered to
     /// numeric operators at build time.
-    pub fn is_numeric(&self, id: ExprId) -> bool {
+    pub(crate) fn is_numeric(&self, id: ExprId) -> bool {
         match self.get(id) {
             Expr::Num(_) | Expr::Cell(_) => true,
             Expr::Sym(_) => false,
@@ -157,7 +157,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
     }
 
     /// The free symbols, in first-appearance order.
-    pub fn symbols(&self, id: ExprId, out: &mut Vec<String>) {
+    pub(crate) fn symbols(&self, id: ExprId, out: &mut Vec<String>) {
         match self.get(id) {
             Expr::Sym(s) => {
                 if !out.contains(s) {
@@ -179,7 +179,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
     }
 
     /// Distinct cell leaves, in first-appearance order.
-    pub fn cell_leaves(&self, id: ExprId, out: &mut Vec<L>) {
+    pub(crate) fn cell_leaves(&self, id: ExprId, out: &mut Vec<L>) {
         match self.get(id) {
             Expr::Cell(c) => {
                 if !out.contains(c) {
@@ -201,7 +201,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
     }
 
     /// Whether the expression calls a function anywhere.
-    pub fn has_call(&self, id: ExprId) -> bool {
+    pub(crate) fn has_call(&self, id: ExprId) -> bool {
         match self.get(id) {
             Expr::Num(_) | Expr::Sym(_) | Expr::Cell(_) => false,
             Expr::Add(a, b)
@@ -218,7 +218,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
 /// A token of math text. References (`$a`) arrive already resolved to a
 /// reference plan id.
 #[derive(Debug, Clone, PartialEq)]
-pub enum Token {
+pub(crate) enum Token {
     Num(f64),
     Ident(String),
     Cell(RefId),
@@ -231,7 +231,7 @@ pub enum Token {
 
 /// Tokenize one run of text. Identifiers are maximal letter runs (`pi` is a
 /// constant, `x`, `ab` are symbols); numbers are decimal literals.
-pub fn tokenize(text: &str, out: &mut Vec<Token>) -> Result<(), String> {
+pub(crate) fn tokenize(text: &str, out: &mut Vec<Token>) -> Result<(), String> {
     let chars: Vec<char> = text.chars().collect();
     let mut i = 0;
     while i < chars.len() {
@@ -291,14 +291,14 @@ pub fn tokenize(text: &str, out: &mut Vec<Token>) -> Result<(), String> {
 /// parentheses, juxtaposition as multiplication (`3x`, `2(x+1)`), and calls
 /// to the functions in [`Func`] (a function name not followed by `(` is a
 /// symbol).
-pub struct Parser<'a> {
+pub(crate) struct Parser<'a> {
     toks: &'a [Token],
     pos: usize,
     arena: &'a mut Arena<RefId>,
 }
 
 impl<'a> Parser<'a> {
-    pub fn parse(toks: &'a [Token], arena: &'a mut Arena<RefId>) -> Result<ExprId, String> {
+    pub(crate) fn parse(toks: &'a [Token], arena: &'a mut Arena<RefId>) -> Result<ExprId, String> {
         // No text at all (`<math/>`, an `<answer>` with only an input): the
         // blank expression, a symbol the engine spells `＿`.
         if toks.is_empty() {
@@ -445,7 +445,7 @@ impl<'a> Parser<'a> {
 }
 
 /// Split tokens at every `sep` that sits outside parentheses.
-pub fn split_top(toks: &[Token], sep: &Token) -> Vec<Vec<Token>> {
+pub(crate) fn split_top(toks: &[Token], sep: &Token) -> Vec<Vec<Token>> {
     let mut out = vec![Vec::new()];
     let mut depth = 0i32;
     for t in toks {
@@ -465,13 +465,13 @@ pub fn split_top(toks: &[Token], sep: &Token) -> Vec<Vec<Token>> {
 
 /// The entries of a parenthesized tuple, `(a, b, ...)`, when the whole
 /// token run is one: the one reading of math text as a tuple.
-pub fn tuple_entries(toks: &[Token]) -> Option<Vec<Vec<Token>>> {
+pub(crate) fn tuple_entries(toks: &[Token]) -> Option<Vec<Vec<Token>>> {
     unwrap_parens(toks).map(|inner| split_top(inner, &Token::Comma))
 }
 
 /// Strip one pair of enclosing parentheses, if the whole token run is
 /// wrapped in them.
-pub fn unwrap_parens(toks: &[Token]) -> Option<&[Token]> {
+pub(crate) fn unwrap_parens(toks: &[Token]) -> Option<&[Token]> {
     if toks.len() < 2 || toks[0] != Token::LParen || *toks.last().unwrap() != Token::RParen {
         return None;
     }
@@ -493,7 +493,7 @@ pub fn unwrap_parens(toks: &[Token]) -> Option<&[Token]> {
 /// linear in the two symbols, each as an expression over the remaining
 /// leaves; `None` when it is not linear (a product of two variable terms,
 /// a variable in a denominator or exponent, another free symbol).
-pub fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
+pub(crate) fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
     arena: &mut Arena<L>,
     id: ExprId,
     vx: &str,

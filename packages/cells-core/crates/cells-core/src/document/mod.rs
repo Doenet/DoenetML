@@ -28,7 +28,8 @@ mod sticky;
 mod table;
 
 pub use load::{LoadOptions, LoadTimings};
-pub use table::{Child, ChildEntry, ComponentTable};
+pub(crate) use table::ChildEntry;
+pub use table::{Child, ComponentTable};
 
 crate::index::index_type! {
     /// A position in [`Built::cells`](crate::Built::cells), and in every list kept per cell.

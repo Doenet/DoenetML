@@ -74,6 +74,11 @@
 // These docs are read with private items (`npm run doc`), so public docs may
 // link to private ones.
 #![allow(rustdoc::private_intra_doc_links)]
+// `pub` means the API: what `cells-wasm`, `cells-bench` and `tests/` may
+// import. `pub(crate)` is the interface between stages and modules,
+// `pub(in ..)` between a parent and its submodules. Inside a private module
+// `pub` would compile as `pub(crate)` and read as API, so it is refused.
+#![warn(unreachable_pub)]
 
 mod index;
 

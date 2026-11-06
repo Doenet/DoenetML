@@ -23,60 +23,60 @@ macro_rules! index_type {
         #[allow(dead_code)]
         impl $name {
             /// No position: a sentinel for "none", never an index.
-            pub const NONE: $name = $name(u32::MAX);
+            $vis const NONE: $name = $name(u32::MAX);
 
-            pub const fn new(i: u32) -> $name {
+            $vis const fn new(i: u32) -> $name {
                 $name(i)
             }
 
             /// The index at position `i`. Panics if `i` does not fit a `u32`.
             #[inline(always)]
-            pub fn from_index(i: usize) -> $name {
+            $vis fn from_index(i: usize) -> $name {
                 $name(u32::try_from(i).expect(concat!(stringify!($name), " out of range")))
             }
 
             /// The position, to index the list with.
             #[inline(always)]
-            pub const fn index(self) -> usize {
+            $vis const fn index(self) -> usize {
                 self.0 as usize
             }
 
             /// The raw number, for the wire and for hashing.
             #[inline(always)]
-            pub const fn get(self) -> u32 {
+            $vis const fn get(self) -> u32 {
                 self.0
             }
 
-            pub const fn is_none(self) -> bool {
+            $vis const fn is_none(self) -> bool {
                 self.0 == u32::MAX
             }
 
             /// The index `k` places after this one.
             #[inline(always)]
-            pub fn offset(self, k: usize) -> $name {
+            $vis fn offset(self, k: usize) -> $name {
                 $name(self.0 + k as u32)
             }
 
             /// A slice of these as the `u32`s they are, for the wire and for
             /// hashing.
-            pub fn as_u32s(v: &[$name]) -> &[u32] {
+            $vis fn as_u32s(v: &[$name]) -> &[u32] {
                 // SAFETY: `$name` is `repr(transparent)` over `u32`.
                 unsafe { std::slice::from_raw_parts(v.as_ptr().cast::<u32>(), v.len()) }
             }
 
             /// `u32`s read from the wire, as these.
-            pub fn from_u32s(v: Vec<u32>) -> Vec<$name> {
+            $vis fn from_u32s(v: Vec<u32>) -> Vec<$name> {
                 v.into_iter().map($name).collect()
             }
 
             /// The `n` indices from `start` on, in order: a run of a list
             /// kept as (start, count).
-            pub fn span(start: u32, n: u32) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator + Clone {
+            $vis fn span(start: u32, n: u32) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator + Clone {
                 (start..start + n).map($name)
             }
 
             /// Every index below `n`, in order.
-            pub fn below(n: usize) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator {
+            $vis fn below(n: usize) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator {
                 (0..u32::try_from(n).expect(concat!(stringify!($name), " out of range"))).map($name)
             }
         }

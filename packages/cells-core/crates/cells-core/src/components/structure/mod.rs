@@ -11,7 +11,7 @@ pub mod repeat_for;
 pub mod select;
 pub mod select_from_sequence;
 
-pub mod repeat_for_sequence {
+pub(crate) mod repeat_for_sequence {
     use super::*;
 
     component! {

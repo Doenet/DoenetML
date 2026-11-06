@@ -25,7 +25,7 @@ crate::index::index_type! {
 /// list, then the hidden ports. Obtained only from the type's table or the
 /// wiring, never from a number.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct Port(u8);
+pub(crate) struct Port(u8);
 
 impl Port {
     /// The port at position `i` of its element's wiring: a table prop by
@@ -1012,7 +1012,7 @@ impl Attr {
 /// leaf with a default (a line's distance along its direction). Only
 /// `component!` makes one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Param(&'static str);
+pub(crate) struct Param(&'static str);
 
 impl Param {
     /// A parameter a component declares; only `component!` calls this.

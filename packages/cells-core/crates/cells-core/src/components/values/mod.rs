@@ -32,7 +32,7 @@ pub mod number {
     pub const VALUE: usize = Props::AT.value;
 }
 
-pub mod evaluate {
+pub(crate) mod evaluate {
     use super::*;
 
     component! {
@@ -77,7 +77,7 @@ pub mod response {
     pub const VALUE: usize = Props::AT.value;
 }
 
-pub mod clamp_number {
+pub(crate) mod clamp_number {
     use super::*;
 
     component! {

@@ -48,7 +48,7 @@ pub mod graph {
     pub const YMAX: usize = Props::AT.ymax;
 }
 
-pub mod p {
+pub(crate) mod p {
     use super::*;
 
     component! {
@@ -59,7 +59,7 @@ pub mod p {
     }
 }
 
-pub mod short_description {
+pub(crate) mod short_description {
     use super::*;
 
     component! {
@@ -72,7 +72,7 @@ pub mod short_description {
     }
 }
 
-pub mod error {
+pub(crate) mod error {
     use super::*;
 
     component! {
@@ -84,7 +84,7 @@ pub mod error {
     }
 }
 
-pub mod hint {
+pub(crate) mod hint {
     use super::*;
 
     component! {
@@ -99,7 +99,7 @@ pub mod hint {
     }
 }
 
-pub mod setup {
+pub(crate) mod setup {
     use super::*;
 
     component! {
@@ -111,7 +111,7 @@ pub mod setup {
     }
 }
 
-pub mod group {
+pub(crate) mod group {
     use super::*;
 
     component! {
@@ -148,7 +148,7 @@ pub mod sticky_group {
 // spreadsheet's height) is presentation, read by the renderer from the
 // element's attributes (`Document::attr_text`), not state.
 
-pub mod title {
+pub(crate) mod title {
     use super::*;
 
     component! {
@@ -159,7 +159,7 @@ pub mod title {
     }
 }
 
-pub mod reference {
+pub(crate) mod reference {
     use super::*;
 
     component! {
@@ -172,7 +172,7 @@ pub mod reference {
     }
 }
 
-pub mod list {
+pub(crate) mod list {
     use super::*;
 
     component! {
@@ -183,7 +183,7 @@ pub mod list {
     }
 }
 
-pub mod list_item {
+pub(crate) mod list_item {
     use super::*;
 
     component! {
@@ -194,7 +194,7 @@ pub mod list_item {
     }
 }
 
-pub mod inline_math {
+pub(crate) mod inline_math {
     use super::*;
 
     component! {
@@ -206,7 +206,7 @@ pub mod inline_math {
     }
 }
 
-pub mod display_math {
+pub(crate) mod display_math {
     use super::*;
 
     component! {
@@ -217,7 +217,7 @@ pub mod display_math {
     }
 }
 
-pub mod math_row {
+pub(crate) mod math_row {
     use super::*;
 
     component! {
@@ -228,7 +228,7 @@ pub mod math_row {
     }
 }
 
-pub mod aside {
+pub(crate) mod aside {
     use super::*;
 
     component! {
@@ -239,7 +239,7 @@ pub mod aside {
     }
 }
 
-pub mod side_by_side {
+pub(crate) mod side_by_side {
     use super::*;
 
     component! {
@@ -251,7 +251,7 @@ pub mod side_by_side {
     }
 }
 
-pub mod stack {
+pub(crate) mod stack {
     use super::*;
 
     component! {
@@ -262,7 +262,7 @@ pub mod stack {
     }
 }
 
-pub mod tabular {
+pub(crate) mod tabular {
     use super::*;
 
     component! {
@@ -273,7 +273,7 @@ pub mod tabular {
     }
 }
 
-pub mod spreadsheet {
+pub(crate) mod spreadsheet {
     use super::*;
 
     component! {
@@ -286,7 +286,7 @@ pub mod spreadsheet {
     }
 }
 
-pub mod row {
+pub(crate) mod row {
     use super::*;
 
     component! {
@@ -297,7 +297,7 @@ pub mod row {
     }
 }
 
-pub mod cell {
+pub(crate) mod cell {
     use super::*;
 
     component! {
@@ -308,7 +308,7 @@ pub mod cell {
     }
 }
 
-pub mod legend {
+pub(crate) mod legend {
     use super::*;
 
     component! {
@@ -321,7 +321,7 @@ pub mod legend {
     }
 }
 
-pub mod trigger_set {
+pub(crate) mod trigger_set {
     use super::*;
 
     component! {

@@ -10,7 +10,7 @@ pub mod point;
 pub mod polygon;
 pub mod polyline;
 pub mod segment;
-pub mod triangle;
+pub(crate) mod triangle;
 
 /// The most vertices of a polygon, and of a rigid one.
 pub use crate::limits::{MAX_RIGID_VERTICES, MAX_VERTICES};
@@ -21,7 +21,7 @@ pub use crate::limits::{MAX_RIGID_VERTICES, MAX_VERTICES};
 pub(crate) const DEFAULT_FIRST_POINT: [f64; 2] = [1.0, 0.0];
 pub(crate) const DEFAULT_SECOND_POINT: [f64; 2] = [0.0, 0.0];
 
-pub mod constrain_to {
+pub(crate) mod constrain_to {
     use super::*;
 
     component! {
@@ -35,7 +35,7 @@ pub mod constrain_to {
     }
 }
 
-pub mod constrain_to_grid {
+pub(crate) mod constrain_to_grid {
     use super::*;
 
     component! {
@@ -54,7 +54,7 @@ pub mod constrain_to_grid {
     }
 }
 
-pub mod point_list {
+pub(crate) mod point_list {
     use super::*;
 
     component! {

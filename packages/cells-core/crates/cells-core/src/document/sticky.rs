@@ -14,7 +14,7 @@ use crate::tick::snap::{Member, Params, PointIdx, Pt, snap_group};
 
 /// One group as cells.
 #[derive(Debug, Clone)]
-pub struct StickyTable {
+pub(crate) struct StickyTable {
     threshold: CellIdx,
     relative: CellIdx,
     /// The enclosing graph's xmin, xmax, ymin, ymax.
