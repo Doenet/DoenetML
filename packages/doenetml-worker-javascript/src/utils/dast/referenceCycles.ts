@@ -12,7 +12,8 @@
  * The graph has an edge from a component to each component its value is read
  * from:
  *
- * - a reference (`$x`, `$m[2]`, `<math extend="$x"/>`, `<math copy="$x"/>`)
+ * - a reference (`$x`, `$m[2]`, `<math extend="$x"/>`, `<math copy="$x"/>`,
+ *   `<math copyWithState="$x"/>`)
  *   to what it names, when it names the component as a whole, or an index
  *   into a `<math>` or a type built on it, such as a `<matrix>` (`$m[2]`),
  *   which reads the whole value. A property (`$x.y`) may or may not read
@@ -86,7 +87,8 @@ function referenceOf(copy: SerializedComponent) {
     }
     return (extending.Ref ??
         extending.ExtendAttribute ??
-        extending.CopyAttribute) as
+        extending.CopyAttribute ??
+        extending.CopyWithStateAttribute) as
         { nodeIdx: number; unresolvedPath: any[] | null } | undefined;
 }
 

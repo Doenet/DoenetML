@@ -270,6 +270,20 @@ describe("Reference cycles decided at load @group2", async () => {
         expect(rest).eq("rest");
     });
 
+    it("a math written with copyWithState of itself, or of a math reading it", async () => {
+        const self = await errorsAndRest(`<math name="z" copyWithState="$z"/>`);
+        expect(self.errors).eqls(["doenet-e0005 1:1-36"]);
+        expect(self.rest).eq("rest");
+        const pair = await errorsAndRest(
+            `<math name="a" copyWithState="$b"/><math name="b">$a</math>`,
+        );
+        expect(pair.errors).eqls([
+            "doenet-e0005 1:1-36",
+            "doenet-e0005 1:51-53",
+        ]);
+        expect(pair.rest).eq("rest");
+    });
+
     it("a math that extends itself", async () => {
         const { errors, rest, core } = await errorsAndRest(
             `<math name="z" extend="$z"/>`,
