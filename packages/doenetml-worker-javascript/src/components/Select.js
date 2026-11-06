@@ -508,12 +508,16 @@ export default class Select extends CompositeComponent {
                 });
             }
 
-            // The indices the requested variant gives, taken as given
+            // The indices the requested variant gives, taken as given, and
+            // with them how many were selected
             const desiredIndices = indicesFromVariant(dependencyValues);
             if (desiredIndices !== null) {
-                return selectionResult(NO_SELECT_ERROR, {
-                    selectedIndices: desiredIndices,
-                });
+                return withNumToSelect(
+                    selectionResult(NO_SELECT_ERROR, {
+                        selectedIndices: desiredIndices,
+                    }),
+                    desiredIndices.length,
+                );
             }
 
             // first check if have a variant for which options are specified

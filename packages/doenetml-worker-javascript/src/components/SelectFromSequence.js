@@ -1016,10 +1016,14 @@ function makeSelection({ dependencyValues, essentialValues }) {
         });
     }
 
-    // The selection the requested variant gives, taken as given
+    // The selection the requested variant gives, taken as given, and with
+    // it how many were selected
     const desiredSelection = selectionFromVariant(dependencyValues);
     if (desiredSelection !== null) {
-        return selectionResult(NO_SELECT_ERROR, desiredSelection);
+        return withNumToSelect(
+            selectionResult(NO_SELECT_ERROR, desiredSelection),
+            desiredSelection.selectedValues.length,
+        );
     }
 
     let numCombinationsExcluded = dependencyValues.excludedCombinations.length;

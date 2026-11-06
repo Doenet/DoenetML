@@ -328,11 +328,15 @@ export const NUM_TO_SELECT_VARIABLE = {
 /**
  * `result`, what a select's selection definition returns, with the
  * `numToSelect` it was made with set alongside it (`NUM_TO_SELECT_VARIABLE`),
- * or kept, with the selection, when the selection was kept.
+ * or kept, with the selection, when the selection was kept. When a
+ * requested variant's choices were taken as given, it is how many it gave,
+ * which can differ from the attribute now, as from a variant saved before
+ * the document changed.
  */
 export function withNumToSelect(result: any, numToSelect: number) {
     if (result.setValue && "numToSelect" in result.setValue) {
-        // kept with the selection (`keptSelection`)
+        // kept with the selection (`keptSelection`), or set to how many
+        // choices a requested variant gave, which were taken as given
         return result;
     }
     return {

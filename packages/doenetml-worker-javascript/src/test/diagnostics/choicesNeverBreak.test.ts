@@ -134,6 +134,8 @@ describe("A requested variant's choices are taken as given @group4", async () =>
                 expect(first.errors).eqls([]);
                 // the choices it was made with, not new ones
                 expect(first.selected).eqls(original.selected);
+                // and how many it selected, not the attribute as it is now
+                expect(first.numToSelect).eq(original.numToSelect);
 
                 // kept through a reload
                 await first.core.saveImmediately();
@@ -145,6 +147,7 @@ describe("A requested variant's choices are taken as given @group4", async () =>
                 });
                 expect(reloaded.errors).eqls([]);
                 expect(reloaded.selected).eqls(original.selected);
+                expect(reloaded.numToSelect).eq(original.numToSelect);
             }
         });
     }

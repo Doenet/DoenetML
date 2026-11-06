@@ -293,9 +293,17 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     numSamples: 0,
                 });
 
+                // with them, how many were selected
                 return {
-                    setEssentialValue: { selectedValues: desiredValues },
-                    setValue: { selectedValues: desiredValues },
+                    ...withNumToSelect(
+                        {
+                            setEssentialValue: {
+                                selectedValues: desiredValues,
+                            },
+                            setValue: { selectedValues: desiredValues },
+                        },
+                        desiredValues.length,
+                    ),
                     sendDiagnostics: diagnostics,
                 };
             }

@@ -681,12 +681,16 @@ function makeSelection({ dependencyValues, essentialValues }) {
         return selectionResult(error, { selectedValues: null });
     }
 
-    // The values the requested variant gives, taken as given
+    // The values the requested variant gives, taken as given, and with them
+    // how many were selected
     const desiredValues = valuesFromVariant(dependencyValues);
     if (desiredValues !== null) {
-        return selectionResult(NO_SELECT_ERROR, {
-            selectedValues: desiredValues,
-        });
+        return withNumToSelect(
+            selectionResult(NO_SELECT_ERROR, {
+                selectedValues: desiredValues,
+            }),
+            desiredValues.length,
+        );
     }
 
     let numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
