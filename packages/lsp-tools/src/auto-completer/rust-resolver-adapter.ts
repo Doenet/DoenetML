@@ -9,6 +9,7 @@ import {
     namesElement,
     namesSharedByBranchesIn,
     sharedBranchNames,
+    unsharedBranchNames,
 } from "./branch-declarations";
 import type {
     RefMemberContainerResolution,
@@ -882,6 +883,19 @@ export class RustResolverAdapter {
                     };
                 }
                 if (through.consumed < unresolvedPathParts.length) {
+                    // The names left are properties of the declarations,
+                    // read without an index: with an index on the last
+                    // name of the run (`$v[1].head`), no property lookup
+                    // is offered (runtime `doenet-w0180`).
+                    if (namesIndexed[through.consumed - 1]) {
+                        return {
+                            node: null,
+                            unresolvedPathParts: unresolvedPathParts.slice(
+                                through.consumed,
+                            ),
+                            visibleDescendantNames: [],
+                        };
+                    }
                     return {
                         node: null,
                         unresolvedPathParts: unresolvedPathParts.slice(
@@ -971,6 +985,12 @@ export class RustResolverAdapter {
                         branchHop.names,
                         branchHop.namesIndexed,
                     ),
+                    hiddenMemberNames: unsharedBranchNames(
+                        branchHop.container,
+                        branchHop.indexed,
+                        branchHop.names,
+                        branchHop.namesIndexed,
+                    ),
                 };
             }
 
@@ -984,6 +1004,10 @@ export class RustResolverAdapter {
                     node: resolvedNode,
                     unresolvedPathParts: [],
                     visibleDescendantNames: sharedBranchNames(
+                        resolvedNode,
+                        resolvedPartHasEffectiveIndex,
+                    ),
+                    hiddenMemberNames: unsharedBranchNames(
                         resolvedNode,
                         resolvedPartHasEffectiveIndex,
                     ),
@@ -1640,7 +1664,12 @@ export class RustResolverAdapter {
                     start != null &&
                     end != null &&
                     (cursorOffset < start || cursorOffset >= end);
-                const childTag = child.name.toLowerCase();
+                // Branch tags are matched exactly, as the parser's sugar
+                // and the core do (`branchesAndStrays`): an `<Else>` is
+                // not a branch (`doenet-e0002`). The container tag is not,
+                // so that a container written in another case hides more,
+                // never less.
+                const childTag = child.name;
                 const childIsBranch =
                     containerTag === "select"
                         ? childTag === "option"
@@ -1656,7 +1685,7 @@ export class RustResolverAdapter {
                     !parent.children.some(
                         (c) =>
                             c.type === "element" &&
-                            ["case", "else"].includes(c.name.toLowerCase()),
+                            (c.name === "case" || c.name === "else"),
                     );
                 if (cursorOutside && !childIsBranch && !sugaredIntoCase) {
                     return true;

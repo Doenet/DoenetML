@@ -437,6 +437,49 @@ export function sharedBranchNames(
     });
 }
 
+/**
+ * The names an element in some branch declares where `sharedBranchNames`
+ * (same arguments) leaves them out: below the container, or with `prefix`
+ * below what some branch declares by it. A reference through the
+ * container by one of them names nothing (`doenet-w0183`), not a property
+ * of the container or of the declarations by `prefix`, so neither is
+ * offered for it. Read conservatively: every literal name in a branch,
+ * hidden or not.
+ */
+export function unsharedBranchNames(
+    container: DastElement,
+    indexed = false,
+    prefix: string[] = [],
+    prefixIndexed: boolean[] = [],
+): string[] {
+    const kind = branchContainerKind(container, indexed);
+    if (!kind) {
+        return [];
+    }
+    const names = new Set<string>();
+    if (prefix.length === 0) {
+        for (const nodes of branchesOf(container, kind) ?? []) {
+            collectNames(nodes, names);
+        }
+    } else {
+        const declared = branchDeclarations(
+            container,
+            prefix,
+            indexed,
+            prefixIndexed,
+        );
+        if (Array.isArray(declared)) {
+            for (const declaration of declared) {
+                collectNames(declaration.children as DastNodes[], names);
+            }
+        }
+    }
+    const shared = new Set(
+        sharedBranchNames(container, indexed, prefix, prefixIndexed),
+    );
+    return [...names].filter((name) => !shared.has(name));
+}
+
 /** Whether an element among `nodes` or their descendants is named `name`. */
 export function namesElement(nodes: DastNodes[], name: string): boolean {
     return nodes.some(

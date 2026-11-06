@@ -964,6 +964,61 @@ describe.skipIf(!wasmAvailable)(
             );
         });
 
+        it("offers no property after an index on a branch name", async () => {
+            // `$v[1].head.x` for a vector `v` in every branch names nothing
+            // (runtime `doenet-w0180`), so `$v[1].head.` offers no alias.
+            const source = `<conditionalContent name="cc"><case condition="true"><vector name="v" head="(1,2)"/></case><else><vector name="v" head="(3,4)"/></else></conditionalContent>\n<p>$v[1].head.`;
+            const result = await memberNames(
+                source,
+                ["v", "head", ""],
+                [true, false, false],
+            );
+            expect(result?.node ?? null).toBeNull();
+            expect(result?.partiallyResolvedNode ?? null).toBeNull();
+            expect(await refNameLabels(source)).toEqual([]);
+            // Without the index, `$v.head.x` is the property (runtime `[1]`).
+            expect(
+                await refNameLabels(source.replace("$v[1].", "$v.")),
+            ).toEqual(expect.arrayContaining(["x", "y", "z"]));
+        });
+
+        it("offers no property by a name only some branches declare", async () => {
+            // One vector `v` has a point named `head`: `$v.head` names
+            // nothing (runtime `doenet-w0183`), not the vector's property.
+            const vectors = (head: string) =>
+                `<conditionalContent name="cc"><case condition="true"><vector name="v" head="(1,2)">${head}</vector></case><else><vector name="v" head="(3,4)"/></else></conditionalContent>\n<p>$v.`;
+            const named = vectors(`<point name="head">(5,6)</point>`);
+            const labels = await refNameLabels(named);
+            expect(labels).not.toContain("head");
+            expect(labels).toContain("tail");
+            const helpSource = `${named}head`;
+            const { completer } = await createCompleterWithAdapter(helpSource);
+            const help = await computeContextHelp(completer, helpSource.length);
+            expect(help?.kind).not.toBe("property");
+            // With no element named `head`, it is the property.
+            expect(await refNameLabels(vectors(""))).toContain("head");
+
+            // The same through the container: `$cc.hide` for a `hide` in
+            // one case names nothing (runtime `doenet-w0183`); with none,
+            // it is the property (runtime `[false]`).
+            const cc = (name: string) =>
+                `<conditionalContent name="cc"><case condition="true"><math name="${name}">1</math></case><else><math name="z">2</math></else></conditionalContent>\n<p>$cc.`;
+            expect(await refNameLabels(cc("hide"))).not.toContain("hide");
+            expect(await refNameLabels(cc("z"))).toContain("hide");
+        });
+
+        it("does not read a branch tag written in another case as a branch", async () => {
+            // `<Else>` and `<Option>` are no branches (`doenet-e0002`), but
+            // children beside them: a name in them is left out from
+            // outside, as for any other child beside the branches.
+            for (const source of [
+                `<conditionalContent name="cc"><case condition="true"><math name="x">1</math></case><Else><math name="y">2</math></Else></conditionalContent>\n<p>$`,
+                `<select name="s"><option><math name="x">1</math></option><Option><math name="y">2</math></Option></select>\n<p>$`,
+            ]) {
+                expect(await refNameLabels(source)).not.toContain("y");
+            }
+        });
+
         it("$s[2].x. hops through the options of a select that picks several", async () => {
             const option = (n: number) =>
                 `<option><group name="x"><math name="y">${n}</math></group></option>`;

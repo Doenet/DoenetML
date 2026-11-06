@@ -1207,10 +1207,12 @@ export async function getCompletionItems(
         const filteredDescendantNames = [...descendantNames].filter((name) =>
             prefix ? name.toLowerCase().startsWith(prefix) : true,
         );
+        const hiddenMemberNames = new Set(resolved.hiddenMemberNames ?? []);
         const filteredPropertyNames = propertyNames.filter(
             (name) =>
                 (!prefix || name.toLowerCase().startsWith(prefix)) &&
-                !descendantNames.has(name),
+                !descendantNames.has(name) &&
+                !hiddenMemberNames.has(name),
         );
 
         const propertyDescriptions = new Map<string, string>();
