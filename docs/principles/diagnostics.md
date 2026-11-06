@@ -126,7 +126,6 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 - a loop where no composite can be singled out still stops the document (#2425);
 - `bindValueTo` of a `<subsetOfRealsInput>` throws (B24, #2429). `<text extend="$cc"/>` of
   bare-text cases threw until #2447 (B23);
-- a `<select>` whose options are all written with `copy` fails to load (B39, #2448);
 - a reload throws when a saved value reaches a component of another type (B36, #2446).
 
 ### DIAG-6: the diagnostics are the same after a reload (Tier 2)
@@ -189,10 +188,12 @@ covers a tag's type errors there (`fixedTypeError` and `reportTypeChangesAtLoad`
   `<conditionalContent>`s extending each other (B32, #2439). A reference cycle can be found at
   load from the reference graph over every case; otherwise the component is missing with an
   info;
-- choice errors that depend on the variant or on values: `doenet-e0037`/`e0048` from a stale
-  requested variant (#2389 item 1), and from a `numToSelect` or range computed from another
-  random choice, such as `<selectFromSequence to="$a" numToSelect="3"/>` with a random `a` that
-  is sometimes below 3;
+- **fixed by #2468:** choice errors that depended on the variant or on values. A requested
+  variant's choices are taken as given (`e0037`–`e0040`, `e0048`–`e0050` are retired). A failure
+  is an error only when every attribute deciding it is written without a reference; otherwise it
+  is an info and the selection is missing (`to="$a"` with a random `a`). The fluke codes
+  `e0052`/`e0053` are always infos, and `coprime` draws that find nothing are info `i0057`.
+  Those variants are still broken, which D39 addresses;
 - state-variable cycles that throw (D14), even at the top level: `<math name="z" extend="$z"/>`,
   and two maths reading each other;
 - exceptions during interaction, such as B36's on reload (DIAG-5).
