@@ -1646,9 +1646,9 @@ describe("Point and vector lists as list components @group4", async () => {
             constraints: "false, false, true; true, true",
             // An index into the coordinates of an entry, which are not an
             // array, names nothing, as `$P.coords[1]` does (#2413), so it is
-            // missing (D37). Of every entry (`$pl.coords[1]`), it is still
-            // ignored.
-            coords: "＿; (1, 2), (3, 4), (1, 4)",
+            // missing (D37). Of every entry (`$pl.coords[1]`), it is the
+            // same (#2438).
+            coords: "＿; ＿",
         });
 
         // a vector's label is at its center
