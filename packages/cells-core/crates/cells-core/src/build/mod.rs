@@ -38,7 +38,7 @@ use crate::program::{Operands, Program, ValueType};
 use crate::session::{Counts, MathStore, Session};
 
 #[cfg(feature = "testing")]
-pub mod coverage;
+pub(crate) mod coverage;
 mod define;
 mod emit;
 mod expand;

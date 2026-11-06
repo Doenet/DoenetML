@@ -25,6 +25,7 @@ macro_rules! index_type {
             /// No position: a sentinel for "none", never an index.
             $vis const NONE: $name = $name(u32::MAX);
 
+            /// The index of raw number `i`.
             $vis const fn new(i: u32) -> $name {
                 $name(i)
             }
@@ -47,6 +48,7 @@ macro_rules! index_type {
                 self.0
             }
 
+            /// Whether this is [`NONE`](Self::NONE).
             $vis const fn is_none(self) -> bool {
                 self.0 == u32::MAX
             }

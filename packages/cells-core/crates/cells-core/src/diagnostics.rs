@@ -101,7 +101,7 @@ impl Diagnostic {
 
 /// The order a list is reported in: by node, so the list follows the
 /// document, with findings about the whole document last.
-pub fn sort(list: &mut [Diagnostic]) {
+pub(crate) fn sort(list: &mut [Diagnostic]) {
     list.sort_by(|a, b| {
         let key = |d: &Diagnostic| {
             (

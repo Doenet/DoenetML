@@ -237,7 +237,7 @@ impl Engine {
 
 /// The symbol a cell leaf becomes: `cellN<i>` for a numeric cell, `cellM<i>`
 /// for a math cell.
-pub fn leaf_name(cell: u32, math: bool) -> String {
+pub(crate) fn leaf_name(cell: u32, math: bool) -> String {
     format!("cell{}{cell}", if math { 'M' } else { 'N' })
 }
 
@@ -271,7 +271,7 @@ fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
 /// A builder tree as text, as [`Engine::text`] prints it once imported: a
 /// function of the tree alone, held by no engine. A cell leaf prints by
 /// its number (`cellN3`).
-pub fn template_text<L: Leaf>(tree: &Tree<L>) -> String {
+pub(crate) fn template_text<L: Leaf>(tree: &Tree<L>) -> String {
     me::to_text(&convert(tree, &mut Vec::new()), &TextOpts::default())
 }
 

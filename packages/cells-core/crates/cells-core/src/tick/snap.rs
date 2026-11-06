@@ -5,7 +5,7 @@
 //! current core including its quirks. A rigid or similarity shape dragged by
 //! one vertex is not snapped.
 
-pub type Pt = [f64; 2];
+pub(crate) type Pt = [f64; 2];
 
 const EPS: f64 = 1e-6;
 const EPS2: f64 = EPS * EPS;
@@ -22,7 +22,7 @@ pub enum Shape {
 /// Threshold and axis scales. Distances are measured after dividing each
 /// axis by its scale (1 unless the group is relative to graph scales).
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Params {
+pub(crate) struct Params {
     pub threshold: f64,
     pub scales: Pt,
 }
@@ -31,7 +31,7 @@ impl Params {
     /// The group's threshold cell (NaN: the default), its
     /// `relativeToGraphScales` flag and the enclosing graph's bounds (NaN
     /// without a graph), as the current core combines them.
-    pub fn new(threshold: f64, relative: bool, bounds: [f64; 4]) -> Params {
+    pub(crate) fn new(threshold: f64, relative: bool, bounds: [f64; 4]) -> Params {
         let [xmin, xmax, ymin, ymax] = bounds;
         let have_graph = !xmin.is_nan();
         let threshold = if threshold.is_nan() {
@@ -51,13 +51,13 @@ impl Params {
 
 /// The other members' vertices and edges, gathered once per drag.
 #[derive(Debug, Default)]
-pub struct Attractors {
+pub(crate) struct Attractors {
     pub points: Vec<Pt>,
     pub segments: Vec<[Pt; 2]>,
 }
 
 impl Attractors {
-    pub fn add(&mut self, shape: Shape, pts: &[Pt]) {
+    pub(crate) fn add(&mut self, shape: Shape, pts: &[Pt]) {
         self.points.extend_from_slice(pts);
         if shape != Shape::Point {
             for w in pts.windows(2) {
@@ -76,7 +76,7 @@ impl Attractors {
 /// distort the shape; otherwise the whole shape shifts. `rigid` marks a
 /// rigid or similarity shape, whose one-vertex drags pass through
 /// unsnapped.
-pub fn snap(
+pub(crate) fn snap(
     shape: Shape,
     rigid: bool,
     verts: &mut [Pt],
@@ -108,7 +108,7 @@ pub fn snap(
 
 crate::index::index_type! {
     /// A point of a sticky group: a position in the group's point list.
-    pub struct PointIdx;
+    pub(crate) struct PointIdx;
 }
 
 /// One member of a group, as the wirings describe it: its shape, whether
@@ -116,7 +116,7 @@ crate::index::index_type! {
 /// members that share a point (a polygon whose vertex is a member point)
 /// share the index.
 #[derive(Debug, Clone, PartialEq)]
-pub struct Member {
+pub(crate) struct Member {
     pub shape: Shape,
     pub rigid: bool,
     pub points: Vec<PointIdx>,
@@ -130,7 +130,7 @@ pub struct Member {
 /// the most requested points first; a point an earlier member already
 /// placed is not placed again. Returns the points to write, per dragged
 /// member, in that order: the requested ones and any the snap moved.
-pub fn snap_group(
+pub(crate) fn snap_group(
     members: &[Member],
     current: &[Pt],
     requested: &[Option<Pt>],

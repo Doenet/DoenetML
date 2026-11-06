@@ -5,9 +5,9 @@
 
 use crate::document::CellIdx;
 
-pub mod eval;
+pub(crate) mod eval;
 pub mod invert;
-pub mod snap;
+pub(crate) mod snap;
 
 /// A renderer's ask to change one cell to a value.
 #[derive(Debug, Clone, Copy, PartialEq)]

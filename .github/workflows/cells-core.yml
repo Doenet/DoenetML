@@ -51,5 +51,9 @@ jobs:
             - name: Build the parser and run the tests
               run: npm test -w @doenet/cells-core
 
-            - name: Build the API docs (a broken intra-doc link fails)
-              run: npm run doc -w @doenet/cells-core
+            # The public docs (the API, missing_docs denied) are only checked, so
+            # they go first and the contributor docs (private items) overwrite them.
+            - name: Build the API docs (a broken intra-doc link or a missing doc fails)
+              run: |
+                  npm run doc:public -w @doenet/cells-core
+                  npm run doc -w @doenet/cells-core

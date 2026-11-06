@@ -4,9 +4,9 @@
 //! [`Tree`] enters the engine through [`Engine::import`]. A compiled curve
 //! tape samples a constant-shape expression without the engine.
 
-pub mod engine;
-pub mod tape;
-pub mod tree;
+pub(crate) mod engine;
+pub(crate) mod tape;
+pub(crate) mod tree;
 
 pub use engine::Engine;
 pub use tree::{Leaf, Tree};

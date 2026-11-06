@@ -16,17 +16,17 @@ pub const MAX_RIGID_VERTICES: usize = (MAX_VEC_IN - 3) / 2;
 pub const MAX_TUPLE: usize = 8;
 
 /// The most choices of a `<choiceInput>` an answer chooses among.
-pub const MAX_CHOICES: usize = MAX_VEC_IN - 1;
+pub(crate) const MAX_CHOICES: usize = MAX_VEC_IN - 1;
 
 /// The most cases of a `<conditionalContent>`.
-pub const MAX_CASES: usize = MAX_VEC_IN - 1;
+pub(crate) const MAX_CASES: usize = MAX_VEC_IN - 1;
 
 /// How many (credit, weight) pairs one weighted-mean operator averages; a
 /// longer list is averaged in chunks.
-pub const SCORE_CHUNK: usize = MAX_VEC_IN / 2;
+pub(crate) const SCORE_CHUNK: usize = MAX_VEC_IN / 2;
 
 /// The most distinct references in one math template (its leaves).
-pub const MAX_REFERENCES: usize = u8::MAX as usize;
+pub(crate) const MAX_REFERENCES: usize = u8::MAX as usize;
 
 const _: () = {
     let byte = u8::MAX as usize;

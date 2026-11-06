@@ -53,8 +53,17 @@ macro_rules! component_types {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         #[repr(u8)]
         pub enum ComponentType {
-            $($(#[$doc])* $variant,)*
-            $(#[cfg(test)] $(#[$tdoc])* $tvariant,)*
+            $(
+                $(#[$doc])*
+                #[doc = concat!("\n\nDefined by [`", stringify!($def), "`](", stringify!($def), ").")]
+                $variant,
+            )*
+            $(
+                #[cfg(test)]
+                $(#[$tdoc])*
+                #[doc = concat!("\n\nDefined by [`", stringify!($tdef), "`](", stringify!($tdef), "), for tests.")]
+                $tvariant,
+            )*
         }
 
         impl ComponentType {
