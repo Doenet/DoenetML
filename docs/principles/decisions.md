@@ -2248,6 +2248,10 @@ never the guarantee.
   variants (`e0032` at info level);
 - `coprime` draws that find nothing in 200 tries (`i0057`), and the "fluke" codes `e0052`/`e0053`:
   the selection fails by chance in some variants;
+- a cycle through a name every option of a one-pick `<select>` declares: the variant that picks
+  that option doesn't finish loading (#2473);
+- a sampler's draws aren't kept through a reload of a `copyWithState` (#2477), which breaks
+  COMP-8;
 - a parameter read from an input (`numToSelect="$mi"`) is read once, when the selection is made
   (COMP-8). For content made later, such as a select in a case the reader reveals, that is the
   input's value at that moment, which depends on the reader, not on the variant.
