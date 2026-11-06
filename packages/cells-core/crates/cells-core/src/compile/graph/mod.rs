@@ -1251,9 +1251,14 @@ impl<'c> Stamp<'c> {
             }
             Arg::Ref(p, Sel::Port(k)) => {
                 let (at, _, label) = self.resolve(p, t);
+                // A referent without the port (one of another type, which
+                // its extend has failed for) gives the missing value.
                 let node = match at {
                     walk::At::Missing => None,
-                    at => self.single_component(at).map(|c| self.slot(c, k as usize)),
+                    at => self
+                        .single_component(at)
+                        .filter(|&c| self.has_port(c, k as usize))
+                        .map(|c| self.slot(c, k as usize)),
                 };
                 (node, label)
             }
@@ -1339,6 +1344,14 @@ impl<'c> Stamp<'c> {
                     .unwrap_or_else(|| ty.prop_defs().len())
             }
             Comp::Made(m) => self.g.made[m as usize].n_public,
+        }
+    }
+
+    /// Whether component `c` has port `port`, public or not.
+    fn has_port(&self, c: Comp, port: usize) -> bool {
+        match c {
+            Comp::Elem(t, e) => port < self.g.n_ports[t.index()][e.index()] as usize,
+            Comp::Made(m) => port < self.g.made[m as usize].n_public,
         }
     }
 

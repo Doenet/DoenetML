@@ -15,7 +15,9 @@ impl<'c> Stamp<'c> {
     /// as many as its referent has public, each reading the referent's
     /// with the extend's label, its referent placed first when it is such
     /// a copy too. With no referent (an index past the count), the plan's
-    /// ports, read as the plan says.
+    /// ports, read as the plan says; and so for the copy that closes a
+    /// loop of copies, whose referent is still being placed and has no
+    /// ports to read, after failing.
     pub(super) fn place_list_copy(
         &mut self,
         t: TemplateId,
@@ -29,11 +31,6 @@ impl<'c> Stamp<'c> {
         {
             return;
         }
-        // A loop of copies, each placed before the one it copies.
-        if visiting.contains(&(t, e)) {
-            self.fail(Error::Cycle(self.comp_label(Comp::Elem(t, e))));
-            return;
-        }
         let referent = plan.extend.and_then(|p| self.extend_referent(p, t, e));
         let Some((referent, label)) = referent else {
             self.element_ports(t, e, plan.props.len());
@@ -43,8 +40,19 @@ impl<'c> Stamp<'c> {
         let need = self.need;
         if let Comp::Elem(rt, re) = referent {
             visiting.push((t, e));
-            self.place_list_copy(rt, re, visiting);
+            // A loop of copies, each placed before the one it copies: the
+            // referent is one this walk is still placing, with no ports
+            // yet.
+            let on_loop = visiting.contains(&(rt, re));
+            if !on_loop {
+                self.place_list_copy(rt, re, visiting);
+            }
             visiting.pop();
+            if on_loop {
+                self.fail(Error::Cycle(self.comp_label(referent)));
+                self.element_ports(t, e, plan.props.len());
+                return;
+            }
         }
         self.need = need;
         let n = self.n_public(referent);
