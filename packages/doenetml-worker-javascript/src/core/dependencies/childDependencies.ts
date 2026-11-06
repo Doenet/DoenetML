@@ -1441,7 +1441,16 @@ export class DescendantDependency extends Dependency {
         return result;
     }
 
-    gatherUnexpandedComposites(component: any) {
+    gatherUnexpandedComposites(
+        component: any,
+        visited: Set<number> = new Set(),
+    ) {
+        // A composite and its replacements are both among the children of
+        // its parent, and the replacements are searched again from the
+        // composite, so each component is checked once (what it finds is
+        // merged into the same result the first time it is reached).
+        visited.add(component.componentIdx);
+
         let unexpandedCompositesReadyByParentName: Record<string, any> = {};
         let unexpandedCompositesNotReadyByParentName: Record<string, any> = {};
         let haveUnexpandedCompositeReady = false;
@@ -1516,8 +1525,12 @@ export class DescendantDependency extends Dependency {
             );
         }
         for (const child of toCheck) {
-            if (typeof child === "object" && child !== null) {
-                let result = this.gatherUnexpandedComposites(child);
+            if (
+                typeof child === "object" &&
+                child !== null &&
+                !visited.has(child.componentIdx)
+            ) {
+                let result = this.gatherUnexpandedComposites(child, visited);
                 if (result.haveUnexpandedCompositeReady) {
                     Object.assign(
                         unexpandedCompositesReadyByParentName,

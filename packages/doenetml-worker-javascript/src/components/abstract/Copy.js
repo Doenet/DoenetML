@@ -52,6 +52,11 @@ import {
     readHeldCopySnapshot,
 } from "../../utils/copySnapshot";
 import { gatherVariantComponents } from "../../utils/variants";
+import {
+    holdAttributeComponentAt,
+    holdUnresolvedAttributeAt,
+    valueAsWritten,
+} from "../../utils/heldChoiceAttribute";
 import { returnCopyReplacementsToHideDefinitions } from "../../utils/replacementsToHide";
 import {
     copiesReferent,
@@ -7774,21 +7779,13 @@ async function keepChoicesReachedByModuleAttributes({
         return found;
     }
 
-    const selectableClass =
-        componentInfoObjects.allComponentClasses._componentWithSelectableType;
-    function isSelectableTypeWrapper(component) {
-        const componentClass =
-            componentInfoObjects.allComponentClasses[component.componentType];
-        return (
-            selectableClass !== undefined &&
-            componentClass !== undefined &&
-            (componentClass === selectableClass ||
-                componentClass.prototype instanceof selectableClass)
-        );
-    }
-
     const reaching = new Set();
-    async function visit(component) {
+    /**
+     * `inTemplate`: inside the template of a `<repeat>` or
+     * `<repeatForSequence>`, whose components are not made in the source
+     * (only its iterations are).
+     */
+    async function visit(component, inTemplate = false) {
         if (typeof component !== "object" || component === null) {
             return;
         }
@@ -7834,15 +7831,20 @@ async function keepChoicesReachedByModuleAttributes({
                 ).find(
                     ([name]) => name.toLowerCase() === attrName.toLowerCase(),
                 )?.[1]?.component;
+                if (madeBySource === undefined && inTemplate) {
+                    // held at the value of the source's iteration, as
+                    // below
+                    attribute.keepSourceIterationValue = true;
+                    for (const name of names) {
+                        reaching.add(name);
+                    }
+                    continue;
+                }
                 const text = await valueAsWritten(sourceAttribute);
                 if (text === undefined) {
                     continue;
                 }
-                // What was written, which a `copy` of this one is given in
-                // place of the value (`serialize`, `withoutReaderState`),
-                // as `authoredComponent` below
-                attribute.authoredChildren = deepClone(attribute.children);
-                attribute.children = [text];
+                holdUnresolvedAttributeAt({ attribute, text });
                 for (const name of names) {
                     reaching.add(name);
                 }
@@ -7856,40 +7858,29 @@ async function keepChoicesReachedByModuleAttributes({
                 continue;
             }
             const sourceAttribute = components[attribute.component.originalIdx];
-            const text = await valueAsWritten(sourceAttribute);
-            if (text === undefined) {
-                continue;
+            if (sourceAttribute === undefined) {
+                // Inside the template of a `<repeat>` or
+                // `<repeatForSequence>`, which has no live component: each
+                // iteration of the copy is held at the value of the
+                // source's iteration it takes its state from
+                // (`copyStateFromUnlinkedSource` in `Repeat.js`).
+                if (!inTemplate) {
+                    continue;
+                }
+                attribute.keepSourceIterationValue = true;
+            } else {
+                const text = await valueAsWritten(sourceAttribute);
+                if (text === undefined) {
+                    continue;
+                }
+                // the value the source chose with, in place of what refers
+                // to the module attribute
+                holdAttributeComponentAt({
+                    attribute,
+                    text,
+                    componentInfoObjects,
+                });
             }
-            // the value the source chose with, written in place of what
-            // refers to the module attribute (a value reference, `_ref`, of
-            // the type it is presented as, when it is only the reference)
-            // What was written, which a `copy` of this one, writing its
-            // DoenetML again, is given in place of the value (`serialize`,
-            // `withoutReaderState`), so it computes it from what it is
-            // given, as the module attribute written on it
-            attribute.authoredComponent = deepClone(attribute.component);
-            // of an attribute of a selectable type (`from` of a
-            // `<selectFromSequence>`), the component of that type it wraps
-            let attributeComponent = attribute.component;
-            while (
-                isSelectableTypeWrapper(attributeComponent) &&
-                attributeComponent.children?.length === 1 &&
-                typeof attributeComponent.children[0] === "object"
-            ) {
-                attributeComponent = attributeComponent.children[0];
-            }
-            const presentedType =
-                attributeComponent.doenetAttributes?.presentedComponentType;
-            if (
-                ["_ref", "_copy"].includes(attributeComponent.componentType) &&
-                presentedType
-            ) {
-                attributeComponent.componentType = presentedType;
-            }
-            delete attributeComponent.extending;
-            attributeComponent.attributes = {};
-            attributeComponent.state = {};
-            attributeComponent.children = [text];
             for (const name of names) {
                 reaching.add(name);
             }
@@ -7897,13 +7888,16 @@ async function keepChoicesReachedByModuleAttributes({
         // also a choosing tag inside an attribute component, as the
         // `<selectFromSequence>` of `<angle><selectFromSequence/></angle>`,
         // which the angle's `radians` holds (as `collect`, above)
+        const childrenInTemplate =
+            inTemplate ||
+            ["repeat", "repeatForSequence"].includes(component.componentType);
         for (const child of component.children ?? []) {
-            await visit(child);
+            await visit(child, childrenInTemplate);
         }
         for (const attribute of Object.values(component.attributes ?? {})) {
-            await visit(attribute?.component);
+            await visit(attribute?.component, inTemplate);
             for (const reference of attribute?.references ?? []) {
-                await visit(reference);
+                await visit(reference, inTemplate);
             }
         }
     }
@@ -7916,26 +7910,6 @@ async function keepChoicesReachedByModuleAttributes({
             args: { attribute },
         }),
     );
-}
-
-/**
- * The value of the attribute component `component` as text it reads back
- * as that value: a single value (`value`), or the numbers of a
- * `<numberList>` (`numbers`), separated by spaces. `undefined` for any
- * other (as a list of another type, as the `exclude` of a
- * `<selectFromSequence>`), which is not read from text once the document
- * is loaded.
- */
-async function valueAsWritten(component) {
-    const value = await component?.stateValues?.value;
-    if (value !== undefined && value !== null) {
-        return typeof value === "object" ? value.toString() : String(value);
-    }
-    const numbers =
-        component?.componentType === "numberList"
-            ? await component.stateValues.numbers
-            : undefined;
-    return numbers?.map(String).join(" ");
 }
 
 /**

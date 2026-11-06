@@ -1015,6 +1015,28 @@ ${repeat}
         expect(doc.diagnostics().errors).eqls([]);
     });
 
+    it("a copy of a value reference in a container holds the value it captured through a reload", async () => {
+        const doc = await loaded(`
+<math name="m">x</math>
+<group name="g">$m</group>
+<math name="c" copy="$g[1]"/>
+<mathInput name="mi" bindValueTo="$m"/>
+`);
+        expect((await doc.sv("c")).value.tree).eq("x");
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await doc.resolve("mi"),
+            core: doc.core,
+        });
+        async function check() {
+            expect((await doc.sv("m")).value.tree).eq("y");
+            expect((await doc.sv("c")).value.tree).eq("x");
+        }
+        await check();
+        await doc.reload();
+        await check();
+    });
+
     it("a copy of a copyWithState of a value reference in a container holds the value captured, not a reader's write to it, through a reload", async () => {
         const doc = await loaded(`
 <math name="m">x</math>
@@ -1197,6 +1219,109 @@ ${repeat}
             expect((await doc.sv("p1")).text, copy).eq(
                 (await doc.sv("p0")).text,
             );
+        }
+    });
+    const options = [...Array(10).keys()]
+        .map((i) => `<option><number>${i}</number></option>`)
+        .join("");
+    for (const [form, open, close] of [
+        [
+            "repeatForSequence",
+            `<repeatForSequence length="2">`,
+            `</repeatForSequence>`,
+        ],
+        ["repeat", `<repeat for="a b" valueName="v">`, `</repeat>`],
+    ])
+        for (const [written, select] of [
+            ["", `<select numToSelect="$k">${options}</select>`],
+            [" written with copy", `<select copy="$s" numToSelect="$k"/>`],
+        ]) {
+            it(`copyWithState of a module: a module attribute reaching a choice attribute${written} in a ${form} template keeps the carried choices`, async () => {
+                const doc = await loaded(`
+<p name="ps"><select name="s">${options}</select></p>
+<setup>
+  <module name="m">
+    <moduleAttributes><integer name="k">1</integer></moduleAttributes>
+    <p name="picks">${open}${select}${close}</p>
+    <p name="kp">$k</p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" k="2"/>
+<module name="mc" copy="$mw" k="3"/>
+`);
+                async function check() {
+                    const source = (await doc.sv("m1.picks")).text;
+                    expect(source.split(", ").length).eq(2);
+                    // the carried choices win, and `k` takes the written value
+                    expect((await doc.sv("mw.picks")).text).eq(source);
+                    expect((await doc.sv("mw.kp")).text).eq("2");
+                    // a copy chooses again from the module attribute written on it
+                    expect(
+                        (await doc.sv("mc.picks")).text.split(", ").length,
+                    ).eq(6);
+                }
+                await check();
+                expect(
+                    doc
+                        .diagnostics()
+                        .warnings.filter((w: any) => w.code === "doenet-w0186")
+                        .map((w: any) => w.args.attribute),
+                ).eqls(["k"]);
+                expect(doc.diagnostics().errors).eqls([]);
+                await doc.reload();
+                await check();
+            });
+        }
+});
+
+describe("descendant dependency traversal", () => {
+    it("checks each descendant once for unexpanded composites", async () => {
+        const { DescendantDependency } =
+            await import("../../core/dependencies/childDependencies");
+        const original =
+            DescendantDependency.prototype.gatherUnexpandedComposites;
+        let depth = 0;
+        let visits: number[] = [];
+        let maxRepeatVisits = 0;
+        const spy = vi
+            .spyOn(DescendantDependency.prototype, "gatherUnexpandedComposites")
+            .mockImplementation(function (this: any, ...args: any[]) {
+                if (depth === 0) {
+                    visits = [];
+                }
+                visits.push(args[0].componentIdx);
+                const counts: Record<number, number> = {};
+                for (const v of visits) {
+                    counts[v] = (counts[v] ?? 0) + 1;
+                    maxRepeatVisits = Math.max(maxRepeatVisits, counts[v]);
+                }
+                depth++;
+                try {
+                    return (original as any).apply(this, args);
+                } finally {
+                    depth--;
+                }
+            });
+        try {
+            const nested = (inner: string, n: number): string =>
+                n === 0 ? inner : `<group>${nested(inner, n - 1)}</group>`;
+            const doc = await loaded(`
+<p name="ps"><select name="s">${[...Array(10).keys()]
+                .map((i) => `<option><number>${i}</number></option>`)
+                .join("")}</select></p>
+<group name="g">${nested(`<p name="picks"><select copy="$s" numToSelect="2"/></p>`, 6)}</group>
+<group name="gc" copy="$g"/>
+<group name="gw" copyWithState="$g"/>
+`);
+            const source = (await doc.sv("g.picks")).text;
+            expect(source.split(", ").length).eq(2);
+            expect((await doc.sv("gc.picks")).text.split(", ").length).eq(2);
+            expect((await doc.sv("gw.picks")).text).eq(source);
+            expect(spy).toHaveBeenCalled();
+            expect(maxRepeatVisits).eq(1);
+        } finally {
+            spy.mockRestore();
         }
     });
 });

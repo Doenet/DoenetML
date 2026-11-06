@@ -605,6 +605,10 @@ export default class ValueRef extends BaseComponent {
                 }
             }
             serialized.state.value = await this.stateValues.value;
+            // Made from the value it reads, not DoenetML of its own, so a
+            // `copy` holds that value through a reload (`copySnapshotOf`,
+            // CPY-5), as it holds what it made from a property
+            serialized.holdsValue = true;
             // What it captured is what the component made from this with
             // the state carried (a `copyWithState`) was made with, so a
             // `copy` of that one starts from it (`initialEssentialState`,
