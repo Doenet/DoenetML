@@ -1824,9 +1824,9 @@ export default class BaseComponent {
         // (CPY-5, `snapshotListEntrySource`)
         const holdsValue =
             parameters.copyAll &&
-            (this.shadows?.propVariable !== undefined ||
-                (this.shadows &&
-                    this.doenetAttributes.listEntrySource !== undefined));
+            this.shadows &&
+            (this.shadows.propVariable !== undefined ||
+                this.doenetAttributes.listEntrySource !== undefined);
         if (
             parameters.copyEssentialState ||
             (parameters.copyEssentialStateIfShadow && this.shadows) ||

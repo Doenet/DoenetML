@@ -377,8 +377,10 @@ export class StatePersistence {
      * snapshot instead (`utils/copySnapshot.js`). A copy that one made now
      * would reproduce needs nothing saved, as #1940 asks of what a reader has
      * not changed. A copy made now can differ where a reload would not: a
-     * `<sampleRandomNumbers copy>` made now takes the values its source has
-     * drawn since, so it is held though a reload would draw the same. With
+     * `<sampleRandomNumbers copyWithState>` made now takes the values its
+     * source has drawn since, so it is held though a reload would draw the
+     * same. A `copy`'s snapshot is empty, as it carries no reader state
+     * (D33), so it is held only for what decided what it made. With
      * the snapshot it holds what decided what the copy made, where a copy
      * made again could decide otherwise: whether a copy written as a
      * different tag was made, and the case of a `<conditionalContent>` it

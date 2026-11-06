@@ -103,7 +103,7 @@ export async function expandExternalReferences(
                 });
             };
 
-            // Find any `extend` or `copy` attributes that begin with `doenet:` in the dast and append the results to `promiseStack`.
+            // Find any `extend`, `copy` or `copyWithState` attributes that begin with `doenet:` in the dast and append the results to `promiseStack`.
             // Index contents are included: an element written between a
             // reference's brackets is nobody's child, so a plain `visit` walks
             // straight past `$list[<number copy="doenet:abc" />]` and the
@@ -183,7 +183,7 @@ export async function expandExternalReferences(
                 const source_doc = dast.sources.length;
                 dast.sources.push(externalDoenetML);
 
-                // Delete all `extend` or `copy` attributes from the parent.
+                // Delete all `extend`, `copy` or `copyWithState` attributes from the parent.
                 // (The external reference supersedes any others.)
                 for (const attrName in parent.attributes) {
                     if (

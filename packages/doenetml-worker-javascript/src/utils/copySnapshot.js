@@ -1,7 +1,7 @@
 import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
 
 /**
- * What an unlinked copy (`copy=`) made of its source when it was made, for
+ * What a `copyWithState` made of its source when it was made, for
  * each component among its serialized replacements: its essential state,
  * its primitive (string) children, its literal attributes
  * (`literalAttribute.ts`) and the text written to its expression attributes
@@ -10,6 +10,9 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
  * such as dragging `<point>(1,2)</point>`, changes the child itself rather
  * than any essential state, and the literals because a reader's write to
  * one (a toggled `hide="false"`) is copied in the literal.
+ *
+ * A `copy` carries no reader state, so it holds no snapshot, only what
+ * decided what it made (D33).
  *
  * A copy present when a document loads is made again on every load, from
  * its source as it is then: after a reader has changed the source and
