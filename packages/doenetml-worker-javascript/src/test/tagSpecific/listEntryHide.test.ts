@@ -848,4 +848,130 @@ describe("Hidden content nested inside a list @group4", async () => {
             ch: "2, 3, 4, 10",
         });
     });
+    it("a sort that stays a composite keeps hiding its entries through a reload", async () => {
+        const doenetML = `
+    <booleanInput name="h" />
+    <mathInput name="mi" prefill="5" />
+    <p name="p"><sort name="l"><number>3</number><group hide="$h"><number>2</number><math>4</math></group><number>$mi</number></sort></p>
+    <p name="entries">$l[1] $l[2] $l[3] $l[4]</p>
+    <p name="whole">$l</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        const texts = async () => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const texts: Record<string, string> = {};
+            for (const name of ["p", "entries", "whole"]) {
+                texts[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.text;
+            }
+            return texts;
+        };
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await texts()).eqls({
+            p: "1, 3",
+            entries: "1 2 3 4",
+            whole: "1, 3",
+        });
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await texts()).eqls({
+            p: "1, 3",
+            entries: "1 2 3 4",
+            whole: "1, 3",
+        });
+
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await texts()).eqls({
+            p: "3, 10",
+            entries: "2 3 4 10",
+            whole: "3, 10",
+        });
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await texts()).eqls({
+            p: "2, 3, 4, 10",
+            entries: "2 3 4 10",
+            whole: "2, 3, 4, 10",
+        });
+    });
+});
+
+/**
+ * A `<sort>` or `<shuffle>` that stays a composite (#2394), placed inside a
+ * hidden container. Inside a hidden composite (`<group hide>`,
+ * `<conditionalContent hide>`), its entries count as hidden, as those of a
+ * list inside one do, so a reference to the whole sort placed elsewhere
+ * draws nothing. Inside a hidden `<p>` or `<section>`, or in `<setup>`, it
+ * draws the entries. A reference to an entry placed elsewhere is shown
+ * either way.
+ */
+describe("A sort that stays a composite inside a hidden container @group4", async () => {
+    const sort = `<sort name="l"><number>1</number><math>2</math></sort>`;
+    const shuffle = `<shuffle name="l"><number>1</number><math>2</math></shuffle>`;
+    const contents = [
+        { content: `<group hide>${sort}</group>`, drawn: false },
+        { content: `<group hide>${shuffle}</group>`, drawn: false },
+        {
+            content: `<conditionalContent hide><case condition="true">${sort}</case></conditionalContent>`,
+            drawn: false,
+        },
+        { content: `<p hide>${sort}</p>`, drawn: true },
+        { content: `<section hide>${sort}</section>`, drawn: true },
+        { content: `<setup>${sort}</setup>`, drawn: true },
+    ];
+
+    for (const { content, drawn } of contents) {
+        it(content, async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                requestedVariantIndex: 1,
+                doenetML: `
+    ${content}
+    <p name="whole">$l</p>
+    <p name="entries">$l[1] $l[2]</p>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const text = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text;
+            const entries = await text("entries");
+            expect(await text("whole")).eq(
+                drawn ? entries.split(" ").join(", ") : "",
+            );
+            expect(entries.split(" ").sort()).eqls(["1", "2"]);
+        });
+    }
 });
