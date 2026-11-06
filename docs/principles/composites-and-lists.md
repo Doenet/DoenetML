@@ -331,13 +331,11 @@ marked "just submitted" (#2325).
   value. It used to be `NaN` after the case changed (`verifyReplacementsMatchSpecifiedType`).
 
 **Known violations and gaps:**
-- `<group extend="$cc.x"/>` and `<group extend="$x"/>` go empty for good after the case changes,
-  with a spurious `doenet-e0005`, even when every case declares `x` with one type. The same
-  happened on main before #2451 (B40, #2453);
 - a container reached by a name after an index into a repeat (`$r[1].s.x`) isn't checked at load;
-- the language server's autocomplete still treats names inside a container as hidden
-  (`lsp-tools` `_isHiddenBySugar`), so it doesn't offer `$x` for a name every case declares
-  (#2455);
+- autocomplete follows the rule since #2469 (closing #2455), and leaves out a name some branch
+  lacks or declares with another tag. Left: `$rep[n].` doesn't list the branch names of a
+  container in the repeat, and `$v[1].head.` of a plain vector offers properties (#2479);
+- `<group extend="$cc.x"/>` going empty after the case changes (B40) was fixed by #2471;
 - root names, and so HTML ids, of components in the branches are unchanged: one in an unnamed
   container has none.
 
