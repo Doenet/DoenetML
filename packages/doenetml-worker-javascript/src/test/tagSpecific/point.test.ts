@@ -7529,4 +7529,94 @@ describe("Point tag tests @group4", async () => {
         expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
         expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
     });
+
+    it("coordinates written as a child of a copy or extend set its coordinates, as `xs` does", async () => {
+        // The child `(3,4)` is sugar for `xs="3 4"`, also on a `copy` or
+        // `extend`, which it takes precedence over the source with (#2395),
+        // whether the source wrote its coordinates as a child or as `xs`.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="show"/>
+    <graph>
+      <point name="P">(1,2)</point>
+      <point name="Q" xs="1 2"/>
+      <point name="C0" copy="$P">(3,4)</point>
+      <point name="E0" extend="$P">(3,4)</point>
+      <point name="CQ0" copy="$Q">(3,4)</point>
+      <point name="EQ0" extend="$Q">(3,4)</point>
+      <point name="X0" copy="$P" xs="3 4"/>
+      <point name="XE0" extend="$P" xs="3 4"/>
+      <point name="L0" copy="$P"><label>L</label>(3,4)</point>
+      <point name="R0" copy="$P">(3, $P.x)</point>
+      <point name="W0" extend="$P" xs="5 6">(3,4)</point>
+      <point name="plain" xs="5 6">(3,4)</point>
+      <point name="T0" copy="$P">(3,4,5)</point>
+    </graph>
+    <conditionalContent condition="$show">
+      <graph>
+        <point name="C1" copy="$P">(3,4)</point>
+        <point name="E1" extend="$P">(3,4)</point>
+        <point name="CQ1" copy="$Q">(3,4)</point>
+        <point name="EQ1" extend="$Q">(3,4)</point>
+        <point name="X1" copy="$P" xs="3 4"/>
+      </graph>
+    </conditionalContent>
+    `,
+        });
+
+        async function coordsOf(names: string[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const coords: Record<string, any[]> = {};
+            for (const name of names) {
+                coords[name] = stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.xs.map((x: any) => x.tree);
+            }
+            return coords;
+        }
+
+        const atLoad = ["C0", "E0", "CQ0", "EQ0", "X0", "XE0", "L0", "W0"];
+        const expected = Object.fromEntries(
+            atLoad.map((name) => [name, [3, 4]]),
+        );
+
+        expect(await coordsOf(atLoad)).eqls(expected);
+        expect(await coordsOf(["R0", "plain", "T0"])).eqls({
+            R0: [3, 1],
+            plain: [3, 4],
+            T0: [3, 4, 5],
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("L0")].stateValues.label,
+        ).eq("L");
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect([...errors, ...warnings]).eqls([]);
+
+        // after the sources are dragged, and for copies made afterwards
+        for (const name of ["P", "Q"]) {
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx(name),
+                x: 7,
+                y: 8,
+                core,
+            });
+        }
+        expect(await coordsOf(atLoad)).eqls(expected);
+        expect((await coordsOf(["R0"])).R0).eqls([3, 7]);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("show"),
+            core,
+        });
+        const later = ["C1", "E1", "CQ1", "EQ1", "X1"];
+        expect(await coordsOf([...atLoad, ...later])).eqls({
+            ...expected,
+            ...Object.fromEntries(later.map((name) => [name, [3, 4]])),
+        });
+    });
 });

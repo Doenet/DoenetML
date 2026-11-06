@@ -59,7 +59,7 @@ export function applySugar({
     const newComponents: (string | SerializedComponent)[] = [];
 
     for (let component of serializedComponents) {
-        if (typeof component === "string") {
+        if (typeof component === "string" || component.sugarApplied) {
             newComponents.push(component);
             continue;
         }
