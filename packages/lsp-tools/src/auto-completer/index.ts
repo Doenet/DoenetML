@@ -15,10 +15,13 @@ import {
     type RefMemberCompletionContext,
 } from "./methods/get-completion-context";
 import {
-    COMPOSITE_WRAPPER_NAMES,
     getElementNameAttributeValue,
     type RustResolverAdapter,
 } from "./rust-resolver-adapter";
+import {
+    branchDeclarationBelow,
+    branchDeclarations,
+} from "./branch-declarations";
 import { isRepeatLikeElement } from "./repeat-elements";
 import {
     collectModuleInstancesWithCopyOrExtend,
@@ -223,6 +226,14 @@ export type RefMemberContainerResolution = {
      * Resolvers must always provide this field.
      */
     visibleDescendantNames: string[];
+    /**
+     * Names that, after `node`, name nothing, though `node`'s schema may
+     * have a property by them: declared in some but not every branch of a
+     * branch container (`$v.head` for a `<point name="head">` in one
+     * branch's vector `v`, runtime `doenet-w0183`). Neither completion nor
+     * help offers a property by them.
+     */
+    hiddenMemberNames?: string[];
 };
 
 export type ResolveRefMemberContainer = (
@@ -258,64 +269,6 @@ export type AutoCompleterOptions = {
     rustResolverAdapter?: RustResolverAdapter;
     getAdditionalRefNames?: (offset: number) => string[];
 };
-
-/**
- * Walk the subtree rooted at `node` and return the first descendant element
- * whose `name` attribute equals `target`, or `null` if none exists.
- */
-function findNamedDescendant(
-    node: DastElement,
-    target: string,
-): DastElement | null {
-    for (const child of node.children) {
-        if (child.type !== "element") continue;
-        if (getElementNameAttributeValue(child) === target) return child;
-        const inner = findNamedDescendant(child, target);
-        if (inner) return inner;
-    }
-    return null;
-}
-
-/**
- * For composite wrappers (`<select>`, `<conditionalContent>`, …) whose
- * children are `<case>` / `<else>` / `<option>` branches, return the
- * first named descendant found by walking the wrapper subtrees — **but
- * only when every wrapper that contains `target` resolves it to the
- * same component type**. The help layer has no static way to know which
- * branch the runtime will pick (`<option>` is index-addressable but the
- * help call site doesn't carry the index; `<case>` is predicate-gated),
- * so when branches diverge in component type we'd be guessing at the
- * schema — return `null` and let the panel go blank instead.
- *
- * Returns `null` when `container` has no wrapper children, when no
- * wrapper contains `target`, or when matches across wrappers disagree
- * on element name.
- *
- * Used as a fallback when `getNamedDescendant` returns `null` because
- * two sibling branches each declared the same name. Parallels
- * `collectNamesFromCompositeChildren` in `rust-resolver-adapter.ts`,
- * which is what put `target` into `visibleDescendantNames` in the first
- * place (so this only runs when the resolver already affirmed the name
- * is reachable through a wrapper).
- */
-function findDescendantViaCompositeWrappers(
-    container: DastElement,
-    target: string,
-): DastElement | null {
-    const matches: DastElement[] = [];
-    for (const child of container.children) {
-        if (child.type !== "element") continue;
-        if (!COMPOSITE_WRAPPER_NAMES.has(child.name)) continue;
-        const match = findNamedDescendant(child, target);
-        if (match) matches.push(match);
-    }
-    if (matches.length === 0) return null;
-    const firstName = matches[0].name;
-    for (let i = 1; i < matches.length; i++) {
-        if (matches[i].name !== firstName) return null;
-    }
-    return matches[0];
-}
 
 /**
  * Shift snippet cursor offsets after trimming leading whitespace.
@@ -907,6 +860,34 @@ export class AutoCompleter {
     }
 
     /**
+     * Look up a bare ref `$name` at `offset` that names a declaration in the
+     * branches of a `<conditionalContent>` or a one-pick `<select>`,
+     * resolved through the container (issue #2455). Such a name is
+     * declared once per branch, so the AST-only `resolveRefNameForHelp`
+     * misses it; the Rust resolver decides whether it resolves, and the
+     * first branch's declaration (every branch's has the same tag) is
+     * described. Returns `null` when no resolver is attached or the name is
+     * not such a declaration.
+     */
+    async resolveBranchNameForHelp(
+        offset: number,
+        name: string,
+    ): Promise<RefHelpInfo | null> {
+        const adapter = this._rustResolverAdapter;
+        if (
+            !adapter ||
+            typeof adapter.resolveBranchNameFromOffset !== "function"
+        ) {
+            return null;
+        }
+        const referent = await adapter.resolveBranchNameFromOffset(
+            offset,
+            name,
+        );
+        return referent ? this._buildRefHelpInfo(referent) : null;
+    }
+
+    /**
      * Look up a bare ref `$name` at `offset` against repeat-introduced
      * bindings only. Walks the parent chain from `offset` and, for each
      * ancestor `<repeat>` / `<repeatForSequence>`, checks whether its
@@ -983,7 +964,9 @@ export class AutoCompleter {
     /**
      * For a `$container.member` cursor whose container is already resolved,
      * decide whether `memberName` matches a uniquely-addressable named
-     * descendant of `container`. Returns the help bundle when it does;
+     * descendant of `container`, or a name every branch of a branch
+     * container declares (in `container` itself, or below it for
+     * `$sec.x`). Returns the help bundle when it does;
      * otherwise `null` so the caller can fall back to property lookup.
      *
      * Mirrors runtime ref-resolution precedence (`getMacroReferentAtOffset`):
@@ -999,22 +982,25 @@ export class AutoCompleter {
         );
         if (descendant) return this._buildRefHelpInfo(descendant);
 
-        // Composite-wrapper fallback: for `<select>` / `<conditionalContent>`
-        // where multiple `<option>` / `<case>` / `<else>` branches each declare
-        // a descendant with the same `name`, `getNamedDescendant` returns
-        // `null` because the name is not uniquely addressable. The resolver
-        // already included the name in `visibleDescendantNames` (gating this
-        // call) via `collectNamesFromCompositeChildren`. The fallback walks
-        // the wrapper subtrees and returns the first match — but only when
-        // all matching branches resolve the name to the same component type,
-        // since the help layer can't tell which branch the runtime will pick.
-        // Heterogeneous branches yield `null` (panel blank) rather than wrong
-        // help.
-        const compositeMatch = findDescendantViaCompositeWrappers(
-            container,
-            memberName,
-        );
+        // Branch fallback: for a `<conditionalContent>` or a `<select>`
+        // whose branches (`<case>` / `<else>` / `<option>`) each declare a
+        // descendant with the same `name`, `getNamedDescendant` returns
+        // `null` because the name is not unique. The resolver put the name
+        // in `visibleDescendantNames` (gating this call) only when every
+        // branch declares it with one tag (`sharedBranchNames`), so the first
+        // branch's declaration describes them all. A `<select>` is read as
+        // after an index into its picks (`$s[2].x`), which is the only way
+        // a select that picks several exposes the names of its options.
+        const declarations = branchDeclarations(container, [memberName], true);
+        const compositeMatch = Array.isArray(declarations)
+            ? declarations[0]
+            : null;
         if (compositeMatch) return this._buildRefHelpInfo(compositeMatch);
+        // A name declared in the branches of a branch container below
+        // `container` (`$sec.x`), which the resolver lists when every
+        // branch declares it with one tag.
+        const belowMatch = branchDeclarationBelow(container, memberName);
+        if (belowMatch) return this._buildRefHelpInfo(belowMatch);
         return null;
     }
 
