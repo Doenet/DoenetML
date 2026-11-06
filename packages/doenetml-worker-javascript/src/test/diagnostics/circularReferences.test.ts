@@ -397,6 +397,19 @@ describe("Reference cycles decided at load @group2", async () => {
             `<group name="g"><math name="a">1</math><math name="b">$g[1]+1</math></group>`,
         ],
         [
+            "an index into the text list it is in, to an item before it",
+            `<textList name="l"><text>a</text><text>$l[1]</text></textList>`,
+        ],
+        [
+            "an index into the boolean list it is in, to an item before it",
+            `<booleanList name="l"><boolean>true</boolean><boolean>$l[1]</boolean></booleanList>`,
+        ],
+        [
+            // an index names nothing in a number (`doenet-w0100`)
+            "an index into the number it is in",
+            `<number name="n">1 + $n[1]</number>`,
+        ],
+        [
             "a reference to a sibling in a repeat's template",
             `<repeat for="1 2" valueName="v"><math name="a">$v</math><math name="b">$a+1</math></repeat>`,
         ],

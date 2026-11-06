@@ -14,10 +14,13 @@
  *
  * - a reference (`$x`, `$m[2]`, `<math extend="$x"/>`, `<math copy="$x"/>`)
  *   to what it names, when it names the component as a whole, or an index
- *   into a component that is not a composite (`$m[2]` of a `<math>`). A
- *   property (`$x.y`) may or may not read what is written in `x`, and an
- *   index into a composite names one of what it holds, decided only when it
- *   runs, so neither is an edge;
+ *   into a `<math>` or a type built on it, such as a `<matrix>` (`$m[2]`),
+ *   which reads the whole value. A property (`$x.y`) may or may not read
+ *   what is written in `x`, an index into a composite names one of what it
+ *   holds, decided only when it runs, an index into a list reads one item
+ *   (`<textList name="l"><text>a</text><text>$l[1]</text></textList>` is
+ *   valid), and an index into a `<text>`, a `<number>` or a `<boolean>`
+ *   names nothing (`doenet-w0100`), so none of these is an edge;
  * - a composite (`<conditionalContent>`, `<group>`, `<repeat>`, …), a
  *   `<case>` or an `<option>` to each child but a `<setup>`, as what it
  *   holds is made from them;
@@ -202,7 +205,10 @@ export function breakReferenceCycles({
                     (wholeOrIndex &&
                         targetType !== undefined &&
                         target.componentType !== "_copy" &&
-                        !isComposite(targetType))
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: targetType,
+                            baseComponentType: "math",
+                        }))
                 ) {
                     edges.push(target.componentIdx);
                 }
