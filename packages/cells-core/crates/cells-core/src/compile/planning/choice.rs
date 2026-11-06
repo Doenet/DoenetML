@@ -14,42 +14,42 @@ use crate::limits::MAX_CASES;
 /// Planning, choices: a `<conditionalContent>`'s or `<select>`'s own plans; its
 /// branches are templates of their own. Never reads another element's plan (ADR
 /// 0029).
-impl<'a> Compiler<'a> {
+impl<'a> Planning<'a> {
     /// A choice's props: a select's `hide`; for a reactive choice also a
     /// hidden port per case condition (an else is a constant 1) and
     /// `choice`, the first of them that holds.
     pub(in crate::compile) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let Body::Choice(cid) = self.outlined(t).elems[e.index()].body else {
+        let Body::Choice(cid) = self.rd.outlined(t).elems[e.index()].body else {
             unreachable!()
         };
-        let d = self.dast;
+        let d = self.rd.dast;
         let Elem {
             node,
             name_scope: scope,
             ..
-        } = self.outlined(t).elems[e.index()];
+        } = self.rd.outlined(t).elems[e.index()];
         let hide = match d.attr(node, "hide") {
-            Some(a) if self.rd().attr_text(a).is_some() => {
-                Source::constant(if self.rd().attr_flag(node, "hide") {
+            Some(a) if self.rd.attr_text(a).is_some() => {
+                Source::constant(if self.rd.attr_flag(node, "hide") {
                     1.0
                 } else {
                     0.0
                 })
             }
             Some(a) => {
-                self.rd()
+                self.rd
                     .plan_value(&mut self.ar, t, scope, "hide", d.attr_children(a), None)?
             }
             None => Source::constant(0.0),
         };
-        if !self.choice(cid).reactive {
+        if !self.rd.choice(cid).reactive {
             // `numToSelect` after `hide`: a document constant the check
             // evaluates (ADR 0037).
             // A literal is a constant, as a literal `hide` is: never state.
             let num = match d.attr(node, "numToSelect") {
                 Some(a) => {
                     match self
-                        .rd()
+                        .rd
                         .plan_scalar(&mut self.ar, t, scope, d.attr_children(a))?
                     {
                         Source::Leaf(Leaf::Given(v)) => Source::constant(v),
@@ -66,7 +66,7 @@ impl<'a> Compiler<'a> {
         }
         let mut wiring = ElemWiring::of(ComponentType::ConditionalContent);
         let mut conds = Vec::new();
-        for c in self.choice(cid).conditions.clone() {
+        for c in self.rd.choice(cid).conditions.clone() {
             conds.push(match c {
                 Some(a) => self.plan_condition(t, e, &mut wiring, d.attr_children(a))?,
                 None => wiring.hidden(Source::constant(1.0)),

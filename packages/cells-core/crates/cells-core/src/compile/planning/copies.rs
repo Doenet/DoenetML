@@ -9,7 +9,7 @@ use crate::compile::*;
 /// Planning, copies: `extend` with a prop path, container copies, clones, and
 /// the copy rules around a `Plan` type's planner. Reads the referent's record
 /// and type, never its plan (ADR 0029).
-impl<'a> Compiler<'a> {
+impl<'a> Planning<'a> {
     /// `extend="$c.prop"`: the element's value props alias the named prop.
     pub(in crate::compile) fn plan_extend_prop(
         &mut self,
@@ -17,7 +17,7 @@ impl<'a> Compiler<'a> {
         e: ElemId,
         p: RefId,
     ) -> Result<()> {
-        let component_type = self.outlined(t).elems[e.index()].component_type;
+        let component_type = self.rd.outlined(t).elems[e.index()].component_type;
         let props = match component_type {
             ComponentType::Point => prop::point::props_of(Source::coord(p, 0), Source::coord(p, 1)),
             // A mathInput bound to a cell is a numeric input: no expression
@@ -43,7 +43,7 @@ impl<'a> Compiler<'a> {
                 self.tables[t.index()].plans[e.index()].from = Some(p);
                 Vec::new()
             }
-            _ => return Err(Error::PathTooDeep(self.ar.ref_display(self.dast, p))),
+            _ => return Err(Error::PathTooDeep(self.ar.ref_display(self.rd.dast, p))),
         };
         self.tables[t.index()].plans[e.index()].props = props;
         Ok(())
@@ -55,15 +55,14 @@ impl<'a> Compiler<'a> {
     /// from outlining.
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
-        pl: &mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<()> {
-        let component_type = self.outlined(t).elems[e.index()].planned_as;
+        let component_type = self.rd.outlined(t).elems[e.index()].planned_as;
         match Self::planner(component_type) {
-            Planner::Plan(plan) => self.plan_with_extend(pl, t, e, Some(p), plan),
-            _ => self.plan_attrs(&pl.parsed, t, e, Some(p)),
+            Planner::Plan(plan) => self.plan_with_extend(t, e, Some(p), plan),
+            _ => self.plan_attrs(t, e, Some(p)),
         }
     }
 
@@ -73,7 +72,7 @@ impl<'a> Compiler<'a> {
     /// element's are, and a list is as long as the referent's, which only
     /// the build knows.
     pub(in crate::compile) fn plan_bare_copy(&mut self, t: TemplateId, e: ElemId) {
-        let component_type = self.outlined(t).elems[e.index()].component_type;
+        let component_type = self.rd.outlined(t).elems[e.index()].component_type;
         let extend = self.tables[t.index()].plans[e.index()]
             .extend
             .expect("a bare copy extends");
@@ -96,11 +95,11 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Option<Referent> {
-        if let Some(r) = self.rd().plan_elem_target(&self.ar, t, p) {
-            return (self.outlined(t).elems[r.index()].node != NodeId::NONE)
+        if let Some(r) = self.rd.plan_elem_target(&self.ar, t, p) {
+            return (self.rd.outlined(t).elems[r.index()].node != NodeId::NONE)
                 .then_some(Referent::Here(r));
         }
-        let (ty, last) = self.rd().ref_target(&self.ar, t, p).ok()?;
+        let (ty, last) = self.rd.ref_target(&self.ar, t, p).ok()?;
         let (rt, re) = last?;
         // The path ends at the element (not at a collect an index steps
         // into), which is one the author wrote.
@@ -108,7 +107,7 @@ impl<'a> Compiler<'a> {
         let ends_at_elem = matches!(plan.steps.last(), Some(Step::Elem(_))) && plan.prop.is_none();
         (ends_at_elem
             && ty.is_some()
-            && self.outlined(rt).elems[re.index()].node != NodeId::NONE
+            && self.rd.outlined(rt).elems[re.index()].node != NodeId::NONE
             && (rt != t || true))
             .then_some(Referent::Path(p, rt, re))
     }
@@ -120,14 +119,13 @@ impl<'a> Compiler<'a> {
     /// referent's port holding it.
     pub(in crate::compile) fn plan_with_extend(
         &mut self,
-        pl: &mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
         plan: super::planner::PlanFn,
     ) -> Result<()> {
-        let d = self.dast;
-        let el = self.outlined(t).elems[e.index()].node;
+        let d = self.rd.dast;
+        let el = self.rd.outlined(t).elems[e.index()].node;
         // Own attributes other than name and extend, or children, override
         // the referent's; with none, the copy aliases every public prop.
         let own_attrs: Vec<String> = d
@@ -135,18 +133,18 @@ impl<'a> Compiler<'a> {
             .map(|a| d.attr_name(a).to_string())
             .filter(|n| n != "name" && n != "extend")
             .collect();
-        let has_children = !d.children(el).iter().all(|&n| self.rd().is_not_content(n));
+        let has_children = !d.children(el).iter().all(|&n| self.rd.is_not_content(n));
         if extend.is_some() && own_attrs.is_empty() && !has_children {
             self.plan_bare_copy(t, e);
             return Ok(());
         }
-        let mut record = pl.parsed.record(t, e)?;
+        let mut record = self.parsed.record(t, e)?;
         let referent = match extend {
             Some(p) => {
                 let r = self.extend_referent(t, p).ok_or_else(|| {
                     Error::Unsupported(format!(
                         "attributes or children on an extend of '${}', which names no element; a bare extend of it works",
-                        self.ar.ref_display(self.dast, p)
+                        self.ar.ref_display(self.rd.dast, p)
                     ))
                 })?;
                 let (rt, re) = match r {
@@ -155,13 +153,13 @@ impl<'a> Compiler<'a> {
                 };
                 // A referent whose record did not parse is boxed by its
                 // own error; the copy is boxed as its reader (ADR 0027).
-                let theirs = pl
+                let theirs = self
                     .parsed
                     .record(rt, re)
-                    .map_err(|_| Error::BoxedReferent(self.ar.ref_display(self.dast, p)))?;
+                    .map_err(|_| Error::BoxedReferent(self.ar.ref_display(self.rd.dast, p)))?;
                 let theirs = match r {
                     Referent::Here(_) => theirs,
-                    Referent::Path(p, ..) => self.rd().rebase_record(&mut self.ar, p, theirs),
+                    Referent::Path(p, ..) => self.rd.rebase_record(&mut self.ar, p, theirs),
                 };
                 record = record.merged_over(&theirs);
                 Some(r)
@@ -172,7 +170,7 @@ impl<'a> Compiler<'a> {
             Some(Referent::Here(r)) => Some(r),
             _ => None,
         };
-        let wiring = plan(&mut PlanCtx::new(self, pl, t, e, record, here))?;
+        let wiring = plan(&mut PlanCtx::new(self, t, e, record, here))?;
         // A given leaf the copy did not give itself is the referent's: the
         // current core's copies share their essential state variables. The
         // copy names what it shares, and linking ties it to the port the
@@ -189,7 +187,7 @@ impl<'a> Compiler<'a> {
                 if own || !wiring.is_given(port) {
                     continue;
                 }
-                pl.planned.shares.push(Share {
+                self.planned.shares.push(Share {
                     t,
                     e,
                     port,
@@ -199,7 +197,7 @@ impl<'a> Compiler<'a> {
             }
         }
         if !wiring.given().is_empty() {
-            pl.planned.given.insert((t, e), wiring.given().clone());
+            self.planned.given.insert((t, e), wiring.given().clone());
         }
         let (props, list) = wiring.finish();
         let plan = &mut self.tables[t.index()].plans[e.index()];

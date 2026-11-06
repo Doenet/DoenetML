@@ -38,7 +38,7 @@ impl Compare {
 
 /// Planning, conditions: comparisons and boolean operators over math, as hidden
 /// ports of the element. Never reads another element's plan (ADR 0029).
-impl<'a> Compiler<'a> {
+impl<'a> Planning<'a> {
     /// A condition as hidden ports of element `e`; returns the port holding
     /// 1 or 0. Comparisons (`< <= > >= = !=`), `and`/`&&`, `or`/`||`,
     /// `not`/`!`, parentheses, `true`, `false`, and math operands; a bare
@@ -53,7 +53,7 @@ impl<'a> Compiler<'a> {
         if let Some(port) = self.plan_text_condition(t, e, nodes, wiring)? {
             return Ok(port);
         }
-        let (toks, src) = self.rd().math_tokens(&mut self.ar, t, e, nodes)?;
+        let (toks, src) = self.rd.math_tokens(&mut self.ar, t, e, nodes)?;
         self.plan_condition_tokens(wiring, &toks, src, Compare::default())
     }
 
@@ -68,7 +68,7 @@ impl<'a> Compiler<'a> {
         nodes: &[NodeId],
         wiring: &mut ElemWiring,
     ) -> Result<Option<Port>> {
-        let d = self.dast;
+        let d = self.rd.dast;
         // Each reference spelled as a placeholder, so the sides can be split
         // on the text as written.
         let mut spelled = String::new();
@@ -83,10 +83,7 @@ impl<'a> Compiler<'a> {
                 _ => {}
             }
         }
-        if !refs
-            .iter()
-            .any(|&m| self.rd().macro_reads_text(t, scope, m))
-        {
+        if !refs.iter().any(|&m| self.rd.macro_reads_text(t, scope, m)) {
             return Ok(None);
         }
         let refuse = |what: &str| {
@@ -105,8 +102,8 @@ impl<'a> Compiler<'a> {
                 .and_then(|r| r.strip_suffix('\u{0}'))
                 .and_then(|k| k.parse::<usize>().ok());
             match lone {
-                Some(k) if cp.rd().macro_reads_text(t, scope, refs[k]) => {
-                    let p = cp.rd().plan_ref(&mut cp.ar, t, scope, refs[k])?;
+                Some(k) if cp.rd.macro_reads_text(t, scope, refs[k]) => {
+                    let p = cp.rd.plan_ref(&mut cp.ar, t, scope, refs[k])?;
                     Ok(wiring.hidden(Source::reference(p)))
                 }
                 Some(_) => Err(refuse("a text value compared with a number")),
@@ -114,7 +111,7 @@ impl<'a> Compiler<'a> {
                     Err(refuse("a text value inside a larger expression"))
                 }
                 None => {
-                    let id = cp.ar.intern_literal(cp.dast, s);
+                    let id = cp.ar.intern_literal(cp.rd.dast, s);
                     Ok(wiring.hidden(Source::constant(id.to_value())))
                 }
             }
@@ -141,7 +138,7 @@ impl<'a> Compiler<'a> {
         let mut p = CondParser {
             toks,
             pos: 0,
-            dast: self.dast,
+            dast: self.rd.dast,
             src,
             compare,
         };
@@ -167,7 +164,7 @@ impl<'a> Compiler<'a> {
         if let Some(port) = self.plan_text_condition(t, scope, nodes, wiring)? {
             return Ok(port);
         }
-        match self.rd().math_tokens(&mut self.ar, t, scope, nodes) {
+        match self.rd.math_tokens(&mut self.ar, t, scope, nodes) {
             Ok((toks, src)) => self.plan_condition_tokens(wiring, &toks, src, compare),
             Err(Error::BadMath { text, reason }) => {
                 let sym = self.sym_spelling(t, scope, nodes)?;
@@ -193,8 +190,8 @@ impl<'a> Compiler<'a> {
     pub(in crate::compile) fn compare_attrs(&self, els: &[NodeId]) -> Compare {
         let on = |name: &str| {
             els.iter()
-                .find(|&&el| self.dast.attr(el, name).is_some())
-                .is_some_and(|&el| self.rd().attr_on(el, name))
+                .find(|&&el| self.rd.dast.attr(el, name).is_some())
+                .is_some_and(|&el| self.rd.attr_on(el, name))
         };
         let syntactic = on("symbolicEquality");
         Compare {
@@ -211,13 +208,13 @@ impl<'a> Compiler<'a> {
     /// The content as the engine spells it: text as written, each `$ref`
     /// as its `cellN<plan>` leaf.
     fn sym_spelling(&mut self, t: TemplateId, scope: ElemId, nodes: &[NodeId]) -> Result<String> {
-        let d = self.dast;
+        let d = self.rd.dast;
         let mut sym = String::new();
         for &n in nodes {
             match d.kind(n) {
                 NodeKind::Text => sym.push_str(d.str(n)),
                 NodeKind::Macro => {
-                    let p = self.rd().plan_ref(&mut self.ar, t, scope, n)?;
+                    let p = self.rd.plan_ref(&mut self.ar, t, scope, n)?;
                     sym.push_str(&format!(
                         " {} ",
                         crate::sym::engine::leaf_name(p.get(), false)
@@ -282,23 +279,23 @@ impl CondParser<'_> {
         matches!(self.peek(k), Some(Token::Op(x)) if *x == c)
     }
 
-    fn or(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<Port> {
+    fn or(&mut self, cp: &mut Planning, wiring: &mut ElemWiring) -> Result<Port> {
         self.chain(cp, wiring, "or", '|', OpSpec::Max, Self::and)
     }
 
-    fn and(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<Port> {
+    fn and(&mut self, cp: &mut Planning, wiring: &mut ElemWiring) -> Result<Port> {
         self.chain(cp, wiring, "and", '&', OpSpec::Min, Self::not)
     }
 
     /// `next`s joined by `word`, `c` or `cc`, folded left with `op`.
     fn chain(
         &mut self,
-        cp: &mut Compiler,
+        cp: &mut Planning,
         wiring: &mut ElemWiring,
         word: &str,
         c: char,
         op: OpSpec,
-        next: fn(&mut Self, &mut Compiler, &mut ElemWiring) -> Result<Port>,
+        next: fn(&mut Self, &mut Planning, &mut ElemWiring) -> Result<Port>,
     ) -> Result<Port> {
         let mut lhs = next(self, cp, wiring)?;
         loop {
@@ -314,7 +311,7 @@ impl CondParser<'_> {
         }
     }
 
-    fn not(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<Port> {
+    fn not(&mut self, cp: &mut Planning, wiring: &mut ElemWiring) -> Result<Port> {
         if self.is_word("not") || (self.is_op(0, '!') && !matches!(self.peek(1), Some(Token::Eq))) {
             self.pos += 1;
             let a = self.not(cp, wiring)?;
@@ -325,7 +322,7 @@ impl CondParser<'_> {
 
     /// A parenthesized condition, or a comparison of two operands, or a
     /// lone operand.
-    fn cmp(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<Port> {
+    fn cmp(&mut self, cp: &mut Planning, wiring: &mut ElemWiring) -> Result<Port> {
         if let Some(Token::LParen) = self.peek(0) {
             let close = self.matching(self.pos)?;
             if self.toks[self.pos + 1..close]
@@ -390,7 +387,7 @@ impl CondParser<'_> {
     }
 
     /// Math up to the next comparison or connective outside parentheses.
-    fn operand(&mut self, cp: &mut Compiler) -> Result<Operand> {
+    fn operand(&mut self, cp: &mut Planning) -> Result<Operand> {
         let start = self.pos;
         let mut depth = 0i32;
         while let Some(t) = self.peek(0) {
@@ -431,7 +428,7 @@ impl CondParser<'_> {
 
     /// The operand as a numeric port: its lowered source, else its
     /// expression evaluated (NaN with free symbols).
-    fn number(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring, a: &Operand) -> Port {
+    fn number(&mut self, cp: &mut Planning, wiring: &mut ElemWiring, a: &Operand) -> Port {
         match &a.numeric {
             Some(p) => wiring.hidden(p.clone()),
             None => {
@@ -444,7 +441,7 @@ impl CondParser<'_> {
     /// The operand as a math cell.
     fn symbolic(
         &mut self,
-        cp: &mut Compiler,
+        cp: &mut Planning,
         wiring: &mut ElemWiring,
         a: &Operand,
         post: Post,

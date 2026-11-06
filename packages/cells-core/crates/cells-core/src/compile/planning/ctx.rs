@@ -11,8 +11,7 @@ use crate::components::ConstrainTarget;
 /// referent sits; what the element writes itself, where the element sits.
 /// No planner applies `fixed`.
 pub(crate) struct PlanCtx<'c, 'a> {
-    c: &'c mut Compiler<'a>,
-    /// Planning's working set.
+    /// Planning's view: what the planner reaches, through the methods below.
     p: &'c mut Planning<'a>,
     t: TemplateId,
     e: ElemId,
@@ -36,7 +35,6 @@ struct Base {
 
 impl<'c, 'a> PlanCtx<'c, 'a> {
     pub(in crate::compile) fn new(
-        c: &'c mut Compiler<'a>,
         p: &'c mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
@@ -46,8 +44,8 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         let referent = referent.map(|b| {
             let Elem {
                 node, name_scope, ..
-            } = *c.elem(t, b);
-            let d = c.dast;
+            } = *p.rd.elem(t, b);
+            let d = p.rd.dast;
             let mut subtree = HashSet::new();
             let mut stack = vec![node];
             while let Some(n) = stack.pop() {
@@ -67,7 +65,6 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
             }
         });
         PlanCtx {
-            c,
             p,
             t,
             e,
@@ -79,7 +76,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
 
 impl<'a> PlanCtx<'_, 'a> {
     fn elem(&self) -> &Elem {
-        self.c.elem(self.t, self.e)
+        self.p.rd.elem(self.t, self.e)
     }
 
     fn scope(&self) -> ElemId {
@@ -118,7 +115,8 @@ impl<'a> PlanCtx<'_, 'a> {
     /// element sits in directly, if it sits in one.
     pub(crate) fn enclosing_graph_prop(&self, port: Port) -> Option<Source> {
         let scope = self.scope();
-        (scope != ROOT_SCOPE && self.c.elem(self.t, scope).component_type == ComponentType::Graph)
+        (scope != ROOT_SCOPE
+            && self.p.rd.elem(self.t, scope).component_type == ComponentType::Graph)
             .then_some(Source::alias(Arg::Elem(scope, port)))
     }
 
@@ -129,28 +127,26 @@ impl<'a> PlanCtx<'_, 'a> {
     #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) fn scalar_of(&mut self, nodes: &[NodeId]) -> Result<Source> {
         let scope = self.scope_for(nodes);
-        self.c
-            .rd()
-            .plan_scalar(&mut self.c.ar, self.t, scope, nodes)
+        self.p.rd.plan_scalar(&mut self.p.ar, self.t, scope, nodes)
     }
 
     /// Math text that is a pair, `(a, b)`, as its two coordinates.
     pub(crate) fn tuple(&mut self, nodes: &[NodeId]) -> Result<[Source; 2]> {
         let scope = self.scope_for(nodes);
-        self.c.rd().plan_tuple(&mut self.c.ar, self.t, scope, nodes)
+        self.p.rd.plan_tuple(&mut self.p.ar, self.t, scope, nodes)
     }
 
     /// Children or an attribute read as a value, not blank: a reference,
     /// a literal, or math text, as a table prop of `children` is planned.
     pub(crate) fn value_of(&mut self, v: &ValueChildren) -> Result<Source> {
         let scope = self.scope_for(&v.nodes);
-        self.c.plan_value_children(self.t, scope, v)
+        self.p.plan_value_children(self.t, scope, v)
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
     /// an error when what it names has no such prop.
     pub(crate) fn with_prop(&mut self, p: RefId, prop: &'static str) -> Result<RefId> {
-        self.c.rd().plan_with_prop(&mut self.c.ar, self.t, p, prop)
+        self.p.rd.plan_with_prop(&mut self.p.ar, self.t, p, prop)
     }
 
     /// A prop of the element a reference names, as an operator's argument.
@@ -162,10 +158,10 @@ impl<'a> PlanCtx<'_, 'a> {
     /// names one in this template (`$l`, not `$l.x` or `$r[2]`), as
     /// outlining settled it (a `<math>` may be a point).
     pub(crate) fn reference_type(&mut self, p: RefId) -> Result<Option<ComponentType>> {
-        match self.c.rd().plan_elem_target(&self.c.ar, self.t, p) {
-            Some(_) => self.c.rd().referent_type(
-                &self.c.ar,
-                self.p.boxes.visible(&self.c.tables),
+        match self.p.rd.plan_elem_target(&self.p.ar, self.t, p) {
+            Some(_) => self.p.rd.referent_type(
+                &self.p.ar,
+                self.p.boxes.visible(&self.p.tables),
                 &mut self.p.planned.reads,
                 self.t,
                 self.e,
@@ -195,30 +191,26 @@ impl<'a> PlanCtx<'_, 'a> {
         nodes: &'n [NodeId],
     ) -> Result<(Vec<Token>, MathSrc<'n>)> {
         let scope = self.scope_for(nodes);
-        self.c
-            .rd()
-            .math_tokens(&mut self.c.ar, self.t, scope, nodes)
+        self.p.rd.math_tokens(&mut self.p.ar, self.t, scope, nodes)
     }
 
     /// An expression as a source: lowered to numeric operators when it is
     /// numeric, else symbolic.
     pub(crate) fn plan_expr(&mut self, id: ExprId) -> Source {
-        self.c.rd().plan_from_expr(&self.c.ar, id)
+        self.p.rd.plan_from_expr(&self.p.ar, id)
     }
 
     /// Math text tokenized, its `$ref`s not yet planned: to read its
     /// shape before parsing it once (`sym_math`).
     pub(crate) fn math_text(&self, nodes: &[NodeId]) -> Result<MathText> {
-        self.c.rd().math_text(nodes)
+        self.p.rd.math_text(nodes)
     }
 
     /// Math text `mt` of `nodes` as an expression that may be symbolic,
     /// its text kept for the symbolic engine.
     pub(crate) fn sym_math(&mut self, nodes: &[NodeId], mt: &MathText) -> Result<ExprId> {
         let scope = self.scope_for(nodes);
-        self.c
-            .rd()
-            .parse_math_text(&mut self.c.ar, self.t, scope, mt)
+        self.p.rd.parse_math_text(&mut self.p.ar, self.t, scope, mt)
     }
 
     /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as sources
@@ -234,26 +226,26 @@ impl<'a> PlanCtx<'_, 'a> {
     ) -> Result<Option<[Source; 3]>> {
         let t = self.t;
         let (toks, src) = self.math_tokens(nodes)?;
-        let c = &mut *self.c;
+        let c = &mut *self.p;
         let sides = super::expr::split_top(&toks, &Token::Eq);
         if sides.len() != 2 {
             return Err(Error::BadMath {
-                text: src.text(c.dast),
+                text: src.text(c.rd.dast),
                 reason: "a line equation needs one '='".into(),
             });
         }
         let (lhs, rhs) = (
-            c.rd().parse_tokens(&mut c.ar, &sides[0], src)?,
-            c.rd().parse_tokens(&mut c.ar, &sides[1], src)?,
+            c.rd.parse_tokens(&mut c.ar, &sides[0], src)?,
+            c.rd.parse_tokens(&mut c.ar, &sides[1], src)?,
         );
         let diff = c.ar.arena.push(Expr::Sub(lhs, rhs));
-        let diff = c.inline_symbolic_maths(&self.p.parsed, t, diff);
+        let diff = c.inline_symbolic_maths(t, diff);
         Ok(
             super::expr::linear_coeffs(&mut c.ar.arena, diff, vx, vy).map(|[a, b, k]| {
                 [
-                    c.rd().plan_from_expr(&c.ar, a),
-                    c.rd().plan_from_expr(&c.ar, b),
-                    c.rd().plan_from_expr(&c.ar, k),
+                    c.rd.plan_from_expr(&c.ar, a),
+                    c.rd.plan_from_expr(&c.ar, b),
+                    c.rd.plan_from_expr(&c.ar, k),
                 ]
             }),
         )
@@ -261,7 +253,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// The canonical string id of `text`.
     pub(crate) fn intern(&mut self, text: &str) -> StrId {
-        self.c.ar.intern_literal(self.c.dast, text)
+        self.p.ar.intern_literal(self.p.rd.dast, text)
     }
 
     /// A condition over the element's content (comparisons and
@@ -269,8 +261,8 @@ impl<'a> PlanCtx<'_, 'a> {
     /// in a hidden port of `wiring` holding 1 while it holds.
     pub(crate) fn condition(&mut self, nodes: &[NodeId], wiring: &mut ElemWiring) -> Result<Port> {
         let scope = self.scope_for(nodes);
-        let compare = self.c.compare_attrs(&[self.node()]);
-        self.c
+        let compare = self.p.compare_attrs(&[self.node()]);
+        self.p
             .plan_condition_content(self.t, scope, nodes, compare, wiring)
     }
 
@@ -279,7 +271,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// [`Wire::undefined`] of what this returns.
     pub(crate) fn warn(&mut self, code: &'static str, message: &str) -> Warned {
         let node = self.node();
-        self.c.ar.warn(node, code, message)
+        self.p.ar.warn(node, code, message)
     }
 
     // The element's wiring.

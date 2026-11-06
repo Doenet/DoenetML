@@ -52,6 +52,11 @@ impl<'a> Reader<'a> {
         Reader { dast, settled }
     }
 
+    /// What outlining settled.
+    pub(in crate::compile) fn settled(&self) -> &'a Settled {
+        self.settled
+    }
+
     /// The name table.
     pub(in crate::compile) fn names(&self) -> &'a NameTable {
         &self.settled.names

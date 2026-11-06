@@ -6,37 +6,35 @@ use crate::compile::*;
 /// Planning, attributes: each prop's source from the element's record, and the
 /// `<math>`s a plan inlines. Run by every planner; reads the record, never
 /// another element's plan (ADR 0029).
-impl<'a> Compiler<'a> {
+impl<'a> Planning<'a> {
     /// The prop sources of a type described by [`PropFrom`]: attributes,
     /// bindings, computed chains, children. A `by_planner` prop is refused:
     /// a type with one is planned by a function.
     pub(in crate::compile) fn plan_attrs(
         &mut self,
-        parsed: &Parsed,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
     ) -> Result<()> {
-        self.plan_table(parsed, t, e, extend, false)
+        self.plan_table(t, e, extend, false)
     }
 
     /// `plan_attrs` for machinery that plans the `by_planner` props itself
     /// after the table: they are left absent.
     pub(in crate::compile) fn plan_table(
         &mut self,
-        parsed: &Parsed,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
         by_machinery: bool,
     ) -> Result<()> {
-        let d = self.dast;
+        let d = self.rd.dast;
         let Elem {
             node: el,
             component_type,
             name_scope: scope,
             ..
-        } = self.outlined(t).elems[e.index()];
+        } = self.rd.outlined(t).elems[e.index()];
         // Without an attribute a prop is the type's default, or under
         // `extend` the referent's port of the same position (ADR 0032).
         let default = |v: f64, pi: usize| match extend {
@@ -47,7 +45,7 @@ impl<'a> Compiler<'a> {
         // The element's own children, as its type reads them (ADR 0034):
         // what a `PropFrom::Children` prop is planned from.
         let children = if component_type.def().children.kind == ChildrenKind::Value {
-            parsed.record(t, e)?.child_value()
+            self.parsed.record(t, e)?.child_value()
         } else {
             ValueChildren::blank()
         };
@@ -63,11 +61,11 @@ impl<'a> Compiler<'a> {
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
                     let bind = def.bind.unwrap();
-                    let m = self.rd().single_macro(a).ok_or_else(|| Error::BadValue {
+                    let m = self.rd.single_macro(a).ok_or_else(|| Error::BadValue {
                         attr: bind.into(),
-                        text: self.rd().attr_text(a).unwrap_or_default(),
+                        text: self.rd.attr_text(a).unwrap_or_default(),
                     })?;
-                    Some(Source::reference(self.rd().plan_ref(
+                    Some(Source::reference(self.rd.plan_ref(
                         &mut self.ar,
                         t,
                         scope,
@@ -79,7 +77,7 @@ impl<'a> Compiler<'a> {
             let source = match (bound, def.from) {
                 (Some(p), _) => p,
                 (None, PropFrom::Attribute) => match d.attr(el, def.attr_name()) {
-                    Some(a) => self.rd().plan_value(
+                    Some(a) => self.rd.plan_value(
                         &mut self.ar,
                         t,
                         scope,
@@ -90,7 +88,7 @@ impl<'a> Compiler<'a> {
                     None => default(def.default, pi),
                 },
                 (None, PropFrom::AttributeOr { alias }) => match d.attr(el, def.attr_name()) {
-                    Some(a) => self.rd().plan_value(
+                    Some(a) => self.rd.plan_value(
                         &mut self.ar,
                         t,
                         scope,
@@ -104,7 +102,7 @@ impl<'a> Compiler<'a> {
                 (None, PropFrom::Children) => match &children.value {
                     // A mathInput's `prefill` stands in for blank children.
                     ChildValue::Blank => match def.attr.and_then(|a| d.attr(el, a)) {
-                        Some(a) => match self.rd().try_value(
+                        Some(a) => match self.rd.try_value(
                             &mut self.ar,
                             t,
                             scope,
@@ -112,7 +110,7 @@ impl<'a> Compiler<'a> {
                             None,
                         )? {
                             Some(p) => p,
-                            None => Source::math(self.rd().plan_math(
+                            None => Source::math(self.rd.plan_math(
                                 &mut self.ar,
                                 t,
                                 scope,
@@ -157,7 +155,7 @@ impl<'a> Compiler<'a> {
                 values::literal_value(text.trim()).expect("a literal")
             }
             // Not a single literal or reference: math text.
-            _ => Source::math(self.rd().plan_math(&mut self.ar, t, scope, &v.nodes)?),
+            _ => Source::math(self.rd.plan_math(&mut self.ar, t, scope, &v.nodes)?),
         })
     }
 
@@ -166,36 +164,29 @@ impl<'a> Compiler<'a> {
     /// symbols.
     pub(in crate::compile) fn inline_symbolic_maths(
         &mut self,
-        parsed: &Parsed,
         t: TemplateId,
         id: ExprId,
     ) -> ExprId {
-        self.inline_maths(parsed, t, id, &mut Vec::new())
+        self.inline_maths(t, id, &mut Vec::new())
     }
 
     /// `inline_symbolic_maths`, with the maths being inlined around `id`:
     /// one reached again (two maths naming each other) is left a cell.
-    fn inline_maths(
-        &mut self,
-        parsed: &Parsed,
-        t: TemplateId,
-        id: ExprId,
-        inlining: &mut Vec<ElemId>,
-    ) -> ExprId {
+    fn inline_maths(&mut self, t: TemplateId, id: ExprId, inlining: &mut Vec<ElemId>) -> ExprId {
         let e = self.ar.arena.get(id).clone();
         match e {
             Expr::Cell(p) => {
                 let plan = &self.ar.refs[p.index()];
                 let is_value = plan.prop.is_none_or(|pr| pr.is("value"));
                 let Some(target) = (is_value)
-                    .then(|| self.rd().plan_elem_target(&self.ar, t, p))
+                    .then(|| self.rd.plan_elem_target(&self.ar, t, p))
                     .flatten()
                 else {
                     return id;
                 };
                 // Every `<math>` is parsed before planning; one that did not parse is
                 // left a cell, its error its own.
-                let Some(Ok(ParsedMath::Expr(inner))) = parsed.math(t, target) else {
+                let Some(Ok(ParsedMath::Expr(inner))) = self.parsed.math(t, target) else {
                     return id;
                 };
                 let inner = *inner;
@@ -208,19 +199,19 @@ impl<'a> Compiler<'a> {
                     return id;
                 }
                 inlining.push(target);
-                let inlined = self.inline_maths(parsed, t, inner, inlining);
+                let inlined = self.inline_maths(t, inner, inlining);
                 inlining.pop();
                 inlined
             }
             Expr::Num(_) | Expr::Sym(_) => id,
             Expr::Neg(a) => {
-                let a = self.inline_maths(parsed, t, a, inlining);
+                let a = self.inline_maths(t, a, inlining);
                 self.ar.arena.push(Expr::Neg(a))
             }
             Expr::Call(f, args) => {
                 let args = args
                     .into_iter()
-                    .map(|a| self.inline_maths(parsed, t, a, inlining))
+                    .map(|a| self.inline_maths(t, a, inlining))
                     .collect();
                 self.ar.arena.push(Expr::Call(f, args))
             }
@@ -230,8 +221,8 @@ impl<'a> Compiler<'a> {
             | Expr::Div(a, b)
             | Expr::Pow(a, b) => {
                 let (na, nb) = (
-                    self.inline_maths(parsed, t, a, inlining),
-                    self.inline_maths(parsed, t, b, inlining),
+                    self.inline_maths(t, a, inlining),
+                    self.inline_maths(t, b, inlining),
                 );
                 self.ar.arena.push(e.with_operands(na, nb))
             }

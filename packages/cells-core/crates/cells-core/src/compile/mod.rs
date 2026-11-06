@@ -92,6 +92,7 @@ use boxes::{Boxes, Visible};
 use names::*;
 use outline::Outlining;
 use parse::Parsed;
+use planning::Planning;
 use planning::ctx::PlanCtx;
 use planning::planner::Planner;
 use reader::{Arenas, Reader};
@@ -255,9 +256,30 @@ impl Compiler<'_> {
             crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
         crate::trace::span("parse records").run(|| cp.parse_records(&to_plan, &mut parsed));
         boxes.enter(Stage::Plan);
-        let (mut planned, mut boxes) = crate::trace::span("plan all")
-            .run(|| cp.plan_all(boxes, parsed, to_plan, macros, reads));
+        let Compiler { ar, tables, .. } = cp;
+        let mut planning = Planning::new(
+            Reader::new(dast, &settled),
+            &parsed,
+            tables,
+            ar,
+            boxes,
+            reads,
+        );
+        crate::trace::span("plan all").run(|| planning.plan_all(to_plan, macros));
+        let Planning {
+            tables,
+            ar,
+            mut boxes,
+            mut planned,
+            ..
+        } = planning;
         boxes.restart_if_needed()?;
+        let mut cp = Compiler {
+            dast,
+            ar,
+            settled: &settled,
+            tables,
+        };
         boxes.enter(Stage::Link);
         crate::trace::span("link").run(|| cp.link(&mut boxes, &mut planned))?;
         boxes.restart_if_needed()?;
@@ -330,29 +352,14 @@ impl Compiler<'_> {
 /// the templates' rows and tables, and the planners' warnings. Every stage
 /// reads through these.
 impl<'a> Compiler<'a> {
-    /// What outlining settled.
-    pub(in crate::compile) fn settled(&self) -> &Settled {
-        self.settled
-    }
-
     /// Outlining's part of template `t`, read-only.
     pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &Outlined {
         &self.settled.templates[t.index()]
     }
 
-    /// Element `e` of template `t` as outlining made it.
-    pub(in crate::compile) fn elem(&self, t: TemplateId, e: ElemId) -> &Elem {
-        &self.outlined(t).elems[e.index()]
-    }
-
     /// How many templates there are.
     pub(in crate::compile) fn n_templates(&self) -> usize {
         self.tables.len()
-    }
-
-    /// Choice `cid` as outlining made it.
-    pub(in crate::compile) fn choice(&self, cid: ChoiceId) -> &ChoiceDef {
-        &self.settled.choices[cid.index()]
     }
 
     /// What outlining settled (so far), read-only: what the readers read.

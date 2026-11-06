@@ -20,7 +20,7 @@ lints, then runs the stages in
 | lint | [`compile::lint`](crate::compile::lint) | [`lint`](crate::compile::lint::lint) | findings from the DAST alone; records no read | 0021, 0027 |
 | outline | [`compile::outline`](crate::compile::outline) | [`Outlining::outline`](crate::compile::outline::Outlining::outline) | every element, template and name: [`Settled`](crate::compile::Settled), read-only after it, and the work for the stages after it ([`Outline`](crate::compile::Outline)); plans nothing | 0030 |
 | parse | [`compile::parse`](crate::compile::parse) | [`Compiler::parse_maths`](crate::compile::Compiler::parse_maths), [`Compiler::parse_records`](crate::compile::Compiler::parse_records) | every `<math>`'s text parsed once, as outlining settled its type, and every element's record: [`Parsed`](crate::compile::parse::Parsed) | 0034 |
-| plan | [`compile::planning`](crate::compile::planning) | [`Compiler::plan_all`](crate::compile::Compiler::plan_all) | every element's plans and hold, every `$ref` child's plan (planning's columns of [`Tables`](crate::compile::plan::Tables)), and [`Planned`](crate::compile::Planned) for linking and sealing | 0029, 0034 |
+| plan | [`compile::planning`](crate::compile::planning) | [`Planning::plan_all`](crate::compile::planning::Planning::plan_all) | every element's plans and hold, every `$ref` child's plan (planning's columns of [`Tables`](crate::compile::plan::Tables)), and [`Planned`](crate::compile::Planned) for linking and sealing | 0029, 0034 |
 | link | [`compile::link`](crate::compile::link) | [`Compiler::link`](crate::compile::Compiler::link) | readers of boxes boxed to a fixpoint, elements with an attribute nothing read boxed, shared state tied | 0021, 0032 |
 | seal | [`compile::seal`](crate::compile::seal) | [`Seal::run`](crate::compile::seal::Seal::run) | choice interfaces, arity, keys, slot offsets and every port's type: a [`SealedTemplate`](crate::compile::plan::SealedTemplate) per template and a [`ChoiceSeal`](crate::compile::plan::ChoiceSeal) per choice | 0032 |
 | share | [`compile::share`](crate::compile::share) | [`Plans::share`](crate::compile::plan::Plans::share) | equal derived ports made aliases, and the expression classes | 0033 |
@@ -55,7 +55,11 @@ what one shares with another (an extend's essential state) is linked
 once all are planned. A planner is a function of its element's record
 (ADR 0034) and reaches the compile only through
 [`compile::api`](crate::compile::api); see the
-[component chapter](crate::_guide::component).
+[component chapter](crate::_guide::component). Behind
+[`PlanCtx`](crate::compile::api::PlanCtx) is planning's view,
+[`Planning`](crate::compile::planning::Planning): what outlining settled
+and what parsing made, read-only, and planning's table, the boxes and the
+arenas, writable (ADR 0031, "The planner context").
 
 ## Boxing
 

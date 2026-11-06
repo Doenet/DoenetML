@@ -22,7 +22,7 @@ pub(crate) enum Planner {
 }
 
 /// Planning, the planner of a type: which kind its definition names.
-impl Compiler<'_> {
+impl Planning<'_> {
     /// How an element of `component_type` is planned: what its definition
     /// (`component!`) says.
     pub(in crate::compile) fn planner(component_type: ComponentType) -> Planner {

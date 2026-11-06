@@ -55,13 +55,13 @@ fn is_graph(component_type: ComponentType) -> bool {
 /// Planning, holds: what `fixed`, `fixLocation` and `fixAxes` make of an
 /// element, a fact beside its plans. Reads the record of the element and those
 /// around it, never a plan (ADR 0029).
-impl<'a> Compiler<'a> {
+impl<'a> Planning<'a> {
     /// How the attributes of [`HOLD_ATTRS`] reach element `e`: each its
     /// own, else (an inherited one) the nearest ancestor's. A
     /// literal true on any of them holds the element always; a reference
     /// holds it while its flag is set, several while any is.
     pub(in crate::compile) fn plan_hold(&mut self, t: TemplateId, e: ElemId) -> Result<Hold> {
-        let component_type = self.outlined(t).elems[e.index()].component_type;
+        let component_type = self.rd.outlined(t).elems[e.index()].component_type;
         let mut flags = Vec::new();
         for row in HOLD_ATTRS {
             let holds = (row.holds)(component_type);
@@ -78,9 +78,9 @@ impl<'a> Compiler<'a> {
             }
             let Elem {
                 node, name_scope, ..
-            } = self.outlined(at).elems[ae.index()];
-            if self.rd().attr_text(a).is_some() {
-                if self.rd().attr_flag(node, row.name) {
+            } = self.rd.outlined(at).elems[ae.index()];
+            if self.rd.attr_text(a).is_some() {
+                if self.rd.attr_flag(node, row.name) {
                     return Ok(Hold::Always);
                 }
                 // An explicit false, the element's own or the nearest
@@ -90,11 +90,11 @@ impl<'a> Compiler<'a> {
             // A reference, planned where the element that wrote it sits
             // (its names mean what they mean there), and reached from
             // `e` that many templates up.
-            let m = self.rd().single_macro(a).ok_or_else(|| Error::BadValue {
+            let m = self.rd.single_macro(a).ok_or_else(|| Error::BadValue {
                 attr: row.name.into(),
-                text: self.rd().attr_text(a).unwrap_or_default(),
+                text: self.rd.attr_text(a).unwrap_or_default(),
             })?;
-            let p = self.rd().plan_ref(&mut self.ar, at, name_scope, m)?;
+            let p = self.rd.plan_ref(&mut self.ar, at, name_scope, m)?;
             self.ar.refs[p.index()].hops += hops;
             flags.push(p);
         }
@@ -117,10 +117,10 @@ impl<'a> Compiler<'a> {
         name: &str,
         inherited: bool,
     ) -> Option<(TemplateId, ElemId, AttrId, u32)> {
-        let d = self.dast;
+        let d = self.rd.dast;
         let mut hops = 0;
         loop {
-            let el = &self.outlined(t).elems[e.index()];
+            let el = &self.rd.outlined(t).elems[e.index()];
             if el.node != NodeId::NONE
                 && let Some(a) = d.attr(el.node, name)
             {
@@ -132,7 +132,7 @@ impl<'a> Compiler<'a> {
             if el.name_scope != ROOT_SCOPE {
                 e = el.name_scope;
             } else {
-                let (pt, pe) = self.outlined(t).parent?;
+                let (pt, pe) = self.rd.outlined(t).parent?;
                 t = pt;
                 e = pe;
                 hops += 1;

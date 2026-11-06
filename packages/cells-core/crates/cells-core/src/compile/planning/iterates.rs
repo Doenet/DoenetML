@@ -19,11 +19,12 @@ fn tuple_ref_prop(i: usize) -> RefProp {
 /// Planning, `<functionIterates>` and `<repeat for>` over its iterates. Reads
 /// the record and what outlining settled, never another element's plan (ADR
 /// 0029).
-impl<'a> Compiler<'a> {
+impl<'a> Planning<'a> {
     fn attr_macro(&self, el: NodeId, tag: &str, attr: &str) -> Result<NodeId> {
-        self.dast
+        self.rd
+            .dast
             .attr(el, attr)
-            .and_then(|a| self.rd().single_macro(a))
+            .and_then(|a| self.rd.single_macro(a))
             .ok_or_else(|| Error::Unsupported(format!("<{tag}> needs {attr}=\"$name\"")))
     }
 
@@ -33,50 +34,43 @@ impl<'a> Compiler<'a> {
     /// each variable replaced by the matching entry of iteration `k - 1`,
     /// lowered to numeric operators. The function's text is re-planned from
     /// the body, so its references resolve from the `<functionIterates>`.
-    pub(super) fn plan_function_iterates(
-        &mut self,
-        pl: &mut Planning<'a>,
-        t: TemplateId,
-        e: ElemId,
-    ) -> Result<()> {
-        self.plan_table(&pl.parsed, t, e, None, true)?;
+    pub(super) fn plan_function_iterates(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        self.plan_table(t, e, None, true)?;
         let ports = function_iterates::Props::PORTS;
         self.tables[t.index()].plans[e.index()].props[ports.allIteratesWithInitial.index()] =
             Source::own(ports.count);
-        let d = self.dast;
+        let d = self.rd.dast;
         let Elem {
             node: el,
             name_scope: scope,
             ..
-        } = self.outlined(t).elems[e.index()];
-        let Body::Repeat { template: sub } = self.outlined(t).elems[e.index()].body else {
+        } = self.rd.outlined(t).elems[e.index()];
+        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
             unreachable!("a functionIterates has a body template")
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
-        let fp = self.rd().plan_ref(&mut self.ar, t, scope, fm)?;
-        self.rd().referent_type(
+        let fp = self.rd.plan_ref(&mut self.ar, t, scope, fm)?;
+        self.rd.referent_type(
             &self.ar,
-            pl.boxes.visible(&self.tables),
-            &mut pl.planned.reads,
+            self.boxes.visible(&self.tables),
+            &mut self.planned.reads,
             t,
             e,
             fp,
         )?;
         let (ft, fe) = self
-            .rd()
+            .rd
             .static_target(&self.ar, t, fp)
             .filter(|&(ft, fe)| {
-                self.outlined(ft).elems[fe.index()].component_type == ComponentType::Function
+                self.rd.outlined(ft).elems[fe.index()].component_type == ComponentType::Function
             })
             .ok_or_else(|| {
                 Error::Unsupported("<functionIterates function> must name a <function>".into())
             })?;
-        let fnode = self.outlined(ft).elems[fe.index()].node;
+        let fnode = self.rd.outlined(ft).elems[fe.index()].node;
         let vars = self.function_variables(fnode);
         let nodes: Vec<NodeId> = d.children(fnode).to_vec();
-        let (mut toks, src) = self
-            .rd()
-            .math_tokens(&mut self.ar, sub, ROOT_SCOPE, &nodes)?;
+        let (mut toks, src) = self.rd.math_tokens(&mut self.ar, sub, ROOT_SCOPE, &nodes)?;
         // Variable j is entry j of the previous iterate: `$fi[k-1]`'s tuple.
         let prev: Vec<RefId> = (0..vars.len())
             .map(|j| {
@@ -117,12 +111,12 @@ impl<'a> Compiler<'a> {
         }
         let mut exprs = Vec::with_capacity(n);
         for part in &parts {
-            let id = self.rd().parse_tokens(&mut self.ar, part, src)?;
+            let id = self.rd.parse_tokens(&mut self.ar, part, src)?;
             let mut syms = Vec::new();
             self.ar.arena.symbols(id, &mut syms);
             if !syms.is_empty() {
                 return Err(Error::BadMath {
-                    text: src.text(self.dast),
+                    text: src.text(self.rd.dast),
                     reason: format!(
                         "an iterated function must be numeric; '{}' is not a variable",
                         syms[0]
@@ -151,12 +145,12 @@ impl<'a> Compiler<'a> {
     /// from its body: a reference (`$x0`, a number, point or tuple) or math
     /// text (`0.5`, `(1, $a, 0)`). Written numbers are constants, not state.
     fn plan_initial_value(&mut self, sub: TemplateId, el: NodeId, n: usize) -> Result<Vec<Source>> {
-        let d = self.dast;
+        let d = self.rd.dast;
         let a = d
             .attr(el, "initialValue")
             .ok_or_else(|| Error::Unsupported("<functionIterates> needs initialValue".into()))?;
-        if let Some(m) = self.rd().single_macro(a) {
-            let init = self.rd().plan_ref(&mut self.ar, sub, ROOT_SCOPE, m)?;
+        if let Some(m) = self.rd.single_macro(a) {
+            let init = self.rd.plan_ref(&mut self.ar, sub, ROOT_SCOPE, m)?;
             return Ok(if n == 1 {
                 vec![Source::reference(init)]
             } else {
@@ -164,24 +158,22 @@ impl<'a> Compiler<'a> {
             });
         }
         let nodes: Vec<NodeId> = d.attr_children(a).to_vec();
-        let (toks, src) = self
-            .rd()
-            .math_tokens(&mut self.ar, sub, ROOT_SCOPE, &nodes)?;
+        let (toks, src) = self.rd.math_tokens(&mut self.ar, sub, ROOT_SCOPE, &nodes)?;
         let parts = match expr::tuple_entries(&toks) {
             Some(entries) if n > 1 => entries,
             _ => vec![toks.clone()],
         };
         if parts.len() != n {
             return Err(Error::BadMath {
-                text: src.text(self.dast),
+                text: src.text(self.rd.dast),
                 reason: format!("expected an initial value of {n} entries"),
             });
         }
         parts
             .iter()
             .map(|part| {
-                let id = self.rd().parse_tokens(&mut self.ar, part, src)?;
-                Ok(match self.rd().plan_from_expr(&self.ar, id) {
+                let id = self.rd.parse_tokens(&mut self.ar, part, src)?;
+                Ok(match self.rd.plan_from_expr(&self.ar, id) {
                     Source::Leaf(Leaf::Given(v)) => Source::constant(v),
                     other => other,
                 })
@@ -193,9 +185,10 @@ impl<'a> Compiler<'a> {
     /// absent.
     pub(super) fn function_variables(&self, fnode: NodeId) -> Vec<String> {
         crate::components::values::curve::variables(
-            self.dast
+            self.rd
+                .dast
                 .attr(fnode, "variables")
-                .and_then(|a| self.rd().attr_text(a)),
+                .and_then(|a| self.rd.attr_text(a)),
         )
     }
 
@@ -205,11 +198,11 @@ impl<'a> Compiler<'a> {
     /// repeat's own (one hop up) and `k` the iteration's position; either
     /// repeat's index is the iteration's position.
     pub(in crate::compile) fn plan_iteration_names(&mut self, t: TemplateId, e: ElemId) {
-        let Body::Repeat { template: sub } = self.outlined(t).elems[e.index()].body else {
+        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
             return;
         };
-        for i in 0..self.outlined(sub).elems.len() {
-            let el = &self.outlined(sub).elems[i];
+        for i in 0..self.rd.outlined(sub).elems.len() {
+            let el = &self.rd.outlined(sub).elems[i];
             if el.node != NodeId::NONE {
                 continue;
             }
@@ -250,12 +243,12 @@ impl<'a> Compiler<'a> {
             node: el,
             name_scope: scope,
             ..
-        } = self.outlined(t).elems[e.index()];
-        let Body::Repeat { template: sub } = self.outlined(t).elems[e.index()].body else {
+        } = self.rd.outlined(t).elems[e.index()];
+        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
             unreachable!("a repeat has a body template")
         };
         let m = self.attr_macro(el, "repeat", "for")?;
-        let fp = self.rd().plan_ref(&mut self.ar, t, scope, m)?;
+        let fp = self.rd.plan_ref(&mut self.ar, t, scope, m)?;
         let unsupported = || {
             Error::Unsupported(
                 "<repeat for> takes a <functionIterates>' allIteratesWithInitial or iterates"
@@ -271,11 +264,11 @@ impl<'a> Compiler<'a> {
         base.prop = None;
         let base_id = self.ar.push_ref(base.clone()).index();
         match self
-            .rd()
+            .rd
             .static_target(&self.ar, t, RefId::from_index(base_id))
         {
             Some((ft, fe))
-                if self.outlined(ft).elems[fe.index()].component_type
+                if self.rd.outlined(ft).elems[fe.index()].component_type
                     == ComponentType::FunctionIterates => {}
             _ => return Err(unsupported()),
         }
@@ -284,7 +277,7 @@ impl<'a> Compiler<'a> {
         }
         .into_vec();
         let has_item =
-            self.outlined(sub).elems.first().is_some_and(|x| {
+            self.rd.outlined(sub).elems.first().is_some_and(|x| {
                 x.node == NodeId::NONE && x.component_type == ComponentType::Tuple
             });
         if has_item {
@@ -301,7 +294,7 @@ impl<'a> Compiler<'a> {
                         steps: steps.clone(),
                         prop: Some(tuple_ref_prop(i)),
                         display: RefDisplay::Spelled(
-                            format!("({}[i]).{prop}", display_of(self.dast, &base)).into(),
+                            format!("({}[i]).{prop}", display_of(self.rd.dast, &base)).into(),
                         ),
                         node: NodeId::NONE,
                     };
