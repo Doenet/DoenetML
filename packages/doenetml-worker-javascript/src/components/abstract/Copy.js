@@ -1560,19 +1560,22 @@ export default class Copy extends CompositeComponent {
               )
             : undefined;
         // Only a `copyWithState` carries its source's state, so only it has
-        // a snapshot of that state. A `copy` still keeps what decided what it
-        // made (`madeFrom`), so a reload makes it from the same case; its
-        // components save their own state, as written content's do (D33).
+        // a snapshot of that state. A `copy` holds a snapshot only of what it
+        // made from a property or a list entry (`holdsValue`), which holds
+        // the value it was made with (CPY-5). It still keeps what decided
+        // what it made (`madeFrom`), so a reload makes it from the same
+        // case; its other components save their own state, as written
+        // content's do (D33).
         const withState =
             unlinked && (await component.stateValues.copyWithState);
         const snapshotOf = (replacements) =>
-            withState ? copySnapshotOf(replacements) : [];
+            copySnapshotOf(replacements, { onlyHeldValues: !withState });
         const result = await this.createReplacementsFromSources({
             ...args,
             heldMadeFrom: held?.madeFrom,
         });
         if (unlinked) {
-            if (held && withState) {
+            if (held) {
                 applyCopySnapshot(result.replacements, held.snapshot);
             }
             component.unlinkedSnapshot = snapshotOf(result.replacements);
@@ -2159,6 +2162,15 @@ export default class Copy extends CompositeComponent {
             nComponents = results.nComponents;
 
             let serializedReplacements = results.serializedReplacements;
+            if (!link) {
+                // made from a value, not DoenetML, so held through a reload
+                // (`copySnapshotOf`, CPY-5)
+                for (const repl of serializedReplacements) {
+                    if (typeof repl === "object") {
+                        repl.holdsValue = true;
+                    }
+                }
+            }
             let propVariablesCopiedByReplacement =
                 results.propVariablesCopiedByReplacement;
             // Whether what is made is the missing tag (`missingOfWrittenType`),
@@ -7612,7 +7624,10 @@ function seedFreshCopy(component) {
  * those its `<moduleAttributes>` declares) reaches an attribute that decides
  * what a choosing tag inside it chooses (`attributesDeterminingChoices`), as
  * `k` in `<module copyWithState="$m" k="4"/>` does where `m` holds
- * `<select numToSelect="$k">`. That attribute of the choosing tag is given
+ * `<select numToSelect="$k">`, or reaches it through another component
+ * inside the module, as through `n` where `m` holds
+ * `<integer name="n">$k+1</integer>` and `<select numToSelect="$n">`.
+ * That attribute of the choosing tag is given
  * the value it had in the source, so the carried choices still fit, and the
  * module attribute itself takes the written value. Each such module attribute
  * gets a warning (`doenet-w0186`), which says to use `copy` to choose again.
@@ -7658,22 +7673,63 @@ async function keepChoicesReachedByModuleAttributes({
         return [];
     }
 
-    /** The written module attributes `component` refers to. */
-    function referencedModuleAttributes(component, found = new Set()) {
+    // The components inside the module, by index, through which a module
+    // attribute can reach a choosing tag (`<integer name="n">$k+1</integer>`
+    // and `<select numToSelect="$n">`)
+    const inModule = new Map();
+    (function collect(component) {
+        if (typeof component !== "object" || component === null) {
+            return;
+        }
+        if (component.componentIdx !== undefined) {
+            inModule.set(component.componentIdx, component);
+        }
+        for (const child of component.children ?? []) {
+            collect(child);
+        }
+        for (const attribute of Object.values(component.attributes ?? {})) {
+            collect(attribute?.component);
+            for (const reference of attribute?.references ?? []) {
+                collect(reference);
+            }
+        }
+    })(replacement);
+
+    /**
+     * The written module attributes `component` refers to, also through
+     * what it refers to inside the module. `visited` holds the components
+     * inside the module already followed, as references can make a cycle.
+     */
+    function referencedModuleAttributes(
+        component,
+        found = new Set(),
+        visited = new Set(),
+    ) {
         if (typeof component !== "object" || component === null) {
             return found;
         }
         const ref = component.extending && unwrapSource(component.extending);
         if (ref && writtenByIdx.has(ref.nodeIdx)) {
             found.add(writtenByIdx.get(ref.nodeIdx));
+        } else if (
+            ref &&
+            inModule.has(ref.nodeIdx) &&
+            !visited.has(ref.nodeIdx)
+        ) {
+            visited.add(ref.nodeIdx);
+            referencedModuleAttributes(
+                inModule.get(ref.nodeIdx),
+                found,
+                visited,
+            );
         }
         for (const child of component.children ?? []) {
-            referencedModuleAttributes(child, found);
+            referencedModuleAttributes(child, found, visited);
         }
         for (const attribute of Object.values(component.attributes ?? {})) {
-            referencedModuleAttributes(attribute?.component, found);
+            referencedModuleAttributes(attribute?.component, found, visited);
             for (const reference of attribute?.references ?? []) {
-                referencedModuleAttributes(reference, found);
+                referencedModuleAttributes(reference, found, visited);
             }
         }
         return found;
@@ -7767,16 +7823,18 @@ async function valueAsWritten(component) {
 /**
  * The errors of a `copyWithState` that writes what decides what its source
  * chooses (D33): an attribute in the class's `attributesDeterminingChoices`,
- * as `numToSelect` on a `<select>`, `doenet-e0068`; or a child added to a
- * tag whose children are what it chooses from (`childrenDetermineChoices`),
- * as an `<option>` added to a `<select>`, `doenet-e0069`. For a
- * `<choiceInput>` (`"whenShuffled"`), a child is an error only when its
- * source shuffles its choices. A `copyWithState` keeps its source's choices,
- * so it could not apply them. The check goes by name, whatever the value
- * written, so `numToSelect="2"` and `numToSelect="$n"` are the same; it is
- * known when the document loads. Only what the author wrote on the copy
- * (`copyInChildren`) is checked, and `copy` instead makes a new component
- * that chooses again.
+ * as `numToSelect` on a `<select>`, `doenet-e0068`; or a child added that is
+ * one of what the tag chooses from (`choiceChildTypes`), as an `<option>`
+ * added to a `<select>`, `doenet-e0069`. Another child, as a `<label>` added
+ * to a `<choiceInput>`, is not one of its choices, so is allowed. For a
+ * `<choiceInput>` (`choiceChildrenOnlyWhenShuffled`), a `<choice>` is an
+ * error only when its source shuffles its choices. A `copyWithState` keeps
+ * its source's choices, so it could not apply them. The check goes by name,
+ * whatever the value written, so `numToSelect="2"` and `numToSelect="$n"`
+ * are the same, and by the type a child is written as, also when written as
+ * a reference (`<option copy="$o"/>`); it is known when the document loads.
+ * Only what the author wrote on the copy (`copyInChildren`) is checked, and
+ * `copy` instead makes a new component that chooses again.
  */
 async function copyWithStateChangesChoicesErrors({
     replacementType,
@@ -7809,10 +7867,11 @@ async function copyWithStateChangesChoicesErrors({
         }
     }
 
-    const childrenDetermineChoices =
-        replacementClass.childrenDetermineChoices === "whenShuffled"
-            ? Boolean(await source?.stateValues?.shuffleOrder)
-            : Boolean(replacementClass.childrenDetermineChoices);
+    const choiceChildTypes =
+        replacementClass.choiceChildrenOnlyWhenShuffled &&
+        !(await source?.stateValues?.shuffleOrder)
+            ? []
+            : (replacementClass.choiceChildTypes ?? []);
     // A pretzel's problems are wrapped in an arranger of its own
     // (`pretzelSugar`), made whether or not any are written.
     const writtenChildren = (children ?? []).flatMap((child) =>
@@ -7820,11 +7879,27 @@ async function copyWithStateChangesChoicesErrors({
             ? (child.children ?? [])
             : [child],
     );
-    const addedChild = childrenDetermineChoices
-        ? writtenChildren.find(
-              (child) => typeof child === "object" && child !== null,
-          )
-        : undefined;
+    /** The type `child` is written as, also as a reference (`_copy`). */
+    function writtenType(child) {
+        const written =
+            child.attributes?._createComponentOfType?.primitive?.value;
+        return written === undefined
+            ? child.componentType
+            : (componentInfoObjects.componentTypeLowerCaseMapping[
+                  written.toLowerCase()
+              ] ?? written);
+    }
+    const addedChild = writtenChildren.find(
+        (child) =>
+            typeof child === "object" &&
+            child !== null &&
+            choiceChildTypes.some((choiceType) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: writtenType(child),
+                    baseComponentType: choiceType,
+                }),
+            ),
+    );
     if (addedChild) {
         errors.push(
             codedDiagnostic({

@@ -36,10 +36,11 @@ export default class Shuffle extends CompositeComponent {
 
     static createsVariants = true;
 
-    // Adding a child to a `copyWithState` of it is an error, as it would
-    // change what is chosen, which a `copyWithState` keeps
+    // Adding a child (any component, `returnChildGroups`) to a
+    // `copyWithState` of it is an error, as it would change the order
+    // chosen, which a `copyWithState` keeps
     // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
-    static childrenDetermineChoices = true;
+    static choiceChildTypes = ["_base"];
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";

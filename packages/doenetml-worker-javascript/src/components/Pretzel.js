@@ -143,7 +143,7 @@ export default class Pretzel extends BlockScoredComponent {
     // error, as it would change the order chosen, which a `copyWithState`
     // keeps (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
     static attributesDeterminingChoices = ["mode"];
-    static childrenDetermineChoices = true;
+    static choiceChildTypes = ["problem"];
 
     static createAttributesObject() {
         const attributes = super.createAttributesObject();

@@ -111,14 +111,28 @@ export default class BaseComponent {
 
         if (serializedComponent.state) {
             this.essentialState = deepClone(serializedComponent.state);
-            // What it was made with, before a reader's change or a value
-            // drawn at random was kept, which a `copy` of it starts from
-            // (`withoutReaderState` in `serialize`, D33)
-            if (Object.keys(serializedComponent.state).length > 0) {
-                this.initialEssentialState = deepClone(
-                    serializedComponent.state,
-                );
-            }
+        }
+        if (serializedComponent.authoredPrimitiveChildren) {
+            // the text as authored of what it was made from (`serialize`)
+            this.authoredPrimitiveChildren = deepClone(
+                serializedComponent.authoredPrimitiveChildren,
+            );
+        }
+        // What it was made with, before a reader's change or a value drawn
+        // at random was kept, which a `copy` of it starts from
+        // (`withoutReaderState` in `serialize`, D33). One made with state
+        // carried from another component (a `copyWithState`, an `extend`, a
+        // snapshot applied on a reload) is given the initial state of what
+        // it was made from (`serialize`), so a `copy` of it starts as that
+        // was written, not with the state carried.
+        const initialEssentialState =
+            serializedComponent.initialEssentialState ??
+            serializedComponent.state;
+        if (
+            initialEssentialState &&
+            Object.keys(initialEssentialState).length > 0
+        ) {
+            this.initialEssentialState = deepClone(initialEssentialState);
         }
 
         this.doenetAttributes = {};
@@ -1596,6 +1610,18 @@ export default class BaseComponent {
                     }
                 }
 
+                // The text as authored, for a component made from this
+                // serialization with the text as the reader rewrote it, so a
+                // `copy` of that one takes the text as authored (D33)
+                if (
+                    !parameters.withoutReaderState &&
+                    this.authoredPrimitiveChildren
+                ) {
+                    serializedComponent.authoredPrimitiveChildren = deepClone(
+                        this.authoredPrimitiveChildren,
+                    );
+                }
+
                 if (this.serializedChildren !== undefined) {
                     // if this component has `_copyInChildren` set,
                     // then its serialized children will have actual components made from them,
@@ -1760,21 +1786,40 @@ export default class BaseComponent {
             delete serializedComponent.state.literalAttributeWrites;
         }
 
+        // What this component was made with, which a component made from
+        // this serialization with the state carried keeps as its own
+        // (`initialEssentialState` in the constructor), so a `copy` of that
+        // one starts as this one was written (D33)
+        if (!parameters.withoutReaderState) {
+            serializedComponent.initialEssentialState = deepClone(
+                this.initialEssentialState ?? {},
+            );
+        }
+
         // An unlinked copy of a reference (`copyPrimaryEssentialIfShadow`)
         // holds the referent's value as it is, unless it was given an
         // attribute of the referent's that defines that value
         // (`attributesDefiningPrimaryValue`, the `xs` of
         // `<point>($a, 0)</point>`): pasted as the referent's DoenetML, it
         // computes the value from that attribute, as the referent does.
+        // A `copy` (`withoutReaderState`) holds it only for a reference to
+        // a property or a list entry, which has no DoenetML of its own
+        // (CPY-5); of a reference to a component, it is that component's
+        // DoenetML written again, which starts as that was written (D33).
         const definedByAttribute =
             this.constructor.attributesDefiningPrimaryValue?.some(
                 (name) => serializedComponent.attributes?.[name],
             );
+        const shadowsValue =
+            this.shadows &&
+            (this.shadows.propVariable !== undefined ||
+                this.doenetAttributes.listEntrySource !== undefined);
         if (
             parameters.copyPrimaryEssential ||
             (parameters.copyPrimaryEssentialIfShadow &&
                 this.shadows &&
-                !definedByAttribute)
+                !definedByAttribute &&
+                (!parameters.withoutReaderState || shadowsValue))
         ) {
             let primaryEssentialStateVariable = "value";
             if (this.constructor.primaryEssentialStateVariable) {
@@ -1822,11 +1867,11 @@ export default class BaseComponent {
         // A component made from a property or a list entry has no DoenetML
         // of its own: what it holds is the value, which a `copy` takes too
         // (CPY-5, `snapshotListEntrySource`)
-        const holdsValue =
-            parameters.copyAll &&
-            this.shadows &&
-            (this.shadows.propVariable !== undefined ||
-                this.doenetAttributes.listEntrySource !== undefined);
+        const holdsValue = parameters.copyAll && shadowsValue;
+        if (holdsValue) {
+            // which a `copy` holds through a reload (`copySnapshotOf`)
+            serializedComponent.holdsValue = true;
+        }
         if (
             parameters.copyEssentialState ||
             (parameters.copyEssentialStateIfShadow && this.shadows) ||
@@ -2035,6 +2080,14 @@ export default class BaseComponent {
         if (serializedComponent.state !== undefined) {
             // shallow copy of state
             Object.assign(serializedCopy.state, serializedComponent.state);
+        }
+        for (const field of [
+            "initialEssentialState",
+            "authoredPrimitiveChildren",
+        ]) {
+            if (serializedComponent[field] !== undefined) {
+                serializedCopy[field] = deepClone(serializedComponent[field]);
+            }
         }
 
         if (
@@ -2435,16 +2488,26 @@ async function serializeShadowedAttributes({
             }
             if (attribute.type === "literal") {
                 // a literal written on `comp`, with what a reader wrote over
-                // it, as an attribute component is copied with its state
+                // it, as an attribute component is copied with its state,
+                // except for a `copy`, which carries no reader state (D33)
                 serializedComponent.attributes[attrName] =
-                    copyOfLiteralAttribute(attribute, comp);
+                    copyOfLiteralAttribute(
+                        attribute,
+                        comp,
+                        !parametersForChildren.withoutReaderState,
+                    );
                 continue;
             }
             if (attribute.type === "expression") {
                 // text and references held by `comp`, with the text written
-                // to it, its references resolved from the copy
+                // to it (not for a `copy`), its references resolved from the
+                // copy
                 serializedComponent.attributes[attrName] =
-                    copyOfExpressionAttribute(attribute, comp);
+                    copyOfExpressionAttribute(
+                        attribute,
+                        comp,
+                        !parametersForChildren.withoutReaderState,
+                    );
                 continue;
             }
             serializedComponent.attributes[attrName] = {

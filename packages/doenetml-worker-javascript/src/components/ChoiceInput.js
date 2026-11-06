@@ -47,8 +47,10 @@ export default class Choiceinput extends Input {
     static attributesDeterminingChoices = ["shuffleOrder"];
     // Adding a `<choice>` to a `copyWithState` of one that shuffles its
     // choices is an error, as it would change the order chosen
-    // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
-    static childrenDetermineChoices = "whenShuffled";
+    // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33). Another
+    // child, as a `<label>`, is allowed.
+    static choiceChildTypes = ["choice"];
+    static choiceChildrenOnlyWhenShuffled = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

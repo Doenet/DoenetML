@@ -11,8 +11,11 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
  * than any essential state, and the literals because a reader's write to
  * one (a toggled `hide="false"`) is copied in the literal.
  *
- * A `copy` carries no reader state, so it holds no snapshot, only what
- * decided what it made (D33).
+ * A `copy` carries no reader state, so it holds a snapshot only of the
+ * components among its replacements that hold a value rather than DoenetML
+ * of their own (`onlyHeldValues`): those made from a property or a list
+ * entry (`holdsValue`, CPY-5), which keep the value they were made with.
+ * Otherwise it holds only what decided what it made (D33).
  *
  * A copy present when a document loads is made again on every load, from
  * its source as it is then: after a reader has changed the source and
@@ -23,13 +26,20 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
  * also holds what decided what the copy made, which a copy made again on
  * load decides as it was decided before (`heldCopySnapshot`).
  */
-export function copySnapshotOf(serializedComponents) {
+export function copySnapshotOf(
+    serializedComponents,
+    { onlyHeldValues = false } = {},
+) {
     const snapshot = [];
-    function visit(component) {
+    function visit(component, inHeldValue = false) {
         if (typeof component !== "object" || component === null) {
             return;
         }
-        if (component.stateId !== undefined) {
+        inHeldValue ||= Boolean(component.holdsValue);
+        if (
+            component.stateId !== undefined &&
+            (!onlyHeldValues || inHeldValue)
+        ) {
             const primitiveChildren = {};
             (component.children ?? []).forEach((child, ind) => {
                 if (typeof child !== "object" || child === null) {
@@ -66,10 +76,10 @@ export function copySnapshotOf(serializedComponents) {
             });
         }
         for (const child of component.children ?? []) {
-            visit(child);
+            visit(child, inHeldValue);
         }
         for (const attribute of Object.values(component.attributes ?? {})) {
-            visit(attribute?.component);
+            visit(attribute?.component, inHeldValue);
         }
     }
     for (const component of serializedComponents) {
