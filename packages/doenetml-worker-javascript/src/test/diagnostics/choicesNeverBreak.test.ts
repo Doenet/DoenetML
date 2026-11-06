@@ -516,3 +516,91 @@ describe("A selection that couldn't be made, given back @group4", async () => {
         });
     }
 });
+
+/**
+ * Errors decided by the DoenetML aren't hidden, or made to appear, by a value
+ * or the variant (D38, DIAG-7).
+ */
+describe("Errors the DoenetML decides, beside ones a value decides @group4", async () => {
+    it("a variant name with no option is an error in every variant, whatever numToSelect a value gives", async () => {
+        // `n` is 1 or 2. With 2, the count for `a` doesn't match, an info;
+        // that must not hide the error that `b` has no option.
+        const doenetML = `<variantControl numVariants="2" variantNames="a b"/>
+<selectFromSequence name="n" from="1" to="2"/>
+<p name="p"><select name="s" numToSelect="$n"><option selectForVariants="a">u</option></select></p>`;
+        const counts = new Set<number>();
+        for (const requestedVariantIndex of [1, 2, 3, 4, 5, 6]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            counts.add(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .selectedValues[0],
+            );
+            const errors = getDiagnosticsByType(core).errors.map((d) => d.code);
+            expect(errors).eqls(["doenet-e0033"]);
+        }
+        // both counts occur across these variants
+        expect([...counts].sort()).eqls([1, 2]);
+    });
+
+    it("coprime draws that find nothing are an info, not an error, when coprime values exist", async () => {
+        // 1 and the even numbers to 2002: a coprime pair must include 1,
+        // which 200 draws miss in some variants and find in others
+        const exclude = [...Array(1000).keys()].map((i) => 2 * i + 3).join(" ");
+        const doenetML = `<selectFromSequence name="s" from="1" to="2002" exclude="${exclude}" numToSelect="2" coprime/>`;
+        let found = 0;
+        let missed = 0;
+        for (const requestedVariantIndex of [1, 2, 3, 4, 5, 6, 7, 8]) {
+            const { errors, infos, selected } = await load({
+                doenetML,
+                requestedVariantIndex,
+            });
+            expect(errors).eqls([]);
+            if (selected === null) {
+                missed++;
+                expect(infos).toContain("doenet-i0058");
+            } else {
+                found++;
+                expect(selected).toContain(1);
+            }
+        }
+        expect(found).gt(0);
+        expect(missed).gt(0);
+    });
+
+    it("coprime values that all share a factor are an error in every variant", async () => {
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="2" to="4" exclude="3" coprime/>`;
+        for (const requestedVariantIndex of [1, 2, 3]) {
+            const { errors } = await load({ doenetML, requestedVariantIndex });
+            expect(errors).eqls(["doenet-e0045"]);
+        }
+    });
+
+    it("selectForVariants doesn't take a reference, so it can't make the count a value", async () => {
+        const doenetML = `<variantControl numVariants="2" variantNames="a b"/>
+<select name="v">a b</select>
+<p name="p"><select name="s"><option selectForVariants="$v">u</option><option selectForVariants="b">w</option></select></p>`;
+        const results = new Set<string>();
+        for (const requestedVariantIndex of [1, 2, 3, 4]) {
+            const { core } = await createTestCore({
+                doenetML,
+                requestedVariantIndex,
+            });
+            const d = getDiagnosticsByType(core);
+            results.add(
+                JSON.stringify([
+                    d.errors.map((x) => x.code).sort(),
+                    d.warnings.map((x) => x.code).sort(),
+                ]),
+            );
+        }
+        // the same diagnostics in every variant
+        expect(results.size).eq(1);
+    });
+});

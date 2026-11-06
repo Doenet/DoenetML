@@ -241,12 +241,19 @@ export default class Select extends CompositeComponent {
                     }
                 }
 
+                // A count of options for a variant name that doesn't match
+                // `numToSelect`. `numToSelect` can come from a value, such as
+                // another random choice, and then the mismatch is an info.
+                // Such an info is reported only after the names, which the
+                // DoenetML alone decides, so it can't hide their error in
+                // some variants. A literal mismatch is reported first.
+                let countError = null;
                 for (let variantName in availableVariants) {
                     if (
                         availableVariants[variantName].length !==
                         dependencyValues.numToSelect
                     ) {
-                        const error = selectError({
+                        countError = selectError({
                             code: "doenet-e0032",
                             args: {
                                 variantName,
@@ -254,20 +261,23 @@ export default class Select extends CompositeComponent {
                                     availableVariants[variantName].length,
                                 numToSelect: dependencyValues.numToSelect,
                             },
-                            // `numToSelect` can come from a value, such as
-                            // another random choice
                             type: selectFailureType(
                                 dependencyValues.choicesDecidedByDoenetML,
                             ),
                         });
-
-                        return {
-                            setValue: {
-                                ...variantsError(error),
-                                availableVariants: [],
-                            },
-                        };
+                        break;
                     }
+                }
+                if (
+                    countError &&
+                    !isInfoSelectFailure(countError.errorDiagnostic)
+                ) {
+                    return {
+                        setValue: {
+                            ...variantsError(countError),
+                            availableVariants: [],
+                        },
+                    };
                 }
 
                 if (Object.keys(availableVariants).length > 0) {
@@ -307,6 +317,15 @@ export default class Select extends CompositeComponent {
                             };
                         }
                     }
+                }
+
+                if (countError) {
+                    return {
+                        setValue: {
+                            ...variantsError(countError),
+                            availableVariants: [],
+                        },
+                    };
                 }
 
                 return {

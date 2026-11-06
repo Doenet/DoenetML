@@ -119,6 +119,7 @@
     "doenet-i0055": "type-change-composite-holds-nothing",
     "doenet-i0056": "variant-select-options-not-written",
     "doenet-i0057": "select-variant-choices-ignored",
+    "doenet-i0058": "select-from-sequence-coprime-draws-exhausted",
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
     "doenet-w0003": "line-points-depend-on-variables",

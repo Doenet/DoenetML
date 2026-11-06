@@ -1278,6 +1278,10 @@ select-from-sequence-excluded-too-many-combinations = Excluded over 70% of combi
 # draws found no coprime combination among values that could have supplied one.
 select-from-sequence-coprime-none-found = Could not select coprime numbers. All possible values share a common factor.
 
+# Not every value shares a factor, so a coprime selection may exist, but two
+# hundred random draws found none. Which draws are made depends on the variant.
+select-from-sequence-coprime-draws-exhausted = Could not find coprime numbers among the values in 200 random draws, so nothing is selected.
+
 select-from-sequence-too-few-unique-values = Cannot select { $numToSelect } unique values from sequence of length { $numPossibleValues }
 
 select-prime-numbers-too-few-values = Cannot select { $numToSelect } values from a list of primes of length { $numValues }

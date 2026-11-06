@@ -1234,10 +1234,26 @@ function makeSelection({ dependencyValues }) {
             // Without `coprime` this is the extremely unlikely fluke rather
             // than a sequence that could never have supplied a pair: it
             // won't happen, as it occurs with prob < 10^(-30).
-            const error = coprime
-                ? selectError({ code: "doenet-e0045", type: failureType })
-                : // the fluke depends on the variant alone
-                  selectError({ code: "doenet-e0052", type: "info" });
+            let error;
+            if (!coprime) {
+                // the fluke depends on the variant alone
+                error = selectError({ code: "doenet-e0052", type: "info" });
+            } else if (
+                returnSequenceValues(dependencyValues).reduce(
+                    (a, c) => gcd(a, c),
+                    0,
+                ) !== 1
+            ) {
+                // Every value shares a factor, so no draw could be coprime
+                error = selectError({
+                    code: "doenet-e0045",
+                    type: failureType,
+                });
+            } else {
+                // Coprime values may exist and the draws missed them, which
+                // depends on the variant, so it is never an error (D38)
+                error = selectError({ code: "doenet-i0058", type: "info" });
+            }
             return selectionResult(error, {
                 selectedValues: null,
                 selectedIndices: null,

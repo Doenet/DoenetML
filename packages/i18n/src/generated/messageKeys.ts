@@ -558,6 +558,7 @@ export type MessageKey =
     | "select-from-sequence-coprime-single-number"
     | "select-from-sequence-excluded-too-many-combinations"
     | "select-from-sequence-coprime-none-found"
+    | "select-from-sequence-coprime-draws-exhausted"
     | "select-from-sequence-too-few-unique-values"
     | "select-prime-numbers-too-few-values"
     | "select-prime-numbers-values-count-mismatch"
@@ -1232,6 +1233,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "select-from-sequence-coprime-single-number",
     "select-from-sequence-excluded-too-many-combinations",
     "select-from-sequence-coprime-none-found",
+    "select-from-sequence-coprime-draws-exhausted",
     "select-from-sequence-too-few-unique-values",
     "select-prime-numbers-too-few-values",
     "select-prime-numbers-values-count-mismatch",
