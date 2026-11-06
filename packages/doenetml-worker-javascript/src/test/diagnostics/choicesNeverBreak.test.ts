@@ -334,3 +334,86 @@ describe("A selection that a value decides can't be made @group4", async () => {
         });
     }
 });
+
+/**
+ * A select that could not select records no choices in its variant: `null`
+ * from a `<selectFromSequence>` or `<selectPrimeNumbers>`, `[]` from a
+ * `<select>`. That variant is passed back to it on a reload and to a `copy`
+ * of it. Neither breaks the document, and neither reports that choices were
+ * ignored (`doenet-i0057`): none were given.
+ */
+describe("A selection that couldn't be made, given back @group4", async () => {
+    const cases: {
+        tag: string;
+        doenetML: string;
+        variable: "selectedIndices" | "selectedValues";
+        code: string;
+        type: "errors" | "infos";
+    }[] = [
+        {
+            tag: "<selectFromSequence>, coprime from a value",
+            doenetML: `<boolean name="b">true</boolean><selectFromSequence name="s" from="2" to="4" step="2" numToSelect="2" coprime="$b"/>`,
+            variable: "selectedValues",
+            code: "doenet-e0042",
+            type: "infos",
+        },
+        {
+            tag: "<selectFromSequence>, exclude from a value",
+            doenetML: `<number name="a">3</number><selectFromSequence name="s" to="4" exclude="$a 4" numToSelect="3"/>`,
+            variable: "selectedValues",
+            code: "doenet-e0046",
+            type: "infos",
+        },
+        {
+            tag: "<selectPrimeNumbers>, combinations excluded from a range from a value",
+            doenetML: `<number name="a">5</number><selectPrimeNumbers name="s" to="$a" numToSelect="2" excludeCombinations="(2 3) (3 2) (2 5) (5 2) (3 5)"/>`,
+            variable: "selectedValues",
+            code: "doenet-e0051",
+            type: "infos",
+        },
+        {
+            tag: "<select>, numToSelect from a value",
+            doenetML: `<number name="n">3</number><select name="s" numToSelect="$n">a b</select>`,
+            variable: "selectedIndices",
+            code: "doenet-e0035",
+            type: "infos",
+        },
+        {
+            tag: "<select>, written so it can't select",
+            doenetML: `<select name="s" numToSelect="3">a b</select>`,
+            variable: "selectedIndices",
+            code: "doenet-e0035",
+            type: "errors",
+        },
+    ];
+
+    for (const { tag, doenetML, variable, code, type } of cases) {
+        it(`${tag}, reloaded`, async () => {
+            const first = await load({ doenetML, variable });
+            expect(first[type]).toContain(code);
+            const reloaded = await load({
+                doenetML,
+                requestedVariant: first.generatedVariantInfo,
+                variable,
+            });
+            expect(reloaded.errors).eqls(first.errors);
+            expect(reloaded.infos).eqls(first.infos);
+            expect(reloaded.infos).not.toContain("doenet-i0057");
+        });
+
+        it(`${tag}, copied`, async () => {
+            const tagName = doenetML.match(/<(select\w*) name="s"/)![1];
+            const { errors, infos } = await load({
+                doenetML: `${doenetML}<${tagName} copy="$s" name="c"/>`,
+                selection: "c",
+                variable,
+            });
+            const both = type === "errors" ? errors : infos;
+            expect(both.filter((c) => c === code).length).eq(2);
+            expect(infos).not.toContain("doenet-i0057");
+            if (type === "infos") {
+                expect(errors).eqls([]);
+            }
+        });
+    }
+});

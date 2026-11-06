@@ -45,13 +45,14 @@ function variantsError({ errorMessage, errorDiagnostic }) {
 
 /**
  * The indices the requested variant gives a select, mapped onto its options,
- * or `null` when they don't fit it: a different number of them than it
- * selects, or one that is not an integer. That happens when the variant was
- * saved before the document changed (#2389).
+ * or `null` when it gives none or they don't fit it: a different number of
+ * them than it selects, or one that is not an integer. That happens when the
+ * variant was saved before the document changed (#2389). A select that
+ * selected nothing records `[]` in its variant, which gives none.
  */
 function desiredIndicesThatFit({ variants, numToSelect, nOptions }) {
     let desiredIndices = variants?.desiredVariant?.indices;
-    if (desiredIndices === undefined) {
+    if (!Array.isArray(desiredIndices)) {
         return null;
     }
     if (desiredIndices.length !== numToSelect) {

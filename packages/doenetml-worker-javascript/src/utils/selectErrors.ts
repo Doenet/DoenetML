@@ -249,13 +249,16 @@ export function returnChoicesDecidedByDoenetMLDefinition() {
  *
  * Decided from the variant each time, not kept, so it is reported the same
  * after a reload. A reference to the select, which shadows its choices, does
- * not report it again.
+ * not report it again. A variant that gives `null` or `[]` gives no choices:
+ * that is what a select that selected nothing records in its
+ * `generatedVariantInfo`, which a reload, or a `copy` of the select, passes
+ * back to it, so nothing is ignored.
  *
  * @param component The select's DoenetML tag, for the message.
  * @param desiredChoicesFit Given `dependencyValues` (with the select's
  *   `variants` and the `dependencies` named here), whether the choices the
  *   variant gave fit the select. It is called only when the variant gives
- *   some.
+ *   some (a nonempty array).
  * @param choicesKey The key of the choices in the variant: `indices` or
  *   `values`.
  */
@@ -286,7 +289,8 @@ export function returnIgnoredVariantChoicesDefinition({
             const desired =
                 dependencyValues.variants?.desiredVariant?.[choicesKey];
             const ignored =
-                desired !== undefined &&
+                Array.isArray(desired) &&
+                desired.length > 0 &&
                 dependencyValues.shadowSource === null &&
                 !desiredChoicesFit(dependencyValues);
             return {

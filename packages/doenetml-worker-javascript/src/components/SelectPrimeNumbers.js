@@ -620,11 +620,13 @@ function selectionReadsDesiredVariant(dependencyValues) {
  * The values the requested variant gives, or `null` when there are none or
  * they don't fit: a different number of them than are selected, one that
  * isn't among the primes, or an excluded combination. A variant saved before
- * the document changed can give ones that don't fit (#2389).
+ * the document changed can give ones that don't fit (#2389). A select that
+ * could not select records `null` values in its variant
+ * (`generatedVariantInfo`), which give none.
  */
 function desiredValuesThatFit(dependencyValues) {
     let desiredValues = dependencyValues.variants?.desiredVariant?.values;
-    if (desiredValues === undefined) {
+    if (!Array.isArray(desiredValues)) {
         return null;
     }
     if (desiredValues.length !== dependencyValues.numToSelect) {

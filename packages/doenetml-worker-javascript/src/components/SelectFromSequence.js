@@ -906,11 +906,13 @@ function selectionReadsDesiredVariant(dependencyValues) {
  * selectedIndices }`, or `null` when there is none or it doesn't fit: a
  * different number of indices than are selected, one that isn't an integer,
  * one naming an excluded value, or an excluded combination. A variant saved
- * before the document changed can give one that doesn't fit (#2389).
+ * before the document changed can give one that doesn't fit (#2389). A
+ * select that could not select records `null` indices in its variant
+ * (`generatedVariantInfo`), which give none.
  */
 function desiredSelectionThatFits(dependencyValues) {
     let desiredIndices = dependencyValues.variants?.desiredVariant?.indices;
-    if (desiredIndices === undefined) {
+    if (!Array.isArray(desiredIndices)) {
         return null;
     }
     if (desiredIndices.length !== dependencyValues.numToSelect) {
@@ -961,7 +963,9 @@ function makeSelection({ dependencyValues }) {
 
     // An error when the DoenetML decides that nothing can be selected, and a
     // missing selection with an info when a value does (D38, DIAG-7)
-    const type = selectFailureType(dependencyValues.choicesDecidedByDoenetML);
+    const failureType = selectFailureType(
+        dependencyValues.choicesDecidedByDoenetML,
+    );
 
     if (dependencyValues.numToSelect < 1) {
         return selectionResult(NO_SELECT_ERROR, {
@@ -982,7 +986,7 @@ function makeSelection({ dependencyValues }) {
                 numToSelect: numUniqueRequired,
                 length: dependencyValues.length,
             },
-            type,
+            type: failureType,
         });
         return selectionResult(error, {
             selectedValues: null,
@@ -1026,11 +1030,17 @@ function makeSelection({ dependencyValues }) {
                 dependencyValues.from <= 0 ||
                 lastNumber <= 0
             ) {
-                error = selectError({ code: "doenet-e0041", type });
+                error = selectError({
+                    code: "doenet-e0041",
+                    type: failureType,
+                });
             } else if (
                 gcd(dependencyValues.from, dependencyValues.step) !== 1
             ) {
-                error = selectError({ code: "doenet-e0042", type });
+                error = selectError({
+                    code: "doenet-e0042",
+                    type: failureType,
+                });
             } else if (dependencyValues.numToSelect === 1) {
                 coprime = false;
             } else if (
@@ -1053,7 +1063,10 @@ function makeSelection({ dependencyValues }) {
                         dependencyValues.length <= 1 ||
                         returnSequenceValues(dependencyValues).length <= 1
                     ) {
-                        error = selectError({ code: "doenet-e0043", type });
+                        error = selectError({
+                            code: "doenet-e0043",
+                            type: failureType,
+                        });
                     }
                 }
             }
@@ -1080,7 +1093,7 @@ function makeSelection({ dependencyValues }) {
             numToSelect: dependencyValues.numToSelect,
             withReplacement: dependencyValues.withReplacement,
             rng: dependencyValues.variantRng,
-            failureType: type,
+            failureType,
         });
 
         if (selectedObj.errorMessage) {
@@ -1163,7 +1176,10 @@ function makeSelection({ dependencyValues }) {
                 }
 
                 if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                    const error = selectError({ code: "doenet-e0044", type });
+                    const error = selectError({
+                        code: "doenet-e0044",
+                        type: failureType,
+                    });
                     return selectionResult(error, {
                         selectedValues: null,
                         selectedIndices: null,
@@ -1182,7 +1198,7 @@ function makeSelection({ dependencyValues }) {
                 numToSelect: dependencyValues.numToSelect,
                 withReplacement: dependencyValues.withReplacement,
                 rng: dependencyValues.variantRng,
-                failureType: type,
+                failureType,
             });
 
             if (selectedObj.errorMessage) {
@@ -1219,7 +1235,7 @@ function makeSelection({ dependencyValues }) {
             // than a sequence that could never have supplied a pair: it
             // won't happen, as it occurs with prob < 10^(-30).
             const error = coprime
-                ? selectError({ code: "doenet-e0045", type })
+                ? selectError({ code: "doenet-e0045", type: failureType })
                 : // the fluke depends on the variant alone
                   selectError({ code: "doenet-e0052", type: "info" });
             return selectionResult(error, {
