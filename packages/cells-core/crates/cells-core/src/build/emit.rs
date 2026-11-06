@@ -59,14 +59,19 @@ impl<'c> Builder<'c> {
         }
         // The document constants go to the pool (ADR 0028): a template
         // slot whose port is one, an operator's constant, the
-        // missing-referent cell.
+        // missing-referent cell. An operator's constants are marked once,
+        // so the test is constant time per slot, not a scan of them all.
+        let mut op_const = vec![false; self.sources.len()];
+        for k in self.consts.values() {
+            op_const[k.index()] = true;
+        }
         let pooled = |s: usize| {
             (match self.sources[s] {
                 BuiltSource::Const(_) => true,
                 BuiltSource::Given(_) => !essential[s],
                 _ => false,
             }) && (Some(SlotId::from_index(s)) == self.missing
-                || self.consts.values().any(|&k| k.index() == s)
+                || op_const[s]
                 || self
                     .port_attrs(SlotId::from_index(s))
                     .has(PortAttrs::DOCUMENT_CONSTANT))

@@ -705,3 +705,9 @@ the core does not compute it, and the viewer's test, which checks every
   unpruned. A refactor should leave it identical.
 - `packages/benchmark/scripts/perf-diff.sh [base]` compares speed against a
   base commit, loaded pruned as a browser loads (`CELLS_PRUNE=1`).
+- `scripts/tick-diff.sh [base]` and `scripts/load-diff.sh [base]` compare
+  a tick and a load, natively, against a base commit, over the synthetic
+  shapes of `cells-bench`. A change to the compile or the build records
+  both in its ADR: a pass that makes a tick cheaper is paid for at every
+  load, and the load is where it shows. `docs/load-cost.md` has the load's
+  history and where its time goes.
