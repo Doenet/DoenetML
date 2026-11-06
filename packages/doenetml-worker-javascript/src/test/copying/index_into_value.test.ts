@@ -766,6 +766,11 @@ describe("An index into an entry of a list @group4", async () => {
             // as `$P.coords[1]`, rather than the property with the index
             // dropped
             ["$pl.coords[1]", "doenet-w0100"],
+            // the same after `.value`, as with the bare index
+            ["$pl[2].value[1][1]", "doenet-w0100"],
+            ["$pl.value[2][1][1]", "doenet-w0100"],
+            ["$tl2[1].value[2][0]", "doenet-w0104"],
+            ["$pl.value[0].x", "doenet-w0104"],
         ]) {
             const { text, warnings, errors, infos } = await shownAndReported(
                 reference,
