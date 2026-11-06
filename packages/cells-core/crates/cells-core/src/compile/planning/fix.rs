@@ -94,8 +94,7 @@ impl<'a> Compiler<'a> {
                 attr: row.name.into(),
                 text: self.rd().attr_text(a).unwrap_or_default(),
             })?;
-            let p =
-                Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, at, name_scope, m)?;
+            let p = self.rd().plan_ref(&mut self.ar, at, name_scope, m)?;
             self.ar.refs[p.index()].hops += hops;
             flags.push(p);
         }

@@ -52,13 +52,8 @@ impl Compiler<'_> {
                 ..
             } = self.outlined(t).elems[e.index()];
             let math = mt.and_then(|mt| {
-                Reader::new(self.dast, &self.settled).parse_math(
-                    &mut self.ar,
-                    t,
-                    name_scope,
-                    component_type,
-                    &mt,
-                )
+                self.rd()
+                    .parse_math(&mut self.ar, t, name_scope, component_type, &mt)
             });
             parsed.maths.insert((t, e), math);
         }
@@ -80,7 +75,7 @@ impl Compiler<'_> {
             if def.attributes.is_empty() && def.children.built() {
                 continue;
             }
-            let record = Reader::new(self.dast, &self.settled).parse_record(&mut self.ar, t, e);
+            let record = self.rd().parse_record(&mut self.ar, t, e);
             parsed.records.insert((t, e), record);
         }
     }

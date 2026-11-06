@@ -161,9 +161,7 @@ impl<'a> Compiler<'a> {
                     .map_err(|_| Error::BoxedReferent(self.ar.ref_display(self.dast, p)))?;
                 let theirs = match r {
                     Referent::Here(_) => theirs,
-                    Referent::Path(p, ..) => {
-                        Reader::new(self.dast, &self.settled).rebase_record(&mut self.ar, p, theirs)
-                    }
+                    Referent::Path(p, ..) => self.rd().rebase_record(&mut self.ar, p, theirs),
                 };
                 record = record.merged_over(&theirs);
                 Some(r)

@@ -53,8 +53,7 @@ impl<'a> Compiler<'a> {
         if let Some(port) = self.plan_text_condition(t, e, nodes, wiring)? {
             return Ok(port);
         }
-        let (toks, src) =
-            Reader::new(self.dast, &self.settled).math_tokens(&mut self.ar, t, e, nodes)?;
+        let (toks, src) = self.rd().math_tokens(&mut self.ar, t, e, nodes)?;
         self.plan_condition_tokens(wiring, &toks, src, Compare::default())
     }
 
@@ -107,8 +106,7 @@ impl<'a> Compiler<'a> {
                 .and_then(|k| k.parse::<usize>().ok());
             match lone {
                 Some(k) if cp.rd().macro_reads_text(t, scope, refs[k]) => {
-                    let p = Reader::new(cp.dast, &cp.settled)
-                        .plan_ref(&mut cp.ar, t, scope, refs[k])?;
+                    let p = cp.rd().plan_ref(&mut cp.ar, t, scope, refs[k])?;
                     Ok(wiring.hidden(Source::reference(p)))
                 }
                 Some(_) => Err(refuse("a text value compared with a number")),
@@ -169,7 +167,7 @@ impl<'a> Compiler<'a> {
         if let Some(port) = self.plan_text_condition(t, scope, nodes, wiring)? {
             return Ok(port);
         }
-        match Reader::new(self.dast, &self.settled).math_tokens(&mut self.ar, t, scope, nodes) {
+        match self.rd().math_tokens(&mut self.ar, t, scope, nodes) {
             Ok((toks, src)) => self.plan_condition_tokens(wiring, &toks, src, compare),
             Err(Error::BadMath { text, reason }) => {
                 let sym = self.sym_spelling(t, scope, nodes)?;
@@ -219,12 +217,7 @@ impl<'a> Compiler<'a> {
             match d.kind(n) {
                 NodeKind::Text => sym.push_str(d.str(n)),
                 NodeKind::Macro => {
-                    let p = Reader::new(self.dast, &self.settled).plan_ref(
-                        &mut self.ar,
-                        t,
-                        scope,
-                        n,
-                    )?;
+                    let p = self.rd().plan_ref(&mut self.ar, t, scope, n)?;
                     sym.push_str(&format!(
                         " {} ",
                         crate::sym::engine::leaf_name(p.get(), false)

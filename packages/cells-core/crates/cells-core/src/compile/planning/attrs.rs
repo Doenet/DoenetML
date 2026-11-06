@@ -67,21 +67,19 @@ impl<'a> Compiler<'a> {
                         attr: bind.into(),
                         text: self.rd().attr_text(a).unwrap_or_default(),
                     })?;
-                    Some(Source::reference(
-                        Reader::new(self.dast, &self.settled).plan_ref(
-                            &mut self.ar,
-                            t,
-                            scope,
-                            m,
-                        )?,
-                    ))
+                    Some(Source::reference(self.rd().plan_ref(
+                        &mut self.ar,
+                        t,
+                        scope,
+                        m,
+                    )?))
                 }
                 None => None,
             };
             let source = match (bound, def.from) {
                 (Some(p), _) => p,
                 (None, PropFrom::Attribute) => match d.attr(el, def.attr_name()) {
-                    Some(a) => Reader::new(self.dast, &self.settled).plan_value(
+                    Some(a) => self.rd().plan_value(
                         &mut self.ar,
                         t,
                         scope,
@@ -92,7 +90,7 @@ impl<'a> Compiler<'a> {
                     None => default(def.default, pi),
                 },
                 (None, PropFrom::AttributeOr { alias }) => match d.attr(el, def.attr_name()) {
-                    Some(a) => Reader::new(self.dast, &self.settled).plan_value(
+                    Some(a) => self.rd().plan_value(
                         &mut self.ar,
                         t,
                         scope,
@@ -106,7 +104,7 @@ impl<'a> Compiler<'a> {
                 (None, PropFrom::Children) => match &children.value {
                     // A mathInput's `prefill` stands in for blank children.
                     ChildValue::Blank => match def.attr.and_then(|a| d.attr(el, a)) {
-                        Some(a) => match Reader::new(self.dast, &self.settled).try_value(
+                        Some(a) => match self.rd().try_value(
                             &mut self.ar,
                             t,
                             scope,
@@ -114,7 +112,7 @@ impl<'a> Compiler<'a> {
                             None,
                         )? {
                             Some(p) => p,
-                            None => Source::math(Reader::new(self.dast, &self.settled).plan_math(
+                            None => Source::math(self.rd().plan_math(
                                 &mut self.ar,
                                 t,
                                 scope,
@@ -159,12 +157,7 @@ impl<'a> Compiler<'a> {
                 values::literal_value(text.trim()).expect("a literal")
             }
             // Not a single literal or reference: math text.
-            _ => Source::math(Reader::new(self.dast, &self.settled).plan_math(
-                &mut self.ar,
-                t,
-                scope,
-                &v.nodes,
-            )?),
+            _ => Source::math(self.rd().plan_math(&mut self.ar, t, scope, &v.nodes)?),
         })
     }
 

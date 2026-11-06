@@ -18,7 +18,7 @@ lints, then runs the stages in
 | Stage | Module | Entry | Makes | ADR |
 |---|---|---|---|---|
 | lint | [`compile::lint`](crate::compile::lint) | [`lint`](crate::compile::lint::lint) | findings from the DAST alone; records no read | 0021, 0027 |
-| outline | [`compile::outline`](crate::compile::outline) | [`Compiler::outline`](crate::compile::Compiler::outline) | every element, template and name: [`Settled`](crate::compile::Settled), read-only after it, and the work for the stages after it ([`Outline`](crate::compile::Outline)); plans nothing | 0030 |
+| outline | [`compile::outline`](crate::compile::outline) | [`Outlining::outline`](crate::compile::outline::Outlining::outline) | every element, template and name: [`Settled`](crate::compile::Settled), read-only after it, and the work for the stages after it ([`Outline`](crate::compile::Outline)); plans nothing | 0030 |
 | parse | [`compile::parse`](crate::compile::parse) | [`Compiler::parse_maths`](crate::compile::Compiler::parse_maths), [`Compiler::parse_records`](crate::compile::Compiler::parse_records) | every `<math>`'s text parsed once, as outlining settled its type, and every element's record: [`Parsed`](crate::compile::parse::Parsed) | 0034 |
 | plan | [`compile::planning`](crate::compile::planning) | [`Compiler::plan_all`](crate::compile::Compiler::plan_all) | every element's plans and hold, every `$ref` child's plan (planning's columns of [`Tables`](crate::compile::plan::Tables)), and [`Planned`](crate::compile::Planned) for linking and sealing | 0029, 0034 |
 | link | [`compile::link`](crate::compile::link) | [`Compiler::link`](crate::compile::Compiler::link) | readers of boxes boxed to a fixpoint, elements with an attribute nothing read boxed, shared state tied | 0021, 0032 |

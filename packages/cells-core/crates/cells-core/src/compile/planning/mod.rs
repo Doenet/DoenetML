@@ -91,16 +91,15 @@ impl<'a> Compiler<'a> {
                 Some(e) => self.rd().child_scope(t, e),
                 None => ROOT_SCOPE,
             };
-            let plan =
-                match Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, scope, m) {
-                    Ok(p) => RefChildPlan::Ref(p),
-                    // A reference that cannot be planned is boxed where it
-                    // stands (ADR 0027).
-                    Err(error) => {
-                        pl.boxes.record(m, &error);
-                        RefChildPlan::Boxed
-                    }
-                };
+            let plan = match self.rd().plan_ref(&mut self.ar, t, scope, m) {
+                Ok(p) => RefChildPlan::Ref(p),
+                // A reference that cannot be planned is boxed where it
+                // stands (ADR 0027).
+                Err(error) => {
+                    pl.boxes.record(m, &error);
+                    RefChildPlan::Boxed
+                }
+            };
             self.tables[t.index()].ref_child_plans[id.index()] = plan;
         }
         (pl.planned, pl.boxes)
@@ -256,7 +255,7 @@ impl<'a> Compiler<'a> {
             .attr(node, attr)
             .and_then(|a| self.rd().single_macro(a))
             .ok_or(refused)?;
-        let p = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, scope, m)?;
+        let p = self.rd().plan_ref(&mut self.ar, t, scope, m)?;
         if self.ar.refs[p.index()].prop.is_some() {
             return Err(if polyline {
                 Error::Unsupported(

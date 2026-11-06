@@ -90,6 +90,7 @@ impl From<Failure> for Error {
 
 use boxes::{Boxes, Visible};
 use names::*;
+use outline::Outlining;
 use parse::Parsed;
 use planning::ctx::PlanCtx;
 use planning::planner::Planner;
@@ -106,21 +107,20 @@ pub(in crate::compile) struct Attempt {
     pub(in crate::compile) warnings: Vec<Diagnostic>,
 }
 
-/// What every stage of one compile works on, outline to seal: the source,
-/// read-only, the plans being made in their parts, and which stage runs.
-/// What boxing records is a [`Boxes`], given only to the stages that box.
+/// What the stages after outlining work on, parse to seal: the source and
+/// what outlining settled, read-only, and the plans being made in their
+/// parts. What boxing records is a [`Boxes`], given only to the stages that
+/// box.
 pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled. Only the finished [`Compiled`] owns it.
     pub(in crate::compile) dast: &'a Dast,
     /// What the stages append to: the arenas, the strings, the warnings.
     pub(in crate::compile) ar: Arenas,
-    /// What outlining settles, which every stage after it reads and none
+    /// What outlining settled, which every stage after it reads and none
     /// changes.
-    settled: Settled,
+    settled: &'a Settled,
     /// Boxing's and planning's tables, by [`TemplateId`].
     tables: Vec<Tables>,
-    /// The stage running now.
-    stage: Stage,
 }
 
 /// What outlining hands to the stages after it: the work it found for
@@ -223,43 +223,44 @@ impl Compiler<'_> {
         boxed: &'a HashSet<NodeId>,
         share: bool,
     ) -> std::result::Result<Attempt, Failure> {
-        let mut cp = Compiler {
-            dast,
-            ar: Arenas::default(),
-            settled: Settled::default(),
-            tables: Vec::new(),
-            stage: Stage::Outline,
-        };
         // What boxing records, handed to each stage that boxes.
-        let boxes = Boxes::new(boxed);
-        let (outline, mut boxes) = crate::trace::span("outline").run(|| cp.outline(boxes));
-        let Outline {
-            to_plan,
-            macros,
-            math_texts,
-            reads,
-        } = outline;
+        let mut outlining = Outlining::new(dast, Boxes::new(boxed));
+        crate::trace::span("outline").run(|| outlining.outline());
+        let Outlining {
+            settled,
+            tables,
+            ar,
+            mut boxes,
+            work:
+                Outline {
+                    to_plan,
+                    macros,
+                    math_texts,
+                    reads,
+                },
+            ..
+        } = outlining;
         boxes.restart_if_needed()?;
         // From here on, every stage reads what outlining settled and none
-        // changes it. The element set is outlining's (ADR 0030, ADR 0031):
-        // planning and linking make none.
-        let outlined = cp.elem_count();
-        cp.stage = Stage::Parse;
+        // changes it: the element set is outlining's (ADR 0030, ADR 0031),
+        // and planning and linking make none.
+        let mut cp = Compiler {
+            dast,
+            ar,
+            settled: &settled,
+            tables,
+        };
         boxes.enter(Stage::Parse);
         let mut parsed: Parsed =
             crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
         crate::trace::span("parse records").run(|| cp.parse_records(&to_plan, &mut parsed));
-        cp.stage = Stage::Plan;
         boxes.enter(Stage::Plan);
         let (mut planned, mut boxes) = crate::trace::span("plan all")
             .run(|| cp.plan_all(boxes, parsed, to_plan, macros, reads));
         boxes.restart_if_needed()?;
-        cp.stage = Stage::Link;
         boxes.enter(Stage::Link);
         crate::trace::span("link").run(|| cp.link(&mut boxes, &mut planned))?;
-        debug_assert_eq!(cp.elem_count(), outlined, "only outlining makes elements");
         boxes.restart_if_needed()?;
-        cp.stage = Stage::Seal;
         boxes.enter(Stage::Seal);
         let (sealed, choice_seals, keys) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
         let _s = crate::trace::span("finish");
@@ -267,13 +268,7 @@ impl Compiler<'_> {
         let errors = boxes.into_errors();
         // Each stage's tables put together, as the build reads them (ADR
         // 0031).
-        let Compiler {
-            dast,
-            ar,
-            tables,
-            settled,
-            ..
-        } = cp;
+        let Compiler { ar, tables, .. } = cp;
         let Arenas {
             refs,
             arena,
@@ -334,35 +329,15 @@ impl Compiler<'_> {
 /// The driver's accessors: what outlining settled (read-only after outlining),
 /// the templates' rows and tables, and the planners' warnings. Every stage
 /// reads through these.
-impl Compiler<'_> {
+impl<'a> Compiler<'a> {
     /// What outlining settled.
     pub(in crate::compile) fn settled(&self) -> &Settled {
-        &self.settled
-    }
-
-    /// What outlining settled, to make; only outlining reaches it.
-    pub(in crate::compile) fn settled_mut(&mut self) -> &mut Settled {
-        debug_assert_eq!(
-            self.stage,
-            Stage::Outline,
-            "only outlining makes what it settled"
-        );
-        &mut self.settled
-    }
-
-    /// The name table.
-    pub(in crate::compile) fn names(&self) -> &NameTable {
-        &self.settled.names
+        self.settled
     }
 
     /// Outlining's part of template `t`, read-only.
     pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &Outlined {
         &self.settled.templates[t.index()]
-    }
-
-    /// Outlining's part of template `t`, to make; only outlining reaches it.
-    pub(in crate::compile) fn outlined_mut(&mut self, t: TemplateId) -> &mut Outlined {
-        &mut self.settled_mut().templates[t.index()]
     }
 
     /// Element `e` of template `t` as outlining made it.
@@ -380,34 +355,8 @@ impl Compiler<'_> {
         &self.settled.choices[cid.index()]
     }
 
-    /// Adds a template to outlining's part and to the tables; only
-    /// outlining makes one.
-    pub(in crate::compile) fn push_template(
-        &mut self,
-        parent: Option<(TemplateId, ElemId)>,
-    ) -> TemplateId {
-        let t = TemplateId::from_index(self.tables.len());
-        self.settled_mut().templates.push(Outlined {
-            parent,
-            ..Default::default()
-        });
-        self.tables.push(Tables::default());
-        t
-    }
-
     /// What outlining settled (so far), read-only: what the readers read.
-    pub(in crate::compile) fn rd(&self) -> Reader<'_> {
-        Reader::new(self.dast, &self.settled)
-    }
-
-    /// How many elements the templates hold.
-    fn elem_count(&self) -> usize {
-        (0..self.n_templates())
-            .map(|t| self.outlined(TemplateId::from_index(t)).elems.len())
-            .sum()
-    }
-
-    pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {
-        elem_label(self.dast, self.elem(t, e))
+    pub(in crate::compile) fn rd(&self) -> Reader<'a> {
+        Reader::new(self.dast, self.settled)
     }
 }

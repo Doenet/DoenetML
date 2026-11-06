@@ -104,7 +104,7 @@ impl<'a> Compiler<'a> {
         let mut wiring = ElemWiring::of(ComponentType::Answer);
         let response_attr = d.attr(el, "response");
         let mut response = match (needs_input, response_attr, inputs.as_slice()) {
-            (true, Some(a), []) => Reader::new(self.dast, &self.settled).plan_value(
+            (true, Some(a), []) => self.rd().plan_value(
                 &mut self.ar,
                 t,
                 scope,
@@ -145,12 +145,9 @@ impl<'a> Compiler<'a> {
         let correct = if text_nodes.is_empty() {
             Source::absent()
         } else {
-            let id = Reader::new(self.dast, &self.settled).plan_sym_math(
-                &mut self.ar,
-                t,
-                scope,
-                &text_nodes,
-            )?;
+            let id = self
+                .rd()
+                .plan_sym_math(&mut self.ar, t, scope, &text_nodes)?;
             Source::sym_expr(id, Post::None)
         };
         let mut submitted = Source::Leaf(Leaf::GivenMath(None));
@@ -199,14 +196,10 @@ impl<'a> Compiler<'a> {
         let d = self.dast;
         let scope = self.outlined(t).elems[e.index()].name_scope;
         Ok(match d.attr(el, "weight") {
-            Some(a) => Reader::new(self.dast, &self.settled).plan_value(
-                &mut self.ar,
-                t,
-                scope,
-                "weight",
-                d.attr_children(a),
-                None,
-            )?,
+            Some(a) => {
+                self.rd()
+                    .plan_value(&mut self.ar, t, scope, "weight", d.attr_children(a), None)?
+            }
             None => Source::constant(1.0),
         })
     }
@@ -370,9 +363,7 @@ impl<'a> Compiler<'a> {
                     // Planned when outlining made the responses.
                     let p = match self.settled().when_refs.get(&m) {
                         Some(&p) => p,
-                        None => {
-                            Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, w, m)?
-                        }
+                        None => self.rd().plan_ref(&mut self.ar, t, w, m)?,
                     };
                     if let Some((key, input_type)) = self.rd().input_named(&self.ar, t, p)
                         && !responses.iter().any(|(k, _)| *k == key)
@@ -393,12 +384,9 @@ impl<'a> Compiler<'a> {
                 wiring.hidden(Source::alias(Arg::Elem(w, when::Props::PORTS.value)))
             }
             None => {
-                let id = Reader::new(self.dast, &self.settled).plan_sym_math(
-                    &mut self.ar,
-                    t,
-                    form.e,
-                    &form.nodes,
-                )?;
+                let id = self
+                    .rd()
+                    .plan_sym_math(&mut self.ar, t, form.e, &form.nodes)?;
                 let correct = wiring.hidden(Source::sym_expr(id, Post::None));
                 wiring.hidden(Source::op(
                     OpSpec::Sym(compare.equals()),
@@ -422,7 +410,7 @@ impl<'a> Compiler<'a> {
     fn award_credit(&mut self, t: TemplateId, a: ElemId, el: NodeId) -> Result<Source> {
         let d = self.dast;
         Ok(match d.attr(el, "credit") {
-            Some(c) => match Reader::new(self.dast, &self.settled).plan_value(
+            Some(c) => match self.rd().plan_value(
                 &mut self.ar,
                 t,
                 a,

@@ -129,13 +129,15 @@ impl<'a> PlanCtx<'_, 'a> {
     #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) fn scalar_of(&mut self, nodes: &[NodeId]) -> Result<Source> {
         let scope = self.scope_for(nodes);
-        Reader::new(self.c.dast, &self.c.settled).plan_scalar(&mut self.c.ar, self.t, scope, nodes)
+        self.c
+            .rd()
+            .plan_scalar(&mut self.c.ar, self.t, scope, nodes)
     }
 
     /// Math text that is a pair, `(a, b)`, as its two coordinates.
     pub(crate) fn tuple(&mut self, nodes: &[NodeId]) -> Result<[Source; 2]> {
         let scope = self.scope_for(nodes);
-        Reader::new(self.c.dast, &self.c.settled).plan_tuple(&mut self.c.ar, self.t, scope, nodes)
+        self.c.rd().plan_tuple(&mut self.c.ar, self.t, scope, nodes)
     }
 
     /// Children or an attribute read as a value, not blank: a reference,
@@ -148,7 +150,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
     /// an error when what it names has no such prop.
     pub(crate) fn with_prop(&mut self, p: RefId, prop: &'static str) -> Result<RefId> {
-        Reader::new(self.c.dast, &self.c.settled).plan_with_prop(&mut self.c.ar, self.t, p, prop)
+        self.c.rd().plan_with_prop(&mut self.c.ar, self.t, p, prop)
     }
 
     /// A prop of the element a reference names, as an operator's argument.
@@ -193,7 +195,9 @@ impl<'a> PlanCtx<'_, 'a> {
         nodes: &'n [NodeId],
     ) -> Result<(Vec<Token>, MathSrc<'n>)> {
         let scope = self.scope_for(nodes);
-        Reader::new(self.c.dast, &self.c.settled).math_tokens(&mut self.c.ar, self.t, scope, nodes)
+        self.c
+            .rd()
+            .math_tokens(&mut self.c.ar, self.t, scope, nodes)
     }
 
     /// An expression as a source: lowered to numeric operators when it is
@@ -212,7 +216,9 @@ impl<'a> PlanCtx<'_, 'a> {
     /// its text kept for the symbolic engine.
     pub(crate) fn sym_math(&mut self, nodes: &[NodeId], mt: &MathText) -> Result<ExprId> {
         let scope = self.scope_for(nodes);
-        Reader::new(self.c.dast, &self.c.settled).parse_math_text(&mut self.c.ar, self.t, scope, mt)
+        self.c
+            .rd()
+            .parse_math_text(&mut self.c.ar, self.t, scope, mt)
     }
 
     /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as sources
@@ -237,8 +243,8 @@ impl<'a> PlanCtx<'_, 'a> {
             });
         }
         let (lhs, rhs) = (
-            Reader::new(c.dast, &c.settled).parse_tokens(&mut c.ar, &sides[0], src)?,
-            Reader::new(c.dast, &c.settled).parse_tokens(&mut c.ar, &sides[1], src)?,
+            c.rd().parse_tokens(&mut c.ar, &sides[0], src)?,
+            c.rd().parse_tokens(&mut c.ar, &sides[1], src)?,
         );
         let diff = c.ar.arena.push(Expr::Sub(lhs, rhs));
         let diff = c.inline_symbolic_maths(&self.p.parsed, t, diff);

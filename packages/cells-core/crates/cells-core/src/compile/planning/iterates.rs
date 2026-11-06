@@ -53,7 +53,7 @@ impl<'a> Compiler<'a> {
             unreachable!("a functionIterates has a body template")
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
-        let fp = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, scope, fm)?;
+        let fp = self.rd().plan_ref(&mut self.ar, t, scope, fm)?;
         self.rd().referent_type(
             &self.ar,
             pl.boxes.visible(&self.tables),
@@ -74,12 +74,9 @@ impl<'a> Compiler<'a> {
         let fnode = self.outlined(ft).elems[fe.index()].node;
         let vars = self.function_variables(fnode);
         let nodes: Vec<NodeId> = d.children(fnode).to_vec();
-        let (mut toks, src) = Reader::new(self.dast, &self.settled).math_tokens(
-            &mut self.ar,
-            sub,
-            ROOT_SCOPE,
-            &nodes,
-        )?;
+        let (mut toks, src) = self
+            .rd()
+            .math_tokens(&mut self.ar, sub, ROOT_SCOPE, &nodes)?;
         // Variable j is entry j of the previous iterate: `$fi[k-1]`'s tuple.
         let prev: Vec<RefId> = (0..vars.len())
             .map(|j| {
@@ -120,7 +117,7 @@ impl<'a> Compiler<'a> {
         }
         let mut exprs = Vec::with_capacity(n);
         for part in &parts {
-            let id = Reader::new(self.dast, &self.settled).parse_tokens(&mut self.ar, part, src)?;
+            let id = self.rd().parse_tokens(&mut self.ar, part, src)?;
             let mut syms = Vec::new();
             self.ar.arena.symbols(id, &mut syms);
             if !syms.is_empty() {
@@ -159,8 +156,7 @@ impl<'a> Compiler<'a> {
             .attr(el, "initialValue")
             .ok_or_else(|| Error::Unsupported("<functionIterates> needs initialValue".into()))?;
         if let Some(m) = self.rd().single_macro(a) {
-            let init =
-                Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, sub, ROOT_SCOPE, m)?;
+            let init = self.rd().plan_ref(&mut self.ar, sub, ROOT_SCOPE, m)?;
             return Ok(if n == 1 {
                 vec![Source::reference(init)]
             } else {
@@ -168,12 +164,9 @@ impl<'a> Compiler<'a> {
             });
         }
         let nodes: Vec<NodeId> = d.attr_children(a).to_vec();
-        let (toks, src) = Reader::new(self.dast, &self.settled).math_tokens(
-            &mut self.ar,
-            sub,
-            ROOT_SCOPE,
-            &nodes,
-        )?;
+        let (toks, src) = self
+            .rd()
+            .math_tokens(&mut self.ar, sub, ROOT_SCOPE, &nodes)?;
         let parts = match expr::tuple_entries(&toks) {
             Some(entries) if n > 1 => entries,
             _ => vec![toks.clone()],
@@ -187,8 +180,7 @@ impl<'a> Compiler<'a> {
         parts
             .iter()
             .map(|part| {
-                let id =
-                    Reader::new(self.dast, &self.settled).parse_tokens(&mut self.ar, part, src)?;
+                let id = self.rd().parse_tokens(&mut self.ar, part, src)?;
                 Ok(match self.rd().plan_from_expr(&self.ar, id) {
                     Source::Leaf(Leaf::Given(v)) => Source::constant(v),
                     other => other,
@@ -263,7 +255,7 @@ impl<'a> Compiler<'a> {
             unreachable!("a repeat has a body template")
         };
         let m = self.attr_macro(el, "repeat", "for")?;
-        let fp = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, scope, m)?;
+        let fp = self.rd().plan_ref(&mut self.ar, t, scope, m)?;
         let unsupported = || {
             Error::Unsupported(
                 "<repeat for> takes a <functionIterates>' allIteratesWithInitial or iterates"

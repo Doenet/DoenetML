@@ -36,14 +36,10 @@ impl<'a> Compiler<'a> {
                     0.0
                 })
             }
-            Some(a) => Reader::new(self.dast, &self.settled).plan_value(
-                &mut self.ar,
-                t,
-                scope,
-                "hide",
-                d.attr_children(a),
-                None,
-            )?,
+            Some(a) => {
+                self.rd()
+                    .plan_value(&mut self.ar, t, scope, "hide", d.attr_children(a), None)?
+            }
             None => Source::constant(0.0),
         };
         if !self.choice(cid).reactive {
@@ -51,15 +47,15 @@ impl<'a> Compiler<'a> {
             // evaluates (ADR 0037).
             // A literal is a constant, as a literal `hide` is: never state.
             let num = match d.attr(node, "numToSelect") {
-                Some(a) => match Reader::new(self.dast, &self.settled).plan_scalar(
-                    &mut self.ar,
-                    t,
-                    scope,
-                    d.attr_children(a),
-                )? {
-                    Source::Leaf(Leaf::Given(v)) => Source::constant(v),
-                    num => num,
-                },
+                Some(a) => {
+                    match self
+                        .rd()
+                        .plan_scalar(&mut self.ar, t, scope, d.attr_children(a))?
+                    {
+                        Source::Leaf(Leaf::Given(v)) => Source::constant(v),
+                        num => num,
+                    }
+                }
                 None => Source::constant(1.0),
             };
             let mut props = prop::select::Props { hide }.into_vec();

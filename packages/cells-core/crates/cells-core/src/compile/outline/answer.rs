@@ -6,12 +6,12 @@ use crate::compile::*;
 
 /// Outlining, `<answer>`: its implicit `<mathInput>` and a `response` per input
 /// its whens read. Makes elements; plans nothing (ADR 0030).
-impl Compiler<'_> {
+impl Outlining<'_> {
     /// Add every answer's synthetic children, in the order the walk made
     /// the answers, after every element the walk and the container copies
     /// made.
-    pub(in crate::compile) fn add_answer_children(&mut self, o: &mut Outlining<'_>) {
-        let made = o.work.to_plan.clone();
+    pub(in crate::compile) fn add_answer_children(&mut self) {
+        let made = self.work.to_plan.clone();
         let answers: Vec<(TemplateId, ElemId)> = made
             .into_iter()
             .filter(|&(t, e)| {
@@ -71,14 +71,14 @@ impl Compiler<'_> {
                     continue;
                 }
                 let p = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, w, m)?;
-                self.settled_mut().when_refs.insert(m, p);
+                self.settled.when_refs.insert(m, p);
                 if let Some((key, _)) = self.rd().input_named(&self.ar, t, p) {
                     let r = match keys.iter().find(|(k, _)| *k == key) {
                         Some(&(_, r)) => r,
                         None => {
                             let r = self.add_response(t, e);
                             keys.push((key, r));
-                            self.settled_mut()
+                            self.settled
                                 .answer_responses
                                 .entry((t, e))
                                 .or_default()
@@ -87,7 +87,7 @@ impl Compiler<'_> {
                         }
                     };
                     // The `$mi` stands for the submitted copy, from here on.
-                    self.settled_mut().submitted.insert(m, r);
+                    self.settled.submitted.insert(m, r);
                 }
             }
         }
