@@ -571,6 +571,11 @@ describe("An index into an entry of a list @group4", async () => {
                 // `<math>` (#2438)
                 // a property of every entry with an index into it
                 ["$pl.xs[1]", "3, 1"],
+                // an index into the list's value is an index into the list,
+                // as `$m.value[2]` is `$m[2]`
+                ["$l.value[2]", "2"],
+                ["$pl.value[2]", "(1, 2)"],
+                ["$tl.value[2][1]", "3"],
                 ["$ml[1][1][2]", "2"],
                 ["$ml[1][2][1]", "3"],
                 ["$tl2[1][2]", "(3, 4)"],

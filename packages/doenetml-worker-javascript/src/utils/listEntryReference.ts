@@ -430,6 +430,20 @@ export function listEntryPropertyPath({
         };
     }
 
+    // An index into the list's value is an index into the list, as
+    // `$m.value[2]` is `$m[2]` (D27): `$l.value[2]` is entry 2.
+    if (
+        unresolvedPath.length === 1 &&
+        first.name.toLowerCase() === "value" &&
+        first.index.length > 0
+    ) {
+        return listEntryPropertyPath({
+            listClass,
+            unresolvedPath: [{ ...first, name: "" }],
+            componentInfoObjects,
+        });
+    }
+
     // The same of every entry (`$l.xs[1]`).
     if (
         unresolvedPath.length === 1 &&
