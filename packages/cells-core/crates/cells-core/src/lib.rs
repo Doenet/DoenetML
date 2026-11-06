@@ -59,16 +59,16 @@
 //! - [`dast`]: the input, the parser's DAST in flat, columnar form.
 //! - [`components`]: the tag vocabulary: each type's props and where their
 //!   values come from.
-//! - `compile`: the source made, once per load, into the templates every
+//! - [`compile`]: the source made, once per load, into the templates every
 //!   build stamps.
 //! - [`session`]: what a session accumulates and every build reads.
 //! - [`build`]: the compile stamped into cells and instructions.
 //! - [`program`]: the instruction set the build emits and a tick runs.
 //! - [`sym`]: the symbolic engine behind math cells.
-//! - `document`: the loaded [`Document`] and its request and read API.
+//! - [`document`]: the loaded [`Document`] and its request and read API.
 //! - [`tick`]: run time: a request is inverted to essential cells and
 //!   recomputed.
-//! - `testing`: the reference oracle and test helpers (`testing` feature).
+//! - [`testing`]: the reference oracle and test helpers (`testing` feature).
 //! - [`trace`]: named spans over a load.
 
 // These docs are read with private items (`npm run doc`), so public docs may
