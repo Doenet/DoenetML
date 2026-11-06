@@ -1338,6 +1338,62 @@ ${repeat}
         const { errors, warnings } = getDiagnosticsByType(core);
         expect([...errors, ...warnings]).eqls([]);
     });
+
+    it("a child of an input copy binds its value, as `bindValueTo` does", async () => {
+        // On an input written on its own, a child is what the input's value
+        // is bound to, as with `bindValueTo`: typing writes to it. A copy
+        // reads the child it is given the same way: the text and reference
+        // `$x+1` are made one `<math>`, which the copy is bound to (#2395).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="x">1</math>
+    <mathInput name="mi" prefill="7"/>
+    <mathInput name="own">$x+1</mathInput>
+    <mathInput name="child" copy="$mi">$x+1</mathInput>
+    <mathInput name="attr" copy="$mi" bindValueTo="$x+1"/>
+    `,
+        });
+        const values = async () => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const values: Record<string, any> = {};
+            for (const name of ["x", "mi", "own", "child", "attr"]) {
+                values[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.value.tree;
+            }
+            return values;
+        };
+
+        const plusOne = (x: number) => ["+", x, 1];
+        expect(await values()).eqls({
+            x: 1,
+            mi: 7,
+            own: plusOne(1),
+            child: plusOne(1),
+            attr: plusOne(1),
+        });
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("child"),
+            core,
+        });
+        // typing 5 writes 4 to `x`, through the `+1`
+        expect(await values()).eqls({
+            x: 4,
+            mi: 7,
+            own: plusOne(4),
+            child: plusOne(4),
+            attr: plusOne(4),
+        });
+
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect([...errors, ...warnings]).eqls([]);
+    });
 });
 
 describe("descendant dependency traversal", () => {
