@@ -24,14 +24,14 @@ import {
     NO_SELECT_ERROR,
     choicesDecidedByDoenetML,
     returnChoicesDecidedByDoenetMLDefinition,
-    returnIgnoredVariantChoicesDefinition,
-    VARIANT_CHOICES_IGNORED_VARIABLE,
-    variantGivesChoices,
     returnSelectErrorReportDefinition,
     selectError,
     selectFailureType,
     selectionResult,
     takeSelectError,
+    keptSelection,
+    NUM_TO_SELECT_VARIABLE,
+    withNumToSelect,
 } from "../utils/selectErrors";
 const { gcd } = me.math;
 
@@ -63,6 +63,18 @@ export default class SelectFromSequence extends Sequence {
             });
     }
 
+    /**
+     * Whether a fresh load reproduces this select's selection, so a save
+     * can leave it out (`BaseComponent.definitionEssentialValuesAreReproducible`):
+     * only when the DoenetML alone decides what it chooses from. A value
+     * that decides it, such as an input, can have changed by the time the
+     * document is loaded again, and the select must keep the choices it was
+     * made with, never choosing again.
+     */
+    get definitionEssentialValuesReproducible() {
+        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
+    }
+
     static componentType = "selectFromSequence";
 
     static componentDocs = {
@@ -84,14 +96,18 @@ export default class SelectFromSequence extends Sequence {
         let attributes = super.createAttributesObject();
         attributes.numToSelect = {
             createComponentOfType: "integer",
-            createStateVariable: "numToSelect",
+            createStateVariable: "specifiedNumToSelect",
+            // fixed with the selection made from it; the public `numToSelect`
+            // is kept with the selection (`NUM_TO_SELECT_VARIABLE`)
+            immutable: true,
             defaultValue: 1,
-            public: true,
             description: "How many values to select from the sequence.",
         };
         attributes.withReplacement = {
             createComponentOfType: "boolean",
             createStateVariable: "withReplacement",
+            // fixed with the selection made from it
+            immutable: true,
             defaultValue: false,
             public: true,
             description:
@@ -131,6 +147,8 @@ export default class SelectFromSequence extends Sequence {
         attributes.coprime = {
             createComponentOfType: "boolean",
             createStateVariable: "coprime",
+            // fixed with the selection made from it
+            immutable: true,
             defaultValue: false,
             public: true,
             description:
@@ -142,7 +160,21 @@ export default class SelectFromSequence extends Sequence {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // What the selection is made from is fixed with it, so a change to
+        // an attribute it came from (`to="$mi"`) is ignored, as a change to
+        // `numToSelect` is: the selection is never made again
+        stateVariableDefinitions.from.immutable = true;
+        stateVariableDefinitions.from.additionalStateVariablesDefined =
+            stateVariableDefinitions.from.additionalStateVariablesDefined.map(
+                (variableName) =>
+                    typeof variableName === "string"
+                        ? { variableName, immutable: true }
+                        : { ...variableName, immutable: true },
+            );
+        stateVariableDefinitions.lowercase.immutable = true;
+
         stateVariableDefinitions.excludedCombinations = {
+            immutable: true,
             returnDependencies: () => ({
                 excludeCombinations: {
                     dependencyType: "attributeComponent",
@@ -155,7 +187,7 @@ export default class SelectFromSequence extends Sequence {
                 },
                 numToSelect: {
                     dependencyType: "stateVariable",
-                    variableName: "numToSelect",
+                    variableName: "specifiedNumToSelect",
                 },
                 coprime: {
                     dependencyType: "stateVariable",
@@ -237,14 +269,11 @@ export default class SelectFromSequence extends Sequence {
         stateVariableDefinitions.choicesDecidedByDoenetML =
             returnChoicesDecidedByDoenetMLDefinition();
 
-        stateVariableDefinitions.ignoredVariantChoicesReported =
-            returnIgnoredVariantChoicesDefinition({
-                component: "selectFromSequence",
-            });
-
         stateVariableDefinitions.selectedValues = {
             immutable: true,
             hasEssential: true,
+            // to keep a selection already made (`keptSelection`)
+            provideEssentialValuesInDefinition: true,
             shadowVariable: true,
             additionalStateVariablesDefined: [
                 {
@@ -267,7 +296,7 @@ export default class SelectFromSequence extends Sequence {
                     shadowVariable: true,
                     immutable: true,
                 },
-                VARIANT_CHOICES_IGNORED_VARIABLE,
+                NUM_TO_SELECT_VARIABLE,
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 ...selectionDependencies(),
@@ -281,7 +310,11 @@ export default class SelectFromSequence extends Sequence {
                     doNotProxy: true,
                 },
             }),
-            definition: makeSelection,
+            definition: (args) =>
+                withNumToSelect(
+                    makeSelection(args),
+                    args.dependencyValues.numToSelect,
+                ),
         };
 
         stateVariableDefinitions.isVariantComponent = {
@@ -836,7 +869,7 @@ function selectionDependencies() {
     return {
         numToSelect: {
             dependencyType: "stateVariable",
-            variableName: "numToSelect",
+            variableName: "specifiedNumToSelect",
         },
         withReplacement: {
             dependencyType: "stateVariable",
@@ -887,19 +920,17 @@ function selectionDependencies() {
 
 /**
  * The selection the requested variant gives, as `{ selectedValues,
- * selectedIndices }`, or `null` when there is none or it doesn't fit: a
- * different number of indices than are selected, one that isn't an integer,
- * one naming an excluded value, or an excluded combination. A variant saved
- * before the document changed can give one that doesn't fit (#2389). A
- * select that could not select records `null` indices in its variant
- * (`generatedVariantInfo`), which give none.
+ * selectedIndices }`, or `null` when it gives none. The indices are taken as
+ * given, whatever the select would choose now: a select keeps the choices it
+ * was made with, as it keeps what it chose from, and never chooses again
+ * (#2389). So an index is wrapped onto the sequence, and its value is the one
+ * it names whether or not it is excluded now. A select that could not select
+ * records `null` indices in its variant (`generatedVariantInfo`), which give
+ * none, as do indices that aren't integers, which no select records.
  */
-function desiredSelectionThatFits(dependencyValues) {
+function selectionFromVariant(dependencyValues) {
     let desiredIndices = dependencyValues.variants?.desiredVariant?.indices;
-    if (!Array.isArray(desiredIndices)) {
-        return null;
-    }
-    if (desiredIndices.length !== dependencyValues.numToSelect) {
+    if (!Array.isArray(desiredIndices) || desiredIndices.length === 0) {
         return null;
     }
     desiredIndices = desiredIndices.map(Number);
@@ -909,39 +940,33 @@ function desiredSelectionThatFits(dependencyValues) {
     let n = dependencyValues.length;
     desiredIndices = desiredIndices.map((x) => ((((x - 1) % n) + n) % n) + 1);
 
-    let selectedValues = [];
-    for (let indexFrom1 of desiredIndices) {
-        let componentValue = returnSequenceValueForIndex({
+    const selectedValues = desiredIndices.map((indexFrom1) =>
+        returnSequenceValueForIndex({
             index: indexFrom1 - 1,
             from: dependencyValues.from,
             step: dependencyValues.step,
             length: dependencyValues.length,
-            exclude: dependencyValues.exclude,
+            exclude: [],
             type: dependencyValues.type,
             lowercase: dependencyValues.lowercase,
-        });
-
-        if (componentValue === null) {
-            return null;
-        }
-
-        selectedValues.push(componentValue);
-    }
-
-    if (
-        checkForExcludedCombination({
-            type: dependencyValues.type,
-            excludedCombinations: dependencyValues.excludedCombinations,
-            values: selectedValues,
-        })
-    ) {
-        return null;
-    }
+        }),
+    );
 
     return { selectedValues, selectedIndices: desiredIndices };
 }
 
-function makeSelection({ dependencyValues }) {
+function makeSelection({ dependencyValues, essentialValues }) {
+    // A selection already made, as on a reload, is kept
+    const kept = keptSelection(essentialValues, [
+        "selectedValues",
+        "selectedIndices",
+        "errorMessage",
+        "errorDiagnostic",
+    ]);
+    if (kept) {
+        return kept;
+    }
+
     // console.log(`make selection`)
     // console.log(dependencyValues)
 
@@ -978,17 +1003,11 @@ function makeSelection({ dependencyValues }) {
         });
     }
 
-    // If the requested variant gives a selection that fits, use it. One that
-    // doesn't fit is ignored, with an info (`ignoredVariantChoicesReported`),
-    // and the select chooses as though it had been given none.
-    const desiredSelection = desiredSelectionThatFits(dependencyValues);
+    // The selection the requested variant gives, taken as given
+    const desiredSelection = selectionFromVariant(dependencyValues);
     if (desiredSelection !== null) {
         return selectionResult(NO_SELECT_ERROR, desiredSelection);
     }
-    const variantChoicesIgnored = variantGivesChoices(
-        dependencyValues.variants,
-        "indices",
-    );
 
     let numCombinationsExcluded = dependencyValues.excludedCombinations.length;
 
@@ -1240,7 +1259,7 @@ function makeSelection({ dependencyValues }) {
             } else {
                 // Coprime values may exist and the draws missed them, which
                 // depends on the variant, so it is never an error (D38)
-                error = selectError({ code: "doenet-i0058", type: "info" });
+                error = selectError({ code: "doenet-i0057", type: "info" });
             }
             return selectionResult(error, {
                 selectedValues: null,
@@ -1286,7 +1305,6 @@ function makeSelection({ dependencyValues }) {
     return selectionResult(NO_SELECT_ERROR, {
         selectedValues,
         selectedIndices,
-        variantChoicesIgnored,
     });
 }
 

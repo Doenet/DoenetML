@@ -37,10 +37,10 @@ async function load({
         initialState,
     });
     const stateVariables = await core.returnAllStateVariables(false, true);
-    const selected =
-        stateVariables[await resolvePathToNodeIdx(selection)].stateValues[
-            variable
-        ];
+    const selectionState =
+        stateVariables[await resolvePathToNodeIdx(selection)].stateValues;
+    const selected = selectionState[variable];
+    const numToSelect = selectionState.numToSelect;
     const texts: Record<string, string> = {};
     for (const name of paragraphs) {
         texts[name] =
@@ -58,6 +58,7 @@ async function load({
         resolvePathToNodeIdx,
         scoreState,
         selected,
+        numToSelect,
         texts,
         errors: diagnostics.errors.map((d) => d.code),
         infos: diagnostics.infos.map((d) => d.code),
@@ -66,82 +67,60 @@ async function load({
 }
 
 /**
- * Choices the requested variant gives that don't fit, as from a variant saved
- * before the document changed, are ignored with an info (`doenet-i0057`), and
- * the tag chooses as though it had been given none, as `<shuffle>` does
- * (#2389 item 1). The document loads.
+ * A select takes the choices a requested variant gives as given, even when
+ * they are not what it would choose now, as from a variant saved before the
+ * document changed: a select keeps the choices it was made with and never
+ * chooses again (#2389 item 1). The document loads.
  */
-describe("A requested variant whose choices don't fit @group4", async () => {
+describe("A requested variant's choices are taken as given @group4", async () => {
     const cases: {
         tag: string;
         before: string;
         after: string;
         variable: "selectedIndices" | "selectedValues";
-        check: (selected: any[]) => void;
     }[] = [
         {
             tag: "<select>, numToSelect changed",
             before: `<select name="s" numToSelect="2">a b c d e</select><select name="t">f g</select>`,
             after: `<select name="s" numToSelect="4">a b c d e</select><select name="t">f g</select>`,
             variable: "selectedIndices",
-            check: (selected) => {
-                expect(selected.length).eq(4);
-                expect(new Set(selected).size).eq(4);
-            },
         },
         {
             tag: "<selectFromSequence>, numToSelect changed",
             before: `<selectFromSequence name="s" to="100" numToSelect="2"/><select name="t">f g</select>`,
             after: `<selectFromSequence name="s" to="100" numToSelect="4"/><select name="t">f g</select>`,
             variable: "selectedValues",
-            check: (selected) => {
-                expect(selected.length).eq(4);
-            },
         },
         {
             tag: "<selectFromSequence>, a chosen value now excluded",
             before: `<selectFromSequence name="s" to="2"/><select name="t">f g</select>`,
             after: `<selectFromSequence name="s" to="4" exclude="1 2"/><select name="t">f g</select>`,
             variable: "selectedValues",
-            check: (selected) => {
-                expect(selected.length).eq(1);
-                expect([3, 4]).toContain(selected[0]);
-            },
         },
         {
             tag: "<selectPrimeNumbers>, numToSelect changed",
             before: `<selectPrimeNumbers name="s" numToSelect="2"/><select name="t">f g</select>`,
             after: `<selectPrimeNumbers name="s" numToSelect="4"/><select name="t">f g</select>`,
             variable: "selectedValues",
-            check: (selected) => {
-                expect(selected.length).eq(4);
-            },
         },
         {
             tag: "<selectPrimeNumbers>, a chosen value no longer in range",
             before: `<selectPrimeNumbers name="s" from="50" to="100"/><select name="t">f g</select>`,
             after: `<selectPrimeNumbers name="s" from="2" to="20"/><select name="t">f g</select>`,
             variable: "selectedValues",
-            check: (selected) => {
-                expect(selected.length).eq(1);
-                expect(selected[0]).lte(20);
-            },
         },
         {
             tag: "<selectRandomNumbers>, numToSelect changed",
             before: `<selectRandomNumbers name="s" numToSelect="2"/><select name="t">f g</select>`,
             after: `<selectRandomNumbers name="s" numToSelect="4"/><select name="t">f g</select>`,
             variable: "selectedValues",
-            check: (selected) => {
-                expect(selected.length).eq(4);
-            },
         },
     ];
 
-    for (const { tag, before, after, variable, check } of cases) {
+    for (const { tag, before, after, variable } of cases) {
         it(tag, async () => {
             for (const requestedVariantIndex of [1, 2, 3]) {
-                const { generatedVariantInfo } = await load({
+                const original = await load({
                     doenetML: before,
                     requestedVariantIndex,
                     variable,
@@ -149,56 +128,47 @@ describe("A requested variant whose choices don't fit @group4", async () => {
 
                 const first = await load({
                     doenetML: after,
-                    requestedVariant: generatedVariantInfo,
+                    requestedVariant: original.generatedVariantInfo,
                     variable,
                 });
                 expect(first.errors).eqls([]);
-                expect(first.infos).toContain("doenet-i0057");
-                check(first.selected);
+                // the choices it was made with, not new ones
+                expect(first.selected).eqls(original.selected);
 
-                // fixed for the variant
-                const again = await load({
-                    doenetML: after,
-                    requestedVariant: generatedVariantInfo,
-                    variable,
-                });
-                expect(again.selected).eqls(first.selected);
-
-                // kept, and said again, through a reload
+                // kept through a reload
                 await first.core.saveImmediately();
                 const reloaded = await load({
                     doenetML: after,
-                    requestedVariant: generatedVariantInfo,
+                    requestedVariant: original.generatedVariantInfo,
                     initialState: first.scoreState.state,
                     variable,
                 });
                 expect(reloaded.errors).eqls([]);
-                expect(reloaded.infos).toContain("doenet-i0057");
-                expect(reloaded.selected).eqls(first.selected);
+                expect(reloaded.selected).eqls(original.selected);
             }
         });
     }
 
-    it("a select ignoring its indices doesn't give the options it picks the subvariants of others", async () => {
+    it("a select taking its indices gives the options it picks their subvariants", async () => {
         const before = `<select name="s"><option><selectFromSequence name="a" to="10"/></option><option>b</option></select>`;
         const after = `<select name="s" numToSelect="2"><option><selectFromSequence name="a" to="10" numToSelect="2"/></option><option>b</option></select>`;
         for (const requestedVariantIndex of [1, 2, 3, 4]) {
-            const { generatedVariantInfo } = await load({
+            const original = await load({
                 doenetML: before,
                 requestedVariantIndex,
                 variable: "selectedIndices",
             });
             const { errors, selected } = await load({
                 doenetML: after,
-                requestedVariant: generatedVariantInfo,
+                requestedVariant: original.generatedVariantInfo,
                 variable: "selectedIndices",
             });
             expect(errors).eqls([]);
-            expect([...selected].sort()).eqls([1, 2]);
+            expect(selected).eqls(original.selected);
         }
     });
 
-    it("choices that fit are taken, with no info", async () => {
+    it("choices from the variant the document generated are the same choices", async () => {
         const doenetML = `<select name="s" numToSelect="2">a b c d e</select><selectFromSequence name="t" to="100" numToSelect="3"/>`;
         for (const requestedVariantIndex of [1, 2, 3]) {
             const first = await load({
@@ -211,7 +181,6 @@ describe("A requested variant whose choices don't fit @group4", async () => {
                 requestedVariant: first.generatedVariantInfo,
                 variable: "selectedIndices",
             });
-            expect(specified.infos).not.toContain("doenet-i0057");
             expect(specified.selected).eqls(first.selected);
         }
     });
@@ -438,8 +407,7 @@ describe("A selection that a value decides can't be made @group4", async () => {
  * A select that could not select records no choices in its variant: `null`
  * from a `<selectFromSequence>` or `<selectPrimeNumbers>`, `[]` from a
  * `<select>`. That variant is passed back to it on a reload and to a `copy`
- * of it. Neither breaks the document, and neither reports that choices were
- * ignored (`doenet-i0057`): none were given.
+ * of it. Neither breaks the document.
  */
 describe("A selection that couldn't be made, given back @group4", async () => {
     const cases: {
@@ -497,7 +465,6 @@ describe("A selection that couldn't be made, given back @group4", async () => {
             });
             expect(reloaded.errors).eqls(first.errors);
             expect(reloaded.infos).eqls(first.infos);
-            expect(reloaded.infos).not.toContain("doenet-i0057");
         });
 
         it(`${tag}, copied`, async () => {
@@ -509,7 +476,6 @@ describe("A selection that couldn't be made, given back @group4", async () => {
             });
             const both = type === "errors" ? errors : infos;
             expect(both.filter((c) => c === code).length).eq(2);
-            expect(infos).not.toContain("doenet-i0057");
             if (type === "infos") {
                 expect(errors).eqls([]);
             }
@@ -592,7 +558,7 @@ describe("Errors the DoenetML decides, beside ones a value decides @group4", asy
             expect(errors).eqls([]);
             if (selected === null) {
                 missed++;
-                expect(infos).toContain("doenet-i0058");
+                expect(infos).toContain("doenet-i0057");
             } else {
                 found++;
                 expect(selected).toContain(1);
@@ -634,79 +600,107 @@ describe("Errors the DoenetML decides, beside ones a value decides @group4", asy
 });
 
 /**
- * Whether the requested variant's choices were ignored is decided by what
- * was selected, which is fixed, not by attributes that can change after.
+ * What a selection is made from is fixed with it: a later change to
+ * `numToSelect`, or to the range a selection draws from, is ignored, so a
+ * select never chooses again, nor has to deal with a value that changed.
  */
-describe("Choices taken from the variant stay taken @group4", async () => {
-    for (const [tag, doenetML] of [
+describe("What a selection is made from is fixed with it @group4", async () => {
+    for (const [tag, doenetML, variable] of [
         [
             "<select>",
             `<mathInput name="mi" prefill="1"/><select name="s" numToSelect="$mi">a b c d</select>`,
+            "selectedIndices",
         ],
         [
             "<selectFromSequence>",
             `<mathInput name="mi" prefill="1"/><selectFromSequence name="s" to="10" numToSelect="$mi"/>`,
+            "selectedValues",
         ],
         [
             "<selectPrimeNumbers>",
             `<mathInput name="mi" prefill="1"/><selectPrimeNumbers name="s" to="50" numToSelect="$mi"/>`,
+            "selectedValues",
         ],
         [
             "<selectRandomNumbers>",
             `<mathInput name="mi" prefill="1"/><selectRandomNumbers name="s" numToSelect="$mi"/>`,
+            "selectedValues",
         ],
     ]) {
-        it(`${tag}: a numToSelect changed after the choices were taken reports nothing ignored`, async () => {
-            const first = await load({ doenetML, requestedVariantIndex: 2 });
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML,
-                requestedVariant: first.generatedVariantInfo,
-            });
-            const infos = () =>
-                getDiagnosticsByType(core).infos.map((d) => d.code);
-            expect(infos()).not.toContain("doenet-i0057");
+        it(`${tag}: a numToSelect changed after the selection is ignored`, async () => {
+            const { core, resolvePathToNodeIdx, scoreState } =
+                await createTestCore({
+                    doenetML,
+                    requestedVariantIndex: 2,
+                });
+            const sIdx = await resolvePathToNodeIdx("s");
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const before = stateVariables[sIdx].stateValues[variable];
+            expect(before.length).eq(1);
+            expect(stateVariables[sIdx].stateValues.numToSelect).eq(1);
 
             await updateMathInputValue({
                 latex: "2",
                 componentIdx: await resolvePathToNodeIdx("mi"),
                 core,
             });
-            await core.returnAllStateVariables(false, true);
-            expect(infos()).not.toContain("doenet-i0057");
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(stateVariables[sIdx].stateValues.numToSelect).eq(1);
+            expect(stateVariables[sIdx].stateValues[variable]).eqls(before);
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+
+            // and through a reload, with the input at 2
+            await core.saveImmediately();
+            const reloaded = await load({
+                doenetML,
+                requestedVariantIndex: 2,
+                initialState: scoreState.state,
+                variable: variable as "selectedIndices" | "selectedValues",
+            });
+            expect(reloaded.selected).eqls(before);
+            // as is the numToSelect it was made with
+            expect(reloaded.numToSelect).eq(1);
+            expect(reloaded.errors).eqls([]);
         });
     }
-});
 
-describe("Choices taken from the variant stay taken, whatever changes after @group4", async () => {
-    it("<selectFromSequence>: a range changed after the choices were taken reports nothing ignored", async () => {
+    it("<selectFromSequence>: a range changed after the selection is ignored", async () => {
         const doenetML = `<mathInput name="mi" prefill="10"/><selectFromSequence name="s" to="$mi"/>`;
         for (const requestedVariantIndex of [1, 2, 3, 4]) {
-            const first = await load({ doenetML, requestedVariantIndex });
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
-                requestedVariant: first.generatedVariantInfo,
+                requestedVariantIndex,
             });
-            const infos = () =>
-                getDiagnosticsByType(core).infos.map((d) => d.code);
-            expect(infos()).not.toContain("doenet-i0057");
+            const sIdx = await resolvePathToNodeIdx("s");
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const before = stateVariables[sIdx].stateValues.selectedValues;
             await updateMathInputValue({
                 latex: "3",
                 componentIdx: await resolvePathToNodeIdx("mi"),
                 core,
             });
-            await core.returnAllStateVariables(false, true);
-            expect(infos()).not.toContain("doenet-i0057");
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(stateVariables[sIdx].stateValues.length).eq(10);
+            expect(stateVariables[sIdx].stateValues.selectedValues).eqls(
+                before,
+            );
         }
     });
 
-    it("<selectRandomNumbers>: values replayed as given, even NaN, report nothing ignored", async () => {
+    it("<selectRandomNumbers>: values replayed as given, even NaN", async () => {
         const doenetML = `<selectRandomNumbers name="s" type="binomial" numTrials="-1"/>`;
         const first = await load({ doenetML, requestedVariantIndex: 1 });
         const replayed = await load({
             doenetML,
             requestedVariant: first.generatedVariantInfo,
         });
-        expect(replayed.infos).not.toContain("doenet-i0057");
+        expect(replayed.errors).eqls([]);
         // taken as given: the variant, JSON round-tripped, holds `null`
         expect(replayed.selected).eqls([null]);
     });

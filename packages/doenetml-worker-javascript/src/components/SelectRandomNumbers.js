@@ -1,9 +1,10 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import SampleRandomNumbers from "./SampleRandomNumbers";
 import {
-    returnIgnoredVariantChoicesDefinition,
-    VARIANT_CHOICES_IGNORED_VARIABLE,
-    variantGivesChoices,
+    choicesDecidedByDoenetML,
+    keptSelection,
+    NUM_TO_SELECT_VARIABLE,
+    withNumToSelect,
 } from "../utils/selectErrors";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     // `<sampleRandomNumbers>` offers a `resample` action, and this component
@@ -23,6 +24,30 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         super(args);
 
         delete this.actions.resample;
+
+        // Whether the DoenetML alone decides what it draws: then a fresh
+        // load under the same variant draws the same values
+        // (`definitionEssentialValuesReproducible`)
+        this.doenetAttributes.choicesDecidedByDoenetML =
+            choicesDecidedByDoenetML({
+                component: this,
+                attributeNames: Object.keys(this.attributes ?? {}).filter(
+                    (name) => !name.startsWith("_"),
+                ),
+                componentInfoObjects: args.componentInfoObjects,
+            });
+    }
+
+    /**
+     * Whether a fresh load reproduces its selection, so a save
+     * can leave it out (`BaseComponent.definitionEssentialValuesAreReproducible`):
+     * only when the DoenetML alone decides what it chooses from. A value
+     * that decides it, such as an input, can have changed by the time the
+     * document is loaded again, and the select must keep the choices it was
+     * made with, never choosing again.
+     */
+    get definitionEssentialValuesReproducible() {
+        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
     }
 
     static componentType = "selectRandomNumbers";
@@ -56,9 +81,11 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             highlighted: true,
             description: "How many random numbers to select.",
             createComponentOfType: "integer",
-            createStateVariable: "numToSelect",
+            createStateVariable: "specifiedNumToSelect",
+            // fixed with the selection made from it; the public `numToSelect`
+            // is kept with the selection (`NUM_TO_SELECT_VARIABLE`)
+            immutable: true,
             defaultValue: 1,
-            public: true,
         };
 
         return attributes;
@@ -127,12 +154,14 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         stateVariableDefinitions.selectedValues = {
             immutable: true,
             hasEssential: true,
+            // to keep a selection already made (`keptSelection`)
+            provideEssentialValuesInDefinition: true,
+            additionalStateVariablesDefined: [NUM_TO_SELECT_VARIABLE],
             shadowVariable: true,
-            additionalStateVariablesDefined: [VARIANT_CHOICES_IGNORED_VARIABLE],
             returnDependencies: ({ sharedParameters }) => ({
                 numSamples: {
                     dependencyType: "stateVariable",
-                    variableName: "numToSelect",
+                    variableName: "specifiedNumToSelect",
                 },
                 type: {
                     dependencyType: "stateVariable",
@@ -223,70 +252,60 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     doNotProxy: true,
                 },
             }),
-            definition({ dependencyValues }) {
-                if (dependencyValues.numSamples < 1) {
-                    const values = {
-                        selectedValues: [],
-                        variantChoicesIgnored: false,
-                    };
-                    return {
-                        setEssentialValue: { ...values },
-                        setValue: { ...values },
-                    };
-                }
-
-                // Values the requested variant gives in a different number
-                // than are selected are ignored, with an info
-                // (`ignoredVariantChoicesReported`), and fresh ones drawn
-                let desiredValues =
-                    dependencyValues.variants?.desiredVariant?.values;
-                if (
-                    desiredValues &&
-                    desiredValues.length === dependencyValues.numSamples
-                ) {
-                    // Take the values as given, but still check the parameters
-                    // they came from: replaying a variant should report the same
-                    // problems as generating it, rather than accepting the saved
-                    // numbers silently. Asking for none draws nothing, so the
-                    // variant's own randomness is untouched.
-                    const { diagnostics } = sampleFromRandomNumbers({
-                        ...dependencyValues,
-                        numSamples: 0,
-                    });
-
-                    const values = {
-                        selectedValues: desiredValues,
-                        variantChoicesIgnored: false,
-                    };
-                    return {
-                        setEssentialValue: { ...values },
-                        setValue: { ...values },
-                        sendDiagnostics: diagnostics,
-                    };
-                }
-
-                const { sampledValues: selectedValues, diagnostics } =
-                    sampleFromRandomNumbers(dependencyValues);
-
-                const values = {
-                    selectedValues,
-                    variantChoicesIgnored: variantGivesChoices(
-                        dependencyValues.variants,
-                        "values",
-                    ),
-                };
-                return {
-                    setEssentialValue: { ...values },
-                    setValue: { ...values },
-                    sendDiagnostics: diagnostics,
-                };
-            },
+            definition: (args) =>
+                withNumToSelect(
+                    selectValues(args),
+                    args.dependencyValues.numSamples,
+                ),
         };
 
-        stateVariableDefinitions.ignoredVariantChoicesReported =
-            returnIgnoredVariantChoicesDefinition({
-                component: "selectRandomNumbers",
-            });
+        function selectValues({ dependencyValues, essentialValues }) {
+            // A selection already made, as on a reload, is kept
+            const kept = keptSelection(essentialValues, ["selectedValues"]);
+            if (kept) {
+                return kept;
+            }
+            if (dependencyValues.numSamples < 1) {
+                return {
+                    setEssentialValue: { selectedValues: [] },
+                    setValue: { selectedValues: [] },
+                };
+            }
+
+            // The values the requested variant gives are taken as given,
+            // whatever the select would choose now: a select keeps the
+            // choices it was made with, as it keeps `numToSelect`, and
+            // never chooses again (#2389). A select that selected nothing
+            // records `[]`, which gives none.
+            let desiredValues =
+                dependencyValues.variants?.desiredVariant?.values;
+            if (Array.isArray(desiredValues) && desiredValues.length > 0) {
+                // Still check the parameters they came from: replaying a
+                // variant should report the same problems as generating
+                // it, rather than accepting the saved numbers silently.
+                // Asking for none draws nothing, so the variant's own
+                // randomness is untouched.
+                const { diagnostics } = sampleFromRandomNumbers({
+                    ...dependencyValues,
+                    numSamples: 0,
+                });
+
+                return {
+                    setEssentialValue: { selectedValues: desiredValues },
+                    setValue: { selectedValues: desiredValues },
+                    sendDiagnostics: diagnostics,
+                };
+            }
+
+            const { sampledValues: selectedValues, diagnostics } =
+                sampleFromRandomNumbers(dependencyValues);
+
+            return {
+                setEssentialValue: { selectedValues },
+                setValue: { selectedValues },
+                sendDiagnostics: diagnostics,
+            };
+        }
 
         stateVariableDefinitions.isVariantComponent = {
             returnDependencies: () => ({}),

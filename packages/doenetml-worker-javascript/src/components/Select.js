@@ -15,14 +15,15 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 import {
     NO_SELECT_ERROR,
     choicesDecidedByDoenetML,
+    isCopiedOption,
     isInfoSelectFailure,
     returnChoicesDecidedByDoenetMLDefinition,
-    returnIgnoredVariantChoicesDefinition,
-    VARIANT_CHOICES_IGNORED_VARIABLE,
-    variantGivesChoices,
     selectError,
     selectFailureType,
     selectionResult,
+    keptSelection,
+    NUM_TO_SELECT_VARIABLE,
+    withNumToSelect,
 } from "../utils/selectErrors";
 import { errorComponentState } from "../utils/dast/errors";
 import { codedDiagnostic, diagnosticCodeFrom } from "../utils/diagnostics";
@@ -47,17 +48,30 @@ function variantsError({ errorMessage, errorDiagnostic }) {
 
 /**
  * The indices the requested variant gives a select, mapped onto its options,
- * or `null` when it gives none or they don't fit it: a different number of
- * them than it selects, or one that is not an integer. That happens when the
- * variant was saved before the document changed (#2389). A select that
- * selected nothing records `[]` in its variant, which gives none.
+ * or `null` when it gives none. They are taken as given, whatever the select
+ * would choose now: a select keeps the choices it was made with, as it keeps
+ * `numToSelect`, and never chooses again (#2389). A select that selected
+ * nothing records `[]` in its variant, which gives none, as do indices that
+ * aren't integers, which no select records.
+ *
+ * Nor are they taken when the variants were counted with a copied option as
+ * one of equal weight for no variant name in particular, and an option turns
+ * out to have a `selectWeight` or `selectForVariants`, which couldn't be seen
+ * then: the select chooses with them instead, from the variant's generator.
  */
-function desiredIndicesThatFit({ variants, numToSelect, nOptions }) {
+function indicesFromVariant({ variants, nOptions, optionChildren }) {
     let desiredIndices = variants?.desiredVariant?.indices;
-    if (!Array.isArray(desiredIndices)) {
+    if (!Array.isArray(desiredIndices) || desiredIndices.length === 0) {
         return null;
     }
-    if (desiredIndices.length !== numToSelect) {
+    if (
+        variants.uniqueVariantData?.copiedOptions === true &&
+        optionChildren.some(
+            (option) =>
+                option.stateValues.selectWeight !== 1 ||
+                option.stateValues.selectForVariants.length > 0,
+        )
+    ) {
         return null;
     }
     desiredIndices = desiredIndices.map(Number);
@@ -72,6 +86,9 @@ function desiredIndicesThatFit({ variants, numToSelect, nOptions }) {
 export default class Select extends CompositeComponent {
     constructor(args) {
         super(args);
+        // The children as written, in which an `<option copy>` is still a
+        // `_copy` holding the reference it was written with
+        const serializedOptions = args.serializedComponent?.children ?? [];
         // Whether a failure to select is an error or a missing selection with
         // an info (`selectFailureType`): decided from what the author wrote,
         // once, so it is the same in every variant.
@@ -79,7 +96,7 @@ export default class Select extends CompositeComponent {
             choicesDecidedByDoenetML({
                 component: this,
                 attributeNames: ["numToSelect", "withReplacement"],
-                optionChildType: "option",
+                serializedOptions,
                 componentInfoObjects: args.componentInfoObjects,
             });
         // Whether the options are all written in the select, which alone
@@ -90,9 +107,21 @@ export default class Select extends CompositeComponent {
             choicesDecidedByDoenetML({
                 component: this,
                 attributeNames: [],
-                optionChildType: "option",
+                serializedOptions,
                 componentInfoObjects: args.componentInfoObjects,
             });
+    }
+
+    /**
+     * Whether a fresh load reproduces this select's selection, so a save
+     * can leave it out (`BaseComponent.definitionEssentialValuesAreReproducible`):
+     * only when the DoenetML alone decides what it chooses from. A value
+     * that decides it, such as an input, can have changed by the time the
+     * document is loaded again, and the select must keep the choices it was
+     * made with, never choosing again.
+     */
+    get definitionEssentialValuesReproducible() {
+        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
     }
 
     static componentType = "select";
@@ -115,15 +144,19 @@ export default class Select extends CompositeComponent {
         attributes.numToSelect = {
             description: "How many child components to select.",
             createComponentOfType: "integer",
-            createStateVariable: "numToSelect",
+            createStateVariable: "specifiedNumToSelect",
+            // fixed with the selection made from it; the public `numToSelect`
+            // is kept with the selection (`NUM_TO_SELECT_VARIABLE`)
+            immutable: true,
             defaultValue: 1,
-            public: true,
         };
         attributes.withReplacement = {
             description:
                 "Whether the same child can be selected more than once.",
             createComponentOfType: "boolean",
             createStateVariable: "withReplacement",
+            // fixed with the selection made from it
+            immutable: true,
             defaultValue: false,
             public: true,
         };
@@ -227,7 +260,7 @@ export default class Select extends CompositeComponent {
                 },
                 numToSelect: {
                     dependencyType: "stateVariable",
-                    variableName: "numToSelect",
+                    variableName: "specifiedNumToSelect",
                 },
                 allVariantNames: {
                     dependencyType: "stateVariable",
@@ -367,12 +400,11 @@ export default class Select extends CompositeComponent {
                 "optionsDecidedByDoenetML",
             );
 
-        stateVariableDefinitions.ignoredVariantChoicesReported =
-            returnIgnoredVariantChoicesDefinition({ component: "select" });
-
         stateVariableDefinitions.selectedIndices = {
             immutable: true,
             hasEssential: true,
+            // to keep a selection already made (`keptSelection`)
+            provideEssentialValuesInDefinition: true,
             shadowVariable: true,
             additionalStateVariablesDefined: [
                 {
@@ -389,12 +421,12 @@ export default class Select extends CompositeComponent {
                     shadowVariable: true,
                     immutable: true,
                 },
-                VARIANT_CHOICES_IGNORED_VARIABLE,
+                NUM_TO_SELECT_VARIABLE,
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 numToSelect: {
                     dependencyType: "stateVariable",
-                    variableName: "numToSelect",
+                    variableName: "specifiedNumToSelect",
                 },
                 withReplacement: {
                     dependencyType: "stateVariable",
@@ -438,160 +470,157 @@ export default class Select extends CompositeComponent {
                     doNotProxy: true,
                 },
             }),
-            definition: function ({ dependencyValues }) {
-                // console.log(`definition of selected Indices`);
-                // console.log(dependencyValues);
+            definition: (args) =>
+                withNumToSelect(
+                    selectIndices(args),
+                    args.dependencyValues.numToSelect,
+                ),
+        };
 
-                if (dependencyValues.errorMessageVariants) {
-                    const error = {
-                        errorMessage: dependencyValues.errorMessageVariants,
-                        errorDiagnostic:
-                            dependencyValues.errorDiagnosticVariants,
-                    };
-                    return selectionResult(error, { selectedIndices: [] });
+        function selectIndices({ dependencyValues, essentialValues }) {
+            // A selection already made, as on a reload, is kept
+            const kept = keptSelection(essentialValues, [
+                "selectedIndices",
+                "errorMessage",
+                "errorDiagnostic",
+            ]);
+            if (kept) {
+                return kept;
+            }
+            // console.log(`definition of selected Indices`);
+            // console.log(dependencyValues);
+
+            if (dependencyValues.errorMessageVariants) {
+                const error = {
+                    errorMessage: dependencyValues.errorMessageVariants,
+                    errorDiagnostic: dependencyValues.errorDiagnosticVariants,
+                };
+                return selectionResult(error, { selectedIndices: [] });
+            }
+
+            if (
+                !(dependencyValues.numToSelect >= 1) ||
+                dependencyValues.nOptions === 0
+            ) {
+                return selectionResult(NO_SELECT_ERROR, {
+                    selectedIndices: [],
+                });
+            }
+
+            // The indices the requested variant gives, taken as given
+            const desiredIndices = indicesFromVariant(dependencyValues);
+            if (desiredIndices !== null) {
+                return selectionResult(NO_SELECT_ERROR, {
+                    selectedIndices: desiredIndices,
+                });
+            }
+
+            // first check if have a variant for which options are specified
+            let variantOptions =
+                dependencyValues.availableVariants[
+                    dependencyValues.currentVariantName
+                ];
+
+            if (variantOptions !== undefined) {
+                if (dependencyValues.numToSelect > 1) {
+                    // shallow copy to remove proxy so can shuffle
+                    variantOptions = [...variantOptions];
+
+                    // first shuffle the array of indices
+                    // https://stackoverflow.com/a/12646864
+                    for (let i = dependencyValues.numToSelect - 1; i > 0; i--) {
+                        const rand = dependencyValues.variantRng();
+                        const j = Math.floor(rand * (i + 1));
+                        [variantOptions[i], variantOptions[j]] = [
+                            variantOptions[j],
+                            variantOptions[i],
+                        ];
+                    }
                 }
+                return selectionResult(NO_SELECT_ERROR, {
+                    selectedIndices: variantOptions,
+                });
+            }
+
+            let selectedIndices = [];
+
+            let numUniqueRequired = 1;
+            if (!dependencyValues.withReplacement) {
+                numUniqueRequired = dependencyValues.numToSelect;
+            }
+
+            if (numUniqueRequired > dependencyValues.nOptions) {
+                const error = selectError({
+                    code: "doenet-e0035",
+                    args: {
+                        numToSelect: numUniqueRequired,
+                        numOptions: dependencyValues.nOptions,
+                    },
+                    type: selectFailureType(
+                        dependencyValues.choicesDecidedByDoenetML,
+                    ),
+                });
+                return selectionResult(error, { selectedIndices: [] });
+            }
+
+            // normalize selectWeights to sum to 1
+            let selectWeightByChild = dependencyValues.optionChildren.map(
+                (x) => x.stateValues.selectWeight,
+            );
+            let totalWeight = selectWeightByChild.reduce((a, c) => a + c);
+            selectWeightByChild = selectWeightByChild.map(
+                (x) => x / totalWeight,
+            );
+
+            //https://stackoverflow.com/a/44081700
+            let cumulativeWeights = selectWeightByChild.reduce(
+                (a, x, i) => [...a, x + (a[i - 1] || 0)],
+                [],
+            );
+            let indsRemaining = [...Array(cumulativeWeights.length).keys()].map(
+                (x) => x + 1,
+            );
+
+            for (let ind = 0; ind < dependencyValues.numToSelect; ind++) {
+                // random number in [0, 1)
+                let rand = dependencyValues.variantRng();
+
+                // find largest index where cumulativeWeight is larger than rand
+                // using binary search
+                let start = -1,
+                    end = cumulativeWeights.length - 1;
+                while (start < end - 1) {
+                    let mid = Math.floor((start + end) / 2); // mid point
+                    if (cumulativeWeights[mid] > rand) {
+                        end = mid;
+                    } else {
+                        start = mid;
+                    }
+                }
+
+                let selectedInd = indsRemaining[end];
+                selectedIndices.push(selectedInd);
 
                 if (
-                    !(dependencyValues.numToSelect >= 1) ||
-                    dependencyValues.nOptions === 0
+                    !dependencyValues.withReplacement &&
+                    ind < dependencyValues.numToSelect - 1
                 ) {
-                    return selectionResult(NO_SELECT_ERROR, {
-                        selectedIndices: [],
-                    });
+                    // remove selected index and renormalize weights
+                    selectWeightByChild.splice(end, 1);
+                    indsRemaining.splice(end, 1);
+                    totalWeight = selectWeightByChild.reduce((a, c) => a + c);
+                    selectWeightByChild = selectWeightByChild.map(
+                        (x) => x / totalWeight,
+                    );
+                    cumulativeWeights = selectWeightByChild.reduce(
+                        (a, x, i) => [...a, x + (a[i - 1] || 0)],
+                        [],
+                    );
                 }
+            }
 
-                // If the requested variant gives indices that fit, use those.
-                // Ones that don't fit are ignored, with an info
-                // (`ignoredVariantChoicesReported`), and the select chooses
-                // as though it had been given none.
-                const desiredIndices = desiredIndicesThatFit(dependencyValues);
-                if (desiredIndices !== null) {
-                    return selectionResult(NO_SELECT_ERROR, {
-                        selectedIndices: desiredIndices,
-                    });
-                }
-                const variantChoicesIgnored = variantGivesChoices(
-                    dependencyValues.variants,
-                    "indices",
-                );
-
-                // first check if have a variant for which options are specified
-                let variantOptions =
-                    dependencyValues.availableVariants[
-                        dependencyValues.currentVariantName
-                    ];
-
-                if (variantOptions !== undefined) {
-                    if (dependencyValues.numToSelect > 1) {
-                        // shallow copy to remove proxy so can shuffle
-                        variantOptions = [...variantOptions];
-
-                        // first shuffle the array of indices
-                        // https://stackoverflow.com/a/12646864
-                        for (
-                            let i = dependencyValues.numToSelect - 1;
-                            i > 0;
-                            i--
-                        ) {
-                            const rand = dependencyValues.variantRng();
-                            const j = Math.floor(rand * (i + 1));
-                            [variantOptions[i], variantOptions[j]] = [
-                                variantOptions[j],
-                                variantOptions[i],
-                            ];
-                        }
-                    }
-                    return selectionResult(NO_SELECT_ERROR, {
-                        selectedIndices: variantOptions,
-                        variantChoicesIgnored,
-                    });
-                }
-
-                let selectedIndices = [];
-
-                let numUniqueRequired = 1;
-                if (!dependencyValues.withReplacement) {
-                    numUniqueRequired = dependencyValues.numToSelect;
-                }
-
-                if (numUniqueRequired > dependencyValues.nOptions) {
-                    const error = selectError({
-                        code: "doenet-e0035",
-                        args: {
-                            numToSelect: numUniqueRequired,
-                            numOptions: dependencyValues.nOptions,
-                        },
-                        type: selectFailureType(
-                            dependencyValues.choicesDecidedByDoenetML,
-                        ),
-                    });
-                    return selectionResult(error, { selectedIndices: [] });
-                }
-
-                // normalize selectWeights to sum to 1
-                let selectWeightByChild = dependencyValues.optionChildren.map(
-                    (x) => x.stateValues.selectWeight,
-                );
-                let totalWeight = selectWeightByChild.reduce((a, c) => a + c);
-                selectWeightByChild = selectWeightByChild.map(
-                    (x) => x / totalWeight,
-                );
-
-                //https://stackoverflow.com/a/44081700
-                let cumulativeWeights = selectWeightByChild.reduce(
-                    (a, x, i) => [...a, x + (a[i - 1] || 0)],
-                    [],
-                );
-                let indsRemaining = [
-                    ...Array(cumulativeWeights.length).keys(),
-                ].map((x) => x + 1);
-
-                for (let ind = 0; ind < dependencyValues.numToSelect; ind++) {
-                    // random number in [0, 1)
-                    let rand = dependencyValues.variantRng();
-
-                    // find largest index where cumulativeWeight is larger than rand
-                    // using binary search
-                    let start = -1,
-                        end = cumulativeWeights.length - 1;
-                    while (start < end - 1) {
-                        let mid = Math.floor((start + end) / 2); // mid point
-                        if (cumulativeWeights[mid] > rand) {
-                            end = mid;
-                        } else {
-                            start = mid;
-                        }
-                    }
-
-                    let selectedInd = indsRemaining[end];
-                    selectedIndices.push(selectedInd);
-
-                    if (
-                        !dependencyValues.withReplacement &&
-                        ind < dependencyValues.numToSelect - 1
-                    ) {
-                        // remove selected index and renormalize weights
-                        selectWeightByChild.splice(end, 1);
-                        indsRemaining.splice(end, 1);
-                        totalWeight = selectWeightByChild.reduce(
-                            (a, c) => a + c,
-                        );
-                        selectWeightByChild = selectWeightByChild.map(
-                            (x) => x / totalWeight,
-                        );
-                        cumulativeWeights = selectWeightByChild.reduce(
-                            (a, x, i) => [...a, x + (a[i - 1] || 0)],
-                            [],
-                        );
-                    }
-                }
-
-                return selectionResult(NO_SELECT_ERROR, {
-                    selectedIndices,
-                    variantChoicesIgnored,
-                });
-            },
-        };
+            return selectionResult(NO_SELECT_ERROR, { selectedIndices });
+        }
 
         stateVariableDefinitions.isVariantComponent = {
             returnDependencies: () => ({}),
@@ -856,12 +885,16 @@ export default class Select extends CompositeComponent {
         });
 
         // if subvariants were specified, add those the corresponding
-        // descendants, unless the select ignored the variant's indices, so
-        // that its subvariants are for other options
+        // descendants, when the select took the variant's indices, for whose
+        // options they are
         if (
             component.variants &&
             component.variants.desiredVariant !== undefined &&
-            !(await component.stateValues.ignoredVariantChoicesReported)
+            indicesFromVariant({
+                variants: component.variants,
+                nOptions: await component.stateValues.nOptions,
+                optionChildren,
+            }) !== null
         ) {
             let desiredVariant = component.variants.desiredVariant;
             if (
@@ -990,11 +1023,11 @@ export default class Select extends CompositeComponent {
         }
 
         for (let child of serializedComponent.children) {
-            if (child?.componentType === "_copy") {
-                // An option written with `copy`, or a reference, isn't an
-                // option yet, so the options can't be counted here (#2448).
-                // Counting the others would give the select indices of
-                // options it doesn't have.
+            if (child?.componentType === "_copy" && !isCopiedOption(child)) {
+                // A reference (`$o`) can stand for any number of options, so
+                // the options can't be counted here. Counting the others
+                // would give the select indices of options it doesn't have
+                // (#2448).
                 pushVariantInfo(
                     infoDiagnostics,
                     { code: "doenet-i0056" },
@@ -1020,16 +1053,35 @@ export default class Select extends CompositeComponent {
             serializedComponent.variants = {};
         }
 
-        let descendantVariantComponents = gatherVariantComponents({
-            serializedComponents: serializedComponent.children,
-            componentInfoObjects,
-        });
+        // An `<option copy>` is a `_copy` that makes exactly one option, so
+        // it is counted as one, with one variant: what it holds isn't known
+        // until it is copied, and draws its own random choices then. The
+        // other children are gathered as before, in order.
+        let descendantVariantComponents = [];
+        let copiedOptions = false;
+        for (let child of serializedComponent.children) {
+            if (isCopiedOption(child)) {
+                descendantVariantComponents.push(child);
+                copiedOptions = true;
+            } else {
+                descendantVariantComponents.push(
+                    ...gatherVariantComponents({
+                        serializedComponents: [child],
+                        componentInfoObjects,
+                    }),
+                );
+            }
+        }
 
         serializedComponent.variants.descendantVariantComponents =
             descendantVariantComponents;
 
         let numVariantsByChild = [];
         for (let descendant of descendantVariantComponents) {
+            if (isCopiedOption(descendant)) {
+                numVariantsByChild.push(1);
+                continue;
+            }
             let descendantClass =
                 componentInfoObjects.allComponentClasses[
                     descendant.componentType
@@ -1049,6 +1101,9 @@ export default class Select extends CompositeComponent {
             numVariantsByChild,
             numToSelect,
             withReplacement,
+            // read by `selectedIndices`: a copied option's `selectWeight` and
+            // `selectForVariants` couldn't be seen here
+            copiedOptions,
         };
 
         if (numVariantsByChild.length === 0) {

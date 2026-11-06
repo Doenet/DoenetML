@@ -3,7 +3,7 @@ import {
     type DiagnosticArgs,
     type DiagnosticCode,
 } from "@doenet/i18n";
-import { codedDiagnostic, diagnosticCodeFrom } from "./diagnostics";
+import { diagnosticCodeFrom } from "./diagnostics";
 
 /**
  * The error a `<select>`, `<selectFromSequence>` or `<selectPrimeNumbers>`
@@ -174,23 +174,56 @@ function componentDecidedByDoenetML(
 }
 
 /**
+ * Whether the serialized child `child` of a `<select>` is an option whose
+ * content the DoenetML fixes: an `<option>` written in it, or an `<option
+ * copy>` (or `<option extend>`, a `_copy` that makes an `option`) whose
+ * reference was resolved when the document loaded, so has no index a value
+ * decides. A bare reference (`$o`), which may stand for any number of
+ * components, or a copy whose index is a value (`$g[$k]`), is not.
+ */
+export function optionWrittenInDoenetML(child: any): boolean {
+    if (typeof child !== "object" || child === null) {
+        return true;
+    }
+    if (child.componentType === "option") {
+        return true;
+    }
+    return (
+        isCopiedOption(child) &&
+        Object.values(child.extending ?? {}).every(
+            (refResolution: any) => refResolution?.unresolvedPath === null,
+        )
+    );
+}
+
+/**
+ * Whether the serialized child `child` of a `<select>` is an `<option
+ * copy>` or `<option extend>`: a `_copy` that makes exactly one `option`.
+ */
+export function isCopiedOption(child: any): boolean {
+    return (
+        child?.componentType === "_copy" &&
+        child.attributes?._createComponentOfType?.primitive?.value === "option"
+    );
+}
+
+/**
  * Whether what a select chooses from, and how many, is decided by the
  * DoenetML alone (D38, DIAG-7): each of the attributes `attributeNames` of
  * the select `component` is {@link attributeDecidedByDoenetML}, and, when
- * `optionChildType` is given, each child is a component of that type
- * written in it (not one made by a reference or a composite, whose number
- * the DoenetML doesn't fix). Computed when the select is made, from what
- * the author wrote, so it is the same in every variant.
+ * `serializedOptions` is given, each of those children is
+ * {@link optionWrittenInDoenetML}. Computed when the select is made, from
+ * what the author wrote, so it is the same in every variant.
  */
 export function choicesDecidedByDoenetML({
     component,
     attributeNames,
-    optionChildType,
+    serializedOptions,
     componentInfoObjects,
 }: {
     component: any;
     attributeNames: string[];
-    optionChildType?: string;
+    serializedOptions?: any[];
     componentInfoObjects: any;
 }): boolean {
     const attributesDecided = attributeNames.every((name) =>
@@ -199,14 +232,10 @@ export function choicesDecidedByDoenetML({
             componentInfoObjects,
         ),
     );
-    if (!attributesDecided || optionChildType === undefined) {
+    if (!attributesDecided || serializedOptions === undefined) {
         return attributesDecided;
     }
-    return (component.definingChildren ?? []).every(
-        (child: any) =>
-            typeof child !== "object" ||
-            (child.componentType === optionChildType && !child.shadows),
-    );
+    return serializedOptions.every(optionWrittenInDoenetML);
 }
 
 /**
@@ -243,55 +272,66 @@ export function returnChoicesDecidedByDoenetMLDefinition(
 }
 
 /**
- * The state variable `ignoredVariantChoicesReported` of a select, which
- * reports, as an info, that the choices the requested variant gave it don't
- * fit it, so it made its own (`doenet-i0057`). That happens when the
- * document changed after the variant was saved. The select then chooses as
- * though it had been given none, fixed for the variant, as `<shuffle>` does
- * (`doenet-i0006`), rather than failing.
+ * What a select's selection definition returns when the selection was
+ * already made and is kept, as on a reload, or `null` when it wasn't: the
+ * select keeps it, whatever it would choose now, and never chooses again.
+ * Its definition is given its essential values
+ * (`provideEssentialValuesInDefinition`) for this.
  *
- * Read from `variantChoicesIgnored`, which the select records with its
- * selection when it makes it, and which is kept with it, also through a
- * reload. It is not decided again from the select's attributes as they are
- * now, which can change after the selection, which is fixed, was made. A
- * reference to the select, which shadows its choices, does not report it
- * again.
- *
- * @param component The select's DoenetML tag, for the message.
+ * @param essentialValues The essential values given to the definition.
+ * @param variableNames The state variables the definition sets, the first of
+ *   them the selection.
  */
-export function returnIgnoredVariantChoicesDefinition({
-    component,
-}: {
-    component: string;
-}) {
+export function keptSelection(
+    essentialValues: Record<string, unknown> | undefined,
+    variableNames: string[],
+) {
+    if (essentialValues?.[variableNames[0]] === undefined) {
+        return null;
+    }
     return {
-        mustEvaluate: true,
-        returnDependencies: () => ({
-            variantChoicesIgnored: {
-                dependencyType: "stateVariable",
-                variableName: "variantChoicesIgnored",
+        useEssentialOrDefaultValue: Object.fromEntries(
+            variableNames.map((name) => [name, true]),
+        ),
+    };
+}
+
+/**
+ * The state variable `numToSelect` of a select, kept with its selection: how
+ * many it selected, as `numToSelect` was when it made the selection. A later
+ * change to the attribute (`specifiedNumToSelect`) is ignored, also when
+ * the document is loaded again, as the selection made with it is kept.
+ */
+export const NUM_TO_SELECT_VARIABLE = {
+    variableName: "numToSelect",
+    description:
+        "How many were selected: the number to select when the selection was made.",
+    public: true,
+    shadowingInstructions: { createComponentOfType: "integer" },
+    hasEssential: true,
+    shadowVariable: true,
+    immutable: true,
+};
+
+/**
+ * `result`, what a select's selection definition returns, with the
+ * `numToSelect` it was made with set alongside it (`NUM_TO_SELECT_VARIABLE`),
+ * or kept, with the selection, when the selection was kept.
+ */
+export function withNumToSelect(result: any, numToSelect: number) {
+    if (result.useEssentialOrDefaultValue) {
+        return {
+            ...result,
+            useEssentialOrDefaultValue: {
+                ...result.useEssentialOrDefaultValue,
+                numToSelect: true,
             },
-            shadowSource: {
-                dependencyType: "shadowSource",
-            },
-        }),
-        definition({ dependencyValues }: { dependencyValues: any }) {
-            const ignored =
-                dependencyValues.variantChoicesIgnored === true &&
-                dependencyValues.shadowSource === null;
-            return {
-                setValue: { ignoredVariantChoicesReported: ignored },
-                sendDiagnostics: ignored
-                    ? [
-                          codedDiagnostic({
-                              type: "info",
-                              code: "doenet-i0057",
-                              args: { component },
-                          }),
-                      ]
-                    : [],
-            };
-        },
+        };
+    }
+    return {
+        ...result,
+        setEssentialValue: { ...result.setEssentialValue, numToSelect },
+        setValue: { ...result.setValue, numToSelect },
     };
 }
 
@@ -334,38 +374,11 @@ export function selectionResult(
     error: SelectErrorState,
     selection: Record<string, unknown>,
 ) {
-    // `variantChoicesIgnored` is set where the selection is made; every
-    // other path took the variant's choices, was given none, or selected
-    // nothing
-    const values = { variantChoicesIgnored: false, ...error, ...selection };
     return {
-        setEssentialValue: { ...values },
-        setValue: { ...values },
+        setEssentialValue: { ...error, ...selection },
+        setValue: { ...error, ...selection },
     };
 }
-
-/**
- * Whether the requested variant gives choices, under `key`: a nonempty
- * array. A variant that gives `null` or `[]` gives none: that is what a
- * select that selected nothing records in its `generatedVariantInfo`, which
- * a reload, or a `copy` of the select, passes back to it.
- */
-export function variantGivesChoices(variants: any, key: string): boolean {
-    const desired = variants?.desiredVariant?.[key];
-    return Array.isArray(desired) && desired.length > 0;
-}
-
-/**
- * The state variable `variantChoicesIgnored` of a select, kept with its
- * selection: whether the selection was made afresh because the choices the
- * requested variant gave didn't fit (`ignoredVariantChoicesReported`).
- */
-export const VARIANT_CHOICES_IGNORED_VARIABLE = {
-    variableName: "variantChoicesIgnored",
-    hasEssential: true,
-    shadowVariable: true,
-    immutable: true,
-};
 
 /**
  * The state variable `selectErrorReported` of a select that is a list

@@ -3326,9 +3326,11 @@ describe("Select tag tests @group2", async () => {
 
 /**
  * A `<select>` whose options are written with `copy` picks among them, as
- * among written ones (#2448, B39). The options aren't options when the
- * variants are counted, so the select doesn't count them
- * (`doenet-i0056`) and draws from the variant's generator.
+ * among written ones (#2448, B39). When the variants are counted, an
+ * `<option copy>` is still a `_copy`, but one that makes exactly one option,
+ * so it is counted as one, and the document keeps its unique variants. A
+ * bare reference (`$o`), which may stand for any number of options, isn't
+ * counted, so the select gives up counting (`doenet-i0056`).
  */
 describe("Select with options written with copy @group2", async () => {
     const allCopied = `
@@ -3380,7 +3382,9 @@ describe("Select with options written with copy @group2", async () => {
             const first = await load(allCopied, { requestedVariantIndex });
             expect(first.errors).eqls([]);
             expect(["x", "y"]).toContain(first.text);
-            expect(first.infos.map((d) => d.code)).toContain("doenet-i0056");
+            expect(first.infos.map((d) => d.code)).not.toContain(
+                "doenet-i0056",
+            );
             picked.add(first.text);
 
             const again = await load(allCopied, { requestedVariantIndex });
@@ -3410,9 +3414,6 @@ describe("Select with options written with copy @group2", async () => {
                 requestedVariant: first.generatedVariantInfo,
             });
             expect(specified.errors).eqls([]);
-            expect(specified.infos.map((d) => d.code)).not.toContain(
-                "doenet-i0057",
-            );
             expect(specified.text).eq(first.text);
         }
     });
@@ -3484,6 +3485,70 @@ describe("Select with options written with copy @group2", async () => {
             for (const pick of picks) {
                 expect(["x", "y", "z"]).toContain(pick);
             }
+        }
+    });
+
+    it("options written with copy keep the document's unique variants", async () => {
+        // two variants, one per option, in order
+        const texts = [];
+        for (const requestedVariantIndex of [1, 2]) {
+            const { text, infos } = await load(allCopied, {
+                requestedVariantIndex,
+            });
+            expect(infos.map((d) => d.code)).not.toContain("doenet-i0025");
+            texts.push(text);
+        }
+        expect(texts.sort()).eqls(["x", "y"]);
+        const { core } = await createTestCore({ doenetML: allCopied });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const doc = Object.values(stateVariables).find(
+            (c: any) => c.componentType === "document",
+        ) as any;
+        expect(doc.sharedParameters.allPossibleVariants.length).eq(2);
+    });
+
+    it("a bare reference among the options gives up counting variants", async () => {
+        const doenetML = `
+<setup>
+  <option name="o1"><math>x</math></option>
+</setup>
+<select name="s">$o1<option><math>y</math></option></select>
+<p name="p1">$s</p>`;
+        const { infos } = await load(doenetML, { requestedVariantIndex: 1 });
+        expect(infos.map((d) => d.code)).toContain("doenet-i0056");
+    });
+
+    it("a copied option's selectWeight is respected", async () => {
+        const doenetML = `
+<setup>
+  <option name="o1" selectWeight="0"><math>x</math></option>
+</setup>
+<select name="s"><option copy="$o1"/><option><math>y</math></option></select>
+<p name="p1">$s</p>`;
+        for (const requestedVariantIndex of [1, 2, 3, 4, 5, 6]) {
+            const { text, errors } = await load(doenetML, {
+                requestedVariantIndex,
+            });
+            expect(errors).eqls([]);
+            expect(text).eq("y");
+        }
+    });
+
+    it("too few options, some written with copy, is an error in every variant", async () => {
+        const doenetML = `
+<setup>
+  <option name="o1"><math>x</math></option>
+</setup>
+<select name="s" numToSelect="3"><option copy="$o1"/><option><math>y</math></option></select>
+<p name="p1">$s</p>`;
+        for (const requestedVariantIndex of [1, 2, 3]) {
+            const { errors } = await load(doenetML, {
+                requestedVariantIndex,
+            });
+            // (the `$s` showing it repeats the error, #2449)
+            expect([...new Set(errors.map((d) => d.code))]).eqls([
+                "doenet-e0035",
+            ]);
         }
     });
 });

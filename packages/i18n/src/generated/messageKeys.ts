@@ -325,7 +325,6 @@ export type MessageKey =
     | "pretzel-indices-count-mismatch"
     | "shuffle-indices-count-mismatch"
     | "indices-ignored-out-of-range"
-    | "select-variant-choices-ignored"
     | "pretzel-indices-repeated"
     | "pretzel-circuit-first-index"
     | "string-children-need-type"
@@ -1000,7 +999,6 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "pretzel-indices-count-mismatch",
     "shuffle-indices-count-mismatch",
     "indices-ignored-out-of-range",
-    "select-variant-choices-ignored",
     "pretzel-indices-repeated",
     "pretzel-circuit-first-index",
     "string-children-need-type",
