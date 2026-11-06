@@ -197,6 +197,63 @@ export function optionWrittenInDoenetML(child: any): boolean {
 }
 
 /**
+ * Whether the serialized component `component`, or attribute of one,
+ * holds only what is written: no reference (a `_copy`, a `_ref`, an
+ * extend, or an expression attribute with slots).
+ */
+function serializedHasNoReference(component: any): boolean {
+    if (typeof component !== "object" || component === null) {
+        return true;
+    }
+    if (component.type === "literal" || component.type === "primitive") {
+        return true;
+    }
+    if (component.type === "expression") {
+        return (component.slots ?? []).length === 0;
+    }
+    if (component.component) {
+        return serializedHasNoReference(component.component);
+    }
+    if (
+        component.componentType === "_copy" ||
+        component.componentType === "_ref" ||
+        component.extending
+    ) {
+        return false;
+    }
+    return (
+        (component.children ?? []).every(serializedHasNoReference) &&
+        Object.values(component.attributes ?? {}).every(
+            serializedHasNoReference,
+        )
+    );
+}
+
+/**
+ * Whether a fresh load reproduces what a `<select>` chooses, so a save can
+ * leave its selection out (`definitionEssentialValuesReproducible`): its
+ * choices are decided by the DoenetML (`choicesDecidedByDoenetML`), and so
+ * are its options' weights. An option copied from elsewhere may carry a
+ * weight from a value, which can't be seen here, so a select with one is
+ * saved.
+ */
+export function selectionReproducible(
+    choicesDecided: boolean,
+    serializedOptions: any[],
+): boolean {
+    return (
+        choicesDecided &&
+        serializedOptions.every(
+            (child) =>
+                typeof child !== "object" ||
+                child === null ||
+                (child.componentType === "option" &&
+                    serializedHasNoReference(child.attributes?.selectWeight)),
+        )
+    );
+}
+
+/**
  * Whether the serialized child `child` of a `<select>` is an `<option
  * copy>` or `<option extend>`: a `_copy` that makes exactly one `option`.
  */
@@ -344,6 +401,71 @@ export function withNumToSelect(result: any, numToSelect: number) {
         setEssentialValue: { ...result.setEssentialValue, numToSelect },
         setValue: { ...result.setValue, numToSelect },
     };
+}
+
+/** Thrown by the generator a probe selection is given: it never draws. */
+const NO_DRAW = Symbol("a probe selection does not draw");
+
+/**
+ * The selection of a select that a requested variant gives choices to,
+ * `requested`, or, when it gives none (`undefined`), the select's own,
+ * `select(dependencyValues)`. A select never chooses again (#2389), so the
+ * choices are taken as given, even when they are not what it would choose
+ * now, with the `numToSelect` they make, and an empty list (`[]`, or `null`
+ * from a select that couldn't select) selects nothing.
+ *
+ * What the select would report is still found, by making its selection
+ * with a generator that never draws, so no random choice of the document
+ * moves: a failure the DoenetML decides (an error) is reported in every
+ * variant, in place of the choices; one a value decides (an info) is
+ * reported only when the choices are empty, as a select that couldn't
+ * select gives back.
+ *
+ * @param rngKey The dependency `select` draws from.
+ * @param takeRequested The selection result for nonempty `requested`.
+ * @param emptySelection The selection result for selecting nothing.
+ */
+export function selectionWithRequested({
+    requested,
+    dependencyValues,
+    select,
+    rngKey,
+    takeRequested,
+    emptySelection,
+}: {
+    requested: unknown[] | undefined;
+    dependencyValues: any;
+    select: (dependencyValues: any) => any;
+    rngKey: string;
+    takeRequested: (requested: unknown[]) => any;
+    emptySelection: any;
+}) {
+    if (requested === undefined) {
+        return select(dependencyValues);
+    }
+    let probe = null;
+    try {
+        probe = select({
+            ...dependencyValues,
+            [rngKey]: () => {
+                throw NO_DRAW;
+            },
+        });
+    } catch (e) {
+        if (e !== NO_DRAW) {
+            throw e;
+        }
+    }
+    const failed = Boolean(probe?.setValue?.errorMessage);
+    if (failed && !isInfoSelectFailure(probe.setValue.errorDiagnostic)) {
+        return probe;
+    }
+    if (requested.length > 0) {
+        return withNumToSelect(takeRequested(requested), requested.length);
+    }
+    return failed
+        ? withNumToSelect(probe, 0)
+        : withNumToSelect(emptySelection, 0);
 }
 
 /** The pair for a select that selected something. */

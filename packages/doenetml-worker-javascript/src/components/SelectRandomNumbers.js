@@ -268,26 +268,22 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             if (kept) {
                 return kept;
             }
-            if (dependencyValues.numSamples < 1) {
-                return {
-                    setEssentialValue: { selectedValues: [] },
-                    setValue: { selectedValues: [] },
-                };
-            }
-
             // The values the requested variant gives are taken as given,
             // whatever the select would choose now: a select keeps the
-            // choices it was made with, as it keeps `numToSelect`, and
-            // never chooses again (#2389). A select that selected nothing
-            // records `[]`, which gives none.
+            // choices it was made with, as it keeps `numToSelect`, and never
+            // chooses again (#2389). `[]`, or `null`, is a selection of
+            // nothing.
             let desiredValues =
                 dependencyValues.variants?.desiredVariant?.values;
-            if (Array.isArray(desiredValues) && desiredValues.length > 0) {
+            if (desiredValues === null) {
+                desiredValues = [];
+            }
+            if (Array.isArray(desiredValues)) {
                 // Still check the parameters they came from: replaying a
-                // variant should report the same problems as generating
-                // it, rather than accepting the saved numbers silently.
-                // Asking for none draws nothing, so the variant's own
-                // randomness is untouched.
+                // variant should report the same problems as generating it,
+                // rather than accepting the saved numbers silently. Asking
+                // for none draws nothing, so the variant's own randomness is
+                // untouched.
                 const { diagnostics } = sampleFromRandomNumbers({
                     ...dependencyValues,
                     numSamples: 0,
@@ -305,6 +301,13 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                         desiredValues.length,
                     ),
                     sendDiagnostics: diagnostics,
+                };
+            }
+
+            if (dependencyValues.numSamples < 1) {
+                return {
+                    setEssentialValue: { selectedValues: [] },
+                    setValue: { selectedValues: [] },
                 };
             }
 

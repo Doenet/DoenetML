@@ -708,3 +708,156 @@ describe("What a selection is made from is fixed with it @group4", async () => {
         expect(replayed.selected).eqls([null]);
     });
 });
+
+/**
+ * A requested variant's choices are taken before anything a value decides
+ * about a fresh selection: a select that is given choices doesn't draw, so a
+ * count that changed, or a failure a value decides, doesn't touch them. An
+ * empty list is a selection of nothing. A failure the DoenetML decides is
+ * still an error, in every variant.
+ */
+describe("Requested choices come before a fresh selection @group4", async () => {
+    const cases: {
+        tag: string;
+        before: string;
+        after: string;
+        variable: "selectedIndices" | "selectedValues";
+    }[] = [
+        {
+            tag: "<select>, a count now 0",
+            before: `<number name="n">2</number><select name="s" numToSelect="$n">a b c</select>`,
+            after: `<number name="n">0</number><select name="s" numToSelect="$n">a b c</select>`,
+            variable: "selectedIndices",
+        },
+        {
+            tag: "<select>, nothing selected, a count now 1",
+            before: `<number name="n">0</number><select name="s" numToSelect="$n">a b c</select>`,
+            after: `<number name="n">1</number><select name="s" numToSelect="$n">a b c</select>`,
+            variable: "selectedIndices",
+        },
+        {
+            tag: "<selectFromSequence>, a count a value makes too many",
+            before: `<number name="n">2</number><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
+            after: `<number name="n">4</number><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
+            variable: "selectedValues",
+        },
+        {
+            tag: "<selectFromSequence>, nothing selected, a count now 1",
+            before: `<number name="n">0</number><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
+            after: `<number name="n">1</number><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
+            variable: "selectedValues",
+        },
+        {
+            tag: "<selectPrimeNumbers>, a count a value makes too many",
+            before: `<number name="n">2</number><selectPrimeNumbers name="s" to="5" numToSelect="$n"/>`,
+            after: `<number name="n">4</number><selectPrimeNumbers name="s" to="5" numToSelect="$n"/>`,
+            variable: "selectedValues",
+        },
+        {
+            tag: "<selectRandomNumbers>, a count now 0",
+            before: `<number name="n">2</number><selectRandomNumbers name="s" numToSelect="$n"/>`,
+            after: `<number name="n">0</number><selectRandomNumbers name="s" numToSelect="$n"/>`,
+            variable: "selectedValues",
+        },
+        {
+            tag: "<selectRandomNumbers>, nothing selected, a count now 1",
+            before: `<number name="n">0</number><selectRandomNumbers name="s" numToSelect="$n"/>`,
+            after: `<number name="n">1</number><selectRandomNumbers name="s" numToSelect="$n"/>`,
+            variable: "selectedValues",
+        },
+    ];
+
+    for (const { tag, before, after, variable } of cases) {
+        it(tag, async () => {
+            for (const requestedVariantIndex of [1, 2, 3]) {
+                const original = await load({
+                    doenetML: before,
+                    requestedVariantIndex,
+                    variable,
+                });
+                const replayed = await load({
+                    doenetML: after,
+                    requestedVariant: original.generatedVariantInfo,
+                    variable,
+                });
+                expect(replayed.errors).eqls([]);
+                expect(replayed.selected ?? []).eqls(original.selected ?? []);
+                expect(replayed.numToSelect).eq(
+                    (original.selected ?? []).length,
+                );
+            }
+        });
+    }
+
+    it("a failure the DoenetML decides is still an error with choices given", async () => {
+        const original = await load({
+            doenetML: `<select name="s" numToSelect="2">a b c</select>`,
+            variable: "selectedIndices",
+        });
+        const replayed = await load({
+            doenetML: `<select name="s" numToSelect="4">a b c</select>`,
+            requestedVariant: original.generatedVariantInfo,
+            variable: "selectedIndices",
+        });
+        expect(replayed.errors).eqls(["doenet-e0035"]);
+    });
+
+    it("a selection whose weights come from an input is kept through a reload", async () => {
+        const doenetML = `<mathInput name="w" prefill="1"/><select name="s"><option selectWeight="$w">a</option><option selectWeight="1-$w">b</option></select>`;
+        for (const requestedVariantIndex of [1, 2, 3]) {
+            const { core, resolvePathToNodeIdx, scoreState } =
+                await createTestCore({ doenetML, requestedVariantIndex });
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const before =
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                    .selectedIndices;
+            expect(before).eqls([1]);
+            await updateMathInputValue({
+                latex: "0",
+                componentIdx: await resolvePathToNodeIdx("w"),
+                core,
+            });
+            await core.saveImmediately();
+            const reloaded = await load({
+                doenetML,
+                requestedVariantIndex,
+                initialState: scoreState.state,
+                variable: "selectedIndices",
+            });
+            expect(reloaded.selected).eqls([1]);
+        }
+    });
+
+    it("a copied option with no weight is taken when a variant gives it", async () => {
+        // a variant that picked the copied option while it had a weight
+        const weighted = (weight: string) =>
+            `<setup><option name="o" selectWeight="${weight}">q</option></setup><select name="s"><option>a</option><option copy="$o"/></select>`;
+        let variantPickingIt;
+        for (
+            let requestedVariantIndex = 1;
+            requestedVariantIndex <= 10;
+            requestedVariantIndex++
+        ) {
+            const original = await load({
+                doenetML: weighted("1"),
+                requestedVariantIndex,
+                variable: "selectedIndices",
+            });
+            if (original.selected[0] === 2) {
+                variantPickingIt = original.generatedVariantInfo;
+                break;
+            }
+        }
+        expect(variantPickingIt).toBeDefined();
+        const { selected, errors } = await load({
+            doenetML: weighted("0"),
+            requestedVariant: variantPickingIt,
+            variable: "selectedIndices",
+        });
+        expect(errors).eqls([]);
+        expect(selected).eqls([2]);
+    });
+});

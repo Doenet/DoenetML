@@ -32,6 +32,7 @@ import {
     keptSelection,
     NUM_TO_SELECT_VARIABLE,
     withNumToSelect,
+    selectionWithRequested,
 } from "../utils/selectErrors";
 const { gcd } = me.math;
 
@@ -919,28 +920,39 @@ function selectionDependencies() {
 }
 
 /**
- * The selection the requested variant gives, as `{ selectedValues,
- * selectedIndices }`, or `null` when it gives none. The indices are taken as
- * given, whatever the select would choose now: a select keeps the choices it
- * was made with, as it keeps what it chose from, and never chooses again
- * (#2389). So an index is wrapped onto the sequence, and its value is the one
- * it names whether or not it is excluded now. A select that could not select
- * records `null` indices in its variant (`generatedVariantInfo`), which give
- * none, as do indices that aren't integers, which no select records.
+ * The indices the requested variant gives, wrapped onto the sequence, or
+ * `undefined` when it gives none. They are taken as given, whatever the
+ * select would choose now (`selectionWithRequested`): a select keeps the
+ * choices it was made with, as it keeps what it chose from, and never chooses
+ * again (#2389). `null`, which a select that could not select records in its
+ * variant (`generatedVariantInfo`), or `[]`, is a selection of nothing.
+ * Indices that aren't integers, which no select records, give none.
  */
-function selectionFromVariant(dependencyValues) {
+function requestedIndices(dependencyValues) {
     let desiredIndices = dependencyValues.variants?.desiredVariant?.indices;
-    if (!Array.isArray(desiredIndices) || desiredIndices.length === 0) {
-        return null;
+    if (desiredIndices === null) {
+        return [];
+    }
+    if (!Array.isArray(desiredIndices)) {
+        return undefined;
     }
     desiredIndices = desiredIndices.map(Number);
     if (!desiredIndices.every(Number.isInteger)) {
-        return null;
+        return undefined;
     }
     let n = dependencyValues.length;
-    desiredIndices = desiredIndices.map((x) => ((((x - 1) % n) + n) % n) + 1);
+    if (desiredIndices.length > 0 && !(n > 0)) {
+        return undefined;
+    }
+    return desiredIndices.map((x) => ((((x - 1) % n) + n) % n) + 1);
+}
 
-    const selectedValues = desiredIndices.map((indexFrom1) =>
+/**
+ * The selection of the indices `indices`, from 1, into the sequence: the
+ * value each names, whether or not it is excluded now.
+ */
+function selectionOfIndices(dependencyValues, indices) {
+    const selectedValues = indices.map((indexFrom1) =>
         returnSequenceValueForIndex({
             index: indexFrom1 - 1,
             from: dependencyValues.from,
@@ -951,8 +963,10 @@ function selectionFromVariant(dependencyValues) {
             lowercase: dependencyValues.lowercase,
         }),
     );
-
-    return { selectedValues, selectedIndices: desiredIndices };
+    return selectionResult(NO_SELECT_ERROR, {
+        selectedValues,
+        selectedIndices: indices,
+    });
 }
 
 function makeSelection({ dependencyValues, essentialValues }) {
@@ -980,9 +994,22 @@ function makeSelection({ dependencyValues, essentialValues }) {
         return kept;
     }
 
-    // console.log(`make selection`)
-    // console.log(dependencyValues)
+    return selectionWithRequested({
+        requested: requestedIndices(dependencyValues),
+        dependencyValues,
+        select: makeFreshSelection,
+        rngKey: "variantRng",
+        takeRequested: (indices) =>
+            selectionOfIndices(dependencyValues, indices),
+        emptySelection: selectionResult(NO_SELECT_ERROR, {
+            selectedValues: [],
+            selectedIndices: [],
+        }),
+    });
+}
 
+/** The selection a `<selectFromSequence>` makes itself, given no choices. */
+function makeFreshSelection(dependencyValues) {
     // An error when the DoenetML decides that nothing can be selected, and a
     // missing selection with an info when a value does (D38, DIAG-7)
     const failureType = selectFailureType(
@@ -1014,16 +1041,6 @@ function makeSelection({ dependencyValues, essentialValues }) {
             selectedValues: null,
             selectedIndices: null,
         });
-    }
-
-    // The selection the requested variant gives, taken as given, and with
-    // it how many were selected
-    const desiredSelection = selectionFromVariant(dependencyValues);
-    if (desiredSelection !== null) {
-        return withNumToSelect(
-            selectionResult(NO_SELECT_ERROR, desiredSelection),
-            desiredSelection.selectedValues.length,
-        );
     }
 
     let numCombinationsExcluded = dependencyValues.excludedCombinations.length;

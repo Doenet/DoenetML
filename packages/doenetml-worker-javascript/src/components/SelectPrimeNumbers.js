@@ -24,6 +24,7 @@ import {
     keptSelection,
     NUM_TO_SELECT_VARIABLE,
     withNumToSelect,
+    selectionWithRequested,
 } from "../utils/selectErrors";
 
 /**
@@ -627,16 +628,20 @@ function selectionDependencies() {
 }
 
 /**
- * The values the requested variant gives, or `null` when it gives none.
- * They are taken as given, whatever the select would choose now: a select
- * keeps the choices it was made with, as it keeps what it chose from, and
- * never chooses again (#2389). A select that could not select records
- * `null` values in its variant (`generatedVariantInfo`), which give none.
+ * The values the requested variant gives, or `undefined` when it gives none.
+ * They are taken as given, whatever the select would choose now
+ * (`selectionWithRequested`): a select keeps the choices it was made with,
+ * as it keeps what it chose from, and never chooses again (#2389). `null`,
+ * which a select that could not select records in its variant
+ * (`generatedVariantInfo`), or `[]`, is a selection of nothing.
  */
-function valuesFromVariant(dependencyValues) {
+function requestedValues(dependencyValues) {
     const desiredValues = dependencyValues.variants?.desiredVariant?.values;
-    if (!Array.isArray(desiredValues) || desiredValues.length === 0) {
-        return null;
+    if (desiredValues === null) {
+        return [];
+    }
+    if (!Array.isArray(desiredValues)) {
+        return undefined;
     }
     return desiredValues.map(Number);
 }
@@ -653,9 +658,21 @@ function makeSelection({ dependencyValues, essentialValues }) {
         return kept;
     }
 
-    // console.log(`make selection`)
-    // console.log(dependencyValues)
+    return selectionWithRequested({
+        requested: requestedValues(dependencyValues),
+        dependencyValues,
+        select: makeFreshSelection,
+        rngKey: "variantRng",
+        takeRequested: (values) =>
+            selectionResult(NO_SELECT_ERROR, { selectedValues: values }),
+        emptySelection: selectionResult(NO_SELECT_ERROR, {
+            selectedValues: [],
+        }),
+    });
+}
 
+/** The selection a `<selectPrimeNumbers>` makes itself, given no choices. */
+function makeFreshSelection(dependencyValues) {
     if (dependencyValues.numToSelect < 1) {
         return selectionResult(NO_SELECT_ERROR, { selectedValues: [] });
     }
@@ -679,18 +696,6 @@ function makeSelection({ dependencyValues, essentialValues }) {
             type,
         });
         return selectionResult(error, { selectedValues: null });
-    }
-
-    // The values the requested variant gives, taken as given, and with them
-    // how many were selected
-    const desiredValues = valuesFromVariant(dependencyValues);
-    if (desiredValues !== null) {
-        return withNumToSelect(
-            selectionResult(NO_SELECT_ERROR, {
-                selectedValues: desiredValues,
-            }),
-            desiredValues.length,
-        );
     }
 
     let numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({

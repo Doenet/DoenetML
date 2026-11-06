@@ -24,6 +24,8 @@ import {
     keptSelection,
     NUM_TO_SELECT_VARIABLE,
     withNumToSelect,
+    selectionWithRequested,
+    selectionReproducible,
 } from "../utils/selectErrors";
 import { errorComponentState } from "../utils/dast/errors";
 import { codedDiagnostic, diagnosticCodeFrom } from "../utils/diagnostics";
@@ -48,35 +50,45 @@ function variantsError({ errorMessage, errorDiagnostic }) {
 
 /**
  * The indices the requested variant gives a select, mapped onto its options,
- * or `null` when it gives none. They are taken as given, whatever the select
- * would choose now: a select keeps the choices it was made with, as it keeps
- * `numToSelect`, and never chooses again (#2389). A select that selected
- * nothing records `[]` in its variant, which gives none, as do indices that
- * aren't integers, which no select records.
+ * or `undefined` when it gives none. They are taken as given, whatever the
+ * select would choose now (`selectionWithRequested`): a select keeps the
+ * choices it was made with, as it keeps `numToSelect`, and never chooses
+ * again (#2389). `[]`, or `null`, is a selection of nothing, as a select that
+ * selected nothing records. Indices that aren't integers, which no select
+ * records, give none.
  *
- * Nor are they taken when the variants were counted with a copied option as
- * one of equal weight for no variant name in particular, and an option turns
- * out to have a `selectWeight` or `selectForVariants`, which couldn't be seen
- * then: the select chooses with them instead, from the variant's generator.
+ * Nor are they taken when the document's variants were counted with a copied
+ * option as one of equal weight for no variant name in particular
+ * (`countedCopiedOptions`, set by `getUniqueVariant`), and an option turns
+ * out to have a `selectWeight` or `selectForVariants`, which couldn't be
+ * seen then: the select chooses with them instead, from the variant's
+ * generator. Indices given otherwise, as a saved variant gives them, are
+ * taken.
  */
-function indicesFromVariant({ variants, nOptions, optionChildren }) {
+function requestedIndices({ variants, nOptions, optionChildren }) {
     let desiredIndices = variants?.desiredVariant?.indices;
-    if (!Array.isArray(desiredIndices) || desiredIndices.length === 0) {
-        return null;
+    if (desiredIndices === null) {
+        return [];
+    }
+    if (!Array.isArray(desiredIndices)) {
+        return undefined;
     }
     if (
-        variants.uniqueVariantData?.copiedOptions === true &&
+        variants.desiredVariant.countedCopiedOptions === true &&
         optionChildren.some(
             (option) =>
                 option.stateValues.selectWeight !== 1 ||
                 option.stateValues.selectForVariants.length > 0,
         )
     ) {
-        return null;
+        return undefined;
     }
     desiredIndices = desiredIndices.map(Number);
     if (!desiredIndices.every(Number.isInteger)) {
-        return null;
+        return undefined;
+    }
+    if (desiredIndices.length > 0 && !(nOptions > 0)) {
+        return undefined;
     }
     return desiredIndices.map(
         (x) => ((((x - 1) % nOptions) + nOptions) % nOptions) + 1,
@@ -110,18 +122,25 @@ export default class Select extends CompositeComponent {
                 serializedOptions,
                 componentInfoObjects: args.componentInfoObjects,
             });
+        // Whether a fresh load reproduces the selection, its options'
+        // weights included (`definitionEssentialValuesReproducible`)
+        this.doenetAttributes.selectionReproducible = selectionReproducible(
+            this.doenetAttributes.choicesDecidedByDoenetML,
+            serializedOptions,
+        );
     }
 
     /**
      * Whether a fresh load reproduces this select's selection, so a save
      * can leave it out (`BaseComponent.definitionEssentialValuesAreReproducible`):
-     * only when the DoenetML alone decides what it chooses from. A value
+     * only when the DoenetML alone decides what it chooses from, the options'
+     * weights included (`selectionReproducible`). A value
      * that decides it, such as an input, can have changed by the time the
      * document is loaded again, and the select must keep the choices it was
      * made with, never choosing again.
      */
     get definitionEssentialValuesReproducible() {
-        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
+        return this.doenetAttributes.selectionReproducible !== false;
     }
 
     static componentType = "select";
@@ -488,9 +507,23 @@ export default class Select extends CompositeComponent {
             if (kept) {
                 return kept;
             }
-            // console.log(`definition of selected Indices`);
-            // console.log(dependencyValues);
+            return selectionWithRequested({
+                requested: requestedIndices(dependencyValues),
+                dependencyValues,
+                select: selectFreshIndices,
+                rngKey: "variantRng",
+                takeRequested: (requested) =>
+                    selectionResult(NO_SELECT_ERROR, {
+                        selectedIndices: requested,
+                    }),
+                emptySelection: selectionResult(NO_SELECT_ERROR, {
+                    selectedIndices: [],
+                }),
+            });
+        }
 
+        /** The selection a select makes itself, given no choices. */
+        function selectFreshIndices(dependencyValues) {
             if (dependencyValues.errorMessageVariants) {
                 const error = {
                     errorMessage: dependencyValues.errorMessageVariants,
@@ -506,18 +539,6 @@ export default class Select extends CompositeComponent {
                 return selectionResult(NO_SELECT_ERROR, {
                     selectedIndices: [],
                 });
-            }
-
-            // The indices the requested variant gives, taken as given, and
-            // with them how many were selected
-            const desiredIndices = indicesFromVariant(dependencyValues);
-            if (desiredIndices !== null) {
-                return withNumToSelect(
-                    selectionResult(NO_SELECT_ERROR, {
-                        selectedIndices: desiredIndices,
-                    }),
-                    desiredIndices.length,
-                );
             }
 
             // first check if have a variant for which options are specified
@@ -895,11 +916,11 @@ export default class Select extends CompositeComponent {
         if (
             component.variants &&
             component.variants.desiredVariant !== undefined &&
-            indicesFromVariant({
+            requestedIndices({
                 variants: component.variants,
                 nOptions: await component.stateValues.nOptions,
                 optionChildren,
-            }) !== null
+            })?.length > 0
         ) {
             let desiredVariant = component.variants.desiredVariant;
             if (
@@ -1321,6 +1342,11 @@ export default class Select extends CompositeComponent {
         }
 
         let desiredVariant = { indices: selectedCombination.map((x) => x + 1) };
+        if (uniqueVariantData.copiedOptions) {
+            // counted with each copied option as one of equal weight
+            // (`requestedIndices`)
+            desiredVariant.countedCopiedOptions = true;
+        }
         if (haveNontrivialSubvariants) {
             desiredVariant.subvariants = subvariants;
         }
