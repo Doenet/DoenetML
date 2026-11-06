@@ -27,11 +27,15 @@
 //! | `WeightedMean{n}`        | (n weights, n credits) → (mean,       | none: credit is not set by a request                                 | none              |
 //! |                          | total weight)                         |                                                                      |                   |
 //! | `Centroid{n}`            | n points → their mean                 | translate every point by the requested center's shift                | every point       |
+//! | `SequencePick{m}`        | (draw, from, step, to, m excludes) →  | none: what the seed chose does not move (ADR 0037)                   | none              |
+//! |                          | a value of the sequence, less the     |                                                                      |                   |
+//! |                          | excludes, the draw indexes            |                                                                      |                   |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
 
 use crate::document::CellIdx;
+use crate::program::Range;
 use crate::tick::invert::PointRequest;
 
 /// The point a rigid shape rotates or dilates about.
@@ -129,6 +133,80 @@ pub enum VecOp {
     /// a polygon's center. A request on it translates every point by the
     /// shift, as one point group.
     Centroid { n: u8 },
+    /// A `<selectFromSequence>`'s pick (ADR 0037): inputs are a draw in
+    /// `[0, 1)`, `from`, `step`, `to` and `n_exclude` excluded values; the
+    /// output is the value of `from, from + step, ..., to` that the draw
+    /// indexes among those not excluded, as the JavaScript core's
+    /// `getSingleIndex` does. NaN when there is none, which the check
+    /// makes sure no build meets. No inverse.
+    SequencePick { n_exclude: u8 },
+}
+
+/// How many values `from, from + step, ..., to` holds, as a pick counts
+/// them: a whole number, below 1 when the sequence is empty.
+pub fn sequence_count(from: f64, step: f64, to: f64) -> f64 {
+    ((to - from) / step + 1e-10).floor() + 1.0
+}
+
+/// The fewest values `from, from + step, ..., to` holds for parameters in
+/// the ranges: at a corner of their box, where it is least; NaN-free, and
+/// below 1 when a step may be 0 or a range is ⊤.
+pub fn fewest_in_sequence(from: Range, step: Range, to: Range) -> f64 {
+    let (Range::Span(f0, f1), Range::Span(s0, s1), Range::Span(t0, t1)) = (from, step, to) else {
+        return f64::NEG_INFINITY;
+    };
+    if s0 <= 0.0 && s1 >= 0.0 {
+        return f64::NEG_INFINITY;
+    }
+    let mut fewest = f64::INFINITY;
+    for f in [f0, f1] {
+        for s in [s0, s1] {
+            for t in [t0, t1] {
+                let n = sequence_count(f, s, t);
+                fewest = fewest.min(if n.is_nan() { f64::NEG_INFINITY } else { n });
+            }
+        }
+    }
+    fewest
+}
+
+/// The position (0-based) of `x` in `from, from + step, ...` of `count`
+/// values, when it is one of them.
+pub fn sequence_index(from: f64, step: f64, count: f64, x: f64) -> Option<u64> {
+    let k = (x - from) / step;
+    let r = k.round();
+    ((k - r).abs() <= 1e-10 * r.abs().max(1.0) && r >= 0.0 && r < count).then_some(r as u64)
+}
+
+/// The value a draw in `[0, 1)` picks from `from, from + step, ..., to`
+/// less `excludes`; NaN when there is none.
+fn sequence_pick(draw: f64, from: f64, step: f64, to: f64, excludes: &[f64]) -> f64 {
+    if step == 0.0 || [draw, from, step, to].iter().any(|v| !v.is_finite()) {
+        return f64::NAN;
+    }
+    let count = sequence_count(from, step, to);
+    if count < 1.0 {
+        return f64::NAN;
+    }
+    let mut out: Vec<u64> = excludes
+        .iter()
+        .filter_map(|&x| sequence_index(from, step, count, x))
+        .collect();
+    out.sort_unstable();
+    out.dedup();
+    let left = count - out.len() as f64;
+    if left < 1.0 {
+        return f64::NAN;
+    }
+    // The draw's position among the values left, then past the excluded
+    // ones at or before it.
+    let mut k = ((draw * left) as u64).min(left as u64 - 1);
+    for &x in &out {
+        if x <= k {
+            k += 1;
+        }
+    }
+    from + step * k as f64
 }
 
 /// Most inputs a vector operator reads.
@@ -167,6 +245,7 @@ impl VecOp {
             VecOp::WeightedMean { n } => 2 * n as usize,
             VecOp::Clamp => 3,
             VecOp::Centroid { n } => 2 * n as usize,
+            VecOp::SequencePick { n_exclude } => 4 + n_exclude as usize,
         }
     }
 
@@ -182,10 +261,60 @@ impl VecOp {
             VecOp::PolarDirection { .. } => 0b11100,
             VecOp::LinePointsFromCoeffs => 0b111,
             VecOp::ProjectCircle | VecOp::ProjectLine => 0b11,
-            VecOp::First { .. } | VecOp::WeightedMean { .. } => 0,
+            VecOp::First { .. } | VecOp::WeightedMean { .. } | VecOp::SequencePick { .. } => 0,
             VecOp::Choose { n } => first(n as usize + 1) & !1,
             VecOp::Clamp => 1,
             VecOp::Centroid { n } => first(2 * n as usize),
+        }
+    }
+
+    /// A range holding every value its first output can take from inputs
+    /// in `inputs` (ADR 0037, `program/range.rs`): ⊤ for an operator with
+    /// no rule. `First` is a position or 0; `Choose` the union of the
+    /// branches it may choose, ⊤ when it may choose none (NaN); `Clamp`
+    /// its input held between its bounds.
+    pub fn range(&self, inputs: &[Range]) -> Range {
+        match *self {
+            VecOp::First { n } => Range::Span(0.0, n as f64),
+            VecOp::Choose { n } => match inputs.first() {
+                Some(&Range::Span(lo, hi)) if lo >= 1.0 && hi <= n as f64 => {
+                    // A choice past a whole number chooses the branch below it.
+                    let (lo, hi) = (lo.floor() as usize, hi.floor() as usize);
+                    inputs[lo..=hi]
+                        .iter()
+                        .copied()
+                        .reduce(Range::hull)
+                        .unwrap_or(Range::Top)
+                }
+                _ => Range::Top,
+            },
+            VecOp::Clamp => match inputs {
+                [x, lo, hi] => x.corners(*lo, f64::max).corners(*hi, f64::min),
+                _ => Range::Top,
+            },
+            // A value from `from` toward `to`: between them, given a step
+            // of one sign, past `to` by no more than the tolerance its
+            // count allows; with a step that may be 0, NaN.
+            VecOp::SequencePick { n_exclude } => match inputs {
+                // NaN unless every sequence holds a value its excludes
+                // leave.
+                [_, from, step, to, ..]
+                    if fewest_in_sequence(*from, *step, *to) < 1.0 + n_exclude as f64 =>
+                {
+                    Range::Top
+                }
+                [_, from, step, to, ..] => match (*from, *step, *to) {
+                    (Range::Span(f, _), Range::Span(lo, hi), Range::Span(_, t)) if lo > 0.0 => {
+                        Range::span(f, t + hi * 1e-9)
+                    }
+                    (Range::Span(_, f), Range::Span(lo, hi), Range::Span(t, _)) if hi < 0.0 => {
+                        Range::span(t + lo * 1e-9, f)
+                    }
+                    _ => Range::Top,
+                },
+                _ => Range::Top,
+            },
+            _ => Range::Top,
         }
     }
 
@@ -197,7 +326,10 @@ impl VecOp {
             VecOp::PolarSlope | VecOp::PolarDirection { .. } => 2,
             VecOp::LinePointsFromCoeffs => 4,
             VecOp::ProjectCircle | VecOp::ProjectLine => 2,
-            VecOp::First { .. } | VecOp::Choose { .. } | VecOp::Clamp => 1,
+            VecOp::First { .. }
+            | VecOp::Choose { .. }
+            | VecOp::Clamp
+            | VecOp::SequencePick { .. } => 1,
             VecOp::WeightedMean { .. } | VecOp::Centroid { .. } => 2,
         }
     }
@@ -284,6 +416,15 @@ impl VecOp {
                 let (cx, cy) = centroid(inp, n as usize);
                 out[0] = cx;
                 out[1] = cy;
+            }
+            VecOp::SequencePick { n_exclude } => {
+                out[0] = sequence_pick(
+                    inp[0],
+                    inp[1],
+                    inp[2],
+                    inp[3],
+                    &inp[4..4 + n_exclude as usize],
+                );
             }
         }
     }
@@ -409,7 +550,7 @@ impl VecOp {
                 out.write(inputs[1], y);
                 true
             }
-            VecOp::First { .. } | VecOp::WeightedMean { .. } => false,
+            VecOp::First { .. } | VecOp::WeightedMean { .. } | VecOp::SequencePick { .. } => false,
             VecOp::Choose { n } => match (active_branch(inp[0], n), desired[0]) {
                 (Some(k), Some(d)) => {
                     out.write(inputs[k], d);
@@ -757,6 +898,8 @@ mod writes {
             VecOp::WeightedMean { n: 2 },
             VecOp::Clamp,
             VecOp::Centroid { n: 3 },
+            VecOp::SequencePick { n_exclude: 0 },
+            VecOp::SequencePick { n_exclude: 2 },
         ]
     }
 
@@ -865,7 +1008,99 @@ mod writes {
             VecOp::First { .. }
             | VecOp::Choose { .. }
             | VecOp::WeightedMean { .. }
-            | VecOp::Clamp => (0..op.n_out()).map(|k| vec![k]).collect(),
+            | VecOp::Clamp
+            | VecOp::SequencePick { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
+        }
+    }
+
+    /// A pick with nothing excluded is the draw a pick made before it was
+    /// an instruction (ADR 0037): `from + step * k`, `k` the draw scaled by
+    /// the count, so every pick a seed gave is the one it gives.
+    #[test]
+    fn a_sequence_pick_is_the_draw_scaled_by_the_count() {
+        let params = [
+            (1.0, 1.0, 5.0),
+            (2.0, 1.0, 5.0),
+            (0.0, 0.1, 0.3),
+            (-3.0, 0.5, 4.25),
+            (10.0, -2.0, 1.0),
+            (3.0, 1.0, 3.0),
+        ];
+        for (from, step, to) in params {
+            let count = ((to - from) / step + 1e-10_f64).floor() + 1.0;
+            for i in 0..1000u64 {
+                let h = {
+                    let mut z = i.wrapping_add(0x9e37_79b9_7f4a_7c15);
+                    z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+                    z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
+                    z ^ (z >> 31)
+                };
+                let draw = (h >> 11) as f64 / (1u64 << 53) as f64;
+                let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * count as u32 as f64) as u32;
+                let before = from + step * k.min(count as u32 - 1) as f64;
+                let mut out = [0.0];
+                VecOp::SequencePick { n_exclude: 0 }.eval(&[draw, from, step, to], &mut out);
+                assert_eq!(
+                    out[0].to_bits(),
+                    before.to_bits(),
+                    "{from} {step} {to} at {draw}"
+                );
+            }
+        }
+        // Excluded values are skipped, and every value left is drawn.
+        let mut seen = std::collections::BTreeSet::new();
+        for i in 0..200 {
+            let mut out = [0.0];
+            VecOp::SequencePick { n_exclude: 2 }
+                .eval(&[i as f64 / 200.0, 1.0, 1.0, 5.0, 2.0, 4.0], &mut out);
+            seen.insert(out[0] as i64);
+        }
+        assert_eq!(seen.into_iter().collect::<Vec<_>>(), [1, 3, 5]);
+    }
+
+    /// Every vector operator's range rule holds what it gives from
+    /// inputs sampled in the ranges, as `program::scalar::ranges` checks
+    /// the scalar ones.
+    #[test]
+    fn every_vector_range_holds_what_it_gives() {
+        let spans = [
+            Range::Span(1.0, 1.0),
+            Range::Span(1.0, 2.5),
+            Range::Span(-2.0, 3.0),
+            Range::Span(0.5, 4.0),
+            Range::Span(-1e3, 1e3),
+        ];
+        for op in ops() {
+            let n = op.n_in();
+            // Each input in a span chosen by its position and a shift.
+            for shift in 0..spans.len() {
+                let ranges: Vec<Range> = (0..n).map(|k| spans[(k + shift) % spans.len()]).collect();
+                let rule = op.range(&ranges);
+                for sample in 0..=8 {
+                    let inp: Vec<f64> = ranges
+                        .iter()
+                        .enumerate()
+                        .map(|(k, r)| match *r {
+                            Range::Span(lo, hi) => {
+                                let t = ((sample + k) % 9) as f64 / 8.0;
+                                lo + (hi - lo) * t
+                            }
+                            Range::Top => 0.0,
+                        })
+                        .collect();
+                    let mut out = vec![0.0; op.n_out()];
+                    op.eval(&inp, &mut out);
+                    let v = out[0];
+                    let ok = match rule {
+                        Range::Top => true,
+                        Range::Span(lo, hi) => !v.is_nan() && lo <= v && v <= hi,
+                    };
+                    assert!(
+                        ok,
+                        "{op:?} over {ranges:?} at {inp:?} gave {v}, outside {rule:?}"
+                    );
+                }
+            }
         }
     }
 

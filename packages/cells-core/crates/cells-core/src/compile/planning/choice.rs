@@ -42,7 +42,20 @@ impl<'a> Compiler<'a> {
             None => Source::constant(0.0),
         };
         if !self.choice(cid).reactive {
-            self.tables[t.index()].plans[e.index()].props = prop::select::Props { hide }.into_vec();
+            // `numToSelect` after `hide`: a document constant the check
+            // evaluates (ADR 0037).
+            // A literal is a constant, as a literal `hide` is: never state.
+            let num = match d.attr(node, "numToSelect") {
+                Some(a) => match self.plan_scalar(rf, t, scope, d.attr_children(a))? {
+                    Source::Leaf(Leaf::Given(v)) => Source::constant(v),
+                    num => num,
+                },
+                None => Source::constant(1.0),
+            };
+            let mut props = prop::select::Props { hide }.into_vec();
+            debug_assert_eq!(props.len(), prop::select::NUM_TO_SELECT);
+            props.push(num);
+            self.tables[t.index()].plans[e.index()].props = props;
             return Ok(());
         }
         let mut wiring = ElemWiring::of(ComponentType::ConditionalContent);

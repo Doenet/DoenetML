@@ -141,7 +141,7 @@ What the remaining constants are, by what they depend on:
 | A synthesized point's `hide` | nothing | document |
 | An iteration's index | the scope | scope |
 | A `FirstIteration` source's constant | the scope | scope |
-| A `<selectFromSequence>` pick | the seed and the scope | scope |
+| A `<selectFromSequence>` pick: a fold over its draw and its parameters (ADR 0037) | the seed and the scope | scope |
 | An instruction's value over constants (step 4) | its inputs | document when they all are, else scope |
 
 A rebuild may change which cell a prop names (a missing referent that
@@ -164,8 +164,8 @@ decides what is writable (ADR 0018) and live (ADR 0019), and records it
 when its plan names a value from the source alone
 (`Source::gives_document_constant`: a given value, a constant written in
 the plan, math text with nothing to read); anything else is a scope
-constant, whether it reads its scope (`IterIndex`, `SequencePick`,
-`FirstIteration`, a seed) or is wired after expansion (a section's
+constant, whether it reads its scope (`IterIndex`, a `<selectFromSequence>`'s
+`Draw`, `FirstIteration`, a seed) or is wired after expansion (a section's
 number, a credit). Calling a document constant a scope constant costs
 only a cell per instance; the reverse would give scopes one value that
 differs between them, so the rule names what qualifies. A folded

@@ -166,6 +166,62 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    /// A list of scalars (`AttrKind::Scalars`): each item a literal number
+    /// or one reference, items separated by spaces or commas. Anything
+    /// else (math, a reference with text against it) is refused.
+    pub(in crate::compile) fn plan_scalar_list(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        scope: ElemId,
+        a: AttrId,
+    ) -> Result<Vec<Source>> {
+        let d = self.dast;
+        let nodes = d.attr_children(a);
+        let bad = |s: &Self| Error::BadValue {
+            attr: d.attr_name(a).into(),
+            text: s.value_text(nodes).trim().into(),
+        };
+        let mut out = Vec::new();
+        // Whether the text before the next node ended an item.
+        let mut apart = true;
+        for (k, &n) in nodes.iter().enumerate() {
+            match d.kind(n) {
+                NodeKind::Macro => {
+                    // A reference stands alone: text right against it would
+                    // make it math.
+                    let next_apart = nodes.get(k + 1).is_none_or(|&m| {
+                        d.kind(m) != NodeKind::Text
+                            || d.str(m)
+                                .starts_with(|c: char| c.is_whitespace() || c == ',')
+                    });
+                    if !apart || !next_apart {
+                        return Err(bad(self));
+                    }
+                    out.push(Source::reference(self.plan_ref(rf, t, scope, n)?));
+                    apart = false;
+                }
+                NodeKind::Text => {
+                    let text = d.str(n);
+                    if !apart && !text.starts_with(|c: char| c.is_whitespace() || c == ',') {
+                        return Err(bad(self));
+                    }
+                    for item in text.split(|c: char| c.is_whitespace() || c == ',') {
+                        if item.is_empty() {
+                            continue;
+                        }
+                        let v = item.parse::<f64>().map_err(|_| bad(self))?;
+                        out.push(Source::given(v));
+                    }
+                    apart = text.ends_with(|c: char| c.is_whitespace() || c == ',')
+                        || text.trim().is_empty();
+                }
+                _ => {}
+            }
+        }
+        Ok(out)
+    }
+
     /// A source from an expression template: a constant is an essential
     /// literal, a lone reference an alias, anything else a lowered math.
     pub(in crate::compile) fn plan_from_expr(&mut self, id: ExprId) -> Source {

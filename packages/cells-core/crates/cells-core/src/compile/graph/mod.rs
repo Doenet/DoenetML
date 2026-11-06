@@ -37,6 +37,7 @@ use crate::program::{OpSpec, SymKind, VecOp};
 mod aggregate;
 mod cycles;
 mod define;
+mod eval;
 mod expand;
 mod math;
 mod refuse;
@@ -45,6 +46,7 @@ mod walk;
 
 pub(crate) use cycles::{CycleFindings, check_cycles};
 pub(crate) use define::define;
+pub(crate) use eval::{Constants, check_choices};
 pub(crate) use refuse::refuse_warnings;
 pub(crate) use signature::sign;
 
@@ -95,6 +97,56 @@ pub(crate) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32) -> Coord
     }
 }
 
+/// What a read through an index needs for its referent to exist in every
+/// build the session can reach (ADR 0037): a stable reference needs
+/// nothing; one that lands past every count is the missing referent in
+/// every build; one through a cell index is never proved stable; and the
+/// rest need each index inside the count it indexes.
+#[derive(Debug, Clone)]
+pub(crate) enum Need {
+    /// Never proved present: an index that is a cell.
+    Unstable,
+    /// Present when every condition holds.
+    All(Vec<Cond>),
+}
+
+/// One index of a walk, which must land inside what it indexes.
+#[derive(Debug, Clone)]
+pub(crate) struct Cond {
+    /// How many entries it indexes.
+    pub(crate) count: Count,
+    /// The index, read from template `from`.
+    pub(crate) terms: Vec<IndexTerm>,
+    pub(crate) from: TemplateId,
+}
+
+/// How many entries an index step indexes.
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum Count {
+    /// A repeat's count, or a collect's: a node.
+    Node(GraphNode),
+    /// A fixed number: a point list's, or what a collect gathers when its
+    /// count follows no repeat.
+    Fixed(u32),
+    /// A select's picks: its `numToSelect`.
+    Picks(ChoiceId),
+}
+
+/// A value a scope decides (ADR 0028), which the graph holds no value of
+/// for the evaluator: what it ranges over is its own (`eval.rs`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ScopeLeaf {
+    /// The position of the iteration of the repeat whose body is the
+    /// template.
+    IterIndex(TemplateId),
+    /// A `<selectFromSequence>`'s draw, in `[0, 1)`.
+    Draw,
+    /// A value its scope decides that the graph holds for one iteration or
+    /// for every option at once: a section's number inside a repeat, or
+    /// after a select. What it ranges over is not known (⊤).
+    Varies,
+}
+
 /// What a node of the template graph is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum NodeKind {
@@ -139,6 +191,37 @@ pub(crate) struct TemplateOp {
 pub(crate) enum MathOrigin {
     Tree(Tree<RefId>),
     Constant(ExprId, Post),
+}
+
+/// The handle `engine` makes of a math value from `origin`, as a build
+/// makes it: what the signature prints and the evaluator evaluates, each
+/// with an engine of its own.
+pub(super) fn math_handle(
+    engine: &mut crate::sym::Engine,
+    c: CompiledRef<'_>,
+    origin: &MathOrigin,
+) -> crate::sym::Handle {
+    match origin {
+        MathOrigin::Tree(tree) => engine.import(tree),
+        MathOrigin::Constant(expr, post) => {
+            let text = c.plans.sym_text[expr].spell(c.dast);
+            let h = match engine.parse_tree::<RefId>(&text) {
+                Ok(tree) => engine.import(&tree),
+                Err(_) => engine
+                    .parse_constant(&text)
+                    .expect("a constant math text parses"),
+            };
+            match post {
+                Post::None => h,
+                Post::Simplify => engine.simplify(h),
+                Post::Expand => engine.expand(h),
+                Post::SimplifyExpand => {
+                    let h = engine.simplify(h);
+                    engine.expand(h)
+                }
+            }
+        }
+    }
 }
 
 /// What defines a node, as a build's source defines its slot.
@@ -268,6 +351,18 @@ pub(crate) struct TemplateGraph {
     /// build did): what define's walks and the refuse warnings read of
     /// it.
     pub(crate) comps: Vec<GraphComp>,
+    /// What each walk through an index needs to be stable (ADR 0037).
+    pub(crate) needs: Vec<Need>,
+    /// The need of each read a walk through an index made, by (reader,
+    /// read): a hold's flag's read among them.
+    pub(crate) read_needs: FxMap<(GraphNode, GraphNode), u32>,
+    /// The scope leaves whose value the graph does not hold, by node.
+    pub(crate) scope_leaves: FxMap<GraphNode, ScopeLeaf>,
+    /// Each port of a select's stand-in, which holds what the member a
+    /// build picks holds: its members' nodes at its position, the
+    /// missing value past a member's end. The graph reads them without
+    /// their values mattering; the evaluator reads them as any of them.
+    pub(crate) select_reads: FxMap<GraphNode, Vec<GraphNode>>,
 }
 
 /// A component as define's walks read it: its type, its public ports, and
@@ -419,6 +514,8 @@ fn stamp_graph(c: CompiledRef<'_>, parents: bool) -> (TemplateGraph, Option<Fail
         walking: RefId::NONE,
         order_index: FxMap::default(),
         engine: None,
+        need: None,
+        walk_need: (Vec::new(), false),
     };
     s.stamp(TemplateId::new(0));
     s.resolve_all();
@@ -486,6 +583,12 @@ pub(super) struct Stamp<'c> {
     /// An engine of the stamping's own, to parse math text as a
     /// build parses it; made when first needed.
     pub(super) engine: Option<crate::sym::Engine>,
+    /// The need of the last walk resolved, which the reads it makes
+    /// carry (`label`); None for a stable one.
+    pub(super) need: Option<u32>,
+    /// The walk being resolved: its conditions so far, and whether it
+    /// went through a cell index.
+    pub(super) walk_need: (Vec<Cond>, bool),
 }
 
 impl<'c> Stamp<'c> {
@@ -544,10 +647,15 @@ impl<'c> Stamp<'c> {
         self.value(t, Def::Op(GraphOp::Spec(spec), inputs))
     }
 
-    /// The read `u -> v` carries `label` when that is not the identity.
+    /// The read `u -> v` carries `label` when that is not the identity,
+    /// and the need of the walk that made it, if it has one (every read a
+    /// walk makes is labelled, so this is where it is known).
     pub(super) fn label(&mut self, u: GraphNode, v: GraphNode, label: &[Coord]) {
         if label.iter().any(|&c| c != Coord::Keep(0)) {
             self.g.labels.insert((u, v), label.to_vec());
+        }
+        if let Some(k) = self.need {
+            self.g.read_needs.insert((u, v), k);
         }
     }
 
@@ -894,7 +1002,11 @@ impl<'c> Stamp<'c> {
                 .collect();
             let first = branch[0];
             let def = match choice {
-                None => self.reading(&branch, t),
+                None => {
+                    let s = self.slot(Comp::Made(w), port);
+                    self.g.select_reads.insert(s, branch.clone());
+                    self.reading(&branch, t)
+                }
                 Some(choice) => {
                     let n = byte(members.len());
                     let inputs = std::iter::once(choice).chain(branch).collect();
@@ -1032,10 +1144,14 @@ impl<'c> Stamp<'c> {
                     Def::Given(tree.is_none().then_some(f64::NAN))
                 }
                 Leaf::Const(v) => Def::Const(Some(*v)),
-                Leaf::Scope(ScopeConst::IterIndex) => Def::Const(Some(self.position(t) as f64)),
-                Leaf::Scope(ScopeConst::SequencePick { from, step, count }) => {
-                    let k = self.drawn(t, e, *count);
-                    Def::Const(Some(from + step * k as f64))
+                Leaf::Scope(ScopeConst::IterIndex) => {
+                    self.g.scope_leaves.insert(from, ScopeLeaf::IterIndex(t));
+                    Def::Const(Some(self.position(t) as f64))
+                }
+                // What a seed decides, of which the graph holds no value.
+                Leaf::Scope(ScopeConst::Draw) => {
+                    self.g.scope_leaves.insert(from, ScopeLeaf::Draw);
+                    Def::Const(None)
                 }
                 Leaf::Scope(ScopeConst::Seed(p)) => {
                     let target = self.one_cell(*p, t, e, pi).0;

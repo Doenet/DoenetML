@@ -1,8 +1,9 @@
 //! The check: plan the document, then stamp its template graph (ADR 0032,
 //! step 8), which stands for every count and every pick and fails on an
 //! element that cannot be built, check that for loops at any count
-//! (ADR 0012), define it and walk it (ADR 0018, ADR 0019, ADR 0035), and
-//! box every element that fails until every element builds. It finds every
+//! (ADR 0012), define it and walk it (ADR 0018, ADR 0019, ADR 0035), find
+//! what no tick changes and check every load-time choice over it (ADR
+//! 0037), and box every element that fails until every element builds. It finds every
 //! error the document has, from the source alone.
 
 use super::*;
@@ -41,13 +42,18 @@ pub(crate) fn compile(
         let _s = crate::trace::span("check");
         let found = check(CompiledRef { dast, plans }, check_cycles)?;
         plans.structural_depth = found.structural_depth;
-        for (tpl, mut attrs) in plans.templates.iter_mut().zip(found.attrs) {
+        let mut picks: Vec<Vec<(ElemId, u32)>> = vec![Vec::new(); plans.templates.len()];
+        for &(cid, n) in &found.picks {
+            let (t, e) = plans.choices[cid.index()].at;
+            picks[t.index()].push((e, n));
+        }
+        for ((tpl, mut attrs), picks) in plans.templates.iter_mut().zip(found.attrs).zip(picks) {
             if !classify {
                 for a in &mut attrs {
                     *a |= PortAttrs::WRITABLE;
                 }
             }
-            tpl.checked = Checked { attrs };
+            tpl.checked = Checked { attrs, picks };
         }
         Ok(found.warnings)
     })?;
@@ -93,9 +99,23 @@ pub(crate) fn signature_renamed(
         let mut g = graph::template_graph_with_parents(compiled)?;
         graph::check_cycles(&g, compiled).map_err(|error| Failure { error, node: None })?;
         let defined = graph::define(&mut g, compiled)?;
-        Ok(graph::sign(&g, &defined, compiled, rename))
+        let mut constants = graph::Constants::new(&g, &defined, compiled);
+        let picks = graph::check_choices(&g, &mut constants, compiled)?;
+        Ok(graph::sign(&g, &defined, compiled, &picks, rename))
     })?;
     Ok(signature)
+}
+
+/// Each constant port's range as the check's evaluator finds it (ADR
+/// 0037), by template and template slot, for a compile that checked.
+#[cfg(feature = "testing")]
+pub(crate) fn constant_ranges(
+    compiled: CompiledRef<'_>,
+) -> Vec<(TemplateId, TemplateSlot, crate::program::Range)> {
+    let checked = |f: Failure| -> ! { panic!("a compile that checked failed: {}", f.error) };
+    let mut g = graph::template_graph_checked(compiled).unwrap_or_else(|f| checked(f));
+    let defined = graph::define(&mut g, compiled).unwrap_or_else(|f| checked(f));
+    graph::Constants::new(&g, &defined, compiled).port_ranges()
 }
 
 /// What the check finds of a document that passes it.
@@ -104,6 +124,8 @@ struct Checks {
     structural_depth: u32,
     /// Each port's attributes, per template by template slot.
     attrs: Vec<Vec<PortAttrs>>,
+    /// Each select's `numToSelect`, by choice (ADR 0037).
+    picks: Vec<(ChoiceId, u32)>,
     /// The repeats' counts' warnings and the refuse warnings.
     warnings: Vec<Diagnostic>,
 }
@@ -123,12 +145,19 @@ fn check(compiled: CompiledRef<'_>, check_cycles: bool) -> std::result::Result<C
         CycleFindings::default()
     };
     let defined = crate::trace::span("define").run(|| graph::define(&mut g, compiled))?;
-    let attrs = defined.attrs(&g, compiled);
+    // What no tick changes, and every load-time choice over it (ADR 0037).
+    let (constant, picks) = crate::trace::span("constants").run(|| {
+        let mut constants = graph::Constants::new(&g, &defined, compiled);
+        let picks = graph::check_choices(&g, &mut constants, compiled)?;
+        Ok::<_, Failure>((constants.constants(), picks))
+    })?;
+    let attrs = defined.attrs(&g, compiled, &constant);
     let mut warnings = cycles.warnings;
     warnings.extend(graph::refuse_warnings(&g, &defined, compiled));
     Ok(Checks {
         structural_depth: cycles.structural_depth,
         attrs,
+        picks,
         warnings,
     })
 }

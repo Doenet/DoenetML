@@ -345,6 +345,27 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         <graph xmax="$s"><point name="p">(1,2)</point></graph>"#,
     ),
     (
+        // Load-time choices over constants (ADR 0037): a pick over another,
+        // an iteration's index and a stable read into a repeat, an exclude,
+        // and a select whose `numToSelect` is an author's number.
+        "picks-over-constants",
+        r#"<selectFromSequence name="a" from="1" to="5"/>
+        <selectFromSequence name="b" from="$a" to="$a * 2 + 1" exclude="$a"/>
+        <numberInput name="k" value="2"/>
+        <repeatForSequence name="r" length="9" indexName="i">
+          <selectFromSequence name="s" from="1" to="10 - $i"/>
+          <number name="t">$s + $k</number>
+        </repeatForSequence>
+        <repeatForSequence name="q" length="$k"><number name="u">$r[3].s</number></repeatForSequence>
+        <number name="n">2</number>
+        <select name="o" numToSelect="$n">
+          <option><number name="v">1</number></option>
+          <option><number name="v">2</number></option>
+          <option><number name="v">3</number></option>
+        </select>
+        <number name="c">$a + $b + $o[1].v + $o[2].v + $r[1].s</number>"#,
+    ),
+    (
         "points",
         r#"<graph>
           <point name="p">(1,2)</point>
@@ -886,6 +907,7 @@ fn a_constant_is_the_same_in_every_build() {
                         if let SlotClass::Constant {
                             value,
                             document: true,
+                            ..
                         } = class
                         {
                             let (scope, first) =
@@ -913,6 +935,154 @@ fn a_constant_is_the_same_in_every_build() {
     );
 }
 
+/// What the check marks a constant (`PortAttrs::CONSTANT`, ADR 0037)
+/// holds every constant a build makes, its folds included: at every count
+/// and seed of every document, no template slot is a constant in a build
+/// and unmarked. The attribute is the fold rule without its scope rule, so
+/// it may mark more than a build folds, never less.
+#[test]
+fn every_constant_a_build_makes_is_one_the_check_marked() {
+    let docs = documents();
+    assert!(docs.len() >= 12, "the golden set is missing");
+    let mut failures = par_map(&docs, |(name, bytes)| {
+        let mut failures = Vec::new();
+        let dast = cells_core::dast::load(bytes).unwrap();
+        let types = element_types(&dast);
+        let draws = types
+            .iter()
+            .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
+        let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
+        let counts: Vec<u32> = if has_repeats(&dast) {
+            COUNTS.collect()
+        } else {
+            vec![0]
+        };
+        for &seed in seeds {
+            let options = LoadOptions {
+                seed,
+                ..Default::default()
+            };
+            let Ok((doc, _)) = Document::load(bytes, options) else {
+                continue;
+            };
+            let Some(compiled) = doc.loaded.compiled.clone() else {
+                // No repeat: the load is its one build.
+                for &((_, t, slot), class) in &doc.structure.slot_classes {
+                    if let SlotClass::Constant { marked: false, .. } = class {
+                        failures.push(format!("{name}, seed {seed}: template {t} slot {slot}"));
+                    }
+                }
+                continue;
+            };
+            let mut session = Session::new(seed);
+            let mut math = MathStore::default();
+            for &c in &counts {
+                for built in builds_at(&compiled, &mut session, &mut math, c) {
+                    for &((_, t, slot), class) in &built.structure.slot_classes {
+                        if let SlotClass::Constant { marked: false, .. } = class {
+                            failures.push(format!(
+                                "{name}, seed {seed}, count {c}: template {t} slot {slot}"
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        failures
+    })
+    .concat();
+    failures.dedup();
+    assert!(
+        failures.is_empty(),
+        "{} constants the check did not mark, first: {}",
+        failures.len(),
+        failures.first().map_or("", String::as_str)
+    );
+}
+
+/// What the check's evaluator finds of a constant holds in every build
+/// (ADR 0037): at every count and seed of every document, a number a build
+/// makes a constant lies in the range the evaluator gives its port, and is
+/// that value where the range is one value (a document constant, exactly).
+#[test]
+fn every_constant_lies_in_the_range_the_check_evaluated() {
+    use cells_core::program::{Range, ValueType};
+    let docs = documents();
+    assert!(docs.len() >= 12, "the golden set is missing");
+    let failures = par_map(&docs, |(name, bytes)| {
+        let mut failures = Vec::new();
+        let dast = cells_core::dast::load(bytes).unwrap();
+        let types = element_types(&dast);
+        let draws = types
+            .iter()
+            .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
+        let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
+        let Ok(compiled) = cells_core::testing::compile(&dast) else {
+            return failures;
+        };
+        let ranges = cells_core::testing::constant_ranges(&compiled);
+        let counts: Vec<u32> = if has_repeats(&dast) {
+            COUNTS.collect()
+        } else {
+            vec![0]
+        };
+        let mut check = |what: String, built: &Built| {
+            let numbers: std::collections::HashSet<_> = built
+                .structure
+                .slot_types
+                .iter()
+                .filter(|(_, ty)| *ty == ValueType::Number)
+                .map(|(k, _)| *k)
+                .collect();
+            for &(key, class) in &built.structure.slot_classes {
+                let SlotClass::Constant { value, .. } = class else {
+                    continue;
+                };
+                if !numbers.contains(&key) {
+                    continue;
+                }
+                let Some(&range) = ranges.get(&(key.1, key.2)) else {
+                    failures.push(format!(
+                        "{what}: template {} slot {} has no range",
+                        key.1, key.2
+                    ));
+                    continue;
+                };
+                let ok = match range {
+                    Range::Top => true,
+                    Range::Span(lo, hi) if lo == hi => {
+                        value.to_bits() == lo.to_bits() || value == lo
+                    }
+                    Range::Span(..) => range.holds(value),
+                };
+                if !ok {
+                    failures.push(format!(
+                        "{what}: template {} slot {} is {value}, outside {range:?}",
+                        key.1, key.2
+                    ));
+                }
+            }
+        };
+        for &seed in seeds {
+            let mut session = Session::new(seed);
+            let mut math = MathStore::default();
+            for &c in &counts {
+                for built in builds_at(&compiled, &mut session, &mut math, c) {
+                    check(format!("{name}, seed {seed}, count {c}"), &built);
+                }
+            }
+        }
+        failures
+    })
+    .concat();
+    assert!(
+        failures.is_empty(),
+        "{} constants outside their range:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
+}
+
 /// Two classes of one template slot agree: the same class, and for a
 /// constant the same value (NaN equal to NaN) and kind.
 fn same_class(a: SlotClass, b: SlotClass) -> bool {
@@ -921,10 +1091,12 @@ fn same_class(a: SlotClass, b: SlotClass) -> bool {
             SlotClass::Constant {
                 value: x,
                 document: dx,
+                ..
             },
             SlotClass::Constant {
                 value: y,
                 document: dy,
+                ..
             },
         ) => same_value(x, y) && dx == dy,
         (SlotClass::Constant { .. }, _) | (_, SlotClass::Constant { .. }) => false,

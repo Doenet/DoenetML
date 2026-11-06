@@ -1,6 +1,8 @@
 //! `scalar_ops!`: every scalar operator from one entry. An entry names the
-//! operator and its inputs (`Mul(a, b)`, at most two), its evaluation, and its
-//! inverse as one of
+//! operator and its inputs (`Mul(a, b)`, at most two), its evaluation, its
+//! inverse, and its range rule (`range: ..`, over the inputs' `Range`s;
+//! left out, ⊤: see `program/range.rs` for the contract). The inverse is
+//! one of
 //!
 //! - `exact |d| ..`: the input to write and its value, or None to drop the
 //!   request; where it writes, evaluating again gives `d`;
@@ -13,8 +15,8 @@
 //! operator reads is a constant input. From the entries the macro makes `Op`
 //! and `OpSpec` (with the vector and symbolic variants), `Op::eval`,
 //! `Op::invert`, `Op::scalar_inputs`, `OpSpec::scalar_arity`,
-//! `OpSpec::bind_scalar`, `OpSpec::inverse`, `OpSpec::scalars` and
-//! `OpSpec::writes`.
+//! `OpSpec::bind_scalar`, `OpSpec::inverse`, `OpSpec::scalars`,
+//! `OpSpec::writes` and `OpSpec::range`.
 //!
 //! ```ignore
 //! scalar_ops! {
@@ -22,6 +24,7 @@
 //!     Mul(a, b) {
 //!         eval: a * b,
 //!         exact |d| (b != 0.0).then_some((A, d / b)),
+//!         range: a.corners(b, |x, y| x * y),
 //!     }
 //! }
 //! ```
@@ -53,9 +56,17 @@ macro_rules! scalar_ops {
     (@bind $inputs:ident $name:ident [$a:ident, $b:ident]) => {
         Op::$name($inputs[0], $inputs[1])
     };
+    // The range rule over the inputs' ranges; ⊤ where an entry declares
+    // none.
+    (@range $inputs:ident [$($in:ident),+]) => { Range::Top };
+    (@range $inputs:ident [$($in:ident),+] $range:expr) => {{
+        let mut it = $inputs.iter().copied();
+        $(#[allow(unused_variables)] let $in: Range = it.next().unwrap_or(Range::Top);)+
+        $range
+    }};
     ($(
         $(#[$m:meta])* $name:ident ($($in:ident),+)
-        { eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(,)? }
+        { eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(, range: $range:expr)? $(,)? }
     )*) => {
         #[derive(Debug, Clone, Copy, PartialEq)]
         pub enum Op {
@@ -199,6 +210,17 @@ macro_rules! scalar_ops {
             /// Every scalar operator.
             pub fn scalars() -> Vec<OpSpec> {
                 vec![$(OpSpec::$name),*]
+            }
+
+            /// A range holding every value the operator can give from
+            /// inputs in `inputs` (ADR 0037): its entry's range rule, a
+            /// vector operator's (`VecOp::range`), ⊤ for a symbolic one.
+            pub fn range(&self, inputs: &[Range]) -> Range {
+                match self {
+                    $(OpSpec::$name => scalar_ops!(@range inputs [$($in),+] $($range)?),)*
+                    OpSpec::Vec(op) => op.range(inputs),
+                    OpSpec::Sym(_) => Range::Top,
+                }
             }
         }
     };

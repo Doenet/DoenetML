@@ -151,6 +151,8 @@ impl Error {
             OtherRelease { .. } => "cells-other-release",
             Banned(_) => "cells-banned",
             NotInInterface { .. } => "cells-not-in-interface",
+            ChoiceNotConstant { .. } => "cells-choice-not-constant",
+            ChoiceDomain { .. } => "cells-choice-domain",
             Unchecked(_) => "cells-unchecked",
             Internal(_) | AwaitsClones { .. } => "cells-internal",
         }

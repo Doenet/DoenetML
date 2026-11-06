@@ -194,9 +194,7 @@ impl<'s, 'a> Types<'s, 'a> {
                 Leaf::Given(_) | Leaf::Const(_) => PortType::Num,
                 Leaf::GivenText(_) => PortType::Text,
                 Leaf::GivenMath(_) => PortType::Math,
-                Leaf::Scope(ScopeConst::IterIndex | ScopeConst::SequencePick { .. }) => {
-                    PortType::Num
-                }
+                Leaf::Scope(ScopeConst::IterIndex | ScopeConst::Draw) => PortType::Num,
                 Leaf::Scope(ScopeConst::Seed(p)) => {
                     if check {
                         self.one_cell(t, e, *p, ArityOf::Prop(pi))?;

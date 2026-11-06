@@ -44,6 +44,7 @@ fn census() {
                 SlotClass::Constant {
                     value,
                     document: true,
+                    ..
                 } => {
                     document += 1;
                     values.insert(value.to_bits());

@@ -57,6 +57,17 @@ pub fn compile(
     Ok(crate::compile::compile(dast.clone(), true, true, true, true, true)?.compiled)
 }
 
+/// Each constant port's range as the check's evaluator finds it (ADR
+/// 0037), by (template, template slot): exact for a document constant.
+pub fn constant_ranges(
+    compiled: &crate::compile::Compiled,
+) -> std::collections::HashMap<(u32, crate::build::TemplateSlot), crate::program::Range> {
+    crate::compile::constant_ranges(compiled.view())
+        .into_iter()
+        .map(|(t, slot, r)| ((t.get(), slot), r))
+        .collect()
+}
+
 /// `compile`, with every value slot essential (`LoadOptions::classify`
 /// off).
 pub fn compile_unclassified(

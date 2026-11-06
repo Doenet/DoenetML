@@ -31,6 +31,11 @@ struct Counter {
     follows: bool,
     /// The number nodes counted so far.
     numbered: Vec<GraphNode>,
+    /// The sections counted from here on are numbered as one iteration
+    /// stands for every iteration, or every option of a select is built,
+    /// where a build numbers them by its iteration or its picks: a scope
+    /// constant whose value the graph does not hold (ADR 0037).
+    varies: bool,
 }
 
 impl<'c> Stamp<'c> {
@@ -196,7 +201,9 @@ impl<'c> Stamp<'c> {
     fn number_through_repeat(&mut self, r: Comp, gate: Option<GraphNode>, counter: &mut Counter) {
         let (known, before, follows) = (counter.known, counter.before, counter.follows);
         let start = counter.numbered.len();
+        let varies = std::mem::replace(&mut counter.varies, true);
         self.numbers(r, gate, counter);
+        counter.varies = varies;
         if counter.follows && !follows {
             let inside = counter.numbered[start..].to_vec();
             self.g.counted.extend(inside);
@@ -222,14 +229,21 @@ impl<'c> Stamp<'c> {
                 ComponentType::Collect if self.follows_counts(k) => {
                     self.number_through_repeat(k, gate, counter)
                 }
+                // A build numbers what its picks hold, and what follows
+                // them by how many they hold.
+                ComponentType::Select => {
+                    counter.varies = true;
+                    self.numbers(k, gate, counter)
+                }
                 ComponentType::ConditionalContent
-                | ComponentType::Select
                 | ComponentType::Group
                 | ComponentType::Collect => self.numbers(k, gate, counter),
                 ComponentType::Section => {
                     let s = self.slot(k, section::NUMBER);
                     if counter.follows {
                         self.g.counted.push(s);
+                    } else if counter.varies {
+                        self.g.scope_leaves.insert(s, ScopeLeaf::Varies);
                     }
                     let k1 = self.constant(counter.known + 1.0);
                     let number = match counter.before {

@@ -39,11 +39,14 @@ impl<'c> Stamp<'c> {
             self.element_ports(t, e, plan.props.len());
             return;
         };
+        // The referent's own walk is not this one's.
+        let need = self.need;
         if let Comp::Elem(rt, re) = referent {
             visiting.push((t, e));
             self.place_list_copy(rt, re, visiting);
             visiting.pop();
         }
+        self.need = need;
         let n = self.n_public(referent);
         self.element_ports(t, e, n);
         self.g.list_copies.insert((t, e), n);
@@ -313,16 +316,19 @@ impl<'c> Stamp<'c> {
     /// is a copy.
     pub(super) fn holds(&mut self) {
         let mut flags_of: FxMap<(TemplateId, ElemId), Vec<GraphNode>> = FxMap::default();
+        // The need of each flag's walk, by element, in its flags' order.
+        let mut flag_needs: FxMap<(TemplateId, ElemId), Vec<Option<u32>>> = FxMap::default();
         for i in 0..self.instances.len() {
             let (t, e) = self.instances[i];
             self.context = self.c.plans.templates[t.index()].row(e).node;
             let flags = match &self.c.plans.templates[t.index()].plan(e).hold {
                 Hold::Off => continue,
-                Hold::Always => vec![self.constant(1.0)],
+                Hold::Always => vec![(self.constant(1.0), None)],
                 Hold::While(refs) => refs
                     .iter()
                     .map(|&p| {
                         let (flags, _) = self.resolve_ref(p, t, Some(1));
+                        let need = self.need;
                         if flags.len() != 1 {
                             self.fail(Error::ArityMismatch {
                                 component_type: String::new(),
@@ -332,11 +338,12 @@ impl<'c> Stamp<'c> {
                             });
                         }
                         let flag = flags.first().copied().flatten();
-                        self.or_missing(flag)
+                        (self.or_missing(flag), need)
                     })
                     .collect(),
             };
-            flags_of.insert((t, e), flags);
+            flag_needs.insert((t, e), flags.iter().map(|f| f.1).collect());
+            flags_of.insert((t, e), flags.into_iter().map(|f| f.0).collect());
         }
         if flags_of.is_empty() {
             return;
@@ -378,8 +385,11 @@ impl<'c> Stamp<'c> {
                 };
                 self.set(s, def);
             }
-            for &f in &flags_of[&comp] {
+            for (&f, &need) in flags_of[&comp].iter().zip(&flag_needs[&comp]) {
                 self.g.holds.push((s, f));
+                if let Some(k) = need {
+                    self.g.read_needs.insert((s, f), k);
+                }
             }
         }
         for i in 0..self.g.later.len() {
@@ -393,29 +403,6 @@ impl<'c> Stamp<'c> {
                 self.g.later[i].1 = copy(target);
             }
         }
-    }
-
-    /// The draw of a `<selectFromSequence>`, element `e` of template `t`,
-    /// below `count`: from the seed the graph stands for every seed by (0),
-    /// mixed with the element's stable key and the stable levels of the
-    /// scopes around it, as `Builder::seeded_stream` draws it.
-    pub(super) fn drawn(&self, t: TemplateId, e: ElemId, count: u32) -> u32 {
-        use crate::build::{splitmix, stable_hash};
-        let keys = &self.c.plans.keys;
-        let key = self.c.plans.templates[t.index()].sealed.elems[e.index()].key;
-        // The seed, 0, mixed in as `seeded_stream` mixes it.
-        let mut h = splitmix(0x5eed_5e1e_c7ed_0001);
-        h = splitmix(h ^ stable_hash(keys.key_text(key).as_bytes()));
-        let mut s = t;
-        while let Some((pt, pe)) = self.c.plans.templates[s.index()].parent {
-            let node = self.c.plans.templates[pt.index()].row(pe).node;
-            let level = keys.scope_level(node, self.position(s) as u32).to_string();
-            h = splitmix(h ^ stable_hash(level.as_bytes()));
-            s = pt;
-        }
-        let h = splitmix(h);
-        let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * count as f64) as u32;
-        k.min(count - 1)
     }
 
     /// The position of the scope template `t` is stamped as, as the

@@ -466,6 +466,11 @@ impl<'c> Builder<'c> {
                                 .plans
                                 .port_attrs(template, tslot)
                                 .has(PortAttrs::DOCUMENT_CONSTANT),
+                            marked: self
+                                .compiled
+                                .plans
+                                .port_attrs(template, tslot)
+                                .has(PortAttrs::CONSTANT),
                         },
                         _ => SlotClass::Derived,
                     };

@@ -265,3 +265,290 @@ fn a_math_holds_at_most_255_references() {
         "{errs:?}"
     );
 }
+
+// ---- ADR 0037: a load-time choice reads constants -------------------------
+
+/// The error codes and messages of `src` at load, the same at every seed
+/// and the same as `diagnose`'s (ADR 0013, ADR 0014).
+fn choice_errors(src: &str) -> Vec<(&'static str, String)> {
+    let list = |doc: &Document| -> Vec<(&'static str, String)> {
+        doc.diagnostics()
+            .iter()
+            .filter(|d| d.kind == DiagnosticKind::Error)
+            .map(|d| (d.code, d.message.clone()))
+            .collect()
+    };
+    let first = list(&load_with_seed(src, 0).unwrap());
+    for seed in 1..8 {
+        assert_eq!(
+            list(&load_with_seed(src, seed).unwrap()),
+            first,
+            "seed {seed}: {src}"
+        );
+    }
+    let dast = cells_core::dast::Dast::from_json(&dast_json(src)).unwrap();
+    let diagnosed: Vec<(&'static str, String)> = cells_core::diagnose(&dast)
+        .into_iter()
+        .filter(|d| d.kind == DiagnosticKind::Error)
+        .map(|d| (d.code, d.message))
+        .collect();
+    assert_eq!(diagnosed, first, "{src}");
+    first
+}
+
+/// `src` loads with no error.
+fn accepted(src: &str) {
+    let errs = choice_errors(src);
+    assert!(errs.is_empty(), "{src}: {errs:?}");
+}
+
+/// `src` loads with one error, of `code`, whose message holds `says`.
+fn refused(src: &str, code: &str, says: &str) {
+    let errs = choice_errors(src);
+    assert_eq!(errs.len(), 1, "{src}: {errs:?}");
+    assert_eq!(errs[0].0, code, "{src}: {errs:?}");
+    assert!(
+        errs[0].1.contains(says),
+        "{src}: {:?} lacks {says:?}",
+        errs[0].1
+    );
+}
+
+// The document of ADR 0037's context: two draws of `a` leave `b` nothing,
+// which no seed an author previews may hide. Its `+ 3` form is fine at
+// every draw, and `b` lies in its sequence.
+#[test]
+fn a_sequence_some_draw_empties_is_refused() {
+    refused(
+        r#"<selectFromSequence name="a" from="1" to="5"/>
+<selectFromSequence name="b" from="1" to="$a - 3"/>"#,
+        "cells-choice-domain",
+        "its sequence can be empty",
+    );
+    let src = r#"<selectFromSequence name="a" from="1" to="5"/>
+<selectFromSequence name="b" from="1" to="$a + 3"/><number>$a</number><number>$b</number>"#;
+    accepted(src);
+    let mut seen = std::collections::BTreeSet::new();
+    for seed in 0..40 {
+        let doc = load_with_seed(src, seed).unwrap();
+        let (a, b) = (
+            doc.value("a", "value").unwrap(),
+            doc.value("b", "value").unwrap(),
+        );
+        assert!((1.0..=5.0).contains(&a) && a.fract() == 0.0, "a = {a}");
+        assert!(
+            b >= 1.0 && b <= a + 3.0 && b.fract() == 0.0,
+            "a = {a}, b = {b}"
+        );
+        seen.insert(b as i64);
+    }
+    assert!(seen.len() > 3, "{seen:?}");
+}
+
+// An iteration index ranges over its repeat's count: iteration 10 of
+// twenty empties `10 - $i`, as ADR 0012 reports a loop at any count that
+// closes it; nine iterations do not.
+#[test]
+fn a_sequence_some_iteration_empties_is_refused() {
+    refused(
+        r#"<repeatForSequence name="r" length="20" indexName="i">
+  <selectFromSequence name="s" from="1" to="10 - $i"/>
+</repeatForSequence>"#,
+        "cells-choice-domain",
+        "can be empty",
+    );
+    let src = r#"<repeatForSequence name="r" length="9" indexName="i">
+  <selectFromSequence name="s" from="1" to="10 - $i"/><number>$s</number>
+</repeatForSequence>"#;
+    accepted(src);
+    for seed in 0..10 {
+        let doc = load_with_seed(src, seed).unwrap();
+        for i in 1..=9 {
+            let c = doc.cell(&format!("r[{i}].s"), "value").unwrap();
+            let x = doc.cells[c.index()];
+            assert!(x >= 1.0 && x <= 10.0 - i as f64, "iteration {i}: {x}");
+        }
+    }
+}
+
+// Whether a `<number>` is constant depends on what inverts onto it
+// elsewhere: dragged through a point, `k` is a student's, and the error
+// says so; free, it is the author's.
+#[test]
+fn a_parameter_a_student_can_change_is_refused_naming_the_input() {
+    refused(
+        r#"<number name="k">5</number>
+<graph><point name="p" x="$k" y="0"/></graph>
+<selectFromSequence name="s" from="1" to="$k"/>"#,
+        "cells-choice-not-constant",
+        "'k.value' can be changed by a student through 'p'",
+    );
+    let src = r#"<number name="k">5</number>
+<number name="j">$k * 2</number>
+<selectFromSequence name="s" from="$k" to="$j"/><number>$s</number>"#;
+    accepted(src);
+    let doc = load_with_seed(src, 3).unwrap();
+    let s = doc.value("s", "value").unwrap();
+    assert!((5.0..=10.0).contains(&s), "{s}");
+    // An input's value directly.
+    refused(
+        r#"<numberInput name="n" value="4"/><selectFromSequence to="$n"/>"#,
+        "cells-choice-not-constant",
+        "through 'n'",
+    );
+}
+
+// What else makes a value one a student can change: a hold by a flag a
+// student sets, a gate a student opens, a count that follows a repeat, and
+// a read through an index the count of an input decides.
+#[test]
+fn holds_gates_counts_and_indexes_decide_whether_a_parameter_is_constant() {
+    refused(
+        r#"<booleanInput name="b"/><number name="k">5</number>
+<number name="m" fixed="$b">$k</number>
+<selectFromSequence to="$m"/>"#,
+        "cells-choice-not-constant",
+        "can be changed by a student",
+    );
+    accepted(
+        r#"<number name="k">5</number>
+<number name="m" fixed="true">$k</number>
+<selectFromSequence to="$m"/>"#,
+    );
+    refused(
+        r#"<booleanInput name="b"/>
+<conditionalContent name="cc">
+  <case condition="$b"><number name="x">5</number></case>
+  <else><number name="x">6</number></else>
+</conditionalContent>
+<selectFromSequence to="$cc.x"/>"#,
+        "cells-choice-not-constant",
+        "can be changed by a student",
+    );
+    refused(
+        r#"<repeatForSequence name="r" length="3"><number name="x">1</number></repeatForSequence>
+<collect name="c" from="$r" componentType="number"/>
+<selectFromSequence to="$c.count"/>"#,
+        "cells-choice-not-constant",
+        "is a count",
+    );
+    refused(
+        r#"<numberInput name="k" value="3"/>
+<repeatForSequence name="r" length="$k"><number name="n">4</number></repeatForSequence>
+<selectFromSequence to="$r[1].n"/>"#,
+        "cells-choice-not-constant",
+        "read through an index",
+    );
+    accepted(
+        r#"<repeatForSequence name="r" length="3"><number name="n">4</number></repeatForSequence>
+<selectFromSequence to="$r[1].n"/>"#,
+    );
+    // Past the count in every build: the missing value, which bounds
+    // nothing.
+    refused(
+        r#"<repeatForSequence name="r" length="3"><number name="n">4</number></repeatForSequence>
+<selectFromSequence to="$r[5].n"/>"#,
+        "cells-choice-domain",
+        "cannot be bounded",
+    );
+}
+
+// An exclude is a parameter like any other: another pick may be excluded,
+// and three excludes of three values can leave nothing.
+#[test]
+fn excludes_may_read_constants_and_must_leave_a_value() {
+    let src = r#"<selectFromSequence name="a" from="1" to="5"/>
+<selectFromSequence name="b" from="1" to="5" exclude="$a"/>
+<selectFromSequence name="c" from="1" to="5" exclude="2, 4"/><number>$a</number><number>$b</number><number>$c</number>"#;
+    accepted(src);
+    for seed in 0..30 {
+        let doc = load_with_seed(src, seed).unwrap();
+        let (a, b, c) = (
+            doc.value("a", "value").unwrap(),
+            doc.value("b", "value").unwrap(),
+            doc.value("c", "value").unwrap(),
+        );
+        assert!(a != b && (1.0..=5.0).contains(&b), "a {a}, b {b}");
+        assert!([1.0, 3.0, 5.0].contains(&c), "c {c}");
+    }
+    refused(
+        r#"<selectFromSequence name="a" from="1" to="3"/>
+<selectFromSequence name="b" from="1" to="3"/>
+<selectFromSequence name="c" from="1" to="3"/>
+<selectFromSequence from="1" to="3" exclude="$a $b $c"/>"#,
+        "cells-choice-domain",
+        "exclude can leave nothing",
+    );
+    refused(
+        r#"<selectFromSequence from="1" to="3" exclude="1 2 3"/>"#,
+        "cells-choice-domain",
+        "exclude can leave nothing",
+    );
+}
+
+// A `<math>` constant is evaluated by the check's engine, as a build
+// evaluates it: `pi` bounds a sequence of three.
+#[test]
+fn a_math_constant_bounds_a_sequence() {
+    let src = r#"<math name="m">pi</math>
+<selectFromSequence name="s" to="$m"/><number name="n">$s</number>"#;
+    accepted(src);
+    for seed in 0..20 {
+        let doc = load_with_seed(src, seed).unwrap();
+        let n = doc.value("n", "value").unwrap();
+        assert!([1.0, 2.0, 3.0].contains(&n), "{n}");
+    }
+    refused(
+        r#"<math name="m">x</math><selectFromSequence to="$m"/>"#,
+        "cells-choice-domain",
+        "cannot be bounded",
+    );
+}
+
+// A step a pick may make 0 is refused.
+#[test]
+fn a_step_that_may_be_zero_is_refused() {
+    refused(
+        r#"<selectFromSequence name="s" from="-1" to="1"/>
+<selectFromSequence from="1" to="10" step="$s"/>"#,
+        "cells-choice-domain",
+        "step can be 0",
+    );
+}
+
+// `<select numToSelect>` is shape: a document constant the build reads as
+// a number. An author's number may be read; an iteration index may not.
+#[test]
+fn a_selects_num_to_select_is_a_document_constant() {
+    let src = r#"<number name="n">2</number>
+<select name="s" numToSelect="$n">
+  <option><number name="v">1</number></option>
+  <option><number name="v">2</number></option>
+  <option><number name="v">3</number></option>
+</select>
+<number name="a">$s[1].v</number><number name="b">$s[2].v</number>"#;
+    accepted(src);
+    for seed in 0..10 {
+        let doc = load_with_seed(src, seed).unwrap();
+        let (a, b) = (
+            doc.value("a", "value").unwrap(),
+            doc.value("b", "value").unwrap(),
+        );
+        assert!(a != b && (1.0..=3.0).contains(&a) && (1.0..=3.0).contains(&b));
+    }
+    refused(
+        r#"<repeatForSequence length="3" indexName="i">
+  <select numToSelect="$i"><option><number>1</number></option><option><number>2</number></option><option><number>3</number></option></select>
+</repeatForSequence>"#,
+        "cells-choice-domain",
+        "must be the same in every scope",
+    );
+    // More than its options, through a reference: the drawability check
+    // reads the number the check evaluated.
+    refused(
+        r#"<number name="n">3</number>
+<select numToSelect="$n"><option><number>1</number></option><option><number>2</number></option></select>"#,
+        "cells-unsupported",
+        "numToSelect=3 is more than the 2 options",
+    );
+}

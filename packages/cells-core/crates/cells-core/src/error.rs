@@ -88,6 +88,20 @@ pub enum Error {
     /// made yet. Never reported, but as a core bug.
     #[error("a container copy's clones were read before outlining made them (a core bug)")]
     AwaitsClones { template: u32, elem: u32 },
+    /// A load-time choice reads a value a student can change (ADR 0037).
+    #[error(
+        "<{tag} {attr}=\"{text}\">: a load-time choice may read only values no student can change, and {reason}"
+    )]
+    ChoiceNotConstant {
+        tag: String,
+        attr: String,
+        text: String,
+        reason: String,
+    },
+    /// A load-time choice that some draw or some scope could not make
+    /// (ADR 0014, ADR 0037).
+    #[error("<{tag}>: {reason}")]
+    ChoiceDomain { tag: String, reason: String },
     #[error("'{name}' is not in the branch interface of '{choice}': {reason}")]
     NotInInterface {
         choice: String,

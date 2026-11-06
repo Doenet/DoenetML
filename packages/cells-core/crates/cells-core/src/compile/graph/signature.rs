@@ -27,9 +27,15 @@ pub(crate) fn sign(
     g: &TemplateGraph,
     d: &Defined,
     c: CompiledRef<'_>,
+    picks: &[(ChoiceId, u32)],
     rename: &dyn Fn(&str) -> String,
 ) -> Signature {
-    Signer::new(g, d, c, rename).sign()
+    let mut signer = Signer::new(g, d, c, rename);
+    signer.picks = picks
+        .iter()
+        .map(|&(cid, n)| (c.plans.choices[cid.index()].at, n))
+        .collect();
+    signer.sign()
 }
 
 /// An input as found: its component's position, the labelled cells its
@@ -59,6 +65,8 @@ struct Signer<'a, 'c> {
     seeded: HashMap<GraphNode, Value>,
     hashes: Vec<Option<u64>>,
     named: HashMap<GraphNode, (String, String)>,
+    /// Each select's `numToSelect` as the check evaluated it, by element.
+    picks: HashMap<(TemplateId, ElemId), u32>,
 }
 
 impl<'a, 'c> Signer<'a, 'c> {
@@ -83,6 +91,7 @@ impl<'a, 'c> Signer<'a, 'c> {
             seeded: HashMap::new(),
             hashes: vec![None; n],
             named: HashMap::new(),
+            picks: HashMap::new(),
         };
         // Seeds read the types the nodes declare, before an operator's
         // output is typed by what it makes.
@@ -363,28 +372,7 @@ impl<'a, 'c> Signer<'a, 'c> {
     /// The text of a math value, as the engine prints the handle a build
     /// makes of it.
     fn math_text(&mut self, origin: &MathOrigin) -> String {
-        let h = match origin {
-            MathOrigin::Tree(tree) => self.engine.import(tree),
-            MathOrigin::Constant(expr, post) => {
-                let text = self.c.plans.sym_text[expr].spell(self.c.dast);
-                let h = match self.engine.parse_tree::<RefId>(&text) {
-                    Ok(tree) => self.engine.import(&tree),
-                    Err(_) => self
-                        .engine
-                        .parse_constant(&text)
-                        .expect("a constant math text parses"),
-                };
-                match post {
-                    Post::None => h,
-                    Post::Simplify => self.engine.simplify(h),
-                    Post::Expand => self.engine.expand(h),
-                    Post::SimplifyExpand => {
-                        let h = self.engine.simplify(h);
-                        self.engine.expand(h)
-                    }
-                }
-            }
-        };
+        let h = math_handle(&mut self.engine, self.c, origin);
         self.engine.text(h)
     }
 
@@ -577,7 +565,7 @@ impl<'a, 'c> Signer<'a, 'c> {
                     return Domain::Options {
                         keys: def.branch_keys.iter().map(|k| k.to_string()).collect(),
                         weights: def.weights.iter().map(|&w| bits(w)).collect(),
-                        num_to_select: def.num_to_select,
+                        num_to_select: self.picks.get(&def.at).copied().unwrap_or(0),
                         with_replacement: def.with_replacement,
                     };
                 }

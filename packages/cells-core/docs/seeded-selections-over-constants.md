@@ -1,7 +1,10 @@
 # Seeded selections over constants: what changes if a select may read references
 
 An analysis, not a decision; ADR 0037 is the decision it led to, and
-where the two differ the ADR wins. Written against `cells` at `3cf22a4`,
+where the two differ the ADR wins: superseded by it. ADR 0037 is landed
+(its *As landed* section says where the code departs from it); in
+particular `numToSelect` must be a document constant, so the
+structural-input path of questions 1(b), 5 and 9 is not built. Written against `cells` at `3cf22a4`,
 assuming ADR 0032 step 8 was done. It has since landed (`e1478f0`): the
 check stamps, defines and walks the **template graph** (`compile/graph/`),
 the four records are `PortAttrs` bits in each template's `Checked` table,

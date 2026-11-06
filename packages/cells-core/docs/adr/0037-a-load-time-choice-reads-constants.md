@@ -1,6 +1,7 @@
 # A load-time choice reads constants, and the compile evaluates them
 
-Status: proposed 2026-11-06. Builds on ADR 0009 (choices split by timing),
+Status: accepted 2026-11-06. Proposed 2026-11-06; every migration step
+is done, with the departures recorded under Migration. Builds on ADR 0009 (choices split by timing),
 ADR 0014 (every error depends on the source), ADR 0018 (essential means a
 student can write it) and ADR 0028 (constants); on ADR 0032 step 8, the
 template graph (`compile/graph/`), over which the check stamps, defines
@@ -369,3 +370,79 @@ otherwise.
 7. **Docs.** ADR 0009's amendment, ADR 0028's row, `CONTEXT.md`,
    `ARCHITECTURE.md`, and `docs/seeded-selections-over-constants.md`
    marked as superseded by this ADR where they differ.
+
+### As landed
+
+All seven steps landed together. Where the code departs from the text
+above, it is here.
+
+- **Where constancy lives.** `PortAttrs::CONSTANT` is set from
+  `compile/graph/eval.rs` (`Constants`), after define, rather than inside
+  define itself: the stable-reference verdicts need the evaluator's
+  ranges (a count's value, an index's), so constancy and evaluation are
+  one fixpoint. Each round marks the non-constants from their seeds (a
+  given value the writable walk reaches, a counted value, a read whose
+  need is unstable) and judges every need over them; a verdict only gets
+  worse, so it ends. Define records the explaining input per writable
+  leaf (`Defined::written_by`) as its walk reaches it.
+- **Holds.** A flag that is not a constant makes a *computed* value not
+  one; a value nothing computes (a given leaf no student writes, a
+  constant) stays a constant under any hold, as a build's fold rule has
+  it. The golden `fixed.doenet` holds a literal `hide` by an input's flag,
+  which a build makes a constant: the attribute must mark it.
+- **Needs.** A walk records what it needs as it steps (`Need`, `Cond`,
+  `Count`), and every read it makes carries the need
+  (`TemplateGraph::read_needs`, a hold's flag's read among them). An
+  `Iter` step into the reader's own iteration needs nothing; any other
+  `Iter` or `Item` step needs its index inside the count; a cell index is
+  never proved stable. A need that lands past the count in every build is
+  the missing value: a read of it ranges over ⊤, which the domain check
+  refuses as "cannot be bounded".
+- **Ranges.** `Range` is `program/range.rs`; ⊤ also stands for "may be
+  NaN", so a rule that can give NaN from inputs in its ranges gives ⊤
+  (`Mul` of an unbounded range by one that holds 0, among others, which
+  the sampling test found). The range column is written after the
+  inverse in a `scalar_ops!` entry, not before it, so the macro can tell
+  it from the inverse's kind. `VecOp::SequencePick`'s rule allows the
+  count's `1e-10` past `to`.
+- **Scope values the graph holds one value of.** Besides the iteration
+  index and the draw (`ScopeLeaf`), a section's number inside a repeat
+  or after a select is held by the graph for one iteration or every
+  option at once; the evaluator gives it ⊤ (`ScopeLeaf::Varies`), which
+  `tests/every_count.rs` found.
+- **Select stand-ins.** The graph reads every option of a select without
+  the value mattering; the evaluator ranges a stand-in's port over its
+  members' (`TemplateGraph::select_reads`).
+- **Literal parameters are constants.** A literal `from`, `to`, `step`,
+  `exclude` or `<select numToSelect>` is planned as a constant, never a
+  given value, so with the classing off (`LoadOptions::classify`) it is no
+  essential cell, as a literal `hide` is not.
+- **`numToSelect` while planning.** A bare `$s` or `$s.x` names the one
+  option a select picks, which planning must know; a literal
+  `numToSelect` is still read while outlining for that
+  (`ChoiceDef::num_to_select`, now an `Option`), and a reference makes
+  such a path an error asking for an index. The drawability check moved
+  to the check for every `numToSelect`, literal or not, with its
+  messages unchanged; the build reads the number from `Checked::picks`
+  (`Plans::num_to_select`), as does the input signature's `Domain`.
+- **Messages.** A parameter a student can change is
+  `cells-choice-not-constant` ("`<selectFromSequence to="$k">`: a
+  load-time choice may read only values no student can change, and
+  'k.value' can be changed by a student through 'p'"); a domain that may
+  be empty, a step that may be 0, a bound that cannot be bounded and a
+  `numToSelect` that differs between scopes are `cells-choice-domain`,
+  naming the parameters' ranges ("its sequence can be empty (from is 1,
+  step is 1, to is from -2 to 2)") rather than the draws that empty it.
+- **Tests.** `tests/load_errors.rs` holds the documents of step 5 and 6,
+  and the hold, gate, counted value and unstable read that decide a
+  parameter's constancy (through the select's diagnostics rather than in
+  `tests/template_graph.rs`), each at eight seeds and against `diagnose`.
+  `tests/every_count.rs` checks that every constant a build makes is
+  marked (`every_constant_a_build_makes_is_one_the_check_marked`) and lies
+  in its evaluated range, exactly for a point
+  (`every_constant_lies_in_the_range_the_check_evaluated`), over a new
+  construct of picks over constants. It does not separately check that a
+  read called stable never resolves to the missing referent. The golden
+  diff is unchanged (`programs` differs for `choices.doenet`, whose select
+  gained its `numToSelect` port); `program::vector` holds the pick equal
+  to the draw it made before, bit for bit.

@@ -10,7 +10,7 @@
 
 use super::ops::scalar_ops;
 use crate::document::CellIdx;
-use crate::program::{OperandIdx, SymIdx, SymKind, VecIdx, VecOp};
+use crate::program::{OperandIdx, Range, SymIdx, SymKind, VecIdx, VecOp};
 
 /// `Math.round`: halves round toward positive infinity, unlike Rust's
 /// `round`, which rounds them away from zero.
@@ -59,6 +59,14 @@ fn choice_index(a: f64, n: f64) -> f64 {
     }
 }
 
+/// What `choice_index` gives over `a` and `n`: 0, or an `a` from 1 to `n`.
+fn choice_index_range(a: Range, n: Range) -> Range {
+    match (a, n) {
+        (Range::Span(_, ahi), Range::Span(_, nhi)) => Range::span(0.0, ahi.min(nhi).max(0.0)),
+        _ => Range::Top,
+    }
+}
+
 /// The input an inverse writes: every scalar operator writes its first.
 const A: usize = 0;
 
@@ -70,27 +78,32 @@ scalar_ops! {
     Add(a, b) {
         eval: a + b,
         exact |d| b.is_finite().then_some((A, d - b)),
+        range: a.corners(b, |x, y| x + y),
     }
     /// `a - b`.
     Sub(a, b) {
         eval: a - b,
         exact |d| b.is_finite().then_some((A, d + b)),
+        range: a.corners(b, |x, y| x - y),
     }
     /// `a * b`.
     Mul(a, b) {
         eval: a * b,
         exact |d| (b != 0.0 && b.is_finite()).then_some((A, d / b)),
+        range: a.times(b),
     }
     /// `a / b`.
     Div(a, b) {
         eval: a / b,
         exact |d| (b != 0.0 && b.is_finite()).then_some((A, d * b)),
+        range: a.over(b),
     }
     /// `b - a`: `Sub` with its inputs reversed, so that a request writes
     /// what is subtracted.
     RSub(a, b) {
         eval: b - a,
         exact |d| b.is_finite().then_some((A, b - d)),
+        range: b.corners(a, |x, y| x - y),
     }
     /// `b / a`: `Div` with its inputs reversed, so that a request writes the
     /// divisor.
@@ -98,31 +111,37 @@ scalar_ops! {
         eval: b / a,
         exact |d| (d != 0.0 && d.is_finite() && b != 0.0 && b.is_finite())
             .then_some((A, b / d)),
+        range: b.over(a),
     }
     /// NaN if either argument is NaN (unlike `f64::min`).
     Min(a, b) {
         eval: nan_min(a, b),
         projection |d| Some((A, nan_min(d, b))),
+        range: a.corners(b, f64::min),
     }
     /// NaN if either argument is NaN (unlike `f64::max`).
     Max(a, b) {
         eval: nan_max(a, b),
         projection |d| Some((A, nan_max(d, b))),
+        range: a.corners(b, f64::max),
     }
     /// `-a`.
     Negate(a) {
         eval: -a,
         exact |d| Some((A, -d)),
+        range: a.negated(),
     }
     /// Round half toward positive infinity, as `Math.round` (`js_round`).
     Round(a) {
         eval: js_round(a),
         projection |d| d.is_finite().then(|| (A, js_round(d))),
+        range: a.monotone(js_round),
     }
     /// `a` rounded down.
     Floor(a) {
         eval: a.floor(),
         projection |d| d.is_finite().then(|| (A, d.floor())),
+        range: a.monotone(f64::floor),
     }
     /// `a` when it is a whole number from 1 to `n`, else 0: a choice
     /// index, 0 meaning none is chosen. A request outside that set
@@ -130,12 +149,14 @@ scalar_ops! {
     ChoiceIndex(a, n) {
         eval: choice_index(a, n),
         projection |d| Some((A, choice_index(d, n))),
+        range: choice_index_range(a, n),
     }
     /// `a` unless it is NaN, then `b`: `valueOnNaN`. A NaN ask has no
     /// inverse: it would be asking for the fallback.
     NanTo(a, b) {
         eval: if a.is_nan() { b } else { a },
         exact |d| (!d.is_nan()).then_some((A, d)),
+        range: a.hull(b),
     }
     /// `a` to the power `b`.
     Pow(a, b) {
@@ -147,31 +168,37 @@ scalar_ops! {
     Copy(a) {
         eval: a,
         exact |d| Some((A, d)),
+        range: a,
     }
     /// Comparisons for conditions: 1 or 0, and 0 when either
     /// side is NaN. A request cannot change a condition.
     Lt(a, b) {
         eval: bit(a < b),
         drops,
+        range: Range::UNIT,
     }
     Le(a, b) {
         eval: bit(a <= b),
         drops,
+        range: Range::UNIT,
     }
     /// Equal within a relative error of `EQ_TOL`.
     Eq(a, b) {
         eval: bit(a == b || (a - b).abs() <= EQ_TOL * a.abs().max(b.abs())),
         drops,
+        range: Range::UNIT,
     }
     /// 1 when `a` holds (nonzero, not NaN), else 0.
     Truthy(a) {
         eval: bit(holds(a)),
         drops,
+        range: Range::UNIT,
     }
     /// 1 when `a` does not hold.
     Not(a) {
         eval: bit(!holds(a)),
         drops,
+        range: Range::UNIT,
     }
 }
 
@@ -371,6 +398,82 @@ mod inverses {
             "{} failures:\n{}",
             failures.len(),
             report.join("\n")
+        );
+    }
+}
+
+/// Every scalar operator's range rule (ADR 0037) holds every value it gives
+/// from inputs sampled across the declared ranges: a rule that lies fails
+/// here, not in a student's variant.
+#[cfg(test)]
+mod ranges {
+    use super::*;
+    use crate::program::OpSpec;
+
+    /// Spans with zero inside, at an end, outside, of one value, wide and
+    /// unbounded.
+    const SPANS: [Range; 9] = [
+        Range::Span(-3.0, -1.0),
+        Range::Span(-1.0, 2.0),
+        Range::Span(0.0, 0.0),
+        Range::Span(0.0, 5.0),
+        Range::Span(0.5, 4.0),
+        Range::Span(2.0, 2.0),
+        Range::Span(-1e3, 1e3),
+        Range::Span(1.0, f64::INFINITY),
+        Range::Span(f64::NEG_INFINITY, -2.0),
+    ];
+
+    /// Samples of a span: its ends, and points between them.
+    fn samples(r: Range) -> Vec<f64> {
+        let Range::Span(lo, hi) = r else {
+            return vec![0.0];
+        };
+        let (a, b) = (lo.max(-1e6), hi.min(1e6));
+        let mut v: Vec<f64> = (0..=10).map(|k| a + (b - a) * k as f64 / 10.0).collect();
+        v.extend([lo, hi, (a + b).floor(), 0.5 * (a + b)]);
+        v.retain(|x| r.holds(*x));
+        v
+    }
+
+    #[test]
+    fn every_range_rule_holds_what_its_operator_gives() {
+        let mut failures = Vec::new();
+        for spec in OpSpec::scalars() {
+            let n = spec.scalar_arity().unwrap();
+            let op = spec.bind_scalar(&CellIdx::below(n).collect::<Vec<_>>());
+            let combos: Vec<Vec<Range>> = (0..n).fold(vec![vec![]], |acc, _| {
+                acc.iter()
+                    .flat_map(|a| SPANS.iter().map(move |&r| [a.clone(), vec![r]].concat()))
+                    .collect()
+            });
+            for ranges in combos {
+                let rule = spec.range(&ranges);
+                let Range::Span(lo, hi) = rule else { continue };
+                let points: Vec<Vec<f64>> = ranges.iter().fold(vec![vec![]], |acc, &r| {
+                    acc.iter()
+                        .flat_map(|a| {
+                            samples(r)
+                                .into_iter()
+                                .map(move |x| [a.clone(), vec![x]].concat())
+                        })
+                        .collect()
+                });
+                for inp in points {
+                    let v = op.eval(&inp);
+                    if v.is_nan() || v < lo || v > hi {
+                        failures.push(format!(
+                            "{spec:?} over {ranges:?} at {inp:?} gave {v}, outside [{lo}, {hi}]"
+                        ));
+                    }
+                }
+            }
+        }
+        assert!(
+            failures.is_empty(),
+            "{} failures, first: {}",
+            failures.len(),
+            failures[0]
         );
     }
 }

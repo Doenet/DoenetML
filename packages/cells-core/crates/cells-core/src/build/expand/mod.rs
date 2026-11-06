@@ -8,7 +8,6 @@ use crate::components::{Collection, PropAt, PropSel};
 
 mod aggregate;
 mod choice;
-pub(crate) use choice::{splitmix, stable_hash};
 mod math;
 mod resolve;
 
@@ -1246,12 +1245,13 @@ impl<'c> Builder<'c> {
                 Leaf::Scope(ScopeConst::IterIndex) => {
                     BuiltSource::Const(self.scopes[inst.scope].2 as f64)
                 }
-                Leaf::Scope(ScopeConst::SequencePick { from, step, count }) => {
+                // A number in [0, 1) from the high bits of the select's
+                // stream, which its pick indexes the sequence by.
+                Leaf::Scope(ScopeConst::Draw) => {
                     let key =
                         c.templates[inst.template.index()].sealed.elems[inst.elem.index()].key;
                     let h = choice::splitmix(self.seeded_stream(inst.scope, key));
-                    let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
-                    BuiltSource::Const(from + step * k.min(count - 1) as f64)
+                    BuiltSource::Const((h >> 11) as f64 / (1u64 << 53) as f64)
                 }
                 Leaf::Scope(ScopeConst::Seed(p)) => {
                     let from = self

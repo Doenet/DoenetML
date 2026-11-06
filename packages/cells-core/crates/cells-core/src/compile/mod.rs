@@ -61,6 +61,8 @@ mod share;
 mod source;
 mod values;
 
+#[cfg(feature = "testing")]
+pub(crate) use check::constant_ranges;
 pub use check::diagnose;
 pub(crate) use check::{CompileOutput, compile};
 pub use plan::Compiled;

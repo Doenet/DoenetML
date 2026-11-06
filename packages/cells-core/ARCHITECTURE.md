@@ -144,8 +144,13 @@ Runs once per load and depends on the source alone.
   cannot be built (`Stamp::fail`, which names the element to box), it
   rejects any dependency loop that could close at some count, finds the
   document's structural depth, defines the graph and walks it for what
-  every build reads of each port (below), checks the prefill rule, and
-  warns of each request no build could land (ADR 0026). It makes no
+  every build reads of each port (below), checks the prefill rule,
+  evaluates the constants (`compile/graph/eval.rs`, ADR 0037: which ports
+  are constants, read only through stable references, and the range of
+  each, exactly for a document constant) and checks every load-time
+  choice over them, each parameter a constant and every draw in every
+  scope possible, recording each `<select>`'s `numToSelect` for the
+  builds, and warns of each request no build could land (ADR 0026). It makes no
   program (ADR 0035). Every document goes through the check, with or
   without repeats: a load is one sequence of steps. An element that fails
   to build is *boxed*; see [An element cannot be

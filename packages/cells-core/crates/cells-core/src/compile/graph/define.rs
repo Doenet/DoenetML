@@ -28,6 +28,10 @@ pub(crate) struct Defined {
     pub(crate) essential: Vec<bool>,
     /// Per node, whether the document computes its cell.
     pub(crate) live: Vec<bool>,
+    /// Each writable node's first input to reach it, by its position in
+    /// the graph's components: what a refused load-time choice names
+    /// (ADR 0037).
+    pub(crate) written_by: FxMap<GraphNode, u32>,
 }
 
 /// One cell as one of its definitions defines it, and what holds it.
@@ -134,10 +138,11 @@ pub(crate) fn define(
         held_always,
         essential: Vec::new(),
         live: Vec::new(),
+        written_by: FxMap::default(),
     };
     d.orient(g);
     d.prefill_rule(g, c)?;
-    d.essential = d.writable(g);
+    (d.essential, d.written_by) = d.writable(g);
     d.live = d.live_nodes(g);
     Ok(d)
 }
@@ -213,33 +218,47 @@ impl Defined {
     }
 
     /// Per node, whether it is a given value a student's action can write:
-    /// one a request reaches from an input that no constant flag holds.
-    fn writable(&self, g: &TemplateGraph) -> Vec<bool> {
+    /// one a request reaches from an input that no constant flag holds;
+    /// and each such node's first input to reach it.
+    fn writable(&self, g: &TemplateGraph) -> (Vec<bool>, FxMap<GraphNode, u32>) {
         let mut writable = vec![false; g.nodes.len()];
         let mut stack = Vec::new();
-        for comp in &g.comps {
+        // The input each cell on the walk was first reached from.
+        let mut from: FxMap<GraphNode, u32> = FxMap::default();
+        for (ci, comp) in g.comps.iter().enumerate() {
             let np = comp.n_public as usize;
             for pi in 0..np {
                 if comp.component_type.is_input_prop(np, pi) {
-                    stack.push(self.cell_of(comp.base.offset(pi)));
+                    let cell = self.cell_of(comp.base.offset(pi));
+                    from.entry(cell).or_insert(ci as u32);
+                    stack.push(cell);
                 }
             }
         }
+        // The walk takes cells from the end of its stack.
+        stack.reverse();
+        let mut written_by = FxMap::default();
         self.walk(
             g,
             stack,
             &[],
             |_| true,
             |def, stack| {
+                let origin = from[&self.cell_of(def.node)];
                 if let Def::Given(_) = def.def
                     && !def.held_always
                 {
                     writable[def.node.index()] = true;
+                    written_by.entry(def.node).or_insert(origin);
                 }
-                stack.extend(def.request_targets().map(|n| self.cell_of(n)));
+                for n in def.request_targets() {
+                    let cell = self.cell_of(n);
+                    from.entry(cell).or_insert(origin);
+                    stack.push(cell);
+                }
             },
         );
-        writable
+        (writable, written_by)
     }
 
     /// Per node, whether its cell is live: reached from a root (a prop
@@ -421,8 +440,15 @@ impl Defined {
 
     /// Each port's attributes, per template by template slot: writable,
     /// live, a counted value, a document constant (a constant, or a given
-    /// value no student's action can write, where its plan gives one).
-    pub(crate) fn attrs(&self, g: &TemplateGraph, c: CompiledRef<'_>) -> Vec<Vec<PortAttrs>> {
+    /// value no student's action can write, where its plan gives one), and
+    /// a constant by `constant` (`eval::Constants`, ADR 0037).
+    pub(crate) fn attrs(
+        &self,
+        g: &TemplateGraph,
+        c: CompiledRef<'_>,
+        constant: &[bool],
+    ) -> Vec<Vec<PortAttrs>> {
+        let constant = constant.to_vec();
         let n = g.nodes.len();
         let mut counted = vec![false; n];
         for &s in &g.counted {
@@ -464,6 +490,7 @@ impl Defined {
                 (&self.live, PortAttrs::LIVE),
                 (&counted, PortAttrs::COUNTED),
                 (&document, PortAttrs::DOCUMENT_CONSTANT),
+                (&constant, PortAttrs::CONSTANT),
             ] {
                 if marked[s] {
                     *a |= attr;

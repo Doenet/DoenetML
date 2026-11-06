@@ -24,7 +24,7 @@ impl<'c> Builder<'c> {
         if !def.reactive {
             let (t, e) = def.at;
             let picks = self.pick(
-                def,
+                cid,
                 scope,
                 c.templates[t.index()].sealed.elems[e.index()].key,
             );
@@ -152,7 +152,8 @@ impl<'c> Builder<'c> {
     /// A select's picks: option indices drawn from a stream that depends on
     /// the document seed and the select's position (its element and the
     /// iteration chain it sits in), so it draws the same way in every build.
-    fn pick(&self, def: &ChoiceDef, scope: ScopeId, key: ElemKey) -> Vec<usize> {
+    fn pick(&self, cid: ChoiceId, scope: ScopeId, key: ElemKey) -> Vec<usize> {
+        let def = &self.compiled.plans.choices[cid.index()];
         let n = def.branches.len();
         // A select with no options picks nothing.
         if n == 0 {
@@ -160,8 +161,10 @@ impl<'c> Builder<'c> {
         }
         let mut h = self.seeded_stream(scope, key);
         let mut weights = def.weights.clone();
-        let mut picks = Vec::with_capacity(def.num_to_select as usize);
-        for _ in 0..def.num_to_select {
+        // The number the check evaluated (ADR 0037).
+        let num_to_select = self.compiled.plans.num_to_select(cid);
+        let mut picks = Vec::with_capacity(num_to_select as usize);
+        for _ in 0..num_to_select {
             h = splitmix(h);
             let total: f64 = weights.iter().sum();
             let mut r = (h >> 11) as f64 / (1u64 << 53) as f64 * total;

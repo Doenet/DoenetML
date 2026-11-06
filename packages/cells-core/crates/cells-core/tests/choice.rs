@@ -334,10 +334,17 @@ fn select_references_by_position_are_banned_and_bare_names_need_one_pick() {
     assert_eq!(e.0, "cells-banned", "{}", e.1);
     let e = load_err(&format!("{SELECT}<number>$s.v</number>"));
     assert_eq!(e.0, "cells-banned", "{}", e.1);
+    // A student can change `n`: what the seed chose would move under them
+    // (ADR 0037), and the error says through what.
     let e = load_err(
         r#"<select name="s" numToSelect="$n"><option><number>1</number></option></select><numberInput name="n"/>"#,
     );
-    assert_eq!(e.0, "cells-banned", "{}", e.1);
+    assert_eq!(e.0, "cells-choice-not-constant", "{}", e.1);
+    assert!(
+        e.1.contains("'n.value'") && e.1.contains("through 'n'"),
+        "{}",
+        e.1
+    );
     let e = load_err(
         r#"<numberInput name="n"/><conditionalContent name="cc" condition="$n>0"><number>1</number></conditionalContent><conditionalContent extend="$cc"/>"#,
     );

@@ -295,7 +295,11 @@ expression written in the document (a math handle); an iteration's index; the
 shared missing-referent NaN; a fold's outputs. A **document constant** is the
 same in every instance of its template slot, and has a cell in the constant
 pool; a **scope constant** (an iteration's index, a `<selectFromSequence>`
-pick) depends on its scope too, and each build makes its cell. The constants
+pick, a fold over its draw and its parameters, ADR 0037) depends on its scope
+too, and each build makes its cell. The check marks every port that is a
+constant, document or scope (`PortAttrs::CONSTANT`, ADR 0037): one read only
+through stable references, never a counted value, and, computed, held by no
+flag that is not one. The constants
 are the first cells, `..n_const`, the pool's first. Constants have no producer
 and no essential key; a request that reaches one is dropped. A constant nothing
 live reads gets no cell when the load is pruned (ADR 0019); the dead cell is
@@ -353,8 +357,10 @@ build reads to decide what the port's cell holds, whether a `<math>` is a
 math cell, and which reference leaf inside math is a math leaf. Every port
 also has **port attributes** (`PortAttrs`, ADR 0032 step 8, ADR 0036):
 what the check found of it, which every build reads, a bit each for
-writable, live, a counted value and a document constant, kept by template
-slot in the check's table of each template (`Checked`).
+writable, live, a counted value, a document constant and a constant (ADR
+0037), kept by template slot in the check's table of each template
+(`Checked`), beside each `<select>`'s `numToSelect` as the check evaluated
+it.
 _Avoid_: slot (a slot is the build's numbering of a port)
 
 **Slot** — At build time, one port of one component instance, before
@@ -553,7 +559,27 @@ and the content inside it. A branch is a naming region, like an iteration.
 **Load-time choice** — A choice made once, while the document is built, from
 the document seed (`<select>` and its relatives). Unchosen branches are never
 built into the document: they have no cells and no components. The load's
-check builds every branch once and discards it (ADR 0014).
+check builds every branch once and discards it (ADR 0014). What it chose
+does not move while a student works: its parameters (`from`, `to`, `step`,
+`exclude`, `numToSelect`) may read any constant, and nothing a tick writes
+(ADR 0037); a `<select>`'s `numToSelect` must be a document constant, and
+its weights literals. The check evaluates the parameters (*Range*) and
+refuses a choice some draw or some scope could not make.
+
+**Range** — What the check's constant evaluator gives a constant port (ADR
+0037, `compile/graph/eval.rs`): `[lo, hi]` in `f64`, or ⊤ (anything, NaN
+included). A document constant's is its one value, computed by the
+operators' evaluations (and an engine of the evaluator's own for a math
+constant); a scope constant's holds it in every scope: an iteration's index
+ranges over its repeat's count, a draw over `[0, 1)`, an operator applies
+its range rule (`range` in `scalar_ops!`, `VecOp::range`), which may be
+wider than what it gives, never narrower.
+
+**Stable reference** — A read whose referent exists in every build the
+session can reach (ADR 0037): one through no index, into its own
+iteration, or whose every index lands inside a count that is a constant.
+Only a stable reference passes a constant on; one past every count reads
+the missing value.
 
 **Reactive choice** — A choice that a cell decides and that can change on any
 tick (`<conditionalContent>`). Its active branch can change without the

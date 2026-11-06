@@ -131,6 +131,10 @@ pub enum SlotClass {
     Constant {
         value: f64,
         document: bool,
+        /// Whether the check's attribute marks its port a constant
+        /// (`PortAttrs::CONSTANT`, ADR 0037), which every constant a build
+        /// makes, a fold included, must be.
+        marked: bool,
     },
     Derived,
     /// Another slot's cell.

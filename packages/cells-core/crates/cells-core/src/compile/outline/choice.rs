@@ -82,38 +82,30 @@ impl Compiler<'_> {
         if branches.is_empty() && reactive {
             return Err(Error::Unsupported(format!("<{tag}> with no branches")));
         }
+        // A literal `numToSelect` is known here, for a reference to the
+        // one option a select picks (`$s.x`); any other is planned with
+        // the choice and evaluated by the check, which also checks the
+        // select can draw its picks (ADR 0037).
         let (num_to_select, with_replacement) = if reactive {
-            (1, false)
+            (Some(1), false)
         } else {
             let num = match d.attr(el, "numToSelect") {
-                Some(a) => self.literal_attr(a, "numToSelect")?,
-                None => 1.0,
+                Some(a) if self.attr_text(a).is_some() => {
+                    Some(self.literal_attr(a, "numToSelect")?)
+                }
+                Some(_) => None,
+                None => Some(1.0),
             };
-            if num < 0.0 || num.fract() != 0.0 {
+            if let Some(num) = num
+                && (num < 0.0 || num.fract() != 0.0)
+            {
                 return Err(Error::BadValue {
                     attr: "numToSelect".into(),
                     text: num.to_string(),
                 });
             }
-            (num as u32, self.attr_flag(el, "withReplacement"))
+            (num.map(|n| n as u32), self.attr_flag(el, "withReplacement"))
         };
-        // Whether the select can draw its picks is a fact about the source,
-        // checked here and not when drawing, which a select in a repeat does
-        // for every iteration a student adds (ADR 0014).
-        let n = branches.len();
-        if !reactive && n > 0 && num_to_select > 0 {
-            if !with_replacement && num_to_select as usize > n {
-                return Err(Error::Unsupported(format!(
-                    "numToSelect={num_to_select} is more than the {n} options of a <select> without replacement"
-                )));
-            }
-            let drawable = branches.iter().filter(|b| b.2 > 0.0).count();
-            if drawable == 0 || !with_replacement && num_to_select as usize > drawable {
-                return Err(Error::Unsupported(
-                    "a <select> whose remaining options all have weight 0".into(),
-                ));
-            }
-        }
         let mut templates = Vec::with_capacity(branches.len());
         for (_, nodes, _) in &branches {
             let sub = self.push_template(Some((t, e)));

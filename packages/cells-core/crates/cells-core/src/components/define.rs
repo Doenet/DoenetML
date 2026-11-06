@@ -863,6 +863,7 @@ macro_rules! component {
     (@kind Value) => { $crate::components::AttrKind::Value };
     (@kind Point) => { $crate::components::AttrKind::Point };
     (@kind Points) => { $crate::components::AttrKind::Points { max: None } };
+    (@kind Scalars) => { $crate::components::AttrKind::Scalars };
     (@kind Points($max:expr)) => { $crate::components::AttrKind::Points { max: Some($max) } };
     (@kind Flag($d:expr)) => { $crate::components::AttrKind::Flag { default: $d } };
     (@kind Bool($d:expr)) => { $crate::components::AttrKind::Bool { default: $d } };
@@ -885,6 +886,7 @@ macro_rules! component {
     (@field Value) => { Option<$crate::compile::api::Source> };
     (@field Point) => { Option<$crate::compile::api::PointAttr> };
     (@field Points $(($max:expr))?) => { Vec<$crate::compile::api::GivenPoint> };
+    (@field Scalars) => { Vec<$crate::compile::api::Source> };
     (@field Flag($d:expr)) => { $crate::compile::api::Source };
     (@field Bool($d:expr)) => { bool };
     (@field Number($d:expr)) => { f64 };
@@ -900,6 +902,7 @@ macro_rules! component {
     (@get Value, $r:ident, $a:expr) => { $r.scalar($a) };
     (@get Point, $r:ident, $a:expr) => { $r.point($a) };
     (@get Points $(($max:expr))?, $r:ident, $a:expr) => { $r.points($a) };
+    (@get Scalars, $r:ident, $a:expr) => { $r.scalars($a) };
     (@get Flag($d:expr), $r:ident, $a:expr) => { $r.flag($a, $d) };
     (@get Bool($d:expr), $r:ident, $a:expr) => { $r.bool($a, $d) };
     (@get Number($d:expr), $r:ident, $a:expr) => { $r.number($a, $d) };

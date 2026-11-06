@@ -387,12 +387,7 @@ impl<'a> Compiler<'a> {
                 if let Some(cid) = choice_here {
                     if matches!(at, At::Elem(_)) && !self.choice(cid).reactive {
                         // `$s.x` is `$s[1].x` when the select picks one option.
-                        if self.choice(cid).num_to_select != 1 {
-                            return Err(Error::Banned(format!(
-                                "'${display}' needs an index: the select picks {} options",
-                                self.choice(cid).num_to_select
-                            )));
-                        }
+                        self.picks_one(cid, &display.to_string())?;
                         steps.push(Step::Item(
                             Collection::Picks,
                             IndexPlan {
@@ -623,12 +618,7 @@ impl<'a> Compiler<'a> {
             && let Body::Choice(cid) = self.outlined(cur_t).elems[e.index()].body
             && !self.choice(cid).reactive
         {
-            if self.choice(cid).num_to_select != 1 {
-                return Err(Error::Banned(format!(
-                    "'${display}' needs an index: the select picks {} options",
-                    self.choice(cid).num_to_select
-                )));
-            }
+            self.picks_one(cid, &display.to_string())?;
             steps.push(Step::Item(
                 Collection::Picks,
                 IndexPlan {
@@ -804,6 +794,21 @@ fn parse_index(mut chars: impl Iterator<Item = char>) -> Option<i64> {
 /// What both outlining and planning read of a reference: an `extend`'s
 /// plan, its referent's type, and a choice's interface a path steps into.
 impl Compiler<'_> {
+    /// A reference `display` naming the one option select `cid` picks
+    /// needs the select to pick one, which only a literal `numToSelect`
+    /// says while planning.
+    pub(in crate::compile) fn picks_one(&self, cid: ChoiceId, display: &str) -> Result<()> {
+        match self.choice(cid).num_to_select {
+            Some(1) => Ok(()),
+            Some(n) => Err(Error::Banned(format!(
+                "'${display}' needs an index: the select picks {n} options"
+            ))),
+            None => Err(Error::Banned(format!(
+                "'${display}' needs an index: the select's numToSelect is not a literal 1"
+            ))),
+        }
+    }
+
     /// Element `e` as outlining made it, for a reference to read on
     /// through. Fails naming a container copy whose clones outlining has
     /// not made yet.

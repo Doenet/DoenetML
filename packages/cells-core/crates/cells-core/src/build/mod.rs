@@ -72,7 +72,6 @@ impl crate::sym::Leaf for SlotId {
 }
 
 use expand::*;
-pub(crate) use expand::{splitmix, stable_hash};
 
 impl<'c> Builder<'c> {
     /// Expand and resolve. The failure names the element to box.

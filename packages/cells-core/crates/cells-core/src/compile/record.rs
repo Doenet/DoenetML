@@ -16,6 +16,8 @@ pub(crate) enum AttrValue {
     Scalar(Source),
     Point(PointAttr),
     Points(Vec<GivenPoint>),
+    /// `Scalars`: a source per item.
+    Scalars(Vec<Source>),
     Bool(bool),
     Number(f64),
     /// `Literal`: the number, or the error reading it met, for the
@@ -163,6 +165,14 @@ impl Record {
         }
     }
 
+    /// A list of scalars: a source per item, none when absent.
+    pub(crate) fn scalars(&self, attr: Attr) -> Vec<Source> {
+        match self.get(attr) {
+            AttrValue::Scalars(xs) => xs.clone(),
+            _ => Vec::new(),
+        }
+    }
+
     /// A 0/1 flag: its source, `default` when absent.
     pub(crate) fn flag(&self, attr: Attr, default: bool) -> Source {
         match self.get(attr) {
@@ -297,6 +307,11 @@ impl Record {
         for v in &mut self.values {
             match v {
                 AttrValue::Scalar(s) => rebase_source(s, rw),
+                AttrValue::Scalars(xs) => {
+                    for s in xs {
+                        rebase_source(s, rw);
+                    }
+                }
                 AttrValue::Point(PointAttr::Point(p)) => rebase_point(p, rw),
                 AttrValue::Points(ps) => {
                     for p in ps {
@@ -582,6 +597,7 @@ impl Compiler<'_> {
             AttrKind::Points { .. } => {
                 AttrValue::Points(self.plan_point_list(rf, t, scope, node, a)?)
             }
+            AttrKind::Scalars => AttrValue::Scalars(self.plan_scalar_list(rf, t, scope, a)?),
             AttrKind::Flag { .. } => AttrValue::Scalar(match self.single_macro(a) {
                 // A reference is bound.
                 Some(_) => self.plan_scalar(rf, t, scope, d.attr_children(a))?,

@@ -6,6 +6,7 @@ use crate::sym::{Engine, Handle};
 use crate::document::CellIdx;
 mod instr;
 mod ops;
+mod range;
 pub(crate) mod refuse;
 mod scalar;
 mod vector;
@@ -14,8 +15,12 @@ pub use instr::{
     Instr, InstrIdx, MemoIdx, OperandIdx, Operands, Post, SAMPLES, SymEntry, SymIdx, SymKind,
     TapeIdx, VecIdx,
 };
+pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
-pub use vector::{MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp};
+pub use vector::{
+    MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp, fewest_in_sequence, sequence_count,
+    sequence_index,
+};
 
 /// What a cell's `f64` means: a number, a string id into the document's string
 /// table, or an expression handle in the symbolic engine.

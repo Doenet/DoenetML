@@ -36,13 +36,41 @@ impl<'c> Stamp<'c> {
         }
         let mut label = vec![Coord::Keep(0); self.g.depth[sc.index()] as usize];
         let mut cur = At::Iter(sc);
+        // This walk's need, apart from that of a walk of an index cell
+        // inside it.
+        let outer = std::mem::take(&mut self.walk_need);
         for (si, step) in plan.steps.iter().enumerate() {
             let to_iface = matches!(plan.steps.get(si + 1), Some(Step::Iface(..)));
             cur = self.step(cur, step, t, src_depth, to_iface, &mut label, true);
             // A walk of an index cell walked another plan.
             self.walking = p;
         }
+        let (conds, unstable) = std::mem::replace(&mut self.walk_need, outer);
+        self.need = if unstable {
+            self.g.needs.push(Need::Unstable);
+            Some(self.g.needs.len() as u32 - 1)
+        } else if conds.is_empty() {
+            None
+        } else {
+            self.g.needs.push(Need::All(conds));
+            Some(self.g.needs.len() as u32 - 1)
+        };
         (cur, plan.prop, label)
+    }
+
+    /// The walk being resolved enters `count` entries at index `ip`, read
+    /// from template `t`: a condition of its need, or for a cell index, no
+    /// proof it is stable.
+    fn needs_index(&mut self, count: Count, ip: &IndexPlan, t: TemplateId) {
+        if ip.is_dynamic() {
+            self.walk_need.1 = true;
+        } else {
+            self.walk_need.0.push(Cond {
+                count,
+                terms: ip.terms.clone(),
+                from: t,
+            });
+        }
     }
 
     /// One step of a walk from `cur`, read from template `t`. Over a
@@ -122,14 +150,30 @@ impl<'c> Stamp<'c> {
                         else {
                             return At::Missing;
                         };
+                        let entered = self.g.depth[rt.index()] + 1;
+                        let coord = index_coord(ip, src_depth, entered);
                         if push {
-                            let entered = self.g.depth[rt.index()] + 1;
-                            label.push(index_coord(ip, src_depth, entered));
+                            label.push(coord);
+                        }
+                        // Its own iteration exists wherever it is read.
+                        if coord != Coord::Keep(0) {
+                            let ty = self.c.plans.templates[rt.index()].row(re).component_type;
+                            let pi = ty.count_prop().expect("a repeat has a count");
+                            let count = Count::Node(self.g.port(rt, re, pi));
+                            self.needs_index(count, ip, t);
                         }
                         (vec![At::Iter(template)], true)
                     }
-                    Step::Item(Collection::Picks, _) => return self.pick(c, to_iface, label, push),
-                    Step::Item(Collection::Gathered, _) => {
+                    Step::Item(Collection::Picks, ip) => {
+                        if let Comp::Elem(ct, ce) = c
+                            && let Body::Choice(cid) =
+                                self.c.plans.templates[ct.index()].row(ce).body
+                        {
+                            self.needs_index(Count::Picks(cid), ip, t);
+                        }
+                        return self.pick(c, to_iface, label, push);
+                    }
+                    Step::Item(Collection::Gathered, ip) => {
                         // An item of a collect, a copy, is not one.
                         let gathered = match c {
                             Comp::Elem(ct, ce) => self.collected.get(&(ct, ce)).cloned(),
@@ -139,10 +183,18 @@ impl<'c> Stamp<'c> {
                             self.fail(Error::NotIndexable(self.display()));
                             return At::Missing;
                         };
+                        let count = match c {
+                            Comp::Elem(ct, ce) if follows => {
+                                Count::Node(self.g.port(ct, ce, prop::collect::COUNT))
+                            }
+                            _ => Count::Fixed(items.len() as u32),
+                        };
+                        self.needs_index(count, ip, t);
                         (items.into_iter().map(At::Comp).collect(), follows)
                     }
-                    Step::Item(Collection::ListPoints, _) => {
-                        let points = self.children(c).into_iter().map(At::Comp).collect();
+                    Step::Item(Collection::ListPoints, ip) => {
+                        let points: Vec<At> = self.children(c).into_iter().map(At::Comp).collect();
+                        self.needs_index(Count::Fixed(points.len() as u32), ip, t);
                         (points, false)
                     }
                     Step::Item(..) => unreachable!("planning indexes no other collection"),

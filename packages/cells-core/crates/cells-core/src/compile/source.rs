@@ -92,7 +92,11 @@ impl Compiler<'_> {
     }
 
     pub(in crate::compile) fn literal_attr(&self, a: AttrId, name: &str) -> Result<f64> {
-        let text = self.attr_text(a).ok_or_else(|| Error::Banned(format!("'{name}' must be a literal number: a load-time choice depends only on the document seed and literals")))?;
+        let text = self.attr_text(a).ok_or_else(|| {
+            Error::Banned(format!(
+                "'{name}' must be a literal number: it is read before any value is computed"
+            ))
+        })?;
         text.trim().parse::<f64>().map_err(|_| Error::BadValue {
             attr: name.into(),
             text,

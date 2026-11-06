@@ -164,9 +164,10 @@ pub(crate) enum Leaf {
 pub(crate) enum ScopeConst {
     /// The 1-based position of the enclosing iteration.
     IterIndex,
-    /// A `<selectFromSequence>`'s value: `from + step * k` for a `k` below
-    /// `count` drawn per instance from the document seed.
-    SequencePick { from: f64, step: f64, count: u32 },
+    /// A `<selectFromSequence>`'s draw: a number in `[0, 1)` drawn per
+    /// instance from the document seed, which its pick (`VecOp::
+    /// SequencePick`) indexes the sequence by (ADR 0037).
+    Draw,
     /// A given math value whose initial expression is the value the
     /// reference names when the cell is first built (a mathInput's
     /// `prefill="$n"`): a seed, not a binding.
@@ -361,7 +362,10 @@ pub(crate) struct ChoiceDef {
     /// Reactive: each case's `condition` attribute (None: an else).
     pub(crate) conditions: Vec<Option<AttrId>>,
     /// Load-time: picks, with replacement or not, and a weight per option.
-    pub(crate) num_to_select: u32,
+    /// How many picks is known while outlining only when `numToSelect`
+    /// is a literal; every build reads the number the check found
+    /// (`Plans::num_to_select`, ADR 0037).
+    pub(crate) num_to_select: Option<u32>,
     pub(crate) with_replacement: bool,
     pub(crate) weights: Vec<f64>,
     /// The branch interface: name -> type and the element carrying it in
@@ -1466,6 +1470,9 @@ pub(crate) struct Plans {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Checked {
     pub(crate) attrs: Vec<PortAttrs>,
+    /// The `numToSelect` of each select of the template, by element: a
+    /// document constant the check evaluated (ADR 0037).
+    pub(crate) picks: Vec<(ElemId, u32)>,
 }
 
 /// What the check found of a port, which every build reads (ADR 0036): a
@@ -1487,6 +1494,12 @@ impl PortAttrs {
     /// A document constant: its constant is the same in every instance.
     /// Every other constant is a scope constant (ADR 0028).
     pub(crate) const DOCUMENT_CONSTANT: PortAttrs = PortAttrs(1 << 3);
+    /// A value no tick changes (ADR 0037): a constant leaf, a scope leaf,
+    /// a given value no student's action can write, or an operator, alias
+    /// or vector output over such values, read only through stable
+    /// references; never a counted value, nor held by a flag that is not
+    /// one. What a load-time choice may read.
+    pub(crate) const CONSTANT: PortAttrs = PortAttrs(1 << 4);
 
     /// Whether it has every fact of `a`.
     pub(crate) fn has(self, a: PortAttrs) -> bool {
@@ -1542,6 +1555,18 @@ impl Plans {
 
     /// What the check found of template slot `slot` of `template`: nothing
     /// before it has run.
+    /// How many options select `cid` picks, as the check evaluated its
+    /// `numToSelect` (ADR 0037); 0 for a select the check never saw.
+    pub(crate) fn num_to_select(&self, cid: ChoiceId) -> u32 {
+        let (t, e) = self.choices[cid.index()].at;
+        self.templates[t.index()]
+            .checked
+            .picks
+            .iter()
+            .find(|p| p.0 == e)
+            .map_or(0, |p| p.1)
+    }
+
     pub(crate) fn port_attrs(&self, template: TemplateId, slot: TemplateSlot) -> PortAttrs {
         let attrs = &self.templates[template.index()].checked.attrs;
         attrs.get(slot.index()).copied().unwrap_or_default()
@@ -1603,14 +1628,7 @@ mod tests {
             (Leaf::GivenMath(None), true),
             (Leaf::Const(1.0), true),
             (Leaf::Scope(ScopeConst::IterIndex), false),
-            (
-                Leaf::Scope(ScopeConst::SequencePick {
-                    from: 1.0,
-                    step: 1.0,
-                    count: 2,
-                }),
-                false,
-            ),
+            (Leaf::Scope(ScopeConst::Draw), false),
             (Leaf::Scope(ScopeConst::Seed(p)), false),
         ];
         for (leaf, document) in leaves {

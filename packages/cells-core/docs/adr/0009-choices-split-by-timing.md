@@ -44,7 +44,10 @@ build.
   a branch-dependent type fed to a typed parent; `extend` of a `<select>`,
   `<conditionalContent>` or `<case>`; `createComponentOfType` and
   `numComponents`; load-time choice attributes (`numToSelect`, weights) that
-  are not literals.
+  are not literals. Amended by ADR 0037: a load-time choice may read any
+  value no student can change (a constant), which the check evaluates;
+  weights stay literal, and a `<select>`'s `numToSelect` must be a
+  document constant.
 - The single-case `<conditionalContent condition>` form exposes nothing,
   since its implicit else is empty; `hide` covers "same content, sometimes
   invisible". `<group rendered>` becomes sugar for the single-case form.
