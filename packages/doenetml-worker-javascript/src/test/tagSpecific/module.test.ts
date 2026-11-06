@@ -2106,6 +2106,7 @@ ${moduleDefinition}
                 `<number name="xmin">-3</number>`,
                 `<group name="xmin"><number>-3</number></group>`,
                 `<sequence name="xmin" from="-3" to="-3" />`,
+                `<mathList name="xmin">-3</mathList>`,
             ]) {
                 const doenetML = `
 <setup>${outer}</setup>
