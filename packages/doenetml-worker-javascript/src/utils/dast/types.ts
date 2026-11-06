@@ -213,6 +213,13 @@ export type UnresolvedAttribute = {
     type: "unresolved";
     name: string;
     children: (UnflattenedComponent | string)[];
+    /**
+     * What was written, where a `copyWithState` of a module holds the value
+     * its source chose with in place of it, on a choosing tag written with
+     * `copy` or `extend` (`keepChoicesReachedByModuleAttributes` in
+     * `Copy.js`); a `copy` of it is given this instead (D33).
+     */
+    authoredChildren?: (UnflattenedComponent | string)[];
     position?: Position;
     sourceDoc?: number;
     ignoreFixed?: boolean;

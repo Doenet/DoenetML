@@ -7786,20 +7786,63 @@ async function keepChoicesReachedByModuleAttributes({
         if (typeof component !== "object" || component === null) {
             return;
         }
+        // A choosing tag written with `copy` or `extend`
+        // (`<select copy="$s" numToSelect="$k"/>`) is a `_copy` of the type
+        // it is written as, which holds the attributes written on it
+        // unresolved, as written, and gives them to what it makes
+        // (`attributesFromComposite`).
+        const writtenType =
+            component.attributes?._createComponentOfType?.primitive?.value;
+        const isWrapper =
+            component.componentType === "_copy" && writtenType !== undefined;
+        const choosingType = isWrapper
+            ? (componentInfoObjects.componentTypeLowerCaseMapping[
+                  writtenType.toLowerCase()
+              ] ?? writtenType)
+            : component.componentType;
         const choiceAttributes = new Set(
             (
-                componentInfoObjects.allComponentClasses[
-                    component.componentType
-                ]?.attributesDeterminingChoices ?? []
+                componentInfoObjects.allComponentClasses[choosingType]
+                    ?.attributesDeterminingChoices ?? []
             ).map((name) => name.toLowerCase()),
         );
         for (const [attrName, attribute] of Object.entries(
             component.attributes ?? {},
         )) {
-            if (
-                !choiceAttributes.has(attrName.toLowerCase()) ||
-                attribute?.type !== "component"
-            ) {
+            if (!choiceAttributes.has(attrName.toLowerCase())) {
+                continue;
+            }
+            if (isWrapper && attribute?.type === "unresolved") {
+                const names = new Set();
+                for (const child of attribute.children ?? []) {
+                    referencedModuleAttributes(child, names);
+                }
+                if (names.size === 0) {
+                    continue;
+                }
+                // the value the source's wrapper gave what it made
+                const madeBySource =
+                    components[component.originalIdx]?.replacements?.[0];
+                const sourceAttribute = Object.entries(
+                    madeBySource?.attributes ?? {},
+                ).find(
+                    ([name]) => name.toLowerCase() === attrName.toLowerCase(),
+                )?.[1]?.component;
+                const text = await valueAsWritten(sourceAttribute);
+                if (text === undefined) {
+                    continue;
+                }
+                // What was written, which a `copy` of this one is given in
+                // place of the value (`serialize`, `withoutReaderState`),
+                // as `authoredComponent` below
+                attribute.authoredChildren = deepClone(attribute.children);
+                attribute.children = [text];
+                for (const name of names) {
+                    reaching.add(name);
+                }
+                continue;
+            }
+            if (attribute?.type !== "component") {
                 continue;
             }
             const names = referencedModuleAttributes(attribute.component);

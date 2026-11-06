@@ -1737,6 +1737,21 @@ export default class BaseComponent {
                     serializedComponent.attributes[attrName] = JSON.parse(
                         JSON.stringify(attribute),
                     );
+                    // What was written on a `_copy` in place of a value a
+                    // `copyWithState` kept (`authoredChildren`, as
+                    // `authoredComponent` of an attribute component, in
+                    // `Copy.js`), which a `copy` writes again (D33)
+                    const serializedAttribute =
+                        serializedComponent.attributes[attrName];
+                    if (
+                        serializedAttribute.type === "unresolved" &&
+                        serializedAttribute.authoredChildren &&
+                        parameters.withoutReaderState
+                    ) {
+                        serializedAttribute.children =
+                            serializedAttribute.authoredChildren;
+                        delete serializedAttribute.authoredChildren;
+                    }
                     // // set to create a new componentIdx
                     // if (attrName === "_createComponentIdx") {
                     //     serializedComponent.attributes._createComponentIdx.primitive.value =

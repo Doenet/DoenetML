@@ -1049,4 +1049,90 @@ ${repeat}
         await doc.reload();
         await check();
     });
+
+    it("copyWithState of a module: a module attribute reaching a choice attribute written on a copy of a choosing tag keeps the carried choices", async () => {
+        const doc = await loaded(`
+<p name="ps"><select name="s">${[...Array(10).keys()]
+            .map((i) => `<option><number>${i}</number></option>`)
+            .join("")}</select></p>
+<setup>
+  <module name="m">
+    <moduleAttributes><integer name="k">2</integer></moduleAttributes>
+    <p name="picks"><select copy="$s" numToSelect="$k"/></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" k="4"/>
+<module name="mc" copy="$mw" k="5"/>
+<module name="mww" copyWithState="$mw"/>
+<module name="mcww" copy="$mww" k="3"/>
+`);
+        async function check() {
+            const source = (await doc.sv("m1.picks")).text;
+            expect(source.split(", ").length).eq(2);
+            expect((await doc.sv("mw.picks")).text).eq(source);
+            expect((await doc.sv("mww.picks")).text).eq(source);
+            // a copy chooses again from the module attribute written on it
+            expect((await doc.sv("mc.picks")).text.split(", ").length).eq(5);
+            expect((await doc.sv("mcww.picks")).text.split(", ").length).eq(3);
+        }
+        await check();
+        expect(
+            doc
+                .diagnostics()
+                .warnings.filter((w: any) => w.code === "doenet-w0186")
+                .map((w: any) => w.args.attribute),
+        ).eqls(["k"]);
+        expect(doc.diagnostics().errors).eqls([]);
+        await doc.reload();
+        await check();
+    });
+
+    it("copyWithState of a module: a choice attribute written on an extend of a choosing tag is an error, which the copy keeps", async () => {
+        // An extend can't change what its source chooses (D32), so its
+        // `numToSelect` is an error, and nothing is chosen again.
+        const doc = await loaded(`
+<p name="ps"><select name="s">${[...Array(10).keys()]
+            .map((i) => `<option><number>${i}</number></option>`)
+            .join("")}</select></p>
+<setup>
+  <module name="m">
+    <moduleAttributes><integer name="k">2</integer></moduleAttributes>
+    <p name="picks"><select extend="$s" numToSelect="$k"/></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" k="4"/>
+<module name="mc" copy="$mw" k="5"/>
+`);
+        async function check() {
+            expect((await doc.sv("m1.picks")).text).eq("");
+            expect((await doc.sv("mw.picks")).text).eq("");
+            expect((await doc.sv("mc.picks")).text).eq("");
+        }
+        await check();
+        expect(new Set(doc.diagnostics().errors.map((e: any) => e.code))).eqls(
+            new Set(["doenet-e0056"]),
+        );
+        await doc.reload();
+        await check();
+    });
+
+    it("a copy of a container holding a choosing tag written with copy keeps its choices", async () => {
+        // The copy waits for the selects in the container to be expanded
+        // (`unlinkedSelectsExpanded`), which includes one a `_copy` that is
+        // not yet expanded stands for, in the container's replacements.
+        const doc = await loaded(`
+<p name="ps"><select name="s">${[...Array(10).keys()]
+            .map((i) => `<option><number>${i}</number></option>`)
+            .join("")}</select></p>
+<group name="g"><p name="picks"><select copy="$s" numToSelect="2"/></p></group>
+<group name="gc" copy="$g"/>
+<group name="gw" copyWithState="$g"/>
+`);
+        const source = (await doc.sv("g.picks")).text;
+        expect(source.split(", ").length).eq(2);
+        expect((await doc.sv("gc.picks")).text.split(", ").length).eq(2);
+        expect((await doc.sv("gw.picks")).text).eq(source);
+    });
 });

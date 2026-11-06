@@ -226,13 +226,18 @@ function newComponentIndicesForExtending(
 
 /**
  * Give a copy of an attribute (`attribute`) its own copy of what was written
- * in place of a value a `copyWithState` kept (`authoredComponent`), whose
+ * in place of a value a `copyWithState` kept (`authoredComponent`, or
+ * `authoredChildren` of an unresolved attribute), whose
  * references `remapRefResolutions` renumbers in place.
  */
 function cloneAuthoredComponent(attribute: SerializedAttribute) {
     if (attribute.type === "component" && attribute.authoredComponent) {
         attribute.authoredComponent = structuredClone(
             attribute.authoredComponent,
+        );
+    } else if (attribute.type === "unresolved" && attribute.authoredChildren) {
+        attribute.authoredChildren = structuredClone(
+            attribute.authoredChildren,
         );
     }
 }
@@ -285,6 +290,7 @@ function newComponentIndicesForAttributes(
             attribute.children = attrResult.components;
             Object.assign(idxMap, attrResult.idxMap);
             nComponents = attrResult.nComponents;
+            cloneAuthoredComponent(attribute);
         } else if (attribute.type === "primitive") {
             if (
                 attrName === "_createComponentIdx" &&
@@ -526,6 +532,14 @@ function remapRefResolutions(
                     idxMap,
                     keepReferents,
                 );
+                // as `authoredComponent`, above
+                if (attribute.authoredChildren) {
+                    remapUnflattenedRefResolutions(
+                        attribute.authoredChildren,
+                        idxMap,
+                        keepReferents,
+                    );
+                }
             } else if (attribute.type === "expression") {
                 // The references the component resolves itself
                 // (`utils/dast/expressionAttributes.ts`). With
@@ -1040,6 +1054,7 @@ function newComponentIndicesForAttributesFromSerialized(
             attribute.children = attrResult.components;
             Object.assign(idxMap, attrResult.idxMap);
             nComponents = attrResult.nComponents;
+            cloneAuthoredComponent(attribute);
         } else if (attribute.type === "primitive") {
             if (
                 attrName === "_createComponentIdx" &&
