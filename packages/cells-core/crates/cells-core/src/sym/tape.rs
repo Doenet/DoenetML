@@ -7,6 +7,7 @@
 use super::Tree;
 use crate::document::CellIdx;
 
+/// A function a tape applies to the top column.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Func {
     Sin,
@@ -18,6 +19,7 @@ pub enum Func {
     Abs,
 }
 
+/// One step of a tape, a stack machine over columns of values.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TapeOp {
     Const(f64),
@@ -35,6 +37,8 @@ pub enum TapeOp {
     Apply(Func),
 }
 
+/// An expression compiled to a stack program over one variable and the cells it
+/// reads, to evaluate it at many points.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Tape {
     pub ops: Vec<TapeOp>,

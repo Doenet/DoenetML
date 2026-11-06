@@ -4,6 +4,8 @@
 
 use super::*;
 
+/// Interactive cells: which cells a renderer may request, and which a hold
+/// refuses.
 impl Built {
     /// One bit per cell, set for an interactive one. A cell several
     /// components share (a copy and its original) is interactive when any of

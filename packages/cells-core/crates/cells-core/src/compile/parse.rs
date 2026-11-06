@@ -32,6 +32,8 @@ impl Parsed {
     }
 }
 
+/// Parsing: every `<math>`'s text, once, as outlining settled its type, and
+/// every element's record. Reads outlining's rows; writes [`Parsed`].
 impl Compiler<'_> {
     /// Parse every `<math>`'s text once as the type outlining settled, its
     /// `$ref`s planned where the math sits.

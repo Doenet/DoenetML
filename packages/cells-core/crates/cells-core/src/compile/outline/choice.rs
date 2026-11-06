@@ -4,6 +4,8 @@
 use super::Outlining;
 use crate::compile::*;
 
+/// Outlining, choices: one template per case or option, its content outlined
+/// like any other. Plans nothing (ADR 0030).
 impl Compiler<'_> {
     /// Give a choice element its branch templates. `<group rendered="c">`
     /// is a conditional content with one case.

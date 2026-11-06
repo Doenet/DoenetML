@@ -28,6 +28,8 @@ use crate::components::prop::{
 };
 use crate::limits::MAX_CHOICES;
 
+/// Planning, `<answer>`: its response, awards and credit. Reads the record and
+/// what outlining settled, never another element's plan (ADR 0029).
 impl<'a> Compiler<'a> {
     pub(in crate::compile) fn plan_answer(
         &mut self,

@@ -6,6 +6,9 @@
 use super::Planning;
 use crate::compile::*;
 
+/// Planning, copies: `extend` with a prop path, container copies, clones, and
+/// the copy rules around a `Plan` type's planner. Reads the referent's record
+/// and type, never its plan (ADR 0029).
 impl<'a> Compiler<'a> {
     /// `extend="$c.prop"`: the element's value props alias the named prop.
     pub(in crate::compile) fn plan_extend_prop(

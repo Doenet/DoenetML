@@ -35,6 +35,8 @@ use section::{AGGREGATE, CREDIT, NUMBER, PERCENT_CREDIT, WEIGHT};
 // The document's credit props sit where a section's do.
 const _: () = assert!(document::CREDIT == CREDIT && document::PERCENT_CREDIT == PERCENT_CREDIT);
 
+/// Expand, aggregates: a collect's gathered children and count, credit and
+/// section numbers, materialized from the tree the build stamped.
 impl<'c> Builder<'c> {
     /// Materialize the document's and every section's `creditAchieved`
     /// and `percentCreditAchieved`, and every section's `number`: the

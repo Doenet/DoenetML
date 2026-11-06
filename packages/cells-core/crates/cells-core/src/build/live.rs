@@ -8,6 +8,8 @@
 
 use super::*;
 
+/// The live walk: which slots a document must compute, backward from the
+/// outputs and what the core reads. Run by define, over what expand made.
 impl<'c> Builder<'c> {
     #[cfg(feature = "testing")]
     /// Per slot, whether its cell is live by this build's own walk.

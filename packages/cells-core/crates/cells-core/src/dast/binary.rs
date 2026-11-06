@@ -160,6 +160,7 @@ impl Dast {
     }
 }
 
+/// A cursor over the binary wire format.
 struct Reader<'a> {
     b: &'a [u8],
     pos: usize,

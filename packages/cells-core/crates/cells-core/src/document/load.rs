@@ -152,6 +152,8 @@ fn deserialize(bytes: &[u8]) -> crate::Result<Dast> {
     Ok(dast)
 }
 
+/// Loading: whether the structure is settled, every repeat's count matching its
+/// `count` cell.
 impl Built {
     /// Whether every repeat was expanded with the iteration count its
     /// `count` cell now holds.
@@ -177,6 +179,8 @@ impl Built {
     }
 }
 
+/// Loading and rebuilding: build, schedule and compute until the structure is
+/// settled; the diagnostics the load made.
 impl Document {
     /// Load from either wire format (JSON or binary), detected by content,
     /// with the default options.

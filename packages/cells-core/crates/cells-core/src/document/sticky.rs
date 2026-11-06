@@ -29,6 +29,8 @@ pub struct StickyTable {
     gates: Vec<Vec<CellIdx>>,
 }
 
+/// Sticky groups: each group's members recorded after a build, and a request on
+/// a member snapped before it is inverted.
 impl Built {
     /// The sticky groups of a freshly built document. A group whose points
     /// are exactly an earlier group's (a copy of the group) is left out:

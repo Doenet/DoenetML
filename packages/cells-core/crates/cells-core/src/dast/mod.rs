@@ -48,6 +48,7 @@ impl StrId {
     }
 }
 
+/// What a DAST node is: an element, text, a macro (`$ref`), or anything else.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum NodeKind {
@@ -113,6 +114,8 @@ impl StringTable {
     }
 }
 
+/// The parser's DAST in flat, columnar form: one row per node, the children and
+/// attributes as ranges, and one string table.
 #[derive(Debug, Clone, Default)]
 pub struct Dast {
     pub strings: StringTable,

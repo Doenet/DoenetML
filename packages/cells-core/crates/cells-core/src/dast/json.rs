@@ -48,6 +48,7 @@ trait Item: Copy {
     ) -> Result<Self::Value, D::Error>;
 }
 
+/// A serde seed that reads one `I` into the writer.
 struct Seed<'b, I>(&'b mut DastWriter, I);
 
 impl<'de, I: Item> DeserializeSeed<'de> for Seed<'_, I> {
@@ -126,6 +127,7 @@ impl Item for Field {
 /// A JSON array of nodes, returned as their ids (not yet attached).
 const NODES: Seq<Node> = Seq(Node, "an array of DAST nodes");
 
+/// One DAST node in the JSON, read into the writer.
 #[derive(Clone, Copy)]
 struct Node;
 

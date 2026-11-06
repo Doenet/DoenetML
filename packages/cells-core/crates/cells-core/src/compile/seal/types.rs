@@ -37,6 +37,8 @@ struct Target {
     lands: bool,
 }
 
+/// Sealing, the type pass: every port's type, a worklist fixpoint over every
+/// template at once.
 impl Seal<'_> {
     /// Every port's type, by template and template slot (`offs` are the
     /// elements' slot offsets), and the checks that need them.

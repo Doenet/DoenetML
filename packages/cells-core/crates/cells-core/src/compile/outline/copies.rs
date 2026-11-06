@@ -4,6 +4,8 @@
 use super::Outlining;
 use crate::compile::*;
 
+/// Outlining, container copies: their clones, made once every name is in the
+/// table. Plans nothing (ADR 0030).
 impl Compiler<'_> {
     /// Plan every other element's `extend`, once the container copies
     /// have their clones. One that cannot be planned boxes its element.
@@ -184,6 +186,8 @@ impl Compiler<'_> {
     }
 }
 
+/// Outlining, a read that needs clones: run again once the container copy it
+/// reached has its clones.
 impl Compiler<'_> {
     /// Run `f`, which reads what outlining made through references: when it
     /// reaches a container copy whose clones are not made yet

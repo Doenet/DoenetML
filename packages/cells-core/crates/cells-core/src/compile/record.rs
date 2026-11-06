@@ -364,6 +364,9 @@ fn rebase_point(p: &mut GivenPoint, rw: &mut Rebaser<'_, '_>) {
     }
 }
 
+/// Reading the source, an element's record: every attribute its type declares
+/// and its children, parsed once into typed values. Run by parsing; a planner
+/// reads the record, never the source.
 impl Compiler<'_> {
     /// Element `e`'s record: every attribute its planner's type declares,
     /// and its children as the type reads them, parsed from the element's

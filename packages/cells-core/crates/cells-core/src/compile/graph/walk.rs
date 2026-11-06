@@ -23,6 +23,8 @@ pub(super) enum At {
     },
 }
 
+/// Stamping, references: a reference walked through the stamped templates in
+/// the abstract, as a build resolves it (`build/expand/resolve.rs`).
 impl<'c> Stamp<'c> {
     /// Walk plan `p` from template `t`: where it arrives, the port it
     /// names, and the walk's label.

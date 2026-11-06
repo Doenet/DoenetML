@@ -11,6 +11,9 @@ use crate::compile::*;
 use crate::components::prop::conditional_content;
 use crate::limits::MAX_CASES;
 
+/// Planning, choices: a `<conditionalContent>`'s or `<select>`'s own plans; its
+/// branches are templates of their own. Never reads another element's plan (ADR
+/// 0029).
 impl<'a> Compiler<'a> {
     /// A choice's props: a select's `hide`; for a reactive choice also a
     /// hidden port per case condition (an else is a constant 1) and

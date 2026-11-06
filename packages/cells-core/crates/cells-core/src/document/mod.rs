@@ -134,6 +134,8 @@ pub struct Loaded {
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
 }
 
+/// The built document: its cells and program, which are essential or constant,
+/// and a recompute.
 impl Built {
     /// What a build made, as the document holds it: its strings after
     /// those interned since load, and its tables of sticky groups and of
@@ -224,6 +226,8 @@ impl Loaded {
     }
 }
 
+/// The document's engine and cells: math parsed and interned, a value written
+/// to an essential cell, a recompute.
 impl Document {
     /// A document of `built`, the session its build returned, the math it
     /// is handles into, and what the load settled.

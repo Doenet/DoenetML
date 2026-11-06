@@ -4,6 +4,8 @@
 
 use crate::compile::*;
 
+/// Reading the source, point lists: an attribute's points and how many a list
+/// holds. Run by parsing, for an element's record.
 impl<'a> Compiler<'a> {
     /// The points of attribute `a` of the element at `node`: bare
     /// references, parenthesized tuples (which may contain references), and

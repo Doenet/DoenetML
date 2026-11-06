@@ -95,6 +95,7 @@ pub enum Op {
     Diagnostics(Vec<&'static str>),
 }
 
+/// One case of a component's spec: a source and the steps run on it.
 #[derive(Debug, Clone)]
 pub struct Case {
     pub name: &'static str,

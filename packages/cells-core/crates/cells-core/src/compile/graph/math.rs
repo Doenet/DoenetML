@@ -8,6 +8,8 @@
 use super::*;
 use crate::compile::expr::Func;
 
+/// Stamping, math: an expression instantiated per template, numeric math
+/// lowered to operator nodes, symbolic math a template over its leaves.
 impl<'c> Stamp<'c> {
     /// Instantiate expression `id` of the plans in template `t`: each
     /// reference leaf a leaf node reading what it names.
@@ -217,6 +219,7 @@ impl<'c> Stamp<'c> {
     }
 }
 
+/// Stamping, math text: a symbolic math's text spelled and checked.
 impl Stamp<'_> {
     /// Math text `id` as spelled.
     fn sym_text(&self, id: ExprId) -> String {

@@ -4,6 +4,8 @@
 
 use super::*;
 
+/// Expand, math: a math's source per instance, numeric (lowered to operators
+/// over slots) or symbolic (an `Instantiate` over its leaves).
 impl<'c> Builder<'c> {
     /// A math cell from a template's math text: a constant handle when it has
     /// no cell leaves, an alias when it is one math leaf and nothing else,

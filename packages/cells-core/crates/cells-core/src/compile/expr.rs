@@ -10,6 +10,8 @@ crate::index::index_type! {
     pub struct ExprId;
 }
 
+/// A math expression, a node of an [`Arena`]: over reference plans in the
+/// compile, over slots in a build.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr<L> {
     Num(f64),

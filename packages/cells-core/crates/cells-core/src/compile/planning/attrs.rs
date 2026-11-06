@@ -3,6 +3,9 @@
 
 use crate::compile::*;
 
+/// Planning, attributes: each prop's source from the element's record, and the
+/// `<math>`s a plan inlines. Run by every planner; reads the record, never
+/// another element's plan (ADR 0029).
 impl<'a> Compiler<'a> {
     /// The prop sources of a type described by [`PropFrom`]: attributes,
     /// bindings, computed chains, children. A `by_planner` prop is refused:

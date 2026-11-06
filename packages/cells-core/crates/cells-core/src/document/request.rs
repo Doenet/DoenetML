@@ -12,6 +12,8 @@ use crate::tick::eval::{DirtyClosure, Recompute};
 use crate::tick::invert::{PointRequest, invert_requests};
 use crate::tick::{Request, TickOutcome};
 
+/// Requests: one tick, from a renderer's requests to the cells that changed,
+/// and the evaluator a tick uses.
 impl Document {
     /// Apply requests: invert each to an essential cell (later requests win
     /// when two land on one cell), recompute, and report what changed. A
@@ -194,6 +196,8 @@ impl Document {
     }
 }
 
+/// Actions and presentation: a trigger carried out as a tick of its own; an
+/// element's literal attributes, which the core does not keep as state.
 impl Document {
     /// Press a `<triggerSet>` (or a lone `<updateValue>`), an action: every
     /// `<updateValue>` under it requests its `newValue`'s

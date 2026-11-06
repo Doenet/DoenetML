@@ -36,6 +36,8 @@ impl Compare {
     }
 }
 
+/// Planning, conditions: comparisons and boolean operators over math, as hidden
+/// ports of the element. Never reads another element's plan (ADR 0029).
 impl<'a> Compiler<'a> {
     /// A condition as hidden ports of element `e`; returns the port holding
     /// 1 or 0. Comparisons (`< <= > >= = !=`), `and`/`&&`, `or`/`||`,

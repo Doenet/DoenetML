@@ -3,6 +3,8 @@
 
 use super::*;
 
+/// Expand, choices: a select's picks, a conditional content's cases, and
+/// references through a branch interface.
 impl<'c> Builder<'c> {
     /// Expand choice `cid` at component `comp`; returns its children.
     pub(in crate::build) fn expand_choice(
@@ -239,6 +241,8 @@ impl<'c> Builder<'c> {
     }
 }
 
+/// Expand, a load-time choice's seed: the stream a select draws from, stable
+/// across builds and versions.
 impl<'c> Builder<'c> {
     /// The start of a load-time choice's stream: the document seed mixed
     /// with the element's stable key and the stable levels of the scope it

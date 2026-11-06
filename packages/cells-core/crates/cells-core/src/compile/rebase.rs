@@ -27,6 +27,9 @@ impl Rebaser<'_, '_> {
     }
 }
 
+/// Reading the source, a record from another template: the referent's
+/// references rebased through the path an extend names. Run by planning, for an
+/// extend whose referent is in another template.
 impl<'a> Compiler<'a> {
     /// Record `record`, the referent's, as read from the template the
     /// extend `path` is planned from: every reference in it composed with

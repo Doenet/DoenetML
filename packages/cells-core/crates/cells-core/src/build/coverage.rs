@@ -89,6 +89,8 @@ fn admits(label: &[Coord], at_u: &[(NodeId, u32)], at_v: &[(NodeId, u32)]) -> bo
     })
 }
 
+/// Coverage (tests only): a real build's slots and dependencies, keyed as the
+/// template graph keys its ports (ADR 0032, step 8).
 impl Builder<'_> {
     /// The key of an element's slot; None for any other slot.
     fn slot_key(&self, s: SlotId) -> Option<Key> {

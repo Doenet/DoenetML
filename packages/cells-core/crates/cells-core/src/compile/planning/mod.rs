@@ -35,6 +35,9 @@ enum ElemShape {
     ByType(Option<RefId>),
 }
 
+/// Planning: every element and every `$ref` child, each on its own. Reads the
+/// record and what outlining settled, never another element's plan (ADR 0029);
+/// writes planning's table and [`Planned`].
 impl<'a> Compiler<'a> {
     /// Plan every element and every `$ref` child. What fails is boxed in
     /// place; a `$ref` child that cannot be planned gets a box as its plan.

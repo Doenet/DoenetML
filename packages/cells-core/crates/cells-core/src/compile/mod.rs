@@ -211,6 +211,9 @@ pub(in crate::compile) fn elem_label(dast: &Dast, el: &Elem) -> String {
     }
 }
 
+/// The driver: the stages in order (outline, parse, plan, link, seal, share),
+/// each handed the tables the stages before it made, and the plans put together
+/// from them.
 impl Compiler<'_> {
     /// Compile `dast`, with the nodes in `boxed` as `_error` elements, and
     /// every element that fails to plan boxed where it fails. A failure
@@ -325,6 +328,9 @@ impl Compiler<'_> {
     }
 }
 
+/// The driver's accessors: what outlining settled (read-only after outlining),
+/// the templates' rows and tables, and the planners' warnings. Every stage
+/// reads through these.
 impl Compiler<'_> {
     /// What outlining settled.
     pub(in crate::compile) fn settled(&self) -> &Settled {

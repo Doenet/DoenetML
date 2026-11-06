@@ -5,6 +5,8 @@
 
 use super::*;
 
+/// Outputs: which cells leave the core (rendered props, scores) and which the
+/// document computes (the live ones).
 impl Built {
     /// Per component, whether it is rendered: the document is, and a
     /// component is when its parent is and its type's rule allows it

@@ -38,6 +38,8 @@ struct Counter {
     varies: bool,
 }
 
+/// Stamping, aggregates: credit and section numbers in the template graph, as a
+/// build materializes them (`build/expand/aggregate.rs`).
 impl<'c> Stamp<'c> {
     /// The sources of the document's and every section's credit and of
     /// every section's number.

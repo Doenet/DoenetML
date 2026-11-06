@@ -75,6 +75,9 @@ impl<'a> Boxes<'a> {
     }
 }
 
+/// Boxing: an element that fails made an `_error` element where it fails, and
+/// what is under it with it. Writes only the boxes table and the box's row (ADR
+/// 0031); run by outlining, planning and linking.
 impl Compiler<'_> {
     /// Whether element `e` is a box: boxed when outlining, boxed in place, or
     /// under one.

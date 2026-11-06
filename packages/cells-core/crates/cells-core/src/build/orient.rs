@@ -27,6 +27,9 @@ fn swapped(spec: OpSpec) -> Option<OpSpec> {
     })
 }
 
+/// Orientation: a binary operator lowered from the author's math turned round
+/// so its inverse writes the input that leads to state. Run by define, before
+/// the writable walk.
 impl<'c> Builder<'c> {
     /// Orient every binary operator lowered from the author's math. Runs
     /// before the walks, which read the orientation.

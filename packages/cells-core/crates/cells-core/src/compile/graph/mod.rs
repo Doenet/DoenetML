@@ -591,6 +591,8 @@ pub(super) struct Stamp<'c> {
     pub(super) walk_need: (Vec<Cond>, bool),
 }
 
+/// Stamping: every live template stamped once in the abstract, a node per port,
+/// and the graph's nodes, labels and sources read back.
 impl<'c> Stamp<'c> {
     /// A new node.
     pub(super) fn node(&mut self, template: TemplateId, kind: NodeKind) -> GraphNode {

@@ -16,6 +16,9 @@ fn tuple_ref_prop(i: usize) -> RefProp {
     RefProp::of(ComponentType::Tuple, PropSel::At(PropAt::Position(i)))
 }
 
+/// Planning, `<functionIterates>` and `<repeat for>` over its iterates. Reads
+/// the record and what outlining settled, never another element's plan (ADR
+/// 0029).
 impl<'a> Compiler<'a> {
     fn attr_macro(&self, el: NodeId, tag: &str, attr: &str) -> Result<NodeId> {
         self.dast

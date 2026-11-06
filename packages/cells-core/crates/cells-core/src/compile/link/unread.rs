@@ -4,6 +4,8 @@
 
 use crate::compile::*;
 
+/// Linking, unread attributes: an element with an attribute nothing read is
+/// boxed in place (ADR 0021).
 impl Compiler<'_> {
     /// Box in place every element, outside every box, with an attribute
     /// nothing read while planning; what is under it is left out of the

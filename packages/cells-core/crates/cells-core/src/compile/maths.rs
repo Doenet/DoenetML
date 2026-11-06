@@ -2,6 +2,9 @@
 
 use crate::compile::*;
 
+/// Reading the source, math text: tokenized, its `$ref`s planned, parsed. Run
+/// by outlining (tokenizing), parsing, and the planners that read math
+/// themselves; writes only the reference and expression arenas.
 impl Compiler<'_> {
     /// Tokenize math text with `$ref` children as cell leaves holding plan
     /// ids; with where the text came from, for an error.

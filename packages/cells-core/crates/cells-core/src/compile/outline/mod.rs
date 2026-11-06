@@ -27,6 +27,9 @@ pub(in crate::compile) struct Outlining<'a> {
     pub(in crate::compile) expanded: HashSet<(TemplateId, ElemId)>,
 }
 
+/// Outlining: elements, templates and names from the DAST, and what a reference
+/// reads of each; plans nothing (ADR 0030). Writes what it settles
+/// ([`Settled`]) and the work for the stages after it ([`Outline`]).
 impl Compiler<'_> {
     /// Outline the document. Returns the work found for the stages after
     /// it, and the boxes; what it settled is in [`Compiler::settled`].

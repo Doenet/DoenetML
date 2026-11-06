@@ -4,6 +4,8 @@
 
 use super::*;
 
+/// Paths, for tests: dotted paths (`g.Ps[2]`, `r[3].p`) resolved against the
+/// component table.
 impl Built {
     /// Resolve a dotted path as the current core's tests write it
     /// (`"g.Ps[2]"`, `"circle1"`, `"r[3].p"`): a name is visible from the

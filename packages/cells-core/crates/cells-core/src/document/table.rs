@@ -167,12 +167,15 @@ impl ChildEntry {
     }
 }
 
+/// A child of a component, as a renderer reads it: a component, or text.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Child<'a> {
     Component(CompIdx),
     Text(&'a str),
 }
 
+/// The component table, as a renderer reads it: types, names, children and prop
+/// cells, and the value of a cell.
 impl Built {
     pub fn n_components(&self) -> usize {
         self.components.len()
@@ -263,6 +266,8 @@ impl Built {
     }
 }
 
+/// The component table, as text: what a component shows, read as the current
+/// core reads its `text`; and the document's memory estimate.
 impl Document {
     /// The text a component shows, as the current core's `text` state
     /// variable reads it: text children and inline values, through the

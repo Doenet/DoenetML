@@ -26,6 +26,7 @@ pub fn dast_binary(source: &str) -> Vec<u8> {
     parse_dast(source, Format::Binary).to_vec()
 }
 
+/// The wire format a test source was parsed to.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum Format {
     Json,

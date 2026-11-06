@@ -5,6 +5,9 @@
 
 use crate::compile::*;
 
+/// Reading the source, a value from its text: a literal or a reference, a math,
+/// a tuple, a point. Run by parsing for every record, and by a planner for what
+/// it reads itself.
 impl<'a> Compiler<'a> {
     /// Whether `m`, a `$t` or `$t.prop` not yet planned, reads a text
     /// value: a prop its referent's type declares as text (a `<text>`'s or

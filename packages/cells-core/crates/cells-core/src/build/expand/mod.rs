@@ -63,6 +63,8 @@ impl PlannedOp {
     }
 }
 
+/// What a slot is, once expand has stamped it: a given value, a constant, an
+/// alias of another slot, or an operator over slots.
 #[derive(Debug, Clone)]
 pub(in crate::build) enum BuiltSource {
     Unset,
@@ -119,6 +121,9 @@ pub(in crate::build) struct Instance {
     pub(in crate::build) comp: CompIdx,
 }
 
+/// Expand's working state: the compile and session it reads, the components and
+/// slots it stamps, and what it lends to the stages after it (define, emit).
+/// One per build.
 pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) compiled: CompiledRef<'c>,
     /// The session the build reads: carried values, scopes.
@@ -210,6 +215,8 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) failed_node: Option<NodeId>,
 }
 
+/// Expand: templates stamped into components per scope, slots allocated, `$ref`
+/// children placed, and every prop's [`Source`] turned into a [`BuiltSource`].
 impl<'c> Builder<'c> {
     pub(in crate::build) fn new(
         c: CompiledRef<'c>,

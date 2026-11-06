@@ -31,6 +31,8 @@ use crate::session::Parked;
 /// The saved state format `save_state` writes and `restore_state` reads.
 const FORMAT: u64 = 3;
 
+/// Saved state: the essential cells a session changed, saved as JSON and
+/// restored, keyed by scope path.
 impl Document {
     /// The essential values a student touched, as JSON,
     /// whether or not they equal their defaults; view state with the

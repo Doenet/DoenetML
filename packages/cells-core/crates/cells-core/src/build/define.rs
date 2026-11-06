@@ -39,6 +39,9 @@ impl Defined {
     }
 }
 
+/// Define: aliased slots merged into the cells they share, operators oriented,
+/// the prefill rule checked and every cell classed (ADR 0035). Reads what
+/// expand made; writes [`Defined`].
 impl<'c> Builder<'c> {
     /// Define: merge aliased slots into the cells they will share, find
     /// each cell's defining slot, orient the author's operators (ADR 0026)

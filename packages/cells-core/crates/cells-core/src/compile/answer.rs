@@ -12,6 +12,9 @@ pub(in crate::compile) struct AwardForm {
     pub(in crate::compile) nodes: Vec<NodeId>,
 }
 
+/// Reading the source, an `<answer>`: the attributes out of scope, each award's
+/// form and the input a reference names. Read-only; run by outlining and
+/// planning.
 impl Compiler<'_> {
     /// Attributes that change what an answer checks and are out of scope.
     /// Returns whether the answer is `type="text"`.

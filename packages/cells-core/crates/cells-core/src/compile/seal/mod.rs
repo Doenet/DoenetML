@@ -28,6 +28,9 @@ pub(in crate::compile) struct Seal<'a> {
     pub(in crate::compile) given: &'a HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
 }
 
+/// Sealing: the stage's entry, its order of passes, operator arity and the slot
+/// offsets. Reads every earlier stage's tables; writes only the keys and
+/// [`SealedTemplate`]s.
 impl<'a> Seal<'a> {
     /// Sealing's tables: a [`SealedTemplate`] per template and a
     /// [`ChoiceSeal`] per choice.
@@ -126,6 +129,8 @@ impl<'a> Seal<'a> {
     }
 }
 
+/// Sealing: the handoff to [`Seal`], which reads every element's plans and
+/// changes none.
 impl Compiler<'_> {
     /// Seal the planned compile; what fails is boxed by compiling again.
     pub(in crate::compile) fn seal(

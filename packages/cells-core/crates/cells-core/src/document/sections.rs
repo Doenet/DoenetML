@@ -3,6 +3,8 @@
 
 use super::*;
 
+/// Answers and sections, as a reader sees them: submitting an answer, its
+/// responses and inputs, a section's number and title.
 impl Document {
     /// Submit an answer, an action: one tick copying each live
     /// response handle into its `submitted` cell and counting the

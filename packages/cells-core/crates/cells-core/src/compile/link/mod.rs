@@ -7,6 +7,9 @@ mod unread;
 
 use crate::compile::*;
 
+/// Linking: readers of boxes boxed to a fixpoint, and the given leaves copies
+/// share tied. Reads outlining's and planning's tables; writes the boxes and
+/// [`Planned`]'s shares.
 impl Compiler<'_> {
     /// Linking: box the readers of boxes, then the elements with an
     /// attribute nothing read and their readers, then tie shared state

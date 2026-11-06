@@ -73,6 +73,8 @@ impl crate::sym::Leaf for SlotId {
 
 use expand::*;
 
+/// The build's first two stages, expand and resolve, run as one: a failure
+/// names the element to box.
 impl<'c> Builder<'c> {
     /// Expand and resolve. The failure names the element to box.
     pub(in crate::build) fn stage(&mut self) -> std::result::Result<(), Failure> {
@@ -87,6 +89,8 @@ impl<'c> Builder<'c> {
     }
 }
 
+/// The walks' shared step: backward over the cells the slots will make, as the
+/// live and writable walks and orientation go.
 impl<'c> Builder<'c> {
     /// Walk backward over the cells the slots will make: from the cells on
     /// `stack`, each cell `enter` admits is given to `edge` as its

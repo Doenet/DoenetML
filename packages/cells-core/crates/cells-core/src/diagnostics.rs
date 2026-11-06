@@ -23,6 +23,8 @@ pub enum Kind {
     Accessibility,
 }
 
+/// A finding about the source: an error, a warning or an accessibility issue,
+/// at the node it is about.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct Diagnostic {
     pub kind: Kind,

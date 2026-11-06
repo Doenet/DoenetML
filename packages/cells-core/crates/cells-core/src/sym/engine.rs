@@ -12,6 +12,8 @@ use me::{EqOptions, Expr, LatexOpts, Number, TextOpts, TextToAst, TextToAstOptio
 
 use super::{Handle, Leaf, Tree};
 
+/// The symbolic engine: every math expression a document holds, by handle, and
+/// the operations on them.
 pub struct Engine {
     exprs: Vec<Expr>,
     /// Cell leaves of each expression used as a template, (cell, is math),

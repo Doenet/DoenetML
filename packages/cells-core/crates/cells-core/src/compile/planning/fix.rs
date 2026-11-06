@@ -52,6 +52,9 @@ fn is_graph(component_type: ComponentType) -> bool {
     component_type == ComponentType::Graph
 }
 
+/// Planning, holds: what `fixed`, `fixLocation` and `fixAxes` make of an
+/// element, a fact beside its plans. Reads the record of the element and those
+/// around it, never a plan (ADR 0029).
 impl<'a> Compiler<'a> {
     /// How the attributes of [`HOLD_ATTRS`] reach element `e`: each its
     /// own, else (an inherited one) the nearest ancestor's. A

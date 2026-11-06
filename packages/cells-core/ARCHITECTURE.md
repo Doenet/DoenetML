@@ -736,3 +736,10 @@ the core does not compute it, and the viewer's test, which checks every
   both in its ADR: a pass that makes a tick cheaper is paid for at every
   load, and the load is where it shows. `docs/load-cost.md` has the load's
   history and where its time goes.
+- `npm run doc` builds the API docs as CI does, with private items and
+  warnings denied, so a broken intra-doc link fails. Every `impl` block of
+  a type whose methods span files (`Compiler`, `Builder`, `Stamp`,
+  `Seal`, `Document`, `Built`) carries a doc comment naming the stage or
+  role it serves and what it reads and writes: rustdoc shows it as a
+  heading over the block's methods on the type's page, in an order the
+  heading cannot rely on.

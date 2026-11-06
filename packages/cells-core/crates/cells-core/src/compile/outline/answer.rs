@@ -4,6 +4,8 @@
 use super::Outlining;
 use crate::compile::*;
 
+/// Outlining, `<answer>`: its implicit `<mathInput>` and a `response` per input
+/// its whens read. Makes elements; plans nothing (ADR 0030).
 impl Compiler<'_> {
     /// Add every answer's synthetic children, in the order the walk made
     /// the answers, after every element the walk and the container copies

@@ -60,6 +60,9 @@ impl Refs {
     }
 }
 
+/// Reference plans: name lookup through template scopes and `$a.b[k].c` paths,
+/// run by outlining, parsing and planning (ADR 0031, "Code more than one stage
+/// runs"). Writes only the reference arena.
 impl<'a> Compiler<'a> {
     /// A copy of plan `p` naming `prop` instead of its own (`$l` -> `$l.x2`).
     pub(in crate::compile) fn plan_with_prop(

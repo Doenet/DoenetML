@@ -4,6 +4,8 @@
 use super::Seal;
 use crate::compile::*;
 
+/// Sealing, choices: every choice's branch interface, which reads every
+/// branch's plans.
 impl Seal<'_> {
     /// Every choice's `used`: the interface names reference plans step
     /// into, in the order the plans first name them, and where each is.

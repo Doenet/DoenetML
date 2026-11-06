@@ -6,6 +6,8 @@
 
 use super::*;
 
+/// The writable walk: which value slots a student's action can write. Run by
+/// define, over what expand made.
 impl<'c> Builder<'c> {
     #[cfg(feature = "testing")]
     /// Per slot, whether it is a value slot a student's action can write:

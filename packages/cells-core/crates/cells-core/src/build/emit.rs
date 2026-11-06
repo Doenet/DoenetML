@@ -5,6 +5,8 @@
 
 use super::*;
 
+/// Emit: cells numbered, operators bound to instructions, values seeded, from
+/// the definitions alone (ADR 0035). Reads [`Defined`]; reads no structure.
 impl<'c> Builder<'c> {
     /// Emit: number the cells, bind the operators, seed the values, and
     /// make the build, from the definitions.

@@ -152,6 +152,7 @@ impl Operands {
     }
 }
 
+/// One instruction: the cell it writes and the operator that computes it.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Instr {
     pub out: CellIdx,

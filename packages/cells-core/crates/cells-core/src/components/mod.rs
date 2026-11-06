@@ -884,6 +884,8 @@ impl ComponentType {
     }
 }
 
+/// Where a prop's value comes from: an attribute, the children, an operator
+/// over the component's own props, and so on.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PropFrom {
     /// Value given by an attribute ([`PropDef::attr`], or the prop's name).
@@ -976,6 +978,8 @@ impl std::ops::Deref for Args {
     }
 }
 
+/// A prop as a component type declares it: its name, its default, where its
+/// value comes from, and how it is read and written.
 #[derive(Debug, Clone, Copy)]
 pub struct PropDef {
     pub name: &'static str,

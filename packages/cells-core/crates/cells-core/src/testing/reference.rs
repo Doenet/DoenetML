@@ -7,6 +7,9 @@ use std::collections::HashMap;
 use crate::document::{CellIdx, Document};
 use crate::program::{SymRun, SymState};
 
+/// The reference oracle: every derived cell of a document computed again from
+/// its definition, recursively and memoized, to check the program's values
+/// against.
 pub struct ReferenceEvaluator<'a> {
     doc: &'a Document,
     producer: HashMap<CellIdx, usize>,

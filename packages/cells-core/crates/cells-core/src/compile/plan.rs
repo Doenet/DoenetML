@@ -323,6 +323,8 @@ impl Source {
     }
 }
 
+/// A child of an element, as outlining made it: an element, text, or a `$ref`
+/// child.
 #[derive(Debug, Clone)]
 pub(crate) enum Child {
     Elem(ElemId),
@@ -331,6 +333,8 @@ pub(crate) enum Child {
     Macro(RefChildId),
 }
 
+/// What an element holds under it beside its children: nothing, a repeat's
+/// body, a collect's type, or a choice.
 #[derive(Debug, Clone)]
 pub(crate) enum Body {
     Plain,
@@ -521,6 +525,8 @@ pub(crate) enum ListLen {
 /// The template itself, as the parent of its top-level elements.
 pub(crate) const ROOT_SCOPE: ElemId = ElemId::NONE;
 
+/// An element of a template, as outlining made it: its node, type and name, its
+/// children, and what it extends.
 #[derive(Debug, Clone)]
 pub(crate) struct Elem {
     pub(crate) node: NodeId,
@@ -853,6 +859,8 @@ pub(crate) enum Step {
     Iface(ChoiceId, NameId),
 }
 
+/// One term of an index: a constant, an iteration's position, or a cell's
+/// value.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum IndexTerm {
     Const(i64),
@@ -863,6 +871,7 @@ pub(crate) enum IndexTerm {
     Cell(RefId),
 }
 
+/// An index into a list (`$r[k]`): the sum of its terms.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct IndexPlan {
     pub(crate) terms: Vec<IndexTerm>,
@@ -876,6 +885,9 @@ impl IndexPlan {
     }
 }
 
+/// A reference planned: the template levels up to where its first name is, the
+/// steps of its path, and the prop it ends on. Expansion resolves it per
+/// instance.
 #[derive(Debug, Clone)]
 pub(crate) struct RefPlan {
     /// Template levels up from the referencing element to where the first

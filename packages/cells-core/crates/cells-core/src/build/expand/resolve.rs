@@ -3,6 +3,8 @@
 
 use super::*;
 
+/// Expand, references: a [`RefPlan`] followed through scopes, iterations,
+/// collects and choice picks to the slots it names.
 impl<'c> Builder<'c> {
     /// The slot an [`Arg`] names for component `comp` in `scope`.
     pub(in crate::build) fn arg_slot(

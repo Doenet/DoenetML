@@ -21,6 +21,7 @@ pub(crate) enum Planner {
     Plan(PlanFn),
 }
 
+/// Planning, the planner of a type: which kind its definition names.
 impl Compiler<'_> {
     /// How an element of `component_type` is planned: what its definition
     /// (`component!`) says.

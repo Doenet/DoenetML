@@ -10,6 +10,8 @@ use super::walk::At;
 use super::*;
 use crate::error::Error;
 
+/// Stamping, after the templates: list copies, `$ref` children, collects and
+/// point lists placed, and the holds, as a build does before resolving.
 impl<'c> Stamp<'c> {
     /// Give a copy of a list type, element `e` of template `t`, its ports:
     /// as many as its referent has public, each reading the referent's

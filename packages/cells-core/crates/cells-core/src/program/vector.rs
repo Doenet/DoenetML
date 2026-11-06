@@ -90,6 +90,8 @@ impl Produced {
     }
 }
 
+/// A vector operator: one instruction with several outputs, such as a rigid
+/// shape's points or a circle through three points.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum VecOp {
     /// Identity on `n` points (2n outputs) that move rigidly. Inputs are the

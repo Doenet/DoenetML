@@ -27,6 +27,7 @@ pub struct Span {
     pub counts: Vec<(&'static str, u64)>,
 }
 
+/// The open trace of this thread: its spans and tallies as they are recorded.
 struct Recorder {
     origin: Instant,
     /// In opening order; a span's duration is filled in when it closes.
