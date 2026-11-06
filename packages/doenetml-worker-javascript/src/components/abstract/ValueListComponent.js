@@ -881,8 +881,8 @@ export default class ValueListComponent extends BaseComponent {
                     dependencyValues,
                     workspace,
                 }) {
-                    if (!workspace.coordinates) {
-                        workspace.coordinates = {};
+                    if (!workspace.entryValues) {
+                        workspace.entryValues = {};
                     }
                     const desiredValue = {};
                     for (const [entryKey, written] of Object.entries(
@@ -904,47 +904,41 @@ export default class ValueListComponent extends BaseComponent {
                                 coordinates[key] = coordinate;
                             }
                         }
-                        let entryValue = dependencyValues.values[entryKey];
+                        // Writes to one entry in one update, through
+                        // coordinates and through indices alike, build on
+                        // each other (`$l[1].x1` and `$l[1][2]` of one
+                        // point).
+                        let entryValue =
+                            workspace.entryValues[entryKey] ??
+                            dependencyValues.values[entryKey];
                         if (Object.keys(coordinates).length > 0) {
-                            workspace.coordinates[entryKey] = {
-                                ...workspace.coordinates[entryKey],
-                                ...coordinates,
-                            };
                             entryValue = withCoordinates(
                                 entryValue,
-                                workspace.coordinates[entryKey],
+                                coordinates,
                             );
                         }
+                        let tree = entryValue?.tree;
+                        for (const [key, desired] of throughIndex) {
+                            tree =
+                                tree === undefined
+                                    ? undefined
+                                    : withValueEntry(
+                                          tree,
+                                          key
+                                              .slice(VALUE_ENTRY_PREFIX.length)
+                                              .split("_")
+                                              .map(Number),
+                                          convertValueToMathExpression(desired)
+                                              .tree,
+                                      );
+                        }
+                        if (tree === undefined) {
+                            continue;
+                        }
                         if (throughIndex.length > 0) {
-                            let tree =
-                                workspace.valueEntryTrees?.[entryKey] ??
-                                entryValue?.tree;
-                            for (const [key, desired] of throughIndex) {
-                                tree =
-                                    tree === undefined
-                                        ? undefined
-                                        : withValueEntry(
-                                              tree,
-                                              key
-                                                  .slice(
-                                                      VALUE_ENTRY_PREFIX.length,
-                                                  )
-                                                  .split("_")
-                                                  .map(Number),
-                                              convertValueToMathExpression(
-                                                  desired,
-                                              ).tree,
-                                          );
-                            }
-                            if (tree === undefined) {
-                                continue;
-                            }
-                            workspace.valueEntryTrees = {
-                                ...workspace.valueEntryTrees,
-                                [entryKey]: tree,
-                            };
                             entryValue = me.fromAst(tree);
                         }
+                        workspace.entryValues[entryKey] = entryValue;
                         desiredValue[entryKey] = entryValue;
                     }
                     if (Object.keys(desiredValue).length === 0) {

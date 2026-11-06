@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateMathInputValue, updateMatrixInputValue } from "../utils/actions";
+import {
+    movePoint,
+    updateMathInputValue,
+    updateMatrixInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -656,6 +660,37 @@ describe("An index into an entry of a list @group4", async () => {
             core,
         });
         expect(await textOf("plm")).eq("[[1, 0], [5, 6]], 5");
+    });
+
+    it("takes writes to one entry through a coordinate and through an index together", async () => {
+        // A point whose coordinates are an entry's coordinate and an index
+        // into the entry: moving it writes both to the entry in one update.
+        for (const coordinates of [
+            "$ml[1].x1, $ml[1][2]",
+            "$ml[1][1], $ml[1].x2",
+            "$ml[1][1], $ml[1][2]",
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<mathList name="ml">(1,2) 3</mathList>
+<graph><point name="Q">(${coordinates})</point></graph>
+<p name="p">$ml</p>`,
+            });
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx("Q"),
+                x: 5,
+                y: 6,
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+                coordinates,
+            ).eq("(5, 6), 3");
+        }
     });
 
     it("reports an index into an entry as on a component (#2413)", async () => {
