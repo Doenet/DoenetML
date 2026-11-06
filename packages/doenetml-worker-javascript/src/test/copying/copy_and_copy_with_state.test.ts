@@ -1301,21 +1301,39 @@ ${repeat}
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const sv = async (name: string) =>
-            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        // The component, not its `stateValues`, is awaited, so that the
+        // Rust core's lazy `stateValues` is not read as a promise.
+        const component = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)];
 
-        expect((await sv("vc")).displacement.map((x: any) => x.tree)).eqls([
-            3, 4,
+        expect(
+            (await component("vc")).stateValues.displacement.map(
+                (x: any) => x.tree,
+            ),
+        ).eqls([3, 4]);
+        expect((await component("lc")).stateValues.equation.tree).eqls([
+            "=",
+            "y",
+            ["*", 2, "x"],
         ]);
-        expect((await sv("lc")).equation.tree).eqls(["=", "y", ["*", 2, "x"]]);
-        expect((await sv("ac")).radians.tree).eqls(["/", "pi", 3]);
-        expect((await sv("sc")).value.tree).eq(6);
-        expect((await sv("sic")).sortedIndices).eqls([2, 3, 1]);
-        expect((await sv("mic")).value.tree).eq("y");
-        expect((await sv("tic")).value).eq("y");
-        expect((await sv("bic")).value).eq(true);
+        expect((await component("ac")).stateValues.radians.tree).eqls([
+            "/",
+            "pi",
+            3,
+        ]);
+        expect((await component("sc")).stateValues.value.tree).eq(6);
+        expect((await component("sic")).stateValues.sortedIndices).eqls([
+            2, 3, 1,
+        ]);
+        expect((await component("mic")).stateValues.value.tree).eq("y");
+        expect((await component("tic")).stateValues.value).eq("y");
+        expect((await component("bic")).stateValues.value).eq(true);
         // the source's value, as the child is not read
-        expect((await sv("subc")).value.tree).eqls(["+", "y", 1]);
+        expect((await component("subc")).stateValues.value.tree).eqls([
+            "+",
+            "y",
+            1,
+        ]);
 
         const { errors, warnings } = getDiagnosticsByType(core);
         expect([...errors, ...warnings]).eqls([]);
