@@ -474,6 +474,18 @@ pub struct FlatFragment {
     #[serde(default)]
     #[cfg_attr(feature = "web", tsify(optional))]
     pub copied_content: bool,
+    /// What an index after the fragment's parent passes to, when the parent is a `<group>`
+    /// that a copy or an extend made of an iteration or a pick (`<group extend="$r[1]"/>`):
+    /// the position (from 1) among the parent's `index_resolutions` of the one indexable
+    /// component that is its whole content, as the [`INDEX_PASS_THROUGH_ATTRIBUTE`] of the
+    /// iteration or pick gives it, or `0` when the content is not one indexable component.
+    /// The parent then indexes as the iteration or pick it is made of
+    /// (see `IndexKind::PassThrough`). `None` leaves the parent's index kind as it is.
+    ///
+    /// [`INDEX_PASS_THROUGH_ATTRIBUTE`]: crate::dast::ref_resolve::INDEX_PASS_THROUGH_ATTRIBUTE
+    #[serde(default)]
+    #[cfg_attr(feature = "web", tsify(optional))]
+    pub parent_index_pass_through: Option<usize>,
     /// A map of the a node's index into its index in the array `nodes`
     idx_map: HashMap<usize, usize>,
 }
@@ -551,6 +563,7 @@ impl FlatFragment {
             parent_idx,
             parent_source_sequence: None,
             copied_content: false,
+            parent_index_pass_through: None,
             idx_map,
         }
     }

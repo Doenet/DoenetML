@@ -794,18 +794,23 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
  * reach the entries of the value, whatever its shape at the moment:
  *
  * - a tuple, vector or list (or a transposed or primed one): `[i]` is entry
- *   `i`, and an entry has no entries of its own;
+ *   `i`;
  * - a matrix: `[i]` is row `i`, as a 1×n matrix, and `[i][j]` is the entry
  *   in row `i` and column `j`;
  * - anything else is a scalar, which has no entries.
  *
- * The array has two dimensions. Key `i,0` is entry `i + 1` as a whole (a
- * coordinate, or a row), and key `i,j` with `j ≥ 1` is entry `j` of it (the
- * matrix entry in row `i + 1` and column `j`), so its size is `[m, n + 1]`
- * for an m×n matrix, `[n, 1]` for a tuple of n entries, and `[0, 1]` for a
- * scalar. Its entries are named `__valueEntry2` for key `1,0` and
- * `__valueEntry2_3` for key `1,3`. As the value changes shape, an entry
- * names a coordinate, a row or nothing, as an index past the end does.
+ * An index after an entry indexes the entry the same way, while it has
+ * entries (`selectValueEntry`): `$m[1][2]` of `((1,2),(3,4))` is `2`.
+ *
+ * The array holds the first two levels, as a matrix does: key `i,0` is
+ * entry `i + 1` as a whole (an entry of a tuple, or a row of a matrix), and
+ * key `i,j` with `j ≥ 1` entry `j` of it, named `__valueEntry2` for key
+ * `1,0` and `__valueEntry2_3` for key `1,3` (`valueEntriesSize`). A longer
+ * path (`$m[1][2][1]`) is a variable of its own, made when a reference asks
+ * for it (`__valuePath_1_2_1`, `ensureValuePathVariable`), so nothing is made
+ * for the deeper paths no reference names, and there is no limit to the
+ * depth. As the value changes shape, an entry or a path names an entry, a
+ * row or nothing, as an index past the end does.
  *
  * It is not public, so `$m.__valueEntries` names nothing; a reference reaches
  * it only through `variableForIndexAsProp` (or `.value[i]`), which read it
@@ -817,12 +822,29 @@ export const VALUE_ENTRIES = "__valueEntries";
 export const VALUE_ENTRY_PREFIX = "__valueEntry";
 
 /**
+ * The prefix of the variable for an index path of three or more indices
+ * into a math value (`__valuePath_1_2_1` for `$m[1][2][1]`), made when a
+ * reference asks for it (`ensureValuePathVariable`).
+ */
+export const VALUE_PATH_PREFIX = "__valuePath_";
+
+/**
+ * Where the writes through an index into a math value are gathered, so the
+ * writes of one update are merged into one value.
+ */
+export const VALUE_PATH_WRITES = "__valuePathWrites";
+
+/**
  * Whether `name` is {@link VALUE_ENTRIES} or one of its entries, which a
  * reference with an index reads although it is not public.
  */
 export function isValueEntriesVariable(name: string | undefined): boolean {
     return (
-        name === VALUE_ENTRIES || Boolean(name?.startsWith(VALUE_ENTRY_PREFIX))
+        name === VALUE_ENTRIES ||
+        Boolean(
+            name?.startsWith(VALUE_ENTRY_PREFIX) ||
+            name?.startsWith(VALUE_PATH_PREFIX),
+        )
     );
 }
 
@@ -902,18 +924,6 @@ function isMatrixWithRows(tree: Tree): boolean {
 }
 
 /**
- * What an index into a math value reads it as: a tuple of entries, a matrix
- * of rows, or a scalar, classified without copying the value, for a check
- * that needs only the kind (`indexIntoScalar`).
- */
-function shapeKind(tree: Tree): ValueShape["kind"] {
-    if (tupleOf(tree)) {
-        return "tuple";
-    }
-    return isMatrixWithRows(tree) ? "matrix" : "scalar";
-}
-
-/**
  * The shape of a math value for an index into it: a tuple of entries, a
  * matrix of rows, or a scalar, with a function that puts changed entries (or
  * rows) back into a value of the same form. It copies the entries or rows,
@@ -975,36 +985,185 @@ function rowFromValue(desired: Tree): Tree[] | undefined {
 }
 
 /**
- * Entry `index` (from 1) of a math value, as `$m[index]` reads it: an entry
- * of a tuple, or a row of a matrix as a 1×n matrix. `undefined` for an index
- * past the end, and for a scalar, which has no entries; a list entry's
- * property (`entryValueEntryProperty` in `ValueListComponent.js`) shows a
- * blank for it.
+ * What an index into a math value has reached: a value, or a row of a
+ * matrix, which the next index selects an entry of (`$M[1][2]`) and which is
+ * read as a 1×n matrix when no index follows (`$M[1]`).
  */
-export function valueEntryOf(value: Expression, index: number): any {
-    if (!(Number.isInteger(index) && index > 0)) {
+type ValueNode = { tree: Tree } | { row: Tree[] };
+
+/** Entry `index` (from 1) of `node`, without copying the others. */
+function entryAt(
+    node: ValueNode,
+    index: number,
+): ValueNode | "pastEnd" | "scalar" {
+    if ("row" in node) {
+        return index <= node.row.length
+            ? { tree: node.row[index - 1] }
+            : "pastEnd";
+    }
+    const tuple = tupleOf(node.tree);
+    if (tuple) {
+        return index < tuple.length ? { tree: tuple[index] } : "pastEnd";
+    }
+    if (isMatrixWithRows(node.tree)) {
+        const row = ((node.tree as Tree[])[2] as Tree[][])[index];
+        return row === undefined ? "pastEnd" : { row: row.slice(1) };
+    }
+    return "scalar";
+}
+
+/** The value `node` is: a row as a 1×n matrix. */
+function treeOf(node: ValueNode): Tree {
+    return "row" in node ? rowAsMatrix(node.row) : node.tree;
+}
+
+/**
+ * What `indices` (each from 1) select in the math value `tree`, as
+ * `$m[i][j]…` reads it (D27, "Values with entries"): an index selects an
+ * entry while the value has one at that level -- an entry of a tuple, a row
+ * of a matrix, then an entry of that row -- so a tuple of tuples is indexed
+ * at both levels, and a tuple holding a matrix at three. It names nothing
+ * past the end of what it selects among (`"pastEnd"`), and in a scalar,
+ * which has no entries (`"scalar"`), which is reported.
+ */
+export function selectValueEntry(
+    tree: Tree,
+    indices: number[],
+): { tree: Tree } | "pastEnd" | "scalar" {
+    let node: ValueNode = { tree };
+    for (const index of indices) {
+        if (!(Number.isInteger(index) && index > 0)) {
+            return "pastEnd";
+        }
+        const entry = entryAt(node, index);
+        if (typeof entry === "string") {
+            return entry;
+        }
+        node = entry;
+    }
+    return { tree: treeOf(node) };
+}
+
+/**
+ * `tree` with what `indices` select in it (`selectValueEntry`) replaced by
+ * `desired`, in a value of the same form, or `undefined` when the indices
+ * name nothing, or name a row and `desired` is not a row of its length.
+ */
+export function withValueEntry(
+    tree: Tree,
+    indices: number[],
+    desired: Tree,
+): Tree | undefined {
+    const result = replaceEntry({ tree }, indices, desired);
+    return result && "tree" in result ? result.tree : undefined;
+}
+
+function replaceEntry(
+    node: ValueNode,
+    indices: number[],
+    desired: Tree,
+): ValueNode | undefined {
+    if (indices.length === 0) {
+        if ("row" in node) {
+            const row = rowFromValue(desired);
+            return row?.length === node.row.length ? { row } : undefined;
+        }
+        return { tree: desired };
+    }
+    const [index, ...rest] = indices;
+    const entry = entryAt(node, index);
+    if (typeof entry === "string") {
         return undefined;
     }
-    const tree = value.tree;
-    const tuple = tupleOf(tree);
-    if (tuple) {
-        return index < tuple.length ? me.fromAst(tuple[index]) : undefined;
+    const replaced = replaceEntry(entry, rest, desired);
+    if (!replaced) {
+        return undefined;
     }
-    if (isMatrixWithRows(tree)) {
-        const row = ((tree as Tree[])[2] as Tree[][])[index];
-        return row === undefined
-            ? undefined
-            : me.fromAst(rowAsMatrix(row.slice(1)));
+    if ("row" in node) {
+        const row = [...node.row];
+        row[index - 1] = (replaced as { tree: Tree }).tree;
+        return { row };
+    }
+    const shape = valueShape(node.tree);
+    if (shape.kind === "tuple") {
+        const entries = [...shape.entries];
+        entries[index - 1] = (replaced as { tree: Tree }).tree;
+        return { tree: shape.rebuild(entries) };
+    }
+    if (shape.kind === "matrix") {
+        const rows = [...shape.rows];
+        rows[index - 1] = (replaced as { row: Tree[] }).row;
+        return { tree: shape.rebuild(rows) };
     }
     return undefined;
 }
 
 /**
- * Whether the entries of a math value, as `$m[index]` reads them, are the
- * rows of a matrix.
+ * How many entries the next index selects among in `node`: those of a
+ * tuple, vector or list, the rows of a matrix, or the entries of a row; `0`
+ * for a scalar.
  */
-export function hasMatrixRows(value: Expression): boolean {
-    return isMatrixWithRows(value.tree);
+function numEntriesOf(node: ValueNode): number {
+    if ("row" in node) {
+        return node.row.length;
+    }
+    const tuple = tupleOf(node.tree);
+    if (tuple) {
+        return tuple.length - 1;
+    }
+    return isMatrixWithRows(node.tree)
+        ? ((node.tree as Tree[])[2] as Tree[]).length - 1
+        : 0;
+}
+
+/**
+ * The size of {@link VALUE_ENTRIES} for the math value `tree`: the number
+ * of its entries, then one more than the most entries any of them has (key
+ * `0` is an entry as a whole), so `[m, n + 1]` for an m×n matrix and
+ * `[n, 1]` for a tuple of n scalars. Only these two levels are counted, so
+ * a deeper value costs no more (`ensureValuePathVariable`).
+ */
+function valueEntriesSize(tree: Tree): [number, number] {
+    // A matrix's rows all have the same length, checked once here rather
+    // than for each row (`entryAt`).
+    if (isMatrixWithRows(tree)) {
+        const rows = (tree as Tree[])[2] as Tree[][];
+        // each row is `["tuple", entry, …]`: n entries and a key for the row
+        return [rows.length - 1, rows[1]?.length ?? 1];
+    }
+    const numEntries = numEntriesOf({ tree });
+    let mostInner = 0;
+    for (let index = 1; index <= numEntries; index++) {
+        const entry = entryAt({ tree }, index);
+        if (typeof entry !== "string") {
+            mostInner = Math.max(mostInner, numEntriesOf(entry));
+        }
+    }
+    return [numEntries, mostInner + 1];
+}
+
+/** The indices (each from 1) that key `arrayKey` of {@link VALUE_ENTRIES} names. */
+function indicesOfArrayKey(arrayKey: string): number[] {
+    const [row, column] = arrayKey.split(",").map(Number);
+    return column === 0 ? [row + 1] : [row + 1, column];
+}
+
+/**
+ * Whether `indices` name nothing in the math `value` because they reach a
+ * scalar, which has no entries (`selectValueEntry`), which is reported,
+ * unlike an index past the end, which is silent since the length can change
+ * (#1499). A blank, the value of a `<mathInput>` before anything is
+ * entered, is not reported: the author expects it to be given entries.
+ */
+export function indicesIntoScalar(
+    value: Expression | undefined,
+    indices: number[],
+): boolean {
+    const tree = value?.tree;
+    if (tree === undefined || tree === BLANK) {
+        return false;
+    }
+    return selectValueEntry(tree, indices) === "scalar";
 }
 
 interface ValueEntriesWorkspace {
@@ -1012,48 +1171,147 @@ interface ValueEntriesWorkspace {
 }
 
 /**
- * The definition of {@link VALUE_ENTRIES}, for a component whose `value` is
- * a math expression.
+ * The indices (each from 1) that the name of an entry of
+ * {@link VALUE_ENTRIES} (`__valueEntry2`) or of a value path
+ * (`__valuePath_2_1_3`) holds after `prefix`, or `undefined` when it holds
+ * anything but positive integers.
+ */
+function indicesOfName(name: string, prefix: string): number[] | undefined {
+    const indices = name.slice(prefix.length).split("_").map(Number);
+    return indices.every((index) => Number.isInteger(index) && index > 0)
+        ? indices
+        : undefined;
+}
+
+/** The shadowing of an entry of a math value, which is a math. */
+function valueEntryShadowing() {
+    return {
+        createComponentOfType: "math",
+        addAttributeComponentsShadowingStateVariables:
+            returnNumberDisplayAttributeComponentShadowing(),
+    };
+}
+
+/**
+ * Give `component`, whose `value` is a math, the state variable `name` for
+ * an index path into its value of three or more indices
+ * (`__valuePath_1_2_1`, which `$m[1][2][1]` reads), if it does not have it
+ * yet. It holds what the
+ * indices select (`selectValueEntry`), and nothing where they name nothing,
+ * so a reference to it is missing (VAL-5). A write through it is a write of
+ * what it selects, gathered with the others of the same update in
+ * {@link VALUE_PATH_WRITES}.
+ *
+ * Such a path is made only when a reference asks for it, one variable per
+ * path, so a deep value costs nothing for the paths no reference names,
+ * and there is no limit to how deep an index reaches.
+ */
+function ensureValuePathVariable({
+    core,
+    component,
+    name,
+    addStateVariablePlaceholder,
+}: {
+    core: any;
+    component: any;
+    name: string;
+    /** `addStateVariablePlaceholder` of the core, passed in to keep this
+     * module free of the core's. */
+    addStateVariablePlaceholder: (args: {
+        core: any;
+        component: any;
+        stateVariable: string;
+        definition: Record<string, any>;
+    }) => void;
+}) {
+    if (name in component.state || !name.startsWith(VALUE_PATH_PREFIX)) {
+        return;
+    }
+    const indices = indicesOfName(name, VALUE_PATH_PREFIX);
+    if (!indices) {
+        return;
+    }
+    const key = indices.join("_");
+    addStateVariablePlaceholder({
+        core,
+        component,
+        stateVariable: name,
+        definition: {
+            shadowingInstructions: valueEntryShadowing(),
+            returnDependencies: () => ({
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+                writes: {
+                    dependencyType: "stateVariable",
+                    variableName: VALUE_PATH_WRITES,
+                },
+            }),
+            definition({ dependencyValues }: any) {
+                const selected = selectValueEntry(
+                    dependencyValues.value.tree,
+                    indices,
+                );
+                return {
+                    setValue: {
+                        [name]:
+                            typeof selected === "string"
+                                ? undefined
+                                : me.fromAst(selected.tree),
+                    },
+                };
+            },
+            inverseDefinition({ desiredStateVariableValues }: any) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "writes",
+                            desiredValue: {
+                                [key]: desiredStateVariableValues[name],
+                            },
+                        },
+                    ],
+                };
+            },
+        },
+    });
+}
+
+/**
+ * The definitions of {@link VALUE_ENTRIES} and {@link VALUE_PATH_WRITES},
+ * for a component whose `value` is a math expression.
  */
 export function returnValueEntriesStateVariableDefinitions() {
     let stateVariableDefinitions: any = {};
 
     stateVariableDefinitions[VALUE_ENTRIES] = {
-        shadowingInstructions: {
-            createComponentOfType: "math",
-            addAttributeComponentsShadowingStateVariables:
-                returnNumberDisplayAttributeComponentShadowing(),
-        },
+        shadowingInstructions: valueEntryShadowing(),
         isArray: true,
         numDimensions: 2,
         entryPrefixes: [VALUE_ENTRY_PREFIX],
         returnEntryDimensions: () => 0,
         /**
-         * Whether `propIndex` names nothing because what it indexes is a
-         * scalar, which has no entries: the value, or, for a second index,
-         * an entry of a tuple. That is reported, unlike an index past the end,
-         * which is silent. A blank, the value of a `<mathInput>` before
-         * anything is entered, is not reported: the author expects it to be
-         * given entries. `arrayEntryNamesFromPropIndex` reports such an
-         * index.
+         * An index takes as many indices as the value has levels
+         * (`arrayEntryNamesFromPropIndex` does not count them against the
+         * array's two dimensions): one or two indices are an entry of the
+         * array, and a longer path a variable of its own
+         * (`ensureIndexPathVariable`).
+         */
+        indexesAnyDepth: true,
+        /**
+         * Whether `propIndex` names nothing because it reaches a scalar,
+         * which has no entries (`indicesIntoScalar`).
+         * `arrayEntryNamesFromPropIndex` reports such an index.
          */
         async indexIntoScalar(component: any, propIndex: number[]) {
-            const tree = (await component.stateValues.value)?.tree;
-            if (tree === BLANK) {
-                return false;
-            }
-            // Only the kind is needed, so nothing is copied: this runs for
-            // every reference with an index.
-            const tuple = tupleOf(tree);
-            if (tuple) {
-                if (propIndex.length < 2) {
-                    return false;
-                }
-                const entry = tuple[propIndex[0]];
-                return entry !== undefined && shapeKind(entry) === "scalar";
-            }
-            return !isMatrixWithRows(tree);
+            return indicesIntoScalar(
+                await component.stateValues.value,
+                propIndex,
+            );
         },
+        ensureIndexPathVariable: ensureValuePathVariable,
         getArrayKeysFromVarName({
             varEnding,
             arraySize,
@@ -1076,17 +1334,15 @@ export function returnValueEntriesStateVariableDefinitions() {
             return [`${row},${column}`];
         },
         arrayVarNameFromArrayKey(arrayKey: string) {
-            const [row, column] = arrayKey.split(",").map(Number);
-            return (
-                VALUE_ENTRY_PREFIX +
-                (column === 0 ? `${row + 1}` : `${row + 1}_${column}`)
-            );
+            return VALUE_ENTRY_PREFIX + indicesOfArrayKey(arrayKey).join("_");
         },
         arrayVarNameFromPropIndex(propIndex: number[], varName: string) {
-            if (varName !== VALUE_ENTRIES || propIndex.length > 2) {
+            if (varName !== VALUE_ENTRIES || propIndex.length === 0) {
                 return null;
             }
-            return VALUE_ENTRY_PREFIX + propIndex.join("_");
+            return propIndex.length <= 2
+                ? VALUE_ENTRY_PREFIX + propIndex.join("_")
+                : VALUE_PATH_PREFIX + propIndex.join("_");
         },
         returnArraySizeDependencies: () => ({
             value: {
@@ -1099,18 +1355,7 @@ export function returnValueEntriesStateVariableDefinitions() {
         }: {
             dependencyValues: { value: any };
         }) {
-            const tree = dependencyValues.value.tree;
-            const tuple = tupleOf(tree);
-            if (tuple) {
-                return [tuple.length - 1, 1];
-            }
-            if (isMatrixWithRows(tree)) {
-                // `["tuple", row, …]`, each row `["tuple", entry, …]`: m rows
-                // of n entries, and a column for each row as a whole.
-                const rows = (tree as Tree[])[2] as Tree[][];
-                return [rows.length - 1, rows[1]?.length ?? 1];
-            }
-            return [0, 1];
+            return valueEntriesSize(dependencyValues.value.tree);
         },
         returnArrayDependenciesByKey() {
             return {
@@ -1118,6 +1363,10 @@ export function returnValueEntriesStateVariableDefinitions() {
                     value: {
                         dependencyType: "stateVariable",
                         variableName: "value",
+                    },
+                    writes: {
+                        dependencyType: "stateVariable",
+                        variableName: VALUE_PATH_WRITES,
                     },
                 },
             };
@@ -1130,74 +1379,78 @@ export function returnValueEntriesStateVariableDefinitions() {
             arrayKeys: string[];
         }) {
             // Each requested entry is read from the value as it is, without
-            // copying the rest: `$mm[1][1]` copies nothing of the matrix, and
-            // a whole row copies only that row.
+            // copying the rest; a row of a matrix copies only that row.
             const tree = globalDependencyValues.value.tree;
-            const tuple = tupleOf(tree);
-            const rows = isMatrixWithRows(tree)
-                ? ((tree as Tree[])[2] as Tree[][])
-                : undefined;
             const entries: Record<string, any> = {};
             for (const arrayKey of arrayKeys) {
-                const [row, column] = arrayKey.split(",").map(Number);
-                if (tuple) {
-                    entries[arrayKey] = me.fromAst(tuple[row + 1]);
-                } else if (rows) {
-                    entries[arrayKey] = me.fromAst(
-                        column === 0
-                            ? rowAsMatrix(rows[row + 1].slice(1))
-                            : rows[row + 1][column],
-                    );
-                }
+                const selected = selectValueEntry(
+                    tree,
+                    indicesOfArrayKey(arrayKey),
+                );
+                entries[arrayKey] =
+                    typeof selected === "string"
+                        ? undefined
+                        : me.fromAst(selected.tree);
             }
             return { setValue: { [VALUE_ENTRIES]: entries } };
         },
         inverseArrayDefinitionByKey({
             desiredStateVariableValues,
-            globalDependencyValues,
+        }: {
+            desiredStateVariableValues: Record<string, Record<string, any>>;
+        }) {
+            const desiredValue: Record<string, any> = {};
+            for (const [arrayKey, desired] of Object.entries(
+                desiredStateVariableValues[VALUE_ENTRIES],
+            )) {
+                desiredValue[indicesOfArrayKey(arrayKey).join("_")] = desired;
+            }
+            return {
+                success: true,
+                instructions: [{ setDependency: "writes", desiredValue }],
+            };
+        },
+    };
+
+    /**
+     * Where a write through an index into the value is gathered, whether
+     * through an entry of {@link VALUE_ENTRIES} or a longer path
+     * (`ensureValuePathVariable`), keyed by the indices joined by `_`: one
+     * update can write several (a point whose coordinates are `$m[1][1]`
+     * and `$m[1][2]`), and they are merged into one value. A path that
+     * names nothing, and a row given a value that is not a row of its
+     * length, take no write (`withValueEntry`).
+     */
+    stateVariableDefinitions[VALUE_PATH_WRITES] = {
+        returnDependencies: () => ({
+            value: {
+                dependencyType: "stateVariable",
+                variableName: "value",
+            },
+        }),
+        definition: () => ({ setValue: { [VALUE_PATH_WRITES]: null } }),
+        inverseDefinition({
+            desiredStateVariableValues,
+            dependencyValues,
             workspace,
         }: {
             desiredStateVariableValues: Record<string, Record<string, any>>;
-            globalDependencyValues: { value: any };
+            dependencyValues: { value: any };
             workspace: ValueEntriesWorkspace;
         }) {
-            // Changes to several entries in one update are merged into one
-            // value.
-            const shape = valueShape(
-                workspace.desiredTree ?? globalDependencyValues.value.tree,
-            );
-            let desiredTree: Tree;
-
-            if (shape.kind === "tuple") {
-                const entries = [...shape.entries];
-                for (const [arrayKey, desired] of Object.entries(
-                    desiredStateVariableValues[VALUE_ENTRIES],
-                )) {
-                    const [row] = arrayKey.split(",").map(Number);
-                    entries[row] = convertValueToMathExpression(desired).tree;
+            let desiredTree: Tree | undefined =
+                workspace.desiredTree ?? dependencyValues.value.tree;
+            for (const [key, desired] of Object.entries(
+                desiredStateVariableValues[VALUE_PATH_WRITES] ?? {},
+            )) {
+                desiredTree = withValueEntry(
+                    desiredTree!,
+                    key.split("_").map(Number),
+                    convertValueToMathExpression(desired).tree,
+                );
+                if (desiredTree === undefined) {
+                    return { success: false };
                 }
-                desiredTree = shape.rebuild(entries);
-            } else if (shape.kind === "matrix") {
-                const rows = shape.rows.map((row) => [...row]);
-                for (const [arrayKey, desired] of Object.entries(
-                    desiredStateVariableValues[VALUE_ENTRIES],
-                )) {
-                    const [row, column] = arrayKey.split(",").map(Number);
-                    const desiredTree =
-                        convertValueToMathExpression(desired).tree;
-                    if (column > 0) {
-                        rows[row][column - 1] = desiredTree;
-                    } else {
-                        const newRow = rowFromValue(desiredTree);
-                        if (newRow?.length !== rows[row].length) {
-                            return { success: false };
-                        }
-                        rows[row] = newRow;
-                    }
-                }
-                desiredTree = shape.rebuild(rows);
-            } else {
-                return { success: false };
             }
 
             workspace.desiredTree = desiredTree;
@@ -1207,7 +1460,7 @@ export function returnValueEntriesStateVariableDefinitions() {
                 instructions: [
                     {
                         setDependency: "value",
-                        desiredValue: me.fromAst(desiredTree),
+                        desiredValue: me.fromAst(desiredTree!),
                     },
                 ],
             };

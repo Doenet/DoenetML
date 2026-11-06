@@ -2018,10 +2018,12 @@ describe("Select tag tests @group2", async () => {
                 : x.stateValues.value,
         );
 
+        // The copy of each pick's select, by its name: an index into the
+        // group passes through to that select, as `$o[1][1]` does (#2438)
         let q2s = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("q2[1]"),
+            await resolvePathToNodeIdx("q2.s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues
@@ -2031,7 +2033,7 @@ describe("Select tag tests @group2", async () => {
         let r2s = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("r2[1]"),
+            await resolvePathToNodeIdx("r2.s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues
@@ -2041,7 +2043,7 @@ describe("Select tag tests @group2", async () => {
         let s2s = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("s2[1]"),
+            await resolvePathToNodeIdx("s2.s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues
@@ -2051,7 +2053,7 @@ describe("Select tag tests @group2", async () => {
         let t2s = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("t2[1]"),
+            await resolvePathToNodeIdx("t2.s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues
@@ -2061,7 +2063,7 @@ describe("Select tag tests @group2", async () => {
         let u2s = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("u2[1]"),
+            await resolvePathToNodeIdx("u2.s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues

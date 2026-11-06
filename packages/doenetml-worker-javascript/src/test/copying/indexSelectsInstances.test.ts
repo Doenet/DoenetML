@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateMathInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -18,6 +21,9 @@ vi.mock("hyperformula");
  *   several components, or of what a `<conditionalContent>` shows, still
  *   selects it, with a deprecation warning (`doenet-w0179`).
  * - The diagnostics name what the author wrote.
+ * - An extend of an iteration or a pick indexes as it does (REF-7, #2438).
+ * - An index never reaches the `<setup>` a repeat adds to an iteration for
+ *   its `valueName` (NAME-3, #2438).
  */
 
 async function shownAndReported(doenetML: string) {
@@ -414,34 +420,151 @@ describe("An index selects instances, not children @group4", async () => {
         }
     });
 
-    it("does not warn of the setup a repeat adds after an iteration's content", async () => {
-        // An index after the content of an iteration reaches the `<setup>` that
-        // holds `valueName`, which shows nothing, as before. There is no child
-        // the author wrote to name, so there is no deprecation warning.
+    it("names nothing past an iteration's content, without reaching the setup the repeat adds", async () => {
+        // An index after the content of an iteration used to reach the
+        // `<setup>` that holds `valueName`, which showed nothing, and `.v`
+        // after it reached the value. That setup is not the author's content
+        // (NAME-3), so the index is past the iteration's children, and names
+        // nothing, as one past the children of a `<group>` does (#2438).
         const { text, warnings, errors, infos } = await shownAndReported(`
     <repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
     <repeat name="r2" extend="$r" />
     <group name="g" extend="$r[1]" />
-    <p name="p">[$r[1][2]] [$r2[1][2]] [$g[2]]</p>
+    <p name="p">[$r[1][2]] [$r2[1][2]] [$g[2]] [$r[1][2].v] [$g[2].v]</p>
     `);
-        expect(text).eq("[] [] []");
-        expect(warnings).eqls([]);
+        expect(text).eq("[＿] [＿] [＿] [＿] [＿]");
+        expect(warnings.map((w) => [w.code, w.args.reference])).eqls([
+            ["doenet-w0104", "$r[1][2]"],
+            ["doenet-w0104", "$r2[1][2]"],
+            ["doenet-w0104", "$g[2]"],
+            ["doenet-w0104", "$r[1][2].v"],
+            ["doenet-w0104", "$g[2].v"],
+        ]);
         expect(errors).eqls([]);
         expect(infos).eqls([]);
     });
 
-    it("does not warn of the setup in an iteration made later, in an unlinked copy, or after a reload", async () => {
+    it("names nothing past a list in an iteration, rather than reaching the setup the repeat adds (#2438)", async () => {
+        const doenetML = `
+    <mathInput name="n" prefill="3" />
+    <sequence name="l" length="$n" />
+    <repeat name="r" for="1 2" valueName="v">$l</repeat>
+    <p name="p">[$r[1][3]] [$r[1][4]] [$r[1][4].v] [$r[2][4]]</p>
+    `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        async function check(text: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq(text);
+        }
+
+        // silent, past the end of a list (#1499)
+        await check("[3] [＿] [＿] [＿]");
+        const { warnings, errors, infos } = getDiagnosticsByType(core);
+        expect([...warnings, ...errors, ...infos]).eqls([]);
+
+        // once the list has a fourth entry, the index names it, and `.v` is
+        // a property of that entry, not the repeat's value
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check("[3] [4] [＿] [4]");
+    });
+
+    it("indexes an extend of an iteration or a pick as the iteration or pick (#2438)", async () => {
+        const { text, warnings, errors, infos } = await shownAndReported(`
+    <repeat name="r" for="1 2" valueName="v"><repeat for="7 8 9" valueName="w"><math>$v $w</math></repeat></repeat>
+    <group name="g2" extend="$r[2]" />
+    <group name="g3" copy="$r[1]" />
+    <select name="s"><option><mathList>1 2 3</mathList></option></select>
+    <group name="gs" extend="$s[1]" />
+    <p name="p">[$r[2][2]] [$g2[2]] [$g2[1]] [$g3[3]] [$gs[2]] [$g2[4]] [$gs[4]]</p>
+    `);
+        expect(text).eq("[2 * 8] [2 * 8] [2 * 7] [1 * 9] [2] [＿] [＿]");
+        expect(errors).eqls([]);
+        expect(infos).eqls([]);
+        // past the instances, as for the iteration itself: the inner
+        // repeat says how many it made, and past a list is silent
+        expect(warnings.map((w) => [w.code, w.args.reference])).eqls([
+            ["doenet-w0181", "$g2[4]"],
+        ]);
+    });
+
+    it("selects children again when an extend of an iteration is made again from an ordinary group", async () => {
+        // `x` is an extend of an iteration in one case and an ordinary
+        // group in the other, so `g` passes an index through and then
+        // selects a child (a deprecated child index)
+        const doenetML = `<booleanInput name="b"/>
+    <repeat name="r" for="1 2" valueName="v"><repeat for="7 8 9" valueName="w"><math>$w</math></repeat></repeat>
+    <conditionalContent name="cc">
+      <case condition="$b"><group name="x"><math>a</math><math>b</math></group></case>
+      <else><group name="x" extend="$r[1]"/></else>
+    </conditionalContent>
+    <group name="g" extend="$cc.x"/>
+    <p name="p">[$g[2]]</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[8]");
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await text()).eq("[b]");
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await text()).eq("[8]");
+    });
+
+    it("still selects a child of an extend of an iteration that the author added to", async () => {
+        // Its content is not one indexable component, so an index does not
+        // pass through: it selects a child, deprecated. What the author
+        // added comes after the setup the repeat adds, which keeps its
+        // place, though an index does not reach it.
+        const { text, warnings } = await shownAndReported(`
+    <repeat name="r" for="1 2" valueName="v"><repeat for="7 8" valueName="w"><math>$w</math></repeat></repeat>
+    <group name="g" extend="$r[1]"><text>more</text></group>
+    <p name="p">[$g[3]]</p>
+    `);
+        expect(text).eq("[more]");
+        expect(warnings.map((w) => [w.code, w.args.reference])).eqls([
+            ["doenet-w0179", "$g[3]"],
+        ]);
+    });
+
+    it("does not reach the setup in an iteration made later, in an unlinked copy, or after a reload", async () => {
         // The setup is recognized by a mark the repeat gives it, which an
         // iteration added when the repeat updates, an unlinked copy of the
         // repeat or of an iteration, and a document restored from a save
-        // also carry
+        // also carry. Were it reached, `.v` after it would be the value.
         const doenetML = `
     <mathInput name="n" prefill="1" />
     <sequence name="seq" length="$n" />
     <repeat name="r" for="$seq" valueName="v"><text>$v</text></repeat>
     <repeat name="r2" copy="$r" />
     <group name="g" copy="$r[1]" />
-    <p name="p">[$r[2]] [$r[2][2]] [$r2[1][2]] [$g[2]]</p>
+    <p name="p">[$r[2]] [$r[2][2].v] [$r2[1][2].v] [$g[2].v]</p>
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
@@ -455,30 +578,30 @@ describe("An index selects instances, not children @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
                     .text,
             ).eq(text);
-            // The index reached the setup, which names nothing to warn of
+            // The setup is not reported as a child the index selects
             expect(
-                getDiagnosticsByType(core).warnings.filter((w) =>
-                    ["doenet-w0179", "doenet-w0104"].includes(w.code),
+                getDiagnosticsByType(core).warnings.filter(
+                    (w) => w.code === "doenet-w0179",
                 ),
             ).eqls([]);
         }
 
         // `r` has no iteration 2 yet
-        await check("[＿] [＿] [] []");
+        await check("[＿] [＿] [＿] [＿]");
 
         await updateMathInputValue({
             latex: "2",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        await check("[2] [] [] []");
+        await check("[2] [＿] [＿] [＿]");
 
         await core.saveImmediately();
         ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             initialState: scoreState.state,
         }));
-        await check("[2] [] [] []");
+        await check("[2] [＿] [＿] [＿]");
     });
 
     it("warns of a setup the author wrote, as of any other child", async () => {
@@ -495,7 +618,7 @@ describe("An index selects instances, not children @group4", async () => {
                 references: ["$r[1][2]"],
             },
             {
-                body: `<repeat name="r" for="a b" valueName="v"><setup><number name="n">5</number></setup><text>$v</text></repeat><repeat name="r2" extend="$r" /><p name="p">[$r2[1][1].n] [$r2[1][3]]</p>`,
+                body: `<repeat name="r" for="a b" valueName="v"><setup><number name="n">5</number></setup><text>$v</text></repeat><repeat name="r2" extend="$r" /><p name="p">[$r2[1][1].n]</p>`,
                 references: ["$r2[1][1]"],
             },
         ];

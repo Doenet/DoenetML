@@ -210,6 +210,21 @@ export function ensureListEntryPropertyArray({
             };
         },
     };
+    // An index into an entry that reaches a scalar names nothing and is
+    // reported (`arrayEntryNamesFromPropIndex`), as one into a `<math>`
+    // holding a scalar is: `$l[2][1]` of `<mathList>1 2</mathList>` as
+    // `$m[1]` of `<math>2</math>`.
+    if (derived?.indexIntoScalar && listArray) {
+        (definition as any).indexIntoScalar = async (
+            list: any,
+            propIndex: number[],
+        ) => {
+            const values = await list.stateValues[listVariable];
+            const value = values?.[propIndex[0] - 1];
+            return value != null && derived.indexIntoScalar(value);
+        };
+    }
+
     // An entry that stands for a component (`listEntrySourcesVariable`) has
     // that component's value of a property the list does not hold entry by
     // entry, as the copy of the component a composite made had.

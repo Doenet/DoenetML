@@ -40,6 +40,25 @@ pub fn mark_index_pass_through(flat_fragment: &mut FlatFragment, groups: &[Index
     }
 }
 
+/// Mark the `<setup>` elements of `flat_fragment` with indices in `setups` as the setup
+/// a repeat adds to an iteration, as the worker does with [`super::ITERATION_ALIASES_ATTRIBUTE`].
+pub fn mark_iteration_aliases(flat_fragment: &mut FlatFragment, setups: &[Index]) {
+    for node in flat_fragment.nodes.iter_mut() {
+        if let FlatNode::Element(element) = node
+            && element.name == "setup"
+            && setups.contains(&element.idx)
+        {
+            element.attributes.push(FlatAttribute {
+                name: super::ITERATION_ALIASES_ATTRIBUTE.into(),
+                parent: Some(element.idx),
+                children: vec![],
+                position: None,
+                source_doc: None,
+            });
+        }
+    }
+}
+
 pub struct TestPathPart {
     pub name: &'static str,
     pub indices: Vec<&'static str>,

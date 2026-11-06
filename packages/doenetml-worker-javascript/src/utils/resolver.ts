@@ -50,6 +50,19 @@ export function addNodesToFlatFragment({
             });
         }
 
+        // The `<setup>` a repeat adds to an iteration for its `valueName`
+        // and `indexName` is not among what an index into the iteration
+        // selects (Rust, `ITERATION_ALIASES_ATTRIBUTE`, NAME-3).
+        if ((comp as any).doenetAttributes?.iterationAliases) {
+            flatElement.attributes.push({
+                type: "attribute",
+                name: "_iterationAliases",
+                parent: componentIdx,
+                children: [],
+                sourceDoc: comp.sourceDoc,
+            });
+        }
+
         const name = getEffectiveComponentName(comp);
 
         if (name) {

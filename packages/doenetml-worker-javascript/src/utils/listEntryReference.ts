@@ -124,13 +124,10 @@ function entryPropertyOf(
  * (`x2`), when the list provides it; for a property that is not an array
  * (`coords[1]`), the property, ignoring the index. `undefined` otherwise.
  *
- * That last case is left only for the property of every entry
- * (`$l.coords[1]`), which still reads `coords`. For one entry it does not
- * match a component of the entries' type, where since #2407 an index into a
- * property that is not an array names nothing (`$P.coords[1]` shows nothing
- * and warns `doenet-w0100`), so `listEntryPropertyPath` resolves
- * `$l[2].coords[1]`, and an index below 1 (`$l[2].xs[0]`), before asking
- * this.
+ * For that last case, the caller makes the index name nothing, as it does
+ * for `$P.coords[1]` (`doenet-w0100`, #2407): `listEntryPropertyPath`
+ * resolves `$l[2].coords[1]`, and an index below 1 (`$l[2].xs[0]`), before
+ * asking this, and gives `$l.coords[1]` an index too many.
  */
 function indexedEntryProperty(
     listClass: any,
@@ -226,8 +223,8 @@ export function listEntryDefaultValue(
  * reads of its entries: `[i]` becomes entry `i` of the array of values,
  * `[i].prop` entry `i` of the array for `prop`, `[i][j]` entry `i` of the
  * array for what index `j` reads of the entries (`__valueEntryj` of math
- * entries, coordinate `xj` of point entries), and `.prop` the whole
- * array. `undefined` when `listClass` is not a
+ * entries, coordinate `xj` of point entries), `.value[i]` the same as
+ * `[i]`, and `.prop` the whole array. `undefined` when `listClass` is not a
  * list component or the path names no entry property, so that the path is
  * resolved as it is.
  */
@@ -279,32 +276,40 @@ export function listEntryPropertyPath({
     // (D27, "Values with entries"): an entry of the value of a math entry,
     // as `$m[3]` reads of a `<math>`, and a coordinate of a point entry, as
     // `$P[3]` reads of a `<point>`, also of a list that a repeat of points
-    // became (`$r[2][1]`). An index below 1 names nothing, and is reported
-    // as `$m[0]` is.
+    // became (`$r[2][1]`). Further indices index on in the value of a math
+    // entry (`$l[2][1][2]`, as `$m[1][2]`), and name nothing in a coordinate
+    // of a point entry, which is reported as `$P[1][1]` is: they are left on
+    // the path, an index too many for the entry's array
+    // (`arrayEntryNamesFromPropIndex`). An index below 1 names nothing, and
+    // is reported as `$m[0]` is.
     if (
         unresolvedPath.length === 1 &&
         first.name === "" &&
-        first.index.length === 2
+        first.index.length >= 2
     ) {
-        const index = Math.round(Number(first.index[1].value?.[0]));
-        if (index < 1) {
+        const indices = first.index
+            .slice(1)
+            .map((index: any) => Math.round(Number(index.value?.[0])));
+        if (indices.some((index: number) => index < 1)) {
             return indexNamingNothing(listClass, first, componentInfoObjects);
         }
         // A `<math>` entry is indexed by its value's entries (a tuple's
         // entries, a matrix's rows); a point or vector entry by its
         // coordinates, which it has also in one dimension, where its value is
         // a single number.
-        const candidates =
+        const numRead =
+            listClass.listEntryComponentType === "math" ? indices.length : 1;
+        const property =
             listClass.listEntryComponentType === "math"
-                ? [`${VALUE_ENTRY_PREFIX}${index}`]
-                : [`x${index}`];
-        const entryProperty = candidates.find(
-            (property) =>
-                listClass.derivedEntryProperty(property) !== undefined ||
-                entryPropertyOf(listClass, property, componentInfoObjects) !==
-                    undefined,
-        );
-        if (Number.isFinite(index) && entryProperty !== undefined) {
+                ? `${VALUE_ENTRY_PREFIX}${indices.slice(0, numRead).join("_")}`
+                : `x${indices[0]}`;
+        const entryProperty =
+            listClass.derivedEntryProperty(property) !== undefined ||
+            entryPropertyOf(listClass, property, componentInfoObjects) !==
+                undefined
+                ? property
+                : undefined;
+        if (indices.every(Number.isFinite) && entryProperty !== undefined) {
             return {
                 path: [
                     {
@@ -314,7 +319,10 @@ export function listEntryPropertyPath({
                             entryProperty,
                             componentInfoObjects,
                         ),
-                        index: [first.index[0]],
+                        index: [
+                            first.index[0],
+                            ...first.index.slice(1 + numRead),
+                        ],
                     },
                 ],
                 entryProperty,
@@ -330,7 +338,7 @@ export function listEntryPropertyPath({
         unresolvedPath.length === 2 &&
         first.name === "" &&
         first.index.length === 1 &&
-        second.index.length === 1
+        second.index.length >= 1
     ) {
         const property = entryPropertyOf(
             listClass,
@@ -339,9 +347,10 @@ export function listEntryPropertyPath({
         );
         // An index into the entry's value is an index into the entry, as
         // `$m.value[2]` is `$m[2]` (D27): `$l[1].value[2]` of a list of maths
-        // or points is `$l[1][2]`. Where an index selects nothing in an
-        // entry (a list of numbers), the value is not an array, and the
-        // index is reported as on one below, as `$n.value[1]` is.
+        // or points is `$l[1][2]`, and `$l[1].value[2][1]` is `$l[1][2][1]`.
+        // Where an index selects nothing in an entry (a list of numbers),
+        // the value is not an array, and the index is reported as on one
+        // below, as `$n.value[1]` is.
         // Recognized by the name written as well as the property it names,
         // since a point's `value` is an alias of its `coords`.
         const asIndex =
@@ -359,6 +368,11 @@ export function listEntryPropertyPath({
                 : undefined;
         if (asIndex) {
             return asIndex;
+        }
+        // Only an index into the entry's value goes deeper than one level
+        // here; `$l[1].xs[1][1]` is resolved as it is.
+        if (second.index.length > 1) {
+            return undefined;
         }
         if (property !== undefined) {
             // An index below 1 into a property of the entry names nothing,
@@ -417,6 +431,24 @@ export function listEntryPropertyPath({
         };
     }
 
+    // An index into the list's value is an index into the list, as
+    // `$m.value[2]` is `$m[2]` (D27): `$l.value[2]` is entry 2, and
+    // `$l.value[2].x` is `$l[2].x`.
+    if (
+        unresolvedPath.length <= 2 &&
+        first.name.toLowerCase() === "value" &&
+        first.index.length > 0
+    ) {
+        return listEntryPropertyPath({
+            listClass,
+            unresolvedPath: [
+                { ...first, name: "" },
+                ...unresolvedPath.slice(1),
+            ],
+            componentInfoObjects,
+        });
+    }
+
     // The same of every entry (`$l.xs[1]`).
     if (
         unresolvedPath.length === 1 &&
@@ -433,6 +465,32 @@ export function listEntryPropertyPath({
             listClass.listOwnProperties.includes(entryProperty)
         ) {
             return undefined;
+        }
+        // An index into a property that is not an array names nothing, and
+        // is reported, as `$P.coords[1]` is: the array of the property of
+        // each entry is given an index too many, after one naming an entry
+        // (`arrayEntryNamesFromPropIndex`). Not the property of every entry
+        // with the index dropped, which `$l.coords[1]` used to read.
+        if (
+            entryProperty ===
+                entryPropertyOf(listClass, first.name, componentInfoObjects) &&
+            !isArrayProperty(listClass, entryProperty, componentInfoObjects)
+        ) {
+            return {
+                path: [
+                    {
+                        ...first,
+                        name: arrayForEntryProperty(
+                            listClass,
+                            entryProperty,
+                            componentInfoObjects,
+                        ),
+                        index: [first.index[0], first.index[0]],
+                    },
+                ],
+                entryProperty,
+                isEntry: true,
+            };
         }
         return {
             path: [

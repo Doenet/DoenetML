@@ -3,7 +3,6 @@ import { codedDiagnostic } from "../utils/diagnostics";
 import { reportInternalError } from "../utils/internalErrors";
 import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
-import { isListEntryArrayVariable } from "../utils/listEntryReference";
 import { readHeldCopySnapshot } from "../utils/copySnapshot";
 import {
     applyPendingShadowModification,
@@ -2421,14 +2420,21 @@ export async function arrayEntryNamesFromPropIndex({
             stateVarObj = component.state[indexAsProp];
         }
 
-        // An array of a list holding one value per entry
-        // (`utils/listEntryReference.ts`) is given an index too many for an
+        // An index past the dimensions of an array names nothing (D27,
+        // "Values with entries"): `$P[1][1]` of a point, whose coordinates
+        // have no entries, as `$M[1][2][3]` of a matrix and `$P.xs[1][1]`.
+        // It is reported, as an index into a scalar is (`$m[1]` of
+        // `<math>5</math>`), where it used to be dropped. That includes an
+        // array of a list holding one value per entry
+        // (`utils/listEntryReference.ts`), given an index too many for an
         // index into an entry's property that is not an array
-        // (`$l[2].coords[1]`), which names nothing, as `$P.coords[1]` does.
+        // (`$l[2].coords[1]`), as `$P.coords[1]` is.
+        // An array that takes as many indices as its value has levels
+        // (`indexesAnyDepth`, the entries of a math value) is the exception.
         if (
             stateVarObj.isArray &&
-            propIndex.length > stateVarObj.numDimensions &&
-            isListEntryArrayVariable(component, varName)
+            !stateVarObj.indexesAnyDepth &&
+            propIndex.length > stateVarObj.numDimensions
         ) {
             reportPropIndexFailure(varName, " as it has too many indices");
             newVarNames.push(INDEX_NAMES_NOTHING);
@@ -2438,6 +2444,21 @@ export async function arrayEntryNamesFromPropIndex({
         let newName;
         if (stateVarObj.isArray) {
             newName = stateVarObj.arrayVarNameFromPropIndex(propIndex, varName);
+            // A path longer than the array's own entries is a variable of
+            // its own, made when a reference first asks for it
+            // (`ensureValuePathVariable`).
+            if (
+                newName &&
+                !(newName in component.state) &&
+                stateVarObj.ensureIndexPathVariable
+            ) {
+                stateVarObj.ensureIndexPathVariable({
+                    core,
+                    component,
+                    name: newName,
+                    addStateVariablePlaceholder,
+                });
+            }
             // A scalar has no entries, which is reported, unlike an index
             // past the end of a value that has, since the length can change
             // (#1499). The name is kept, so the reference names an entry

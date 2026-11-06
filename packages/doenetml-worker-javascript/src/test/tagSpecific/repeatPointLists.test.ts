@@ -268,10 +268,10 @@ describe("Repeats whose template is one point @group4", () => {
         ]);
     });
 
-    it("a drag through a coordinate past an entry's dimensions writes it, as of a list outside", async () => {
-        // The composite's copy of `$x[2]` of `3` has nothing to write to, and
-        // its point leaves the list; the list writes the entry as
-        // `$l[2][2]` outside a repeat does.
+    it("a drag through an index into a scalar entry is refused, as of a list outside", async () => {
+        // `$x[2]` and `$x[1]` of `3` name nothing (D27, #2438), as `$l2[2][2]`
+        // and `$l2[2][1]` do outside a repeat, so the point is blank and a
+        // drag of it writes nothing: it no longer lengthens the entry.
         const doenetML = `
 <mathList name="l">(1,2) 3</mathList>
 <graph name="g">
@@ -305,14 +305,14 @@ describe("Repeats whose template is one point @group4", () => {
         });
         expect(
             await textsOf(core, resolvePathToNodeIdx, ["pl", "pl2"]),
-        ).toEqual({ pl: "(1, 2), (8, 7)", pl2: "(1, 2), (8, 7)" });
+        ).toEqual({ pl: "(1, 2), 3", pl2: "(1, 2), 3" });
         expect(
             (await pointsDrawnIn(core, resolvePathToNodeIdx, "g")).map(
                 (p) => p.coords,
             ),
         ).toEqual([
             [2, 1],
-            [7, 8],
+            [NaN, NaN],
         ]);
     });
 

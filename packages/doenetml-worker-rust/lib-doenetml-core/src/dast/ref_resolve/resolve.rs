@@ -259,6 +259,13 @@ pub struct NodeResolverData {
     /// so that the names of a fragment added to it (`Resolver::add_nodes`) are its branches' names.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(super) branch_kind: Option<BranchContainerKind>,
+    /// Whether the node is the `<setup>` a repeat adds to an iteration for its `valueName`
+    /// and `indexName` (see [`super::ITERATION_ALIASES_ATTRIBUTE`]). It keeps its place among
+    /// the index resolutions of the iteration, but an index never reaches it: an index
+    /// selecting it is resolved as one past the iteration's content, and no root name is
+    /// made through it.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub(super) iteration_aliases: bool,
 }
 
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
@@ -550,6 +557,11 @@ impl Resolver {
                                     node_data.index_resolutions.get(index_num - 1)
                                 {
                                     match node_match {
+                                        // The setup a repeat adds is not reached by an index:
+                                        // the index is past the iteration's content (below).
+                                        Some(new_node_idx)
+                                            if self.node_resolver_data[*new_node_idx + 1]
+                                                .iteration_aliases => {}
                                         Some(new_node_idx) => {
                                             if !node_data.index_kind.is_instances() {
                                                 child_indexes.push(ChildIndex {

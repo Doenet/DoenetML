@@ -61,6 +61,7 @@ impl Resolver {
                         index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
                         branch_kind: node_data.branch_kind,
+                        iteration_aliases: node_data.iteration_aliases,
                     }
                 } else {
                     NodeResolverData {
@@ -74,6 +75,7 @@ impl Resolver {
                         index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
                         branch_kind: node_data.branch_kind,
+                        iteration_aliases: node_data.iteration_aliases,
                     }
                 }
             })
