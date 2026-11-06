@@ -3,7 +3,7 @@
 
 use crate::sym::{Engine, Handle};
 
-use crate::document::CellIdx;
+use crate::index::CellIdx;
 mod instr;
 mod ops;
 mod range;

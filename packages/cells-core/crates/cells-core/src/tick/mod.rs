@@ -3,7 +3,7 @@
 //! only reads the scheduled [`Program`](crate::program::Program) and writes
 //! cells.
 
-use crate::document::CellIdx;
+use crate::index::CellIdx;
 
 pub(crate) mod eval;
 pub mod invert;

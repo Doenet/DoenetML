@@ -23,8 +23,8 @@
 
 use super::define::Defined;
 use super::*;
-use crate::document::CellIdx;
 use crate::error::Error;
+use crate::index::CellIdx;
 use crate::program::{Range, fewest_in_sequence, sequence_count, sequence_index};
 
 /// What a stable-reference need comes to.

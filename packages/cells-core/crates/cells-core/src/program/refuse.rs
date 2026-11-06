@@ -21,7 +21,7 @@
 use std::rc::Rc;
 
 use super::{Instr, InstrIdx, Op, Program, SymEntry, VecOp};
-use crate::document::CellIdx;
+use crate::index::CellIdx;
 use crate::index::Idx;
 
 /// What `analyze` found for one asked cell.

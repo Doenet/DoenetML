@@ -2,7 +2,7 @@
 //! cell it writes. [`OpSpec`] is the operator before its inputs are bound, as
 //! the build plans it; [`SymKind`] the symbolic instructions.
 
-use crate::document::CellIdx;
+use crate::index::CellIdx;
 use crate::program::{Op, OpSpec, VecOp};
 use crate::sym::Handle;
 

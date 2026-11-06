@@ -20,7 +20,7 @@ impl Leaf for u32 {
     }
 }
 
-impl Leaf for crate::document::CellIdx {
+impl Leaf for crate::index::CellIdx {
     fn raw(self) -> u32 {
         self.get()
     }

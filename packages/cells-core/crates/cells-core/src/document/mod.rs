@@ -31,15 +31,7 @@ pub use load::{LoadOptions, LoadTimings};
 pub(crate) use table::ChildEntry;
 pub use table::{Child, ComponentTable};
 
-crate::index::index_type! {
-    /// A position in [`Built::cells`](crate::Built::cells), and in every list kept per cell.
-    pub struct CellIdx;
-}
-
-crate::index::index_type! {
-    /// A component: a position in the [`ComponentTable`]'s columns.
-    pub struct CompIdx;
-}
+pub use crate::index::{CellIdx, CompIdx};
 
 /// Build passes allowed before the structure must have settled, at least: a
 /// document is allowed its structural depth plus one too.

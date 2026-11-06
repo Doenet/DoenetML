@@ -5,7 +5,7 @@
 //! column at a time: each op works on whole columns of `n` samples.
 
 use super::Tree;
-use crate::document::CellIdx;
+use crate::index::CellIdx;
 
 /// A function a tape applies to the top column.
 #[derive(Debug, Clone, Copy, PartialEq)]

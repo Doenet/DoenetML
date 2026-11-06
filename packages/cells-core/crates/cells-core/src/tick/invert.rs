@@ -26,7 +26,7 @@ impl Hasher for IndexHasher {
 type HashMap<K, V> = std::collections::HashMap<K, V, BuildHasherDefault<IndexHasher>>;
 type HashSet<K> = std::collections::HashSet<K, BuildHasherDefault<IndexHasher>>;
 
-use crate::document::CellIdx;
+use crate::index::CellIdx;
 use crate::program::Produced;
 use crate::program::{InstrIdx, Program, SymRun};
 use crate::program::{Op, SymKind};

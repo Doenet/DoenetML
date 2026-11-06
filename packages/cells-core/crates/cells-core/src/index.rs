@@ -115,3 +115,13 @@ macro_rules! index_type {
 }
 
 pub(crate) use index_type;
+
+index_type! {
+    /// A position in [`Built::cells`](crate::Built::cells), and in every list kept per cell.
+    pub struct CellIdx;
+}
+
+index_type! {
+    /// A component: a position in the [`ComponentTable`](crate::ComponentTable)'s columns.
+    pub struct CompIdx;
+}

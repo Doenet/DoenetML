@@ -34,7 +34,7 @@
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
 
-use crate::document::CellIdx;
+use crate::index::CellIdx;
 use crate::program::Range;
 use crate::tick::invert::PointRequest;
 

@@ -42,8 +42,9 @@ use crate::compile::keys::pick_position;
 use crate::components::{ComponentType, prop};
 use crate::dast::{NodeId, StrId, StringTable};
 
-use crate::document::{CellIdx, ChildEntry, CompIdx, ComponentTable, Document, NONE};
+use crate::document::{ChildEntry, ComponentTable, Document, NONE};
 use crate::error::{Error, Result};
+use crate::index::{CellIdx, CompIdx};
 use crate::limits::byte;
 use crate::program::VecOp;
 use crate::program::{Instr, OpSpec, Post, SymKind};

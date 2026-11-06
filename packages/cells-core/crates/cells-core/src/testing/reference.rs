@@ -4,7 +4,8 @@
 
 use std::collections::HashMap;
 
-use crate::document::{CellIdx, Document};
+use crate::document::Document;
+use crate::index::CellIdx;
 use crate::program::{SymRun, SymState};
 
 /// The reference oracle: every derived cell of a document computed again from

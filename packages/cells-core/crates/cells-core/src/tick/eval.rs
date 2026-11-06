@@ -4,7 +4,7 @@
 //! value changed, and both give the same values; they differ only in how
 //! much work they do.
 
-use crate::document::CellIdx;
+use crate::index::CellIdx;
 use crate::program::{InstrIdx, Program, SymRun};
 
 /// The tables for walking only the downstream closure of the seeds, in

@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::compile::ir::ElemKey;
 use crate::dast::NodeId;
-use crate::document::CompIdx;
+use crate::index::CompIdx;
 
 crate::index::index_type! {
     /// A name scope: 0 is the document, every other scope is one iteration

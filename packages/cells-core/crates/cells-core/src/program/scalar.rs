@@ -9,7 +9,7 @@
 //! request is dropped.
 
 use super::ops::scalar_ops;
-use crate::document::CellIdx;
+use crate::index::CellIdx;
 use crate::program::{OperandIdx, Range, SymIdx, SymKind, VecIdx, VecOp};
 
 /// `Math.round`: halves round toward positive infinity, unlike Rust's
