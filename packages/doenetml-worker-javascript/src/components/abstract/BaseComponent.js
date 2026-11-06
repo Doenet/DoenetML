@@ -1658,13 +1658,37 @@ export default class BaseComponent {
                     !componentSourceAttributesToIgnore.includes(attrName)
                     //  || this.constructor.copyComponentAttributes?.includes(attrName)
                 ) {
-                    serializedComponent.attributes[attrName] = {
-                        type: "component",
-                        component: await attribute.component.serialize(
-                            parametersForChildren,
-                        ),
-                        sourceDoc: attribute.component.sourceDoc,
-                    };
+                    if (
+                        attribute.authoredComponent &&
+                        parameters.withoutReaderState
+                    ) {
+                        // A value a `copyWithState` kept in place of what
+                        // was written (`authoredComponent` in `Copy.js`):
+                        // a `copy` writes that again, so computes the
+                        // value from it (D33)
+                        serializedComponent.attributes[attrName] = {
+                            type: "component",
+                            component: deepClone(attribute.authoredComponent),
+                            sourceDoc: attribute.component.sourceDoc,
+                        };
+                    } else {
+                        serializedComponent.attributes[attrName] = {
+                            type: "component",
+                            component: await attribute.component.serialize(
+                                parametersForChildren,
+                            ),
+                            sourceDoc: attribute.component.sourceDoc,
+                        };
+                        if (attribute.authoredComponent) {
+                            // which a component made from this with the
+                            // state carried keeps, for a `copy` of it
+                            serializedComponent.attributes[
+                                attrName
+                            ].authoredComponent = deepClone(
+                                attribute.authoredComponent,
+                            );
+                        }
+                    }
                 }
             } else if (attribute.type === "literal") {
                 // Like the attribute component it stands for: a linked copy
@@ -1895,6 +1919,24 @@ export default class BaseComponent {
                             serializedComponent.state[essentialName] = value;
                         }
                     }
+                }
+            }
+        }
+
+        // The value captured from a property or a list entry (CPY-5) is what
+        // a component made from this with the state carried is defined
+        // with, not a reader's change to it: it keeps it as what it was
+        // made with (`initialEssentialState`), which a `copy` of it starts
+        // from (D33)
+        if (
+            !parameters.withoutReaderState &&
+            shadowsValue &&
+            serializedComponent.state
+        ) {
+            for (const varName in serializedComponent.state) {
+                if (!(varName in (this.essentialState ?? {}))) {
+                    serializedComponent.initialEssentialState[varName] =
+                        deepClone(serializedComponent.state[varName]);
                 }
             }
         }

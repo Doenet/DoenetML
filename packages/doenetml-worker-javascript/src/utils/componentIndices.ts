@@ -224,6 +224,19 @@ function newComponentIndicesForExtending(
     };
 }
 
+/**
+ * Give a copy of an attribute (`attribute`) its own copy of what was written
+ * in place of a value a `copyWithState` kept (`authoredComponent`), whose
+ * references `remapRefResolutions` renumbers in place.
+ */
+function cloneAuthoredComponent(attribute: SerializedAttribute) {
+    if (attribute.type === "component" && attribute.authoredComponent) {
+        attribute.authoredComponent = structuredClone(
+            attribute.authoredComponent,
+        );
+    }
+}
+
 function newComponentIndicesForAttributes(
     attributes: Record<string, SerializedAttribute>,
     nComponents: number,
@@ -251,6 +264,7 @@ function newComponentIndicesForAttributes(
                 .components[0] as SerializedComponent;
             Object.assign(idxMap, attrResult.idxMap);
             nComponents = attrResult.nComponents;
+            cloneAuthoredComponent(attribute);
         } else if (attribute.type === "references") {
             const attrResult = createNewComponentIndicesSub(
                 attribute.references,
@@ -490,6 +504,16 @@ function remapRefResolutions(
                     idxMap,
                     keepReferents,
                 );
+                // What was written in place of a kept value refers to what
+                // is copied with it (a module attribute). Its own components
+                // are not made, so keep their indices.
+                if (attribute.authoredComponent) {
+                    remapRefResolutions(
+                        [attribute.authoredComponent],
+                        idxMap,
+                        keepReferents,
+                    );
+                }
             } else if (attribute.type === "references") {
                 remapRefResolutions(
                     attribute.references,
@@ -991,6 +1015,7 @@ function newComponentIndicesForAttributesFromSerialized(
                 .components[0] as SerializedComponent;
             Object.assign(idxMap, attrResult.idxMap);
             nComponents = attrResult.nComponents;
+            cloneAuthoredComponent(attribute);
         } else if (attribute.type === "references") {
             if (idxSource.type !== "references") {
                 //console.log({ attributes, attributeIdxSources });

@@ -7628,9 +7628,15 @@ function seedFreshCopy(component) {
  * `<select numToSelect="$k">`, or reaches it through another component
  * inside the module, as through `n` where `m` holds
  * `<integer name="n">$k+1</integer>` and `<select numToSelect="$n">`.
- * That attribute of the choosing tag is given
- * the value it had in the source, so the carried choices still fit, and the
- * module attribute itself takes the written value. Each such module attribute
+ * What a module attribute reaches includes the references of an attribute
+ * held as an expression (`<point name="P">($k, 0)</point>`), and a choosing
+ * tag can be inside an attribute component (the `radians` of
+ * `<angle><selectFromSequence/></angle>`). That attribute of the choosing
+ * tag is given the value it had in the source, so the carried choices still
+ * fit, and the module attribute itself takes the written value. What was
+ * written for it is kept with it (`authoredComponent`), which a `copy` of
+ * the module is given in its place (`serialize`), so that copy chooses again
+ * from the module attributes it is given. Each such module attribute
  * gets a warning (`doenet-w0186`), which says to use `copy` to choose again.
  * It is found as the copy is made, as what a module attribute reaches is
  * only known from the module's content (DIAG-2). A value that can't be
@@ -7709,31 +7715,54 @@ async function keepChoicesReachedByModuleAttributes({
         if (typeof component !== "object" || component === null) {
             return found;
         }
-        const ref = component.extending && unwrapSource(component.extending);
-        if (ref && writtenByIdx.has(ref.nodeIdx)) {
-            found.add(writtenByIdx.get(ref.nodeIdx));
-        } else if (
-            ref &&
-            inModule.has(ref.nodeIdx) &&
-            !visited.has(ref.nodeIdx)
-        ) {
-            visited.add(ref.nodeIdx);
-            referencedModuleAttributes(
-                inModule.get(ref.nodeIdx),
-                found,
-                visited,
-            );
+        /** Follow a reference's resolution `ref` (`refResolution`). */
+        function follow(ref) {
+            if (!ref) {
+                return;
+            }
+            if (writtenByIdx.has(ref.nodeIdx)) {
+                found.add(writtenByIdx.get(ref.nodeIdx));
+            } else if (inModule.has(ref.nodeIdx) && !visited.has(ref.nodeIdx)) {
+                visited.add(ref.nodeIdx);
+                referencedModuleAttributes(
+                    inModule.get(ref.nodeIdx),
+                    found,
+                    visited,
+                );
+            }
         }
+        follow(component.extending && unwrapSource(component.extending));
         for (const child of component.children ?? []) {
             referencedModuleAttributes(child, found, visited);
         }
         for (const attribute of Object.values(component.attributes ?? {})) {
+            // the references of an attribute held as an expression, with no
+            // attribute component (`xs` of `<point>($k, 0)</point>`,
+            // `utils/expressionAttribute.js`)
+            if (attribute?.type === "expression") {
+                for (const slot of attribute.slots ?? []) {
+                    follow(slot.refResolution);
+                }
+            }
             referencedModuleAttributes(attribute?.component, found, visited);
             for (const reference of attribute?.references ?? []) {
                 referencedModuleAttributes(reference, found, visited);
             }
         }
         return found;
+    }
+
+    const selectableClass =
+        componentInfoObjects.allComponentClasses._componentWithSelectableType;
+    function isSelectableTypeWrapper(component) {
+        const componentClass =
+            componentInfoObjects.allComponentClasses[component.componentType];
+        return (
+            selectableClass !== undefined &&
+            componentClass !== undefined &&
+            (componentClass === selectableClass ||
+                componentClass.prototype instanceof selectableClass)
+        );
     }
 
     const reaching = new Set();
@@ -7769,7 +7798,21 @@ async function keepChoicesReachedByModuleAttributes({
             // the value the source chose with, written in place of what
             // refers to the module attribute (a value reference, `_ref`, of
             // the type it is presented as, when it is only the reference)
-            const attributeComponent = attribute.component;
+            // What was written, which a `copy` of this one, writing its
+            // DoenetML again, is given in place of the value (`serialize`,
+            // `withoutReaderState`), so it computes it from what it is
+            // given, as the module attribute written on it
+            attribute.authoredComponent = deepClone(attribute.component);
+            // of an attribute of a selectable type (`from` of a
+            // `<selectFromSequence>`), the component of that type it wraps
+            let attributeComponent = attribute.component;
+            while (
+                isSelectableTypeWrapper(attributeComponent) &&
+                attributeComponent.children?.length === 1 &&
+                typeof attributeComponent.children[0] === "object"
+            ) {
+                attributeComponent = attributeComponent.children[0];
+            }
             const presentedType =
                 attributeComponent.doenetAttributes?.presentedComponentType;
             if (
@@ -7786,8 +7829,17 @@ async function keepChoicesReachedByModuleAttributes({
                 reaching.add(name);
             }
         }
+        // also a choosing tag inside an attribute component, as the
+        // `<selectFromSequence>` of `<angle><selectFromSequence/></angle>`,
+        // which the angle's `radians` holds (as `collect`, above)
         for (const child of component.children ?? []) {
             await visit(child);
+        }
+        for (const attribute of Object.values(component.attributes ?? {})) {
+            await visit(attribute?.component);
+            for (const reference of attribute?.references ?? []) {
+                await visit(reference);
+            }
         }
     }
     await visit(replacement);

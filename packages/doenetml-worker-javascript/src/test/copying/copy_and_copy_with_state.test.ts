@@ -775,6 +775,149 @@ ${repeat}
         expect(doc.diagnostics().errors).eqls([]);
     });
 
+    it("a copy of a copyWithState of a property's copy keeps the value captured, not a reader's write to it, through a reload", async () => {
+        const doc = await loaded(`
+<mathInput name="mi" prefill="1"/>
+<math name="v" extend="$mi.value"/>
+<math name="w" copyWithState="$v"/>
+<mathInput name="wi" bindValueTo="$w"/>
+<booleanInput name="show"/>
+<conditionalContent condition="$show">
+  <math name="c" copy="$w"/>
+  <math name="ww" copyWithState="$w"/>
+  <math name="cww" copy="$ww"/>
+</conditionalContent>
+`);
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await doc.resolve("mi"),
+            core: doc.core,
+        });
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await doc.resolve("wi"),
+            core: doc.core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await doc.resolve("show"),
+            core: doc.core,
+        });
+        async function check() {
+            expect((await doc.sv("v")).value.tree).eq(5);
+            expect((await doc.sv("w")).value.tree).eq(7);
+            expect((await doc.sv("c")).value.tree).eq(1);
+            expect((await doc.sv("ww")).value.tree).eq(7);
+            expect((await doc.sv("cww")).value.tree).eq(1);
+        }
+        await check();
+        await doc.reload();
+        await check();
+    });
+
+    it("copyWithState of a module: a module attribute reaching a choice through a point's coordinates keeps the carried choices", async () => {
+        const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><integer name="k">2</integer></moduleAttributes>
+    <point name="P">($k, 0)</point>
+    <p name="picks"><select numToSelect="$P.x">${[...Array(10).keys()]
+        .map((i) => `<option><number>${i}</number></option>`)
+        .join("")}</select></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" k="4"/>
+`);
+        const source = (await doc.sv("m1.picks")).text;
+        expect(source.split(", ").length).eq(2);
+        expect((await doc.sv("mw.picks")).text).eq(source);
+        expect(
+            doc
+                .diagnostics()
+                .warnings.filter((w: any) => w.code === "doenet-w0186")
+                .map((w: any) => w.args.attribute),
+        ).eqls(["k"]);
+        expect(doc.diagnostics().errors).eqls([]);
+    });
+
+    it("a copy of a copyWithState of a module chooses again from the module attribute written on it", async () => {
+        const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><integer name="k">2</integer></moduleAttributes>
+    <p name="picks"><select numToSelect="$k">${[...Array(10).keys()]
+        .map((i) => `<option><number>${i}</number></option>`)
+        .join("")}</select></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" k="4"/>
+<module name="mc" copy="$mw" k="6"/>
+<module name="mww" copyWithState="$mw"/>
+<module name="mcww" copy="$mww" k="5"/>
+`);
+        async function check() {
+            const source = (await doc.sv("m1.picks")).text;
+            expect(source.split(", ").length).eq(2);
+            expect((await doc.sv("mw.picks")).text).eq(source);
+            expect((await doc.sv("mww.picks")).text).eq(source);
+            expect((await doc.sv("mc.picks")).text.split(", ").length).eq(6);
+            expect((await doc.sv("mcww.picks")).text.split(", ").length).eq(5);
+        }
+        await check();
+        await doc.reload();
+        await check();
+    });
+
+    it("copyWithState of a module: a module attribute reaching a choice inside an attribute component keeps the carried choices", async () => {
+        const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><integer name="k">1000000</integer></moduleAttributes>
+    <angle name="a"><selectFromSequence from="1" to="$k"/></angle>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" k="3"/>
+`);
+        expect((await doc.sv("mw.a")).radians.tree).eq(
+            (await doc.sv("m1.a")).radians.tree,
+        );
+        expect(
+            doc
+                .diagnostics()
+                .warnings.filter((w: any) => w.code === "doenet-w0186")
+                .map((w: any) => w.args.attribute),
+        ).eqls(["k"]);
+        expect(doc.diagnostics().errors).eqls([]);
+    });
+
+    it("copyWithState of a module: a module attribute reaching a selectable-type attribute of a choice keeps the carried choices", async () => {
+        const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><integer name="k">1000000</integer></moduleAttributes>
+    <p name="picks"><selectFromSequence from="1" to="$k" numToSelect="2"/></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" k="3"/>
+<module name="mc" copy="$mw" k="2"/>
+`);
+        expect((await doc.sv("mw.picks")).text).eq(
+            (await doc.sv("m1.picks")).text,
+        );
+        expect((await doc.sv("mc.picks")).text).oneOf(["1, 2", "2, 1"]);
+        expect(
+            doc
+                .diagnostics()
+                .warnings.filter((w: any) => w.code === "doenet-w0186")
+                .map((w: any) => w.args.attribute),
+        ).eqls(["k"]);
+        expect(doc.diagnostics().errors).eqls([]);
+    });
+
     it("copyWithState: a label or description added to a shuffled choiceInput is allowed", async () => {
         const doc = await loaded(`
 <choiceInput name="x" shuffleOrder><choice>a</choice><choice>b</choice><choice>c</choice></choiceInput>

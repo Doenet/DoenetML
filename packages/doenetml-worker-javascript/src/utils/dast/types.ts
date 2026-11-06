@@ -128,6 +128,12 @@ type ComponentAttribute = {
     type: "component";
     name: string;
     component: SerializedComponent;
+    /**
+     * What was written, where a `copyWithState` of a module holds the value
+     * its source chose with in place of it (`keepChoicesReachedByModuleAttributes`
+     * in `Copy.js`); a `copy` of it is given this instead (D33).
+     */
+    authoredComponent?: SerializedComponent;
     ignoreFixed?: boolean;
     sourceDoc?: number;
 };

@@ -3,7 +3,8 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
 /**
  * What a `copyWithState` made of its source when it was made, for
  * each component among its serialized replacements: its essential state,
- * its primitive (string) children, its literal attributes
+ * what it was made with (`initialEssentialState`), its primitive (string)
+ * children, its literal attributes
  * (`literalAttribute.ts`) and the text written to its expression attributes
  * (`expressionAttribute.js`), with its `stateId` and `componentType`. The
  * primitive children are held because a write to a value defined by one,
@@ -66,6 +67,18 @@ export function copySnapshotOf(
                 stateId: component.stateId,
                 componentType: component.componentType,
                 state: deepClone(component.state ?? {}),
+                // what it was made with (`initialEssentialState`), which a
+                // `copy` of it starts from: of a `copyWithState`, it holds
+                // the value captured from a property or a list entry, which
+                // a copy made again on load captures as the source is then
+                ...(Object.keys(component.initialEssentialState ?? {}).length >
+                0
+                    ? {
+                          initialState: deepClone(
+                              component.initialEssentialState,
+                          ),
+                      }
+                    : {}),
                 ...(Object.keys(primitiveChildren).length > 0
                     ? { primitiveChildren }
                     : {}),
@@ -123,6 +136,9 @@ export function applyCopySnapshot(serializedComponents, snapshot) {
                 return;
             }
             component.state = deepClone(entry.state);
+            if (entry.initialState) {
+                component.initialEssentialState = deepClone(entry.initialState);
+            }
             for (const [name, literal] of Object.entries(
                 entry.literals ?? {},
             )) {
@@ -206,6 +222,7 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
             now.componentType !== then.componentType ||
             !same(now.primitiveChildren, then.primitiveChildren) ||
             !same(now.literals, then.literals) ||
+            !same(now.initialState, then.initialState) ||
             !same(now.expressionWrites, then.expressionWrites)
         ) {
             return false;
