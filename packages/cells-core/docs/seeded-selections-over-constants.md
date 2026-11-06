@@ -1,11 +1,14 @@
 # Seeded selections over constants: what changes if a select may read references
 
-An analysis, not a decision. Written against `cells` at `3cf22a4`, assuming
-ADR 0032 step 8 is done: the abstract build is a pass of the compile over
-the template graph, the four records (writable, live, counted, document
-constants) are port attributes, and `build/abstract_build.rs` and `View`
-are gone. File references below are to the code as it is; where step 8
-moves something, the text says "the abstract analysis".
+An analysis, not a decision; ADR 0037 is the decision it led to, and
+where the two differ the ADR wins. Written against `cells` at `3cf22a4`,
+assuming ADR 0032 step 8 was done. It has since landed (`e1478f0`): the
+check stamps, defines and walks the **template graph** (`compile/graph/`),
+the four records are `PortAttrs` bits in each template's `Checked` table,
+and `build/abstract_build.rs` and `View` are gone; ADR 0035 and ADR 0036
+fix what the check reads and what a build may read of it. File references
+below are to the code at `3cf22a4`; where the text says "the abstract
+analysis", read the template graph's define (`compile/graph/define.rs`).
 
 ## The rule under analysis
 

@@ -2,10 +2,11 @@
 
 Status: proposed 2026-11-06. Builds on ADR 0009 (choices split by timing),
 ADR 0014 (every error depends on the source), ADR 0018 (essential means a
-student can write it) and ADR 0028 (constants), and assumes ADR 0032 step
-8: the abstract build is a pass of the compile over the template graph,
-and the records are port attributes. The analysis behind it is
-`docs/seeded-selections-over-constants.md`.
+student can write it) and ADR 0028 (constants); on ADR 0032 step 8, the
+template graph (`compile/graph/`), over which the check stamps, defines
+and walks; on ADR 0035 (the check reads definitions, never a program) and
+ADR 0036 (a build reads the IR and its port attributes, never the graph).
+The analysis behind it is `docs/seeded-selections-over-constants.md`.
 
 A load-time choice may read any value that user interaction cannot
 change: a constant, document or scope, in ADR 0028's sense. `<number
@@ -13,22 +14,25 @@ name="n">10</number>` that nothing inverts onto, an iteration's index,
 another select's pick, and an expression over those are all allowed as a
 `<selectFromSequence>`'s `from`, `to`, `step` and `exclude` and as a
 `<select>`'s `numToSelect`. To keep ADR 0014's promise that every variant
-is error-free, the compile gains a **constant evaluator**: it computes a
-document constant exactly and a scope constant as a range, through a
-range rule each operator declares, and checks every select's domain for
-every value its parameters can take. The compile still computes no cell.
+is error-free, the check gains a **constant evaluator** over the template
+graph's cells: it computes a document constant exactly and a scope
+constant as a range, through a range rule each operator declares, and
+checks every select's domain for every value its parameters can take. The
+compile still makes no program and computes no cell.
 
 ## Context
 
 Today a load-time choice reads literals and nothing else. The planner of
 `<selectFromSequence>` declares `from`, `to`, `step` and `numToSelect`
 with the `Literal` attribute kind and bakes the three numbers into a leaf,
-`Leaf::Scope(ScopeConst::SequencePick { from, step, count })`, which the
-build draws at expand; outlining reads a `<select>`'s `numToSelect` and
-weights through `literal_attr`, whose refusal says why: *a load-time
-choice depends only on the document seed and literals*. ADR 0009 lists
-the ban. Authors want `<selectFromSequence to="$n"/>`, `to="$a * $b"`
-over two other picks, and `exclude="$a"`.
+`Leaf::Scope(ScopeConst::SequencePick { from, step, count })`, which a
+build draws at expand (`build/expand/mod.rs`) and the template graph
+draws at seed 0 for its definition (`compile/graph/expand.rs`, `drawn`);
+outlining reads a `<select>`'s `numToSelect` and weights through
+`literal_attr`, whose refusal says why: *a load-time choice depends only
+on the document seed and literals*. ADR 0009 lists the ban. Authors want
+`<selectFromSequence to="$n"/>`, `to="$a * $b"` over two other picks, and
+`exclude="$a"`.
 
 What the ban protected is not written down anywhere. It is this: **what
 the seed chose does not move while a student works.** ADR 0018 §6 rests on
@@ -49,21 +53,25 @@ drew. That is exactly what the ban guaranteed.
 Three things stand in the way, and each is a fact the compile does not
 have today:
 
-- **Whether a derived port is constant.** The writable record (ADR 0018)
-  classes given leaves; whether an *operator* over them is constant is
-  decided per build, at the end of emit, by `folded_slots`, and ADR 0028
-  phase 5 chose not to record it.
+- **Whether a derived port is constant.** `PortAttrs::WRITABLE` (ADR
+  0018, ADR 0032 step 8) classes given leaves; whether an *operator* over
+  them is constant is decided per build, at the end of emit, by
+  `folded_slots` (`build/emit.rs`), and ADR 0028 phase 5 chose not to
+  record it.
 - **Whether a reference always resolves.** `$r[1].n` where `n` is a
   constant inside a repeat whose count is an input is constant by class
   and the missing referent at count 0. The fold rule dodges this with its
   scope rule ("the missing-referent cell is never read as a constant");
-  nothing names it.
+  nothing names it. In the template graph the read lands in the one
+  iteration with a `Reset` label, which says nothing about whether the
+  iteration exists.
 - **The domain.** Whether the sequence is nonempty, the step nonzero and
   `numToSelect` within the options are facts about the source that ADR
   0014 moved into the compile, where they are read off literals. With a
-  reference they need a value, and the compile has never computed one:
-  the abstract build never ran an instruction, and after ADR 0032 step 8
-  there is no build in the compile at all.
+  reference they need a value, and the compile has never computed one.
+  The check stamps the graph, defines it and walks it (ADR 0035); a
+  node's definition carries a constant leaf's value (`Def::Const(Some(v))`,
+  `Def::Given(Some(v))`) but nothing computes an operator's.
 
 The third is where the line between compile and build moves, and it is
 the only place it moves.
@@ -79,7 +87,7 @@ boxed an option for the students who drew it; a reference in `to`
 reopens that hole at the value level. A build cannot report it (a build
 has no variant for an author's error), a tick never produces a
 diagnostic, and a finding at this seed would make a load's list differ
-from `diagnose`'s (ADR 0013). The compile must find it, for every draw.
+from `diagnose`'s (ADR 0013). The check must find it, for every draw.
 
 ## Decision
 
@@ -91,46 +99,50 @@ a scalar list for `exclude`, `Number(1)` for `numToSelect`), planned into
 ports, typed `Num` by the type pass, and classed like any port. The
 `Literal` kind is no longer theirs.
 
-Each must be **constant**: a port is constant when its source is a
+Each must be **constant**, a fifth port attribute, `PortAttrs::CONSTANT`,
+that define over the template graph (`compile/graph/define.rs`) sets
+after its walks: a port is constant when its cell's definition is a
 constant leaf, a scope leaf, a given leaf the writable walk does not
-reach, or a dataflow expression whose every input is constant; and it is
-not a counted value (ADR 0028), and not held by a flag that is not
-constant. The abstract analysis computes this once per port, beside the
-writable and live attributes, as `folded_slots`' predicate lifted to the
-compile and stripped of its scope rule, which the template graph needs
+reach, or an operator, alias or vector output whose every input is
+constant; and it is not counted (`PortAttrs::COUNTED`), and not held by a
+flag that is not constant. This is `folded_slots`' predicate lifted to
+the check and stripped of its scope rule, which the template graph needs
 not, every referent existing in it. A counted value is never constant,
 even over repeats whose counts are; a value through a reactive choice's
 interface is constant exactly when every condition is, with no special
-case.
+case. A stamped build reads the attribute as it reads the four others
+(ADR 0036); each build keeps deciding its own folds under the scope rule.
 
-Each must also be reached through **stable references**: a reference
-whose referent exists in every build the session can reach. A reference
-is stable when no step on its path is an `Iter` or `Item`, or when every
-such step enters a collection whose count is constant with an index the
-evaluator (step 2) proves inside it, or enters a select's picks within
-its constant `numToSelect`. `$r[1].n` under `length="$k"` with `k` an
-input is refused; under `length="3"` it is accepted, and `$r[5].n` under
-`length="3"` is the missing referent in every build, a constant NaN that
-the domain check refuses.
+The attribute also requires every read on the port's paths to be a
+**stable reference**: one whose referent exists in every build the
+session can reach. A read is stable when no step of its reference is an
+`Iter` or `Item`, or when every such step enters a collection whose
+count is constant with an index the evaluator (step 2) proves inside it,
+or enters a select's picks within its constant `numToSelect`. `$r[1].n`
+under `length="$k"` with `k` an input is refused; under `length="3"` it
+is accepted, and `$r[5].n` under `length="3"` is the missing referent in
+every build, a constant NaN that the domain check refuses.
 
-A parameter that fails either is an error on the select, raised by the
-check stage and boxed in place by the linking fixpoint (ADR 0032, step
-7). The diagnostic names what reaches it: the writable walk records, for
-each writable leaf, the first input that reached it, so the message is
-"`to="$k"`: `k` can be changed by dragging `p`". Whether a `<number>` is
-constant depends on what inverts onto it elsewhere, so the explanation is
-part of the rule, not a nicety.
+A parameter that is not constant is an error on the select, raised by the
+check and boxed in place by the linking fixpoint (ADR 0032, step 7), as
+a prefill the rule refuses is. The diagnostic names what reaches it: the
+writable walk records, for each writable leaf, the first input that
+reached it, so the message is "`to="$k"`: `k` can be changed by dragging
+`p`". Whether a `<number>` is constant depends on what inverts onto it
+elsewhere, so the explanation is part of the rule, not a nicety.
 
-### 2. The compile evaluates constants: exactly, or as a range
+### 2. The check evaluates constants: exactly, or as a range
 
-The compile gains an evaluator over the closed IR (`compile/eval.rs`),
-run after classing. For a port it gives a **range**, `[lo, hi]` in `f64`
-or ⊤ (anything):
+The check gains an evaluator over the template graph's cells
+(`compile/graph/eval.rs`), run after define, reading each cell's
+definition as the walks do (ADR 0035). For a cell it gives a **range**,
+`[lo, hi]` in `f64` or ⊤ (anything):
 
 - a document constant evaluates **exactly**, a point range, by applying
-  the operators' evaluations along its plan and, for a `<math>` constant,
-  a throwaway engine as the abstract build had (handles stay the
-  session's, ADR 0028 phase 1);
+  the operators' evaluations along its definition and, for a `<math>`
+  constant, an engine of the evaluator's own, as the signature has one
+  for what a math value hashes as (`compile/graph/signature.rs`);
+  handles stay the session's (ADR 0028 phase 1);
 - a scope leaf has a range: an iteration index is `[1, count]` when the
   repeat's count is a document constant, else `[1, cap]`; a draw is
   `[0, 1)`; a select's pick is the range of its own sequence;
@@ -152,11 +164,14 @@ fails where it is written, not in a student's variant. Ranges are plain
 `1e-10` tolerance the pick uses, so a one-ulp miss at a boundary can
 misjudge a boundary case by one value, never a variant's existence.
 
-The compile still computes no cell: the evaluator walks plans, not a
-program, and reads no seed and no state. ADR 0014's rule is kept with one
-word made precise: a diagnostic depends on the source alone, *and may read
-the value of a constant*, exactly for a document constant and for every
-scope at once for a scope constant.
+The compile still makes no program and computes no cell: the evaluator
+walks definitions, as ADR 0035 says the check may, and reads no seed and
+no state. ADR 0014's rule is kept with one word made precise: a
+diagnostic depends on the source alone, *and may read the value of a
+constant*, exactly for a document constant and for every scope at once
+for a scope constant. The template graph's seed-0 draw of a pick
+(`drawn`) goes with the leaf (step 4): the graph never holds a value a
+seed decides.
 
 ### 3. The domain is checked for every value
 
@@ -198,34 +213,40 @@ NaN, which step 3 guarantees no build meets. When every input is a
 constant made in its scope or one around it, the instruction folds (ADR
 0028) and the pick is a scope constant as before; when a parameter reads
 a sibling scope (another select's pick), it stays an instruction that a
-full recompute runs once and the dirty closure never does. The draw leaf
-is a hidden port, never saved (a constant), and hashed in the input
-signature by the element's stable key, which seeds the stream. Two
-selects with equal parameters are not merged by sharing (ADR 0033),
-since their draw leaves are different cells; leaves are never shared,
-and that is now load-bearing.
+full recompute runs once and the dirty closure never does. In the
+template graph the draw is a constant node with no value, as a math
+handle's is, and the pick an operator node over it, so the graph's
+definition of a pick holds no draw. The draw leaf is a hidden port, never
+saved (a constant), and hashed in the input signature by the element's
+stable key, which seeds the stream. Two selects with equal parameters are
+not merged by sharing (ADR 0033), since their draw leaves are different
+cells; leaves are never shared, and that is now load-bearing.
 
 Nothing about this needs a value at expand: the compile–build line does
 not move for a value-level parameter.
 
-### 5. `numToSelect` is a document constant, and the build sees a literal
+### 5. `numToSelect` is a document constant, and the build sees a number
 
 `numToSelect` is shape, not value: on `<select>` it decides how many
 option templates are stamped. A value needed at expand is a structural
 input, and the core's one mechanism for those is the pass loop. This ADR
 does not take that step. A `<select>`'s `numToSelect` must be a
 **document constant** (not merely constant): the evaluator gives its
-number, `ChoiceDef::num_to_select` holds it, and `build/expand/choice.rs`
-is unchanged. `numToSelect="$i"` or `numToSelect="$a"` for a pick `a` is
-refused as "must be the same in every scope". `numToSelect > 1` on
+number, the check records it beside the ports' attributes in the
+template's `Checked` table, one number per choice as the structural
+depth is one per document, and `build/expand/choice.rs` reads it where
+it reads `ChoiceDef::num_to_select` today. That keeps ADR 0036's line: a
+build reads a fact the check recorded, never a node or an edge of the
+graph. `numToSelect="$i"` or `numToSelect="$a"` for a pick `a` is refused
+as "must be the same in every scope". `numToSelect > 1` on
 `<selectFromSequence>` stays unsupported. Weights, `withReplacement`,
 `type` and `sortResults` stay literal; `excludeCombinations` stays
 unsupported. `numToSelect` leaves outlining, which plans nothing (ADR
 0030), and is planned with the choice's `hide` in `plan_choice`; the
 drawability check moves to step 3.
 
-So every value the build needs is a literal in the plan when the compile
-is done, as today, and the build does not change.
+So every value a build needs is a number in the compile when the check
+is done, as today, and expand, define and emit do not change.
 
 ### 6. The invariant
 
@@ -257,11 +278,11 @@ fold over its draw and its parameters: the seed and the scope".
 - **Record folds in the compile instead of a constancy attribute.** ADR
   0028 phase 5 rejected it: most folds are lowered math's anonymous
   steps no template slot names. The attribute is per port, which is what
-  a planner's parameter is.
-- **Allow a counted value over constant counts.** The abstract analysis
-  could tell, since after step 8 it knows which repeats a collection
-  crosses. Rejected for now: little use, and ADR 0028's rule is one
-  sentence.
+  a planner's parameter is, and the graph has a node per such value
+  anyway.
+- **Allow a counted value over constant counts.** The template graph
+  could tell, since it knows which repeats a collection crosses. Rejected
+  for now: little use, and ADR 0028's rule is one sentence.
 - **Scope-dependent `numToSelect` through structural inputs.** `Counts`
   generalized to per-(scope, node) vectors; pass 0 stamps a select with
   unknown inputs as it stamps a repeat with no count; `structure_settled`
@@ -282,19 +303,19 @@ fold over its draw and its parameters: the seed and the scope".
 - `scalar_ops!` carries a fourth declared property, a range rule, tested
   for soundness like the inverses. Every new operator declares one or
   gets ⊤.
-- The compile evaluates constants. This is a new capability with two
-  later users: ADR 0017's condition 3 ("a new input reads no old
-  essential unless its domain holds every value its derivation can
-  produce") is a range computation over the operators between an old
-  input and the new one, and today is answered conservatively; ADR 0028
-  phase 6 left the pool to grow per build because "the load would have to
-  give every template's document constants their values without building
-  them", which the evaluator does. Each is a step of its own, so a
-  regression in `tests/safe_edits.rs` or the pool's census is
-  attributable.
+- The check evaluates constants. This is a new capability with two later
+  users: ADR 0017's condition 3 ("a new input reads no old essential
+  unless its domain holds every value its derivation can produce") is a
+  range computation over the operators between an old input and the new
+  one, and today is answered conservatively; ADR 0028 phase 6 left the
+  pool to grow per build because "the load would have to give every
+  template's document constants their values without building them",
+  which the evaluator does. Each is a step of its own, so a regression in
+  `tests/safe_edits.rs` or the pool's census is attributable.
 - `diagnose` evaluates document constants, with an engine, per edit. The
-  evaluator walks each constant port once; on a document of hand-written
-  size it is nothing beside the plan.
+  evaluator walks each constant cell once; on a document of hand-written
+  size it is nothing beside the stamping (`docs/load-cost.md` has the
+  stamping's cost, and `load-diff.sh` measures the step).
 - The planner of `<selectFromSequence>` does no arithmetic: it reads its
   record and wires ports, which is what ADR 0034 made a planner.
 - The golden diff changes only by documents that loaded with the
@@ -303,46 +324,48 @@ fold over its draw and its parameters: the seed and the scope".
   pick; a test holds every golden pick equal before and after).
 - `CONTEXT.md`'s *Load-time choice* says what a choice may read; *Constant*
   gains the pick's new row; a *Range* entry names the evaluator's value.
-  `ARCHITECTURE.md`'s compile lists the evaluator as a stage after
-  classing.
+  `ARCHITECTURE.md`'s Check item lists the evaluator after define.
 
 ## Migration
 
 Each step lands alone, with the golden diff unchanged unless it says
 otherwise.
 
-1. **Constancy and stable references as port attributes.** The abstract
-   analysis computes both and records the explaining input per writable
-   leaf; nothing reads them yet. Test: at every count and seed of every
-   golden document and fixture, nothing a build folds is outside the
-   constancy attribute (`tests/every_count.rs`), and a reference the
+1. **`PortAttrs::CONSTANT`, with stable references.** Define over the
+   template graph sets it after its walks and records the explaining
+   input per writable leaf; nothing reads it yet. Test: at every count
+   and seed of every golden document and fixture, nothing a build folds
+   is outside the attribute (`tests/every_count.rs`), and a read the
    attribute calls stable never resolves to the missing referent in any
-   build of the sweep.
+   build of the sweep; `tests/template_graph.rs` gains documents where
+   a hold, a gate, a counted value and an unstable read each decide it.
 2. **The range column.** `range` in `scalar_ops!` and in the vector
    table, ⊤ where undeclared; the sampling test of its contract. No
    caller.
-3. **The evaluator.** `compile/eval.rs`: exact over document constants
-   (with a throwaway engine), ranges over scope constants, ⊤ elsewhere.
-   Test: on every golden document, the exact value of every document
-   constant equals the cell a load gives it, and every scope constant's
-   cell at every seed and count lies in its range.
+3. **The evaluator.** `compile/graph/eval.rs`: exact over document
+   constants (with an engine of its own), ranges over scope constants, ⊤
+   elsewhere. Test: on every golden document, the exact value of every
+   document constant equals the cell a load gives it, and every scope
+   constant's cell at every seed and count lies in its range.
 4. **`<selectFromSequence>` parameters as ports, the pick as
    `SequencePick`**, with literals only: the attribute kinds change, the
    planner loses its checks, step 3 runs the domain check on the exact
-   values, and the leaf `SequencePick` goes. Test: every golden pick is
-   unchanged; `tests/homework.rs` unchanged; the spec cost snapshots
-   move by the draw port and the folded instruction only.
-5. **References allowed**, value-level: the constancy, stability and
-   domain checks switched on for `from`, `to`, `step` and `exclude`, with
-   the scalar-list kind. Test: `tests/load_errors.rs` gains the
-   document of Context (refused), its `to="$a + 3"` form (accepted),
-   `to="10 - $i"` (refused), `to="$k"` with `k` dragged (refused, naming
-   the point) and with `k` free (accepted); `tests/diagnostics.rs` holds
-   each list equal at every seed. The golden diff adds documents.
+   values, the leaf `SequencePick` and the graph's `drawn` go. Test:
+   every golden pick is unchanged; `tests/homework.rs` unchanged; the
+   spec cost snapshots move by the draw port and the folded instruction
+   only.
+5. **References allowed**, value-level: the constancy and domain checks
+   switched on for `from`, `to`, `step` and `exclude`, with the
+   scalar-list kind. Test: `tests/load_errors.rs` gains the document of
+   Context (refused), its `to="$a + 3"` form (accepted), `to="10 - $i"`
+   (refused), `to="$k"` with `k` dragged (refused, naming the point) and
+   with `k` free (accepted); `tests/diagnostics.rs` holds each list equal
+   at every seed. The golden diff adds documents.
 6. **`<select numToSelect>` as a document constant**, planned in
-   `plan_choice`, resolved by the evaluator into `ChoiceDef`. Test: the
-   drawability refusals of `tests/choice.rs` unchanged through the new
-   path; `numToSelect="$i"` refused with its message.
+   `plan_choice`, evaluated into the template's `Checked` table and read
+   from there by `expand_choice`. Test: the drawability refusals of
+   `tests/choice.rs` unchanged through the new path; `numToSelect="$i"`
+   refused with its message.
 7. **Docs.** ADR 0009's amendment, ADR 0028's row, `CONTEXT.md`,
    `ARCHITECTURE.md`, and `docs/seeded-selections-over-constants.md`
    marked as superseded by this ADR where they differ.
