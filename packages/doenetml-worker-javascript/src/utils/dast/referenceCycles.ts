@@ -37,8 +37,11 @@
  * (`typeChangeAtLoad`, such as a tag extending the `<conditionalContent>`
  * holding it) has no edges, as it reads nothing.
  *
- * A cycle through an attribute or a property is not found here; it is still
- * reported when the document runs.
+ * A cycle through an attribute, a property, or a name the branches of a
+ * `<conditionalContent>` or a one-pick `<select>` declare (`$x` or `$cc.x`,
+ * which the resolver leaves for the container to resolve, as a path from
+ * it) is not found here; it is still reported, or stops the document, when
+ * it is reached.
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
@@ -150,7 +153,15 @@ export function breakReferenceCycles({
         return componentsByIdx.get(nodeIdx) ?? copiesByCreatedIdx.get(nodeIdx);
     }
 
-    /** The type the component for `nodeIdx` has, or will be made as. */
+    /** The component the graph has for what `copy` is of, if resolved. */
+    function targetOf(copy: SerializedComponent) {
+        const reference = referenceOf(copy);
+        return reference && reference.nodeIdx >= 0
+            ? nodeFor(reference.nodeIdx)
+            : undefined;
+    }
+
+    /** The type `node` has, or, for a reference, will be made as. */
     function typeOf(node: SerializedComponent) {
         return node.componentType === "_copy"
             ? writtenType(node)
@@ -188,23 +199,16 @@ export function breakReferenceCycles({
                 return [];
             }
             const edges: number[] = [];
-            const reference = referenceOf(component);
-            const target =
-                reference && reference.nodeIdx >= 0
-                    ? nodeFor(reference.nodeIdx)
-                    : undefined;
+            const target = targetOf(component);
             if (target && target !== component) {
-                const path = reference!.unresolvedPath;
-                const wholeOrIndex =
-                    path === null ||
-                    path.every(
-                        (part: any) =>
-                            part.name === "" && part.index?.length > 0,
-                    );
+                const path = referenceOf(component)!.unresolvedPath;
+                const onlyIndices = path?.every(
+                    (part: any) => part.name === "" && part.index?.length > 0,
+                );
                 const targetType = typeOf(target);
                 if (
                     path === null ||
-                    (wholeOrIndex &&
+                    (onlyIndices &&
                         targetType !== undefined &&
                         target.componentType !== "_copy" &&
                         componentInfoObjects.isInheritedComponentType({
@@ -314,11 +318,7 @@ export function breakReferenceCycles({
         if (!onCycle.has(idx) || component.componentType !== "_copy") {
             continue;
         }
-        const reference = referenceOf(component);
-        const target =
-            reference && reference.nodeIdx >= 0
-                ? nodeFor(reference.nodeIdx)
-                : undefined;
+        const target = targetOf(component);
         const componentType =
             writtenType(component) ?? (target ? typeOf(target) : undefined);
         const diagnostic = codedDiagnostic({
