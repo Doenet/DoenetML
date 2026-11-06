@@ -552,15 +552,18 @@ fn describe_def(
 }
 
 /// The ports' attributes define finds over the template graph of
-/// `compiled` (ADR 0032, step 8, part 4) against those the compile keeps,
-/// which the abstract build found: the disagreements, described, and how
-/// many template slots were compared.
+/// `compiled` (ADR 0032, step 8, part 4) against those the abstract
+/// build's walks find: the disagreements, described, and how many
+/// template slots were compared.
 pub fn attributes_disagreement(
     compiled: &Compiled,
 ) -> std::result::Result<(Vec<String>, usize), String> {
     let mut g = template_graph(compiled.view());
     let defined = define(&mut g, compiled.view()).map_err(|f| f.error.to_string())?;
     let found = defined.attrs(&g, compiled.view());
+    let kept = abstract_findings(compiled.view())
+        .map_err(|f| f.error.to_string())?
+        .attrs;
     let mut out = Vec::new();
     let mut compared = 0;
     for (t, tpl) in compiled.plans.templates.iter().enumerate() {
@@ -574,7 +577,10 @@ pub fn attributes_disagreement(
                 .max(tpl.row(e).component_type.prop_defs().len());
             for pi in 0..reserved {
                 let slot = off.offset(pi);
-                let kept = compiled.plans.port_attrs(t, slot);
+                let kept = kept[t.index()]
+                    .get(slot.index())
+                    .copied()
+                    .unwrap_or_default();
                 let ours = found[t.index()]
                     .get(slot.index())
                     .copied()
@@ -598,7 +604,7 @@ pub fn attributes_disagreement(
 pub fn warnings_disagreement(
     compiled: &Compiled,
 ) -> std::result::Result<(Vec<String>, usize), String> {
-    let theirs = abstract_build(compiled.view(), || Ok(()))
+    let theirs = abstract_findings(compiled.view())
         .map_err(|f| f.error.to_string())?
         .warnings;
     let mut g = template_graph(compiled.view());

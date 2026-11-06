@@ -197,10 +197,10 @@ pub(crate) fn refuse_warnings(
     warnings
 }
 
-/// How node `n` is named in a warning, as the abstract build names its
-/// slot: its component, by name or by its tag and index in the abstract
-/// build's table, and its prop.
-fn slot_label(g: &TemplateGraph, c: CompiledRef<'_>, n: GraphNode) -> String {
+/// How node `n` is named in a warning or an error, as the abstract build
+/// names its slot: its component, by name or by its tag and index in the
+/// abstract build's table, and its prop.
+pub(super) fn slot_label(g: &TemplateGraph, c: CompiledRef<'_>, n: GraphNode) -> String {
     let owner = g.comps.iter().enumerate().find(|(_, comp)| {
         !comp.base.is_none()
             && comp.base.index() <= n.index()

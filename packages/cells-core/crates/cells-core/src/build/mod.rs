@@ -29,6 +29,7 @@ use crate::compile::keys::pick_position;
 use crate::compile::plan::*;
 use crate::components::{ComponentType, prop};
 use crate::dast::{NodeId, StrId, StringTable};
+#[cfg(feature = "testing")]
 use crate::diagnostics::Diagnostic;
 use crate::document::{CellIdx, ChildEntry, CompIdx, ComponentTable, Document, NONE};
 use crate::error::{Error, Result};
@@ -46,6 +47,7 @@ mod emit;
 mod expand;
 mod live;
 mod orient;
+#[cfg(feature = "testing")]
 mod refuse;
 pub mod signature;
 mod slot_cells;
@@ -53,7 +55,9 @@ mod structure;
 mod view;
 mod writable;
 
-pub(crate) use abstract_build::{abstract_build, abstract_signature};
+#[cfg(feature = "testing")]
+pub(crate) use abstract_build::{abstract_define, abstract_findings};
+pub(crate) use abstract_build::{abstract_resolve, abstract_signature};
 use define::Defined;
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
@@ -242,8 +246,9 @@ pub struct BuildOutput {
     live: Live,
 }
 
-/// What the abstract build found for the compile to keep: what every
-/// later build reads, and the warnings.
+/// What the abstract build finds, for the tests to compare the template
+/// graph's with: the ports' attributes, and the warnings.
+#[cfg(feature = "testing")]
 #[derive(Debug)]
 pub(crate) struct AbstractFindings {
     /// What it found of each port, per template by template slot: which a

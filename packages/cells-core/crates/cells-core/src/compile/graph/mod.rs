@@ -18,8 +18,10 @@
 //! index, collects, point lists, indexed `$ref` children, the choices'
 //! stand-ins, every port's reads, the aggregates, and last the holds.
 //!
-//! The compile runs the cycle and count checks over it (`cycles.rs`);
-//! `build/coverage.rs` tests it against the abstract build's graph.
+//! The compile's check runs over it: the cycle and count checks
+//! (`cycles.rs`), define and its walks (`define.rs`), and the refuse
+//! warnings (`refuse.rs`); `build/coverage.rs` tests it against the
+//! abstract build's graph, definitions, walks and warnings.
 
 use super::share::FxMap;
 use super::*;

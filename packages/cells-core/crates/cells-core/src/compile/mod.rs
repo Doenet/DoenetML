@@ -15,7 +15,7 @@
 //! | link | readers of boxed referents boxed, shared state tied |
 //! | seal | choice interfaces, arity, keys, slot offsets, port types |
 //! | share | equal derived ports made aliases, the expression classes |
-//! | check | the abstract build's port attributes and warnings; the template graph's cycle check and structural depth |
+//! | check | the abstract build's resolve; over the template graph, the cycle check, structural depth, define, port attributes and warnings |
 //!
 //! An element that fails is boxed (compiled as an `_error` element) where
 //! it fails, and linking boxes the readers of every box to a fixpoint. A

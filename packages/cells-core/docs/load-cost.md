@@ -85,6 +85,11 @@ in zeros, which it keeps) fell into one bucket, and breadth and isolated,
 10,000 distinct literals each, loaded 30% slower until they were keyed by
 the standard one.
 
+Part 4's last piece moved the check's define, walks and refuse warnings
+onto the template graph, and the abstract build stops at resolve: its
+define and walks no longer run at load, which pays for the graph's.
+`load-diff.sh` against 01e4fb5 puts every shape at 0.94 to 1.04.
+
 ## Where a load's time goes
 
 `LoadTimings::spans` at 90654e1, the median of nine loads, in ms:

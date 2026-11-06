@@ -1,21 +1,40 @@
-//! The abstract build, the build the compile's check runs through: the
-//! document built once more through the abstract view, as far as define
-//! (ADR 0035), so every repeat gets one iteration, an index past it lands
-//! in it, and every select builds every option. Its walks find what every
-//! build reads of each port, and its definitions the warnings and the
-//! input signature. The cycle and count checks run between its resolve and
-//! its define, over the compile's template graph (ADR 0032, step 8).
+//! The abstract build: the document built once more through the abstract
+//! view, so every repeat gets one iteration, an index past it lands in it,
+//! and every select builds every option. The compile's check runs it as
+//! far as resolve, for an element that cannot be built; every other
+//! finding of the check is the template graph's (ADR 0032, step 8). The
+//! input signature still reads its definitions (ADR 0035), and for the
+//! tests its walks and warnings are what the graph's are compared with.
 
 use super::*;
 
-/// The abstract build: the compile expanded and resolved once through the
-/// abstract view, `between` run, and defined. It reads a session of its
-/// own and makes no program (ADR 0035): what it found is its findings.
-pub(crate) fn abstract_build(
+/// The compile expanded and resolved once through the abstract view, on
+/// a session of its own: the failure names an element that cannot be
+/// built.
+pub(crate) fn abstract_resolve(compiled: CompiledRef) -> std::result::Result<(), Failure> {
+    let session = Session::new(0);
+    let mut math = MathStore::default();
+    let mut b = Builder::new(compiled, &session, false, &mut math, &View::Abstract);
+    b.stage()
+}
+
+/// For tests: the abstract build defined, its walks' attributes of the
+/// ports and its warnings, what the template graph's are compared with.
+#[cfg(feature = "testing")]
+pub(crate) fn abstract_findings(
+    compiled: CompiledRef,
+) -> std::result::Result<AbstractFindings, Failure> {
+    with_abstract(compiled, || Ok(()), |b, defined| b.findings(defined))
+}
+
+/// For tests: whether the abstract build, `between` run after its
+/// resolve, defines; its failure names the element to box.
+#[cfg(feature = "testing")]
+pub(crate) fn abstract_define(
     compiled: CompiledRef,
     between: impl FnOnce() -> std::result::Result<(), Failure>,
-) -> std::result::Result<AbstractFindings, Failure> {
-    with_abstract(compiled, between, |b, defined| b.findings(defined))
+) -> std::result::Result<(), Failure> {
+    with_abstract(compiled, between, |_, _| ())
 }
 
 /// The input signature read off the abstract build's definitions, every
@@ -51,10 +70,11 @@ fn with_abstract<T>(
     Ok(read(b, &defined))
 }
 
+#[cfg(feature = "testing")]
 impl<'c> Builder<'c> {
-    /// What the abstract build found for the compile to keep: the
-    /// attributes of the ports its walks classed and it counted, and its
-    /// warnings. The build ends here.
+    /// What the abstract build finds: the attributes of the ports its
+    /// walks classed and it counted, and its warnings. The build ends
+    /// here.
     fn findings(self, defined: &Defined) -> AbstractFindings {
         let n = self.sources.len();
         let Defined {

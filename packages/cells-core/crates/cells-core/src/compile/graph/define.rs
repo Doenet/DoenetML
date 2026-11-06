@@ -308,7 +308,7 @@ impl Defined {
                 return Err(Failure {
                     error: Error::Unsupported(format!(
                         "prefill=\"${}\": a prefill reference must name a value that is not computed",
-                        cycles::node_label(c, g, from)
+                        refuse::slot_label(g, c, from)
                     )),
                     node,
                 });

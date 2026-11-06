@@ -1,8 +1,9 @@
-//! The check: plan the document, build it once through the abstract
-//! build, which stands for every count and every pick, check its template
-//! graph for loops at any count (ADR 0012, ADR 0032 step 8), and box every
-//! element that fails until every element builds. It finds every error the
-//! document has, from the source alone.
+//! The check: plan the document, resolve it once through the abstract
+//! build, which stands for every count and every pick, then stamp its
+//! template graph (ADR 0032, step 8), check that for loops at any count
+//! (ADR 0012), define it and walk it (ADR 0018, ADR 0019, ADR 0035), and
+//! box every element that fails until every element builds. It finds every
+//! error the document has, from the source alone.
 
 use super::*;
 use crate::build;
@@ -15,7 +16,7 @@ pub(crate) struct CompileOutput {
     pub(crate) compiled: Arc<Compiled>,
 }
 
-/// Compile `dast`: plan it, check it through the abstract build, and box
+/// Compile `dast`: plan it, check it (`check`), and box
 /// every element that fails until every element builds. The compile holds
 /// the source's diagnostics. Only a cycle, which has no element to box,
 /// fails it.
@@ -39,16 +40,9 @@ pub(crate) fn compile(
         plans.prune = prune;
         plans.fold = fold;
         let _s = crate::trace::span("abstract build");
-        let compiled = CompiledRef { dast, plans };
-        let mut cycles = CycleFindings::default();
-        let findings = build::abstract_build(compiled, || {
-            if check_cycles {
-                cycles = cycle_check(compiled)?;
-            }
-            Ok(())
-        })?;
-        plans.structural_depth = cycles.structural_depth;
-        for (tpl, mut attrs) in plans.templates.iter_mut().zip(findings.attrs) {
+        let found = check(CompiledRef { dast, plans }, check_cycles)?;
+        plans.structural_depth = found.structural_depth;
+        for (tpl, mut attrs) in plans.templates.iter_mut().zip(found.attrs) {
             if !classify {
                 for a in &mut attrs {
                     *a |= PortAttrs::WRITABLE;
@@ -56,8 +50,7 @@ pub(crate) fn compile(
             }
             tpl.checked = Checked { attrs };
         }
-        cycles.warnings.extend(findings.warnings);
-        Ok(cycles.warnings)
+        Ok(found.warnings)
     })?;
     // The check's warnings are the document's: no build finds one the
     // check did not (ADR 0014). With them, the lint findings,
@@ -81,14 +74,7 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     // The build is not wanted, but its warnings are, with the planners'.
     // A failure with no element to box is in the list already.
     if let Ok((_, warnings)) = plan_and_check(dast, &mut list, true, |dast, plans| {
-        let compiled = CompiledRef { dast, plans };
-        let mut cycles = CycleFindings::default();
-        let findings = build::abstract_build(compiled, || {
-            cycles = cycle_check(compiled)?;
-            Ok(())
-        })?;
-        cycles.warnings.extend(findings.warnings);
-        Ok(cycles.warnings)
+        check(CompiledRef { dast, plans }, true).map(|found| found.warnings)
     }) {
         list.extend(warnings);
     }
@@ -109,9 +95,45 @@ pub(crate) fn signature_renamed(
     Ok(signature)
 }
 
+/// What the check finds of a document that passes it.
+struct Checks {
+    /// The structural depth: 0 with the cycle check off.
+    structural_depth: u32,
+    /// Each port's attributes, per template by template slot.
+    attrs: Vec<Vec<PortAttrs>>,
+    /// The repeats' counts' warnings and the refuse warnings.
+    warnings: Vec<Diagnostic>,
+}
+
+/// The check of `compiled`: resolved through the abstract build, for an
+/// element that cannot be built; then its template graph, checked for
+/// loops at any count with `check_cycles` (a cycle has no element to box),
+/// defined, which boxes a prefill the rule refuses, and walked, which
+/// gives each port's attributes, and the refuse analysis's warnings.
+fn check(compiled: CompiledRef<'_>, check_cycles: bool) -> std::result::Result<Checks, Failure> {
+    build::abstract_resolve(compiled)?;
+    let mut g = crate::trace::span("template graph").run(|| graph::template_graph(compiled));
+    let cycles = if check_cycles {
+        let _s = crate::trace::span("cycle check");
+        graph::check_cycles(&g, compiled).map_err(|error| Failure { error, node: None })?
+    } else {
+        CycleFindings::default()
+    };
+    let defined = crate::trace::span("define").run(|| graph::define(&mut g, compiled))?;
+    let attrs = defined.attrs(&g, compiled);
+    let mut warnings = cycles.warnings;
+    warnings.extend(graph::refuse_warnings(&g, &defined, compiled));
+    Ok(Checks {
+        structural_depth: cycles.structural_depth,
+        attrs,
+        warnings,
+    })
+}
+
 /// The cycle and count checks over the template graph of `compiled`, and
-/// what they find of a document that passes. A cycle has no element to
-/// box.
+/// what they find of a document that passes: what the input signature's
+/// abstract build runs between its resolve and its define. A cycle has no
+/// element to box.
 fn cycle_check(compiled: CompiledRef<'_>) -> std::result::Result<CycleFindings, Failure> {
     let _s = crate::trace::span("cycle check");
     let g = crate::trace::span("template graph").run(|| graph::template_graph(compiled));
@@ -192,7 +214,7 @@ pub(crate) fn define_failures_agree(dast: &Dast) -> Vec<String> {
     let _ = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
         let compiled = CompiledRef { dast, plans };
         let mut ours = None;
-        let found = build::abstract_build(compiled, || {
+        let found = build::abstract_define(compiled, || {
             cycle_check(compiled)?;
             let mut g = graph::template_graph(compiled);
             ours = Some(graph::define(&mut g, compiled).map(drop));
@@ -204,7 +226,7 @@ pub(crate) fn define_failures_agree(dast: &Dast) -> Vec<String> {
                 Err(f) => format!("{:?}: {}", f.node, f.error),
             };
             let (theirs, ours) = (
-                describe(found.as_ref().map(drop)),
+                describe(found.as_ref().map(|_| ())),
                 describe(ours.as_ref().map(|_| ())),
             );
             if theirs != ours {

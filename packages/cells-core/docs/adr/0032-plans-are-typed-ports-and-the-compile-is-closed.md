@@ -1,8 +1,7 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
 Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done,
-the first three parts of step 8, and the first three pieces of its
-fourth; see Migration. Builds on
+and the first four parts of step 8; see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -904,6 +903,32 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
       point) and a request that lands. Dropping a vector operator's later
       outputs, reading vector operators as scalar ones, ignoring the
       constant holds or writing only first inputs fails it.
+
+      The fourth is done, in this form. The compile's check
+      (`compile/check.rs`, `check`) runs the abstract build as far as
+      resolve (`abstract_resolve`), for an element that cannot be built,
+      then stamps the template graph once, checks it for cycles, defines
+      it, which boxes a prefill the rule refuses, and keeps the ports'
+      attributes and the refuse warnings define over it finds; the
+      compile and `diagnose` run it. The abstract build's findings
+      (`AbstractFindings`, its marking of ports, `build/refuse.rs`) are
+      the tests' alone (`abstract_findings`, `abstract_define`), what
+      `tests/template_graph.rs` holds the graph's to until step 6
+      removes the abstract build. The input signature still defines
+      through the abstract build (step 5), with the cycle check between
+      its resolve and its define, and so do the stamped builds' own
+      walks that `tests/live.rs` and `tests/every_count.rs` compare.
+      A prefill's error names an unnamed source as the abstract build
+      did, by its tag and its index in the abstract build's table, which
+      the graph's order of components gives. Over the 570 documents in
+      the tests' sources, the golden set and `sir.doenet`, every load's
+      outcome, structural depth and diagnostic, message for message, is
+      the same before and after, 31 cycles, 6 documents with refuse
+      warnings and 2 refused prefills among them. The abstract build's
+      define and walks no longer run at load, which pays for the
+      graph's: `load-diff.sh` against 01e4fb5 puts every shape at 0.94
+      to 1.04 times its load, and `tick-diff.sh` is unchanged (0.96 to
+      1.05, every value the same). The golden diff is unchanged.
    5. **The input signature over the graph.** ADR 0035's signature
       reads the graph's definitions instead of the abstract build's.
       Test: `tests/safe_edits.rs` unchanged.
