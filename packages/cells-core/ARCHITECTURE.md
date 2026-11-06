@@ -47,33 +47,43 @@ The work splits by when it happens:
 
 ## The pipeline
 
+Each stage is one function from the type above it to the type
+below it; `lib.rs` has the same map with each name linked
+(`npm run doc`).
+
 ```
  DoenetML source
    │  @doenet/parser (scripts/parse-dast.mjs) → JSON or binary
    ▼
- dast/       Dast: flat, columnar nodes and one string table
+ dast/       dast::load → Dast
+             flat, columnar nodes and one string table
    │
    ▼
- compile/    plan: DAST → templates with a plan per prop   once per load
-             check: find every error, box failing elements
+ compile/    compile::compile(Dast) → Compiled        once per load
+             lint → outline → parse → plan → link → seal
+             → share → check (over a TemplateGraph)
+             Compiled: the source and its Plans, a Template
+             per document, repeat body and choice branch
    │
-   │ Compiled (kept by the document for rebuilds)
    ▼
- build/      expand: templates → components, slots         per structure
-             define: slots → cells, each classed                ▲
-             emit:   cells → numbered cells, instructions       │
-   │                                                            │
-   │ BuildOutput                                                │
-   ▼                                                            │
- program/    schedule: topological sort → Program               │
-   │                                                            │
-   ▼                                                            │
- document/   Document: cells, program, component table          │
-   │            ▲                                               │
-   │            └── Request / PointRequest from a renderer      │
-   ▼                                                            │
- tick/       snap → invert → recompute  → TickOutcome           │
-                 a repeat's count changed: build again ─────────┘
+ build/      build::build(&Compiled, &Session,        per structure
+                          &mut MathStore, &Counts)                ▲
+             → BuildOutput                                        │
+             expand → resolve → define → emit                     │
+   │                                                              │
+   ▼                                                              │
+ program/    BuildOutput::schedule_built → Program::schedule      │
+             → Built { cells, program, components, .. }           │
+   │                                                              │
+   ▼                                                              │
+ document/   Document { built, session, math, loaded }            │
+             Document::load runs every stage above                │
+   │            ▲                                                 │
+   │            └── Request / PointRequest from a renderer        │
+   ▼                                                              │
+ tick/       Document::request → TickOutcome                      │
+             snap → invert → recompute                            │
+             a repeat's count changed: Document::rebuild ─────────┘
 ```
 
 ### Parse (`dast/`)
