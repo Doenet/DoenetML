@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateBooleanInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -593,11 +596,65 @@ describe("Hidden content nested inside a list @group4", async () => {
             shown: "r",
             first: "q",
         },
+        // A `<sort>` or `<shuffle>` that stays a composite (#2394): mixed
+        // entry types, another composite child, a group with another
+        // attribute.
+        {
+            list: `<sort name="l"><group hide><number>1</number></group><math>2</math></sort>`,
+            shown: "2",
+            first: "1",
+        },
+        {
+            list: `<sort name="l"><repeatForSequence length="1" hide><number>1</number></repeatForSequence><number>2</number></sort>`,
+            shown: "2",
+            first: "1",
+        },
+        {
+            list: `<sort name="l"><group hide styleNumber="2"><number>1</number></group><number>2</number></sort>`,
+            shown: "2",
+            first: "1",
+        },
+        // the variant whose order puts the hidden entry first
+        {
+            list: `<shuffle name="l"><group hide><number>1</number></group><math>2</math></shuffle>`,
+            shown: "2",
+            first: "1",
+            variant: 2,
+        },
+        {
+            list: `<shuffle name="l"><repeatForSequence length="1" hide><number>1</number></repeatForSequence><number>2</number></shuffle>`,
+            shown: "2",
+            first: "1",
+            variant: 2,
+        },
+        {
+            list: `<shuffle name="l"><group hide styleNumber="2"><number>1</number></group><number>2</number></shuffle>`,
+            shown: "2",
+            first: "1",
+            variant: 2,
+        },
+        // An entry of a list hidden inside the composite. Its replacement is
+        // a reference to the entry, whose `.hide` and `.hidden` read
+        // through `$l[1]` are `＿` whether or not anything is hidden, so
+        // those are not checked here.
+        {
+            list: `<sort name="l"><group hide><numberList>1</numberList></group><math>2</math></sort>`,
+            shown: "2",
+            first: "1",
+            skipProps: true,
+        },
+        {
+            list: `<sort name="l"><numberList hide>1</numberList><math>2</math></sort>`,
+            shown: "2",
+            first: "1",
+            skipProps: true,
+        },
     ];
 
-    for (const { list, shown, first } of contents) {
+    for (const { list, shown, first, variant, skipProps } of contents) {
         it(list, async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
+                requestedVariantIndex: variant,
                 doenetML: `
     <setup><section name="s"><text>q</text></section></setup>
     <p name="p">${list}</p>
@@ -621,7 +678,9 @@ describe("Hidden content nested inside a list @group4", async () => {
             // A reference to the whole list reproduces its content, the
             // hidden container included.
             expect(await text("whole")).eq(shown);
-            expect(await text("props")).eq("false true");
+            if (!skipProps) {
+                expect(await text("props")).eq("false true");
+            }
             expect(await text("ch")).eq(shown);
         });
     }
@@ -702,6 +761,87 @@ describe("Hidden content nested inside a list @group4", async () => {
             p: "1, 3",
             entries: "1 2 3 4",
             value: "1, 2, 3, 4",
+        });
+    });
+    it("a hidden group inside a sort that stays a composite hides its entries as its `hide` and the order change", async () => {
+        // The `<math>` among `<number>`s keeps the sort a composite (#2394).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <mathInput name="mi" prefill="5" />
+    <p name="p"><sort name="l"><number>3</number><group hide="$h"><number>2</number><math>4</math></group><number>$mi</number></sort></p>
+    <p name="entries">$l[1] $l[2] $l[3] $l[4]</p>
+    <p name="whole">$l</p>
+    <choiceInput><choice name="ch"><sort><number>3</number><group hide="$h"><number>2</number><math>4</math></group><number>$mi</number></sort></choice></choiceInput>
+    `,
+        });
+
+        const texts = async () => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const texts: Record<string, string> = {};
+            for (const name of ["p", "entries", "whole", "ch"]) {
+                texts[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.text;
+            }
+            return texts;
+        };
+        const setH = async (value: boolean) =>
+            updateBooleanInputValue({
+                boolean: value,
+                componentIdx: await resolvePathToNodeIdx("h"),
+                core,
+            });
+        const setMi = async (latex: string) =>
+            updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+
+        expect(await texts()).eqls({
+            p: "2, 3, 4, 5",
+            entries: "2 3 4 5",
+            whole: "2, 3, 4, 5",
+            ch: "2, 3, 4, 5",
+        });
+
+        await setH(true);
+        expect(await texts()).eqls({
+            p: "3, 5",
+            entries: "2 3 4 5",
+            whole: "3, 5",
+            ch: "3, 5",
+        });
+
+        // moved to the front, past the hidden entries
+        await setMi("1");
+        expect(await texts()).eqls({
+            p: "1, 3",
+            entries: "1 2 3 4",
+            whole: "1, 3",
+            ch: "1, 3",
+        });
+
+        // moved to the back again
+        await setMi("10");
+        expect(await texts()).eqls({
+            p: "3, 10",
+            entries: "2 3 4 10",
+            whole: "3, 10",
+            ch: "3, 10",
+        });
+
+        await setH(false);
+        expect(await texts()).eqls({
+            p: "2, 3, 4, 10",
+            entries: "2 3 4 10",
+            whole: "2, 3, 4, 10",
+            ch: "2, 3, 4, 10",
         });
     });
 });

@@ -9,6 +9,7 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { returnBreakStringsIntoTypeSugarInstruction } from "../utils/listValues";
 import { listEntryReplacement } from "./Sort";
+import { returnReplacementsToHideDefinition } from "../utils/replacementsToHide";
 
 /**
  * What the shuffle copies for `key`, one of its `originalComponentIndices`:
@@ -247,6 +248,36 @@ export default class Shuffle extends CompositeComponent {
                 };
             },
         };
+
+        // What each replacement copies, in order, as
+        // `createSerializedReplacements` makes them.
+        stateVariableDefinitions.replacementSourceKeys = {
+            returnDependencies: () => ({
+                originalComponentIndices: {
+                    dependencyType: "stateVariable",
+                    variableName: "originalComponentIndices",
+                },
+                componentOrder: {
+                    dependencyType: "stateVariable",
+                    variableName: "componentOrder",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    replacementSourceKeys: dependencyValues.componentOrder
+                        .map(
+                            (ind) =>
+                                dependencyValues.originalComponentIndices[
+                                    ind - 1
+                                ],
+                        )
+                        .filter((key) => key !== undefined),
+                },
+            }),
+        };
+
+        stateVariableDefinitions.replacementsToHide =
+            returnReplacementsToHideDefinition("replacementSourceKeys");
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
