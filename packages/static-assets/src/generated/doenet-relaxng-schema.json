@@ -314,6 +314,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -920,6 +926,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -1833,6 +1845,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "for": {
                     "optional": true,
                     "type": [
@@ -2559,6 +2577,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "for": {
                     "optional": true,
                     "type": [
@@ -3280,6 +3304,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -4294,6 +4324,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -5298,6 +5334,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -6311,6 +6353,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -6431,6 +6479,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -6547,6 +6601,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -7304,6 +7364,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -8184,6 +8250,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -8878,6 +8950,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -9567,6 +9645,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -10272,6 +10356,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -10516,6 +10606,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -10755,6 +10851,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -11467,6 +11569,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -12133,6 +12241,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -12503,6 +12617,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -12883,6 +13003,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -13253,6 +13379,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -13633,6 +13765,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -14003,6 +14141,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -14620,6 +14764,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -15227,6 +15377,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -15866,6 +16022,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -16807,6 +16969,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -17738,6 +17906,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -18677,6 +18851,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -19606,6 +19786,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -20545,6 +20731,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -21466,6 +21658,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -22356,6 +22554,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -23269,6 +23473,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -24172,6 +24382,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -25085,6 +25301,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -25988,6 +26210,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -26929,6 +27157,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -27860,6 +28094,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -28815,6 +29055,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -29765,6 +30011,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -30696,6 +30948,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -31637,6 +31895,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -32568,6 +32832,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -33509,6 +33779,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -34445,6 +34721,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -35376,6 +35658,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -36325,6 +36613,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -36847,6 +37141,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -37379,6 +37679,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -37901,6 +38207,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -38433,6 +38745,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -38955,6 +39273,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -40303,6 +40627,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -41646,6 +41976,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -42587,6 +42923,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -43566,6 +43908,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -44519,6 +44867,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -45489,6 +45843,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -46313,6 +46673,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -46836,6 +47202,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -47894,6 +48266,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "simplify": {
                     "optional": true,
                     "type": [
@@ -48942,6 +49320,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -50006,6 +50390,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -50607,6 +50997,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -51215,6 +51611,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -51815,6 +52217,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -52423,6 +52831,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -53023,6 +53437,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -53631,6 +54051,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -54231,6 +54657,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -54839,6 +55271,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -55439,6 +55877,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -56047,6 +56491,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -56647,6 +57097,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -57255,6 +57711,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -57859,6 +58321,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -57981,6 +58449,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -58111,6 +58585,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -58233,6 +58713,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -58363,6 +58849,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -58485,6 +58977,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -58615,6 +59113,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -58741,6 +59245,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -58863,6 +59373,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -60094,6 +60610,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -61315,6 +61837,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -62546,6 +63074,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -63767,6 +64301,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -65005,6 +65545,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -66226,6 +66772,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -67464,6 +68016,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -68692,6 +69250,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -69930,6 +70494,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -71163,6 +71733,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -72384,6 +72960,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -73615,6 +74197,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -74836,6 +75424,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -76067,6 +76661,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -77288,6 +77888,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -78519,6 +79125,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -79739,6 +80351,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -80976,6 +81594,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -82208,6 +82832,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "level": {
                     "optional": true,
                     "type": [
@@ -82516,6 +83146,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -82831,6 +83467,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -83851,6 +84493,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "independentVariable": {
                     "optional": true,
                     "type": [
@@ -84291,6 +84939,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -84972,6 +85626,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -85836,6 +86496,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -86628,6 +87294,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -87666,6 +88338,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbol": {
                     "optional": true,
                     "type": [
@@ -88004,6 +88682,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbol": {
                     "optional": true,
                     "type": [
@@ -88260,6 +88944,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbol": {
                     "optional": true,
                     "type": [
@@ -88466,6 +89156,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -89379,6 +90075,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labels": {
                     "optional": true,
                     "type": [
@@ -89824,6 +90526,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "prefill": {
                     "optional": true,
                     "type": [
@@ -89986,6 +90694,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "code": {
                     "optional": true,
                     "type": [
@@ -90113,6 +90827,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -90477,6 +91197,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "palette": {
                     "optional": true,
                     "type": [
@@ -90606,6 +91332,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -91018,6 +91750,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -91255,6 +91993,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -92117,6 +92861,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -93131,6 +93881,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -94139,6 +94895,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -94997,6 +95759,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -95888,6 +96656,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "initialPage": {
                     "optional": true,
                     "type": [
@@ -96768,6 +97542,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "previousLabel": {
                     "optional": true,
                     "type": [
@@ -96931,6 +97711,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -97433,6 +98219,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -98141,6 +98933,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -98913,6 +99711,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -99643,6 +100447,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -100649,6 +101459,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -101303,6 +102119,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "asList": {
                     "optional": true,
                     "type": [
@@ -101761,6 +102583,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -102523,6 +103351,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -103189,6 +104023,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "asList": {
                     "optional": true,
                     "type": [
@@ -103422,6 +104262,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -104335,6 +105181,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -104927,6 +105779,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -105529,6 +106387,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -106032,6 +106896,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "maxNumber": {
                     "optional": true,
                     "type": [
@@ -106134,6 +107004,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -107045,6 +107921,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -107880,6 +108762,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -108785,6 +109673,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -109562,6 +110456,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -110056,6 +110956,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -110472,6 +111378,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -110999,6 +111911,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -111622,6 +112540,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -112235,6 +113159,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -112885,6 +113815,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -113588,6 +114524,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -114526,6 +115468,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -115339,6 +116287,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -116357,6 +117311,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "alwaysVisible": {
                     "optional": true,
                     "type": [
@@ -116799,6 +117759,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -117372,6 +118338,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -118242,6 +119214,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -118927,6 +119905,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -120082,6 +121066,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "credit": {
                     "optional": true,
                     "type": [
@@ -120881,6 +121871,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -121568,6 +122564,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -122533,6 +123535,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelPosition": {
                     "optional": true,
                     "type": [
@@ -123204,6 +124212,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelPosition": {
                     "optional": true,
                     "type": [
@@ -123843,6 +124857,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelPosition": {
                     "optional": true,
                     "type": [
@@ -124269,6 +125289,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -125211,6 +126237,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -125883,6 +126915,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -126550,6 +127588,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -127647,6 +128691,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -127797,6 +128847,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -128011,6 +129067,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -129043,6 +130105,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "simplify": {
                     "optional": true,
                     "type": [
@@ -129751,6 +130819,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -130656,6 +131730,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "selectForVariants": {
                     "optional": true,
                     "type": [
@@ -131544,6 +132624,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -131766,6 +132852,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -132427,6 +133519,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -132890,6 +133988,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -133878,6 +134982,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "rowNum": {
                     "optional": true,
                     "type": [
@@ -134144,6 +135254,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "colNum": {
                     "optional": true,
                     "type": [
@@ -134350,6 +135466,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -134526,6 +135648,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -134715,6 +135843,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -134999,6 +136133,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -135799,6 +136939,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "suppressFigureNameInCaption": {
                     "optional": true,
                     "type": [
@@ -136588,6 +137734,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -137515,6 +138667,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -138474,6 +139632,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "layer": {
                     "optional": true,
                     "type": [
@@ -138654,6 +139818,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -138857,6 +140027,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "buffer": {
                     "optional": true,
                     "type": [
@@ -138985,6 +140161,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -139236,6 +140418,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -139641,6 +140829,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -140062,6 +141256,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -140233,6 +141433,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -140421,6 +141627,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -140831,6 +142043,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "asList": {
                     "optional": true,
                     "type": [
@@ -140993,6 +142211,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -141908,6 +143132,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -142519,6 +143749,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "numVariants": {
                     "optional": true,
                     "type": [
@@ -142671,6 +143907,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -142966,6 +144208,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "numToSelect": {
                     "optional": true,
                     "type": [
@@ -143129,6 +144377,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -144052,6 +145306,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "type": {
                     "optional": true,
                     "type": [
@@ -144286,6 +145546,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -144936,6 +146202,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -145374,6 +146646,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -145837,6 +147115,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -146119,6 +147403,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -146396,6 +147686,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -146646,6 +147942,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -147638,6 +148940,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -148326,6 +149634,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -148802,6 +150116,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -149085,6 +150405,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -149964,6 +151290,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -150613,6 +151945,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -151286,6 +152624,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -152158,6 +153502,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -153016,6 +154366,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -153896,6 +155252,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "minSentencesPerParagraph": {
                     "optional": true,
                     "type": [
@@ -154057,6 +155419,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -154349,6 +155717,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -155339,6 +156713,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -155592,6 +156972,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -155858,6 +157244,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -156773,6 +158165,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -157607,6 +159005,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -158515,6 +159919,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -159121,6 +160531,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -159890,6 +161306,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -160749,6 +162171,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -161702,6 +163130,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -162680,6 +164114,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "type": {
                     "optional": true,
                     "type": [
@@ -163600,6 +165040,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "variables": {
                     "optional": true,
                     "type": [
@@ -164101,6 +165547,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "variable": {
                     "optional": true,
                     "type": [
@@ -164324,6 +165776,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -165313,6 +166771,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "type": {
                     "optional": true,
                     "type": [
@@ -166172,6 +167636,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -166668,6 +168138,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -166939,6 +168415,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -167238,6 +168720,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -167791,6 +169279,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -168363,6 +169857,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -168620,6 +170120,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -169657,6 +171163,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -170296,6 +171808,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "statisticsToDisplay": {
                     "optional": true,
                     "type": [
@@ -170886,6 +172404,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -171146,6 +172670,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -171872,6 +173402,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -172604,6 +174140,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -173257,6 +174799,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -173790,6 +175338,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -174516,6 +176070,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -175378,6 +176938,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -176245,6 +177811,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -176751,6 +178323,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "weight": {
                     "optional": true,
                     "type": [
@@ -177111,6 +178689,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"
@@ -178069,6 +179653,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -178937,6 +180527,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -179548,6 +181144,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -180121,6 +181723,12 @@
                         "string"
                     ]
                 },
+                "copyWithState": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -180659,6 +182267,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copyWithState": {
                     "optional": true,
                     "type": [
                         "string"

@@ -155,6 +155,15 @@ export default class Select extends CompositeComponent {
 
     static createsVariants = true;
 
+    // Writing one of these on a `copyWithState` is an error, as it would
+    // change what is chosen, which a `copyWithState` keeps
+    // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
+    static attributesDeterminingChoices = ["numToSelect", "withReplacement"];
+    // Adding an `<option>` to a `copyWithState` of it is an error, as it
+    // would change what is chosen, which a `copyWithState` keeps
+    // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
+    static choiceChildTypes = ["option"];
+
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 

@@ -69,6 +69,15 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
 
     static createsVariants = true;
 
+    // As `<sampleRandomNumbers>`'s, with `numToSelect` for its `numSamples`
+    // and no `variantDeterminesSeed`, which it does not have.
+    static attributesDeterminingChoices = [
+        "numToSelect",
+        ...SampleRandomNumbers.attributesDeterminingChoices.filter(
+            (name) => !["numSamples", "variantDeterminesSeed"].includes(name),
+        ),
+    ];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

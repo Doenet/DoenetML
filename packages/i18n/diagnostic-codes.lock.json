@@ -75,6 +75,8 @@
     "doenet-e0065": "type-change-unrelated",
     "doenet-e0066": "type-change-composite-types-differ",
     "doenet-e0067": "type-change-composite-type-unknown",
+    "doenet-e0068": "copy-with-state-changes-choice",
+    "doenet-e0069": "copy-with-state-adds-options",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",
@@ -300,5 +302,7 @@
     "doenet-w0181": "reference-index-past-instances",
     "doenet-w0182": "reference-index-use-property",
     "doenet-w0183": "reference-name-missing-in-branch",
-    "doenet-w0184": "reference-name-types-differ-in-branches"
+    "doenet-w0184": "reference-name-types-differ-in-branches",
+    "doenet-w0185": "copy-with-state-of-uri",
+    "doenet-w0186": "copy-with-state-attribute-reaches-choice"
 }

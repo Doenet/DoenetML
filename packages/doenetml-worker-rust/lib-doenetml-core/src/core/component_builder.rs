@@ -211,7 +211,7 @@ impl ComponentBuilder {
         // but not if it came from a direct ref.
         let from_direct_ref = match ref_source {
             Source::ExtendAttribute(..) => false,
-            Source::CopyAttribute(..) => false,
+            Source::CopyAttribute(..) | Source::CopyWithStateAttribute(..) => false,
             Source::Ref(..) => true,
         };
 

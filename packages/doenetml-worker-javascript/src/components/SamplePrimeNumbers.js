@@ -44,6 +44,17 @@ export default class SamplePrimeNumbers extends ValueListComponent {
 
     static createsVariants = true;
 
+    // Writing one of these on a `copyWithState` is an error, as it would
+    // change what is chosen, which a `copyWithState` keeps
+    // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
+    static attributesDeterminingChoices = [
+        "numSamples",
+        "from",
+        "to",
+        "exclude",
+        "variantDeterminesSeed",
+    ];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

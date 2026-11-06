@@ -55,6 +55,7 @@ export function postProcessCopy({
     addShadowDependencies = true,
     markAsPrimaryShadow = false,
     unlinkExternalCopies = false,
+    withoutReaderState = false,
     copiesByRefIdx = {},
     componentIndicesFound = [],
     init = true,
@@ -96,6 +97,7 @@ export function postProcessCopy({
                 };
             } else if (component.originalIdx != undefined) {
                 component.unlinkedCopySource = component.originalIdx;
+                markWithoutReaderState(component);
             }
             delete component.shadowsVariableOf;
         } else if (component.originalIdx != undefined) {
@@ -129,6 +131,7 @@ export function postProcessCopy({
                     component.downstreamDependencies = downDep;
                 } else {
                     component.unlinkedCopySource = component.originalIdx;
+                    markWithoutReaderState(component);
                 }
             }
         }
@@ -158,10 +161,24 @@ export function postProcessCopy({
             addShadowDependencies,
             markAsPrimaryShadow,
             unlinkExternalCopies,
+            withoutReaderState,
             copiesByRefIdx,
             componentIndicesFound,
             init: false,
         });
+    }
+
+    /**
+     * Mark a component of a `copy` (`withoutReaderState`), which takes no
+     * state from its unlinked source (`unlinkedCopySource`): a `<repeat>`
+     * of one makes its iterations as written, with its own random choices,
+     * where one of a `copyWithState` takes those of its source's
+     * iterations (`copyStateFromUnlinkedSource`, D33).
+     */
+    function markWithoutReaderState(component) {
+        if (withoutReaderState) {
+            component.unlinkedCopyWithoutReaderState = true;
+        }
     }
 
     /**

@@ -24,7 +24,12 @@ type RemoteSource = {
 };
 
 /**
- * Find any `extend` or `copy` attribute that is begins with `doenet:`.
+ * The attributes, lowercased, that make an element from what they reference.
+ */
+const EXTEND_OR_COPY_ATTRIBUTES = ["extend", "copy", "copywithstate"];
+
+/**
+ * Find any `extend`, `copy` or `copyWithState` attribute that begins with `doenet:`.
  * Attempt to look up its associated DoenetML by passing its value to `fetchExternalDoenetML`.
  * If the returned DoenetML matches the type of the parent,
  * - add the DoenetML to the `sources` of the `dast`, setting `source_doc` to its index in the `sources` array,
@@ -42,6 +47,7 @@ export async function expandExternalReferences(
     > = () => {
         return async (tree) => {
             const promiseStack: RemoteSource[] = [];
+            const uriWithStateWarnings: DastError[] = [];
 
             let maxRecursion = 10;
             let counter = 0;
@@ -58,7 +64,9 @@ export async function expandExternalReferences(
 
                 const sourceAttributeName = Object.keys(node.attributes).find(
                     (attrName) =>
-                        ["extend", "copy"].includes(attrName.toLowerCase()),
+                        EXTEND_OR_COPY_ATTRIBUTES.includes(
+                            attrName.toLowerCase(),
+                        ),
                 );
                 if (sourceAttributeName === undefined) {
                     return;
@@ -73,6 +81,25 @@ export async function expandExternalReferences(
                     return;
                 }
 
+                // A document loaded from a URI has no reader state, so a
+                // `copyWithState` of it is made as a `copy` (D33). The warning
+                // is collected and placed at the top of the document below,
+                // not among the element's children: those are content, and
+                // sugar that reads them (e.g. `<select>` splitting text into
+                // options) rejects a diagnostic mixed in.
+                if (sourceAttributeName.toLowerCase() === "copywithstate") {
+                    uriWithStateWarnings.push(
+                        codedDastError({
+                            code: "doenet-w0185",
+                            message: `\`copyWithState\` of \`${sourceUri}\` carries nothing more than \`copy\`, since a document loaded from a URI has no state. Write \`copy\`.`,
+                            args: { uri: sourceUri },
+                            error_type: "warning",
+                            position: sourceAttribute.position,
+                            source_doc: sourceAttribute.source_doc,
+                        }),
+                    );
+                }
+
                 promiseStack.push({
                     sourceUri,
                     source: fetchExternalDoenetML(sourceUri),
@@ -82,7 +109,7 @@ export async function expandExternalReferences(
                 });
             };
 
-            // Find any `extend` or `copy` attributes that begin with `doenet:` in the dast and append the results to `promiseStack`.
+            // Find any `extend`, `copy` or `copyWithState` attributes that begin with `doenet:` in the dast and append the results to `promiseStack`.
             // Index contents are included: an element written between a
             // reference's brackets is nobody's child, so a plain `visit` walks
             // straight past `$list[<number copy="doenet:abc" />]` and the
@@ -162,10 +189,14 @@ export async function expandExternalReferences(
                 const source_doc = dast.sources.length;
                 dast.sources.push(externalDoenetML);
 
-                // Delete all `extend` or `copy` attributes from the parent.
+                // Delete all `extend`, `copy` or `copyWithState` attributes from the parent.
                 // (The external reference supersedes any others.)
                 for (const attrName in parent.attributes) {
-                    if (["extend", "copy"].includes(attrName.toLowerCase())) {
+                    if (
+                        EXTEND_OR_COPY_ATTRIBUTES.includes(
+                            attrName.toLowerCase(),
+                        )
+                    ) {
                         delete parent.attributes[attrName];
                     }
                 }
@@ -178,6 +209,19 @@ export async function expandExternalReferences(
                     child,
                     source_doc,
                     findExternalReferenceAttribute,
+                );
+            }
+
+            // Like deprecation warnings, these go in the `<document>` (or at
+            // the root, which normalization wraps in one), where no sugar
+            // reads them as content.
+            if (uriWithStateWarnings.length > 0) {
+                const documentElement = tree.children.find(
+                    (child): child is DastElement =>
+                        isDastElement(child) && child.name === "document",
+                );
+                (documentElement ?? tree).children.push(
+                    ...uriWithStateWarnings,
                 );
             }
         };

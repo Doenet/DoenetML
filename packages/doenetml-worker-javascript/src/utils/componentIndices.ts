@@ -224,6 +224,24 @@ function newComponentIndicesForExtending(
     };
 }
 
+/**
+ * Give a copy of an attribute (`attribute`) its own copy of what was written
+ * in place of a value a `copyWithState` kept (`authoredComponent`, or
+ * `authoredChildren` of an unresolved attribute), whose
+ * references `remapRefResolutions` renumbers in place.
+ */
+function cloneAuthoredComponent(attribute: SerializedAttribute) {
+    if (attribute.type === "component" && attribute.authoredComponent) {
+        attribute.authoredComponent = structuredClone(
+            attribute.authoredComponent,
+        );
+    } else if (attribute.type === "unresolved" && attribute.authoredChildren) {
+        attribute.authoredChildren = structuredClone(
+            attribute.authoredChildren,
+        );
+    }
+}
+
 function newComponentIndicesForAttributes(
     attributes: Record<string, SerializedAttribute>,
     nComponents: number,
@@ -251,6 +269,7 @@ function newComponentIndicesForAttributes(
                 .components[0] as SerializedComponent;
             Object.assign(idxMap, attrResult.idxMap);
             nComponents = attrResult.nComponents;
+            cloneAuthoredComponent(attribute);
         } else if (attribute.type === "references") {
             const attrResult = createNewComponentIndicesSub(
                 attribute.references,
@@ -271,6 +290,7 @@ function newComponentIndicesForAttributes(
             attribute.children = attrResult.components;
             Object.assign(idxMap, attrResult.idxMap);
             nComponents = attrResult.nComponents;
+            cloneAuthoredComponent(attribute);
         } else if (attribute.type === "primitive") {
             if (
                 attrName === "_createComponentIdx" &&
@@ -490,6 +510,16 @@ function remapRefResolutions(
                     idxMap,
                     keepReferents,
                 );
+                // What was written in place of a kept value refers to what
+                // is copied with it (a module attribute). Its own components
+                // are not made, so keep their indices.
+                if (attribute.authoredComponent) {
+                    remapRefResolutions(
+                        [attribute.authoredComponent],
+                        idxMap,
+                        keepReferents,
+                    );
+                }
             } else if (attribute.type === "references") {
                 remapRefResolutions(
                     attribute.references,
@@ -502,20 +532,34 @@ function remapRefResolutions(
                     idxMap,
                     keepReferents,
                 );
+                // as `authoredComponent`, above
+                if (attribute.authoredChildren) {
+                    remapUnflattenedRefResolutions(
+                        attribute.authoredChildren,
+                        idxMap,
+                        keepReferents,
+                    );
+                }
             } else if (attribute.type === "expression") {
                 // The references the component resolves itself
                 // (`utils/dast/expressionAttributes.ts`). With
                 // `keepReferents`, they keep their referents. Otherwise each
                 // is resolved from the copy, which the resolver is given with
                 // the rest of what is copied, also when the original resolved
-                // them from where they were written.
+                // them from where they were written. One whose path starts
+                // with no name resolves from its referent, which a copy
+                // pasted it with (`remapCopiedRefResolution`), so it keeps
+                // that origin, as in a repeat's template that was copied
+                // (`<repeatForSequence copy="$r"/>`).
                 for (const slot of (attribute as any).slots) {
                     if (keepReferents) {
                         remapCopiedRefResolution(slot.refResolution, idxMap);
                     } else {
                         remapRefResolution(slot.refResolution, idxMap);
-                        slot.refResolution.nodesInResolvedPath[0] =
-                            component.componentIdx;
+                        if (slot.refResolution.originalPath[0]?.name !== "") {
+                            slot.refResolution.nodesInResolvedPath[0] =
+                                component.componentIdx;
+                        }
                     }
                 }
             }
@@ -985,6 +1029,7 @@ function newComponentIndicesForAttributesFromSerialized(
                 .components[0] as SerializedComponent;
             Object.assign(idxMap, attrResult.idxMap);
             nComponents = attrResult.nComponents;
+            cloneAuthoredComponent(attribute);
         } else if (attribute.type === "references") {
             if (idxSource.type !== "references") {
                 //console.log({ attributes, attributeIdxSources });
@@ -1009,6 +1054,7 @@ function newComponentIndicesForAttributesFromSerialized(
             attribute.children = attrResult.components;
             Object.assign(idxMap, attrResult.idxMap);
             nComponents = attrResult.nComponents;
+            cloneAuthoredComponent(attribute);
         } else if (attribute.type === "primitive") {
             if (
                 attrName === "_createComponentIdx" &&

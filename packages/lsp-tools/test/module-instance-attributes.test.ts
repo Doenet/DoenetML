@@ -178,6 +178,15 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 ).toHaveLength(1);
             });
 
+            it("copyWithState= behaves the same as copy=", async () => {
+                const source = `<setup><module name="m"><moduleAttributes><text name="kept">x</text></moduleAttributes></module></setup>
+<module copyWithState="$m" kept="y" undeclared="x" />`;
+                expect(await moduleAttrDiagnostics(source, "kept")).toEqual([]);
+                expect(
+                    await moduleAttrDiagnostics(source, "undeclared"),
+                ).toHaveLength(1);
+            });
+
             it("copy= wins over extend= when both are present (pinned precedence)", async () => {
                 // Authoring both `copy=` and `extend=` on the same `<module>`
                 // is itself a schema violation (the runtime treats them as

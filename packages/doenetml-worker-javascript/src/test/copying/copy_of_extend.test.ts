@@ -232,8 +232,8 @@ describe("An unlinked copy of an extend @group4", () => {
         );
     });
 
-    it("a copy of a repeat of vectors and rays builds, with the values they were moved to", async () => {
-        // a `<repeat copy>` takes the essential state of each replacement
+    it("a copyWithState of a repeat of vectors and rays builds, with the values they were moved to", async () => {
+        // a `<repeat copyWithState>` takes the essential state of each replacement
         // (`copyStateFromUnlinkedSource`), held under the same names
         await bothWays(
             `
@@ -245,7 +245,7 @@ describe("An unlinked copy of an extend @group4", () => {
   </repeat>
 </graph>
 <conditionalContent name="cc" condition="$b">
-  <graph><repeat name="r2" copy="$r" /></graph>
+  <graph><repeat name="r2" copyWithState="$r" /></graph>
 </conditionalContent>
 `,
             async (core, resolvePathToNodeIdx) => {
