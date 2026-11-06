@@ -197,11 +197,24 @@ No test pins the loss, so adopting the rule breaks nothing.
 
 ## 3. Choices
 
-### COMP-8: selections are made once, from the variant, and never change (Tier 1)
-`<select>`, `<selectFromSequence>`, `<shuffle>` and the samplers choose once, from the document's
-variant:
-- **Inputs do not re-choose.** A later change to `numToSelect` or another input does not cause a
-  new choice.
+### COMP-8: a selection is made once, from the variant, and is never made again (Tier 1)
+`<select>`, `<selectFromSequence>`, `<selectPrimeNumbers>`, `<selectRandomNumbers>`, `<shuffle>`,
+the samplers and every other choosing tag choose once, from the document's variant. **Changing a
+selection after it has been made is prohibited, for any reason:**
+- **not when what it was made from changes.** `numToSelect`, a range, `exclude`, weights and the
+  options are read once, when the selection is made, and fixed with it. A later change to them
+  is ignored;
+- **not on a reload.** The selection, and what it was made with, come back as they were. Where a
+  value decided it, the selection is saved like the reader's own work (#2468);
+- **not when a requested variant no longer fits.** Choices a requested or saved variant gives are
+  taken as given, even if the current DoenetML would not choose them (only possible while the
+  DoenetML is edited; doenet.org does not let assigned content change);
+- **not to recover from a failure.** A selection that can't be made is reported (DIAG-7, D39),
+  never repaired by choosing again or differently. Code that cannot proceed with a selection
+  must report the problem, not re-draw.
+
+Choosing again is what a new select does: a `copy` is a new select, written again, which
+chooses for itself (D33). An `extend` and a `copyWithState` show the same selection.
 - **References agree.** Copies and extends show the same picks, however deeply the choice is
   nested in what was copied (CPY-8; #2344 fixed the nested-group case, #2342).
 - **Content stays live.** The *content* of a chosen option still updates.
@@ -213,7 +226,10 @@ Evidence:
 - `shuffle.test.ts:47`.
 
 Code: `Select.js:263` (`selectedIndices` is immutable and stored), and `:693` (no replacement
-changes).
+changes). Since #2468 the attributes that decide a selection are `immutable` state variables
+(`StateVariableDefinitionFactory`), `numToSelect` is the count the selection was made with
+(the attribute feeds `specifiedNumToSelect`), and a selection a value decided is saved with it
+(`definitionEssentialValuesReproducible`, `keptSelection`).
 
 Differences in the cells core:
 - Picks are derived from the seed rather than stored. Tier 3.

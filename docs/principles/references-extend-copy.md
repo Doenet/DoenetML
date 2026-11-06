@@ -597,8 +597,7 @@ Known violations:
   which should be `1` or `0`;
 - a copy that made nothing could report a different info after a reload (B37). #2447 removed
   the run-time `e0065` of its example; whether two infos can still differ is not checked;
-- a `<select>` whose options are all written with `copy` fails to load, "Number of indices
-  specified for select must match number to select" (B39, #2448).
+- a `<select>` whose options are all written with `copy` failed to load (B39); fixed by #2468.
 
 Fixed: a type-changed copy keeps its decision through a reload since #2443 (B31). Infos follow
 their condition since #2444 (B33). Bare-text cases convert since #2447 (B23).

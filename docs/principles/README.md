@@ -150,8 +150,9 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
 11. What a `<repeat>`, `<select>`, `<conditionalContent>`, `<collect>` or `<group>` produces is
     shown where the tag is written, as if written there. Content it repeats, picks or gathers
     is separated by commas, as a list is. (COMP-1, COMP-2)
-12. Selections are made once, from the variant, and never change. The same variant gives the
-    same selections. (COMP-8, VAR-1)
+12. Selections are made once, from the variant, and never made again: not when what they were
+    made from changes, not on a reload, not to recover from a problem. The same variant gives
+    the same selections. (COMP-8, VAR-1)
 
 **Inherited attributes**
 
