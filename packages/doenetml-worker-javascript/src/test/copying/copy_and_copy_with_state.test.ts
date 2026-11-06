@@ -1273,6 +1273,53 @@ ${repeat}
                 await check();
             });
         }
+
+    it("children written in a copy are read as on the tag written on its own", async () => {
+        // Each child is read as it would be on a `<vector>`, `<sum>`, ...
+        // written on its own (#2395), where it was ignored with an "invalid
+        // children" warning, and `<substitute copy>` given a child loads.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vector name="v">(1,2)</vector>
+    <vector name="vc" copy="$v">(3,4)</vector>
+    <line name="l">y=x</line>
+    <line name="lc" copy="$l">y=2x</line>
+    <angle name="a">pi/2</angle>
+    <angle name="ac" copy="$a">pi/3</angle>
+    <sum name="s">1 2</sum>
+    <sum name="sc" copy="$s">3</sum>
+    <sortIndices name="si">3 1</sortIndices>
+    <sortIndices name="sic" copy="$si">2</sortIndices>
+    <mathInput name="mi" prefill="x"><label>mi</label></mathInput>
+    <mathInput name="mic" copy="$mi">y</mathInput>
+    <textInput name="ti" prefill="x"><label>ti</label></textInput>
+    <textInput name="tic" copy="$ti">y</textInput>
+    <booleanInput name="bi"><label>bi</label></booleanInput>
+    <booleanInput name="bic" copy="$bi">true</booleanInput>
+    <substitute name="sub" match="x" replacement="y">x+1</substitute>
+    <substitute name="subc" copy="$sub">x+2</substitute>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await sv("vc")).displacement.map((x: any) => x.tree)).eqls([
+            3, 4,
+        ]);
+        expect((await sv("lc")).equation.tree).eqls(["=", "y", ["*", 2, "x"]]);
+        expect((await sv("ac")).radians.tree).eqls(["/", "pi", 3]);
+        expect((await sv("sc")).value.tree).eq(6);
+        expect((await sv("sic")).sortedIndices).eqls([2, 3, 1]);
+        expect((await sv("mic")).value.tree).eq("y");
+        expect((await sv("tic")).value).eq("y");
+        expect((await sv("bic")).value).eq(true);
+        // the source's value, as the child is not read
+        expect((await sv("subc")).value.tree).eqls(["+", "y", 1]);
+
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect([...errors, ...warnings]).eqls([]);
+    });
 });
 
 describe("descendant dependency traversal", () => {
