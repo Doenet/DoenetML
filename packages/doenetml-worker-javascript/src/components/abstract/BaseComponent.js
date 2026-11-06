@@ -1658,37 +1658,11 @@ export default class BaseComponent {
                     !componentSourceAttributesToIgnore.includes(attrName)
                     //  || this.constructor.copyComponentAttributes?.includes(attrName)
                 ) {
-                    if (
-                        attribute.authoredComponent &&
-                        parameters.withoutReaderState
-                    ) {
-                        // A value a `copyWithState` kept in place of what
-                        // was written (`authoredComponent` in `Copy.js`):
-                        // a `copy` writes that again, so computes the
-                        // value from it (D33)
-                        serializedComponent.attributes[attrName] = {
-                            type: "component",
-                            component: deepClone(attribute.authoredComponent),
-                            sourceDoc: attribute.component.sourceDoc,
-                        };
-                    } else {
-                        serializedComponent.attributes[attrName] = {
-                            type: "component",
-                            component: await attribute.component.serialize(
-                                parametersForChildren,
-                            ),
-                            sourceDoc: attribute.component.sourceDoc,
-                        };
-                        if (attribute.authoredComponent) {
-                            // which a component made from this with the
-                            // state carried keeps, for a `copy` of it
-                            serializedComponent.attributes[
-                                attrName
-                            ].authoredComponent = deepClone(
-                                attribute.authoredComponent,
-                            );
-                        }
-                    }
+                    serializedComponent.attributes[attrName] =
+                        await serializeAttributeComponent(
+                            attribute,
+                            parametersForChildren,
+                        );
                 }
             } else if (attribute.type === "literal") {
                 // Like the attribute component it stands for: a linked copy
@@ -2490,6 +2464,8 @@ async function serializeShadowedAttributes({
     // an extend of a list that names itself makes a cycle
     // (`pastedShadowSource`)
     const visited = new Set([component]);
+    // each step from `component` along what it shadows, as [from, comp]
+    const hops = [];
     for (
         let from = component,
             comp = await pastedShadowSource(component, components);
@@ -2497,6 +2473,7 @@ async function serializeShadowedAttributes({
         from = comp, comp = await pastedShadowSource(comp, components)
     ) {
         visited.add(comp);
+        hops.push([from, comp]);
         // past a list made by an `extend` of what it names, which may not
         // be a list (`<mathList extend="$P"/>`), only the attributes it has
         // too, as it takes only those
@@ -2552,15 +2529,127 @@ async function serializeShadowedAttributes({
                     );
                 continue;
             }
-            serializedComponent.attributes[attrName] = {
-                type: "component",
-                component: await attribute.component.serialize(
+            serializedComponent.attributes[attrName] =
+                await serializeAttributeComponent(
+                    attribute,
                     parametersForChildren,
-                ),
-                sourceDoc: attribute.component.sourceDoc,
-            };
+                    // what was written for a value a `copyWithState` kept
+                    // refers to components around `comp` (its module
+                    // attributes), which, for `component`, are their shadows
+                    // around it
+                    shadowIdxMap([...hops], components),
+                );
         }
     }
+}
+
+/**
+ * Renumber, by `idxMap`, the components the references in `serialized` (a
+ * serialized component, which nothing is made from yet) resolve to: each
+ * reference resolution (`nodeIdx`, `nodesInResolvedPath`) in it, wherever it
+ * is held (an `extending`, an expression's slots, an index). Its own
+ * components are renumbered when it is copied (`createNewComponentIndices`).
+ */
+function remapReferents(serialized, idxMap) {
+    if (Array.isArray(serialized)) {
+        for (const item of serialized) {
+            remapReferents(item, idxMap);
+        }
+        return;
+    }
+    if (typeof serialized !== "object" || serialized === null) {
+        return;
+    }
+    if (
+        typeof serialized.nodeIdx === "number" &&
+        Array.isArray(serialized.nodesInResolvedPath)
+    ) {
+        serialized.nodeIdx = idxMap[serialized.nodeIdx] ?? serialized.nodeIdx;
+        serialized.nodesInResolvedPath = serialized.nodesInResolvedPath.map(
+            (idx) => idxMap[idx] ?? idx,
+        );
+    }
+    for (const value of Object.values(serialized)) {
+        remapReferents(value, idxMap);
+    }
+}
+
+/**
+ * An index map (for `remapReferents`), looked up lazily, from a component
+ * shadowed along `hops` (each a component and what it shadows, starting at
+ * the component being copied), such as the module attribute `$k` of the last
+ * `comp` refers to, to its shadow made with the first, by following its
+ * shadows back along `hops`. An index with no such shadow is left as it is.
+ */
+function shadowIdxMap(hops, components) {
+    return new Proxy(
+        {},
+        {
+            get(_target, key) {
+                let idx = Number(key);
+                if (typeof key !== "string" || !Number.isInteger(idx)) {
+                    return undefined;
+                }
+                for (let i = hops.length - 1; i >= 0; i--) {
+                    const shadow = shadowAround(components[idx], hops[i][0]);
+                    if (!shadow) {
+                        return undefined;
+                    }
+                    idx = shadow.componentIdx;
+                }
+                return idx;
+            },
+        },
+    );
+}
+
+/**
+ * The shadow of `component` made with `from`, by the same composite (a
+ * reference, such as `<module extend="$mw"/>`, whose `$k` stands in place
+ * of the `$k` of `mw`).
+ */
+function shadowAround(component, from) {
+    const compositeIdx = from.shadows?.compositeIdx;
+    if (!component || compositeIdx === undefined) {
+        return undefined;
+    }
+    return component.shadowedBy?.find(
+        (shadow) => shadow.shadows?.compositeIdx === compositeIdx,
+    );
+}
+
+/**
+ * Serialize the attribute component `attribute`. A value a `copyWithState`
+ * kept in place of what was written (`authoredComponent` in `Copy.js`) a
+ * `copy` (`withoutReaderState`) writes again, so computes the value from it
+ * (D33); otherwise it is serialized as it is, keeping what was written with
+ * it, for a `copy` of what is made from it. `idxMap`, for an attribute taken
+ * from what the component shadows, renumbers what that refers to.
+ */
+async function serializeAttributeComponent(attribute, parameters, idxMap) {
+    let authoredComponent;
+    if (attribute.authoredComponent) {
+        authoredComponent = deepClone(attribute.authoredComponent);
+        if (idxMap) {
+            remapReferents(authoredComponent, idxMap);
+        }
+    }
+    if (authoredComponent && parameters.withoutReaderState) {
+        return {
+            type: "component",
+            component: authoredComponent,
+            sourceDoc: attribute.component.sourceDoc,
+        };
+    }
+    const serialized = {
+        type: "component",
+        component: await attribute.component.serialize(parameters),
+        sourceDoc: attribute.component.sourceDoc,
+    };
+    if (authoredComponent) {
+        serialized.authoredComponent = authoredComponent;
+    }
+    return serialized;
 }
 
 /**

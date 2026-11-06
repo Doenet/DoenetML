@@ -870,6 +870,46 @@ ${repeat}
         await check();
     });
 
+    it("a copy of an extend of a copyWithState of a module chooses again from the module attribute written on it", async () => {
+        // The extend reads the module's frozen choice attribute from what it
+        // shadows (`serializeShadowedAttributes`), so the definition written
+        // for it has to come along from there too.
+        const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><integer name="k">2</integer></moduleAttributes>
+    <p name="picks"><select numToSelect="$k">${[...Array(10).keys()]
+        .map((i) => `<option><number>${i}</number></option>`)
+        .join("")}</select></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" k="4"/>
+<module name="me" extend="$mw"/>
+<module name="mc" copy="$me" k="6"/>
+<module name="mc2" copy="$mc" k="3"/>
+<module name="mee" extend="$me"/>
+<module name="mce" copy="$mee" k="7"/>
+<module name="mwe" copyWithState="$me"/>
+<module name="mcwe" copy="$mwe" k="5"/>
+`);
+        async function check() {
+            const source = (await doc.sv("m1.picks")).text;
+            expect(source.split(", ").length).eq(2);
+            expect((await doc.sv("mw.picks")).text).eq(source);
+            expect((await doc.sv("me.picks")).text).eq(source);
+            expect((await doc.sv("mwe.picks")).text).eq(source);
+            expect((await doc.sv("mc.picks")).text.split(", ").length).eq(6);
+            expect((await doc.sv("mc2.picks")).text.split(", ").length).eq(3);
+            expect((await doc.sv("mee.picks")).text).eq(source);
+            expect((await doc.sv("mce.picks")).text.split(", ").length).eq(7);
+            expect((await doc.sv("mcwe.picks")).text.split(", ").length).eq(5);
+        }
+        await check();
+        await doc.reload();
+        await check();
+    });
+
     it("copyWithState of a module: a module attribute reaching a choice inside an attribute component keeps the carried choices", async () => {
         const doc = await loaded(`
 <setup>
