@@ -273,6 +273,12 @@ function createAttributeStateVariableDefinitions({
             provideEssentialValuesInDefinition: true,
         });
 
+        // An attribute that decides something made once, such as how many
+        // a select chooses, keeps the value it had then (`immutable`)
+        if (attributeSpecification.immutable) {
+            (stateVarDef as Record<string, unknown>).immutable = true;
+        }
+
         if (attributeSpecification.public) {
             _setShadowingInstructionsFromAttribute(
                 stateVarDef,

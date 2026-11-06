@@ -647,6 +647,10 @@ variant-with-replacement-not-constant-boolean = cannot determine unique variants
 
 variant-select-weight-disables-unique = Unique variants for select disabled if have an option with selectWeight or selectForVariants specified
 
+# `option` is a DoenetML name and stays in English. `$o` is a reference as an
+# author writes it, and stays as written.
+variant-select-options-not-written = cannot determine unique variants of select as a reference in it, such as $o, can stand for any number of options.
+
 variant-coprime-undetermined = cannot determine unique variants of { $component } as cannot determine coprime is always false.
 
 # $attribute is an attribute name (`from`, `to`, `step`, `sort`, `length`) and
@@ -1268,6 +1272,10 @@ select-from-sequence-excluded-too-many-combinations = Excluded over 70% of combi
 # the sequence's own arithmetic. This one is what is left after two hundred
 # draws found no coprime combination among values that could have supplied one.
 select-from-sequence-coprime-none-found = Could not select coprime numbers. All possible values share a common factor.
+
+# Not every value shares a factor, so a coprime selection may exist, but two
+# hundred random draws found none. Which draws are made depends on the variant.
+select-from-sequence-coprime-draws-exhausted = Could not find coprime numbers among the values in 200 random draws, so nothing is selected.
 
 select-from-sequence-too-few-unique-values = Cannot select { $numToSelect } unique values from sequence of length { $numPossibleValues }
 

@@ -73,23 +73,23 @@ describe("generated schema help fields", () => {
     });
 
     it("reuses an attribute's description on its auto-created public property", () => {
-        const numToSelectAttribute = selectFromSequence.attributes.find(
-            (attribute) => attribute.name === "numToSelect",
+        const withReplacementAttribute = selectFromSequence.attributes.find(
+            (attribute) => attribute.name === "withReplacement",
         );
-        const numToSelectProperty = selectFromSequence.properties.find(
-            (property) => property.name === "numToSelect",
+        const withReplacementProperty = selectFromSequence.properties.find(
+            (property) => property.name === "withReplacement",
         );
-        expect(numToSelectProperty?.description).toBeTruthy();
-        expect(numToSelectProperty?.description).toBe(
-            numToSelectAttribute?.description,
+        expect(withReplacementProperty?.description).toBeTruthy();
+        expect(withReplacementProperty?.description).toBe(
+            withReplacementAttribute?.description,
         );
     });
 
     it("flags properties auto-created from a same-named attribute with fromAttribute: true", () => {
-        const numToSelectProperty = selectFromSequence.properties.find(
-            (property) => property.name === "numToSelect",
+        const withReplacementProperty = selectFromSequence.properties.find(
+            (property) => property.name === "withReplacement",
         );
-        expect(numToSelectProperty?.fromAttribute).toBe(true);
+        expect(withReplacementProperty?.fromAttribute).toBe(true);
     });
 
     it("does not flag explicitly defined state-variable properties with fromAttribute", () => {

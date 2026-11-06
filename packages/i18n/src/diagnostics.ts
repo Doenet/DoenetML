@@ -93,6 +93,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0053": "type-change-value-not-convertible",
     "doenet-i0054": "type-change-index-names-nothing",
     "doenet-i0055": "type-change-composite-holds-nothing",
+    "doenet-i0056": "variant-select-options-not-written",
+    "doenet-i0057": "select-from-sequence-coprime-draws-exhausted",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -395,6 +397,15 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         // (`e0056`, `e0057`), as any extend that would change what its
         // source makes (#2404).
         "doenet-w0178",
+        // A select takes the choices a requested variant gives as given, and
+        // never chooses again, so none of these can arise (#2389, D38).
+        "doenet-e0037",
+        "doenet-e0038",
+        "doenet-e0039",
+        "doenet-e0040",
+        "doenet-e0048",
+        "doenet-e0049",
+        "doenet-e0050",
     ]);
 
 /**
