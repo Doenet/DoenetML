@@ -311,6 +311,14 @@ describe("A function reference that names nothing @group4", async () => {
                     `$$f(<group name="g"><math name="m">2</math></group>)`,
                 ],
             },
+            {
+                // a name in the branches of a container there too
+                doenetML: `<p name="p">[$$f(<conditionalContent><case condition="true"><math name="m">2</math></case></conditionalContent>)] [$m]</p>`,
+                text: "[＿] [＿]",
+                references: [
+                    `$$f(<conditionalContent><case condition="true"><math name="m">2</math></case></conditionalContent>)`,
+                ],
+            },
         ];
 
         for (const { doenetML, text, references } of cases) {

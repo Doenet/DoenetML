@@ -16,6 +16,15 @@ impl Resolver {
         old_to_new_indices: &[usize],
         name_targets: &[usize],
     ) {
+        // A container in the arguments of a failed function reference has no
+        // branches to resolve a name through: the name resolves to that
+        // reference itself.
+        let remap = |ref_: &Ref| match ref_ {
+            Ref::Branches(idx) if name_targets[*idx] == old_to_new_indices[*idx] => {
+                Ref::Branches(name_targets[*idx])
+            }
+            ref_ => Ref::Unique(name_targets[ref_.single_idx().unwrap()]),
+        };
         // Note: the first entry, which corresponds to the flat_root, is always present
         let new_node_resolver_data: Vec<NodeResolverData> = self
             .node_resolver_data
@@ -29,23 +38,14 @@ impl Resolver {
                     node_data
                         .name_map
                         .iter()
-                        .map(|(key, ref_)| match ref_ {
-                            Ref::Unique(idx) => (key.clone(), Ref::Unique(name_targets[*idx])),
-                            Ref::Branches(idx) => (key.clone(), Ref::Branches(name_targets[*idx])),
-                            Ref::Ambiguous(vec_idx) => (
-                                key.clone(),
-                                Ref::Ambiguous(
-                                    vec_idx
-                                        .iter()
-                                        .map(|ref_| match ref_ {
-                                            Ref::Branches(idx) => Ref::Branches(name_targets[*idx]),
-                                            ref_ => Ref::Unique(
-                                                name_targets[ref_.single_idx().unwrap()],
-                                            ),
-                                        })
-                                        .collect(),
-                                ),
-                            ),
+                        .map(|(key, ref_)| {
+                            let ref_ = match ref_ {
+                                Ref::Ambiguous(refs) => {
+                                    Ref::Ambiguous(refs.iter().map(remap).collect())
+                                }
+                                ref_ => remap(ref_),
+                            };
+                            (key.clone(), ref_)
                         })
                         .collect(),
                 );
