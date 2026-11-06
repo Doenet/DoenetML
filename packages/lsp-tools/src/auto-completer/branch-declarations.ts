@@ -74,17 +74,19 @@ function isWrittenAsCopy(element: DastElement): boolean {
  * (`$s[2].x`), a `<select>` of any number of picks shows one option there,
  * as `branchKind` in `typeChangeAtLoad.ts` has it.
  *
- * Tags are matched as the core matches them: `conditionalContent` (or
- * `conditionalcontent`) and `select`, and branches `case`, `else` and
- * `option` (`BranchContainerKind::is_branch`). A tag written in another
- * case is not a component the runtime knows (`doenet-e0002`).
+ * Tags are matched exactly, as the core matches branches `case`, `else`
+ * and `option` (`BranchContainerKind::is_branch`) and the containers
+ * `conditionalContent` and `select`. The core also takes
+ * `conditionalcontent`, but the runtime knows no component written so,
+ * nor in any other case (`doenet-e0002`), and a reference into it names
+ * nothing.
  */
 export function branchContainerKind(
     element: DastElement,
     indexed = false,
 ): BranchKind | undefined {
     const tag = element.name;
-    if (tag === "conditionalContent" || tag === "conditionalcontent") {
+    if (tag === "conditionalContent") {
         return "case";
     }
     if (tag !== "select") {
@@ -114,23 +116,41 @@ function branchesOf(
     container: DastElement,
     kind: BranchKind,
 ): DastNodes[][] | undefined {
+    return branchesAndStrays(container, kind)?.branches;
+}
+
+/**
+ * The children of each branch of `container` (`branchesOf`), and the
+ * children written beside the branches (`strays`), which are not
+ * branches. The runtime reports those as invalid (`doenet-w0107`) but
+ * still lets a reference see a name in them, so a name they declare is
+ * ambiguous with the branches' (`doenet-w0105`).
+ */
+function branchesAndStrays(
+    container: DastElement,
+    kind: BranchKind,
+): { branches: DastNodes[][]; strays: DastNodes[] } | undefined {
     if (isWrittenAsCopy(container)) {
         return undefined;
     }
     const branchTags = kind === "case" ? ["case", "else"] : ["option"];
     const branches: DastNodes[][] = [];
+    const strays: DastNodes[] = [];
     for (const child of container.children) {
         if (child.type !== "element") continue;
-        if (!branchTags.includes(child.name)) continue;
+        if (!branchTags.includes(child.name)) {
+            strays.push(child);
+            continue;
+        }
         if (isWrittenAsCopy(child)) {
             return undefined;
         }
         branches.push(child.children as DastNodes[]);
     }
     if (branches.length === 0 && kind === "case") {
-        return [container.children as DastNodes[]];
+        return { branches: [container.children as DastNodes[]], strays: [] };
     }
-    return branches;
+    return { branches, strays };
 }
 
 /**
@@ -263,7 +283,8 @@ function declarationsBelow(
  *   name with the same tag, so that the reference resolves to the active
  *   branch's;
  * - `null` otherwise: a branch lacks it (`doenet-w0183`), the tags differ
- *   (`doenet-w0184`), a branch declares it twice, the container has no
+ *   (`doenet-w0184`), a branch declares it twice, a child beside the
+ *   branches declares it too (`doenet-w0105`), the container has no
  *   branches, or what a branch holds is not read here.
  *
  * With `indexed`, for a name after an index into a select's picks
@@ -278,13 +299,19 @@ export function branchDeclarations(
     if (!kind || names.length === 0) {
         return null;
     }
-    const branches = branchesOf(container, kind);
-    if (!branches) {
+    const read = branchesAndStrays(container, kind);
+    if (!read) {
         return null;
     }
-    const perBranch = branches.map((nodes) => declarationsIn(nodes, names));
+    const perBranch = read.branches.map((nodes) =>
+        declarationsIn(nodes, names),
+    );
     if (perBranch.every((declared) => declared === "none")) {
         return "none";
+    }
+    if (countVisibleDeclarations(read.strays, names[0]) > 0) {
+        // Also declared beside the branches: ambiguous (`doenet-w0105`).
+        return null;
     }
     const result: DastElement[] = [];
     for (const declared of perBranch) {

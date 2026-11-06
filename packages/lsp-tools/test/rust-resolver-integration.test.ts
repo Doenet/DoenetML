@@ -928,13 +928,62 @@ describe.skipIf(!wasmAvailable)(
         });
 
         it("does not read a container or branch tag written in another case as one", async () => {
-            // The runtime knows no `<ConditionalContent>` (`doenet-e0002`),
-            // and the core reads a tag as a branch container only as
-            // written (`branch_container_kind`).
-            const source = `<ConditionalContent name="cc"><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></ConditionalContent>\n$`;
+            // The runtime knows no `<ConditionalContent>` or
+            // `<conditionalcontent>` (`doenet-e0002`), and `$cc.x` names
+            // nothing. The core reads `<ConditionalContent>` as no branch
+            // container, and takes `<conditionalcontent>` as one.
+            for (const tag of ["ConditionalContent", "conditionalcontent"]) {
+                const source = `<${tag} name="cc"><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></${tag}>\n$`;
+                expect(await refNameLabels(source)).not.toContain("x");
+                const result = await memberNames(`${source}cc.`, ["cc", ""]);
+                expect(result?.visibleDescendantNames ?? []).not.toContain("x");
+                const below = await memberNames(
+                    `<section name="sec">${source.slice(0, -2)}</section>\n$sec.`,
+                    ["sec", ""],
+                );
+                expect(below?.visibleDescendantNames ?? []).not.toContain("x");
+            }
+            // An `<Else>` is no branch (`doenet-e0002`), so its `x` is
+            // ambiguous with the case's (`doenet-w0105` for `$cc.x`).
+            const source = `<conditionalContent name="cc"><case condition="true"><math name="x">1</math></case><Else><math name="x">2</math></Else></conditionalContent>\n$`;
             expect(await refNameLabels(source)).not.toContain("x");
             const result = await memberNames(`${source}cc.`, ["cc", ""]);
-            expect(result?.visibleDescendantNames ?? []).not.toContain("x");
+            expect(result?.visibleDescendantNames).toEqual([]);
+        });
+
+        it("leaves out a branch name also declared beside the branches", async () => {
+            // The runtime reports the child beside the branches
+            // (`doenet-w0107`) and finds both its `x` and the branches'
+            // (`doenet-w0105`), through the container or from outside.
+            for (const [container, branches] of [
+                [
+                    `<conditionalContent name="c">`,
+                    `<case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else>`,
+                ],
+                [
+                    `<select name="c">`,
+                    `<option><math name="x">1</math></option><option><math name="x">2</math></option>`,
+                ],
+            ]) {
+                const close = container.startsWith("<select")
+                    ? "</select>"
+                    : "</conditionalContent>";
+                const source = `${container}${branches}<math name="x">3</math><math name="w">4</math>${close}\n$`;
+                expect(await refNameLabels(source)).not.toContain("x");
+                const result = await memberNames(`${source}c.`, ["c", ""]);
+                expect(result?.visibleDescendantNames).toEqual([]);
+                const below = await memberNames(
+                    `<section name="sec">${source.slice(0, -2)}</section>\n$sec.`,
+                    ["sec", ""],
+                );
+                expect(below?.visibleDescendantNames ?? []).not.toContain("x");
+                // Without the child beside them, the branches share `x`.
+                const valid = await memberNames(
+                    `${container}${branches}${close}\n$c.`,
+                    ["c", ""],
+                );
+                expect(valid?.visibleDescendantNames).toEqual(["x"]);
+            }
         });
 
         it("leaves out content written beside the branches", async () => {
