@@ -514,6 +514,128 @@ describe("copy and copyWithState @group3", () => {
         expect((await doc.sv("w")).hidden).eq(true);
     });
 
+    it("a copy of a copyWithState does not take a reader's write to a literal attribute it carried, through a reload", async () => {
+        const doc = await loaded(`
+<text name="t" hide="false">hi</text>
+<booleanInput name="b" bindValueTo="$t.hide"/>
+<booleanInput name="show"/>
+<conditionalContent condition="$show">
+  <text name="w" copyWithState="$t"/>
+  <text name="c" copy="$w"/>
+  <text name="ww" copyWithState="$w"/>
+  <text name="cww" copy="$ww"/>
+</conditionalContent>
+`);
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await doc.resolve("b"),
+            core: doc.core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await doc.resolve("show"),
+            core: doc.core,
+        });
+        async function check() {
+            expect((await doc.sv("t")).hidden).eq(true);
+            expect((await doc.sv("w")).hidden).eq(true);
+            expect((await doc.sv("c")).hidden).eq(false);
+            expect((await doc.sv("ww")).hidden).eq(true);
+            expect((await doc.sv("cww")).hidden).eq(false);
+        }
+        await check();
+        await doc.reload();
+        await check();
+    });
+
+    it("a copy of a copyWithState of a point written with a reference starts as written, through a reload", async () => {
+        const doc = await loaded(`
+<math name="a">1</math>
+<graph><point name="P">($a, 0)</point></graph>
+<booleanInput name="show"/>
+<conditionalContent condition="$show">
+  <graph>
+    <point name="Pw" copyWithState="$P"/>
+    <point name="Pc" copy="$Pw"/>
+    <point name="Pww" copyWithState="$Pw"/>
+    <point name="Pcww" copy="$Pww"/>
+  </graph>
+</conditionalContent>
+`);
+        await movePoint({
+            componentIdx: await doc.resolve("P"),
+            x: 1,
+            y: 7,
+            core: doc.core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await doc.resolve("show"),
+            core: doc.core,
+        });
+        async function check() {
+            const xs = async (name: string) =>
+                (await doc.sv(name)).xs.map((x: any) => x.tree);
+            expect(await xs("P")).eqls([1, 7]);
+            expect(await xs("Pw")).eqls([1, 7]);
+            expect(await xs("Pc")).eqls([1, 0]);
+            expect(await xs("Pww")).eqls([1, 7]);
+            expect(await xs("Pcww")).eqls([1, 0]);
+        }
+        await check();
+        await doc.reload();
+        await check();
+    });
+
+    for (const repeat of [
+        `<repeatForSequence name="r" from="1" to="2" valueName="v">`,
+        `<repeat name="r" for="1 2" valueName="v">`,
+    ]) {
+        const tag = repeat.split(" ")[0].slice(1);
+        it(`${tag}: a copy of a member of a copyWithState starts as written, through a reload`, async () => {
+            const doc = await loaded(`
+${repeat}
+  <mathInput name="mi" prefill="1"/>
+  <text name="t" hide="false">$v</text>
+</${tag}>
+<booleanInput name="b" bindValueTo="$r[1].t.hide"/>
+<booleanInput name="show"/>
+<conditionalContent condition="$show">
+  <${tag} name="rw" copyWithState="$r"/>
+  <mathInput name="c" copy="$rw[1].mi"/>
+  <text name="ct" copy="$rw[1].t"/>
+  <${tag} name="rc" copy="$rw"/>
+</conditionalContent>
+`);
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await doc.resolve("r[1].mi"),
+                core: doc.core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await doc.resolve("b"),
+                core: doc.core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await doc.resolve("show"),
+                core: doc.core,
+            });
+            async function check() {
+                expect((await doc.sv("rw[1].mi")).value.tree).eq(5);
+                expect((await doc.sv("rw[1].t")).hidden).eq(true);
+                expect((await doc.sv("c")).value.tree).eq(1);
+                expect((await doc.sv("ct")).hidden).eq(false);
+                expect((await doc.sv("rc[1].mi")).value.tree).eq(1);
+                expect((await doc.sv("rc[1].t")).hidden).eq(false);
+            }
+            await check();
+            await doc.reload();
+            await check();
+        });
+    }
+
     it("a copy of an extend of an input starts at the prefill", async () => {
         const doc = await loaded(`
 <mathInput name="mi" prefill="1"/>

@@ -15,7 +15,9 @@
  *   (`readPlan`), resolved and read by the slot's state variables
  *   (`referenceSlotDefinitions`);
  * - `writes`: the text written to its nodes that an unlinked copy holds
- *   (`copyOfExpressionAttribute`).
+ *   (`copyOfExpressionAttribute`);
+ * - `authoredWrites`: of a copy with reader state, the writes its source was
+ *   made with, which a `copy` of it takes (D33).
  *
  * The component holding it has, for it, the state variables
  * `expressionAttributeDefinitions` makes, under `__<name>_`: one slot per

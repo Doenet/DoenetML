@@ -274,6 +274,11 @@ export type ExpressionAttribute = {
     }[];
     /** The text written to the template's nodes, by node, of a copy. */
     writes?: Record<string, any>;
+    /**
+     * Of a copy with reader state (`copyWithState`), the writes its source
+     * was made with, which a `copy` of it takes in place of `writes` (D33).
+     */
+    authoredWrites?: Record<string, any>;
     /** Where the author wrote it, for diagnostics about the attribute. */
     position?: any;
     sourceDoc?: number;

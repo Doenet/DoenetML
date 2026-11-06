@@ -53,6 +53,13 @@ export type LiteralAttribute = {
      * attribute written with no value, or `"true"` for a boolean).
      */
     value?: any;
+    /**
+     * What the author wrote (`text`, `coordinateTexts` or `value`), kept
+     * when a copy with reader state (`copyWithState`) took a value a reader
+     * wrote over it as its `value`, so that a `copy` of that copy is as the
+     * author wrote it (D33, `copyOfLiteralAttribute`).
+     */
+    authored?: Pick<LiteralAttribute, "text" | "coordinateTexts" | "value">;
     /** Where the author wrote it, for diagnostics about the attribute. */
     position?: any;
     sourceDoc?: number;
@@ -420,26 +427,70 @@ export function serializedAttributeComponent(
 }
 
 /**
+ * What the author wrote of the literal attribute `attribute`: its `authored`,
+ * which a copy with reader state keeps when it took a value written over it,
+ * or else its `text`, `coordinateTexts` or `value`.
+ */
+export function authoredOfLiteral(
+    attribute: LiteralAttribute,
+): NonNullable<LiteralAttribute["authored"]> {
+    if (attribute.authored) {
+        return attribute.authored;
+    }
+    const authored: NonNullable<LiteralAttribute["authored"]> = {};
+    for (const field of ["text", "coordinateTexts", "value"] as const) {
+        if (field in attribute) {
+            authored[field] = attribute[field];
+        }
+    }
+    return authored;
+}
+
+/**
+ * The literal `attribute` with the value `value` written over what the
+ * author wrote, which it keeps (`authored`) for a `copy` of it.
+ */
+export function literalWithValue(
+    attribute: LiteralAttribute,
+    value: any,
+): LiteralAttribute {
+    const literal: LiteralAttribute = JSON.parse(JSON.stringify(attribute));
+    literal.authored = JSON.parse(JSON.stringify(authoredOfLiteral(attribute)));
+    delete literal.text;
+    literal.value = value;
+    return literal;
+}
+
+/**
  * A copy of the literal attribute `attribute` of the component `owner`, with
  * the value a reader wrote over it (`literalAttributeWrites`) in place of
  * what the author wrote, as a copy of the attribute component it stands for
- * took that component's essential state. Without `withWrites`, as for a
- * `copy`, which carries no reader state (D33), it is as the author wrote it.
+ * took that component's essential state; what the author wrote is kept
+ * (`authored`). Without `withWrites`, as for a `copy`, which carries no
+ * reader state (D33), it is as the author wrote it, also when `attribute`
+ * itself took a reader's write from the source of a `copyWithState`.
  */
 export function copyOfLiteralAttribute(
     attribute: LiteralAttribute,
     owner: any,
     withWrites = true,
 ): LiteralAttribute {
-    const literal: LiteralAttribute = JSON.parse(JSON.stringify(attribute));
-    const writes = withWrites
-        ? owner.essentialState?.literalAttributeWrites
-        : undefined;
-    if (writes && attribute.name in writes) {
-        delete literal.text;
-        literal.value = writes[attribute.name];
+    if (!withWrites) {
+        const literal: LiteralAttribute = JSON.parse(JSON.stringify(attribute));
+        if (literal.authored) {
+            delete literal.text;
+            delete literal.coordinateTexts;
+            delete literal.value;
+            Object.assign(literal, literal.authored);
+            delete literal.authored;
+        }
+        return literal;
     }
-    return literal;
+    const writes = owner.essentialState?.literalAttributeWrites;
+    if (writes && attribute.name in writes) {
+        return literalWithValue(attribute, writes[attribute.name]);
+    }
+    return JSON.parse(JSON.stringify(attribute));
 }
 
 /**

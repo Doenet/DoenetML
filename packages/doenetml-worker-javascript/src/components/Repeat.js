@@ -12,6 +12,7 @@ import {
     unwrapSource,
 } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
+import { authoredOfLiteral, literalWithValue } from "../utils/literalAttribute";
 export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
 
@@ -888,6 +889,19 @@ function copyStateFromUnlinkedSourceSub(
             repl.componentType === src.componentType
         ) {
             repl.state = src.state;
+            // with what the source was made with, so that a `copy` of the
+            // replacement starts as the source was written, not with the
+            // state carried (`initialEssentialState`, D33)
+            for (const field of [
+                "initialEssentialState",
+                "authoredPrimitiveChildren",
+            ]) {
+                if (src[field] !== undefined) {
+                    repl[field] = src[field];
+                } else {
+                    delete repl[field];
+                }
+            }
 
             // A random component makes its choices from its variant, not its
             // state, so each takes the variant of its source. The copy's
@@ -942,9 +956,16 @@ function copyStateFromUnlinkedSourceSub(
                     // essential state of its coordinates. A literal written
                     // as text is not: the component kept a write in its text
                     // child, not its state.
+                    // What the author wrote is kept (`authored`), for a
+                    // `copy` of the replacement (D33).
                     repl.attributes[attrName] = {
-                        ...repl.attributes[attrName],
-                        value: src.attributes[attrName].value,
+                        ...literalWithValue(
+                            repl.attributes[attrName],
+                            src.attributes[attrName].value,
+                        ),
+                        authored:
+                            src.attributes[attrName].authored ??
+                            authoredOfLiteral(repl.attributes[attrName]),
                     };
                 }
             }
