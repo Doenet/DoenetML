@@ -6333,9 +6333,10 @@ async function sourceCaseOf({ component, source, segment }) {
  * }`, the serialized component, as it is in the DoenetML of the case it was
  * made from (`ConditionalContent.getReplacements`), found by its `stateId`,
  * and the segment of the `stateId`s of its copy, which are then those the copy
- * had, so its snapshot and what the reader did in it apply. A name in only
- * some cases is thus made from the case it was made from, though the
- * reference names nothing now. `undefined` when it is made from what its
+ * had, so its snapshot and what the reader did in it apply. It is thus made
+ * from the case it was made from even when its reference names nothing now,
+ * as when no case of a `<conditionalContent>` with one case is active.
+ * `undefined` when it is made from what its
  * reference names now: when each case it was made through is active, or
  * what it was made from cannot be found again (one made by a composite in
  * the case, such as a `<repeat>`, is not in its DoenetML).

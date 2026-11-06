@@ -884,6 +884,35 @@ describe("A copy of a name in a case through a reload @group4", () => {
         });
     }
 
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form}: made from the one case, kept while no case is active`, async () => {
+            // `$cc.p` names nothing while `b` is false, and the copy is made
+            // again from the case it was made from, with the reader's value.
+            const r = await reloader(`
+    <booleanInput name="b" prefill="true"/>
+    <conditionalContent name="cc">
+      <case condition="$b"><p name="p">one: <mathInput name="a"/></p></case>
+    </conditionalContent>
+    <p ${form}="$cc.p" name="pc"/>
+    `);
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await r.resolve("pc.a"),
+                core: r.core(),
+            });
+            await r.setBoolean("b", false);
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            await r.reload();
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            await r.setBoolean("b", true);
+            await r.reload();
+            expect((await r.sv("cc.p")).stateValues.text).eq("one: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+        });
+    }
+
     it("of a name inside a group in a case, keeps the case", async () => {
         // A name in only some cases names nothing, in any case, so is not
         // made from one (`$cc.y` of a `y` only in the first case).
