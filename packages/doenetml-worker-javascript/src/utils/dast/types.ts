@@ -128,6 +128,12 @@ type ComponentAttribute = {
     type: "component";
     name: string;
     component: SerializedComponent;
+    /**
+     * What was written, where a `copyWithState` of a module holds the value
+     * its source chose with in place of it (`keepChoicesReachedByModuleAttributes`
+     * in `Copy.js`); a `copy` of it is given this instead (D33).
+     */
+    authoredComponent?: SerializedComponent;
     ignoreFixed?: boolean;
     sourceDoc?: number;
 };
@@ -207,6 +213,13 @@ export type UnresolvedAttribute = {
     type: "unresolved";
     name: string;
     children: (UnflattenedComponent | string)[];
+    /**
+     * What was written, where a `copyWithState` of a module holds the value
+     * its source chose with in place of it, on a choosing tag written with
+     * `copy` or `extend` (`keepChoicesReachedByModuleAttributes` in
+     * `Copy.js`); a `copy` of it is given this instead (D33).
+     */
+    authoredChildren?: (UnflattenedComponent | string)[];
     position?: Position;
     sourceDoc?: number;
     ignoreFixed?: boolean;
@@ -274,6 +287,11 @@ export type ExpressionAttribute = {
     }[];
     /** The text written to the template's nodes, by node, of a copy. */
     writes?: Record<string, any>;
+    /**
+     * Of a copy with reader state (`copyWithState`), the writes its source
+     * was made with, which a `copy` of it takes in place of `writes` (D33).
+     */
+    authoredWrites?: Record<string, any>;
     /** Where the author wrote it, for diagnostics about the attribute. */
     position?: any;
     sourceDoc?: number;

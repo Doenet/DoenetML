@@ -1,15 +1,22 @@
 import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
 
 /**
- * What an unlinked copy (`copy=`) made of its source when it was made, for
+ * What a `copyWithState` made of its source when it was made, for
  * each component among its serialized replacements: its essential state,
- * its primitive (string) children, its literal attributes
+ * what it was made with (`initialEssentialState`), its primitive (string)
+ * children, its literal attributes
  * (`literalAttribute.ts`) and the text written to its expression attributes
  * (`expressionAttribute.js`), with its `stateId` and `componentType`. The
  * primitive children are held because a write to a value defined by one,
  * such as dragging `<point>(1,2)</point>`, changes the child itself rather
  * than any essential state, and the literals because a reader's write to
  * one (a toggled `hide="false"`) is copied in the literal.
+ *
+ * A `copy` carries no reader state, so it holds a snapshot only of the
+ * components among its replacements that hold a value rather than DoenetML
+ * of their own (`onlyHeldValues`): those made from a property or a list
+ * entry (`holdsValue`, CPY-5), which keep the value they were made with.
+ * Otherwise it holds only what decided what it made (D33).
  *
  * A copy present when a document loads is made again on every load, from
  * its source as it is then: after a reader has changed the source and
@@ -20,13 +27,20 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
  * also holds what decided what the copy made, which a copy made again on
  * load decides as it was decided before (`heldCopySnapshot`).
  */
-export function copySnapshotOf(serializedComponents) {
+export function copySnapshotOf(
+    serializedComponents,
+    { onlyHeldValues = false } = {},
+) {
     const snapshot = [];
-    function visit(component) {
+    function visit(component, inHeldValue = false) {
         if (typeof component !== "object" || component === null) {
             return;
         }
-        if (component.stateId !== undefined) {
+        inHeldValue ||= Boolean(component.holdsValue);
+        if (
+            component.stateId !== undefined &&
+            (!onlyHeldValues || inHeldValue)
+        ) {
             const primitiveChildren = {};
             (component.children ?? []).forEach((child, ind) => {
                 if (typeof child !== "object" || child === null) {
@@ -53,6 +67,18 @@ export function copySnapshotOf(serializedComponents) {
                 stateId: component.stateId,
                 componentType: component.componentType,
                 state: deepClone(component.state ?? {}),
+                // what it was made with (`initialEssentialState`), which a
+                // `copy` of it starts from: of a `copyWithState`, it holds
+                // the value captured from a property or a list entry, which
+                // a copy made again on load captures as the source is then
+                ...(Object.keys(component.initialEssentialState ?? {}).length >
+                0
+                    ? {
+                          initialState: deepClone(
+                              component.initialEssentialState,
+                          ),
+                      }
+                    : {}),
                 ...(Object.keys(primitiveChildren).length > 0
                     ? { primitiveChildren }
                     : {}),
@@ -63,10 +89,10 @@ export function copySnapshotOf(serializedComponents) {
             });
         }
         for (const child of component.children ?? []) {
-            visit(child);
+            visit(child, inHeldValue);
         }
         for (const attribute of Object.values(component.attributes ?? {})) {
-            visit(attribute?.component);
+            visit(attribute?.component, inHeldValue);
         }
     }
     for (const component of serializedComponents) {
@@ -110,6 +136,9 @@ export function applyCopySnapshot(serializedComponents, snapshot) {
                 return;
             }
             component.state = deepClone(entry.state);
+            if (entry.initialState) {
+                component.initialEssentialState = deepClone(entry.initialState);
+            }
             for (const [name, literal] of Object.entries(
                 entry.literals ?? {},
             )) {
@@ -193,6 +222,7 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
             now.componentType !== then.componentType ||
             !same(now.primitiveChildren, then.primitiveChildren) ||
             !same(now.literals, then.literals) ||
+            !same(now.initialState, then.initialState) ||
             !same(now.expressionWrites, then.expressionWrites)
         ) {
             return false;

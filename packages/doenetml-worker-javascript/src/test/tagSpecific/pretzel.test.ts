@@ -1178,8 +1178,8 @@ describe("Pretzel tag tests @group1", async () => {
                 linked: true,
             },
             {
-                description: "<pretzel copy>",
-                doenetML: `${pretzelDoenetML}\n    <pretzel copy="$p" name="p2"/>`,
+                description: "<pretzel copyWithState>",
+                doenetML: `${pretzelDoenetML}\n    <pretzel copyWithState="$p" name="p2"/>`,
                 sourcePath: "p",
                 copyPath: "p2",
                 linked: false,
@@ -1192,8 +1192,8 @@ describe("Pretzel tag tests @group1", async () => {
                 linked: true,
             },
             {
-                description: "<section copy>",
-                doenetML: `<section name="s">${pretzelDoenetML}</section>\n    <section copy="$s" name="s2"/>`,
+                description: "<section copyWithState>",
+                doenetML: `<section name="s">${pretzelDoenetML}</section>\n    <section copyWithState="$s" name="s2"/>`,
                 sourcePath: "s.p",
                 copyPath: "s2.p",
                 linked: false,
@@ -1376,9 +1376,9 @@ describe("Pretzel tag tests @group1", async () => {
                 doenetML: `${pretzelDoenetML}
     <pretzel extend="$p" name="p2"/>
     <pretzel extend="$p2" name="p3"/>
-    <pretzel copy="$p2" name="p4"/>
+    <pretzel copyWithState="$p2" name="p4"/>
     <pretzel extend="$p4" name="p5"/>
-    <pretzel copy="$p4" name="p6"/>`,
+    <pretzel copyWithState="$p4" name="p6"/>`,
                 requestedVariantIndex: 2,
             });
 
@@ -1399,7 +1399,7 @@ describe("Pretzel tag tests @group1", async () => {
             }
         });
 
-        for (const kind of ["extend", "copy"]) {
+        for (const kind of ["extend", "copy", "copyWithState"]) {
             it(`a <pretzel ${kind}> copy keeps its problems and responses when reloaded`, async () => {
                 const doenetML = `${pretzelDoenetML}\n    <pretzel ${kind}="$p" name="p2"/>`;
                 let { core, resolvePathToNodeIdx, scoreState } =
@@ -1481,30 +1481,9 @@ describe("Pretzel tag tests @group1", async () => {
             ].stateValues.creditAchieved;
         }
 
-        // The text of the statement of the first problem, with its random value
-        async function firstStatementText({
-            core,
-            resolvePathToNodeIdx,
-            path,
-        }: {
-            core: any;
-            resolvePathToNodeIdx: (name: string) => Promise<number>;
-            path: string;
-        }) {
-            const { texts } = (
-                await shownProblems({
-                    core,
-                    resolvePathToNodeIdx,
-                    paths: [path],
-                })
-            )[path];
-            return texts.find((text: string) => text.startsWith("P1"));
-        }
-
         it("a <pretzel copy> given more problems arranges all of them together", async () => {
-            // The added problem changes the correct answers, so the copy
-            // arranges all four problems in a new order. It keeps the
-            // source's random value.
+            // A copy is a new pretzel (D33): it arranges all four problems
+            // together, and its problems draw their own random values.
             for (const requestedVariantIndex of [1, 2, 3]) {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `${pretzelDoenetML}
@@ -1526,19 +1505,6 @@ describe("Pretzel tag tests @group1", async () => {
                 expect(shown.p.problemOrder.length).eq(3);
                 expect([...shown.p2.problemOrder].sort()).eqls([1, 2, 3, 4]);
                 expect(shown.p2.texts.length).eq(8);
-                expect(
-                    await firstStatementText({
-                        core,
-                        resolvePathToNodeIdx,
-                        path: "p2",
-                    }),
-                ).eq(
-                    await firstStatementText({
-                        core,
-                        resolvePathToNodeIdx,
-                        path: "p",
-                    }),
-                );
 
                 expect(
                     await answerInOrder({
@@ -1551,8 +1517,8 @@ describe("Pretzel tag tests @group1", async () => {
         });
 
         it("a <pretzel copy> given problems or a mode leaves other copies of its source unchanged", async () => {
-            // Every copy starts from its source's order and random choices.
-            // Adapting them for one copy must not change them for the next.
+            // A `copyWithState` starts from its source's order and random
+            // choices. Making new pretzels with `copy` must not change them.
             for (const requestedVariantIndex of [1, 2, 3]) {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `${pretzelDoenetML}
@@ -1560,7 +1526,7 @@ describe("Pretzel tag tests @group1", async () => {
         <problem><statement><p>P4</p></statement><answer>A4</answer></problem>
     </pretzel>
     <pretzel copy="$p" name="p3" mode="circuit"/>
-    <pretzel copy="$p" name="p4"/>`,
+    <pretzel copyWithState="$p" name="p4"/>`,
                     requestedVariantIndex,
                 });
 
@@ -1574,9 +1540,9 @@ describe("Pretzel tag tests @group1", async () => {
             }
         });
 
-        it("a <pretzel copy> given more problems chooses their random values anew, and keeps them when reloaded", async () => {
-            // The added problems do not repeat the random values of the
-            // source's problems, which the copy keeps.
+        it("a <pretzel copy> given more problems chooses its random values anew, and keeps them when reloaded", async () => {
+            // A copy is a new pretzel (D33): its problems, those of the
+            // source and those added, draw their own random values.
             const doenetML = `
     <pretzel name="p">
         <problem><statement><p>P1 <selectFromSequence name="n1" from="1" to="1000"/></p></statement><answer>A1</answer></problem>
@@ -1625,8 +1591,8 @@ describe("Pretzel tag tests @group1", async () => {
                     core,
                     resolvePathToNodeIdx,
                 });
-                expect(values["p2.n1"]).eq(values.n1);
-                expect(values["p2.n2"]).eq(values.n2);
+                expect(values["p2.n1"]).not.eq(values.n1);
+                expect(values["p2.n2"]).not.eq(values.n2);
                 expect([values.n1, values.n2]).not.include(values["p2.m1"]);
                 expect([values.n1, values.n2]).not.include(values["p2.m2"]);
 
@@ -1654,9 +1620,9 @@ describe("Pretzel tag tests @group1", async () => {
             }
         });
 
-        it("a <pretzel copy> given only a <problem copy> keeps its source's order", async () => {
+        it("a <pretzel copy> given only a <problem copy> adds no problem", async () => {
             // The `<problem copy>` is ignored, with a warning, so no problem
-            // is added.
+            // is added. The copy is a new pretzel, which arranges its own.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `${pretzelDoenetML}
     <problem name="q"><statement><p>Q</p></statement><answer>AQ</answer></problem>
@@ -1674,15 +1640,13 @@ describe("Pretzel tag tests @group1", async () => {
                 resolvePathToNodeIdx,
                 paths: ["p", "p2"],
             });
-            expect(shown.p.problemOrder).not.eqls([1, 2, 3]);
-            expect(shown.p2.problemOrder).eqls(shown.p.problemOrder);
-            expect(shown.p2.texts).eqls(shown.p.texts);
+            expect([...shown.p2.problemOrder].sort()).eqls([1, 2, 3]);
         });
 
         it("a <pretzel copy> given a mode arranges the problems in that mode", async () => {
             for (const requestedVariantIndex of [1, 2, 3]) {
-                // From pretzel to circuit mode: the copy starts with problem
-                // 1, keeping the source's order only if it does.
+                // From pretzel to circuit mode: the copy, a new pretzel,
+                // starts with problem 1.
                 let { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `${pretzelDoenetML}
     <pretzel copy="$p" name="p2" mode="circuit"/>`,
@@ -1702,21 +1666,8 @@ describe("Pretzel tag tests @group1", async () => {
                 let copy = stateVariables[await resolvePathToNodeIdx("p2")];
                 expect(copy.stateValues.mode).eq("circuit");
                 expect(copy.stateValues.problemOrder[0]).eq(1);
-                if (sourceOrder[0] === 1) {
-                    expect(copy.stateValues.problemOrder).eqls(sourceOrder);
-                }
-                expect(
-                    await firstStatementText({
-                        core,
-                        resolvePathToNodeIdx,
-                        path: "p2",
-                    }),
-                ).eq(
-                    await firstStatementText({
-                        core,
-                        resolvePathToNodeIdx,
-                        path: "p",
-                    }),
+                expect([...sourceOrder].sort()).eqls(
+                    [...copy.stateValues.problemOrder].sort(),
                 );
                 expect(
                     await answerInOrder({
@@ -1726,8 +1677,8 @@ describe("Pretzel tag tests @group1", async () => {
                     }),
                 ).eq(1);
 
-                // From circuit to pretzel mode: any order is a pretzel order,
-                // so the copy keeps the source's.
+                // From circuit to pretzel mode: the copy arranges the
+                // problems as a pretzel.
                 ({ core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `${pretzelDoenetML.replace(
                         '<pretzel name="p">',
@@ -1746,10 +1697,9 @@ describe("Pretzel tag tests @group1", async () => {
                 );
                 copy = stateVariables[await resolvePathToNodeIdx("p2")];
                 expect(copy.stateValues.mode).eq("pretzel");
-                expect(copy.stateValues.problemOrder).eqls(
-                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
-                        .problemOrder,
-                );
+                expect([...copy.stateValues.problemOrder].sort()).eqls([
+                    1, 2, 3,
+                ]);
                 expect(
                     await answerInOrder({
                         core,
@@ -1826,9 +1776,9 @@ describe("Pretzel tag tests @group1", async () => {
                 doenetML: `<section name="s">${pretzelDoenetML}
     <pretzel extend="$p" name="p2" showCorrectness="false"/></section>
     <pretzel extend="$s.p2" name="p3"/>
-    <pretzel copy="$s.p2" name="p4"/>
+    <pretzel copyWithState="$s.p2" name="p4"/>
     <section extend="$s" name="t"/>
-    <section copy="$s" name="u"/>`,
+    <section copyWithState="$s" name="u"/>`,
                 requestedVariantIndex: 2,
             });
 

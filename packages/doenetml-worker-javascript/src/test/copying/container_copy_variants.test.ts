@@ -114,9 +114,9 @@ describe("Copies of containers holding copies with added random children @group3
             doenetML: `
 <section name="s">
   <group name="g"><selectFromSequence name="x" from="1" to="1000"/></group>
-  <group copy="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></group>
+  <group copyWithState="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></group>
 </section>
-<section copy="$s" name="s2"/>
+<section copyWithState="$s" name="s2"/>
 `,
             names: ["g.x", "g2.x", "g2.z"],
         });
@@ -127,9 +127,9 @@ describe("Copies of containers holding copies with added random children @group3
             doenetML: `
 <group name="s">
   <group name="g"><selectFromSequence name="x" from="1" to="1000"/></group>
-  <group copy="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></group>
+  <group copyWithState="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></group>
 </group>
-<group copy="$s" name="s2"/>
+<group copyWithState="$s" name="s2"/>
 `,
             names: ["g.x", "g2.x", "g2.z"],
         });
@@ -140,10 +140,10 @@ describe("Copies of containers holding copies with added random children @group3
             doenetML: `
 <div name="s">
   <p name="g"><selectFromSequence name="x" from="1" to="1000"/></p>
-  <p copy="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+  <p copyWithState="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
   <selectFromSequence name="w" from="1" to="1000"/>
 </div>
-<div copy="$s" name="s2"/>
+<div copyWithState="$s" name="s2"/>
 `,
             names: ["g.x", "g2.x", "g2.z", "w"],
         });
@@ -154,10 +154,10 @@ describe("Copies of containers holding copies with added random children @group3
             doenetML: `
 <section name="s">
   <p name="g"><selectFromSequence name="x" from="1" to="1000"/></p>
-  <p copy="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+  <p copyWithState="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
   <selectFromSequence name="w" from="1" to="1000"/>
 </section>
-<section copy="$s" name="s2"/>
+<section copyWithState="$s" name="s2"/>
 `,
             names: ["g.x", "g2.x", "g2.z", "w"],
         });
@@ -172,7 +172,7 @@ describe("Copies of containers holding copies with added random children @group3
   <pretzel copy="$p" name="p2">${addedPretzelProblem}
   </pretzel>
 </section>
-<section copy="$s" name="s2"/>
+<section copyWithState="$s" name="s2"/>
 `,
             names: ["p.n", "p", "p2.n", "p2.m", "p2"],
         });
@@ -184,11 +184,11 @@ describe("Copies of containers holding copies with added random children @group3
 <div name="s">
   <p name="a"><selectFromSequence name="x" from="1" to="1000"/></p>
   <repeatForSequence name="r" from="1" to="2">
-    <p copy="$a" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+    <p copyWithState="$a" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
     <selectFromSequence name="q" from="1" to="1000"/>
   </repeatForSequence>
 </div>
-<div copy="$s" name="s2"/>
+<div copyWithState="$s" name="s2"/>
 `,
             names: ["r[1].g2.z", "r[1].q", "r[2].g2.z", "r[2].q"],
         });
@@ -200,11 +200,11 @@ describe("Copies of containers holding copies with added random children @group3
 <div name="s">
   <p name="a"><selectFromSequence name="x" from="1" to="1000"/></p>
   <repeat name="r" for="1 2" valueName="v">
-    <p copy="$a" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+    <p copyWithState="$a" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
     <selectFromSequence name="q" from="1" to="1000"/>
   </repeat>
 </div>
-<div copy="$s" name="s2"/>
+<div copyWithState="$s" name="s2"/>
 `,
             names: ["r[1].g2.z", "r[1].q", "r[2].g2.z", "r[2].q"],
         });
@@ -218,13 +218,13 @@ describe("Copies of containers holding copies with added random children @group3
   <conditionalContent name="c">
     <case condition="false"><selectFromSequence name="v" from="1" to="1000"/></case>
     <case condition="true">
-      <p copy="$a" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+      <p copyWithState="$a" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
       <selectFromSequence name="q" from="1" to="1000"/>
     </case>
   </conditionalContent>
   <selectFromSequence name="u" from="1" to="1000"/>
 </div>
-<div copy="$s" name="s2"/>
+<div copyWithState="$s" name="s2"/>
 `,
             names: ["c.g2.z", "c.q", "u"],
         });
@@ -234,7 +234,7 @@ describe("Copies of containers holding copies with added random children @group3
         await checkReloadKeepsValues({
             doenetML: `
 <p name="g"><selectFromSequence name="x" from="1" to="1000"/></p>
-<p copy="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+<p copyWithState="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
 <selectFromSequence name="w" from="1" to="1000"/>
 `,
             names: ["g.x", "g2.x", "g2.z", "w"],
@@ -259,13 +259,13 @@ describe("Copies of containers holding copies with added random children @group3
             doenetML: `
 <section name="s">
   <p name="g"><selectFromSequence name="x" from="1" to="1000"/></p>
-  <p copy="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+  <p copyWithState="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
   <pretzel name="p">${pretzelProblems}
   </pretzel>
   <pretzel copy="$p" name="p2">${addedPretzelProblem}
   </pretzel>
 </section>
-<section copy="$s" name="s2"/>
+<section copyWithState="$s" name="s2"/>
 `,
             names: ["s.g2.z", "s.p2.m", "s.p2", "s2.g2.z", "s2.p2.m", "s2.p2"],
         });
@@ -278,17 +278,17 @@ describe("Copies of containers holding copies with added random children @group3
             `
 <mathInput name="mi"/>
 <p name="a"><selectFromSequence name="x" from="1" to="1000"/></p>
-<p copy="$a" name="b"> <selectFromSequence name="z" from="1" to="1000"/></p>
+<p copyWithState="$a" name="b"> <selectFromSequence name="z" from="1" to="1000"/></p>
 `,
             `
 <mathInput name="mi"/>
 <section name="a"><p><selectFromSequence name="x" from="1" to="1000"/></p></section>
-<section copy="$a" name="b"><p><selectFromSequence name="z" from="1" to="1000"/></p></section>
+<section copyWithState="$a" name="b"><p><selectFromSequence name="z" from="1" to="1000"/></p></section>
 `,
             `
 <mathInput name="mi"/>
 <group name="a"><p><selectFromSequence name="x" from="1" to="1000"/></p></group>
-<group copy="$a" name="b"><p><selectFromSequence name="z" from="1" to="1000"/></p></group>
+<group copyWithState="$a" name="b"><p><selectFromSequence name="z" from="1" to="1000"/></p></group>
 `,
         ];
         const names = ["a.x", "b.x", "z"];

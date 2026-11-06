@@ -127,7 +127,9 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
     // An unlinked copy keeps the case it was made from, and a reload makes
     // it again from that case, whichever case is then active (#2441).
     it("makes a copy again from the case it was made from", async () => {
-        const h = await setup(caseElse + `<group copy="$cc" name="c" />`);
+        const h = await setup(
+            caseElse + `<group copyWithState="$cc" name="c" />`,
+        );
         await h.typeMath("c.a", "7");
         await h.setB(false);
         expect(await h.math("c.a")).eq(7);
@@ -158,7 +160,7 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         <case condition="$b"><mathInput name="a" prefill="1" /></case>
         <else><textInput name="t" prefill="hi" /></else>
     </conditionalContent>
-    <group copy="$cc" name="c" />
+    <group copyWithState="$cc" name="c" />
     `);
         await h.typeMath("c.a", "7");
         await h.setB(false);
@@ -370,14 +372,14 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         // a single case is withheld, not made again, so a copy of it is not
         // told apart by case. The copy is a `<group>` of the whole
         // `<conditionalContent>`, which may hold nothing: a
-        // `<mathInput copy="$cc.a"/>` is an error, as `a` is absent while no
+        // `<mathInput copyWithState="$cc.a"/>` is an error, as `a` is absent while no
         // case is true (D36, #2450).
         const h = await setup(`
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc">
         <case condition="$b"><mathInput name="a" prefill="1" /></case>
     </conditionalContent>
-    <group copy="$cc" name="c" />
+    <group copyWithState="$cc" name="c" />
     `);
         await h.typeMath("c.a", "5");
         await h.setB(false);

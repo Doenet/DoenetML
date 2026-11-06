@@ -51,6 +51,34 @@ export default class SampleRandomNumbers extends ValueListComponent {
 
     static createsVariants = true;
 
+    // Writing one of these on a `copyWithState` is an error, as it would
+    // change what is chosen, which a `copyWithState` keeps
+    // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
+    static attributesDeterminingChoices = [
+        "numSamples",
+        "type",
+        "mean",
+        "standardDeviation",
+        "variance",
+        "logMean",
+        "logStandardDeviation",
+        "logVariance",
+        "means",
+        "standardDeviations",
+        "variances",
+        "weights",
+        "from",
+        "to",
+        "step",
+        "exclude",
+        "numTotal",
+        "numSuccesses",
+        "numDraws",
+        "numTrials",
+        "probability",
+        "variantDeterminesSeed",
+    ];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

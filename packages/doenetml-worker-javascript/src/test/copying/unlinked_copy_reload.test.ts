@@ -109,14 +109,14 @@ describe("An unlinked copy through a reload @group4", () => {
     it("keeps its value and its children's values, and follows what its attributes reference", async () => {
         const doenetML = `
     <mathInput name="mi" prefill="1" />
-    <math copy="$mi" name="c" />
+    <math copyWithState="$mi" name="c" />
     <booleanInput name="bi" />
     <math name="m" fixed="$bi">x</math>
-    <math copy="$m" name="cm" />
+    <math copyWithState="$m" name="cm" />
     <p name="p"><mathInput name="inner" prefill="2" /></p>
-    <p copy="$p" name="cp" />
+    <p copyWithState="$p" name="cp" />
     <mathInput name="other" prefill="7" />
-    <math copy="$other" name="co" />
+    <math copyWithState="$other" name="co" />
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
@@ -173,13 +173,13 @@ describe("An unlinked copy through a reload @group4", () => {
     it("holds nothing when no copy's source changed", async () => {
         const doenetML = `
     <mathInput name="mi" prefill="1" />
-    <math copy="$mi" name="c" />
+    <math copyWithState="$mi" name="c" />
     <point name="P">(1,2)</point>
-    <point copy="$P" name="cP" />
+    <point copyWithState="$P" name="cP" />
     <selectFromSequence name="s" from="1" to="100" />
-    <number copy="$s" name="cs" />
-    <p name="p"><math copy="$cP.x" name="cx" /></p>
-    <p copy="$p" name="cp" />
+    <number copyWithState="$s" name="cs" />
+    <p name="p"><math copyWithState="$cP.x" name="cx" /></p>
+    <p copyWithState="$p" name="cp" />
     <mathInput name="other" />
     `;
         const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
@@ -204,7 +204,7 @@ describe("An unlinked copy through a reload @group4", () => {
     <booleanInput name="b" prefill="true" />
     <mathInput name="mi" prefill="1" />
     <conditionalContent name="cc">
-        <case condition="$b"><math copy="$mi" name="c" /></case>
+        <case condition="$b"><math copyWithState="$mi" name="c" /></case>
         <else><text>none</text></else>
     </conditionalContent>
     `;
@@ -252,14 +252,14 @@ describe("An unlinked copy through a reload @group4", () => {
     it("keeps its value through a reload while its source is inactive", async () => {
         // On load the copy is made again from `cc`, inactive then, and
         // takes the held snapshot. It is a `<group>`, which may hold
-        // nothing: `<math copy="$cc.a"/>` is an error, as `a` is absent
+        // nothing: `<math copyWithState="$cc.a"/>` is an error, as `a` is absent
         // while the case is not (D36, #2450).
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc" condition="$b">
         <mathInput name="a" prefill="1" />
     </conditionalContent>
-    <group copy="$cc" name="g" />
+    <group copyWithState="$cc" name="g" />
     <mathInput name="other" />
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
@@ -328,7 +328,7 @@ describe("An unlinked copy through a reload @group4", () => {
         <case condition="$b"><mathInput name="a" prefill="1" /></case>
         <else><textInput name="t" prefill="hi" /></else>
     </conditionalContent>
-    <group copy="$cc" name="c" />
+    <group copyWithState="$cc" name="c" />
     `;
         const { sv, reload, setBoolean, core, resolve } =
             await reloader(doenetML);
@@ -370,12 +370,12 @@ describe("An unlinked copy through a reload @group4", () => {
     <conditionalContent name="cc" condition="$b">
         <mathInput name="a" prefill="1" />
     </conditionalContent>
-    <group copy="$cc" name="c" />
+    <group copyWithState="$cc" name="c" />
     <booleanInput name="b2" />
     <conditionalContent name="cc2" condition="$b2">
         <mathInput name="a2" prefill="2" />
     </conditionalContent>
-    <group copy="$cc2" name="c2" />
+    <group copyWithState="$cc2" name="c2" />
     `;
         const { sv, reload, setBoolean, core, resolve } =
             await reloader(doenetML);
@@ -415,12 +415,12 @@ describe("An unlinked copy through a reload @group4", () => {
         <case condition="$b"><mathInput name="a" prefill="1" /></case>
         <else><textInput name="t" prefill="hi" /></else>
     </conditionalContent>
-    <group copy="$cc" name="c" />
+    <group copyWithState="$cc" name="c" />
     <conditionalContent name="cc2">
         <case condition="$b"><p><mathInput name="a" prefill="1" /></p></case>
         <else><div><mathInput name="t" prefill="2" /></div></else>
     </conditionalContent>
-    <group copy="$cc2" name="c2" />
+    <group copyWithState="$cc2" name="c2" />
     `;
         const { sv, reload, setBoolean, core, resolve } =
             await reloader(doenetML);
@@ -453,22 +453,22 @@ describe("An unlinked copy through a reload @group4", () => {
     <mathInput name="mi" bindValueTo="$m" />
     <booleanInput name="b" />
     <conditionalContent>
-        <case condition="$b"><point copy="$m" name="P" /></case>
+        <case condition="$b"><point copyWithState="$m" name="P" /></case>
     </conditionalContent>
     <conditionalContent name="cc">
         <case condition="$b"><math>(3,4)</math></case>
         <else><math>hi</math></else>
     </conditionalContent>
-    <point copy="$cc" name="Q" />
+    <point copyWithState="$cc" name="Q" />
     <booleanInput name="b2" prefill="true" />
     <conditionalContent name="cc2">
         <case condition="$b2"><math>(5,6)</math></case>
         <else><math>hi</math></else>
     </conditionalContent>
-    <point copy="$cc2" name="R" />
+    <point copyWithState="$cc2" name="R" />
     <math name="m2">x</math>
     <mathInput name="mi2" bindValueTo="$m2" />
-    <point copy="$m2" name="S" />
+    <point copyWithState="$m2" name="S" />
     `;
         const {
             reload,
@@ -528,7 +528,7 @@ describe("An unlinked copy through a reload @group4", () => {
     <mathInput name="mi" prefill="x" />
     <booleanInput name="b" />
     <conditionalContent>
-        <case condition="$b"><point copy="$mi" name="P" /></case>
+        <case condition="$b"><point copyWithState="$mi" name="P" /></case>
     </conditionalContent>
     `;
         const { reload, setBoolean, core, resolve } = await reloader(doenetML);
@@ -581,7 +581,7 @@ describe("An unlinked copy through a reload @group4", () => {
     <booleanInput name="c" prefill="true" />
     <booleanInput name="o" prefill="true" />
     <conditionalContent>
-        <case condition="$b"><point copy="$m" name="P" /></case>
+        <case condition="$b"><point copyWithState="$m" name="P" /></case>
         <else>no point</else>
     </conditionalContent>
     <conditionalContent name="cc">
@@ -589,7 +589,7 @@ describe("An unlinked copy through a reload @group4", () => {
         <else><textInput name="t" prefill="hi" /></else>
     </conditionalContent>
     <conditionalContent name="outer">
-        <case condition="$o"><group copy="$cc" name="g" /></case>
+        <case condition="$o"><group copyWithState="$cc" name="g" /></case>
         <else>no group</else>
     </conditionalContent>
     `;
@@ -632,10 +632,10 @@ describe("An unlinked copy through a reload @group4", () => {
         // `<text>hi</text>` changes the source's string child, not its
         // essential state.
         const doenetML = `
-    <graph><point name="P">(1,2)</point><point copy="$P" name="Q" />
-        <point name="A" /><point copy="$A" name="B" /></graph>
+    <graph><point name="P">(1,2)</point><point copyWithState="$P" name="Q" />
+        <point name="A" /><point copyWithState="$A" name="B" /></graph>
     <text name="t">hi</text><textInput bindValueTo="$t" name="ti" />
-    <text copy="$t" name="t2" />
+    <text copyWithState="$t" name="t2" />
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
@@ -680,9 +680,9 @@ describe("An unlinked copy through a reload @group4", () => {
         // toggled `t` would be hidden
         const doenetML = `
     <text name="t" hide="false">a</text>
-    <text copy="$t" name="c" />
+    <text copyWithState="$t" name="c" />
     <p name="p"><text name="inner" hide="false">b</text></p>
-    <p copy="$p" name="cp" />
+    <p copyWithState="$p" name="cp" />
     <booleanInput name="b1" bindValueTo="$t.hide" />
     <booleanInput name="b2" bindValueTo="$inner.hide" />
     `;
@@ -729,7 +729,7 @@ describe("An unlinked copy through a reload @group4", () => {
     <mathInput name="n" prefill="1" />
     <repeatForSequence length="$n"><math>1</math><math>2</math></repeatForSequence>
     <graph><sort name="s" type="number">3 1 2</sort></graph>
-    <graph><sort copy="$s" type="text" name="c" /></graph>
+    <graph><sort copyWithState="$s" type="text" name="c" /></graph>
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,

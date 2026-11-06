@@ -347,9 +347,9 @@ describe("A hidden entry of a list @group4", async () => {
     <p><mathList name="ml"><math hide="$b">x</math><math name="m2">y</math><math hide="$a">z</math></mathList></p>
     <section name="s"><number hide="$b">1</number><number name="n2">2</number><number hide="$a">3</number></section>
     <collect name="c" from="$s" componentType="number" />
-    <graph><point copy="$pl[1]" name="p1" /><point copy="$pl[2]" name="p2" /><point copy="$pl[3]" name="p3" /></graph>
-    <p><math copy="$ml[1]" name="m1c" /><math copy="$ml[2]" name="m2c" /><math copy="$ml[3]" name="m3c" /></p>
-    <p><number copy="$c[1]" name="c1" /><number copy="$c[2]" name="c2" /><number copy="$c[3]" name="c3" /></p>
+    <graph><point copyWithState="$pl[1]" name="p1" /><point copyWithState="$pl[2]" name="p2" /><point copyWithState="$pl[3]" name="p3" /></graph>
+    <p><math copyWithState="$ml[1]" name="m1c" /><math copyWithState="$ml[2]" name="m2c" /><math copyWithState="$ml[3]" name="m3c" /></p>
+    <p><number copyWithState="$c[1]" name="c1" /><number copyWithState="$c[2]" name="c2" /><number copyWithState="$c[3]" name="c3" /></p>
     `;
         const copies = [
             "p1",

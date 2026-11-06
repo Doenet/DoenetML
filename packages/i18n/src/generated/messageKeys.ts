@@ -606,6 +606,10 @@ export type MessageKey =
     | "chart-histogram-cut-points-invalid"
     | "chart-histogram-categories-ignored"
     | "chart-histogram-bar-width-ignored"
+    | "copy-with-state-changes-choice"
+    | "copy-with-state-adds-options"
+    | "copy-with-state-of-uri"
+    | "copy-with-state-attribute-reaches-choice"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1278,6 +1282,10 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "chart-histogram-cut-points-invalid",
     "chart-histogram-categories-ignored",
     "chart-histogram-bar-width-ignored",
+    "copy-with-state-changes-choice",
+    "copy-with-state-adds-options",
+    "copy-with-state-of-uri",
+    "copy-with-state-attribute-reaches-choice",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

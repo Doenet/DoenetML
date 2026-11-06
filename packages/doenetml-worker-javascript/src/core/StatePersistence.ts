@@ -377,8 +377,12 @@ export class StatePersistence {
      * snapshot instead (`utils/copySnapshot.js`). A copy that one made now
      * would reproduce needs nothing saved, as #1940 asks of what a reader has
      * not changed. A copy made now can differ where a reload would not: a
-     * `<sampleRandomNumbers copy>` made now takes the values its source has
-     * drawn since, so it is held though a reload would draw the same. With
+     * `<sampleRandomNumbers copyWithState>` made now takes the values its
+     * source has drawn since, so it is held though a reload would draw the
+     * same. A `copy` carries no reader state (D33): its snapshot holds only
+     * what it made from a property or a list entry (`holdsValue`), which
+     * keeps the value it was made with (CPY-5), and it is otherwise held
+     * only for what decided what it made. With
      * the snapshot it holds what decided what the copy made, where a copy
      * made again could decide otherwise: whether a copy written as a
      * different tag was made, and the case of a `<conditionalContent>` it
@@ -411,6 +415,10 @@ export class StatePersistence {
                 typeChange?.key === madeTypeChange?.key &&
                 typeChange?.diagnostic?.message ===
                     madeTypeChange?.diagnostic?.message &&
+                // nor one made from another case of a `<conditionalContent>`,
+                // which a `copy`, holding no snapshot of what it made from DoenetML,
+                // shows only here
+                madeFrom?.caseIndex === component.unlinkedMadeFrom?.caseIndex &&
                 // nor one that would decide an index warning otherwise
                 // (`reportIndexIntoScalarAsMade`), which what it shows need
                 // not reveal, as of a blank value
