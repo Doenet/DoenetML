@@ -214,11 +214,14 @@ export function countVisibleDeclarations(
  * The elements `nodes` declare by the path `names` (`$h.x` as
  * `["h", "x"]`), one per branch passed through, or `null` when they do not
  * declare it exactly once, or `"none"` when they do not declare
- * `names[0]` at all.
+ * `names[0]` at all. `namesIndexed` says which of `names` are written with
+ * an index (`$s[1].x` as `[true, false]`); an index on the last is for the
+ * caller to check.
  */
 function declarationsIn(
     nodes: DastNodes[],
     names: string[],
+    namesIndexed: boolean[] = [],
 ): DastElement[] | null | "none" {
     const found: (DastElement[] | null)[] = [];
     visibleDeclarations(nodes, names[0], found);
@@ -235,7 +238,12 @@ function declarationsIn(
     }
     const result: DastElement[] = [];
     for (const declaration of found[0]) {
-        const below = declarationsBelow(declaration, names.slice(1));
+        const below = declarationsBelow(
+            declaration,
+            names.slice(1),
+            namesIndexed[0] ?? false,
+            namesIndexed.slice(1),
+        );
         if (below === null) {
             return null;
         }
@@ -247,14 +255,27 @@ function declarationsIn(
 /**
  * The elements `element`, declared by a name, declares by the names after
  * it (`names`), or `null` when it does not declare them so that a
- * reference could see them.
+ * reference could see them. `indexed` when the name declaring `element` is
+ * written with an index (`$s[1].x`), which only a `<select>`'s picks are
+ * read through here: an index into what takes none names nothing
+ * (`doenet-w0180`), and a repeat's instances are not read.
  */
 function declarationsBelow(
     element: DastElement,
     names: string[],
+    indexed = false,
+    namesIndexed: boolean[] = [],
 ): DastElement[] | null {
-    if (branchContainerKind(element)) {
-        const declared = branchDeclarations(element, names);
+    if (indexed && element.name !== "select") {
+        return null;
+    }
+    if (branchContainerKind(element, indexed)) {
+        const declared = branchDeclarations(
+            element,
+            names,
+            indexed,
+            namesIndexed,
+        );
         return declared === "none" ? null : declared;
     }
     const tag = element.name.toLowerCase();
@@ -268,7 +289,11 @@ function declarationsBelow(
         // read here.
         return null;
     }
-    const declared = declarationsIn(element.children as DastNodes[], names);
+    const declared = declarationsIn(
+        element.children as DastNodes[],
+        names,
+        namesIndexed,
+    );
     return declared === "none" ? null : declared;
 }
 
@@ -285,15 +310,23 @@ function declarationsBelow(
  * - `null` otherwise: a branch lacks it (`doenet-w0183`), the tags differ
  *   (`doenet-w0184`), a branch declares it twice, a child beside the
  *   branches declares it (`doenet-w0105` with the branches'), the
- *   container has no branches, or what a branch holds is not read here.
+ *   container has no branches, or what a branch holds is not read here
+ *   and is written with an element named `names[0]`.
+ *
+ * Content a copy brings (`copy`, `extend`) declares no name a reference
+ * from outside it sees, so a container or branch written with them that
+ * names nothing `names[0]` itself declares `"none"`, not an unknown.
  *
  * With `indexed`, for a name after an index into a select's picks
  * (`$s[2].x`), `container` may be a `<select>` of any number of picks.
+ * `namesIndexed` says which of `names` are written with an index
+ * (`declarationsIn`).
  */
 export function branchDeclarations(
     container: DastElement,
     names: string[],
     indexed = false,
+    namesIndexed: boolean[] = [],
 ): DastElement[] | null | "none" {
     const kind = branchContainerKind(container, indexed);
     if (!kind || names.length === 0) {
@@ -301,10 +334,12 @@ export function branchDeclarations(
     }
     const read = branchesAndStrays(container, kind);
     if (!read) {
-        return null;
+        return namesElement(container.children as DastNodes[], names[0])
+            ? null
+            : "none";
     }
     const perBranch = read.branches.map((nodes) =>
-        declarationsIn(nodes, names),
+        declarationsIn(nodes, names, namesIndexed),
     );
     if (countVisibleDeclarations(read.strays, names[0]) > 0) {
         // Declared beside the branches, which a reference also sees: with
@@ -353,13 +388,16 @@ export function branchDeclarationBelow(
  * once with the same tag (`branchDeclarations`). With `prefix`, the names
  * after it instead (`$cc.h.x` or `$h.x` for `h` declared in the branches,
  * with `prefix` `["h"]`): those that what every branch declares by
- * `prefix` declares in turn. Empty when `container` is not a branch
- * container or `prefix` does not resolve through it.
+ * `prefix` declares in turn, with `prefixIndexed` saying which of `prefix`
+ * are written with an index (`$s[1].x` for a select `s` in every
+ * branch). Empty when `container` is not a branch container or `prefix`
+ * does not resolve through it.
  */
 export function sharedBranchNames(
     container: DastElement,
     indexed = false,
     prefix: string[] = [],
+    prefixIndexed: boolean[] = [],
 ): string[] {
     const kind = branchContainerKind(container, indexed);
     if (!kind) {
@@ -375,7 +413,12 @@ export function sharedBranchNames(
         }
         firstNodes = branches[0];
     } else {
-        const declared = branchDeclarations(container, prefix, indexed);
+        const declared = branchDeclarations(
+            container,
+            prefix,
+            indexed,
+            prefixIndexed,
+        );
         if (declared === null || declared === "none") {
             return [];
         }
@@ -388,9 +431,20 @@ export function sharedBranchNames(
             container,
             [...prefix, name],
             indexed,
+            [...prefixIndexed, false],
         );
         return declared !== null && declared !== "none";
     });
+}
+
+/** Whether an element among `nodes` or their descendants is named `name`. */
+function namesElement(nodes: DastNodes[], name: string): boolean {
+    return nodes.some(
+        (node) =>
+            node.type === "element" &&
+            (literalName(node) === name ||
+                namesElement(node.children as DastNodes[], name)),
+    );
 }
 
 /** Every literal `name` among `nodes` and their descendants. */

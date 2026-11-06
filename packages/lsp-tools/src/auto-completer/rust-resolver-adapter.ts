@@ -189,11 +189,14 @@ function isWrittenAsCopyOrExtend(element: DastElement): boolean {
  *
  * With `indexed`, for a path after an index into a select's picks
  * (`$s[2].x`), `container` may be a `<select>` of any number of picks.
+ * `namesIndexed` says which of `names` are written with an index
+ * (`$s[1].x` for a select `s` in every branch).
  */
 function resolveThroughBranches(
     container: DastElement,
     names: string[],
     indexed: boolean,
+    namesIndexed: boolean[] = [],
 ): { declarations: DastElement[]; consumed: number } | null {
     if (!branchContainerKind(container, indexed)) return null;
     for (let consumed = names.length; consumed >= 1; consumed--) {
@@ -201,6 +204,7 @@ function resolveThroughBranches(
             container,
             names.slice(0, consumed),
             indexed,
+            namesIndexed.slice(0, consumed),
         );
         if (Array.isArray(declarations)) {
             return { declarations, consumed };
@@ -738,6 +742,7 @@ export class RustResolverAdapter {
                 container: DastElement;
                 names: string[];
                 indexed: boolean;
+                namesIndexed: boolean[];
             } | null = null;
 
             if (unresolvedPathParts.length > 0) {
@@ -754,10 +759,20 @@ export class RustResolverAdapter {
                 const indexed =
                     containerNamed &&
                     (effectivePathPartHasIndex[containerPartIndex] ?? false);
+                const namesIndexed = lookupParts
+                    .slice(containerPartIndex + 1)
+                    .map((_, i) =>
+                        Boolean(
+                            effectivePathPartHasIndex[
+                                containerPartIndex + 1 + i
+                            ],
+                        ),
+                    );
                 const through = resolveThroughBranches(
                     coreResolvedNode,
                     unresolvedPathParts,
                     indexed,
+                    namesIndexed,
                 );
                 // When there are unresolved parts, the path is invalid for
                 // descendant/property lookup — return `node: null` so the
@@ -791,6 +806,25 @@ export class RustResolverAdapter {
                         visibleDescendantNames: [],
                     };
                 }
+                // A hop at the first name (`$x.` for an `x` in the
+                // branches) is a bare `$x`: it names nothing where the
+                // cursor finds `x` declared more than once, or the
+                // container is hidden by sugar (`_resolveBareName`).
+                if (
+                    containerPartIndex === -1 &&
+                    (this._isAmbiguousFromCursor(
+                        coreResolvedNode,
+                        lookupParts[0],
+                        offset,
+                    ) ||
+                        this._isHiddenBySugar(resolution.nodeIdx, offset))
+                ) {
+                    return {
+                        node: null,
+                        unresolvedPathParts,
+                        visibleDescendantNames: [],
+                    };
+                }
                 if (through.consumed < unresolvedPathParts.length) {
                     return {
                         node: null,
@@ -806,6 +840,7 @@ export class RustResolverAdapter {
                     container: coreResolvedNode,
                     names: unresolvedPathParts,
                     indexed,
+                    namesIndexed,
                 };
             } else {
                 // If any intermediate segment resolves through a takesIndex
@@ -878,6 +913,7 @@ export class RustResolverAdapter {
                         branchHop.container,
                         branchHop.indexed,
                         branchHop.names,
+                        branchHop.namesIndexed,
                     ),
                 };
             }
@@ -972,7 +1008,11 @@ export class RustResolverAdapter {
                                         probeElement,
                                         [name],
                                         false,
-                                    ) !== null
+                                    ) !== null &&
+                                    !this._isHiddenBySugar(
+                                        probe.nodeIdx,
+                                        offset,
+                                    )
                                 );
                             }
                             // Otherwise a fully-resolved path means the name
@@ -1208,11 +1248,14 @@ export class RustResolverAdapter {
                     false,
                 );
                 if (!through) return null;
+                // The container, like a declaration the core reaches
+                // directly, may be hidden by sugar (beside a select's
+                // options, or in a `<conditionalContent extend>`).
                 return this._isAmbiguousFromCursor(
                     resolvedElement,
                     name,
                     offset,
-                )
+                ) || this._isHiddenBySugar(resolution.nodeIdx, offset)
                     ? null
                     : through.declarations[0];
             }
@@ -1454,9 +1497,26 @@ export class RustResolverAdapter {
                 const through = container
                     ? resolveThroughBranches(container, unresolved, false)
                     : null;
-                return through && through.consumed === unresolved.length
-                    ? "found"
-                    : "indeterminate";
+                if (!through || through.consumed !== unresolved.length) {
+                    return "indeterminate";
+                }
+                // A hop at the first name is a bare `$x` (see
+                // `_resolveBareName`).
+                if (unresolved.length === pathParts.length) {
+                    if (
+                        this._isAmbiguousFromCursor(
+                            container!,
+                            pathParts[0],
+                            offset,
+                        )
+                    ) {
+                        return "multiple";
+                    }
+                    if (this._isHiddenBySugar(resolution.nodeIdx, offset)) {
+                        return "indeterminate";
+                    }
+                }
+                return "found";
             }
             // For a bare name, confirm the resolved element actually bears the
             // name and isn't sugar-hidden before claiming "found".
