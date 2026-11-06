@@ -185,7 +185,7 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
 pub(crate) fn signature_renamed(
     dast: &Dast,
     rename: &dyn Fn(&str) -> String,
-) -> Result<crate::build::signature::Signature> {
+) -> Result<crate::compile::compare::signature::Signature> {
     let (_, signature) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
         let compiled = CompiledRef { dast, plans };
         let mut g = graph::template_graph_with_parents(compiled)?;

@@ -6,6 +6,7 @@
 use std::collections::HashMap;
 
 use crate::compile::ir::ElemKey;
+pub use crate::compile::ir::TemplateSlot;
 use crate::dast::NodeId;
 use crate::index::CompIdx;
 
@@ -13,14 +14,6 @@ crate::index::index_type! {
     /// A name scope: 0 is the document, every other scope is one iteration
     /// of a repeat; a position in the session's [`ScopeTable`].
     pub struct ScopeId;
-}
-
-crate::index::index_type! {
-    /// A position in a template's slot space: an element's slot offset
-    /// ([`Sealed::slot_off`](crate::compile::ir::Sealed::slot_off)) plus the port's position among its slots. With
-    /// its scope it names an essential value across builds (see
-    /// `CONTEXT.md`, essential key).
-    pub struct TemplateSlot;
 }
 
 impl ScopeId {

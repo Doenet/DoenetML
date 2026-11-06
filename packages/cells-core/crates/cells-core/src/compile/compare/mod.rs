@@ -3,7 +3,9 @@
 
 use super::signature_renamed;
 use super::*;
-use crate::build::signature::{Domain, Input, Signature};
+pub(crate) mod signature;
+
+use signature::{Domain, Input, Signature};
 
 /// What `compare_versions` finds.
 #[derive(Debug, Clone, Default, PartialEq)]

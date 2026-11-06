@@ -191,6 +191,14 @@ pub(crate) enum BoxState {
     },
 }
 
+crate::index::index_type! {
+    /// A position in a template's slot space: an element's slot offset
+    /// ([`Sealed::slot_off`]) plus the port's position among its slots. With
+    /// its scope it names an essential value across builds (see
+    /// `CONTEXT.md`, essential key).
+    pub struct TemplateSlot;
+}
+
 /// What sealing makes of one element, indexed by [`ElemId`] in its template.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Sealed {

@@ -18,6 +18,7 @@ use std::collections::BTreeMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 use super::*;
+use crate::program::ValueType;
 
 /// A document's inputs, by their element's stable key.
 #[derive(Debug, Clone, Default, PartialEq)]

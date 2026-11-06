@@ -131,6 +131,7 @@ pub mod _guide {
 }
 
 // The API of a loaded document: load it, read it, send it requests.
+pub use compile::compare::signature::{Domain, Input, Signature};
 pub use compile::compare::{
     EditFailure, EditReport, compare_signatures, compare_versions, input_signature,
 };

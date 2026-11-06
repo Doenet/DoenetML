@@ -14,7 +14,7 @@
 use cells_core::CompIdx;
 use std::path::Path;
 
-use cells_core::build::signature::Signature;
+use cells_core::Signature;
 use cells_core::components::ComponentType;
 use cells_core::dast::Dast;
 use cells_core::testing::test_utils::{dast_json, repo_root};

@@ -33,7 +33,6 @@ mod source;
 mod template;
 mod wiring;
 
-pub(crate) use crate::build::TemplateSlot;
 pub(crate) use choice::*;
 pub use compiled::Compiled;
 pub(crate) use compiled::*;
@@ -44,5 +43,6 @@ pub(crate) use port::*;
 pub(crate) use refs::*;
 pub(in crate::compile) use settled::*;
 pub(crate) use source::*;
+pub use template::TemplateSlot;
 pub(crate) use template::*;
 pub(crate) use wiring::*;

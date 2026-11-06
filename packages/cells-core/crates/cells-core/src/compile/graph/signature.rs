@@ -1,6 +1,6 @@
 //! The input signature (ADR 0017) read off the template graph's
 //! definitions (ADR 0032 step 8, ADR 0035), its types in
-//! `build/signature.rs`: what students can act on, and what decides
+//! `compile/compare/signature.rs`: what students can act on, and what decides
 //! what each input shows and whether it exists or can be acted on, named
 //! by stable keys and literals only. An input in any iteration or branch is
 //! covered by its template's.
@@ -13,7 +13,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use super::define::Defined;
 use super::*;
-use crate::build::signature::{
+use crate::compile::compare::signature::{
     Domain, Input, Signature, bits, canonical_leaves, dast_text, hash_of, prop_label,
 };
 use crate::components::prop::{case, conditional_content};

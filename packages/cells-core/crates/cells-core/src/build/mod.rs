@@ -28,7 +28,6 @@
 //! - [`emit`]: the cells numbered and the operators bound, into the build;
 //! - [`structure`]: what a build made of the document's shape;
 //! - [`coverage`]: for tests, whether the template graph covers a build's;
-//! - [`signature`]: the input signature, what students can act on.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -58,7 +57,6 @@ mod emit;
 mod expand;
 mod live;
 mod orient;
-pub mod signature;
 mod slot_cells;
 mod structure;
 mod writable;
