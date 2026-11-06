@@ -18,6 +18,8 @@ import {
     choicesDecidedByDoenetML,
     returnChoicesDecidedByDoenetMLDefinition,
     returnIgnoredVariantChoicesDefinition,
+    VARIANT_CHOICES_IGNORED_VARIABLE,
+    variantGivesChoices,
     returnSelectErrorReportDefinition,
     selectError,
     selectFailureType,
@@ -242,8 +244,6 @@ export default class SelectPrimeNumbers extends ValueListComponent {
         stateVariableDefinitions.ignoredVariantChoicesReported =
             returnIgnoredVariantChoicesDefinition({
                 component: "selectPrimeNumbers",
-                choicesKey: "values",
-                selectionVariable: "selectedValues",
             });
 
         stateVariableDefinitions.selectedValues = {
@@ -265,6 +265,7 @@ export default class SelectPrimeNumbers extends ValueListComponent {
                     shadowVariable: true,
                     immutable: true,
                 },
+                VARIANT_CHOICES_IGNORED_VARIABLE,
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 ...selectionDependencies(),
@@ -670,6 +671,10 @@ function makeSelection({ dependencyValues }) {
             selectedValues: desiredValues,
         });
     }
+    const variantChoicesIgnored = variantGivesChoices(
+        dependencyValues.variants,
+        "values",
+    );
 
     let numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
         excludedCombinations: dependencyValues.excludedCombinations,
@@ -766,5 +771,8 @@ function makeSelection({ dependencyValues }) {
         selectedValues.sort((a, b) => b - a);
     }
 
-    return selectionResult(NO_SELECT_ERROR, { selectedValues });
+    return selectionResult(NO_SELECT_ERROR, {
+        selectedValues,
+        variantChoicesIgnored,
+    });
 }

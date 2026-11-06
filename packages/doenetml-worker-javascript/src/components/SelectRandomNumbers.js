@@ -1,6 +1,10 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import SampleRandomNumbers from "./SampleRandomNumbers";
-import { returnIgnoredVariantChoicesDefinition } from "../utils/selectErrors";
+import {
+    returnIgnoredVariantChoicesDefinition,
+    VARIANT_CHOICES_IGNORED_VARIABLE,
+    variantGivesChoices,
+} from "../utils/selectErrors";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     // `<sampleRandomNumbers>` offers a `resample` action, and this component
     // has no use for it: it draws once from the variant's generator, and
@@ -124,6 +128,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             immutable: true,
             hasEssential: true,
             shadowVariable: true,
+            additionalStateVariablesDefined: [VARIANT_CHOICES_IGNORED_VARIABLE],
             returnDependencies: ({ sharedParameters }) => ({
                 numSamples: {
                     dependencyType: "stateVariable",
@@ -220,9 +225,13 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             }),
             definition({ dependencyValues }) {
                 if (dependencyValues.numSamples < 1) {
+                    const values = {
+                        selectedValues: [],
+                        variantChoicesIgnored: false,
+                    };
                     return {
-                        setEssentialValue: { selectedValues: [] },
-                        setValue: { selectedValues: [] },
+                        setEssentialValue: { ...values },
+                        setValue: { ...values },
                     };
                 }
 
@@ -245,11 +254,13 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                         numSamples: 0,
                     });
 
+                    const values = {
+                        selectedValues: desiredValues,
+                        variantChoicesIgnored: false,
+                    };
                     return {
-                        setEssentialValue: {
-                            selectedValues: desiredValues,
-                        },
-                        setValue: { selectedValues: desiredValues },
+                        setEssentialValue: { ...values },
+                        setValue: { ...values },
                         sendDiagnostics: diagnostics,
                     };
                 }
@@ -257,9 +268,16 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                 const { sampledValues: selectedValues, diagnostics } =
                     sampleFromRandomNumbers(dependencyValues);
 
+                const values = {
+                    selectedValues,
+                    variantChoicesIgnored: variantGivesChoices(
+                        dependencyValues.variants,
+                        "values",
+                    ),
+                };
                 return {
-                    setEssentialValue: { selectedValues },
-                    setValue: { selectedValues },
+                    setEssentialValue: { ...values },
+                    setValue: { ...values },
                     sendDiagnostics: diagnostics,
                 };
             },
@@ -268,8 +286,6 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         stateVariableDefinitions.ignoredVariantChoicesReported =
             returnIgnoredVariantChoicesDefinition({
                 component: "selectRandomNumbers",
-                choicesKey: "values",
-                selectionVariable: "selectedValues",
             });
 
         stateVariableDefinitions.isVariantComponent = {

@@ -250,77 +250,35 @@ export function returnChoicesDecidedByDoenetMLDefinition(
  * though it had been given none, fixed for the variant, as `<shuffle>` does
  * (`doenet-i0006`), rather than failing.
  *
- * Decided by comparing the variant's choices with what the select
- * selected, not kept, so it is reported the same after a reload. It is not
- * decided from the select's attributes as they are now: those can change
- * after the selection, which is fixed, was made. A reference to the select,
- * which shadows its choices, does not report it again. A variant that gives
- * `null` or `[]` gives no choices: that is what a select that selected
- * nothing records in its `generatedVariantInfo`, which a reload, or a `copy`
- * of the select, passes back to it, so nothing is ignored. Nor is anything
- * reported for a select that selected nothing, which reports why itself.
+ * Read from `variantChoicesIgnored`, which the select records with its
+ * selection when it makes it, and which is kept with it, also through a
+ * reload. It is not decided again from the select's attributes as they are
+ * now, which can change after the selection, which is fixed, was made. A
+ * reference to the select, which shadows its choices, does not report it
+ * again.
  *
  * @param component The select's DoenetML tag, for the message.
- * @param selectionVariable What the select selected, which the variant's
- *   choices are compared with: they were ignored when the selection differs.
- * @param mapDesired Given `dependencyValues` (with the `dependencies` named
- *   here) and the variant's choices, those choices as the select takes them
- *   when they fit, such as indices wrapped onto its options. By default, the
- *   choices as numbers.
- * @param choicesKey The key of the choices in the variant: `indices` or
- *   `values`.
  */
 export function returnIgnoredVariantChoicesDefinition({
     component,
-    selectionVariable,
-    dependencies = {},
-    mapDesired = (_dependencyValues, desired) => desired.map(Number),
-    choicesKey = "indices",
 }: {
     component: string;
-    selectionVariable: "selectedIndices" | "selectedValues";
-    dependencies?: Record<string, unknown>;
-    mapDesired?: (dependencyValues: any, desired: unknown[]) => unknown[];
-    choicesKey?: "indices" | "values";
 }) {
     return {
         mustEvaluate: true,
         returnDependencies: () => ({
-            ...dependencies,
-            selection: {
+            variantChoicesIgnored: {
                 dependencyType: "stateVariable",
-                variableName: selectionVariable,
-            },
-            variants: {
-                dependencyType: "stateVariable",
-                variableName: "variants",
+                variableName: "variantChoicesIgnored",
             },
             shadowSource: {
                 dependencyType: "shadowSource",
             },
         }),
         definition({ dependencyValues }: { dependencyValues: any }) {
-            const desired =
-                dependencyValues.variants?.desiredVariant?.[choicesKey];
-            const selection = dependencyValues.selection;
-            // Compared with what was selected, which is fixed once made,
-            // rather than with what the select's attributes are now: a
-            // `numToSelect` from an input can change after the choices were
-            // taken. A select that selected nothing reports why itself.
-            let ignored = false;
-            if (
-                Array.isArray(desired) &&
-                desired.length > 0 &&
-                Array.isArray(selection) &&
-                selection.length > 0 &&
-                dependencyValues.shadowSource === null
-            ) {
-                const mapped = mapDesired(dependencyValues, desired);
-                ignored = !(
-                    mapped.length === selection.length &&
-                    mapped.every((x, i) => x === selection[i])
-                );
-            }
+            const ignored =
+                dependencyValues.variantChoicesIgnored === true &&
+                dependencyValues.shadowSource === null;
             return {
                 setValue: { ignoredVariantChoicesReported: ignored },
                 sendDiagnostics: ignored
@@ -376,11 +334,38 @@ export function selectionResult(
     error: SelectErrorState,
     selection: Record<string, unknown>,
 ) {
+    // `variantChoicesIgnored` is set where the selection is made; every
+    // other path took the variant's choices, was given none, or selected
+    // nothing
+    const values = { variantChoicesIgnored: false, ...error, ...selection };
     return {
-        setEssentialValue: { ...error, ...selection },
-        setValue: { ...error, ...selection },
+        setEssentialValue: { ...values },
+        setValue: { ...values },
     };
 }
+
+/**
+ * Whether the requested variant gives choices, under `key`: a nonempty
+ * array. A variant that gives `null` or `[]` gives none: that is what a
+ * select that selected nothing records in its `generatedVariantInfo`, which
+ * a reload, or a `copy` of the select, passes back to it.
+ */
+export function variantGivesChoices(variants: any, key: string): boolean {
+    const desired = variants?.desiredVariant?.[key];
+    return Array.isArray(desired) && desired.length > 0;
+}
+
+/**
+ * The state variable `variantChoicesIgnored` of a select, kept with its
+ * selection: whether the selection was made afresh because the choices the
+ * requested variant gave didn't fit (`ignoredVariantChoicesReported`).
+ */
+export const VARIANT_CHOICES_IGNORED_VARIABLE = {
+    variableName: "variantChoicesIgnored",
+    hasEssential: true,
+    shadowVariable: true,
+    immutable: true,
+};
 
 /**
  * The state variable `selectErrorReported` of a select that is a list

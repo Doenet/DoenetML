@@ -25,6 +25,8 @@ import {
     choicesDecidedByDoenetML,
     returnChoicesDecidedByDoenetMLDefinition,
     returnIgnoredVariantChoicesDefinition,
+    VARIANT_CHOICES_IGNORED_VARIABLE,
+    variantGivesChoices,
     returnSelectErrorReportDefinition,
     selectError,
     selectFailureType,
@@ -238,21 +240,6 @@ export default class SelectFromSequence extends Sequence {
         stateVariableDefinitions.ignoredVariantChoicesReported =
             returnIgnoredVariantChoicesDefinition({
                 component: "selectFromSequence",
-                selectionVariable: "selectedIndices",
-                dependencies: {
-                    length: {
-                        dependencyType: "stateVariable",
-                        variableName: "length",
-                    },
-                },
-                // wrapped onto the sequence, as `desiredSelectionThatFits`
-                // does
-                mapDesired: (dependencyValues, desired) => {
-                    const n = dependencyValues.length;
-                    return desired
-                        .map(Number)
-                        .map((x) => ((((x - 1) % n) + n) % n) + 1);
-                },
             });
 
         stateVariableDefinitions.selectedValues = {
@@ -280,6 +267,7 @@ export default class SelectFromSequence extends Sequence {
                     shadowVariable: true,
                     immutable: true,
                 },
+                VARIANT_CHOICES_IGNORED_VARIABLE,
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 ...selectionDependencies(),
@@ -997,6 +985,10 @@ function makeSelection({ dependencyValues }) {
     if (desiredSelection !== null) {
         return selectionResult(NO_SELECT_ERROR, desiredSelection);
     }
+    const variantChoicesIgnored = variantGivesChoices(
+        dependencyValues.variants,
+        "indices",
+    );
 
     let numCombinationsExcluded = dependencyValues.excludedCombinations.length;
 
@@ -1294,6 +1286,7 @@ function makeSelection({ dependencyValues }) {
     return selectionResult(NO_SELECT_ERROR, {
         selectedValues,
         selectedIndices,
+        variantChoicesIgnored,
     });
 }
 

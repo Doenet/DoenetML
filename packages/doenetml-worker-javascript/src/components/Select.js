@@ -18,6 +18,8 @@ import {
     isInfoSelectFailure,
     returnChoicesDecidedByDoenetMLDefinition,
     returnIgnoredVariantChoicesDefinition,
+    VARIANT_CHOICES_IGNORED_VARIABLE,
+    variantGivesChoices,
     selectError,
     selectFailureType,
     selectionResult,
@@ -366,23 +368,7 @@ export default class Select extends CompositeComponent {
             );
 
         stateVariableDefinitions.ignoredVariantChoicesReported =
-            returnIgnoredVariantChoicesDefinition({
-                component: "select",
-                selectionVariable: "selectedIndices",
-                dependencies: {
-                    nOptions: {
-                        dependencyType: "stateVariable",
-                        variableName: "nOptions",
-                    },
-                },
-                // wrapped onto the options, as `desiredIndicesThatFit` does
-                mapDesired: (dependencyValues, desired) => {
-                    const n = dependencyValues.nOptions;
-                    return desired
-                        .map(Number)
-                        .map((x) => ((((x - 1) % n) + n) % n) + 1);
-                },
-            });
+            returnIgnoredVariantChoicesDefinition({ component: "select" });
 
         stateVariableDefinitions.selectedIndices = {
             immutable: true,
@@ -403,6 +389,7 @@ export default class Select extends CompositeComponent {
                     shadowVariable: true,
                     immutable: true,
                 },
+                VARIANT_CHOICES_IGNORED_VARIABLE,
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 numToSelect: {
@@ -483,6 +470,10 @@ export default class Select extends CompositeComponent {
                         selectedIndices: desiredIndices,
                     });
                 }
+                const variantChoicesIgnored = variantGivesChoices(
+                    dependencyValues.variants,
+                    "indices",
+                );
 
                 // first check if have a variant for which options are specified
                 let variantOptions =
@@ -512,6 +503,7 @@ export default class Select extends CompositeComponent {
                     }
                     return selectionResult(NO_SELECT_ERROR, {
                         selectedIndices: variantOptions,
+                        variantChoicesIgnored,
                     });
                 }
 
@@ -594,7 +586,10 @@ export default class Select extends CompositeComponent {
                     }
                 }
 
-                return selectionResult(NO_SELECT_ERROR, { selectedIndices });
+                return selectionResult(NO_SELECT_ERROR, {
+                    selectedIndices,
+                    variantChoicesIgnored,
+                });
             },
         };
 

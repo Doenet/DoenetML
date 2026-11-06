@@ -676,3 +676,38 @@ describe("Choices taken from the variant stay taken @group4", async () => {
         });
     }
 });
+
+describe("Choices taken from the variant stay taken, whatever changes after @group4", async () => {
+    it("<selectFromSequence>: a range changed after the choices were taken reports nothing ignored", async () => {
+        const doenetML = `<mathInput name="mi" prefill="10"/><selectFromSequence name="s" to="$mi"/>`;
+        for (const requestedVariantIndex of [1, 2, 3, 4]) {
+            const first = await load({ doenetML, requestedVariantIndex });
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariant: first.generatedVariantInfo,
+            });
+            const infos = () =>
+                getDiagnosticsByType(core).infos.map((d) => d.code);
+            expect(infos()).not.toContain("doenet-i0057");
+            await updateMathInputValue({
+                latex: "3",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            await core.returnAllStateVariables(false, true);
+            expect(infos()).not.toContain("doenet-i0057");
+        }
+    });
+
+    it("<selectRandomNumbers>: values replayed as given, even NaN, report nothing ignored", async () => {
+        const doenetML = `<selectRandomNumbers name="s" type="binomial" numTrials="-1"/>`;
+        const first = await load({ doenetML, requestedVariantIndex: 1 });
+        const replayed = await load({
+            doenetML,
+            requestedVariant: first.generatedVariantInfo,
+        });
+        expect(replayed.infos).not.toContain("doenet-i0057");
+        // taken as given: the variant, JSON round-tripped, holds `null`
+        expect(replayed.selected).eqls([null]);
+    });
+});
