@@ -72,7 +72,7 @@ The screencast in the extension README.md is located in `assets/extension-demo.g
 ffmpeg -i extension-demo.webm -filter_complex "[0:v] fps=7 [new];[new] split [a][b];[a] palettegen [p];[b][p] paletteuse" output_trimmed_enhanced.gif
 ```
 
-followed (optinally) by
+followed (optionally) by
 
 ```
 gifsicle -O3 output_trimmed_enhanced.gif -o output_gifsicle.gif
