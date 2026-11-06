@@ -1,7 +1,7 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
 Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done,
-the first three parts of step 8, and the first two pieces of its
+the first three parts of step 8, and the first three pieces of its
 fourth; see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
@@ -886,6 +886,24 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
       document where it decides an attribute: a sticky group's members'
       props are rendered ones. Nothing in a load reads define over the
       graph yet; the golden diff is unchanged.
+
+      The third is done. `compile/graph/refuse.rs` implements
+      `program::refuse::Graph` over the graph's cells (a vector
+      operator's later outputs listed with its head, a symbolic one with
+      no scalar inverse) and names each warning as `build/refuse.rs`
+      does: an interactive prop's cell once, by the first component in
+      the order the abstract build makes them, and a written value by its
+      component and prop, an unnamed one by its tag and its index in the
+      abstract build's table. So the stamping records every component in
+      that order (`TemplateGraph::comps`), a component's position its
+      index. `testing::warnings_disagreement` compares the warnings with
+      the abstract build's, word for word; `tests/template_graph.rs`
+      holds every document to it, with refusals of its own (a square, a
+      value reached two ways, a power, two outputs of one circle, a
+      branch's value through a conditional content's choose, an unnamed
+      point) and a request that lands. Dropping a vector operator's later
+      outputs, reading vector operators as scalar ones, ignoring the
+      constant holds or writing only first inputs fails it.
    5. **The input signature over the graph.** ADR 0035's signature
       reads the graph's definitions instead of the abstract build's.
       Test: `tests/safe_edits.rs` unchanged.

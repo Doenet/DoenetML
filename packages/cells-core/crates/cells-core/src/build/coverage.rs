@@ -12,7 +12,7 @@
 
 use super::*;
 use crate::compile::graph::{
-    Def, GraphNode, GraphOp, NodeKind, TemplateGraph, define, template_graph,
+    Def, GraphNode, GraphOp, NodeKind, TemplateGraph, define, refuse_warnings, template_graph,
 };
 
 /// A slot of an element: (template, element, position among its slots).
@@ -590,4 +590,37 @@ pub fn attributes_disagreement(
         }
     }
     Ok((out, compared))
+}
+
+/// The refuse warnings define over the template graph of `compiled` finds
+/// (ADR 0032, step 8, part 4) against the abstract build's: what one has
+/// and the other lacks, described, and how many the abstract build has.
+pub fn warnings_disagreement(
+    compiled: &Compiled,
+) -> std::result::Result<(Vec<String>, usize), String> {
+    let theirs = abstract_build(compiled.view(), || Ok(()))
+        .map_err(|f| f.error.to_string())?
+        .warnings;
+    let mut g = template_graph(compiled.view());
+    let defined = define(&mut g, compiled.view()).map_err(|f| f.error.to_string())?;
+    let ours = refuse_warnings(&g, &defined, compiled.view());
+    let show = |d: &Diagnostic| format!("{:?} {} on {:?}: {}", d.kind, d.code, d.node, d.message);
+    let (mut theirs, mut ours): (Vec<String>, Vec<String>) = (
+        theirs.iter().map(show).collect(),
+        ours.iter().map(show).collect(),
+    );
+    theirs.sort();
+    ours.sort();
+    let mut out = Vec::new();
+    for w in &theirs {
+        if !ours.contains(w) {
+            out.push(format!("define over the graph lacks: {w}"));
+        }
+    }
+    for w in &ours {
+        if !theirs.contains(w) {
+            out.push(format!("define over the graph has more: {w}"));
+        }
+    }
+    Ok((out, theirs.len()))
 }

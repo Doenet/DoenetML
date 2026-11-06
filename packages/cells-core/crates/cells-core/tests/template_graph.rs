@@ -12,7 +12,7 @@ use std::path::Path;
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::testing::{
     attributes_disagreement, define_failures_agree, definitions_disagreement, par_map,
-    template_graph_agreement,
+    template_graph_agreement, warnings_disagreement,
 };
 
 /// Documents for what the golden set has little of: references into and
@@ -304,6 +304,78 @@ fn define_over_the_template_graph_classes_every_port_as_the_abstract_build_does(
     );
 }
 
+/// Requests the program refuses or drops, and one it lands.
+const REFUSALS: &[(&str, &str)] = &[
+    (
+        "refused-square",
+        r#"<numberInput name="n" value="2"/><graph><point name="p" x="$n * $n" y="0"/></graph>"#,
+    ),
+    (
+        "refused-two-paths",
+        r#"<numberInput name="n" value="1"/><number name="a">$n + 1</number>
+        <graph><point name="p" x="$a + $n" y="0"/></graph>"#,
+    ),
+    (
+        "dropped-power",
+        r#"<numberInput name="n" value="2"/><graph><point name="p" x="$n^2" y="0"/></graph>"#,
+    ),
+    (
+        "landed",
+        r#"<number name="k">2</number><numberInput name="n" value="3"/>
+        <graph><point name="p" x="$k $n" y="0"/></graph>"#,
+    ),
+    (
+        // Two outputs of one circle operator, read together: a vector
+        // operator's later outputs are its outputs too.
+        "refused-circle-outputs",
+        r#"<graph><point name="a">(0,0)</point><point name="b">(2,0)</point>
+        <circle name="c" through="$a $b"/>
+        <point name="p" x="$c.cx + $c.radius" y="0"/></graph>"#,
+    ),
+    (
+        // A conditional content's stand-in chooses by its first input and
+        // writes the others: the branch's value, reached twice.
+        "refused-through-a-choice",
+        r#"<booleanInput name="b"/>
+        <conditionalContent name="cc">
+          <case condition="$b"><number name="x">1</number></case>
+          <else><number name="x">2</number></else>
+        </conditionalContent>
+        <graph><point name="p" x="$cc.x * $cc.x" y="0"/></graph>"#,
+    ),
+    (
+        "refused-unnamed",
+        r#"<numberInput name="n" value="2"/><graph><point x="$n * $n" y="0"/></graph>"#,
+    ),
+];
+
+// The refuse warnings over the graph are the abstract build's, word for
+// word, on every document.
+#[test]
+fn define_over_the_template_graph_warns_as_the_abstract_build_does() {
+    let mut docs = documents();
+    docs.extend(
+        REFUSALS
+            .iter()
+            .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
+    );
+    let results = par_map(&docs, |(name, bytes)| {
+        let dast = cells_core::dast::load(bytes).unwrap();
+        let compiled = cells_core::testing::compile(&dast).ok()?;
+        let found = warnings_disagreement(&compiled)
+            .unwrap_or_else(|e| panic!("{name}: define over the graph: {e}"));
+        Some((name.clone(), found))
+    });
+    let mut failures = Vec::new();
+    let mut warned = 0;
+    for (name, (disagree, n)) in results.into_iter().flatten() {
+        warned += n;
+        failures.extend(disagree.into_iter().map(|d| format!("{name}: {d}")));
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+    assert!(warned >= 4, "only {warned} warnings compared");
+}
+
 /// Prefills the rule refuses or allows: a computed value is refused, a
 /// counted value and a given one are not.
 const PREFILLS: &[(&str, &str)] = &[
@@ -349,9 +421,9 @@ fn define_over_the_template_graph_refuses_the_prefills_the_abstract_build_does()
     // The refused one is refused: the comparison compared a refusal.
     let dast = cells_core::dast::load(dast_json(PREFILLS[0].1).as_bytes()).unwrap();
     assert!(
-        cells_core::diagnose(&dast)
-            .iter()
-            .any(|d| d.message.contains("a prefill reference must name a value that is not computed")),
+        cells_core::diagnose(&dast).iter().any(|d| d
+            .message
+            .contains("a prefill reference must name a value that is not computed")),
         "the computed prefill is refused"
     );
 }

@@ -143,8 +143,24 @@ pub(crate) fn define(
 }
 
 impl Defined {
-    fn cell_of(&self, n: GraphNode) -> GraphNode {
+    /// The cell node `n` will share.
+    pub(super) fn cell_of(&self, n: GraphNode) -> GraphNode {
         self.cell_of[n.index()]
+    }
+
+    /// The node that defines `cell`.
+    pub(super) fn def(&self, cell: GraphNode) -> GraphNode {
+        self.def[cell.index()]
+    }
+
+    /// Whether node `n` defines its cell.
+    pub(super) fn defines(&self, n: GraphNode) -> bool {
+        self.def(self.cell_of(n)) == n
+    }
+
+    /// The flags that hold `cell`, in the order the holds listed them.
+    pub(super) fn flags(&self, cell: GraphNode) -> &[GraphNode] {
+        self.flags.get(&cell).map_or(&[], Vec::as_slice)
     }
 
     fn def_of<'a>(&'a self, node: GraphNode, def: &'a Def) -> CellDef<'a> {

@@ -31,10 +31,12 @@ mod cycles;
 mod define;
 mod expand;
 mod math;
+mod refuse;
 mod walk;
 
 pub(crate) use cycles::{CycleFindings, check_cycles};
 pub(crate) use define::define;
+pub(crate) use refuse::refuse_warnings;
 
 crate::index::index_type! {
     /// A node of the template graph: a position in its `nodes`.
@@ -223,8 +225,10 @@ pub(crate) struct TemplateGraph {
     /// Each copy of a list type that took its referent's ports, with how
     /// many are public.
     pub(crate) list_copies: FxMap<(TemplateId, ElemId), usize>,
-    /// Every component the abstract build makes, each with what define's
-    /// walks read of it: every live element, then every made one.
+    /// Every component the abstract build makes, in the order it makes
+    /// them, so a component's position is its index in the abstract
+    /// build's table: what define's walks and the refuse warnings read of
+    /// it.
     pub(crate) comps: Vec<GraphComp>,
 }
 
@@ -236,10 +240,14 @@ pub(crate) struct GraphComp {
     /// Its first port; its public ports follow.
     pub(crate) base: GraphNode,
     pub(crate) n_public: u32,
+    /// All its ports, the hidden ones after the public.
+    pub(crate) n_ports: u32,
     /// Whether a renderer shows it.
     pub(crate) rendered: bool,
     /// Whether it is under a sticky group, where snapping reads it.
     pub(crate) in_sticky: bool,
+    /// The element it is, if it is one.
+    pub(crate) elem: Option<(TemplateId, ElemId)>,
 }
 
 impl TemplateGraph {
@@ -323,6 +331,7 @@ pub(crate) fn template_graph(c: CompiledRef<'_>) -> TemplateGraph {
         cases: FxMap::default(),
         ref_children: FxMap::default(),
         instances: Vec::new(),
+        order: Vec::new(),
         pending: Vec::new(),
         collects: Vec::new(),
         point_lists: Vec::new(),
@@ -353,6 +362,8 @@ pub(super) struct Stamp<'c> {
     pub(super) cases: FxMap<(TemplateId, ElemId), Vec<u32>>,
     /// Each `$ref` child's component, by (template, child).
     pub(super) ref_children: FxMap<(TemplateId, RefChildId), u32>,
+    /// Every component, in the order the abstract build makes it.
+    pub(super) order: Vec<Comp>,
     /// Every live element, in the order the abstract build stamps it.
     pub(super) instances: Vec<(TemplateId, ElemId)>,
     /// The `$ref` children to place, in the order made, each with whether
@@ -506,13 +517,7 @@ impl<'c> Stamp<'c> {
                 stack.push((k, in_graph, sticky));
             }
         }
-        let all: Vec<Comp> = self
-            .instances
-            .iter()
-            .map(|&(t, e)| Comp::Elem(t, e))
-            .chain((0..self.g.made.len() as u32).map(Comp::Made))
-            .collect();
-        let comps = all
+        let comps = std::mem::take(&mut self.order)
             .into_iter()
             .map(|c| {
                 let (rendered, in_sticky) = placed.get(&c).copied().unwrap_or_default();
@@ -525,8 +530,16 @@ impl<'c> Stamp<'c> {
                         self.slot(c, 0)
                     },
                     n_public: n_public as u32,
+                    n_ports: match c {
+                        Comp::Elem(t, e) => self.g.n_ports[t.index()][e.index()],
+                        Comp::Made(_) => n_public as u32,
+                    },
                     rendered,
                     in_sticky,
+                    elem: match c {
+                        Comp::Elem(t, e) => Some((t, e)),
+                        Comp::Made(_) => None,
+                    },
                 }
             })
             .collect();
@@ -559,6 +572,7 @@ impl<'c> Stamp<'c> {
         kind: MadeKind,
     ) -> u32 {
         let m = self.g.made.len() as u32;
+        self.order.push(Comp::Made(m));
         let base = GraphNode::from_index(self.g.nodes.len());
         for port in 0..n {
             self.node(
@@ -600,6 +614,7 @@ impl<'c> Stamp<'c> {
             };
             self.element_ports(t, e, n);
             self.instances.push((t, e));
+            self.order.push(Comp::Elem(t, e));
         }
         for e in ElemId::below(tpl.elems.len()) {
             if tpl.is_dead(e) {
