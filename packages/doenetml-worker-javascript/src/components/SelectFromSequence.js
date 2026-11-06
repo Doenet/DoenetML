@@ -47,6 +47,22 @@ export default class SelectFromSequence extends Sequence {
 
     static createsVariants = true;
 
+    // Writing one of these on a `copyWithState` is an error, as it would
+    // change what is chosen, which a `copyWithState` keeps
+    // (`copyWithStateChangesChoicesErrors` in `Copy.js`, D33).
+    static attributesDeterminingChoices = [
+        "type",
+        "from",
+        "to",
+        "step",
+        "length",
+        "exclude",
+        "numToSelect",
+        "withReplacement",
+        "excludeCombinations",
+        "coprime",
+    ];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.numToSelect = {

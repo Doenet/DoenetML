@@ -2081,9 +2081,21 @@ export function unwrapSource<T>(extending: Source<T>): T {
         return extending.Ref;
     } else if ("ExtendAttribute" in extending) {
         return extending.ExtendAttribute;
-    } else {
+    } else if ("CopyAttribute" in extending) {
         return extending.CopyAttribute;
+    } else {
+        return extending.CopyWithStateAttribute;
     }
+}
+
+/**
+ * Whether `extending` came from a `copy` or a `copyWithState` attribute: an
+ * unlinked copy, the source's DoenetML pasted (CPY-1).
+ */
+export function isCopySource<T>(extending: Source<T>): boolean {
+    return (
+        "CopyAttribute" in extending || "CopyWithStateAttribute" in extending
+    );
 }
 
 /**
@@ -2097,8 +2109,10 @@ export function addSource<T, U>(
         return { Ref: refResolution };
     } else if ("ExtendAttribute" in extending) {
         return { ExtendAttribute: refResolution };
-    } else {
+    } else if ("CopyAttribute" in extending) {
         return { CopyAttribute: refResolution };
+    } else {
+        return { CopyWithStateAttribute: refResolution };
     }
 }
 

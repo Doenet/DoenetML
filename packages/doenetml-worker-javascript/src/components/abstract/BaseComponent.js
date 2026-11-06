@@ -112,6 +112,28 @@ export default class BaseComponent {
         if (serializedComponent.state) {
             this.essentialState = deepClone(serializedComponent.state);
         }
+        if (serializedComponent.authoredPrimitiveChildren) {
+            // the text as authored of what it was made from (`serialize`)
+            this.authoredPrimitiveChildren = deepClone(
+                serializedComponent.authoredPrimitiveChildren,
+            );
+        }
+        // What it was made with, before a reader's change or a value drawn
+        // at random was kept, which a `copy` of it starts from
+        // (`withoutReaderState` in `serialize`, D33). One made with state
+        // carried from another component (a `copyWithState`, an `extend`, a
+        // snapshot applied on a reload) is given the initial state of what
+        // it was made from (`serialize`), so a `copy` of it starts as that
+        // was written, not with the state carried.
+        const initialEssentialState =
+            serializedComponent.initialEssentialState ??
+            serializedComponent.state;
+        if (
+            initialEssentialState &&
+            Object.keys(initialEssentialState).length > 0
+        ) {
+            this.initialEssentialState = deepClone(initialEssentialState);
+        }
 
         this.doenetAttributes = {};
         if (serializedComponent.doenetAttributes !== undefined) {
@@ -643,8 +665,8 @@ export default class BaseComponent {
                     "A persistent identifier for this component, stable across edits (currently unused but present for compatibility).",
             },
 
-            // Adding `extend` and `copy` attributes so they are in the schema for all components.
-            // These attributes are unused, as the `extend` and `copy` attributes are removed
+            // Adding `extend`, `copy` and `copyWithState` attributes so they are in the schema for all components.
+            // These attributes are unused, as the `extend`, `copy` and `copyWithState` attributes are removed
             // from the dast when references are expanded.
             extend: {
                 createReferences: true,
@@ -654,7 +676,12 @@ export default class BaseComponent {
             copy: {
                 createReferences: true,
                 description:
-                    "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "Create an independent copy of another component by reference, as if its DoenetML were written here: it starts fresh, without the reader's changes, and makes its own random choices. Enter a reference as `$name`.",
+            },
+            copyWithState: {
+                createReferences: true,
+                description:
+                    "Create an independent copy of another component by reference that starts with that component's current state, including the reader's changes and its random choices. Enter a reference as `$name`.",
             },
         };
     }
@@ -796,6 +823,10 @@ export default class BaseComponent {
                     dependencyType: "parentStateVariable",
                     variableName: "childrenToHide",
                 },
+                sourceCompositeReplacementsToHide: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "replacementsToHide",
+                },
             }),
             definition: ({ dependencyValues, componentIdx }) => {
                 return {
@@ -803,6 +834,9 @@ export default class BaseComponent {
                         hidden: Boolean(
                             dependencyValues.parentHidden ||
                             dependencyValues.sourceCompositeHidden ||
+                            dependencyValues.sourceCompositeReplacementsToHide?.includes(
+                                componentIdx,
+                            ) ||
                             dependencyValues.adapterSourceHidden ||
                             dependencyValues.hide ||
                             (Array.isArray(
@@ -859,12 +893,19 @@ export default class BaseComponent {
                     dependencyType: "adapterSourceStateVariable",
                     variableName: "hiddenIgnoreParent",
                 },
+                sourceCompositeReplacementsToHide: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "replacementsToHide",
+                },
             }),
-            definition: ({ dependencyValues }) => {
+            definition: ({ dependencyValues, componentIdx }) => {
                 return {
                     setValue: {
                         hiddenIgnoreParent: Boolean(
                             dependencyValues.sourceCompositeHidden ||
+                            dependencyValues.sourceCompositeReplacementsToHide?.includes(
+                                componentIdx,
+                            ) ||
                             dependencyValues.adapterSourceHidden ||
                             dependencyValues.hide,
                         ),
@@ -1565,14 +1606,34 @@ export default class BaseComponent {
                     }
                 }
             } else {
-                for (let child of this.definingChildren) {
+                for (const [ind, child] of this.definingChildren.entries()) {
                     if (typeof child !== "object") {
-                        serializedChildren.push(child);
+                        // A `copy` takes the text as authored, not as a
+                        // reader rewrote it (dragging `<point>(1,2)</point>`)
+                        serializedChildren.push(
+                            parameters.withoutReaderState &&
+                                this.authoredPrimitiveChildren &&
+                                ind in this.authoredPrimitiveChildren
+                                ? this.authoredPrimitiveChildren[ind]
+                                : child,
+                        );
                     } else {
                         serializedChildren.push(
                             await child.serialize(parametersForChildren),
                         );
                     }
+                }
+
+                // The text as authored, for a component made from this
+                // serialization with the text as the reader rewrote it, so a
+                // `copy` of that one takes the text as authored (D33)
+                if (
+                    !parameters.withoutReaderState &&
+                    this.authoredPrimitiveChildren
+                ) {
+                    serializedComponent.authoredPrimitiveChildren = deepClone(
+                        this.authoredPrimitiveChildren,
+                    );
                 }
 
                 if (this.serializedChildren !== undefined) {
@@ -1611,13 +1672,11 @@ export default class BaseComponent {
                     !componentSourceAttributesToIgnore.includes(attrName)
                     //  || this.constructor.copyComponentAttributes?.includes(attrName)
                 ) {
-                    serializedComponent.attributes[attrName] = {
-                        type: "component",
-                        component: await attribute.component.serialize(
+                    serializedComponent.attributes[attrName] =
+                        await serializeAttributeComponent(
+                            attribute,
                             parametersForChildren,
-                        ),
-                        sourceDoc: attribute.component.sourceDoc,
-                    };
+                        );
                 }
             } else if (attribute.type === "literal") {
                 // Like the attribute component it stands for: a linked copy
@@ -1629,7 +1688,11 @@ export default class BaseComponent {
                     !componentSourceAttributesToIgnore.includes(attrName)
                 ) {
                     serializedComponent.attributes[attrName] =
-                        copyOfLiteralAttribute(attribute, this);
+                        copyOfLiteralAttribute(
+                            attribute,
+                            this,
+                            !parameters.withoutReaderState,
+                        );
                 }
             } else if (attribute.type === "expression") {
                 // Like the attribute component it stands for: a linked copy
@@ -1641,7 +1704,11 @@ export default class BaseComponent {
                     !componentSourceAttributesToIgnore.includes(attrName)
                 ) {
                     serializedComponent.attributes[attrName] =
-                        copyOfExpressionAttribute(attribute, this);
+                        copyOfExpressionAttribute(
+                            attribute,
+                            this,
+                            !parameters.withoutReaderState,
+                        );
                 }
             } else if (attribute.type === "variableRef") {
                 // Like the attribute component it stands for: copied only
@@ -1684,6 +1751,21 @@ export default class BaseComponent {
                     serializedComponent.attributes[attrName] = JSON.parse(
                         JSON.stringify(attribute),
                     );
+                    // What was written on a `_copy` in place of a value a
+                    // `copyWithState` kept (`authoredChildren`, as
+                    // `authoredComponent` of an attribute component, in
+                    // `Copy.js`), which a `copy` writes again (D33)
+                    const serializedAttribute =
+                        serializedComponent.attributes[attrName];
+                    if (
+                        serializedAttribute.type === "unresolved" &&
+                        serializedAttribute.authoredChildren &&
+                        parameters.withoutReaderState
+                    ) {
+                        serializedAttribute.children =
+                            serializedAttribute.authoredChildren;
+                        delete serializedAttribute.authoredChildren;
+                    }
                     // // set to create a new componentIdx
                     // if (attrName === "_createComponentIdx") {
                     //     serializedComponent.attributes._createComponentIdx.primitive.value =
@@ -1708,11 +1790,15 @@ export default class BaseComponent {
         // would otherwise decide over where a reference made after it sits,
         // as one made before it is not given it. A component inside the copy
         // keeps it, as one made before it does (`EssentialValueWriter`).
-        if (
-            this.essentialState &&
-            Object.keys(this.essentialState).length > 0
-        ) {
-            serializedComponent.state = deepClone(this.essentialState);
+        // A `copy` (`withoutReaderState`) starts as written content does,
+        // from the essential state its source was made with
+        // (`initialEssentialState`), not what the reader did since or what
+        // was drawn at random (D33).
+        const essentialState = parameters.withoutReaderState
+            ? this.initialEssentialState
+            : this.essentialState;
+        if (essentialState && Object.keys(essentialState).length > 0) {
+            serializedComponent.state = deepClone(essentialState);
             for (const varName in serializedComponent.state) {
                 if (
                     !parameters.serializingDescendant &&
@@ -1727,21 +1813,40 @@ export default class BaseComponent {
             delete serializedComponent.state.literalAttributeWrites;
         }
 
+        // What this component was made with, which a component made from
+        // this serialization with the state carried keeps as its own
+        // (`initialEssentialState` in the constructor), so a `copy` of that
+        // one starts as this one was written (D33)
+        if (!parameters.withoutReaderState) {
+            serializedComponent.initialEssentialState = deepClone(
+                this.initialEssentialState ?? {},
+            );
+        }
+
         // An unlinked copy of a reference (`copyPrimaryEssentialIfShadow`)
         // holds the referent's value as it is, unless it was given an
         // attribute of the referent's that defines that value
         // (`attributesDefiningPrimaryValue`, the `xs` of
         // `<point>($a, 0)</point>`): pasted as the referent's DoenetML, it
         // computes the value from that attribute, as the referent does.
+        // A `copy` (`withoutReaderState`) holds it only for a reference to
+        // a property or a list entry, which has no DoenetML of its own
+        // (CPY-5); of a reference to a component, it is that component's
+        // DoenetML written again, which starts as that was written (D33).
         const definedByAttribute =
             this.constructor.attributesDefiningPrimaryValue?.some(
                 (name) => serializedComponent.attributes?.[name],
             );
+        const shadowsValue =
+            this.shadows &&
+            (this.shadows.propVariable !== undefined ||
+                this.doenetAttributes.listEntrySource !== undefined);
         if (
             parameters.copyPrimaryEssential ||
             (parameters.copyPrimaryEssentialIfShadow &&
                 this.shadows &&
-                !definedByAttribute)
+                !definedByAttribute &&
+                (!parameters.withoutReaderState || shadowsValue))
         ) {
             let primaryEssentialStateVariable = "value";
             if (this.constructor.primaryEssentialStateVariable) {
@@ -1786,9 +1891,18 @@ export default class BaseComponent {
             }
         }
 
+        // A component made from a property or a list entry has no DoenetML
+        // of its own: what it holds is the value, which a `copy` takes too
+        // (CPY-5, `snapshotListEntrySource`)
+        const holdsValue = parameters.copyAll && shadowsValue;
+        if (holdsValue) {
+            // which a `copy` holds through a reload (`copySnapshotOf`)
+            serializedComponent.holdsValue = true;
+        }
         if (
             parameters.copyEssentialState ||
-            (parameters.copyEssentialStateIfShadow && this.shadows)
+            (parameters.copyEssentialStateIfShadow && this.shadows) ||
+            holdsValue
         ) {
             for (let varName in this.state) {
                 let stateVar = this.state[varName];
@@ -1808,6 +1922,24 @@ export default class BaseComponent {
                             serializedComponent.state[essentialName] = value;
                         }
                     }
+                }
+            }
+        }
+
+        // The value captured from a property or a list entry (CPY-5) is what
+        // a component made from this with the state carried is defined
+        // with, not a reader's change to it: it keeps it as what it was
+        // made with (`initialEssentialState`), which a `copy` of it starts
+        // from (D33)
+        if (
+            !parameters.withoutReaderState &&
+            shadowsValue &&
+            serializedComponent.state
+        ) {
+            for (const varName in serializedComponent.state) {
+                if (!(varName in (this.essentialState ?? {}))) {
+                    serializedComponent.initialEssentialState[varName] =
+                        deepClone(serializedComponent.state[varName]);
                 }
             }
         }
@@ -1993,6 +2125,14 @@ export default class BaseComponent {
         if (serializedComponent.state !== undefined) {
             // shallow copy of state
             Object.assign(serializedCopy.state, serializedComponent.state);
+        }
+        for (const field of [
+            "initialEssentialState",
+            "authoredPrimitiveChildren",
+        ]) {
+            if (serializedComponent[field] !== undefined) {
+                serializedCopy[field] = deepClone(serializedComponent[field]);
+            }
         }
 
         if (
@@ -2353,6 +2493,8 @@ async function serializeShadowedAttributes({
     // an extend of a list that names itself makes a cycle
     // (`pastedShadowSource`)
     const visited = new Set([component]);
+    // each step from `component` along what it shadows, as [from, comp]
+    const hops = [];
     for (
         let from = component,
             comp = await pastedShadowSource(component, components);
@@ -2360,6 +2502,7 @@ async function serializeShadowedAttributes({
         from = comp, comp = await pastedShadowSource(comp, components)
     ) {
         visited.add(comp);
+        hops.push([from, comp]);
         // past a list made by an `extend` of what it names, which may not
         // be a list (`<mathList extend="$P"/>`), only the attributes it has
         // too, as it takes only those
@@ -2393,27 +2536,149 @@ async function serializeShadowedAttributes({
             }
             if (attribute.type === "literal") {
                 // a literal written on `comp`, with what a reader wrote over
-                // it, as an attribute component is copied with its state
+                // it, as an attribute component is copied with its state,
+                // except for a `copy`, which carries no reader state (D33)
                 serializedComponent.attributes[attrName] =
-                    copyOfLiteralAttribute(attribute, comp);
+                    copyOfLiteralAttribute(
+                        attribute,
+                        comp,
+                        !parametersForChildren.withoutReaderState,
+                    );
                 continue;
             }
             if (attribute.type === "expression") {
                 // text and references held by `comp`, with the text written
-                // to it, its references resolved from the copy
+                // to it (not for a `copy`), its references resolved from the
+                // copy
                 serializedComponent.attributes[attrName] =
-                    copyOfExpressionAttribute(attribute, comp);
+                    copyOfExpressionAttribute(
+                        attribute,
+                        comp,
+                        !parametersForChildren.withoutReaderState,
+                    );
                 continue;
             }
-            serializedComponent.attributes[attrName] = {
-                type: "component",
-                component: await attribute.component.serialize(
+            serializedComponent.attributes[attrName] =
+                await serializeAttributeComponent(
+                    attribute,
                     parametersForChildren,
-                ),
-                sourceDoc: attribute.component.sourceDoc,
-            };
+                    // what was written for a value a `copyWithState` kept
+                    // refers to components around `comp` (its module
+                    // attributes), which, for `component`, are their shadows
+                    // around it
+                    shadowIdxMap([...hops], components),
+                );
         }
     }
+}
+
+/**
+ * Renumber, by `idxMap`, the components the references in `serialized` (a
+ * serialized component, which nothing is made from yet) resolve to: each
+ * reference resolution (`nodeIdx`, `nodesInResolvedPath`) in it, wherever it
+ * is held (an `extending`, an expression's slots, an index). Its own
+ * components are renumbered when it is copied (`createNewComponentIndices`).
+ */
+function remapReferents(serialized, idxMap) {
+    if (Array.isArray(serialized)) {
+        for (const item of serialized) {
+            remapReferents(item, idxMap);
+        }
+        return;
+    }
+    if (typeof serialized !== "object" || serialized === null) {
+        return;
+    }
+    if (
+        typeof serialized.nodeIdx === "number" &&
+        Array.isArray(serialized.nodesInResolvedPath)
+    ) {
+        serialized.nodeIdx = idxMap[serialized.nodeIdx] ?? serialized.nodeIdx;
+        serialized.nodesInResolvedPath = serialized.nodesInResolvedPath.map(
+            (idx) => idxMap[idx] ?? idx,
+        );
+    }
+    for (const value of Object.values(serialized)) {
+        remapReferents(value, idxMap);
+    }
+}
+
+/**
+ * An index map (for `remapReferents`), looked up lazily, from a component
+ * shadowed along `hops` (each a component and what it shadows, starting at
+ * the component being copied), such as the module attribute `$k` of the last
+ * `comp` refers to, to its shadow made with the first, by following its
+ * shadows back along `hops`. An index with no such shadow is left as it is.
+ */
+function shadowIdxMap(hops, components) {
+    return new Proxy(
+        {},
+        {
+            get(_target, key) {
+                let idx = Number(key);
+                if (typeof key !== "string" || !Number.isInteger(idx)) {
+                    return undefined;
+                }
+                for (let i = hops.length - 1; i >= 0; i--) {
+                    const shadow = shadowAround(components[idx], hops[i][0]);
+                    if (!shadow) {
+                        return undefined;
+                    }
+                    idx = shadow.componentIdx;
+                }
+                return idx;
+            },
+        },
+    );
+}
+
+/**
+ * The shadow of `component` made with `from`, by the same composite (a
+ * reference, such as `<module extend="$mw"/>`, whose `$k` stands in place
+ * of the `$k` of `mw`).
+ */
+function shadowAround(component, from) {
+    const compositeIdx = from.shadows?.compositeIdx;
+    if (!component || compositeIdx === undefined) {
+        return undefined;
+    }
+    return component.shadowedBy?.find(
+        (shadow) => shadow.shadows?.compositeIdx === compositeIdx,
+    );
+}
+
+/**
+ * Serialize the attribute component `attribute`. A value a `copyWithState`
+ * kept in place of what was written (`authoredComponent` in `Copy.js`) a
+ * `copy` (`withoutReaderState`) writes again, so computes the value from it
+ * (D33); otherwise it is serialized as it is, keeping what was written with
+ * it, for a `copy` of what is made from it. `idxMap`, for an attribute taken
+ * from what the component shadows, renumbers what that refers to.
+ */
+async function serializeAttributeComponent(attribute, parameters, idxMap) {
+    let authoredComponent;
+    if (attribute.authoredComponent) {
+        authoredComponent = deepClone(attribute.authoredComponent);
+        if (idxMap) {
+            remapReferents(authoredComponent, idxMap);
+        }
+    }
+    if (authoredComponent && parameters.withoutReaderState) {
+        return {
+            type: "component",
+            component: authoredComponent,
+            sourceDoc: attribute.component.sourceDoc,
+        };
+    }
+    const serialized = {
+        type: "component",
+        component: await attribute.component.serialize(parameters),
+        sourceDoc: attribute.component.sourceDoc,
+    };
+    if (authoredComponent) {
+        serialized.authoredComponent = authoredComponent;
+    }
+    return serialized;
 }
 
 /**

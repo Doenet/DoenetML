@@ -2,6 +2,15 @@ import type { DastElement, DastNodes } from "@doenet/parser";
 import type { DoenetSourceObject } from "../doenet-source-object";
 import { isRepeatLikeElement } from "./repeat-elements";
 import { hasImplicitSingleIndex } from "./select-family";
+import {
+    branchContainerKind,
+    branchDeclarations,
+    countVisibleDeclarations,
+    namesElement,
+    namesSharedByBranchesIn,
+    sharedBranchNames,
+    unsharedBranchNames,
+} from "./branch-declarations";
 import type {
     RefMemberContainerResolution,
     ResolveRefMemberContainer,
@@ -9,14 +18,12 @@ import type {
 } from "./index";
 
 /**
- * Wrapper elements whose children should be treated as direct children of
- * the composite for ref-resolution purposes.  At runtime, sugar inserts
- * these wrappers and then strips them during replacement expansion.
- *
- * Exported so the help-side descendant walk in `auto-completer/index.ts`
- * mirrors the resolver's wrapper handling from a single source of truth.
+ * Wrapper elements whose children `collectNamesFromCompositeChildren` walks
+ * as if they were direct children of the composite. Branch containers
+ * (`<conditionalContent>`, `<select>`) no longer go through that walk; see
+ * `sharedBranchNames` in `branch-declarations.ts`.
  */
-export const COMPOSITE_WRAPPER_NAMES = new Set(["case", "else", "option"]);
+const COMPOSITE_WRAPPER_NAMES = new Set(["case", "else", "option"]);
 
 /**
  * Return the literal `name` attribute value for an element, if present.
@@ -103,9 +110,11 @@ function addUniqueNamesFromDescendants(
 }
 
 /**
- * Collect descendant names from a composite element (conditionalContent or
- * select) by walking through wrapper children (case/else/option)
- * transparently.
+ * Collect descendant names from a takesIndex composite other than a branch
+ * container (a `<repeat>` after an index, `$rep[2].`), walking through any
+ * wrapper children (case/else/option) transparently. A branch container
+ * (`<conditionalContent>`, `<select>`) uses `sharedBranchNames` instead,
+ * which keeps only the names every branch declares (issue #2455).
  *
  * A name is included if **at least one** wrapper child has it as a unique
  * descendant.  If a name appears multiple times within a single wrapper
@@ -160,6 +169,68 @@ function collectNamesFromCompositeChildren(
     }
 
     return result;
+}
+
+/** Whether `element` is written with `copy` or `extend`. */
+function isWrittenAsCopyOrExtend(element: DastElement): boolean {
+    return Object.keys(element.attributes).some((key) => {
+        const lower = key.toLowerCase();
+        return lower === "copy" || lower === "extend";
+    });
+}
+
+/**
+ * When the core resolves a path to the branch container `container` with
+ * `names` left for it (`Ref::Branches`: `$x` or `$cc.x` for an `x` declared
+ * in its branches), the declarations of the longest leading run of `names`
+ * that every branch shares (`branchDeclarations`), one per branch, and how
+ * many names that run is. `null` when not even the first name resolves
+ * through the branches: `container` is not a branch container, no branch
+ * declares it (a property of the container, `$cc.hidden`), or the branches
+ * do not satisfy the every-branch, same-tag rule. The names after the run
+ * are left as properties of its declarations only when no branch's
+ * declaration has an element by the first of them; otherwise also `null`.
+ *
+ * With `indexed`, for a path after an index into a select's picks
+ * (`$s[2].x`), `container` may be a `<select>` of any number of picks.
+ * `namesIndexed` says which of `names` are written with an index
+ * (`$s[1].x` for a select `s` in every branch).
+ */
+function resolveThroughBranches(
+    container: DastElement,
+    names: string[],
+    indexed: boolean,
+    namesIndexed: boolean[] = [],
+): { declarations: DastElement[]; consumed: number } | null {
+    if (!branchContainerKind(container, indexed)) return null;
+    for (let consumed = names.length; consumed >= 1; consumed--) {
+        const declarations = branchDeclarations(
+            container,
+            names.slice(0, consumed),
+            indexed,
+            namesIndexed.slice(0, consumed),
+        );
+        if (!Array.isArray(declarations)) continue;
+        // The names after the run are properties of its declarations
+        // (`$v.head` for a vector `v` in every branch) only when no
+        // branch's declaration has an element by the next one; otherwise
+        // a branch lacking it makes the path name nothing
+        // (`doenet-w0183`), as the run time decides it (`reach` in
+        // `branchDeclaration`, `typeChangeAtLoad.ts`).
+        if (
+            consumed < names.length &&
+            declarations.some((declaration) =>
+                namesElement(
+                    declaration.children as DastNodes[],
+                    names[consumed],
+                ),
+            )
+        ) {
+            return null;
+        }
+        return { declarations, consumed };
+    }
+    return null;
 }
 
 /**
@@ -289,6 +360,8 @@ export class RustResolverAdapter {
     readonly _dastElementToRustIndex: Map<DastElement, number> = new Map();
     _sourceRevision = 0;
     readonly _visibleDescendantNamesCache: Map<string, string[]> = new Map();
+    /** `getBranchSharedNames`'s result, for the source it was computed on. */
+    _branchSharedNames: { source: string; names: string[] } | null = null;
 
     /**
      * A promise that resolves once the most recently requested source sync
@@ -668,92 +741,196 @@ export class RustResolverAdapter {
                 skipParentSearch: false,
             });
 
-            const resolvedNode = this._rustIndexToDastElement.get(
+            const coreResolvedNode = this._rustIndexToDastElement.get(
                 resolution.nodeIdx,
             );
-            if (!resolvedNode) return null;
+            if (!coreResolvedNode) return null;
+            let resolvedNode: DastElement = coreResolvedNode;
 
             const unresolvedPathParts = (resolution.unresolvedPath ?? []).map(
                 (p) => p.name,
             );
 
-            // When there are unresolved parts, the path is invalid for
-            // descendant/property lookup — return `node: null` so the
-            // caller offers no descendant completions / no property help.
-            // Expose `partiallyResolvedNode` so the help layer can still
-            // run an `indexAliases` chase for coordinate chains like
-            // `$vector.head.x` (resolves to `<vector>` with `head`
-            // unresolved as an array state-variable name).
+            // The names after a branch container that the core left for it
+            // (`Ref::Branches`, issue #2455): `$x.` for an `x` declared in
+            // the branches of a `<conditionalContent>`, or `$cc.x.`. When
+            // every branch declares them, they resolve to the active
+            // branch's; any first branch's declaration stands for them all
+            // (same tag), and the names below are those every branch's
+            // declaration shares.
+            let branchHop: {
+                container: DastElement;
+                names: string[];
+                indexed: boolean;
+                namesIndexed: boolean[];
+            } | null = null;
+
             if (unresolvedPathParts.length > 0) {
-                return {
+                // When there are unresolved parts, the path is invalid for
+                // descendant/property lookup — return `node: null` so the
+                // caller offers no descendant completions / no property help.
+                // Expose `partiallyResolvedNode` so the help layer can still
+                // run an `indexAliases` chase for coordinate chains like
+                // `$vector.head.x` (resolves to `<vector>` with `head`
+                // unresolved as an array state-variable name).
+                const unresolvedHere = {
                     node: null,
                     unresolvedPathParts,
-                    partiallyResolvedNode: resolvedNode,
+                    partiallyResolvedNode: coreResolvedNode,
                     visibleDescendantNames: [],
                 };
-            }
-
-            // If any intermediate segment resolves through a takesIndex
-            // component without an index (e.g. $rep.myMath.), block member
-            // completions for that path. Indexed traversal must use
-            // $rep[n].member.  Separately validate that non-takesIndex segments
-            // do not have indices (false positives worse than false negatives).
-            //
-            // Select-family containers with a literal `numToSelect="1"` (or no
-            // attribute) carry an implicit `[1]` per the strict rule in issue
-            // #1181, so they pass the takesIndex-without-index check as if
-            // the bracket were authored.
-            if (resolution.nodesInResolvedPath.length > 1) {
-                // Rust includes the origin in nodesInResolvedPath, but when
-                // the origin is also the first resolved segment it may not be
-                // duplicated. Align to lookupParts by taking the trailing
-                // nodes that correspond to the resolved path segments, then
-                // exclude the final resolved node to inspect only intermediates.
-                const alignedPathNodeIndices =
-                    resolution.nodesInResolvedPath.slice(-lookupParts.length);
-                const intermediatePathNodeIndices =
-                    alignedPathNodeIndices.slice(0, -1);
-                // Check each intermediate segment for proper index usage
-                for (
-                    let pathPartIndex = 0;
-                    pathPartIndex < intermediatePathNodeIndices.length;
-                    pathPartIndex++
+                if (!branchContainerKind(coreResolvedNode, true)) {
+                    return unresolvedHere;
+                }
+                // The last path part the core resolved (`cc` in `$cc.x`, `a`
+                // in `$a.x`), `-1` for a bare `$x`. The container is that
+                // part's node when the path names it (`$cc.x`); otherwise the
+                // core reached it through the branches (`$x`, `$a.x`).
+                const containerPartIndex =
+                    lookupParts.length - unresolvedPathParts.length - 1;
+                // The names the core resolved, alone: the node they name
+                // and the nodes on the way. The container is named when
+                // that node is the container itself (`$cc.x`), not when
+                // the core reached it below that node (`$r.x` for an `x`
+                // in a container in the repeat `r`, even one also named
+                // `r`). Every node on the way is an intermediate.
+                const namedPrefix =
+                    containerPartIndex >= 0
+                        ? await this._core.resolvePath({
+                              path: {
+                                  path: flatPath.slice(
+                                      0,
+                                      containerPartIndex + 1,
+                                  ),
+                              },
+                              origin: originIndex,
+                              skipParentSearch: false,
+                          })
+                        : null;
+                if (
+                    namedPrefix &&
+                    ((namedPrefix.unresolvedPath?.length ?? 0) > 0 ||
+                        !resolution.nodesInResolvedPath.includes(
+                            namedPrefix.nodeIdx,
+                        ))
                 ) {
-                    const pathNode = this._rustIndexToDastElement.get(
-                        intermediatePathNodeIndices[pathPartIndex],
+                    // Not the node the longer path went through: nothing
+                    // here can be checked, so nothing is offered.
+                    return {
+                        node: null,
+                        unresolvedPathParts,
+                        visibleDescendantNames: [],
+                    };
+                }
+                const containerNamed =
+                    namedPrefix !== null &&
+                    namedPrefix.nodeIdx === resolution.nodeIdx;
+                const indexed =
+                    containerNamed &&
+                    (effectivePathPartHasIndex[containerPartIndex] ?? false);
+                const namesIndexed = lookupParts
+                    .slice(containerPartIndex + 1)
+                    .map((_, i) =>
+                        Boolean(
+                            effectivePathPartHasIndex[
+                                containerPartIndex + 1 + i
+                            ],
+                        ),
                     );
-                    const segmentHasIndex =
-                        effectivePathPartHasIndex[pathPartIndex] ?? false;
-                    const segmentHasEffectiveIndex =
-                        segmentHasIndex ||
-                        (pathNode != null && hasImplicitSingleIndex(pathNode));
-                    if (
-                        pathNode &&
-                        this._componentTakesIndex(pathNode.name) &&
-                        !segmentHasEffectiveIndex
-                    ) {
+                const through = resolveThroughBranches(
+                    coreResolvedNode,
+                    unresolvedPathParts,
+                    indexed,
+                    namesIndexed,
+                );
+                if (!through) {
+                    return unresolvedHere;
+                }
+                // Every resolved part is an intermediate here, the
+                // container included when the path names it.
+                const blocked = namedPrefix
+                    ? this._firstBlockedSegment(
+                          namedPrefix.nodesInResolvedPath,
+                          lookupParts.slice(0, containerPartIndex + 1),
+                          effectivePathPartHasIndex,
+                          true,
+                      )
+                    : null;
+                if (blocked != null) {
+                    return {
+                        node: null,
+                        unresolvedPathParts: lookupParts.slice(blocked),
+                        visibleDescendantNames: [],
+                    };
+                }
+                // A hop at the first name (`$x.` for an `x` in the
+                // branches) is a bare `$x`: it names nothing where the
+                // cursor finds `x` declared more than once, or the
+                // container is hidden by sugar (`_resolveBareName`).
+                if (
+                    containerPartIndex === -1 &&
+                    (this._isAmbiguousFromCursor(
+                        coreResolvedNode,
+                        lookupParts[0],
+                        offset,
+                    ) ||
+                        this._isHiddenBySugar(resolution.nodeIdx, offset))
+                ) {
+                    return {
+                        node: null,
+                        unresolvedPathParts,
+                        visibleDescendantNames: [],
+                    };
+                }
+                if (through.consumed < unresolvedPathParts.length) {
+                    // The names left are properties of the declarations,
+                    // read without an index: with an index on the last
+                    // name of the run (`$v[1].head`), no property lookup
+                    // is offered (runtime `doenet-w0180`).
+                    if (namesIndexed[through.consumed - 1]) {
                         return {
                             node: null,
-                            unresolvedPathParts:
-                                lookupParts.slice(pathPartIndex),
+                            unresolvedPathParts: unresolvedPathParts.slice(
+                                through.consumed,
+                            ),
                             visibleDescendantNames: [],
                         };
                     }
-                    // Inverse: a non-takesIndex segment must not have an
-                    // index. If it does the path is invalid — false positives
-                    // are worse than false negatives.
-                    if (
-                        pathNode &&
-                        !this._componentTakesIndex(pathNode.name) &&
-                        segmentHasIndex
-                    ) {
-                        return {
-                            node: null,
-                            unresolvedPathParts:
-                                lookupParts.slice(pathPartIndex),
-                            visibleDescendantNames: [],
-                        };
-                    }
+                    return {
+                        node: null,
+                        unresolvedPathParts: unresolvedPathParts.slice(
+                            through.consumed,
+                        ),
+                        partiallyResolvedNode: through.declarations[0],
+                        visibleDescendantNames: [],
+                    };
+                }
+                resolvedNode = through.declarations[0];
+                branchHop = {
+                    container: coreResolvedNode,
+                    names: unresolvedPathParts,
+                    indexed,
+                    namesIndexed,
+                };
+            } else {
+                // If any intermediate segment resolves through a takesIndex
+                // component without an index (e.g. $rep.myMath.), block
+                // member completions for that path. Indexed traversal must
+                // use $rep[n].member.  Separately validate that
+                // non-takesIndex segments do not have indices (false
+                // positives worse than false negatives).
+                const blocked = this._firstBlockedSegment(
+                    resolution.nodesInResolvedPath,
+                    lookupParts,
+                    effectivePathPartHasIndex,
+                    false,
+                );
+                if (blocked != null) {
+                    return {
+                        node: null,
+                        unresolvedPathParts: lookupParts.slice(blocked),
+                        visibleDescendantNames: [],
+                    };
                 }
             }
 
@@ -796,14 +973,53 @@ export class RustResolverAdapter {
                 };
             }
 
-            // For composites (conditionalContent, and any
-            // takesIndex composite with an index present), compute
-            // visible descendants by walking through wrapper children
-            // (case/else/option) transparently.
+            // A name the core left for a branch container: the names
+            // below it are those every branch's declaration shares.
+            if (branchHop) {
+                return {
+                    node: resolvedNode,
+                    unresolvedPathParts: [],
+                    visibleDescendantNames: sharedBranchNames(
+                        branchHop.container,
+                        branchHop.indexed,
+                        branchHop.names,
+                        branchHop.namesIndexed,
+                    ),
+                    hiddenMemberNames: unsharedBranchNames(
+                        branchHop.container,
+                        branchHop.indexed,
+                        branchHop.names,
+                        branchHop.namesIndexed,
+                    ),
+                };
+            }
+
+            // A branch container (a `<conditionalContent>`, a `<select>`
+            // that picks one, or any `<select>` after an index into its
+            // picks): the names every branch shares (issue #2455).
             if (
-                resolvedNode.name === "conditionalContent" ||
-                (resolvedPartHasEffectiveIndex &&
-                    this._componentTakesIndex(resolvedNode.name))
+                branchContainerKind(resolvedNode, resolvedPartHasEffectiveIndex)
+            ) {
+                return {
+                    node: resolvedNode,
+                    unresolvedPathParts: [],
+                    visibleDescendantNames: sharedBranchNames(
+                        resolvedNode,
+                        resolvedPartHasEffectiveIndex,
+                    ),
+                    hiddenMemberNames: unsharedBranchNames(
+                        resolvedNode,
+                        resolvedPartHasEffectiveIndex,
+                    ),
+                };
+            }
+
+            // For other takesIndex composites with an index present (a
+            // repeat), compute visible descendants by walking their
+            // children.
+            if (
+                resolvedPartHasEffectiveIndex &&
+                this._componentTakesIndex(resolvedNode.name)
             ) {
                 const names = collectNamesFromCompositeChildren(resolvedNode);
                 // For repeat/repeatForSequence, also expose
@@ -825,10 +1041,20 @@ export class RustResolverAdapter {
             let visibleDescendantNames =
                 this._getCachedVisibleDescendantNames(resolvedIdx);
             if (!visibleDescendantNames) {
-                const allNames =
-                    this._sourceObj.getUniqueDescendantNamesForNode(
-                        resolvedNode,
-                    );
+                // Names every branch of a branch container below it
+                // declares (`$sec.x` for an `x` in each case of a
+                // `<conditionalContent>` in `sec`, issue #2455), which the
+                // unique-name walk drops for being declared more than once.
+                // The probe below keeps those the core resolves through the
+                // container and the branches share.
+                const allNames = [
+                    ...new Set([
+                        ...this._sourceObj.getUniqueDescendantNamesForNode(
+                            resolvedNode,
+                        ),
+                        ...namesSharedByBranchesIn(resolvedNode),
+                    ]),
+                ];
                 const probeResults = await Promise.all(
                     allNames.map(async (name) => {
                         try {
@@ -845,17 +1071,32 @@ export class RustResolverAdapter {
                                 origin: resolvedIdx,
                                 skipParentSearch: true,
                             });
-                            // A fully-resolved path (no unresolved parts whose
-                            // first segment equals the original name) means the
-                            // name matched a visible descendant.
+                            const probeElement =
+                                this._rustIndexToDastElement.get(probe.nodeIdx);
+                            // A name the core leaves for a branch container
+                            // (`Ref::Branches`) is visible when every branch
+                            // declares it with one tag.
                             if (
                                 probe.unresolvedPath &&
                                 probe.unresolvedPath.length > 0
                             ) {
-                                return false;
+                                return (
+                                    probeElement != null &&
+                                    probe.unresolvedPath.length === 1 &&
+                                    probe.unresolvedPath[0].name === name &&
+                                    resolveThroughBranches(
+                                        probeElement,
+                                        [name],
+                                        false,
+                                    ) !== null &&
+                                    !this._isHiddenBySugar(
+                                        probe.nodeIdx,
+                                        offset,
+                                    )
+                                );
                             }
-                            const probeElement =
-                                this._rustIndexToDastElement.get(probe.nodeIdx);
+                            // Otherwise a fully-resolved path means the name
+                            // matched a visible descendant.
                             const probeName = probeElement
                                 ? getElementNameAttributeValue(probeElement)
                                 : null;
@@ -886,6 +1127,62 @@ export class RustResolverAdapter {
             // Resolution error (NoReferent, NonUniqueReferent, etc.)
             return null;
         }
+    }
+
+    /**
+     * The index of the first path segment among `parts` that is used wrongly
+     * as an intermediate, or `null` when none is: a takesIndex component
+     * reached without an index (`$rep.myMath.` must be `$rep[n].myMath.`),
+     * or a component that takes no index reached with one (false positives
+     * are worse than false negatives).
+     *
+     * Select-family containers with a literal `numToSelect="1"` (or no
+     * attribute) carry an implicit `[1]` per the strict rule in issue
+     * #1181, so they pass the takesIndex-without-index check as if the
+     * bracket were authored.
+     *
+     * `nodesInResolvedPath` is the core's; its trailing nodes are aligned
+     * with `parts`. The last of `parts` is checked only with
+     * `includeLast` — otherwise it is the node being completed, which the
+     * caller checks itself.
+     */
+    _firstBlockedSegment(
+        nodesInResolvedPath: number[],
+        parts: string[],
+        pathPartHasIndex: boolean[],
+        includeLast: boolean,
+    ): number | null {
+        if (parts.length === 0) return null;
+        if (!includeLast && nodesInResolvedPath.length <= 1) return null;
+        // Rust includes the origin in nodesInResolvedPath, but when the
+        // origin is also the first resolved segment it may not be
+        // duplicated. Align to `parts` by taking the trailing nodes that
+        // correspond to the resolved path segments.
+        const alignedPathNodeIndices = nodesInResolvedPath.slice(-parts.length);
+        const checkedPathNodeIndices = includeLast
+            ? alignedPathNodeIndices
+            : alignedPathNodeIndices.slice(0, -1);
+        for (
+            let pathPartIndex = 0;
+            pathPartIndex < checkedPathNodeIndices.length;
+            pathPartIndex++
+        ) {
+            const pathNode = this._rustIndexToDastElement.get(
+                checkedPathNodeIndices[pathPartIndex],
+            );
+            if (!pathNode) continue;
+            const segmentHasIndex = pathPartHasIndex[pathPartIndex] ?? false;
+            const segmentHasEffectiveIndex =
+                segmentHasIndex || hasImplicitSingleIndex(pathNode);
+            const takesIndex = this._componentTakesIndex(pathNode.name);
+            if (takesIndex && !segmentHasEffectiveIndex) {
+                return pathPartIndex;
+            }
+            if (!takesIndex && segmentHasIndex) {
+                return pathPartIndex;
+            }
+        }
+        return null;
     }
 
     /**
@@ -975,8 +1272,30 @@ export class RustResolverAdapter {
         const derivedRepeatNames = this.getDerivedRepeatNames(offset);
         if (derivedRepeatNames.includes(name)) return true;
 
+        return (await this._resolveBareName(offset, name)) !== null;
+    }
+
+    /**
+     * Resolve the bare reference `$name` typed at `offset` to the element
+     * it names, or `null` when it names none: the resolver finds no
+     * referent or several, or the element is hidden by sugar
+     * (`_isHiddenBySugar`).
+     *
+     * A name declared in the branches of a `<conditionalContent>` or a
+     * one-pick `<select>` (issue #2455) resolves through the container
+     * (`Ref::Branches`), to the active branch's declaration, when every
+     * branch declares it with one tag (`branchDeclarations`); the first
+     * branch's declaration is returned, standing for them all. Otherwise
+     * the runtime reports it missing (`doenet-w0183`, `doenet-w0184`), and
+     * it names none here.
+     */
+    async _resolveBareName(
+        offset: number,
+        name: string,
+    ): Promise<DastElement | null> {
+        if (!this._core) return null;
         const resolveFromIndex = this._referenceOriginIndex(offset);
-        if (resolveFromIndex == null) return false;
+        if (resolveFromIndex == null) return null;
 
         try {
             const resolution = await this._core.resolvePath({
@@ -996,26 +1315,173 @@ export class RustResolverAdapter {
             const resolvedElement = this._rustIndexToDastElement.get(
                 resolution.nodeIdx,
             );
-            const resolvedName = resolvedElement
-                ? getElementNameAttributeValue(resolvedElement)
-                : null;
-            if (resolvedName !== name) {
-                return false;
+            if (!resolvedElement) return null;
+
+            const unresolved = resolution.unresolvedPath ?? [];
+            if (unresolved.length > 0) {
+                if (unresolved.length !== 1 || unresolved[0].name !== name) {
+                    return null;
+                }
+                const through = resolveThroughBranches(
+                    resolvedElement,
+                    [name],
+                    false,
+                );
+                if (!through) return null;
+                // The container, like a declaration the core reaches
+                // directly, may be hidden by sugar (beside a select's
+                // options, or in a `<conditionalContent extend>`).
+                return this._isAmbiguousFromCursor(
+                    resolvedElement,
+                    name,
+                    offset,
+                ) || this._isHiddenBySugar(resolution.nodeIdx, offset)
+                    ? null
+                    : through.declarations[0];
             }
 
-            // Post-filter: check whether the resolved element is hidden
-            // by sugar at runtime.  In raw DAST (no sugar),
-            // conditionalContent and select children are direct children,
-            // but at runtime sugar wraps them in <case>/<option>, making
-            // deeper descendants invisible from outside the composite.
+            if (getElementNameAttributeValue(resolvedElement) !== name) {
+                return null;
+            }
+
+            if (
+                this._resolvedToOriginOrAncestor(
+                    resolvedElement,
+                    resolveFromIndex,
+                ) &&
+                this._isAmbiguousFromCursor(resolvedElement, name, offset)
+            ) {
+                return null;
+            }
+
+            // Post-filter: an element the resolver reaches directly but the
+            // runtime does not (see `_isHiddenBySugar`).
             if (this._isHiddenBySugar(resolution.nodeIdx, offset)) {
-                return false;
+                return null;
             }
 
-            return true;
+            return resolvedElement;
         } catch {
-            return false;
+            return null;
         }
+    }
+
+    /**
+     * Whether `resolved`, which the core resolved `name` to from a resolve
+     * origin, is that origin or one of its ancestors. The core resolves a
+     * name that is ambiguous where it is found to the origin, or the
+     * origin's ancestor, when that is one of its referents ("resolve back
+     * to the child" in `search_parents`, `ref_resolve/resolve.rs`, as `$p`
+     * inside one of two `<problem name="p">`s). A reference typed at the cursor is not
+     * that origin (`_referenceOriginIndex` picks an existing element near
+     * the cursor), so such a result needs `_isAmbiguousFromCursor`.
+     */
+    _resolvedToOriginOrAncestor(
+        resolved: DastElement,
+        originIdx: number,
+    ): boolean {
+        let node: DastElement | undefined =
+            this._rustIndexToDastElement.get(originIdx);
+        while (node) {
+            if (node === resolved) return true;
+            const parent = this._sourceObj.getParent(node);
+            node =
+                parent && parent.type === "element"
+                    ? (parent as DastElement)
+                    : undefined;
+        }
+        return false;
+    }
+
+    /**
+     * Whether a reference `$name` at `offset` that the core resolved to
+     * `resolved` (a declaration, or a branch container the name resolves
+     * through) would be ambiguous: `name` is declared more than once where
+     * the reference finds it, the nearest element holding both the cursor
+     * and `resolved`. Undecided (`false`) when the cursor is inside
+     * `resolved`, where the core rightly prefers it.
+     *
+     * Guards against the core's "resolve back to the child" tie-break (see
+     * `_resolvedToOriginOrAncestor`), which applies when the origin is one
+     * of the referents: the resolve origin is an element near the cursor,
+     * not the reference itself, so the tie-break can pick a referent a
+     * reference at the cursor would find ambiguous. A name declared in the
+     * branches of a container is one declaration (`Ref::Branches`).
+     */
+    _isAmbiguousFromCursor(
+        resolved: DastElement,
+        name: string,
+        offset: number,
+    ): boolean {
+        const cursorChain = new Set<unknown>();
+        let node: DastElement | undefined =
+            this._sourceObj.elementAtOffset(offset) ?? undefined;
+        while (node) {
+            cursorChain.add(node);
+            const parent = this._sourceObj.getParent(node);
+            node =
+                parent && parent.type === "element"
+                    ? (parent as DastElement)
+                    : undefined;
+        }
+        if (cursorChain.has(resolved)) return false;
+        let scope = this._sourceObj.getParent(resolved);
+        while (scope && scope.type === "element" && !cursorChain.has(scope)) {
+            scope = this._sourceObj.getParent(scope);
+        }
+        const nodes =
+            scope && scope.type === "element"
+                ? scope.children
+                : this._sourceObj.dast.children;
+        return countVisibleDeclarations(nodes as DastNodes[], name) > 1;
+    }
+
+    /**
+     * The element a bare `$name` at `offset` names when it is declared in
+     * the branches of a `<conditionalContent>` or a one-pick `<select>` and
+     * resolves through the container (issue #2455): the first branch's
+     * declaration, which shares its tag with the others. `null` for any
+     * other name, which the AST-only `resolveRefNameForHelp` handles.
+     *
+     * Lets the autocomplete detail and the help panel describe such a
+     * name, which the AST-only walk misses because it is declared more than
+     * once.
+     */
+    async resolveBranchNameFromOffset(
+        offset: number,
+        name: string,
+    ): Promise<DastElement | null> {
+        await this._pendingSync;
+        if (!this._enabled || !this._core) return null;
+        const element = await this._resolveBareName(offset, name);
+        if (!element) return null;
+        // Only a declaration inside a branch container; a plain name is the
+        // AST walk's to describe.
+        let parent = this._sourceObj.getParent(element);
+        while (parent && parent.type === "element") {
+            if (branchContainerKind(parent)) return element;
+            parent = this._sourceObj.getParent(parent);
+        }
+        return null;
+    }
+
+    /**
+     * Candidate names for a bare `$` completion that the AST-only name walk
+     * leaves out: names every branch of some `<conditionalContent>` or
+     * one-pick `<select>` declares (`namesSharedByBranchesIn`), which that
+     * walk drops for being declared more than once. Whether one resolves
+     * from a given cursor is still decided by `isNameAddressableFromOffset`.
+     */
+    getBranchSharedNames(): string[] {
+        if (
+            this._branchSharedNames &&
+            this._branchSharedNames.source === this._sourceObj.source
+        ) {
+            return this._branchSharedNames.names;
+        }
+        const names = namesSharedByBranchesIn(this._sourceObj.dast);
+        this._branchSharedNames = { source: this._sourceObj.source, names };
+        return names;
     }
 
     /**
@@ -1101,7 +1567,36 @@ export class RustResolverAdapter {
                 resolution.unresolvedPath &&
                 resolution.unresolvedPath.length > 0
             ) {
-                return "indeterminate";
+                // Names the core left for a branch container that every
+                // branch declares resolve to the active branch's
+                // (issue #2455).
+                const container = this._rustIndexToDastElement.get(
+                    resolution.nodeIdx,
+                );
+                const unresolved = resolution.unresolvedPath.map((p) => p.name);
+                const through = container
+                    ? resolveThroughBranches(container, unresolved, false)
+                    : null;
+                if (!through || through.consumed !== unresolved.length) {
+                    return "indeterminate";
+                }
+                // A hop at the first name is a bare `$x` (see
+                // `_resolveBareName`).
+                if (unresolved.length === pathParts.length) {
+                    if (
+                        this._isAmbiguousFromCursor(
+                            container!,
+                            pathParts[0],
+                            offset,
+                        )
+                    ) {
+                        return "multiple";
+                    }
+                    if (this._isHiddenBySugar(resolution.nodeIdx, offset)) {
+                        return "indeterminate";
+                    }
+                }
+                return "found";
             }
             // For a bare name, confirm the resolved element actually bears the
             // name and isn't sugar-hidden before claiming "found".
@@ -1126,55 +1621,77 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Check whether a resolved node at `rustIdx` would be hidden by
-     * `conditionalContent` / `select` sugar when the cursor is at `offset`.
+     * Check whether a node at `rustIdx` the resolver reached directly
+     * should be left out for a reference at `cursorOffset`: one inside a
+     * `<conditionalContent>` or `<select>` the cursor is outside of, held
+     * there by a child that is not one of its branches (`<case>`/`<else>`,
+     * `<option>`).
      *
-     * In raw DAST, children of `<conditionalContent>` that are NOT wrapped
-     * in explicit `<case>`/`<else>` are direct children.  At runtime,
-     * `conditionalContentSugar` wraps them in `<case><group>…</group></case>`,
-     * and `<case>` is in `CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS`, so those
-     * children become invisible from outside.  Explicit `<case name="…">`
-     * children remain accessible because they ARE direct children of cc.
+     * The resolver already keeps what a reference cannot see out of reach:
+     * a name in a branch it resolves through the container
+     * (`Ref::Branches`, see `_resolveBareName`), and a name in an option of
+     * a `<select>` that picks several stays private. What is left is
+     * content written beside the branches, which is not a branch:
      *
-     * The same pattern applies to `<select>` / `<option>` via `selectSugar`.
+     * - a `<select>` child that is not an `<option>` (`selectSugar` wraps
+     *   only text and references), and a `<conditionalContent>` child
+     *   beside its `<case>`s (its sugar wraps the children only when there
+     *   is no `<case>` or `<else>`). The runtime reports such a child as
+     *   invalid (`doenet-w0107`), though a reference to a name in it still
+     *   resolves; autocomplete does not steer the author to it.
+     * - the children of a `<conditionalContent extend>`, which gets no
+     *   sugar; the runtime reports them (`doenet-e0057`) and a reference
+     *   to a name in them names nothing.
+     *
+     * A branch itself (`<case name="…">`) remains addressable.
      */
     _isHiddenBySugar(rustIdx: number, cursorOffset: number): boolean {
         const resolvedElement = this._rustIndexToDastElement.get(rustIdx);
         if (!resolvedElement) return false;
 
+        let child: DastElement = resolvedElement;
         let parent = this._sourceObj.getParent(resolvedElement);
 
-        while (parent && parent.type !== "root") {
+        while (parent && parent.type === "element") {
+            const containerTag = parent.name.toLowerCase();
             if (
-                parent.type === "element" &&
-                (parent.name === "conditionalContent" ||
-                    parent.name === "select")
+                containerTag === "conditionalcontent" ||
+                containerTag === "select"
             ) {
                 const start = parent.position?.start?.offset;
                 const end = parent.position?.end?.offset;
-                // Cursor is outside this composite element
-                if (
+                const cursorOutside =
                     start != null &&
                     end != null &&
-                    (cursorOffset < start || cursorOffset >= end)
-                ) {
-                    // Only direct children that are wrapper elements
-                    // (case/else/option) remain visible from outside — these
-                    // are NOT re-wrapped by sugar.  Everything else (direct
-                    // non-wrapper children that sugar will wrap, or deeper
-                    // descendants already behind a wrapper barrier) is hidden.
-                    const resolvedParent =
-                        this._sourceObj.getParent(resolvedElement);
-                    if (!(
-                        resolvedParent &&
-                        resolvedParent.type === "element" &&
-                        resolvedParent === parent &&
-                        COMPOSITE_WRAPPER_NAMES.has(resolvedElement.name)
-                    )) {
-                        return true;
-                    }
+                    (cursorOffset < start || cursorOffset >= end);
+                // Branch tags are matched exactly, as the parser's sugar
+                // and the core do (`branchesAndStrays`): an `<Else>` is
+                // not a branch (`doenet-e0002`). The container tag is not,
+                // so that a container written in another case hides more,
+                // never less.
+                const childTag = child.name;
+                const childIsBranch =
+                    containerTag === "select"
+                        ? childTag === "option"
+                        : childTag === "case" || childTag === "else";
+                // A `<conditionalContent>` with no `<case>` or `<else>` is
+                // sugared into one case holding all its children (unless it
+                // is written with `extend`; one written with `copy` is
+                // conservatively treated the same), and the resolver sees
+                // the case.
+                const sugaredIntoCase =
+                    containerTag === "conditionalcontent" &&
+                    !isWrittenAsCopyOrExtend(parent) &&
+                    !parent.children.some(
+                        (c) =>
+                            c.type === "element" &&
+                            (c.name === "case" || c.name === "else"),
+                    );
+                if (cursorOutside && !childIsBranch && !sugaredIntoCase) {
+                    return true;
                 }
             }
+            child = parent;
             parent = this._sourceObj.getParent(parent);
         }
         return false;

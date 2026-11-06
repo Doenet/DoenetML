@@ -578,7 +578,7 @@ describe(
 
     <group extend="$g" name="g2" />
 
-    <group copy="$g" name="g3" />
+    <group copyWithState="$g" name="g3" />
 
     <p name="p3">Enter <selectFromSequence name="m" />. <answer name="ans">$m</answer></p>
     `;

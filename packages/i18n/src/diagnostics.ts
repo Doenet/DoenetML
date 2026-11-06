@@ -276,6 +276,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0182": "reference-index-use-property",
     "doenet-w0183": "reference-name-missing-in-branch",
     "doenet-w0184": "reference-name-types-differ-in-branches",
+    "doenet-w0185": "copy-with-state-of-uri",
+    "doenet-w0186": "copy-with-state-attribute-reaches-choice",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -344,6 +346,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0065": "type-change-unrelated",
     "doenet-e0066": "type-change-composite-types-differ",
     "doenet-e0067": "type-change-composite-type-unknown",
+    "doenet-e0068": "copy-with-state-changes-choice",
+    "doenet-e0069": "copy-with-state-adds-options",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

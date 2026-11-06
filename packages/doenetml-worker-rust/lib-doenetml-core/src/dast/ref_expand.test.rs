@@ -413,6 +413,63 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
     );
 }
 
+/// `copyWithState` is matched as `copy` is, and is marked apart from it, so
+/// the worker can carry the source's state and random choices (D33).
+#[test]
+fn can_expand_a_copy_with_state_attribute_to_a_node_ref() {
+    for attribute in ["copyWithState", "copywithstate"] {
+        let source = format!(r#"<point name="p"/><point {attribute}="$p" foo="bar" />"#);
+        let dast_root = dast_root_no_position(&source);
+        let mut flat_root = FlatRoot::from_dast(&dast_root);
+        Expander::expand(&mut flat_root);
+        let FlatNode::Element(copy) = &flat_root.nodes[2] else {
+            panic!("{attribute}: expected an element");
+        };
+        assert_json_eq!(
+            serde_json::to_value(&copy.extending).unwrap(),
+            json!({
+              "CopyWithStateAttribute": {
+                "nodeIdx": 1,
+                "unresolvedPath": null,
+                "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
+                "nodesInResolvedPath": [2, 1],
+              }
+            })
+        );
+        // the attribute is consumed; the others stay
+        assert_eq!(copy.attributes.len(), 1, "{attribute}");
+        assert_eq!(copy.attributes[0].name, "foo", "{attribute}");
+    }
+}
+
+/// Writing two of `extend`, `copy` and `copyWithState` on one element is an error.
+#[test]
+fn copy_and_copy_with_state_together_are_an_error() {
+    let source = r#"<point name="p"/><point copy="$p" copyWithState="$p" />"#;
+    let dast_root = dast_root_no_position(source);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+    let FlatNode::Element(copy) = &flat_root.nodes[2] else {
+        panic!("expected an element");
+    };
+    assert!(copy.extending.is_none());
+    let errors: Vec<_> = copy
+        .children
+        .iter()
+        .filter_map(|child| match child {
+            UntaggedContent::Ref(idx) => match &flat_root.nodes[*idx] {
+                FlatNode::Error(e) => Some(e.message.clone()),
+                _ => None,
+            },
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        errors,
+        vec!["Duplicate `extend`, `copy` or `copyWithState` attributes".to_string()]
+    );
+}
+
 #[test]
 fn can_expand_a_copy_attribute_to_a_node_ref() {
     let source = r#"<point name="p"/><point copy="$p" foo="bar" />"#;
@@ -716,7 +773,7 @@ fn a_reference_with_more_than_one_referent_is_coded() {
 /// error rather than a warning, as a tag always makes that tag (D36).
 #[test]
 fn an_index_that_names_nothing_in_an_extend_attribute_is_coded() {
-    for attribute in ["extend", "copy"] {
+    for attribute in ["extend", "copy", "copyWithState"] {
         let source = format!(r#"<mathList name="l">1 2</mathList><math {attribute}="$l[0]" />"#);
         let dast_root = dast_root(&source);
         let mut flat_root = FlatRoot::from_dast(&dast_root);

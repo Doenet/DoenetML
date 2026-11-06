@@ -6,6 +6,7 @@ import {
     returnBreakStringsIntoTypeSugarInstruction,
     returnListValueStateVariableDefinitions,
 } from "../utils/listValues";
+import { returnReplacementsToHideDefinitions } from "../utils/replacementsToHide";
 
 /**
  * The permutation taking `previous` to `current`, or `null` if `current` is
@@ -327,6 +328,32 @@ export default class Sort extends CompositeComponent {
         );
 
         stateVariableDefinitions.sortedValues = returnSortedValuesDefinition();
+
+        // What each replacement copies, in order, as
+        // `createSerializedReplacements` makes them.
+        stateVariableDefinitions.replacementSourceKeys = {
+            returnDependencies: () => ({
+                sortedValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "sortedValues",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    replacementSourceKeys: dependencyValues.sortedValues.map(
+                        (valueObj) =>
+                            valueObj.listInd === undefined
+                                ? valueObj.componentIdx
+                                : `${valueObj.componentIdx}|${valueObj.listInd}`,
+                    ),
+                },
+            }),
+        };
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnReplacementsToHideDefinitions("replacementSourceKeys"),
+        );
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({

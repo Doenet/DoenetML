@@ -12,6 +12,12 @@ import {
     unwrapSource,
 } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
+import { authoredOfLiteral, literalWithValue } from "../utils/literalAttribute";
+import {
+    holdAttributeComponentAt,
+    holdUnresolvedAttributeAt,
+    valueAsWritten,
+} from "../utils/heldChoiceAttribute";
 export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
 
@@ -435,7 +441,13 @@ export default class Repeat extends CompositeComponent {
         );
         nComponents = aliasResult.nComponents;
 
-        if (component.unlinkedCopySource && !isUpdate) {
+        // only for a `copyWithState`: a `copy` makes its iterations as
+        // written, with its own random choices (D33)
+        if (
+            component.unlinkedCopySource &&
+            !component.unlinkedCopyWithoutReaderState &&
+            !isUpdate
+        ) {
             await copyStateFromUnlinkedSource({
                 components,
                 component,
@@ -791,7 +803,8 @@ export default class Repeat extends CompositeComponent {
     }
 }
 
-// If a repeat is an unlinked copy of another repeat,
+// If a repeat is a `copyWithState` of another repeat (an unlinked copy that
+// carries its source's state; a `copy` does not, D33),
 // then when its replacements are created,
 // they should be initialized with the current state
 // of the original repeat's replacements.
@@ -816,10 +829,12 @@ export async function copyStateFromUnlinkedSource({
             copyEssentialState: true,
         });
 
-        copyStateFromUnlinkedSourceSub(
-            replacement.children,
-            serializedSourceGroup.children,
-        );
+        await copyStateFromUnlinkedSourceSub({
+            replacements: replacement.children,
+            sources: serializedSourceGroup.children,
+            components,
+            componentInfoObjects,
+        });
 
         // The iteration also takes the variant the source's iteration
         // generated, so that it hands its random descendants their
@@ -867,11 +882,13 @@ export async function copyStateFromUnlinkedSource({
 // `<repeat copy="$r">` follow the copied template and have no source.
 // With `copyVariants` false, as for the components in an attribute and their
 // descendants, no component takes its source's variant: see below.
-function copyStateFromUnlinkedSourceSub(
+async function copyStateFromUnlinkedSourceSub({
     replacements,
     sources,
     copyVariants = true,
-) {
+    components,
+    componentInfoObjects,
+}) {
     for (let [i, repl] of replacements.entries()) {
         let src = sources[i];
 
@@ -881,6 +898,19 @@ function copyStateFromUnlinkedSourceSub(
             repl.componentType === src.componentType
         ) {
             repl.state = src.state;
+            // with what the source was made with, so that a `copy` of the
+            // replacement starts as the source was written, not with the
+            // state carried (`initialEssentialState`, D33)
+            for (const field of [
+                "initialEssentialState",
+                "authoredPrimitiveChildren",
+            ]) {
+                if (src[field] !== undefined) {
+                    repl[field] = src[field];
+                } else {
+                    delete repl[field];
+                }
+            }
 
             // A random component makes its choices from its variant, not its
             // state, so each takes the variant of its source. The copy's
@@ -894,14 +924,26 @@ function copyStateFromUnlinkedSourceSub(
             }
 
             if (repl.children && src.children) {
-                copyStateFromUnlinkedSourceSub(
-                    repl.children,
-                    src.children,
+                await copyStateFromUnlinkedSourceSub({
+                    replacements: repl.children,
+                    sources: src.children,
                     copyVariants,
-                );
+                    components,
+                    componentInfoObjects,
+                });
             }
 
             for (let attrName in repl.attributes) {
+                if (repl.attributes[attrName].keepSourceIterationValue) {
+                    await holdAtSourceIterationValue({
+                        repl,
+                        src,
+                        attrName,
+                        components,
+                        componentInfoObjects,
+                    });
+                    continue;
+                }
                 if (
                     repl.attributes[attrName].component &&
                     src.attributes[attrName]?.component
@@ -914,11 +956,13 @@ function copyStateFromUnlinkedSourceSub(
                     // and each iteration of the nested repeat would draw the
                     // seed the one before it drew in the source. Left to
                     // draw, it draws its source's seed.
-                    copyStateFromUnlinkedSourceSub(
-                        [repl.attributes[attrName].component],
-                        [src.attributes[attrName].component],
-                        false,
-                    );
+                    await copyStateFromUnlinkedSourceSub({
+                        replacements: [repl.attributes[attrName].component],
+                        sources: [src.attributes[attrName].component],
+                        copyVariants: false,
+                        components,
+                        componentInfoObjects,
+                    });
                 } else if (
                     repl.attributes[attrName].type === "literal" &&
                     ("value" in repl.attributes[attrName] ||
@@ -935,12 +979,62 @@ function copyStateFromUnlinkedSourceSub(
                     // essential state of its coordinates. A literal written
                     // as text is not: the component kept a write in its text
                     // child, not its state.
+                    // What the author wrote is kept (`authored`), for a
+                    // `copy` of the replacement (D33).
                     repl.attributes[attrName] = {
-                        ...repl.attributes[attrName],
-                        value: src.attributes[attrName].value,
+                        ...literalWithValue(
+                            repl.attributes[attrName],
+                            src.attributes[attrName].value,
+                        ),
+                        authored:
+                            src.attributes[attrName].authored ??
+                            authoredOfLiteral(repl.attributes[attrName]),
                     };
                 }
             }
+        }
+    }
+}
+
+/**
+ * An attribute of a choosing tag in the template of a `copyWithState` of a
+ * `<module>`, reached by a module attribute written on it
+ * (`keepSourceIterationValue`, set by `keepChoicesReachedByModuleAttributes`
+ * in `Copy.js`, `doenet-w0186`), is held at the value the source's
+ * iteration (`src`, serialized from it) chose with, so the choices the
+ * iteration (`repl`) carries from it still fit. A value that can't be
+ * written back as text (`valueAsWritten`) is left to the module attribute,
+ * as outside a template.
+ */
+async function holdAtSourceIterationValue({
+    repl,
+    src,
+    attrName,
+    components,
+    componentInfoObjects,
+}) {
+    const attribute = repl.attributes[attrName];
+    delete attribute.keepSourceIterationValue;
+    const lowerName = attrName.toLowerCase();
+    let text;
+    if (attribute.type === "unresolved") {
+        // A choosing tag written with `copy` or `extend` (a `_copy`): the
+        // value the source's wrapper gave what it made
+        const madeBySource = components[src.originalIdx]?.replacements?.[0];
+        const sourceAttribute = Object.entries(
+            madeBySource?.attributes ?? {},
+        ).find(([name]) => name.toLowerCase() === lowerName)?.[1]?.component;
+        text = await valueAsWritten(sourceAttribute);
+        if (text !== undefined) {
+            holdUnresolvedAttributeAt({ attribute, text });
+        }
+    } else if (attribute.type === "component") {
+        const sourceAttribute = Object.entries(src.attributes ?? {}).find(
+            ([name]) => name.toLowerCase() === lowerName,
+        )?.[1]?.component;
+        text = await valueAsWritten(components[sourceAttribute?.originalIdx]);
+        if (text !== undefined) {
+            holdAttributeComponentAt({ attribute, text, componentInfoObjects });
         }
     }
 }

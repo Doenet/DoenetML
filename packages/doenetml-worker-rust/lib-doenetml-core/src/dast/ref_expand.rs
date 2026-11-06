@@ -235,10 +235,11 @@ impl Expander {
                     // nothing to do.
                     continue;
                 }
-                if !e.attributes.iter().any(|attr| {
-                    attr.name.eq_ignore_ascii_case("extend")
-                        || attr.name.eq_ignore_ascii_case("copy")
-                }) {
+                if !e
+                    .attributes
+                    .iter()
+                    .any(|attr| is_extend_or_copy_attribute(&attr.name))
+                {
                     continue;
                 }
             } else {
@@ -257,10 +258,7 @@ impl Expander {
             if element
                 .attributes
                 .iter()
-                .filter(|attr| {
-                    attr.name.eq_ignore_ascii_case("extend")
-                        || attr.name.eq_ignore_ascii_case("copy")
-                })
+                .filter(|attr| is_extend_or_copy_attribute(&attr.name))
                 .count()
                 > 1
             {
@@ -271,7 +269,8 @@ impl Expander {
                         error_type: Some(ErrorType::Error),
                         code: None,
                         args: None,
-                        message: "Duplicate `extend` or `copy` attributes".to_string(),
+                        message:
+                            "Duplicate `extend`, `copy` or `copyWithState` attributes".to_string(),
                         position: element.position.clone(),
                         source_doc: element.source_doc,
                     }),
@@ -285,10 +284,7 @@ impl Expander {
             let extend_or_copy = element
                 .attributes
                 .iter()
-                .find(|attr| {
-                    attr.name.eq_ignore_ascii_case("extend")
-                        || attr.name.eq_ignore_ascii_case("copy")
-                })
+                .find(|attr| is_extend_or_copy_attribute(&attr.name))
                 // Should be safe because we already verified we have an `extend` or `copy` attribute
                 .unwrap();
 
@@ -403,10 +399,9 @@ impl Expander {
                 element.children.push(error);
 
                 // Remove the `extend` or `copy` attribute since it has been replaced with an error
-                element.attributes.retain(|attr| {
-                    !(attr.name.eq_ignore_ascii_case("extend")
-                        || attr.name.eq_ignore_ascii_case("copy"))
-                });
+                element
+                    .attributes
+                    .retain(|attr| !is_extend_or_copy_attribute(&attr.name));
 
                 // We took this memory earlier, so we need to put it back.
                 flat_root.nodes[i] = node;
@@ -419,20 +414,31 @@ impl Expander {
             // from the one specified in the element)
             if extend_or_copy.name.eq_ignore_ascii_case("copy") {
                 element.extending = extend_referent.map(|source| source.as_copy_attribute());
+            } else if extend_or_copy.name.eq_ignore_ascii_case("copyWithState") {
+                element.extending =
+                    extend_referent.map(|source| source.as_copy_with_state_attribute());
             } else {
                 element.extending = extend_referent.map(|source| source.as_extend_attribute());
             }
 
             // We successfully consumed the `extend` or `copy` attribute, so remove the `extend` or `copy` attribute.
-            element.attributes.retain(|attr| {
-                !(attr.name.eq_ignore_ascii_case("extend")
-                    || attr.name.eq_ignore_ascii_case("copy"))
-            });
+            element
+                .attributes
+                .retain(|attr| !is_extend_or_copy_attribute(&attr.name));
 
             // Put ourselves back into `flat_root` (we took the memory earlier)
             flat_root.nodes[i] = node;
         }
     }
+}
+
+/// Whether `name` is one of the attributes that make an element from a
+/// reference: `extend`, `copy` or `copyWithState`, matched without regard to
+/// case.
+pub fn is_extend_or_copy_attribute(name: &str) -> bool {
+    name.eq_ignore_ascii_case("extend")
+        || name.eq_ignore_ascii_case("copy")
+        || name.eq_ignore_ascii_case("copyWithState")
 }
 
 /// Return the index of the referent of `UntaggedContent` if it is a reference.

@@ -52,20 +52,36 @@ export function expressionAttributeVariable(
  * The expression attribute an unlinked copy of `owner` takes in place of
  * `attribute`: its references, which the copy resolves from where it is,
  * and the text written to its nodes as it is now, as a copy of the
- * attribute component held its state.
+ * attribute component held its state. Without `withWrites`, as for a
+ * `copy`, which carries no reader state (D33), it takes only what the
+ * attribute was made with (`authoredWrites`): a copy with reader state
+ * (`copyWithState`) is made with the writes it carried, and keeps what its
+ * source was made with as `authoredWrites`, so that a `copy` of it starts
+ * as its source was written.
  */
-export function copyOfExpressionAttribute(attribute: any, owner: any) {
-    const { writes, ...rest } = attribute;
+export function copyOfExpressionAttribute(
+    attribute: any,
+    owner: any,
+    withWrites = true,
+) {
+    const { writes, authoredWrites, ...rest } = attribute;
+    // what it was made with: a held value's, or an unlinked copy's, which is
+    // its default, unless that copy carried a reader's writes
+    const madeWith = authoredWrites ?? writes;
     // what was written to it, or, while nothing has been, what it was made
-    // with (an unlinked copy's, which is its default)
-    const written =
-        owner.essentialState?.[
-            `${expressionAttributePrefix(attribute.name)}writes`
-        ] ?? writes;
+    // with
+    const written = withWrites
+        ? (owner.essentialState?.[
+              `${expressionAttributePrefix(attribute.name)}writes`
+          ] ?? writes)
+        : madeWith;
+    const nonEmpty = (value: any) =>
+        value && Object.keys(value).length > 0 ? value : undefined;
     return {
         ...structuredClone(rest),
-        ...(written && Object.keys(written).length > 0
-            ? { writes: structuredClone(written) }
+        ...(nonEmpty(written) ? { writes: structuredClone(written) } : {}),
+        ...(withWrites && (nonEmpty(written) || nonEmpty(madeWith))
+            ? { authoredWrites: structuredClone(madeWith ?? {}) }
             : {}),
     };
 }

@@ -1661,3 +1661,32 @@ chart-histogram-categories-ignored =
 # so there is no slot for a width to be a fraction of.
 chart-histogram-bar-width-ignored =
     A histogram's bars are adjacent, with no gap between them, so `barWidth` was not used. Give `bins` fewer cut points to draw wider bars.
+
+## copy and copyWithState (D33)
+
+# `copyWithState` keeps the random choices of what it copies, so an attribute
+# written on it that decides what a choosing tag chooses, $attribute, such as
+# `numToSelect` on a `<select>`, can't take effect. `copy` makes a new
+# $componentType that chooses again. $attribute and $componentType stay in
+# English.
+copy-with-state-changes-choice = `{ $attribute }` decides what this `<{ $componentType }>` chooses, so it can't be written on a `copyWithState`, which keeps the choices it copies. Use `copy` to make a new `<{ $componentType }>` that chooses again.
+
+# As `copy-with-state-changes-choice`, for a child $childType (an `<option>` of
+# a `<select>`, a `<choice>` of a `<choiceInput>` that shuffles its order)
+# added inside a `copyWithState`, which would change what it chooses. $kind is
+# `text` when what was added is text whose pieces become choices (the `4 5` of
+# `<shuffle copyWithState="$s">4 5</shuffle>`), and `element` otherwise.
+copy-with-state-adds-options =
+    { $kind ->
+        [text] Adding text to a `copyWithState` of a `<{ $componentType }>` would add to what it chooses from, which a `copyWithState` keeps. Use `copy` to make a new `<{ $componentType }>` that chooses again.
+       *[other] Adding a `<{ $childType }>` to a `copyWithState` of a `<{ $componentType }>` would change what it chooses, which a `copyWithState` keeps. Use `copy` to make a new `<{ $componentType }>` that chooses again.
+    }
+
+# A document loaded from a URI, $uri, has no reader state, so a
+# `copyWithState` of it has nothing to carry and is made as a `copy`.
+copy-with-state-of-uri = `copyWithState` of `{ $uri }` carries nothing more than `copy`, since a document loaded from a URI has no state. Write `copy`.
+
+# An attribute $attribute written on a `copyWithState` reaches a choosing tag
+# inside it, such as a `<module>` attribute that sets a nested `numToSelect`.
+# The choices copied with the state are kept, so it changes nothing there.
+copy-with-state-attribute-reaches-choice = `{ $attribute }` reaches a choice inside this `copyWithState`, which keeps the choices it copies, so it does not change them. Use `copy` to make the choices again.

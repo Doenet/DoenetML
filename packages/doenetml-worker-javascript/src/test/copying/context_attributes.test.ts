@@ -317,7 +317,7 @@ describe("Fixed and fixLocation of references @group4", () => {
     <p fixed><math extend="$m" name="early" /></p>
     <conditionalContent condition="$show" name="cc"><p fixed><math extend="$m" name="late" /></p></conditionalContent>
     <booleanInput name="showCopy" />
-    <conditionalContent condition="$showCopy" name="cc2"><section copy="$s" name="sc" /></conditionalContent>
+    <conditionalContent condition="$showCopy" name="cc2"><section copyWithState="$s" name="sc" /></conditionalContent>
     <section name="s"><math name="x">y</math></section>
     <section extend="$s" fixed="false" name="s2" />
     <booleanInput name="bx" bindValueTo="$s2.x.fixed" />
@@ -363,7 +363,7 @@ describe("Fixed and fixLocation of references @group4", () => {
         await set("bsx", true);
         await check({ "s.x": true, "s2.x": true });
 
-        // a component inside a copy made after the write has it
+        // a component inside a `copyWithState` made after the write has it
         await set("showCopy", true);
         await check({ "cc2[1].sc.x": true });
 
