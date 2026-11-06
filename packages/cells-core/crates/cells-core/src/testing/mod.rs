@@ -10,7 +10,8 @@ pub mod spec;
 pub mod test_utils;
 
 pub use crate::build::coverage::{
-    AbstractEdges, GraphAgreement, abstract_edges, template_graph_agreement, uncovered,
+    AbstractEdges, GraphAgreement, abstract_edges, definitions_disagreement,
+    template_graph_agreement, uncovered,
 };
 
 /// `f` of every item, computed on as many threads as the machine has

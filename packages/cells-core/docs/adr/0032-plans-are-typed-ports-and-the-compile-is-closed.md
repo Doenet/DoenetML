@@ -1,7 +1,8 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
 Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done,
-and the first three parts of step 8; see Migration. Builds on
+the first three parts of step 8, and the first piece of its fourth; see
+Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -785,6 +786,77 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
       warnings (ADR 0026), as passes that set the ports' attributes.
       Test: `tests/writable.rs`, `tests/live.rs`, `tests/refuse.rs` and
       the classing checks of `tests/every_count.rs`, unchanged.
+
+      It lands in four pieces. Define, the walks and the refuse analysis
+      read a cell's definition, not only what it reads: which operator,
+      its inputs in order, which of them its inverse writes, what holds
+      it. So the graph first carries each node's definition as the
+      abstract build's slot carries its source, and only then does
+      define move.
+
+      1. **Definitions.** Every node is defined as the abstract build
+         defines its slot (`Def`: given, constant, alias, an operator
+         over its inputs in order, a vector output), with what else
+         defines it in later iterations, the flags that hold it, what
+         seeds it, the author's binary operators, the counted values and
+         the ports whose plan may give a document constant; a node's
+         reads are its definitions'. Test: each element port's
+         definition, unfolded through every other node to element
+         ports, is the abstract build's resolved source, with the same
+         later sources, flags, seed and marks, on every document.
+      2. **Define and the walks.** Cells by a union-find over the
+         aliases, each cell's defining node, orientation of the author's
+         operators (ADR 0026), the prefill rule, the writable and live
+         walks (ADR 0018, ADR 0019) with the stamped tree's placement for
+         the live roots, and from them each port's attributes. Test:
+         the attributes are the abstract build's on every document, and
+         a prefill the rule refuses is refused on the same element.
+      3. **The refuse warnings** (ADR 0026), `program::refuse::Graph`
+         over the graph's cells. Test: the warnings are the abstract
+         build's on every document.
+      4. **The compile reads the graph's.** The ports' attributes, the
+         warnings and the prefill rule's boxes come from the graph, and
+         the abstract build's walks, `Defined::by_walk`,
+         `AbstractFindings` and its orientation leave it, which then
+         serves only the input signature (step 5) and its own failures
+         (step 6). Test: every test unchanged.
+
+      The first is done. The graph's nodes carry `Def`
+      (`compile/graph/mod.rs`); constants and the missing value are
+      nodes of their own, one per value, as the build's are; math is
+      instantiated per template, shared by expression class for an
+      element no hold makes its own (ADR 0033), and lowered to operator
+      nodes once per node of the instantiated expression, a literal
+      second where the operator allows it and `k - b` as `-b + k`; a
+      symbolic text is a template over a leaf node per occurrence, or
+      the leaf itself when it is one math leaf (`compile/graph/math.rs`).
+      The aggregates are their operators (a weighted mean in chunks with
+      its total, a credit's `NanTo`, the gates' products, the sections'
+      sums), with the counted values found as the abstract build finds
+      them; a stand-in reads its members as the abstract build's does
+      (`Truthy`, a chain of `Max`, a `Choose` by a conditional content's
+      choice); a choose over a dynamic index chunks as the build's; and
+      the holds make their copies and list their flags.
+      `testing::definitions_disagreement` compares each element port's
+      definition, unfolded to element ports, with the abstract build's
+      resolved slots, their later sources, flags, seeds, counted and
+      document marks; values are left out, since a math handle's is the
+      engine's. `tests/template_graph.rs` holds every document to it, and
+      breaking any of eight constructs (a literal's order, a counted
+      credit, the flags, a seed, a case's `Eq`, a stand-in's `Truthy`,
+      the document marks, a lone math leaf) fails it. The golden diff is
+      unchanged. The stamping now does the math a second time beside
+      the abstract build's, which part 4's last piece and step 6 take
+      back: at 10,000 elements it takes 3.4 ms of depth's load, 11 ms of
+      refs' and coords', 15 ms of poly's (from 2.0, 7.2, 4.8 and 4.7),
+      with the graph's maps on the compile's word hasher (`share::Fx`),
+      the lowering memo a vector, and the reads one flat list. The
+      constants are keyed by a hasher that mixes every bit: a whole
+      number's bits end in zeros, which the word hasher keeps, so 10,000
+      distinct literals fell into one bucket and cost breadth and
+      isolated 30%. `load-diff.sh` against 5323bf3 puts poly at 1.08 to
+      1.14 times its load, coords at 1.00 to 1.13, and every other shape
+      within 1.05.
    5. **The input signature over the graph.** ADR 0035's signature
       reads the graph's definitions instead of the abstract build's.
       Test: `tests/safe_edits.rs` unchanged.

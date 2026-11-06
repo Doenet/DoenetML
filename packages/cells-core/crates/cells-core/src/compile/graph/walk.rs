@@ -209,7 +209,7 @@ impl<'c> Stamp<'c> {
             return At::Missing;
         };
         let w = self.stand_in(self.component_type(first), t, members);
-        self.stand_in_reads(w, None);
+        self.stand_in_sources(w, None);
         self.picks.insert(cid, w);
         At::Comp(Comp::Made(w))
     }
@@ -311,11 +311,16 @@ impl<'c> Stamp<'c> {
             })
             .collect();
         let n = columns.iter().map(Vec::len).max().unwrap_or(1);
+        let index = self.or_missing(index);
         (0..n)
             .map(|j| {
-                let nodes: Vec<Option<GraphNode>> = columns
+                // A missing item names as many missing values as the rest.
+                let nodes: Vec<GraphNode> = columns
                     .iter()
                     .map(|col| col.get(j).copied().flatten())
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .map(|n| self.or_missing(n))
                     .collect();
                 Some(self.choose_over(index, &index_label, &nodes, &walk_label, t))
             })
@@ -328,49 +333,45 @@ impl<'c> Stamp<'c> {
     /// index's chunk number.
     fn choose_over(
         &mut self,
-        index: Option<GraphNode>,
+        index: GraphNode,
         index_label: &[Coord],
-        items: &[Option<GraphNode>],
+        items: &[GraphNode],
         item_label: &[Coord],
         t: TemplateId,
     ) -> GraphNode {
         const CAP: usize = crate::limits::MAX_VEC_IN - 1;
-        // A node reading `inputs`, each with its label.
-        let reading = |s: &mut Self, inputs: &[(Option<GraphNode>, &[Coord])]| {
-            let n = s.node(t, NodeKind::Read);
-            for &(input, label) in inputs {
-                if let Some(input) = input {
-                    s.read_as(n, input, label);
-                }
-            }
-            n
-        };
         if items.len() <= CAP {
-            let mut inputs = vec![(index, index_label)];
-            inputs.extend(items.iter().map(|&item| (item, item_label)));
-            return reading(self, &inputs);
+            let n = byte(items.len());
+            let inputs = std::iter::once(index)
+                .chain(items.iter().copied())
+                .collect();
+            let s = self.op(t, OpSpec::Vec(VecOp::Choose { n }), inputs);
+            self.label(s, index, index_label);
+            for &item in items {
+                self.label(s, item, item_label);
+            }
+            return s;
         }
         let mut chunks = Vec::with_capacity(items.len().div_ceil(CAP));
         for (ci, chunk) in items.chunks(CAP).enumerate() {
             let local = if ci == 0 {
                 index
             } else {
-                Some(reading(self, &[(index, index_label)]))
+                let offset = self.constant((ci * CAP) as f64);
+                let s = self.op(t, OpSpec::Sub, vec![index, offset]);
+                self.label(s, index, index_label);
+                s
             };
-            chunks.push(Some(self.choose_over(
-                local,
-                index_label,
-                chunk,
-                item_label,
-                t,
-            )));
+            chunks.push(self.choose_over(local, index_label, chunk, item_label, t));
         }
         // The chunk the index falls in: floor((index - 1) / CAP) + 1.
-        let less = reading(self, &[(index, index_label)]);
-        let q = reading(self, &[(Some(less), &[])]);
-        let f = reading(self, &[(Some(q), &[])]);
-        let which = reading(self, &[(Some(f), &[])]);
-        self.choose_over(Some(which), &[], &chunks, &[], t)
+        let (one, cap) = (self.constant(1.0), self.constant(CAP as f64));
+        let less = self.op(t, OpSpec::Sub, vec![index, one]);
+        self.label(less, index, index_label);
+        let q = self.op(t, OpSpec::Div, vec![less, cap]);
+        let f = self.op(t, OpSpec::Floor, vec![q]);
+        let which = self.op(t, OpSpec::Add, vec![f, one]);
+        self.choose_over(which, &[], &chunks, &[], t)
     }
 
     /// The coordinate nodes of each item of a list prop plan `p` names

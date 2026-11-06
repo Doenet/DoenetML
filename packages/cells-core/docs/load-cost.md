@@ -75,6 +75,16 @@ of refs', 4.7 of poly's and 4.8 of coords', and the checks over it 0.6
 to 2.8 ms. A second run of refs and coords alone gave 1.00 and 1.10: the
 rest of refs' first difference was a run's variance.
 
+Part 4's first piece gave the template graph each node's definition, so
+it lowers the math a second time beside the abstract build: the stamping
+became 3.4 ms of depth's load at 10,000, 11 ms of refs' and coords', and
+15 ms of poly's. `load-diff.sh` against 5323bf3 puts poly at 1.08 to
+1.14 and coords at 1.00 to 1.13, the rest within 1.05. One trap on the
+way: keyed by the word hasher, the constants (a whole number's bits end
+in zeros, which it keeps) fell into one bucket, and breadth and isolated,
+10,000 distinct literals each, loaded 30% slower until they were keyed by
+the standard one.
+
 ## Where a load's time goes
 
 `LoadTimings::spans` at 90654e1, the median of nine loads, in ms:

@@ -4,18 +4,10 @@
 //! gather their copies and count them, and point lists get their points.
 //! And last, the holds: a held element's alias of another element's port
 //! becomes a cell of its own, shared by the elements held alike.
+//! Each makes the definitions of the nodes it makes.
 
 use super::walk::At;
 use super::*;
-
-/// A flag a hold reads, as the holds compare them: a literal `fixed`'s
-/// constant, the missing value, or a node.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum Flag {
-    One,
-    Missing,
-    Node(GraphNode),
-}
 
 impl<'c> Stamp<'c> {
     /// Give a copy of a list type, element `e` of template `t`, its ports:
@@ -58,8 +50,8 @@ impl<'c> Stamp<'c> {
         self.g.list_copies.insert((t, e), n);
         for pi in 0..n {
             let (s, target) = (self.g.port(t, e, pi), self.slot(referent, pi));
-            self.read_as(s, target, &label);
-            self.aliases.insert(s, target);
+            self.set(s, Def::Alias(target));
+            self.label(s, target, &label);
         }
     }
 
@@ -78,7 +70,11 @@ impl<'c> Stamp<'c> {
         let (at, prop, label) = self.resolve(p, t);
         let through_iteration = matches!(at, At::Iter(_));
         match (at, prop) {
-            (At::Missing, _) => self.place_as(m, ComponentType::Number, 1),
+            (At::Missing, _) => {
+                self.place_as(m, ComponentType::Number, 1);
+                let (s, missing) = (self.slot(Comp::Made(m), 0), self.missing());
+                self.set(s, Def::Alias(missing));
+            }
             (at, Some(prop)) => {
                 let (targets, label) = self.targets_of(at, Some(prop), label, t, Some(1));
                 let target = targets.first().copied().flatten();
@@ -89,10 +85,10 @@ impl<'c> Stamp<'c> {
                     ComponentType::Number
                 };
                 self.place_as(m, component_type, 1);
-                if let Some(target) = target {
-                    let s = self.slot(Comp::Made(m), 0);
-                    self.read_as(s, target, &label);
-                }
+                let s = self.slot(Comp::Made(m), 0);
+                let target = self.or_missing(target);
+                self.set(s, Def::Alias(target));
+                self.label(s, target, &label);
             }
             (at, None) => {
                 let Some(referent) = self.single_component(at) else {
@@ -104,12 +100,17 @@ impl<'c> Stamp<'c> {
                         let defs = as_type.prop_defs();
                         self.place_as(m, as_type, defs.len());
                         for (pi, def) in defs.iter().enumerate() {
-                            if let Some(rp) = rt.prop_index(def.name)
-                                && rp < self.n_public(referent)
-                            {
-                                let (s, target) =
-                                    (self.slot(Comp::Made(m), pi), self.slot(referent, rp));
-                                self.read_as(s, target, &label);
+                            let s = self.slot(Comp::Made(m), pi);
+                            match rt.prop_index(def.name) {
+                                Some(rp) if rp < self.n_public(referent) => {
+                                    let target = self.slot(referent, rp);
+                                    self.set(s, Def::Alias(target));
+                                    self.label(s, target, &label);
+                                }
+                                _ => {
+                                    let missing = self.missing();
+                                    self.set(s, Def::Alias(missing));
+                                }
                             }
                         }
                     }
@@ -119,7 +120,8 @@ impl<'c> Stamp<'c> {
                         for pi in 0..n {
                             let (s, target) =
                                 (self.slot(Comp::Made(m), pi), self.slot(referent, pi));
-                            self.read_as(s, target, &label);
+                            self.set(s, Def::Alias(target));
+                            self.label(s, target, &label);
                         }
                     }
                 }
@@ -154,7 +156,7 @@ impl<'c> Stamp<'c> {
         let m = self.make(self.component_type(c), t, n, MadeKind::Alias);
         for pi in 0..n {
             let (s, target) = (self.slot(Comp::Made(m), pi), self.slot(c, pi));
-            self.read(s, target);
+            self.set(s, Def::Alias(target));
         }
         Comp::Made(m)
     }
@@ -202,11 +204,17 @@ impl<'c> Stamp<'c> {
                 }
             }
         }
+        // With none, the number gathered is a constant at every count;
+        // otherwise a counted value, which reads its repeats' counts.
         let follows = !counts.is_empty();
         let count = self.g.port(t, e, prop::collect::COUNT);
-        for n in counts {
-            self.read(count, n);
-        }
+        let def = if follows {
+            self.g.counted.push(count);
+            self.reading(&counts, t)
+        } else {
+            Def::Const(Some(copies.len() as f64))
+        };
+        self.set(count, def);
         self.collected.insert((t, e), (copies, follows));
     }
 
@@ -251,11 +259,14 @@ impl<'c> Stamp<'c> {
                     let n = ComponentType::Point.prop_defs().len();
                     let pt = self.make(ComponentType::Point, t, n, MadeKind::Alias);
                     for (pi, coord) in [(prop::point::X, x), (prop::point::Y, y)] {
-                        if let Some(coord) = coord {
-                            let s = self.slot(Comp::Made(pt), pi);
-                            self.read_as(s, coord, &label);
-                        }
+                        let s = self.slot(Comp::Made(pt), pi);
+                        let coord = self.or_missing(coord);
+                        self.set(s, Def::Alias(coord));
+                        self.label(s, coord, &label);
                     }
+                    // Not state: a made point has no essential key.
+                    let hide = self.slot(Comp::Made(pt), prop::point::HIDE);
+                    self.set(hide, Def::Const(Some(0.0)));
                     kids.push(Comp::Made(pt));
                 }
             }
@@ -276,24 +287,25 @@ impl<'c> Stamp<'c> {
         self.elem_children.insert((t, e), kids);
     }
 
-    /// The holds: each held element reads its flags, and a port of one
-    /// whose source aliases another element's port reads a cell of its
-    /// own instead, the first such of its target and flags, which the
-    /// others held alike read in turn. A port aliasing its own element, a
-    /// value no component owns, or an element held by the same flags
-    /// keeps its alias.
+    /// The holds: every port of a held element is held by its flags, and
+    /// one whose source aliases another element's port is a copy of it
+    /// instead, a cell of its own, the first such of its target and flags,
+    /// which the others held alike alias in turn. A port aliasing its own
+    /// element, a value no component holds, or an element held by the
+    /// same flags keeps its alias; a later source's alias that would not
+    /// is a copy.
     pub(super) fn holds(&mut self) {
-        let mut flags_of: HashMap<(TemplateId, ElemId), Vec<Flag>> = HashMap::new();
+        let mut flags_of: FxMap<(TemplateId, ElemId), Vec<GraphNode>> = FxMap::default();
         for i in 0..self.instances.len() {
             let (t, e) = self.instances[i];
             let flags = match &self.c.plans.templates[t.index()].plan(e).hold {
                 Hold::Off => continue,
-                Hold::Always => vec![Flag::One],
+                Hold::Always => vec![self.constant(1.0)],
                 Hold::While(refs) => refs
                     .iter()
-                    .map(|&p| match self.resolve_one(p, t).0 {
-                        Some(n) => Flag::Node(n),
-                        None => Flag::Missing,
+                    .map(|&p| {
+                        let (flag, _) = self.resolve_one(p, t);
+                        self.or_missing(flag)
                     })
                     .collect(),
             };
@@ -322,21 +334,36 @@ impl<'c> Stamp<'c> {
                         .is_some_and(|f| Some(f) == flags_of.get(&comp))
             }
         };
-        let mut copies: HashMap<(GraphNode, Vec<Flag>), GraphNode> = HashMap::new();
+        let copy = |target| Def::Op(GraphOp::Spec(OpSpec::Copy), vec![target]);
+        let mut copies: FxMap<(GraphNode, Vec<GraphNode>), GraphNode> = FxMap::default();
         for (s, comp) in held {
-            let Some(&target) = self.aliases.get(&s) else {
+            if let Def::Alias(target) = self.g.defs[s.index()]
+                && !own(self, comp, target)
+            {
+                let key = (target, flags_of[&comp].clone());
+                let def = match copies.get(&key) {
+                    // The cell another element held alike copies it to.
+                    Some(&first) => Def::Alias(first),
+                    None => {
+                        copies.insert(key, s);
+                        copy(target)
+                    }
+                };
+                self.set(s, def);
+            }
+            for &f in &flags_of[&comp] {
+                self.g.holds.push((s, f));
+            }
+        }
+        for i in 0..self.g.later.len() {
+            let (s, Def::Alias(target)) = self.g.later[i] else {
                 continue;
             };
-            if own(self, comp, target) {
+            let Some((Comp::Elem(t, e), _)) = self.comp_of(s) else {
                 continue;
-            }
-            let key = (target, flags_of[&comp].clone());
-            match copies.get(&key) {
-                // The cell another element held alike copies it to.
-                Some(&first) => self.g.reads[s.index()] = vec![first],
-                None => {
-                    copies.insert(key, s);
-                }
+            };
+            if flags_of.contains_key(&(t, e)) && !own(self, (t, e), target) {
+                self.g.later[i].1 = copy(target);
             }
         }
     }

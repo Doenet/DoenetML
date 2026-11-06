@@ -10,7 +10,7 @@
 use std::path::Path;
 
 use cells_core::testing::test_utils::{dast_json, repo_root};
-use cells_core::testing::{par_map, template_graph_agreement};
+use cells_core::testing::{definitions_disagreement, par_map, template_graph_agreement};
 
 /// Documents for what the golden set has little of: references into and
 /// across iterations, by a cell, through interfaces and whole picks, a
@@ -217,6 +217,34 @@ fn the_template_graph_agrees_with_the_abstract_build() {
             failures.push(format!("{name}: compiled to nothing to compare"));
         }
     }
+    assert!(
+        failures.is_empty(),
+        "{} disagreements:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
+}
+
+// The definitions (ADR 0032, step 8, part 4): each element port's, unfolded
+// to element ports, with what holds and seeds it and whether it is counted
+// or may be a document constant, the same as the abstract build's.
+#[test]
+fn the_template_graph_defines_what_the_abstract_build_does() {
+    let docs = documents();
+    let results = par_map(&docs, |(name, bytes)| {
+        let dast = cells_core::dast::load(bytes).unwrap();
+        let compiled = cells_core::testing::compile(&dast).ok()?;
+        let found = definitions_disagreement(&compiled)
+            .unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
+        Some((name.clone(), found))
+    });
+    let mut failures = Vec::new();
+    let mut compared = 0;
+    for (name, (disagree, n)) in results.into_iter().flatten() {
+        compared += n;
+        failures.extend(disagree.into_iter().map(|d| format!("{name}: {d}")));
+    }
+    assert!(compared > 0, "no port compared");
     assert!(
         failures.is_empty(),
         "{} disagreements:\n{}",

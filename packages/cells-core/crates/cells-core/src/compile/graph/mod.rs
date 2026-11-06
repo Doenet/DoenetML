@@ -21,14 +21,15 @@
 //! The compile runs the cycle and count checks over it (`cycles.rs`);
 //! `build/coverage.rs` tests it against the abstract build's graph.
 
-use std::collections::HashMap;
-
+use super::share::FxMap;
 use super::*;
 use crate::components::{Collection, PropAt, PropSel};
+use crate::program::{OpSpec, SymKind, VecOp};
 
 mod aggregate;
 mod cycles;
 mod expand;
+mod math;
 mod walk;
 
 pub(crate) use cycles::{CycleFindings, check_cycles};
@@ -99,6 +100,46 @@ pub(crate) struct Node {
     pub(crate) kind: NodeKind,
 }
 
+/// An operator as the abstract build plans one: one the program runs, or
+/// a symbolic template over its leaves.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum GraphOp {
+    Spec(OpSpec),
+    Template,
+}
+
+/// What defines a node, as the abstract build's source defines its slot.
+/// A value is kept where the compile knows it: a math handle's is the
+/// engine's, which the compile has none of.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) enum Def {
+    /// Not defined yet: only while stamping.
+    Unset,
+    /// A given value: essential when a student's action can write it, a
+    /// constant otherwise.
+    Given(Option<f64>),
+    /// A constant.
+    Const(Option<f64>),
+    Alias(GraphNode),
+    /// An operator over its inputs, in order; for a vector operator, its
+    /// first output.
+    Op(GraphOp, Vec<GraphNode>),
+    /// Output `k` of the vector operator at the node.
+    VecOut(GraphNode, u8),
+}
+
+impl Def {
+    /// What the definition reads: an alias its target, an operator its
+    /// inputs, a vector output its head.
+    pub(crate) fn reads(&self) -> &[GraphNode] {
+        match self {
+            Def::Alias(t) | Def::VecOut(t, _) => std::slice::from_ref(t),
+            Def::Op(_, inputs) => inputs,
+            Def::Unset | Def::Given(_) | Def::Const(_) => &[],
+        }
+    }
+}
+
 /// What a made component is, which says what its ports hold.
 #[derive(Debug, Clone)]
 pub(crate) enum MadeKind {
@@ -137,10 +178,31 @@ pub(crate) enum Comp {
 #[derive(Debug, Default)]
 pub(crate) struct TemplateGraph {
     pub(crate) nodes: Vec<Node>,
-    /// What each node reads.
-    pub(crate) reads: Vec<Vec<GraphNode>>,
+    /// What defines each node.
+    pub(crate) defs: Vec<Def>,
+    /// What else defines a node in iterations after the first (a
+    /// specialization's other source), which its reads include.
+    pub(crate) later: Vec<(GraphNode, Def)>,
+    /// What each node reads, its definition's reads and its later ones',
+    /// one after another: node `n`'s from `read_start[n]` to
+    /// `read_start[n + 1]`.
+    read_start: Vec<u32>,
+    read_list: Vec<GraphNode>,
+    /// Each held node with a flag that holds it, once per flag.
+    pub(crate) holds: Vec<(GraphNode, GraphNode)>,
+    /// Each given math node seeded from another's value when first built
+    /// (a prefill), with that node.
+    pub(crate) seeds: Vec<(GraphNode, GraphNode)>,
+    /// The binary operators lowered from the author's math, in the order
+    /// lowered, which define orients.
+    pub(crate) author_ops: Vec<GraphNode>,
+    /// The counted values' nodes (ADR 0028), as the abstract build finds
+    /// them; a node may be listed more than once.
+    pub(crate) counted: Vec<GraphNode>,
+    /// The nodes whose plan gives a document constant if they are one.
+    pub(crate) document: Vec<GraphNode>,
     /// The labels of reads that are not the identity, by (reader, read).
-    pub(crate) labels: HashMap<(GraphNode, GraphNode), Label>,
+    pub(crate) labels: FxMap<(GraphNode, GraphNode), Label>,
     /// Each element's first port, per template; NONE for an element with
     /// no ports yet.
     pub(crate) ports: Vec<Vec<GraphNode>>,
@@ -158,10 +220,16 @@ pub(crate) struct TemplateGraph {
     pub(crate) repeats: Vec<(TemplateId, ElemId)>,
     /// Each copy of a list type that took its referent's ports, with how
     /// many are public.
-    pub(crate) list_copies: HashMap<(TemplateId, ElemId), usize>,
+    pub(crate) list_copies: FxMap<(TemplateId, ElemId), usize>,
 }
 
 impl TemplateGraph {
+    /// What node `n` reads: its definition's reads and its later ones'.
+    pub(crate) fn reads(&self, n: GraphNode) -> &[GraphNode] {
+        let (a, b) = (self.read_start[n.index()], self.read_start[n.index() + 1]);
+        &self.read_list[a as usize..b as usize]
+    }
+
     /// The node of port `port` of element `e` of template `t`.
     pub(crate) fn port(&self, t: TemplateId, e: ElemId, port: usize) -> GraphNode {
         debug_assert!(port < self.n_ports[t.index()][e.index()] as usize);
@@ -231,20 +299,26 @@ pub(crate) fn template_graph(c: CompiledRef<'_>) -> TemplateGraph {
             stamped: vec![false; n],
             ..Default::default()
         },
-        iface: HashMap::new(),
-        picks: HashMap::new(),
-        cases: HashMap::new(),
-        ref_children: HashMap::new(),
+        iface: FxMap::default(),
+        picks: FxMap::default(),
+        cases: FxMap::default(),
+        ref_children: FxMap::default(),
         instances: Vec::new(),
         pending: Vec::new(),
         collects: Vec::new(),
         point_lists: Vec::new(),
-        elem_children: HashMap::new(),
-        collected: HashMap::new(),
-        aliases: HashMap::new(),
+        elem_children: FxMap::default(),
+        collected: FxMap::default(),
+        consts: std::collections::HashMap::new(),
+        missing: None,
+        x: Arena::default(),
+        instantiated: FxMap::default(),
+        lowered: Vec::new(),
+        share_math: false,
     };
     s.stamp(TemplateId::new(0));
     s.resolve_all();
+    s.finish();
     s.g
 }
 
@@ -253,13 +327,13 @@ pub(super) struct Stamp<'c> {
     pub(super) c: CompiledRef<'c>,
     pub(super) g: TemplateGraph,
     /// Each interface stand-in, by (choice, position among the names used).
-    pub(super) iface: HashMap<(ChoiceId, usize), u32>,
+    pub(super) iface: FxMap<(ChoiceId, usize), u32>,
     /// Each whole pick's stand-in, by select.
-    pub(super) picks: HashMap<ChoiceId, u32>,
+    pub(super) picks: FxMap<ChoiceId, u32>,
     /// Each conditional content's cases, by (template, element).
-    pub(super) cases: HashMap<(TemplateId, ElemId), Vec<u32>>,
+    pub(super) cases: FxMap<(TemplateId, ElemId), Vec<u32>>,
     /// Each `$ref` child's component, by (template, child).
-    pub(super) ref_children: HashMap<(TemplateId, RefChildId), u32>,
+    pub(super) ref_children: FxMap<(TemplateId, RefChildId), u32>,
     /// Every live element, in the order the abstract build stamps it.
     pub(super) instances: Vec<(TemplateId, ElemId)>,
     /// The `$ref` children to place, in the order made, each with whether
@@ -269,12 +343,24 @@ pub(super) struct Stamp<'c> {
     pub(super) collects: Vec<(TemplateId, ElemId)>,
     pub(super) point_lists: Vec<(TemplateId, ElemId)>,
     /// A collect's or point list's children, once expanded.
-    pub(super) elem_children: HashMap<(TemplateId, ElemId), Vec<Comp>>,
+    pub(super) elem_children: FxMap<(TemplateId, ElemId), Vec<Comp>>,
     /// What each expanded collect gathered (its copies) and whether its
     /// count follows the counts of repeats.
-    pub(super) collected: HashMap<(TemplateId, ElemId), (Vec<Comp>, bool)>,
-    /// What each port whose source is an alias aliases, for the holds.
-    pub(super) aliases: HashMap<GraphNode, GraphNode>,
+    pub(super) collected: FxMap<(TemplateId, ElemId), (Vec<Comp>, bool)>,
+    /// One node per constant an operator or a hold reads, by its bits:
+    /// hashed in full, since a whole number's bits end in zeros, which a
+    /// multiplying hash keeps.
+    pub(super) consts: std::collections::HashMap<u64, GraphNode>,
+    /// The one node holding the missing value.
+    pub(super) missing: Option<GraphNode>,
+    /// The math stamped, its leaves nodes (the build's arena).
+    pub(super) x: Arena<GraphNode>,
+    /// Each expression class instantiated, by template.
+    pub(super) instantiated: FxMap<(ExprId, TemplateId), ExprId>,
+    /// Each node of `x` lowered, to its node; NONE before it is.
+    pub(super) lowered: Vec<GraphNode>,
+    /// Whether the element whose ports are being stamped shares its math.
+    pub(super) share_math: bool,
 }
 
 impl<'c> Stamp<'c> {
@@ -282,21 +368,99 @@ impl<'c> Stamp<'c> {
     pub(super) fn node(&mut self, template: TemplateId, kind: NodeKind) -> GraphNode {
         let n = GraphNode::from_index(self.g.nodes.len());
         self.g.nodes.push(Node { template, kind });
-        self.g.reads.push(Vec::new());
+        self.g.defs.push(Def::Unset);
         n
     }
 
-    /// `u` reads `v`.
-    pub(super) fn read(&mut self, u: GraphNode, v: GraphNode) {
-        self.g.reads[u.index()].push(v);
+    /// Define node `n` as `def`.
+    pub(super) fn set(&mut self, n: GraphNode, def: Def) {
+        self.g.defs[n.index()] = def;
     }
 
-    /// `u` reads `v` with `label`, kept when it is not the identity.
-    pub(super) fn read_as(&mut self, u: GraphNode, v: GraphNode, label: &[Coord]) {
-        self.read(u, v);
+    /// A node in template `t` defined as `def`, which no component holds.
+    pub(super) fn value(&mut self, t: TemplateId, def: Def) -> GraphNode {
+        let n = self.node(t, NodeKind::Read);
+        self.set(n, def);
+        n
+    }
+
+    /// A node in template `t` holding operator `spec` over `inputs`.
+    pub(super) fn op(&mut self, t: TemplateId, spec: OpSpec, inputs: Vec<GraphNode>) -> GraphNode {
+        self.value(t, Def::Op(GraphOp::Spec(spec), inputs))
+    }
+
+    /// The read `u -> v` carries `label` when that is not the identity.
+    pub(super) fn label(&mut self, u: GraphNode, v: GraphNode, label: &[Coord]) {
         if label.iter().any(|&c| c != Coord::Keep(0)) {
             self.g.labels.insert((u, v), label.to_vec());
         }
+    }
+
+    /// The one node holding constant `v`, which operators and holds read.
+    pub(super) fn constant(&mut self, v: f64) -> GraphNode {
+        if let Some(&n) = self.consts.get(&v.to_bits()) {
+            return n;
+        }
+        let n = self.value(TemplateId::new(0), Def::Const(Some(v)));
+        self.consts.insert(v.to_bits(), n);
+        n
+    }
+
+    /// The one node holding the missing value: what a reference with no
+    /// referent names.
+    pub(super) fn missing(&mut self) -> GraphNode {
+        if let Some(n) = self.missing {
+            return n;
+        }
+        let n = self.value(TemplateId::new(0), Def::Const(Some(f64::NAN)));
+        self.missing = Some(n);
+        n
+    }
+
+    /// `node`, or the missing value for none.
+    pub(super) fn or_missing(&mut self, node: Option<GraphNode>) -> GraphNode {
+        match node {
+            Some(n) => n,
+            None => self.missing(),
+        }
+    }
+
+    /// What reads `inputs` in template `t` without its value mattering (a
+    /// stand-in for every option, a count over its repeats' counts), as the
+    /// abstract build reads them: one input through `Truthy`, more through
+    /// a chain of `Max`.
+    pub(super) fn reading(&mut self, inputs: &[GraphNode], t: TemplateId) -> Def {
+        match inputs {
+            [] => unreachable!("a stand-in reads something"),
+            [x] => Def::Op(GraphOp::Spec(OpSpec::Truthy), vec![*x]),
+            [rest @ .., last] => {
+                let acc = rest[1..]
+                    .iter()
+                    .fold(rest[0], |acc, &x| self.op(t, OpSpec::Max, vec![acc, x]));
+                Def::Op(GraphOp::Spec(OpSpec::Max), vec![acc, *last])
+            }
+        }
+    }
+
+    /// Every node's reads, from its definitions, once every node has them.
+    fn finish(&mut self) {
+        let g = &mut self.g;
+        let mut later: FxMap<GraphNode, Vec<usize>> = FxMap::default();
+        for (i, (n, _)) in g.later.iter().enumerate() {
+            later.entry(*n).or_default().push(i);
+        }
+        let mut start = Vec::with_capacity(g.defs.len() + 1);
+        let mut list = Vec::with_capacity(g.defs.len() * 2);
+        for (n, def) in g.defs.iter().enumerate() {
+            start.push(list.len() as u32);
+            list.extend_from_slice(def.reads());
+            for &i in later.get(&GraphNode::from_index(n)).into_iter().flatten() {
+                list.extend_from_slice(g.later[i].1.reads());
+            }
+        }
+        start.push(list.len() as u32);
+        g.read_start = start;
+        g.read_list = list;
     }
 
     /// Ports for element `e` of template `t`: `n` new nodes.
@@ -420,9 +584,14 @@ impl<'c> Stamp<'c> {
             if reactive {
                 let n = ComponentType::Case.prop_defs().len();
                 let case = self.make(ComponentType::Case, t, n, MadeKind::Case);
+                // `active`: whether the choice is this case's position.
                 let active = self.slot(Comp::Made(case), prop::case::ACTIVE);
                 let choice = self.g.port(t, e, prop::conditional_content::CHOICE);
-                self.read(active, choice);
+                let pos = self.constant((cases.len() + 1) as f64);
+                self.set(
+                    active,
+                    Def::Op(GraphOp::Spec(OpSpec::Eq), vec![choice, pos]),
+                );
                 cases.push(case);
                 self.stamp(b);
                 self.g.made[case as usize].children = self.root_children(b);
@@ -465,23 +634,36 @@ impl<'c> Stamp<'c> {
         self.make(component_type, t, n, MadeKind::StandIn { members })
     }
 
-    /// Stand-in `w` reads its members' port at each position, and
-    /// `choice` when one is given.
-    pub(super) fn stand_in_reads(&mut self, w: u32, choice: Option<GraphNode>) {
+    /// The sources of stand-in `w`: each port chooses among its members'
+    /// port at its position (the missing value past a member's end) by
+    /// `choice`, a conditional content's, or with none only reads them
+    /// (a select built with every option).
+    pub(super) fn stand_in_sources(&mut self, w: u32, choice: Option<GraphNode>) {
         let MadeKind::StandIn { members } = self.g.made[w as usize].kind.clone() else {
             unreachable!("a stand-in")
         };
+        let t = self.g.made[w as usize].template;
         for port in 0..self.g.made[w as usize].n_public {
-            let s = self.slot(Comp::Made(w), port);
-            if let Some(choice) = choice {
-                self.read(s, choice);
-            }
-            for &m in &members {
-                if port < self.n_public(m) {
-                    let ms = self.slot(m, port);
-                    self.read(s, ms);
+            let branch: Vec<GraphNode> = members
+                .iter()
+                .map(|&m| {
+                    if port < self.n_public(m) {
+                        self.slot(m, port)
+                    } else {
+                        self.missing()
+                    }
+                })
+                .collect();
+            let def = match choice {
+                None => self.reading(&branch, t),
+                Some(choice) => {
+                    let n = byte(members.len());
+                    let inputs = std::iter::once(choice).chain(branch).collect();
+                    Def::Op(GraphOp::Spec(OpSpec::Vec(VecOp::Choose { n })), inputs)
                 }
-            }
+            };
+            let s = self.slot(Comp::Made(w), port);
+            self.set(s, def);
         }
     }
 
@@ -515,8 +697,8 @@ impl<'c> Stamp<'c> {
         self.holds();
     }
 
-    /// The reads of the stand-ins of every choice: a conditional content's
-    /// read its choice too.
+    /// The sources of the stand-ins of every choice: a conditional
+    /// content's choose by its choice.
     fn choice_sources(&mut self) {
         let mut stand_ins: Vec<_> = self.iface.iter().map(|(&k, &w)| (k, w)).collect();
         stand_ins.sort();
@@ -526,111 +708,121 @@ impl<'c> Stamp<'c> {
             let choice = def
                 .reactive
                 .then(|| self.g.port(t, e, prop::conditional_content::CHOICE));
-            self.stand_in_reads(w, choice);
+            self.stand_in_sources(w, choice);
         }
     }
 
-    /// The reads of every port of element `e` of template `t`; none for a
-    /// copy of a list type that took its referent's.
+    /// The sources of every port of element `e` of template `t`; none for
+    /// a copy of a list type that took its referent's, and none yet for an
+    /// aggregate, which is wired once the tree is (`aggregates`).
     fn sources(&mut self, t: TemplateId, e: ElemId) {
         if self.g.list_copies.contains_key(&(t, e)) {
             return;
         }
         let c = self.c;
         let plan = c.plans.templates[t.index()].plan(e);
+        self.share_math = !c.plans.expr_class.is_empty() && matches!(plan.hold, Hold::Off);
         for (pi, src) in plan.props.iter().enumerate() {
             let from = self.g.port(t, e, pi);
-            match src {
-                // A later source's reads are the port's too, made first;
-                // its alias is not the port's.
+            let def = match src {
+                Source::Flow(Flow::Aggregate(_)) => continue,
+                // The first iteration's source, and the rest's as a later
+                // one, made first.
                 Source::Specialize(_, first, rest) => {
-                    self.source(t, e, pi, from, rest);
-                    self.aliases.remove(&from);
-                    self.source(t, e, pi, from, first);
+                    let rest = self.source(t, e, pi, from, rest);
+                    self.g.later.push((from, rest));
+                    self.source(t, e, pi, from, first)
                 }
                 src => self.source(t, e, pi, from, src),
+            };
+            if matches!(def, Def::Const(_) | Def::Given(_)) && src.gives_document_constant() {
+                self.g.document.push(from);
             }
+            self.set(from, def);
         }
     }
 
-    /// The reads of `src`, port `pi` of element `e` of template `t`, as
+    /// The definition `src` gives port `pi` of element `e` of template `t`,
     /// node `from`.
-    fn source(&mut self, t: TemplateId, e: ElemId, pi: usize, from: GraphNode, src: &'c Source) {
-        let c = self.c;
-        let arena = &c.plans.arena;
+    fn source(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        pi: usize,
+        from: GraphNode,
+        src: &'c Source,
+    ) -> Def {
         match src {
-            Source::Leaf(_) => {}
             Source::Specialize(..) => unreachable!("a nested specialization"),
+            Source::Leaf(leaf) => match leaf {
+                Leaf::Given(v) => Def::Given(Some(*v)),
+                Leaf::GivenText(id) => Def::Given(Some(id.map_or(f64::NAN, StrId::to_value))),
+                // A handle, the engine's.
+                Leaf::GivenMath(tree) => Def::Given(tree.is_none().then_some(f64::NAN)),
+                Leaf::Const(v) => Def::Const(Some(*v)),
+                Leaf::Scope(ScopeConst::IterIndex) => Def::Const(Some(self.position(t) as f64)),
+                // Drawn from the seed: no value the compile knows.
+                Leaf::Scope(ScopeConst::SequencePick { .. }) => Def::Const(None),
+                Leaf::Scope(ScopeConst::Seed(p)) => {
+                    let (target, _) = self.resolve_one(*p, t);
+                    let target = self.or_missing(target);
+                    self.g.seeds.push((from, target));
+                    Def::Given(Some(f64::NAN))
+                }
+            },
             Source::Flow(flow) => match flow {
-                Flow::Alias(arg) => {
-                    if let Some(target) = self.arg(t, e, from, *arg) {
-                        self.aliases.insert(from, target);
-                    }
+                Flow::Alias(arg) => Def::Alias(self.arg(t, e, from, *arg)),
+                Flow::Op(spec, args) => {
+                    let inputs = args.iter().map(|&a| self.arg(t, e, from, a)).collect();
+                    Def::Op(GraphOp::Spec(*spec), inputs)
                 }
-                Flow::Op(_, args) => {
-                    for &a in args {
-                        self.arg(t, e, from, a);
-                    }
-                }
-                Flow::VecOut(head, _) => {
-                    let h = self.g.port(t, e, head.index());
-                    self.read(from, h);
-                }
+                Flow::VecOut(head, k) => Def::VecOut(self.g.port(t, e, head.index()), *k),
                 Flow::Math(id) => {
-                    if !matches!(arena.get(*id), Expr::Num(_)) && arena.is_numeric(*id) {
-                        self.leaves(t, from, *id, false);
+                    let id = self.instantiate(*id, t);
+                    if let Expr::Num(v) = *self.x.get(id) {
+                        // Its own cell: lowering gives a shared constant.
+                        Def::Const(Some(v))
+                    } else if self.x.is_numeric(id) {
+                        Def::Alias(self.lower(id, t))
+                    } else {
+                        Def::Const(Some(f64::NAN))
                     }
                 }
-                Flow::MathHandle(id, _) => {
+                Flow::MathHandle(id, post) => {
                     if self.port_type(t, e, pi) == PortType::Math {
-                        self.leaves(t, from, *id, true);
+                        self.sym_source(*id, *post, t)
+                    } else {
+                        // A numeric math is not a math cell (ADR 0005).
+                        Def::Const(Some(f64::NAN))
                     }
                 }
                 Flow::MathValue(id) => {
                     if self.is_symbolic(Comp::Elem(t, e)) {
                         let expr = self.g.port(t, e, prop::math::EXPR);
-                        self.read(from, expr);
-                    } else if !matches!(arena.get(*id), Expr::Num(_)) {
-                        self.leaves(t, from, *id, false);
+                        Def::Op(GraphOp::Spec(OpSpec::Sym(SymKind::Evaluate)), vec![expr])
+                    } else {
+                        let id = self.instantiate(*id, t);
+                        if let Expr::Num(v) = *self.x.get(id) {
+                            Def::Given(Some(v))
+                        } else {
+                            Def::Alias(self.lower(id, t))
+                        }
                     }
                 }
-                Flow::SymExpr(id, _) => self.leaves(t, from, *id, true),
-                // A collect's count is its expansion's (`expand_collect`);
-                // credit and numbers read the stamped tree once every port
-                // has its reads (`aggregates`).
-                Flow::Aggregate(_) => {}
+                Flow::SymExpr(id, post) => self.sym_source(*id, *post, t),
+                Flow::Aggregate(_) => unreachable!("an aggregate is wired from the tree"),
             },
         }
     }
 
-    /// The reads of the cell leaves of math text `id` read from template
-    /// `t`: a leaf node per leaf, reading what the leaf names, or with
-    /// `symbolic` the expression it stands for.
-    fn leaves(&mut self, t: TemplateId, from: GraphNode, id: ExprId, symbolic: bool) {
-        let mut leaves = Vec::new();
-        self.c.plans.arena.cell_leaves(id, &mut leaves);
-        for p in leaves {
-            let (Some(target), label) = self.resolve_one(p, t) else {
-                continue;
-            };
-            let target = if symbolic {
-                self.math_target(target).unwrap_or(target)
-            } else {
-                target
-            };
-            let leaf = self.node(t, NodeKind::Read);
-            self.read(from, leaf);
-            self.read_as(leaf, target, &label);
-        }
-    }
-
-    /// The reads of argument `arg` of element `e` of template `t`, as node
-    /// `from`; what it reads, if anything.
-    fn arg(&mut self, t: TemplateId, e: ElemId, from: GraphNode, arg: Arg) -> Option<GraphNode> {
+    /// The node argument `arg` of element `e` of template `t` names, read
+    /// as node `from`: a reference's read keeps its label; the missing
+    /// value for a reference with no referent.
+    fn arg(&mut self, t: TemplateId, e: ElemId, from: GraphNode, arg: Arg) -> GraphNode {
         let (target, label) = match arg {
-            Arg::Own(port) => (Some(self.g.port(t, e, port.index())), Label::new()),
-            Arg::Elem(x, port) => (Some(self.g.port(t, x, port.index())), Label::new()),
-            Arg::Const(_) => (None, Label::new()),
+            Arg::Own(port) => return self.g.port(t, e, port.index()),
+            Arg::Elem(x, port) => return self.g.port(t, x, port.index()),
+            Arg::Const(k) => return self.constant(k),
             Arg::Ref(p, Sel::Whole) => self.resolve_one(p, t),
             Arg::Ref(p, Sel::Coord(j)) => {
                 let (nodes, label) = self.resolve_ref(p, t, Some(2));
@@ -647,9 +839,8 @@ impl<'c> Stamp<'c> {
                 (node, label)
             }
         };
-        if let Some(target) = target {
-            self.read_as(from, target, &label);
-        }
+        let target = self.or_missing(target);
+        self.label(from, target, &label);
         target
     }
 
@@ -776,8 +967,8 @@ impl<'c> Stamp<'c> {
         if depth == 0 {
             return PortType::Num;
         }
-        let alias = |s: &Self| match s.g.reads[n.index()][..] {
-            [one] => s.value_type_within(one, depth - 1),
+        let alias = |s: &Self| match s.g.defs[n.index()] {
+            Def::Alias(one) => s.value_type_within(one, depth - 1),
             _ => PortType::Num,
         };
         match self.comp_of(n) {

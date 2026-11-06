@@ -159,10 +159,11 @@ impl UnionFind {
     }
 }
 
-/// A word-at-a-time hasher for this stage's small keys (the rotate and
-/// multiply of rustc's `FxHasher`).
+/// A word-at-a-time hasher for the compile's small keys (the rotate and
+/// multiply of rustc's `FxHasher`): this stage's and the template
+/// graph's.
 #[derive(Default)]
-struct Fx(u64);
+pub(crate) struct Fx(u64);
 
 impl std::hash::Hasher for Fx {
     fn write(&mut self, bytes: &[u8]) {
@@ -189,7 +190,7 @@ impl std::hash::Hasher for Fx {
     }
 }
 
-type FxMap<K, V> = HashMap<K, V, std::hash::BuildHasherDefault<Fx>>;
+pub(crate) type FxMap<K, V> = HashMap<K, V, std::hash::BuildHasherDefault<Fx>>;
 
 /// One template's nodes, by number: an element's ports first, numbered
 /// from its base, then every other node as it is met.

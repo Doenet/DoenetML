@@ -11,7 +11,7 @@
 //! label the real iterations satisfy.
 
 use super::*;
-use crate::compile::graph::{GraphNode, NodeKind, TemplateGraph, template_graph};
+use crate::compile::graph::{Def, GraphNode, GraphOp, NodeKind, TemplateGraph, template_graph};
 
 /// A slot of an element: (template, element, position among its slots).
 type Key = (TemplateId, ElemId, u32);
@@ -254,19 +254,7 @@ pub fn template_graph_agreement(
             }
         }
     }
-    let describe = |k: &Key| {
-        let (t, e, pi) = *k;
-        let row = compiled.plans.templates[t.index()].row(e);
-        let name = match row.name {
-            StrId::NONE => format!("<{}>", row.component_type.tag()),
-            s => compiled.dast.strings.get(s).trim().to_string(),
-        };
-        let prop = row
-            .component_type
-            .prop_name(usize::MAX, pi as usize)
-            .unwrap_or_else(|| format!("port {pi}").into());
-        format!("{name}.{prop} (template {t}, element {e}, port {pi})")
-    };
+    let describe = |k: &Key| key_name(compiled, *k);
     // What `a` has that `b` lacks, described.
     let lacks = |a: &HashMap<Key, Vec<(Key, Vec<Coord>)>>,
                  b: &HashMap<Key, Vec<(Key, Vec<Coord>)>>| {
@@ -313,7 +301,7 @@ fn graph_element_deps(g: &TemplateGraph, u: GraphNode) -> Vec<(Key, Vec<Coord>)>
     let mut seen = HashSet::new();
     let mut stack = vec![(u, Vec::new(), true)];
     while let Some((a, so_far, first)) = stack.pop() {
-        for &w in &g.reads[a.index()] {
+        for &w in g.reads(a) {
             let label = if first {
                 g.label(a, w)
             } else {
@@ -330,4 +318,233 @@ fn graph_element_deps(g: &TemplateGraph, u: GraphNode) -> Vec<(Key, Vec<Coord>)>
         }
     }
     out
+}
+
+/// How element port `k` is shown in a disagreement.
+fn key_name(compiled: &Compiled, (t, e, pi): Key) -> String {
+    let row = compiled.plans.templates[t.index()].row(e);
+    let name = match row.name {
+        StrId::NONE => format!("<{}>", row.component_type.tag()),
+        s => compiled.dast.strings.get(s).trim().to_string(),
+    };
+    let prop = row
+        .component_type
+        .prop_name(usize::MAX, pi as usize)
+        .unwrap_or_else(|| format!("port {pi}").into());
+    format!("{name}.{prop} (template {t}, element {e}, port {pi})")
+}
+
+/// The definitions of the template graph of `compiled` against the
+/// abstract build's resolved slots (ADR 0032, step 8, part 4): for each
+/// element port, its definition unfolded through every node or slot no
+/// element owns down to element ports, its later sources, the flags that
+/// hold it, what seeds it, and whether it is a counted value or may be a
+/// document constant. Values are left out: a math handle's is the
+/// engine's. Returns the disagreements, described, and how many ports
+/// were compared.
+pub fn definitions_disagreement(
+    compiled: &Compiled,
+) -> std::result::Result<(Vec<String>, usize), String> {
+    let session = Session::new(0);
+    let mut math = MathStore::default();
+    let b = staged(compiled.view(), &session, &mut math, &View::Abstract)?;
+    let g = template_graph(compiled.view());
+
+    let mut built: HashMap<Key, String> = HashMap::new();
+    let mut memo: HashMap<SlotId, String> = HashMap::new();
+    for s in SlotId::below(b.sources.len()) {
+        let Some(k) = b.slot_key(s) else { continue };
+        let mut entry = b.describe_source(&b.sources[s.index()], &mut memo, &mut Vec::new());
+        for (slot, src) in &b.later_sources {
+            if *slot == s {
+                entry += &format!(
+                    " later {}",
+                    b.describe_source(src, &mut memo, &mut Vec::new())
+                );
+            }
+        }
+        for &(slot, f) in &b.holds {
+            if slot == s {
+                entry += &format!(
+                    " held by {}",
+                    b.describe_slot(f, &mut memo, &mut Vec::new())
+                );
+            }
+        }
+        for &(slot, from) in &b.seeds {
+            if slot == s {
+                entry += &format!(
+                    " seeded by {}",
+                    b.describe_slot(from, &mut memo, &mut Vec::new())
+                );
+            }
+        }
+        if b.counted_slots.contains(&s) {
+            entry += " counted";
+        }
+        if b.document_slots.contains(&s) {
+            entry += " document";
+        }
+        built.insert(k, entry);
+    }
+
+    let mut stamped: HashMap<Key, String> = HashMap::new();
+    let mut memo: HashMap<GraphNode, String> = HashMap::new();
+    for n in GraphNode::below(g.nodes.len()) {
+        let Some(k) = graph_key(&g, n) else { continue };
+        let mut entry = describe_def(&g, &g.defs[n.index()], &mut memo, &mut Vec::new());
+        for (m, def) in &g.later {
+            if *m == n {
+                entry += &format!(
+                    " later {}",
+                    describe_def(&g, def, &mut memo, &mut Vec::new())
+                );
+            }
+        }
+        for &(m, f) in &g.holds {
+            if m == n {
+                entry += &format!(
+                    " held by {}",
+                    describe_node(&g, f, &mut memo, &mut Vec::new())
+                );
+            }
+        }
+        for &(m, from) in &g.seeds {
+            if m == n {
+                entry += &format!(
+                    " seeded by {}",
+                    describe_node(&g, from, &mut memo, &mut Vec::new())
+                );
+            }
+        }
+        if g.counted.contains(&n) {
+            entry += " counted";
+        }
+        if g.document.contains(&n) {
+            entry += " document";
+        }
+        stamped.insert(k, entry);
+    }
+
+    let mut out = Vec::new();
+    let mut keys: Vec<&Key> = built.keys().chain(stamped.keys()).collect();
+    keys.sort();
+    keys.dedup();
+    for k in keys {
+        let (a, t) = (built.get(k), stamped.get(k));
+        if a != t {
+            out.push(format!(
+                "{}: the abstract build has {}, the template graph {}",
+                key_name(compiled, *k),
+                a.map_or("nothing", String::as_str),
+                t.map_or("nothing", String::as_str)
+            ));
+        }
+    }
+    Ok((out, built.len()))
+}
+
+impl Builder<'_> {
+    /// Slot `s` as a definition names it: an element's slot by its key,
+    /// any other by its source, unfolded.
+    fn describe_slot(
+        &self,
+        s: SlotId,
+        memo: &mut HashMap<SlotId, String>,
+        visiting: &mut Vec<SlotId>,
+    ) -> String {
+        if let Some(k) = self.slot_key(s) {
+            return format!("{k:?}");
+        }
+        if let Some(d) = memo.get(&s) {
+            return d.clone();
+        }
+        if visiting.contains(&s) {
+            return "(loop)".into();
+        }
+        visiting.push(s);
+        let d = self.describe_source(&self.sources[s.index()], memo, visiting);
+        visiting.pop();
+        memo.insert(s, d.clone());
+        d
+    }
+
+    /// `src` unfolded through every slot no element owns.
+    fn describe_source(
+        &self,
+        src: &BuiltSource,
+        memo: &mut HashMap<SlotId, String>,
+        visiting: &mut Vec<SlotId>,
+    ) -> String {
+        let mut each = |slots: &[SlotId]| {
+            slots
+                .iter()
+                .map(|&x| self.describe_slot(x, memo, visiting))
+                .collect::<Vec<_>>()
+                .join(", ")
+        };
+        match src {
+            BuiltSource::Unset => "unset".into(),
+            BuiltSource::Given(_) => "given".into(),
+            BuiltSource::Const(_) => "const".into(),
+            BuiltSource::Alias(t) => format!("alias({})", each(&[*t])),
+            BuiltSource::Op(op, start, n) => {
+                let inputs = &self.op_inputs[start.index()..start.index() + *n as usize];
+                match op {
+                    PlannedOp::Spec(spec) => format!("{spec:?}({})", each(inputs)),
+                    PlannedOp::Template { .. } => format!("template({})", each(inputs)),
+                }
+            }
+            BuiltSource::VecOut(head, k) => format!("out{k}({})", each(&[*head])),
+        }
+    }
+}
+
+/// Node `n` as a definition names it: an element's port by its key, any
+/// other by its definition, unfolded.
+fn describe_node(
+    g: &TemplateGraph,
+    n: GraphNode,
+    memo: &mut HashMap<GraphNode, String>,
+    visiting: &mut Vec<GraphNode>,
+) -> String {
+    if let Some(k) = graph_key(g, n) {
+        return format!("{k:?}");
+    }
+    if let Some(d) = memo.get(&n) {
+        return d.clone();
+    }
+    if visiting.contains(&n) {
+        return "(loop)".into();
+    }
+    visiting.push(n);
+    let d = describe_def(g, &g.defs[n.index()], memo, visiting);
+    visiting.pop();
+    memo.insert(n, d.clone());
+    d
+}
+
+/// `def` unfolded through every node no element owns.
+fn describe_def(
+    g: &TemplateGraph,
+    def: &Def,
+    memo: &mut HashMap<GraphNode, String>,
+    visiting: &mut Vec<GraphNode>,
+) -> String {
+    let mut each = |nodes: &[GraphNode]| {
+        nodes
+            .iter()
+            .map(|&x| describe_node(g, x, memo, visiting))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    match def {
+        Def::Unset => "unset".into(),
+        Def::Given(_) => "given".into(),
+        Def::Const(_) => "const".into(),
+        Def::Alias(t) => format!("alias({})", each(&[*t])),
+        Def::Op(GraphOp::Spec(spec), inputs) => format!("{spec:?}({})", each(inputs)),
+        Def::Op(GraphOp::Template, inputs) => format!("template({})", each(inputs)),
+        Def::VecOut(head, k) => format!("out{k}({})", each(&[*head])),
+    }
 }

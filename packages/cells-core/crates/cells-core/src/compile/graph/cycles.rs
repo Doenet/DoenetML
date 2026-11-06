@@ -59,7 +59,7 @@ fn check_counts(
 ) -> std::result::Result<CycleFindings, Error> {
     let tpls = &c.plans.templates;
     let n = g.repeats.len();
-    let index_of: HashMap<(TemplateId, ElemId), usize> =
+    let index_of: FxMap<(TemplateId, ElemId), usize> =
         g.repeats.iter().enumerate().map(|(i, &r)| (r, i)).collect();
     let body = |(t, e): (TemplateId, ElemId)| match tpls[t.index()].row(e).body {
         Body::Repeat { template } => template,
@@ -94,7 +94,7 @@ fn check_counts(
     for (ri, &(rt, re)) in g.repeats.iter().enumerate() {
         let ty = tpls[rt.index()].row(re).component_type;
         let count = g.port(rt, re, ty.count_prop().expect("a repeat has a count"));
-        let mut stack = g.reads[count.index()].clone();
+        let mut stack = g.reads(count).to_vec();
         touched.clear();
         while let Some(v) = stack.pop() {
             if v == count {
@@ -112,7 +112,7 @@ fn check_counts(
                     adj[ri].push(si);
                 }
             }
-            stack.extend_from_slice(&g.reads[v.index()]);
+            stack.extend_from_slice(g.reads(v));
         }
         for &v in &touched {
             seen[v.index()] = false;
@@ -215,7 +215,7 @@ fn check_loops(g: &TemplateGraph, c: CompiledRef<'_>) -> std::result::Result<(),
         on_stack[root.index()] = true;
         call.push((root, 0));
         while let Some(&mut (v, ref mut pos)) = call.last_mut() {
-            if let Some(&w) = g.reads[v.index()].get(*pos) {
+            if let Some(&w) = g.reads(v).get(*pos) {
                 *pos += 1;
                 if index[w.index()] == none {
                     index[w.index()] = next;
@@ -244,7 +244,7 @@ fn check_loops(g: &TemplateGraph, c: CompiledRef<'_>) -> std::result::Result<(),
                         break;
                     }
                 }
-                let self_loop = members.len() == 1 && g.reads[v.index()].contains(&v);
+                let self_loop = members.len() == 1 && g.reads(v).contains(&v);
                 if members.len() > 1 || self_loop {
                     check_scc(g, c, &members, &scc_of, &depth, &mut local)?;
                 }
@@ -281,7 +281,7 @@ fn check_scc(
     let mut shifts: Vec<Vec<i64>> = vec![Vec::new(); min_depth];
     let mut free = vec![false; min_depth];
     for &u in members {
-        for &v in &g.reads[u.index()] {
+        for &v in g.reads(u) {
             if scc_of[v.index()] != this {
                 continue;
             }
