@@ -177,6 +177,11 @@ function App() {
             <div className="doenet-preview" ref={previewContainerRef}>
                 <DoenetViewer
                     doenetML={source}
+                    // A drop-down to switch between the document's variants,
+                    // like the one on doenet.org. The viewer disables it if it
+                    // may load saved state, which the preview never does.
+                    includeVariantSelector
+                    flags={{ allowLoadState: false, allowLocalState: false }}
                     darkMode={darkMode ? "dark" : "light"}
                     onSourcePositionClick={handleSourcePositionClick}
                     scrollToSourceOffset={scrollToSourceOffset}
