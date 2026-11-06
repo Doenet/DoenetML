@@ -58,6 +58,23 @@ them once fixed it; `load-diff.sh` against 79761c6:
 | refs | 102.0 | 91.1 | 0.89 |
 | depth, mixed, cutoff, coords, poly | | | 0.96 to 1.06 |
 
+ADR 0032's step 8, part 3, moved the cycle check onto the compile's
+template graph, which every compile now stamps beside the abstract build
+until part 6 removes the abstract build's expand and resolve.
+`load-diff.sh` against 103d566:
+
+| shape, 10,000 | before (ms) | after (ms) | after / before |
+|---|---:|---:|---:|
+| refs | 121.5 | 143.3 | 1.18 |
+| coords | 126.2 | 141.3 | 1.12 |
+| isolated | 55.9 | 60.1 | 1.08 |
+| depth, breadth, mixed, cutoff, poly | | | 1.02 to 1.06 |
+
+By `LoadTimings::spans`, the stamping is 2.0 ms of depth's load, 7.2 ms
+of refs', 4.7 of poly's and 4.8 of coords', and the checks over it 0.6
+to 2.8 ms. A second run of refs and coords alone gave 1.00 and 1.10: the
+rest of refs' first difference was a run's variance.
+
 ## Where a load's time goes
 
 `LoadTimings::spans` at 90654e1, the median of nine loads, in ms:

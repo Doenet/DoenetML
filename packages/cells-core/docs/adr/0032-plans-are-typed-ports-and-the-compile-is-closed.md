@@ -1,7 +1,7 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
 Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done,
-and the first two parts of step 8; see Migration. Builds on
+and the first three parts of step 8; see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -746,6 +746,38 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
       `check_counts` leave the builder. Test: `tests/cycles.rs`,
       `tests/rebuild_cycles.rs`, the depths of `tests/repeat.rs` and
       `tests/load_errors.rs`, and `tests/every_count.rs`, unchanged.
+
+      Done, in this form. `compile/graph/cycles.rs` holds the three
+      checks, run by the compile over the template graph
+      (`graph::check_cycles`); the graph lists the repeats as the
+      abstract build lists them, each after those its iterations stamp.
+      They run where the builder's ran, between the abstract build's
+      resolve and its define (`abstract_build`'s `between`), so a
+      failure of resolve's still comes first and a box of define's after,
+      and the compile, `diagnose` and the input signature all run them.
+      `check_loops`, `check_scc`, `check_counts`, `reads_only_earlier_slots`,
+      `scope_within`, the builder's `structural_depth` and `diagnostics`
+      and `AbstractFindings::structural_depth` are gone; `push_inputs`
+      and `edge_label` moved to `build/coverage.rs`, their one reader,
+      and `BuiltSource::eval_inputs` is the tests'. One thing changed: a
+      cycle's name. It is the first of its nodes in the stamping's order
+      that is a named component's port, else any component's, where the
+      builder took the first in its walk's order, and an unnamed
+      component is its tag (`<repeatForSequence>`), not its tag and the
+      build's index, which no source shows. Over the 570 documents in the
+      tests' sources, the golden set and `sir.doenet`, every load's
+      outcome, structural depth and diagnostic is the same before and
+      after, and 18 of the 31 cycles are named by another of their
+      members (`a.value` for `b.value`, `cc.choice` for
+      `cc.(hidden slot 2)`); no test names one. The cost, until part 6
+      removes the abstract build's expand and resolve, is a template
+      graph per compile, recorded in `docs/load-cost.md`: at 10,000
+      elements the stamping takes 2 to 7 ms and the checks 0.6 to 2.8 ms
+      (`LoadTimings::spans`), and `load-diff.sh` against 103d566 puts a
+      load at 1.01 to 1.08 times the base's for most shapes, and `coords`
+      at 1.12 and 1.10 in two runs and `refs` at 1.18 and 1.00, within a
+      run's variance of the spans. `tick-diff.sh` is unchanged (0.92 to
+      1.02, every value the same). The golden diff is unchanged.
    4. **Define over the graph.** Which nodes merge into one cell, each
       cell's definition, what it needs and where a request on it goes
       (`Def`), and from them the writable and live walks, the counted

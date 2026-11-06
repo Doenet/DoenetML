@@ -18,11 +18,8 @@
 //! index, collects, point lists, indexed `$ref` children, the choices'
 //! stand-ins, every port's reads, the aggregates, and last the holds.
 //!
-//! Nothing reads the graph yet; `build/coverage.rs` tests it against the
-//! abstract build's.
-
-// Read only by the tests until the check reads it (ADR 0032, step 8, part 3).
-#![cfg_attr(not(feature = "testing"), allow(dead_code))]
+//! The compile runs the cycle and count checks over it (`cycles.rs`);
+//! `build/coverage.rs` tests it against the abstract build's graph.
 
 use std::collections::HashMap;
 
@@ -30,8 +27,11 @@ use super::*;
 use crate::components::{Collection, PropAt, PropSel};
 
 mod aggregate;
+mod cycles;
 mod expand;
 mod walk;
+
+pub(crate) use cycles::{CycleFindings, check_cycles};
 
 crate::index::index_type! {
     /// A node of the template graph: a position in its `nodes`.
@@ -153,6 +153,12 @@ pub(crate) struct TemplateGraph {
     pub(crate) depth: Vec<u32>,
     /// Whether each template is stamped.
     pub(crate) stamped: Vec<bool>,
+    /// Every live repeat, each after the repeats its iterations stamp, as
+    /// the abstract build lists them.
+    pub(crate) repeats: Vec<(TemplateId, ElemId)>,
+    /// Each copy of a list type that took its referent's ports, with how
+    /// many are public.
+    pub(crate) list_copies: HashMap<(TemplateId, ElemId), usize>,
 }
 
 impl TemplateGraph {
@@ -235,7 +241,6 @@ pub(crate) fn template_graph(c: CompiledRef<'_>) -> TemplateGraph {
         point_lists: Vec::new(),
         elem_children: HashMap::new(),
         collected: HashMap::new(),
-        list_copies: HashMap::new(),
         aliases: HashMap::new(),
     };
     s.stamp(TemplateId::new(0));
@@ -268,9 +273,6 @@ pub(super) struct Stamp<'c> {
     /// What each expanded collect gathered (its copies) and whether its
     /// count follows the counts of repeats.
     pub(super) collected: HashMap<(TemplateId, ElemId), (Vec<Comp>, bool)>,
-    /// Each copy of a list type that took its referent's ports, with how
-    /// many are public.
-    pub(super) list_copies: HashMap<(TemplateId, ElemId), usize>,
     /// What each port whose source is an alias aliases, for the holds.
     pub(super) aliases: HashMap<GraphNode, GraphNode>,
 }
@@ -371,7 +373,10 @@ impl<'c> Stamp<'c> {
             }
             let row = tpl.row(e);
             match row.body {
-                Body::Repeat { template } => self.stamp(template),
+                Body::Repeat { template } => {
+                    self.stamp(template);
+                    self.g.repeats.push((t, e));
+                }
                 Body::Choice(cid) => self.choice(t, e, cid),
                 Body::Collect { .. } => self.collects.push((t, e)),
                 _ if row.component_type == ComponentType::PointList => {
@@ -528,7 +533,7 @@ impl<'c> Stamp<'c> {
     /// The reads of every port of element `e` of template `t`; none for a
     /// copy of a list type that took its referent's.
     fn sources(&mut self, t: TemplateId, e: ElemId) {
-        if self.list_copies.contains_key(&(t, e)) {
+        if self.g.list_copies.contains_key(&(t, e)) {
             return;
         }
         let c = self.c;
@@ -662,7 +667,7 @@ impl<'c> Stamp<'c> {
     pub(super) fn n_public(&self, c: Comp) -> usize {
         match c {
             Comp::Elem(t, e) => {
-                if let Some(&n) = self.list_copies.get(&(t, e)) {
+                if let Some(&n) = self.g.list_copies.get(&(t, e)) {
                     return n;
                 }
                 let tpl = &self.c.plans.templates[t.index()];

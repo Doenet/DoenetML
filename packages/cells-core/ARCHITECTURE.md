@@ -142,11 +142,12 @@ Runs once per load and depends on the source alone.
   can have. It expands, resolves and defines the plans once through the
   **abstract build** (`build/abstract_build.rs`), which folds every
   iteration into one and builds every option of every select, so its graph
-  holds every edge any count or pick could create. It rejects any
-  dependency loop that could close at some count, and from the definitions
-  finds what every build reads of each port (below), the document's structural depth
-  and a warning for each request no build could land (ADR 0026). It stops
-  at define and makes no program (ADR 0035). Every document goes through
+  holds every edge any count or pick could create. From the definitions it
+  finds what every build reads of each port (below) and a warning for each
+  request no build could land (ADR 0026). It stops at define and makes no
+  program (ADR 0035). Between its resolve and its define, the compile
+  rejects any dependency loop that could close at some count, and finds
+  the document's structural depth, over the template graph (below). Every document goes through
   the abstract build, with or without repeats: a load is one sequence of
   steps. An element that fails to build is *boxed*; see [An element cannot
   be built](#an-element-cannot-be-built). The input signature (ADR 0017),
@@ -160,10 +161,14 @@ Runs once per load and depends on the source alone.
   build makes beside them (a stand-in, a case, a `$ref` child, a
   collect's copy, a point list's point), and per value a read goes
   through (a leaf inside math, a choose, a gate), with a read per
-  dependency, labelled as the abstract build labels it. Nothing reads it
-  yet; `tests/template_graph.rs` checks that it has the abstract build's
+  dependency, labelled as the abstract build labels it;
+  `tests/template_graph.rs` checks that it has the abstract build's
   dependencies between element ports, with their labels, on every
-  document.
+  document. The cycle and count checks run over it
+  (`compile/graph/cycles.rs`): a Tarjan walk with a Bellman-Ford per
+  component (ADR 0012), the loop on the graph of repeats, and the
+  structural depth with its warnings. A cycle is named by its first node
+  in the stamping's order that is a named component's port.
 
 Each stage keeps its own table (ADR 0031): a template is outlining's part
 (`Outlined`, read-only once outlining is done), boxing's and planning's
@@ -245,13 +250,14 @@ A build learns the document's structure only through the **structure view**
 (`View`, `build/view.rs`): iteration counts, which iteration or item an
 index names, a collect's count, a select's options. A real build uses the
 `Stamped` view, which answers from the counts it was asked for; the check
-uses the `Abstract` view. Because the cycle check reasons about the
-abstract build, any structural read that bypasses the view is one the cycle
-check cannot see.
+uses the `Abstract` view. Because the cycle check reasons about a graph
+stamped as the abstract view stamps (the template graph, tested against
+the abstract build's), any structural read that bypasses the view is one
+the cycle check cannot see.
 
-Expand, resolve and the abstract build's checks read the view, and define
-reads it once: a loop of aliases is a recurrence folded onto itself under
-the abstract view, which the loop check has judged, and a gap in the check
+Expand and resolve read the view, and define reads it once: a loop of
+aliases is a recurrence folded onto itself under the abstract view, which
+the cycle check has judged, and a gap in the check
 (`Unchecked`) in a stamped build. Emit runs only in a stamped build and
 reads no view (ADR 0035). So the check reads the graph and the cells'
 definitions, never a numbered cell or a bound instruction: a rule about

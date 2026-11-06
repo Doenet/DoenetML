@@ -1,11 +1,13 @@
 //! The check: plan the document, build it once through the abstract
-//! build, which stands for every count and every pick, and box every
+//! build, which stands for every count and every pick, check its template
+//! graph for loops at any count (ADR 0012, ADR 0032 step 8), and box every
 //! element that fails until every element builds. It finds every error the
 //! document has, from the source alone.
 
 use super::*;
 use crate::build;
 use crate::diagnostics::Diagnostic;
+use graph::CycleFindings;
 
 /// What a compile returns.
 pub(crate) struct CompileOutput {
@@ -18,9 +20,9 @@ pub(crate) struct CompileOutput {
 /// the source's diagnostics. Only a cycle, which has no element to box,
 /// fails it.
 ///
-/// For tests, `check_cycles` off skips the abstract build's loop checks,
-/// and `classify` off makes every port writable, so every value slot is
-/// essential.
+/// For tests, `check_cycles` off skips the cycle and count checks, and
+/// with them the structural depth, and `classify` off makes every port
+/// writable, so every value slot is essential.
 pub(crate) fn compile(
     dast: Dast,
     check_cycles: bool,
@@ -37,8 +39,15 @@ pub(crate) fn compile(
         plans.prune = prune;
         plans.fold = fold;
         let _s = crate::trace::span("abstract build");
-        let findings = build::abstract_build(CompiledRef { dast, plans }, check_cycles)?;
-        plans.structural_depth = findings.structural_depth;
+        let compiled = CompiledRef { dast, plans };
+        let mut cycles = CycleFindings::default();
+        let findings = build::abstract_build(compiled, || {
+            if check_cycles {
+                cycles = cycle_check(compiled)?;
+            }
+            Ok(())
+        })?;
+        plans.structural_depth = cycles.structural_depth;
         for (tpl, mut attrs) in plans.templates.iter_mut().zip(findings.attrs) {
             if !classify {
                 for a in &mut attrs {
@@ -47,10 +56,11 @@ pub(crate) fn compile(
             }
             tpl.checked = Checked { attrs };
         }
-        Ok(findings.warnings)
+        cycles.warnings.extend(findings.warnings);
+        Ok(cycles.warnings)
     })?;
-    // The abstract build's warnings are the document's: no build finds one
-    // the abstract build did not (ADR 0014). With them, the lint findings,
+    // The check's warnings are the document's: no build finds one the
+    // check did not (ADR 0014). With them, the lint findings,
     // the boxes' errors and the planners' warnings, which the loop added.
     let _s = crate::trace::span("diagnostics");
     list.extend(warnings);
@@ -70,10 +80,17 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let mut list = lint::lint(dast);
     // The build is not wanted, but its warnings are, with the planners'.
     // A failure with no element to box is in the list already.
-    if let Ok((_, findings)) = plan_and_check(dast, &mut list, true, |dast, plans| {
-        build::abstract_build(CompiledRef { dast, plans }, true)
+    if let Ok((_, warnings)) = plan_and_check(dast, &mut list, true, |dast, plans| {
+        let compiled = CompiledRef { dast, plans };
+        let mut cycles = CycleFindings::default();
+        let findings = build::abstract_build(compiled, || {
+            cycles = cycle_check(compiled)?;
+            Ok(())
+        })?;
+        cycles.warnings.extend(findings.warnings);
+        Ok(cycles.warnings)
     }) {
-        list.extend(findings.warnings);
+        list.extend(warnings);
     }
     crate::diagnostics::sort(&mut list);
     list
@@ -86,9 +103,19 @@ pub(crate) fn signature_renamed(
     rename: &dyn Fn(&str) -> String,
 ) -> Result<crate::build::signature::Signature> {
     let (_, signature) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
-        build::abstract_signature(CompiledRef { dast, plans }, rename)
+        let compiled = CompiledRef { dast, plans };
+        build::abstract_signature(compiled, || cycle_check(compiled).map(drop), rename)
     })?;
     Ok(signature)
+}
+
+/// The cycle and count checks over the template graph of `compiled`, and
+/// what they find of a document that passes. A cycle has no element to
+/// box.
+fn cycle_check(compiled: CompiledRef<'_>) -> std::result::Result<CycleFindings, Failure> {
+    let _s = crate::trace::span("cycle check");
+    let g = crate::trace::span("template graph").run(|| graph::template_graph(compiled));
+    graph::check_cycles(&g, compiled).map_err(|error| Failure { error, node: None })
 }
 
 /// The compile's loop: plan `dast`, boxing every element that fails where

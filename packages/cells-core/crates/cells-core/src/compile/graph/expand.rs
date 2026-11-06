@@ -32,7 +32,7 @@ impl<'c> Stamp<'c> {
         let plan = self.c.plans.templates[t.index()].plan(e);
         if plan.list != ListLen::AsReferent
             || self.g.n_ports[t.index()][e.index()] != 0
-            || self.list_copies.contains_key(&(t, e))
+            || self.g.list_copies.contains_key(&(t, e))
             || visiting.contains(&(t, e))
         {
             return;
@@ -55,7 +55,7 @@ impl<'c> Stamp<'c> {
         }
         let n = self.n_public(referent);
         self.element_ports(t, e, n);
-        self.list_copies.insert((t, e), n);
+        self.g.list_copies.insert((t, e), n);
         for pi in 0..n {
             let (s, target) = (self.g.port(t, e, pi), self.slot(referent, pi));
             self.read_as(s, target, &label);

@@ -107,6 +107,40 @@ fn admits(label: &[Coord], at_u: &[(NodeId, u32)], at_v: &[(NodeId, u32)]) -> bo
 }
 
 impl Builder<'_> {
+    /// The slots a slot's source reads, plus its later sources.
+    fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
+        out.extend(self.sources[s.index()].eval_inputs(&self.op_inputs));
+        for (slot, src) in &self.later_sources {
+            if *slot == s {
+                out.extend(src.eval_inputs(&self.op_inputs));
+            }
+        }
+    }
+
+    /// The label of edge `u -> v`: as recorded for a reference, else the
+    /// position shared with the target kept and the rest reset.
+    fn edge_label(&self, u: SlotId, v: SlotId, depth: &[u32]) -> Vec<Coord> {
+        if let Some(l) = self.labels.get(&(u, v)) {
+            return l.clone();
+        }
+        let (mut a, mut b) = (self.slot_scope[u.index()], self.slot_scope[v.index()]);
+        let dv = depth[b.index()];
+        while depth[a.index()] > depth[b.index()] {
+            a = self.scopes[a].0;
+        }
+        while depth[b.index()] > depth[a.index()] {
+            b = self.scopes[b].0;
+        }
+        while a != b {
+            a = self.scopes[a].0;
+            b = self.scopes[b].0;
+        }
+        let shared = depth[a.index()] as usize;
+        let mut label = vec![Coord::Keep(0); shared];
+        label.resize(dv as usize, Coord::Reset);
+        label
+    }
+
     /// The key of an element's slot; None for any other slot.
     fn slot_key(&self, s: SlotId) -> Option<Key> {
         let comp = self.slot_comp[s.index()];

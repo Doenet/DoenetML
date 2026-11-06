@@ -15,7 +15,8 @@
 //!
 //! The *abstract build* is expand, resolve and define through a view that
 //! folds every iteration into one, which the compile's check runs; it
-//! makes no program (ADR 0035).
+//! makes no program (ADR 0035), and the compile's cycle check runs between
+//! its resolve and its define, over the template graph (ADR 0032).
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -80,22 +81,11 @@ use expand::*;
 use view::{CollectCount, Options, Plans, View};
 
 impl<'c> Builder<'c> {
-    /// Expand and resolve, and with `abstract_checks` run the abstract
-    /// build's count and loop checks. The failure names the element to
-    /// box.
-    pub(in crate::build) fn stage(
-        &mut self,
-        abstract_checks: bool,
-    ) -> std::result::Result<(), Failure> {
+    /// Expand and resolve. The failure names the element to box.
+    pub(in crate::build) fn stage(&mut self) -> std::result::Result<(), Failure> {
         let staged = (|| {
             crate::trace::span("expand").run(|| self.expand_all())?;
-            crate::trace::span("resolve").run(|| self.resolve_all())?;
-            if abstract_checks {
-                let _s = crate::trace::span("loop check");
-                self.check_counts()?;
-                self.check_loops()?;
-            }
-            Ok(())
+            crate::trace::span("resolve").run(|| self.resolve_all())
         })();
         staged.map_err(|error| Failure {
             error,
@@ -179,7 +169,7 @@ pub fn build(
     let view = View::Stamped { counts };
     let mut b = Builder::new(compiled.view(), session, reseed, math, &view);
     let built = (|| {
-        b.stage(false)?;
+        b.stage()?;
         let slot_cells = crate::trace::span("define").run(|| b.define())?;
         let defined = Defined::by_attributes(&b, slot_cells);
         let _s = crate::trace::span("emit");
@@ -256,8 +246,6 @@ pub struct BuildOutput {
 /// later build reads, and the warnings.
 #[derive(Debug)]
 pub(crate) struct AbstractFindings {
-    /// The structural depth.
-    pub(crate) structural_depth: u32,
     /// What it found of each port, per template by template slot: which a
     /// student's action can write, which are live, counted values and
     /// document constants.

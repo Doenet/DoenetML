@@ -31,8 +31,10 @@ impl BuiltSource {
     }
 
     /// What evaluating this source reads, which decides the order slots
-    /// are computed in: the cycle check's graph. A flag that holds the slot
+    /// are computed in: the abstract build's graph, which the coverage
+    /// test compares with the template graph. A flag that holds the slot
     /// is not among them.
+    #[cfg(feature = "testing")]
     pub(in crate::build) fn eval_inputs<'a>(
         &self,
         op_inputs: &'a [SlotId],
