@@ -20,7 +20,9 @@
  *   holds, decided only when it runs, an index into a list reads one item
  *   (`<textList name="l"><text>a</text><text>$l[1]</text></textList>` is
  *   valid), and an index into a `<text>`, a `<number>` or a `<boolean>`
- *   names nothing (`doenet-w0100`), so none of these is an edge;
+ *   names nothing (`doenet-w0100`), so none of these is an edge, but for a
+ *   reference written as a tag that names the tag itself, whatever its path
+ *   (`<group name="g" extend="$g.x"/>`);
  * - a composite (`<conditionalContent>`, `<group>`, `<repeat>`, …), a
  *   `<case>` or an `<option>` to each child but a `<setup>`, as what it
  *   holds is made from them;
@@ -46,8 +48,8 @@ import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
  * Tags whose value is made from their children, and the tags that inherit
- * from them. The same as those whose own reference inside them reads their
- * value (`getSelfReferentialFallbackPropName`), with `<label>`.
+ * from them: the same list as `getSelfReferentialFallbackPropName` uses for
+ * the tags whose own reference inside them reads their value.
  */
 const VALUE_FROM_CHILDREN = [
     "label",
@@ -213,7 +215,9 @@ export function breakReferenceCycles({
                     edges.push(target.componentIdx);
                 }
             } else if (target === component) {
-                // made from itself (`<math name="z" extend="$z"/>`)
+                // made from itself (`<math name="z" extend="$z"/>`), whatever
+                // the path: `<group name="g" extend="$g.x"/>` reads what it
+                // makes too
                 edges.push(component.componentIdx);
             }
             if (valueFromChildren(writtenType(component))) {

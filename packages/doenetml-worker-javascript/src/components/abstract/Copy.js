@@ -1609,7 +1609,8 @@ export default class Copy extends CompositeComponent {
         // loaded (D36): its error, or its missing tag, whatever its source
         // holds or its index names now. Decided before anything is made from
         // the source, which, for a tag in what it is of (`<math
-        // extend="$cc"/>` in a case of `cc`), would report it as circular
+        // extend="$g"/>` in a `<group name="g">` holding two components, or
+        // `<math extend="$r"/>` in a repeat), would report it as circular
         // too, once it is made.
         const atLoad = await typeChangeAtLoadError({
             component,
@@ -2722,16 +2723,22 @@ export default class Copy extends CompositeComponent {
                 };
             }
 
-            // What it names is not shown now, as when its index named
-            // nothing when the document loaded (`doenet-i0054`), so the
-            // info is the same whether it was withheld then or since.
+            // What its index names is not shown now, as when its index
+            // named nothing when the document loaded (`doenet-i0054`), so
+            // the info is the same whether it was withheld then or since. A
+            // composite named as a whole in a case not shown (`<math
+            // extend="$g"/>` of a `<group>` there) gives no info, as at load,
+            // not the info of a composite holding nothing (`doenet-i0055`).
+            const withheldInfo = await indexNamesNothing({
+                component,
+                componentInfoObjects,
+                workspace,
+            });
             reportTypeChange(
                 workspace,
-                await indexNamesNothing({
-                    component,
-                    componentInfoObjects,
-                    workspace,
-                }),
+                withheldInfo?.diagnostic.code === "doenet-i0054"
+                    ? withheldInfo
+                    : undefined,
             );
 
             if (

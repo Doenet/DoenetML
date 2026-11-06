@@ -298,7 +298,8 @@ describe("Reference cycles decided at load @group2", async () => {
     });
 
     // B32: before, the extends gave nothing at load, and switching the case
-    // on reported `doenet-e0005` at one of them and an uncoded error.
+    // on reported `doenet-e0005` at one of them, and, with an `<else>`, an
+    // uncoded error.
     for (const withElse of [false, true]) {
         it(`two conditionalContents extending each other${withElse ? ", with an else" : ""}`, async () => {
             const otherwise = (value: number) =>
