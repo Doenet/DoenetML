@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -694,14 +695,20 @@ describe("A reference to a component in error @group2", async () => {
     it("an invalid attribute: one error, and a blank at each reference", async () => {
         const doenetML = `<math name="m" blink="true">x</math>
 <p name="p1">$m $m</p>
-<math name="m2" extend="$m"/>
-<math name="m3" copy="$m"/>
+<p name="p3">[<math name="m2" extend="$m"/>] [<math name="m3" copy="$m" simplify/>]</p>
 <p name="p2">$m2 $m3</p>`;
         const { shown, errors, warnings, infos } = await shownAndReported(
             doenetML,
-            ["p1", "p2"],
+            ["p1", "p2", "p3", "m2", "m3"],
         );
-        expect(shown).eqls({ p1: "＿ ＿", p2: "＿ ＿" });
+        // `m2` and `m3` themselves are blanks, not the error shown again
+        expect(shown).eqls({
+            p1: "＿ ＿",
+            p2: "＿ ＿",
+            p3: "[＿] [＿]",
+            m2: "＿",
+            m3: "＿",
+        });
         expect(warnings).eqls([]);
         expect(infos).eqls([]);
         expect(errors.length).eq(1);
@@ -740,9 +747,9 @@ describe("A reference to a component in error @group2", async () => {
 <p name="p2">$m2 $m3</p>`;
         const { shown, errors, warnings, infos } = await shownAndReported(
             doenetML,
-            ["p1", "p2"],
+            ["p1", "p2", "m2", "m3"],
         );
-        expect(shown).eqls({ p1: "＿ ＿", p2: "＿ ＿" });
+        expect(shown).eqls({ p1: "＿ ＿", p2: "＿ ＿", m2: "＿", m3: "＿" });
         expect(warnings).eqls([]);
         expect(infos).eqls([]);
         expect(errors.length).eq(1);
@@ -750,6 +757,42 @@ describe("A reference to a component in error @group2", async () => {
         expect(marked(doenetML, errors[0])).eq(
             `<math name="m" extend="$sec"/>`,
         );
+    });
+
+    it("a reference that comes to name a component in error is a blank, and reports nothing", async () => {
+        const doenetML = `<booleanInput name="b"/>
+<conditionalContent name="cc">
+<case condition="$b"><math name="m" blink="true">x</math></case>
+<else><math name="m">y</math></else>
+</conditionalContent>
+<p name="p">[<math name="m2" extend="$cc.m"/>]</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        function e0004s() {
+            return getDiagnosticsByType(core).errors.filter(
+                (error: any) => error.code === "doenet-e0004",
+            ).length;
+        }
+        expect(await shown()).eq("[y]");
+        expect(e0004s()).eq(1);
+        for (const boolean of [true, false, true]) {
+            await updateBooleanInputValue({
+                boolean,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            expect(await shown()).eq(boolean ? "[＿]" : "[y]");
+            expect(e0004s()).eq(1);
+        }
     });
 
     it("a copy of a component holding an error shows it, and reports nothing more", async () => {

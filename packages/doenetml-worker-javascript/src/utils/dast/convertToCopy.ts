@@ -403,6 +403,14 @@ export function convertRefsToCopies({
                                 name: "_createComponentOfType",
                                 children: ["integer"],
                             };
+                            // An index of a component in error stays the
+                            // error, not a blank (`missingInPlaceOfCopiedError`
+                            // in `Copy.js`), so the reference says its index
+                            // cannot be worked out (`doenet-w0163`).
+                            comp.doenetAttributes = {
+                                ...comp.doenetAttributes,
+                                isIndex: true,
+                            };
                             return {
                                 value: [comp],
                                 position: index.position,

@@ -6932,12 +6932,54 @@ function missingInPlaceOfCopiedError({
     componentInfoObjects,
     result,
 }) {
+    if (component.doenetAttributes?.isIndex) {
+        // `$io` of `$l[$io]` (`convertToCopy.ts`): the reference says its
+        // index cannot be worked out (`doenet-w0163`).
+        return;
+    }
+
     function isCopiedError(replacement) {
         return (
             typeof replacement === "object" &&
             replacement.componentType === "_error" &&
             replacement.originalIdx != undefined &&
             components[replacement.originalIdx]?.componentType === "_error"
+        );
+    }
+
+    const writtenType = component.attributes._createComponentOfType?.primitive
+        ?.value
+        ? componentInfoObjects.componentTypeLowerCaseMapping[
+              component.attributes._createComponentOfType.primitive.value.toLowerCase()
+          ]
+        : undefined;
+
+    /**
+     * Whether `replacement` is a copied error, or, for a copy written as a
+     * tag (`<math extend="$m"/>`), the component of that tag made to hold
+     * one (`verifyReplacementsMatchSpecifiedType`), which, unable to show
+     * the error as a child, would be made an `_error` showing it again.
+     */
+    function isOrHoldsOnlyCopiedError(replacement) {
+        if (isCopiedError(replacement)) {
+            return true;
+        }
+        if (
+            writtenType === undefined ||
+            typeof replacement !== "object" ||
+            replacement.componentType !== writtenType ||
+            replacement.originalIdx != undefined
+        ) {
+            return false;
+        }
+        const children = replacement.children ?? [];
+        const nonStrings = children.filter((x) => typeof x === "object");
+        return (
+            nonStrings.length === 1 &&
+            isCopiedError(nonStrings[0]) &&
+            children.every(
+                (x) => typeof x === "object" || x.trim().length === 0,
+            )
         );
     }
 
@@ -6972,7 +7014,10 @@ function missingInPlaceOfCopiedError({
 
     function swap(replacements) {
         const nonStrings = replacements.filter((x) => typeof x === "object");
-        if (nonStrings.length !== 1 || !isCopiedError(nonStrings[0])) {
+        if (
+            nonStrings.length !== 1 ||
+            !isOrHoldsOnlyCopiedError(nonStrings[0])
+        ) {
             return replacements;
         }
         return replacements.map((x) =>
