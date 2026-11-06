@@ -24,12 +24,18 @@
  *   reference written as a tag that names the tag itself, whatever its path
  *   (`<group name="g" extend="$g.x"/>`);
  * - a composite (`<conditionalContent>`, `<group>`, `<repeat>`, …), a
- *   `<case>` or an `<option>` to each child but a `<setup>`, as what it
- *   holds is made from them;
+ *   `<case>` or an `<option>`, or a reference written as a composite
+ *   (`<group extend="$s">`, which holds what is written in it too), to each
+ *   child but a `<setup>`, as what it holds is made from them;
  * - a tag whose value is made from its children (`VALUE_FROM_CHILDREN`: a
- *   `<math>`, a `<text>`, …), or a reference written as one, to each child
- *   that is not a `<label>`. A component's own label may read the component
- *   (`<point name="P"><label>$P</label></point>` means P's value, #1384).
+ *   `<math>`, a `<text>`, a `<label>`, …), or a reference written as one, to
+ *   each child.
+ *
+ * A `<label>` child is not followed where its parent takes it as its label
+ * (a child group of labels alone, as a graphical component has), which may
+ * read the component (`<point name="P"><label>$P</label></point>` means P's
+ * value, #1384). Where a label is content (`<label><label>$l</label></label>`,
+ * `<m>`), it is followed.
  *
  * Every reference in a strongly connected part of that graph with an edge
  * (a cycle) is made an `_error`, which breaks every cycle, as each cycle
@@ -168,7 +174,26 @@ export function breakReferenceCycles({
             : node.componentType;
     }
 
-    function childEdges(component: SerializedComponent, skipLabels: boolean) {
+    /**
+     * Whether a component of type `componentType` takes a `<label>` child as
+     * its label, not as content: one of its child groups holds labels alone.
+     */
+    function takesLabels(componentType: string | undefined) {
+        const componentClass =
+            componentType === undefined
+                ? undefined
+                : componentInfoObjects.allComponentClasses[componentType];
+        const childGroups = componentClass?.returnChildGroups?.() ?? [];
+        return childGroups.some(
+            (group: { componentTypes?: string[] }) =>
+                group.componentTypes?.length === 1 &&
+                group.componentTypes[0] === "label",
+        );
+    }
+
+    /** The edges to the children of a component holding them as `type`. */
+    function childEdges(component: SerializedComponent, type: string) {
+        const skipLabels = takesLabels(type);
         const edges: number[] = [];
         for (const child of component.children ?? []) {
             if (typeof child === "string" || child.componentType === "setup") {
@@ -224,16 +249,23 @@ export function breakReferenceCycles({
                 // makes too
                 edges.push(component.componentIdx);
             }
-            if (valueFromChildren(writtenType(component))) {
-                edges.push(...childEdges(component, true));
+            const written = writtenType(component);
+            if (
+                written !== undefined &&
+                (valueFromChildren(written) || isComposite(written))
+            ) {
+                // what is written in it is part of what it makes
+                edges.push(...childEdges(component, written));
             }
             return edges;
         }
-        if (isComposite(type) || type === "case" || type === "option") {
-            return childEdges(component, false);
-        }
-        if (valueFromChildren(type)) {
-            return childEdges(component, true);
+        if (
+            isComposite(type) ||
+            type === "case" ||
+            type === "option" ||
+            valueFromChildren(type)
+        ) {
+            return childEdges(component, type);
         }
         return [];
     }
@@ -312,15 +344,22 @@ export function breakReferenceCycles({
         }
     }
 
-    const diagnostics: DiagnosticRecord[] = [];
     // In document order, so the errors are reported in the order written.
+    // The type each names is read before any is made an `_error`, so that it
+    // does not depend on that order.
+    const members: [SerializedComponent, string | undefined][] = [];
     for (const [idx, component] of componentsByIdx) {
         if (!onCycle.has(idx) || component.componentType !== "_copy") {
             continue;
         }
         const target = targetOf(component);
-        const componentType =
-            writtenType(component) ?? (target ? typeOf(target) : undefined);
+        members.push([
+            component,
+            writtenType(component) ?? (target ? typeOf(target) : undefined),
+        ]);
+    }
+    const diagnostics: DiagnosticRecord[] = [];
+    for (const [component, componentType] of members) {
         const diagnostic = codedDiagnostic({
             type: "error",
             code: "doenet-e0005",

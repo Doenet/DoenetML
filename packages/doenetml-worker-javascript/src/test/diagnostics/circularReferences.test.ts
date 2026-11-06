@@ -297,6 +297,79 @@ describe("Reference cycles decided at load @group2", async () => {
         expect(rest).eq("rest");
     });
 
+    it("each error names the type its reference is of, whatever the order written", async () => {
+        const { core } = await errorsAndRest(
+            `<math name="a" extend="$b"/><math name="b">$a</math>`,
+        );
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => error.message),
+        ).eqls([
+            "Circular dependency detected involving `<math>` component.",
+            "Circular dependency detected involving `<math>` component.",
+        ]);
+    });
+
+    // A label that is content, not the label of what holds it, is part of
+    // that value.
+    for (const [description, doenetML, error] of [
+        [
+            "a label holding a reference to the label it is in",
+            `<label name="l"><label>$l</label></label>`,
+            "doenet-e0005 1:24-26",
+        ],
+        [
+            "a label in an m, holding a reference to the m",
+            `<m name="mm"><label>$mm</label></m>`,
+            "doenet-e0005 1:21-24",
+        ],
+    ]) {
+        it(description, async () => {
+            const { errors, rest } = await errorsAndRest(doenetML);
+            expect(errors).eqls([error]);
+            expect(rest).eq("rest");
+        });
+    }
+
+    // What is written in a reference made as a composite is part of what it
+    // makes, in a case not shown too.
+    for (const [form, end] of [
+        ["extend", 90],
+        ["copy", 88],
+    ] as const) {
+        it(`a group written with ${form}, holding a reference to itself`, async () => {
+            const { errors, rest } = await errorsAndRest(
+                `<group name="s"><math>1</math></group><group name="g" ${form}="$s"><math>$g</math></group>`,
+            );
+            expect(errors).eqls([
+                `doenet-e0005 1:39-${end}`,
+                `doenet-e0005 1:${end - 17}-${end - 15}`,
+            ]);
+            expect(rest).eq("rest");
+        });
+    }
+
+    it("a group extend holding a reference to itself, in a case not shown yet", async () => {
+        const { errors, core, resolvePathToNodeIdx } = await errorsAndRest(
+            `<booleanInput name="b"/><group name="s"><math>1</math></group><conditionalContent><case condition="$b"><group name="g" extend="$s"><math>$g</math></group></case></conditionalContent>`,
+        );
+        expect(errors).toHaveLength(2);
+        expect(errors.every((error) => error.startsWith("doenet-e0005"))).true;
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(errorsAt(core)).eqls(errors);
+    });
+
+    it("a module extend holding a reference to itself", async () => {
+        const { errors, rest } = await errorsAndRest(
+            `<module name="md"><math>1</math></module><module name="m2" extend="$md"><math>$m2</math></module>`,
+        );
+        expect(errors).eqls(["doenet-e0005 1:42-98", "doenet-e0005 1:79-82"]);
+        expect(rest).eq("rest");
+    });
+
     // B32: before, the extends gave nothing at load, and switching the case
     // on reported `doenet-e0005` at one of them, and, with an `<else>`, an
     // uncoded error.
