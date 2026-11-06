@@ -167,8 +167,9 @@ impl<'a> Compiler<'a> {
     }
 
     /// A list of scalars (`AttrKind::Scalars`): each item a literal number
-    /// or one reference, items separated by spaces or commas. Anything
-    /// else (math, a reference with text against it) is refused.
+    /// or one reference, items separated by spaces, as DoenetML writes a
+    /// list. Anything else (math, a reference with text against it, a
+    /// comma) is refused.
     pub(in crate::compile) fn plan_scalar_list(
         &mut self,
         rf: &mut Refs,
@@ -191,9 +192,7 @@ impl<'a> Compiler<'a> {
                     // A reference stands alone: text right against it would
                     // make it math.
                     let next_apart = nodes.get(k + 1).is_none_or(|&m| {
-                        d.kind(m) != NodeKind::Text
-                            || d.str(m)
-                                .starts_with(|c: char| c.is_whitespace() || c == ',')
+                        d.kind(m) != NodeKind::Text || d.str(m).starts_with(char::is_whitespace)
                     });
                     if !apart || !next_apart {
                         return Err(bad(self));
@@ -203,18 +202,14 @@ impl<'a> Compiler<'a> {
                 }
                 NodeKind::Text => {
                     let text = d.str(n);
-                    if !apart && !text.starts_with(|c: char| c.is_whitespace() || c == ',') {
+                    if !apart && !text.starts_with(char::is_whitespace) {
                         return Err(bad(self));
                     }
-                    for item in text.split(|c: char| c.is_whitespace() || c == ',') {
-                        if item.is_empty() {
-                            continue;
-                        }
+                    for item in text.split_whitespace() {
                         let v = item.parse::<f64>().map_err(|_| bad(self))?;
                         out.push(Source::given(v));
                     }
-                    apart = text.ends_with(|c: char| c.is_whitespace() || c == ',')
-                        || text.trim().is_empty();
+                    apart = text.ends_with(char::is_whitespace) || text.trim().is_empty();
                 }
                 _ => {}
             }

@@ -219,7 +219,8 @@ pub enum AttrKind {
     /// A list of points, at most `max` when given.
     Points { max: Option<usize> },
     /// A list of scalars, each a number or one reference, separated by
-    /// spaces or commas (`exclude="$a 7 $b"`): a source each.
+    /// spaces as DoenetML writes a list (`exclude="$a 7 $b"`): a source
+    /// each.
     Scalars,
     /// An on/off attribute that may be bound (`hide="$h"`): a 0/1 source,
     /// `default` without one.

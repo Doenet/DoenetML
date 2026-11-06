@@ -425,6 +425,10 @@ above, it is here.
   to the check for every `numToSelect`, literal or not, with its
   messages unchanged; the build reads the number from `Checked::picks`
   (`Plans::num_to_select`), as does the input signature's `Domain`.
+- **`exclude`.** The scalar list (`AttrKind::Scalars`) is written as
+  every DoenetML list is, items separated by spaces (`exclude="$a 7"`),
+  each a literal number or one reference; a comma, or math, is a bad
+  attribute value.
 - **Messages.** A parameter a student can change is
   `cells-choice-not-constant` ("`<selectFromSequence to="$k">`: a
   load-time choice may read only values no student can change, and

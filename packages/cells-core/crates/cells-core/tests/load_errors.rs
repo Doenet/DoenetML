@@ -459,7 +459,7 @@ fn holds_gates_counts_and_indexes_decide_whether_a_parameter_is_constant() {
 fn excludes_may_read_constants_and_must_leave_a_value() {
     let src = r#"<selectFromSequence name="a" from="1" to="5"/>
 <selectFromSequence name="b" from="1" to="5" exclude="$a"/>
-<selectFromSequence name="c" from="1" to="5" exclude="2, 4"/><number>$a</number><number>$b</number><number>$c</number>"#;
+<selectFromSequence name="c" from="1" to="5" exclude="2 4"/><number>$a</number><number>$b</number><number>$c</number>"#;
     accepted(src);
     for seed in 0..30 {
         let doc = load_with_seed(src, seed).unwrap();
@@ -483,6 +483,12 @@ fn excludes_may_read_constants_and_must_leave_a_value() {
         r#"<selectFromSequence from="1" to="3" exclude="1 2 3"/>"#,
         "cells-choice-domain",
         "exclude can leave nothing",
+    );
+    // A list is written with spaces, as every DoenetML list is.
+    refused(
+        r#"<selectFromSequence from="1" to="5" exclude="2, 4"/>"#,
+        "cells-bad-attribute-value",
+        "'exclude'",
     );
 }
 
