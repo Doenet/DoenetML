@@ -47,7 +47,7 @@ const STRUCTURAL_ATTRIBUTES = new Set([
     "name",
     "extend",
     "copy",
-    "copyWithState",
+    "copywithstate",
 ]);
 
 // ---------------------------------------------------------------------------
