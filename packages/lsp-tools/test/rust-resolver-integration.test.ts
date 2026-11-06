@@ -12,6 +12,7 @@ import type { ResolverCore } from "../src";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 import { computeContextHelp } from "../src/context-help/computeContextHelp";
+import { getElementNameAttributeValue } from "../src/auto-completer/rust-resolver-adapter";
 
 // --------------- WASM bootstrap (skips if unavailable) ---------------
 
@@ -879,6 +880,108 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.partiallyResolvedNode?.name).toBe("math");
         });
 
+        it("$g.h. hops through several names every branch declares", async () => {
+            const branch = (n: number) =>
+                `<group name="g"><group name="h"><math name="m">${n}</math></group></group>`;
+            const source = `<conditionalContent><case condition="true">${branch(1)}</case><else>${branch(2)}</else></conditionalContent>\n$g.h.`;
+            const result = await memberNames(source, ["g", "h", ""]);
+            expect(result!.node?.name).toBe("group");
+            expect(getElementNameAttributeValue(result!.node!)).toBe("h");
+            expect(result!.visibleDescendantNames).toEqual(["m"]);
+        });
+
+        it("blocks a hop through a branch container inside a repeat reached without an index", async () => {
+            const branch = (n: number) =>
+                `<group name="x"><math name="y">${n}</math></group>`;
+            const source = `<repeat name="r" for="1 2" valueName="v"><conditionalContent><case condition="true">${branch(1)}</case><else>${branch(2)}</else></conditionalContent></repeat>\n$r.x.`;
+            const unindexed = await memberNames(source, ["r", "x", ""]);
+            expect(unindexed?.node ?? null).toBeNull();
+
+            const indexed = await memberNames(
+                source.replace("$r.x.", "$r[1].x."),
+                ["r", "x", ""],
+                [true, false, false],
+            );
+            expect(indexed!.node?.name).toBe("group");
+            expect(indexed!.visibleDescendantNames).toEqual(["y"]);
+        });
+
+        it("$s[2].x. hops through the options of a select that picks several", async () => {
+            const option = (n: number) =>
+                `<option><group name="x"><math name="y">${n}</math></group></option>`;
+            const source = `<select name="s" numToSelect="2">${option(1)}${option(2)}</select>\n$s[2].x.`;
+            const indexed = await memberNames(
+                source,
+                ["s", "x", ""],
+                [true, false, false],
+            );
+            expect(indexed!.node?.name).toBe("group");
+            expect(indexed!.visibleDescendantNames).toEqual(["y"]);
+
+            // Without the index, a select that picks several names no
+            // option.
+            const unindexed = await memberNames(
+                source.replace("$s[2].x.", "$s.x."),
+                ["s", "x", ""],
+            );
+            expect(unindexed?.node ?? null).toBeNull();
+        });
+
+        it("does not read a container or branch tag written in another case as one", async () => {
+            // The runtime knows no `<ConditionalContent>` (`doenet-e0002`),
+            // and the core reads a tag as a branch container only as
+            // written (`branch_container_kind`).
+            const source = `<ConditionalContent name="cc"><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></ConditionalContent>\n$`;
+            expect(await refNameLabels(source)).not.toContain("x");
+            const result = await memberNames(`${source}cc.`, ["cc", ""]);
+            expect(result?.visibleDescendantNames ?? []).not.toContain("x");
+        });
+
+        it("leaves out content written beside the branches", async () => {
+            // A `<conditionalContent>` child beside its `<case>`s is not a
+            // case (the runtime reports it invalid, `doenet-w0107`), and
+            // the children of a `<conditionalContent extend>` are not
+            // content of it (`doenet-e0057`).
+            for (const source of [
+                `<conditionalContent><case condition="true"><math name="x">1</math></case><math name="y">5</math></conditionalContent>\n$`,
+                `<conditionalContent name="c0"><math name="x">1</math></conditionalContent><conditionalContent extend="$c0"><math name="y">5</math></conditionalContent>\n$`,
+            ]) {
+                const { adapter } = await createCoreAndAdapter(source);
+                expect(
+                    await adapter.isNameAddressableFromOffset(
+                        source.length,
+                        "y",
+                    ),
+                ).toBe(false);
+            }
+        });
+
+        it("leaves out a branch name the cursor's scope also declares in another element", async () => {
+            // The adapter resolves from an element near the cursor (the
+            // `<p>` here), which the core's "resolve back to the child"
+            // tie-break then prefers; from the reference itself, `x` is
+            // ambiguous.
+            const cc = `<conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>`;
+            for (const source of [
+                `<p><group><math name="x">0</math></group></p>${cc}\n$`,
+                `${cc}<p><group><math name="x">0</math></group></p>\n$`,
+            ]) {
+                const labels = await refNameLabels(source);
+                expect(labels).not.toContain("x");
+            }
+        });
+
+        it("context help for a bare branch name describes the first branch's declaration", async () => {
+            const source = `<conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>\n$x`;
+            const { completer } = await createCompleterWithAdapter(source);
+            const help = await computeContextHelp(completer, source.length);
+            expect(help).toMatchObject({
+                kind: "refName",
+                refName: "x",
+                targetElementName: "math",
+            });
+        });
+
         it("end-to-end: $cc. offers the shared name and $x. offers its properties", async () => {
             const source = `<conditionalContent name="cc"><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>\n$cc.`;
             const labels = await refNameLabels(source);
@@ -1270,9 +1373,8 @@ describe.skipIf(!wasmAvailable)(
         });
 
         it("isNameAddressableFromOffset returns false for names inside else from outside", async () => {
-            // Raw DAST keeps <else> as-is (sugar is not applied in the LSP).
-            // Adding "else" to CHILDREN_INVISIBLE means its children are
-            // hidden from grandparent scopes in the resolver.
+            // Each name is declared in only one branch, so it names nothing
+            // from outside (`doenet-w0183`) and is left out.
             const source = `<conditionalContent name="cc"><case condition="true"><text name="caseChild">a</text></case><else><text name="elseChild">b</text></else></conditionalContent>\n$`;
             const { adapter } = await createCoreAndAdapter(source);
 

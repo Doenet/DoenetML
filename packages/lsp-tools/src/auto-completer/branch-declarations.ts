@@ -73,13 +73,18 @@ function isWrittenAsCopy(element: DastElement): boolean {
  * With `indexed`, for a name after an index into a select's picks
  * (`$s[2].x`), a `<select>` of any number of picks shows one option there,
  * as `branchKind` in `typeChangeAtLoad.ts` has it.
+ *
+ * Tags are matched as the core matches them: `conditionalContent` (or
+ * `conditionalcontent`) and `select`, and branches `case`, `else` and
+ * `option` (`BranchContainerKind::is_branch`). A tag written in another
+ * case is not a component the runtime knows (`doenet-e0002`).
  */
 export function branchContainerKind(
     element: DastElement,
     indexed = false,
 ): BranchKind | undefined {
-    const tag = element.name.toLowerCase();
-    if (tag === "conditionalcontent") {
+    const tag = element.name;
+    if (tag === "conditionalContent" || tag === "conditionalcontent") {
         return "case";
     }
     if (tag !== "select") {
@@ -116,7 +121,7 @@ function branchesOf(
     const branches: DastNodes[][] = [];
     for (const child of container.children) {
         if (child.type !== "element") continue;
-        if (!branchTags.includes(child.name.toLowerCase())) continue;
+        if (!branchTags.includes(child.name)) continue;
         if (isWrittenAsCopy(child)) {
             return undefined;
         }
@@ -288,8 +293,8 @@ export function branchDeclarations(
         }
         result.push(...declared);
     }
-    const tag = result[0].name.toLowerCase();
-    if (result.some((element) => element.name.toLowerCase() !== tag)) {
+    const tag = result[0].name;
+    if (result.some((element) => element.name !== tag)) {
         return null;
     }
     return result;

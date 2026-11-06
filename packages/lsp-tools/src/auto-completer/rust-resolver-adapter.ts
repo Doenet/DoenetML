@@ -16,14 +16,12 @@ import type {
 } from "./index";
 
 /**
- * Wrapper elements whose children should be treated as direct children of
- * the composite for ref-resolution purposes.  At runtime, sugar inserts
- * these wrappers and then strips them during replacement expansion.
- *
- * Exported so the help-side descendant walk in `auto-completer/index.ts`
- * mirrors the resolver's wrapper handling from a single source of truth.
+ * Wrapper elements whose children `collectNamesFromCompositeChildren` walks
+ * as if they were direct children of the composite. Branch containers
+ * (`<conditionalContent>`, `<select>`) no longer go through that walk; see
+ * `sharedBranchNames` in `branch-declarations.ts`.
  */
-export const COMPOSITE_WRAPPER_NAMES = new Set(["case", "else", "option"]);
+const COMPOSITE_WRAPPER_NAMES = new Set(["case", "else", "option"]);
 
 /**
  * Return the literal `name` attribute value for an element, if present.
@@ -1248,9 +1246,10 @@ export class RustResolverAdapter {
     /**
      * Whether `resolved`, which the core resolved `name` to from a resolve
      * origin, is that origin or one of its ancestors. The core resolves a
-     * name that is ambiguous where it is found to the origin's ancestor
-     * among its referents ("resolve back to the child", as `$p` inside one
-     * of two `<problem name="p">`s). A reference typed at the cursor is not
+     * name that is ambiguous where it is found to the origin, or the
+     * origin's ancestor, when that is one of its referents ("resolve back
+     * to the child" in `search_parents`, `ref_resolve/resolve.rs`, as `$p`
+     * inside one of two `<problem name="p">`s). A reference typed at the cursor is not
      * that origin (`_referenceOriginIndex` picks an existing element near
      * the cursor), so such a result needs `_isAmbiguousFromCursor`.
      */
@@ -1482,22 +1481,28 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Check whether a node at `rustIdx` the resolver reached directly is
-     * one the runtime does not let a reference at `cursorOffset` reach:
-     * one inside a `<conditionalContent>` or `<select>` the cursor is
-     * outside of, held there by a child that is not one of its branches
-     * (`<case>`/`<else>`, `<option>`).
+     * Check whether a node at `rustIdx` the resolver reached directly
+     * should be left out for a reference at `cursorOffset`: one inside a
+     * `<conditionalContent>` or `<select>` the cursor is outside of, held
+     * there by a child that is not one of its branches (`<case>`/`<else>`,
+     * `<option>`).
      *
      * The resolver already keeps what a reference cannot see out of reach:
      * a name in a branch it resolves through the container
      * (`Ref::Branches`, see `_resolveBareName`), and a name in an option of
      * a `<select>` that picks several stays private. What is left is
-     * content written beside the branches, which the runtime does not
-     * render as a branch: a `<select>` child that is not an `<option>`
-     * (`selectSugar` wraps only text and references), a
-     * `<conditionalContent>` child beside its `<case>`s (its sugar wraps
-     * the children only when there is no `<case>` or `<else>`), and the
-     * children of a `<conditionalContent extend>`, which gets no sugar.
+     * content written beside the branches, which is not a branch:
+     *
+     * - a `<select>` child that is not an `<option>` (`selectSugar` wraps
+     *   only text and references), and a `<conditionalContent>` child
+     *   beside its `<case>`s (its sugar wraps the children only when there
+     *   is no `<case>` or `<else>`). The runtime reports such a child as
+     *   invalid (`doenet-w0107`), though a reference to a name in it still
+     *   resolves; autocomplete does not steer the author to it.
+     * - the children of a `<conditionalContent extend>`, which gets no
+     *   sugar; the runtime reports them (`doenet-e0057`) and a reference
+     *   to a name in them names nothing.
+     *
      * A branch itself (`<case name="…">`) remains addressable.
      */
     _isHiddenBySugar(rustIdx: number, cursorOffset: number): boolean {
@@ -1526,7 +1531,9 @@ export class RustResolverAdapter {
                         : childTag === "case" || childTag === "else";
                 // A `<conditionalContent>` with no `<case>` or `<else>` is
                 // sugared into one case holding all its children (unless it
-                // is written with `extend`), and the resolver sees the case.
+                // is written with `extend`; one written with `copy` is
+                // conservatively treated the same), and the resolver sees
+                // the case.
                 const sugaredIntoCase =
                     containerTag === "conditionalcontent" &&
                     !isWrittenAsCopyOrExtend(parent) &&

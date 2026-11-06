@@ -866,9 +866,11 @@ function createQuoteWrapCompletionItems({
  * This function analyzes the cursor context to determine what type of completions
  * are appropriate and returns a combination of:
  * - Ref-name completions after `$` in text content or attribute values, including
- *   `$name[]` snippet completions for takesIndex elements
+ *   `$name[]` snippet completions for takesIndex elements,
+ *   and names every branch of a `<conditionalContent>` or one-pick `<select>` declares
  * - Ref-member completions after `.` on a resolved ref chain, filtered by addressability
- *   and visibility rules (ChildrenInvisibleToTheirGrandparents, sugar hiding, etc.)
+ *   and visibility rules (ChildrenInvisibleToTheirGrandparents, the names every
+ *   branch of a branch container shares, etc.)
  * - Additional injected ref names (e.g., repeat valueName/indexName) from
  *   rustResolverAdapter.getDerivedRepeatNames()
  * - Schema-based element completions (allowed elements based on parent/context)

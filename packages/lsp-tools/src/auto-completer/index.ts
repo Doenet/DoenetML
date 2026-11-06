@@ -956,7 +956,9 @@ export class AutoCompleter {
     /**
      * For a `$container.member` cursor whose container is already resolved,
      * decide whether `memberName` matches a uniquely-addressable named
-     * descendant of `container`. Returns the help bundle when it does;
+     * descendant of `container`, or a name every branch of a branch
+     * container declares (in `container` itself, or below it for
+     * `$sec.x`). Returns the help bundle when it does;
      * otherwise `null` so the caller can fall back to property lookup.
      *
      * Mirrors runtime ref-resolution precedence (`getMacroReferentAtOffset`):
