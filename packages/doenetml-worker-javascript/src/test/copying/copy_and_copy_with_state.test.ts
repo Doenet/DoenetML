@@ -986,4 +986,32 @@ ${repeat}
             ).eqls(["doenet-e0069"]);
         }
     });
+
+    it("copyWithState of a module: a module attribute reaching a choice through a reference's index keeps the carried choices", async () => {
+        const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><integer name="k">1</integer></moduleAttributes>
+    <numberList name="ns">1 3</numberList>
+    <p name="picks"><select numToSelect="$ns[$k]">${[...Array(10).keys()]
+        .map((i) => `<option><number>${i}</number></option>`)
+        .join("")}</select></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" k="2"/>
+<module name="mc" copy="$mw" k="2"/>
+`);
+        const source = (await doc.sv("m1.picks")).text;
+        expect(source.split(", ").length).eq(1);
+        expect((await doc.sv("mw.picks")).text).eq(source);
+        expect((await doc.sv("mc.picks")).text.split(", ").length).eq(3);
+        expect(
+            doc
+                .diagnostics()
+                .warnings.filter((w: any) => w.code === "doenet-w0186")
+                .map((w: any) => w.args.attribute),
+        ).eqls(["k"]);
+        expect(doc.diagnostics().errors).eqls([]);
+    });
 });

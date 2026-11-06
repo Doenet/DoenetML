@@ -7629,7 +7629,8 @@ function seedFreshCopy(component) {
  * inside the module, as through `n` where `m` holds
  * `<integer name="n">$k+1</integer>` and `<select numToSelect="$n">`.
  * What a module attribute reaches includes the references of an attribute
- * held as an expression (`<point name="P">($k, 0)</point>`), and a choosing
+ * held as an expression (`<point name="P">($k, 0)</point>`) and what is
+ * written between the brackets of a reference (`$ns[$k]`), and a choosing
  * tag can be inside an attribute component (the `radians` of
  * `<angle><selectFromSequence/></angle>`). That attribute of the choosing
  * tag is given the value it had in the source, so the carried choices still
@@ -7715,10 +7716,25 @@ async function keepChoicesReachedByModuleAttributes({
         if (typeof component !== "object" || component === null) {
             return found;
         }
-        /** Follow a reference's resolution `ref` (`refResolution`). */
+        /**
+         * Follow a reference's resolution `ref` (`refResolution`), also
+         * into the components written between the brackets of its path
+         * (`$k` of `$ns[$k]`), which decide what it refers to.
+         */
         function follow(ref) {
             if (!ref) {
                 return;
+            }
+            for (const pathPart of ref.originalPath ?? []) {
+                for (const index of pathPart?.index ?? []) {
+                    for (const indexComponent of index?.value ?? []) {
+                        referencedModuleAttributes(
+                            indexComponent,
+                            found,
+                            visited,
+                        );
+                    }
+                }
             }
             if (writtenByIdx.has(ref.nodeIdx)) {
                 found.add(writtenByIdx.get(ref.nodeIdx));
