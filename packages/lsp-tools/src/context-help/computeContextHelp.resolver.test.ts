@@ -407,15 +407,14 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
     });
 
     it("resolves $s[1].t on a <select> whose option branches each declare the same descendant name", async () => {
-        // Two `<option>` branches each declare `<text name="t">`. The
-        // resolver walks wrapper children transparently
-        // (`collectNamesFromCompositeChildren`) so "t" lands in
-        // `visibleDescendantNames` — but `getNamedDescendant` on the
-        // `<select>` returns null because "t" isn't uniquely addressable.
-        // The composite-wrapper fallback in `resolveRefMemberDescendantHelp`
-        // walks `<option>` / `<case>` / `<else>` subtrees and returns the
-        // first match: sibling-replicated descendants of those wrappers
-        // share schemas, so either match yields the right help payload.
+        // Two `<option>` branches each declare `<text name="t">`. Every
+        // option declares it with one tag (`sharedBranchNames`), so "t"
+        // lands in `visibleDescendantNames` — but `getNamedDescendant` on
+        // the `<select>` returns null because "t" isn't uniquely
+        // addressable. The branch fallback in `resolveRefMemberDescendantHelp`
+        // (`branchDeclarations`) returns the first option's declaration,
+        // which shares its tag with the others, so it yields the right help
+        // payload.
         // Closes #1179.
         const source = `<select name="s"><option><text name="t">a</text></option><option><text name="t">b</text></option></select>\n$s[1].t`;
         const completer = await buildCompleterWithAdapter(source, {
