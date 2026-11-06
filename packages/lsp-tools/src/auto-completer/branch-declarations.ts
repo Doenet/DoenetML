@@ -438,7 +438,7 @@ export function sharedBranchNames(
 }
 
 /** Whether an element among `nodes` or their descendants is named `name`. */
-function namesElement(nodes: DastNodes[], name: string): boolean {
+export function namesElement(nodes: DastNodes[], name: string): boolean {
     return nodes.some(
         (node) =>
             node.type === "element" &&

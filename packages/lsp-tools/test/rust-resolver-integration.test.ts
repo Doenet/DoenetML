@@ -562,6 +562,16 @@ describe.skipIf(!wasmAvailable)(
             return items.map((i) => i.label);
         }
 
+        /** The member resolution for `pathParts` at `offset` in `source`. */
+        async function adapterMemberNames(
+            source: string,
+            offset: number,
+            pathParts: string[],
+        ) {
+            const { adapter } = await createCoreAndAdapter(source);
+            return adapter.createResolver()({ offset, pathParts });
+        }
+
         /** `visibleDescendantNames` for `pathParts` at the end of `source`. */
         async function memberNames(
             source: string,
@@ -904,6 +914,54 @@ describe.skipIf(!wasmAvailable)(
             );
             expect(indexed!.node?.name).toBe("group");
             expect(indexed!.visibleDescendantNames).toEqual(["y"]);
+        });
+
+        it("checks the repeat, not a container in it, as the named part before a branch hop", async () => {
+            const branch = (n: number) =>
+                `<group name="x"><math name="y">${n}</math></group>`;
+            const cases = `<case condition="true">${branch(1)}</case><else>${branch(2)}</else>`;
+            // From outside, `$r` is the repeat even with a container named
+            // `r` in it: `$r.x.y` names nothing (runtime `[]`).
+            const outside = `<repeat name="r" for="1 2" valueName="v"><conditionalContent name="r">${cases}</conditionalContent></repeat>\n<p>$r.x.`;
+            const outsideResult = await memberNames(outside, ["r", "x", ""]);
+            expect(outsideResult?.node ?? null).toBeNull();
+            // Typed in the repeat right after the container, `$r` is still
+            // the repeat (runtime `[]`).
+            const inside = `<repeat name="r" for="1 2" valueName="v"><conditionalContent>${cases}</conditionalContent>$r.x.</repeat>`;
+            const insideResult = await adapterMemberNames(
+                inside,
+                inside.indexOf("$r.x.") + 5,
+                ["r", "x", ""],
+            );
+            expect(insideResult?.node ?? null).toBeNull();
+            // In a `<p>` in the repeat, `$r` is the container named `r`
+            // there: `$r.x.y` resolves (runtime `[2]`).
+            const named = `<repeat name="r" for="1 2" valueName="v"><conditionalContent name="r">${cases}</conditionalContent><p>$r.x.</p></repeat>`;
+            const namedResult = await adapterMemberNames(
+                named,
+                named.indexOf("$r.x.") + 5,
+                ["r", "x", ""],
+            );
+            expect(namedResult?.node?.name).toBe("group");
+            expect(namedResult?.visibleDescendantNames).toEqual(["y"]);
+        });
+
+        it("leaves no property of a branch name when a branch names an element by it", async () => {
+            // One vector `v` has a point named `head`, the other none:
+            // `$v.head` names nothing (runtime `doenet-w0183`), not the
+            // vector's `head` property.
+            const vectors = (head: string) =>
+                `<conditionalContent name="cc"><case condition="true"><vector name="v" head="(1,2)">${head}</vector></case><else><vector name="v" head="(3,4)"/></else></conditionalContent>\n<p>$v.head.`;
+            const named = vectors(`<point name="head">(5,6)</point>`);
+            const result = await memberNames(named, ["v", "head", ""]);
+            expect(result?.node ?? null).toBeNull();
+            expect(result?.partiallyResolvedNode?.name).not.toBe("vector");
+            expect(await refNameLabels(named)).toEqual([]);
+            // With no element named `head`, it is the property
+            // (runtime `[(3, 4)][3]`).
+            expect(await refNameLabels(vectors(""))).toEqual(
+                expect.arrayContaining(["x", "y"]),
+            );
         });
 
         it("$s[2].x. hops through the options of a select that picks several", async () => {

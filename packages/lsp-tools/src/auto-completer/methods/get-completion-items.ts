@@ -1017,10 +1017,18 @@ export async function getCompletionItems(
             labelInfo: RefCompletionLabelInfo;
         };
         const referentInfoByName = new Map<string, ReferentInfo>();
-        for (const name of filteredNames) {
-            const resolved =
-                this.resolveRefNameForHelp(offset, name) ??
-                (await this.resolveBranchNameForHelp(offset, name));
+        // A branch-shared name misses the AST-only lookup and falls back to
+        // a worker round trip; issue those concurrently rather than one per
+        // completion item in turn.
+        const resolvedByName = await Promise.all(
+            filteredNames.map(
+                (name) =>
+                    this.resolveRefNameForHelp(offset, name) ??
+                    this.resolveBranchNameForHelp(offset, name),
+            ),
+        );
+        for (const [i, name] of filteredNames.entries()) {
+            const resolved = resolvedByName[i];
             if (!resolved) continue;
             const { referent, line, ownEntry, effectiveEntry } = resolved;
             const detail =

@@ -6,6 +6,7 @@ import {
     branchContainerKind,
     branchDeclarations,
     countVisibleDeclarations,
+    namesElement,
     namesSharedByBranchesIn,
     sharedBranchNames,
 } from "./branch-declarations";
@@ -185,7 +186,9 @@ function isWrittenAsCopyOrExtend(element: DastElement): boolean {
  * many names that run is. `null` when not even the first name resolves
  * through the branches: `container` is not a branch container, no branch
  * declares it (a property of the container, `$cc.hidden`), or the branches
- * do not satisfy the every-branch, same-tag rule.
+ * do not satisfy the every-branch, same-tag rule. The names after the run
+ * are left as properties of its declarations only when no branch's
+ * declaration has an element by the first of them; otherwise also `null`.
  *
  * With `indexed`, for a path after an index into a select's picks
  * (`$s[2].x`), `container` may be a `<select>` of any number of picks.
@@ -206,9 +209,25 @@ function resolveThroughBranches(
             indexed,
             namesIndexed.slice(0, consumed),
         );
-        if (Array.isArray(declarations)) {
-            return { declarations, consumed };
+        if (!Array.isArray(declarations)) continue;
+        // The names after the run are properties of its declarations
+        // (`$v.head` for a vector `v` in every branch) only when no
+        // branch's declaration has an element by the next one; otherwise
+        // a branch lacking it makes the path name nothing
+        // (`doenet-w0183`), as the run time decides it (`reach` in
+        // `branchDeclaration`, `typeChangeAtLoad.ts`).
+        if (
+            consumed < names.length &&
+            declarations.some((declaration) =>
+                namesElement(
+                    declaration.children as DastNodes[],
+                    names[consumed],
+                ),
+            )
+        ) {
+            return null;
         }
+        return { declarations, consumed };
     }
     return null;
 }
@@ -746,16 +765,65 @@ export class RustResolverAdapter {
             } | null = null;
 
             if (unresolvedPathParts.length > 0) {
+                // When there are unresolved parts, the path is invalid for
+                // descendant/property lookup — return `node: null` so the
+                // caller offers no descendant completions / no property help.
+                // Expose `partiallyResolvedNode` so the help layer can still
+                // run an `indexAliases` chase for coordinate chains like
+                // `$vector.head.x` (resolves to `<vector>` with `head`
+                // unresolved as an array state-variable name).
+                const unresolvedHere = {
+                    node: null,
+                    unresolvedPathParts,
+                    partiallyResolvedNode: coreResolvedNode,
+                    visibleDescendantNames: [],
+                };
+                if (!branchContainerKind(coreResolvedNode, true)) {
+                    return unresolvedHere;
+                }
                 // The last path part the core resolved (`cc` in `$cc.x`, `a`
                 // in `$a.x`), `-1` for a bare `$x`. The container is that
                 // part's node when the path names it (`$cc.x`); otherwise the
                 // core reached it through the branches (`$x`, `$a.x`).
                 const containerPartIndex =
                     lookupParts.length - unresolvedPathParts.length - 1;
+                // The names the core resolved, alone: the node they name
+                // and the nodes on the way. The container is named when
+                // that node is the container itself (`$cc.x`), not when
+                // the core reached it below that node (`$r.x` for an `x`
+                // in a container in the repeat `r`, even one also named
+                // `r`). Every node on the way is an intermediate.
+                const namedPrefix =
+                    containerPartIndex >= 0
+                        ? await this._core.resolvePath({
+                              path: {
+                                  path: flatPath.slice(
+                                      0,
+                                      containerPartIndex + 1,
+                                  ),
+                              },
+                              origin: originIndex,
+                              skipParentSearch: false,
+                          })
+                        : null;
+                if (
+                    namedPrefix &&
+                    ((namedPrefix.unresolvedPath?.length ?? 0) > 0 ||
+                        !resolution.nodesInResolvedPath.includes(
+                            namedPrefix.nodeIdx,
+                        ))
+                ) {
+                    // Not the node the longer path went through: nothing
+                    // here can be checked, so nothing is offered.
+                    return {
+                        node: null,
+                        unresolvedPathParts,
+                        visibleDescendantNames: [],
+                    };
+                }
                 const containerNamed =
-                    containerPartIndex >= 0 &&
-                    getElementNameAttributeValue(coreResolvedNode) ===
-                        lookupParts[containerPartIndex];
+                    namedPrefix !== null &&
+                    namedPrefix.nodeIdx === resolution.nodeIdx;
                 const indexed =
                     containerNamed &&
                     (effectivePathPartHasIndex[containerPartIndex] ?? false);
@@ -774,31 +842,19 @@ export class RustResolverAdapter {
                     indexed,
                     namesIndexed,
                 );
-                // When there are unresolved parts, the path is invalid for
-                // descendant/property lookup — return `node: null` so the
-                // caller offers no descendant completions / no property help.
-                // Expose `partiallyResolvedNode` so the help layer can still
-                // run an `indexAliases` chase for coordinate chains like
-                // `$vector.head.x` (resolves to `<vector>` with `head`
-                // unresolved as an array state-variable name).
                 if (!through) {
-                    return {
-                        node: null,
-                        unresolvedPathParts,
-                        partiallyResolvedNode: coreResolvedNode,
-                        visibleDescendantNames: [],
-                    };
+                    return unresolvedHere;
                 }
                 // Every resolved part is an intermediate here, the
                 // container included when the path names it.
-                const blocked = this._firstBlockedSegment(
-                    containerNamed
-                        ? resolution.nodesInResolvedPath
-                        : resolution.nodesInResolvedPath.slice(0, -1),
-                    lookupParts.slice(0, containerPartIndex + 1),
-                    effectivePathPartHasIndex,
-                    true,
-                );
+                const blocked = namedPrefix
+                    ? this._firstBlockedSegment(
+                          namedPrefix.nodesInResolvedPath,
+                          lookupParts.slice(0, containerPartIndex + 1),
+                          effectivePathPartHasIndex,
+                          true,
+                      )
+                    : null;
                 if (blocked != null) {
                     return {
                         node: null,
