@@ -54,8 +54,11 @@
 //! component's type, name, children and the cell of each prop.
 //! `ARCHITECTURE.md` has the full map and `CONTEXT.md` the vocabulary.
 //!
+//! New here? Start at [`_guide`].
+//!
 //! # Modules, in pipeline order
 //!
+//! - [`_guide`]: reading paths through the crate, by what you came to do.
 //! - [`dast`] (API): the input, the parser's DAST in flat, columnar form.
 //! - [`components`] (API): the tag vocabulary: each type's props and where
 //!   their values come from.
@@ -111,6 +114,21 @@ pub mod sym;
 pub mod testing;
 pub mod tick;
 pub mod trace;
+
+/// Reading paths through the crate, by what you came to do. The text of
+/// each chapter is a file under `docs/guide/`, readable on GitHub too.
+pub mod _guide {
+    #[doc = include_str!("../../../docs/guide/renderer.md")]
+    pub mod renderer {}
+    #[doc = include_str!("../../../docs/guide/component.md")]
+    pub mod component {}
+    // Written inside `compile`, so its links reach the stages' private
+    // modules.
+    #[doc(inline)]
+    pub use crate::compile::guide as compile;
+    #[doc = include_str!("../../../docs/guide/what_happens_when.md")]
+    pub mod what_happens_when {}
+}
 
 // The API of a loaded document: load it, read it, send it requests.
 pub use compile::compare::{

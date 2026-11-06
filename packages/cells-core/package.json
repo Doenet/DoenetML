@@ -46,6 +46,7 @@
             ],
             "files": [
                 "crates/**",
+                "docs/guide/**",
                 "scripts/**",
                 "fixtures/sir.doenet",
                 "Cargo.toml",

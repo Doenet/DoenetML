@@ -110,7 +110,7 @@ Runs once per load and depends on the source alone.
   Nothing in a plan names an
   iteration, so string work happens once per template element, not once per
   stamped copy. Each element is planned by its component type's planner
-  (see [Add a component type](#add-a-component-type)). The compile runs
+  (see [Add a component type](docs/guide/component.md#add-a-component-type)). The compile runs
   in stages (ADR 0027, ADR 0029, ADR 0030; `Compiler::compile`), each
   returning what it makes for the later ones, each in its own module:
   **outline** (`outline/`) makes every element, template and name,
@@ -164,7 +164,7 @@ Runs once per load and depends on the source alone.
   program (ADR 0035). Every document goes through the check, with or
   without repeats: a load is one sequence of steps. An element that fails
   to build is *boxed*; see [An element cannot be
-  built](#an-element-cannot-be-built). The input signature (ADR 0017),
+  built](docs/guide/what_happens_when.md#an-element-cannot-be-built). The input signature (ADR 0017),
   which compares two versions of a document, is read off the template
   graph's definitions too (`compile/graph/signature.rs`), with an engine
   of its own for what a math value hashes as.
@@ -316,119 +316,7 @@ binding and the tests use.
 
 Handles a request: snap, invert, write essential cells, recompute what is
 downstream, and report a `TickOutcome`. See
-[A user drags a point](#a-user-drags-a-point).
-
-## What happens when…
-
-### A document loads
-
-`Document::load` (`document/load.rs`):
-
-1. The bytes become a `Dast`.
-2. The compile runs once: lint, plan, check. The check also
-   marks which ports are writable (ADR 0018), which are
-   live (ADR 0019), which are document constants and which hold counted
-   values (ADR 0028), which every build reads, and the structural depth,
-   which bounds the passes below.
-3. Builds run from the compile, each at the counts it is asked for, until
-   the structure settles. After each build the document computes every
-   derived cell once; if a repeat's `count` cell now disagrees with the
-   number of iterations it was built with, the build runs again at the new
-   counts. `LoadTimings::passes` records how many builds it took.
-
-### A user drags a point
-
-`Document::request` and its variants (`document/request.rs`):
-
-1. The renderer sends requests addressed by cell index (ADR 0001). A
-   request on a cell that is not interactive (`document/interactive.rs`,
-   a bit per cell made with each build) is refused (ADR 0018), and
-   infinite values are dropped.
-2. Requests on members of a sticky group are snapped (`document/sticky.rs`,
-   `tick/snap.rs`, ADR 0007).
-3. `tick::invert::invert_requests` walks each request backwards through the
-   inverses of the instructions that produced its cell, until it lands on
-   essential cells. Dragged point groups are kept together (ADR 0003,
-   ADR 0006).
-4. The essential writes are applied and the document recomputes as its
-   `Recompute` setting says (`tick/eval.rs`). By default this is the
-   `DirtyClosure`, which runs only the instructions downstream of a
-   changed cell; `Recompute::Full` runs all of them and can be selected
-   with `set_evaluator`.
-5. The `TickOutcome` lists the cells that changed and the requests that
-   were dropped.
-
-### A repeat's count changes
-
-When a tick leaves a structural cell, such as a repeat's count, out of step
-with the structure, it calls `Document::rebuild` (ADR 0004). This builds the
-whole document again from the `Compiled` kept at load, at the counts the
-count cells now hold. No lint, plan or check runs again, and no document
-constant is made again: the build starts its cells from the session's
-constant pool, whose cells keep their indices (ADR 0028).
-
-Because scope ids are stable, an iteration that comes back gets its old
-essential values, and its nested repeats get the counts they last asked for
-(`Session::counts`), so a rebuild usually settles in one pass. In the
-outcome, `rebuilt` is set (cell indices are new), and
-`rebuild_passes` says how many builds it took. If the rebuild fails, the
-document is unchanged and `rebuild_error` says why.
-
-### An element cannot be built
-
-Errors are a build product, not a failure (ADR 0013). An element that
-fails to plan is *boxed* where it fails (ADR 0027): it is built as an
-`_error` element with no children or props, what is under it is never
-built, and planning goes on. A box is a row of boxing's own table
-(`Template::boxes`, ADR 0031), so what outlining and planning made of the
-element stays as they made it; the build reads the box's row
-(`Template::row`). Planning goes on, so one compile finds every planning
-error; every read of another element's facts is recorded (an extend's of
-its referent, a container copy's of what it clones, a clone's of its
-original), and linking boxes the readers of every box to a fixpoint (ADR
-0032), so a box's readers never stand on what it was. An error the
-check raises records the innermost element it concerns, which is boxed
-from the start of a new compile, and the check runs again until every
-element builds. A box keeps its name (ADR 0027): a reference to it
-resolves and reads as undefined, with no diagnostic of its own, and an
-extend of it is boxed in turn (`cells-boxed-referent`). Only an error with
-no element to box, a dependency cycle, fails the load.
-
-`Document::diagnostics` lists, in node order, the lint findings plus the
-errors and warnings of the elements that built.
-
-An element is also boxed for an attribute nothing read while the document
-was planned (ADR 0021): the core ignores no attribute silently.
-`Dast::attr` records every lookup, and a build makes none; once planning
-is done, every element outside the boxes with an attribute never looked
-up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
-`presentation`), is boxed in place when linking (`compile/link/unread.rs`, ADR
-0030), all of them at once, like any failure: what its planning reported
-under it is dropped, and a reference into it reads undefined.
-
-Every error depends on the source alone (ADR 0014), and the template
-graph stands for every count and every pick, so the check finds every error at
-load. Later builds never find a new one: a build's error type
-(`build::BuildError`) has no variant for an author's mistake, and a build
-that hits one anyway fails with `BuildError::Unchecked` instead of boxing
-mid-session.
-
-### The language server asks for diagnostics
-
-`diagnose` (`compile/check.rs`) runs the compile's check without loading a
-document. Its result is a function of the DAST alone, at any seed and any
-count, and equals what a load reports.
-
-### An answer is submitted
-
-`Document::submit` (`document/sections.rs`) is an action, not a request (ADR
-0018): the core copies the response into the answer's `submitted` cell and
-counts the submission as one tick, through the same inversion a request
-uses, and credit recomputes through the cells that
-`build/expand/aggregate.rs` materialized. The props it writes are marked
-`written_by_action`, not `interactive`, so no renderer can set them.
-`Document::trigger` (`document/request.rs`), a `<triggerSet>`'s press, is
-the other action: it sets each `<updateValue>`'s target.
+[A user drags a point](docs/guide/what_happens_when.md#a-user-drags-a-point).
 
 ## The main types
 
@@ -455,197 +343,20 @@ the other action: it sets each `<updateValue>`'s target.
 
 ## Where to change things
 
-### Add a component type
+The reading paths, by what you came to do, are chapters of the crate's
+rustdoc (`npm run doc`, the `_guide` module), each a file under
+`docs/guide/`:
 
-A component type is one `component!` block (`components/define.rs`) in one
-of the family directories under `components/`: `containers/`, `geometry/`,
-`inputs/`, `structure/` or `values/`.
-
-**A type built entirely from its prop table** (attributes, children,
-defaults, and operators over its own props) goes in an inline module of the
-family's `mod.rs`:
-
-```rust
-pub mod clamped {
-    use super::*;
-
-    component! {
-        /// `<clamped lo="0" hi="1">`: its `value` held between `lo` and `hi`.
-        tags: ["clamped"],
-        flags: [copyable],
-        default_prop: clamped,
-        props {
-            value: attr(0.0),
-            lo: attr(0.0),
-            hi: attr(1.0),
-            atLeastLo: computed(OpSpec::Max, [value, lo]),
-            clamped: computed(OpSpec::Min, [atLeastLo, hi]),
-        }
-        planner: Props,
-    }
-}
-```
-
-Then register it with one line in the `component_types!` list in
-`components/mod.rs`: `Clamped => values::clamped::DEFINITION,`. Nothing else
-is needed; a request on `clamped` inverts through the operators' own
-inverses. If other code reads a prop by position, name it in the module
-(`pub const VALUE: usize = Props::AT.value;`) and re-export the module from
-`components/prop.rs`.
-
-**A type whose wiring depends on which attributes the author gave** names a
-planner of its own as the block's last section:
-
-- `Plan(plan)` to return the element's plan, with the copy rules
-  (`extend`), `fixed` and its list's length applied around it
-  (`plan_with_extend`, `compile/planning/copies.rs`); the points, lines and circle
-  are planned this way,
-
-Such a type lives in its own file, block and planner together (for
-example `values/text.rs`, registered as `values::text::DEFINITION`).
-`geometry/circle.rs` and `geometry/line.rs` are the models. A planner is a
-function of its element's record (ADR 0034): given a `PlanCtx`, it reads
-the attributes and children the compile parsed (`Attrs::of(ctx.record())`),
-picks which ports are leaves and through which operators the rest derive,
-and returns its wiring from a `Props<Wire>` struct literal
-(`ElemWiring::set_public`, ADR 0016). It reaches no DAST, node or `extend`:
-a test keeps those out of `components/`, and another counts `PlanCtx`'s
-methods. Rules for planners:
-
-- Use only what `compile/api.rs` exports. Logic two planners both need
-  belongs in `compile/` behind `api.rs`, once. Behavior a family shares
-  belongs in the family's `mod.rs`.
-- Name a value of the wiring by its *port* (`CONTEXT.md`, ADR 0032), as
-  the wiring hands it out: a table prop by `Props::PORTS.radius`, a list
-  point's coordinates by `wiring.item(k)`, a helper value by what made it
-  (`wiring.hidden(..)`). A planner never computes a position: `Props::AT`,
-  the table's positions, is for what reads a built component (the build,
-  the document), and a test holds `components/` to it.
-- A type built on shared machinery names it in its block and has no
-  planner (`machinery: Answer`, `Choice`, `RepeatFor`,
-  `FunctionIterates`, `Collect`; ADR 0034): the compile calls it. A type
-  only what owns it plans (an `<award>` by its `<answer>`, a constraint in
-  its point's record) says `flags: [owned]` and `owner: Answer`, and the
-  compile refuses one standing free. A type that cannot be extended says
-  `flags: [not_extendable]`, and the compile refuses the extend; no
-  planner sees `extend` (its record is the merge).
-- What a planner would know about another type belongs to that type: a
-  point constrained to a component wires what the target declares
-  (`constrain_target { ports: [cx, cy, radius], op: ProjectCircle }`,
-  ADR 0034), and matches on no `ComponentType`.
-- Declare the attributes the planner reads, each with its kind
-  (`attributes { center: Point, radius: Scalar, through: Points(3) }`,
-  ADR 0032), and read them typed from the element's record
-  (`let attrs = Attrs::of(ctx.record())`), never from the source: the
-  compile parsed them before planning, the element's own or its `extend`
-  referent's, each where its writer sits. Say what gave a given leaf
-  (`Wire::given_by(attr::radius, v)`, `Wire::point(p, attr::through, k)`,
-  `Wire::scalar(source, GivenId::Attr(attr::x, 0))`), so a copy giving
-  the same attribute keeps it as its own and one not giving it shares
-  the referent's. A value the planner introduces that no attribute gives
-  is a parameter (`params { DIST }`, `wiring.param(param::DIST, 1.0)`);
-  one the children give is `GivenId::Children(k)`.
-- Declare how the type reads its children (`children: Value`, ADR 0034):
-  `None` (read and built as nothing, a shape's), `Math` (math text, as
-  written: a `<math>`'s, a point's `(a, b)`), `Value` (a blank, a literal,
-  one reference or math text: a `<number>`'s, a `<text>`'s), or, the
-  default, `Rendered` (built as components). Groups of element children
-  follow the kind (`children: Math { constraints: [ConstrainTo,
-  ConstrainToGrid] }`): each member is parsed into a record of its own, as
-  its type declares, written directly under the element or inside a
-  wrapper named as the group is (`<constraints>`). The compile parses them
-  into the record beside the attributes, and the planner reads them typed
-  (`attrs.children`, `attrs.constraints`), never the source.
-- A `<label>` or `<shortDescription>` child is a component of the element
-  on every type, for the renderer to read (ADR 0024); the parse of the
-  children passes over it.
-- What an extend omits comes from its referent, planned where the
-  referent sits (ADR 0023): the record is merged (ADR 0032), its children
-  part by part (the referent's math text when the element has none, the
-  referent's members of a group the element has none of), and `ctx.tuple`
-  and the rest pick the referent's scope for the referent's math text, so
-  a planner need not think about it.
-- A type a bare reference reads as a value says so in its block
-  (`reads_as: Math` on `<mathInput>`, ADR 0025); the build then makes a
-  `<math>` aliasing the input's props for `$mi`, and `<math
-  extend="$mi"/>` or `<mathInput extend="$n"/>` is the extend of the
-  referent's default prop (`ComponentType::extends_as`).
-- `fixed` is not the planner's: `plan_elem` records, beside the plans,
-  what holds the element (`Elem::hold`, from the table `HOLD_ATTRS`): the
-  element's own setting, else the nearest container's (ADR 0022). The
-  build holds every cell of a held element (`Program::holds`), and the
-  inversion refuses a request on a held cell; the plans are never
-  rewritten. A type whose every value is a location says `located` among
-  its flags, and `fixLocation` then holds it the same way.
-- A combination of attributes the planner cannot honor is a warning
-  (`PlanCtx::warn`), never a silent NaN: what it cannot define is
-  `Wire::undefined` (or `Source::undefined`) of what `warn` returns. A
-  value not given (an attribute's default, an emptied input, an entry
-  past a tuple's end) is `NO_VALUE` or `Wire::absent()`. `Wire::constant`
-  refuses NaN, and a test (`components/mod.rs`) finds any `f64::NAN` a
-  component writes.
-- An attribute the planner never looks up is refused: the check boxes any
-  element carrying an attribute nothing read while the document was
-  planned (`compile/link/unread.rs`, ADR 0021), so an author's attribute never
-  does nothing silently. Reading an attribute (`ctx.attr`, `d.attr`) is
-  what accepts it; an attribute a renderer reads from the literal
-  attributes instead, and the core never does, is declared in the block
-  (`presentation { to }`) or, for one every type may carry, in
-  `PRESENTATION_ATTRS` (`components/mod.rs`).
-
-The renderer for the new type goes in `packages/cells-viewer/src/renderers/`.
-Mark every prop it requests `interactive` in the block (`value: attr(0.0) {
-interactive }`; a list whose points it drags, `interactive: true`): these
-are the document's inputs (ADR 0017), and the core refuses a request on any
-other (ADR 0018), which the viewer's test (`src/interactive.test.tsx`)
-catches first. A prop an action writes instead is `written_by_action`. A
-spec reaches a prop no renderer requests (a circle's `radius`) through an
-input bound to it, `<mathInput bindValueTo="$c.radius"/>`, as a document
-does; never mark a prop interactive for its spec. Mark every prop the
-renderer reads `rendered` (a list whose points it draws, `rendered:
-true`), a score a grader reads `score`, and a prop an action reads
-`read_by_action`; a type drawn only in a graph, or nowhere, says so with
-`renders: InGraph` or `renders: Never`. These are the document's outputs
-(ADR 0019), and the viewer's test fails on a renderer's read of any
-other cell.
-
-### Add an operator
-
-Add one entry to `scalar_ops!` in `program/scalar.rs` (ADR 0016) giving its
-inputs (at most two, so an instruction stays 16 bytes; a literal is an
-input, a constant), its evaluation, and its inverse, declared `exact`,
-`projection` or `drops`. An operator that reads more is a vector one
-(`VecOp`, as `Clamp` is), whose inputs a program parks in its operands. The macro (`program/ops.rs`) generates the
-`Op` and `OpSpec` variants and every match arm. The tests in
-`program::scalar::inverses` check each inverse against what its entry
-declares, over a fixed table of values for each input,
-and that it writes only an input it declares (`OpSpec::writes`, ADR 0018:
-an `exact` or `projection` inverse its first, a `drops` one none). The
-compile finds what a student can write by those declarations, so a vector
-operator declares its own in `VecOp::writes`, the last column of the table
-in `program/vector.rs`, checked by the `writes` tests there.
-
-A document reaches an operator through a component's prop table or planner,
-or through math lowering (`build/expand/math.rs`). Operators over several
-cells are `VecOp`s in `program/vector.rs`.
-
-### Change how a request inverts
-
-Scalar inverse rules are `Op::invert`, vector rules `VecOp::invert`. The
-engine that orders requests and keeps point groups together is
-`tick/invert.rs`.
-
-### Change what a renderer reads
-
-The wasm binding is `crates/cells-wasm/src/lib.rs`; it exposes zero-copy
-views of the cells and the component table (ADR 0001). The React side is
-`packages/cells-viewer/src/`, and the core runs on the main thread. Graphs
-are JSXGraph boards (`renderers/jsxgraph/`, ADR 0010) whose elements read
-cells directly and redraw once per tick; Doenet's styling is copied into
-`jsxgraph/doenet.ts`. A renderer reads only outputs: a prop it starts
-reading is marked `rendered` in its type's block in the same change, or
-the core does not compute it, and the viewer's test, which checks every
-`CellStore.get` and `subscribe`, fails first (ADR 0019).
+- [`renderer.md`](docs/guide/renderer.md): drawing a loaded document,
+  and changing what a renderer reads.
+- [`component.md`](docs/guide/component.md): adding a component type or
+  an operator, and changing how a request inverts.
+- [`compile.md`](docs/guide/compile.md): the compile's stages, each
+  stage's module, entry and table, boxing and the retry.
+- [`what_happens_when.md`](docs/guide/what_happens_when.md): a document
+  loads, a user drags a point, a repeat's count changes, an element
+  cannot be built, the language server asks for diagnostics, an answer is
+  submitted.
 
 ## The other crates
 
@@ -736,8 +447,12 @@ the core does not compute it, and the viewer's test, which checks every
   both in its ADR: a pass that makes a tick cheaper is paid for at every
   load, and the load is where it shows. `docs/load-cost.md` has the load's
   history and where its time goes.
-- `npm run doc` builds the API docs as CI does, with private items and
-  warnings denied, so a broken intra-doc link fails. Every `impl` block of
+- `npm run doc` builds the contributor docs as CI does, with private
+  items and warnings denied, so a broken intra-doc link fails;
+  `npm run doc:public` builds the API alone, what `cells-wasm`, the
+  bridge and a test author read, where `missing_docs` is denied too: a
+  `pub` item is API (`unreachable_pub` refuses one that is not), and it
+  has a doc. The `_guide` chapters (`docs/guide/`) are in both. Every `impl` block of
   a type whose methods span files (`Compiler`, `Builder`, `Stamp`,
   `Seal`, `Document`, `Built`) carries a doc comment naming the stage or
   role it serves and what it reads and writes: rustdoc shows it as a

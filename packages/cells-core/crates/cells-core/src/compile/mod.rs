@@ -37,6 +37,11 @@ use crate::sym::Tree;
 use expr::{Arena, Expr, ExprId, Parser, Token};
 use plan::*;
 
+/// The compile chapter of the guide ([`crate::_guide`]), written here so
+/// its links reach the stages' private modules.
+#[doc = include_str!("../../../../docs/guide/compile.md")]
+pub mod guide {}
+
 mod answer;
 pub(crate) mod api;
 mod boxes;
