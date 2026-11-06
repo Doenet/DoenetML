@@ -93,12 +93,14 @@ use link::Linking;
 use names::*;
 use outline::Outlining;
 use parse::Parsed;
+use parse::Parsing;
 use planning::Planning;
 use planning::ctx::PlanCtx;
 use planning::planner::Planner;
 use reader::{Arenas, Reader};
 use record::{ChildValue, ValueChildren};
 use refs::record_read;
+use seal::Seal;
 pub(crate) use seal::keys;
 
 /// A compile that planned: what it planned, the errors of the elements it
@@ -109,21 +111,12 @@ pub(in crate::compile) struct Attempt {
     pub(in crate::compile) warnings: Vec<Diagnostic>,
 }
 
-/// What the stages after outlining work on, parse to seal: the source and
-/// what outlining settled, read-only, and the plans being made in their
-/// parts. What boxing records is a [`Boxes`], given only to the stages that
-/// box.
-pub(in crate::compile) struct Compiler<'a> {
-    /// The source being compiled. Only the finished [`Compiled`] owns it.
-    pub(in crate::compile) dast: &'a Dast,
-    /// What the stages append to: the arenas, the strings, the warnings.
-    pub(in crate::compile) ar: Arenas,
-    /// What outlining settled, which every stage after it reads and none
-    /// changes.
-    settled: &'a Settled,
-    /// Boxing's and planning's tables, by [`TemplateId`].
-    tables: Vec<Tables>,
-}
+/// The driver: it runs the stages in order, each over a view made from
+/// the tables the stages before it made, and puts the plans together from
+/// them. It holds nothing itself: what a stage may read and write is its
+/// view's ([`Outlining`], [`Parsing`], [`Planning`], [`Linking`], [`Seal`]).
+/// What boxing records is a [`Boxes`], given only to the stages that box.
+pub(in crate::compile) struct Compiler;
 
 /// What outlining hands to the stages after it: the work it found for
 /// them, in the order the walk made it.
@@ -216,7 +209,7 @@ pub(in crate::compile) fn elem_label(dast: &Dast, el: &Elem) -> String {
 /// The driver: the stages in order (outline, parse, plan, link, seal, share),
 /// each handed the tables the stages before it made, and the plans put together
 /// from them.
-impl Compiler<'_> {
+impl Compiler {
     /// Compile `dast`, with the nodes in `boxed` as `_error` elements, and
     /// every element that fails to plan boxed where it fails. A failure
     /// names the node to box before compiling again, when there is one.
@@ -231,7 +224,7 @@ impl Compiler<'_> {
         let Outlining {
             settled,
             tables,
-            ar,
+            mut ar,
             mut boxes,
             work:
                 Outline {
@@ -246,18 +239,16 @@ impl Compiler<'_> {
         // From here on, every stage reads what outlining settled and none
         // changes it: the element set is outlining's (ADR 0030, ADR 0031),
         // and planning and linking make none.
-        let mut cp = Compiler {
-            dast,
-            ar,
-            settled: &settled,
-            tables,
-        };
         boxes.enter(Stage::Parse);
+        let mut parsing = Parsing {
+            rd: Reader::new(dast, &settled),
+            tables: &tables,
+            ar: &mut ar,
+        };
         let mut parsed: Parsed =
-            crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
-        crate::trace::span("parse records").run(|| cp.parse_records(&to_plan, &mut parsed));
+            crate::trace::span("parse maths").run(|| parsing.parse_maths(math_texts));
+        crate::trace::span("parse records").run(|| parsing.parse_records(&to_plan, &mut parsed));
         boxes.enter(Stage::Plan);
-        let Compiler { ar, tables, .. } = cp;
         let mut planning = Planning::new(
             Reader::new(dast, &settled),
             &parsed,
@@ -269,7 +260,7 @@ impl Compiler<'_> {
         crate::trace::span("plan all").run(|| planning.plan_all(to_plan, macros));
         let Planning {
             mut tables,
-            ar,
+            mut ar,
             mut boxes,
             mut planned,
             ..
@@ -286,21 +277,15 @@ impl Compiler<'_> {
             }
             .link()
         })?;
-        let mut cp = Compiler {
-            dast,
-            ar,
-            settled: &settled,
-            tables,
-        };
         boxes.restart_if_needed()?;
         boxes.enter(Stage::Seal);
-        let (sealed, choice_seals, keys) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
+        let (sealed, choice_seals, keys) = crate::trace::span("seal")
+            .run(|| Seal::new(dast, &settled, &ar, &tables, &planned.given).run())?;
         let _s = crate::trace::span("finish");
-        boxes.drop_reports_of_boxes(&cp.settled.templates, &cp.tables, &mut cp.ar.warnings);
+        boxes.drop_reports_of_boxes(&settled.templates, &tables, &mut ar.warnings);
         let errors = boxes.into_errors();
         // Each stage's tables put together, as the build reads them (ADR
         // 0031).
-        let Compiler { ar, tables, .. } = cp;
         let Arenas {
             refs,
             arena,
@@ -355,20 +340,5 @@ impl Compiler<'_> {
             errors,
             warnings,
         })
-    }
-}
-
-/// The driver's accessors: what outlining settled (read-only after outlining),
-/// the templates' rows and tables, and the planners' warnings. Every stage
-/// reads through these.
-impl<'a> Compiler<'a> {
-    /// Outlining's part of template `t`, read-only.
-    pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &Outlined {
-        &self.settled.templates[t.index()]
-    }
-
-    /// What outlining settled (so far), read-only: what the readers read.
-    pub(in crate::compile) fn rd(&self) -> Reader<'a> {
-        Reader::new(self.dast, self.settled)
     }
 }

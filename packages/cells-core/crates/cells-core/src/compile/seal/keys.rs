@@ -81,7 +81,9 @@ fn push_number(out: &mut String, k: u32) {
     let _ = write!(out, "{k}");
 }
 
-impl super::Seal<'_> {
+/// Sealing, keys: every element's stable key, from the rows and the choices
+/// as outlining made them; writes only [`Seal::keys`].
+impl Seal<'_> {
     /// Every element's key, once every element is planned, by template.
     pub(in crate::compile) fn assign_keys(&mut self) -> Vec<Vec<ElemKey>> {
         let mut keys = Keys::default();

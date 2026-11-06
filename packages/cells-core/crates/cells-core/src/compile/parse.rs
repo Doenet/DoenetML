@@ -32,9 +32,20 @@ impl Parsed {
     }
 }
 
+/// Parsing's view: what outlining settled and the box table, read-only, and
+/// the arenas the math's and records' references are planned into.
+pub(in crate::compile) struct Parsing<'p> {
+    /// The source and what outlining settled.
+    pub(in crate::compile) rd: Reader<'p>,
+    /// Boxing's and planning's tables, read for the boxes outlining made.
+    pub(in crate::compile) tables: &'p [Tables],
+    /// What parsing appends to.
+    pub(in crate::compile) ar: &'p mut Arenas,
+}
+
 /// Parsing: every `<math>`'s text, once, as outlining settled its type, and
 /// every element's record. Reads outlining's rows; writes [`Parsed`].
-impl Compiler<'_> {
+impl Parsing<'_> {
     /// Parse every `<math>`'s text once as the type outlining settled, its
     /// `$ref`s planned where the math sits.
     pub(in crate::compile) fn parse_maths(
@@ -50,10 +61,10 @@ impl Compiler<'_> {
                 name_scope,
                 component_type,
                 ..
-            } = self.outlined(t).elems[e.index()];
+            } = *self.rd.elem(t, e);
             let math = mt.and_then(|mt| {
-                self.rd()
-                    .parse_math(&mut self.ar, t, name_scope, component_type, &mt)
+                self.rd
+                    .parse_math(self.ar, t, name_scope, component_type, &mt)
             });
             parsed.maths.insert((t, e), math);
         }
@@ -68,14 +79,14 @@ impl Compiler<'_> {
         parsed: &mut Parsed,
     ) {
         for &(t, e) in to_plan {
-            if self.tables[t.index()].is_box(e) || self.outlined(t).elems[e.index()].cloned {
+            if self.tables[t.index()].is_box(e) || self.rd.elem(t, e).cloned {
                 continue;
             }
-            let def = self.outlined(t).elems[e.index()].planned_as.def();
+            let def = self.rd.elem(t, e).planned_as.def();
             if def.attributes.is_empty() && def.children.built() {
                 continue;
             }
-            let record = self.rd().parse_record(&mut self.ar, t, e);
+            let record = self.rd.parse_record(self.ar, t, e);
             parsed.records.insert((t, e), record);
         }
     }

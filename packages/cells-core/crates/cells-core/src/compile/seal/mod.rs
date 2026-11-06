@@ -35,6 +35,29 @@ pub(in crate::compile) struct Seal<'a> {
 /// offsets. Reads every earlier stage's tables; writes only the keys and
 /// [`SealedTemplate`]s.
 impl<'a> Seal<'a> {
+    /// Sealing over what the stages before it made: outlining's rows and
+    /// choices, boxing's and planning's tables, the arenas, and which port
+    /// holds each given leaf.
+    pub(in crate::compile) fn new(
+        dast: &'a Dast,
+        settled: &'a Settled,
+        ar: &'a Arenas,
+        tables: &'a [Tables],
+        given: &'a HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
+    ) -> Self {
+        Seal {
+            ar,
+            dast,
+            names: &settled.names,
+            templates: &settled.templates,
+            tables,
+            choices: &settled.choices,
+            choice_seals: Vec::new(),
+            given,
+            keys: keys::Keys::default(),
+        }
+    }
+
     /// Sealing's tables: a [`SealedTemplate`] per template, a
     /// [`ChoiceSeal`] per choice, and the keys.
     pub(in crate::compile) fn run(
@@ -129,29 +152,5 @@ impl<'a> Seal<'a> {
                 )
             })
             .collect()
-    }
-}
-
-/// Sealing: the handoff to [`Seal`], which reads every element's plans and
-/// changes none.
-impl Compiler<'_> {
-    /// Seal the planned compile; what fails is boxed by compiling again.
-    pub(in crate::compile) fn seal(
-        &mut self,
-        planned: &Planned,
-    ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>, keys::Keys), Failure> {
-        let settled = &self.settled;
-        seal::Seal {
-            ar: &self.ar,
-            dast: self.dast,
-            names: &settled.names,
-            templates: &settled.templates,
-            tables: &self.tables,
-            choices: &settled.choices,
-            choice_seals: Vec::new(),
-            given: &planned.given,
-            keys: keys::Keys::default(),
-        }
-        .run()
     }
 }

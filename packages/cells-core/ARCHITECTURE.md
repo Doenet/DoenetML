@@ -112,7 +112,10 @@ Runs once per load and depends on the source alone.
   stamped copy. Each element is planned by its component type's planner
   (see [Add a component type](docs/guide/component.md#add-a-component-type)). The compile runs
   in stages (ADR 0027, ADR 0029, ADR 0030; `Compiler::compile`), each
-  returning what it makes for the later ones, each in its own module:
+  over a view of its own that holds what earlier stages made read-only
+  and its own table writable (`Outlining`, `Parsing`, `Planning`,
+  `Linking`, `Seal`; ADR 0031), each returning what it makes for the
+  later ones, each in its own module:
   **outline** (`outline/`) makes every element, template and name,
   settles what a reference reads of each (a `<math>`'s type, a
   `<collect>`'s collected type), gives container copies their clones and
@@ -453,8 +456,8 @@ rustdoc (`npm run doc`, the `_guide` module), each a file under
   bridge and a test author read, where `missing_docs` is denied too: a
   `pub` item is API (`unreachable_pub` refuses one that is not), and it
   has a doc. The `_guide` chapters (`docs/guide/`) are in both. Every `impl` block of
-  a type whose methods span files (`Compiler`, `Builder`, `Stamp`,
-  `Seal`, `Document`, `Built`) carries a doc comment naming the stage or
+  a type whose methods span files (`Outlining`, `Planning`, `Reader`,
+  `Seal`, `Builder`, `Stamp`, `Document`, `Built`) carries a doc comment naming the stage or
   role it serves and what it reads and writes: rustdoc shows it as a
   heading over the block's methods on the type's page, in an order the
   heading cannot rely on.
