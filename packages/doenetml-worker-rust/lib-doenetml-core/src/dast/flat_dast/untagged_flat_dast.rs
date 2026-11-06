@@ -243,6 +243,13 @@ pub struct FlatError {
     pub args: Option<DiagnosticArgs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unresolved_path: Option<Vec<FlatPathPart>>,
+    /// The arguments of a function reference (`$$f($a)`) that names nothing
+    /// or more than one thing, as [`FlatFunctionRef::input`] held them. Not
+    /// shown: kept so that a reference in them is still resolved, and
+    /// reported when it fails, at the same time as the function reference
+    /// (#2434).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input: Option<Vec<Vec<UntaggedContent>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -259,6 +266,7 @@ impl FlatError {
             code: None,
             args: None,
             unresolved_path: None,
+            input: None,
             position: None,
             source_doc: None,
             idx,
@@ -351,6 +359,7 @@ impl Default for FlatNode {
             code: None,
             args: None,
             unresolved_path: None,
+            input: None,
             position: None,
             source_doc: None,
             idx: 0,

@@ -658,3 +658,114 @@ a />
         ).eq("11");
     });
 });
+
+/**
+ * A reference to a component in error shows a blank, `＿`, and reports
+ * nothing more: the error is reported once, where its cause is written
+ * (DIAG-4, DIAG-5, VAL-5, #2449). That holds for a bare reference, an
+ * `extend` and a `copy` of it, and for each kind of error shown in a
+ * component's place.
+ */
+describe("A reference to a component in error @group2", async () => {
+    async function shownAndReported(doenetML: string, names: string[]) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const shown: Record<string, string> = {};
+        for (const name of names) {
+            shown[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
+        }
+        const { errors, warnings, infos } = getDiagnosticsByType(core);
+        return { shown, errors, warnings, infos };
+    }
+
+    /** The source `doenetML` marks with `diagnostic`'s position. */
+    function marked(doenetML: string, diagnostic: any) {
+        return doenetML.substring(
+            diagnostic.position.start.offset,
+            diagnostic.position.end.offset,
+        );
+    }
+
+    it("an invalid attribute: one error, and a blank at each reference", async () => {
+        const doenetML = `<math name="m" blink="true">x</math>
+<p name="p1">$m $m</p>
+<math name="m2" extend="$m"/>
+<math name="m3" copy="$m"/>
+<p name="p2">$m2 $m3</p>`;
+        const { shown, errors, warnings, infos } = await shownAndReported(
+            doenetML,
+            ["p1", "p2"],
+        );
+        expect(shown).eqls({ p1: "＿ ＿", p2: "＿ ＿" });
+        expect(warnings).eqls([]);
+        expect(infos).eqls([]);
+        expect(errors.length).eq(1);
+        expect(errors[0].code).eq("doenet-e0004");
+        expect(marked(doenetML, errors[0])).eq(
+            `<math name="m" blink="true">x</math>`,
+        );
+    });
+
+    it("an extend that would change its content (D32): one error", async () => {
+        const doenetML = `<repeat name="r" for="1 2" valueName="v"><p>$v</p></repeat>
+<repeat name="r2" extend="$r" for="3 4"/>
+<p name="p1">$r2 $r2</p>
+<repeat name="r3" extend="$r2"/>
+<p name="p2">$r3</p>`;
+        const { shown, errors, warnings, infos } = await shownAndReported(
+            doenetML,
+            ["p1", "p2"],
+        );
+        expect(shown).eqls({ p1: "＿ ＿", p2: "＿" });
+        expect(warnings).eqls([]);
+        expect(infos).eqls([]);
+        expect(errors.length).eq(1);
+        expect(errors[0].code).eq("doenet-e0056");
+        expect(marked(doenetML, errors[0])).eq(
+            `<repeat name="r2" extend="$r" for="3 4"/>`,
+        );
+    });
+
+    it("a type change that is an error (D26): one error", async () => {
+        const doenetML = `<section name="sec"><p>hi</p></section>
+<math name="m" extend="$sec"/>
+<p name="p1">$m $m</p>
+<math name="m2" extend="$m"/>
+<math name="m3" copy="$m"/>
+<p name="p2">$m2 $m3</p>`;
+        const { shown, errors, warnings, infos } = await shownAndReported(
+            doenetML,
+            ["p1", "p2"],
+        );
+        expect(shown).eqls({ p1: "＿ ＿", p2: "＿ ＿" });
+        expect(warnings).eqls([]);
+        expect(infos).eqls([]);
+        expect(errors.length).eq(1);
+        expect(errors[0].code).eq("doenet-e0065");
+        expect(marked(doenetML, errors[0])).eq(
+            `<math name="m" extend="$sec"/>`,
+        );
+    });
+
+    it("a copy of a component holding an error shows it, and reports nothing more", async () => {
+        const doenetML = `<p name="p1">a <math blink="true">x</math></p>
+<p name="p2" extend="$p1"/>
+<p name="p3" copy="$p1"/>
+$p1`;
+        const { shown, errors, warnings, infos } = await shownAndReported(
+            doenetML,
+            ["p1", "p2", "p3"],
+        );
+        expect(shown).eqls({ p1: "a ", p2: "a ", p3: "a " });
+        expect(warnings).eqls([]);
+        expect(infos).eqls([]);
+        expect(errors.length).eq(1);
+        expect(errors[0].code).eq("doenet-e0004");
+        expect(marked(doenetML, errors[0])).eq(`<math blink="true">x</math>`);
+    });
+});

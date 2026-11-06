@@ -1,6 +1,6 @@
 use crate::dast::ref_resolve::Resolver;
 
-use super::{FlatNode, FlatRoot, Index, UntaggedContent};
+use super::{FlatError, FlatFunctionRef, FlatNode, FlatRoot, Index, UntaggedContent};
 
 impl FlatNode {
     /// Return every index that is referenced by this node.
@@ -36,8 +36,9 @@ impl FlatNode {
                             })
                     })),
             ),
-            FlatNode::FunctionRef(function_ref) => {
-                if let Some(inputs) = &function_ref.input {
+            FlatNode::FunctionRef(FlatFunctionRef { input, .. })
+            | FlatNode::Error(FlatError { input, .. }) => {
+                if let Some(inputs) = input {
                     inputs
                         .iter()
                         .flat_map(|inputs| {
@@ -136,6 +137,15 @@ impl FlatNode {
                 ref_.idx = ref_index_map[ref_.idx];
             }
             FlatNode::Error(err) => {
+                if let Some(inputs) = &mut err.input {
+                    for inputs in inputs.iter_mut() {
+                        for child in inputs.iter_mut() {
+                            if let UntaggedContent::Ref(idx) = child {
+                                *idx = ref_index_map[*idx];
+                            }
+                        }
+                    }
+                }
                 if let Some(parent) = &mut err.parent {
                     *parent = ref_index_map[*parent];
                 }

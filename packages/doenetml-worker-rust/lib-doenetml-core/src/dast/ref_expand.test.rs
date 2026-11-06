@@ -860,3 +860,33 @@ fn a_function_reference_that_fails_to_resolve_is_coded() {
         assert_eq!(spanned(source, &error.position), "$$f(2)", "{source}");
     }
 }
+
+/// A function reference that fails to resolve keeps its arguments on its
+/// error (#2434), and compacting keeps the nodes they hold, so the worker can
+/// still report a reference in them (`$a` of `$$f($a)`) at the same time.
+#[test]
+fn a_function_reference_that_fails_to_resolve_keeps_its_arguments() {
+    let source = "$$f($a, 2)";
+    let dast_root = dast_root(source);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+    flat_root.compactify(None);
+
+    let errors = errors_of(&flat_root);
+    let function_error = errors
+        .iter()
+        .find(|e| spanned(source, &e.position) == source)
+        .expect("the function reference's error");
+    let input = function_error.input.as_ref().expect("its arguments");
+    assert_eq!(input.len(), 2);
+
+    let UntaggedContent::Ref(arg_idx) = input[0][0] else {
+        panic!("the first argument is a node");
+    };
+    let FlatNode::Error(arg_error) = &flat_root.nodes[arg_idx] else {
+        panic!("`$a` names nothing");
+    };
+    assert_eq!(arg_error.code.as_deref(), Some("doenet-w0104"));
+    assert_eq!(spanned(source, &arg_error.position), "$a");
+    assert!(matches!(&input[1][..], [UntaggedContent::Text(t)] if t.trim() == "2"));
+}

@@ -259,6 +259,7 @@ impl FlatRoot {
         self.nodes[idx] = FlatNode::Error(FlatError {
             message: node.message.clone(),
             unresolved_path: None,
+            input: None,
             error_type: node.error_type.unwrap_or_default(),
             // Carried straight through: the core reads neither, but the
             // worker on the far side needs both to re-render the message

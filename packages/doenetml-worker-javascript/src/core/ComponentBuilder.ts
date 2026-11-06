@@ -50,6 +50,19 @@ const EMPTY_SERIALIZED_CHILDREN: any[] = Object.freeze([]) as any;
  */
 
 /**
+ * Whether `serializedComponent`, an `_error`, is a copy of an `_error` that
+ * has been made already, and so reported already: serialized from it
+ * (`originalIdx`), by a reference to it or to something holding it.
+ */
+function isCopyOfReportedError(serializedComponent: any, core: Core): boolean {
+    const originalIdx = serializedComponent.originalIdx;
+    return (
+        originalIdx != undefined &&
+        core._components[originalIdx]?.componentType === "_error"
+    );
+}
+
+/**
  * Build a list of ancestor descriptors with `parent` prepended to its own
  * `ancestors` chain — the canonical shape consumed by component
  * constructors and by `createIsolatedComponents` recursion.
@@ -642,13 +655,21 @@ export async function createChildrenThenComponent({
         // its arguments are read back off `state` here: an `_error` built from
         // a coded error (`convertToErrorComponent`) stays coded, and one built
         // from a bare string stays a bare string.
-        core.addDiagnostic({
-            type: "error",
-            message: serializedComponent.state.message,
-            ...diagnosticCodeFrom(serializedComponent.state),
-            position: serializedComponent.position,
-            sourceDoc: serializedComponent.sourceDoc,
-        });
+        //
+        // A copy of an `_error` that exists already (`$m`, `<math
+        // extend="$m"/>` or `copy="$m"` of an `m` in error, or of something
+        // holding one) reports nothing: the error was reported once, where
+        // the author wrote its cause, and the copy only shows it again
+        // (DIAG-4, #2449).
+        if (!isCopyOfReportedError(serializedComponent, core)) {
+            core.addDiagnostic({
+                type: "error",
+                message: serializedComponent.state.message,
+                ...diagnosticCodeFrom(serializedComponent.state),
+                position: serializedComponent.position,
+                sourceDoc: serializedComponent.sourceDoc,
+            });
+        }
     } else if (
         lastErrorMessageFromAttribute ||
         (lastErrorMessage && !componentClass.canDisplayChildErrors)

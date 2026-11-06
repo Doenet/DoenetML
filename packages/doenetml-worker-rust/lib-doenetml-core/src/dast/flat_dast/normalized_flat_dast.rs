@@ -25,6 +25,7 @@ impl Default for NormalizedNode {
             code: None,
             args: None,
             unresolved_path: None,
+            input: None,
             position: None,
             source_doc: None,
             idx: 0,

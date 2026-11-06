@@ -45,6 +45,7 @@ import { breakReferenceCycles } from "./referenceCycles";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
+    doenetMLReferenceAsWritten,
     doenetMLStringForReference,
 } from "../sourceLocation";
 import {
@@ -371,6 +372,19 @@ export async function normalizedDastToSerializedComponents(
                                 ),
                             );
 
+                            // The arguments of a function reference that
+                            // names nothing (`$a` of `$$f($a)`), which the
+                            // resolver keeps (`ref_expand.rs`). They are not
+                            // shown, but a reference in them is resolved, and
+                            // reported when it fails, now rather than once
+                            // the function reference is fixed (#2434).
+                            const input = (
+                                node as { input?: UntaggedContent[][] }
+                            ).input;
+                            for (const argument of input ?? []) {
+                                unflattenDastNodes(argument, diagnostics);
+                            }
+
                             // Depending on the parent, we still want something to show up for these invalid reference.
                             // Since we already have that logic implemented for copy, we'll just make a copy
                             // with no referent
@@ -540,6 +554,7 @@ export async function normalizedDastToSerializedComponents(
         componentInfoObjects,
         allNodes: normalized_root.nodes,
         addNodesToResolver,
+        diagnostics,
     });
     nComponents = convertToCopyResult.nComponents;
 
@@ -609,13 +624,10 @@ export async function normalizedDastToSerializedComponents(
             code: code as any,
             args: {
                 ...args,
-                reference: `${doenetMLDollarsForReference(
+                reference: doenetMLReferenceAsWritten(
                     originalPath,
                     normalized_root.sources,
-                )}${doenetMLStringForReference(
-                    originalPath,
-                    normalized_root.sources,
-                )}`,
+                ),
             },
             position: copy.position,
             sourceDoc: copy.sourceDoc,

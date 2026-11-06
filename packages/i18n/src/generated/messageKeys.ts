@@ -483,6 +483,7 @@ export type MessageKey =
     | "reference-index-not-a-number"
     | "extend-attribute-ignored"
     | "extend-children-ignored"
+    | "copy-attribute-invalid-for-component"
     | "extend-attribute-changes-content"
     | "extend-children-change-content"
     | "extend-choice-input-choices"
@@ -1161,6 +1162,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-index-not-a-number",
     "extend-attribute-ignored",
     "extend-children-ignored",
+    "copy-attribute-invalid-for-component",
     "extend-attribute-changes-content",
     "extend-children-change-content",
     "extend-choice-input-choices",

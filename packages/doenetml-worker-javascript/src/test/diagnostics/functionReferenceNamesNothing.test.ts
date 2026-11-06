@@ -16,6 +16,11 @@ vi.mock("hyperformula");
  * `$$(f)(2)`, the parentheses are not part of the quoted reference (`$$f(2)`),
  * as they are not for a plain reference, but the warning is marked at all of
  * it.
+ *
+ * The arguments are quoted after an index too (`$$f[2](2)`), whichever warning
+ * the index gives, and a reference in the arguments of a function reference
+ * that names nothing is resolved, and reported when it fails, at the same time
+ * (#2434).
  */
 async function shownAndReported(doenetML: string) {
     const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -163,6 +168,145 @@ describe("A function reference that names nothing @group4", async () => {
             const { start, end } = warning.position!;
             expect(doenetML.substring(start.offset!, end.offset!), doenetML).eq(
                 marked,
+            );
+        }
+    });
+
+    it("quotes the arguments after an index (#2434)", async () => {
+        const groupF = `<group name="f"><function>x^2</function></group>`;
+        const cases: {
+            doenetML: string;
+            text: string;
+            code: string;
+            args: Record<string, string>;
+            marked: string;
+        }[] = [
+            {
+                doenetML: `<function name="f">x^2</function><p name="p">[$$f[2](2)]</p>`,
+                text: "[＿]",
+                code: "doenet-w0180",
+                args: { reference: "$$f[2](2)", component: "function" },
+                marked: "$$f[2](2)",
+            },
+            {
+                doenetML: `<function name="f">x^2</function><p name="p"><math>$$f[2](2)+1</math></p>`,
+                text: "＿ + 1",
+                code: "doenet-w0180",
+                args: { reference: "$$f[2](2)", component: "function" },
+                marked: "$$f[2](2)",
+            },
+            {
+                doenetML: `<function name="f">x^2</function><p name="p">[$$(f[2])((x), 3)]</p>`,
+                text: "[＿]",
+                code: "doenet-w0180",
+                args: { reference: "$$f[2]((x), 3)", component: "function" },
+                marked: "$$(f[2])((x), 3)",
+            },
+            {
+                // an index past the one child of a group, reported as for
+                // `$f[2]` (#2424)
+                doenetML: `${groupF}<p name="p">[$$f[2](2)]</p>`,
+                text: "[＿]",
+                code: "doenet-w0104",
+                args: { reference: "$$f[2](2)" },
+                marked: "$$f[2](2)",
+            },
+            {
+                // the child of a group, by its deprecated index
+                doenetML: `${groupF}<p name="p">[$$f[1](2)]</p>`,
+                text: "[4]",
+                code: "doenet-w0179",
+                args: {
+                    reference: "$$f[1](2)",
+                    suggestion: "$$f.x(2)",
+                    named: "no",
+                    container: "group",
+                    component: "group",
+                },
+                marked: "$$f[1](2)",
+            },
+        ];
+
+        for (const { doenetML, text, code, args, marked } of cases) {
+            const shown = await shownAndReported(doenetML);
+            expect(shown.text, doenetML).eq(text);
+            expect(shown.errors, doenetML).eqls([]);
+            expect(shown.infos, doenetML).eqls([]);
+            expect(shown.warnings.length, doenetML).eq(1);
+            const [warning] = shown.warnings;
+            expect(warning.code, doenetML).eq(code);
+            expect(warning.args, doenetML).eqls(args);
+            expect(warning.message, doenetML).contain(
+                "`" + args.reference + "`",
+            );
+            const { start, end } = warning.position!;
+            expect(doenetML.substring(start.offset!, end.offset!), doenetML).eq(
+                marked,
+            );
+        }
+    });
+
+    it("still reports a reference in its arguments (#2434)", async () => {
+        const cases: {
+            doenetML: string;
+            text: string;
+            /** Each reference reported, `w0104`, quoted and marked as written. */
+            references: string[];
+        }[] = [
+            {
+                doenetML: `<p name="p">[$$f($a)]</p>`,
+                text: "[＿]",
+                references: ["$$f($a)", "$a"],
+            },
+            {
+                doenetML: `<p name="p"><math>$$f($a)+1</math></p>`,
+                text: "＿ + 1",
+                references: ["$$f($a)", "$a"],
+            },
+            {
+                doenetML: `<p name="p">[$$f($a, $$g($b))]</p>`,
+                text: "[＿]",
+                references: ["$$f($a, $$g($b))", "$a", "$$g($b)", "$b"],
+            },
+            {
+                doenetML: `<p name="p">[$$f(<math>$a+1</math>)]</p>`,
+                text: "[＿]",
+                references: ["$$f(<math>$a+1</math>)", "$a"],
+            },
+            {
+                // a reference in the arguments that resolves is not reported
+                doenetML: `<number name="a">2</number><p name="p">[$$f($a)]</p>`,
+                text: "[＿]",
+                references: ["$$f($a)"],
+            },
+            {
+                doenetML: `<point name="P" x="$$f($a)" y="3" /><p name="p">$P</p>`,
+                text: "(＿, 3)",
+                references: ["$$f($a)", "$a"],
+            },
+        ];
+
+        for (const { doenetML, text, references } of cases) {
+            const shown = await shownAndReported(doenetML);
+            expect(shown.text, doenetML).eq(text);
+            expect(shown.errors, doenetML).eqls([]);
+            expect(shown.infos, doenetML).eqls([]);
+            expect(
+                shown.warnings.map((warning: any) => [
+                    warning.code,
+                    warning.args.reference,
+                    doenetML.substring(
+                        warning.position.start.offset,
+                        warning.position.end.offset,
+                    ),
+                ]),
+                doenetML,
+            ).eqls(
+                references.map((reference) => [
+                    "doenet-w0104",
+                    reference,
+                    reference,
+                ]),
             );
         }
     });

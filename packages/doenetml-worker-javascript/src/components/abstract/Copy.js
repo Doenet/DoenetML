@@ -30,8 +30,9 @@ import { typeChangeAtLoadDiagnostic } from "../../utils/dast/typeChangeAtLoad";
 import AuthoredValueList from "./AuthoredValueList";
 import { typeChangeRule, valueAllowsTypeChange } from "../../utils/typeChange";
 import {
+    doenetMLArgumentsForReference,
     doenetMLDollarsForReference,
-    doenetMLStringForReference,
+    doenetMLReferenceAsWritten,
 } from "../../utils/sourceLocation";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
@@ -1557,6 +1558,7 @@ export default class Copy extends CompositeComponent {
         const result = await this.createSerializedReplacementsOfCopy(args);
         await reportMissingProperty(args);
         await missingSourceInPlace({ ...args, result });
+        missingInPlaceOfCopiedError({ ...args, result });
         return result;
     }
 
@@ -1641,10 +1643,10 @@ export default class Copy extends CompositeComponent {
         if (allDoenetMLs && workspace.referenceAsWritten === undefined) {
             const originalPath = await component.stateValues.originalPath;
             if (originalPath?.length > 0) {
-                workspace.referenceAsWritten = `${doenetMLDollarsForReference(
+                workspace.referenceAsWritten = doenetMLReferenceAsWritten(
                     originalPath,
                     allDoenetMLs,
-                )}${doenetMLStringForReference(originalPath, allDoenetMLs)}`;
+                );
             }
         }
         // What decided what an unlinked copy made, for a save to hold
@@ -2584,6 +2586,7 @@ export default class Copy extends CompositeComponent {
         await reportMissingProperty(args);
         await blankInPlaceOfNothing({ ...args, result });
         await missingSourceInPlace({ ...args, result });
+        missingInPlaceOfCopiedError({ ...args, result });
         return result;
     }
 
@@ -3723,10 +3726,8 @@ async function diagnosticForUnusedIndex({
 
     const originalPath = await component.stateValues.originalPath;
     const dollars = doenetMLDollarsForReference(originalPath, allDoenetMLs);
-    const reference = `${dollars}${doenetMLStringForReference(
-        originalPath,
-        allDoenetMLs,
-    )}`;
+    // whole, with the arguments of a function reference (`$$f[2](2)`)
+    const reference = doenetMLReferenceAsWritten(originalPath, allDoenetMLs);
     const sourceClass =
         componentInfoObjects.allComponentClasses[
             replacementSource.componentType
@@ -3759,7 +3760,13 @@ async function diagnosticForUnusedIndex({
                     suggestion: `${dollars}${source.substring(
                         pathStart,
                         indexStart,
-                    )}.${property}${source.substring(indexStart, pathEnd)}`,
+                    )}.${property}${source.substring(
+                        indexStart,
+                        pathEnd,
+                    )}${doenetMLArgumentsForReference(
+                        originalPath,
+                        allDoenetMLs,
+                    )}`,
                     property,
                 },
             });
@@ -6902,6 +6909,85 @@ async function missingSourceInPlace({
             serializedReplacements: missing.replacements,
         },
     ];
+}
+
+/**
+ * Make a copy of a component in error missing (VAL-5, #2449): `$m`, `<math
+ * extend="$m"/>` or `copy="$m"` of an `m` that is an `_error` shows a blank,
+ * `＿`, and not the error again. The error is reported once, where its cause
+ * is written, and a copy of it reports nothing (`ComponentBuilder`).
+ *
+ * This applies when the copy's one replacement is a copy of an `_error`. An
+ * error held inside its one replacement, as in a copy of a `<p>` holding one,
+ * is shown as it is. Each such replacement, in `result.replacements` or in a
+ * change that adds it (`result.replacementChanges`), is swapped for one
+ * missing component under its index, `stateId` and name, so what the copy
+ * keeps of its source (`workspace`) is unchanged, and the copy is made again
+ * from its source when that changes. A copy written as a tag is missing as
+ * that tag (`missingOfWrittenType`), and any other is a `_missing`.
+ */
+function missingInPlaceOfCopiedError({
+    component,
+    components,
+    componentInfoObjects,
+    result,
+}) {
+    function isCopiedError(replacement) {
+        return (
+            typeof replacement === "object" &&
+            replacement.componentType === "_error" &&
+            replacement.originalIdx != undefined &&
+            components[replacement.originalIdx]?.componentType === "_error"
+        );
+    }
+
+    function missingInPlaceOf(error) {
+        // Its index and `stateId` are the error's, set below.
+        const stateIdInfo = { prefix: "", num: 0 };
+        let missing;
+        if (component.attributes._createComponentOfType?.primitive?.value) {
+            const res = missingOfWrittenType({
+                component,
+                componentInfoObjects,
+                compositeAttributesObj:
+                    component.constructor.createAttributesObject(),
+                nComponents: result.nComponents,
+                stateIdInfo,
+            });
+            result.nComponents = res.nComponents;
+            missing = res.replacements[0];
+        } else {
+            missing = missingReplacement({
+                nComponents: result.nComponents,
+                stateIdInfo,
+            });
+        }
+        missing.componentIdx = error.componentIdx;
+        missing.stateId = error.stateId;
+        if (error.attributes?.name) {
+            missing.attributes.name = error.attributes.name;
+        }
+        return missing;
+    }
+
+    function swap(replacements) {
+        const nonStrings = replacements.filter((x) => typeof x === "object");
+        if (nonStrings.length !== 1 || !isCopiedError(nonStrings[0])) {
+            return replacements;
+        }
+        return replacements.map((x) =>
+            typeof x === "object" ? missingInPlaceOf(x) : x,
+        );
+    }
+
+    if (result.replacements) {
+        result.replacements = swap(result.replacements);
+    }
+    for (const change of result.replacementChanges ?? []) {
+        if (change.changeType === "add" && change.serializedReplacements) {
+            change.serializedReplacements = swap(change.serializedReplacements);
+        }
+    }
 }
 
 /** A `_missing` (`Missing.js`), as the one replacement of a copy. */
