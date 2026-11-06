@@ -16,6 +16,19 @@
 //! A build reads no analysis of its own: what the compile found over the
 //! template graph (ADR 0032), each port's attributes, classes its cells,
 //! so a slot's class is the same in every build.
+//!
+//! Its submodules, in reading order:
+//!
+//! - [`expand`]: the templates stamped into components, scope by scope;
+//! - [`slot_cells`]: the cells the slots will make, and what each reads;
+//! - [`define`]: aliased slots merged into cells, and every cell classed;
+//! - [`orient`]: the author's binary operators oriented for their inverses;
+//! - [`writable`]: which value slots a student's action can write;
+//! - [`live`]: which slots the document must compute;
+//! - [`emit`]: the cells numbered and the operators bound, into the build;
+//! - [`structure`]: what a build made of the document's shape;
+//! - [`coverage`]: for tests, whether the template graph covers a build's;
+//! - [`signature`]: the input signature, what students can act on.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;

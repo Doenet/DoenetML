@@ -58,6 +58,7 @@ use stages::parse::Parsed;
 /// The compile chapter of the guide ([`crate::_guide`]), written here so
 /// its links reach the stages' private modules.
 #[doc = include_str!("../../../../docs/guide/compile.md")]
+#[doc(hidden)]
 pub mod guide {}
 
 pub(crate) mod api;
