@@ -653,8 +653,8 @@ variant-with-replacement-not-constant-boolean = cannot determine unique variants
 
 variant-select-weight-disables-unique = Unique variants for select disabled if have an option with selectWeight or selectForVariants specified
 
-# `option` and `copy` are DoenetML names and stay in English.
-variant-select-options-not-written = cannot determine unique variants of select as an option isn't written as an option in it, such as an option written with copy.
+# `option`, `copy` and `extend` are DoenetML names and stay in English.
+variant-select-options-not-written = cannot determine unique variants of select as an option in it comes from a reference, such as an option written with copy or extend.
 
 variant-coprime-undetermined = cannot determine unique variants of { $component } as cannot determine coprime is always false.
 

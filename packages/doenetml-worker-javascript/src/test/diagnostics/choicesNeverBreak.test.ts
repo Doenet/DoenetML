@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -54,6 +55,7 @@ async function load({
     );
     return {
         core,
+        resolvePathToNodeIdx,
         scoreState,
         selected,
         texts,
@@ -297,6 +299,45 @@ describe("A selection that a value decides can't be made @group4", async () => {
         expect(texts.p).eq("A ＿ B");
     });
 
+    it("a reference to a <select> that a value leaves missing is a blank too, and the info is reported once", async () => {
+        const doenetML = `<number name="n">4</number><p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p><p name="q">C $s D</p>`;
+        const { errors, infos, texts } = await load({
+            doenetML,
+            variable: "selectedIndices",
+            paragraphs: ["p", "q"],
+        });
+        expect(errors).eqls([]);
+        expect(infos.filter((c) => c === "doenet-e0035").length).eq(1);
+        expect(texts.p).eq("A ＿ B");
+        expect(texts.q).eq("C ＿ D");
+    });
+
+    it("a <select> that a value leaves missing stays a blank through a reload of its state", async () => {
+        const doenetML = `<mathInput name="mi"/><number name="n">4</number><p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p>`;
+        const first = await load({
+            doenetML,
+            variable: "selectedIndices",
+            paragraphs: ["p"],
+        });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await first.resolvePathToNodeIdx("mi"),
+            core: first.core,
+        });
+        await first.core.saveImmediately();
+        expect(first.scoreState.state).toBeTruthy();
+        const reloaded = await load({
+            doenetML,
+            requestedVariant: first.generatedVariantInfo,
+            initialState: first.scoreState.state,
+            variable: "selectedIndices",
+            paragraphs: ["p"],
+        });
+        expect(reloaded.errors).eqls([]);
+        expect(reloaded.infos).toContain("doenet-e0035");
+        expect(reloaded.texts.p).eq("A ＿ B");
+    });
+
     const literalCases: { tag: string; doenetML: string; code: string }[] = [
         {
             tag: "<select>",
@@ -319,6 +360,49 @@ describe("A selection that a value decides can't be made @group4", async () => {
             code: "doenet-e0042",
         },
     ];
+
+    // Each failure of a `<selectFromSequence>` found after its range is
+    // counted: an info when a value decides it, an error when the DoenetML
+    // does
+    const sequenceCases: {
+        code: string;
+        written: string;
+        fromValue: string;
+    }[] = [
+        {
+            code: "doenet-e0041",
+            written: `<selectFromSequence name="s" from="0" to="5" numToSelect="2" coprime/>`,
+            fromValue: `<number name="a">0</number><selectFromSequence name="s" from="$a" to="5" numToSelect="2" coprime/>`,
+        },
+        {
+            code: "doenet-e0043",
+            written: `<selectFromSequence name="s" from="2" to="2" numToSelect="2" withReplacement coprime/>`,
+            fromValue: `<number name="a">2</number><selectFromSequence name="s" from="2" to="$a" numToSelect="2" withReplacement coprime/>`,
+        },
+        {
+            code: "doenet-e0044",
+            written: `<selectFromSequence name="s" to="3" numToSelect="2" excludeCombinations="(1 2) (2 1) (1 3) (3 1) (2 3)"/>`,
+            fromValue: `<number name="a">3</number><selectFromSequence name="s" to="$a" numToSelect="2" excludeCombinations="(1 2) (2 1) (1 3) (3 1) (2 3)"/>`,
+        },
+        {
+            code: "doenet-e0045",
+            written: `<selectFromSequence name="s" from="2" to="4" exclude="3" numToSelect="2" coprime/>`,
+            fromValue: `<number name="a">3</number><selectFromSequence name="s" from="2" to="4" exclude="$a" numToSelect="2" coprime/>`,
+        },
+    ];
+
+    for (const { code, written, fromValue } of sequenceCases) {
+        it(`<selectFromSequence> ${code}: an info from a value, an error when written`, async () => {
+            const valued = await load({ doenetML: fromValue });
+            expect(valued.errors).eqls([]);
+            expect(valued.infos).toContain(code);
+            expect(valued.selected).eq(null);
+
+            const literal = await load({ doenetML: written });
+            expect(literal.errors).eqls([code]);
+            expect(literal.infos).not.toContain(code);
+        });
+    }
 
     for (const { tag, doenetML, code } of literalCases) {
         it(`${tag} written so it can't select is an error in every variant`, async () => {
