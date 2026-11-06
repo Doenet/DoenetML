@@ -51,11 +51,13 @@
  * (`typeChangeAtLoad`, such as a tag extending the `<conditionalContent>`
  * holding it) has no edges, as it reads nothing.
  *
- * A cycle through an attribute, a property, or a name the branches of a
+ * A cycle through an attribute, a property, a name the branches of a
  * `<conditionalContent>` or a one-pick `<select>` declare (`$x` or `$cc.x`,
  * which the resolver leaves for the container to resolve, as a path from
- * it) is not found here; it is still reported, or stops the document, when
- * it is reached.
+ * it), or a tag that is none of the above, such as a `<p>`, a `<section>` or
+ * a `<div>` (`<p name="q">a $q</p>`), is not found here; it is still
+ * reported, or stops the document, when it is reached (in a `<select>`,
+ * only in the variants that pick that option).
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
