@@ -2222,7 +2222,11 @@ checks that a document's errors are the same across variants.
 
 **Not changed:** an error found at load is shown to readers too. The author sees it first.
 
-## D39. No variant is broken by a selection (proposed, Tier 1)
+## D39. No variant is broken by a selection (decided, Tier 1)
+
+**Decided**, with the answers below. COMP-8 and the SEL principles in
+[composites-and-lists.md](composites-and-lists.md) state it. Open: whether SEL-4 also accepts an
+intermediate `<number>`.
 
 **The goal.** A student should never get a variant the author didn't know was broken. A select
 that errors in some variants is broken, but so is one that selects nothing, a blank, or values
@@ -2266,7 +2270,11 @@ selections stay allowed, so two random numbers can be made to differ (`exclude="
 reference that reaches anything the reader can change is an error at load:
 - an input, an answer, a draggable graphical component;
 - a target of `bindValueTo`, `updateValue` or another action;
+- a value a draggable graphical component depends on, since dragging writes back to it: `a` in
+  `<point>($a, 2)</point>` (INT-2);
 - anything that reads one of these.
+
+No value comes from an input, not even its prefill (question 1).
 
 Then a selection is a pure function of the DoenetML and the variant, so it can be checked
 without a reader. The cells core is built this way. In the JavaScript core it needs a load-time
@@ -2303,9 +2311,22 @@ decidable, a parameter is one of:
   arithmetic.
 
 Anything else (a function evaluation, a `<solveEquations>`, a property of a graphical object) is
-outside the analysable set, and is an error that says so. This reduces DoenetML's flexibility on
-purpose, for selection parameters only. A milder variant would make it a warning, with the
-author taking responsibility, if too many real documents rely on such parameters.
+outside the analysable set, and is an **error** that says so (question 2). This reduces
+DoenetML's flexibility on purpose, for selection parameters only. It could be loosened later,
+but the hope is that it needn't be.
+
+**Open: an intermediate `<number>`.** Should a parameter be able to reference a `<number>` (or
+`<integer>`) whose content is itself in these forms, so an author can write
+`<number name="m">$a + 2</number>` and `numToSelect="$m"`?
+- **For:** the check follows a reference into the `<number>` and analyses its content the same
+  way, so nothing is lost. Authors often show the same value in the text, and would otherwise
+  write the arithmetic twice. SEL-1 still applies: a `<number>` that a reader can change (through
+  `updateValue`, or a point dragged through it) is rejected.
+- **Against:** arithmetic in the attribute makes it plain that only simple computations are
+  allowed. A `<number>` invites content outside the forms, whose error then appears at the
+  attribute, one step from the cause.
+- **Recommendation:** allow it, for `<number>` and `<integer>` only, and have the error name the
+  `<number>` and the part of its content that isn't analysable (DIAG-3, DIAG-4).
 
 **SEL-5. Selections that depend on each other form an order, and are checked in it (Tier 2).** A
 selection's parameters may reference earlier selections, never itself or a later one through a
@@ -2322,8 +2343,12 @@ variant misses a blank another variant shows.
 
 - **Values that are valid but make later content degenerate**, such as a random 0 that ends up
   in a denominator. The author states such constraints with `exclude`, and SEL-3 checks only what
-  is stated. A later extension could let an author state a constraint on derived values (for
-  example "`$b^2 - 4$a$c` > 0") for the check to prove or reject.
+  is stated.
+- **Constraints on derived values**, such as `$b^2 - 4$a$c > 0`. Authors have asked for these,
+  and they are wanted as a **future extension, once SEL-1 to SEL-6 are in place**. It was held
+  back because a constraint must be proven or rejected at load, like any other (SEL-3), and how
+  to do that for arbitrary expressions is not worked out. A first scope could be constraints over
+  the SEL-4 forms, decided by enumerating the (finite) ranges of integer parameters.
 - **A saved or requested variant from another version of the DoenetML** (COMP-8). Its choices are
   taken as given, so they may contradict the current DoenetML. Only possible while the DoenetML is
   edited.
@@ -2341,12 +2366,11 @@ variant misses a blank another variant shows.
   in every variant, or go away under SEL-2.
 - The 0.8 converter (#2457) can't fix a document SEL-1 or SEL-3 rejects; it should report them.
 
-### Questions
+### Answers
 
-1. Is SEL-1's line, "anything the reader can change", right? It allows a parameter from another
-   random choice and from fixed content, and bans one from an input even at its prefill.
-2. SEL-4: error or warning for a parameter outside the analysable forms?
-3. SEL-2: is drawing uniformly among valid selections acceptable where today's draw differs
-   (a change to which values a variant gets, allowed under D17)?
-4. Should SEL-6's warnings for unpicked options be shown to authors separately ("in another
-   variant"), so they aren't confused with what this variant shows?
+1. **Yes:** anything the reader can change is out, including through a draggable component's
+   dependency. No values from an input.
+2. **Error** for a parameter outside the analysable forms. Loosen later only if needed.
+3. **Yes:** a change to which values a variant gets is acceptable (D17).
+4. **No separate display:** a warning is located at its line in the DoenetML (DIAG-4), so one
+   from an unpicked option isn't confusing.

@@ -235,19 +235,61 @@ Differences in the cells core:
 - Picks are derived from the seed rather than stored. Tier 3.
 - **A non-literal `numToSelect` is banned there (ADR 0009). That is a flaw in the cells core, to
   be fixed eventually, not an accepted change to DoenetML.**
-  - A reference in `numToSelect` is allowed. It is read once, when the choice is made, and later
-    changes are ignored, like every other input to a selection (above).
+  - A reference in `numToSelect` is allowed when SEL-1 allows it: to another random choice or to
+    fixed content, never to anything the reader can change. It is read once, when the choice is
+    made.
   - These tests stay binding, in each of `select.test.ts`, `selectfromsequence.test.ts`,
     `selectprimenumbers.test.ts` and `selectsamplerandomnumbers.test.ts`:
-    - "select doesn't change dynamically": `numToSelect="$numToSelect"`, changed after load, is
-      ignored;
     - "numToSelect from selectFromSequence": `numToSelect` taken from another random choice;
     - in all but `selectsamplerandomnumbers.test.ts`, the "…initially unresolved" tests (for
       example `select.test.ts:283`): `numToSelect` read through a chain of references.
+  - "select doesn't change dynamically" (`numToSelect="$numToSelect"` from an input) changes:
+    under SEL-1 a parameter from an input is an error at load (D39).
   - PR #2281's rewrite of the select test to use a literal does not replace them.
 - Stable `stateId`s on shuffle and sort keep saved state on the right item. The *property* is
   Tier 2. The id format asserted in `shuffle.test.ts:791`, `sort.test.ts:1008` and
   `collect.test.ts:3710` is Tier 3.
+
+### SEL: no variant is broken by a selection (Tier 1; D39)
+Every potential variant, not only the ones today's algorithm makes, has selections that satisfy
+what the author wrote. If the DoenetML can't guarantee that, every variant has an error saying
+so (DIAG-7). Checking today's variants is a regression aid, never the guarantee.
+
+- **SEL-1: what decides a selection comes from the DoenetML and the variant alone.** Its
+  parameters (`numToSelect`, ranges, `step`, `exclude`, `withReplacement`, `coprime`, excluded
+  combinations, weights, `selectForVariants`, the options) may reference other selections and
+  fixed content (`exclude="$a"` keeps two numbers apart). A reference that reaches anything the
+  reader can change is an error at load: an input (even its prefill), an answer, a draggable
+  component or a value one depends on (`a` in `<point>($a, 2)</point>`), a target of
+  `bindValueTo`, `updateValue` or another action, and anything reading these.
+- **SEL-2: a selection never fails by chance.** If a valid selection exists, the select finds
+  one, drawing among valid selections rather than retrying with a limit. Which values a variant
+  gets may change for this.
+- **SEL-3: feasibility is proven at load, over every value the parameters can take.** From the
+  parameters' ranges, not by trying variants. `to="$a" numToSelect="3"` is fine when `a` ranges
+  over 5..10, and an error in every variant when `a` can be 1, naming the value.
+- **SEL-4: a parameter is in an analysable form:** a literal, a reference with a known range (a
+  selection, a literal `<number>`), and `+ − ×`, integer division, `min`, `max`, `abs` of these.
+  Anything else is an error. (Open: also a `<number>` whose content is in these forms.)
+- **SEL-5: selections depending on each other form an order**, with no cycle (`e0005`), and
+  ranges flow forward through it.
+- **SEL-6: every option, case and iteration template is checked, picked or not:** its errors and
+  its warnings, each at its line.
+
+Outside the guarantee: valid values that make later content degenerate (a random 0 in a
+denominator), which authors exclude; constraints on derived values such as `$b^2 - 4$a$c > 0`, a
+wanted future extension; saved variants from another version of the DoenetML; and continuous
+samplers.
+
+**Known violations** (D39 is not implemented):
+- a parameter may come from an input, or from a value a reader can change;
+- a failure a value decides is a missing selection with an info in some variants (#2468): `to="$a"`
+  with a random `a`, `e0032` at info level;
+- `coprime` draws that find nothing (`i0057`) and the fluke codes `e0052`/`e0053` fail by chance;
+- a cycle through a name every option of a one-pick `<select>` declares stops the variant that
+  picks it (#2473);
+- warnings in unpicked options and cases are not reported;
+- a `copyWithState` of a sampler doesn't keep its draws through a reload (#2477, COMP-8).
 
 ### COMP-9: `conditionalContent` shows the first case whose condition is true, else the `<else>` (Tier 1)
 The single-case form `<conditionalContent condition="…">` shows its children or nothing.
