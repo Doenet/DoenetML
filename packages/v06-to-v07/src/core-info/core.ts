@@ -178,7 +178,8 @@ export async function createCoreForLookup({
         // read, so the document is treated as one that does not load, as it was when
         // a cycle stopped it.
         const circular = core.core?.diagnostics.find(
-            (diagnostic) => diagnostic.code === "doenet-e0005",
+            (diagnostic: { code?: string }) =>
+                diagnostic.code === "doenet-e0005",
         );
         if (circular) {
             throw Error(circular.message);
