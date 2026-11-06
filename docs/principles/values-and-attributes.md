@@ -429,8 +429,10 @@ when it makes each replacement, so a source that switches between setting a styl
 setting one is not followed (#2426, Tier 3).
 
 Known violations:
-- **a `<sort>` or `<shuffle>` that stays a composite** still draws an entry hidden only by a
-  container (#2394);
+- `$s[1].hide` and `$s[1].hidden` are `＿` when an entry of a composite sort is a list entry
+  (#2480). A composite sort or shuffle leaves out an entry hidden by a container since #2474
+  (closing #2394); one inside `<group hide>` or `<conditionalContent hide>` counts all its
+  entries as hidden, so `$s` placed elsewhere draws nothing, as the list forms do;
 - **a write through `$l[k].hide`** does nothing (above).
 
 ---

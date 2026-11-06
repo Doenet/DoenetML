@@ -104,7 +104,9 @@ Decided in D35.
 **Known violations:**
 - a function reference with an index quotes only up to the index, `$$f[2]`, not `$$f[2](2)`
   (#2434);
-- a math that indexes itself gives an internal error (B29, #2439);
+- an index into a tag written with `extend` that reads itself,
+  `<math name="m2" extend="$m">$m2[1]</math>`, gives an internal error (#2473). B29 was fixed by
+  #2471;
 - `<p name="p" copy="$p"/>` reports an internal `<_copy>` (NAME-7).
 
 ### DIAG-4: a diagnostic is located where the author wrote the cause (Tier 2)
@@ -183,17 +185,18 @@ covers a tag's type errors there (`fixedTypeError` and `reportTypeChangesAtLoad`
   `e0061`, `e0059`, …), in content made later;
 - `e0064` of an authored list whose count changes (`<mathList maxNumber="$n">` as a scalar tag):
   it depends on a value, so it should be a missing tag with an info;
-- cycles that appear after a change: `<group extend="$cc.x"/>` gives `doenet-e0005` after the
-  case changes (B40, #2453), an iteration withheld and shown again gives `e0005` (#2430), and two
-  `<conditionalContent>`s extending each other (B32, #2439). A reference cycle can be found at
-  load from the reference graph over every case; otherwise the component is missing with an
-  info;
+- **fixed by #2471:** reference cycles through what is written are `e0005` at load over every
+  branch (B32, B40, #2430). Left: cycles through a property, an attribute, an index or a list; a
+  cycle through a name every branch declares, found when the case turns true (in a `<select>`,
+  the variant that picks it doesn't finish loading); a cycle through a `<p>`; and a `copy` in
+  what it is of (#2473);
 - **fixed by #2468:** choice errors that depended on the variant or on values. A requested
   variant's choices are taken as given (`e0037`–`e0040`, `e0048`–`e0050` are retired). A failure
   is an error only when every attribute deciding it is written without a reference; otherwise it
   is an info and the selection is missing (`to="$a"` with a random `a`). The fluke codes
   `e0052`/`e0053` are always infos, and `coprime` draws that find nothing are info `i0057`.
   Those variants are still broken, which D39 addresses;
-- state-variable cycles that throw (D14), even at the top level: `<math name="z" extend="$z"/>`,
-  and two maths reading each other;
+- state-variable cycles that throw (D14) through a property or an attribute,
+  `<number name="n">$n.value</number>` (#2473). Whole-component cycles such as
+  `<math name="z" extend="$z"/>` are `e0005` since #2471;
 - exceptions during interaction, such as B36's on reload (DIAG-5).
