@@ -750,6 +750,113 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
+    it("the children of a copy of a list in a repeat iteration are reached from outside the repeat, as in a copy of a <p>", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="l"><math name="h">x</math> 2</mathList>
+    <repeatForSequence name="r" length="2"><mathList name="d" copy="$l"/></repeatForSequence>
+    <p name="pl">$r[1].d.h $r[2].d.h</p>
+
+    <p name="P"><math name="h">x</math></p>
+    <repeatForSequence name="rp" length="2"><p name="d" copy="$P"/></repeatForSequence>
+    <p name="pp">$rp[1].d.h $rp[2].d.h</p>
+    `,
+        });
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pp"])).eqls({
+            pl: "x x",
+            pp: "x x",
+        });
+    });
+
+    it("the children of a copy of a list in a conditionalContent case are reached through the conditionalContent once the case shows, as in a copy of a <p>", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="b" />
+    <mathList name="l"><math name="h">x</math> 2</mathList>
+    <p name="P"><math name="h">x</math></p>
+    <conditionalContent name="cc" condition="$b">
+      <mathList name="d" copy="$l"/>
+      <p name="e" copy="$P"/>
+    </conditionalContent>
+    <p name="pl">$cc.d.h</p>
+    <p name="pp">$cc.e.h</p>
+    `,
+        });
+
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pp"])).eqls({
+            pl: "＿",
+            pp: "＿",
+        });
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pp"])).eqls({
+            pl: "x",
+            pp: "x",
+        });
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pp"])).eqls({
+            pl: "＿",
+            pp: "＿",
+        });
+    });
+
+    for (const tag of ["mathList", "p"]) {
+        it(`the children of a copy of a ${tag} in a repeat iteration made after load are reached from outside the repeat, through a reload`, async () => {
+            const doenetML = `
+    <mathInput name="n" prefill="2"/>
+    <mathInput name="mi" prefill="x"/>
+    <${tag} name="l"><math name="h">$mi</math> 2</${tag}>
+    <${tag} name="c1" copy="$l"/>
+    <repeatForSequence name="r" length="$n">
+      <${tag} name="d" copy="$c1"/><math name="m">$d.h</math>
+      <${tag} name="dd" copy="$d"/><math name="m2">$dd.h</math>
+    </repeatForSequence>
+    <p name="pq">$r[3].d.h $r[3].dd.h</p>
+    `;
+            const { core, resolvePathToNodeIdx, scoreState } =
+                await createTestCore({ doenetML });
+
+            for (const [name, latex] of [
+                ["n", "0"],
+                ["n", "3"],
+                ["mi", "y"],
+                ["n", "1"],
+                ["n", "3"],
+            ]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    core,
+                });
+            }
+            expect(await textsOf(core, resolvePathToNodeIdx, ["pq"])).eqls({
+                pq: "y y",
+            });
+
+            await core.saveImmediately();
+            const reloaded = await createTestCore({
+                doenetML,
+                initialState: scoreState.state,
+            });
+            expect(
+                await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, [
+                    "pq",
+                ]),
+            ).eqls({ pq: "y y" });
+        });
+    }
+
     it("the children of an extend of a list are reached through its name, before or after the extend, and stay linked", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
