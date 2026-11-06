@@ -1124,6 +1124,13 @@ function numEntriesOf(node: ValueNode): number {
  * a deeper value costs no more (`ensureValuePathVariable`).
  */
 function valueEntriesSize(tree: Tree): [number, number] {
+    // A matrix's rows all have the same length, checked once here rather
+    // than for each row (`entryAt`).
+    if (isMatrixWithRows(tree)) {
+        const rows = (tree as Tree[])[2] as Tree[][];
+        // each row is `["tuple", entry, …]`: n entries and a key for the row
+        return [rows.length - 1, rows[1]?.length ?? 1];
+    }
     const numEntries = numEntriesOf({ tree });
     let mostInner = 0;
     for (let index = 1; index <= numEntries; index++) {
