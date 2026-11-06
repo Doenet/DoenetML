@@ -25,6 +25,16 @@ export default class BooleanComponent extends InlineComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+        // Set by core, not by authors, on a boolean made from a text by a
+        // reference written as a `<boolean>` (`<boolean extend="$t"/>`,
+        // D26): its text is read as the word `true` or `false`
+        // (`evaluateLogic`), and written back as one.
+        attributes._textAsWord = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "textAsWord",
+            defaultValue: false,
+            excludeFromSchema: true,
+        };
         attributes.symbolicEquality = {
             createComponentOfType: "boolean",
             createStateVariable: "symbolicEquality",
@@ -294,6 +304,10 @@ export default class BooleanComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "parsedExpression",
                 },
+                textAsWord: {
+                    dependencyType: "stateVariable",
+                    variableName: "textAsWord",
+                },
                 allChildren: {
                     dependencyType: "child",
                     childGroups: ["strings", "comparableTypes"],
@@ -366,6 +380,27 @@ export default class BooleanComponent extends InlineComponent {
                 } else if (dependencyValues.allChildren.length === 1) {
                     let child = dependencyValues.allChildren[0];
                     if (typeof child === "string") {
+                        return {
+                            success: true,
+                            instructions: [
+                                {
+                                    setDependency: "allChildren",
+                                    desiredValue:
+                                        desiredStateVariableValues.value.toString(),
+                                    childIndex: 0,
+                                    variableIndex: 0,
+                                },
+                            ],
+                        };
+                    } else if (
+                        dependencyValues.textAsWord &&
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: child.componentType,
+                            baseComponentType: "text",
+                        })
+                    ) {
+                        // a text read as the word `true` or `false`
+                        // (`textAsWord`, `evaluateLogic`)
                         return {
                             success: true,
                             instructions: [

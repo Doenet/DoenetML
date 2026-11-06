@@ -522,8 +522,8 @@ describe("An unlinked copy through a reload @group4", () => {
     });
 
     it("of a mathInput, written as a point, keeps what it was made from", async () => {
-        // The copy's point holds a copy of the mathInput, which keeps the
-        // value it had, though the mathInput's is not a tuple on load
+        // The point is made from mi's value (D26), and keeps the value it
+        // had, though mi's is not a tuple when it loads again
         const doenetML = `
     <mathInput name="mi" prefill="x" />
     <booleanInput name="b" />
@@ -531,7 +531,8 @@ describe("An unlinked copy through a reload @group4", () => {
         <case condition="$b"><point copyWithState="$mi" name="P" /></case>
     </conditionalContent>
     `;
-        const { reload, setBoolean, core, resolve } = await reloader(doenetML);
+        const { reload, setBoolean, core, resolve, sv } =
+            await reloader(doenetML);
         await updateMathInputValue({
             latex: "(1,2)",
             componentIdx: await resolve("mi"),
@@ -544,28 +545,10 @@ describe("An unlinked copy through a reload @group4", () => {
             core: core(),
         });
 
-        /** The value of each mathInput a point holds. */
-        async function inPoints() {
-            const stateVariables = await core().returnAllStateVariables(
-                false,
-                true,
-            );
-            const result = [];
-            for (const sv of Object.values(stateVariables) as any[]) {
-                if (sv.componentType === "point") {
-                    for (const child of sv.activeChildren) {
-                        result.push(
-                            stateVariables[child.componentIdx].stateValues.value
-                                .tree,
-                        );
-                    }
-                }
-            }
-            return result;
-        }
-        expect(await inPoints()).eqls([["tuple", 1, 2]]);
+        expect((await sv("P")).stateValues.coords.tree).eqls(["vector", 1, 2]);
         await reload();
-        expect(await inPoints()).eqls([["tuple", 1, 2]]);
+        expect((await sv("P")).stateValues.coords.tree).eqls(["vector", 1, 2]);
+        expect((await sv("mi")).stateValues.value.tree).eqls("y");
     });
 
     it("deleted and made again without a reload, is made as it was", async () => {

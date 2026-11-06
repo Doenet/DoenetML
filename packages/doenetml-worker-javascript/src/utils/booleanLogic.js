@@ -273,6 +273,25 @@ export function evaluateLogic({
                         } else {
                             return 0;
                         }
+                    } else if (
+                        dependencyValues.textAsWord &&
+                        dependencyValues.textChildrenByCode?.[logicTree]
+                    ) {
+                        // A boolean made from a text by a reference written
+                        // as one (`<boolean extend="$t"/>`, D26, REF-5,
+                        // `textAsWord`) is true or false while the text is
+                        // that word, and neither otherwise.
+                        const word = String(
+                            dependencyValues.textChildrenByCode[logicTree]
+                                .stateValues.value,
+                        )
+                            .trim()
+                            .toLowerCase();
+                        if (word === "true") {
+                            return 1;
+                        } else if (word === "false") {
+                            return 0;
+                        }
                     } else if (logicTree.toLowerCase() === "true") {
                         return 1;
                     } else if (logicTree.toLowerCase() === "false") {
