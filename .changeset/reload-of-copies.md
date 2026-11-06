@@ -6,7 +6,7 @@
 "doenet-vscode-extension": patch
 ---
 
-A copy of a component named in a case of a `<conditionalContent>` (`<p copy="$cc.p"/>`, `<mathInput copyWithState="$cc.p.a"/>`, or a name inside a `<group>` in the case) is now made again, after a reload, from the case it was made from, with what the reader entered in it, though another case, or none, is active then. Before, it was made from the case active at the reload, so a reader who changed the case before reloading saw a different paragraph, without their entries. This holds for `copy` and `copyWithState`, and through nested `<conditionalContent>`s.
+A copy of a component named in a case of a `<conditionalContent>` (`<p copy="$cc.p"/>`, `<mathInput copyWithState="$cc.p.a"/>`, or a name inside a `<group>` in the case) is now made again, after a reload or when the copy is itself in a case that is shown again, from the case it was made from, with what the reader entered in it, though another case, or none, is active then. Before, it was made from the case active then, so a reader who changed the case before reloading, or before the copy was shown again, saw a different paragraph, without their entries. This holds for `copy` and `copyWithState`, and through nested `<conditionalContent>`s.
 
 `<conditionalContent copy="$cc"/>` (or `copyWithState`) now shows, after a reload, the case its own condition selects, with what the reader entered in each case. Before, once its condition had selected another case than the one it was made with, a reload left it empty.
 

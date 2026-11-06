@@ -940,6 +940,40 @@ describe("A copy of a name in a case through a reload @group4", () => {
         });
     }
 
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form}: in a case shown again, keeps the case it was made from`, async () => {
+            // The copy is in a case of `outer`, which deletes it when its
+            // else is shown and makes it again when the case is shown
+            // again, after `cc` has another case.
+            const r = await reloader(`
+    <mathInput name="n" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$n = 1"><p name="p">one: <mathInput name="a"/></p></case>
+      <else><p name="p">other: <mathInput name="a"/></p></else>
+    </conditionalContent>
+    <booleanInput name="b" prefill="true"/>
+    <conditionalContent name="outer">
+      <case condition="$b"><p ${form}="$cc.p" name="pc"/></case>
+      <else><p name="none">none</p></else>
+    </conditionalContent>
+    `);
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await r.resolve("pc.a"),
+                core: r.core(),
+            });
+            await setN(r, "2");
+            await r.setBoolean("b", false);
+            expect(await r.sv("pc")).eq(undefined);
+            await r.setBoolean("b", true);
+            expect((await r.sv("cc.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            await r.reload();
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+        });
+    }
+
     it("of a name inside a group in a case, keeps the case", async () => {
         // A name in only some cases names nothing, in any case, so is not
         // made from one (`$cc.y` of a `y` only in the first case).
