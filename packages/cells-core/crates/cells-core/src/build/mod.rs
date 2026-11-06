@@ -50,6 +50,7 @@ mod structure;
 mod writable;
 
 use define::Defined;
+use emit::Emit;
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
 pub use structure::SlotClass;
@@ -72,65 +73,6 @@ impl crate::sym::Leaf for SlotId {
 }
 
 use expand::*;
-
-/// The build's first two stages, expand and resolve, run as one: a failure
-/// names the element to box.
-impl<'c> Builder<'c> {
-    /// Expand and resolve. The failure names the element to box.
-    pub(in crate::build) fn stage(&mut self) -> std::result::Result<(), Failure> {
-        let staged = (|| {
-            crate::trace::span("expand").run(|| self.expand_all())?;
-            crate::trace::span("resolve").run(|| self.resolve_all())
-        })();
-        staged.map_err(|error| Failure {
-            error,
-            node: self.failed_node,
-        })
-    }
-}
-
-/// The walks' shared step: backward over the cells the slots will make, as the
-/// live and writable walks and orientation go.
-impl<'c> Builder<'c> {
-    /// Walk backward over the cells the slots will make: from the cells on
-    /// `stack`, each cell `enter` admits is given to `edge` as its
-    /// definition, then as each other source in `extra` its slots have,
-    /// and `edge` pushes the cells to go on to. A cell
-    /// `enter` refuses is neither followed nor seen.
-    pub(in crate::build) fn walk_cells(
-        &self,
-        slot_cells: &SlotCells,
-        mut stack: Vec<SlotId>,
-        extra: &[(SlotId, BuiltSource)],
-        mut enter: impl FnMut(SlotId) -> bool,
-        mut edge: impl FnMut(slot_cells::Def<'_>, &mut Vec<SlotId>),
-    ) {
-        let mut seen = vec![false; self.sources.len()];
-        // The other sources of each cell.
-        let mut besides: HashMap<SlotId, Vec<&(SlotId, BuiltSource)>> = HashMap::new();
-        for entry in extra {
-            besides
-                .entry(slot_cells.cell_of(entry.0))
-                .or_default()
-                .push(entry);
-        }
-        while let Some(cell) = stack.pop() {
-            if std::mem::replace(&mut seen[cell.index()], true) || !enter(cell) {
-                continue;
-            }
-            let def = slot_cells.def(cell);
-            edge(
-                slot_cells.def_of(self, def, &self.sources[def.index()]),
-                &mut stack,
-            );
-            if let Some(entries) = besides.get(&cell) {
-                for (slot, src) in entries {
-                    edge(slot_cells.def_of(self, *slot, src), &mut stack);
-                }
-            }
-        }
-    }
-}
 
 /// What can go wrong in a build: only that the compile missed something,
 /// a core bug. Never an author's error.
@@ -163,13 +105,13 @@ pub fn build(
     counts: &Counts,
     reseed: bool,
 ) -> std::result::Result<BuildOutput, BuildError> {
-    let mut b = Builder::new(compiled.view(), session, reseed, math, counts);
+    let b = Builder::new(compiled.view(), session, reseed, math, counts);
     let built = (|| {
-        b.stage()?;
-        let slot_cells = crate::trace::span("define").run(|| b.define())?;
-        let defined = Defined::by_attributes(&b, slot_cells);
+        let mut x = b.stage()?;
+        let slot_cells = crate::trace::span("define").run(|| SlotCells::define(&mut x))?;
+        let defined = Defined::by_attributes(&x, slot_cells);
         let _s = crate::trace::span("emit");
-        let u = b.emit(defined)?;
+        let u = Emit { x }.emit(defined)?;
         crate::trace::count("cells", u.cells.len());
         crate::trace::count("instructions", u.instrs.len());
         crate::trace::count("components", u.components.len());

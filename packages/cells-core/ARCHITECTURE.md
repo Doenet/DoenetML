@@ -220,7 +220,9 @@ draw for every select.
 
 - **Expand** (`build/expand/`) stamps each template into components once per
   *scope* (the document, and each iteration of each repeat) and resolves
-  references to slots.
+  references to slots. Its working state is its `Builder`; what it hands
+  on to define and emit is an `Expanded`, and no stage after it holds a
+  `Builder`.
 - **Define** (`build/define.rs`, ADR 0035) merges aliased slots into cells
   with a union-find and finds the one slot that defines each cell, orients
   the author's operators (ADR 0026), checks the prefill rule (a prefill
@@ -264,7 +266,7 @@ draw for every select.
   cells from and appends to; a document constant's cell index is the same in
   every build of the session. Every other constant, a scope constant, gets a
   cell of its own. An instruction whose inputs are all constants made in its
-  scope or one around it is **folded** (`Builder::folded_slots`): its
+  scope or one around it is **folded** (`Emit::folded_slots`): its
   outputs are numbered among the constants, it is run once as emit ends, and
   the program keeps no instruction for it. A *counted value*, which a build
   counts from the structure it stamped (a collect's count from a repeat, a
@@ -457,7 +459,7 @@ rustdoc (`npm run doc`, the `_guide` module), each a file under
   `pub` item is API (`unreachable_pub` refuses one that is not), and it
   has a doc. The `_guide` chapters (`docs/guide/`) are in both. Every `impl` block of
   a type whose methods span files (`Outlining`, `Planning`, `Reader`,
-  `Seal`, `Builder`, `Stamp`, `Document`, `Built`) carries a doc comment naming the stage or
+  `Seal`, `Builder`, `SlotCells`, `Stamp`, `Document`, `Built`) carries a doc comment naming the stage or
   role it serves and what it reads and writes: rustdoc shows it as a
   heading over the block's methods on the type's page, in an order the
   heading cannot rely on.

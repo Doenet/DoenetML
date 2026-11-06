@@ -107,7 +107,7 @@ impl<'c> Builder<'c> {
     ) -> CompIdx {
         let n = members
             .iter()
-            .map(|&m| self.n_public(m))
+            .map(|&m| self.slots().n_public(m))
             .max()
             .unwrap_or(component_type.prop_defs().len());
         let w = self.new_component(component_type, StrId::NONE, parent, NodeId::NONE, scope, n);
@@ -124,11 +124,11 @@ impl<'c> Builder<'c> {
         let component_type = self.components.component_type[w.index()];
         let symbolic = members.iter().any(|&m| self.is_symbolic(m));
         let n = byte(members.len());
-        for pi in 0..self.n_public(w) {
+        for pi in 0..self.slots().n_public(w) {
             let branch_slots: Vec<SlotId> = members
                 .iter()
                 .map(|&m| {
-                    if pi < self.n_public(m) {
+                    if pi < self.slots().n_public(m) {
                         self.slot(m, pi)
                     } else {
                         self.missing_slot()

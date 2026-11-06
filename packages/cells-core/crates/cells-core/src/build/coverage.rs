@@ -49,9 +49,8 @@ pub fn uncovered(
     counts: &Counts,
 ) -> std::result::Result<Vec<String>, String> {
     let mut math = MathStore::default();
-    let mut b = Builder::new(compiled.view(), session, false, &mut math, counts);
-    b.expand_all().map_err(|e| e.to_string())?;
-    b.resolve_all().map_err(|e| e.to_string())?;
+    let b = Builder::new(compiled.view(), session, false, &mut math, counts);
+    let b = b.stage().map_err(|f| f.error.to_string())?;
     let mut out = Vec::new();
     for u in SlotId::below(b.sources.len()) {
         let Some(ku) = b.slot_key(u) else { continue };
@@ -66,8 +65,8 @@ pub fn uncovered(
             if !covered {
                 out.push(format!(
                     "{} (at {at_u:?}) reads {} (at {at_v:?}), which the template graph does not",
-                    b.slot_label(u),
-                    b.slot_label(v)
+                    b.slots().slot_label(u),
+                    b.slots().slot_label(v)
                 ));
             }
         }
@@ -90,8 +89,8 @@ fn admits(label: &[Coord], at_u: &[(NodeId, u32)], at_v: &[(NodeId, u32)]) -> bo
 }
 
 /// Coverage (tests only): a real build's slots and dependencies, keyed as the
-/// template graph keys its ports (ADR 0032, step 8).
-impl Builder<'_> {
+/// template graph keys its ports (ADR 0032, step 8). Reads what expand made.
+impl Expanded<'_> {
     /// The key of an element's slot; None for any other slot.
     fn slot_key(&self, s: SlotId) -> Option<Key> {
         let comp = self.slot_comp[s.index()];

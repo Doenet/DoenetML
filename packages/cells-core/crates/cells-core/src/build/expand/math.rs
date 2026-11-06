@@ -196,7 +196,7 @@ impl<'c> Builder<'c> {
         if depth == 0 {
             return ValueType::Number;
         }
-        if let Some((t, ts)) = self.template_slot(slot) {
+        if let Some((t, ts)) = self.slots().template_slot(slot) {
             return self.compiled.plans.port_type(t.index(), ts).value_type();
         }
         if let BuiltSource::Alias(t) = self.sources[slot.index()] {
@@ -214,7 +214,7 @@ impl<'c> Builder<'c> {
         let pi = slot.get() - self.slot_base[comp.index()].get();
         let mut kind = ValueType::Number;
         for &m in members {
-            if (pi as usize) < self.n_public(m) {
+            if (pi as usize) < self.slots().n_public(m) {
                 let t = self.slot_base[m.index()].offset(pi as usize);
                 match self.value_type_within(t, depth - 1) {
                     ValueType::Number => {}
@@ -232,7 +232,7 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn is_symbolic(&self, comp: CompIdx) -> bool {
         let component_type = self.components.component_type[comp.index()];
         match component_type.prop_index("expr") {
-            Some(pi) if pi < self.n_public(comp) => {
+            Some(pi) if pi < self.slots().n_public(comp) => {
                 self.value_type(self.slot(comp, pi)) == ValueType::Math
             }
             _ => false,

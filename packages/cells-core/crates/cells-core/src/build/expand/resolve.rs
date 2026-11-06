@@ -265,7 +265,7 @@ impl<'c> Builder<'c> {
             }
             None => {
                 if component_type.default_prop().is_none() {
-                    return Err(Error::NoDefaultProp(self.comp_label(comp)));
+                    return Err(Error::NoDefaultProp(self.slots().comp_label(comp)));
                 }
                 component_type.default_sel()
             }
@@ -273,7 +273,7 @@ impl<'c> Builder<'c> {
         let slots = sel
             .and_then(|sel| self.sel_slots(comp, sel))
             .ok_or_else(|| Error::UnknownProp {
-                name: self.comp_label(comp),
+                name: self.slots().comp_label(comp),
                 prop: match prop {
                     Some(p) => p.name().into_owned(),
                     None => component_type.default_prop().unwrap_or_default().into(),

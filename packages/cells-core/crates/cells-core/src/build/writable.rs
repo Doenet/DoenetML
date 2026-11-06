@@ -8,25 +8,25 @@ use super::*;
 
 /// The writable walk: which value slots a student's action can write. Run by
 /// define, over what expand made.
-impl<'c> Builder<'c> {
+impl SlotCells {
     #[cfg(feature = "testing")]
     /// Per slot, whether it is a value slot a student's action can write:
     /// one a request reaches from an input that no constant flag holds.
-    pub(in crate::build) fn writable_slots(&self, slot_cells: &SlotCells) -> Vec<bool> {
-        let mut writable = vec![false; self.sources.len()];
+    pub(in crate::build) fn writable_slots(&self, x: &Expanded<'_>) -> Vec<bool> {
+        let mut writable = vec![false; x.sources.len()];
         let mut stack: Vec<SlotId> = Vec::new();
-        for c in CompIdx::below(self.components.component_type.len()) {
-            let ty = self.components.component_type[c.index()];
-            let np = self.n_public(c);
-            let base = self.slot_base[c.index()].index();
+        for c in CompIdx::below(x.components.component_type.len()) {
+            let ty = x.components.component_type[c.index()];
+            let np = x.slots().n_public(c);
+            let base = x.slot_base[c.index()].index();
             for pi in 0..np {
                 if ty.is_input_prop(np, pi) {
-                    stack.push(slot_cells.cell_of(SlotId::from_index(base + pi)));
+                    stack.push(self.cell_of(SlotId::from_index(base + pi)));
                 }
             }
         }
         self.walk_cells(
-            slot_cells,
+            x,
             stack,
             &[],
             |_| true,
@@ -36,7 +36,7 @@ impl<'c> Builder<'c> {
                 {
                     writable[def.slot.index()] = true;
                 }
-                stack.extend(def.request_targets().map(|i| slot_cells.cell_of(i)));
+                stack.extend(def.request_targets().map(|i| self.cell_of(i)));
             },
         );
         writable

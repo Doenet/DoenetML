@@ -323,7 +323,7 @@ pub(crate) struct TemplateGraph {
     /// The symbolic templates, by [`GraphOp::Template`].
     pub(crate) templates: Vec<TemplateOp>,
     /// The nodes whose cell is not a number, with what it holds, as a
-    /// build types its slots (`Builder::typed_slots`).
+    /// build types its slots (`Expanded::typed_slots`).
     pub(crate) typed: Vec<(GraphNode, crate::program::ValueType)>,
     /// Where each math value a definition holds comes from, by node.
     pub(crate) math: FxMap<GraphNode, MathOrigin>,

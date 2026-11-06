@@ -10,7 +10,7 @@
 //! (a value nothing computes no tick changes, held or not); and when
 //! every read it makes through an index is stable: the index lands inside
 //! what it indexes in every build ([`Need`]). This is a build's fold rule
-//! (`Builder::folded_slots`) lifted to the check and stripped of its scope
+//! (`Emit::folded_slots`) lifted to the check and stripped of its scope
 //! rule, which the graph needs not, every referent existing in it.
 //!
 //! A constant's range ([`Range`]) is computed as the walks read a node,

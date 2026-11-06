@@ -30,16 +30,16 @@ fn swapped(spec: OpSpec) -> Option<OpSpec> {
 /// Orientation: a binary operator lowered from the author's math turned round
 /// so its inverse writes the input that leads to state. Run by define, before
 /// the writable walk.
-impl<'c> Builder<'c> {
+impl SlotCells {
     /// Orient every binary operator lowered from the author's math. Runs
     /// before the walks, which read the orientation.
-    pub(in crate::build) fn orient(&mut self, slot_cells: &SlotCells) {
-        if self.author_ops.is_empty() {
+    pub(in crate::build) fn orient(&self, x: &mut Expanded<'_>) {
+        if x.author_ops.is_empty() {
             return;
         }
-        let n = self.sources.len();
+        let n = x.sources.len();
         let mut author = vec![false; n];
-        for &s in &self.author_ops {
+        for &s in &x.author_ops {
             author[s.index()] = true;
         }
         const NEW: u8 = 0;
@@ -49,8 +49,8 @@ impl<'c> Builder<'c> {
         let mut leads = vec![false; n];
         // (cell, whether what it needs was pushed)
         let mut stack: Vec<(SlotId, bool)> = Vec::new();
-        for k in 0..self.author_ops.len() {
-            let first = slot_cells.cell_of(self.author_ops[k]);
+        for k in 0..x.author_ops.len() {
+            let first = self.cell_of(x.author_ops[k]);
             if state[first.index()] != NEW {
                 continue;
             }
@@ -58,8 +58,7 @@ impl<'c> Builder<'c> {
             while let Some((cell, expanded)) = stack.pop() {
                 let i = cell.index();
                 if expanded {
-                    leads[i] =
-                        self.orient_source(slot_cells.def(cell), slot_cells, &leads, &author);
+                    leads[i] = self.orient_source(x, self.def(cell), &leads, &author);
                     state[i] = DONE;
                     continue;
                 }
@@ -68,10 +67,10 @@ impl<'c> Builder<'c> {
                 }
                 state[i] = OPEN;
                 stack.push((cell, true));
-                let at = slot_cells.def(cell);
-                let def = slot_cells.def_of(self, at, &self.sources[at.index()]);
+                let at = self.def(cell);
+                let def = self.def_of(x, at, &x.sources[at.index()]);
                 for s in def.needs() {
-                    let below = slot_cells.cell_of(s);
+                    let below = self.cell_of(s);
                     if state[below.index()] == NEW {
                         stack.push((below, false));
                     }
@@ -84,25 +83,25 @@ impl<'c> Builder<'c> {
     /// be, and say whether the source leads to state; every cell below it
     /// is decided.
     fn orient_source(
-        &mut self,
+        &self,
+        x: &mut Expanded<'_>,
         at: SlotId,
-        slot_cells: &SlotCells,
         leads: &[bool],
         author: &[bool],
     ) -> bool {
-        let leads_from = |s: SlotId| leads[slot_cells.cell_of(s).index()];
-        if let BuiltSource::Op(PlannedOp::Spec(spec), start, 2) = self.sources[at.index()]
+        let leads_from = |s: SlotId| leads[self.cell_of(s).index()];
+        if let BuiltSource::Op(PlannedOp::Spec(spec), start, 2) = x.sources[at.index()]
             && author[at.index()]
             && let Some(turned) = swapped(spec)
-            && !leads_from(self.op_inputs[start.index()])
-            && leads_from(self.op_inputs[start.index() + 1])
+            && !leads_from(x.op_inputs[start.index()])
+            && leads_from(x.op_inputs[start.index() + 1])
         {
-            self.op_inputs.swap(start.index(), start.index() + 1);
-            if let BuiltSource::Op(op, ..) = &mut self.sources[at.index()] {
+            x.op_inputs.swap(start.index(), start.index() + 1);
+            if let BuiltSource::Op(op, ..) = &mut x.sources[at.index()] {
                 *op = PlannedOp::Spec(turned);
             }
         }
-        let def = slot_cells.def_of(self, at, &self.sources[at.index()]);
+        let def = self.def_of(x, at, &x.sources[at.index()]);
         match def.source {
             BuiltSource::Given(_) => !def.held_always(),
             _ => def.request_targets().any(leads_from),

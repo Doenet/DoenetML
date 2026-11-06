@@ -215,6 +215,281 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) failed_node: Option<NodeId>,
 }
 
+/// What expand made, which the stages after it (define, emit) read: the
+/// components and their slots, each slot's source, the scopes, and what
+/// the build reads of the compile and the session. Expand's working state
+/// stays in the [`Builder`], which ends with expand.
+pub(in crate::build) struct Expanded<'c> {
+    pub(in crate::build) compiled: CompiledRef<'c>,
+    /// The session the build reads: carried values, scopes.
+    pub(in crate::build) session: &'c Session,
+    /// Seed seeded cells again whatever the session carries.
+    pub(in crate::build) reseed: bool,
+    /// The document's engine, lent for the build, which may add to it.
+    pub(in crate::build) engine: &'c mut Engine,
+    /// Templates of `Instantiate` instructions, cell leaves holding slots
+    /// until emit rebinds them to cells and imports them.
+    pub(in crate::build) sym_templates: Vec<Tree<SlotId>>,
+    /// Slots defining a cell that is not a number, with its type.
+    pub(in crate::build) typed_slots: Vec<(SlotId, ValueType)>,
+    pub(in crate::build) components: ComponentTable,
+    pub(in crate::build) slot_base: Vec<SlotId>,
+    /// Per component, how many of its slots are public props when that is
+    /// not its type table's count. NONE: the table's.
+    pub(in crate::build) n_public: Vec<u32>,
+    pub(in crate::build) sources: Vec<BuiltSource>,
+    /// Owning component of each slot (prop index = `slot - slot_base[comp]`).
+    pub(in crate::build) slot_comp: Vec<CompIdx>,
+    pub(in crate::build) op_inputs: Vec<SlotId>,
+    /// Carried over from the previous build and extended.
+    pub(in crate::build) scopes: ScopeTable,
+    /// Per component: index into `instances`, or NONE for synthesized ones.
+    pub(in crate::build) comp_instance: Vec<InstanceId>,
+    pub(in crate::build) instances: Vec<Instance>,
+    pub(in crate::build) repeats: Vec<Repeat>,
+    pub(in crate::build) missing: Option<SlotId>,
+    /// One slot per constant an operator or a hold reads, by the value's
+    /// bits.
+    pub(in crate::build) consts: HashMap<u64, SlotId>,
+    /// The slots a `fixed` holds, each with a flag slot.
+    pub(in crate::build) holds: Vec<(SlotId, SlotId)>,
+    /// Essential math slots seeded from another slot's value when first
+    /// built: (slot, source slot).
+    pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
+    pub(in crate::build) root: CompIdx,
+    /// The scope each slot was made in.
+    pub(in crate::build) slot_scope: Vec<ScopeId>,
+    /// The slots of the counted values (ADR 0028).
+    pub(in crate::build) counted_slots: Vec<SlotId>,
+    /// The binary operators lowered from the author's math, in the order
+    /// lowered.
+    pub(in crate::build) author_ops: Vec<SlotId>,
+}
+
+/// The slots as expand laid them out, read: each slot's component, each
+/// component's slots and public props, each instance's template element.
+/// What labels a slot and finds its template slot, for expand (from the
+/// [`Builder`]) and the stages after it (from the [`Expanded`]).
+#[derive(Clone, Copy)]
+pub(in crate::build) struct Slots<'s> {
+    compiled: CompiledRef<'s>,
+    components: &'s ComponentTable,
+    slot_base: &'s [SlotId],
+    n_public: &'s [u32],
+    slot_comp: &'s [CompIdx],
+    comp_instance: &'s [InstanceId],
+    instances: &'s [Instance],
+}
+
+/// Expand, the stage: expand and resolve run as one, a failure naming the
+/// element to box, and what they made handed on.
+impl<'c> Builder<'c> {
+    /// Expand and resolve, and hand on what they made. The failure names
+    /// the element to box.
+    pub(in crate::build) fn stage(mut self) -> std::result::Result<Expanded<'c>, Failure> {
+        let staged = (|| {
+            crate::trace::span("expand").run(|| self.expand_all())?;
+            crate::trace::span("resolve").run(|| self.resolve_all())
+        })();
+        staged.map_err(|error| Failure {
+            error,
+            node: self.failed_node,
+        })?;
+        Ok(self.finish())
+    }
+
+    /// What expand made, for the stages after it; its working state is
+    /// dropped.
+    fn finish(self) -> Expanded<'c> {
+        let Builder {
+            compiled,
+            session,
+            reseed,
+            engine,
+            sym_templates,
+            typed_slots,
+            components,
+            slot_base,
+            n_public,
+            sources,
+            slot_comp,
+            op_inputs,
+            scopes,
+            comp_instance,
+            instances,
+            repeats,
+            missing,
+            consts,
+            holds,
+            seeds,
+            root,
+            slot_scope,
+            counted_slots,
+            author_ops,
+            ..
+        } = self;
+        Expanded {
+            compiled,
+            session,
+            reseed,
+            engine,
+            sym_templates,
+            typed_slots,
+            components,
+            slot_base,
+            n_public,
+            sources,
+            slot_comp,
+            op_inputs,
+            scopes,
+            comp_instance,
+            instances,
+            repeats,
+            missing,
+            consts,
+            holds,
+            seeds,
+            root,
+            slot_scope,
+            counted_slots,
+            author_ops,
+        }
+    }
+
+    /// The slots as laid out so far, read.
+    pub(in crate::build) fn slots(&self) -> Slots<'_> {
+        Slots {
+            compiled: self.compiled,
+            components: &self.components,
+            slot_base: &self.slot_base,
+            n_public: &self.n_public,
+            slot_comp: &self.slot_comp,
+            comp_instance: &self.comp_instance,
+            instances: &self.instances,
+        }
+    }
+}
+
+/// What expand made, read by the stages after it.
+impl Expanded<'_> {
+    /// The slots as expand laid them out, read.
+    pub(in crate::build) fn slots(&self) -> Slots<'_> {
+        Slots {
+            compiled: self.compiled,
+            components: &self.components,
+            slot_base: &self.slot_base,
+            n_public: &self.n_public,
+            slot_comp: &self.slot_comp,
+            comp_instance: &self.comp_instance,
+            instances: &self.instances,
+        }
+    }
+}
+
+/// The slots as expand laid them out: what a slot is called, and the template
+/// slot of an element's, which a port's attributes and saved state are keyed by.
+impl Slots<'_> {
+    /// How many public props component `comp` has: its type table's, then
+    /// two per point of its list.
+    #[inline]
+    pub(in crate::build) fn n_public(&self, comp: CompIdx) -> usize {
+        match self.n_public[comp.index()] {
+            NONE => self.components.component_type[comp.index()]
+                .prop_defs()
+                .len(),
+            n => n as usize,
+        }
+    }
+
+    /// How component `comp` is named in a diagnostic: its name, else its tag
+    /// and index.
+    pub(in crate::build) fn comp_label(&self, comp: CompIdx) -> String {
+        let name = self.components.name[comp.index()];
+        if name != StrId::NONE {
+            self.compiled.dast.strings.get(name).trim().to_string()
+        } else {
+            format!(
+                "<{}>#{}",
+                self.components.component_type[comp.index()].tag(),
+                comp
+            )
+        }
+    }
+
+    /// How slot `slot` is named in a diagnostic: its component's label and
+    /// its prop.
+    pub(in crate::build) fn slot_label(&self, slot: SlotId) -> String {
+        let comp = self.slot_comp[slot.index()];
+        if comp == CompIdx::NONE {
+            return format!("(anonymous slot {slot})");
+        }
+        let pi = slot.index() - self.slot_base[comp.index()].index();
+        let component_type = self.components.component_type[comp.index()];
+        match component_type.prop_name(self.n_public(comp), pi) {
+            Some(name) => format!("{}.{name}", self.comp_label(comp)),
+            None => format!("{}.(hidden slot {pi})", self.comp_label(comp)),
+        }
+    }
+
+    /// A component slot's template and template slot (the element's slot
+    /// offset plus the prop's position), what a port's attributes are
+    /// indexed by; None
+    /// for a slot of no element, or past the slots its element reserves.
+    pub(in crate::build) fn template_slot(
+        &self,
+        slot: SlotId,
+    ) -> Option<(TemplateId, TemplateSlot)> {
+        let comp = self.slot_comp[slot.index()];
+        if comp == CompIdx::NONE {
+            return None;
+        }
+        let i = self.comp_instance[comp.index()];
+        if i.is_none() {
+            return None;
+        }
+        let inst = self.instances[i.index()];
+        let tpl = &self.compiled.plans.templates[inst.template.index()];
+        let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
+        let pi = slot.get() - self.slot_base[comp.index()].get();
+        if pi as usize >= plan.props.len().max(el.component_type.prop_defs().len()) {
+            return None;
+        }
+        let sealed = self.compiled.plans.templates[inst.template.index()]
+            .sealed
+            .elems[inst.elem.index()];
+        Some((inst.template, sealed.slot_off.offset(pi as usize)))
+    }
+
+    /// What the check found of slot `slot`'s port: nothing for a slot with
+    /// no template slot.
+    pub(in crate::build) fn port_attrs(&self, slot: SlotId) -> PortAttrs {
+        self.template_slot(slot)
+            .map(|(t, ts)| self.compiled.plans.port_attrs(t, ts))
+            .unwrap_or_default()
+    }
+
+    /// An essential slot's key: its scope, its template slot (the element's
+    /// slot offset plus the port's position), and its element's key and
+    /// port.
+    #[inline]
+    pub(in crate::build) fn essential_key(
+        &self,
+        slot: SlotId,
+    ) -> (ScopeId, TemplateSlot, (ElemKey, u32)) {
+        let comp = self.slot_comp[slot.index()];
+        let inst = self.instances[self.comp_instance[comp.index()].index()];
+        let pi = slot.get() - self.slot_base[comp.index()].get();
+        let sealed = self.compiled.plans.templates[inst.template.index()]
+            .sealed
+            .elems[inst.elem.index()];
+        (
+            inst.scope,
+            sealed.slot_off.offset(pi as usize),
+            (sealed.key, pi),
+        )
+    }
+}
+
 /// Expand: templates stamped into components per scope, slots allocated, `$ref`
 /// children placed, and every prop's [`Source`] turned into a [`BuiltSource`].
 impl<'c> Builder<'c> {
@@ -330,18 +605,6 @@ impl<'c> Builder<'c> {
         idx
     }
 
-    /// How many public props component `comp` has: its type table's, then
-    /// two per point of its list.
-    #[inline]
-    pub(in crate::build) fn n_public(&self, comp: CompIdx) -> usize {
-        match self.n_public[comp.index()] {
-            NONE => self.components.component_type[comp.index()]
-                .prop_defs()
-                .len(),
-            n => n as usize,
-        }
-    }
-
     /// The slots of prop `sel` of `comp` (resolved on its type), or None
     /// when they are not slots (a table list as a whole). A point of the
     /// list past the element's length is the missing value, as an index
@@ -364,7 +627,7 @@ impl<'c> Builder<'c> {
             PropSel::TableList => return None,
             PropSel::At(at) => at,
         };
-        let n = self.n_public(comp);
+        let n = self.slots().n_public(comp);
         let coord = |b: &mut Self, k: usize, j: usize| match component_type.list_slot(n, k, j) {
             Some(i) => b.slot(comp, i),
             None => b.missing_slot(),
@@ -429,7 +692,7 @@ impl<'c> Builder<'c> {
     /// attributes say (the template graph found it). A counted slot is kept
     /// in `counted_slots`, which the prefill rule and a seed read.
     pub(in crate::build) fn is_counted(&mut self, s: SlotId) -> bool {
-        let counted = self.port_attrs(s).has(PortAttrs::COUNTED);
+        let counted = self.slots().port_attrs(s).has(PortAttrs::COUNTED);
         if counted {
             self.counted_slots.push(s);
         }
@@ -454,32 +717,6 @@ impl<'c> Builder<'c> {
         let s = self.anon_slot(BuiltSource::Const(f64::NAN), ScopeId::DOCUMENT);
         self.missing = Some(s);
         s
-    }
-
-    pub(in crate::build) fn comp_label(&self, comp: CompIdx) -> String {
-        let name = self.components.name[comp.index()];
-        if name != StrId::NONE {
-            self.compiled.dast.strings.get(name).trim().to_string()
-        } else {
-            format!(
-                "<{}>#{}",
-                self.components.component_type[comp.index()].tag(),
-                comp
-            )
-        }
-    }
-
-    pub(in crate::build) fn slot_label(&self, slot: SlotId) -> String {
-        let comp = self.slot_comp[slot.index()];
-        if comp == CompIdx::NONE {
-            return format!("(anonymous slot {slot})");
-        }
-        let pi = slot.index() - self.slot_base[comp.index()].index();
-        let component_type = self.components.component_type[comp.index()];
-        match component_type.prop_name(self.n_public(comp), pi) {
-            Some(name) => format!("{}.{name}", self.comp_label(comp)),
-            None => format!("{}.(hidden slot {pi})", self.comp_label(comp)),
-        }
     }
 
     // ---- scopes --------------------------------------------------------------
@@ -911,7 +1148,7 @@ impl<'c> Builder<'c> {
         for (pi, def) in defs.iter().enumerate() {
             let s = self.slot(idx, pi);
             self.sources[s.index()] = match rt.prop_index(def.name) {
-                Some(rp) if rp < self.n_public(referent) => {
+                Some(rp) if rp < self.slots().n_public(referent) => {
                     BuiltSource::Alias(self.slot(referent, rp))
                 }
                 _ => BuiltSource::Alias(self.missing_slot()),
@@ -924,7 +1161,7 @@ impl<'c> Builder<'c> {
         let component_type = self.components.component_type[referent.index()];
         self.components.component_type[idx.index()] = component_type;
         self.components.referent[idx.index()] = referent;
-        let n = self.n_public(referent);
+        let n = self.slots().n_public(referent);
         self.n_public[idx.index()] = self.n_public[referent.index()];
         self.allocate_slots(idx, n);
         for pi in 0..n {
@@ -951,7 +1188,7 @@ impl<'c> Builder<'c> {
         // A list: the points the element holds.
         let sel = prop.sel_on(component_type);
         if sel == Some(PropSel::At(PropAt::List)) {
-            let n = self.n_public(comp);
+            let n = self.slots().n_public(comp);
             let items = (1..=component_type.list_len(n))
                 .map(|k| {
                     let at = |j| self.slot(comp, component_type.list_slot(n, k, j).unwrap());
@@ -962,7 +1199,7 @@ impl<'c> Builder<'c> {
         }
         if sel != Some(PropSel::TableList) {
             return Err(Error::UnknownProp {
-                name: self.comp_label(comp),
+                name: self.slots().comp_label(comp),
                 prop: prop.name().into_owned(),
             });
         }
@@ -1102,7 +1339,7 @@ impl<'c> Builder<'c> {
             return Ok(());
         }
         if visiting.contains(&inst.comp) {
-            return Err(Error::Cycle(self.comp_label(inst.comp)));
+            return Err(Error::Cycle(self.slots().comp_label(inst.comp)));
         }
         let referent = match extend_plan {
             Some(p) => self.extend_referent(p, inst.scope, component_type)?,
@@ -1121,7 +1358,7 @@ impl<'c> Builder<'c> {
             visiting.pop();
         }
         self.copy_into(inst.comp, referent);
-        self.n_public[inst.comp.index()] = self.n_public(referent) as u32;
+        self.n_public[inst.comp.index()] = self.slots().n_public(referent) as u32;
         Ok(())
     }
 
@@ -1214,7 +1451,7 @@ impl<'c> Builder<'c> {
             assert!(
                 matches!(self.sources[s.index()], BuiltSource::Unset),
                 "{} was given a source before its plan",
-                self.slot_label(s)
+                self.slots().slot_label(s)
             );
             let source = match plan {
                 // The one predicate today: the enclosing repeat's first

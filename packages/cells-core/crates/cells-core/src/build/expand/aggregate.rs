@@ -329,7 +329,7 @@ impl<'c> Builder<'c> {
         assert!(
             aggregate && matches!(self.sources[s.index()], BuiltSource::Unset),
             "{} is not a slot left to wire as {op:?}",
-            self.slot_label(s)
+            self.slots().slot_label(s)
         );
         self.sources[s.index()] = source;
     }

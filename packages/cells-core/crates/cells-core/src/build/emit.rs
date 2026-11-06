@@ -5,16 +5,23 @@
 
 use super::*;
 
+/// Emit's view: what expand made, which it numbers into cells and takes apart
+/// into the build. What define made of it is handed to [`Emit::emit`].
+pub(in crate::build) struct Emit<'c> {
+    /// What expand made.
+    pub(in crate::build) x: Expanded<'c>,
+}
+
 /// Emit: cells numbered, operators bound to instructions, values seeded, from
 /// the definitions alone (ADR 0035). Reads [`Defined`]; reads no structure.
-impl<'c> Builder<'c> {
+impl Emit<'_> {
     /// Emit: number the cells, bind the operators, seed the values, and
     /// make the build, from the definitions.
     pub(in crate::build) fn emit(
         mut self,
         defined: Defined,
     ) -> std::result::Result<BuildOutput, Failure> {
-        let n = self.sources.len();
+        let n = self.x.sources.len();
         let Defined {
             slot_cells,
             essential,
@@ -23,22 +30,22 @@ impl<'c> Builder<'c> {
         // What this build's own walks find, whatever the record says: what
         // the record is checked against (`tests/live.rs`, `every_count.rs`).
         #[cfg(feature = "testing")]
-        let walked_slot = self.live_slots(&slot_cells);
+        let walked_slot = slot_cells.live_slots(&self.x);
         #[cfg(feature = "testing")]
-        let walked_writable = self.writable_slots(&slot_cells);
+        let walked_writable = slot_cells.writable_slots(&self.x);
         // A dead class gets no cell (ADR 0019): its slots name the one dead
         // cell, unless the load asked for every cell (`LoadOptions::prune`).
         // An essential slot is always live; were one not, it would be kept.
         // A vector output goes with its head, whose instruction writes it.
-        let prune = self.compiled.plans.prune;
+        let prune = self.x.compiled.plans.prune;
         let pruned = |s: usize| {
-            let s = match self.sources[s] {
+            let s = match self.x.sources[s] {
                 BuiltSource::VecOut(head, _) => head.index(),
                 _ => s,
             };
             prune
                 && !live_slot[s]
-                && !(matches!(self.sources[s], BuiltSource::Given(_)) && essential[s])
+                && !(matches!(self.x.sources[s], BuiltSource::Given(_)) && essential[s])
         };
         let fold = self.folded_slots(&slot_cells, &essential, &pruned);
         let mut slot_cell: Vec<CellIdx> = vec![CellIdx::NONE; n];
@@ -49,7 +56,7 @@ impl<'c> Builder<'c> {
         for slot in SlotId::below(n) {
             let s = slot.index();
             if slot_cells.defines(slot) && !pruned(s) {
-                let kind = match &self.sources[s] {
+                let kind = match &self.x.sources[s] {
                     BuiltSource::Given(_) if essential[s] => 0,
                     BuiltSource::Given(_) | BuiltSource::Const(_) => 1,
                     BuiltSource::Op(..) if fold[s] => 1,
@@ -63,25 +70,27 @@ impl<'c> Builder<'c> {
         // slot whose port is one, an operator's constant, the
         // missing-referent cell. An operator's constants are marked once,
         // so the test is constant time per slot, not a scan of them all.
-        let mut op_const = vec![false; self.sources.len()];
-        for k in self.consts.values() {
+        let mut op_const = vec![false; self.x.sources.len()];
+        for k in self.x.consts.values() {
             op_const[k.index()] = true;
         }
         let pooled = |s: usize| {
-            (match self.sources[s] {
+            (match self.x.sources[s] {
                 BuiltSource::Const(_) => true,
                 BuiltSource::Given(_) => !essential[s],
                 _ => false,
-            }) && (Some(SlotId::from_index(s)) == self.missing
+            }) && (Some(SlotId::from_index(s)) == self.x.missing
                 || op_const[s]
                 || self
+                    .x
+                    .slots()
                     .port_attrs(SlotId::from_index(s))
                     .has(PortAttrs::DOCUMENT_CONSTANT))
         };
-        let mut pool = self.session.pool.clone();
+        let mut pool = self.x.session.pool.clone();
         let mut essential_slots: Vec<(ScopeId, TemplateSlot)> = Vec::with_capacity(counts[0]);
         let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(counts[0]);
-        let mut parked = self.session.parked.clone();
+        let mut parked = self.x.session.parked.clone();
         // Restored values the build takes from `parked`: (cell, what was
         // parked, its key).
         let mut unparked: Vec<(CellIdx, crate::session::Parked, (ScopeId, TemplateSlot))> =
@@ -108,16 +117,16 @@ impl<'c> Builder<'c> {
                 continue;
             }
             #[cfg(feature = "testing")]
-            if walked_writable[s] && matches!(self.sources[s], BuiltSource::Given(_)) {
-                let (scope, tslot, _) = self.essential_key(SlotId::from_index(s));
+            if walked_writable[s] && matches!(self.x.sources[s], BuiltSource::Given(_)) {
+                let (scope, tslot, _) = self.x.slots().essential_key(SlotId::from_index(s));
                 walked_essential_slots.push((scope, tslot));
             }
-            match &self.sources[s] {
+            match &self.x.sources[s] {
                 _ if pooled(s) => pool_defs.push(s),
                 BuiltSource::Given(_) if !essential[s] => const_defs.push(s),
                 BuiltSource::Given(v) => {
-                    let (scope, tslot, key) = self.essential_key(SlotId::from_index(s));
-                    let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
+                    let (scope, tslot, key) = self.x.slots().essential_key(SlotId::from_index(s));
+                    let mut value = self.x.session.carried(scope, tslot).unwrap_or(*v);
                     let mut restored = None;
                     if !parked.is_empty()
                         && let Some(p) = parked.remove(&(scope, key.0, key.1))
@@ -141,9 +150,9 @@ impl<'c> Builder<'c> {
         // constants no build of this session has made yet.
         let mut pooled_at = Vec::with_capacity(pool_defs.len());
         if !pool_defs.is_empty() {
-            let types: HashMap<SlotId, ValueType> = self.typed_slots.iter().copied().collect();
+            let types: HashMap<SlotId, ValueType> = self.x.typed_slots.iter().copied().collect();
             for &s in &pool_defs {
-                let (BuiltSource::Const(v) | BuiltSource::Given(v)) = self.sources[s] else {
+                let (BuiltSource::Const(v) | BuiltSource::Given(v)) = self.x.sources[s] else {
                     unreachable!()
                 };
                 let slot = SlotId::from_index(s);
@@ -155,7 +164,7 @@ impl<'c> Builder<'c> {
                 pooled_at.push((slot, at));
             }
         }
-        let n_out = |s: usize| match self.sources[s] {
+        let n_out = |s: usize| match self.x.sources[s] {
             BuiltSource::Op(spec, ..) => spec.n_out(),
             _ => 1,
         };
@@ -196,7 +205,7 @@ impl<'c> Builder<'c> {
         });
         for &s in &const_defs {
             // A scope constant, or a constant the record cannot name.
-            let (BuiltSource::Const(v) | BuiltSource::Given(v)) = self.sources[s] else {
+            let (BuiltSource::Const(v) | BuiltSource::Given(v)) = self.x.sources[s] else {
                 unreachable!()
             };
             let root = slot_cells.cell_of(SlotId::from_index(s)).index();
@@ -220,7 +229,7 @@ impl<'c> Builder<'c> {
         for (s, value, restored) in essential_defs {
             let cell = CellIdx::from_index(cells.len());
             if let Some(p) = restored {
-                let (scope, tslot, _) = self.essential_key(SlotId::from_index(s));
+                let (scope, tslot, _) = self.x.slots().essential_key(SlotId::from_index(s));
                 unparked.push((cell, p, (scope, tslot)));
             }
             slot_cell[slot_cells.cell_of(SlotId::from_index(s)).index()] = cell;
@@ -237,7 +246,7 @@ impl<'c> Builder<'c> {
             }
         }
         for &s in &outputs {
-            let BuiltSource::VecOut(head, k) = self.sources[s] else {
+            let BuiltSource::VecOut(head, k) = self.x.sources[s] else {
                 unreachable!()
             };
             let head_cell = slot_cell[slot_cells.cell_of(head).index()];
@@ -280,13 +289,13 @@ impl<'c> Builder<'c> {
                 if !slot_cells.defines(s) || pruned(s.index()) {
                     continue;
                 }
-                let def = slot_cells.def_of(&self, s, &self.sources[s.index()]);
+                let def = slot_cells.def_of(&self.x, s, &self.x.sources[s.index()]);
                 if let Some(needed) = def.needs().find(|n| slot_to_cell[n.index()] == dead) {
                     return Err(Failure {
                         error: Error::Unchecked(format!(
                             "{} needs {}, which has no cell: the live slots are not closed under what they need",
-                            self.slot_label(s),
-                            self.slot_label(needed)
+                            self.x.slots().slot_label(s),
+                            self.x.slots().slot_label(needed)
                         )),
                         node: None,
                     });
@@ -296,7 +305,7 @@ impl<'c> Builder<'c> {
         // The cells a `fixed` holds, by their flags' cells; a dead cell
         // takes no request.
         let mut holds = crate::program::Holds::default();
-        for &(s, f) in &self.holds {
+        for &(s, f) in &self.x.holds {
             let cell = slot_to_cell[s.index()];
             if Some(cell) != dead_cell {
                 holds.insert(cell, slot_to_cell[f.index()]);
@@ -315,7 +324,7 @@ impl<'c> Builder<'c> {
         let mut operands = Operands::default();
         let mut bound: Vec<CellIdx> = Vec::with_capacity(8);
         let mut value_types = vec![ValueType::Number; cells.len()];
-        for &(s, ty) in &self.typed_slots {
+        for &(s, ty) in &self.x.typed_slots {
             if Some(slot_to_cell[s.index()]) != dead_cell {
                 value_types[slot_to_cell[s.index()].index()] = ty;
             }
@@ -324,7 +333,7 @@ impl<'c> Builder<'c> {
         // as, and view state only while its default is the one it had
         // (ADR 0017); it wins over a seed, as a carried value does, and
         // counts as touched.
-        let mut touched = self.session.touched.clone();
+        let mut touched = self.x.session.touched.clone();
         for &(cell, p, at) in &unparked {
             let c = cell.index();
             let default = essential_defaults[c - n_const];
@@ -340,20 +349,20 @@ impl<'c> Builder<'c> {
         // and take a constant shape's derivative once, unless the load asked
         // for engine sampling.
         #[cfg(feature = "testing")]
-        let compile = !self.session.sample_with_engine;
+        let compile = !self.x.session.sample_with_engine;
         #[cfg(not(feature = "testing"))]
         let compile = true;
         let mut constant_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
         // The folded instructions, bound as any other and run once below.
         let mut folded = Vec::with_capacity(fold_defs.len());
         for &s in derived_defs.iter().chain(&fold_defs) {
-            let (planned, start, count) = match &self.sources[s] {
+            let (planned, start, count) = match &self.x.sources[s] {
                 BuiltSource::Op(op, start, count) => (*op, *start, *count),
                 _ => unreachable!(),
             };
             bound.clear();
             bound.extend(
-                self.op_inputs[start.index()..start.index() + count as usize]
+                self.x.op_inputs[start.index()..start.index() + count as usize]
                     .iter()
                     .map(|&i| slot_to_cell[i.index()]),
             );
@@ -361,9 +370,9 @@ impl<'c> Builder<'c> {
             let mut spec = match planned {
                 PlannedOp::Spec(spec) => spec,
                 PlannedOp::Template { template, post } => {
-                    let tree = rebind(&self.sym_templates[template.index()], &slot_to_cell);
+                    let tree = rebind(&self.x.sym_templates[template.index()], &slot_to_cell);
                     OpSpec::Sym(SymKind::Instantiate {
-                        template: self.engine.import(&tree),
+                        template: self.x.engine.import(&tree),
                         post,
                     })
                 }
@@ -372,7 +381,7 @@ impl<'c> Builder<'c> {
                 if kind.makes_math() {
                     value_types[slot_to_cell[s].index()] = ValueType::Math;
                 }
-                let input = self.op_inputs[start.index()];
+                let input = self.x.op_inputs[start.index()];
                 // A derivative of a constant shape is taken once, here; the tick
                 // only fills in the parameters.
                 if compile
@@ -382,7 +391,7 @@ impl<'c> Builder<'c> {
                         &slot_to_cell,
                         &mut constant_shape,
                     )
-                    && let Some(tree) = self.engine.export(d)
+                    && let Some(tree) = self.x.engine.export(d)
                 {
                     bound.clear();
                     cell_leaves(&tree, &mut bound);
@@ -396,6 +405,7 @@ impl<'c> Builder<'c> {
                     && kind == SymKind::Sample
                     && let Some(h) = self.constant_shape(input, &slot_to_cell, &mut constant_shape)
                     && let Some(tape) = self
+                        .x
                         .engine
                         .export(h)
                         .and_then(|t| crate::sym::tape::Tape::compile(&t, "x"))
@@ -438,7 +448,7 @@ impl<'c> Builder<'c> {
             once.run_all(
                 &mut crate::program::SymRun {
                     state: &mut state,
-                    engine: self.engine,
+                    engine: self.x.engine,
                 },
                 &mut cells,
             );
@@ -449,11 +459,11 @@ impl<'c> Builder<'c> {
             use crate::build::structure::SlotClass;
             SlotId::below(n)
                 .filter(|&s| Some(slot_to_cell[s.index()]) != dead_cell)
-                .filter(|&s| self.template_slot(s).is_some())
+                .filter(|&s| self.x.slots().template_slot(s).is_some())
                 .map(|s| {
-                    let (scope, tslot, _) = self.essential_key(s);
-                    let (template, _) = self.template_slot(s).expect("a template slot");
-                    let class = match self.sources[s.index()] {
+                    let (scope, tslot, _) = self.x.slots().essential_key(s);
+                    let (template, _) = self.x.slots().template_slot(s).expect("a template slot");
+                    let class = match self.x.sources[s.index()] {
                         BuiltSource::Alias(_) => SlotClass::Alias,
                         BuiltSource::Given(_) if essential[s.index()] => SlotClass::Essential,
                         BuiltSource::Op(..) if !fold[s.index()] => SlotClass::Derived,
@@ -464,11 +474,13 @@ impl<'c> Builder<'c> {
                         | BuiltSource::VecOut(..) => SlotClass::Constant {
                             value: cells[slot_to_cell[s.index()].index()],
                             document: self
+                                .x
                                 .compiled
                                 .plans
                                 .port_attrs(template, tslot)
                                 .has(PortAttrs::DOCUMENT_CONSTANT),
                             marked: self
+                                .x
                                 .compiled
                                 .plans
                                 .port_attrs(template, tslot)
@@ -484,10 +496,10 @@ impl<'c> Builder<'c> {
         // What each template slot's cell holds (`Structure::slot_types`).
         let slot_types: Vec<_> = SlotId::below(n)
             .filter(|&s| Some(slot_to_cell[s.index()]) != dead_cell)
-            .filter(|&s| self.template_slot(s).is_some())
+            .filter(|&s| self.x.slots().template_slot(s).is_some())
             .map(|s| {
-                let (scope, tslot, _) = self.essential_key(s);
-                let (template, _) = self.template_slot(s).expect("a template slot");
+                let (scope, tslot, _) = self.x.slots().essential_key(s);
+                let (template, _) = self.x.slots().template_slot(s).expect("a template slot");
                 let ty = value_types[slot_to_cell[s.index()].index()];
                 ((scope, template.get(), tslot), ty)
             })
@@ -495,39 +507,41 @@ impl<'c> Builder<'c> {
 
         // Each component's prop cell indices, one component after another,
         // in slot order; the cells themselves are not contiguous.
-        let n_comps = self.components.len();
-        self.components.prop_base = Vec::with_capacity(n_comps);
-        self.components.prop_cells = Vec::with_capacity(n);
+        let n_comps = self.x.components.len();
+        self.x.components.prop_base = Vec::with_capacity(n_comps);
+        self.x.components.prop_cells = Vec::with_capacity(n);
         for c in 0..n_comps {
-            let np = self.n_public(CompIdx::from_index(c));
-            self.components
+            let np = self.x.slots().n_public(CompIdx::from_index(c));
+            self.x
+                .components
                 .prop_base
-                .push(self.components.prop_cells.len() as u32);
-            let base = self.slot_base[c].index();
-            self.components
+                .push(self.x.components.prop_cells.len() as u32);
+            let base = self.x.slot_base[c].index();
+            self.x
+                .components
                 .prop_cells
                 .extend_from_slice(&slot_to_cell[base..base + np]);
         }
         // The next session: this build's scopes and what is still parked;
         // the value store is shared, since the build only read it.
         let session = Session {
-            seed: self.session.seed,
+            seed: self.x.session.seed,
             #[cfg(feature = "testing")]
-            sample_with_engine: self.session.sample_with_engine,
-            scopes: self.scopes,
-            values: self.session.values.clone(),
-            counts: self.session.counts.clone(),
+            sample_with_engine: self.x.session.sample_with_engine,
+            scopes: self.x.scopes,
+            values: self.x.session.values.clone(),
+            counts: self.x.session.counts.clone(),
             parked,
             touched,
-            runtime_strings: self.session.runtime_strings.clone(),
+            runtime_strings: self.x.session.runtime_strings.clone(),
             pool,
-            last_build: (self.components.component_type.len(), self.sources.len()),
+            last_build: (self.x.components.component_type.len(), self.x.sources.len()),
         };
         let structure = Structure {
             essential_slots,
             essential_keys,
             essential_defaults,
-            repeats: self.repeats,
+            repeats: self.x.repeats,
             #[cfg(feature = "testing")]
             walked_essential_slots,
             #[cfg(feature = "testing")]
@@ -539,15 +553,15 @@ impl<'c> Builder<'c> {
         // What a cycle's error names its cell by.
         let owners = super::CellOwners {
             cell_def_slot,
-            slot_comp: self.slot_comp,
-            slot_base: self.slot_base,
+            slot_comp: self.x.slot_comp,
+            slot_base: self.x.slot_base,
         };
 
-        let mut strings = self.compiled.dast.strings.clone();
-        for s in &self.compiled.plans.extra_strings {
+        let mut strings = self.x.compiled.dast.strings.clone();
+        for s in &self.x.compiled.plans.extra_strings {
             strings.push(s);
         }
-        let mut components = self.components;
+        let mut components = self.x.components;
         components.component_type.shrink_to_fit();
         components.name.shrink_to_fit();
         components.parent.shrink_to_fit();
@@ -565,7 +579,7 @@ impl<'c> Builder<'c> {
             instrs,
             components,
             strings,
-            root: self.root,
+            root: self.x.root,
             structure,
             session,
             operands,
@@ -588,26 +602,26 @@ impl<'c> Builder<'c> {
         memo: &mut HashMap<SlotId, Option<Handle>>,
     ) -> Option<Handle> {
         let mut root = slot;
-        while let BuiltSource::Alias(t) = self.sources[root.index()] {
+        while let BuiltSource::Alias(t) = self.x.sources[root.index()] {
             root = t;
         }
         if let Some(&h) = memo.get(&root) {
             return h;
         }
-        let h = match self.sources[root.index()] {
+        let h = match self.x.sources[root.index()] {
             BuiltSource::Const(h) if !h.is_nan() => Some(Handle::from_value(h)),
             BuiltSource::Op(PlannedOp::Template { template, .. }, _, _) => {
-                let tree = rebind(&self.sym_templates[template.index()], slot_to_cell);
+                let tree = rebind(&self.x.sym_templates[template.index()], slot_to_cell);
                 if has_math_leaf(&tree) {
                     None
                 } else {
-                    Some(self.engine.import(&tree))
+                    Some(self.x.engine.import(&tree))
                 }
             }
             BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(SymKind::Derivative)), start, _) => {
-                let input = self.op_inputs[start.index()];
+                let input = self.x.op_inputs[start.index()];
                 self.constant_shape(input, slot_to_cell, memo)
-                    .map(|h| self.engine.derivative(h, "x"))
+                    .map(|h| self.x.engine.derivative(h, "x"))
             }
             _ => None,
         };
@@ -628,26 +642,28 @@ impl<'c> Builder<'c> {
         slot_cells: &SlotCells,
         dead_cell: Option<CellIdx>,
     ) {
-        if self.seeds.is_empty() {
+        if self.x.seeds.is_empty() {
             return;
         }
         // Which seed sources hold math, from the few cells that are sources.
         let sources: HashSet<CellIdx> = self
+            .x
             .seeds
             .iter()
             .map(|&(_, from)| slot_to_cell[from.index()])
             .collect();
         let math_cells: HashSet<CellIdx> = self
+            .x
             .typed_slots
             .iter()
             .filter(|&&(_, ty)| ty == ValueType::Math)
             .map(|&(s, _)| slot_to_cell[s.index()])
             .filter(|c| sources.contains(c))
             .collect();
-        for &(s, from) in &self.seeds {
-            let (scope, tslot, _) = self.essential_key(s);
-            let carried = !self.reseed && self.session.carried(scope, tslot).is_some();
-            let src = slot_to_cell[self.seed_source(slot_cells, from).index()];
+        for &(s, from) in &self.x.seeds {
+            let (scope, tslot, _) = self.x.slots().essential_key(s);
+            let carried = !self.x.reseed && self.x.session.carried(scope, tslot).is_some();
+            let src = slot_to_cell[slot_cells.seed_source(&self.x, from).index()];
             if dead_cell == Some(slot_to_cell[s.index()]) {
                 continue;
             }
@@ -655,7 +671,7 @@ impl<'c> Builder<'c> {
             let seed = if math_cells.contains(&src) || v.is_nan() {
                 v
             } else {
-                self.engine.import(&Tree::<CellIdx>::Num(v)).to_value()
+                self.x.engine.import(&Tree::<CellIdx>::Num(v)).to_value()
             };
             // The seed is an essential cell's default whether or not a
             // carried value replaces it (`Structure::essential_defaults`);
@@ -684,16 +700,16 @@ impl<'c> Builder<'c> {
         essential: &[bool],
         pruned: &dyn Fn(usize) -> bool,
     ) -> Vec<bool> {
-        let n = self.sources.len();
+        let n = self.x.sources.len();
         let mut fold = vec![false; n];
-        if !self.compiled.plans.fold {
+        if !self.x.compiled.plans.fold {
             return fold;
         }
-        let counted = |s: SlotId| self.port_attrs(s).has(PortAttrs::COUNTED);
+        let counted = |s: SlotId| self.x.slots().port_attrs(s).has(PortAttrs::COUNTED);
         let candidates: Vec<SlotId> = SlotId::below(n)
             .filter(|&s| {
                 slot_cells.defines(s)
-                    && matches!(self.sources[s.index()], BuiltSource::Op(..))
+                    && matches!(self.x.sources[s.index()], BuiltSource::Op(..))
                     && !pruned(s.index())
                     && !counted(s)
             })
@@ -704,18 +720,18 @@ impl<'c> Builder<'c> {
                 if fold[s.index()] {
                     continue;
                 }
-                let scope = self.slot_scope[s.index()];
-                let def = slot_cells.def_of(self, s, &self.sources[s.index()]);
+                let scope = self.x.slot_scope[s.index()];
+                let def = slot_cells.def_of(&self.x, s, &self.x.sources[s.index()]);
                 let constant = def.needs().all(|input| {
                     let d = slot_cells.def(slot_cells.cell_of(input));
-                    let made = match self.sources[d.index()] {
-                        BuiltSource::Const(_) => Some(d) != self.missing,
+                    let made = match self.x.sources[d.index()] {
+                        BuiltSource::Const(_) => Some(d) != self.x.missing,
                         BuiltSource::Given(_) => !essential[d.index()],
                         BuiltSource::Op(..) => fold[d.index()],
                         BuiltSource::VecOut(head, _) => fold[head.index()],
                         _ => false,
                     };
-                    made && self.encloses(self.slot_scope[d.index()], scope)
+                    made && self.encloses(self.x.slot_scope[d.index()], scope)
                 });
                 if constant {
                     fold[s.index()] = true;
@@ -737,66 +753,8 @@ impl<'c> Builder<'c> {
             if inner == ScopeId::DOCUMENT {
                 return false;
             }
-            inner = self.scopes[inner].0;
+            inner = self.x.scopes[inner].0;
         }
-    }
-
-    /// A component slot's template and template slot (the element's slot
-    /// offset plus the prop's position), what a port's attributes are
-    /// indexed by; None
-    /// for a slot of no element, or past the slots its element reserves.
-    pub(in crate::build) fn template_slot(
-        &self,
-        slot: SlotId,
-    ) -> Option<(TemplateId, TemplateSlot)> {
-        let comp = self.slot_comp[slot.index()];
-        if comp == CompIdx::NONE {
-            return None;
-        }
-        let i = self.comp_instance[comp.index()];
-        if i.is_none() {
-            return None;
-        }
-        let inst = self.instances[i.index()];
-        let tpl = &self.compiled.plans.templates[inst.template.index()];
-        let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
-        let pi = slot.get() - self.slot_base[comp.index()].get();
-        if pi as usize >= plan.props.len().max(el.component_type.prop_defs().len()) {
-            return None;
-        }
-        let sealed = self.compiled.plans.templates[inst.template.index()]
-            .sealed
-            .elems[inst.elem.index()];
-        Some((inst.template, sealed.slot_off.offset(pi as usize)))
-    }
-
-    /// What the check found of slot `slot`'s port: nothing for a slot with
-    /// no template slot.
-    pub(in crate::build) fn port_attrs(&self, slot: SlotId) -> PortAttrs {
-        self.template_slot(slot)
-            .map(|(t, ts)| self.compiled.plans.port_attrs(t, ts))
-            .unwrap_or_default()
-    }
-
-    /// An essential slot's key: its scope, its template slot (the element's
-    /// slot offset plus the port's position), and its element's key and
-    /// port.
-    #[inline]
-    pub(in crate::build) fn essential_key(
-        &self,
-        slot: SlotId,
-    ) -> (ScopeId, TemplateSlot, (ElemKey, u32)) {
-        let comp = self.slot_comp[slot.index()];
-        let inst = self.instances[self.comp_instance[comp.index()].index()];
-        let pi = slot.get() - self.slot_base[comp.index()].get();
-        let sealed = self.compiled.plans.templates[inst.template.index()]
-            .sealed
-            .elems[inst.elem.index()];
-        (
-            inst.scope,
-            sealed.slot_off.offset(pi as usize),
-            (sealed.key, pi),
-        )
     }
 }
 

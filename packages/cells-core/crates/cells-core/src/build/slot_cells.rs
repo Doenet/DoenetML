@@ -72,12 +72,14 @@ pub(in crate::build) struct SlotCells {
     held_always: HashSet<SlotId>,
 }
 
+/// The cells, read: each slot's cell, each cell's defining slot, and a cell's
+/// definition as a walk sees it. Made by define.
 impl SlotCells {
-    /// The cells of `b`'s slots, given each slot's cell and each cell's
+    /// The cells of `x`'s slots, given each slot's cell and each cell's
     /// defining slot.
-    pub(in crate::build) fn new(b: &Builder<'_>, cell_of: Vec<SlotId>, def: Vec<SlotId>) -> Self {
+    pub(in crate::build) fn new(x: &Expanded<'_>, cell_of: Vec<SlotId>, def: Vec<SlotId>) -> Self {
         let mut flags: HashMap<SlotId, Vec<SlotId>> = HashMap::new();
-        for &(s, f) in &b.holds {
+        for &(s, f) in &x.holds {
             let held = flags.entry(cell_of[s.index()]).or_default();
             if !held.contains(&f) {
                 held.push(f);
@@ -87,7 +89,7 @@ impl SlotCells {
             .iter()
             .filter(|(_, fs)| {
                 fs.iter().any(|f| {
-                    matches!(b.sources[def[cell_of[f.index()].index()].index()],
+                    matches!(x.sources[def[cell_of[f.index()].index()].index()],
                         BuiltSource::Const(v) if v != 0.0)
                 })
             })
@@ -121,7 +123,7 @@ impl SlotCells {
     /// later iteration's, a seed).
     pub(in crate::build) fn def_of<'a>(
         &'a self,
-        b: &'a Builder<'_>,
+        x: &'a Expanded<'_>,
         slot: SlotId,
         source: &'a BuiltSource,
     ) -> Def<'a> {
@@ -131,7 +133,47 @@ impl SlotCells {
             source,
             flags: self.flags.get(&cell).map_or(&[], Vec::as_slice),
             held_always: self.held_always.contains(&cell),
-            op_inputs: &b.op_inputs,
+            op_inputs: &x.op_inputs,
+        }
+    }
+}
+
+/// The walks' shared step: backward over the cells the slots will make, as the
+/// live and writable walks and orientation go.
+impl SlotCells {
+    /// Walk backward over the cells the slots will make: from the cells on
+    /// `stack`, each cell `enter` admits is given to `edge` as its
+    /// definition, then as each other source in `extra` its slots have,
+    /// and `edge` pushes the cells to go on to. A cell
+    /// `enter` refuses is neither followed nor seen.
+    pub(in crate::build) fn walk_cells(
+        &self,
+        x: &Expanded<'_>,
+        mut stack: Vec<SlotId>,
+        extra: &[(SlotId, BuiltSource)],
+        mut enter: impl FnMut(SlotId) -> bool,
+        mut edge: impl FnMut(slot_cells::Def<'_>, &mut Vec<SlotId>),
+    ) {
+        let mut seen = vec![false; x.sources.len()];
+        // The other sources of each cell.
+        let mut besides: HashMap<SlotId, Vec<&(SlotId, BuiltSource)>> = HashMap::new();
+        for entry in extra {
+            besides
+                .entry(self.cell_of(entry.0))
+                .or_default()
+                .push(entry);
+        }
+        while let Some(cell) = stack.pop() {
+            if std::mem::replace(&mut seen[cell.index()], true) || !enter(cell) {
+                continue;
+            }
+            let def = self.def(cell);
+            edge(self.def_of(x, def, &x.sources[def.index()]), &mut stack);
+            if let Some(entries) = besides.get(&cell) {
+                for (slot, src) in entries {
+                    edge(self.def_of(x, *slot, src), &mut stack);
+                }
+            }
         }
     }
 }
