@@ -387,6 +387,51 @@ describe("copy and copyWithState @group3", () => {
         expect(doc.diagnostics().errors).eqls([]);
     });
 
+    it("copyWithState of a module: a module attribute reaching a nested choice through a number list keeps the carried choices", async () => {
+        const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><numberList name="ex">2 3</numberList></moduleAttributes>
+    <p name="picks"><selectPrimeNumbers to="30" numToSelect="4" exclude="$ex"/></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" ex="5 7 11 13 17"/>
+`);
+        expect((await doc.sv("mw.picks")).text).eq(
+            (await doc.sv("m1.picks")).text,
+        );
+        expect(
+            doc
+                .diagnostics()
+                .warnings.filter((w: any) => w.code === "doenet-w0186")
+                .map((w: any) => w.args.attribute),
+        ).eqls(["ex"]);
+        expect(doc.diagnostics().errors).eqls([]);
+    });
+
+    it("copyWithState of a container keeps the draws of a copy inside it of a source inside it", async () => {
+        for (const variant of [1, 2, 3]) {
+            const doc = await loaded(
+                `
+<group name="g">
+  <p name="ps"><selectFromSequence name="s" to="1000000" numToSelect="3"/></p>
+  <p name="pc"><selectFromSequence copy="$s"/></p>
+</group>
+<group name="g2" copyWithState="$g"/>
+`,
+                variant,
+            );
+            const values: string[] = [];
+            for (const name of ["g.ps", "g.pc", "g2.ps", "g2.pc"]) {
+                values.push((await doc.sv(name)).text);
+            }
+            expect(values[1], `variant ${variant}`).not.eq(values[0]);
+            expect(values[2], `variant ${variant}`).eq(values[0]);
+            expect(values[3], `variant ${variant}`).eq(values[1]);
+        }
+    });
+
     it("each copy of a module draws its own values", async () => {
         const doc = await loaded(`
 <setup>

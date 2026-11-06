@@ -157,8 +157,9 @@ export default class Copy extends CompositeComponent {
 
     /**
      * A `copy` serialized with its variant (`copyVariants`), as a container
-     * holding it is copied with `copyWithState`, carries the seed it gave
-     * what it made (`seedFreshCopy`), so the copy made again draws the same.
+     * holding it is copied with `copyWithState`, carries the seed what it
+     * made drew from (`seedFreshCopy`), so the copy made again draws the
+     * same.
      */
     async serialize(parameters = {}) {
         const serialized = await super.serialize(parameters);
@@ -2272,11 +2273,7 @@ export default class Copy extends CompositeComponent {
             serializedReplacements = res.components;
             nComponents = res.nComponents;
             if (!link && !withState) {
-                seedFreshCopy({
-                    component,
-                    replacements: serializedReplacements,
-                    componentInfoObjects,
-                });
+                seedFreshCopy(component);
             }
         } catch (e) {
             // When the error is "Encountered X", it means this Copy is a descendant of its
@@ -7586,38 +7583,27 @@ const PARTS_OF_CHOOSING_TAGS = {
 };
 
 /**
- * Give the random components of what a `copy` (`component`) made of its
- * source (`replacements`) seeds of their own, as written content's are, in
- * place of its source's choices (D33, D17). Each is seeded from the copy's
- * seed (`freshCopySeed`), which is made from the variant's seed and where
- * the copy is (its `stateId`), so two copies of one source differ, and each
- * is the same for a given variant and through a reload. A random component
- * nested in another takes its seed from that one, as written content's does.
+ * Seed the random choices of what a `copy` (`component`) makes of its
+ * source, as written content's are, in place of its source's choices (D33,
+ * D17). What it makes draws from random number generators of the copy's
+ * own (its `sharedParameters`, with which its replacements are made),
+ * seeded from the copy's seed (`freshCopySeed`): made from the variant's
+ * seed and where the copy is (its `stateId`), so two copies of one source
+ * differ, and each is the same for a given variant and through a reload.
+ * A copy made again from a serialized one (a `copyWithState` of a container
+ * holding it) is given that seed as its variant (`Copy.serialize`), so it
+ * draws the same. Each time the copy makes its replacements, they draw
+ * from the start of that seed.
  */
-function seedFreshCopy({ component, replacements, componentInfoObjects }) {
-    const seed =
+function seedFreshCopy(component) {
+    const sharedParameters = component.sharedParameters;
+    component.freshCopySeed ??=
         component.variants?.desiredVariant?.seed ??
-        `${component.sharedParameters?.variantSeed ?? ""}|${component.stateId}`;
-    component.freshCopySeed = seed;
-    let num = 0;
-    function visit(serialized) {
-        for (const child of serialized ?? []) {
-            if (typeof child !== "object" || child === null) {
-                continue;
-            }
-            if (
-                child.componentType in
-                componentInfoObjects.componentTypesCreatingVariants
-            ) {
-                child.variants ??= {};
-                child.variants.desiredVariant ??= { seed: `${seed}|${num}` };
-                num++;
-                continue;
-            }
-            visit(child.children);
-        }
-    }
-    visit(replacements);
+        `${sharedParameters.variantSeed ?? ""}|${component.stateId}`;
+    const seed = component.freshCopySeed;
+    sharedParameters.variantSeed = seed;
+    sharedParameters.variantRng = sharedParameters.rngClass(seed);
+    sharedParameters.subpartVariantRng = sharedParameters.rngClass(`${seed}s`);
 }
 
 /**
@@ -7631,7 +7617,9 @@ function seedFreshCopy({ component, replacements, componentInfoObjects }) {
  * module attribute itself takes the written value. Each such module attribute
  * gets a warning (`doenet-w0186`), which says to use `copy` to choose again.
  * It is found as the copy is made, as what a module attribute reaches is
- * only known from the module's content (DIAG-2).
+ * only known from the module's content (DIAG-2). A value that can't be
+ * written back as text (`valueAsWritten`) is left to the module attribute,
+ * without a warning.
  */
 async function keepChoicesReachedByModuleAttributes({
     replacement,
@@ -7717,8 +7705,8 @@ async function keepChoicesReachedByModuleAttributes({
                 continue;
             }
             const sourceAttribute = components[attribute.component.originalIdx];
-            const value = await sourceAttribute?.stateValues?.value;
-            if (value === undefined || value === null) {
+            const text = await valueAsWritten(sourceAttribute);
+            if (text === undefined) {
                 continue;
             }
             // the value the source chose with, written in place of what
@@ -7736,9 +7724,7 @@ async function keepChoicesReachedByModuleAttributes({
             delete attributeComponent.extending;
             attributeComponent.attributes = {};
             attributeComponent.state = {};
-            attributeComponent.children = [
-                typeof value === "object" ? value.toString() : String(value),
-            ];
+            attributeComponent.children = [text];
             for (const name of names) {
                 reaching.add(name);
             }
@@ -7756,6 +7742,26 @@ async function keepChoicesReachedByModuleAttributes({
             args: { attribute },
         }),
     );
+}
+
+/**
+ * The value of the attribute component `component` as text it reads back
+ * as that value: a single value (`value`), or the numbers of a
+ * `<numberList>` (`numbers`), separated by spaces. `undefined` for any
+ * other (as a list of another type, as the `exclude` of a
+ * `<selectFromSequence>`), which is not read from text once the document
+ * is loaded.
+ */
+async function valueAsWritten(component) {
+    const value = await component?.stateValues?.value;
+    if (value !== undefined && value !== null) {
+        return typeof value === "object" ? value.toString() : String(value);
+    }
+    const numbers =
+        component?.componentType === "numberList"
+            ? await component.stateValues.numbers
+            : undefined;
+    return numbers?.map(String).join(" ");
 }
 
 /**
