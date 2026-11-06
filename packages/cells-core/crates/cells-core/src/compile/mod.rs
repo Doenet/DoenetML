@@ -89,6 +89,7 @@ impl From<Failure> for Error {
 }
 
 use boxes::{Boxes, Visible};
+use link::Linking;
 use names::*;
 use outline::Outlining;
 use parse::Parsed;
@@ -267,21 +268,30 @@ impl Compiler<'_> {
         );
         crate::trace::span("plan all").run(|| planning.plan_all(to_plan, macros));
         let Planning {
-            tables,
+            mut tables,
             ar,
             mut boxes,
             mut planned,
             ..
         } = planning;
         boxes.restart_if_needed()?;
+        boxes.enter(Stage::Link);
+        crate::trace::span("link").run(|| {
+            Linking {
+                rd: Reader::new(dast, &settled),
+                ar: &ar,
+                tables: &mut tables,
+                boxes: &mut boxes,
+                planned: &mut planned,
+            }
+            .link()
+        })?;
         let mut cp = Compiler {
             dast,
             ar,
             settled: &settled,
             tables,
         };
-        boxes.enter(Stage::Link);
-        crate::trace::span("link").run(|| cp.link(&mut boxes, &mut planned))?;
         boxes.restart_if_needed()?;
         boxes.enter(Stage::Seal);
         let (sealed, choice_seals, keys) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
@@ -355,11 +365,6 @@ impl<'a> Compiler<'a> {
     /// Outlining's part of template `t`, read-only.
     pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &Outlined {
         &self.settled.templates[t.index()]
-    }
-
-    /// How many templates there are.
-    pub(in crate::compile) fn n_templates(&self) -> usize {
-        self.tables.len()
     }
 
     /// What outlining settled (so far), read-only: what the readers read.

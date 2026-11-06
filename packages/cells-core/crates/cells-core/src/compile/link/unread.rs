@@ -2,23 +2,25 @@
 //! attribute nothing read is boxed in place, like any failure, and the
 //! compile goes on.
 
+use super::Linking;
 use crate::compile::*;
 
 /// Linking, unread attributes: an element with an attribute nothing read is
 /// boxed in place (ADR 0021).
-impl Compiler<'_> {
+impl Linking<'_, '_> {
     /// Box in place every element, outside every box, with an attribute
     /// nothing read while planning; what is under it is left out of the
     /// diagnostics. A node the check names with no element made for it is
     /// boxed by compiling again.
-    pub(in crate::compile) fn box_unread_attributes(&mut self, bx: &mut Boxes<'_>) {
-        let unread = unread_attributes(self.dast, &bx.all());
+    pub(in crate::compile) fn box_unread_attributes(&mut self) {
+        let unread = unread_attributes(self.rd.dast, &self.boxes.all());
         if unread.is_empty() {
             return;
         }
         let mut at: HashMap<NodeId, (TemplateId, ElemId)> = HashMap::new();
-        for ti in 0..self.n_templates() {
+        for ti in 0..self.tables.len() {
             for (ei, el) in self
+                .rd
                 .outlined(TemplateId::from_index(ti))
                 .elems
                 .iter()
@@ -32,10 +34,11 @@ impl Compiler<'_> {
         }
         for (node, error) in unread {
             let Some(&(t, e)) = at.get(&node) else {
-                bx.fail(error, Some(node));
+                self.boxes.fail(error, Some(node));
                 continue;
             };
-            bx.box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
+            self.boxes
+                .box_in_place(&self.rd.settled().templates, self.tables, t, e, error);
         }
     }
 }
