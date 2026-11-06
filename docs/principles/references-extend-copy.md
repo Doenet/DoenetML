@@ -116,13 +116,24 @@ Root names follow it (`r:1:2`).
 
 Evidence: `T/copying/indexSelectsInstances.test.ts`, `T/copying/index_into_value.test.ts`.
 
+**Done by #2472** (closing #2438; B26, B27, B28, B34):
+- an extend or copy of an iteration indexes as the iteration: `$g[2]` of
+  `<group name="g" extend="$r[1]"/>` is `$r[1][2]`, unless the group adds children;
+- an index past an array's dimensions names nothing with `w0100` (`$P[1][1]`, `$M[1][2][3]`,
+  `$poly.vertices[1][2][1]`). A math value is indexed at every level, so `$m[1][2]` of
+  `((1,2),(3,4))` is `2`;
+- list entries are indexed the same way, and `$l.value[2]` is `$l[2]`. `$l.coords[1]` is `＿` with
+  `w0100`, as `$P.coords[1]` is;
+- an index never reaches the `<setup>` a repeat adds;
+- an index into a scalar entry of a `<mathList>` is missing with `w0100`, and refuses a write;
+- an index past the content of an iteration that holds something other than one list or repeat
+  is the deprecated child index, `w0104` (it used to be silent).
+
 Known violations:
-- an extend of an iteration takes child indices instead of passing through (B26, #2438);
-- an index beyond an array's dimensions is dropped for points, vectors and matrices, a tuple of
-  tuples is indexed one level, and `$l.coords[1]` ignores its index (B27, #2438);
-- an index past a list in an iteration reaches the repeat's internal `<setup>` (B28, #2438);
-- an index into a scalar entry of a list gives `＿`, unreported, and a write through it changes
-  the entry (B34, #2438);
+- `$nl[2][1]` of a `<numberList>` or `<textList>` entry is silent; an extra index on an array
+  entry named directly (`$line.point1[2][1]`) is dropped; `$pl[2].xs[1][1]` gives `w0180`; and
+  `<group extend="$r[1]"/>` of an iteration missing at load doesn't fully follow it appearing
+  (#2478);
 - `w0181` is a warning even when the count comes from a value that can change, such as a repeat
   of `length="$n"`, which DIAG-2 makes an info (#2422).
 
@@ -166,7 +177,10 @@ component that made it. This holds wherever the reference is, with no rule speci
   attribute does. It sees the children written inside the tag, but not the copied content. In
   `<section copy="$orig" hide="$h"><boolean name="h">true</boolean></section>`, `$h` is the inner
   `h`. `xmin="$xmin"` on `<module copy="$m">` resolves outside the copy, because the copied
-  `<moduleAttributes>` are not written there;
+  `<moduleAttributes>` are not written there. The module's *definition* is written, though: a
+  `<module name="g">` at the document root puts its `<number name="xmin">` in the same scope as
+  an outer `xmin`, so `$xmin` there is ambiguous (`w0105`), bare or in the copy's attribute.
+  Write the copy where the intended `xmin` is nearer (#2470, closing #2403; D6 kept);
 - **in a child added inside a copy:** it does not see the copied content. `$h` resolves as it
   would beside the copy, and `$S2.h` reaches the copied `h`.
 
@@ -239,10 +253,25 @@ A loop among composites that keep re-queuing each other is reported too (#2425, 
 composites on the loop get `doenet-e0005` at their positions and stop updating, and the rest
 renders.
 
+**Done by #2471** (closing #2439, #2453, #2430, #387): a reference cycle through what is
+written is found at load, over every branch and option, the same in every variant. Each
+reference on it is `doenet-e0005` where it is written, and the rest renders. An edge is a
+reference to a whole component, an index into a `<math>`, a composite or branch to its children,
+and a tag made from its children (math, text, number, boolean, label, `m`, the lists, inline
+containers). A property, an attribute, an index into a composite, list or scalar, `<setup>`, and
+a component's own `<label>` are not edges, so `$P` in a point's label stays allowed (#1384).
+B29 (`<math name="m">(1, $m[2])</math>`), B32, B40, `<math name="z" extend="$z"/>` and two maths
+reading each other are now `e0005` at load.
+
 Known violations:
-- a math indexing itself, `<math name="m">(1, $m[2])</math>`, fails with an internal error
-  (B29, #2439);
-- two `<conditionalContent>`s extending each other give infos, not `doenet-e0005` (B32, #2439);
+- cycles through a property (`<number name="n">$n.value</number>`), an attribute
+  (`<mathInput name="mi" prefill="$mi.value"/>`, `exclude="$a[1]"` on `a`), a reference inside an
+  index, or an index into a list still stop the document (#2473);
+- also in #2473: an index into a tag written with `extend` (`<math name="m2" extend="$m">$m2[1]</math>`)
+  fails with an internal error; a cycle through a name every branch declares is found only when
+  the case turns true, and in a `<select>` the variant that picks it doesn't finish loading; a
+  cycle through a `<p>`, `<section>` or `<div>` is found only when reached; and a `copy` or
+  `copyWithState` in what it is of stops the document;
 - a loop where no composite can be singled out still stops the document (#2425).
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
@@ -776,9 +805,27 @@ its shape depends on what it was made from: `copy="$cc.p"` pastes the `p` of the
 then. After a reload it is made from the same source (#2443's held case and type-change decision;
 B35, #2446). Only the state snapshot is `copyWithState`'s alone. Implementation: #2459.
 
-**Known violation:** through 0.7 `copy` carries state and choices; `copyWithState` doesn't exist
-yet (D33). The `v07-to-v08` converter renames existing `copy` to `copyWithState`, except copies of a
-URI, copies of a module, and copies that change what is chosen (#2457).
+**Done by #2467** (closing #2459). A `copy` is reseeded from the variant's seed and its own
+`stateId` (D17), so two copies differ and each is stable through a reload. A `copy` of a repeat
+makes its iterations from the template, with its own choices. New diagnostics:
+- **`doenet-e0068`** (error at load): a `copyWithState` that writes an attribute deciding what a
+  choosing tag chooses, by name, listed per class (`attributesDeterminingChoices`);
+- **`doenet-e0069`** (error at load): a `copyWithState` that adds options: an `<option>` to a
+  select, anything to a shuffle, a `<problem>` to a pretzel, a `<choice>` to a choiceInput whose
+  source shuffles (decided: only when shuffled);
+- **`doenet-w0186`**: a `copyWithState` whose written attribute reaches a nested choice at run
+  time; the carried choices win;
+- **`doenet-w0185`**: `copyWithState` of a URI, which behaves as `copy`.
+
+The `v07-to-v08` converter, still to come, renames existing `copy` to `copyWithState`, except
+copies of a URI, copies of a module, and copies that change what is chosen (#2457).
+
+**Known violations:**
+- a `copyWithState` doesn't carry a sampler's draws, and they aren't kept through a reload; and
+  a module attribute reaching a nested choice through a list other than `<numberList>` isn't
+  kept, with no `w0186` (#2477);
+- a copy of a `<conditionalContent>` doesn't follow its own condition, and a reference inside it
+  whose name is shadowed where the copy sits shows `＿` (#2476).
 
 Evidence:
 - `T/copying/unlinked copy.test.ts:285` "copy no link, base test";
