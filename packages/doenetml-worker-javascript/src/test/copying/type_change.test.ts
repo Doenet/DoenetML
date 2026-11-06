@@ -835,8 +835,8 @@ describe("A reference written as a different tag is allowed only between related
 `);
         // `g` holds two components, `h` a conditionalContent with no
         // else, and `r` is a repeat, all decided when the document loads
-        // (D36); `k` and `l`, each made from a copy of itself, are a
-        // circular dependency, as on main.
+        // (D36); `k` and `l`, each made from a copy of the other, are a
+        // circular dependency.
         expect(await texts(["p1", "p2", "p3", "p4", "p5"])).eqls({
             p1: "a",
             p2: "",
@@ -844,16 +844,23 @@ describe("A reference written as a different tag is allowed only between related
             p4: "",
             p5: "",
         });
-        const circular = getDiagnosticsByType(core).errors.filter(
-            (d: any) => d.code === "doenet-e0005",
-        );
-        // One for `k` and `l`: the first found ends the cycle. Those decided
-        // when the document loads are reported first.
+        // One error at each extend: the type error of `g` and `r`, decided
+        // when the document loads, and not circular too once made; the
+        // extend in `h` and in `s`'s option, in what it is of; and the
+        // extends in `k` and `l`, extending each other, found when the
+        // document loads (`referenceCycles.ts`).
         expect(
-            circular
-                .map((d: any) => d.position?.start.line)
-                .sort((a: number, b: number) => a - b),
-        ).eqls([2, 4, 5, 6, 7]);
+            getDiagnosticsByType(core)
+                .errors.map((d: any) => `${d.position?.start.line} ${d.code}`)
+                .sort(),
+        ).eqls([
+            "2 doenet-e0064",
+            "4 doenet-e0005",
+            "5 doenet-e0005",
+            "5 doenet-e0005",
+            "6 doenet-e0064",
+            "7 doenet-e0005",
+        ]);
     });
 
     it("a setup reached by the index of a child is not decided", async () => {

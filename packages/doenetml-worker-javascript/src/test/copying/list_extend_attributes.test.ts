@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { updateBooleanInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -290,17 +291,35 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         }
     });
 
+    // Found when the document loads, at each extend on the cycle, and the
+    // rest of the document renders (D14, `utils/dast/referenceCycles.ts`).
     it("an extend of a list that names itself is reported as circular", async () => {
-        await expect(
-            createTestCore({
-                doenetML: `<mathList name="a" extend="$a">1</mathList>`,
-            }),
-        ).rejects.toThrow("Circular dependency involving these components");
-        await expect(
-            createTestCore({
-                doenetML: `<mathList name="a" extend="$b" /><mathList name="b" extend="$a" />`,
-            }),
-        ).rejects.toThrow("Circular dependency involving these components");
+        for (const [doenetML, columns] of [
+            [`<mathList name="a" extend="$a">1</mathList>`, ["1-44"]],
+            [
+                `<mathList name="a" extend="$b" /><mathList name="b" extend="$a" />`,
+                ["1-34", "34-67"],
+            ],
+        ] as const) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `${doenetML}<p name="p">rest</p>`,
+            });
+            const errors = getDiagnosticsByType(core).errors;
+            expect(
+                errors.map(
+                    (error) =>
+                        `${error.code} ${error.position?.start.column}-${error.position?.end.column}`,
+                ),
+            ).eqls(columns.map((column) => `doenet-e0005 ${column}`));
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("rest");
+        }
     });
     it("a copy of a list takes the list's attributes, as a copy of any component does", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({

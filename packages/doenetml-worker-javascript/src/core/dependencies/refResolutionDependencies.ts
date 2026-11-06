@@ -780,6 +780,13 @@ export class RefResolutionDependency extends Dependency {
             const componentInvolved = this.dependencyHandler._components[idx];
             if (
                 idx !== this.compositeIdx &&
+                // Not the component the composite makes in its place
+                // (`<group extend="$cc.x"/>` makes the `<group>` its
+                // reference starts from): updating the composite's
+                // replacements makes that one again, which would update
+                // the composite again, without end (Doenet/DoenetML#2453).
+                this.dependencyHandler.core.createComponentIdxMapping[idx] !==
+                    this.compositeIdx &&
                 componentInvolved &&
                 this.dependencyHandler.componentInfoObjects.isCompositeComponent(
                     {

@@ -1656,6 +1656,46 @@ export default class Copy extends CompositeComponent {
 
         let compositeAttributesObj = this.createAttributesObject();
 
+        // What the DoenetML could decide was decided when the document
+        // loaded (D36): its error, or its missing tag, whatever its source
+        // holds or its index names now. Decided before anything is made from
+        // the source, which, for a tag in what it is of (`<math
+        // extend="$g"/>` in a `<group name="g">` holding two components, or
+        // `<math extend="$r"/>` in a repeat), would report it as circular
+        // too, once it is made.
+        const atLoad = await typeChangeAtLoadError({
+            component,
+            components,
+            componentInfoObjects,
+            workspace,
+        });
+        if (atLoad) {
+            const stateIdInfo = {
+                prefix: `${component.stateId}|`,
+                num: workspace.replacementsCreated,
+            };
+            workspace.typeChangeKey = typeChangeKey(atLoad);
+            diagnostics.push(atLoad.diagnostic);
+            const inPlace = inPlaceOfCopy({
+                component,
+                componentInfoObjects,
+                compositeAttributesObj,
+                typeChange: atLoad,
+                stateIdInfo,
+                nComponents,
+            });
+            workspace.numReplacementsBySource = [inPlace.replacements.length];
+            workspace.numNonStringReplacementsBySource = [
+                inPlace.replacements.length,
+            ];
+            workspace.replacementsCreated = stateIdInfo.num;
+            return {
+                replacements: inPlace.replacements,
+                diagnostics,
+                nComponents: inPlace.nComponents,
+            };
+        }
+
         let replacementSourceIdentities =
             await component.stateValues.replacementSourceIdentities;
         if (
@@ -1669,35 +1709,6 @@ export default class Copy extends CompositeComponent {
                 prefix: `${component.stateId}|`,
                 num: workspace.replacementsCreated,
             };
-
-            // What the DoenetML could decide was decided when the document
-            // loaded (D36), whatever the index names now.
-            const atLoad = await typeChangeAtLoadError({
-                component,
-                components,
-                componentInfoObjects,
-                workspace,
-            });
-            if (atLoad) {
-                workspace.typeChangeKey = typeChangeKey(atLoad);
-                diagnostics.push(atLoad.diagnostic);
-                const inPlace = inPlaceOfCopy({
-                    component,
-                    componentInfoObjects,
-                    compositeAttributesObj,
-                    typeChange: atLoad,
-                    stateIdInfo,
-                    nComponents,
-                });
-                replacements = inPlace.replacements;
-                nComponents = inPlace.nComponents;
-                workspace.numReplacementsBySource = [replacements.length];
-                workspace.numNonStringReplacementsBySource = [
-                    replacements.length,
-                ];
-                workspace.replacementsCreated = stateIdInfo.num;
-                return { replacements, diagnostics, nComponents };
-            }
 
             if (await isBareReferenceToOneThing(component, components)) {
                 // A bare reference with no referent (`$nothing`) is a blank,
@@ -2798,6 +2809,39 @@ export default class Copy extends CompositeComponent {
                     }),
                     diagnostics,
                 };
+            }
+
+            // What its index names is not shown now, as when its index
+            // named nothing when the document loaded (`doenet-i0054`), so
+            // the info is the same whether it was withheld then or since. A
+            // composite named as a whole in a case not shown (`<math
+            // extend="$g"/>` of a `<group>` there) gives no info, as at load,
+            // not the info of a composite holding nothing (`doenet-i0055`).
+            const withheldInfo = await indexNamesNothing({
+                component,
+                componentInfoObjects,
+                workspace,
+            });
+            reportTypeChange(
+                workspace,
+                withheldInfo?.diagnostic.code === "doenet-i0054"
+                    ? withheldInfo
+                    : undefined,
+            );
+
+            if (
+                component.attributes._createComponentOfType?.primitive &&
+                component.replacements.length === 1 &&
+                component.replacements[0].isMissing &&
+                !(component.replacementsToWithhold > 0)
+            ) {
+                // Already the missing tag it is while what it names is not
+                // active (D37), which `verifyReplacementsMatchSpecifiedType`
+                // made in place of its withheld replacement. Withheld and
+                // made again, it would change its parent's children on every
+                // update, which can update the copy again, without end
+                // (Doenet/DoenetML#2430).
+                return { replacementChanges: [], diagnostics, nComponents };
             }
 
             let nReplacements = component.replacements.length;
