@@ -47,6 +47,7 @@ export async function expandExternalReferences(
     > = () => {
         return async (tree) => {
             const promiseStack: RemoteSource[] = [];
+            const uriWithStateWarnings: DastError[] = [];
 
             let maxRecursion = 10;
             let counter = 0;
@@ -81,15 +82,20 @@ export async function expandExternalReferences(
                 }
 
                 // A document loaded from a URI has no reader state, so a
-                // `copyWithState` of it is made as a `copy` (D33)
+                // `copyWithState` of it is made as a `copy` (D33). The warning
+                // is collected and placed at the top of the document below,
+                // not among the element's children: those are content, and
+                // sugar that reads them (e.g. `<select>` splitting text into
+                // options) rejects a diagnostic mixed in.
                 if (sourceAttributeName.toLowerCase() === "copywithstate") {
-                    node.children.unshift(
+                    uriWithStateWarnings.push(
                         codedDastError({
                             code: "doenet-w0185",
                             message: `\`copyWithState\` of \`${sourceUri}\` carries nothing more than \`copy\`, since a document loaded from a URI has no state. Write \`copy\`.`,
                             args: { uri: sourceUri },
                             error_type: "warning",
                             position: sourceAttribute.position,
+                            source_doc: sourceAttribute.source_doc,
                         }),
                     );
                 }
@@ -203,6 +209,19 @@ export async function expandExternalReferences(
                     child,
                     source_doc,
                     findExternalReferenceAttribute,
+                );
+            }
+
+            // Like deprecation warnings, these go in the `<document>` (or at
+            // the root, which normalization wraps in one), where no sugar
+            // reads them as content.
+            if (uriWithStateWarnings.length > 0) {
+                const documentElement = tree.children.find(
+                    (child): child is DastElement =>
+                        isDastElement(child) && child.name === "document",
+                );
+                (documentElement ?? tree).children.push(
+                    ...uriWithStateWarnings,
                 );
             }
         };

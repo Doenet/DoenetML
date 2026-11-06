@@ -7,6 +7,7 @@ import {
     extractDastErrors,
     filterPositionInfo,
     isDastElement,
+    normalizeDocumentDast,
 } from "../src";
 
 const origLog = console.log;
@@ -62,19 +63,50 @@ describe("Expand external references", async () => {
             args: { uri: "doenet:abcdef" },
         });
         expect(extractDastErrors(copy)).toEqual([]);
-        // Apart from the warning, it is what `copy` makes.
+        // The warning is not among the element's children (they are its
+        // content); apart from it, this is what `copy` makes.
+        const paragraph = withState.children.find(isDastElement)!;
+        expect(paragraph.children.some((c) => c.type === "error")).toBe(false);
         const withoutWarning = (dast: DastRoot) =>
-            filterPositionInfo(dast).children.map((child: any) =>
-                child.type === "element"
-                    ? {
-                          ...child,
-                          children: child.children.filter(
-                              (c: any) => c.type !== "error",
-                          ),
-                      }
-                    : child,
+            filterPositionInfo(dast).children.filter(
+                (child: any) => child.type !== "error",
             );
         expect(withoutWarning(withState)).toEqual(withoutWarning(copy));
+    });
+
+    it("makes the same options for a copyWithState of a URI making a select from text as for a copy", async () => {
+        // The fetched `<select>` makes its options from its text, so a warning
+        // among its children would be content the sugar cannot read.
+        const fetch = async (uri: string) =>
+            uri === "doenet:sel"
+                ? `<select>1 2 3</select>`
+                : fetchExternalDoenetML(uri);
+        const normalized = async (attr: string) =>
+            filterPositionInfo(
+                normalizeDocumentDast(
+                    await expandExternalReferences(
+                        lezerToDast(`<select ${attr}="doenet:sel" />`),
+                        fetch,
+                    ),
+                ),
+            );
+        const withState = await normalized("copyWithState");
+        const copy = await normalized("copy");
+        const errors = extractDastErrors(withState);
+        expect(errors.map((e) => e.code)).toEqual(["doenet-w0185"]);
+        expect(extractDastErrors(copy)).toEqual([]);
+
+        const select = (dast: DastRoot) =>
+            (dast.children[0] as any).children.find(
+                (c: any) => c.type === "element" && c.name === "select",
+            );
+        const options = (dast: DastRoot) =>
+            select(dast).children.filter(
+                (c: any) => c.type === "element" && c.name === "option",
+            );
+        expect(options(copy).length).toBe(3);
+        expect(options(withState)).toEqual(options(copy));
+        expect(select(withState)).toEqual(select(copy));
     });
 
     it("fetches an external reference written inside index brackets", async () => {
