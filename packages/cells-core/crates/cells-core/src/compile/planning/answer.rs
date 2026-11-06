@@ -21,7 +21,6 @@
 //! or the most any award gives (`credit` × holds). Other content is
 //! refused, never left blank.
 
-use crate::compile::answer::AwardForm;
 use crate::compile::*;
 use crate::components::prop::{
     answer, award, choice, choice_input, math_input, response, text_input, when,

@@ -2,7 +2,7 @@
 //! turned into reference plans ([`RefPlan`]) that expansion resolves per
 //! instance.
 
-use super::*;
+use crate::compile::*;
 
 /// What a reference names, as far as the templates tell: its type, and
 /// the last element its path named.

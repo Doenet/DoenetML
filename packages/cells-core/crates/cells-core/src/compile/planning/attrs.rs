@@ -151,8 +151,8 @@ impl<'a> Planning<'a> {
     ) -> Result<Source> {
         Ok(match &v.value {
             ChildValue::Reference(p) => Source::reference(*p),
-            ChildValue::Text { text, .. } if values::literal_value(text.trim()).is_some() => {
-                values::literal_value(text.trim()).expect("a literal")
+            ChildValue::Text { text, .. } if literal_value(text.trim()).is_some() => {
+                literal_value(text.trim()).expect("a literal")
             }
             // Not a single literal or reference: math text.
             _ => Source::math(self.rd.plan_math(&mut self.ar, t, scope, &v.nodes)?),

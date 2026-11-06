@@ -146,8 +146,8 @@ Runs once per load and depends on the source alone.
   (`Plans::expr_class`), so a build lowers a subexpression two of a
   scope's maths share once (`Builder::lower`); the **check** (below)
   comes last. What more than one stage uses
-  has a module of its own (`ir/names.rs`, `refs.rs`, `maths.rs`,
-  `source.rs`, `ir/boxes.rs`). A planner reads the
+  is in `read/` (the readers: `refs.rs`, `maths.rs`, `source.rs`, ...)
+  or beside the type it makes (`ir/names.rs`, `ir/boxes.rs`). A planner reads the
   source and what outlining and parsing made, never another element's plan
   (ADR 0029), so elements are planned in any order: what one shares with
   another (an extend's essential state) is linked once all are planned.

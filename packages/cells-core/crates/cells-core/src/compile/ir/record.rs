@@ -3,7 +3,7 @@
 //! each in the scope it was written in. A planner reads the record, never
 //! the source; an extend's record is its own merged over the referent's.
 
-use crate::compile::rebase::Rebaser;
+use crate::compile::read::Rebaser;
 use crate::compile::*;
 use crate::components::{AttrDecl, AttrKind, ChildrenDecl, ChildrenKind};
 

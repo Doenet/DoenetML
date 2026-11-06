@@ -32,20 +32,20 @@ boxing's and planning's ([`Tables`](crate::compile::ir::Tables)),
 sealing's ([`SealedTemplate`](crate::compile::ir::SealedTemplate)) and
 the check's ([`Checked`](crate::compile::ir::Checked)).
 
-What more than one stage runs has a module of its own: names
-([`compile::ir::names`](crate::compile::ir::names)), reference plans
-([`compile::refs`](crate::compile::refs)), math text
-([`compile::maths`](crate::compile::maths)), reading the source
-([`compile::source`](crate::compile::source),
-[`compile::values`](crate::compile::values),
-[`compile::ir::record`](crate::compile::ir::record)) and boxing
-([`compile::ir::boxes`](crate::compile::ir::boxes)). The readers are methods of
-[`Reader`](crate::compile::reader::Reader): the source and what outlining
+What more than one stage runs is in
+[`compile::read`](crate::compile::read), reading the source: names
+looked up, reference plans (`refs`), math text (`maths`), literal values
+and children (`source`, `values`), point lists, records read from another
+template (`rebase`) and an answer's form. The readers are methods of
+[`Reader`](crate::compile::read::Reader): the source and what outlining
 settled, read-only, which every stage holds or makes. What they write is
-an [`Arenas`](crate::compile::reader::Arenas), the reference and
-expression arenas and what else only grows, handed to them `&mut`;
-boxing's methods are [`Boxes`](crate::compile::ir::boxes::Boxes)'s, handed
-the tables they read and write.
+an [`Arenas`](crate::compile::read::Arenas), the reference and
+expression arenas and what else only grows, handed to them `&mut`. An
+element's record ([`compile::ir::record`](crate::compile::ir::record))
+and the name table ([`compile::ir::names`](crate::compile::ir::names))
+are read the same way, beside the types they make. Boxing's methods are
+[`Boxes`](crate::compile::ir::boxes::Boxes)'s, handed the tables they
+read and write.
 
 ## Planning
 

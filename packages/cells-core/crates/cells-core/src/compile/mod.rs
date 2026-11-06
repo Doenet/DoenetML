@@ -42,7 +42,6 @@ use ir::*;
 #[doc = include_str!("../../../../docs/guide/compile.md")]
 pub mod guide {}
 
-mod answer;
 pub(crate) mod api;
 mod check;
 pub(crate) mod compare;
@@ -50,18 +49,12 @@ pub(crate) mod graph;
 pub(crate) mod ir;
 mod link;
 pub mod lint;
-mod maths;
 mod outline;
 mod parse;
 mod planning;
-mod points;
-mod reader;
-pub(crate) mod rebase;
-mod refs;
+mod read;
 mod seal;
 mod share;
-mod source;
-mod values;
 
 #[cfg(feature = "testing")]
 pub(crate) use check::constant_ranges;
@@ -94,8 +87,7 @@ use parse::Parsing;
 use planning::Planning;
 use planning::ctx::PlanCtx;
 use planning::planner::Planner;
-use reader::{Arenas, Reader};
-use refs::record_read;
+use read::*;
 use seal::Seal;
 pub(crate) use seal::keys;
 

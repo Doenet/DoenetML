@@ -41,10 +41,10 @@ impl Reader<'_> {
         for (i, &n) in nodes.iter().enumerate() {
             match d.kind(n) {
                 NodeKind::Text => {
-                    super::expr::tokenize(d.str(n), &mut toks).map_err(|reason| {
+                    expr::tokenize(d.str(n), &mut toks).map_err(|reason| {
                         Error::BadMath {
                             // The text up to where tokenizing failed.
-                            text: super::ir::spell_math(d, &nodes[..=i]),
+                            text: spell_math(d, &nodes[..=i]),
                             reason,
                         }
                     })?;
@@ -151,7 +151,7 @@ impl Reader<'_> {
             return Ok(ParsedMath::Expr(self.parse_math_text(ar, t, scope, mt)?));
         }
         let (toks, _) = self.resolve_math(ar, t, scope, mt)?;
-        let parts = super::expr::tuple_entries(&toks).expect("outlining settled a tuple");
+        let parts = expr::tuple_entries(&toks).expect("outlining settled a tuple");
         let entries = parts
             .iter()
             .map(|part| self.parse_tokens(ar, part, mt.src()))
