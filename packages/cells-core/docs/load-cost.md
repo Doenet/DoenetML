@@ -19,7 +19,8 @@ far, and where its time goes.
   `scripts/tick-diff.sh` does for a tick. A base older than `load_cost`
   gets the working tree's copy.
 - `LoadTimings::spans` (`document/load.rs`) splits one load into the
-  compile's stages, the abstract build and each build's expand, resolve,
+  compile's stages, its check (`check`, with the template graph's
+  stamping and checks) and each build's expand, resolve,
   define, emit and schedule.
 
 An ADR that changes the compile or the build records `load-diff.sh`
@@ -90,9 +91,26 @@ onto the template graph, and the abstract build stops at resolve: its
 define and walks no longer run at load, which pays for the graph's.
 `load-diff.sh` against 01e4fb5 puts every shape at 0.94 to 1.04.
 
+Part 6 removed the abstract build: the check is the template graph
+alone, whose stamping raises what the build's expand and resolve did,
+and a build no longer carries the folding (labels, later sources, every
+option of a select). `load-diff.sh` against ac3aa16:
+
+| shape | 1,000 | 10,000 |
+|---|---:|---:|
+| depth | 0.82 | 0.93 |
+| breadth | 0.89 | 0.96 |
+| isolated | 0.91 | 1.01 |
+| mixed | 0.97 | 0.93 |
+| cutoff | 0.86 | 0.97 |
+| refs | 1.00 | 0.92 |
+| coords | 0.87 | 0.93 |
+| poly | 0.86 | 0.89 |
+
 ## Where a load's time goes
 
-`LoadTimings::spans` at 90654e1, the median of nine loads, in ms:
+`LoadTimings::spans` at 90654e1, the median of nine loads, in ms (the
+abstract build's span is the check's, `check`, since ADR 0032's step 8):
 
 | shape, 10,000 | load | plan | abstract build | build's emit | rest |
 |---|---:|---:|---:|---:|---:|
@@ -105,8 +123,9 @@ define and walks no longer run at load, which pays for the graph's.
   8 ms each at 10,000 depth). No one stage dominates.
 - The first compute is under 0.3 ms: folding and the pool moved it into
   the compile.
-- A document with no repeat or select pays an abstract build it does not
-  need (ADR 0036, section 4), 5 to 32% of its load.
+- A document with no repeat or select pays a check it does not need
+  (ADR 0036, section 4): at 90654e1 the abstract build, 5 to 32% of its
+  load; now the template graph's stamping and checks.
 - `Compiled` depends on the source alone (ADR 0015), so a host could
   compile once per document, when it is published, and give every
   student only the build and emit. That is the way out of the trade if

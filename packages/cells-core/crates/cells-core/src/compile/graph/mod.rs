@@ -1,6 +1,7 @@
 //! The template graph (ADR 0032, step 8): every live template stamped once
-//! in the abstract, from the closed IR alone, as the abstract build stamps
-//! it. A node per port of every live element and of every component the
+//! in the abstract, from the closed IR alone, where the abstract build,
+//! which it replaced, stamped the document through a view that folded
+//! every iteration into one. A node per port of every live element and of every component the
 //! stamping makes beside them (an interface's stand-in, a whole pick's, a
 //! case, a `$ref` child, a collect's copy, a point list's point), and per
 //! value a read goes through (a leaf inside math, a choose over a dynamic
@@ -11,17 +12,21 @@
 //!
 //! One iteration of each repeat stands for every iteration, every option
 //! of a select and every case of a conditional content is stamped, and an
-//! index lands in the one iteration it reads, as in the abstract view
-//! (`build/view.rs`). The stamping runs in resolve's order
-//! (`Builder::resolve_all`), since what a later step sees depends on what
-//! an earlier one made: copies of a list type, `$ref` children with no
+//! index lands in the one iteration it reads (`abstract_index`). The
+//! stamping runs in the order a build resolves (`Builder::resolve_all`),
+//! since what a later step sees depends on what an earlier one made: copies of a list type, `$ref` children with no
 //! index, collects, point lists, indexed `$ref` children, the choices'
 //! stand-ins, every port's reads, the aggregates, and last the holds.
 //!
-//! The compile's check runs over it: the cycle and count checks
-//! (`cycles.rs`), define and its walks (`define.rs`), and the refuse
-//! warnings (`refuse.rs`); `build/coverage.rs` tests it against the
-//! abstract build's graph, definitions, walks and warnings.
+//! The compile's check runs over it: the stamping's own failures, an
+//! element that cannot be built (`Stamp::fail`), the cycle and count
+//! checks (`cycles.rs`), define and its walks (`define.rs`), and the
+//! refuse warnings (`refuse.rs`). `build/coverage.rs` tests that it covers
+//! every dependency of every build at every count (`tests/every_count.rs`).
+//!
+//! Where it names a component or numbers one, it keeps the abstract
+//! build's order, so its messages are the ones that build gave: every
+//! component in the order that build made them.
 
 use super::share::FxMap;
 use super::*;
@@ -109,7 +114,7 @@ pub(crate) struct Node {
     pub(crate) kind: NodeKind,
 }
 
-/// An operator as the abstract build plans one: one the program runs, or
+/// An operator as a build plans one: one the program runs, or
 /// a symbolic template over its leaves.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum GraphOp {
@@ -118,7 +123,7 @@ pub(crate) enum GraphOp {
     Template(u32),
 }
 
-/// A symbolic template as the abstract build plans one: math text `expr`
+/// A symbolic template as a build plans one: math text `expr`
 /// with `post` applied, its leaves its operator's inputs, in the text's
 /// order, each a math leaf or a numeric one.
 #[derive(Debug, Clone)]
@@ -136,7 +141,7 @@ pub(crate) enum MathOrigin {
     Constant(ExprId, Post),
 }
 
-/// What defines a node, as the abstract build's source defines its slot.
+/// What defines a node, as a build's source defines its slot.
 /// A value is kept where the compile knows it: a math handle's is the
 /// engine's, which the compile has none of.
 #[derive(Debug, Clone, PartialEq)]
@@ -227,15 +232,15 @@ pub(crate) struct TemplateGraph {
     /// The binary operators lowered from the author's math, in the order
     /// lowered, which define orients.
     pub(crate) author_ops: Vec<GraphNode>,
-    /// The counted values' nodes (ADR 0028), as the abstract build finds
-    /// them; a node may be listed more than once.
+    /// The counted values' nodes (ADR 0028); a node may be listed more
+    /// than once.
     pub(crate) counted: Vec<GraphNode>,
     /// The nodes whose plan gives a document constant if they are one.
     pub(crate) document: Vec<GraphNode>,
     /// The symbolic templates, by `GraphOp::Template`.
     pub(crate) templates: Vec<TemplateOp>,
-    /// The nodes whose cell is not a number, with what it holds, as the
-    /// abstract build types its slots (`Builder::typed_slots`).
+    /// The nodes whose cell is not a number, with what it holds, as a
+    /// build types its slots (`Builder::typed_slots`).
     pub(crate) typed: Vec<(GraphNode, crate::program::ValueType)>,
     /// Where each math value a definition holds comes from, by node.
     pub(crate) math: FxMap<GraphNode, MathOrigin>,
@@ -253,15 +258,14 @@ pub(crate) struct TemplateGraph {
     pub(crate) depth: Vec<u32>,
     /// Whether each template is stamped.
     pub(crate) stamped: Vec<bool>,
-    /// Every live repeat, each after the repeats its iterations stamp, as
-    /// the abstract build lists them.
+    /// Every live repeat, each after the repeats its iterations stamp.
     pub(crate) repeats: Vec<(TemplateId, ElemId)>,
     /// Each copy of a list type that took its referent's ports, with how
     /// many are public.
     pub(crate) list_copies: FxMap<(TemplateId, ElemId), usize>,
-    /// Every component the abstract build makes, in the order it makes
-    /// them, so a component's position is its index in the abstract
-    /// build's table: what define's walks and the refuse warnings read of
+    /// Every component the stamping makes, in the order it makes them
+    /// (the abstract build's, so a message shows a component as that
+    /// build did): what define's walks and the refuse warnings read of
     /// it.
     pub(crate) comps: Vec<GraphComp>,
 }
@@ -328,13 +332,15 @@ impl TemplateGraph {
     }
 }
 
-/// The template graph of `c`.
+/// The template graph of `c`, whatever an element that cannot be built
+/// reads as: what the tests compare builds with.
+#[cfg(feature = "testing")]
 pub(crate) fn template_graph(c: CompiledRef<'_>) -> TemplateGraph {
     stamp_graph(c, false).0
 }
 
-/// The template graph of `c`, or the first failure the abstract build's
-/// resolve would raise stamping it, which names the element to box.
+/// The template graph of `c`, or the first failure stamping it met, an
+/// element that cannot be built, which names the element to box.
 pub(crate) fn template_graph_checked(
     c: CompiledRef<'_>,
 ) -> std::result::Result<TemplateGraph, Failure> {
@@ -344,10 +350,15 @@ pub(crate) fn template_graph_checked(
     }
 }
 
-/// The template graph of `c`, each component with its parent: what the
+/// `template_graph_checked`, each component with its parent: what the
 /// input signature reads.
-pub(crate) fn template_graph_with_parents(c: CompiledRef<'_>) -> TemplateGraph {
-    stamp_graph(c, true).0
+pub(crate) fn template_graph_with_parents(
+    c: CompiledRef<'_>,
+) -> std::result::Result<TemplateGraph, Failure> {
+    match stamp_graph(c, true) {
+        (g, None) => Ok(g),
+        (_, Some(f)) => Err(f),
+    }
 }
 
 fn stamp_graph(c: CompiledRef<'_>, parents: bool) -> (TemplateGraph, Option<Failure>) {
@@ -427,9 +438,9 @@ pub(super) struct Stamp<'c> {
     pub(super) cases: FxMap<(TemplateId, ElemId), Vec<u32>>,
     /// Each `$ref` child's component, by (template, child).
     pub(super) ref_children: FxMap<(TemplateId, RefChildId), u32>,
-    /// Every component, in the order the abstract build makes it.
+    /// Every component, in the order the stamping makes it.
     pub(super) order: Vec<Comp>,
-    /// Every live element, in the order the abstract build stamps it.
+    /// Every live element, in the order the stamping stamps it.
     pub(super) instances: Vec<(TemplateId, ElemId)>,
     /// The `$ref` children to place, in the order made, each with whether
     /// its path carries an index.
@@ -461,20 +472,19 @@ pub(super) struct Stamp<'c> {
     pub(super) origin: Option<MathOrigin>,
     /// Whether to record each component's parent.
     pub(super) parents: bool,
-    /// The first failure the abstract build's resolve would raise, with
-    /// the element it boxes; the stamping goes on, but the compile boxes
+    /// The first failure the stamping met, an element that cannot be
+    /// built, with the element it boxes; the stamping goes on, but the compile boxes
     /// and starts again.
     pub(super) failure: Option<Failure>,
     /// The node of the element being stamped, which a failure boxes.
     pub(super) context: NodeId,
     /// The plan being walked, which a failure shows.
     pub(super) walking: RefId,
-    /// Each component's position in the order the abstract build makes
-    /// them: its index in that build's table, which an unnamed one is
+    /// Each component's position in `order`, which an unnamed one is
     /// shown by.
     pub(super) order_index: FxMap<Comp, u32>,
-    /// An engine of the stamping's own, to parse math text as the
-    /// abstract build parses it; made when first needed.
+    /// An engine of the stamping's own, to parse math text as a
+    /// build parses it; made when first needed.
     pub(super) engine: Option<crate::sym::Engine>,
 }
 
@@ -502,7 +512,7 @@ impl<'c> Stamp<'c> {
     }
 
     /// How component `c` is shown in an error: its name, or its tag and
-    /// its index in the abstract build's table.
+    /// its position in `order`.
     pub(super) fn comp_label(&self, c: Comp) -> String {
         if let Comp::Elem(t, e) = c {
             let row = self.c.plans.templates[t.index()].row(e);
@@ -571,8 +581,8 @@ impl<'c> Stamp<'c> {
     }
 
     /// What reads `inputs` in template `t` without its value mattering (a
-    /// stand-in for every option, a count over its repeats' counts), as the
-    /// abstract build reads them: one input through `Truthy`, more through
+    /// stand-in for every option, a count over its repeats' counts), read
+    /// as such: one input through `Truthy`, more through
     /// a chain of `Max`.
     pub(super) fn reading(&mut self, inputs: &[GraphNode], t: TemplateId) -> Def {
         match inputs {
@@ -1245,7 +1255,7 @@ impl<'c> Stamp<'c> {
         }
     }
 
-    /// The children of component `c` as the abstract build stamped them,
+    /// The children of component `c` as the stamping made them,
     /// at this point of the stamping: an iteration's, every option's, a
     /// conditional content's cases, a case's branch, a collect's copies or
     /// a point list's points once expanded, or an element's own.

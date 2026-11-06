@@ -13,7 +13,6 @@ impl<'c> Builder<'c> {
         component_type: ComponentType,
         pi: usize,
     ) -> Result<SlotId> {
-        let from = self.slot(comp, pi);
         Ok(match arg {
             Arg::Own(a) => self.slot(comp, a.index()),
             Arg::Const(k) => self.const_slot(k),
@@ -21,16 +20,12 @@ impl<'c> Builder<'c> {
                 let other = self.scope_comps[scope.index()][el.index()];
                 self.slot(other, port.index())
             }
-            Arg::Ref(p, Sel::Whole) => {
-                let (t, label) = self
-                    .resolve_one(p, scope)
-                    .map_err(|e| arity_error_for(e, component_type, pi))?;
-                self.record_label(from, t, &label);
-                t
-            }
+            Arg::Ref(p, Sel::Whole) => self
+                .resolve_one(p, scope)
+                .map_err(|e| arity_error_for(e, component_type, pi))?,
             Arg::Ref(p, Sel::Coord(j)) => {
                 // A point's coordinates, or a tuple's entries.
-                let (targets, label) = self.resolve_ref(p, scope, Some(2))?;
+                let targets = self.resolve_ref(p, scope, Some(2))?;
                 if targets.len() < 2 || targets.len() <= j as usize {
                     return Err(Error::ArityMismatch {
                         component_type: component_type.tag().into(),
@@ -39,30 +34,24 @@ impl<'c> Builder<'c> {
                         got: targets.len(),
                     });
                 }
-                self.record_label(from, targets[j as usize], &label);
                 targets[j as usize]
             }
             Arg::Ref(p, Sel::Item(i, j)) => {
-                let (items, label) = self.resolve_items(p, scope)?;
+                let items = self.resolve_items(p, scope)?;
                 match items.get(i as usize) {
-                    Some(item) => {
-                        self.record_label(from, item[j as usize], &label);
-                        item[j as usize]
-                    }
+                    Some(item) => item[j as usize],
                     None => self.missing_slot(),
                 }
             }
             // A port of the element the path names, whatever prop it is:
             // a copy's port aliasing its referent's (ADR 0032).
             Arg::Ref(p, Sel::Port(k)) => {
-                let (target, _, label) = self.resolve(p, scope)?;
+                let (target, _) = self.resolve(p, scope)?;
                 match target {
                     Resolved::Missing => self.missing_slot(),
                     target => {
                         let c = self.single_component(target, p)?;
-                        let t = self.slot(c, k as usize);
-                        self.record_label(from, t, &label);
-                        t
+                        self.slot(c, k as usize)
                     }
                 }
             }
@@ -70,71 +59,36 @@ impl<'c> Builder<'c> {
     }
 
     /// Walk a plan from `scope`. Returns where it arrived and the port it
-    /// named, if any. An index reads the stamped entries through the view,
-    /// and one that reads a cell keeps every entry (`Chosen`). When the view
-    /// folds iterations, the walk is also labelled, and the label returned
-    /// with it: one coordinate per level of nesting of the target, kept with
-    /// a shift or reset; empty when the view does not fold.
+    /// named, if any. An index reads the stamped entries, and one that
+    /// reads a cell keeps every entry (`Chosen`).
     pub(in crate::build) fn resolve(
         &mut self,
         plan: RefId,
         scope: ScopeId,
-    ) -> Result<(Resolved, Option<RefProp>, Label)> {
+    ) -> Result<(Resolved, Option<RefProp>)> {
         let c = self.compiled.plans;
         let p = &c.refs[plan.index()];
-        let labelling = self.view.folds_iterations();
-        let src_depth = if labelling {
-            self.scope_depth(scope)
-        } else {
-            0
-        };
-        let mut label = Label::new();
         let mut sc = scope;
         for _ in 0..p.hops {
             sc = self.scopes[sc].0;
         }
-        if labelling {
-            label.resize(self.scope_depth(sc) as usize, Coord::Keep(0));
-        }
         let mut cur = Resolved::Iter(CompIdx::NONE, sc);
-        for (si, step) in p.steps.iter().enumerate() {
-            let mut walk = Walk {
-                plan: p,
-                scope,
-                src_depth,
-                labelling,
-                label: &mut label,
-                to_iface: matches!(p.steps.get(si + 1), Some(Step::Iface(..))),
-            };
-            cur = self.resolve_step(cur, step, &mut walk, true)?;
+        let walk = Walk { plan: p, scope };
+        for step in &p.steps {
+            cur = self.resolve_step(cur, step, &walk)?;
         }
-        Ok((cur, p.prop, label))
+        Ok((cur, p.prop))
     }
 
     /// One step of a walk from `cur`. Over a `Chosen`, the step applies to
-    /// every item; the label is pushed once.
-    fn resolve_step(
-        &mut self,
-        cur: Resolved,
-        step: &Step,
-        w: &mut Walk<'_, 'c>,
-        push: bool,
-    ) -> Result<Resolved> {
-        if let Resolved::Chosen {
-            index,
-            label,
-            items,
-        } = cur
-        {
+    /// every item.
+    fn resolve_step(&mut self, cur: Resolved, step: &Step, w: &Walk<'c>) -> Result<Resolved> {
+        if let Resolved::Chosen { index, items } = cur {
             let mut out = Vec::with_capacity(items.len());
-            for (i, item) in items.into_iter().enumerate() {
-                out.push(self.resolve_step(item, step, w, push && i == 0)?);
+            for item in items {
+                out.push(self.resolve_step(item, step, w)?);
             }
-            return Ok(Resolved::Chosen {
-                index,
-                label,
-                items: out,
-            });
+            return Ok(Resolved::Chosen { index, items: out });
         }
         let display = |b: &Self| b.compiled.display_of(w.plan);
         Ok(match step {
@@ -170,54 +124,34 @@ impl<'c> Builder<'c> {
                     Resolved::Iter(..) => return Err(Error::NotIndexable(display(self))),
                     Resolved::Chosen { .. } => unreachable!("walked above"),
                 };
-                // The entries the index reads, and whether the view folds
-                // their count (one entry stands for every index).
-                let (entries, varies): (Vec<Resolved>, bool) = match step {
+                // The entries the index reads.
+                let entries: Vec<Resolved> = match step {
                     Step::Iter(_) => {
                         let ri = self.comp_repeat[c.index()];
                         assert!(!ri.is_none(), "planning made an iteration step of a repeat");
                         let r = &self.repeats[ri.index()];
-                        if w.labelling && push {
-                            // A folded iteration stands for every index;
-                            // the label says which.
-                            let entered = self.scope_depth(r.scope) + 1;
-                            w.label.push(crate::compile::graph::index_coord(
-                                ip,
-                                w.src_depth,
-                                entered,
-                            ));
-                        }
-                        (
-                            r.iter_scopes
-                                .iter()
-                                .map(|&s| Resolved::Iter(c, s))
-                                .collect(),
-                            true,
-                        )
+                        r.iter_scopes
+                            .iter()
+                            .map(|&s| Resolved::Iter(c, s))
+                            .collect()
                     }
                     Step::Item(Collection::Gathered, _) => {
                         let Some(items) = self.collected.get(&c) else {
                             return Err(Error::NotIndexable(display(self)));
                         };
-                        (
-                            items.iter().map(|&i| Resolved::Comp(i)).collect(),
-                            self.follows_counts.contains(&c),
-                        )
+                        items.iter().map(|&i| Resolved::Comp(i)).collect()
                     }
                     Step::Item(Collection::ListPoints, _) => {
                         let (s, n) = (
                             self.components.child_start[c.index()] as usize,
                             self.components.child_count[c.index()] as usize,
                         );
-                        let points = self.components.child_list[s..s + n]
+                        self.components.child_list[s..s + n]
                             .iter()
                             .map(|e| e.as_comp().map_or(Resolved::Missing, Resolved::Comp))
-                            .collect();
-                        (points, false)
+                            .collect()
                     }
-                    Step::Item(Collection::Picks, _) => {
-                        return self.resolve_pick(c, ip, w, push);
-                    }
+                    Step::Item(Collection::Picks, _) => return Ok(self.resolve_pick(c, ip, w)),
                     Step::Item(..) => unreachable!("planning indexes no other collection"),
                     _ => unreachable!(),
                 };
@@ -225,16 +159,14 @@ impl<'c> Builder<'c> {
                     let [IndexTerm::Cell(cell)] = ip.terms[..] else {
                         unreachable!("a dynamic index is one cell")
                     };
-                    // The index cell's own walk, with its own label.
-                    let (index, label) = self.resolve_one(cell, w.scope)?;
+                    let index = self.resolve_one(cell, w.scope)?;
                     return Ok(Resolved::Chosen {
                         index,
-                        label,
                         items: entries,
                     });
                 }
                 let k = self.index_value(ip, w.scope);
-                match self.view.index(entries.len(), k, varies) {
+                match in_range(entries.len(), k) {
                     Some(j) => entries[j].clone(),
                     None => Resolved::Missing,
                 }
@@ -242,81 +174,14 @@ impl<'c> Builder<'c> {
         })
     }
 
-    /// `$s[k]` on select `c`: the pick, or in the abstract build, which
-    /// builds every option, what stands for any pick.
-    fn resolve_pick(
-        &mut self,
-        c: CompIdx,
-        ip: &IndexPlan,
-        w: &mut Walk<'_, 'c>,
-        push: bool,
-    ) -> Result<Resolved> {
+    /// `$s[k]` on select `c`: the pick.
+    fn resolve_pick(&self, c: CompIdx, ip: &IndexPlan, w: &Walk<'c>) -> Resolved {
         let inst = &self.choice_insts[self.comp_choice[&c]];
-        if inst.every_option && w.to_iface {
-            // Any option may be this pick: the interface name resolves
-            // to the stand-in over every option, whose edges into them
-            // reset the pick.
-            return Ok(Resolved::Comp(c));
-        }
-        if w.labelling && push {
-            w.label.push(Coord::Reset);
-        }
-        // Any option may be this pick, so what a whole pick names must not
-        // depend on which (ADR 0014).
-        if inst.every_option {
-            if !self.picks_alike(c) {
-                return Err(Error::Unsupported(format!(
-                    "'${}' names a whole pick, so every option must hold one component, all of one type: name the content and use $s[k].name",
-                    self.compiled.display_of(w.plan)
-                )));
-            }
-            return Ok(Resolved::Comp(self.whole_pick(c)?));
-        }
         let k = self.index_value(ip, w.scope);
-        Ok(match self.view.index(inst.scopes.len(), k, false) {
+        match in_range(inst.scopes.len(), k) {
             Some(j) => Resolved::Iter(c, inst.scopes[j]),
             None => Resolved::Missing,
-        })
-    }
-
-    /// Whether every built option of select `c` holds one component, all of
-    /// one type.
-    fn picks_alike(&self, c: CompIdx) -> bool {
-        let inst = &self.choice_insts[self.comp_choice[&c]];
-        let mut types =
-            inst.scopes
-                .iter()
-                .map(|&s| match self.iteration_components(c, s).as_slice() {
-                    [one] => Some(self.components.component_type[one.index()]),
-                    _ => None,
-                });
-        let first = types.next().flatten();
-        first.is_some() && types.all(|t| t == first)
-    }
-
-    /// Record `label` for the edge from `from` to `to`, when it is not the
-    /// identity.
-    pub(in crate::build) fn record_label(&mut self, from: SlotId, to: SlotId, label: &[Coord]) {
-        if label.iter().any(|&c| c != Coord::Keep(0)) {
-            self.labels.insert((from, to), label.to_vec());
         }
-    }
-
-    /// The slot standing for a reference leaf inside math, made in `scope`:
-    /// when the view folds iterations, a slot of its own aliasing `target`,
-    /// so the edge to the leaf can carry the reference's `label`.
-    pub(in crate::build) fn leaf(
-        &mut self,
-        target: SlotId,
-        label: &[Coord],
-        scope: ScopeId,
-    ) -> SlotId {
-        if !self.view.folds_iterations() {
-            return target;
-        }
-        let a = self.anon_slot(BuiltSource::Alias(target), scope);
-        self.record_label(a, target, label);
-        a
     }
 
     pub(in crate::build) fn index_value(&self, ip: &IndexPlan, scope: ScopeId) -> i64 {
@@ -366,9 +231,7 @@ impl<'c> Builder<'c> {
 
     /// Slots named by a resolved path, using the default prop when none
     /// was given; through a cell index, a choose over each item's slots,
-    /// made in `scope`. With them, the label of a reader's edge to them:
-    /// the walk's `label`, or none through a cell index, whose chooses
-    /// carry the walk's label on their edges to the items.
+    /// made in `scope`.
     pub(in crate::build) fn targets_of(
         &mut self,
         target: Resolved,
@@ -376,29 +239,14 @@ impl<'c> Builder<'c> {
         plan: RefId,
         expected: Option<usize>,
         scope: ScopeId,
-        label: Label,
-    ) -> Result<(Vec<SlotId>, Label)> {
+    ) -> Result<Vec<SlotId>> {
         let comp = match target {
             Resolved::Missing => {
                 let s = self.missing_slot();
-                return Ok((vec![s; expected.unwrap_or(1)], label));
+                return Ok(vec![s; expected.unwrap_or(1)]);
             }
-            Resolved::Chosen {
-                index,
-                label: index_label,
-                items,
-            } => {
-                let slots = self.chosen_targets(
-                    index,
-                    index_label,
-                    items,
-                    prop,
-                    plan,
-                    expected,
-                    scope,
-                    &label,
-                )?;
-                return Ok((slots, Label::new()));
+            Resolved::Chosen { index, items } => {
+                return self.chosen_targets(index, items, prop, plan, expected, scope);
             }
             other => self.single_component(other, plan)?,
         };
@@ -429,30 +277,23 @@ impl<'c> Builder<'c> {
                     None => component_type.default_prop().unwrap_or_default().into(),
                 },
             })?;
-        Ok((slots, label))
+        Ok(slots)
     }
 
     /// The slots a path through a cell index names: one choose per slot
-    /// the port has, over the items' slots, reading the index. The edge
-    /// to each item carries the walk's label (`walk_label`), the edge to
-    /// the index its own; the reader's edge to the choose is then plain.
-    #[allow(clippy::too_many_arguments)]
+    /// the port has, over the items' slots, reading the index.
     fn chosen_targets(
         &mut self,
         index: SlotId,
-        index_label: Label,
         items: Vec<Resolved>,
         prop: Option<RefProp>,
         plan: RefId,
         expected: Option<usize>,
         scope: ScopeId,
-        walk_label: &[Coord],
     ) -> Result<Vec<SlotId>> {
         let mut columns = Vec::with_capacity(items.len());
         for item in items {
-            // An item's own edges are plain: the choose's carry the walk's.
-            let (slots, _) = self.targets_of(item, prop, plan, expected, scope, Label::new())?;
-            columns.push(slots);
+            columns.push(self.targets_of(item, prop, plan, expected, scope)?);
         }
         let n = columns.iter().map(Vec::len).max().unwrap_or(1);
         let missing = self.missing_slot();
@@ -472,7 +313,7 @@ impl<'c> Builder<'c> {
         let mut out = Vec::with_capacity(n);
         for j in 0..n {
             let slots: Vec<SlotId> = columns.iter().map(|col| col[j]).collect();
-            out.push(self.choose_over(index, &index_label, &slots, walk_label, scope));
+            out.push(self.choose_over(index, &slots, scope));
         }
         Ok(out)
     }
@@ -480,31 +321,19 @@ impl<'c> Builder<'c> {
     /// A slot choosing among `items` by the 1-based value of `index`, in
     /// `scope`: NaN past them. More items than one choose reads are read
     /// in chunks, a choose over the chunks by the index's chunk number.
-    fn choose_over(
-        &mut self,
-        index: SlotId,
-        index_label: &[Coord],
-        items: &[SlotId],
-        item_label: &[Coord],
-        scope: ScopeId,
-    ) -> SlotId {
+    fn choose_over(&mut self, index: SlotId, items: &[SlotId], scope: ScopeId) -> SlotId {
         const CAP: usize = crate::limits::MAX_VEC_IN - 1;
         if items.len() <= CAP {
             let mut inputs = Vec::with_capacity(items.len() + 1);
             inputs.push(index);
             inputs.extend_from_slice(items);
-            let s = self.op_slot(
+            return self.op_slot(
                 OpSpec::Vec(VecOp::Choose {
                     n: byte(items.len()),
                 }),
                 &inputs,
                 scope,
             );
-            self.record_label(s, index, index_label);
-            for &item in items {
-                self.record_label(s, item, item_label);
-            }
-            return s;
         }
         let mut chunks = Vec::with_capacity(items.len().div_ceil(CAP));
         for (ci, chunk) in items.chunks(CAP).enumerate() {
@@ -512,46 +341,38 @@ impl<'c> Builder<'c> {
                 index
             } else {
                 let offset = self.const_slot((ci * CAP) as f64);
-                let s = self.op_slot(OpSpec::Sub, &[index, offset], scope);
-                self.record_label(s, index, index_label);
-                s
+                self.op_slot(OpSpec::Sub, &[index, offset], scope)
             };
-            chunks.push(self.choose_over(local, index_label, chunk, item_label, scope));
+            chunks.push(self.choose_over(local, chunk, scope));
         }
         // The chunk the index falls in: floor((index - 1) / CAP) + 1.
         let one = self.const_slot(1.0);
         let cap = self.const_slot(CAP as f64);
         let less = self.op_slot(OpSpec::Sub, &[index, one], scope);
-        self.record_label(less, index, index_label);
         let q = self.op_slot(OpSpec::Div, &[less, cap], scope);
         let f = self.op_slot(OpSpec::Floor, &[q], scope);
         let which = self.op_slot(OpSpec::Add, &[f, one], scope);
-        self.choose_over(which, &[], &chunks, &[], scope)
+        self.choose_over(which, &chunks, scope)
     }
 
-    /// The slots reference `plan` names from `scope`, and the label of a
-    /// reader's edge to them (`targets_of`).
+    /// The slots reference `plan` names from `scope` (`targets_of`).
     pub(in crate::build) fn resolve_ref(
         &mut self,
         plan: RefId,
         scope: ScopeId,
         expected: Option<usize>,
-    ) -> Result<(Vec<SlotId>, Label)> {
-        let (target, prop, label) = self.resolve(plan, scope)?;
-        self.targets_of(target, prop, plan, expected, scope, label)
+    ) -> Result<Vec<SlotId>> {
+        let (target, prop) = self.resolve(plan, scope)?;
+        self.targets_of(target, prop, plan, expected, scope)
     }
 
     /// The one slot a reference names, and the label of a reader's edge to
     /// it. Errors with a placeholder `ArityMismatch` (callers fill in type
     /// and prop) when the reference names several cells.
-    pub(in crate::build) fn resolve_one(
-        &mut self,
-        plan: RefId,
-        scope: ScopeId,
-    ) -> Result<(SlotId, Label)> {
-        let (slots, label) = self.resolve_ref(plan, scope, Some(1))?;
+    pub(in crate::build) fn resolve_one(&mut self, plan: RefId, scope: ScopeId) -> Result<SlotId> {
+        let slots = self.resolve_ref(plan, scope, Some(1))?;
         match slots[..] {
-            [s] => Ok((s, label)),
+            [s] => Ok(s),
             _ => Err(Error::ArityMismatch {
                 component_type: String::new(),
                 prop: String::new(),
@@ -590,13 +411,13 @@ fn arity_error(e: Error, component_type: ComponentType, prop: &str) -> Error {
 }
 
 /// What a walk carries from step to step.
-struct Walk<'a, 'c> {
+struct Walk<'c> {
     plan: &'c RefPlan,
     /// The scope the reference is read from.
     scope: ScopeId,
-    src_depth: u32,
-    labelling: bool,
-    label: &'a mut Label,
-    /// Whether the next step is an interface name.
-    to_iface: bool,
+}
+
+/// Index `k` (1-based) into `len` entries, when it is in range.
+pub(in crate::build) fn in_range(len: usize, k: i64) -> Option<usize> {
+    (k >= 1 && k as u64 <= len as u64).then(|| (k - 1) as usize)
 }

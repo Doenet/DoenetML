@@ -1,5 +1,5 @@
-//! A reference walked through the stamped templates, as the abstract
-//! build resolves it (`build/expand/resolve.rs`): one iteration stands for
+//! A reference walked through the stamped templates, as a build resolves
+//! it (`build/expand/resolve.rs`), but in the abstract: one iteration stands for
 //! every index into a repeat, a select's every option is built, and the
 //! walk is labelled, one coordinate per level of nesting of its target.
 
@@ -493,8 +493,8 @@ impl<'c> Stamp<'c> {
     }
 }
 
-/// Which of `len` stamped entries index `k` (1-based) names in the
-/// abstract view, or None for the missing referent: an index past entries
+/// Which of `len` stamped entries index `k` (1-based) names, one
+/// iteration standing for every iteration, or None for the missing referent: an index past entries
 /// that stand for others lands in them.
 fn abstract_index(len: usize, k: i64, varies: bool) -> Option<usize> {
     if varies && len > 0 {

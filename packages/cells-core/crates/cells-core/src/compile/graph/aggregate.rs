@@ -1,4 +1,4 @@
-//! Aggregates in the template graph, as the abstract build materializes
+//! Aggregates in the template graph, as a build materializes
 //! them (`build/expand/aggregate.rs`) from the tree it stamped: the
 //! document's and each aggregating section's credit, the weighted mean of
 //! its scored items' credit, each weight gated by the cases around it;
@@ -13,7 +13,7 @@
 //! through its own ports.
 //!
 //! A collection that crosses a repeat makes the aggregate a counted value
-//! (ADR 0028), listed as the abstract build lists it.
+//! (ADR 0028), listed as such.
 
 use super::*;
 use crate::components::prop::{answer, section};

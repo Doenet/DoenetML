@@ -13,10 +13,9 @@
 //! (constants, then essential, then derived) and operators are bound.
 //! [`BuildOutput::schedule`] then orders the instructions.
 //!
-//! The *abstract build* is expand, resolve and define through a view that
-//! folds every iteration into one, which the compile's check runs; it
-//! makes no program (ADR 0035), and the compile's cycle check runs between
-//! its resolve and its define, over the template graph (ADR 0032).
+//! A build reads no analysis of its own: what the compile found over the
+//! template graph (ADR 0032), each port's attributes, classes its cells,
+//! so a slot's class is the same in every build.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -29,8 +28,7 @@ use crate::compile::keys::pick_position;
 use crate::compile::plan::*;
 use crate::components::{ComponentType, prop};
 use crate::dast::{NodeId, StrId, StringTable};
-#[cfg(feature = "testing")]
-use crate::diagnostics::Diagnostic;
+
 use crate::document::{CellIdx, ChildEntry, CompIdx, ComponentTable, Document, NONE};
 use crate::error::{Error, Result};
 use crate::limits::byte;
@@ -39,7 +37,6 @@ use crate::program::{Instr, OpSpec, Post, SymKind};
 use crate::program::{Operands, Program, ValueType};
 use crate::session::{Counts, MathStore, Session};
 
-mod abstract_build;
 #[cfg(feature = "testing")]
 pub mod coverage;
 mod define;
@@ -47,17 +44,11 @@ mod emit;
 mod expand;
 mod live;
 mod orient;
-#[cfg(feature = "testing")]
-mod refuse;
 pub mod signature;
 mod slot_cells;
 mod structure;
-mod view;
 mod writable;
 
-pub(crate) use abstract_build::abstract_resolve;
-#[cfg(feature = "testing")]
-pub(crate) use abstract_build::{abstract_define, abstract_findings, abstract_signature};
 use define::Defined;
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
@@ -80,10 +71,8 @@ impl crate::sym::Leaf for SlotId {
     }
 }
 
-use crate::compile::graph::{Coord, Label};
 use expand::*;
 pub(crate) use expand::{splitmix, stable_hash};
-use view::{CollectCount, Options, Plans, View};
 
 impl<'c> Builder<'c> {
     /// Expand and resolve. The failure names the element to box.
@@ -102,8 +91,8 @@ impl<'c> Builder<'c> {
 impl<'c> Builder<'c> {
     /// Walk backward over the cells the slots will make: from the cells on
     /// `stack`, each cell `enter` admits is given to `edge` as its
-    /// definition, then as each other source its slots have (its later
-    /// sources and `extra`), and `edge` pushes the cells to go on to. A cell
+    /// definition, then as each other source in `extra` its slots have,
+    /// and `edge` pushes the cells to go on to. A cell
     /// `enter` refuses is neither followed nor seen.
     pub(in crate::build) fn walk_cells(
         &self,
@@ -116,7 +105,7 @@ impl<'c> Builder<'c> {
         let mut seen = vec![false; self.sources.len()];
         // The other sources of each cell.
         let mut besides: HashMap<SlotId, Vec<&(SlotId, BuiltSource)>> = HashMap::new();
-        for entry in self.later_sources.iter().chain(extra) {
+        for entry in extra {
             besides
                 .entry(slot_cells.cell_of(entry.0))
                 .or_default()
@@ -171,8 +160,7 @@ pub fn build(
     counts: &Counts,
     reseed: bool,
 ) -> std::result::Result<BuildOutput, BuildError> {
-    let view = View::Stamped { counts };
-    let mut b = Builder::new(compiled.view(), session, reseed, math, &view);
+    let mut b = Builder::new(compiled.view(), session, reseed, math, counts);
     let built = (|| {
         b.stage()?;
         let slot_cells = crate::trace::span("define").run(|| b.define())?;
@@ -245,19 +233,6 @@ pub struct BuildOutput {
     owners: CellOwners,
     /// Which cells the document computes.
     live: Live,
-}
-
-/// What the abstract build finds, for the tests to compare the template
-/// graph's with: the ports' attributes, and the warnings.
-#[cfg(feature = "testing")]
-#[derive(Debug)]
-pub(crate) struct AbstractFindings {
-    /// What it found of each port, per template by template slot: which a
-    /// student's action can write, which are live, counted values and
-    /// document constants.
-    pub(crate) attrs: Vec<Vec<PortAttrs>>,
-    /// The warnings.
-    pub(crate) warnings: Vec<Diagnostic>,
 }
 
 /// Which cells a build computes: a bit per cell, set for one some output

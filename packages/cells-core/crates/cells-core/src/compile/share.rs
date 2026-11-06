@@ -1,4 +1,4 @@
-//! Sharing, the compile's last stage before the abstract build: two ports
+//! Sharing, the compile's last stage before its check: two ports
 //! that compute the same thing from the same cells become one, by an alias
 //! in the plans.
 //!
@@ -772,7 +772,7 @@ mod tests {
     }
 
     /// The sharing is in the plans: the extend's `sum` is an alias of the
-    /// referent's, which every build, and the abstract build, reads.
+    /// referent's, which every build, and the template graph, reads.
     #[test]
     fn the_plans_alias_the_shared_port() {
         let compiled = crate::testing::compile(&document(shape_and_copy())).unwrap();

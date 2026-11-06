@@ -1,12 +1,11 @@
-//! The check: plan the document, resolve it once through the abstract
-//! build, which stands for every count and every pick, then stamp its
-//! template graph (ADR 0032, step 8), check that for loops at any count
+//! The check: plan the document, then stamp its template graph (ADR 0032,
+//! step 8), which stands for every count and every pick and fails on an
+//! element that cannot be built, check that for loops at any count
 //! (ADR 0012), define it and walk it (ADR 0018, ADR 0019, ADR 0035), and
 //! box every element that fails until every element builds. It finds every
 //! error the document has, from the source alone.
 
 use super::*;
-use crate::build;
 use crate::diagnostics::Diagnostic;
 use graph::CycleFindings;
 
@@ -39,7 +38,7 @@ pub(crate) fn compile(
     let (plans, warnings) = plan_and_check(&dast, &mut list, share, |dast, plans| {
         plans.prune = prune;
         plans.fold = fold;
-        let _s = crate::trace::span("abstract build");
+        let _s = crate::trace::span("check");
         let found = check(CompiledRef { dast, plans }, check_cycles)?;
         plans.structural_depth = found.structural_depth;
         for (tpl, mut attrs) in plans.templates.iter_mut().zip(found.attrs) {
@@ -91,25 +90,10 @@ pub(crate) fn signature_renamed(
 ) -> Result<crate::build::signature::Signature> {
     let (_, signature) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
         let compiled = CompiledRef { dast, plans };
-        build::abstract_resolve(compiled)?;
-        let mut g = graph::template_graph_with_parents(compiled);
+        let mut g = graph::template_graph_with_parents(compiled)?;
         graph::check_cycles(&g, compiled).map_err(|error| Failure { error, node: None })?;
         let defined = graph::define(&mut g, compiled)?;
         Ok(graph::sign(&g, &defined, compiled, rename))
-    })?;
-    Ok(signature)
-}
-
-/// For tests: the input signature of `dast` as the abstract build reads it
-/// off its own definitions, what the template graph's is compared with.
-#[cfg(feature = "testing")]
-pub(crate) fn abstract_signature_renamed(
-    dast: &Dast,
-    rename: &dyn Fn(&str) -> String,
-) -> Result<crate::build::signature::Signature> {
-    let (_, signature) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
-        let compiled = CompiledRef { dast, plans };
-        build::abstract_signature(compiled, || cycle_check(compiled).map(drop), rename)
     })?;
     Ok(signature)
 }
@@ -124,14 +108,14 @@ struct Checks {
     warnings: Vec<Diagnostic>,
 }
 
-/// The check of `compiled`: resolved through the abstract build, for an
-/// element that cannot be built; then its template graph, checked for
-/// loops at any count with `check_cycles` (a cycle has no element to box),
-/// defined, which boxes a prefill the rule refuses, and walked, which
-/// gives each port's attributes, and the refuse analysis's warnings.
+/// The check of `compiled`: its template graph, whose stamping fails on an
+/// element that cannot be built; checked for loops at any count with
+/// `check_cycles` (a cycle has no element to box), defined, which boxes a
+/// prefill the rule refuses, and walked, which gives each port's
+/// attributes, and the refuse analysis's warnings.
 fn check(compiled: CompiledRef<'_>, check_cycles: bool) -> std::result::Result<Checks, Failure> {
-    build::abstract_resolve(compiled)?;
-    let mut g = crate::trace::span("template graph").run(|| graph::template_graph(compiled));
+    let mut g =
+        crate::trace::span("template graph").run(|| graph::template_graph_checked(compiled))?;
     let cycles = if check_cycles {
         let _s = crate::trace::span("cycle check");
         graph::check_cycles(&g, compiled).map_err(|error| Failure { error, node: None })?
@@ -147,17 +131,6 @@ fn check(compiled: CompiledRef<'_>, check_cycles: bool) -> std::result::Result<C
         attrs,
         warnings,
     })
-}
-
-#[cfg(feature = "testing")]
-/// The cycle and count checks over the template graph of `compiled`, and
-/// what they find of a document that passes: what the input signature's
-/// abstract build runs between its resolve and its define. A cycle has no
-/// element to box.
-fn cycle_check(compiled: CompiledRef<'_>) -> std::result::Result<CycleFindings, Failure> {
-    let _s = crate::trace::span("cycle check");
-    let g = crate::trace::span("template graph").run(|| graph::template_graph(compiled));
-    graph::check_cycles(&g, compiled).map_err(|error| Failure { error, node: None })
 }
 
 /// The compile's loop: plan `dast`, boxing every element that fails where
@@ -220,71 +193,4 @@ fn plan_and_check<T>(
             Err(f) => restart(&mut boxed, errors, f)?,
         }
     }
-}
-
-/// Whether stamping the template graph raises the abstract build's
-/// resolve failures (ADR 0032, step 8, part 6): at each attempt of the
-/// compile's loop, both pass, or both fail on the same element with the
-/// same error. Returns the attempts where they differ, described, and how
-/// many attempts failed in both.
-#[cfg(feature = "testing")]
-pub(crate) fn resolve_failures_agree(dast: &Dast) -> (Vec<String>, usize) {
-    let mut differ = Vec::new();
-    let mut failed = 0;
-    let _ = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
-        let compiled = CompiledRef { dast, plans };
-        let theirs = build::abstract_resolve(compiled);
-        let ours = graph::template_graph_checked(compiled).map(drop);
-        let describe = |r: &std::result::Result<(), Failure>| match r {
-            Ok(()) => "resolved".to_string(),
-            Err(f) => format!("{:?}: {}", f.node, f.error),
-        };
-        let (a, b) = (describe(&theirs), describe(&ours));
-        if a != b {
-            differ.push(format!("the abstract build: {a}; the template graph: {b}"));
-        } else if theirs.is_err() {
-            failed += 1;
-        }
-        theirs?;
-        check(compiled, true)
-    });
-    (differ, failed)
-}
-
-/// For tests: compile `dast` as a load does, and at every attempt of the
-/// compile's loop run define over the template graph beside the abstract
-/// build's define (ADR 0032, step 8, part 4). Each attempt whose resolve
-/// and cycle check pass must end the same way in both: defined, or
-/// failing on the same element with the same error (the prefill rule).
-/// Returns the attempts where they differ, described.
-#[cfg(feature = "testing")]
-pub(crate) fn define_failures_agree(dast: &Dast) -> Vec<String> {
-    let mut differ = Vec::new();
-    let _ = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
-        let compiled = CompiledRef { dast, plans };
-        let mut ours = None;
-        let found = build::abstract_define(compiled, || {
-            cycle_check(compiled)?;
-            let mut g = graph::template_graph(compiled);
-            ours = Some(graph::define(&mut g, compiled).map(drop));
-            Ok(())
-        });
-        if let Some(ours) = ours {
-            let describe = |r: std::result::Result<(), &Failure>| match r {
-                Ok(()) => "defined".to_string(),
-                Err(f) => format!("{:?}: {}", f.node, f.error),
-            };
-            let (theirs, ours) = (
-                describe(found.as_ref().map(|_| ())),
-                describe(ours.as_ref().map(|_| ())),
-            );
-            if theirs != ours {
-                differ.push(format!(
-                    "the abstract build: {theirs}; define over the graph: {ours}"
-                ));
-            }
-        }
-        found
-    });
-    differ
 }

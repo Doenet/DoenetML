@@ -9,10 +9,7 @@ pub mod round_trip;
 pub mod spec;
 pub mod test_utils;
 
-pub use crate::build::coverage::{
-    AbstractEdges, GraphAgreement, abstract_edges, attributes_disagreement,
-    definitions_disagreement, template_graph_agreement, uncovered, warnings_disagreement,
-};
+pub use crate::build::coverage::{GraphEdges, graph_edges, uncovered};
 
 /// `f` of every item, computed on as many threads as the machine has
 /// cores, returned in the items' order. A panic stops every thread taking
@@ -51,44 +48,6 @@ pub fn par_map<'a, T: Sync, R: Send>(items: &'a [T], f: impl Fn(&'a T) -> R + Sy
     done.into_iter()
         .map(|(_, r)| r.unwrap_or_else(|panic| resume_unwind(panic)))
         .collect()
-}
-
-/// The attempts of the compile's loop on `dast` where define over the
-/// template graph ends otherwise than the abstract build's define,
-/// described: none when the prefill rule refuses the same prefills.
-pub fn define_failures_agree(dast: &crate::dast::Dast) -> Vec<String> {
-    crate::compile::define_failures_agree(dast)
-}
-
-/// The attempts of the compile's loop on `dast` where stamping the
-/// template graph fails otherwise than the abstract build's resolve,
-/// described (none when both box the same elements with the same errors),
-/// and how many attempts failed in both.
-pub fn resolve_failures_agree(dast: &crate::dast::Dast) -> (Vec<String>, usize) {
-    crate::compile::resolve_failures_agree(dast)
-}
-
-/// The input signature of `dast` read off the template graph against the
-/// one the abstract build reads off its own definitions (ADR 0032, step 8,
-/// part 5): each input where they differ, described; none when they are
-/// the same. An error when either fails.
-pub fn signature_disagreement(dast: &crate::dast::Dast) -> Result<Vec<String>, String> {
-    let same = |k: &str| k.to_string();
-    let ours = crate::compile::signature_renamed(dast, &same).map_err(|e| e.to_string())?;
-    let theirs =
-        crate::compile::abstract_signature_renamed(dast, &same).map_err(|e| e.to_string())?;
-    let mut out = Vec::new();
-    let keys: std::collections::BTreeSet<&String> =
-        ours.inputs.keys().chain(theirs.inputs.keys()).collect();
-    for k in keys {
-        let (a, b) = (theirs.inputs.get(k), ours.inputs.get(k));
-        if a != b {
-            out.push(format!(
-                "input {k}: the abstract build has {a:?}, the template graph {b:?}"
-            ));
-        }
-    }
-    Ok(out)
 }
 
 /// The compile of `dast`, checked as a load checks it.

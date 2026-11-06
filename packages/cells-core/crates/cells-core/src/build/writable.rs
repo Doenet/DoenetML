@@ -3,8 +3,6 @@
 //! over the cells the slots will make, from a cell to where a request on it
 //! goes. A value slot it reaches (a literal or a default) is writable; a
 //! fixed one ends it, and so does a cell a `fixed` holds by a constant flag.
-//! When the view folds iterations, the walk also follows a slot's later
-//! sources.
 
 use super::*;
 

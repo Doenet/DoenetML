@@ -14,26 +14,20 @@ impl<'c> Builder<'c> {
     ) -> Result<Vec<ChildEntry>> {
         let c = self.compiled.plans;
         let def = &c.choices[cid.index()];
-        let every_option = !def.reactive && self.view.options() == Options::Every;
         let mut inst = ChoiceInst {
             comp,
             scopes: Vec::new(),
             branch_of: Vec::new(),
             iface_comps: Vec::new(),
-            every_option,
         };
         let mut kids = Vec::new();
         if !def.reactive {
-            let picks = if every_option {
-                (0..def.branches.len()).collect()
-            } else {
-                let (t, e) = def.at;
-                self.pick(
-                    def,
-                    scope,
-                    c.templates[t.index()].sealed.elems[e.index()].key,
-                )
-            };
+            let (t, e) = def.at;
+            let picks = self.pick(
+                def,
+                scope,
+                c.templates[t.index()].sealed.elems[e.index()].key,
+            );
             // A pick's scope is its option and which pick of it this is
             // (ADR 0017), so its state is the option's whatever order the
             // options were drawn in.
@@ -46,15 +40,6 @@ impl<'c> Builder<'c> {
                 kids.extend(self.expand(def.branches[b], s, comp)?);
                 inst.scopes.push(s);
                 inst.branch_of.push(b);
-            }
-            if every_option {
-                for name in &def.used {
-                    let component_type = def.iface[name].0;
-                    let members = self.members(def, name, &inst);
-                    let ic = self.stand_in(component_type, &members, comp, scope);
-                    self.stand_ins.insert(ic, members);
-                    inst.iface_comps.push(ic);
-                }
             }
         } else {
             let choice = self.slot(comp, crate::components::prop::conditional_content::CHOICE);
@@ -130,38 +115,10 @@ impl<'c> Builder<'c> {
         w
     }
 
-    /// The abstract build's stand-in for a whole pick of select `c` built
-    /// with every option, whose options each hold one component of one
-    /// type: it reads each option's component.
-    pub(in crate::build) fn whole_pick(&mut self, c: CompIdx) -> Result<CompIdx> {
-        if let Some(&w) = self.pick_stand_ins.get(&c) {
-            return Ok(w);
-        }
-        let scopes = self.choice_insts[self.comp_choice[&c]].scopes.clone();
-        let members: Vec<CompIdx> = scopes
-            .iter()
-            .map(|&s| self.iteration_components(c, s)[0])
-            .collect();
-        let component_type = self.components.component_type[members[0].index()];
-        let scope = self.components.scope[c.index()];
-        let w = self.stand_in(component_type, &members, c, scope);
-        self.stand_ins.insert(w, members.clone());
-        self.stand_in_sources(w, &members, None)?;
-        self.pick_stand_ins.insert(c, w);
-        Ok(w)
-    }
-
     /// Sources and kinds of stand-in `w` for `members`: each prop chooses
-    /// among theirs by `choice` when it is given (a reactive choice), else
-    /// only reads them (the abstract build's stand-in for a pick). The
-    /// members hold one kind of value per prop, which the stand-in holds
-    /// too.
-    fn stand_in_sources(
-        &mut self,
-        w: CompIdx,
-        members: &[CompIdx],
-        choice: Option<SlotId>,
-    ) -> Result<()> {
+    /// among theirs by `choice`. The members hold one kind of value per
+    /// prop, which the stand-in holds too.
+    fn stand_in_sources(&mut self, w: CompIdx, members: &[CompIdx], choice: SlotId) {
         let component_type = self.components.component_type[w.index()];
         let symbolic = members.iter().any(|&m| self.is_symbolic(m));
         let n = byte(members.len());
@@ -180,17 +137,8 @@ impl<'c> Builder<'c> {
             // (ADR 0032, `compile/seal/types.rs`).
             let kind = self.value_type(branch_slots[0]);
             let s = self.slot(w, pi);
-            self.sources[s.index()] = match choice {
-                None => {
-                    // An edge to the prop in every option.
-                    let scope = self.components.scope[w.index()];
-                    self.reads(&branch_slots, scope)
-                }
-                Some(choice) => {
-                    let inputs: Vec<SlotId> = std::iter::once(choice).chain(branch_slots).collect();
-                    self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs)
-                }
-            };
+            let inputs: Vec<SlotId> = std::iter::once(choice).chain(branch_slots).collect();
+            self.sources[s.index()] = self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs);
             if kind == ValueType::Text {
                 self.typed_slots.push((s, ValueType::Text));
             }
@@ -199,7 +147,6 @@ impl<'c> Builder<'c> {
             let s = self.slot(w, pi);
             self.typed_slots.push((s, ValueType::Math));
         }
-        Ok(())
     }
 
     /// A select's picks: option indices drawn from a stream that depends on
@@ -234,24 +181,18 @@ impl<'c> Builder<'c> {
         picks
     }
 
-    /// Sources of the interface components of built choices: each public
-    /// prop chooses among the branches' cells by the choice cell (a reactive
-    /// choice), or only reads them (a select built with every option).
+    /// Sources of the interface components of reactive choices: each
+    /// public prop chooses among the branches' cells by the choice cell.
     /// Must run before instance sources.
-    pub(in crate::build) fn choice_sources(&mut self) -> Result<()> {
+    pub(in crate::build) fn choice_sources(&mut self) {
         for i in 0..self.choice_insts.len() {
             let inst = self.choice_insts[i].clone();
-            let choice = (!inst.every_option)
-                .then(|| self.slot(inst.comp, prop::conditional_content::CHOICE));
+            let choice = self.slot(inst.comp, prop::conditional_content::CHOICE);
             for &ic in &inst.iface_comps {
                 let members = self.stand_ins[&ic].clone();
-                if let Err(e) = self.stand_in_sources(ic, &members, choice) {
-                    self.fail_at_comp(inst.comp);
-                    return Err(e);
-                }
+                self.stand_in_sources(ic, &members, choice);
             }
         }
-        Ok(())
     }
 
     /// Where the interface name with name-table id `id` of choice `cid`

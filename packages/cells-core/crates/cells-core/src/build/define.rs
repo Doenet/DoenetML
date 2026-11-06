@@ -1,16 +1,15 @@
 //! Define: merge aliased slots into the cells they will share, orient the
 //! author's operators, check the prefill rule, and class every cell
 //! (ADR 0035). What define makes, [`Defined`], is what the walks, the
-//! input signature, the abstract build's findings and emit read; a rule
+//! live walk and emit read; a rule
 //! about what a cell *is* belongs here or earlier, never in emit.
 
 use super::*;
 
 /// What define made of the resolved slots: the cells they will make, and
-/// each slot's class (ADR 0018, ADR 0019). The abstract build classes by
-/// its own walks and gives each port what it found; every stamped build
-/// classes by the ports' attributes, so a slot's class is the same in
-/// every build. The caller chooses, so define has no branch for it.
+/// each slot's class (ADR 0018, ADR 0019), by the ports' attributes,
+/// which the compile found over the template graph, so a slot's class is
+/// the same in every build.
 pub(in crate::build) struct Defined {
     pub(in crate::build) slot_cells: SlotCells,
     /// Per slot, whether it is a given value a student's action can
@@ -21,18 +20,6 @@ pub(in crate::build) struct Defined {
 }
 
 impl Defined {
-    #[cfg(feature = "testing")]
-    /// The definitions classed by `b`'s own walks: the abstract build's.
-    pub(in crate::build) fn by_walk(b: &Builder<'_>, slot_cells: SlotCells) -> Defined {
-        let essential = b.writable_slots(&slot_cells);
-        let live = b.live_slots(&slot_cells);
-        Defined {
-            slot_cells,
-            essential,
-            live,
-        }
-    }
-
     /// The definitions classed by the ports' attributes, which the compile
     /// keeps: every stamped build's.
     pub(in crate::build) fn by_attributes(b: &Builder<'_>, slot_cells: SlotCells) -> Defined {
@@ -84,22 +71,14 @@ impl<'c> Builder<'c> {
         }
 
         let cell_of: Vec<SlotId> = SlotId::below(n).map(|s| uf.find(s)).collect();
-        // A cell of aliases with no definer is a loop of aliases. When the
-        // view folds iterations it may be a recurrence folded onto itself,
-        // which the cycle check has judged; it becomes a constant here. In a
-        // stamped build it is a gap in the check (ADR 0014): define's one
-        // read of the view, the defensive kind.
+        // A cell of aliases with no definer is a loop of aliases: a gap in
+        // the compile's cycle check (ADR 0014), the defensive kind.
         for (s, &root) in cell_of.iter().enumerate() {
-            let root = root.index();
-            if def[root] == SlotId::NONE {
-                if !self.view.folds_iterations() {
-                    return Err(Failure {
-                        error: Error::Cycle(self.slot_label(SlotId::from_index(s))),
-                        node: None,
-                    });
-                }
-                self.sources[s] = BuiltSource::Const(f64::NAN);
-                def[root] = SlotId::from_index(s);
+            if def[root.index()] == SlotId::NONE {
+                return Err(Failure {
+                    error: Error::Cycle(self.slot_label(SlotId::from_index(s))),
+                    node: None,
+                });
             }
         }
         let slot_cells = SlotCells::new(self, cell_of, def);

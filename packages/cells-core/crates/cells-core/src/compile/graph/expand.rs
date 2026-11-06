@@ -1,4 +1,4 @@
-//! What the abstract build makes after it stamps the templates, before
+//! What the stamping makes after it stamps the templates, before
 //! any port has its reads (`Builder::resolve_all`): copies of a list type
 //! take their referent's ports, `$ref` children are placed, collects
 //! gather their copies and count them, and point lists get their points.
@@ -341,7 +341,7 @@ impl<'c> Stamp<'c> {
         if flags_of.is_empty() {
             return;
         }
-        // Every held port, in the order the abstract build numbers its
+        // Every held port, in the order a build numbers their
         // slots.
         let mut held: Vec<(GraphNode, (TemplateId, ElemId))> = Vec::new();
         for &(t, e) in flags_of.keys() {
@@ -396,7 +396,7 @@ impl<'c> Stamp<'c> {
     }
 
     /// The draw of a `<selectFromSequence>`, element `e` of template `t`,
-    /// below `count`: from the seed the abstract build stamps with (0),
+    /// below `count`: from the seed the graph stands for every seed by (0),
     /// mixed with the element's stable key and the stable levels of the
     /// scopes around it, as `Builder::seeded_stream` draws it.
     pub(super) fn drawn(&self, t: TemplateId, e: ElemId, count: u32) -> u32 {
@@ -419,7 +419,7 @@ impl<'c> Stamp<'c> {
     }
 
     /// The position of the scope template `t` is stamped as, as the
-    /// abstract build numbers it: 1 for its one iteration of a repeat, a
+    /// graph numbers it: 1 for its one iteration of a repeat, a
     /// case's position, an option's pick.
     pub(super) fn position(&self, t: TemplateId) -> i64 {
         let Some((pt, pe)) = self.c.plans.templates[t.index()].parent else {

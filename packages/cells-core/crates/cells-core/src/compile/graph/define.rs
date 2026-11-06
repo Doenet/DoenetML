@@ -1,5 +1,5 @@
-//! Define over the template graph (ADR 0032, step 8; ADR 0035), as the
-//! abstract build defines its slots (`build/define.rs`): aliased nodes
+//! Define over the template graph (ADR 0032, step 8; ADR 0035), as a
+//! build defines its slots (`build/define.rs`): aliased nodes
 //! merged into the cells they will share, each cell's defining node, the
 //! flags that hold each cell, the author's binary operators oriented (ADR
 //! 0026), the prefill rule, and the two walks, writable (ADR 0018) and

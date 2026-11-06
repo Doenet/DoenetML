@@ -1,4 +1,4 @@
-//! Math in the template graph, as the abstract build stamps it
+//! Math in the template graph, as a build stamps it
 //! (`build/expand/math.rs`): an expression instantiated per template, its
 //! leaves the nodes they name, shared by class within a template for an
 //! element no hold makes its own (ADR 0033); numeric math lowered to

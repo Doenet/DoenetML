@@ -2,8 +2,7 @@
 //! ADR 0032 step 8): a warning for each interactive prop whose request
 //! would be refused and a note for each whose request would be dropped,
 //! once per template element, by the rule the tick applies to the program
-//! (`program::refuse`), as the abstract build warns of them
-//! (`build/refuse.rs`).
+//! (`program::refuse`).
 
 use super::define::Defined;
 use super::share::FxMap;
@@ -130,7 +129,7 @@ impl Graph for Cells<'_> {
 
 /// Requests the program cannot land (ADR 0026), once per template
 /// element: each interactive prop's cell once, with the first component
-/// that names it, in the order the abstract build makes components.
+/// that names it, in the order the graph lists components (`TemplateGraph::comps`).
 pub(crate) fn refuse_warnings(
     g: &TemplateGraph,
     d: &Defined,
@@ -197,9 +196,9 @@ pub(crate) fn refuse_warnings(
     warnings
 }
 
-/// How node `n` is named in a warning or an error, as the abstract build
-/// names its slot: its component, by name or by its tag and index in the
-/// abstract build's table, and its prop.
+/// How node `n` is named in a warning or an error: its component, by
+/// name or by its tag and position in `TemplateGraph::comps`, and its
+/// prop.
 pub(super) fn slot_label(g: &TemplateGraph, c: CompiledRef<'_>, n: GraphNode) -> String {
     let owner = g.comps.iter().enumerate().find(|(_, comp)| {
         !comp.base.is_none()

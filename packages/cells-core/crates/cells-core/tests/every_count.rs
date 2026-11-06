@@ -1,9 +1,11 @@
 //! A document that loads with the cycle check on has no dependency loop at
 //! any iteration count, and its structure settles at every count a student
-//! can reach, checked independently of the abstract build.
+//! can reach, checked independently of the compile's check, and every
+//! dependency of every such build is one the template graph has (ADR 0032,
+//! step 8), with a label its iterations satisfy.
 //!
 //! Every golden document, `sir.doenet`, every generated fixture (skipped
-//! when absent) and [`HOLES`] is loaded at four seeds, and each repeat is
+//! when absent), [`HOLES`] and [`CONSTRUCTS`] is loaded at four seeds, and each repeat is
 //! stamped and requested at 0 to 4 iterations, one at a time and all
 //! together. No build may fail with a cycle, an unsettled structure, or an
 //! error the load did not report.
@@ -18,7 +20,7 @@ use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::session::{Counts, MathStore, Session};
 use cells_core::testing::test_utils::{dast_json, repo_root};
-use cells_core::testing::{AbstractEdges, abstract_edges, par_map, uncovered};
+use cells_core::testing::{GraphEdges, graph_edges, par_map, uncovered};
 use cells_core::{Built, Compiled, Document, Error, LoadOptions, Request};
 
 const SEEDS: [u64; 4] = [0, 1, 2, 3];
@@ -147,6 +149,212 @@ const STRUCTURE_VALUES: &[(&str, &str)] = &[
     ),
 ];
 
+/// Documents for what the golden set has little of, which the template
+/// graph was held to the abstract build on (ADR 0032, step 8): references
+/// into and across iterations, by a cell, through interfaces and whole
+/// picks, a first-iteration specialization, scores under cases, repeats
+/// and copies, `$ref` children, collects, point lists, holds and copies of
+/// a list type.
+const CONSTRUCTS: &[(&str, &str)] = &[
+    (
+        "neighbors",
+        r#"<numberInput name="n" value="3"/>
+        <repeatForSequence name="r" length="$n" indexName="i">
+          <number name="x">$r[$i-1].x + 1</number>
+          <number name="y">$r[2].x</number>
+        </repeatForSequence>
+        <number name="z">$r[1].x + $r[$n].y</number>"#,
+    ),
+    (
+        "nested",
+        r#"<numberInput name="n" value="2"/>
+        <repeatForSequence name="o" length="$n" indexName="i">
+          <repeatForSequence name="r" length="$i" indexName="j">
+            <number name="x">$i + $j + $o[$i-1].r[$j].x</number>
+          </repeatForSequence>
+        </repeatForSequence>
+        <number name="y">$o[2].r[1].x</number>"#,
+    ),
+    (
+        "iterate",
+        r#"<numberInput name="n" value="3"/>
+        <repeatForSequence name="r" length="$n" indexName="i">
+          <number name="x">$i</number>
+        </repeatForSequence>
+        <math name="m">$r[1].x + y</math>
+        <math name="s">$m + 1</math>"#,
+    ),
+    (
+        "conditional",
+        r#"<booleanInput name="b"/>
+        <conditionalContent name="cc">
+          <case condition="$b"><number name="x">1</number></case>
+          <else><number name="x">2</number></else>
+        </conditionalContent>
+        <number name="y">$cc.x + 1</number>"#,
+    ),
+    (
+        "picks",
+        r#"<select name="s" numToSelect="2">
+          <option><number name="a">1</number></option>
+          <option><number name="a">2</number></option>
+          <option><number name="a">3</number></option>
+        </select>
+        <number name="x">$s[1].a + $s[2].a</number>
+        <number name="w">$s[1]</number>"#,
+    ),
+    (
+        "scored",
+        r#"<booleanInput name="b"/>
+        <section name="s0" aggregateScores>
+          <mathInput name="m"/><answer name="a" response="$m">1</answer>
+          <conditionalContent name="cc">
+            <case condition="$b">
+              <section name="s1" aggregateScores><answer name="a2" response="$m">2</answer></section>
+            </case>
+            <else><section name="s2"/></else>
+          </conditionalContent>
+          <section name="s3"/>
+        </section>
+        <section name="s4"/>"#,
+    ),
+    (
+        "scored-repeat",
+        r#"<numberInput name="n" value="2"/>
+        <section name="s" aggregateScores>
+          <repeatForSequence name="r" length="$n">
+            <section name="t"/><mathInput name="m"/><answer name="a" response="$m">1</answer>
+          </repeatForSequence>
+          <section name="u"/>
+        </section>"#,
+    ),
+    (
+        "ref-children",
+        r#"<number name="x">2</number><mathInput name="mi"/>
+        <p>$x and $mi and $x.value</p>
+        <numberInput name="n" value="2"/>
+        <repeatForSequence name="r" length="$n"><p>$x</p></repeatForSequence>
+        <number name="y">$r[1].value</number>"#,
+    ),
+    (
+        "collect-index",
+        r#"<numberInput name="n" value="1"/>
+        <repeatForSequence name="r" length="$n"><number name="x">2</number></repeatForSequence>
+        <collect name="c" from="$r" componentType="number"/>
+        <number name="y">$c[2] + $c[$n]</number>
+        <number name="k">$c.count</number>"#,
+    ),
+    (
+        "point-list",
+        r#"<graph>
+          <polygon name="pg" vertices="(0,0) (1,0) (0,1)"/>
+          <pointList name="l" extend="$pg.vertices"/>
+          <point name="q">($l[2].x, 3)</point>
+        </graph>"#,
+    ),
+    (
+        "held",
+        r#"<booleanInput name="f"/>
+        <number name="v">3</number>
+        <number name="w" extend="$v" fixed="$f"/>
+        <number name="u" extend="$v" fixed="$f"/>"#,
+    ),
+    (
+        "list-copy",
+        r#"<graph>
+          <polygon name="pg" vertices="(0,0) (1,0) (0,1)"/>
+          <polygon name="pg2" extend="$pg"/>
+        </graph>"#,
+    ),
+    (
+        "list-points",
+        r#"<graph>
+          <polygon name="pg" vertices="(0,0) (1,0) (0,1)"/>
+          <pointList name="l" extend="$pg.vertices"/>
+          <point name="q" extend="$l[3]"/>
+          <pointList name="m" extend="$l"/>
+        </graph>
+        <number name="j">$q.y</number>"#,
+    ),
+    (
+        "ref-child-iterations",
+        r#"<numberInput name="n" value="2"/>
+        <repeatForSequence name="r" length="$n">$x</repeatForSequence>
+        <number name="x">3</number>
+        <number name="y" extend="$r[1]"/>
+        <p>$r[1]</p>"#,
+    ),
+    (
+        // An indexed `$ref` child is placed after the collects, which
+        // gather it as the placeholder it still is: nothing.
+        "indexed-ref-child-uncollected",
+        r#"<numberInput name="n" value="2"/>
+        <repeatForSequence name="r" length="$n" indexName="i">
+          <number name="x">$i</number>
+          <group name="g">$r[$i-1].x</group>
+          <collect name="c" from="$g" componentType="number"/>
+          <number name="y">$c[1] + 1</number>
+        </repeatForSequence>"#,
+    ),
+    (
+        "scored-copies",
+        r#"<section name="s" aggregateScores>
+          <group name="g"><mathInput name="m"/><answer name="a" response="$m">1</answer></group>
+          <p>$a</p>
+          <collect name="c" from="$g" componentType="answer"/>
+        </section>"#,
+    ),
+    (
+        "held-alike",
+        r#"<number name="v">3</number>
+        <number name="w" extend="$v" fixed="true"/>
+        <number name="u" extend="$v" fixed="true"/>
+        <number name="x" extend="$w" fixed="true"/>"#,
+    ),
+    (
+        // A drag on `p` writes `b`, not the held `c`: only when `$c + $b`
+        // is turned round.
+        "oriented",
+        r#"<number name="c" fixed>3</number>
+        <number name="b">1</number>
+        <graph><point name="p">($c + $b, 0)</point></graph>"#,
+    ),
+    (
+        // `n` is read only through the seed.
+        "seeded-from-setup",
+        r#"<setup><number name="n">5</number></setup>
+        <mathInput name="mi" prefill="$n"/>"#,
+    ),
+    (
+        // A drag on the fixed point stops at it: `a` is not written.
+        "held-copy",
+        r#"<number name="a">1</number>
+        <graph><point name="p" fixed>($a, 2)</point></graph>"#,
+    ),
+    (
+        // An answer's response, symbolic math over symbolic math: its
+        // leaf is a math leaf in the signature's template.
+        "math-over-math",
+        r#"<math name="m">x + 1</math><math name="m2">$m + y</math>
+        <answer name="a" response="$m2">x</answer>"#,
+    ),
+    (
+        // A drawn bound: the point's domain holds the value drawn.
+        "drawn-bound",
+        r#"<selectFromSequence name="s" from="1" to="100"/>
+        <graph xmax="$s"><point name="p">(1,2)</point></graph>"#,
+    ),
+    (
+        "points",
+        r#"<graph>
+          <point name="p">(1,2)</point>
+          <point name="q">($p.x + 1, $p.y)</point>
+          <line name="l" through="$p $q"/>
+        </graph>
+        <number name="k">$l.slope</number>"#,
+    ),
+];
+
 #[test]
 fn no_count_closes_a_loop_the_load_did_not_reject() {
     let docs = documents();
@@ -205,9 +413,19 @@ fn documents() -> Vec<(String, Vec<u8>)> {
             HOLES
                 .iter()
                 .chain(STRUCTURE_VALUES)
+                .chain(CONSTRUCTS)
                 .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
         )
         .collect();
+    // More items than one choose reads, by a cell: chooses in chunks.
+    let many: String = (1..=70).map(|k| format!("<number>{k}</number>")).collect();
+    let src = format!(
+        r#"<group name="g">{many}</group>
+        <collect name="c" from="$g" componentType="number"/>
+        <numberInput name="n" value="1"/>
+        <number name="y">$c[$n] + $c[65]</number>"#
+    );
+    out.push(("many-items".to_string(), dast_json(&src).into_bytes()));
     let mut generated: Vec<_> = std::fs::read_dir(root.join("fixtures"))
         .unwrap()
         .flatten()
@@ -247,13 +465,13 @@ fn stem(p: &Path) -> String {
 
 /// A document with a repeat that loads at one seed, and what its sweep
 /// needs: the load's compile, every element built like a repeat, and the
-/// abstract build. Not the document, which stays on its thread.
+/// template graph's edges. Not the document, which stays on its thread.
 struct Load<'a> {
     name: String,
     bytes: &'a [u8],
     seed: u64,
     compiled: Arc<Compiled>,
-    edges: AbstractEdges,
+    edges: GraphEdges,
     nodes: BTreeSet<NodeId>,
 }
 
@@ -310,8 +528,7 @@ fn loads<'a>(name: &str, bytes: &'a [u8]) -> Vec<Load<'a>> {
             .compiled
             .clone()
             .expect("a document with a repeat");
-        let edges =
-            abstract_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
+        let edges = graph_edges(&compiled);
         out.push(Load {
             name: name.to_string(),
             bytes,
@@ -417,11 +634,11 @@ fn structural(e: &str) -> bool {
     e.starts_with(&cycle) || e.starts_with(&unchecked)
 }
 
-/// Every dependency of the build at `counts` must be one the abstract
-/// build's graph has, with a label its iterations satisfy.
+/// Every dependency of the build at `counts` must be one the template
+/// graph has, with a label its iterations satisfy.
 fn covered(
     what: &str,
-    edges: &AbstractEdges,
+    edges: &GraphEdges,
     compiled: &Compiled,
     session: &Session,
     counts: &Counts,
@@ -430,16 +647,17 @@ fn covered(
         .unwrap_or_else(|e| panic!("{what}: the build: {e}"));
     assert!(
         missing.is_empty(),
-        "{what}: {} dependencies the abstract build does not have, first: {}",
+        "{what}: {} dependencies the template graph does not have, first: {}",
         missing.len(),
         missing[0]
     );
 }
 
 // A document without a repeat has one build per seed, which must be
-// covered too: a select's draw is what the abstract build stands for there.
+// covered too: a select's draw is what the template graph stands for
+// there.
 #[test]
-fn the_abstract_build_covers_every_build_of_a_document_without_repeats() {
+fn the_template_graph_covers_every_build_of_a_document_without_repeats() {
     let docs = documents();
     let checked = par_map(&docs, |(name, bytes)| {
         let dast = cells_core::dast::load(bytes).unwrap();
@@ -449,8 +667,7 @@ fn the_abstract_build_covers_every_build_of_a_document_without_repeats() {
         if has_repeats(&dast) {
             return false; // `stamp` covers these at every count
         }
-        let edges =
-            abstract_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
+        let edges = graph_edges(&compiled);
         for seed in SEEDS {
             let session = Session::new(seed);
             covered(
@@ -473,7 +690,8 @@ fn has_repeats(dast: &Dast) -> bool {
 }
 
 /// A value slot is essential when a student's action can write it, and
-/// the abstract build's record of those slots stands for every build. For
+/// the compile's record of those slots, found over the template graph,
+/// stands for every build. For
 /// every document, seed, and repeat count from 0 to 4:
 ///
 /// - every slot a build's own walk finds writable is one the record holds;

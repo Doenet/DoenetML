@@ -2,7 +2,7 @@
 //! source and the ports it reads. It is a worklist fixpoint from `Num` up
 //! over every template at once; through a choice a port's type is the join
 //! of the branches'. A reference is followed to the ports it names as far
-//! as the templates tell, and where the abstract build is sure to land on a
+//! as the templates tell, and where every build is sure to land on a
 //! component, the reference's shape (one cell, a point's coordinates, no
 //! text inside math, one kind of value per interface name) is checked
 //! here.
@@ -27,8 +27,8 @@ enum Walk {
     Missing,
 }
 
-/// What a reference names: where it stands, and whether the abstract
-/// build is sure to land on a component there (an index into a collect
+/// What a reference names: where it stands, and whether every build is
+/// sure to land on a component there (an index into a collect
 /// that gathers from no repeat, or into a point list, may be past the end
 /// at every count, which the build reads as the missing value and checks
 /// nothing of).
@@ -387,8 +387,8 @@ impl<'s, 'a> Types<'s, 'a> {
         Ok(())
     }
 
-    /// The type of the one cell `p` names, checked to be one where the
-    /// abstract build is sure to land.
+    /// The type of the one cell `p` names, checked to be one where every
+    /// build is sure to land.
     fn one_cell(
         &mut self,
         t: TemplateId,
@@ -905,7 +905,7 @@ struct Cells {
     types: Vec<PortType>,
     /// Each candidate's table port when the reference names one.
     at: Vec<(TemplateId, ElemId, usize)>,
-    /// Whether the abstract build is sure to land on a component.
+    /// Whether every build is sure to land on a component.
     lands: bool,
     /// Whether every candidate's cell count is known to the compile.
     known: bool,

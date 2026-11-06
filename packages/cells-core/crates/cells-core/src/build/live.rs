@@ -2,10 +2,9 @@
 //! roots, the slots of every prop that is an output or that the core reads
 //! itself (a rendered prop, a score, an input, a prop an action reads, a
 //! repeat's count, what snapping reads), and goes backward over the cells
-//! the slots will make to what each needs. A cell it reaches is live. When
-//! the view folds iterations, the walk also follows a slot's later sources.
-//! The abstract build gives each port what it finds, and every other build
-//! reads the ports' attributes.
+//! the slots will make to what each needs. A cell it reaches is live. A
+//! build reads which cells are live from the ports' attributes, which the
+//! template graph's walk found; this walk is the tests' check of them.
 
 use super::*;
 

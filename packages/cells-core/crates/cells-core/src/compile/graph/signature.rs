@@ -1,13 +1,12 @@
 //! The input signature (ADR 0017) read off the template graph's
-//! definitions (ADR 0032 step 8, ADR 0035), as `build/signature.rs` reads
-//! it off the abstract build's: what students can act on, and what decides
+//! definitions (ADR 0032 step 8, ADR 0035), its types in
+//! `build/signature.rs`: what students can act on, and what decides
 //! what each input shows and whether it exists or can be acted on, named
 //! by stable keys and literals only. An input in any iteration or branch is
 //! covered by its template's.
 //!
-//! The compile has no math engine; the signature makes one of its own, as
-//! the abstract build did, for what a math value or a symbolic template
-//! hashes as: its text.
+//! The compile has no math engine; the signature makes one of its own, for
+//! what a math value or a symbolic template hashes as: its text.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -361,8 +360,8 @@ impl<'a, 'c> Signer<'a, 'c> {
         }
     }
 
-    /// The text of a math value, as the engine prints the handle the
-    /// abstract build made of it.
+    /// The text of a math value, as the engine prints the handle a build
+    /// makes of it.
     fn math_text(&mut self, origin: &MathOrigin) -> String {
         let h = match origin {
             MathOrigin::Tree(tree) => self.engine.import(tree),

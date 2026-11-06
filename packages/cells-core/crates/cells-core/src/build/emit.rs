@@ -1,7 +1,7 @@
 //! Emit: number the cells (constants, the pooled ones first, then
 //! essential, then derived), bind operators to instructions, seed values
 //! and make the build, from the definitions (`define.rs`). Emit reads no
-//! view (ADR 0035): a stamped build is the only build that gets here.
+//! structure (ADR 0035): what it makes follows from the definitions.
 
 use super::*;
 
@@ -269,7 +269,7 @@ impl<'c> Builder<'c> {
             .map(|s| slot_cell[slot_cells.cell_of(s).index()])
             .collect();
         // The live walk follows what a cell needs, so a live cell needs no
-        // dead one; the record, made from the abstract build's walk, keeps
+        // dead one; the record, made from the template graph's walk, keeps
         // that in every build (`tests/live.rs`). A build that breaks it
         // would compute from NaN, or hold a cell by a flag never computed,
         // so it fails instead.
@@ -732,21 +732,6 @@ impl<'c> Builder<'c> {
             }
             inner = self.scopes[inner].0;
         }
-    }
-
-    #[cfg(feature = "testing")]
-    /// Component `c`'s element's stable key, `NONE` for one no element
-    /// makes (a case).
-    pub(in crate::build) fn comp_key(&self, c: CompIdx) -> ElemKey {
-        let i = self.comp_instance[c.index()];
-        if i.is_none() {
-            return ElemKey::NONE;
-        }
-        let inst = self.instances[i.index()];
-        self.compiled.plans.templates[inst.template.index()]
-            .sealed
-            .elems[inst.elem.index()]
-        .key
     }
 
     /// A component slot's template and template slot (the element's slot

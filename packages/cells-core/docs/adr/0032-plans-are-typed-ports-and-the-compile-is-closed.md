@@ -1,7 +1,7 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done,
-and the first five parts of step 8; see Migration. Builds on
+Status: proposed 2026-11-03. Steps 1 to 8 of the Migration are done;
+see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -1010,9 +1010,53 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
       number, unrecorded math text, an iteration indexed again, an
       ambiguous or unknown name, an unknown prop, items of different
       sizes, a path too deep) no document reaches past the planners,
-      and they stay as the build's were, defensive. The compile still
-      reads the abstract build's resolve; the second piece reads the
-      graph's and removes the abstract build.
+      and they stay as the build's were, defensive. (One of the
+      seventeen, a component named by a cell in an attribute, reached
+      nothing; it is now a component by a cell as a child, which does.)
+
+      The second, done: the abstract build goes. The check stamps the
+      graph once and reads its failure (`template_graph_checked`; the
+      signature's `template_graph_with_parents` likewise), and the span
+      a load times as its check is `check`, not `abstract build`.
+      `build/abstract_build.rs`, `build/view.rs` with `View`, `Plans`,
+      `Options` and `CollectCount`, and `build/refuse.rs` are gone; a
+      build reads its `Counts` itself. With the view went what existed
+      for folding: `later_sources` and `Plans::Both` (a specialized
+      port has the one plan of its iteration), `labels`,
+      `record_label`, `leaf` and every `Label` the build's walk
+      carried, `pick_stand_ins`, `whole_pick`, `picks_alike` and
+      `ChoiceInst::every_option` (a select draws its picks),
+      `document_slots`, a collect's count over its repeats' counts
+      (`gathered_counts`), a credit found counted by its depth, a loop
+      of aliases made a constant (now always the defensive
+      `Unchecked`), the orientation's and the walks' later sources, and
+      the builder-side signer with `Defined::by_walk`. `stand_ins` and
+      `counted_slots` stay: a conditional content's interface names
+      are stand-ins in every build, and a prefill and a seed read the
+      counted slots, which a build now takes from the ports' attributes
+      alone (`is_counted`). The tests that held the graph to the
+      abstract build (its graph, definitions, attributes, warnings,
+      prefills, failures and signature) went with it, and so did
+      `testing::{template_graph_agreement, definitions_disagreement,
+      attributes_disagreement, warnings_disagreement,
+      define_failures_agree, resolve_failures_agree,
+      signature_disagreement}`. Their documents stay:
+      `tests/every_count.rs` takes the construct documents and the
+      chunked choose, and holds every build of them at every count and
+      seed to the template graph's edges (`testing::graph_edges`, in
+      place of `abstract_edges`); `tests/template_graph.rs` holds the
+      refusal, prefill and failure documents to the diagnostics the
+      check gave each when the two agreed, word for word, and the math
+      over 260 references to its refusal. Over the 528 documents of
+      the tests' sources, the golden set and `sir.doenet`, every
+      diagnostic, compile outcome and input signature is the same
+      before and after. `tests/diagnostics.rs`
+      is unchanged and the golden diff is identical, programs
+      included. `load-diff.sh` against ac3aa16 puts a load at 0.82 to
+      1.01 times the base's (0.89 to 1.01 at 10,000 elements): the
+      check no longer expands and resolves the document a second time.
+      `tick-diff.sh` is unchanged (every instruction count and value the
+      same; 0.80 to 1.10, the programs being identical).
 9. **Capped lists.** `List(T, cap)` with a length port, for
    `<intersection>` first, as the test of the form the last section
    needs. The spreadsheet operator and the pool for `addChildren` are

@@ -150,7 +150,7 @@ a sticky group reads.
 
 **Live cell** — A root, or a cell some root reads, through aliases and
 every input of the instructions that compute it. The compile finds the live template
-slots once, through the abstract build, as a *port attribute*
+slots once, over the template graph, as a *port attribute*
 (`PortAttrs::LIVE`), and every build reads it. Every essential cell is live. A cell that is not live is **dead**:
 a load with `LoadOptions::prune`, the default, gives it no cell, and every
 prop that would name it names the one **dead cell** instead, a constant NaN
@@ -324,7 +324,7 @@ _Avoid_: literal (a literal is text written in the source)
 which follows the iteration counts (ADR 0028): a collect's count from a
 repeat, a section's number after one, the credit of a section whose answers
 are all in repeats. A derived cell in every build, holding the number its build
-counted; the abstract build finds which template slots hold one, a *port
+counted; the compile's check finds which template slots hold one, a *port
 attribute* (`PortAttrs::COUNTED`), since at a count with nothing to count a
 build cannot tell. Never a constant.
 
@@ -396,7 +396,7 @@ nothing overrides it, and a copy gets its own. One over a collection that
 crosses a repeat is a counted value.
 
 **Compile** — The once-per-load stage (ADR 0015): the source made into
-templates and plans (*plan*), checked through the abstract build (*check*),
+templates and plans (*plan*), checked over the template graph (*check*),
 with every element that fails boxed. Its product, `Compiled`, is what every
 build stamps, and depends on the source alone, not the seed (ADR 0014).
 
@@ -409,9 +409,11 @@ element's plan, from the source and what outlining and parsing made,
 never from another element's plan. *Link*: what ties plans together once
 all are made (shared state; boxing what read a boxed referent). *Seal*:
 what reads every plan and changes none (choice interfaces, arity, keys,
-slot offsets). *Abstract build*: a build through the abstract view as far
-as define, its graph checked for loops at any count; it makes no program
-(ADR 0035). They are not called passes: a *pass* is one build while the
+slot offsets). *Check*: the template graph, every live template stamped
+once standing for every count and pick, its failures boxed, checked for
+loops at any count, defined and walked; it makes no program (ADR 0035,
+ADR 0032). The abstract build, a build through a view that folded every
+iteration into one, did this until the template graph replaced it. They are not called passes: a *pass* is one build while the
 repeat counts settle.
 
 **Build** — One pass from the compile, the session and iteration counts to
@@ -513,8 +515,8 @@ cell, the student's work.
 sequence before its count can be computed, plus one. Nesting adds one; a
 count that reads a cell inside another repeat's iterations adds one. A
 document loads in depth + 1 build passes, and a rebuild takes at most as
-many. The compile's check bounds the depth from the source (the abstract
-build's depth, which no build exceeds), and load and rebuild allow that many
+many. The compile's check bounds the depth from the source (the template
+graph's depth, which no build exceeds), and load and rebuild allow that many
 passes, so a structure that does not settle in them is a core bug. The
 second kind of link is reported as a warning, since authors can avoid it.
 
@@ -528,8 +530,8 @@ document can reach, not only the count at load. Rejected at load time
 
 **Diagnostic** — An error, warning, info or accessibility finding about the
 document: a kind, a code, its arguments and the node it is about. A
-function of the document text alone, found by the compile's check through
-the abstract build; `diagnose`, which the language server calls, returns the
+function of the document text alone, found by the compile's check over
+the template graph; `diagnose`, which the language server calls, returns the
 same list a load reports. A tick never produces one (ADR 0013).
 
 **Presentation attribute** — An attribute a renderer reads from the

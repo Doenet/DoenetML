@@ -15,7 +15,7 @@
 //! | link | readers of boxed referents boxed, shared state tied |
 //! | seal | choice interfaces, arity, keys, slot offsets, port types |
 //! | share | equal derived ports made aliases, the expression classes |
-//! | check | the abstract build's resolve; over the template graph, the cycle check, structural depth, define, port attributes and warnings |
+//! | check | over the template graph: the elements that cannot be built, the cycle check, structural depth, define, port attributes and warnings |
 //!
 //! An element that fails is boxed (compiled as an `_error` element) where
 //! it fails, and linking boxes the readers of every box to a fixpoint. A
@@ -63,10 +63,6 @@ mod values;
 
 pub use check::diagnose;
 pub(crate) use check::{CompileOutput, compile};
-#[cfg(feature = "testing")]
-pub(crate) use check::{
-    abstract_signature_renamed, define_failures_agree, resolve_failures_agree, signature_renamed,
-};
 pub use plan::Compiled;
 pub(crate) use plan::CompiledRef;
 

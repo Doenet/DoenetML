@@ -31,9 +31,9 @@ impl BuiltSource {
     }
 
     /// What evaluating this source reads, which decides the order slots
-    /// are computed in: the abstract build's graph, which the coverage
-    /// test compares with the template graph. A flag that holds the slot
-    /// is not among them.
+    /// are computed in: the build's graph, which the coverage test holds
+    /// to the template graph. A flag that holds the slot is not among
+    /// them.
     #[cfg(feature = "testing")]
     pub(in crate::build) fn eval_inputs<'a>(
         &self,
@@ -114,12 +114,6 @@ impl SlotCells {
     /// Whether slot `s` defines its cell.
     pub(in crate::build) fn defines(&self, s: SlotId) -> bool {
         self.def(self.cell_of(s)) == s
-    }
-
-    #[cfg(feature = "testing")]
-    /// The flag slots that hold `cell`, in the order the build made them.
-    pub(in crate::build) fn flags(&self, cell: SlotId) -> &[SlotId] {
-        self.flags.get(&cell).map_or(&[], Vec::as_slice)
     }
 
     /// The definition of `slot`'s cell with `source` as what defines it:

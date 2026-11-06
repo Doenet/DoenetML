@@ -13,8 +13,9 @@
 //! The analysis reads a graph through [`Graph`], which asks three things: what
 //! computes a cell and reads which inputs, which inputs an operator's inverse
 //! may write, and whether a constant flag holds a cell. The program answers
-//! them for the tick ([`ProgramGraph`]), and the build's definitions for the
-//! abstract build's warnings (`build::refuse`), so a document refuses the
+//! them for the tick ([`ProgramGraph`]), and the template graph's
+//! definitions for the compile's warnings (`compile/graph/refuse.rs`), so a
+//! document refuses the
 //! requests the load warned of, from one rule (ADR 0015, ADR 0035).
 
 use std::rc::Rc;

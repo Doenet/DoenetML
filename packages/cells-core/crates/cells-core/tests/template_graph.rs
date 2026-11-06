@@ -1,342 +1,47 @@
-//! The compile's template graph (ADR 0032, step 8) against the abstract
-//! build's graph: between element ports, through every other node, the
-//! two have the same dependencies with the same labels, on every document
-//! that compiles, and every document of its own compiles and compares
-//! some.
-//!
-//! The documents are every golden document, `sir.doenet`, every generated
-//! fixture (skipped when absent) and [`DOCUMENTS`].
+//! The compile's findings over the template graph (ADR 0032, step 8) on
+//! documents of its own: the diagnostics the check gives each, word for
+//! word, apart from accessibility's. They are what the check gave when the
+//! template graph was held to the abstract build it replaced, on these and
+//! every other document, and agreed: the refuse warnings, the prefill rule
+//! and the elements that cannot be built. What the graph reads of every
+//! build is `tests/every_count.rs`'s.
 
-use std::path::Path;
+use cells_core::testing::par_map;
+use cells_core::testing::test_utils::dast_json;
 
-use cells_core::testing::test_utils::{dast_json, repo_root};
-use cells_core::testing::{
-    attributes_disagreement, define_failures_agree, definitions_disagreement, par_map,
-    resolve_failures_agree, signature_disagreement, template_graph_agreement,
-    warnings_disagreement,
-};
+/// A document, and the check's diagnostics of it, accessibility's aside.
+type Findings = (&'static str, &'static str, &'static [&'static str]);
 
-/// Documents for what the golden set has little of: references into and
-/// across iterations, by a cell, through interfaces and whole picks, a
-/// first-iteration specialization, scores under cases, repeats and copies,
-/// `$ref` children, collects, point lists, holds and copies of a list type.
-const DOCUMENTS: &[(&str, &str)] = &[
-    (
-        "neighbors",
-        r#"<numberInput name="n" value="3"/>
-        <repeatForSequence name="r" length="$n" indexName="i">
-          <number name="x">$r[$i-1].x + 1</number>
-          <number name="y">$r[2].x</number>
-        </repeatForSequence>
-        <number name="z">$r[1].x + $r[$n].y</number>"#,
-    ),
-    (
-        "nested",
-        r#"<numberInput name="n" value="2"/>
-        <repeatForSequence name="o" length="$n" indexName="i">
-          <repeatForSequence name="r" length="$i" indexName="j">
-            <number name="x">$i + $j + $o[$i-1].r[$j].x</number>
-          </repeatForSequence>
-        </repeatForSequence>
-        <number name="y">$o[2].r[1].x</number>"#,
-    ),
-    (
-        "iterate",
-        r#"<numberInput name="n" value="3"/>
-        <repeatForSequence name="r" length="$n" indexName="i">
-          <number name="x">$i</number>
-        </repeatForSequence>
-        <math name="m">$r[1].x + y</math>
-        <math name="s">$m + 1</math>"#,
-    ),
-    (
-        "conditional",
-        r#"<booleanInput name="b"/>
-        <conditionalContent name="cc">
-          <case condition="$b"><number name="x">1</number></case>
-          <else><number name="x">2</number></else>
-        </conditionalContent>
-        <number name="y">$cc.x + 1</number>"#,
-    ),
-    (
-        "picks",
-        r#"<select name="s" numToSelect="2">
-          <option><number name="a">1</number></option>
-          <option><number name="a">2</number></option>
-          <option><number name="a">3</number></option>
-        </select>
-        <number name="x">$s[1].a + $s[2].a</number>
-        <number name="w">$s[1]</number>"#,
-    ),
-    (
-        "scored",
-        r#"<booleanInput name="b"/>
-        <section name="s0" aggregateScores>
-          <mathInput name="m"/><answer name="a" response="$m">1</answer>
-          <conditionalContent name="cc">
-            <case condition="$b">
-              <section name="s1" aggregateScores><answer name="a2" response="$m">2</answer></section>
-            </case>
-            <else><section name="s2"/></else>
-          </conditionalContent>
-          <section name="s3"/>
-        </section>
-        <section name="s4"/>"#,
-    ),
-    (
-        "scored-repeat",
-        r#"<numberInput name="n" value="2"/>
-        <section name="s" aggregateScores>
-          <repeatForSequence name="r" length="$n">
-            <section name="t"/><mathInput name="m"/><answer name="a" response="$m">1</answer>
-          </repeatForSequence>
-          <section name="u"/>
-        </section>"#,
-    ),
-    (
-        "ref-children",
-        r#"<number name="x">2</number><mathInput name="mi"/>
-        <p>$x and $mi and $x.value</p>
-        <numberInput name="n" value="2"/>
-        <repeatForSequence name="r" length="$n"><p>$x</p></repeatForSequence>
-        <number name="y">$r[1].value</number>"#,
-    ),
-    (
-        "collect-index",
-        r#"<numberInput name="n" value="1"/>
-        <repeatForSequence name="r" length="$n"><number name="x">2</number></repeatForSequence>
-        <collect name="c" from="$r" componentType="number"/>
-        <number name="y">$c[2] + $c[$n]</number>
-        <number name="k">$c.count</number>"#,
-    ),
-    (
-        "point-list",
-        r#"<graph>
-          <polygon name="pg" vertices="(0,0) (1,0) (0,1)"/>
-          <pointList name="l" extend="$pg.vertices"/>
-          <point name="q">($l[2].x, 3)</point>
-        </graph>"#,
-    ),
-    (
-        "held",
-        r#"<booleanInput name="f"/>
-        <number name="v">3</number>
-        <number name="w" extend="$v" fixed="$f"/>
-        <number name="u" extend="$v" fixed="$f"/>"#,
-    ),
-    (
-        "list-copy",
-        r#"<graph>
-          <polygon name="pg" vertices="(0,0) (1,0) (0,1)"/>
-          <polygon name="pg2" extend="$pg"/>
-        </graph>"#,
-    ),
-    (
-        "list-points",
-        r#"<graph>
-          <polygon name="pg" vertices="(0,0) (1,0) (0,1)"/>
-          <pointList name="l" extend="$pg.vertices"/>
-          <point name="q" extend="$l[3]"/>
-          <pointList name="m" extend="$l"/>
-        </graph>
-        <number name="j">$q.y</number>"#,
-    ),
-    (
-        "ref-child-iterations",
-        r#"<numberInput name="n" value="2"/>
-        <repeatForSequence name="r" length="$n">$x</repeatForSequence>
-        <number name="x">3</number>
-        <number name="y" extend="$r[1]"/>
-        <p>$r[1]</p>"#,
-    ),
-    (
-        // An indexed `$ref` child is placed after the collects, which
-        // gather it as the placeholder it still is: nothing.
-        "indexed-ref-child-uncollected",
-        r#"<numberInput name="n" value="2"/>
-        <repeatForSequence name="r" length="$n" indexName="i">
-          <number name="x">$i</number>
-          <group name="g">$r[$i-1].x</group>
-          <collect name="c" from="$g" componentType="number"/>
-          <number name="y">$c[1] + 1</number>
-        </repeatForSequence>"#,
-    ),
-    (
-        "scored-copies",
-        r#"<section name="s" aggregateScores>
-          <group name="g"><mathInput name="m"/><answer name="a" response="$m">1</answer></group>
-          <p>$a</p>
-          <collect name="c" from="$g" componentType="answer"/>
-        </section>"#,
-    ),
-    (
-        "held-alike",
-        r#"<number name="v">3</number>
-        <number name="w" extend="$v" fixed="true"/>
-        <number name="u" extend="$v" fixed="true"/>
-        <number name="x" extend="$w" fixed="true"/>"#,
-    ),
-    (
-        // A drag on `p` writes `b`, not the held `c`: only when `$c + $b`
-        // is turned round.
-        "oriented",
-        r#"<number name="c" fixed>3</number>
-        <number name="b">1</number>
-        <graph><point name="p">($c + $b, 0)</point></graph>"#,
-    ),
-    (
-        // `n` is read only through the seed.
-        "seeded-from-setup",
-        r#"<setup><number name="n">5</number></setup>
-        <mathInput name="mi" prefill="$n"/>"#,
-    ),
-    (
-        // A drag on the fixed point stops at it: `a` is not written.
-        "held-copy",
-        r#"<number name="a">1</number>
-        <graph><point name="p" fixed>($a, 2)</point></graph>"#,
-    ),
-    (
-        // An answer's response, symbolic math over symbolic math: its
-        // leaf is a math leaf in the signature's template.
-        "math-over-math",
-        r#"<math name="m">x + 1</math><math name="m2">$m + y</math>
-        <answer name="a" response="$m2">x</answer>"#,
-    ),
-    (
-        // A drawn bound: the point's domain holds the value drawn.
-        "drawn-bound",
-        r#"<selectFromSequence name="s" from="1" to="100"/>
-        <graph xmax="$s"><point name="p">(1,2)</point></graph>"#,
-    ),
-    (
-        "points",
-        r#"<graph>
-          <point name="p">(1,2)</point>
-          <point name="q">($p.x + 1, $p.y)</point>
-          <line name="l" through="$p $q"/>
-        </graph>
-        <number name="k">$l.slope</number>"#,
-    ),
-];
-
-#[test]
-fn the_template_graph_agrees_with_the_abstract_build() {
-    let docs = documents();
-    let results = par_map(&docs, |(name, bytes)| {
-        let dast = cells_core::dast::load(bytes).unwrap();
-        let compiled = match cells_core::testing::compile(&dast) {
-            Ok(compiled) => compiled,
-            Err(e) => {
-                eprintln!("{name} does not compile: {e}");
-                return None; // the promise is about documents that compile
-            }
-        };
-        let agreement = template_graph_agreement(&compiled)
-            .unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
-        Some((name.clone(), agreement))
-    });
-    let mut failures = Vec::new();
-    let mut compared = Vec::new();
-    for (name, a) in results.into_iter().flatten() {
-        if a.compared > 0 {
-            compared.push(name.clone());
-        }
-        for line in &a.extra {
-            failures.push(format!("{name}: the template graph has more: {line}"));
-        }
-        for line in &a.missing {
-            failures.push(format!("{name}: the template graph lacks: {line}"));
-        }
-    }
-    for (name, _) in DOCUMENTS.iter().chain([&("many-items", "")]) {
-        if !compared.iter().any(|c| c == name) {
-            failures.push(format!("{name}: compiled to nothing to compare"));
-        }
-    }
-    assert!(
-        failures.is_empty(),
-        "{} disagreements:\n{}",
-        failures.len(),
-        failures.join("\n")
-    );
-}
-
-// The definitions (ADR 0032, step 8, part 4): each element port's, unfolded
-// to element ports, with what holds and seeds it and whether it is counted
-// or may be a document constant, the same as the abstract build's.
-#[test]
-fn the_template_graph_defines_what_the_abstract_build_does() {
-    let docs = documents();
-    let results = par_map(&docs, |(name, bytes)| {
-        let dast = cells_core::dast::load(bytes).unwrap();
-        let compiled = cells_core::testing::compile(&dast).ok()?;
-        let found = definitions_disagreement(&compiled)
-            .unwrap_or_else(|e| panic!("{name}: the abstract build: {e}"));
-        Some((name.clone(), found))
-    });
-    let mut failures = Vec::new();
-    let mut compared = 0;
-    for (name, (disagree, n)) in results.into_iter().flatten() {
-        compared += n;
-        failures.extend(disagree.into_iter().map(|d| format!("{name}: {d}")));
-    }
-    assert!(compared > 0, "no port compared");
-    assert!(
-        failures.is_empty(),
-        "{} disagreements:\n{}",
-        failures.len(),
-        failures.join("\n")
-    );
-}
-
-// Define over the graph (ADR 0032, step 8, part 4): every port's
-// attributes, writable, live, counted and document constant, the same as
-// the abstract build found.
-#[test]
-fn define_over_the_template_graph_classes_every_port_as_the_abstract_build_does() {
-    let docs = documents();
-    let results = par_map(&docs, |(name, bytes)| {
-        let dast = cells_core::dast::load(bytes).unwrap();
-        let compiled = cells_core::testing::compile(&dast).ok()?;
-        let found = attributes_disagreement(&compiled)
-            .unwrap_or_else(|e| panic!("{name}: define over the graph: {e}"));
-        Some((name.clone(), found))
-    });
-    let mut failures = Vec::new();
-    let mut compared = 0;
-    for (name, (disagree, n)) in results.into_iter().flatten() {
-        compared += n;
-        failures.extend(disagree.into_iter().map(|d| format!("{name}: {d}")));
-    }
-    assert!(compared > 0, "no port compared");
-    assert!(
-        failures.is_empty(),
-        "{} disagreements:\n{}",
-        failures.len(),
-        failures.join("\n")
-    );
-}
-
-/// Requests the program refuses or drops, and one it lands.
-const REFUSALS: &[(&str, &str)] = &[
+/// Requests the program refuses or drops, and one it lands: the refuse
+/// warnings.
+const REFUSALS: &[Findings] = &[
     (
         "refused-square",
         r#"<numberInput name="n" value="2"/><graph><point name="p" x="$n * $n" y="0"/></graph>"#,
+        &[
+            "a request on 'p.x' is refused: the value it would write, 'n.value', reaches it along more than one path, so the request could not land where it asks",
+        ],
     ),
     (
         "refused-two-paths",
         r#"<numberInput name="n" value="1"/><number name="a">$n + 1</number>
         <graph><point name="p" x="$a + $n" y="0"/></graph>"#,
+        &[
+            "a request on 'p.x' is refused: the value it would write, 'n.value', reaches it along more than one path, so the request could not land where it asks",
+        ],
     ),
     (
         "dropped-power",
         r#"<numberInput name="n" value="2"/><graph><point name="p" x="$n^2" y="0"/></graph>"#,
+        &[
+            "a request on 'p.x' is dropped: it reaches an operator with no inverse (a power or a comparison)",
+        ],
     ),
     (
         "landed",
         r#"<number name="k">2</number><numberInput name="n" value="3"/>
         <graph><point name="p" x="$k $n" y="0"/></graph>"#,
+        &[],
     ),
     (
         // Two outputs of one circle operator, read together: a vector
@@ -345,6 +50,9 @@ const REFUSALS: &[(&str, &str)] = &[
         r#"<graph><point name="a">(0,0)</point><point name="b">(2,0)</point>
         <circle name="c" through="$a $b"/>
         <point name="p" x="$c.cx + $c.radius" y="0"/></graph>"#,
+        &[
+            "a request on 'p.x' is refused: the value it would write, 'a.x', reaches it along more than one path, so the request could not land where it asks",
+        ],
     ),
     (
         // A conditional content's stand-in chooses by its first input and
@@ -356,76 +64,29 @@ const REFUSALS: &[(&str, &str)] = &[
           <else><number name="x">2</number></else>
         </conditionalContent>
         <graph><point name="p" x="$cc.x * $cc.x" y="0"/></graph>"#,
+        &[
+            "a request on 'p.x' is refused: the value it would write, 'x.value', reaches it along more than one path, so the request could not land where it asks",
+        ],
     ),
     (
         "refused-unnamed",
         r#"<numberInput name="n" value="2"/><graph><point x="$n * $n" y="0"/></graph>"#,
+        &[
+            "a request on '<point>.x' is refused: the value it would write, 'n.value', reaches it along more than one path, so the request could not land where it asks",
+        ],
     ),
 ];
 
-// The refuse warnings over the graph are the abstract build's, word for
-// word, on every document.
-#[test]
-fn define_over_the_template_graph_warns_as_the_abstract_build_does() {
-    let mut docs = documents();
-    docs.extend(
-        REFUSALS
-            .iter()
-            .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
-    );
-    let results = par_map(&docs, |(name, bytes)| {
-        let dast = cells_core::dast::load(bytes).unwrap();
-        let compiled = cells_core::testing::compile(&dast).ok()?;
-        let found = warnings_disagreement(&compiled)
-            .unwrap_or_else(|e| panic!("{name}: define over the graph: {e}"));
-        Some((name.clone(), found))
-    });
-    let mut failures = Vec::new();
-    let mut warned = 0;
-    for (name, (disagree, n)) in results.into_iter().flatten() {
-        warned += n;
-        failures.extend(disagree.into_iter().map(|d| format!("{name}: {d}")));
-    }
-    assert!(failures.is_empty(), "{}", failures.join("\n"));
-    assert!(warned >= 4, "only {warned} warnings compared");
-}
-
-// The input signature over the graph (ADR 0032, step 8, part 5) is the
-// one the abstract build read off its own definitions, hash for hash, on
-// every document.
-#[test]
-fn the_input_signature_over_the_template_graph_is_the_abstract_builds() {
-    let mut docs = documents();
-    docs.extend(
-        REFUSALS
-            .iter()
-            .chain(PREFILLS)
-            .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
-    );
-    let results = par_map(&docs, |(name, bytes)| {
-        let dast = cells_core::dast::load(bytes).unwrap();
-        cells_core::testing::compile(&dast).ok()?;
-        let found =
-            signature_disagreement(&dast).unwrap_or_else(|e| panic!("{name}: the signature: {e}"));
-        Some((name.clone(), found))
-    });
-    let mut failures = Vec::new();
-    let mut signed = 0;
-    for (name, disagree) in results.into_iter().flatten() {
-        signed += 1;
-        failures.extend(disagree.into_iter().map(|d| format!("{name}: {d}")));
-    }
-    assert!(signed > 0, "no document signed");
-    assert!(failures.is_empty(), "{}", failures.join("\n"));
-}
-
 /// Prefills the rule refuses or allows: a computed value is refused, a
 /// counted value and a given one are not.
-const PREFILLS: &[(&str, &str)] = &[
+const PREFILLS: &[Findings] = &[
     (
         "prefill-computed",
         r#"<number name="x">1</number><number name="n">$x + 1</number>
         <mathInput name="mi" prefill="$n"/>"#,
+        &[
+            "unsupported: prefill=\"$n.value\": a prefill reference must name a value that is not computed",
+        ],
     ),
     (
         "prefill-counted",
@@ -433,107 +94,51 @@ const PREFILLS: &[(&str, &str)] = &[
         <graph><repeatForSequence name="r" length="$k"><point name="p">(1,2)</point></repeatForSequence></graph>
         <collect name="c" from="$r" componentType="point"/>
         <mathInput name="mi" prefill="$c.count"/>"#,
+        &[],
     ),
     (
         "prefill-given",
         r#"<number name="n">5</number><mathInput name="mi" prefill="$n"/>"#,
+        &[],
     ),
 ];
 
-// The prefill rule over the graph refuses what the abstract build's
-// refuses, on the same element, at every attempt of the compile's loop.
-#[test]
-fn define_over_the_template_graph_refuses_the_prefills_the_abstract_build_does() {
-    let mut docs = documents();
-    docs.extend(
-        PREFILLS
-            .iter()
-            .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
-    );
-    let failures: Vec<String> = par_map(&docs, |(name, bytes)| {
-        let dast = cells_core::dast::load(bytes).unwrap();
-        define_failures_agree(&dast)
-            .into_iter()
-            .map(|d| format!("{name}: {d}"))
-            .collect::<Vec<_>>()
-    })
-    .into_iter()
-    .flatten()
-    .collect();
-    assert!(failures.is_empty(), "{}", failures.join("\n"));
-    // The refused one is refused: the comparison compared a refusal.
-    let dast = cells_core::dast::load(dast_json(PREFILLS[0].1).as_bytes()).unwrap();
-    assert!(
-        cells_core::diagnose(&dast).iter().any(|d| d
-            .message
-            .contains("a prefill reference must name a value that is not computed")),
-        "the computed prefill is refused"
-    );
-}
-
-// Stamping the graph fails where the abstract build's resolve fails
-// (ADR 0032, step 8, part 6): on the same element, with the same error, at
-// every attempt of the compile's loop. Over every document, and every
-// DoenetML source written in a test, many of which fail on purpose.
-#[test]
-fn the_template_graph_fails_where_the_abstract_builds_resolve_fails() {
-    let mut docs = documents();
-    docs.extend(test_sources());
-    docs.extend(
-        RESOLVE_FAILURES
-            .iter()
-            .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
-    );
-    // More references inside one math than an operator reads.
-    let numbers: String = (0..260)
-        .map(|k| format!(r#"<number name="a{k}">{k}</number>"#))
-        .collect();
-    let sum: Vec<String> = (0..260).map(|k| format!("$a{k}")).collect();
-    let src = format!(r#"{numbers}<math name="m">{} + x</math>"#, sum.join(" + "));
-    docs.push(("many-references".to_string(), dast_json(&src).into_bytes()));
-    let results = par_map(&docs, |(name, bytes)| {
-        let dast = cells_core::dast::load(bytes).ok()?;
-        let (found, failed) = resolve_failures_agree(&dast);
-        let found: Vec<_> = found.into_iter().map(|d| format!("{name}: {d}")).collect();
-        Some((found, failed))
-    });
-    let mut failures = Vec::new();
-    let mut failed = 0;
-    for (found, n) in results.into_iter().flatten() {
-        failed += n;
-        failures.extend(found);
-    }
-    assert!(failures.is_empty(), "{}", failures.join("\n"));
-    assert!(
-        failed > RESOLVE_FAILURES.len(),
-        "only {failed} failures compared"
-    );
-}
-
-/// Documents the compile's planners pass and its resolve fails, one or
-/// more for each way it fails: what the template graph must raise.
-const RESOLVE_FAILURES: &[(&str, &str)] = &[
+/// Documents the planners pass and the template graph's stamping fails,
+/// one or more for each way it fails.
+const RESOLVE_FAILURES: &[Findings] = &[
     (
         "no-default-prop",
         r#"<graph name="g"><point name="p">(1,2)</point></graph><number name="y">$g</number>"#,
+        &["'g' has no default prop, so a bare reference to it cannot supply a value"],
     ),
     (
         "numeric-function-in-symbolic-math",
         r#"<number name="n">1</number><math name="m">round($n) + x</math>"#,
+        &[
+            "cannot parse math 'round( cellN0 ) + x': round, floor, min, max and clamp are for numeric math only",
+        ],
     ),
     (
         "collect-from-by-a-cell",
         r#"<group name="g"><number>1</number><number>2</number></group>
         <collect name="c" from="$g" componentType="number"/><numberInput name="k" value="1"/>
         <collect name="c2" from="$c[$k]" componentType="number"/>"#,
+        &["unsupported: <collect from> cannot be indexed by a cell"],
     ),
     (
         "list-copy-loop",
         r#"<graph><polygon name="a" extend="$b"/><polygon name="b" extend="$a"/></graph>"#,
+        &[
+            "dependency cycle involving component 'a'",
+            "'$a' names a component with an error of its own, so this cannot be planned from it",
+        ],
     ),
     (
         "tuple-over-a-cell",
         r#"<number name="n">1</number><boolean name="b">($n, x) = ($n, x)</boolean>"#,
+        &[
+            "cannot parse math '( cellN0 , x )': '( cellN0 , x )' is not supported in a math cell (a relation, tuple or multi-argument function)",
+        ],
     ),
     (
         "whole-pick-of-two",
@@ -542,139 +147,130 @@ const RESOLVE_FAILURES: &[(&str, &str)] = &[
           <option><number name="x">2</number></option>
         </select>
         <number name="y">$s</number>"#,
+        &[
+            "unsupported: '$s' names a whole pick, so every option must hold one component, all of one type: name the content and use $s[k].name",
+        ],
     ),
     (
-        "component-by-a-cell-in-an-attribute",
+        "component-by-a-cell-as-a-child",
         r#"<repeatForSequence name="r" length="2" indexName="i"><number name="x">$i</number></repeatForSequence>
         <numberInput name="k" value="1"/>
-        <point name="q" x="$r[$k]"/>"#,
+        <p>$r[$k]</p>"#,
+        &[
+            "unsupported: '$r' names a component by a cell, which only a value can be read through: name a prop of it",
+        ],
     ),
     (
         "component-by-a-cell-extended",
         r#"<repeatForSequence name="r" length="2" indexName="i"><number name="x">$i</number></repeatForSequence>
         <numberInput name="k" value="1"/>
         <number name="y" extend="$r[$k]"/>"#,
+        &[
+            "unsupported: '$r' names a component by a cell, which only a value can be read through: name a prop of it",
+        ],
     ),
     (
         "whole-conditional-copied",
         r#"<conditionalContent name="cc" condition="true"><number name="x">1</number></conditionalContent><p>$cc</p>"#,
+        &[
+            "not allowed: copying a whole <conditionalContent>: reference its interface names instead",
+        ],
     ),
     (
         "extend-text-as-number",
         r#"<text name="t">a</text><number name="n" extend="$t"/>"#,
+        &[
+            "cannot extend a <text> (extend=\"$t\") as a <number>: only related types may differ (a number and a math, an input and its value type)",
+        ],
     ),
     (
         "extend-text-as-point",
         r#"<text name="t">a</text><point name="p" extend="$t"/>"#,
+        &[
+            "cannot extend a <text> (extend=\"$t\") as a <point>: only related types may differ (a number and a math, an input and its value type)",
+        ],
     ),
     (
         "collect-item-indexed",
         r#"<group name="g"><number>1</number></group>
         <collect name="c" from="$g" componentType="number"/>
         <number name="y">$c[1][1]</number>"#,
+        &["'$c' cannot be indexed; only repeats and collects can"],
     ),
     (
         "collected-point-inside-numeric-math",
         r#"<group name="g"><point>(1,2)</point><point>(3,4)</point></group>
         <collect name="c" from="$g" componentType="point"/><numberInput name="k" value="1"/>
         <number name="y">$c[$k] + 1</number>"#,
+        &["cannot parse math 'c': a reference inside math must name one cell"],
     ),
     (
         "collected-point-inside-symbolic-math",
         r#"<point name="p">(1,2)</point><group name="g">$p</group>
         <collect name="c" from="$g" componentType="point"/><math name="y">$c[1] + x</math>"#,
+        &["cannot parse math 'c': a reference inside math must name one cell"],
     ),
     (
         "collected-point-as-a-number",
         r#"<group name="g"><point>(1,2)</point></group>
         <collect name="c" from="$g" componentType="point"/>
         <number name="y">$c[1]</number>"#,
+        &["prop 'value' of <number> expects 1 cell(s) but the reference supplies 2"],
     ),
     (
         "collected-number-as-a-center",
         r#"<group name="g"><number>1</number></group>
         <collect name="c" from="$g" componentType="number"/>
         <circle name="ci" center="$c[1]"/>"#,
+        &["prop 'coords' of <circle> expects 2 cell(s) but the reference supplies 1"],
     ),
     (
         "point-as-a-flag",
         r#"<point name="p">(1,2)</point><number name="x" fixed="$p">1</number>"#,
+        &["prop '' of <> expects 1 cell(s) but the reference supplies 2"],
     ),
 ];
 
-/// (name, DAST bytes) of every DoenetML source written in a test: each
-/// raw string of `tests/*.rs` that starts with a tag.
-fn test_sources() -> Vec<(String, Vec<u8>)> {
-    let dir = repo_root().join("crates/cells-core/tests");
-    let mut files: Vec<_> = std::fs::read_dir(dir)
-        .unwrap()
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| p.extension().is_some_and(|x| x == "rs"))
-        .collect();
-    files.sort();
-    let mut out = Vec::new();
-    for p in files {
-        let text = std::fs::read_to_string(&p).unwrap();
-        for (k, chunk) in text.split("r#\"").skip(1).enumerate() {
-            let Some((src, _)) = chunk.split_once("\"#") else {
-                continue;
-            };
-            if src.trim_start().starts_with('<') {
-                let name = format!("{}#{k}", stem(&p));
-                out.push((name, dast_json(src).into_bytes()));
-            }
-        }
-    }
-    out
-}
-
-/// (name, DAST bytes) of every document under test.
-fn documents() -> Vec<(String, Vec<u8>)> {
-    let root = repo_root();
-    let mut sources: Vec<_> = std::fs::read_dir(root.join("crates/cells-bench/golden"))
-        .unwrap()
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| p.extension().is_some_and(|x| x == "doenet"))
-        .collect();
-    sources.sort();
-    sources.push(root.join("fixtures/sir.doenet"));
-    let mut out: Vec<(String, Vec<u8>)> = sources
+// Each document's diagnostics are the ones recorded, in order.
+#[test]
+fn the_check_over_the_template_graph_finds_what_it_found() {
+    let docs: Vec<Findings> = REFUSALS
         .iter()
-        .map(|p| {
-            let src = std::fs::read_to_string(p).unwrap();
-            (stem(p), dast_json(&src).into_bytes())
-        })
-        .chain(
-            DOCUMENTS
-                .iter()
-                .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
-        )
+        .chain(PREFILLS)
+        .chain(RESOLVE_FAILURES)
+        .copied()
         .collect();
-    // More items than one choose reads, by a cell: chooses in chunks.
-    let many: String = (1..=70).map(|k| format!("<number>{k}</number>")).collect();
-    let src = format!(
-        r#"<group name="g">{many}</group>
-        <collect name="c" from="$g" componentType="number"/>
-        <numberInput name="n" value="1"/>
-        <number name="y">$c[$n] + $c[65]</number>"#
-    );
-    out.push(("many-items".to_string(), dast_json(&src).into_bytes()));
-    let mut generated: Vec<_> = std::fs::read_dir(root.join("fixtures"))
-        .unwrap()
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| p.extension().is_some_and(|x| x == "json"))
-        .filter(|p| !out.iter().any(|(n, _)| *n == stem(p)))
-        .collect();
-    generated.sort();
-    for p in generated {
-        out.push((stem(&p), std::fs::read(&p).unwrap()));
-    }
-    out
+    let failures: Vec<String> = par_map(&docs, |&(name, src, expected)| {
+        let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
+        let found: Vec<String> = cells_core::diagnose(&dast)
+            .into_iter()
+            .filter(|d| !d.code.starts_with("doenet-a"))
+            .map(|d| d.message)
+            .collect();
+        (found != expected).then(|| format!("{name}: found {found:?}, expected {expected:?}"))
+    })
+    .into_iter()
+    .flatten()
+    .collect();
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
-fn stem(p: &Path) -> String {
-    p.file_stem().unwrap().to_string_lossy().into_owned()
+// More references inside one math than an operator reads: the stamping
+// refuses the math, and the element is boxed.
+#[test]
+fn a_math_over_more_references_than_an_operator_reads_is_refused() {
+    let numbers: String = (0..260)
+        .map(|k| format!(r#"<number name="a{k}">{k}</number>"#))
+        .collect();
+    let sum: Vec<String> = (0..260).map(|k| format!("$a{k}")).collect();
+    let src = format!(r#"{numbers}<math name="m">{} + x</math>"#, sum.join(" + "));
+    let dast = cells_core::dast::load(dast_json(&src).as_bytes()).unwrap();
+    let found: Vec<String> = cells_core::diagnose(&dast)
+        .into_iter()
+        .map(|d| d.message)
+        .collect();
+    assert!(
+        found.len() == 1 && found[0].ends_with("more than 255 references"),
+        "{found:?}"
+    );
 }

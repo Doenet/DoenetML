@@ -1451,11 +1451,9 @@ pub(crate) struct Plans {
     /// The document's structural depth, which bounds every build's: 0
     /// without a repeat, and 0 when a test load skips the count check.
     pub(crate) structural_depth: u32,
-    /// Whether a build gives a dead slot no cell; never in the abstract
-    /// build.
+    /// Whether a build gives a dead slot no cell.
     pub(crate) prune: bool,
-    /// Whether a build folds instructions over constants; never in the
-    /// abstract build.
+    /// Whether a build folds instructions over constants.
     pub(crate) fold: bool,
     /// For each node of `arena`, the first node structurally equal to it.
     /// Empty when the load does not share.

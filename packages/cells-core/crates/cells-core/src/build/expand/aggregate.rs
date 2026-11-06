@@ -61,19 +61,6 @@ impl<'c> Builder<'c> {
         let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
         let mut items = Vec::new();
         self.scored_items(c, None, &mut items);
-        // With a scored item in a repeat below `c`, there is none at some
-        // count: the credit is then a counted value (ADR 0028), which the
-        // abstract build, whose one iteration stands for every count,
-        // records.
-        if self.view.folds_iterations() {
-            let depth = |b: &Self, scope| b.enclosing_repeats(scope).len();
-            let at = depth(self, self.components.scope[c.index()]);
-            let found = items
-                .iter()
-                .any(|&(_, credit)| depth(self, self.slot_scope[credit.index()]) > at);
-            self.is_counted(s, found);
-            self.is_counted(p, found);
-        }
         match self.mean_credit(c, items) {
             Some(mean) => {
                 self.fill_aggregate(s, AggOp::Credit, BuiltSource::Alias(mean));
@@ -82,10 +69,11 @@ impl<'c> Builder<'c> {
                 self.fill_aggregate(p, AggOp::PercentCredit, percent);
             }
             None => {
-                // Nothing to score: full credit.
-                let credit = self.counted(s, 1.0, false);
+                // Nothing to score: full credit, a counted value (ADR 0028)
+                // when a repeat below `c` holds a scored item at some count.
+                let credit = self.counted(s, 1.0);
                 self.fill_aggregate(s, AggOp::Credit, credit);
-                let percent = self.counted(p, 100.0, false);
+                let percent = self.counted(p, 100.0);
                 self.fill_aggregate(p, AggOp::PercentCredit, percent);
             }
         }
@@ -197,7 +185,7 @@ impl<'c> Builder<'c> {
         if counter.follows && !follows {
             for i in start..counter.numbered.len() {
                 let s = counter.numbered[i];
-                self.is_counted(s, true);
+                self.is_counted(s);
             }
         }
         if counter.known != known || counter.before != before {
@@ -229,9 +217,9 @@ impl<'c> Builder<'c> {
                 ComponentType::Section => {
                     let s = self.slot(k, NUMBER);
                     let number = match counter.before {
-                        None => self.counted(s, counter.known + 1.0, counter.follows),
+                        None => self.counted(s, counter.known + 1.0),
                         Some(b) => {
-                            self.is_counted(s, counter.follows);
+                            self.is_counted(s);
                             let k = self.const_slot(counter.known + 1.0);
                             self.op_source(OpSpec::Add, &[b, k])
                         }
@@ -270,7 +258,7 @@ impl<'c> Builder<'c> {
             .plan(inst.elem)
             .from
             .expect("planning gave a collect its `from`");
-        let (target, _, _) = self.resolve(from, inst.scope)?;
+        let (target, _) = self.resolve(from, inst.scope)?;
         let mut found = Vec::new();
         match target {
             Resolved::Comp(c) => self.collect_descendants(c, component_type, &mut found),
@@ -307,45 +295,16 @@ impl<'c> Builder<'c> {
         let entries: Vec<ChildEntry> = copies.iter().map(|&c| ChildEntry::comp(c)).collect();
         self.set_children(comp, &entries);
         let s0 = self.slot(comp, prop::collect::COUNT);
-        let counts = match self.view.collect_count() {
-            CollectCount::Gathered => Vec::new(),
-            CollectCount::RepeatCounts => self.gathered_counts(&found),
-        };
         // With no gathered original in an iteration, the number gathered is
-        // a constant at every count. Otherwise it is a counted value: the
-        // abstract build stands it in by its repeats' counts, and every
-        // other build holds the number it gathered (ADR 0028).
-        let count = if counts.is_empty() {
-            let count = self.counted(s0, copies.len() as f64, false);
-            if matches!(count, BuiltSource::Op(..)) {
-                self.follows_counts.insert(comp);
-            }
-            count
-        } else {
-            self.is_counted(s0, true);
+        // a constant at every count. Otherwise it is a counted value, which
+        // holds the number gathered (ADR 0028).
+        let count = self.counted(s0, copies.len() as f64);
+        if matches!(count, BuiltSource::Op(..)) {
             self.follows_counts.insert(comp);
-            self.reads(&counts, inst.scope)
-        };
+        }
         self.fill_aggregate(s0, AggOp::Count, count);
         self.collected.insert(comp, copies);
         Ok(())
-    }
-
-    /// The count slots of the repeats whose iterations hold one of `found`.
-    fn gathered_counts(&self, found: &[CompIdx]) -> Vec<SlotId> {
-        let mut counts: Vec<SlotId> = Vec::new();
-        for &c in found {
-            for r in self.enclosing_repeats(self.components.scope[c.index()]) {
-                let pi = self.components.component_type[r.index()]
-                    .count_prop()
-                    .expect("a repeat has a count");
-                let s = self.slot(r, pi);
-                if !counts.contains(&s) {
-                    counts.push(s);
-                }
-            }
-        }
-        counts
     }
 
     /// Wire `s`, a slot its plan aggregates by `op`, once the tree is built.

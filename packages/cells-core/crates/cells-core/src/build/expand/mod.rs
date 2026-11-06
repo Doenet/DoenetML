@@ -90,11 +90,9 @@ pub(in crate::build) enum Resolved {
     /// An index with no referent (`$r[32]` with ten iterations).
     Missing,
     /// `$r[$n]`: any of `items`, the one the cell `index` names when the
-    /// document runs; it names no one component. `label` is the edge to
-    /// the index cell's.
+    /// document runs; it names no one component.
     Chosen {
         index: SlotId,
-        label: Label,
         items: Vec<Resolved>,
     },
 }
@@ -108,11 +106,9 @@ pub(in crate::build) struct ChoiceInst {
     pub(in crate::build) scopes: Vec<ScopeId>,
     /// The branch each of `scopes` instantiates.
     pub(in crate::build) branch_of: Vec<usize>,
-    /// Reactive choice, or a select built with every option: one component
-    /// per `ChoiceDef::used` standing for that name in every branch.
+    /// Reactive choice: one component per `ChoiceDef::used` standing for
+    /// that name in every branch.
     pub(in crate::build) iface_comps: Vec<CompIdx>,
-    /// A select whose every option was built.
-    pub(in crate::build) every_option: bool,
 }
 
 /// One instantiated template element.
@@ -174,12 +170,9 @@ pub(in crate::build) struct Builder<'c> {
     /// Expanded choices, and the instance each choice component owns.
     pub(in crate::build) choice_insts: Vec<ChoiceInst>,
     pub(in crate::build) comp_choice: HashMap<CompIdx, usize>,
-    /// A component standing for whichever branch a choice takes (an
-    /// interface name, or in the abstract build a select's whole pick) ->
-    /// the branches' components it stands for.
+    /// A component standing for whichever branch a conditional content
+    /// takes, an interface name -> the branches' components it stands for.
     pub(in crate::build) stand_ins: HashMap<CompIdx, Vec<CompIdx>>,
-    /// Per select (in the abstract build): the stand-in for its whole pick.
-    pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
     /// One slot per constant an operator or a hold reads, by the value's
     /// bits.
@@ -192,9 +185,8 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
     pub(in crate::build) arena: Arena<SlotId>,
     pub(in crate::build) root: CompIdx,
-    /// Where the build learns counts, indexed referents, a collect's count
-    /// and a select's options.
-    pub(in crate::build) view: &'c View<'c>,
+    /// How many iterations each repeat is stamped with.
+    pub(in crate::build) counts: &'c Counts,
     /// The scope each slot was made in.
     pub(in crate::build) slot_scope: Vec<ScopeId>,
     /// Per scope, the repeat component whose iteration it is, or NONE.
@@ -202,15 +194,9 @@ pub(in crate::build) struct Builder<'c> {
     /// Collects (a polyline is one) whose count reads the counts of the
     /// repeats they gather from.
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
-    /// The slots of the counted values (ADR 0028): found by the abstract
-    /// build, read from the ports' attributes by every other.
+    /// The slots of the counted values (ADR 0028), as the ports'
+    /// attributes say.
     pub(in crate::build) counted_slots: Vec<SlotId>,
-    /// When the view folds iterations: the slots whose plan gives a
-    /// document constant if they are constants.
-    pub(in crate::build) document_slots: Vec<SlotId>,
-    /// Sources a slot has in iterations after the first, when the view
-    /// folds iterations.
-    pub(in crate::build) later_sources: Vec<(SlotId, BuiltSource)>,
     /// The binary operators lowered from the author's math, in the order
     /// lowered.
     pub(in crate::build) author_ops: Vec<SlotId>,
@@ -220,9 +206,6 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) instantiated: HashMap<(ExprId, ScopeId), ExprId>,
     /// Each node of the build's arena lowered, to its slot.
     pub(in crate::build) lowered: HashMap<ExprId, SlotId>,
-    /// When the view folds iterations: the labels of reference edges
-    /// (from slot, to slot) that are not the identity.
-    pub(in crate::build) labels: HashMap<(SlotId, SlotId), Label>,
     /// The node of the element whose expansion or resolution failed; none
     /// when the failure has no element.
     pub(in crate::build) failed_node: Option<NodeId>,
@@ -234,7 +217,7 @@ impl<'c> Builder<'c> {
         session: &'c Session,
         reseed: bool,
         math: &'c mut MathStore,
-        view: &'c View<'c>,
+        counts: &'c Counts,
     ) -> Self {
         let MathStore { engine, constants } = math;
         // Size the columns by what every template stamped once makes (all
@@ -292,25 +275,21 @@ impl<'c> Builder<'c> {
             choice_insts: Vec::new(),
             comp_choice: HashMap::new(),
             stand_ins: HashMap::new(),
-            pick_stand_ins: HashMap::new(),
             missing: None,
             consts: HashMap::new(),
             holds: Vec::new(),
             seeds: Vec::new(),
             arena: Arena::default(),
             root: CompIdx::new(0),
-            view,
+            counts,
             slot_scope: Vec::with_capacity(slots),
             scope_repeat: Vec::new(),
             follows_counts: HashSet::new(),
             counted_slots: Vec::new(),
-            document_slots: Vec::new(),
-            later_sources: Vec::new(),
             author_ops: Vec::new(),
             share_math: false,
             instantiated: HashMap::new(),
             lowered: HashMap::new(),
-            labels: HashMap::new(),
             failed_node: None,
         }
     }
@@ -440,16 +419,11 @@ impl<'c> Builder<'c> {
     }
 
     /// Whether slot `s` holds a counted value: one the build counts from the
-    /// structure it stamped, so it follows the counts. In the abstract build
-    /// `found` says whether it is; every other build reads its port's
-    /// attributes. A counted slot is kept in `counted_slots`, which the
-    /// abstract build gives its port and the prefill rule reads.
-    pub(in crate::build) fn is_counted(&mut self, s: SlotId, found: bool) -> bool {
-        let counted = if self.view.folds_iterations() {
-            found
-        } else {
-            self.port_attrs(s).has(PortAttrs::COUNTED)
-        };
+    /// structure it stamped, so it follows the counts, as its port's
+    /// attributes say (the template graph found it). A counted slot is kept
+    /// in `counted_slots`, which the prefill rule and a seed read.
+    pub(in crate::build) fn is_counted(&mut self, s: SlotId) -> bool {
+        let counted = self.port_attrs(s).has(PortAttrs::COUNTED);
         if counted {
             self.counted_slots.push(s);
         }
@@ -458,8 +432,8 @@ impl<'c> Builder<'c> {
 
     /// Slot `s`'s source when this build counted `v` for it: a constant,
     /// or for a counted value a derived cell holding `v`.
-    pub(in crate::build) fn counted(&mut self, s: SlotId, v: f64, found: bool) -> BuiltSource {
-        if self.is_counted(s, found) {
+    pub(in crate::build) fn counted(&mut self, s: SlotId, v: f64) -> BuiltSource {
+        if self.is_counted(s) {
             let k = self.const_slot(v);
             self.op_source(OpSpec::Copy, &[k])
         } else {
@@ -508,29 +482,6 @@ impl<'c> Builder<'c> {
     /// `parent`, created on first use.
     pub(in crate::build) fn scope_for(&mut self, parent: ScopeId, node: NodeId, k: u32) -> ScopeId {
         self.scopes.get_or_insert(parent, node, k)
-    }
-
-    /// Nesting depth of a scope: 0 for the document.
-    pub(in crate::build) fn scope_depth(&self, mut s: ScopeId) -> u32 {
-        let mut d = 0;
-        while s != ScopeId::DOCUMENT {
-            s = self.scopes[s].0;
-            d += 1;
-        }
-        d
-    }
-
-    /// The repeats whose iterations enclose `scope`, innermost first.
-    pub(in crate::build) fn enclosing_repeats(&self, mut scope: ScopeId) -> Vec<CompIdx> {
-        let mut out = Vec::new();
-        while scope != ScopeId::DOCUMENT {
-            match self.scope_repeat.get(scope.index()) {
-                Some(&r) if r != CompIdx::NONE => out.push(r),
-                _ => {}
-            }
-            scope = self.scopes[scope].0;
-        }
-        out
     }
 
     /// Record `node` as the element to box if the build fails; the first
@@ -628,7 +579,7 @@ impl<'c> Builder<'c> {
                     let node = self.compiled.plans.templates[t.index()]
                         .row(ElemId::from_index(e))
                         .node;
-                    let n = self.view.iterations(scope, node);
+                    let n = self.counts.get(scope, node);
                     let mut kids = Vec::new();
                     let mut iter_scopes = Vec::with_capacity(n as usize);
                     for k in 1..=n {
@@ -803,7 +754,7 @@ impl<'c> Builder<'c> {
                 return Err(e);
             }
         }
-        self.choice_sources()?;
+        self.choice_sources();
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
             if let Err(e) = self.instance_sources(inst) {
@@ -832,7 +783,7 @@ impl<'c> Builder<'c> {
                     let mut flags = Vec::with_capacity(refs.len());
                     for &p in refs {
                         match self.resolve_one(p, inst.scope) {
-                            Ok((s, _)) => flags.push(s),
+                            Ok(s) => flags.push(s),
                             Err(e) => {
                                 self.fail_at_comp(inst.comp);
                                 return Err(e);
@@ -877,15 +828,6 @@ impl<'c> Builder<'c> {
                 self.holds.push((s, f));
             }
         }
-        for i in 0..self.later_sources.len() {
-            let (s, BuiltSource::Alias(t)) = self.later_sources[i] else {
-                continue;
-            };
-            let comp = self.slot_comp[s.index()];
-            if flags_of.contains_key(&comp) && !own(self, comp, t) {
-                self.later_sources[i].1 = self.op_source(OpSpec::Copy, &[t]);
-            }
-        }
         Ok(())
     }
 
@@ -897,7 +839,7 @@ impl<'c> Builder<'c> {
         plan: RefId,
         scope: ScopeId,
     ) -> Result<()> {
-        let (target, prop, label) = self.resolve(plan, scope)?;
+        let (target, prop) = self.resolve(plan, scope)?;
         let through_iteration = matches!(target, Resolved::Iter(..));
         match (target, prop) {
             (Resolved::Missing, _) => {
@@ -907,8 +849,7 @@ impl<'c> Builder<'c> {
                 self.sources[s.index()] = BuiltSource::Alias(self.missing_slot());
             }
             (target, Some(prop)) => {
-                let (targets, label) =
-                    self.targets_of(target, Some(prop), plan, Some(1), scope, label)?;
+                let targets = self.targets_of(target, Some(prop), plan, Some(1), scope)?;
                 // A string id shows as a text.
                 let is_text = self.value_type(targets[0]) == ValueType::Text;
                 let (component_type, value) = if is_text {
@@ -920,7 +861,6 @@ impl<'c> Builder<'c> {
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, value);
                 self.sources[s.index()] = BuiltSource::Alias(targets[0]);
-                self.record_label(s, targets[0], &label);
             }
             (target, None) => {
                 let referent = self.single_component(target, plan)?;
@@ -942,13 +882,10 @@ impl<'c> Builder<'c> {
                 // iteration (`$r[1]`) it is the input, as the current
                 // core has it (REF-1a).
                 if let (false, Some(as_type)) = (through_iteration, component_type.reads_as()) {
-                    self.value_copy_into(idx, referent, as_type, &label);
+                    self.value_copy_into(idx, referent, as_type);
                     return Ok(());
                 }
                 self.copy_into(idx, referent);
-                for pi in 0..self.n_public(referent) {
-                    self.record_label(self.slot(idx, pi), self.slot(referent, pi), &label);
-                }
             }
         }
         Ok(())
@@ -957,15 +894,8 @@ impl<'c> Builder<'c> {
     /// Make `idx` an `as_type` holding `referent`'s value: each
     /// of its props aliases the referent's prop of the same name (a math's
     /// `value` and `expr` from a mathInput's), and one the referent lacks
-    /// is the missing value. Each alias's edge carries `label`, the
-    /// reference's.
-    fn value_copy_into(
-        &mut self,
-        idx: CompIdx,
-        referent: CompIdx,
-        as_type: ComponentType,
-        label: &[Coord],
-    ) {
+    /// is the missing value.
+    fn value_copy_into(&mut self, idx: CompIdx, referent: CompIdx, as_type: ComponentType) {
         self.components.component_type[idx.index()] = as_type;
         self.components.referent[idx.index()] = referent;
         let defs = as_type.prop_defs();
@@ -976,9 +906,7 @@ impl<'c> Builder<'c> {
             let s = self.slot(idx, pi);
             self.sources[s.index()] = match rt.prop_index(def.name) {
                 Some(rp) if rp < self.n_public(referent) => {
-                    let target = self.slot(referent, rp);
-                    self.record_label(s, target, label);
-                    BuiltSource::Alias(target)
+                    BuiltSource::Alias(self.slot(referent, rp))
                 }
                 _ => BuiltSource::Alias(self.missing_slot()),
             };
@@ -1005,11 +933,11 @@ impl<'c> Builder<'c> {
         &mut self,
         plan: RefId,
         scope: ScopeId,
-    ) -> Result<(Vec<[SlotId; 2]>, Label)> {
-        let (target, prop, label) = self.resolve(plan, scope)?;
+    ) -> Result<Vec<[SlotId; 2]>> {
+        let (target, prop) = self.resolve(plan, scope)?;
         // An index past the count names no items.
         if matches!(target, Resolved::Missing) {
-            return Ok((Vec::new(), label));
+            return Ok(Vec::new());
         }
         let comp = self.single_component(target, plan)?;
         let component_type = self.components.component_type[comp.index()];
@@ -1024,7 +952,7 @@ impl<'c> Builder<'c> {
                     [at(0), at(1)]
                 })
                 .collect();
-            return Ok((items, label));
+            return Ok(items);
         }
         if sel != Some(PropSel::TableList) {
             return Err(Error::UnknownProp {
@@ -1037,7 +965,7 @@ impl<'c> Builder<'c> {
             .iter()
             .map(|&[x, y]| [self.slot(comp, x as usize), self.slot(comp, y as usize)])
             .collect();
-        Ok((items, label))
+        Ok(items)
     }
 
     /// Give a point list its children: one synthesized point per item of
@@ -1050,7 +978,7 @@ impl<'c> Builder<'c> {
         let mut kids = Vec::new();
         match (plan.from, plan.extend) {
             (Some(from), _) => {
-                let (items, label) = self.resolve_items(from, inst.scope)?;
+                let items = self.resolve_items(from, inst.scope)?;
                 for [x, y] in items {
                     let n = ComponentType::Point.prop_defs().len();
                     let pt = self.new_component(
@@ -1068,15 +996,13 @@ impl<'c> Builder<'c> {
                     );
                     self.sources[sx.index()] = BuiltSource::Alias(x);
                     self.sources[sy.index()] = BuiltSource::Alias(y);
-                    self.record_label(sx, x, &label);
-                    self.record_label(sy, y, &label);
                     // Not state: a synthesized point has no essential key.
                     self.sources[sh.index()] = BuiltSource::Const(0.0);
                     kids.push(ChildEntry::comp(pt));
                 }
             }
             (_, Some(p)) => {
-                let (target, _, _) = self.resolve(p, inst.scope)?;
+                let (target, _) = self.resolve(p, inst.scope)?;
                 // An index past the count copies nothing.
                 let referent = match target {
                     Resolved::Missing => CompIdx::NONE,
@@ -1111,23 +1037,6 @@ impl<'c> Builder<'c> {
         }
         self.set_children(comp, &kids);
         Ok(())
-    }
-
-    /// A source in `scope` over `inputs` whose value nothing reads: it
-    /// stands for a value that depends on them in a way the view leaves
-    /// open (a collect's count over its repeats' counts, an option a later
-    /// iteration may draw), so only its edges matter.
-    pub(in crate::build) fn reads(&mut self, inputs: &[SlotId], scope: ScopeId) -> BuiltSource {
-        match inputs {
-            [] => unreachable!("a stand-in reads something"),
-            [x] => self.op_source(OpSpec::Truthy, &[*x]),
-            [rest @ .., last] => {
-                let acc = rest[1..].iter().fold(rest[0], |acc, &x| {
-                    self.op_slot(OpSpec::Max, &[acc, x], scope)
-                });
-                self.op_source(OpSpec::Max, &[acc, *last])
-            }
-        }
     }
 
     /// Descendants of `c` of `component_type`, in document order, not
@@ -1193,7 +1102,7 @@ impl<'c> Builder<'c> {
             Some(p) => self.extend_referent(p, inst.scope, component_type)?,
             None => None,
         };
-        let Some((referent, label)) = referent else {
+        let Some(referent) = referent else {
             self.n_public[inst.comp.index()] = component_type.prop_defs().len() as u32;
             self.allocate_slots(inst.comp, n_props);
             return Ok(());
@@ -1206,26 +1115,20 @@ impl<'c> Builder<'c> {
             visiting.pop();
         }
         self.copy_into(inst.comp, referent);
-        let n = self.n_public(referent);
-        self.n_public[inst.comp.index()] = n as u32;
-        for pi in 0..n {
-            let (s, t) = (self.slot(inst.comp, pi), self.slot(referent, pi));
-            self.record_label(s, t, &label);
-        }
+        self.n_public[inst.comp.index()] = self.n_public(referent) as u32;
         Ok(())
     }
 
     /// The component an `extend` plan names from `scope`, of the copy's
-    /// own type, and the reference's label: None for an index past the
-    /// count, when the copy holds the missing value wherever it would
-    /// inherit.
+    /// own type: None for an index past the count, when the copy holds the
+    /// missing value wherever it would inherit.
     fn extend_referent(
         &mut self,
         p: RefId,
         scope: ScopeId,
         component_type: ComponentType,
-    ) -> Result<Option<(CompIdx, Label)>> {
-        let (target, _, label) = self.resolve(p, scope)?;
+    ) -> Result<Option<CompIdx>> {
+        let (target, _) = self.resolve(p, scope)?;
         let referent = match target {
             Resolved::Missing => return Ok(None),
             target => self.single_component(target, p)?,
@@ -1238,7 +1141,7 @@ impl<'c> Builder<'c> {
                 component_type: component_type.tag().into(),
             });
         }
-        Ok(Some((referent, label)))
+        Ok(Some(referent))
     }
 
     /// Sources for every prop of one instantiated element.
@@ -1256,7 +1159,7 @@ impl<'c> Builder<'c> {
             None => None,
         };
         // What a renderer reads through the reference (ADR 0024).
-        if let Some((referent, _)) = extend {
+        if let Some(referent) = extend {
             self.components.referent[comp.index()] = referent;
         }
         // A copy of a type with a list was made whole by `place_list_copy`.
@@ -1311,24 +1214,14 @@ impl<'c> Builder<'c> {
                 // The one predicate today: the enclosing repeat's first
                 // iteration.
                 Source::Specialize(ScopePred::FirstIteration, first, rest) => {
-                    match self.view.plans(self.scopes[inst.scope].2) {
-                        Plans::First => self.plan_source(first, inst, pi)?,
-                        Plans::Rest => self.plan_source(rest, inst, pi)?,
-                        Plans::Both => {
-                            let rest = self.plan_source(rest, inst, pi)?;
-                            self.later_sources.push((s, rest));
-                            self.plan_source(first, inst, pi)?
-                        }
+                    if self.scopes[inst.scope].2 == 1 {
+                        self.plan_source(first, inst, pi)?
+                    } else {
+                        self.plan_source(rest, inst, pi)?
                     }
                 }
                 plan => self.plan_source(plan, inst, pi)?,
             };
-            if self.view.folds_iterations()
-                && matches!(source, BuiltSource::Const(_) | BuiltSource::Given(_))
-                && plan.gives_document_constant()
-            {
-                self.document_slots.push(s);
-            }
             self.sources[s.index()] = source;
         }
         Ok(())
@@ -1361,7 +1254,7 @@ impl<'c> Builder<'c> {
                     BuiltSource::Const(from + step * k.min(count - 1) as f64)
                 }
                 Leaf::Scope(ScopeConst::Seed(p)) => {
-                    let (from, _) = self
+                    let from = self
                         .resolve_one(*p, inst.scope)
                         .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
                     self.seeds.push((s, from));
