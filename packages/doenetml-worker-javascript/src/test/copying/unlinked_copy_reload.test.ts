@@ -913,6 +913,33 @@ describe("A copy of a name in a case through a reload @group4", () => {
         });
     }
 
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form}: of a case's content by index, keeps the case`, async () => {
+            // `$cc[1]` is the content of the case active when the copy is
+            // made; a reload makes it again from that case.
+            const r = await reloader(`
+    <mathInput name="n" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$n = 1"><p name="p">one: <mathInput name="a"/></p></case>
+      <else><p name="p">other: <mathInput name="a"/></p></else>
+    </conditionalContent>
+    <group ${form}="$cc[1]" name="gc"/>
+    `);
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await r.resolve("gc.a"),
+                core: r.core(),
+            });
+            await setN(r, "2");
+            expect((await r.sv("cc.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("gc.p")).stateValues.text).eq("one: 5");
+
+            await r.reload();
+            expect((await r.sv("cc.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("gc.p")).stateValues.text).eq("one: 5");
+        });
+    }
+
     it("of a name inside a group in a case, keeps the case", async () => {
         // A name in only some cases names nothing, in any case, so is not
         // made from one (`$cc.y` of a `y` only in the first case).
