@@ -526,4 +526,45 @@ describe("Missing values and missing tags (D37) @group2", () => {
         ).eq("[2][2]");
         expect(getDiagnosticsByType(core).infos).eqls([]);
     });
+
+    it("reads a property that holds no value, as `maxNumber` of a collect with no limit, as missing", async () => {
+        // `maxNumber` is `null` for no limit, which is no value (#2416), in
+        // each form a `<collect>` takes: a list form (`y`), a composite
+        // (`w`), and with a limit (`z`).
+        const { text, warnings, errors, infos, core, resolvePathToNodeIdx } =
+            await shownAndReported(`
+    <p name="src"><text>a</text><text>b</text></p>
+    <collect name="y" componentType="text" from="$src"/>
+    <collect name="z" componentType="text" from="$src" maxNumber="1"/>
+    <collect name="w" componentType="p" from="$src"/>
+    <p name="p">[$y.maxNumber][$z.maxNumber][$w.maxNumber]</p>
+    <p name="pn"><number name="n1" extend="$y.maxNumber"/><number name="n2" extend="$w.maxNumber"/><number name="n3" extend="$z.maxNumber"/></p>
+    <math name="m1">$y.maxNumber</math>
+    <math name="m2">$y.maxNumber + 1</math>
+    <boolean name="b1">$y.maxNumber = 3</boolean>
+    <boolean name="b2">$z.maxNumber = 1</boolean>
+    `);
+        expect(text).eq("[＿][1][＿]");
+        expect([...errors, ...warnings, ...infos]).eqls([]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        for (const name of ["n1", "n2"]) {
+            expect((await stateValues(name)).valueMissing, name).eq(true);
+        }
+        expect((await stateValues("n3")).value).eq(1);
+        expect((await stateValues("n3")).valueMissing).eq(undefined);
+        expect((await stateValues("m1")).text).eq("＿");
+        expect((await stateValues("m2")).text).eq("＿ + 1");
+        expect((await stateValues("b1")).value).eq(false);
+        expect((await stateValues("b2")).value).eq(true);
+
+        // a missing number is drawn as a blank
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("pn"))).eqls([
+            "_blank",
+            "_blank",
+            "number",
+        ]);
+    });
 });

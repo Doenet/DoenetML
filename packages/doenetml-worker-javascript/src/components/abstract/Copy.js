@@ -34,7 +34,10 @@ import {
     doenetMLStringForReference,
 } from "../../utils/sourceLocation";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
-import { isListEntryArrayVariable } from "../../utils/listEntryReference";
+import {
+    isListEntryArrayVariable,
+    listEntryOfValueReference,
+} from "../../utils/listEntryReference";
 import { isValueEntriesVariable } from "../../utils/mathVectorMatrixStateVariables";
 import {
     attributeShadowIsReference,
@@ -2160,6 +2163,21 @@ export default class Copy extends CompositeComponent {
             if (replacementSourceWithProp) {
                 replacementSource = replacementSourceWithProp;
             }
+        } else if (!heldCase && propName) {
+            // A path on a value reference that stands for an entry of a list
+            // is read on the list (`listEntryOfValueReference`, #2480), so
+            // the property is made from the list.
+            const listEntry = listEntryOfValueReference(
+                replacementSourceComponent,
+                components,
+                componentInfoObjects,
+            );
+            if (listEntry) {
+                replacementSource = {
+                    componentIdx: listEntry.list.componentIdx,
+                    componentType: listEntry.list.componentType,
+                };
+            }
         }
 
         // if creating copy from a prop
@@ -2216,10 +2234,13 @@ export default class Copy extends CompositeComponent {
                     propVariablesCopiedByReplacement = [[]];
                     madeBlank = true;
                 } else if (serializedReplacements.length === 1) {
-                    addChildrenFromComposite({
+                    nComponents = addChildrenFromComposite({
                         replacements: serializedReplacements,
                         children: component.serializedChildren,
                         componentInfoObjects,
+                        nComponents,
+                        stateIdInfo,
+                        diagnostics,
                     });
                 }
             }
@@ -2560,10 +2581,13 @@ export default class Copy extends CompositeComponent {
             serializedReplacements.length === 1 &&
             component.serializedChildren.length > 0
         ) {
-            addChildrenFromComposite({
+            nComponents = addChildrenFromComposite({
                 replacements: serializedReplacements,
                 children: component.serializedChildren,
                 componentInfoObjects,
+                nComponents,
+                stateIdInfo,
+                diagnostics,
             });
         }
 
@@ -5272,7 +5296,14 @@ export async function replacementFromProp({
             await stateVarObj.value;
         }
 
-        if (!stateVarObj.shadowingInstructions?.createComponentOfType) {
+        if (
+            !stateVarObj.shadowingInstructions?.createComponentOfType ||
+            // A variable that holds `null` for having no value
+            // (`nullIsMissing`), as `maxNumber` of a `<collect>` with no
+            // limit, has nothing to read, so the reference is missing (D37,
+            // #2416).
+            (stateVarObj.nullIsMissing && (await stateVarObj.value) === null)
+        ) {
             return {
                 serializedReplacements: [],
                 propVariablesCopiedByReplacement: [],
@@ -6585,7 +6616,9 @@ async function isBareReferenceToOneThing(
     // collection as a whole, a composite or a list, whose property is one
     // of each of its members (`$r.y` of a `<repeat>`), possibly none. A
     // name after it (`$cc.x` of a name in a case, `pathStartsWithProperty`
-    // unset) is one thing.
+    // unset) is one thing, and so is a property of the collection itself,
+    // read from it rather than from its members (`$c.maxNumber` of a
+    // `<collect>`, #2416), unless it is an array (below).
     if (
         unresolvedPath?.length > 0 &&
         !component.doenetAttributes?.pathStartsWithProperty
@@ -6593,12 +6626,24 @@ async function isBareReferenceToOneThing(
         return true;
     }
     const componentInfoObjects = component.componentInfoObjects;
+    // Its only source is the collection itself, which has the property.
+    const replacementSources = await component.stateValues.replacementSources;
+    const ownPropName = (
+        await component.stateValues.effectivePropNameBySource
+    )?.[0];
+    const ownProperty =
+        unresolvedPath?.length > 0 &&
+        replacementSources?.length === 1 &&
+        replacementSources[0]?.componentIdx === extended.componentIdx &&
+        Boolean(ownPropName) &&
+        components[extended.componentIdx]?.state[ownPropName] !== undefined;
     if (
-        componentInfoObjects.isCompositeComponent({
+        !ownProperty &&
+        (componentInfoObjects.isCompositeComponent({
             componentType: extended.componentType,
         }) ||
-        componentInfoObjects.allComponentClasses[extended.componentType]
-            ?.listEntryComponentType !== undefined
+            componentInfoObjects.allComponentClasses[extended.componentType]
+                ?.listEntryComponentType !== undefined)
     ) {
         return false;
     }
@@ -8408,10 +8453,32 @@ function attributesAnExtendApplies({
     ]);
 }
 
+/**
+ * Add the children written on a copy or extend (`children`) to its one
+ * replacement, after those the replacement has from its source.
+ *
+ * The sugar of the replacement's type is applied to them first, as it is to
+ * the children of a tag of that type written on its own (`applySugar`), so a
+ * child that is sugar for an attribute sets the attribute: the coordinates
+ * `(3,4)` written on `<point copy="$P">` set its `xs`, as `xs="3 4"` would
+ * (REF-4a, #2395). Such an attribute takes precedence over the source's and
+ * over one written on the copy, as on a tag written on its own the sugar's
+ * attribute replaces the written one. The sugar sees only the children
+ * written on the copy, not those from the source, which their own sugar has
+ * already read. The children were sugared where they were written, as
+ * children of the copy (`convertNormalizedDast.ts`), so only the
+ * replacement type's own instructions are applied, not those of the
+ * children again (`sugarApplied`).
+ *
+ * Returns the new `nComponents`.
+ */
 export function addChildrenFromComposite({
     replacements,
     children,
     componentInfoObjects,
+    nComponents,
+    stateIdInfo,
+    diagnostics,
 }) {
     let repl = replacements[0];
     if (!repl.children) {
@@ -8425,6 +8492,68 @@ export function addChildrenFromComposite({
         newChildren = newChildren.filter(
             (x) => typeof x !== "string" || x.trim() !== "",
         );
+    }
+
+    if (newChildren.length > 0) {
+        // What is already sugared is marked, so that `applySugar`, which
+        // goes on to what a component holds, leaves it as it is: the
+        // children, and the attributes the replacement has from its source
+        // or from the copy.
+        const alreadySugared = [
+            ...newChildren,
+            ...Object.values(repl.attributes ?? {}).map(
+                (attribute) => attribute?.component,
+            ),
+        ].filter((x) => typeof x === "object" && x !== null);
+        for (const component of alreadySugared) {
+            component.sugarApplied = true;
+        }
+        const sugarResult = applySugar({
+            serializedComponents: [
+                {
+                    ...repl,
+                    children: newChildren,
+                    attributes: { ...repl.attributes },
+                },
+            ],
+            componentInfoObjects,
+            nComponents,
+            stateIdInfo,
+        });
+        nComponents = sugarResult.nComponents;
+        diagnostics?.push(...sugarResult.diagnostics);
+        const sugared = sugarResult.components[0];
+        if (sugared.componentType === repl.componentType) {
+            newChildren = sugared.children;
+            repl.attributes = sugared.attributes;
+        }
+        // The marker is removed, and a component the sugar made with no
+        // `stateId` is given the copy's, as its other replacements are
+        // (`retypeTextPieces`).
+        function finish(component) {
+            if (typeof component !== "object" || component === null) {
+                return;
+            }
+            if (component.sugarApplied) {
+                delete component.sugarApplied;
+                return;
+            }
+            if (component.stateId === undefined && stateIdInfo) {
+                component.stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
+            }
+            component.children?.forEach(finish);
+            for (const attribute of Object.values(component.attributes ?? {})) {
+                finish(attribute?.component);
+            }
+        }
+        newChildren.forEach(finish);
+        for (const attribute of Object.values(repl.attributes ?? {})) {
+            finish(attribute?.component);
+        }
+        // in case the sugar failed and left them where they were
+        for (const component of alreadySugared) {
+            delete component.sugarApplied;
+        }
     }
 
     // An unlinked `<group copy>` given its source's variant (`copyVariants`)
@@ -8456,6 +8585,8 @@ export function addChildrenFromComposite({
     }
 
     repl.children.push(...newChildren);
+
+    return nComponents;
 }
 
 /**
