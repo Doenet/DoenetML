@@ -38,12 +38,12 @@ impl Compiler<'_> {
         loop {
             let mut boxed_one = false;
             for &(t, e, p) in readers {
-                if self.is_box(t, e) {
+                if self.tables[t.index()].is_box(e) {
                     continue;
                 }
-                match self.read_referent(t, p) {
+                match self.read_referent(bx, t, p) {
                     Err(error @ Error::BoxedReferent(_)) => {
-                        self.box_in_place(bx, t, e, error);
+                        bx.box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
                         boxed_one = true;
                     }
                     Err(error) => return Err(error),
@@ -65,7 +65,7 @@ impl Compiler<'_> {
                 Referent::Here(r) => (s.t, r),
                 Referent::Path(_, rt, re) => (rt, re),
             };
-            if self.is_box(s.t, s.e) || self.is_box(rt, re) {
+            if self.tables[s.t.index()].is_box(s.e) || self.tables[rt.index()].is_box(re) {
                 continue;
             }
             if let Referent::Path(path, ..) = s.referent {

@@ -44,7 +44,7 @@ impl Compiler<'_> {
     ) -> Parsed {
         let mut parsed = Parsed::default();
         for ((t, e), mt) in math_texts {
-            if self.is_box(t, e) {
+            if self.tables[t.index()].is_box(e) {
                 continue;
             }
             let Elem {
@@ -67,7 +67,7 @@ impl Compiler<'_> {
         parsed: &mut Parsed,
     ) {
         for &(t, e) in to_plan {
-            if self.is_box(t, e) || self.outlined(t).elems[e.index()].cloned {
+            if self.tables[t.index()].is_box(e) || self.outlined(t).elems[e.index()].cloned {
                 continue;
             }
             let def = self.outlined(t).elems[e.index()].planned_as.def();

@@ -54,7 +54,7 @@ impl<'a> Compiler<'a> {
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
         let fp = self.plan_ref(&mut pl.refs, t, scope, fm)?;
-        self.referent_type(&mut pl.planned.reads, t, e, fp)?;
+        self.referent_type(&pl.boxes, &mut pl.planned.reads, t, e, fp)?;
         let (ft, fe) = self
             .static_target(t, fp)
             .filter(|&(ft, fe)| {

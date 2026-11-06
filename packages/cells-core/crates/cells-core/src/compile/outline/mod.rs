@@ -178,6 +178,46 @@ impl Compiler<'_> {
         Ok(ElemId::from_index(e))
     }
 
+    /// The `_error` element standing for boxed node `node`: no children,
+    /// no props, and the element's name, so a reference to it resolves and
+    /// reads as undefined. A name a sibling already holds is left off.
+    pub(in crate::compile) fn push_error_elem(
+        &mut self,
+        bx: &mut Boxes<'_>,
+        t: TemplateId,
+        node: NodeId,
+        name_scope: ElemId,
+    ) -> ElemId {
+        let name = match self.dast.kind(node) {
+            NodeKind::Element => self.attr_name_str(node, "name").unwrap_or(StrId::NONE),
+            _ => StrId::NONE,
+        };
+        // A name a sibling holds fails to register, but the element is
+        // pushed all the same.
+        let e = ElemId::from_index(self.outlined(t).elems.len());
+        let _ = self.push_elem(t, node, ComponentType::Error, name, name_scope);
+        self.drop_unregistered_name(t, e);
+        bx.make_box(&self.settled.templates, &mut self.tables, t, e, false);
+        e
+    }
+
+    /// Leaves `e` its name only when the name table holds the name for it:
+    /// a box made for a duplicate name carries none.
+    pub(in crate::compile) fn drop_unregistered_name(&mut self, t: TemplateId, e: ElemId) {
+        let el = &self.outlined(t).elems[e.index()];
+        if el.name == StrId::NONE {
+            return;
+        }
+        let names = self.names();
+        let registered = names
+            .id(self.dast.strings.get(el.name))
+            .and_then(|id| names.entry(t, el.name_scope, id))
+            .is_some_and(|x| x == e || x == AMBIGUOUS);
+        if !registered {
+            self.outlined_mut(t).elems[e.index()].name = StrId::NONE;
+        }
+    }
+
     pub(in crate::compile) fn add_synthetic(
         &mut self,
         t: TemplateId,
@@ -212,7 +252,8 @@ impl Compiler<'_> {
                 // A duplicate name was never registered; the box carries
                 // none. Outlining's own row, before it is boxed.
                 self.drop_unregistered_name(t, e);
-                self.box_in_place(&mut o.boxes, t, e, error);
+                o.boxes
+                    .box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
                 e
             }
             Err(error) => {

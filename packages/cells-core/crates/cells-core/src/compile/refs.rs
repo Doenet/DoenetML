@@ -888,13 +888,14 @@ impl Compiler<'_> {
     /// `e` is boxed in turn. The read is recorded in `reads`.
     pub(in crate::compile) fn referent_type(
         &mut self,
+        bx: &Boxes<'_>,
         reads: &mut Vec<Read>,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
         Self::record_read(reads, t, e, p);
-        self.read_referent(t, p)
+        self.read_referent(bx, t, p)
     }
 
     /// Record that element `e` of template `t` read the facts of what `p`
@@ -913,12 +914,13 @@ impl Compiler<'_> {
     /// the error that boxes what reads it.
     pub(in crate::compile) fn read_referent(
         &mut self,
+        bx: &Boxes<'_>,
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
         let (ty, last) = self.ref_target(t, p)?;
         let boxed = ty == Some(ComponentType::Error)
-            || last.is_some_and(|(lt, le)| self.is_visible_box(lt, le));
+            || last.is_some_and(|(lt, le)| bx.is_visible(&self.tables, lt, le));
         if boxed {
             return Err(Error::BoxedReferent(self.plans.ref_display(self.dast, p)));
         }

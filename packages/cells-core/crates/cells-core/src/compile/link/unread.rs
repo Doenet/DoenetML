@@ -35,7 +35,7 @@ impl Compiler<'_> {
                 bx.fail(error, Some(node));
                 continue;
             };
-            self.box_in_place(bx, t, e, error);
+            bx.box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
         }
     }
 }

@@ -16,13 +16,14 @@ impl Compiler<'_> {
             if el.node == NodeId::NONE
                 || el.cloned
                 || el.extend.is_some()
-                || self.is_box(t, e)
+                || self.tables[t.index()].is_box(e)
                 || self.dast.attr_peek(el.node, "extend").is_none()
             {
                 continue;
             }
             if let Err(error) = self.with_clones(o, |cp, rf| cp.plan_extend(rf, t, e)) {
-                self.box_in_place(&mut o.boxes, t, e, error);
+                o.boxes
+                    .box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
             }
         }
     }
@@ -34,7 +35,8 @@ impl Compiler<'_> {
             // Nothing is expanding between two copies here, so none is
             // reached again; were one, it is boxed like any failure.
             if let Err(error) = self.expand_container_copy(o, t, e) {
-                self.box_in_place(&mut o.boxes, t, e, error);
+                o.boxes
+                    .box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
             }
         }
     }
@@ -51,7 +53,7 @@ impl Compiler<'_> {
         e: ElemId,
     ) -> Result<()> {
         let key = (t, e);
-        if o.expanded.contains(&key) || self.is_box(t, e) {
+        if o.expanded.contains(&key) || self.tables[t.index()].is_box(e) {
             // A copy boxed before its clones were made has none to read.
             self.outlined_mut(t).elems[e.index()].clones_pending = false;
             return Ok(());
@@ -67,9 +69,16 @@ impl Compiler<'_> {
         self.outlined_mut(t).elems[e.index()].clones_pending = false;
         if let Err(error) = r {
             for x in n..self.outlined(t).elems.len() {
-                self.make_box(&mut o.boxes, t, ElemId::from_index(x), true);
+                o.boxes.make_box(
+                    &self.settled.templates,
+                    &mut self.tables,
+                    t,
+                    ElemId::from_index(x),
+                    true,
+                );
             }
-            self.box_in_place(&mut o.boxes, t, e, error);
+            o.boxes
+                .box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
         }
         Ok(())
     }
@@ -94,7 +103,7 @@ impl Compiler<'_> {
         // A referent that is itself a copy has its clones first; one that
         // is a box has none to clone.
         self.with_clones(o, |cp, _| cp.ref_target(t, p).map(drop))?;
-        self.referent_type(&mut o.work.reads, t, e, p)?;
+        self.referent_type(&o.boxes, &mut o.work.reads, t, e, p)?;
         let scope = self.child_scope(t, e);
         let kids = self.clone_children(o, t, r, scope, e)?;
         // The clones come first, then the copy's own children.

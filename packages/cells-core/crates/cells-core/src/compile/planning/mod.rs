@@ -82,11 +82,11 @@ impl<'a> Compiler<'a> {
             let RefChild { node: m, owner, .. } = self.outlined(t).ref_children[id.index()];
             // Content of a box is not planned.
             let dead = match owner {
-                Some(e) => self.is_box(t, e),
+                Some(e) => self.tables[t.index()].is_box(e),
                 None => self
                     .outlined(t)
                     .parent
-                    .is_some_and(|(pt, pe)| self.is_box(pt, pe)),
+                    .is_some_and(|(pt, pe)| self.tables[pt.index()].is_box(pe)),
             };
             if dead {
                 continue;
@@ -118,7 +118,7 @@ impl<'a> Compiler<'a> {
         e: ElemId,
     ) {
         // A box, made when outlining or boxed in place, is planned as it is.
-        if self.is_box(t, e) {
+        if self.tables[t.index()].is_box(e) {
             return;
         }
         let planned_as = self.outlined(t).elems[e.index()].planned_as;
@@ -130,7 +130,8 @@ impl<'a> Compiler<'a> {
         });
         // Boxed where it fails; what reads it reads the box.
         if let Err(error) = r {
-            self.box_in_place(&mut pl.boxes, t, e, error);
+            pl.boxes
+                .box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
         }
     }
 
@@ -312,7 +313,7 @@ impl<'a> Compiler<'a> {
         let extend = match extend {
             Some(p) => {
                 // An extend of a box is planned from nothing (ADR 0027).
-                self.referent_type(&mut pl.planned.reads, t, e, p)?;
+                self.referent_type(&pl.boxes, &mut pl.planned.reads, t, e, p)?;
                 // `<point extend="$c.center"/>`, `<math extend="$c.radius"/>`,
                 // `<pointList extend="$l.points"/>`: the element's value
                 // props alias the named prop. An extend across related

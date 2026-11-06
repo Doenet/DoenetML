@@ -783,10 +783,18 @@ impl std::ops::Deref for TemplateRef<'_> {
     }
 }
 
+impl Tables {
+    /// Whether element `e` is a box, or under one: what every stage reads
+    /// of boxing's table.
+    pub(crate) fn is_box(&self, e: ElemId) -> bool {
+        matches!(self.boxes[e.index()], BoxState::Boxed { .. })
+    }
+}
+
 impl<'t> TemplateRef<'t> {
     /// Whether element `e` is a box, or under one.
     pub(crate) fn is_box(self, e: ElemId) -> bool {
-        matches!(self.tables.boxes[e.index()], BoxState::Boxed { .. })
+        self.tables.is_box(e)
     }
 
     /// Whether element `e` is under a box: no build makes it.

@@ -270,22 +270,26 @@ impl Compiler<'_> {
         // planning and linking make none.
         let outlined = cp.elem_count();
         cp.stage = Stage::Parse;
+        boxes.enter(Stage::Parse);
         let mut parsed: Parsed =
             crate::trace::span("parse maths").run(|| cp.parse_maths(&mut refs, math_texts));
         crate::trace::span("parse records")
             .run(|| cp.parse_records(&mut refs, &to_plan, &mut parsed));
         cp.stage = Stage::Plan;
+        boxes.enter(Stage::Plan);
         let (mut planned, mut boxes, _) = crate::trace::span("plan all")
             .run(|| cp.plan_all(boxes, refs, parsed, to_plan, macros, reads));
         boxes.restart_if_needed()?;
         cp.stage = Stage::Link;
+        boxes.enter(Stage::Link);
         crate::trace::span("link").run(|| cp.link(&mut boxes, &mut planned))?;
         debug_assert_eq!(cp.elem_count(), outlined, "only outlining makes elements");
         boxes.restart_if_needed()?;
         cp.stage = Stage::Seal;
+        boxes.enter(Stage::Seal);
         let (sealed, choice_seals) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
         let _s = crate::trace::span("finish");
-        cp.drop_reports_of_boxes(&mut boxes);
+        boxes.drop_reports_of_boxes(&cp.settled.templates, &cp.tables, &mut cp.warnings);
         let errors = boxes.into_errors();
         // Each stage's tables put together, as the build reads them (ADR
         // 0031).
@@ -380,14 +384,6 @@ impl Compiler<'_> {
     /// How many templates there are.
     pub(in crate::compile) fn n_templates(&self) -> usize {
         self.tables.len()
-    }
-
-    /// Template `t`'s outlined part and its tables, read together.
-    pub(in crate::compile) fn view(&self, t: TemplateId) -> TemplateRef<'_> {
-        TemplateRef {
-            outlined: self.outlined(t),
-            tables: &self.tables[t.index()],
-        }
     }
 
     /// Choice `cid` as outlining made it.

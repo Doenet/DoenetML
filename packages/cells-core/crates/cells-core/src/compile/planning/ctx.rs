@@ -162,9 +162,10 @@ impl<'a> PlanCtx<'_, 'a> {
     /// outlining settled it (a `<math>` may be a point).
     pub(crate) fn reference_type(&mut self, p: RefId) -> Result<Option<ComponentType>> {
         match self.c.plan_elem_target(self.t, p) {
-            Some(_) => self
-                .c
-                .referent_type(&mut self.p.planned.reads, self.t, self.e, p),
+            Some(_) => {
+                self.c
+                    .referent_type(&self.p.boxes, &mut self.p.planned.reads, self.t, self.e, p)
+            }
             None => Ok(None),
         }
     }

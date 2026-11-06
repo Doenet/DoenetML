@@ -21,8 +21,12 @@ pub(in crate::compile) struct Boxes<'a> {
     /// The first failure no element could carry: the stage goes on, and
     /// the compile ends with it once the stage is done.
     restart: Option<Failure>,
+    /// The stage running now, which boxes what it boxes (`enter`).
+    stage: Stage,
 }
 
+/// What boxing records: the boxes' errors, and the failure to compile again
+/// from.
 impl<'a> Boxes<'a> {
     pub(in crate::compile) fn new(prior: &'a HashSet<NodeId>) -> Self {
         Boxes {
@@ -30,6 +34,7 @@ impl<'a> Boxes<'a> {
             errors: Vec::new(),
             here: HashSet::new(),
             restart: None,
+            stage: Stage::Outline,
         }
     }
 
@@ -76,19 +81,25 @@ impl<'a> Boxes<'a> {
 }
 
 /// Boxing: an element that fails made an `_error` element where it fails, and
-/// what is under it with it. Writes only the boxes table and the box's row (ADR
-/// 0031); run by outlining, planning and linking.
-impl Compiler<'_> {
-    /// Whether element `e` is a box: boxed when outlining, boxed in place, or
-    /// under one.
-    pub(in crate::compile) fn is_box(&self, t: TemplateId, e: ElemId) -> bool {
-        self.view(t).is_box(e)
+/// what is under it with it. Writes only the boxes table (ADR 0031), and reads
+/// outlining's rows, which it is handed; run by outlining, planning and
+/// linking.
+impl Boxes<'_> {
+    /// The stage boxing from now on: the stage each box records as its
+    /// maker, and which boxes a reader of a referent's type sees.
+    pub(in crate::compile) fn enter(&mut self, stage: Stage) {
+        self.stage = stage;
     }
 
     /// Whether element `e` is a box a reader of its type may see now: while
     /// planning, only outlining's.
-    pub(in crate::compile) fn is_visible_box(&self, t: TemplateId, e: ElemId) -> bool {
-        match &self.tables[t.index()].boxes[e.index()] {
+    pub(in crate::compile) fn is_visible(
+        &self,
+        tables: &[Tables],
+        t: TemplateId,
+        e: ElemId,
+    ) -> bool {
+        match &tables[t.index()].boxes[e.index()] {
             BoxState::Live => false,
             BoxState::Boxed { by, .. } => self.stage != Stage::Plan || *by == Stage::Outline,
         }
@@ -104,31 +115,41 @@ impl Compiler<'_> {
     /// several) to fail the compile once the stage is done.
     pub(in crate::compile) fn box_in_place(
         &mut self,
-        bx: &mut Boxes<'_>,
+        templates: &[Outlined],
+        tables: &mut [Tables],
         t: TemplateId,
         e: ElemId,
         error: Error,
     ) {
-        let Elem { node, cloned, .. } = self.outlined(t).elems[e.index()];
-        let doomed = self.subtree(t, e);
+        let Elem { node, cloned, .. } = templates[t.index()].elems[e.index()];
+        let doomed = subtree(templates, t, e);
         if node != NodeId::NONE {
-            bx.record(node, &error);
+            self.record(node, &error);
         } else if !cloned {
-            bx.fail(error, None);
+            self.fail(error, None);
         }
         for (dt, de) in doomed {
-            self.make_box(bx, dt, de, (dt, de) != (t, e));
+            self.make_box(templates, tables, dt, de, (dt, de) != (t, e));
         }
     }
 
     /// Drop what boxes leave out of the diagnostics, once every stage that
     /// boxes is done: a box reports its error and nothing else, and what is
-    /// under a box reports nothing.
-    pub(in crate::compile) fn drop_reports_of_boxes(&mut self, bx: &mut Boxes<'_>) {
+    /// under a box reports nothing. `warnings` are the planners'.
+    pub(in crate::compile) fn drop_reports_of_boxes(
+        &mut self,
+        templates: &[Outlined],
+        tables: &[Tables],
+        warnings: &mut Vec<Diagnostic>,
+    ) {
+        let view = |t: TemplateId| TemplateRef {
+            outlined: &templates[t.index()],
+            tables: &tables[t.index()],
+        };
         let mut boxes = HashSet::new();
         let mut dead = HashSet::new();
-        for t in 0..self.n_templates() {
-            let tpl = self.view(TemplateId::from_index(t));
+        for t in TemplateId::below(templates.len()) {
+            let tpl = view(t);
             for (el, b) in tpl.outlined.elems.iter().zip(&tpl.tables.boxes) {
                 if let BoxState::Boxed { dead: d, .. } = b
                     && el.node != NodeId::NONE
@@ -141,8 +162,8 @@ impl Compiler<'_> {
             }
         }
         // A `$ref` child's box is under a box when what it is a child of is.
-        for t in 0..self.n_templates() {
-            let tpl = self.view(TemplateId::from_index(t));
+        for t in TemplateId::below(templates.len()) {
+            let tpl = view(t);
             for (rc, plan) in tpl
                 .outlined
                 .ref_children
@@ -154,7 +175,7 @@ impl Compiler<'_> {
                     None => tpl
                         .outlined
                         .parent
-                        .is_some_and(|(pt, pe)| self.view(pt).is_box(pe)),
+                        .is_some_and(|(pt, pe)| view(pt).is_box(pe)),
                 };
                 if *plan == RefChildPlan::Boxed && under_box {
                     dead.insert(rc.node);
@@ -164,87 +185,8 @@ impl Compiler<'_> {
         if boxes.is_empty() && dead.is_empty() {
             return;
         }
-        bx.drop_errors_on(&dead);
-        self.warnings
-            .retain(|d| !d.node.is_some_and(|n| boxes.contains(&n)));
-    }
-
-    /// Element `e` and everything under it: its children, theirs, and
-    /// the elements of every template a repeat or choice among them owns.
-    pub(in crate::compile) fn subtree(
-        &self,
-        t: TemplateId,
-        e: ElemId,
-    ) -> Vec<(TemplateId, ElemId)> {
-        let mut seen: HashSet<(TemplateId, ElemId)> = HashSet::from([(t, e)]);
-        let mut out = vec![(t, e)];
-        let mut i = 0;
-        while i < out.len() {
-            let (ct, ce) = out[i];
-            i += 1;
-            let el = &self.outlined(ct).elems[ce.index()];
-            let mut under: Vec<(TemplateId, ElemId)> = el
-                .children
-                .iter()
-                .filter_map(|c| match c {
-                    Child::Elem(x) => Some((ct, *x)),
-                    _ => None,
-                })
-                .collect();
-            for ti in 0..self.n_templates() {
-                let tpl = self.outlined(TemplateId::from_index(ti));
-                if tpl.parent == Some((ct, ce)) {
-                    let sub = TemplateId::from_index(ti);
-                    under.extend((0..tpl.elems.len()).map(|x| (sub, ElemId::from_index(x))));
-                }
-            }
-            for k in under {
-                if seen.insert(k) {
-                    out.push(k);
-                }
-            }
-        }
-        out
-    }
-
-    /// The `_error` element standing for boxed node `node`: no children,
-    /// no props, and the element's name, so a reference to it resolves and
-    /// reads as undefined. A name a sibling already holds is left off.
-    pub(in crate::compile) fn push_error_elem(
-        &mut self,
-        bx: &mut Boxes<'_>,
-        t: TemplateId,
-        node: NodeId,
-        name_scope: ElemId,
-    ) -> ElemId {
-        let name = match self.dast.kind(node) {
-            NodeKind::Element => self.attr_name_str(node, "name").unwrap_or(StrId::NONE),
-            _ => StrId::NONE,
-        };
-        // A name a sibling holds fails to register, but the element is
-        // pushed all the same.
-        let e = ElemId::from_index(self.outlined(t).elems.len());
-        let _ = self.push_elem(t, node, ComponentType::Error, name, name_scope);
-        self.drop_unregistered_name(t, e);
-        self.make_box(bx, t, e, false);
-        e
-    }
-
-    /// Leaves `e` its name only when the name table holds the name for it:
-    /// a box made for a duplicate name carries none.
-    pub(in crate::compile) fn drop_unregistered_name(&mut self, t: TemplateId, e: ElemId) {
-        let el = &self.outlined(t).elems[e.index()];
-        if el.name == StrId::NONE {
-            return;
-        }
-        let names = self.names();
-        let registered = names
-            .id(self.dast.strings.get(el.name))
-            .and_then(|id| names.entry(t, el.name_scope, id))
-            .is_some_and(|x| x == e || x == AMBIGUOUS);
-        if !registered {
-            self.outlined_mut(t).elems[e.index()].name = StrId::NONE;
-        }
+        self.drop_errors_on(&dead);
+        warnings.retain(|d| !d.node.is_some_and(|n| boxes.contains(&n)));
     }
 
     /// Makes `e` a box in boxing's table: an `_error` element with no
@@ -252,19 +194,53 @@ impl Compiler<'_> {
     /// a box, which no build makes.
     pub(in crate::compile) fn make_box(
         &mut self,
-        bx: &mut Boxes<'_>,
+        templates: &[Outlined],
+        tables: &mut [Tables],
         t: TemplateId,
         e: ElemId,
         dead: bool,
     ) {
         let by = self.stage;
-        let row = Box::new(self.elem(t, e).as_box());
-        bx.mark(
-            &mut self.tables[t.index()].boxes,
+        let row = Box::new(templates[t.index()].elems[e.index()].as_box());
+        self.mark(
+            &mut tables[t.index()].boxes,
             e,
             BoxState::Boxed { row, by, dead },
         );
     }
+}
+
+/// Element `e` and everything under it: its children, theirs, and the
+/// elements of every template a repeat or choice among them owns.
+fn subtree(templates: &[Outlined], t: TemplateId, e: ElemId) -> Vec<(TemplateId, ElemId)> {
+    let mut seen: HashSet<(TemplateId, ElemId)> = HashSet::from([(t, e)]);
+    let mut out = vec![(t, e)];
+    let mut i = 0;
+    while i < out.len() {
+        let (ct, ce) = out[i];
+        i += 1;
+        let el = &templates[ct.index()].elems[ce.index()];
+        let mut under: Vec<(TemplateId, ElemId)> = el
+            .children
+            .iter()
+            .filter_map(|c| match c {
+                Child::Elem(x) => Some((ct, *x)),
+                _ => None,
+            })
+            .collect();
+        for (ti, tpl) in templates.iter().enumerate() {
+            if tpl.parent == Some((ct, ce)) {
+                let sub = TemplateId::from_index(ti);
+                under.extend((0..tpl.elems.len()).map(|x| (sub, ElemId::from_index(x))));
+            }
+        }
+        for k in under {
+            if seen.insert(k) {
+                out.push(k);
+            }
+        }
+    }
+    out
 }
 
 #[cfg(test)]
