@@ -386,6 +386,27 @@ name can't be reached from inside it, so give the copy a name.)
 </section>
 ```
 
+An attribute on a `<module copy>` works the same way, so `xmin="$xmin"` never
+finds the copied module's own `xmin`. The module's definition is still written
+where you wrote it, though, and its names are found from there like any others.
+If the definition and another `xmin` are both in the scope where the copy is
+written, `$xmin` matches both and [is ambiguous](#when-a-reference-is-ambiguous).
+Write the copy where the `xmin` you mean is nearer, as in the section below.
+
+```doenet-editor-horiz
+<setup>
+  <module name="g">
+    <moduleAttributes><number name="xmin">-10</number></moduleAttributes>
+    <p>xmin is $xmin</p>
+  </module>
+</setup>
+<module copy="$g" />
+<section>
+  <setup><number name="xmin">-3</number></setup>
+  <module copy="$g" xmin="$xmin" />
+</section>
+```
+
 ### References inside copied content
 
 A copy is the original's DoenetML pasted where the copy is written, with its
