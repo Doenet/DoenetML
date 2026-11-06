@@ -15,9 +15,16 @@ import { sampleFromNumberList } from "../utils/randomNumbers";
 import ValueListComponent from "./abstract/ValueListComponent";
 import {
     NO_SELECT_ERROR,
+    choicesDecidedByDoenetML,
+    returnChoicesDecidedByDoenetMLDefinition,
     returnSelectErrorReportDefinition,
     selectError,
+    selectFailureType,
     selectionResult,
+    keptSelection,
+    NUM_TO_SELECT_VARIABLE,
+    withNumToSelect,
+    selectionWithRequested,
 } from "../utils/selectErrors";
 
 /**
@@ -26,6 +33,37 @@ import {
  * `selectedValues`, and a parent sees one `<integer>` per value.
  */
 export default class SelectPrimeNumbers extends ValueListComponent {
+    constructor(args) {
+        super(args);
+        // Whether a failure to select is an error or a missing selection
+        // with an info (`selectFailureType`)
+        this.doenetAttributes.choicesDecidedByDoenetML =
+            choicesDecidedByDoenetML({
+                component: this,
+                attributeNames: [
+                    "from",
+                    "to",
+                    "exclude",
+                    "numToSelect",
+                    "withReplacement",
+                    "excludeCombinations",
+                ],
+                componentInfoObjects: args.componentInfoObjects,
+            });
+    }
+
+    /**
+     * Whether a fresh load reproduces this select's selection, so a save
+     * can leave it out (`BaseComponent.definitionEssentialValuesAreReproducible`):
+     * only when the DoenetML alone decides what it chooses from. A value
+     * that decides it, such as an input, can have changed by the time the
+     * document is loaded again, and the select must keep the choices it was
+     * made with, never choosing again.
+     */
+    get definitionEssentialValuesReproducible() {
+        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
+    }
+
     static componentType = "selectPrimeNumbers";
 
     static listEntryComponentType = "integer";
@@ -62,6 +100,8 @@ export default class SelectPrimeNumbers extends ValueListComponent {
                 "Lower bound (inclusive) of the prime range to select from.",
             createComponentOfType: "integer",
             createStateVariable: "from",
+            // fixed with the selection made from it
+            immutable: true,
             defaultValue: 2,
             public: true,
         };
@@ -70,6 +110,8 @@ export default class SelectPrimeNumbers extends ValueListComponent {
                 "Upper bound (inclusive) of the prime range to select from.",
             createComponentOfType: "integer",
             createStateVariable: "to",
+            // fixed with the selection made from it
+            immutable: true,
             defaultValue: 100,
             public: true,
         };
@@ -78,6 +120,8 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             description: "Primes to exclude from the selection.",
             createComponentOfType: "numberList",
             createStateVariable: "exclude",
+            // fixed with the selection made from it
+            immutable: true,
             defaultValue: [],
             public: true,
         };
@@ -85,15 +129,19 @@ export default class SelectPrimeNumbers extends ValueListComponent {
         attributes.numToSelect = {
             description: "How many prime numbers to select.",
             createComponentOfType: "integer",
-            createStateVariable: "numToSelect",
+            createStateVariable: "specifiedNumToSelect",
+            // fixed with the selection made from it; the public `numToSelect`
+            // is kept with the selection (`NUM_TO_SELECT_VARIABLE`)
+            immutable: true,
             defaultValue: 1,
-            public: true,
         };
         attributes.withReplacement = {
             description:
                 "Whether the same prime can be selected more than once.",
             createComponentOfType: "boolean",
             createStateVariable: "withReplacement",
+            // fixed with the selection made from it
+            immutable: true,
             defaultValue: false,
             public: true,
         };
@@ -144,6 +192,8 @@ export default class SelectPrimeNumbers extends ValueListComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.excludedCombinations = {
+            // fixed with the selection made from it
+            immutable: true,
             returnDependencies: () => ({
                 excludeCombinations: {
                     dependencyType: "attributeComponent",
@@ -152,7 +202,7 @@ export default class SelectPrimeNumbers extends ValueListComponent {
                 },
                 numToSelect: {
                     dependencyType: "stateVariable",
-                    variableName: "numToSelect",
+                    variableName: "specifiedNumToSelect",
                 },
             }),
             definition: function ({ dependencyValues }) {
@@ -200,6 +250,8 @@ export default class SelectPrimeNumbers extends ValueListComponent {
         };
 
         stateVariableDefinitions.possibleValues = {
+            // fixed with the selection made from it
+            immutable: true,
             returnDependencies: () => ({
                 from: {
                     dependencyType: "stateVariable",
@@ -225,9 +277,14 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             },
         };
 
+        stateVariableDefinitions.choicesDecidedByDoenetML =
+            returnChoicesDecidedByDoenetMLDefinition();
+
         stateVariableDefinitions.selectedValues = {
             immutable: true,
             hasEssential: true,
+            // to keep a selection already made (`keptSelection`)
+            provideEssentialValuesInDefinition: true,
             shadowVariable: true,
             additionalStateVariablesDefined: [
                 {
@@ -244,31 +301,13 @@ export default class SelectPrimeNumbers extends ValueListComponent {
                     shadowVariable: true,
                     immutable: true,
                 },
+                NUM_TO_SELECT_VARIABLE,
             ],
             returnDependencies: ({ sharedParameters }) => ({
-                numToSelect: {
+                ...selectionDependencies(),
+                choicesDecidedByDoenetML: {
                     dependencyType: "stateVariable",
-                    variableName: "numToSelect",
-                },
-                withReplacement: {
-                    dependencyType: "stateVariable",
-                    variableName: "withReplacement",
-                },
-                possibleValues: {
-                    dependencyType: "stateVariable",
-                    variableName: "possibleValues",
-                },
-                excludedCombinations: {
-                    dependencyType: "stateVariable",
-                    variableName: "excludedCombinations",
-                },
-                sort: {
-                    dependencyType: "stateVariable",
-                    variableName: "sort",
-                },
-                variants: {
-                    dependencyType: "stateVariable",
-                    variableName: "variants",
+                    variableName: "choicesDecidedByDoenetML",
                 },
                 variantRng: {
                     dependencyType: "value",
@@ -276,7 +315,11 @@ export default class SelectPrimeNumbers extends ValueListComponent {
                     doNotProxy: true,
                 },
             }),
-            definition: makeSelection,
+            definition: (args) =>
+                withNumToSelect(
+                    makeSelection(args),
+                    args.dependencyValues.numToSelect,
+                ),
         };
 
         stateVariableDefinitions.isVariantComponent = {
@@ -563,13 +606,92 @@ export default class SelectPrimeNumbers extends ValueListComponent {
     }
 }
 
-function makeSelection({ dependencyValues }) {
-    // console.log(`make selection`)
-    // console.log(dependencyValues)
+/**
+ * What a `<selectPrimeNumbers>` selects from, and how many: the dependencies
+ * of `selectedValues`, other than the generator.
+ */
+function selectionDependencies() {
+    return {
+        numToSelect: {
+            dependencyType: "stateVariable",
+            variableName: "specifiedNumToSelect",
+        },
+        withReplacement: {
+            dependencyType: "stateVariable",
+            variableName: "withReplacement",
+        },
+        possibleValues: {
+            dependencyType: "stateVariable",
+            variableName: "possibleValues",
+        },
+        excludedCombinations: {
+            dependencyType: "stateVariable",
+            variableName: "excludedCombinations",
+        },
+        sort: {
+            dependencyType: "stateVariable",
+            variableName: "sort",
+        },
+        variants: {
+            dependencyType: "stateVariable",
+            variableName: "variants",
+        },
+    };
+}
 
+/**
+ * The values the requested variant gives, or `undefined` when it gives none.
+ * They are taken as given, whatever the select would choose now
+ * (`selectionWithRequested`): a select keeps the choices it was made with,
+ * as it keeps what it chose from, and never chooses again (#2389). `null`,
+ * which a select that could not select records in its variant
+ * (`generatedVariantInfo`), or `[]`, is a selection of nothing.
+ */
+function requestedValues(dependencyValues) {
+    const desiredValues = dependencyValues.variants?.desiredVariant?.values;
+    if (desiredValues === null) {
+        return [];
+    }
+    if (!Array.isArray(desiredValues)) {
+        return undefined;
+    }
+    return desiredValues.map(Number);
+}
+
+function makeSelection({ dependencyValues, essentialValues }) {
+    // A selection already made, as on a reload, is kept
+    const kept = keptSelection(essentialValues, [
+        "selectedValues",
+        "errorMessage",
+        "errorDiagnostic",
+        "numToSelect",
+    ]);
+    if (kept) {
+        return kept;
+    }
+
+    return selectionWithRequested({
+        requested: requestedValues(dependencyValues),
+        dependencyValues,
+        select: makeFreshSelection,
+        rngKey: "variantRng",
+        takeRequested: (values) =>
+            selectionResult(NO_SELECT_ERROR, { selectedValues: values }),
+        emptySelection: selectionResult(NO_SELECT_ERROR, {
+            selectedValues: [],
+        }),
+    });
+}
+
+/** The selection a `<selectPrimeNumbers>` makes itself, given no choices. */
+function makeFreshSelection(dependencyValues) {
     if (dependencyValues.numToSelect < 1) {
         return selectionResult(NO_SELECT_ERROR, { selectedValues: [] });
     }
+
+    // An error when the DoenetML decides that nothing can be selected, and a
+    // missing selection with an info when a value does (D38, DIAG-7)
+    const type = selectFailureType(dependencyValues.choicesDecidedByDoenetML);
 
     let numUniqueRequired = 1;
     if (!dependencyValues.withReplacement) {
@@ -583,44 +705,9 @@ function makeSelection({ dependencyValues }) {
         const error = selectError({
             code: "doenet-e0047",
             args: { numToSelect: numUniqueRequired, numValues },
+            type,
         });
         return selectionResult(error, { selectedValues: null });
-    }
-
-    // if desiredIndices is specfied, use those
-    if (
-        dependencyValues.variants &&
-        dependencyValues.variants.desiredVariant !== undefined
-    ) {
-        let desiredValues = dependencyValues.variants.desiredVariant.values;
-        if (desiredValues !== undefined) {
-            if (desiredValues.length !== dependencyValues.numToSelect) {
-                const error = selectError({ code: "doenet-e0048" });
-                return selectionResult(error, { selectedValues: null });
-            }
-
-            desiredValues = desiredValues.map(Number);
-
-            if (!desiredValues.every((x) => possibleValues.includes(x))) {
-                const error = selectError({ code: "doenet-e0049" });
-                return selectionResult(error, { selectedValues: null });
-            }
-
-            if (
-                checkForExcludedCombination({
-                    type: "number",
-                    excludedCombinations: dependencyValues.excludedCombinations,
-                    values: desiredValues,
-                })
-            ) {
-                const error = selectError({ code: "doenet-e0050" });
-                return selectionResult(error, { selectedValues: null });
-            }
-
-            return selectionResult(NO_SELECT_ERROR, {
-                selectedValues: desiredValues,
-            });
-        }
     }
 
     let numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
@@ -673,7 +760,7 @@ function makeSelection({ dependencyValues }) {
             }
 
             if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                const error = selectError({ code: "doenet-e0051" });
+                const error = selectError({ code: "doenet-e0051", type });
                 return selectionResult(error, { selectedValues: null });
             }
         }
@@ -705,8 +792,9 @@ function makeSelection({ dependencyValues }) {
         }
 
         if (!foundValidCombination) {
-            // this won't happen, as occurs with prob < 10^(-30)
-            const error = selectError({ code: "doenet-e0052" });
+            // this won't happen, as occurs with prob < 10^(-30), and depends
+            // on the variant alone
+            const error = selectError({ code: "doenet-e0052", type: "info" });
             return selectionResult(error, { selectedValues: null });
         }
     }

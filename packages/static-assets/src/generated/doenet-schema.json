@@ -113027,13 +113027,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "numToSelect",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "How many values to select from the sequence.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "withReplacement",
                     "type": "boolean",
                     "isArray": false,
@@ -113113,6 +113106,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numToSelect",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "How many were selected: the number to select when the selection was made."
                 }
             ],
             "top": true,
@@ -113274,13 +113273,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "numToSelect",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "How many child components to select.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "withReplacement",
                     "type": "boolean",
                     "isArray": false,
@@ -113292,6 +113284,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numToSelect",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "How many were selected: the number to select when the selection was made."
                 }
             ],
             "top": true,
@@ -115205,14 +115203,6 @@
                     "highlighted": true
                 },
                 {
-                    "name": "numToSelect",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "How many random numbers to select.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -115400,6 +115390,12 @@
                     "description": "Standard deviation of the sampling distribution.",
                     "groupName": "sampling-moments",
                     "highlighted": true
+                },
+                {
+                    "name": "numToSelect",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "How many were selected: the number to select when the selection was made."
                 }
             ],
             "top": true,
@@ -116580,13 +116576,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "numToSelect",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "How many prime numbers to select.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "withReplacement",
                     "type": "boolean",
                     "isArray": false,
@@ -116659,6 +116648,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numToSelect",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "How many were selected: the number to select when the selection was made."
                 }
             ],
             "top": true,
