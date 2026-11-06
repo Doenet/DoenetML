@@ -823,6 +823,10 @@ export default class BaseComponent {
                     dependencyType: "parentStateVariable",
                     variableName: "childrenToHide",
                 },
+                sourceCompositeReplacementsToHide: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "replacementsToHide",
+                },
             }),
             definition: ({ dependencyValues, componentIdx }) => {
                 return {
@@ -830,6 +834,9 @@ export default class BaseComponent {
                         hidden: Boolean(
                             dependencyValues.parentHidden ||
                             dependencyValues.sourceCompositeHidden ||
+                            dependencyValues.sourceCompositeReplacementsToHide?.includes(
+                                componentIdx,
+                            ) ||
                             dependencyValues.adapterSourceHidden ||
                             dependencyValues.hide ||
                             (Array.isArray(
@@ -886,12 +893,19 @@ export default class BaseComponent {
                     dependencyType: "adapterSourceStateVariable",
                     variableName: "hiddenIgnoreParent",
                 },
+                sourceCompositeReplacementsToHide: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "replacementsToHide",
+                },
             }),
-            definition: ({ dependencyValues }) => {
+            definition: ({ dependencyValues, componentIdx }) => {
                 return {
                     setValue: {
                         hiddenIgnoreParent: Boolean(
                             dependencyValues.sourceCompositeHidden ||
+                            dependencyValues.sourceCompositeReplacementsToHide?.includes(
+                                componentIdx,
+                            ) ||
                             dependencyValues.adapterSourceHidden ||
                             dependencyValues.hide,
                         ),
