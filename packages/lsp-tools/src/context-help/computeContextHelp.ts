@@ -1274,7 +1274,11 @@ async function helpForRefMemberByName(
     if (!entries) return NONE;
     const { ownEntry, effectiveEntry } = entries;
 
-    const prop = findSchemaProperty(effectiveEntry, memberName);
+    // A name some branch declares but not every one names nothing here,
+    // not a property (`doenet-w0183`).
+    const prop = resolved.hiddenMemberNames?.includes(memberName)
+        ? undefined
+        : findSchemaProperty(effectiveEntry, memberName);
     if (!prop?.description) {
         // The container resolved but the member matches no descendant or
         // property. Classify the whole chain so an authoritatively bad member
@@ -1357,7 +1361,9 @@ async function helpForRefNameByName(
     offset: number,
     refName: string,
 ): Promise<HelpContent> {
-    const resolved = completer.resolveRefNameForHelp(offset, refName);
+    const resolved =
+        completer.resolveRefNameForHelp(offset, refName) ??
+        (await completer.resolveBranchNameForHelp(offset, refName));
     if (resolved) {
         const { referent, line } = resolved;
         return {
