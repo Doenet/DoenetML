@@ -210,18 +210,22 @@ export function choicesDecidedByDoenetML({
 }
 
 /**
- * The state variable `choicesDecidedByDoenetML` of a select, read by the
+ * The state variable `choicesDecidedByDoenetML` of a select (or the one
+ * named `variableName`, kept the same way, such as a `<select>`'s
+ * `optionsDecidedByDoenetML`), read by the
  * definition that selects to set the level of a failure
  * ({@link selectFailureType}). The select's constructor computes it from
  * what the author wrote ({@link choicesDecidedByDoenetML}) and keeps it in
  * `doenetAttributes`.
  */
-export function returnChoicesDecidedByDoenetMLDefinition() {
+export function returnChoicesDecidedByDoenetMLDefinition(
+    variableName = "choicesDecidedByDoenetML",
+) {
     return {
         returnDependencies: () => ({
             decided: {
                 dependencyType: "doenetAttribute",
-                attributeName: "choicesDecidedByDoenetML",
+                attributeName: variableName,
             },
         }),
         definition({
@@ -231,8 +235,7 @@ export function returnChoicesDecidedByDoenetMLDefinition() {
         }) {
             return {
                 setValue: {
-                    choicesDecidedByDoenetML:
-                        dependencyValues.decided !== false,
+                    [variableName]: dependencyValues.decided !== false,
                 },
             };
         },

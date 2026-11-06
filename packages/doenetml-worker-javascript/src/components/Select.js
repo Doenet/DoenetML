@@ -80,6 +80,17 @@ export default class Select extends CompositeComponent {
                 optionChildType: "option",
                 componentInfoObjects: args.componentInfoObjects,
             });
+        // Whether the options are all written in the select, which alone
+        // decides whether each variant name has one (`e0033`, `e0034`):
+        // an option copied by an index from another random choice can
+        // differ between variants
+        this.doenetAttributes.optionsDecidedByDoenetML =
+            choicesDecidedByDoenetML({
+                component: this,
+                attributeNames: [],
+                optionChildType: "option",
+                componentInfoObjects: args.componentInfoObjects,
+            });
     }
 
     static componentType = "select";
@@ -224,6 +235,10 @@ export default class Select extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "choicesDecidedByDoenetML",
                 },
+                optionsDecidedByDoenetML: {
+                    dependencyType: "stateVariable",
+                    variableName: "optionsDecidedByDoenetML",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let availableVariants = {};
@@ -288,6 +303,9 @@ export default class Select extends CompositeComponent {
                             const error = selectError({
                                 code: "doenet-e0033",
                                 args: { variantName },
+                                type: selectFailureType(
+                                    dependencyValues.optionsDecidedByDoenetML,
+                                ),
                             });
 
                             return {
@@ -307,6 +325,9 @@ export default class Select extends CompositeComponent {
                             const error = selectError({
                                 code: "doenet-e0034",
                                 args: { variantName },
+                                type: selectFailureType(
+                                    dependencyValues.optionsDecidedByDoenetML,
+                                ),
                             });
 
                             return {
@@ -339,6 +360,10 @@ export default class Select extends CompositeComponent {
 
         stateVariableDefinitions.choicesDecidedByDoenetML =
             returnChoicesDecidedByDoenetMLDefinition();
+        stateVariableDefinitions.optionsDecidedByDoenetML =
+            returnChoicesDecidedByDoenetMLDefinition(
+                "optionsDecidedByDoenetML",
+            );
 
         stateVariableDefinitions.ignoredVariantChoicesReported =
             returnIgnoredVariantChoicesDefinition({

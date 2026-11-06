@@ -549,6 +549,34 @@ describe("Errors the DoenetML decides, beside ones a value decides @group4", asy
         expect([...counts].sort()).eqls([1, 2]);
     });
 
+    it("a variant name with no option among options a random index copies is an info, never an error", async () => {
+        // The copied option is for `a` when k is 1, and for no name when k
+        // is 2, so `a` has an option in some variants only
+        const doenetML = `<variantControl numVariants="2" variantNames="a b"/>
+<setup><group name="g"><option selectForVariants="a">x</option><option>y</option></group></setup>
+<selectFromSequence name="k" from="1" to="2"/>
+<p name="p"><select name="s"><option copy="$g[$k]"/><option selectForVariants="b">z</option></select></p>`;
+        let made = 0;
+        let missing = 0;
+        for (const requestedVariantIndex of [1, 2, 3, 4, 5, 6]) {
+            const { errors, infos, texts } = await load({
+                doenetML,
+                requestedVariantIndex,
+                variable: "selectedIndices",
+                paragraphs: ["p"],
+            });
+            expect(errors).eqls([]);
+            if (infos.includes("doenet-e0033")) {
+                missing++;
+                expect(texts.p).eq("＿");
+            } else {
+                made++;
+            }
+        }
+        expect(made).gt(0);
+        expect(missing).gt(0);
+    });
+
     it("coprime draws that find nothing are an info, not an error, when coprime values exist", async () => {
         // 1 and the even numbers to 2002: a coprime pair must include 1,
         // which 200 draws miss in some variants and find in others
