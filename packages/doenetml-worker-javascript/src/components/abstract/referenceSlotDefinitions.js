@@ -249,6 +249,9 @@ export function referenceSlotDefinitions({
                         isLocation: referent.isLocation,
                         companions: referent.companions,
                         listEntryPosition: referent.listEntryPosition,
+                        ...(referent.nullIsMissing
+                            ? { nullIsMissing: true }
+                            : {}),
                     };
                 }
             }
@@ -562,7 +565,10 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
  * say so, since a referent can hold `NaN` or `""` too. A variable that holds
  * `null`, such as an attribute with no default (an `<award>`'s
  * `feedbackText`), is not missing: the copy made a component for it, holding
- * the empty value `value` also holds. One case differs from the copy: an
+ * the empty value `value` also holds. One that declares `null` to be no
+ * value (`nullIsMissing`, `maxNumber` of a `<collect>` with no limit) is
+ * missing while it holds `null`, as the copy makes nothing for it then
+ * (`replacementFromProp` in `Copy.js`, #2416). One case differs from the copy: an
  * array entry whose key is there but that holds no value is missing, where
  * the copy made a component holding the empty value. The known such entries
  * are those of a function's global minimum, maximum, infimum or supremum
@@ -597,16 +603,25 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
         returnDependencies({ stateValues }) {
             const referentInfo = stateValues[names.referentInfo];
             // A property of a missing component is missing (D37).
-            return withTargetMissing(
+            const dependencies = withTargetMissing(
                 targetDependencies(undefined, referentInfo),
                 referentInfo,
             );
+            if (referentInfo?.nullIsMissing) {
+                dependencies.nullIsMissing = {
+                    dependencyType: "value",
+                    value: true,
+                };
+            }
+            return dependencies;
         },
         definition({ dependencyValues }) {
             return {
                 setValue: {
                     [names.valueMissing]:
                         dependencyValues.target === undefined ||
+                        (dependencyValues.nullIsMissing === true &&
+                            dependencyValues.target === null) ||
                         Boolean(dependencyValues.targetInactive) ||
                         Boolean(dependencyValues.targetMissing),
                 },

@@ -2618,7 +2618,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // component did. Two such references: one a copy makes at run
                 // time to a `<choiceInput>`'s `selectedValue`, once the
                 // selected choice is withheld, and one to an attribute with no
-                // default.
+                // default. A variable that declares `null` to be no value
+                // (`nullIsMissing`), as `maxNumber` of a `<collect>` with no
+                // limit, is missing instead (#2416).
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <boolean name="b">true</boolean>
@@ -2685,7 +2687,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     choiceCount: 2,
                     nullEq: true,
                     nullBlank: true,
-                    nullSum: NaN,
+                    nullSum: ["+", "＿", 5],
                 });
             });
 
@@ -3108,6 +3110,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // and a `selectedValue` a copy made the reference for holds
                 // nothing once the selected choice is withheld. The answer
                 // cannot record either as it is: submitting it fails.
+                // `maxNumber` of a `<collect>` with no limit holds `null` for
+                // no value (`nullIsMissing`), so it is missing and recorded as
+                // a blank math, as a missing reference is (#2416).
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <boolean name="b">true</boolean>
@@ -3130,8 +3135,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 const nullsIdx = await resolvePathToNodeIdx("nulls");
                 await submitAnswer({ componentIdx: nullsIdx, core });
                 expect(await submitted(core, nullsIdx)).eqls({
-                    responses: ["", NaN],
-                    types: ["text", "number"],
+                    responses: ["", "＿"],
+                    types: ["text", "math"],
                     credit: 0,
                     numResponses: 2,
                 });

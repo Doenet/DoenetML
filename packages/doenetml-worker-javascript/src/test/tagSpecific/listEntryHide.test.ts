@@ -635,23 +635,26 @@ describe("Hidden content nested inside a list @group4", async () => {
         },
         // An entry of a list hidden inside the composite. Its replacement is
         // a reference to the entry, whose `.hide` and `.hidden` read
-        // through `$l[1]` are `＿` whether or not anything is hidden, so
-        // those are not checked here.
+        // through `$l[1]` are the entry's (#2480).
         {
             list: `<sort name="l"><group hide><numberList>1</numberList></group><math>2</math></sort>`,
             shown: "2",
             first: "1",
-            skipProps: true,
         },
         {
             list: `<sort name="l"><numberList hide>1</numberList><math>2</math></sort>`,
             shown: "2",
             first: "1",
-            skipProps: true,
+        },
+        {
+            list: `<shuffle name="l"><numberList hide>1</numberList><math>2</math></shuffle>`,
+            shown: "2",
+            first: "1",
+            variant: 2,
         },
     ];
 
-    for (const { list, shown, first, variant, skipProps } of contents) {
+    for (const { list, shown, first, variant } of contents) {
         it(list, async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 requestedVariantIndex: variant,
@@ -682,9 +685,7 @@ describe("Hidden content nested inside a list @group4", async () => {
             expect(await text("whole")).eq(shown);
             // and so does a reference to a group holding that reference
             expect(await text("viaGroup")).eq(shown);
-            if (!skipProps) {
-                expect(await text("props")).eq("false true");
-            }
+            expect(await text("props")).eq("false true");
             expect(await text("ch")).eq(shown);
         });
     }
@@ -767,6 +768,61 @@ describe("Hidden content nested inside a list @group4", async () => {
             value: "1, 2, 3, 4",
         });
     });
+    it("an entry of a list in a sort or shuffle that stays a composite has the entry's properties", async () => {
+        // Each entry of the lists is replaced by a reference to it
+        // (`listEntryReplacement`), whose properties are the entry's
+        // (#2480): `hide` is the entry's own, and `hidden` is also true while
+        // the list holding it is hidden. The `<text>` keeps each a composite.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <p><sort name="s"><mathList hide="$h">1 3</mathList><mathList><math hide>2</math></mathList><text>b</text></sort></p>
+    <p><shuffle name="sh"><mathList hide="$h">1</mathList><text>b</text></shuffle></p>
+    <p name="sort">$s[1].hide $s[1].hidden $s[2].hide $s[2].hidden $s[3].hide $s[3].hidden</p>
+    <p name="values">$s[1].value $s[2].text $s[3].latex $s[4].hidden</p>
+    <p name="shuffle1">$sh[1] $sh[1].hide $sh[1].hidden</p>
+    <p name="shuffle2">$sh[2] $sh[2].hide $sh[2].hidden</p>
+    `,
+        });
+
+        const texts = async () => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const texts: Record<string, string> = {};
+            for (const name of ["sort", "values", "shuffle1", "shuffle2"]) {
+                texts[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.text;
+            }
+            return [
+                texts.sort,
+                texts.values,
+                // the shuffled entries, in an order that is not checked
+                [texts.shuffle1, texts.shuffle2].sort(),
+            ];
+        };
+
+        expect(await texts()).eqls([
+            "false false true true false false",
+            "1 2 3 false",
+            ["1 false false", "b false false"],
+        ]);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await texts()).eqls([
+            "false true true true false true",
+            "1 2 3 false",
+            ["1 false true", "b false false"],
+        ]);
+    });
+
     it("a hidden group inside a sort that stays a composite hides its entries as its `hide` and the order change", async () => {
         // The `<math>` among `<number>`s keeps the sort a composite (#2394).
         const { core, resolvePathToNodeIdx } = await createTestCore({

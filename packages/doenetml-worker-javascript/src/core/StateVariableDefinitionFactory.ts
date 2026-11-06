@@ -1579,6 +1579,7 @@ function _copyPassthroughAttributes(
         "ignoreFixed",
         "isLocation",
         "essentialVarName",
+        "nullIsMissing",
     ];
     for (const attrName2 of attributesToCopy) {
         if (attrName2 in attributeSpecification) {

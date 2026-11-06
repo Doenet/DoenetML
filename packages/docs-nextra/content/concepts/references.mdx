@@ -47,7 +47,9 @@ from another and then changes on its own, use `copy` or `copyWithState`.
 
 - `<T copy="$x"/>{:dn}` is as if `x`'s DoenetML were written again in its place.
   Attributes written on the copy override `x`'s, and children written inside it
-  are added. It starts as written content does: an input starts at its
+  are added, read as they are on a tag written on its own: the coordinates in
+  `<point copy="$P">(3,4)</point>{:dn}` put it at (3,4), as `xs="3 4"` would,
+  and so they do on an `extend`. It starts as written content does: an input starts at its
   `prefill`, a point where it was written, whatever the reader has done to `x`.
   A random component inside it, such as a `<select>{:dn}`, makes its own random
   choices, so two copies of one source can differ. Its choices are fixed for a

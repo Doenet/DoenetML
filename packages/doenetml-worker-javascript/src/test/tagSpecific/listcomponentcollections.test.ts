@@ -1347,8 +1347,9 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     `,
         });
 
+        // no limit has no value, so `$c.maxNumber` is missing (#2416)
         await expectTexts(core, resolvePathToNodeIdx, {
-            p: "[NaN] [3]",
+            p: "[＿] [3]",
             p1: "123456789012345690000000, 0.0000000000000123",
         });
         // held as a list, not copied
