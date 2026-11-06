@@ -377,6 +377,37 @@ describe("Repeat iteration values and indices @group3", async () => {
         }));
         await check();
     });
+
+    // The `<group>` an extend makes is where its reference is resolved from
+    // (Doenet/DoenetML#2453): while the iteration was withheld, making the
+    // group again updated the extend again, until it was reported as
+    // circular (`doenet-e0005`) and left empty for good.
+    it("a group extending an iteration follows it as the repeat shrinks and grows", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="3" />
+    <repeatForSequence name="r" from="1" to="$mi" valueName="v">
+      <math name="m">$v^2</math>
+    </repeatForSequence>
+    <p name="p">[<group extend="$r[2]"/>][<group extend="$r[2].m"/>]</p>
+    `,
+        });
+        const texts: string[] = [];
+        for (const latex of [undefined, "0", "2"]) {
+            if (latex !== undefined) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            }
+            texts.push(await textOf(core, resolvePathToNodeIdx, "p"));
+        }
+        expect(texts).eqls(["[2²][2²]", "[][]", "[2²][2²]"]);
+        expect(
+            core.core!.diagnostics.filter((d: any) => d.type === "error"),
+        ).eqls([]);
+    });
 });
 
 // What a repeat makes for its `valueName` and `indexName`: one list for the

@@ -41,6 +41,7 @@ import {
 } from "./typeChangeAtLoad";
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
+import { breakReferenceCycles } from "./referenceCycles";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -654,6 +655,19 @@ export async function normalizedDastToSerializedComponents(
             };
         }
     }
+
+    // A reference that depends on itself, through what is written in every
+    // branch, is a circular dependency, an error at load in place of the
+    // reference (D14, DIAG-7). After the type check, whose own circular
+    // dependency (a tag extending the `<conditionalContent>` holding it) it
+    // leaves to that check, and before the value references, while each
+    // reference is still a `_copy`.
+    diagnostics.push(
+        ...breakReferenceCycles({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+        }),
+    );
 
     // What was decided of each reference written as a tag is reported now,
     // though the tag may be made only after an interaction, as in a case that

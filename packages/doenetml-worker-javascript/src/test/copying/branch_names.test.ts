@@ -330,6 +330,44 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         expect(await text()).eq("[1][1][1]");
     });
 
+    // Doenet/DoenetML#2453 (B40): the `<group>` an extend makes was also
+    // where its reference was resolved from, so making it again updated the
+    // extend again, until it was reported as circular (`doenet-e0005`) and
+    // left empty.
+    it("on a group tag, a name every case has with one type follows the case both ways", async () => {
+        const { text, toggle, diagnostics } = await setUp(
+            `${sameTypeCases}<p name="p">[<group extend="$cc.x"/>][<group extend="$x"/>][<math extend="$cc.x"/>][$cc.x]</p>`,
+        );
+        expect(await text()).eq("[2][2][2][2]");
+        await toggle(true);
+        expect(await text()).eq("[1][1][1][1]");
+        await toggle(false);
+        expect(await text()).eq("[2][2][2][2]");
+        await toggle(true);
+        expect(await text()).eq("[1][1][1][1]");
+        expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
+    });
+
+    // A tag extending a composite in a case not shown is missing, with no
+    // info, whether the case was off when the document loaded or turned off
+    // since: not the info of a composite that holds nothing (`doenet-i0055`).
+    it("a tag extending a group in a case gives no info while the case is off", async () => {
+        const { core, text, toggle } = await setUp(
+            `<conditionalContent><case condition="$b"><group name="g"><math>1</math></group></case></conditionalContent><p name="p">[<math extend="$g"/>]</p>`,
+        );
+        const shown: string[] = [];
+        const infos: (string | undefined)[][] = [];
+        for (const value of [undefined, true, false, true]) {
+            if (value !== undefined) {
+                await toggle(value);
+            }
+            shown.push(await text());
+            infos.push(codes(getDiagnosticsByType(core).infos));
+        }
+        expect(shown).eqls(["[＿]", "[1]", "[＿]", "[1]"]);
+        expect(infos).eqls([[], [], [], []]);
+    });
+
     it("on a list tag, a mix of types is an error, unchanged", async () => {
         const { text, diagnostics } = await setUp(`
 <conditionalContent name="cc">

@@ -427,9 +427,11 @@ a />
         expect(diagnosticsByType.errors[0].position.end.column).eq(34);
     });
 
-    // TODO: decide what to do about circular references
-    // Not fixing it since suspect circular reference detection is a major source of slowdown
-    it.skip("Circular dependency with copy source", async () => {
+    // Each extend on a cycle is an error at the extend, found when the
+    // document loads (D14, `utils/dast/referenceCycles.ts`). A chain that
+    // ends in a name that names nothing is not a cycle: each extend on it is
+    // missing.
+    it("Circular dependency with copy source", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <math extend="$a1" name="a1" />
@@ -455,107 +457,89 @@ a />
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("e2")].stateValues.value
-                .tree,
-        ).eq("＿");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("e3")].stateValues.value
-                .tree,
-        ).eq("＿");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("e4")].stateValues.value
-                .tree,
-        ).eq("＿");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("e5")].stateValues.value
-                .tree,
-        ).eq("＿");
+        for (const name of ["e2", "e3", "e4", "e5"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .value.tree,
+                name,
+            ).eq("＿");
+        }
 
         let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(diagnosticsByType.errors.length).eq(4);
-        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.warnings.map((warning) => warning.code)).eqls([
+            "doenet-w0104",
+        ]);
         expect(diagnosticsByType.infos.length).eq(0);
 
-        expect(diagnosticsByType.errors[0].message).contain(
-            "Circular dependency involving these components: <math> (line 2)",
-        );
-        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
-        expect(diagnosticsByType.errors[0].position.start.column).eq(1);
-        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
-        expect(diagnosticsByType.errors[0].position.end.column).eq(34);
-
-        // temporary messages until can better detect circular dependency with copysource
-        expect(diagnosticsByType.errors[1].message).contain(
-            "Circular dependency involving these components: <math> (line 4)",
-        );
-        expect(diagnosticsByType.errors[1].position.start.line).eq(4);
-        expect(diagnosticsByType.errors[1].position.start.column).eq(1);
-        expect(diagnosticsByType.errors[1].position.end.line).eq(4);
-        expect(diagnosticsByType.errors[1].position.end.column).eq(34);
-
-        expect(diagnosticsByType.errors[2].message).contain(
-            "Circular dependency involving these components: <math> (line 7)",
-        );
-        expect(diagnosticsByType.errors[2].position.start.line).eq(7);
-        expect(diagnosticsByType.errors[2].position.start.column).eq(1);
-        expect(diagnosticsByType.errors[2].position.end.line).eq(7);
-        expect(diagnosticsByType.errors[2].position.end.column).eq(34);
-
-        expect(diagnosticsByType.errors[3].message).contain(
-            "Circular dependency involving these components: <math> (line 11)",
-        );
-        expect(diagnosticsByType.errors[3].position.start.line).eq(11);
-        expect(diagnosticsByType.errors[3].position.start.column).eq(1);
-        expect(diagnosticsByType.errors[3].position.end.line).eq(11);
-        expect(diagnosticsByType.errors[3].position.end.column).eq(34);
+        const cycleLines = [2, 4, 5, 7, 8, 9, 11, 12, 13, 14];
+        expect(diagnosticsByType.errors.length).eq(cycleLines.length);
+        diagnosticsByType.errors.forEach((error, ind) => {
+            expect(error.code).eq("doenet-e0005");
+            expect(error.message).eq(
+                "Circular dependency detected involving `<math>` component.",
+            );
+            expect(error.position!.start.line).eq(cycleLines[ind]);
+            expect(error.position!.start.column).eq(1);
+            expect(error.position!.end.line).eq(cycleLines[ind]);
+            expect(error.position!.end.column).eq(32);
+        });
     });
 
-    it.skip("Circular dependency with macro children", async () => {
-        let doenetML1 = `<text name="t1">$t1</text>`;
-
-        let doenetML2 = `<text name="t1">$t2</text>
-      <text name="t2">$t1</text>`;
-
-        let doenetML3 = `<text name="t1">$t2</text>
+    it("Circular dependency with macro children", async () => {
+        const documents: [string, string[]][] = [
+            [`<text name="t1">$t1</text>`, ["1:17"]],
+            [
+                `<text name="t1">$t2</text>
+      <text name="t2">$t1</text>`,
+                ["1:17", "2:23"],
+            ],
+            [
+                `<text name="t1">$t2</text>
       <text name="t2">$t3</text>
-      <text name="t3">$t1</text>`;
+      <text name="t3">$t1</text>`,
+                ["1:17", "2:23", "3:23"],
+            ],
+        ];
 
-        await expect(createTestCore({ doenetML: doenetML1 })).rejects.toThrow(
-            "Circular dependency involving these components: <text> (line 1).",
-        );
-
-        await expect(createTestCore({ doenetML: doenetML2 })).rejects.toThrow(
-            "Circular dependency involving these components: <text> (line 1), <text> (line 2).",
-        );
-
-        await expect(createTestCore({ doenetML: doenetML3 })).rejects.toThrow(
-            "Circular dependency involving these components: <text> (line 1), <text> (line 2), <text> (line 3).",
-        );
+        for (const [doenetML, starts] of documents) {
+            const { core } = await createTestCore({ doenetML });
+            const errors = getDiagnosticsByType(core).errors;
+            expect(
+                errors.map(
+                    (error) =>
+                        `${error.code} ${error.position!.start.line}:${error.position!.start.column}`,
+                ),
+            ).eqls(starts.map((start) => `doenet-e0005 ${start}`));
+        }
     });
 
-    it.skip("Circular dependency with copy source children", async () => {
-        let doenetML1 = `<text name="t1"><text extend="$t1"/></text>`;
-
-        let doenetML2 = `<text name="t1"><text extend="$t2"/></text>
-<text name="t2"><text extend="$t1"/></text>`;
-
-        let doenetML3 = `<text name="t1"><text extend="$t2"/></text>
+    it("Circular dependency with copy source children", async () => {
+        const documents: [string, number[]][] = [
+            [`<text name="t1"><text extend="$t1"/></text>`, [1]],
+            [
+                `<text name="t1"><text extend="$t2"/></text>
+<text name="t2"><text extend="$t1"/></text>`,
+                [1, 2],
+            ],
+            [
+                `<text name="t1"><text extend="$t2"/></text>
 <text name="t2"><text extend="$t3"/></text>
-<text name="t3"><text extend="$t1"/></text>`;
+<text name="t3"><text extend="$t1"/></text>`,
+                [1, 2, 3],
+            ],
+        ];
 
-        await expect(createTestCore({ doenetML: doenetML1 })).rejects.toThrow(
-            "Circular dependency involving these components: <text> (line 1).",
-        );
-
-        await expect(createTestCore({ doenetML: doenetML2 })).rejects.toThrow(
-            "Circular dependency involving these components: <text> (line 1), <text> (line 2).",
-        );
-
-        await expect(createTestCore({ doenetML: doenetML3 })).rejects.toThrow(
-            "Circular dependency involving these components: <text> (line 1), <text> (line 2), <text> (line 3).",
-        );
+        for (const [doenetML, lines] of documents) {
+            const { core } = await createTestCore({ doenetML });
+            const errors = getDiagnosticsByType(core).errors;
+            expect(
+                errors.map(
+                    (error) =>
+                        `${error.code} ${error.position!.start.line}:${error.position!.start.column}-${error.position!.end.column}`,
+                ),
+            ).eqls(lines.map((line) => `doenet-e0005 ${line}:17-37`));
+        }
     });
 
     it("Get line/char numbers with no linebreaks", async () => {
