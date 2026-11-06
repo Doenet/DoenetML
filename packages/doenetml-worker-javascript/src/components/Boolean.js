@@ -31,8 +31,6 @@ export default class BooleanComponent extends InlineComponent {
         // (`evaluateLogic`), and written back as one.
         attributes._textAsWord = {
             createPrimitiveOfType: "boolean",
-            createStateVariable: "textAsWord",
-            defaultValue: false,
             excludeFromSchema: true,
         };
         attributes.symbolicEquality = {
@@ -305,8 +303,8 @@ export default class BooleanComponent extends InlineComponent {
                     variableName: "parsedExpression",
                 },
                 textAsWord: {
-                    dependencyType: "stateVariable",
-                    variableName: "textAsWord",
+                    dependencyType: "attributePrimitive",
+                    attributeName: "_textAsWord",
                 },
                 allChildren: {
                     dependencyType: "child",
