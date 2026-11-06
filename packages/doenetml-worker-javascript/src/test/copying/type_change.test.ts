@@ -1296,6 +1296,21 @@ describe("A related type is made from the value of what is referenced, not from 
         ]);
     });
 
+    it("the selected value of a choiceInput that converts makes the tag", async () => {
+        // `selectedValues` is an array: the tag is checked against its one
+        // entry, not the array, which is never a tuple.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<choiceInput name="ci" preselectChoice="2"><choice><math>x</math></choice><choice><math>(1,2)</math></choice></choiceInput>
+<p name="p1"><point extend="$ci"/></p>
+<p name="p2"><vector extend="$ci"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({
+            p1: "(1, 2)",
+            p2: "(1, 2)",
+        });
+        expect(typeChangeDiagnostics()).eqls([]);
+    });
+
     it("the one component a composite stands for is found through references in it", async () => {
         // Each was the tag's default (`(0, 0)`, or `(1, 0)` for a vector)
         // before #2437.

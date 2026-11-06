@@ -7475,8 +7475,19 @@ async function typeChangeStatus({
                     ?.componentIdx
             ];
         const propVariable = propSource?.state[propName];
+        // A property that is an array, as the `selectedValues` of a
+        // `<choiceInput>`, makes a component per entry: made from one
+        // entry, the tag is checked against that entry's value.
         const readValue =
-            propVariable && (async () => await propVariable.value);
+            propVariable &&
+            (async () => {
+                const value = await propVariable.value;
+                return propVariable.isArray &&
+                    Array.isArray(value) &&
+                    value.length === 1
+                    ? value[0]
+                    : value;
+            });
         if (!propReplacements) {
             // Decided again as the document runs, from the type of the
             // property, when it is checked against its value
