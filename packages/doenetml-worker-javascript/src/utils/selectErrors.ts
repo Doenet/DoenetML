@@ -250,36 +250,47 @@ export function returnChoicesDecidedByDoenetMLDefinition(
  * though it had been given none, fixed for the variant, as `<shuffle>` does
  * (`doenet-i0006`), rather than failing.
  *
- * Decided from the variant each time, not kept, so it is reported the same
- * after a reload. A reference to the select, which shadows its choices, does
- * not report it again. A variant that gives `null` or `[]` gives no choices:
- * that is what a select that selected nothing records in its
- * `generatedVariantInfo`, which a reload, or a `copy` of the select, passes
- * back to it, so nothing is ignored.
+ * Decided by comparing the variant's choices with what the select
+ * selected, not kept, so it is reported the same after a reload. It is not
+ * decided from the select's attributes as they are now: those can change
+ * after the selection, which is fixed, was made. A reference to the select,
+ * which shadows its choices, does not report it again. A variant that gives
+ * `null` or `[]` gives no choices: that is what a select that selected
+ * nothing records in its `generatedVariantInfo`, which a reload, or a `copy`
+ * of the select, passes back to it, so nothing is ignored. Nor is anything
+ * reported for a select that selected nothing, which reports why itself.
  *
  * @param component The select's DoenetML tag, for the message.
- * @param desiredChoicesFit Given `dependencyValues` (with the select's
- *   `variants` and the `dependencies` named here), whether the choices the
- *   variant gave fit the select. It is called only when the variant gives
- *   some (a nonempty array).
+ * @param selectionVariable What the select selected, which the variant's
+ *   choices are compared with: they were ignored when the selection differs.
+ * @param mapDesired Given `dependencyValues` (with the `dependencies` named
+ *   here) and the variant's choices, those choices as the select takes them
+ *   when they fit, such as indices wrapped onto its options. By default, the
+ *   choices as numbers.
  * @param choicesKey The key of the choices in the variant: `indices` or
  *   `values`.
  */
 export function returnIgnoredVariantChoicesDefinition({
     component,
-    dependencies,
-    desiredChoicesFit,
+    selectionVariable,
+    dependencies = {},
+    mapDesired = (_dependencyValues, desired) => desired.map(Number),
     choicesKey = "indices",
 }: {
     component: string;
-    dependencies: Record<string, unknown>;
-    desiredChoicesFit: (dependencyValues: any) => boolean;
+    selectionVariable: "selectedIndices" | "selectedValues";
+    dependencies?: Record<string, unknown>;
+    mapDesired?: (dependencyValues: any, desired: unknown[]) => unknown[];
     choicesKey?: "indices" | "values";
 }) {
     return {
         mustEvaluate: true,
         returnDependencies: () => ({
             ...dependencies,
+            selection: {
+                dependencyType: "stateVariable",
+                variableName: selectionVariable,
+            },
             variants: {
                 dependencyType: "stateVariable",
                 variableName: "variants",
@@ -291,11 +302,25 @@ export function returnIgnoredVariantChoicesDefinition({
         definition({ dependencyValues }: { dependencyValues: any }) {
             const desired =
                 dependencyValues.variants?.desiredVariant?.[choicesKey];
-            const ignored =
+            const selection = dependencyValues.selection;
+            // Compared with what was selected, which is fixed once made,
+            // rather than with what the select's attributes are now: a
+            // `numToSelect` from an input can change after the choices were
+            // taken. A select that selected nothing reports why itself.
+            let ignored = false;
+            if (
                 Array.isArray(desired) &&
                 desired.length > 0 &&
-                dependencyValues.shadowSource === null &&
-                !desiredChoicesFit(dependencyValues);
+                Array.isArray(selection) &&
+                selection.length > 0 &&
+                dependencyValues.shadowSource === null
+            ) {
+                const mapped = mapDesired(dependencyValues, desired);
+                ignored = !(
+                    mapped.length === selection.length &&
+                    mapped.every((x, i) => x === selection[i])
+                );
+            }
             return {
                 setValue: { ignoredVariantChoicesReported: ignored },
                 sendDiagnostics: ignored

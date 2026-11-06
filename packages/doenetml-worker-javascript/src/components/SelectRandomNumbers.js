@@ -269,16 +269,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             returnIgnoredVariantChoicesDefinition({
                 component: "selectRandomNumbers",
                 choicesKey: "values",
-                dependencies: {
-                    numToSelect: {
-                        dependencyType: "stateVariable",
-                        variableName: "numToSelect",
-                    },
-                },
-                desiredChoicesFit: (dependencyValues) =>
-                    dependencyValues.numToSelect < 1 ||
-                    dependencyValues.variants.desiredVariant.values.length ===
-                        dependencyValues.numToSelect,
+                selectionVariable: "selectedValues",
             });
 
         stateVariableDefinitions.isVariantComponent = {

@@ -238,10 +238,21 @@ export default class SelectFromSequence extends Sequence {
         stateVariableDefinitions.ignoredVariantChoicesReported =
             returnIgnoredVariantChoicesDefinition({
                 component: "selectFromSequence",
-                dependencies: selectionDependencies(),
-                desiredChoicesFit: (dependencyValues) =>
-                    !selectionReadsDesiredVariant(dependencyValues) ||
-                    desiredSelectionThatFits(dependencyValues) !== null,
+                selectionVariable: "selectedIndices",
+                dependencies: {
+                    length: {
+                        dependencyType: "stateVariable",
+                        variableName: "length",
+                    },
+                },
+                // wrapped onto the sequence, as `desiredSelectionThatFits`
+                // does
+                mapDesired: (dependencyValues, desired) => {
+                    const n = dependencyValues.length;
+                    return desired
+                        .map(Number)
+                        .map((x) => ((((x - 1) % n) + n) % n) + 1);
+                },
             });
 
         stateVariableDefinitions.selectedValues = {
@@ -831,8 +842,7 @@ export default class SelectFromSequence extends Sequence {
 
 /**
  * What a `<selectFromSequence>` selects from, and how many: the dependencies
- * of `selectedValues`, other than the generator, which
- * `ignoredVariantChoicesReported` reads too.
+ * of `selectedValues`, other than the generator.
  */
 function selectionDependencies() {
     return {
@@ -885,20 +895,6 @@ function selectionDependencies() {
             variableName: "variants",
         },
     };
-}
-
-/**
- * Whether `makeSelection` reads the choices the requested variant gives: it
- * doesn't when it selects nothing, or can't select from the sequence at all.
- */
-function selectionReadsDesiredVariant(dependencyValues) {
-    if (dependencyValues.numToSelect < 1) {
-        return false;
-    }
-    const numUniqueRequired = dependencyValues.withReplacement
-        ? 1
-        : dependencyValues.numToSelect;
-    return numUniqueRequired <= dependencyValues.length;
 }
 
 /**

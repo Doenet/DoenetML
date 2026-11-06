@@ -243,10 +243,7 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             returnIgnoredVariantChoicesDefinition({
                 component: "selectPrimeNumbers",
                 choicesKey: "values",
-                dependencies: selectionDependencies(),
-                desiredChoicesFit: (dependencyValues) =>
-                    !selectionReadsDesiredVariant(dependencyValues) ||
-                    desiredValuesThatFit(dependencyValues) !== null,
+                selectionVariable: "selectedValues",
             });
 
         stateVariableDefinitions.selectedValues = {
@@ -570,8 +567,7 @@ export default class SelectPrimeNumbers extends ValueListComponent {
 
 /**
  * What a `<selectPrimeNumbers>` selects from, and how many: the dependencies
- * of `selectedValues`, other than the generator, which
- * `ignoredVariantChoicesReported` reads too.
+ * of `selectedValues`, other than the generator.
  */
 function selectionDependencies() {
     return {
@@ -600,20 +596,6 @@ function selectionDependencies() {
             variableName: "variants",
         },
     };
-}
-
-/**
- * Whether `makeSelection` reads the values the requested variant gives: it
- * doesn't when it selects nothing, or can't select from the primes at all.
- */
-function selectionReadsDesiredVariant(dependencyValues) {
-    if (dependencyValues.numToSelect < 1) {
-        return false;
-    }
-    const numUniqueRequired = dependencyValues.withReplacement
-        ? 1
-        : dependencyValues.numToSelect;
-    return numUniqueRequired <= dependencyValues.possibleValues.length;
 }
 
 /**

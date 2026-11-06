@@ -368,22 +368,20 @@ export default class Select extends CompositeComponent {
         stateVariableDefinitions.ignoredVariantChoicesReported =
             returnIgnoredVariantChoicesDefinition({
                 component: "select",
+                selectionVariable: "selectedIndices",
                 dependencies: {
-                    numToSelect: {
-                        dependencyType: "stateVariable",
-                        variableName: "numToSelect",
-                    },
                     nOptions: {
                         dependencyType: "stateVariable",
                         variableName: "nOptions",
                     },
                 },
-                // Only where the definition of `selectedIndices` reads them:
-                // a select that selects nothing, or can't, ignores them anyway
-                desiredChoicesFit: (dependencyValues) =>
-                    !(dependencyValues.numToSelect >= 1) ||
-                    dependencyValues.nOptions === 0 ||
-                    desiredIndicesThatFit(dependencyValues) !== null,
+                // wrapped onto the options, as `desiredIndicesThatFit` does
+                mapDesired: (dependencyValues, desired) => {
+                    const n = dependencyValues.nOptions;
+                    return desired
+                        .map(Number)
+                        .map((x) => ((((x - 1) % n) + n) % n) + 1);
+                },
             });
 
         stateVariableDefinitions.selectedIndices = {

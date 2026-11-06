@@ -632,3 +632,47 @@ describe("Errors the DoenetML decides, beside ones a value decides @group4", asy
         expect(results.size).eq(1);
     });
 });
+
+/**
+ * Whether the requested variant's choices were ignored is decided by what
+ * was selected, which is fixed, not by attributes that can change after.
+ */
+describe("Choices taken from the variant stay taken @group4", async () => {
+    for (const [tag, doenetML] of [
+        [
+            "<select>",
+            `<mathInput name="mi" prefill="1"/><select name="s" numToSelect="$mi">a b c d</select>`,
+        ],
+        [
+            "<selectFromSequence>",
+            `<mathInput name="mi" prefill="1"/><selectFromSequence name="s" to="10" numToSelect="$mi"/>`,
+        ],
+        [
+            "<selectPrimeNumbers>",
+            `<mathInput name="mi" prefill="1"/><selectPrimeNumbers name="s" to="50" numToSelect="$mi"/>`,
+        ],
+        [
+            "<selectRandomNumbers>",
+            `<mathInput name="mi" prefill="1"/><selectRandomNumbers name="s" numToSelect="$mi"/>`,
+        ],
+    ]) {
+        it(`${tag}: a numToSelect changed after the choices were taken reports nothing ignored`, async () => {
+            const first = await load({ doenetML, requestedVariantIndex: 2 });
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariant: first.generatedVariantInfo,
+            });
+            const infos = () =>
+                getDiagnosticsByType(core).infos.map((d) => d.code);
+            expect(infos()).not.toContain("doenet-i0057");
+
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            await core.returnAllStateVariables(false, true);
+            expect(infos()).not.toContain("doenet-i0057");
+        });
+    }
+});
