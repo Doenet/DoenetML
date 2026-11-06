@@ -222,6 +222,35 @@ fn plan_and_check<T>(
     }
 }
 
+/// Whether stamping the template graph raises the abstract build's
+/// resolve failures (ADR 0032, step 8, part 6): at each attempt of the
+/// compile's loop, both pass, or both fail on the same element with the
+/// same error. Returns the attempts where they differ, described, and how
+/// many attempts failed in both.
+#[cfg(feature = "testing")]
+pub(crate) fn resolve_failures_agree(dast: &Dast) -> (Vec<String>, usize) {
+    let mut differ = Vec::new();
+    let mut failed = 0;
+    let _ = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
+        let compiled = CompiledRef { dast, plans };
+        let theirs = build::abstract_resolve(compiled);
+        let ours = graph::template_graph_checked(compiled).map(drop);
+        let describe = |r: &std::result::Result<(), Failure>| match r {
+            Ok(()) => "resolved".to_string(),
+            Err(f) => format!("{:?}: {}", f.node, f.error),
+        };
+        let (a, b) = (describe(&theirs), describe(&ours));
+        if a != b {
+            differ.push(format!("the abstract build: {a}; the template graph: {b}"));
+        } else if theirs.is_err() {
+            failed += 1;
+        }
+        theirs?;
+        check(compiled, true)
+    });
+    (differ, failed)
+}
+
 /// For tests: compile `dast` as a load does, and at every attempt of the
 /// compile's loop run define over the template graph beside the abstract
 /// build's define (ADR 0032, step 8, part 4). Each attempt whose resolve

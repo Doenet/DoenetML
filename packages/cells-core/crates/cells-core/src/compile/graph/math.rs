@@ -25,8 +25,7 @@ impl<'c> Stamp<'c> {
             Expr::Num(v) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
             Expr::Cell(plan) => {
-                let (target, label) = self.resolve_one(plan, t);
-                let target = self.or_missing(target);
+                let (target, label) = self.math_ref(plan, t);
                 Expr::Cell(self.leaf(target, t, &label))
             }
             Expr::Add(a, b)
@@ -48,6 +47,30 @@ impl<'c> Stamp<'c> {
             self.instantiated.insert(key, done);
         }
         done
+    }
+
+    /// The node a reference inside math names, and the reference's label:
+    /// one cell, and not text, else a failure (the missing value stands
+    /// in).
+    fn math_ref(&mut self, p: RefId, t: TemplateId) -> (GraphNode, Label) {
+        let (nodes, label) = self.resolve_ref(p, t, Some(1));
+        let target = match nodes[..] {
+            [one] => self.or_missing(one),
+            _ => {
+                self.fail(Error::BadMath {
+                    text: self.c.ref_display(p),
+                    reason: "a reference inside math must name one cell".into(),
+                });
+                self.or_missing(None)
+            }
+        };
+        if self.value_type(target) == PortType::Text {
+            self.fail(Error::Unsupported(format!(
+                "a text value (${}) inside math",
+                self.c.ref_display(p)
+            )));
+        }
+        (target, label)
     }
 
     /// The node standing for a reference leaf inside math, made in
@@ -157,6 +180,7 @@ impl<'c> Stamp<'c> {
     /// leaf node per occurrence, each reading what it names or the
     /// expression it stands for.
     pub(super) fn sym_source(&mut self, id: ExprId, post: Post, t: TemplateId) -> Def {
+        self.check_sym_text(id);
         let mut plans = Vec::new();
         occurrences(&self.c.plans.arena, id, &mut plans);
         if plans.is_empty() {
@@ -166,8 +190,7 @@ impl<'c> Stamp<'c> {
         let mut leaves = Vec::with_capacity(plans.len());
         let mut math = Vec::with_capacity(plans.len());
         for &p in &plans {
-            let (target, label) = self.resolve_one(p, t);
-            let target = self.or_missing(target);
+            let (target, label) = self.math_ref(p, t);
             let (target, is_math) = match self.math_target(target) {
                 Some(m) => (m, true),
                 None => (target, false),
@@ -178,6 +201,12 @@ impl<'c> Stamp<'c> {
         if let (Expr::Cell(_), Post::None, [true]) = (self.c.plans.arena.get(id), post, &math[..]) {
             return Def::Alias(leaves[0]);
         }
+        if leaves.len() > crate::limits::MAX_REFERENCES {
+            self.fail(Error::BadMath {
+                text: self.sym_text(id),
+                reason: format!("more than {} references", crate::limits::MAX_REFERENCES),
+            });
+        }
         let template = self.g.templates.len() as u32;
         self.g.templates.push(TemplateOp {
             expr: id,
@@ -185,6 +214,52 @@ impl<'c> Stamp<'c> {
             math,
         });
         Def::Op(GraphOp::Template(template), leaves)
+    }
+}
+
+impl Stamp<'_> {
+    /// Math text `id` as spelled.
+    fn sym_text(&self, id: ExprId) -> String {
+        self.c.plans.sym_text[&id].spell(self.c.dast)
+    }
+
+    /// Whether math text `id` is math a build can make, as every build
+    /// checks it: recorded, with no numeric-only function, and parsed (or
+    /// a constant all the same).
+    fn check_sym_text(&mut self, id: ExprId) {
+        let c = self.c;
+        let Some(sym) = c.plans.sym_text.get(&id) else {
+            self.fail(Error::BadMath {
+                text: format!("{:?}", c.plans.arena.get(id)),
+                reason: "no math text recorded".into(),
+            });
+            return;
+        };
+        if self.failure.is_some() {
+            return;
+        }
+        let text = sym.spell(c.dast);
+        if c.plans.arena.has_call(id) {
+            self.fail(Error::BadMath {
+                text,
+                reason: "round, floor, min, max and clamp are for numeric math only".into(),
+            });
+            return;
+        }
+        let engine = self.engine.get_or_insert_with(crate::sym::Engine::new);
+        let parsed;
+        let tree = if let Some(cached) = c.plans.sym_trees.get(&id) {
+            cached.get_or_init(|| engine.parse_tree(&text))
+        } else {
+            parsed = engine.parse_tree::<RefId>(&text);
+            &parsed
+        };
+        if let Err(reason) = tree
+            && engine.parse_constant(&text).is_err()
+        {
+            let reason = reason.clone();
+            self.fail(Error::BadMath { text, reason });
+        }
     }
 }
 

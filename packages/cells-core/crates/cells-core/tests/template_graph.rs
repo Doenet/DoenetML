@@ -12,7 +12,8 @@ use std::path::Path;
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::testing::{
     attributes_disagreement, define_failures_agree, definitions_disagreement, par_map,
-    signature_disagreement, template_graph_agreement, warnings_disagreement,
+    resolve_failures_agree, signature_disagreement, template_graph_agreement,
+    warnings_disagreement,
 };
 
 /// Documents for what the golden set has little of: references into and
@@ -468,6 +469,164 @@ fn define_over_the_template_graph_refuses_the_prefills_the_abstract_build_does()
             .contains("a prefill reference must name a value that is not computed")),
         "the computed prefill is refused"
     );
+}
+
+// Stamping the graph fails where the abstract build's resolve fails
+// (ADR 0032, step 8, part 6): on the same element, with the same error, at
+// every attempt of the compile's loop. Over every document, and every
+// DoenetML source written in a test, many of which fail on purpose.
+#[test]
+fn the_template_graph_fails_where_the_abstract_builds_resolve_fails() {
+    let mut docs = documents();
+    docs.extend(test_sources());
+    docs.extend(
+        RESOLVE_FAILURES
+            .iter()
+            .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
+    );
+    // More references inside one math than an operator reads.
+    let numbers: String = (0..260)
+        .map(|k| format!(r#"<number name="a{k}">{k}</number>"#))
+        .collect();
+    let sum: Vec<String> = (0..260).map(|k| format!("$a{k}")).collect();
+    let src = format!(r#"{numbers}<math name="m">{} + x</math>"#, sum.join(" + "));
+    docs.push(("many-references".to_string(), dast_json(&src).into_bytes()));
+    let results = par_map(&docs, |(name, bytes)| {
+        let dast = cells_core::dast::load(bytes).ok()?;
+        let (found, failed) = resolve_failures_agree(&dast);
+        let found: Vec<_> = found.into_iter().map(|d| format!("{name}: {d}")).collect();
+        Some((found, failed))
+    });
+    let mut failures = Vec::new();
+    let mut failed = 0;
+    for (found, n) in results.into_iter().flatten() {
+        failed += n;
+        failures.extend(found);
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+    assert!(
+        failed > RESOLVE_FAILURES.len(),
+        "only {failed} failures compared"
+    );
+}
+
+/// Documents the compile's planners pass and its resolve fails, one or
+/// more for each way it fails: what the template graph must raise.
+const RESOLVE_FAILURES: &[(&str, &str)] = &[
+    (
+        "no-default-prop",
+        r#"<graph name="g"><point name="p">(1,2)</point></graph><number name="y">$g</number>"#,
+    ),
+    (
+        "numeric-function-in-symbolic-math",
+        r#"<number name="n">1</number><math name="m">round($n) + x</math>"#,
+    ),
+    (
+        "collect-from-by-a-cell",
+        r#"<group name="g"><number>1</number><number>2</number></group>
+        <collect name="c" from="$g" componentType="number"/><numberInput name="k" value="1"/>
+        <collect name="c2" from="$c[$k]" componentType="number"/>"#,
+    ),
+    (
+        "list-copy-loop",
+        r#"<graph><polygon name="a" extend="$b"/><polygon name="b" extend="$a"/></graph>"#,
+    ),
+    (
+        "tuple-over-a-cell",
+        r#"<number name="n">1</number><boolean name="b">($n, x) = ($n, x)</boolean>"#,
+    ),
+    (
+        "whole-pick-of-two",
+        r#"<select name="s" numToSelect="1">
+          <option><number name="x">1</number><number name="z">1</number></option>
+          <option><number name="x">2</number></option>
+        </select>
+        <number name="y">$s</number>"#,
+    ),
+    (
+        "component-by-a-cell-in-an-attribute",
+        r#"<repeatForSequence name="r" length="2" indexName="i"><number name="x">$i</number></repeatForSequence>
+        <numberInput name="k" value="1"/>
+        <point name="q" x="$r[$k]"/>"#,
+    ),
+    (
+        "component-by-a-cell-extended",
+        r#"<repeatForSequence name="r" length="2" indexName="i"><number name="x">$i</number></repeatForSequence>
+        <numberInput name="k" value="1"/>
+        <number name="y" extend="$r[$k]"/>"#,
+    ),
+    (
+        "whole-conditional-copied",
+        r#"<conditionalContent name="cc" condition="true"><number name="x">1</number></conditionalContent><p>$cc</p>"#,
+    ),
+    (
+        "extend-text-as-number",
+        r#"<text name="t">a</text><number name="n" extend="$t"/>"#,
+    ),
+    (
+        "extend-text-as-point",
+        r#"<text name="t">a</text><point name="p" extend="$t"/>"#,
+    ),
+    (
+        "collect-item-indexed",
+        r#"<group name="g"><number>1</number></group>
+        <collect name="c" from="$g" componentType="number"/>
+        <number name="y">$c[1][1]</number>"#,
+    ),
+    (
+        "collected-point-inside-numeric-math",
+        r#"<group name="g"><point>(1,2)</point><point>(3,4)</point></group>
+        <collect name="c" from="$g" componentType="point"/><numberInput name="k" value="1"/>
+        <number name="y">$c[$k] + 1</number>"#,
+    ),
+    (
+        "collected-point-inside-symbolic-math",
+        r#"<point name="p">(1,2)</point><group name="g">$p</group>
+        <collect name="c" from="$g" componentType="point"/><math name="y">$c[1] + x</math>"#,
+    ),
+    (
+        "collected-point-as-a-number",
+        r#"<group name="g"><point>(1,2)</point></group>
+        <collect name="c" from="$g" componentType="point"/>
+        <number name="y">$c[1]</number>"#,
+    ),
+    (
+        "collected-number-as-a-center",
+        r#"<group name="g"><number>1</number></group>
+        <collect name="c" from="$g" componentType="number"/>
+        <circle name="ci" center="$c[1]"/>"#,
+    ),
+    (
+        "point-as-a-flag",
+        r#"<point name="p">(1,2)</point><number name="x" fixed="$p">1</number>"#,
+    ),
+];
+
+/// (name, DAST bytes) of every DoenetML source written in a test: each
+/// raw string of `tests/*.rs` that starts with a tag.
+fn test_sources() -> Vec<(String, Vec<u8>)> {
+    let dir = repo_root().join("crates/cells-core/tests");
+    let mut files: Vec<_> = std::fs::read_dir(dir)
+        .unwrap()
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|x| x == "rs"))
+        .collect();
+    files.sort();
+    let mut out = Vec::new();
+    for p in files {
+        let text = std::fs::read_to_string(&p).unwrap();
+        for (k, chunk) in text.split("r#\"").skip(1).enumerate() {
+            let Some((src, _)) = chunk.split_once("\"#") else {
+                continue;
+            };
+            if src.trim_start().starts_with('<') {
+                let name = format!("{}#{k}", stem(&p));
+                out.push((name, dast_json(src).into_bytes()));
+            }
+        }
+    }
+    out
 }
 
 /// (name, DAST bytes) of every document under test.

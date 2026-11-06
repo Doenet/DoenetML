@@ -64,7 +64,9 @@ mod values;
 pub use check::diagnose;
 pub(crate) use check::{CompileOutput, compile};
 #[cfg(feature = "testing")]
-pub(crate) use check::{abstract_signature_renamed, define_failures_agree, signature_renamed};
+pub(crate) use check::{
+    abstract_signature_renamed, define_failures_agree, resolve_failures_agree, signature_renamed,
+};
 pub use plan::Compiled;
 pub(crate) use plan::CompiledRef;
 

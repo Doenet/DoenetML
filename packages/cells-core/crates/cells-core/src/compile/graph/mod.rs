@@ -26,6 +26,7 @@
 use super::share::FxMap;
 use super::*;
 use crate::components::{Collection, PropAt, PropSel};
+use crate::error::Error;
 use crate::program::{OpSpec, SymKind, VecOp};
 
 mod aggregate;
@@ -329,16 +330,27 @@ impl TemplateGraph {
 
 /// The template graph of `c`.
 pub(crate) fn template_graph(c: CompiledRef<'_>) -> TemplateGraph {
-    stamp_graph(c, false)
+    stamp_graph(c, false).0
+}
+
+/// The template graph of `c`, or the first failure the abstract build's
+/// resolve would raise stamping it, which names the element to box.
+pub(crate) fn template_graph_checked(
+    c: CompiledRef<'_>,
+) -> std::result::Result<TemplateGraph, Failure> {
+    match stamp_graph(c, false) {
+        (g, None) => Ok(g),
+        (_, Some(f)) => Err(f),
+    }
 }
 
 /// The template graph of `c`, each component with its parent: what the
 /// input signature reads.
 pub(crate) fn template_graph_with_parents(c: CompiledRef<'_>) -> TemplateGraph {
-    stamp_graph(c, true)
+    stamp_graph(c, true).0
 }
 
-fn stamp_graph(c: CompiledRef<'_>, parents: bool) -> TemplateGraph {
+fn stamp_graph(c: CompiledRef<'_>, parents: bool) -> (TemplateGraph, Option<Failure>) {
     let n = c.plans.templates.len();
     let mut parent = vec![None; n];
     let mut depth = vec![0u32; n];
@@ -391,11 +403,16 @@ fn stamp_graph(c: CompiledRef<'_>, parents: bool) -> TemplateGraph {
         share_math: false,
         origin: None,
         parents,
+        failure: None,
+        context: NodeId::NONE,
+        walking: RefId::NONE,
+        order_index: FxMap::default(),
+        engine: None,
     };
     s.stamp(TemplateId::new(0));
     s.resolve_all();
     s.finish();
-    s.g
+    (s.g, s.failure)
 }
 
 /// The stamping's state.
@@ -444,6 +461,21 @@ pub(super) struct Stamp<'c> {
     pub(super) origin: Option<MathOrigin>,
     /// Whether to record each component's parent.
     pub(super) parents: bool,
+    /// The first failure the abstract build's resolve would raise, with
+    /// the element it boxes; the stamping goes on, but the compile boxes
+    /// and starts again.
+    pub(super) failure: Option<Failure>,
+    /// The node of the element being stamped, which a failure boxes.
+    pub(super) context: NodeId,
+    /// The plan being walked, which a failure shows.
+    pub(super) walking: RefId,
+    /// Each component's position in the order the abstract build makes
+    /// them: its index in that build's table, which an unnamed one is
+    /// shown by.
+    pub(super) order_index: FxMap<Comp, u32>,
+    /// An engine of the stamping's own, to parse math text as the
+    /// abstract build parses it; made when first needed.
+    pub(super) engine: Option<crate::sym::Engine>,
 }
 
 impl<'c> Stamp<'c> {
@@ -453,6 +485,36 @@ impl<'c> Stamp<'c> {
         self.g.nodes.push(Node { template, kind });
         self.g.defs.push(Def::Unset);
         n
+    }
+
+    /// Record `error`, with the element being stamped, when it is the
+    /// first.
+    pub(super) fn fail(&mut self, error: Error) {
+        if self.failure.is_none() {
+            let node = (!self.context.is_none()).then_some(self.context);
+            self.failure = Some(Failure { error, node });
+        }
+    }
+
+    /// How the plan being walked is shown in an error.
+    pub(super) fn display(&self) -> String {
+        self.c.ref_display(self.walking)
+    }
+
+    /// How component `c` is shown in an error: its name, or its tag and
+    /// its index in the abstract build's table.
+    pub(super) fn comp_label(&self, c: Comp) -> String {
+        if let Comp::Elem(t, e) = c {
+            let row = self.c.plans.templates[t.index()].row(e);
+            if row.name != StrId::NONE {
+                return self.c.dast.strings.get(row.name).trim().to_string();
+            }
+        }
+        format!(
+            "<{}>#{}",
+            self.component_type(c).tag(),
+            self.order_index[&c]
+        )
     }
 
     /// Define node `n` as `def`.
@@ -645,6 +707,8 @@ impl<'c> Stamp<'c> {
         kind: MadeKind,
     ) -> u32 {
         let m = self.g.made.len() as u32;
+        self.order_index
+            .insert(Comp::Made(m), self.order.len() as u32);
         self.order.push(Comp::Made(m));
         let base = GraphNode::from_index(self.g.nodes.len());
         for port in 0..n {
@@ -688,6 +752,8 @@ impl<'c> Stamp<'c> {
             };
             self.element_ports(t, e, n);
             self.instances.push((t, e));
+            self.order_index
+                .insert(Comp::Elem(t, e), self.order.len() as u32);
             self.order.push(Comp::Elem(t, e));
         }
         for e in ElemId::below(tpl.elems.len()) {
@@ -847,6 +913,7 @@ impl<'c> Stamp<'c> {
     fn resolve_all(&mut self) {
         for i in 0..self.instances.len() {
             let (t, e) = self.instances[i];
+            self.context = self.c.plans.templates[t.index()].row(e).node;
             self.place_list_copy(t, e, &mut Vec::new());
         }
         let pending = std::mem::take(&mut self.pending);
@@ -855,10 +922,12 @@ impl<'c> Stamp<'c> {
         }
         for i in 0..self.collects.len() {
             let (t, e) = self.collects[i];
+            self.context = self.c.plans.templates[t.index()].row(e).node;
             self.expand_collect(t, e);
         }
         for i in 0..self.point_lists.len() {
             let (t, e) = self.point_lists[i];
+            self.context = self.c.plans.templates[t.index()].row(e).node;
             self.expand_point_list(t, e);
         }
         for &(t, id, _) in pending.iter().filter(|p| p.2) {
@@ -867,6 +936,7 @@ impl<'c> Stamp<'c> {
         self.choice_sources();
         for i in 0..self.instances.len() {
             let (t, e) = self.instances[i];
+            self.context = self.c.plans.templates[t.index()].row(e).node;
             self.sources(t, e);
         }
         self.aggregates();
@@ -892,11 +962,15 @@ impl<'c> Stamp<'c> {
     /// a copy of a list type that took its referent's, and none yet for an
     /// aggregate, which is wired once the tree is (`aggregates`).
     fn sources(&mut self, t: TemplateId, e: ElemId) {
+        let c = self.c;
+        let plan = c.plans.templates[t.index()].plan(e);
+        // What it is a copy of, checked as every build checks it.
+        if let Some(p) = plan.extend {
+            self.extend_referent(p, t, e);
+        }
         if self.g.list_copies.contains_key(&(t, e)) {
             return;
         }
-        let c = self.c;
-        let plan = c.plans.templates[t.index()].plan(e);
         self.share_math = !c.plans.expr_class.is_empty() && matches!(plan.hold, Hold::Off);
         for (pi, src) in plan.props.iter().enumerate() {
             let from = self.g.port(t, e, pi);
@@ -954,16 +1028,29 @@ impl<'c> Stamp<'c> {
                     Def::Const(Some(from + step * k as f64))
                 }
                 Leaf::Scope(ScopeConst::Seed(p)) => {
-                    let (target, _) = self.resolve_one(*p, t);
-                    let target = self.or_missing(target);
+                    let target = self.one_cell(*p, t, e, pi).0;
                     self.g.seeds.push((from, target));
                     Def::Given(Some(f64::NAN))
                 }
             },
             Source::Flow(flow) => match flow {
-                Flow::Alias(arg) => Def::Alias(self.arg(t, e, from, *arg)),
+                Flow::Alias(arg) => Def::Alias(self.arg(t, e, pi, from, *arg)),
                 Flow::Op(spec, args) => {
-                    let inputs = args.iter().map(|&a| self.arg(t, e, from, a)).collect();
+                    let mut inputs = Vec::with_capacity(args.len());
+                    for &a in args {
+                        let input = self.arg(t, e, pi, from, a);
+                        // A reference read by an operator is a number: text
+                        // compares only through the planned `Eq` of own ports.
+                        if let Arg::Ref(p, _) = a
+                            && self.value_type(input) == PortType::Text
+                        {
+                            self.fail(Error::Unsupported(format!(
+                                "a text value (${}) used as a number",
+                                self.c.ref_display(p)
+                            )));
+                        }
+                        inputs.push(input);
+                    }
                     Def::Op(GraphOp::Spec(*spec), inputs)
                 }
                 Flow::VecOut(head, k) => Def::VecOut(self.g.port(t, e, head.index()), *k),
@@ -1008,14 +1095,27 @@ impl<'c> Stamp<'c> {
     /// The node argument `arg` of element `e` of template `t` names, read
     /// as node `from`: a reference's read keeps its label; the missing
     /// value for a reference with no referent.
-    fn arg(&mut self, t: TemplateId, e: ElemId, from: GraphNode, arg: Arg) -> GraphNode {
+    fn arg(&mut self, t: TemplateId, e: ElemId, pi: usize, from: GraphNode, arg: Arg) -> GraphNode {
         let (target, label) = match arg {
             Arg::Own(port) => return self.g.port(t, e, port.index()),
             Arg::Elem(x, port) => return self.g.port(t, x, port.index()),
             Arg::Const(k) => return self.constant(k),
-            Arg::Ref(p, Sel::Whole) => self.resolve_one(p, t),
+            Arg::Ref(p, Sel::Whole) => {
+                let (node, label) = self.one_cell(p, t, e, pi);
+                (Some(node), label)
+            }
             Arg::Ref(p, Sel::Coord(j)) => {
+                // A point's coordinates, or a tuple's entries.
                 let (nodes, label) = self.resolve_ref(p, t, Some(2));
+                if nodes.len() < 2 || nodes.len() <= j as usize {
+                    let component_type = self.c.plans.templates[t.index()].row(e).component_type;
+                    self.fail(Error::ArityMismatch {
+                        component_type: component_type.tag().into(),
+                        prop: "coords".into(),
+                        expected: 2,
+                        got: nodes.len(),
+                    });
+                }
                 (nodes.get(j as usize).copied().flatten(), label)
             }
             Arg::Ref(p, Sel::Item(i, j)) => {
@@ -1025,13 +1125,68 @@ impl<'c> Stamp<'c> {
             }
             Arg::Ref(p, Sel::Port(k)) => {
                 let (at, _, label) = self.resolve(p, t);
-                let node = self.single_component(at).map(|c| self.slot(c, k as usize));
+                let node = match at {
+                    walk::At::Missing => None,
+                    at => self.single_component(at).map(|c| self.slot(c, k as usize)),
+                };
                 (node, label)
             }
         };
         let target = self.or_missing(target);
         self.label(from, target, &label);
         target
+    }
+
+    /// The one node plan `p` names from template `t`, read by port `pi` of
+    /// element `e`, and the label of a read of it; a reference naming
+    /// another number of cells fails as the build's arity check does.
+    fn one_cell(&mut self, p: RefId, t: TemplateId, e: ElemId, pi: usize) -> (GraphNode, Label) {
+        let (nodes, label) = self.resolve_ref(p, t, Some(1));
+        if nodes.len() != 1 {
+            let component_type = self.c.plans.templates[t.index()].row(e).component_type;
+            let prop = component_type
+                .prop_defs()
+                .get(pi)
+                .map(|d| d.name)
+                .unwrap_or("args");
+            self.fail(Error::ArityMismatch {
+                component_type: component_type.tag().into(),
+                prop: prop.into(),
+                expected: 1,
+                got: nodes.len(),
+            });
+        }
+        let node = nodes.first().copied().flatten();
+        (self.or_missing(node), label)
+    }
+
+    /// The component an `extend` plan `p` of element `e` of template `t`
+    /// names, of the element's own type: None for an index past the count,
+    /// and for what fails, as the build's check of it fails.
+    pub(super) fn extend_referent(
+        &mut self,
+        p: RefId,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Option<(Comp, Label)> {
+        let (at, _, label) = self.resolve(p, t);
+        if matches!(at, walk::At::Missing) {
+            return None;
+        }
+        let referent = self.single_component(at)?;
+        let (rk, own) = (
+            self.component_type(referent),
+            self.c.plans.templates[t.index()].row(e).component_type,
+        );
+        if rk != own {
+            self.fail(Error::ExtendTypeMismatch {
+                referent: self.c.ref_display(p),
+                referent_type: rk.tag().into(),
+                component_type: own.tag().into(),
+            });
+            return None;
+        }
+        Some((referent, label))
     }
 
     // ---- components ---------------------------------------------------------

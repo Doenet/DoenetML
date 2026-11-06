@@ -60,6 +60,14 @@ pub fn define_failures_agree(dast: &crate::dast::Dast) -> Vec<String> {
     crate::compile::define_failures_agree(dast)
 }
 
+/// The attempts of the compile's loop on `dast` where stamping the
+/// template graph fails otherwise than the abstract build's resolve,
+/// described (none when both box the same elements with the same errors),
+/// and how many attempts failed in both.
+pub fn resolve_failures_agree(dast: &crate::dast::Dast) -> (Vec<String>, usize) {
+    crate::compile::resolve_failures_agree(dast)
+}
+
 /// The input signature of `dast` read off the template graph against the
 /// one the abstract build reads off its own definitions (ADR 0032, step 8,
 /// part 5): each input where they differ, described; none when they are

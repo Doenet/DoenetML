@@ -8,6 +8,7 @@
 
 use super::walk::At;
 use super::*;
+use crate::error::Error;
 
 impl<'c> Stamp<'c> {
     /// Give a copy of a list type, element `e` of template `t`, its ports:
@@ -25,17 +26,15 @@ impl<'c> Stamp<'c> {
         if plan.list != ListLen::AsReferent
             || self.g.n_ports[t.index()][e.index()] != 0
             || self.g.list_copies.contains_key(&(t, e))
-            || visiting.contains(&(t, e))
         {
             return;
         }
-        let referent = plan.extend.and_then(|p| {
-            let (at, _, label) = self.resolve(p, t);
-            match at {
-                At::Missing => None,
-                at => self.single_component(at).map(|c| (c, label)),
-            }
-        });
+        // A loop of copies, each placed before the one it copies.
+        if visiting.contains(&(t, e)) {
+            self.fail(Error::Cycle(self.comp_label(Comp::Elem(t, e))));
+            return;
+        }
+        let referent = plan.extend.and_then(|p| self.extend_referent(p, t, e));
         let Some((referent, label)) = referent else {
             self.element_ports(t, e, plan.props.len());
             return;
@@ -67,6 +66,7 @@ impl<'c> Stamp<'c> {
             return;
         };
         let m = self.ref_children[&(t, id)];
+        self.context = self.c.plans.refs[p.index()].node;
         let (at, prop, label) = self.resolve(p, t);
         let through_iteration = matches!(at, At::Iter(_));
         match (at, prop) {
@@ -95,6 +95,20 @@ impl<'c> Stamp<'c> {
                     return;
                 };
                 let rt = self.component_type(referent);
+                if matches!(
+                    rt,
+                    ComponentType::ConditionalContent | ComponentType::Select | ComponentType::Case
+                ) {
+                    self.fail(Error::Banned(format!(
+                        "copying a whole <{}>: reference its interface names instead",
+                        rt.tag()
+                    )));
+                    return;
+                }
+                if !rt.copyable() {
+                    self.fail(Error::UncopyableType(rt.tag().into()));
+                    return;
+                }
                 match (through_iteration, rt.reads_as()) {
                     (false, Some(as_type)) => {
                         let defs = as_type.prop_defs();
@@ -187,7 +201,10 @@ impl<'c> Stamp<'c> {
                     }
                 }
             }
-            At::Missing | At::Chosen { .. } => {}
+            At::Missing => {}
+            At::Chosen { .. } => self.fail(Error::Unsupported(
+                "<collect from> cannot be indexed by a cell".into(),
+            )),
         }
         let copies: Vec<Comp> = found.iter().map(|&f| self.copy_of(f, t)).collect();
         self.elem_children.insert((t, e), copies.clone());
@@ -298,13 +315,23 @@ impl<'c> Stamp<'c> {
         let mut flags_of: FxMap<(TemplateId, ElemId), Vec<GraphNode>> = FxMap::default();
         for i in 0..self.instances.len() {
             let (t, e) = self.instances[i];
+            self.context = self.c.plans.templates[t.index()].row(e).node;
             let flags = match &self.c.plans.templates[t.index()].plan(e).hold {
                 Hold::Off => continue,
                 Hold::Always => vec![self.constant(1.0)],
                 Hold::While(refs) => refs
                     .iter()
                     .map(|&p| {
-                        let (flag, _) = self.resolve_one(p, t);
+                        let (flags, _) = self.resolve_ref(p, t, Some(1));
+                        if flags.len() != 1 {
+                            self.fail(Error::ArityMismatch {
+                                component_type: String::new(),
+                                prop: String::new(),
+                                expected: 1,
+                                got: flags.len(),
+                            });
+                        }
+                        let flag = flags.first().copied().flatten();
                         self.or_missing(flag)
                     })
                     .collect(),

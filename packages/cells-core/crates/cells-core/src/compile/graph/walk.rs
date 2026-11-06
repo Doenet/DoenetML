@@ -27,6 +27,7 @@ impl<'c> Stamp<'c> {
     /// Walk plan `p` from template `t`: where it arrives, the port it
     /// names, and the walk's label.
     pub(super) fn resolve(&mut self, p: RefId, t: TemplateId) -> (At, Option<RefProp>, Label) {
+        self.walking = p;
         let plan = &self.c.plans.refs[p.index()];
         let src_depth = self.g.depth[t.index()];
         let mut sc = t;
@@ -38,6 +39,8 @@ impl<'c> Stamp<'c> {
         for (si, step) in plan.steps.iter().enumerate() {
             let to_iface = matches!(plan.steps.get(si + 1), Some(Step::Iface(..)));
             cur = self.step(cur, step, t, src_depth, to_iface, &mut label, true);
+            // A walk of an index cell walked another plan.
+            self.walking = p;
         }
         (cur, plan.prop, label)
     }
@@ -101,6 +104,10 @@ impl<'c> Stamp<'c> {
             Step::Iter(ip) | Step::Item(_, ip) => {
                 let c = match cur {
                     At::Comp(c) => c,
+                    At::Iter(_) => {
+                        self.fail(Error::NotIndexable(self.display()));
+                        return At::Missing;
+                    }
                     _ => return At::Missing,
                 };
                 // The entries the index reads, and whether one entry
@@ -123,10 +130,13 @@ impl<'c> Stamp<'c> {
                     }
                     Step::Item(Collection::Picks, _) => return self.pick(c, to_iface, label, push),
                     Step::Item(Collection::Gathered, _) => {
-                        let Comp::Elem(ct, ce) = c else {
-                            return At::Missing;
+                        // An item of a collect, a copy, is not one.
+                        let gathered = match c {
+                            Comp::Elem(ct, ce) => self.collected.get(&(ct, ce)).cloned(),
+                            Comp::Made(_) => None,
                         };
-                        let Some((items, follows)) = self.collected.get(&(ct, ce)).cloned() else {
+                        let Some((items, follows)) = gathered else {
+                            self.fail(Error::NotIndexable(self.display()));
                             return At::Missing;
                         };
                         (items.into_iter().map(At::Comp).collect(), follows)
@@ -197,17 +207,31 @@ impl<'c> Stamp<'c> {
         if let Some(&w) = self.picks.get(&cid) {
             return At::Comp(Comp::Made(w));
         }
+        // Any option may be this pick, so what a whole pick names must not
+        // depend on which (ADR 0014).
         let branches = self.c.plans.choices[cid.index()].branches.clone();
-        let mut members = Vec::with_capacity(branches.len());
-        for b in branches {
-            match self.single_component(At::Iter(b)) {
-                Some(m) => members.push(m),
-                None => return At::Missing,
-            }
-        }
-        let Some(&first) = members.first() else {
+        let members: Vec<Option<Comp>> = branches
+            .iter()
+            .map(|&b| match self.root_children(b)[..] {
+                [one] => Some(one),
+                _ => None,
+            })
+            .collect();
+        let first = members.first().copied().flatten();
+        let alike = first.is_some_and(|f| {
+            let ty = self.component_type(f);
+            members
+                .iter()
+                .all(|m| m.is_some_and(|m| self.component_type(m) == ty))
+        });
+        let Some(first) = first.filter(|_| alike) else {
+            self.fail(Error::Unsupported(format!(
+                "'${}' names a whole pick, so every option must hold one component, all of one type: name the content and use $s[k].name",
+                self.display()
+            )));
             return At::Missing;
         };
+        let members: Vec<Comp> = members.into_iter().flatten().collect();
         let w = self.stand_in(self.component_type(first), t, members, c);
         self.stand_in_sources(w, None);
         self.picks.insert(cid, w);
@@ -221,9 +245,23 @@ impl<'c> Stamp<'c> {
             At::Comp(c) => Some(c),
             At::Iter(s) => match self.root_children(s)[..] {
                 [one] => Some(one),
-                _ => None,
+                ref comps => {
+                    let n = comps.len();
+                    self.fail(Error::AmbiguousIteration(self.display(), n));
+                    None
+                }
             },
-            At::Missing | At::Chosen { .. } => None,
+            At::Missing => {
+                self.fail(Error::UnknownName(self.display()));
+                None
+            }
+            At::Chosen { .. } => {
+                self.fail(Error::Unsupported(format!(
+                    "'${}' names a component by a cell, which only a value can be read through: name a prop of it",
+                    self.display()
+                )));
+                None
+            }
         }
     }
 
@@ -278,13 +316,29 @@ impl<'c> Stamp<'c> {
                 None => return none(label),
             },
         };
+        let ty = self.component_type(c);
         let sel = match prop {
             Some(p) => Some(p.sel),
-            None => self.component_type(c).default_sel(),
+            None => {
+                if ty.default_prop().is_none() {
+                    self.fail(Error::NoDefaultProp(self.comp_label(c)));
+                    return none(label);
+                }
+                ty.default_sel()
+            }
         };
         match sel.and_then(|sel| self.sel_slots(c, sel)) {
             Some(nodes) => (nodes, label),
-            None => none(label),
+            None => {
+                self.fail(Error::UnknownProp {
+                    name: self.comp_label(c),
+                    prop: match prop {
+                        Some(p) => p.name().into_owned(),
+                        None => ty.default_prop().unwrap_or_default().into(),
+                    },
+                });
+                none(label)
+            }
         }
     }
 
@@ -311,6 +365,16 @@ impl<'c> Stamp<'c> {
             })
             .collect();
         let n = columns.iter().map(Vec::len).max().unwrap_or(1);
+        // A missing item named `expected` nodes: as many as the rest.
+        if columns
+            .iter()
+            .any(|col| col.len() != n && col.iter().any(Option::is_some))
+        {
+            self.fail(Error::Unsupported(format!(
+                "'${}' names values of different sizes in different items",
+                self.display()
+            )));
+        }
         let index = self.or_missing(index);
         (0..n)
             .map(|j| {
@@ -396,6 +460,7 @@ impl<'c> Stamp<'c> {
         };
         let component_type = self.component_type(c);
         let Some(prop) = prop else {
+            self.fail(Error::PathTooDeep(self.display()));
             return Vec::new();
         };
         let sel = prop.sel_on(component_type);
@@ -409,6 +474,10 @@ impl<'c> Stamp<'c> {
                 .collect();
         }
         if sel != Some(PropSel::TableList) {
+            self.fail(Error::UnknownProp {
+                name: self.comp_label(c),
+                prop: prop.name().into_owned(),
+            });
             return Vec::new();
         }
         component_type

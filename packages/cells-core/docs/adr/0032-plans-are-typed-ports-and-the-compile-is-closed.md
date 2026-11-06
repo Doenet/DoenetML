@@ -974,6 +974,45 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
       `Plans::Both`) leave the build, and `tests/every_count.rs` checks
       every stamped build against the template graph. Test:
       `tests/diagnostics.rs` and `tests/every_count.rs`, unchanged.
+
+      In two pieces. The first, done: stamping the graph raises what the
+      abstract build's resolve raises. The stamping records the first
+      failure (`Stamp::fail`) with the element whose stamping met it, the
+      one the abstract build boxes (a `$ref` child's own node, else the
+      element whose ports, collect, point list or holds were being made),
+      and goes on stamping; `template_graph_checked` returns it. Each of
+      the build's checks has its place in the stamping: a list copy's
+      loop; a whole choice, a pick or an uncopyable type copied; a
+      collect from by a cell; a hold's flag of the wrong arity; a
+      reference inside math that is not one cell or is text; a symbolic
+      math's text unrecorded, with a numeric-only function, unparsed, or
+      over more than 255 references (parsed through the plans' cache or
+      an engine of the stamping's own); a reference an operator reads
+      that is text; a prop, a seed or a coordinate pair of the wrong
+      arity; an extend's type; and in the walk, an index of what is not
+      a repeat or a collect, a whole pick of unlike options, a component
+      named by a cell, an ambiguous or unknown name, no default prop, an
+      unknown prop, items of different sizes and a path too deep. An
+      unnamed component in a message is its tag and its index in the
+      abstract build's table, which the stamping keeps in creation order
+      (`Stamp::order_index`). `testing::resolve_failures_agree` runs the
+      compile's loop and compares the two at every attempt, element and
+      message; `tests/template_graph.rs` holds every document and every
+      DoenetML source written in a test (each raw string of
+      `tests/*.rs` that starts with a tag, 584 documents in all) to it,
+      with seventeen documents of its own that the planners pass and
+      resolve fails, and a math over 260 references. Most failing
+      sources fail at planning; these reach resolve. The comparison found
+      one difference, fixed: `$c[1][1]`, an index of a collect's item,
+      which the graph read as missing. Silencing each failure, one at a
+      time, fails the test at 18 of the 26 places and at the element a
+      failure names; the other eight (text inside math or read as a
+      number, unrecorded math text, an iteration indexed again, an
+      ambiguous or unknown name, an unknown prop, items of different
+      sizes, a path too deep) no document reaches past the planners,
+      and they stay as the build's were, defensive. The compile still
+      reads the abstract build's resolve; the second piece reads the
+      graph's and removes the abstract build.
 9. **Capped lists.** `List(T, cap)` with a length port, for
    `<intersection>` first, as the test of the form the last section
    needs. The spreadsheet operator and the pool for `addChildren` are
