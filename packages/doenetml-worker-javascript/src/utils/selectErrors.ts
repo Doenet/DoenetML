@@ -40,7 +40,17 @@ import { diagnosticCodeFrom } from "./diagnostics";
  */
 export type SelectErrorState = {
     errorMessage: string;
-    errorDiagnostic: { code: DiagnosticCode; args?: DiagnosticArgs } | null;
+    errorDiagnostic: {
+        code: DiagnosticCode;
+        args?: DiagnosticArgs;
+        /**
+         * Set when the select could not select because of a value or the
+         * variant, rather than because of what the author wrote. Then the
+         * select is missing and reports an info rather than an error (D38,
+         * DIAG-7; see {@link selectFailureType}).
+         */
+        type?: "info";
+    } | null;
 };
 
 /**
@@ -54,14 +64,410 @@ export type SelectErrorState = {
 export function selectError({
     code,
     args,
+    type = "error",
 }: {
     code: DiagnosticCode;
     args?: DiagnosticArgs;
+    /** {@link selectFailureType}; an error unless said otherwise. */
+    type?: "error" | "info";
 }): SelectErrorState {
     return {
         errorMessage: formatEnglishDiagnostic(code, args),
-        errorDiagnostic: { code, ...(args === undefined ? {} : { args }) },
+        errorDiagnostic: {
+            code,
+            ...(args === undefined ? {} : { args }),
+            ...(type === "info" ? { type } : {}),
+        },
     };
+}
+
+/**
+ * The level of a select's failure to select (D38, DIAG-7): an error when
+ * what decides it is written in the DoenetML, so it is the same in every
+ * variant and the author must change it; otherwise an info, since a value or
+ * another random choice decides it (`<selectFromSequence to="$a"
+ * numToSelect="3"/>` with a random `a`), and the select is missing while it
+ * lasts (DIAG-2).
+ *
+ * @param decidedByDoenetML The select's `choicesDecidedByDoenetML`.
+ */
+export function selectFailureType(
+    decidedByDoenetML: boolean,
+): "error" | "info" {
+    return decidedByDoenetML ? "error" : "info";
+}
+
+/**
+ * Whether a failure of the select to select is a missing selection with an
+ * info rather than an error (`selectFailureType`).
+ */
+export function isInfoSelectFailure(errorDiagnostic: unknown): boolean {
+    return (
+        typeof errorDiagnostic === "object" &&
+        errorDiagnostic !== null &&
+        (errorDiagnostic as { type?: unknown }).type === "info"
+    );
+}
+
+/**
+ * Whether the attribute `attribute` of a component is decided by the
+ * DoenetML alone: not written (its default), a literal, a primitive, or an
+ * attribute component that holds no reference. A reference anywhere in it
+ * (`to="$a"`, `numToSelect="$n+1"`) makes it a value that can change.
+ */
+function attributeDecidedByDoenetML(
+    attribute: any,
+    componentInfoObjects: any,
+): boolean {
+    if (!attribute) {
+        return true;
+    }
+    if (attribute.type === "literal" || attribute.type === "primitive") {
+        return true;
+    }
+    if (attribute.type === "expression") {
+        return (attribute.slots ?? []).length === 0;
+    }
+    if (attribute.component) {
+        return componentDecidedByDoenetML(
+            attribute.component,
+            componentInfoObjects,
+        );
+    }
+    // a reference to a variable of another component
+    return false;
+}
+
+/**
+ * Whether the live component `component`, an attribute component or a
+ * child, holds only what is written: no reference (a `_ref` read for its
+ * value, or a composite, such as a `_copy`), no extend, and the same of its
+ * children and attributes.
+ */
+function componentDecidedByDoenetML(
+    component: any,
+    componentInfoObjects: any,
+): boolean {
+    if (typeof component !== "object" || component === null) {
+        return true;
+    }
+    if (
+        component.shadows ||
+        component.extending ||
+        // a reference read for its value (`valueReferences.ts`)
+        component.componentType === "_ref" ||
+        componentInfoObjects.isCompositeComponent({
+            componentType: component.componentType,
+            includeNonStandard: true,
+        })
+    ) {
+        return false;
+    }
+    return (
+        (component.definingChildren ?? []).every((child: any) =>
+            componentDecidedByDoenetML(child, componentInfoObjects),
+        ) &&
+        Object.values(component.attributes ?? {}).every((attribute) =>
+            attributeDecidedByDoenetML(attribute, componentInfoObjects),
+        )
+    );
+}
+
+/**
+ * Whether the serialized child `child` of a `<select>` is an option whose
+ * content the DoenetML fixes: an `<option>` written in it, or an `<option
+ * copy>` (or `<option extend>`, a `_copy` that makes an `option`) whose
+ * reference was resolved when the document loaded, so has no index a value
+ * decides. A bare reference (`$o`), which may stand for any number of
+ * components, or a copy whose index is a value (`$g[$k]`), is not.
+ */
+export function optionWrittenInDoenetML(child: any): boolean {
+    if (typeof child !== "object" || child === null) {
+        return true;
+    }
+    if (child.componentType === "option") {
+        return true;
+    }
+    return (
+        isCopiedOption(child) &&
+        Object.values(child.extending ?? {}).every(
+            (refResolution: any) => refResolution?.unresolvedPath === null,
+        )
+    );
+}
+
+/**
+ * Whether the serialized component `component`, or attribute of one,
+ * holds only what is written: no reference (a `_copy`, a `_ref`, an
+ * extend, or an expression attribute with slots).
+ */
+function serializedHasNoReference(component: any): boolean {
+    if (typeof component !== "object" || component === null) {
+        return true;
+    }
+    if (component.type === "literal" || component.type === "primitive") {
+        return true;
+    }
+    if (component.type === "expression") {
+        return (component.slots ?? []).length === 0;
+    }
+    if (component.component) {
+        return serializedHasNoReference(component.component);
+    }
+    if (
+        component.componentType === "_copy" ||
+        component.componentType === "_ref" ||
+        component.extending
+    ) {
+        return false;
+    }
+    return (
+        (component.children ?? []).every(serializedHasNoReference) &&
+        Object.values(component.attributes ?? {}).every(
+            serializedHasNoReference,
+        )
+    );
+}
+
+/**
+ * Whether a fresh load reproduces what a `<select>` chooses, so a save can
+ * leave its selection out (`definitionEssentialValuesReproducible`): its
+ * choices are decided by the DoenetML (`choicesDecidedByDoenetML`), and so
+ * are its options' weights. An option copied from elsewhere may carry a
+ * weight from a value, which can't be seen here, so a select with one is
+ * saved.
+ */
+export function selectionReproducible(
+    choicesDecided: boolean,
+    serializedOptions: any[],
+): boolean {
+    return (
+        choicesDecided &&
+        serializedOptions.every(
+            (child) =>
+                typeof child !== "object" ||
+                child === null ||
+                (child.componentType === "option" &&
+                    serializedHasNoReference(child.attributes?.selectWeight)),
+        )
+    );
+}
+
+/**
+ * Whether the serialized child `child` of a `<select>` is an `<option
+ * copy>` or `<option extend>`: a `_copy` that makes exactly one `option`.
+ */
+export function isCopiedOption(child: any): boolean {
+    return (
+        child?.componentType === "_copy" &&
+        child.attributes?._createComponentOfType?.primitive?.value === "option"
+    );
+}
+
+/**
+ * Whether what a select chooses from, and how many, is decided by the
+ * DoenetML alone (D38, DIAG-7): each of the attributes `attributeNames` of
+ * the select `component` is {@link attributeDecidedByDoenetML}, and, when
+ * `serializedOptions` is given, each of those children is
+ * {@link optionWrittenInDoenetML}. Computed when the select is made, from
+ * what the author wrote, so it is the same in every variant.
+ */
+export function choicesDecidedByDoenetML({
+    component,
+    attributeNames,
+    serializedOptions,
+    componentInfoObjects,
+}: {
+    component: any;
+    attributeNames: string[];
+    serializedOptions?: any[];
+    componentInfoObjects: any;
+}): boolean {
+    const attributesDecided = attributeNames.every((name) =>
+        attributeDecidedByDoenetML(
+            component.attributes?.[name],
+            componentInfoObjects,
+        ),
+    );
+    if (!attributesDecided || serializedOptions === undefined) {
+        return attributesDecided;
+    }
+    return serializedOptions.every(optionWrittenInDoenetML);
+}
+
+/**
+ * The state variable `choicesDecidedByDoenetML` of a select (or the one
+ * named `variableName`, kept the same way, such as a `<select>`'s
+ * `optionsDecidedByDoenetML`), read by the
+ * definition that selects to set the level of a failure
+ * ({@link selectFailureType}). The select's constructor computes it from
+ * what the author wrote ({@link choicesDecidedByDoenetML}) and keeps it in
+ * `doenetAttributes`.
+ */
+export function returnChoicesDecidedByDoenetMLDefinition(
+    variableName = "choicesDecidedByDoenetML",
+) {
+    return {
+        returnDependencies: () => ({
+            decided: {
+                dependencyType: "doenetAttribute",
+                attributeName: variableName,
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: { decided: boolean | undefined };
+        }) {
+            return {
+                setValue: {
+                    [variableName]: dependencyValues.decided !== false,
+                },
+            };
+        },
+    };
+}
+
+/**
+ * What a select's selection definition returns when the selection was
+ * already made and is kept, as on a reload, or `null` when it wasn't: the
+ * select keeps it, whatever it would choose now, and never chooses again.
+ * Its definition is given its essential values
+ * (`provideEssentialValuesInDefinition`) for this.
+ *
+ * @param essentialValues The essential values given to the definition.
+ * @param variableNames The state variables the definition sets, the first of
+ *   them the selection.
+ * @param revive For a state variable, how to make its kept value the value
+ *   the definition would have set, such as a math from its saved tree.
+ */
+export function keptSelection(
+    essentialValues: Record<string, unknown> | undefined,
+    variableNames: string[],
+    revive: Record<string, (value: any) => unknown> = {},
+) {
+    if (essentialValues?.[variableNames[0]] === undefined) {
+        return null;
+    }
+    // Set from the values kept, rather than read from them where they are
+    // kept, so that each can be revived first: a saved value comes back as
+    // its JSON, such as a math as its expression tree
+    // (A value saved before it was kept, such as `numToSelect` by an older
+    // version, is left for the definition to set.)
+    const values = Object.fromEntries(
+        variableNames
+            .filter((name) => essentialValues[name] !== undefined)
+            .map((name) => {
+                const value = essentialValues[name];
+                return [name, revive[name] ? revive[name](value) : value];
+            }),
+    );
+    return { setEssentialValue: { ...values }, setValue: { ...values } };
+}
+
+/**
+ * The state variable `numToSelect` of a select, kept with its selection: how
+ * many it selected, as `numToSelect` was when it made the selection. A later
+ * change to the attribute (`specifiedNumToSelect`) is ignored, also when
+ * the document is loaded again, as the selection made with it is kept.
+ */
+export const NUM_TO_SELECT_VARIABLE = {
+    variableName: "numToSelect",
+    description:
+        "How many were selected: the number to select when the selection was made.",
+    public: true,
+    shadowingInstructions: { createComponentOfType: "integer" },
+    hasEssential: true,
+    shadowVariable: true,
+    immutable: true,
+};
+
+/**
+ * `result`, what a select's selection definition returns, with the
+ * `numToSelect` it was made with set alongside it (`NUM_TO_SELECT_VARIABLE`),
+ * or kept, with the selection, when the selection was kept. When a
+ * requested variant's choices were taken as given, it is how many it gave,
+ * which can differ from the attribute now, as from a variant saved before
+ * the document changed.
+ */
+export function withNumToSelect(result: any, numToSelect: number) {
+    if (result.setValue && "numToSelect" in result.setValue) {
+        // kept with the selection (`keptSelection`), or set to how many
+        // choices a requested variant gave, which were taken as given
+        return result;
+    }
+    return {
+        ...result,
+        setEssentialValue: { ...result.setEssentialValue, numToSelect },
+        setValue: { ...result.setValue, numToSelect },
+    };
+}
+
+/** Thrown by the generator a probe selection is given: it never draws. */
+const NO_DRAW = Symbol("a probe selection does not draw");
+
+/**
+ * The selection of a select that a requested variant gives choices to,
+ * `requested`, or, when it gives none (`undefined`), the select's own,
+ * `select(dependencyValues)`. A select never chooses again (#2389), so the
+ * choices are taken as given, even when they are not what it would choose
+ * now, with the `numToSelect` they make, and an empty list (`[]`, or `null`
+ * from a select that couldn't select) selects nothing.
+ *
+ * What the select would report is still found, by making its selection
+ * with a generator that never draws, so no random choice of the document
+ * moves: a failure the DoenetML decides (an error) is reported in every
+ * variant, in place of the choices; one a value decides (an info) is
+ * reported only when the choices are empty, as a select that couldn't
+ * select gives back, with the `numToSelect` it tried, as when it failed, so a
+ * reload is the same. The probe stops at the first draw, so a failure the
+ * DoenetML can decide must be found before any draw (`doenet-e0045` of a
+ * `<selectFromSequence>`); one found only by drawing depends on the variant
+ * and is always an info (`doenet-e0052`, `doenet-e0053`, `doenet-i0057`).
+ *
+ * @param rngKey The dependency `select` draws from.
+ * @param takeRequested The selection result for nonempty `requested`.
+ * @param emptySelection The selection result for selecting nothing.
+ */
+export function selectionWithRequested({
+    requested,
+    dependencyValues,
+    select,
+    rngKey,
+    takeRequested,
+    emptySelection,
+}: {
+    requested: unknown[] | undefined;
+    dependencyValues: any;
+    select: (dependencyValues: any) => any;
+    rngKey: string;
+    takeRequested: (requested: unknown[]) => any;
+    emptySelection: any;
+}) {
+    if (requested === undefined) {
+        return select(dependencyValues);
+    }
+    let probe = null;
+    try {
+        probe = select({
+            ...dependencyValues,
+            [rngKey]: () => {
+                throw NO_DRAW;
+            },
+        });
+    } catch (e) {
+        if (e !== NO_DRAW) {
+            throw e;
+        }
+    }
+    const failed = Boolean(probe?.setValue?.errorMessage);
+    if (failed && !isInfoSelectFailure(probe.setValue.errorDiagnostic)) {
+        return probe;
+    }
+    if (requested.length > 0) {
+        return withNumToSelect(takeRequested(requested), requested.length);
+    }
+    return failed ? probe : withNumToSelect(emptySelection, 0);
 }
 
 /** The pair for a select that selected something. */
@@ -112,7 +518,9 @@ export function selectionResult(
 /**
  * The state variable `selectErrorReported` of a select that is a list
  * component (`<selectFromSequence>`, `<selectPrimeNumbers>`), which reports
- * the select's error, when it has one, as an error diagnostic.
+ * the select's error, when it has one, as an error diagnostic, or as an info
+ * when a value or the variant decided it ({@link selectFailureType}): the
+ * select then selects nothing, and has no error put after it.
  *
  * Such a select has no replacement to be the error box. A definition that
  * sends an error while the document is built has one put after its component
@@ -153,7 +561,11 @@ export function returnSelectErrorReportDefinition() {
                 sendDiagnostics: report
                     ? [
                           {
-                              type: "error",
+                              type: isInfoSelectFailure(
+                                  dependencyValues.errorDiagnostic,
+                              )
+                                  ? "info"
+                                  : "error",
                               message: dependencyValues.errorMessage,
                               ...diagnosticCodeFrom(
                                   dependencyValues.errorDiagnostic,

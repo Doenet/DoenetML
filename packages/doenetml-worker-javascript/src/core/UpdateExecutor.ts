@@ -613,9 +613,15 @@ export class UpdateExecutor {
                 // they are persisted like the reader's own work rather than
                 // dropped as a definition's (see
                 // `BaseComponent.definitionEssentialValuesAreReproducible`).
+                // A component can also decide it for itself
+                // (`definitionEssentialValuesReproducible`): a select whose
+                // choices a value decides, such as an input, would choose
+                // again on a fresh load once that value changed.
                 const reproducible =
                     (component?.constructor as any)
-                        ?.definitionEssentialValuesAreReproducible !== false;
+                        ?.definitionEssentialValuesAreReproducible !== false &&
+                    (component as any)
+                        ?.definitionEssentialValuesReproducible !== false;
                 if (essentialState) {
                     for (let varName in this.core
                         .essentialValuesSavedInDefinition[stateId]) {

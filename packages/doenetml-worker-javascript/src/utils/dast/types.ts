@@ -375,6 +375,12 @@ export type AttributeDefinition<T> = {
      */
     createStateVariable?: string;
     /**
+     * The state variable created from this attribute keeps the first value
+     * it is computed with, and ignores later changes to the attribute, as
+     * for something made once from it, such as a select's selection.
+     */
+    immutable?: boolean;
+    /**
      * If creating a state variable and the attribute is not specified,
      * give the state variable the value `defaultValue`.
      */
