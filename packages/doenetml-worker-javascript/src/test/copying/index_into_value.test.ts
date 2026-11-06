@@ -593,17 +593,21 @@ describe("An index into an entry of a list @group4", async () => {
                 ["$r[2]", "(2, 20)"],
                 ["$r[2][1]", "2"],
                 ["$r[2][2]", "20"],
-                // further indices index on in the entry's value, as in a
-                // `<math>` (#2438)
                 // a property of every entry with an index into it
                 ["$pl.xs[1]", "3, 1"],
                 // an index into the list's value is an index into the list,
-                // as `$m.value[2]` is `$m[2]`
+                // as `$m.value[2]` is `$m[2]`, also with more after it
                 ["$l.value[2]", "2"],
                 ["$pl.value[2]", "(1, 2)"],
                 ["$tl.value[2][1]", "3"],
+                ["$pl.value[2].x", "1"],
+                ["$tl.value[2].value[1]", "3"],
                 // past the end, as `$l[4]` is
                 ["$l.value[4]", "＿"],
+                ["$pl.value[3].x", "＿"],
+                // further indices index on in the entry's value, as in a
+                // `<math>` (#2438), also after `.value`
+                ["$tl2[1].value[2][1]", "3"],
                 ["$ml[1][1][2]", "2"],
                 ["$ml[1][2][1]", "3"],
                 ["$tl2[1][2]", "(3, 4)"],
@@ -627,7 +631,8 @@ describe("An index into an entry of a list @group4", async () => {
 <mathInput name="wentry" bindValueTo="$lm[1][1][2]"><label>wentry</label></mathInput>
 <mathInput name="wpast" bindValueTo="$tl[1][3]"><label>wpast</label></mathInput>
 <mathInput name="wvalue" bindValueTo="$tl.value[2][1]"><label>wvalue</label></mathInput>
-<p name="ptl">$tl</p><p name="pml">$ml</p><p name="plm">$lm</p>`;
+<mathInput name="wvalue2" bindValueTo="$tl2[1].value[2][1]"><label>wvalue2</label></mathInput>
+<p name="ptl">$tl</p><p name="pml">$ml</p><p name="plm">$lm</p><p name="ptl2">$tl2</p>`;
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
@@ -702,6 +707,14 @@ describe("An index into an entry of a list @group4", async () => {
             core,
         });
         expect(await textOf("ptl")).eq("(1, 9), (8, 4)");
+
+        // and through an index into an entry's value, at a second level
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: await resolvePathToNodeIdx("wvalue2"),
+            core,
+        });
+        expect(await textOf("ptl2")).eq("((1, 2), (6, 4)), 5");
     });
 
     it("takes writes to one entry through a coordinate and through an index together", async () => {

@@ -343,7 +343,7 @@ export function listEntryPropertyPath({
         unresolvedPath.length === 2 &&
         first.name === "" &&
         first.index.length === 1 &&
-        second.index.length === 1
+        second.index.length >= 1
     ) {
         const property = entryPropertyOf(
             listClass,
@@ -352,9 +352,10 @@ export function listEntryPropertyPath({
         );
         // An index into the entry's value is an index into the entry, as
         // `$m.value[2]` is `$m[2]` (D27): `$l[1].value[2]` of a list of maths
-        // or points is `$l[1][2]`. Where an index selects nothing in an
-        // entry (a list of numbers), the value is not an array, and the
-        // index is reported as on one below, as `$n.value[1]` is.
+        // or points is `$l[1][2]`, and `$l[1].value[2][1]` is `$l[1][2][1]`.
+        // Where an index selects nothing in an entry (a list of numbers),
+        // the value is not an array, and the index is reported as on one
+        // below, as `$n.value[1]` is.
         // Recognized by the name written as well as the property it names,
         // since a point's `value` is an alias of its `coords`.
         const asIndex =
@@ -372,6 +373,11 @@ export function listEntryPropertyPath({
                 : undefined;
         if (asIndex) {
             return asIndex;
+        }
+        // Only an index into the entry's value goes deeper than one level
+        // here; `$l[1].xs[1][1]` is resolved as it is.
+        if (second.index.length > 1) {
+            return undefined;
         }
         if (property !== undefined) {
             // An index below 1 into a property of the entry names nothing,
@@ -431,15 +437,19 @@ export function listEntryPropertyPath({
     }
 
     // An index into the list's value is an index into the list, as
-    // `$m.value[2]` is `$m[2]` (D27): `$l.value[2]` is entry 2.
+    // `$m.value[2]` is `$m[2]` (D27): `$l.value[2]` is entry 2, and
+    // `$l.value[2].x` is `$l[2].x`.
     if (
-        unresolvedPath.length === 1 &&
+        unresolvedPath.length <= 2 &&
         first.name.toLowerCase() === "value" &&
         first.index.length > 0
     ) {
         return listEntryPropertyPath({
             listClass,
-            unresolvedPath: [{ ...first, name: "" }],
+            unresolvedPath: [
+                { ...first, name: "" },
+                ...unresolvedPath.slice(1),
+            ],
             componentInfoObjects,
         });
     }
