@@ -5,7 +5,7 @@
  */
 
 /**
- * The definition of `replacementsToHide` of a `<sort>` or `<shuffle>` that
+ * The definitions of `replacementsToHide` of a `<sort>` or `<shuffle>` that
  * stays a composite: the replacements whose source is hidden by a container
  * of it inside the composite, such as a `<group hide>` or a
  * `<repeatForSequence hide>` among its children, or by a hidden list whose
@@ -24,72 +24,111 @@
  * is a replacement of, but not the composite's own hiding or that of its
  * parent, which each replacement already reads.
  */
-export function returnReplacementsToHideDefinition(sourceKeysVariable) {
+export function returnReplacementsToHideDefinitions(sourceKeysVariable) {
     return {
-        stateVariablesDeterminingDependencies: [sourceKeysVariable],
-        returnDependencies({ stateValues }) {
-            const dependencies = {
-                sourceKeys: {
-                    dependencyType: "stateVariable",
-                    variableName: sourceKeysVariable,
-                },
-                replacements: {
-                    dependencyType: "replacement",
-                },
-            };
-            for (const key of stateValues[sourceKeysVariable]) {
-                const { componentIdx, listInd } = parseSourceKey(key);
-                const name = `source${componentIdx}`;
-                if (listInd === undefined) {
-                    dependencies[name] ??= {
-                        dependencyType: "multipleStateVariables",
-                        componentIdx,
-                        variableNames: ["hiddenIgnoreParent"],
-                        variablesOptional: true,
-                    };
-                } else {
-                    dependencies[name] = {
-                        dependencyType: "multipleStateVariables",
-                        componentIdx,
-                        variableNames: [
-                            "hiddenIgnoreParent",
-                            "entryHiddenIgnoreParents",
-                        ],
-                        variablesOptional: true,
-                    };
+        // Whether the source of each replacement, in order, is hidden.
+        replacementSourcesHidden: {
+            stateVariablesDeterminingDependencies: [sourceKeysVariable],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    sourceKeys: {
+                        dependencyType: "stateVariable",
+                        variableName: sourceKeysVariable,
+                    },
+                };
+                for (const key of stateValues[sourceKeysVariable]) {
+                    const { componentIdx, listInd } = parseSourceKey(key);
+                    const name = `source${componentIdx}`;
+                    if (listInd === undefined) {
+                        dependencies[name] ??= {
+                            dependencyType: "multipleStateVariables",
+                            componentIdx,
+                            variableNames: ["hiddenIgnoreParent"],
+                            variablesOptional: true,
+                        };
+                    } else {
+                        dependencies[name] = {
+                            dependencyType: "multipleStateVariables",
+                            componentIdx,
+                            variableNames: [
+                                "hiddenIgnoreParent",
+                                "entryHiddenIgnoreParents",
+                            ],
+                            variablesOptional: true,
+                        };
+                    }
                 }
-            }
-            return dependencies;
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        replacementSourcesHidden:
+                            dependencyValues.sourceKeys.map((key) => {
+                                const { componentIdx, listInd } =
+                                    parseSourceKey(key);
+                                const stateValues =
+                                    dependencyValues[`source${componentIdx}`]
+                                        ?.stateValues;
+                                return Boolean(
+                                    stateValues?.hiddenIgnoreParent ||
+                                    (listInd !== undefined &&
+                                        stateValues?.entryHiddenIgnoreParents?.[
+                                            listInd
+                                        ]),
+                                );
+                            }),
+                    },
+                };
+            },
         },
-        definition({ dependencyValues }) {
-            const { sourceKeys, replacements } = dependencyValues;
-            // A replacement is made for each source still there, in order, so
-            // they line up unless a source is gone, or the replacements are
-            // not yet updated to new sources. Hide nothing until they do.
-            if (replacements.length !== sourceKeys.length) {
-                return { setValue: { replacementsToHide: [] } };
-            }
-            const replacementsToHide = [];
-            for (const [ind, key] of sourceKeys.entries()) {
-                const { componentIdx, listInd } = parseSourceKey(key);
-                const stateValues =
-                    dependencyValues[`source${componentIdx}`]?.stateValues;
-                if (
-                    stateValues?.hiddenIgnoreParent ||
-                    (listInd !== undefined &&
-                        stateValues?.entryHiddenIgnoreParents?.[listInd])
-                ) {
-                    replacementsToHide.push(replacements[ind].componentIdx);
+        replacementsToHide: {
+            stateVariablesDeterminingDependencies: ["replacementSourcesHidden"],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    replacementSourcesHidden: {
+                        dependencyType: "stateVariable",
+                        variableName: "replacementSourcesHidden",
+                    },
+                };
+                // The composite's own replacements are read only when it
+                // hides any, as reading them from `hidden` of each
+                // replacement changes when they are expanded.
+                if (stateValues.replacementSourcesHidden.includes(true)) {
+                    dependencies.replacements = {
+                        dependencyType: "replacement",
+                    };
                 }
-            }
-            return { setValue: { replacementsToHide } };
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                const { replacementSourcesHidden, replacements } =
+                    dependencyValues;
+                // A replacement is made for each source still there, in
+                // order, so they line up unless a source is gone, or the
+                // replacements are not yet updated to new sources. Hide
+                // nothing until they do.
+                if (
+                    !replacements ||
+                    replacements.length !== replacementSourcesHidden.length
+                ) {
+                    return { setValue: { replacementsToHide: [] } };
+                }
+                return {
+                    setValue: {
+                        replacementsToHide: replacements
+                            .filter((_r, ind) => replacementSourcesHidden[ind])
+                            .map((r) => r.componentIdx),
+                    },
+                };
+            },
         },
     };
 }
 
 /**
  * The component and, for an entry of a list component, the entry's index
- * that a key of `returnReplacementsToHideDefinition` names.
+ * that a key of `returnReplacementsToHideDefinitions` names.
  */
 function parseSourceKey(key) {
     if (typeof key === "string") {
@@ -147,10 +186,34 @@ export function returnCopyReplacementsToHideDefinitions() {
                 },
             }),
         },
+        // The copy's own replacements, read only when the composite hides
+        // any. Reading them otherwise, from `hidden` of every replacement of
+        // every copy, changes when the replacements of a copy are expanded,
+        // and so the order in which chained actions fire.
+        replacementsIfHiding: {
+            stateVariablesDeterminingDependencies: [
+                "extendedReplacementsToHide",
+            ],
+            returnDependencies({ stateValues }) {
+                if (stateValues.extendedReplacementsToHide.length === 0) {
+                    return {};
+                }
+                return {
+                    replacements: {
+                        dependencyType: "replacement",
+                    },
+                };
+            },
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    replacementsIfHiding: dependencyValues.replacements ?? [],
+                },
+            }),
+        },
         replacementsToHide: {
             stateVariablesDeterminingDependencies: [
                 "extendedReplacementsToHide",
-                "replacements",
+                "replacementsIfHiding",
             ],
             returnDependencies({ stateValues }) {
                 const dependencies = {
@@ -159,10 +222,8 @@ export function returnCopyReplacementsToHideDefinitions() {
                         variableName: "extendedReplacementsToHide",
                     },
                 };
-                // Read which component each replacement copies only when
-                // the composite hides any, as most never do.
-                if (stateValues.extendedReplacementsToHide.length > 0) {
-                    for (const replacement of stateValues.replacements ?? []) {
+                for (const replacement of stateValues.replacementsIfHiding) {
+                    if (typeof replacement === "object") {
                         dependencies[
                             `shadowSource${replacement.componentIdx}`
                         ] = {

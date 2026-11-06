@@ -6,7 +6,7 @@ import {
     returnBreakStringsIntoTypeSugarInstruction,
     returnListValueStateVariableDefinitions,
 } from "../utils/listValues";
-import { returnReplacementsToHideDefinition } from "../utils/replacementsToHide";
+import { returnReplacementsToHideDefinitions } from "../utils/replacementsToHide";
 
 /**
  * The permutation taking `previous` to `current`, or `null` if `current` is
@@ -350,8 +350,10 @@ export default class Sort extends CompositeComponent {
             }),
         };
 
-        stateVariableDefinitions.replacementsToHide =
-            returnReplacementsToHideDefinition("replacementSourceKeys");
+        Object.assign(
+            stateVariableDefinitions,
+            returnReplacementsToHideDefinitions("replacementSourceKeys"),
+        );
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({

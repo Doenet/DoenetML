@@ -9,7 +9,7 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { returnBreakStringsIntoTypeSugarInstruction } from "../utils/listValues";
 import { listEntryReplacement } from "./Sort";
-import { returnReplacementsToHideDefinition } from "../utils/replacementsToHide";
+import { returnReplacementsToHideDefinitions } from "../utils/replacementsToHide";
 
 /**
  * What the shuffle copies for `key`, one of its `originalComponentIndices`:
@@ -276,8 +276,10 @@ export default class Shuffle extends CompositeComponent {
             }),
         };
 
-        stateVariableDefinitions.replacementsToHide =
-            returnReplacementsToHideDefinition("replacementSourceKeys");
+        Object.assign(
+            stateVariableDefinitions,
+            returnReplacementsToHideDefinitions("replacementSourceKeys"),
+        );
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
