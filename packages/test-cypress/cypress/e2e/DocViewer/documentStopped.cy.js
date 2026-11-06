@@ -7,9 +7,12 @@
 // shows the cause in place of the document. The worker side is covered in
 // `circularReferences.test.ts`; this is the join between the two.
 //
-// Unlike `documentBuildFailure.cy.js`, this uses a real document: a component
-// that extends itself is an authoring error, not a bug we intend to fix, so it
-// will go on creating a cycle when it is switched on.
+// Unlike `documentBuildFailure.cy.js`, this uses a real document: a text that
+// reads its own value is an authoring error, not a bug we intend to fix, so it
+// will go on creating a cycle when it is switched on. It reads it through a
+// property (`$t.value`): a cycle through what is written alone, such as a text
+// that extends itself, is found when the document loads, in every case, and is
+// an error in place of the reference rather than a stopped document.
 
 const FAIL_TIMEOUT = 20_000;
 
@@ -32,7 +35,7 @@ describe(
             renderDoenetML(`
 <p><booleanInput name="b"/></p>
 <p name="p">before</p>
-<conditionalContent condition="$b"><text name="t" extend="$t"/></conditionalContent>
+<conditionalContent condition="$b"><text name="t">$t.value</text></conditionalContent>
 `);
 
             cy.get("#p").should("have.text", "before");

@@ -171,6 +171,18 @@ export async function createCoreForLookup({
         if (!dastResult.success) {
             throw Error(dastResult.errMsg);
         }
+
+        // A reference cycle in what is written is reported when the document loads,
+        // in place of the references on it (`doenet-e0005`), rather than stopping the
+        // load. The components on the cycle are then errors, whose types cannot be
+        // read, so the document is treated as one that does not load, as it was when
+        // a cycle stopped it.
+        const circular = core.core?.diagnostics.find(
+            (diagnostic) => diagnostic.code === "doenet-e0005",
+        );
+        if (circular) {
+            throw Error(circular.message);
+        }
     } catch (e) {
         await releaseCores();
         throw e;
