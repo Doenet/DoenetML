@@ -29,7 +29,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B8 | **Fixed by #2344.** A `<group copy>` drew new random values for nested content, and a random child added to it repeated the source's first draw (#2342). Both broke CPY-8 | fixed on main, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group was serialized before its inner content expanded |
 | B9 | **Partly fixed on main** (**[probe]** at `a90ac9b`, after #2393): `$r[1].d.h` and `$cc.d.h` in #2371's repeat and conditionalContent examples now resolve; its reload example is not rechecked. A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
 | B10 | **Fixed by #2393** (closing #2376). `$e.h` named nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It broke REF-8 | fixed on main | a linked list extend was made without its children; it now holds them when one of them holds a name (`childrenHoldAName`) |
-| B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
+| B11 | **Fixed by #2468 and #2467** (closing #2389): a requested variant's choices are taken as given, a `copy` chooses again (D33), and no select throws. (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
 | B12 | **Fixed by #2409** (D32). Warnings on an extend of a tag that makes its own content were inconsistent: a child written inside `<shuffle extend>` was ignored with no warning, and a bare `<conditionalContent extend="$x"/>` warned that its children are ignored, though none were written (the parser's sugar gave it a `<case>`). Content changes are now errors, and the sugar skips an element written with `extend` | fixed on main | `extendChangesContentErrors` in `W/components/abstract/Copy.js`; the `conditionalContent` and `repeat` sugar |
 | B13 | (#2395) Coordinates written as a child of a point `copy` or `extend` are ignored: `<point copy="$P">(3,4)</point>` and `<point extend="$P">(3,4)</point>` stay at P's coordinates, at load and after a drag, while `xs="3 4"` applies. The child is sugar for `xs`, so the two should agree (REF-3, REF-4a) | **[probe]** on main, at load and after a drag | not traced: the point-children sugar seems not to apply to children appended to a copy or extend |
 | B14 | **Fixed by #2400** (closing #2398). A copy of an `extend` resolved references to outside names from where the extend is written, not from the source, breaking D1: `<group copy="$B.gB"/>` of `<group name="gB" extend="$A.g"/>` showed B's `n`. #2400 keeps an outside referent as a referent in every unlinked copy, and also fixed references between sibling replacements of an extend (`$g.x` in a copy of an extend of `g`) and `$me.a` through an extend of a `<module>` | fixed on main at `a53fbb9` | `remapCopiedRefResolution` (`W/utils/componentIndices.ts`), `createComponentIndicesForShadowedReplacements` |
@@ -57,7 +57,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B36 | (#2446) `<group copy="$col"/>` of a `<collect>` whose collected `<mathInput>` the reader typed into throws on reload (`dependencyValues.value.trim is not a function`) once the collect holds a `<textInput>` instead, because its case changed. The saved value reaches the new textInput through the per-`stateId` restore. Breaks SAVE-1, SAVE-3 and DIAG-5. On main before #2443 too. | #2443, "Known limits" | a restored value is matched by `stateId`, not checked against the new component's type |
 | B37 | A copy that made nothing, and would make nothing again, is not held in a save, so a reload can report a different info for why it shows nothing: `doenet-i0053` "the math is not a tuple" before, `doenet-e0065` "a text" after, when its case changed. What is shown is the same. Breaks DIAG-6. #2447 removed the run-time `e0065`, so this example no longer arises. Whether two other infos can still differ is not checked. | #2443, "Known limits" | a save holds a copy only when its remake would differ |
 | B38 | (#2449) `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written, because `$m` copies the `_error` now in m's place. The cause is at m alone (DIAG-4). Decided: a reference to a component in error shows a blank and reports nothing more. Since #2458 (D37) this example's `m` is a missing math, not an error; #2449 still applies to the errors that remain. | #2447, "Deviations" | a reference to an error component copies the `_error` |
-| B39 | (#2448) A `<select>` whose options are all written with `copy` fails to load: "Number of indices specified for select must match number to select". Breaks DIAG-5. On main before #2447 too. | #2447, "Deviations" | not traced |
+| B39 | **Fixed by #2468** (closing #2448): an `<option copy>` counts as one option; a bare `$o` among options gives up counting, info `doenet-i0056`. (#2448) A `<select>` whose options are all written with `copy` fails to load: "Number of indices specified for select must match number to select". Breaks DIAG-5. On main before #2447 too. | #2447, "Deviations" | not traced |
 | B40 | (#2453) `<group extend="$cc.x"/>`, and since #2451 `<group extend="$x"/>`, of a name every case declares with one type, shows the active case's `x` until the case changes. The first switch reports a spurious `doenet-e0005`, and after it the group is empty for good. `<math extend="$cc.x"/>` and bare `$cc.x` follow the case. Breaks COMP-11 and NAME-7. Same on main before #2451. | #2451, "Not changed" | the copy recomputes its replacement changes in a loop when the case changes; not pinned down |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
@@ -2221,3 +2221,128 @@ assertion in development and tests, and a warning in production. A variant-sweep
 checks that a document's errors are the same across variants.
 
 **Not changed:** an error found at load is shown to readers too. The author sees it first.
+
+## D39. No variant is broken by a selection (proposed, Tier 1)
+
+**The goal.** A student should never get a variant the author didn't know was broken. A select
+that errors in some variants is broken, but so is one that selects nothing, a blank, or values
+that contradict what the author specified: the activity can't be completed. DIAG-7 (D38) already
+makes *errors* the same in every variant; #2468 made the select tags follow it, and turned a
+failure that a value decides into a missing selection with an info. That is not enough: those
+variants are still broken.
+
+**The guarantee wanted:**
+
+> Every variant makes selections that satisfy the constraints the author wrote. If that cannot
+> be guaranteed from the DoenetML, every variant has an error that says so.
+
+It must hold for every **potential** variant, not only the ones today's algorithm produces.
+Otherwise a document with no errors could break with no change to its DoenetML, only to how
+variants are seeded (D17, VAR-3). So a sweep over today's variants (DIAG-7) is a regression aid,
+never the guarantee.
+
+**Today** (**[probe]** cases from #2463 and #2468):
+- `<selectFromSequence from="1" to="$a" numToSelect="3"/>` with `a` from another random choice
+  that is sometimes below 3: in those variants, the selection is missing, with an info;
+- `numToSelect="$n"` on a `<select>` whose `selectForVariants` options don't match `n` in some
+  variants (`e0032` at info level);
+- `coprime` draws that find nothing in 200 tries (`i0057`), and the "fluke" codes `e0052`/`e0053`:
+  the selection fails by chance in some variants;
+- a parameter read from an input (`numToSelect="$mi"`) is read once, when the selection is made
+  (COMP-8). For content made later, such as a select in a case the reader reveals, that is the
+  input's value at that moment, which depends on the reader, not on the variant.
+
+### Proposed principles
+
+**SEL-1. What decides a selection is fixed by the DoenetML and the variant alone (Tier 1).**
+A selection's parameters (`numToSelect`, ranges, `step`, `exclude`, `withReplacement`,
+`coprime`, excluded combinations, weights, `selectForVariants`, the options) may reference other
+components, but only components whose values can't change by interaction. References to other
+selections stay allowed, so two random numbers can be made to differ (`exclude="$a"`). A
+reference that reaches anything the reader can change is an error at load:
+- an input, an answer, a draggable graphical component;
+- a target of `bindValueTo`, `updateValue` or another action;
+- anything that reads one of these.
+
+Then a selection is a pure function of the DoenetML and the variant, so it can be checked
+without a reader. The cells core is built this way. In the JavaScript core it needs a load-time
+pass over the reference graph (like `typeChangeAtLoad.ts`) that marks what a reader can change.
+That pass may be deferred, but the principle holds now. It replaces COMP-8's allowance of a
+`numToSelect` read from an input.
+
+**SEL-2. A selection never fails by chance (Tier 1).** If a selection satisfying the constraints
+exists, the select finds one. Rejection sampling with a draw limit (`coprime`'s 200 tries,
+`e0052`/`e0053`) is replaced by drawing from the set of valid selections, by enumeration or by a
+constructive draw, uniformly or with the written weights. Then the only way to fail is
+infeasibility, which SEL-3 checks, and `i0057`, `e0052` and `e0053` go away.
+
+**SEL-3. Feasibility is proven at load, over every value the parameters can take (Tier 1).** For
+each selection, the load-time check finds the range of every parameter from the DoenetML, and
+checks that the constraints can be met for every combination. If they can't be met for some
+combination, or the check can't tell, it is an error in every variant (DIAG-7) that names the
+parameter and the range. Examples:
+- `to="$a" numToSelect="3"` with `a` from `<selectFromSequence from="5" to="10"/>`: `a` ≥ 5, so
+  at least 5 values, so 3 can be drawn. Proven.
+- the same with `from="1"`: when `a` is 1 or 2, fewer than 3 values. An error in every variant:
+  "`a` can be 1, which leaves 1 value for `numToSelect="3"`."
+- `exclude="$a"` on a draw from 1 to 10: at most one value excluded, so 9 remain. Proven.
+
+The check doesn't enumerate variants, so it doesn't depend on how variants are chosen.
+
+**SEL-4. A parameter is written in a form the check can analyse (Tier 2).** To make SEL-3
+decidable, a parameter is one of:
+- a literal;
+- a reference to a selection, or to a component SEL-1 allows, whose value range is known from
+  its DoenetML. A `<selectFromSequence>` ranges over its sequence. A `<select>` of literal options
+  ranges over them. A `<number>` or `<math>` written as a literal is its value;
+- arithmetic (`+ − ×`, integer division, `min`, `max`, `abs`) of those, analysed by interval
+  arithmetic.
+
+Anything else (a function evaluation, a `<solveEquations>`, a property of a graphical object) is
+outside the analysable set, and is an error that says so. This reduces DoenetML's flexibility on
+purpose, for selection parameters only. A milder variant would make it a warning, with the
+author taking responsibility, if too many real documents rely on such parameters.
+
+**SEL-5. Selections that depend on each other form an order, and are checked in it (Tier 2).** A
+selection's parameters may reference earlier selections, never itself or a later one through a
+chain (a cycle is `e0005`, DIAG-7). Ranges flow forward: `b` excluding `a` is checked with `a`'s
+range.
+
+**SEL-6. Every option, picked or not, is checked (Tier 1).** Errors and warnings of every option
+of a `<select>`, every case of a `<conditionalContent>` and every iteration template are reported
+at load, whichever is picked in a given variant. #2458 does this for errors. Warnings, such as a
+reference in an unpicked option that names nothing, are needed too, or an author who tests one
+variant misses a blank another variant shows.
+
+### What stays outside the guarantee
+
+- **Values that are valid but make later content degenerate**, such as a random 0 that ends up
+  in a denominator. The author states such constraints with `exclude`, and SEL-3 checks only what
+  is stated. A later extension could let an author state a constraint on derived values (for
+  example "`$b^2 - 4$a$c` > 0") for the check to prove or reject.
+- **A saved or requested variant from another version of the DoenetML** (COMP-8). Its choices are
+  taken as given, so they may contradict the current DoenetML. Only possible while the DoenetML is
+  edited.
+- **Samplers of continuous distributions** cannot fail to draw, but can draw values the content
+  handles badly. As above.
+
+### What it changes
+
+- COMP-8's allowance of `numToSelect` read through references stays for references SEL-1 allows,
+  including another random choice ("numToSelect from selectFromSequence"), and ends for inputs:
+  "select doesn't change dynamically" (`numToSelect="$numToSelect"` from an input) becomes an
+  error at load. The cells core's ban on non-literal `numToSelect` (ADR 0009) becomes SEL-1's
+  narrower ban.
+- #2468's info-level failures (`to="$a"`, `e0032` at info level, `i0057`) become SEL-3 errors
+  in every variant, or go away under SEL-2.
+- The 0.8 converter (#2457) can't fix a document SEL-1 or SEL-3 rejects; it should report them.
+
+### Questions
+
+1. Is SEL-1's line, "anything the reader can change", right? It allows a parameter from another
+   random choice and from fixed content, and bans one from an input even at its prefill.
+2. SEL-4: error or warning for a parameter outside the analysable forms?
+3. SEL-2: is drawing uniformly among valid selections acceptable where today's draw differs
+   (a change to which values a variant gets, allowed under D17)?
+4. Should SEL-6's warnings for unpicked options be shown to authors separately ("in another
+   variant"), so they aren't confused with what this variant shows?
