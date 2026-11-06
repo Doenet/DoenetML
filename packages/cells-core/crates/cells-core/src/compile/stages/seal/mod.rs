@@ -45,9 +45,9 @@ struct Seal<'a> {
     keys: keys::Keys,
 }
 
-/// Sealing: the stage's entry, its order of passes, operator arity and the slot
-/// offsets. Reads every earlier stage's tables; writes only the keys and
-/// [`SealedTemplate`]s.
+/// Sealing: its order of passes, run by [`seal`], operator arity and the
+/// slot offsets. Reads every earlier stage's tables; writes only the keys
+/// and [`SealedTemplate`]s.
 impl<'a> Seal<'a> {
     /// Sealing over what the stages before it made: outlining's rows and
     /// choices, boxing's and planning's tables, the arenas, and which port

@@ -458,9 +458,30 @@ rustdoc (`npm run doc`, the `_guide` module), each a file under
   `npm run doc:public` builds the API alone, what `cells-wasm`, the
   bridge and a test author read, where `missing_docs` is denied too: a
   `pub` item is API (`unreachable_pub` refuses one that is not), and it
-  has a doc. The `_guide` chapters (`docs/guide/`) are in both. Every `impl` block of
-  a type whose methods span files (`Outlining`, `Planning`, `Reader`,
-  `Seal`, `Builder`, `SlotCells`, `Stamp`, `Document`, `Built`) carries a doc comment naming the stage or
-  role it serves and what it reads and writes: rustdoc shows it as a
-  heading over the block's methods on the type's page, in an order the
-  heading cannot rely on.
+  has a doc. The `_guide` chapters (`docs/guide/`) are in both.
+
+### Keeping the shape
+
+The crate's structure is told by its module tree and its rustdoc
+(`docs/rustdoc-organization-plan.md` made it so). To keep it:
+
+1. A module is one of: a stage (one entry function, one output table), a
+   table or IR type the stages share, or a reader run by several stages.
+   Its parent directory says which (`compile/stages/`, `compile/ir/`,
+   `compile/read/`). A module that is none of these is a file in its
+   parent.
+2. A submodule is private unless its parent re-exports what others need.
+   `unreachable_pub` enforces that `pub` means the API, and `missing_docs`
+   that the API is documented.
+3. Every `impl` block of a type whose methods span files (`Outlining`,
+   `Planning`, `Reader`, `Seal`, `Builder`, `SlotCells`, `Stamp`,
+   `Document`, `Built`) carries a doc comment naming the stage or role it
+   serves and what it reads and writes: rustdoc shows it as a heading over
+   the block's methods on the type's page, in an order the heading cannot
+   rely on.
+4. Every `mod.rs` lists its submodules in reading order, one line each;
+   rustdoc's own list is alphabetical.
+5. A method lives on the struct of the stage that runs it; a stage holds
+   earlier stages' tables read-only and owns its own.
+6. New prose for people goes in a `_guide` chapter under `docs/guide/`,
+   linked; this file is the map, not the manual.

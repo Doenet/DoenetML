@@ -4,6 +4,30 @@ Status: plan, 2026-11-06. Not an ADR: it decides no behaviour, only
 where code and docs sit. Each step below is one PR, in order; an
 implementer can stop after any step and the docs are better than before.
 
+Done, 2026-11-06, every step on `cells`, each commit `golden: identical`.
+Where it went otherwise than written here:
+
+- Step 3: the public build renders a link to a private item as its raw
+  path, not as plain text. It is checked in CI, not published, so the
+  links stay.
+- Step 4: the compile chapter's doc module is written inside `compile`
+  (`compile::guide`, `#[doc(hidden)]`) and re-exported into `_guide`, since
+  rustdoc resolves a link with the privacy of the module it is written in.
+- Step 5: boxing and the readers moved first, since every stage boxes and
+  runs them. The read-only context is `Reader` (`Source` was taken, by the
+  prop-source type), and what the readers and stages write is `Arenas`.
+  On the build side, define, the walks and orientation are `impl
+  SlotCells` over `&Expanded`, emit is `Emit`, and `Slots` is the
+  read-only view both sides build.
+- Step 6: `plan.rs` split into more files than listed (`wiring.rs`,
+  `compiled.rs`, `settled.rs`, `planned.rs` besides). `plan` re-exports
+  `PlanCtx` and `Planner` (the planner's interface), and `seal` keeps
+  `keys`, which the document and the build read.
+- Step 7: the input signature's types went to `compile/compare/signature.rs`
+  and are re-exported at the crate root; `TemplateSlot` went to
+  `compile/ir/template.rs`. The compile imports nothing from the build.
+- The rules are in `ARCHITECTURE.md`, "Keeping the shape".
+
 ## The problem
 
 The crate (`crates/cells-core`, 41k lines of non-test source in 146
