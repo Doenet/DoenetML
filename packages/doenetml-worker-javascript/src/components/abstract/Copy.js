@@ -51,6 +51,7 @@ import {
     readHeldCopySnapshot,
 } from "../../utils/copySnapshot";
 import { gatherVariantComponents } from "../../utils/variants";
+import { returnCopyReplacementsToHideDefinitions } from "../../utils/replacementsToHide";
 import {
     copiesReferent,
     planValueReference,
@@ -1491,6 +1492,11 @@ export default class Copy extends CompositeComponent {
                 setValue: { typeChangeContentValue: true },
             }),
         };
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnCopyReplacementsToHideDefinitions(),
+        );
 
         return stateVariableDefinitions;
     }
