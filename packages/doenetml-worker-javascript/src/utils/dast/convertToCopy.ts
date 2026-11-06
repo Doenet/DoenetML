@@ -45,20 +45,25 @@ function unlinkedCopyAttributes(
  * attribute that is ignored). It is decided here, from the tag the author
  * wrote, so that it is the same for every kind of component: one made from
  * its replacement (`convertUnresolvedAttributesForComponentType`, which would
- * otherwise drop it silently), and a list, which keeps the attributes on the
- * list itself (which would otherwise make it an error). An attribute is the
- * tag's when its class declares it, or the `_copy`'s, as `asList`. A class
+ * otherwise drop it silently), a list, which keeps the attributes on the
+ * list itself (which would otherwise make it an error), and a tag whose
+ * `extend` or `copy` names nothing, which is missing (`missingTag` in
+ * `convertNormalizedDast.ts`). An attribute is the tag's when its class
+ * declares it, or the `_copy`'s, as `asList`. A class
  * that accepts any attribute (`<module>`, whose extend reports what it
  * ignores itself, `doenet-w0168`) and a namespaced attribute (`xmlns:…`) are
  * left alone.
  */
-function warnOfAttributesTheTagDoesNotHave({
+export function warnOfAttributesTheTagDoesNotHave({
     component,
     attributes,
     componentInfoObjects,
     diagnostics,
 }: {
-    component: UnflattenedComponent;
+    component: Pick<
+        UnflattenedComponent,
+        "componentType" | "position" | "sourceDoc"
+    >;
     attributes: Record<string, UnflattenedAttribute>;
     componentInfoObjects: ComponentInfoObjects;
     diagnostics: DiagnosticRecord[];

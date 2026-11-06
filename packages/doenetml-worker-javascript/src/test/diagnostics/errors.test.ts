@@ -811,4 +811,24 @@ $p1`;
         expect(errors[0].code).eq("doenet-e0004");
         expect(marked(doenetML, errors[0])).eq(`<math blink="true">x</math>`);
     });
+
+    it("where a component of a type is needed (an attribute, a function to evaluate): a blank of that type, and nothing more", async () => {
+        const doenetML = `<math name="m" blink="true">x</math>
+<function name="f" blink="true">x^2</function>
+<point name="P" x="$m" y="2"/>
+<p name="p1">$P.x</p>
+<p name="p2">$$f(2)</p>`;
+        const { shown, errors, warnings, infos } = await shownAndReported(
+            doenetML,
+            ["p1", "p2"],
+        );
+        expect(shown).eqls({ p1: "＿", p2: "＿" });
+        // no `doenet-w0106` for a `_missing` in the `<math>` of `x`
+        expect(warnings).eqls([]);
+        expect(infos).eqls([]);
+        expect(errors.map((error: any) => marked(doenetML, error))).eqls([
+            `<math name="m" blink="true">x</math>`,
+            `<function name="f" blink="true">x^2</function>`,
+        ]);
+    });
 });

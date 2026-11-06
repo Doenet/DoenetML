@@ -32,7 +32,10 @@ import {
 import { convertToErrorComponent, errorComponentState } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
-import { convertRefsToCopies } from "./convertToCopy";
+import {
+    convertRefsToCopies,
+    warnOfAttributesTheTagDoesNotHave,
+} from "./convertToCopy";
 import { convertCopiesToValueReferences } from "./valueReferences";
 import { convertToListForms } from "./listForms";
 import {
@@ -225,31 +228,72 @@ export async function normalizedDastToSerializedComponents(
                     ?.listEntryComponentType !== undefined);
         // A division's `type` is its component type (`getComponentType`),
         // not an attribute, as for a tag that is not missing.
-        const attributes = node.attributes.filter(
-            (attribute) =>
-                !(attribute.name === "type" && node.name === "division") &&
-                (!isComposite ||
-                    attribute.name === "name" ||
-                    attribute.name.toLowerCase() === "hide"),
-        );
+        const attributes: Record<string, UnflattenedAttribute> =
+            Object.fromEntries(
+                node.attributes
+                    .filter(
+                        (attribute) =>
+                            !(
+                                attribute.name === "type" &&
+                                node.name === "division"
+                            ),
+                    )
+                    .map((attribute) => [
+                        attribute.name,
+                        {
+                            name: attribute.name,
+                            children: unflattenDastNodes(
+                                attribute.children,
+                                diagnostics,
+                            ),
+                            position: attribute.position,
+                            sourceDoc: attribute.sourceDoc,
+                        },
+                    ]),
+            );
+        // An attribute the tag does not have is ignored and warned of, as on
+        // an `extend` or `copy` that names something (`doenet-w0187`, #2332),
+        // whatever the tag is missing as.
+        warnOfAttributesTheTagDoesNotHave({
+            component: {
+                componentType,
+                position: node.position,
+                sourceDoc: node.sourceDoc,
+            },
+            attributes,
+            componentInfoObjects,
+            diagnostics,
+        });
+        // What is left is the tag's, or the reference's (`asList`, `link`),
+        // which has no source to apply to, and is dropped.
+        const componentClass =
+            mapped === undefined
+                ? undefined
+                : componentInfoObjects.allComponentClasses[mapped];
+        const tagAttributes =
+            componentClass && !componentClass.acceptAnyAttribute
+                ? new Set(
+                      Object.keys(componentClass.createAttributesObject()).map(
+                          (name) => name.toLowerCase(),
+                      ),
+                  )
+                : undefined;
+        for (const name of Object.keys(attributes)) {
+            if (
+                isComposite
+                    ? name !== "name" && name.toLowerCase() !== "hide"
+                    : tagAttributes !== undefined &&
+                      !tagAttributes.has(name.toLowerCase()) &&
+                      !name.includes(":")
+            ) {
+                delete attributes[name];
+            }
+        }
         return {
             type: "unflattened",
             componentType: isComposite ? "_missing" : componentType,
             componentIdx,
-            attributes: Object.fromEntries(
-                attributes.map((attribute) => [
-                    attribute.name,
-                    {
-                        name: attribute.name,
-                        children: unflattenDastNodes(
-                            attribute.children,
-                            diagnostics,
-                        ),
-                        position: attribute.position,
-                        sourceDoc: attribute.sourceDoc,
-                    },
-                ]),
-            ),
+            attributes,
             position: node.position,
             sourceDoc: node.sourceDoc,
             doenetAttributes: isComposite ? {} : { missing: true },

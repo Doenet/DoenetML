@@ -151,3 +151,54 @@ describe("An attribute a copy or extend does not have @group4", async () => {
         expect(warnings.map((w: any) => w.code)).eqls(["doenet-w0168"]);
     });
 });
+
+describe("An attribute a copy or extend of nothing does not have @group4", async () => {
+    it("is a warning, the same for every kind of component", async () => {
+        for (const [doenetML, componentType] of [
+            [
+                `<math name="a" extend="$nothing" blink="true"/><p name="p">$a</p>`,
+                "math",
+            ],
+            [
+                `<math name="a" copy="$nothing" blink="true"/><p name="p">$a</p>`,
+                "math",
+            ],
+            [
+                `<mathList name="a" extend="$nothing" blink="true"/><p name="p">$a</p>`,
+                "mathList",
+            ],
+            [
+                `<group name="a" extend="$nothing" blink="true"/><p name="p">$a</p>`,
+                "group",
+            ],
+        ]) {
+            const { text, errors, warnings, infos } =
+                await shownAndReported(doenetML);
+            expect(text, doenetML).eq("＿");
+            expect(errors, doenetML).eqls([]);
+            expect(infos, doenetML).eqls([]);
+            expect(
+                warnings.map((w: any) => [w.code, w.args?.componentType]),
+                doenetML,
+            ).eqls([
+                ["doenet-w0104", undefined],
+                ["doenet-w0187", componentType],
+            ]);
+            expect(
+                doenetML.substring(
+                    warnings[1].position!.start.offset,
+                    warnings[1].position!.end.offset,
+                ),
+            ).eq(`blink="true"`);
+        }
+    });
+
+    it("an attribute of the reference itself is not an error", async () => {
+        const { text, errors, warnings } = await shownAndReported(
+            `<math name="a" extend="$nothing" asList hide="false"/><p name="p">$a</p>`,
+        );
+        expect(text).eq("＿");
+        expect(errors).eqls([]);
+        expect(warnings.map((w: any) => w.code)).eqls(["doenet-w0104"]);
+    });
+});

@@ -6983,11 +6983,24 @@ function missingInPlaceOfCopiedError({
         );
     }
 
+    // A bare reference in a parent that needs it to make something of a
+    // type (`compositesMustHaveAReplacement`: `x="$m"` of a `<point>`, whose
+    // `x` is a `<math>`, or the function `$$f(2)` evaluates) is missing as
+    // that type, as it is when it names nothing
+    // (`verifyReplacementsMatchSpecifiedType`). A `_missing` there would be
+    // an invalid child of the parent, which would say so (`doenet-w0106`).
+    const neededType =
+        writtenType === undefined &&
+        component.sharedParameters?.compositesMustHaveAReplacement &&
+        component.sharedParameters.compositesDefaultReplacementType
+            ? component.sharedParameters.compositesDefaultReplacementType
+            : undefined;
+
     function missingInPlaceOf(error) {
         // Its index and `stateId` are the error's, set below.
         const stateIdInfo = { prefix: "", num: 0 };
         let missing;
-        if (component.attributes._createComponentOfType?.primitive?.value) {
+        if (writtenType !== undefined || neededType !== undefined) {
             const res = missingOfWrittenType({
                 component,
                 componentInfoObjects,
@@ -6995,6 +7008,7 @@ function missingInPlaceOfCopiedError({
                     component.constructor.createAttributesObject(),
                 nComponents: result.nComponents,
                 stateIdInfo,
+                componentType: neededType,
             });
             result.nComponents = res.nComponents;
             missing = res.replacements[0];
@@ -7100,10 +7114,16 @@ function missingOfWrittenType({
     compositeAttributesObj,
     nComponents,
     stateIdInfo,
+    // in place of the written type, for a bare reference that must make a
+    // component of this type (`missingInPlaceOfCopiedError`)
+    componentType: typeNeeded,
 }) {
     const componentType =
         componentInfoObjects.componentTypeLowerCaseMapping[
-            component.attributes._createComponentOfType.primitive.value.toLowerCase()
+            (
+                typeNeeded ??
+                component.attributes._createComponentOfType.primitive.value
+            ).toLowerCase()
         ];
 
     if (componentInfoObjects.isCompositeComponent({ componentType })) {
