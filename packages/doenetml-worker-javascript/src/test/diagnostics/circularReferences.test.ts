@@ -362,6 +362,29 @@ describe("Reference cycles decided at load @group2", async () => {
         expect(errorsAt(core)).eqls(errors);
     });
 
+    it("a text holding a reference to itself inside an em, in a case not shown yet", async () => {
+        const { errors, rest, core, resolvePathToNodeIdx } =
+            await errorsAndRest(
+                `<booleanInput name="b"/><conditionalContent><case condition="$b"><text name="t"><em>$t</em></text></case></conditionalContent>`,
+            );
+        expect(errors).eqls(["doenet-e0005 1:85-87"]);
+        expect(rest).eq("rest");
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(errorsAt(core)).eqls(errors);
+    });
+
+    it("a cycle in a setup is found", async () => {
+        const { errors, rest } = await errorsAndRest(
+            `<setup><math name="a">$b</math><math name="b">$a</math></setup>`,
+        );
+        expect(errors).eqls(["doenet-e0005 1:23-25", "doenet-e0005 1:47-49"]);
+        expect(rest).eq("rest");
+    });
+
     it("a module extend holding a reference to itself", async () => {
         const { errors, rest } = await errorsAndRest(
             `<module name="md"><math>1</math></module><module name="m2" extend="$md"><math>$m2</math></module>`,
@@ -490,6 +513,16 @@ describe("Reference cycles decided at load @group2", async () => {
         [
             "a chain",
             `<math name="a">1</math><math name="b">$a+1</math><math name="c">$b+$a</math>`,
+        ],
+        // a `<math>` made from its attributes alone, which takes no children
+        [
+            "a math written in an evaluate, holding a reference to the evaluate",
+            `<function name="f">x</function><evaluate name="e" function="$f" input="1"><math>$e</math></evaluate>`,
+        ],
+        // a setup makes nothing, so a reference to it reads nothing in it
+        [
+            "a reference to a setup, in the setup",
+            `<setup name="s"><math>$s</math></setup>`,
         ],
     ];
     for (const [description, doenetML] of notCycles) {

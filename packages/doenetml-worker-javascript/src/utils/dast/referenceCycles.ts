@@ -26,10 +26,11 @@
  * - a composite (`<conditionalContent>`, `<group>`, `<repeat>`, …), a
  *   `<case>` or an `<option>`, or a reference written as a composite
  *   (`<group extend="$s">`, which holds what is written in it too), to each
- *   child but a `<setup>`, as what it holds is made from them;
+ *   child but a `<setup>`, as what it holds is made from them. A `<setup>`
+ *   makes nothing, so it has no edges, though what is in it is checked;
  * - a tag whose value is made from its children (`VALUE_FROM_CHILDREN`: a
- *   `<math>`, a `<text>`, a `<label>`, …), or a reference written as one, to
- *   each child.
+ *   `<math>`, a `<text>`, a `<label>`, an `<em>`, …, which takes children, so
+ *   not an `<evaluate>`), or a reference written as one, to each child.
  *
  * A `<label>` child is not followed where its parent takes it as its label
  * (a child group of labels alone, as a graphical component has), which may
@@ -72,6 +73,9 @@ const VALUE_FROM_CHILDREN = [
     "numberList",
     "textList",
     "booleanList",
+    // `<em>`, `<q>` and the other inline containers, whose text is their
+    // children's, which a `<text>` holding them reads
+    "_inlineRenderInlineChildren",
 ];
 
 /** The reference a `_copy` is of, if it was resolved to a component. */
@@ -128,16 +132,29 @@ export function breakReferenceCycles({
         });
     }
 
+    /**
+     * Whether the value of a component of type `componentType` is made from
+     * its children: it inherits from a tag in `VALUE_FROM_CHILDREN` and takes
+     * children (an `<evaluate>` is a `<math>` made from its attributes alone,
+     * with no child groups, so a child written in it is never read).
+     */
     function valueFromChildren(componentType: string | undefined) {
-        return (
-            componentType !== undefined &&
-            VALUE_FROM_CHILDREN.some((base) =>
+        if (
+            componentType === undefined ||
+            !VALUE_FROM_CHILDREN.some((base) =>
                 componentInfoObjects.isInheritedComponentType({
                     inheritedComponentType: componentType,
                     baseComponentType: base,
                 }),
             )
-        );
+        ) {
+            return false;
+        }
+        const childGroups =
+            componentInfoObjects.allComponentClasses[
+                componentType
+            ]?.returnChildGroups?.() ?? [];
+        return childGroups.length > 0;
     }
 
     /** The type a reference written as a tag makes, if it is one. */
@@ -258,6 +275,11 @@ export function breakReferenceCycles({
                 edges.push(...childEdges(component, written));
             }
             return edges;
+        }
+        if (type === "setup") {
+            // makes nothing, so `$s` of a `<setup name="s">` reads nothing of
+            // what is written in it; what is in it is still checked
+            return [];
         }
         if (
             isComposite(type) ||
