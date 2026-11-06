@@ -26,7 +26,6 @@ import {
 import {
     returnMathVectorMatrixStateVariableDefinitions,
     VALUE_ENTRY_PREFIX,
-    VALUE_ENTRY_DEPTH,
     selectValueEntry,
     withValueEntry,
     indicesIntoScalar,
@@ -324,7 +323,6 @@ export default class ValueListComponent extends BaseComponent {
                 .split("_")
                 .map(Number);
             if (
-                indices.length <= VALUE_ENTRY_DEPTH &&
                 indices.every((index) => Number.isInteger(index) && index > 0)
             ) {
                 return entryValueEntryProperty(indices);

@@ -27,10 +27,7 @@
  */
 import type { ComponentInfoObjects } from "./componentInfoObjects";
 import { publicCaseInsensitiveAliasSubstitutions } from "../StateVariableNameResolver";
-import {
-    VALUE_ENTRY_DEPTH,
-    VALUE_ENTRY_PREFIX,
-} from "./mathVectorMatrixStateVariables";
+import { VALUE_ENTRY_PREFIX } from "./mathVectorMatrixStateVariables";
 
 type PathPart = { name: string; index: any[]; [key: string]: any };
 
@@ -301,9 +298,7 @@ export function listEntryPropertyPath({
         // coordinates, which it has also in one dimension, where its value is
         // a single number.
         const numRead =
-            listClass.listEntryComponentType === "math"
-                ? Math.min(indices.length, VALUE_ENTRY_DEPTH)
-                : 1;
+            listClass.listEntryComponentType === "math" ? indices.length : 1;
         const property =
             listClass.listEntryComponentType === "math"
                 ? `${VALUE_ENTRY_PREFIX}${indices.slice(0, numRead).join("_")}`

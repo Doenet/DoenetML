@@ -181,8 +181,11 @@ export async function addReplacementsToResolver({
  * (`<group extend="$r[1]"/>`, REF-7): the position of the one indexable
  * component that is its whole content (`instanceGroupAttributes`), as it is
  * for the iteration or pick itself, or `0` when its content is not that,
- * as when the author added to it. `undefined` for any other replacement,
- * which leaves what an index after it selects as it is.
+ * as when the author added to it. `0` too for a `<group>` made from anything
+ * else, so a group that was made from an iteration and is made again from an
+ * ordinary group (a name in cases of a `<conditionalContent>`) selects its
+ * children again. `undefined` for a replacement that is not a `<group>`,
+ * whose index kind the resolver does not change.
  */
 function indexPassThroughOfCopiedInstance(
     fragmentParent: any,
@@ -195,7 +198,7 @@ function indexPassThroughOfCopiedInstance(
         fragmentParent.attributes?._instanceOf?.primitive?.value,
     );
     if (instanceKind !== "iteration" && instanceKind !== "pick") {
-        return undefined;
+        return 0;
     }
     return (
         instanceGroupAttributes({

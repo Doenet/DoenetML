@@ -252,6 +252,70 @@ describe("An index into a value with entries @group4", async () => {
         }
     });
 
+    it("indexes as deep as the value has entries, and a ragged value only along the paths named (#2438)", async () => {
+        // Five levels, past any fixed number of dimensions
+        await expectShownSilently(
+            [
+                ["$m5[1][1][1][1][2]", "2"],
+                ["$m5[1][1][1][2]", "3"],
+                ["$m5[1][1][1][1][3]", "＿"],
+            ],
+            `<math name="m5">(((((1,2),3),4),5),6)</math>`,
+        );
+
+        // One branch nested four deep in 100-entry tuples, scalars
+        // elsewhere: only the paths a reference names are made, not one
+        // for every combination of the widest entry at each level, which
+        // ran the worker out of memory
+        function nest(depth: number): string {
+            const rest = Array.from({ length: 99 }, (_, i) => String(i + 2));
+            return `(${[depth === 1 ? "1" : nest(depth - 1), ...rest].join(",")})`;
+        }
+        await expectShownSilently(
+            [
+                ["$r[1][1][1][1]", "1"],
+                ["$r[1][1][1][100]", "100"],
+                ["$r[100]", "100"],
+            ],
+            `<math name="r">${nest(4)}</math>`,
+        );
+    });
+
+    it("writes through an index three levels deep, merging the writes of one update (#2438)", async () => {
+        // The point's coordinates are two entries three levels deep, so one
+        // move writes both: they are merged into one value of `t`
+        const doenetML = `<math name="t">(((1,2),3),4)</math>
+<graph><point name="P">($t[1][1][1], $t[1][1][2])</point></graph>
+<mathInput name="w" bindValueTo="$t[1][1][2]"><label>w</label></mathInput>
+<p name="pt">$t</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        async function textOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .text;
+        }
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        expect(await textOf("pt")).eq("(((5, 6), 3), 4)");
+
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: await resolvePathToNodeIdx("w"),
+            core,
+        });
+        expect(await textOf("pt")).eq("(((5, 8), 3), 4)");
+    });
+
     it("writes through an index at a second level, and not through one that names nothing (#2438)", async () => {
         const doenetML = `<math name="tt">((1,2),(3,4))</math>
 <point name="P">(3,4)</point>
@@ -315,6 +379,7 @@ describe("An index into a value with entries @group4", async () => {
             "$mt.__valueEntries",
             "$mt.__valueEntry1",
             "$mm.__valueEntry2_1",
+            "$mm.__valuePath_2_1_1",
         ]) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(reference);

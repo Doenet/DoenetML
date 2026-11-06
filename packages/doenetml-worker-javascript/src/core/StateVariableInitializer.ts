@@ -2429,8 +2429,11 @@ export async function arrayEntryNamesFromPropIndex({
         // (`utils/listEntryReference.ts`), given an index too many for an
         // index into an entry's property that is not an array
         // (`$l[2].coords[1]`), as `$P.coords[1]` is.
+        // An array that takes as many indices as its value has levels
+        // (`indexesAnyDepth`, the entries of a math value) is the exception.
         if (
             stateVarObj.isArray &&
+            !stateVarObj.indexesAnyDepth &&
             propIndex.length > stateVarObj.numDimensions
         ) {
             reportPropIndexFailure(varName, " as it has too many indices");
@@ -2441,6 +2444,21 @@ export async function arrayEntryNamesFromPropIndex({
         let newName;
         if (stateVarObj.isArray) {
             newName = stateVarObj.arrayVarNameFromPropIndex(propIndex, varName);
+            // A path longer than the array's own entries is a variable of
+            // its own, made when a reference first asks for it
+            // (`ensureValuePathVariable`).
+            if (
+                newName &&
+                !(newName in component.state) &&
+                stateVarObj.ensureIndexPathVariable
+            ) {
+                stateVarObj.ensureIndexPathVariable({
+                    core,
+                    component,
+                    name: newName,
+                    addStateVariablePlaceholder,
+                });
+            }
             // A scalar has no entries, which is reported, unlike an index
             // past the end of a value that has, since the length can change
             // (#1499). The name is kept, so the reference names an entry

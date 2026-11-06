@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateMathInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -494,6 +497,44 @@ describe("An index selects instances, not children @group4", async () => {
         expect(warnings.map((w) => [w.code, w.args.reference])).eqls([
             ["doenet-w0181", "$g2[4]"],
         ]);
+    });
+
+    it("selects children again when an extend of an iteration is made again from an ordinary group", async () => {
+        // `x` is an extend of an iteration in one case and an ordinary
+        // group in the other, so `g` passes an index through and then
+        // selects a child (a deprecated child index)
+        const doenetML = `<booleanInput name="b"/>
+    <repeat name="r" for="1 2" valueName="v"><repeat for="7 8 9" valueName="w"><math>$w</math></repeat></repeat>
+    <conditionalContent name="cc">
+      <case condition="$b"><group name="x"><math>a</math><math>b</math></group></case>
+      <else><group name="x" extend="$r[1]"/></else>
+    </conditionalContent>
+    <group name="g" extend="$cc.x"/>
+    <p name="p">[$g[2]]</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[8]");
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await text()).eq("[b]");
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await text()).eq("[8]");
     });
 
     it("still selects a child of an extend of an iteration that the author added to", async () => {
