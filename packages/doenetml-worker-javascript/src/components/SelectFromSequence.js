@@ -1127,6 +1127,24 @@ function makeFreshSelection(dependencyValues) {
                     }
                 }
             }
+
+            // Every value sharing a factor, which only an `exclude` can
+            // make, as `from` and `step` have none: no draw could be
+            // coprime. Found before drawing, as a select given a requested
+            // variant's choices finds what it would report without drawing
+            // (`selectionWithRequested`), so this error, which the DoenetML
+            // can decide, is reported in every variant (DIAG-7).
+            if (
+                !error &&
+                coprime &&
+                dependencyValues.exclude.length > 0 &&
+                !valuesHaveNoCommonFactor(dependencyValues)
+            ) {
+                error = selectError({
+                    code: "doenet-e0045",
+                    type: failureType,
+                });
+            }
         }
 
         if (error) {
@@ -1356,6 +1374,32 @@ function makeFreshSelection(dependencyValues) {
         selectedValues,
         selectedIndices,
     });
+}
+
+/**
+ * Whether the values of the number sequence `dependencyValues`, those not
+ * excluded, have no common factor (a greatest common divisor of 1). Stops at
+ * the first values that show it, so a long sequence is not generated.
+ */
+function valuesHaveNoCommonFactor(dependencyValues) {
+    let divisor = 0;
+    for (let index = 0; index < dependencyValues.length; index++) {
+        const value = returnSequenceValueForIndex({
+            index,
+            from: dependencyValues.from,
+            step: dependencyValues.step,
+            exclude: dependencyValues.exclude,
+            type: dependencyValues.type,
+        });
+        if (value === null) {
+            continue;
+        }
+        divisor = gcd(divisor, value);
+        if (divisor === 1) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function selectValuesAndIndices({

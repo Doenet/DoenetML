@@ -419,7 +419,11 @@ const NO_DRAW = Symbol("a probe selection does not draw");
  * moves: a failure the DoenetML decides (an error) is reported in every
  * variant, in place of the choices; one a value decides (an info) is
  * reported only when the choices are empty, as a select that couldn't
- * select gives back.
+ * select gives back, with the `numToSelect` it tried, as when it failed, so a
+ * reload is the same. The probe stops at the first draw, so a failure the
+ * DoenetML can decide must be found before any draw (`doenet-e0045` of a
+ * `<selectFromSequence>`); one found only by drawing depends on the variant
+ * and is always an info (`doenet-e0052`, `doenet-e0053`, `doenet-i0057`).
  *
  * @param rngKey The dependency `select` draws from.
  * @param takeRequested The selection result for nonempty `requested`.
@@ -463,9 +467,7 @@ export function selectionWithRequested({
     if (requested.length > 0) {
         return withNumToSelect(takeRequested(requested), requested.length);
     }
-    return failed
-        ? withNumToSelect(probe, 0)
-        : withNumToSelect(emptySelection, 0);
+    return failed ? probe : withNumToSelect(emptySelection, 0);
 }
 
 /** The pair for a select that selected something. */

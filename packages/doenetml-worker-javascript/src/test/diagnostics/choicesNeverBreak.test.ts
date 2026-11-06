@@ -449,6 +449,20 @@ describe("A selection that couldn't be made, given back @group4", async () => {
             type: "infos",
         },
         {
+            tag: "<selectFromSequence>, coprime with every value sharing a factor, written",
+            doenetML: `<selectFromSequence name="s" from="2" to="6" exclude="3 5" numToSelect="2" coprime/>`,
+            variable: "selectedValues",
+            code: "doenet-e0045",
+            type: "errors",
+        },
+        {
+            tag: "<selectFromSequence>, coprime with every value sharing a factor, from a value",
+            doenetML: `<number name="a">3</number><selectFromSequence name="s" from="2" to="6" exclude="$a 5" numToSelect="2" coprime/>`,
+            variable: "selectedValues",
+            code: "doenet-e0045",
+            type: "infos",
+        },
+        {
             tag: "<select>, written so it can't select",
             doenetML: `<select name="s" numToSelect="3">a b</select>`,
             variable: "selectedIndices",
@@ -468,6 +482,7 @@ describe("A selection that couldn't be made, given back @group4", async () => {
             });
             expect(reloaded.errors).eqls(first.errors);
             expect(reloaded.infos).eqls(first.infos);
+            expect(reloaded.numToSelect).eq(first.numToSelect);
         });
 
         it(`${tag}, copied`, async () => {
@@ -800,6 +815,21 @@ describe("Requested choices come before a fresh selection @group4", async () => 
             variable: "selectedIndices",
         });
         expect(replayed.errors).eqls(["doenet-e0035"]);
+    });
+
+    it("a coprime failure the DoenetML decides, found only from the values, is still an error with choices given", async () => {
+        // every value left, 2, 4 and 6, shares the factor 2, which the
+        // select finds before it would draw (`selectionWithRequested`)
+        const original = await load({
+            doenetML: `<selectFromSequence name="s" from="2" to="6" exclude="5" numToSelect="2" coprime/>`,
+        });
+        expect(original.errors).eqls([]);
+        const replayed = await load({
+            doenetML: `<selectFromSequence name="s" from="2" to="6" exclude="3 5" numToSelect="2" coprime/>`,
+            requestedVariant: original.generatedVariantInfo,
+        });
+        expect(replayed.errors).eqls(["doenet-e0045"]);
+        expect(replayed.selected).eq(null);
     });
 
     it("a selection whose weights come from an input is kept through a reload", async () => {
