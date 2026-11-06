@@ -261,7 +261,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
 
         function selectValues({ dependencyValues, essentialValues }) {
             // A selection already made, as on a reload, is kept
-            const kept = keptSelection(essentialValues, ["selectedValues"]);
+            const kept = keptSelection(essentialValues, [
+                "selectedValues",
+                "numToSelect",
+            ]);
             if (kept) {
                 return kept;
             }

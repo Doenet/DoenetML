@@ -483,6 +483,7 @@ export default class Select extends CompositeComponent {
                 "selectedIndices",
                 "errorMessage",
                 "errorDiagnostic",
+                "numToSelect",
             ]);
             if (kept) {
                 return kept;

@@ -647,6 +647,7 @@ function makeSelection({ dependencyValues, essentialValues }) {
         "selectedValues",
         "errorMessage",
         "errorDiagnostic",
+        "numToSelect",
     ]);
     if (kept) {
         return kept;

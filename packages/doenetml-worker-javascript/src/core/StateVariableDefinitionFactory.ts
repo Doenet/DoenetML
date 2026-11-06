@@ -276,7 +276,7 @@ function createAttributeStateVariableDefinitions({
         // An attribute that decides something made once, such as how many
         // a select chooses, keeps the value it had then (`immutable`)
         if (attributeSpecification.immutable) {
-            stateVarDef.immutable = true;
+            (stateVarDef as Record<string, unknown>).immutable = true;
         }
 
         if (attributeSpecification.public) {

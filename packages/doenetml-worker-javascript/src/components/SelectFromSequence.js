@@ -957,12 +957,25 @@ function selectionFromVariant(dependencyValues) {
 
 function makeSelection({ dependencyValues, essentialValues }) {
     // A selection already made, as on a reload, is kept
-    const kept = keptSelection(essentialValues, [
-        "selectedValues",
-        "selectedIndices",
-        "errorMessage",
-        "errorDiagnostic",
-    ]);
+    const kept = keptSelection(
+        essentialValues,
+        [
+            "selectedValues",
+            "selectedIndices",
+            "errorMessage",
+            "errorDiagnostic",
+            "numToSelect",
+        ],
+        {
+            // a math is saved as its expression tree
+            selectedValues: (values) =>
+                dependencyValues.type === "math" && Array.isArray(values)
+                    ? values.map((value) =>
+                          value?.tree !== undefined ? value : me.fromAst(value),
+                      )
+                    : values,
+        },
+    );
     if (kept) {
         return kept;
     }

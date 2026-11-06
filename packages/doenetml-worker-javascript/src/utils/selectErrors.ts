@@ -281,19 +281,31 @@ export function returnChoicesDecidedByDoenetMLDefinition(
  * @param essentialValues The essential values given to the definition.
  * @param variableNames The state variables the definition sets, the first of
  *   them the selection.
+ * @param revive For a state variable, how to make its kept value the value
+ *   the definition would have set, such as a math from its saved tree.
  */
 export function keptSelection(
     essentialValues: Record<string, unknown> | undefined,
     variableNames: string[],
+    revive: Record<string, (value: any) => unknown> = {},
 ) {
     if (essentialValues?.[variableNames[0]] === undefined) {
         return null;
     }
-    return {
-        useEssentialOrDefaultValue: Object.fromEntries(
-            variableNames.map((name) => [name, true]),
-        ),
-    };
+    // Set from the values kept, rather than read from them where they are
+    // kept, so that each can be revived first: a saved value comes back as
+    // its JSON, such as a math as its expression tree
+    // (A value saved before it was kept, such as `numToSelect` by an older
+    // version, is left for the definition to set.)
+    const values = Object.fromEntries(
+        variableNames
+            .filter((name) => essentialValues[name] !== undefined)
+            .map((name) => {
+                const value = essentialValues[name];
+                return [name, revive[name] ? revive[name](value) : value];
+            }),
+    );
+    return { setEssentialValue: { ...values }, setValue: { ...values } };
 }
 
 /**
@@ -319,14 +331,9 @@ export const NUM_TO_SELECT_VARIABLE = {
  * or kept, with the selection, when the selection was kept.
  */
 export function withNumToSelect(result: any, numToSelect: number) {
-    if (result.useEssentialOrDefaultValue) {
-        return {
-            ...result,
-            useEssentialOrDefaultValue: {
-                ...result.useEssentialOrDefaultValue,
-                numToSelect: true,
-            },
-        };
+    if (result.setValue && "numToSelect" in result.setValue) {
+        // kept with the selection (`keptSelection`)
+        return result;
     }
     return {
         ...result,
