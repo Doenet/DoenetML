@@ -92,7 +92,7 @@ impl Linking<'_, '_> {
                 continue;
             }
             if let Referent::Path(path, ..) = s.referent {
-                planned.paths.push(crate::compile::share::PathExtend {
+                planned.paths.push(PathExtend {
                     t: s.t,
                     path,
                     rt,

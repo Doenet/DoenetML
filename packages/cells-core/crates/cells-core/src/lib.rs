@@ -42,7 +42,7 @@
 //! | Stage | Entry point | Takes | Makes |
 //! |---|---|---|---|
 //! | Parse | [`dast::load`] | wire-format bytes | [`Dast`](dast::Dast) |
-//! | Compile | [`compile::compile`] | [`Dast`](dast::Dast) | [`Compiled`], holding [`Plans`](compile::plan::Plans) and a [`Template`](compile::plan::Template) per document, repeat body and choice branch |
+//! | Compile | [`compile::compile`] | [`Dast`](dast::Dast) | [`Compiled`], holding [`Plans`](compile::ir::Plans) and a [`Template`](compile::ir::Template) per document, repeat body and choice branch |
 //! | Check (in compile) | [`compile::graph::template_graph_checked`] | the plans | a [`TemplateGraph`](compile::graph::TemplateGraph), read for errors and port attributes |
 //! | Build | [`build::build`] | [`Compiled`], [`Session`](session::Session), [`MathStore`](session::MathStore), [`Counts`](session::Counts) | [`BuildOutput`](build::BuildOutput) |
 //! | Schedule | [`BuildOutput::schedule_built`](build::BuildOutput::schedule_built) | [`BuildOutput`](build::BuildOutput) | [`Built`] with its [`Program`](program::Program), and the next [`Session`](session::Session) |

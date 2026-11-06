@@ -23,9 +23,9 @@ use std::sync::Arc;
 use crate::sym::{Engine, Handle, Tree};
 
 use crate::compile::Failure;
-use crate::compile::expr::{Arena, Expr, ExprId, Func};
+use crate::compile::ir::expr::{Arena, Expr, ExprId, Func};
+use crate::compile::ir::*;
 use crate::compile::keys::pick_position;
-use crate::compile::plan::*;
 use crate::components::{ComponentType, prop};
 use crate::dast::{NodeId, StrId, StringTable};
 

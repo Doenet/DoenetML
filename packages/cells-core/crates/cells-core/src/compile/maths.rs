@@ -44,7 +44,7 @@ impl Reader<'_> {
                     super::expr::tokenize(d.str(n), &mut toks).map_err(|reason| {
                         Error::BadMath {
                             // The text up to where tokenizing failed.
-                            text: super::plan::spell_math(d, &nodes[..=i]),
+                            text: super::ir::spell_math(d, &nodes[..=i]),
                             reason,
                         }
                     })?;

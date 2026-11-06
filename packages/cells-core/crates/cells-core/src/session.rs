@@ -9,8 +9,8 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use crate::build::{ScopeId, ScopeTable, TemplateSlot};
-use crate::compile::expr::ExprId;
-use crate::compile::plan::ElemKey;
+use crate::compile::ir::ElemKey;
+use crate::compile::ir::expr::ExprId;
 use crate::dast::NodeId;
 use crate::document::Built;
 use crate::program::Post;

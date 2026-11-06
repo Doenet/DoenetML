@@ -34,8 +34,8 @@ use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{OpSpec, Post, SymKind, VecOp};
 use crate::sym::Tree;
-use expr::{Arena, Expr, ExprId, Parser, Token};
-use plan::*;
+use ir::expr::{Arena, Expr, ExprId, Parser, Token};
+use ir::*;
 
 /// The compile chapter of the guide ([`crate::_guide`]), written here so
 /// its links reach the stages' private modules.
@@ -44,23 +44,19 @@ pub mod guide {}
 
 mod answer;
 pub(crate) mod api;
-mod boxes;
 mod check;
 pub(crate) mod compare;
-pub(crate) mod expr;
 pub(crate) mod graph;
+pub(crate) mod ir;
 mod link;
 pub mod lint;
 mod maths;
-mod names;
 mod outline;
 mod parse;
-pub(crate) mod plan;
 mod planning;
 mod points;
 mod reader;
 pub(crate) mod rebase;
-pub(crate) mod record;
 mod refs;
 mod seal;
 mod share;
@@ -71,8 +67,8 @@ mod values;
 pub(crate) use check::constant_ranges;
 pub use check::diagnose;
 pub(crate) use check::{CompileOutput, compile};
-pub use plan::Compiled;
-pub(crate) use plan::CompiledRef;
+pub use ir::Compiled;
+pub(crate) use ir::CompiledRef;
 
 /// A failed compile, check or first build: the error, and the node of the
 /// element it is about when there is one. `compile` boxes that element and
@@ -88,9 +84,10 @@ impl From<Failure> for Error {
     }
 }
 
-use boxes::{Boxes, Visible};
+use ir::boxes::{Boxes, Visible};
+use ir::names::*;
+use ir::record::{ChildValue, ValueChildren};
 use link::Linking;
-use names::*;
 use outline::Outlining;
 use parse::Parsed;
 use parse::Parsing;
@@ -98,7 +95,6 @@ use planning::Planning;
 use planning::ctx::PlanCtx;
 use planning::planner::Planner;
 use reader::{Arenas, Reader};
-use record::{ChildValue, ValueChildren};
 use refs::record_read;
 use seal::Seal;
 pub(crate) use seal::keys;
@@ -117,94 +113,6 @@ pub(in crate::compile) struct Attempt {
 /// view's ([`Outlining`], [`Parsing`], [`Planning`], [`Linking`], [`Seal`]).
 /// What boxing records is a [`Boxes`], given only to the stages that box.
 pub(in crate::compile) struct Compiler;
-
-/// What outlining hands to the stages after it: the work it found for
-/// them, in the order the walk made it.
-#[derive(Default)]
-pub(in crate::compile) struct Outline {
-    /// Every element to plan.
-    to_plan: Vec<(TemplateId, ElemId)>,
-    /// Every `$ref` child to plan.
-    macros: Vec<(TemplateId, RefChildId)>,
-    /// Each `<math>`'s text, tokenized where its type was settled.
-    math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
-    /// Every read outlining recorded: a container copy's of its referent's
-    /// type, and each clone's of its original.
-    reads: Vec<Read>,
-}
-
-/// What outlining settles that the stages after it read and never change,
-/// beside what it settles of each element in the templates.
-#[derive(Default)]
-pub(in crate::compile) struct Settled {
-    /// Outlining's part of every template: its elements' rows, its children
-    /// and its `$ref` children, by [`TemplateId`].
-    templates: Vec<Outlined>,
-    /// Every choice as outlining made it, by [`ChoiceId`].
-    choices: Vec<ChoiceDef>,
-    /// The name table.
-    names: NameTable,
-    /// The references in an answer's whens, by macro node.
-    when_refs: HashMap<NodeId, RefId>,
-    /// Each `$mi` in an answer's `<when>` that names an input, with the
-    /// answer's `response` for that input, which it stands for.
-    submitted: HashMap<NodeId, ElemId>,
-    /// By (template, answer), the `response` outlining made for each input
-    /// its whens read.
-    answer_responses: HashMap<(TemplateId, ElemId), Vec<(InputKey, ElemId)>>,
-}
-
-/// A recorded cross-element read: the reader, and the reference to what it
-/// read.
-pub(in crate::compile) type Read = (TemplateId, ElemId, RefId);
-
-/// What planning makes for linking and sealing, beside the plans
-/// themselves in the templates.
-#[derive(Default)]
-pub(in crate::compile) struct Planned {
-    /// What copies share of their referents' given leaves.
-    shares: Vec<Share>,
-    /// By (template, element), which port holds each given leaf of an
-    /// element planned by a `Plan` type's planner, by what gave it.
-    given: HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
-    /// Every read recorded, outlining's and planning's: an element whose
-    /// plan read the type of what a reference names.
-    reads: Vec<Read>,
-    /// The extends whose referent is in another template.
-    paths: Vec<share::PathExtend>,
-}
-
-/// A given leaf copy `e` shares with its referent: port `port` of the copy
-/// is to alias the referent's port holding the leaf `id` gave. The referent
-/// is an element of the same template, or reached by a path from `e`'s.
-pub(in crate::compile) struct Share {
-    t: TemplateId,
-    e: ElemId,
-    port: Port,
-    referent: Referent,
-    id: GivenId,
-}
-
-/// What an extend names: an element of the copy's template, or a path to
-/// one in another.
-#[derive(Clone, Copy)]
-pub(in crate::compile) enum Referent {
-    Here(ElemId),
-    Path(RefId, TemplateId, ElemId),
-}
-
-/// An input an answer's when reads, as `input_named` keys it: how many
-/// templates up, and which element.
-pub(in crate::compile) type InputKey = (u32, ElemId);
-
-/// How an element is named in a diagnostic: its name, else its tag.
-pub(in crate::compile) fn elem_label(dast: &Dast, el: &Elem) -> String {
-    if el.name != StrId::NONE {
-        dast.strings.get(el.name).trim().to_string()
-    } else {
-        format!("<{}>", el.component_type.tag())
-    }
-}
 
 /// The driver: the stages in order (outline, parse, plan, link, seal, share),
 /// each handed the tables the stages before it made, and the plans put together

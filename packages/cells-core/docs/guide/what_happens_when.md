@@ -64,9 +64,9 @@ Errors are a build product, not a failure (ADR 0013). An element that
 fails to plan is *boxed* where it fails (ADR 0027): it is built as an
 `_error` element with no children or props, what is under it is never
 built, and planning goes on. A box is a row of boxing's own table
-([`Tables::boxes`](crate::compile::plan::Tables::boxes), ADR 0031), so what outlining and planning made of the
+([`Tables::boxes`](crate::compile::ir::Tables::boxes), ADR 0031), so what outlining and planning made of the
 element stays as they made it; the build reads the box's row
-([`Template::row`](crate::compile::plan::Template::row)). Planning goes on, so one compile finds every planning
+([`Template::row`](crate::compile::ir::Template::row)). Planning goes on, so one compile finds every planning
 error; every read of another element's facts is recorded (an extend's of
 its referent, a container copy's of what it clones, a clone's of its
 original), and linking boxes the readers of every box to a fixpoint (ADR

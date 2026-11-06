@@ -897,7 +897,7 @@ macro_rules! component {
     (@field Content) => { Option<$crate::compile::api::ValueChildren> };
     (@field Text) => { Option<String> };
     (@field Math) => { Option<Box<[$crate::dast::NodeId]>> };
-    (@field Ref) => { Option<$crate::compile::plan::RefId> };
+    (@field Ref) => { Option<$crate::compile::ir::RefId> };
     (@get Scalar, $r:ident, $a:expr) => { $r.scalar($a) };
     (@get Value, $r:ident, $a:expr) => { $r.scalar($a) };
     (@get Point, $r:ident, $a:expr) => { $r.point($a) };

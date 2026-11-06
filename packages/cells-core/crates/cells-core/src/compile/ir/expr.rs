@@ -3,7 +3,7 @@
 //! numeric and lowers it to operators, and gives geometry its linear
 //! coefficients. It is not used at tick time.
 
-use super::plan::RefId;
+use super::RefId;
 
 crate::index::index_type! {
     /// An expression: a position in an [`Arena`].

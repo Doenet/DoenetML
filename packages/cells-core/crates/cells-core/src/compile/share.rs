@@ -14,16 +14,6 @@
 
 use crate::compile::*;
 
-/// An extend whose referent is in another template: an element of template
-/// `t` extending element `re` of template `rt` through reference `path`.
-#[derive(Debug, Clone, Copy)]
-pub(in crate::compile) struct PathExtend {
-    pub(in crate::compile) t: TemplateId,
-    pub(in crate::compile) path: RefId,
-    pub(in crate::compile) rt: TemplateId,
-    pub(in crate::compile) re: ElemId,
-}
-
 /// A cell of a template, before any build makes it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Node {
@@ -735,7 +725,7 @@ fn expr_classes<'c>(
 #[cfg(test)]
 mod tests {
     use crate::Document;
-    use crate::compile::plan::{Arg, Flow, Source};
+    use crate::compile::ir::{Arg, Flow, Source};
     use crate::testing::dast::{Element, document, el, mac};
     use crate::testing::request_prop;
 

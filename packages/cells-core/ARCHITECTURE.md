@@ -146,8 +146,8 @@ Runs once per load and depends on the source alone.
   (`Plans::expr_class`), so a build lowers a subexpression two of a
   scope's maths share once (`Builder::lower`); the **check** (below)
   comes last. What more than one stage uses
-  has a module of its own (`names.rs`, `refs.rs`, `maths.rs`,
-  `source.rs`, `boxes.rs`). A planner reads the
+  has a module of its own (`ir/names.rs`, `refs.rs`, `maths.rs`,
+  `source.rs`, `ir/boxes.rs`). A planner reads the
   source and what outlining and parsing made, never another element's plan
   (ADR 0029), so elements are planned in any order: what one shares with
   another (an extend's essential state) is linked once all are planned.
@@ -204,7 +204,7 @@ Each stage keeps its own table (ADR 0031): a template is outlining's part
 (`Tables`) and sealing's (`SealedTemplate`), put together into `Plans`
 when the compile is done.
 
-The result is `Compiled` (`plan.rs`): the source and the `Plans` made from
+The result is `Compiled` (`ir/compiled.rs`): the source and the `Plans` made from
 it, which are the templates, their plans, the ports' attributes the
 check found and the source's diagnostics, the check's warnings included. The
 stages read the source as a borrow, given to each stage that needs it, and
@@ -329,7 +329,7 @@ downstream, and report a `TickOutcome`. See
 |---|---|---|
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. |
 | `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
-| `Compiled`, `CompiledRef`, `Plans`, `Template` | `compile/plan.rs` | The compile's output: the source and its `Plans`, one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. A build reads it as a `CompiledRef`. |
+| `Compiled`, `CompiledRef`, `Plans`, `Template` | `compile/ir/compiled.rs`, `compile/ir/template.rs` | The compile's output: the source and its `Plans`, one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. A build reads it as a `CompiledRef`. |
 | `TemplateGraph` | `compile/graph/mod.rs` | Every live template stamped once from the plans: ports and the values stamped beside them, and what each reads, labelled by how it moves through the iterations (`Coord`). Every node defined as a build's slot is (ADR 0032, step 8): what the check's stamping failures, cycle check, define, walks, refuse warnings and the input signature read; every build is held to it (`tests/every_count.rs`). |
 | `Defined` | `build/define.rs` | What define made of a build's resolved slots: the cells they will make (`SlotCells`) and each slot's class, essential and live, by the ports' attributes the compile keeps (ADR 0035). What emit reads. |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one stamped build, before scheduling. |

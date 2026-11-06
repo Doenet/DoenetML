@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 
-use crate::compile::plan::ElemKey;
+use crate::compile::ir::ElemKey;
 use crate::dast::NodeId;
 use crate::document::CompIdx;
 
@@ -17,7 +17,7 @@ crate::index::index_type! {
 
 crate::index::index_type! {
     /// A position in a template's slot space: an element's slot offset
-    /// ([`Sealed::slot_off`](crate::compile::plan::Sealed::slot_off)) plus the port's position among its slots. With
+    /// ([`Sealed::slot_off`](crate::compile::ir::Sealed::slot_off)) plus the port's position among its slots. With
     /// its scope it names an essential value across builds (see
     /// `CONTEXT.md`, essential key).
     pub struct TemplateSlot;
@@ -141,7 +141,7 @@ pub enum SlotClass {
         /// Whether the compile's record makes it a document constant.
         document: bool,
         /// Whether the check's attribute marks its port a constant
-        /// ([`PortAttrs::CONSTANT`](crate::compile::plan::PortAttrs::CONSTANT), ADR 0037), which every constant a build
+        /// ([`PortAttrs::CONSTANT`](crate::compile::ir::PortAttrs::CONSTANT), ADR 0037), which every constant a build
         /// makes, a fold included, must be.
         marked: bool,
     },

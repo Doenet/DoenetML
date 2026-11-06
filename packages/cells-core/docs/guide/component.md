@@ -132,7 +132,7 @@ methods. Rules for planners:
   extend="$mi"/>` or `<mathInput extend="$n"/>` is the extend of the
   referent's default prop ([`ComponentType::extends_as`](crate::components::ComponentType::extends_as)).
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
-  what holds the element ([`ElemPlan::hold`](crate::compile::plan::ElemPlan::hold), from the table `HOLD_ATTRS`): the
+  what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The
   build holds every cell of a held element ([`Program::holds`](crate::program::Program::holds)), and the
   inversion refuses a request on a held cell; the plans are never

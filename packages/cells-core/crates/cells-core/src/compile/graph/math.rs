@@ -6,7 +6,7 @@
 //! math a template over its leaves.
 
 use super::*;
-use crate::compile::expr::Func;
+use crate::compile::ir::expr::Func;
 
 /// Stamping, math: an expression instantiated per template, numeric math
 /// lowered to operator nodes, symbolic math a template over its leaves.
