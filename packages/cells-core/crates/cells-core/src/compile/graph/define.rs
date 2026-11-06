@@ -50,7 +50,7 @@ impl<'a> CellDef<'a> {
     fn request_targets(&self) -> impl Iterator<Item = GraphNode> + 'a {
         let mask = match self.def {
             Def::Op(GraphOp::Spec(spec), _) => spec.writes(),
-            Def::Op(GraphOp::Template, _) => 0,
+            Def::Op(GraphOp::Template(_), _) => 0,
             _ => u64::MAX,
         };
         let reads = if self.held_always {

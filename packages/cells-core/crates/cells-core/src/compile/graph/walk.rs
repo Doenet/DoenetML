@@ -208,7 +208,7 @@ impl<'c> Stamp<'c> {
         let Some(&first) = members.first() else {
             return At::Missing;
         };
-        let w = self.stand_in(self.component_type(first), t, members);
+        let w = self.stand_in(self.component_type(first), t, members, c);
         self.stand_in_sources(w, None);
         self.picks.insert(cid, w);
         At::Comp(Comp::Made(w))

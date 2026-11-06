@@ -82,9 +82,28 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     list
 }
 
-/// The input signature of `dast`, read off the check's definitions
-/// (ADR 0035). Every key goes through `rename`.
+/// The input signature of `dast`, read off the template graph's
+/// definitions (ADR 0032 step 8, ADR 0035), after the check's resolve,
+/// cycle check and define. Every key goes through `rename`.
 pub(crate) fn signature_renamed(
+    dast: &Dast,
+    rename: &dyn Fn(&str) -> String,
+) -> Result<crate::build::signature::Signature> {
+    let (_, signature) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
+        let compiled = CompiledRef { dast, plans };
+        build::abstract_resolve(compiled)?;
+        let mut g = graph::template_graph_with_parents(compiled);
+        graph::check_cycles(&g, compiled).map_err(|error| Failure { error, node: None })?;
+        let defined = graph::define(&mut g, compiled)?;
+        Ok(graph::sign(&g, &defined, compiled, rename))
+    })?;
+    Ok(signature)
+}
+
+/// For tests: the input signature of `dast` as the abstract build reads it
+/// off its own definitions, what the template graph's is compared with.
+#[cfg(feature = "testing")]
+pub(crate) fn abstract_signature_renamed(
     dast: &Dast,
     rename: &dyn Fn(&str) -> String,
 ) -> Result<crate::build::signature::Signature> {
@@ -130,6 +149,7 @@ fn check(compiled: CompiledRef<'_>, check_cycles: bool) -> std::result::Result<C
     })
 }
 
+#[cfg(feature = "testing")]
 /// The cycle and count checks over the template graph of `compiled`, and
 /// what they find of a document that passes: what the input signature's
 /// abstract build runs between its resolve and its define. A cycle has no

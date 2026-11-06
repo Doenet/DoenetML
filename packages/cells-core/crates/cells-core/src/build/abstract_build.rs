@@ -37,6 +37,7 @@ pub(crate) fn abstract_define(
     with_abstract(compiled, between, |_, _| ())
 }
 
+#[cfg(feature = "testing")]
 /// The input signature read off the abstract build's definitions, every
 /// key through `rename`. Define's rules box what they box first.
 pub(crate) fn abstract_signature(
@@ -49,6 +50,7 @@ pub(crate) fn abstract_signature(
     })
 }
 
+#[cfg(feature = "testing")]
 /// Expand and resolve through the abstract view, run `between` (the
 /// compile's cycle check, which a failure of resolve's must come before
 /// and one of define's after), and define, then `read` the builder, which

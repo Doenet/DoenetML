@@ -34,11 +34,13 @@ mod define;
 mod expand;
 mod math;
 mod refuse;
+mod signature;
 mod walk;
 
 pub(crate) use cycles::{CycleFindings, check_cycles};
 pub(crate) use define::define;
 pub(crate) use refuse::refuse_warnings;
+pub(crate) use signature::sign;
 
 crate::index::index_type! {
     /// A node of the template graph: a position in its `nodes`.
@@ -111,7 +113,26 @@ pub(crate) struct Node {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum GraphOp {
     Spec(OpSpec),
-    Template,
+    /// A symbolic template (`TemplateGraph::templates`).
+    Template(u32),
+}
+
+/// A symbolic template as the abstract build plans one: math text `expr`
+/// with `post` applied, its leaves its operator's inputs, in the text's
+/// order, each a math leaf or a numeric one.
+#[derive(Debug, Clone)]
+pub(crate) struct TemplateOp {
+    pub(crate) expr: ExprId,
+    pub(crate) post: Post,
+    pub(crate) math: Vec<bool>,
+}
+
+/// Where a math value a node holds comes from, which the compile has no
+/// engine to make: a given tree, or a constant math text with its post.
+#[derive(Debug, Clone)]
+pub(crate) enum MathOrigin {
+    Tree(Tree<RefId>),
+    Constant(ExprId, Post),
 }
 
 /// What defines a node, as the abstract build's source defines its slot.
@@ -170,6 +191,9 @@ pub(crate) struct Made {
     pub(crate) kind: MadeKind,
     /// Its children: a case's branch.
     pub(crate) children: Vec<Comp>,
+    /// The component it belongs to without being its child: a stand-in's
+    /// choice.
+    pub(crate) owner: Option<Comp>,
 }
 
 /// A component as the stamping knows it: an element of a template, or a
@@ -207,6 +231,13 @@ pub(crate) struct TemplateGraph {
     pub(crate) counted: Vec<GraphNode>,
     /// The nodes whose plan gives a document constant if they are one.
     pub(crate) document: Vec<GraphNode>,
+    /// The symbolic templates, by `GraphOp::Template`.
+    pub(crate) templates: Vec<TemplateOp>,
+    /// The nodes whose cell is not a number, with what it holds, as the
+    /// abstract build types its slots (`Builder::typed_slots`).
+    pub(crate) typed: Vec<(GraphNode, crate::program::ValueType)>,
+    /// Where each math value a definition holds comes from, by node.
+    pub(crate) math: FxMap<GraphNode, MathOrigin>,
     /// The labels of reads that are not the identity, by (reader, read).
     pub(crate) labels: FxMap<(GraphNode, GraphNode), Label>,
     /// Each element's first port, per template; NONE for an element with
@@ -248,6 +279,9 @@ pub(crate) struct GraphComp {
     pub(crate) rendered: bool,
     /// Whether it is under a sticky group, where snapping reads it.
     pub(crate) in_sticky: bool,
+    /// Its parent's position in `comps`, when the stamping was asked for
+    /// parents (`template_graph_with_parents`); `u32::MAX` for none.
+    pub(crate) parent: u32,
     /// The element it is, if it is one.
     pub(crate) elem: Option<(TemplateId, ElemId)>,
 }
@@ -295,6 +329,16 @@ impl TemplateGraph {
 
 /// The template graph of `c`.
 pub(crate) fn template_graph(c: CompiledRef<'_>) -> TemplateGraph {
+    stamp_graph(c, false)
+}
+
+/// The template graph of `c`, each component with its parent: what the
+/// input signature reads.
+pub(crate) fn template_graph_with_parents(c: CompiledRef<'_>) -> TemplateGraph {
+    stamp_graph(c, true)
+}
+
+fn stamp_graph(c: CompiledRef<'_>, parents: bool) -> TemplateGraph {
     let n = c.plans.templates.len();
     let mut parent = vec![None; n];
     let mut depth = vec![0u32; n];
@@ -345,6 +389,8 @@ pub(crate) fn template_graph(c: CompiledRef<'_>) -> TemplateGraph {
         instantiated: FxMap::default(),
         lowered: Vec::new(),
         share_math: false,
+        origin: None,
+        parents,
     };
     s.stamp(TemplateId::new(0));
     s.resolve_all();
@@ -393,6 +439,11 @@ pub(super) struct Stamp<'c> {
     pub(super) lowered: Vec<GraphNode>,
     /// Whether the element whose ports are being stamped shares its math.
     pub(super) share_math: bool,
+    /// Where the math value of the definition just made comes from, until
+    /// the node it defines takes it.
+    pub(super) origin: Option<MathOrigin>,
+    /// Whether to record each component's parent.
+    pub(super) parents: bool,
 }
 
 impl<'c> Stamp<'c> {
@@ -519,7 +570,26 @@ impl<'c> Stamp<'c> {
                 stack.push((k, in_graph, sticky));
             }
         }
-        let comps = std::mem::take(&mut self.order)
+        let order = std::mem::take(&mut self.order);
+        let mut parent: FxMap<Comp, u32> = FxMap::default();
+        if self.parents {
+            let at: FxMap<Comp, u32> = order
+                .iter()
+                .enumerate()
+                .map(|(i, &c)| (c, i as u32))
+                .collect();
+            for &c in &order {
+                for k in self.children(c) {
+                    parent.insert(k, at[&c]);
+                }
+                if let Comp::Made(m) = c
+                    && let Some(owner) = self.g.made[m as usize].owner
+                {
+                    parent.insert(c, at[&owner]);
+                }
+            }
+        }
+        let comps = order
             .into_iter()
             .map(|c| {
                 let (rendered, in_sticky) = placed.get(&c).copied().unwrap_or_default();
@@ -538,6 +608,7 @@ impl<'c> Stamp<'c> {
                     },
                     rendered,
                     in_sticky,
+                    parent: parent.get(&c).copied().unwrap_or(u32::MAX),
                     elem: match c {
                         Comp::Elem(t, e) => Some((t, e)),
                         Comp::Made(_) => None,
@@ -592,6 +663,7 @@ impl<'c> Stamp<'c> {
             n_public: n,
             kind,
             children: Vec::new(),
+            owner: None,
         });
         m
     }
@@ -699,7 +771,7 @@ impl<'c> Stamp<'c> {
                 .filter(|&(&b, &m)| !self.c.plans.templates[b.index()].is_dead(m))
                 .map(|(&b, &m)| Comp::Elem(b, m))
                 .collect();
-            let w = self.stand_in(*component_type, t, members);
+            let w = self.stand_in(*component_type, t, members, Comp::Elem(t, e));
             self.iface.insert((cid, u), w);
         }
     }
@@ -712,13 +784,16 @@ impl<'c> Stamp<'c> {
         component_type: ComponentType,
         t: TemplateId,
         members: Vec<Comp>,
+        owner: Comp,
     ) -> u32 {
         let n = members
             .iter()
             .map(|&m| self.n_public(m))
             .max()
             .unwrap_or(component_type.prop_defs().len());
-        self.make(component_type, t, n, MadeKind::StandIn { members })
+        let w = self.make(component_type, t, n, MadeKind::StandIn { members });
+        self.g.made[w as usize].owner = Some(owner);
+        w
     }
 
     /// The sources of stand-in `w`: each port chooses among its members'
@@ -741,6 +816,7 @@ impl<'c> Stamp<'c> {
                     }
                 })
                 .collect();
+            let first = branch[0];
             let def = match choice {
                 None => self.reading(&branch, t),
                 Some(choice) => {
@@ -749,8 +825,21 @@ impl<'c> Stamp<'c> {
                     Def::Op(GraphOp::Spec(OpSpec::Vec(VecOp::Choose { n })), inputs)
                 }
             };
+            // One kind of value in every branch, which the stand-in holds.
+            if self.value_type(first) == PortType::Text {
+                self.g
+                    .typed
+                    .push((self.slot(Comp::Made(w), port), PortType::Text.value_type()));
+            }
             let s = self.slot(Comp::Made(w), port);
             self.set(s, def);
+        }
+        let ty = self.g.made[w as usize].component_type;
+        if members.iter().any(|&m| self.is_symbolic(m))
+            && let Some(pi) = ty.prop_index("expr")
+        {
+            let s = self.slot(Comp::Made(w), pi);
+            self.g.typed.push((s, PortType::Math.value_type()));
         }
     }
 
@@ -811,17 +900,26 @@ impl<'c> Stamp<'c> {
         self.share_math = !c.plans.expr_class.is_empty() && matches!(plan.hold, Hold::Off);
         for (pi, src) in plan.props.iter().enumerate() {
             let from = self.g.port(t, e, pi);
+            // What the cell holds is the port's type (ADR 0032).
+            let port_type = self.port_type(t, e, pi);
+            if port_type != PortType::Num {
+                self.g.typed.push((from, port_type.value_type()));
+            }
             let def = match src {
                 Source::Flow(Flow::Aggregate(_)) => continue,
                 // The first iteration's source, and the rest's as a later
                 // one, made first.
                 Source::Specialize(_, first, rest) => {
                     let rest = self.source(t, e, pi, from, rest);
+                    self.origin = None;
                     self.g.later.push((from, rest));
                     self.source(t, e, pi, from, first)
                 }
                 src => self.source(t, e, pi, from, src),
             };
+            if let Some(origin) = self.origin.take() {
+                self.g.math.insert(from, origin);
+            }
             if matches!(def, Def::Const(_) | Def::Given(_)) && src.gives_document_constant() {
                 self.g.document.push(from);
             }
@@ -845,11 +943,16 @@ impl<'c> Stamp<'c> {
                 Leaf::Given(v) => Def::Given(Some(*v)),
                 Leaf::GivenText(id) => Def::Given(Some(id.map_or(f64::NAN, StrId::to_value))),
                 // A handle, the engine's.
-                Leaf::GivenMath(tree) => Def::Given(tree.is_none().then_some(f64::NAN)),
+                Leaf::GivenMath(tree) => {
+                    self.origin = tree.clone().map(MathOrigin::Tree);
+                    Def::Given(tree.is_none().then_some(f64::NAN))
+                }
                 Leaf::Const(v) => Def::Const(Some(*v)),
                 Leaf::Scope(ScopeConst::IterIndex) => Def::Const(Some(self.position(t) as f64)),
-                // Drawn from the seed: no value the compile knows.
-                Leaf::Scope(ScopeConst::SequencePick { .. }) => Def::Const(None),
+                Leaf::Scope(ScopeConst::SequencePick { from, step, count }) => {
+                    let k = self.drawn(t, e, *count);
+                    Def::Const(Some(from + step * k as f64))
+                }
                 Leaf::Scope(ScopeConst::Seed(p)) => {
                     let (target, _) = self.resolve_one(*p, t);
                     let target = self.or_missing(target);

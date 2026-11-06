@@ -21,6 +21,7 @@ pub(in crate::build) struct Defined {
 }
 
 impl Defined {
+    #[cfg(feature = "testing")]
     /// The definitions classed by `b`'s own walks: the abstract build's.
     pub(in crate::build) fn by_walk(b: &Builder<'_>, slot_cells: SlotCells) -> Defined {
         let essential = b.writable_slots(&slot_cells);

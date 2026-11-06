@@ -10,6 +10,7 @@
 use super::*;
 
 impl<'c> Builder<'c> {
+    #[cfg(feature = "testing")]
     /// Per slot, whether its cell is live by this build's own walk.
     pub(in crate::build) fn live_slots(&self, slot_cells: &SlotCells) -> Vec<bool> {
         let n = self.sources.len();

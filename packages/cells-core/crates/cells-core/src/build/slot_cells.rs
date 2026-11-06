@@ -116,6 +116,7 @@ impl SlotCells {
         self.def(self.cell_of(s)) == s
     }
 
+    #[cfg(feature = "testing")]
     /// The flag slots that hold `cell`, in the order the build made them.
     pub(in crate::build) fn flags(&self, cell: SlotId) -> &[SlotId] {
         self.flags.get(&cell).map_or(&[], Vec::as_slice)
@@ -144,6 +145,7 @@ impl SlotCells {
 /// One cell as one of its sources defines it, and what holds it: what a
 /// walk is given for each cell it reaches.
 pub(in crate::build) struct Def<'a> {
+    #[cfg_attr(not(feature = "testing"), allow(dead_code))]
     pub(in crate::build) slot: SlotId,
     pub(in crate::build) source: &'a BuiltSource,
     flags: &'a [SlotId],

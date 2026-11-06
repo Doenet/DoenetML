@@ -546,7 +546,7 @@ fn describe_def(
         Def::Const(_) => "const".into(),
         Def::Alias(t) => format!("alias({})", each(&[*t])),
         Def::Op(GraphOp::Spec(spec), inputs) => format!("{spec:?}({})", each(inputs)),
-        Def::Op(GraphOp::Template, inputs) => format!("template({})", each(inputs)),
+        Def::Op(GraphOp::Template(_), inputs) => format!("template({})", each(inputs)),
         Def::VecOut(head, k) => format!("out{k}({})", each(&[*head])),
     }
 }

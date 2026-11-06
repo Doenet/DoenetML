@@ -8,6 +8,7 @@ use crate::components::{Collection, PropAt, PropSel};
 
 mod aggregate;
 mod choice;
+pub(crate) use choice::{splitmix, stable_hash};
 mod math;
 mod resolve;
 

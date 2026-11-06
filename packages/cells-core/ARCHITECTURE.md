@@ -151,9 +151,9 @@ Runs once per load and depends on the source alone.
   without repeats: a load is one sequence of steps. An element that fails
   to build is *boxed*; see [An element cannot be
   built](#an-element-cannot-be-built). The input signature (ADR 0017),
-  which compares two versions of a document, is still read off the
-  abstract build's definitions (`build/signature.rs`), until ADR 0032's
-  step 8 moves it too.
+  which compares two versions of a document, is read off the template
+  graph's definitions too (`compile/graph/signature.rs`), with an engine
+  of its own for what a math value hashes as.
 
   The **template graph** (`compile/graph/`) stamps every live template once
   from the plans alone, as the abstract view does, in resolve's order: a
@@ -223,9 +223,9 @@ draw for every select.
   ports as it marks the writable ones; a class no port names (a
   synthesized component's, such as a choice's interface) is live when
   something live reads it. Which way a build classes is its caller's
-  choice (`Defined::by_walk` in the abstract build the input signature
-  reads, `Defined::by_attributes` in every other), so define has no
-  branch for it. What define makes, `Defined`, is what emit reads. The
+  choice (`Defined::by_walk` in the abstract build the tests compare the
+  template graph with, `Defined::by_attributes` in every other), so
+  define has no branch for it. What define makes, `Defined`, is what emit reads. The
   refuse analysis (`program/refuse.rs`) is one rule over a graph that the
   check asks of the template graph's cells (`compile/graph/refuse.rs`)
   and a document asks of its program (`Interactive::refused_bits`).
@@ -426,7 +426,7 @@ the other action: it sets each `<updateValue>`'s target.
 | `Compiled`, `CompiledRef`, `Plans`, `Template` | `compile/plan.rs` | The compile's output: the source and its `Plans`, one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. A build reads it as a `CompiledRef`. |
 | `TemplateGraph` | `compile/graph/mod.rs` | Every live template stamped once from the plans: ports and the values stamped beside them, and what each reads, labelled by how it moves through the iterations (`Coord`). The compile's own form of the abstract build's graph, every node defined as its slot is (ADR 0032, step 8): what the check's cycle check, define, walks and refuse warnings read; tested against the abstract build's. |
 | `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Abstract`, which folds every iteration into one (`build/abstract_build.rs`). |
-| `Defined` | `build/define.rs` | What define made of a build's resolved slots: the cells they will make (`SlotCells`) and each slot's class, essential and live, by the build's own walks in the abstract build or by the ports' attributes the compile keeps in a stamped one (ADR 0035). What emit reads; in the abstract build, what the input signature reads, and for the tests its findings (`AbstractFindings`). |
+| `Defined` | `build/define.rs` | What define made of a build's resolved slots: the cells they will make (`SlotCells`) and each slot's class, essential and live, by the build's own walks in the abstract build or by the ports' attributes the compile keeps in a stamped one (ADR 0035). What emit reads; in the abstract build, for the tests, what its findings (`AbstractFindings`) and its input signature read. |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one stamped build, before scheduling. The abstract build makes none. |
 | `Session`, `Counts`, `Pool` | `session.rs` | What survives every build: scopes, essential values, strings, seed, the constant pool (ADR 0028); and the counts a build stamps. |
 | `MathStore` | `session.rs` | The math engine and the handles of the source's constant expressions, which the document owns beside the session and lends to each build and tick (ADR 0015's amendment of 2026-11-05). |

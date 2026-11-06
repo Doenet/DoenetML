@@ -160,24 +160,31 @@ impl<'c> Stamp<'c> {
         let mut plans = Vec::new();
         occurrences(&self.c.plans.arena, id, &mut plans);
         if plans.is_empty() {
+            self.origin = Some(MathOrigin::Constant(id, post));
             return Def::Const(None);
         }
         let mut leaves = Vec::with_capacity(plans.len());
-        let mut lone_math = false;
+        let mut math = Vec::with_capacity(plans.len());
         for &p in &plans {
             let (target, label) = self.resolve_one(p, t);
             let target = self.or_missing(target);
-            let (target, math) = match self.math_target(target) {
+            let (target, is_math) = match self.math_target(target) {
                 Some(m) => (m, true),
                 None => (target, false),
             };
-            lone_math = math;
+            math.push(is_math);
             leaves.push(self.leaf(target, t, &label));
         }
-        if let (Expr::Cell(_), Post::None, true) = (self.c.plans.arena.get(id), post, lone_math) {
+        if let (Expr::Cell(_), Post::None, [true]) = (self.c.plans.arena.get(id), post, &math[..]) {
             return Def::Alias(leaves[0]);
         }
-        Def::Op(GraphOp::Template, leaves)
+        let template = self.g.templates.len() as u32;
+        self.g.templates.push(TemplateOp {
+            expr: id,
+            post,
+            math,
+        });
+        Def::Op(GraphOp::Template(template), leaves)
     }
 }
 

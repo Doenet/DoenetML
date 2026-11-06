@@ -368,6 +368,29 @@ impl<'c> Stamp<'c> {
         }
     }
 
+    /// The draw of a `<selectFromSequence>`, element `e` of template `t`,
+    /// below `count`: from the seed the abstract build stamps with (0),
+    /// mixed with the element's stable key and the stable levels of the
+    /// scopes around it, as `Builder::seeded_stream` draws it.
+    pub(super) fn drawn(&self, t: TemplateId, e: ElemId, count: u32) -> u32 {
+        use crate::build::{splitmix, stable_hash};
+        let keys = &self.c.plans.keys;
+        let key = self.c.plans.templates[t.index()].sealed.elems[e.index()].key;
+        // The seed, 0, mixed in as `seeded_stream` mixes it.
+        let mut h = splitmix(0x5eed_5e1e_c7ed_0001);
+        h = splitmix(h ^ stable_hash(keys.key_text(key).as_bytes()));
+        let mut s = t;
+        while let Some((pt, pe)) = self.c.plans.templates[s.index()].parent {
+            let node = self.c.plans.templates[pt.index()].row(pe).node;
+            let level = keys.scope_level(node, self.position(s) as u32).to_string();
+            h = splitmix(h ^ stable_hash(level.as_bytes()));
+            s = pt;
+        }
+        let h = splitmix(h);
+        let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * count as f64) as u32;
+        k.min(count - 1)
+    }
+
     /// The position of the scope template `t` is stamped as, as the
     /// abstract build numbers it: 1 for its one iteration of a repeat, a
     /// case's position, an option's pick.

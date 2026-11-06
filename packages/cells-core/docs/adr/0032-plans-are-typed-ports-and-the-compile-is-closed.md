@@ -1,7 +1,7 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
 Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done,
-and the first four parts of step 8; see Migration. Builds on
+and the first five parts of step 8; see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -932,6 +932,39 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
    5. **The input signature over the graph.** ADR 0035's signature
       reads the graph's definitions instead of the abstract build's.
       Test: `tests/safe_edits.rs` unchanged.
+
+      Done, in this form. `compile/graph/signature.rs` reads the
+      signature off the template graph's definitions as
+      `build/signature.rs` read it off the abstract build's: each input's
+      derivation hashed over its closure, each cell by what it is, the
+      defaults of the essential cells it reads, and its domain. What the
+      abstract build's builder held that the graph did not, the graph
+      now records: each node's value type as the build types its slots
+      (`TemplateGraph::typed`), where a math value comes from, a given
+      tree or a constant text with its post (`TemplateGraph::math`), a
+      symbolic template's text, post and which leaves are math leaves
+      (`TemplateGraph::templates`), a `<selectFromSequence>`'s value,
+      drawn from seed 0 with the element's key and the scope levels as
+      `Builder::seeded_stream` draws it, and, when the signature asks
+      (`template_graph_with_parents`), each component's parent, a
+      stand-in's its choice. The compile has no engine; the signature
+      makes one of its own, as the abstract build did, for what a math
+      value and a template hash as, their text. `signature_renamed` runs
+      the check's resolve, cycle check and define and signs the graph;
+      the abstract build's signature is the tests' alone
+      (`abstract_signature_renamed`), and with it `with_abstract`,
+      `Defined::by_walk`, the build's walks of its own and its signer.
+      `testing::signature_disagreement` compares the two signatures,
+      hash for hash; `tests/template_graph.rs` holds every document to
+      it, with a response over math over math and a drawn graph bound
+      of its own, and dropping the types, the ancestors, a math text, a
+      template's math leaves or the draw fails it. A stand-in's text
+      type reaches no signature (a stand-in is computed, never essential
+      nor constant, and a seed reading one reads not-a-number either
+      way). `tests/safe_edits.rs` is unchanged, the golden diff is
+      unchanged, and `load-diff.sh` against 7101126 is within its noise
+      (0.90 to 1.07, coords and poly at 1.00 and 0.96 on a second run).
+
    6. **The abstract build goes.** What expand and resolve raise in the
       abstract build today, an element that cannot be built, is raised
       by the template pass and boxed in place, as step 7's fixpoint

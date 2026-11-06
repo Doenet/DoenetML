@@ -106,7 +106,7 @@ impl Graph for Cells<'_> {
     fn kind(&self, node: GraphNode) -> RefuseKind {
         match self.g.defs[node.index()] {
             Def::Op(GraphOp::Spec(OpSpec::Vec(_)), _) => RefuseKind::Vector,
-            Def::Op(GraphOp::Spec(OpSpec::Sym(_)), _) | Def::Op(GraphOp::Template, _) => {
+            Def::Op(GraphOp::Spec(OpSpec::Sym(_)), _) | Def::Op(GraphOp::Template(_), _) => {
                 RefuseKind::Symbolic
             }
             _ => RefuseKind::Scalar,

@@ -13,11 +13,15 @@
 //! the essential cells in the closure are kept beside it, with whether each
 //! is the input's starting value.
 
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::BTreeMap;
+#[cfg(feature = "testing")]
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 use super::*;
+#[cfg(feature = "testing")]
 use crate::components::prop::{case, conditional_content};
+#[cfg(feature = "testing")]
 use crate::sym::engine::template_text;
 
 /// A document's inputs, by their element's stable key.
@@ -86,6 +90,7 @@ impl Domain {
     }
 }
 
+#[cfg(feature = "testing")]
 /// The input signature of the document `b` built, read off its
 /// definitions, with every key passed through `rename` (an editor's
 /// renames, applied to the version before them).
@@ -97,10 +102,12 @@ pub(in crate::build) fn sign(
     Signer::new(b, defined, rename).sign()
 }
 
+#[cfg(feature = "testing")]
 /// An input as found: its component, the labelled cells its derivation
 /// starts from, and how many of them (the first) are its interactive props.
 type Found = (CompIdx, Vec<(String, SlotId)>, usize);
 
+#[cfg(feature = "testing")]
 /// A cell's value as emit will set it: as its source gives it, or the
 /// expression a seed imports from a number, by its text.
 #[derive(Clone)]
@@ -109,6 +116,7 @@ enum Value {
     Expr(String),
 }
 
+#[cfg(feature = "testing")]
 /// What the signature is read off: the builder and its definitions, with
 /// what emit will make of each cell that the signature hashes (its class,
 /// its type, its value) and the hashes found so far. A cell is named here
@@ -131,14 +139,14 @@ struct Signer<'a, 'c> {
     named: HashMap<SlotId, (String, String)>,
 }
 
-fn hash_of(x: impl Hash) -> u64 {
+pub(crate) fn hash_of(x: impl Hash) -> u64 {
     let mut h = DefaultHasher::new();
     x.hash(&mut h);
     h.finish()
 }
 
 /// A number's bits, every NaN one.
-fn bits(v: f64) -> u64 {
+pub(crate) fn bits(v: f64) -> u64 {
     if v.is_nan() {
         f64::NAN.to_bits()
     } else {
@@ -146,6 +154,7 @@ fn bits(v: f64) -> u64 {
     }
 }
 
+#[cfg(feature = "testing")]
 impl<'a, 'c> Signer<'a, 'c> {
     fn new(b: &'a Builder<'c>, defined: &'a Defined, rename: &'a dyn Fn(&str) -> String) -> Self {
         let n = b.sources.len();
@@ -680,6 +689,7 @@ impl<'a, 'c> Signer<'a, 'c> {
     }
 }
 
+#[cfg(feature = "testing")]
 /// Component `c`'s component children.
 fn children(t: &ComponentTable, c: CompIdx) -> Vec<CompIdx> {
     let (s, n) = (
@@ -693,14 +703,14 @@ fn children(t: &ComponentTable, c: CompIdx) -> Vec<CompIdx> {
 }
 
 /// A prop's name, or its position for a hidden slot.
-fn prop_label(ty: ComponentType, n_props: usize, pi: usize) -> String {
+pub(crate) fn prop_label(ty: ComponentType, n_props: usize, pi: usize) -> String {
     ty.prop_name(n_props, pi)
         .map_or_else(|| format!("(hidden {pi})"), |n| n.into_owned())
 }
 
 /// Expression text with each cell leaf, numbered by its position among the
 /// operator's inputs (`cellN0`), as `N#0`.
-fn canonical_leaves(text: &str) -> String {
+pub(crate) fn canonical_leaves(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     let mut rest = text;
     while let Some(i) = rest.find("cell") {
@@ -728,7 +738,7 @@ fn canonical_leaves(text: &str) -> String {
 }
 
 /// A DAST subtree as text: tags, attributes and text, without positions.
-fn dast_text(d: &crate::dast::Dast, n: NodeId) -> String {
+pub(crate) fn dast_text(d: &crate::dast::Dast, n: NodeId) -> String {
     use crate::dast::NodeKind;
     let mut out = String::new();
     let mut stack = vec![(n, false)];

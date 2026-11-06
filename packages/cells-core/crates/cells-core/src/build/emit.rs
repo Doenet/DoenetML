@@ -734,6 +734,7 @@ impl<'c> Builder<'c> {
         }
     }
 
+    #[cfg(feature = "testing")]
     /// Component `c`'s element's stable key, `NONE` for one no element
     /// makes (a case).
     pub(in crate::build) fn comp_key(&self, c: CompIdx) -> ElemKey {

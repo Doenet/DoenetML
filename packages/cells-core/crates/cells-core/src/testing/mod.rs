@@ -60,6 +60,29 @@ pub fn define_failures_agree(dast: &crate::dast::Dast) -> Vec<String> {
     crate::compile::define_failures_agree(dast)
 }
 
+/// The input signature of `dast` read off the template graph against the
+/// one the abstract build reads off its own definitions (ADR 0032, step 8,
+/// part 5): each input where they differ, described; none when they are
+/// the same. An error when either fails.
+pub fn signature_disagreement(dast: &crate::dast::Dast) -> Result<Vec<String>, String> {
+    let same = |k: &str| k.to_string();
+    let ours = crate::compile::signature_renamed(dast, &same).map_err(|e| e.to_string())?;
+    let theirs =
+        crate::compile::abstract_signature_renamed(dast, &same).map_err(|e| e.to_string())?;
+    let mut out = Vec::new();
+    let keys: std::collections::BTreeSet<&String> =
+        ours.inputs.keys().chain(theirs.inputs.keys()).collect();
+    for k in keys {
+        let (a, b) = (theirs.inputs.get(k), ours.inputs.get(k));
+        if a != b {
+            out.push(format!(
+                "input {k}: the abstract build has {a:?}, the template graph {b:?}"
+            ));
+        }
+    }
+    Ok(out)
+}
+
 /// The compile of `dast`, checked as a load checks it.
 pub fn compile(
     dast: &crate::dast::Dast,

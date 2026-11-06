@@ -315,13 +315,13 @@ impl<'c> Builder<'c> {
 }
 
 /// FNV-1a: a hash of bytes that no Rust release or platform changes.
-fn stable_hash(bytes: &[u8]) -> u64 {
+pub(crate) fn stable_hash(bytes: &[u8]) -> u64 {
     bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| {
         (h ^ b as u64).wrapping_mul(0x0100_0000_01b3)
     })
 }
 
-pub(super) fn splitmix(x: u64) -> u64 {
+pub(crate) fn splitmix(x: u64) -> u64 {
     let mut z = x.wrapping_add(0x9e37_79b9_7f4a_7c15);
     z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
     z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);

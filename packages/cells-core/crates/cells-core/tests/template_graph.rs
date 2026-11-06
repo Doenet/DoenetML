@@ -12,7 +12,7 @@ use std::path::Path;
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::testing::{
     attributes_disagreement, define_failures_agree, definitions_disagreement, par_map,
-    template_graph_agreement, warnings_disagreement,
+    signature_disagreement, template_graph_agreement, warnings_disagreement,
 };
 
 /// Documents for what the golden set has little of: references into and
@@ -196,6 +196,19 @@ const DOCUMENTS: &[(&str, &str)] = &[
         <graph><point name="p" fixed>($a, 2)</point></graph>"#,
     ),
     (
+        // An answer's response, symbolic math over symbolic math: its
+        // leaf is a math leaf in the signature's template.
+        "math-over-math",
+        r#"<math name="m">x + 1</math><math name="m2">$m + y</math>
+        <answer name="a" response="$m2">x</answer>"#,
+    ),
+    (
+        // A drawn bound: the point's domain holds the value drawn.
+        "drawn-bound",
+        r#"<selectFromSequence name="s" from="1" to="100"/>
+        <graph xmax="$s"><point name="p">(1,2)</point></graph>"#,
+    ),
+    (
         "points",
         r#"<graph>
           <point name="p">(1,2)</point>
@@ -374,6 +387,35 @@ fn define_over_the_template_graph_warns_as_the_abstract_build_does() {
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
     assert!(warned >= 4, "only {warned} warnings compared");
+}
+
+// The input signature over the graph (ADR 0032, step 8, part 5) is the
+// one the abstract build read off its own definitions, hash for hash, on
+// every document.
+#[test]
+fn the_input_signature_over_the_template_graph_is_the_abstract_builds() {
+    let mut docs = documents();
+    docs.extend(
+        REFUSALS
+            .iter()
+            .chain(PREFILLS)
+            .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
+    );
+    let results = par_map(&docs, |(name, bytes)| {
+        let dast = cells_core::dast::load(bytes).unwrap();
+        cells_core::testing::compile(&dast).ok()?;
+        let found =
+            signature_disagreement(&dast).unwrap_or_else(|e| panic!("{name}: the signature: {e}"));
+        Some((name.clone(), found))
+    });
+    let mut failures = Vec::new();
+    let mut signed = 0;
+    for (name, disagree) in results.into_iter().flatten() {
+        signed += 1;
+        failures.extend(disagree.into_iter().map(|d| format!("{name}: {d}")));
+    }
+    assert!(signed > 0, "no document signed");
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
 /// Prefills the rule refuses or allows: a computed value is refused, a

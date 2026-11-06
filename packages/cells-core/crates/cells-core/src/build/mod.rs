@@ -55,9 +55,9 @@ mod structure;
 mod view;
 mod writable;
 
+pub(crate) use abstract_build::abstract_resolve;
 #[cfg(feature = "testing")]
-pub(crate) use abstract_build::{abstract_define, abstract_findings};
-pub(crate) use abstract_build::{abstract_resolve, abstract_signature};
+pub(crate) use abstract_build::{abstract_define, abstract_findings, abstract_signature};
 use define::Defined;
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
@@ -82,6 +82,7 @@ impl crate::sym::Leaf for SlotId {
 
 use crate::compile::graph::{Coord, Label};
 use expand::*;
+pub(crate) use expand::{splitmix, stable_hash};
 use view::{CollectCount, Options, Plans, View};
 
 impl<'c> Builder<'c> {

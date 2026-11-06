@@ -9,6 +9,7 @@
 use super::*;
 
 impl<'c> Builder<'c> {
+    #[cfg(feature = "testing")]
     /// Per slot, whether it is a value slot a student's action can write:
     /// one a request reaches from an input that no constant flag holds.
     pub(in crate::build) fn writable_slots(&self, slot_cells: &SlotCells) -> Vec<bool> {
