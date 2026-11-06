@@ -4,7 +4,9 @@
 /// compile's trees, a slot in a build's templates, a cell once rebound
 /// (`CellIdx`).
 pub trait Leaf: Copy + PartialEq + std::fmt::Debug {
+    /// The leaf as the number a cell leaf's symbol carries (`cellN<i>`).
     fn raw(self) -> u32;
+    /// The leaf a symbol's number names.
     fn from_raw(raw: u32) -> Self;
 }
 
@@ -33,17 +35,28 @@ impl Leaf for crate::document::CellIdx {
 /// expression whose handle the cell holds.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Tree<L> {
+    /// A number.
     Num(f64),
+    /// A free symbol: `x`.
     Sym(String),
+    /// A cell's value.
     Cell {
+        /// The cell it names.
         cell: L,
+        /// Whether the cell holds an expression handle rather than a number.
         math: bool,
     },
+    /// The sum of its terms.
     Add(Vec<Tree<L>>),
+    /// The product of its factors.
     Mul(Vec<Tree<L>>),
+    /// The first minus the second.
     Sub(Box<Tree<L>>, Box<Tree<L>>),
+    /// The first over the second.
     Div(Box<Tree<L>>, Box<Tree<L>>),
+    /// The negation of its argument.
     Neg(Box<Tree<L>>),
+    /// The first to the power of the second.
     Pow(Box<Tree<L>>, Box<Tree<L>>),
     /// A named function applied to one argument: `sin(x)`.
     Apply(String, Box<Tree<L>>),

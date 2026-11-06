@@ -13,6 +13,7 @@ pub struct EditReport {
 }
 
 impl EditReport {
+    /// Whether the edit is safe for every student: no input fails a condition.
     pub fn safe(&self) -> bool {
         self.failures.is_empty()
     }
@@ -30,6 +31,7 @@ pub struct EditFailure {
     pub node: Option<NodeId>,
     /// Its element in the published version, if it had one.
     pub old_node: Option<NodeId>,
+    /// How it fails, as an English phrase ("removed").
     pub reason: String,
 }
 

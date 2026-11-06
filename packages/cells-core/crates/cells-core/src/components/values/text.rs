@@ -18,6 +18,7 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `value`: the string id of the text.
 pub const VALUE: usize = Props::AT.value;
 
 /// Literal text (or nothing) is a given value holding its string id; a

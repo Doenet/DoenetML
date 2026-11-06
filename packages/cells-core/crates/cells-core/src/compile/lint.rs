@@ -11,6 +11,7 @@ use crate::components::ComponentType;
 use crate::dast::{Dast, NodeId, NodeKind};
 use crate::diagnostics::Diagnostic;
 
+/// The lint's diagnostics for `dast`, in node order.
 pub fn lint(dast: &Dast) -> Vec<Diagnostic> {
     NodeId::below(dast.len())
         .filter(|&n| dast.kind(n) == NodeKind::Element)

@@ -36,8 +36,11 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `x`: the point's first coordinate.
 pub const X: usize = Props::AT.x;
+/// The position of `y`: the point's second coordinate, right after `x`.
 pub const Y: usize = Props::AT.y;
+/// The position of `hide`: 1 when the point is hidden.
 pub const HIDE: usize = Props::AT.hide;
 // A sticky group reads a member's points as (x, y) pairs from the
 // position its layout names (`sticky`, `document/sticky.rs`).

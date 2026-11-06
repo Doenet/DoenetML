@@ -31,6 +31,8 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `selectedIndex`: the 1-based position of the chosen `<choice>`, 0
+/// for none.
 pub const SELECTED_INDEX: usize = Props::AT.selectedIndex;
 
 /// Its choices must be `<choice>` elements; `selectMultiple` is refused.

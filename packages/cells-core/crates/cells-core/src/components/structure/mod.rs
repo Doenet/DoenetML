@@ -49,6 +49,7 @@ pub(crate) mod repeat_for_sequence {
     }
 }
 
+/// `sequenceValue`: the value of one iteration of a repeat over a sequence.
 pub mod sequence_value {
     use super::*;
 
@@ -70,11 +71,15 @@ pub mod sequence_value {
         planner: Props,
     }
 
+    /// The position of `from`: the sequence's first value.
     pub const FROM: usize = Props::AT.from;
+    /// The position of `step`: the difference between consecutive values.
     pub const STEP: usize = Props::AT.step;
+    /// The position of `k`: the iteration's 1-based position.
     pub const K: usize = Props::AT.k;
 }
 
+/// `case`: one branch of a `<conditionalContent>`.
 pub mod case {
     use super::*;
 
@@ -90,5 +95,6 @@ pub mod case {
         owner: ConditionalContent,
     }
 
+    /// The position of `active`: 1 while the branch is the chosen one.
     pub const ACTIVE: usize = Props::AT.active;
 }

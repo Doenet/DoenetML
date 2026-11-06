@@ -44,10 +44,15 @@ component! {
 /// like a function; a function's definition under its own tag.
 pub(crate) const DERIVATIVE: ComponentDef = DEFINITION.with_tags(&["derivative"]);
 
+/// The position of `expr`: the function's expression, a math cell.
 pub const EXPR: usize = Props::AT.expr;
+/// The position of `xmin`: where the samples start, the graph's `xmin`.
 pub const XMIN: usize = Props::AT.xmin;
+/// The position of `xmax`: where the samples end, the graph's `xmax`.
 pub const XMAX: usize = Props::AT.xmax;
+/// The position of `curve`: 1 when the function has a curve, 0 when not.
 pub const CURVE: usize = Props::AT.curve;
+/// The position of `samples`: the first of the curve's sample cells.
 pub const SAMPLES: usize = Props::AT.samples;
 
 /// A `<function>`'s `variables`, split at spaces and commas; `x` when

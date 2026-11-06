@@ -7,6 +7,7 @@ pub mod section;
 
 pub use section::SECTION_TAGS;
 
+/// `<document>`: the root, and the credit of everything scored in it.
 pub mod document {
     use super::*;
 
@@ -21,10 +22,13 @@ pub mod document {
         planner: Props,
     }
 
+    /// The position of `creditAchieved`: the weighted credit of the document's scored items.
     pub const CREDIT: usize = Props::AT.creditAchieved;
+    /// The position of `percentCreditAchieved`: that credit as a percentage.
     pub const PERCENT_CREDIT: usize = Props::AT.percentCreditAchieved;
 }
 
+/// `<graph>`: the container shapes are drawn in, and its visible ranges.
 pub mod graph {
     use super::*;
 
@@ -42,9 +46,13 @@ pub mod graph {
         planner: Props,
     }
 
+    /// The position of `xmin`: the left edge of the visible x-range.
     pub const XMIN: usize = Props::AT.xmin;
+    /// The position of `xmax`: the right edge of the visible x-range.
     pub const XMAX: usize = Props::AT.xmax;
+    /// The position of `ymin`: the bottom of the visible y-range.
     pub const YMIN: usize = Props::AT.ymin;
+    /// The position of `ymax`: the top of the visible y-range.
     pub const YMAX: usize = Props::AT.ymax;
 }
 
@@ -124,6 +132,7 @@ pub(crate) mod group {
     }
 }
 
+/// `<stickyGroup>`: members that snap to one another when dragged.
 pub mod sticky_group {
     use super::*;
 
@@ -139,7 +148,11 @@ pub mod sticky_group {
         planner: Props,
     }
 
+    /// The position of `threshold`: how near a dragged member must come to snap; NaN for
+    /// the default.
     pub const THRESHOLD: usize = Props::AT.threshold;
+    /// The position of `relativeToGraphScales`: 1 when `threshold` is measured in the
+    /// enclosing graph's scales.
     pub const RELATIVE: usize = Props::AT.relativeToGraphScales;
 }
 

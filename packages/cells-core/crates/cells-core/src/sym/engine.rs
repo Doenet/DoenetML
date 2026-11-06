@@ -54,6 +54,7 @@ impl std::fmt::Debug for Engine {
 }
 
 impl Engine {
+    /// An engine holding no expression.
     pub fn new() -> Self {
         Engine {
             exprs: Vec::new(),
@@ -119,6 +120,7 @@ impl Engine {
         })
     }
 
+    /// Store the number `v`.
     pub fn num(&mut self, v: f64) -> Handle {
         self.push(number(v))
     }
@@ -159,16 +161,19 @@ impl Engine {
         Ok(self.push(e))
     }
 
+    /// `h` simplified.
     pub fn simplify(&mut self, h: Handle) -> Handle {
         let e = me::simplify(&self.exprs[h.index()]);
         self.push(e)
     }
 
+    /// `h` expanded; it does not simplify first.
     pub fn expand(&mut self, h: Handle) -> Handle {
         let e = me::expand(&self.exprs[h.index()]);
         self.push(e)
     }
 
+    /// The derivative of `h` with respect to `var`.
     pub fn derivative(&mut self, h: Handle, var: &str) -> Handle {
         let e = me::derivative(&self.exprs[h.index()], var);
         self.push(e)
@@ -211,10 +216,12 @@ impl Engine {
         to_tree(&self.exprs[h.index()])
     }
 
+    /// `h` as math text.
     pub fn text(&self, h: Handle) -> String {
         me::to_text(&self.exprs[h.index()], &TextOpts::default())
     }
 
+    /// `h` as LaTeX.
     pub fn latex(&self, h: Handle) -> String {
         me::to_latex(&self.exprs[h.index()], &LatexOpts::default())
     }
@@ -224,6 +231,7 @@ impl Engine {
         self.exprs.len()
     }
 
+    /// Whether it stores no expression.
     pub fn is_empty(&self) -> bool {
         self.exprs.is_empty()
     }

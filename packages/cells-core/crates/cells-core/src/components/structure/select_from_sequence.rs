@@ -35,6 +35,7 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `value`: the number drawn.
 pub const VALUE: usize = Props::AT.value;
 
 /// Its `value` is one of `from, from + step, ..., to`, less what it

@@ -28,9 +28,15 @@ component! {
     machinery: Answer,
 }
 
+/// The position of `response`: the live response a submit takes.
 pub const RESPONSE: usize = Props::AT.response;
+/// The position of `correct`: what the response is compared with.
 pub const CORRECT: usize = Props::AT.correct;
+/// The position of `submitted`: the response as last submitted.
 pub const SUBMITTED: usize = Props::AT.submitted;
+/// The position of `credit`: the credit the submitted response earns.
 pub const CREDIT: usize = Props::AT.credit;
+/// The position of `weight`: how much its credit counts in an aggregate.
 pub const WEIGHT: usize = Props::AT.weight;
+/// The position of `numSubmissions`: how many submits there have been.
 pub const NUM_SUBMISSIONS: usize = Props::AT.numSubmissions;

@@ -25,6 +25,7 @@ pub struct ReferenceEvaluator<'a> {
 }
 
 impl<'a> ReferenceEvaluator<'a> {
+    /// The oracle for `doc`, with nothing computed yet.
     pub fn new(doc: &'a Document) -> Self {
         let producer = doc
             .program
@@ -42,6 +43,8 @@ impl<'a> ReferenceEvaluator<'a> {
         }
     }
 
+    /// `cell`'s value: an essential cell or constant as the document holds
+    /// it, a derived cell recomputed from its inputs' values.
     pub fn value(&self, cell: CellIdx) -> f64 {
         // Essential cells and constants have no producer.
         let Some(&p) = self.producer.get(&cell) else {

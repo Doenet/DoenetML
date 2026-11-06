@@ -31,7 +31,9 @@ impl ScopeId {
 /// One expanded `<repeatForSequence>`.
 #[derive(Debug, Clone)]
 pub struct Repeat {
+    /// The repeat's component.
     pub comp: CompIdx,
+    /// The repeat's element in the source.
     pub node: NodeId,
     /// Scope the repeat element sits in.
     pub scope: ScopeId,
@@ -72,14 +74,17 @@ impl ScopeTable {
         s
     }
 
+    /// How many scopes the table holds, the document's included.
     pub fn len(&self) -> usize {
         self.entries.len()
     }
 
+    /// Whether the table holds no scope (never: it starts with the document's).
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
 
+    /// An estimate of the table's heap use, in bytes.
     pub fn heap_bytes(&self) -> usize {
         self.entries.capacity() * 12 + self.index.capacity() * 16
     }
@@ -106,6 +111,7 @@ pub struct Structure {
     /// Per essential cell, in cell order: the value the build gives it when
     /// nothing was carried over; saved state holds only the cells that differ.
     pub essential_defaults: Vec<f64>,
+    /// Every repeat it expanded.
     pub repeats: Vec<Repeat>,
     /// Per value slot this build's own walk finds writable, in slot order:
     /// its essential key, whatever the record says.
@@ -125,17 +131,21 @@ pub struct Structure {
 #[cfg(feature = "testing")]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SlotClass {
+    /// An essential cell: a stored value that requests set and builds carry over.
     Essential,
     /// A constant, with its value, and whether the compile's record makes
     /// it a document constant.
     Constant {
+        /// The constant's value.
         value: f64,
+        /// Whether the compile's record makes it a document constant.
         document: bool,
         /// Whether the check's attribute marks its port a constant
         /// ([`PortAttrs::CONSTANT`](crate::compile::plan::PortAttrs::CONSTANT), ADR 0037), which every constant a build
         /// makes, a fold included, must be.
         marked: bool,
     },
+    /// A derived cell, computed by an operator over other cells.
     Derived,
     /// Another slot's cell.
     Alias,

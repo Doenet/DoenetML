@@ -29,6 +29,7 @@ pub(crate) mod number_input {
     }
 }
 
+/// `<booleanInput>`: a checkbox.
 pub mod boolean_input {
     use super::*;
 
@@ -45,9 +46,11 @@ pub mod boolean_input {
         planner: Props,
     }
 
+    /// The position of `value`: 1 when checked, else 0.
     pub const VALUE: usize = Props::AT.value;
 }
 
+/// `<choice>`: one option of a `<choiceInput>`.
 pub mod choice {
     use super::*;
 
@@ -62,6 +65,7 @@ pub mod choice {
         planner: Props,
     }
 
+    /// The position of `credit`: what choosing it earns.
     pub const CREDIT: usize = Props::AT.credit;
 }
 

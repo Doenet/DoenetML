@@ -27,9 +27,12 @@ pub use vector::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[repr(u8)]
 pub enum ValueType {
+    /// A number.
     #[default]
     Number,
+    /// A string id into the document's string table.
     Text,
+    /// An expression handle in the symbolic engine.
     Math,
 }
 
@@ -59,7 +62,9 @@ impl SymState {
 /// What running a program writes besides its cells: its symbolic
 /// instructions' state and the document's engine they call.
 pub struct SymRun<'a> {
+    /// The symbolic instructions' memo.
     pub state: &'a mut SymState,
+    /// The document's symbolic engine.
     pub engine: &'a mut Engine,
 }
 
@@ -80,6 +85,7 @@ const NEVER: f64 = f64::from_bits(0x7ff8_dead_beef_0001);
 /// either essential cells or outputs of earlier instructions.
 #[derive(Debug, Clone, Default)]
 pub struct Program {
+    /// The instructions, in schedule order.
     pub instrs: Vec<Instr>,
     /// `producer[cell]` = the instruction writing that cell, or
     /// [`InstrIdx::NONE`] for essential cells and constants. A vector
@@ -484,10 +490,12 @@ impl Program {
             .any(|c| differs(a[c.index()], b[c.index()]))
     }
 
+    /// How many instructions it has.
     pub fn len(&self) -> usize {
         self.instrs.len()
     }
 
+    /// Whether it has no instruction.
     pub fn is_empty(&self) -> bool {
         self.instrs.is_empty()
     }

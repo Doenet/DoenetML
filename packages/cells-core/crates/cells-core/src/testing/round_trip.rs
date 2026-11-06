@@ -35,15 +35,22 @@ pub const POINTS: [[f64; 2]; 4] = [[-3.7, 0.5], [2.0, 7.25], [100.0, -2.0], [0.3
 /// What one request did; see the module documentation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Class {
+    /// The cells hold what was asked.
     Exact,
+    /// They hold something else, which asking again leaves in place.
     Projected,
+    /// They hold what they held, and nothing was dropped.
     Unchanged,
+    /// They hold what they held, and the tick reports the request dropped.
     Dropped,
+    /// The request changed the document's structure.
     Rebuilt,
+    /// Anything else: asking again moves the cells.
     Unstable,
 }
 
 impl Class {
+    /// Every class, in order.
     pub const ALL: [Class; 6] = [
         Class::Exact,
         Class::Projected,
@@ -53,6 +60,7 @@ impl Class {
         Class::Unstable,
     ];
 
+    /// The class's name as the module documentation and reports write it.
     pub fn name(self) -> &'static str {
         match self {
             Class::Exact => "exact",
@@ -71,11 +79,16 @@ pub struct Outcome {
     /// The component's type and the prop or pair requested:
     /// `"point (x, y)"`, `"slider value"`.
     pub row: String,
+    /// The component requested.
     pub component: CompIdx,
+    /// The values asked, one per requested cell.
     pub asked: Vec<f64>,
     /// The requested cells after the request (empty when rebuilt).
     pub got: Vec<f64>,
+    /// What the request did.
     pub class: Class,
+    /// Whether a written essential cell reaches a requested cell along more
+    /// than one path through the program.
     pub multipath: bool,
 }
 

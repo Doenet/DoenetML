@@ -21,6 +21,7 @@ pub struct DirtyClosure {
 }
 
 impl DirtyClosure {
+    /// The tables for `program` over `n_cells` cells, with nothing marked dirty.
     pub fn new(program: &Program, n_cells: usize) -> Self {
         let mut dep_start = vec![0u32; n_cells + 1];
         for ins in &program.instrs {
@@ -89,6 +90,7 @@ impl Recompute {
         }
     }
 
+    /// The name [`Recompute::named`] reads: "full" or "dirty-closure".
     pub fn name(self) -> &'static str {
         match self {
             Recompute::Full => "full",

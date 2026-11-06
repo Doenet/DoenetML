@@ -11,6 +11,7 @@
 /// A set of numbers: `[lo, hi]`, or ⊤ (anything, NaN included).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Range {
+    /// ⊤: any value, NaN included.
     Top,
     /// `[lo, hi]`, neither NaN, `lo <= hi`; either may be infinite.
     Span(f64, f64),

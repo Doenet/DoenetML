@@ -29,7 +29,9 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `expr`: the engine handle of the expression; NaN when numeric.
 pub const EXPR: usize = Props::AT.expr;
+/// The position of `value`: the expression's numeric value.
 pub const VALUE: usize = Props::AT.value;
 
 /// A math's props: its expression, with `post` applied, and its value.

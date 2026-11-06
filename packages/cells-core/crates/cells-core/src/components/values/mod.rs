@@ -14,6 +14,7 @@ pub mod math;
 pub mod text;
 pub mod when;
 
+/// `<number>`: a numeric value.
 pub mod number {
     use super::*;
 
@@ -29,6 +30,7 @@ pub mod number {
         planner: Props,
     }
 
+    /// The position of `value`: the number.
     pub const VALUE: usize = Props::AT.value;
 }
 
@@ -50,6 +52,7 @@ pub(crate) mod evaluate {
     }
 }
 
+/// `response`: one response an answer submits.
 pub mod response {
     use super::*;
 
@@ -72,8 +75,11 @@ pub mod response {
         owner: Answer,
     }
 
+    /// The position of `response`: the input's live expression.
     pub const RESPONSE: usize = Props::AT.response;
+    /// The position of `submitted`: the response as last submitted.
     pub const SUBMITTED: usize = Props::AT.submitted;
+    /// The position of `value`: the submitted response, evaluated.
     pub const VALUE: usize = Props::AT.value;
 }
 
@@ -102,6 +108,7 @@ pub(crate) mod clamp_number {
 /// Most entries a tuple holds.
 pub use crate::limits::MAX_TUPLE;
 
+/// `tuple`: a tuple of numbers, up to [`MAX_TUPLE`] entries.
 pub mod tuple {
     use super::*;
     use crate::compile::api::{ElemWiring, Source, Wire};
@@ -138,6 +145,7 @@ pub mod tuple {
         "a tuple holds MAX_TUPLE entries"
     );
 
+    /// The position of `n`: how many entries the tuple has.
     pub const N: usize = Props::AT.n;
     /// The first entry; entry k (0-based) is at `X1 + k`.
     pub const X1: usize = Props::AT.x1;
@@ -173,6 +181,7 @@ pub mod tuple {
     }
 }
 
+/// `<updateValue>`: a request on another cell, performed by a trigger.
 pub mod update_value {
     use super::*;
 
@@ -190,6 +199,8 @@ pub mod update_value {
         planner: Props,
     }
 
+    /// The position of `target`: an alias of the target's value cell.
     pub const TARGET: usize = Props::AT.target;
+    /// The position of `newValue`: the value it requests.
     pub const NEW_VALUE: usize = Props::AT.newValue;
 }

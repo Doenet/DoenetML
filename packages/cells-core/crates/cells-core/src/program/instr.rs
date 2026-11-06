@@ -24,7 +24,12 @@ pub enum SymKind {
     /// or the expression a math cell holds), then `post`. Inputs are the
     /// template's leaf cells; `template` is an engine expression whose leaves
     /// are those cells.
-    Instantiate { template: Handle, post: Post },
+    Instantiate {
+        /// The engine expression whose leaves are the input cells.
+        template: Handle,
+        /// What to do to the result.
+        post: Post,
+    },
     /// The expression in input 0 as a number; NaN with free symbols.
     Evaluate,
     /// Input 0 with `x` set to input 1.
@@ -40,14 +45,20 @@ pub enum SymKind {
     /// `Program::tapes[tape]` at `SAMPLES` evenly spaced x from input 0 to
     /// input 1; inputs 2.. are the tape's parameter cells. What `Sample`
     /// becomes when the expression's shape is constant at build time.
-    SampleTape { tape: TapeIdx },
+    SampleTape {
+        /// The compiled curve it runs.
+        tape: TapeIdx,
+    },
 }
 
 /// What a `<math>` does to its expression after instantiating it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Post {
+    /// Nothing: the expression as instantiated.
     None,
+    /// The engine's simplify.
     Simplify,
+    /// The engine's expand.
     Expand,
     /// Simplified, then expanded (a `<boolean simplifyOnCompare
     /// expandOnCompare>`): the engine's expand does not simplify first.
@@ -55,6 +66,7 @@ pub enum Post {
 }
 
 impl SymKind {
+    /// How many cells it writes: [`SAMPLES`] for a sampler, else 1.
     pub fn n_out(self) -> usize {
         match self {
             SymKind::Sample | SymKind::SampleTape { .. } => SAMPLES,
@@ -115,6 +127,7 @@ crate::index::index_type! {
 pub struct VecIdx(u16);
 
 impl VecIdx {
+    /// The position, as a `usize`.
     pub fn index(self) -> usize {
         self.0 as usize
     }
@@ -124,7 +137,9 @@ impl VecIdx {
 /// (the `n + n_out` entries it keeps in [`SymState`](crate::program::SymState)).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SymEntry {
+    /// What it computes.
     pub kind: SymKind,
+    /// Where its memo entries start.
     pub memo: MemoIdx,
 }
 
@@ -134,10 +149,15 @@ pub struct SymEntry {
 /// instructions take.
 #[derive(Debug, Clone, Default)]
 pub struct Operands {
+    /// The input cells of every vector and symbolic instruction, each run
+    /// contiguous; an [`OperandIdx`] points into it.
     pub cells: Vec<CellIdx>,
+    /// The symbolic instructions, by [`SymIdx`].
     pub syms: Vec<SymEntry>,
+    /// The distinct vector operators, by [`VecIdx`].
     pub vecs: Vec<VecOp>,
     vec_ids: std::collections::HashMap<VecOp, VecIdx>,
+    /// How many memo entries the symbolic instructions take in all.
     pub memo_len: usize,
 }
 
@@ -155,7 +175,9 @@ impl Operands {
 /// One instruction: the cell it writes and the operator that computes it.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Instr {
+    /// The cell it writes; with several outputs, the first of their run.
     pub out: CellIdx,
+    /// The operator, bound to its inputs.
     pub op: Op,
 }
 
@@ -189,6 +211,7 @@ impl OpSpec {
         }
     }
 
+    /// How many cells the operator writes.
     pub fn n_out(&self) -> usize {
         match self {
             OpSpec::Vec(v) => v.n_out(),

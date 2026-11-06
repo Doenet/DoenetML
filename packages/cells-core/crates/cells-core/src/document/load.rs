@@ -104,10 +104,13 @@ pub struct LoadTimings {
     /// graph, and the lint), and per pass `build`, `schedule` and
     /// `compute`.
     pub spans: Vec<Span>,
+    /// Reading the source bytes into a [`Dast`].
     pub deserialize: Duration,
     /// The compile, its check included, and every build pass after it.
     pub build: Duration,
+    /// Scheduling each pass's program, summed over the passes.
     pub schedule: Duration,
+    /// Computing each pass's cells, summed over the passes.
     pub initial_compute: Duration,
     /// The load check, part of `build`: the check over the template graph,
     /// which stands for every count and pick and finds the document's

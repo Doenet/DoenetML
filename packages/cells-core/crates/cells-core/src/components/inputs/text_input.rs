@@ -25,6 +25,7 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `value`: the string id of the entered text.
 pub const VALUE: usize = Props::AT.value;
 
 /// `value` aliases what a lone `$ref` child names, else what

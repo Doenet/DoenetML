@@ -68,6 +68,8 @@ macro_rules! scalar_ops {
         $(#[$m:meta])* $name:ident ($($in:ident),+)
         { eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(, range: $range:expr)? $(,)? }
     )*) => {
+        /// An operator bound to its input cells: a scalar one names them,
+        /// a vector or symbolic one parks them in the program's operands.
         #[derive(Debug, Clone, Copy, PartialEq)]
         pub enum Op {
             $($(#[$m])* $name($(scalar_ops!(@cell $in)),+),)*
@@ -85,12 +87,14 @@ macro_rules! scalar_ops {
         #[derive(Debug, Clone, Copy, PartialEq)]
         pub enum OpSpec {
             $($(#[$m])* $name,)*
+            /// A vector operator: its inputs and outputs are fixed by the [`VecOp`].
             Vec(VecOp),
             /// Any number of inputs (a template's leaves); see [`SymKind`].
             Sym(SymKind),
         }
 
         impl Op {
+            /// A scalar operator's value over its input cells in `cells`.
             #[inline(always)]
             pub fn eval(&self, cells: &[f64]) -> f64 {
                 match *self {
@@ -165,8 +169,12 @@ macro_rules! scalar_ops {
         /// How a scalar operator's inverse is checked.
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub enum Inverse {
+            /// Where it writes, evaluating again gives the desired value.
             Exact,
+            /// Where it writes, evaluating again gives the operator applied
+            /// with the desired value in the written input.
             Projection,
+            /// No request passes.
             Drops,
         }
 

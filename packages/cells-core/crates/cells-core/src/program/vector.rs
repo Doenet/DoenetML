@@ -41,6 +41,7 @@ use crate::tick::invert::PointRequest;
 /// The point a rigid shape rotates or dilates about.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Pivot {
+    /// The mean of its vertices.
     Centroid,
     /// A vertex, 0-based.
     Vertex(u8),
@@ -54,13 +55,18 @@ pub enum Pivot {
 /// shrink the shape is an input.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RigidOpts {
+    /// Whether one dragged vertex also scales the shape.
     pub dilate: bool,
+    /// Whether one dragged vertex rotates the shape.
     pub rotate: bool,
+    /// Whether several dragged vertices translate the shape.
     pub translate: bool,
+    /// The point it rotates and scales about.
     pub pivot: Pivot,
 }
 
 impl RigidOpts {
+    /// A rigid shape: it rotates about its centroid and translates, never scales.
     pub const RIGID: RigidOpts = RigidOpts {
         dilate: false,
         rotate: true,
@@ -73,18 +79,23 @@ impl RigidOpts {
 /// engine moves together.
 #[derive(Debug, Default)]
 pub struct Produced {
+    /// Requests on scalar input cells: each cell with its new value.
     pub writes: Vec<(CellIdx, f64)>,
+    /// Point groups: the points in each one move together.
     pub groups: Vec<Vec<PointRequest>>,
 }
 
 impl Produced {
+    /// Drop every request, keeping the allocations.
     pub fn clear(&mut self) {
         self.writes.clear();
         self.groups.clear();
     }
+    /// Request `value` for input `cell`.
     pub fn write(&mut self, cell: CellIdx, value: f64) {
         self.writes.push((cell, value));
     }
+    /// Request that `points` move together, as one point group.
     pub fn group(&mut self, points: Vec<PointRequest>) {
         self.groups.push(points);
     }
@@ -97,17 +108,28 @@ pub enum VecOp {
     /// Identity on `n` points (2n outputs) that move rigidly. Inputs are the
     /// 2n coordinates, a pivot point (NaN unless [`Pivot::Point`]), and the
     /// least a pure dilation may shrink the shape to (`minShrink`).
-    Shape { n: u8, opts: RigidOpts },
+    Shape {
+        /// How many points.
+        n: u8,
+        /// How the shape may move.
+        opts: RigidOpts,
+    },
     /// Inputs (cx, cy, px, py); outputs (cx, cy, r).
     CircleCenterPoint,
     /// Inputs 2n point coordinates (n = 2 or 3); outputs (cx, cy, r).
-    CirclePoints { n: u8 },
+    CirclePoints {
+        /// How many points: 2 or 3.
+        n: u8,
+    },
     /// Inputs (x1, y1, x2, y2, r); outputs (cx, cy).
     CircleTwoPointsRadius,
     /// Inputs (x1, y1, m, d); outputs (x2, y2).
     PolarSlope,
     /// Inputs (x1, y1, ux, uy, d); outputs (x2, y2).
-    PolarDirection { perpendicular: bool },
+    PolarDirection {
+        /// Whether to go along `u` turned a quarter turn clockwise instead.
+        perpendicular: bool,
+    },
     /// Inputs (a, b, c) of ax + by + c = 0; outputs (x1, y1, x2, y2).
     LinePointsFromCoeffs,
     /// Inputs (x, y, cx, cy, r); outputs (x', y').
@@ -117,31 +139,46 @@ pub enum VecOp {
     /// A reactive choice's choice cell: inputs are its `n` condition cells; the
     /// output is the 1-based position of the first that holds (nonzero, not
     /// NaN), or 0. No inverse: a request cannot flip a branch.
-    First { n: u8 },
+    First {
+        /// How many conditions.
+        n: u8,
+    },
     /// An interface name of a choice whose branches are all built: inputs
     /// are the choice cell and the name's cell in each of the `n` branches;
     /// the output is the active branch's cell (NaN when none is active).
     /// The inverse writes the active branch only.
-    Choose { n: u8 },
+    Choose {
+        /// How many branches.
+        n: u8,
+    },
     /// Credit over scored items: inputs are `n` weights then `n` credits;
     /// outputs are the weighted mean and the total weight. The mean is 1 when
     /// the total weight is 0 (nothing scored). No inverse: credit is not set by
     /// a request.
-    WeightedMean { n: u8 },
+    WeightedMean {
+        /// How many scored items.
+        n: u8,
+    },
     /// Input 0 held between inputs 1 and 2; NaN if any is NaN. A request
     /// projects onto the bounds and writes input 0.
     Clamp,
     /// Inputs 2n point coordinates (n ≥ 1); outputs (cx, cy), their mean:
     /// a polygon's center. A request on it translates every point by the
     /// shift, as one point group.
-    Centroid { n: u8 },
+    Centroid {
+        /// How many points.
+        n: u8,
+    },
     /// A `<selectFromSequence>`'s pick (ADR 0037): inputs are a draw in
     /// `[0, 1)`, `from`, `step`, `to` and `n_exclude` excluded values; the
     /// output is the value of `from, from + step, ..., to` that the draw
     /// indexes among those not excluded, as the JavaScript core's
     /// `getSingleIndex` does. NaN when there is none, which the check
     /// makes sure no build meets. No inverse.
-    SequencePick { n_exclude: u8 },
+    SequencePick {
+        /// How many excluded values follow `to`.
+        n_exclude: u8,
+    },
 }
 
 /// How many values `from, from + step, ..., to` holds, as a pick counts
@@ -231,6 +268,7 @@ fn active_branch(choice: f64, n: u8) -> Option<usize> {
 }
 
 impl VecOp {
+    /// How many input cells it reads.
     pub const fn n_in(&self) -> usize {
         match *self {
             VecOp::Shape { n, .. } => 2 * n as usize + 3,
@@ -320,6 +358,7 @@ impl VecOp {
         }
     }
 
+    /// How many cells it writes.
     pub fn n_out(&self) -> usize {
         match *self {
             VecOp::Shape { n, .. } => 2 * n as usize,

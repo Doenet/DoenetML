@@ -99,6 +99,7 @@ impl Session {
             .and_then(|row| row.get(slot.index()).copied().flatten())
     }
 
+    /// The heap memory the session holds, in bytes.
     pub fn heap_bytes(&self) -> usize {
         self.scopes.heap_bytes()
             + self
@@ -126,6 +127,7 @@ impl Pool {
         self.values.len()
     }
 
+    /// Whether the pool holds no cell.
     pub fn is_empty(&self) -> bool {
         self.values.is_empty()
     }
@@ -154,6 +156,7 @@ impl Pool {
 /// A restored value waiting for the build that stamps its scope.
 #[derive(Debug, Clone, Copy)]
 pub struct Parked {
+    /// The value to restore.
     pub value: f64,
     /// The type it was saved as: it goes only into a cell of that type.
     pub ty: crate::ValueType,

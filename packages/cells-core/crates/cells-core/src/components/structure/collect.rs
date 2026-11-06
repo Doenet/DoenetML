@@ -15,6 +15,7 @@ component! {
     machinery: Collect,
 }
 
+/// The position of `count`: how many components it collects.
 pub const COUNT: usize = Props::AT.count;
 
 /// The type a `<collect>` collects, from the text of its `componentType`

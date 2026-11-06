@@ -52,9 +52,13 @@ impl StrId {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum NodeKind {
+    /// An element: a tag with attributes and children.
     Element = 0,
+    /// A run of text.
     Text = 1,
+    /// A reference (`$a.b[k]`): its path parts and their indices.
     Macro = 2,
+    /// Any other node the parser emits (a comment, say); it carries no string.
     Other = 3,
 }
 
@@ -72,11 +76,14 @@ impl NodeKind {
 /// Deduplicated strings: `bytes[offsets[i]..offsets[i+1]]` is string `i`.
 #[derive(Debug, Clone, Default)]
 pub struct StringTable {
+    /// Byte offset where each string starts, then the end of the last one.
     pub offsets: Vec<u32>,
+    /// Every string's UTF-8, end to end.
     pub bytes: Vec<u8>,
 }
 
 impl StringTable {
+    /// An empty table.
     pub fn new() -> Self {
         StringTable {
             offsets: vec![0],
@@ -84,14 +91,17 @@ impl StringTable {
         }
     }
 
+    /// The number of strings.
     pub fn len(&self) -> usize {
         self.offsets.len() - 1
     }
 
+    /// Whether the table holds no string.
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    /// String `i`.
     #[inline]
     pub fn get(&self, i: StrId) -> &str {
         let (a, b) = (
@@ -109,6 +119,7 @@ impl StringTable {
         StrId::from_index(self.offsets.len() - 2)
     }
 
+    /// The heap memory the table holds, in bytes.
     pub fn heap_bytes(&self) -> usize {
         self.offsets.capacity() * 4 + self.bytes.capacity()
     }
@@ -118,6 +129,7 @@ impl StringTable {
 /// attributes as ranges, and one string table.
 #[derive(Debug, Clone, Default)]
 pub struct Dast {
+    /// Every string the tree names: tags, attribute names, text, path parts.
     pub strings: StringTable,
     kind: Vec<u8>,
     /// element: tag string; text: value string; macro/other: unused
@@ -148,6 +160,8 @@ crate::index::index_type! {
 }
 
 impl Dast {
+    /// The synthetic root element, whose children are the document's top-level
+    /// nodes.
     pub const ROOT: NodeId = NodeId::new(0);
 
     /// A hash of the whole tree, equal for equal trees. Not a cryptographic
@@ -196,14 +210,17 @@ impl Dast {
         h
     }
 
+    /// The number of nodes, the root included.
     pub fn len(&self) -> usize {
         self.kind.len()
     }
 
+    /// Whether the tree has no node, not even the root.
     pub fn is_empty(&self) -> bool {
         self.kind.is_empty()
     }
 
+    /// What node `n` is.
     #[inline]
     pub fn kind(&self, n: NodeId) -> NodeKind {
         NodeKind::from_u8(self.kind[n.index()])
@@ -215,11 +232,13 @@ impl Dast {
         self.strings.get(self.str_[n.index()])
     }
 
+    /// [`Dast::str`] as its string id.
     #[inline]
     pub fn str_id(&self, n: NodeId) -> StrId {
         self.str_[n.index()]
     }
 
+    /// The children of node `n`, in source order.
     #[inline]
     pub fn children(&self, n: NodeId) -> &[NodeId] {
         let (s, c) = (
@@ -229,6 +248,7 @@ impl Dast {
         &self.children[s..s + c]
     }
 
+    /// The attributes of element `n`, in source order.
     pub fn attrs(
         &self,
         n: NodeId,
@@ -236,16 +256,19 @@ impl Dast {
         AttrId::span(self.a_start[n.index()], self.a_count[n.index()])
     }
 
+    /// The name of attribute `a`, as written.
     #[inline]
     pub fn attr_name(&self, a: AttrId) -> &str {
         self.strings.get(self.attr_name[a.index()])
     }
 
+    /// [`Dast::attr_name`] as its string id.
     #[inline]
     pub fn attr_name_id(&self, a: AttrId) -> StrId {
         self.attr_name[a.index()]
     }
 
+    /// The value of attribute `a`: its text and macro nodes.
     #[inline]
     pub fn attr_children(&self, a: AttrId) -> &[NodeId] {
         let (s, c) = (
@@ -316,6 +339,8 @@ impl Dast {
             .any(|p| self.path_i_count[p.index()] > 0)
     }
 
+    /// A macro's path parts joined by `.`, without the `$` or indices: for
+    /// messages.
     pub fn macro_display(&self, n: NodeId) -> String {
         self.macro_path(n)
             .iter()
@@ -324,6 +349,7 @@ impl Dast {
             .join(".")
     }
 
+    /// The heap memory the tree holds, in bytes.
     pub fn heap_bytes(&self) -> usize {
         self.strings.heap_bytes()
             + self.kind.capacity()

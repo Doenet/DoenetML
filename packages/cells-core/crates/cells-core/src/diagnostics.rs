@@ -17,16 +17,22 @@ use crate::dast::NodeId;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Kind {
+    /// An element that could not be built; it stands as an `_error` component.
     Error,
+    /// An element that was built but likely does not do what its author meant.
     Warning,
+    /// A note on behavior an author may not expect, which is not a mistake.
     Info,
+    /// An accessibility issue in an element that was built; see
+    /// [`Diagnostic::level`].
     Accessibility,
 }
 
-/// A finding about the source: an error, a warning or an accessibility issue,
-/// at the node it is about.
+/// A finding about the source, of a [`Kind`] (an error, a warning, a note or
+/// an accessibility issue), at the node it is about.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct Diagnostic {
+    /// Whether the element failed to build, or what sort of finding this is.
     pub kind: Kind,
     /// Accessibility only: 1 is a WCAG AA violation, 2 advisory.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -59,6 +65,7 @@ impl Diagnostic {
         }
     }
 
+    /// A warning with code `code` about the element at `node`.
     pub fn warning(code: &'static str, node: Option<NodeId>, message: String) -> Diagnostic {
         Diagnostic {
             kind: Kind::Warning,
@@ -70,6 +77,7 @@ impl Diagnostic {
         }
     }
 
+    /// An info with code `code` about the element at `node`.
     pub fn info(code: &'static str, node: Option<NodeId>, message: String) -> Diagnostic {
         Diagnostic {
             kind: Kind::Info,
@@ -81,6 +89,8 @@ impl Diagnostic {
         }
     }
 
+    /// An accessibility finding of `level` (1 AA, 2 advisory) about the element
+    /// at `node`, with the `args` its coded message fills in.
     pub fn accessibility(
         level: u8,
         code: &'static str,

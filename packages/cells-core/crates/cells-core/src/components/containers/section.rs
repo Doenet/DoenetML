@@ -44,6 +44,7 @@ component! {
 
 /// A tag that makes a `Section`, and its defaults.
 pub struct SectionTag {
+    /// The tag, or a `<division>`'s `type`: `problem`.
     pub tag: &'static str,
     /// The word its automatic title shows: "Problem 3".
     pub title: &'static str,
@@ -95,12 +96,20 @@ pub const SECTION_TAGS: [SectionTag; 6] = [
     },
 ];
 
+/// The position of `creditAchieved`: the weighted credit of the answers and sections
+/// inside it, when it aggregates scores.
 pub const CREDIT: usize = Props::AT.creditAchieved;
+/// The position of `percentCreditAchieved`: that credit as a percentage.
 pub const PERCENT_CREDIT: usize = Props::AT.percentCreditAchieved;
+/// The position of `weight`: how much its credit counts in an enclosing aggregate.
 pub const WEIGHT: usize = Props::AT.weight;
+/// The position of `aggregateScores`: 1 when it holds the credit of what is inside it.
 pub const AGGREGATE: usize = Props::AT.aggregateScores;
+/// The position of `number`: its 1-based count among its sibling sections.
 pub const NUMBER: usize = Props::AT.number;
+/// The position of `includeParentNumber`: 1 when its number shows its parent's ("2.1").
 pub const INCLUDE_PARENT_NUMBER: usize = Props::AT.includeParentNumber;
+/// The position of `label`: its tag's index in [`SECTION_TAGS`], which names its title.
 pub const LABEL: usize = Props::AT.label;
 
 /// A section's `aggregateScores`, `includeParentNumber` and `label`:

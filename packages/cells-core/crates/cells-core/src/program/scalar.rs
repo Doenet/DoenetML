@@ -170,13 +170,14 @@ scalar_ops! {
         exact |d| Some((A, d)),
         range: a,
     }
-    /// Comparisons for conditions: 1 or 0, and 0 when either
-    /// side is NaN. A request cannot change a condition.
+    /// `a < b`, for conditions: 1 or 0, and 0 when either side is NaN. A
+    /// request cannot change a condition.
     Lt(a, b) {
         eval: bit(a < b),
         drops,
         range: Range::UNIT,
     }
+    /// `a <= b`, as [`Op::Lt`].
     Le(a, b) {
         eval: bit(a <= b),
         drops,

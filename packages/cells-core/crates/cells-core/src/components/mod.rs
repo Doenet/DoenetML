@@ -171,6 +171,7 @@ component_types! {
 pub struct ComponentDef {
     /// The tag the type shows as, then other tags that make it.
     pub tags: &'static [&'static str],
+    /// The single-cell props, in table order.
     pub props: &'static [PropDef],
     /// The prop a bare `$name` reference resolves to.
     pub default_prop: Option<&'static str>,
@@ -182,6 +183,7 @@ pub struct ComponentDef {
     /// The current core's spellings of a few props, accepted in references
     /// so its documents resolve unchanged.
     pub alternate_names: &'static [(&'static str, &'static str)],
+    /// What the type is apart from its props.
     pub flags: Flags,
     /// Where a component of the type is drawn.
     pub renders: Renders,
@@ -226,21 +228,36 @@ pub enum AttrKind {
     /// A point: one reference, or a tuple `(a, b)`.
     Point,
     /// A list of points, at most `max` when given.
-    Points { max: Option<usize> },
+    Points {
+        /// The most points the list may hold.
+        max: Option<usize>,
+    },
     /// A list of scalars, each a number or one reference, separated by
     /// spaces as DoenetML writes a list (`exclude="$a 7 $b"`): a source
     /// each.
     Scalars,
     /// An on/off attribute that may be bound (`hide="$h"`): a 0/1 source,
     /// `default` without one.
-    Flag { default: bool },
+    Flag {
+        /// The value when the attribute is absent.
+        default: bool,
+    },
     /// A literal on/off attribute: present and empty or `true`.
-    Bool { default: bool },
+    Bool {
+        /// The value when the attribute is absent.
+        default: bool,
+    },
     /// A literal number, `default` when absent or not a number.
-    Number { default: f64 },
+    Number {
+        /// The value when the attribute is absent or not a number.
+        default: f64,
+    },
     /// A literal number, `default` when absent; a reference or text that is no
     /// number is an error when the planner reads it.
-    Literal { default: f64 },
+    Literal {
+        /// The value when the attribute is absent.
+        default: f64,
+    },
     /// A literal on/off attribute that may also take a value: present and
     /// not `false` or `none` (`simplify`, `simplify="full"`).
     On,
@@ -266,7 +283,9 @@ pub enum AttrKind {
 /// One attribute a type's planner reads.
 #[derive(Debug, Clone, Copy)]
 pub struct AttrDecl {
+    /// The attribute's name, as written.
     pub name: &'static str,
+    /// How it is parsed.
     pub kind: AttrKind,
 }
 
@@ -298,13 +317,18 @@ pub enum ConstrainTarget {
     /// asked, given the target's props `props`, in order
     /// (`constrain_target { ports: [cx, cy, radius], op: ProjectCircle }`).
     Project {
+        /// The target's props the projection reads.
         props: &'static [&'static str],
+        /// The projection.
         op: crate::program::VecOp,
     },
     /// The point rides a graph: its `x` is what was asked, its `y` the
     /// target's prop `expr` evaluated there (`constrain_target { graph:
     /// expr }`).
-    Graph { expr: &'static str },
+    Graph {
+        /// The target's prop holding the curve's expression.
+        expr: &'static str,
+    },
 }
 
 /// Machinery several types share, which plans an element of a type that names
@@ -330,7 +354,9 @@ pub enum Machinery {
 /// named as the group is (`<constraints>`).
 #[derive(Debug, Clone, Copy)]
 pub struct ChildGroup {
+    /// The group's name, and its wrapper element's tag.
     pub name: &'static str,
+    /// The types its elements may be.
     pub types: &'static [ComponentType],
 }
 
@@ -338,7 +364,9 @@ pub struct ChildGroup {
 /// children it reads beside it.
 #[derive(Debug, Clone, Copy)]
 pub struct ChildrenDecl {
+    /// What the children are parsed into.
     pub kind: ChildrenKind,
+    /// The groups of element children it reads beside them.
     pub groups: &'static [ChildGroup],
 }
 
@@ -362,8 +390,11 @@ impl ChildrenDecl {
 /// stored, a document reads them alike: `$l.points`, `$l.point2`,
 /// `$l.points[2].x`.
 pub struct ListProp {
+    /// The names the list goes by: `throughPoints`, `points`.
     pub names: &'static [&'static str],
+    /// The name of one point in it, before its 1-based number: `throughPoint`.
     pub item: &'static str,
+    /// Where its points are.
     pub points: ListPoints,
     /// A renderer may request every point: a drag of one point or of the
     /// whole shape moves them (a line's, a circle's through points, a
@@ -397,9 +428,13 @@ pub enum ListPoints {
     /// The points are given by the attribute `attribute`, and the list keeps at
     /// most `max` of them.
     Given {
+        /// The names of a point's coordinates, before its number: `throughX`.
         coords: [&'static str; 2],
+        /// The current core's name for them: `throughPointX`.
         alternate_name: Option<&'static str>,
+        /// The attribute that gives the points.
         attribute: crate::compile::api::Attr,
+        /// The most points the list keeps.
         max: Option<usize>,
     },
     /// A fixed number, each a pair of the table's props: a line's two
@@ -411,7 +446,12 @@ pub enum ListPoints {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StickyPoints {
     /// `n` points from the table's prop `first`.
-    Props { first: usize, n: usize },
+    Props {
+        /// The table position of the first point's x.
+        first: usize,
+        /// How many points.
+        n: usize,
+    },
     /// The points of the type's list.
     List,
 }
@@ -420,8 +460,11 @@ pub enum StickyPoints {
 /// of the type's list (`k` 1-based), whole or one coordinate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PropAt {
+    /// A single-cell prop, at this table position.
     Position(usize),
+    /// A whole point of the list.
     Item(usize),
+    /// One coordinate (0 for x, 1 for y) of a point of the list.
     Coord(usize, usize),
     /// The list as a whole (`throughPoints`).
     List,
@@ -434,7 +477,12 @@ pub enum PropSel {
     At(PropAt),
     /// A combined prop (`center`) or a point of a list whose points are table
     /// props (`vertex3`, `point1`): its single-cell parts, as table positions.
-    Parts { idx: [u8; MAX_PARTS], len: u8 },
+    Parts {
+        /// The parts' table positions; only the first `len` are used.
+        idx: [u8; MAX_PARTS],
+        /// How many parts there are.
+        len: u8,
+    },
     /// A list whose points are table props, as a whole (`points`).
     TableList,
 }
@@ -478,10 +526,12 @@ pub struct Flags {
 }
 
 impl ComponentType {
+    /// The type's row in `COMPONENT_DEFS`.
     pub fn def(self) -> &'static ComponentDef {
         &COMPONENT_DEFS[self as usize]
     }
 
+    /// The type a tag in the source makes, if any; internal types have none.
     pub fn from_tag(tag: &str) -> Option<Self> {
         static BY_TAG: std::sync::OnceLock<std::collections::HashMap<&'static str, ComponentType>> =
             std::sync::OnceLock::new();
@@ -495,6 +545,7 @@ impl ComponentType {
         by_tag.get(tag).copied()
     }
 
+    /// The tag the type shows as: the first of its tags.
     pub fn tag(self) -> &'static str {
         self.def().tags[0]
     }
@@ -504,6 +555,8 @@ impl ComponentType {
         self.def().props
     }
 
+    /// The table position of the single-cell prop `name`, current core spellings
+    /// accepted.
     pub fn prop_index(self, name: &str) -> Option<usize> {
         let name = self.canonical_prop(name);
         self.prop_defs().iter().position(|p| p.name == name)
@@ -888,6 +941,8 @@ impl ComponentType {
         }
     }
 
+    /// How a member of the type behaves in a sticky group: its shape, and where
+    /// its points are. None for a type that is never a member.
     pub fn sticky_layout(self) -> Option<(crate::tick::snap::Shape, StickyPoints)> {
         self.def().sticky
     }
@@ -902,10 +957,18 @@ pub enum PropFrom {
     /// Value given by the element's children (a literal or one reference).
     Children,
     /// Value computed by `op` from the component's own props at `args`.
-    Computed { op: OpSpec, args: Args },
+    Computed {
+        /// The operator.
+        op: OpSpec,
+        /// Its inputs, in order.
+        args: Args,
+    },
     /// Value given by the attribute if present, else an alias of the
     /// component's own prop at `alias`.
-    AttributeOr { alias: u8 },
+    AttributeOr {
+        /// The table position of the prop aliased without the attribute.
+        alias: u8,
+    },
     /// Set by the type's planner (its `component!` block names it), which
     /// reads the whole element: a circle's center from whichever of
     /// `center`, `radius` and `through` the author gave.
@@ -956,7 +1019,9 @@ pub enum AggOp {
 /// A prop wired from a collection: `op` over the ports of `over`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Aggregate {
+    /// The operator.
     pub op: AggOp,
+    /// The collection it reads.
     pub over: Collection,
 }
 
@@ -991,8 +1056,11 @@ impl std::ops::Deref for Args {
 /// value comes from, and how it is read and written.
 #[derive(Debug, Clone, Copy)]
 pub struct PropDef {
+    /// The prop's name, as a reference spells it.
     pub name: &'static str,
+    /// The value before anything gives it one.
     pub default: f64,
+    /// Where its value comes from.
     pub from: PropFrom,
     /// Attribute to read instead of `name`, for [`PropFrom::Attribute`]; for
     /// [`PropFrom::Children`], the attribute that stands in for blank
@@ -1029,6 +1097,7 @@ pub struct PropDef {
 }
 
 impl PropDef {
+    /// The attribute that gives the prop: `attr`, or the prop's own name.
     pub fn attr_name(&self) -> &'static str {
         self.attr.unwrap_or(self.name)
     }

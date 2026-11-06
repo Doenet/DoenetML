@@ -56,20 +56,31 @@
 //!
 //! # Modules, in pipeline order
 //!
-//! - [`dast`]: the input, the parser's DAST in flat, columnar form.
-//! - [`components`]: the tag vocabulary: each type's props and where their
-//!   values come from.
+//! - [`dast`] (API): the input, the parser's DAST in flat, columnar form.
+//! - [`components`] (API): the tag vocabulary: each type's props and where
+//!   their values come from.
 //! - [`compile`]: the source made, once per load, into the templates every
-//!   build stamps.
-//! - [`session`]: what a session accumulates and every build reads.
-//! - [`build`]: the compile stamped into cells and instructions.
-//! - [`program`]: the instruction set the build emits and a tick runs.
-//! - [`sym`]: the symbolic engine behind math cells.
-//! - [`document`]: the loaded [`Document`] and its request and read API.
-//! - [`tick`]: run time: a request is inverted to essential cells and
+//!   build stamps. Its API is re-exported here: [`Compiled`], [`diagnose`],
+//!   [`lint()`], [`compare_versions`].
+//! - [`session`] (API): what a session accumulates and every build reads.
+//! - [`build`] (API, for tests): the compile stamped into cells and
+//!   instructions; `tests/every_count.rs` builds at chosen counts.
+//! - [`program`] (API): the instruction set the build emits and a tick runs.
+//! - [`sym`] (API): the symbolic engine behind math cells; a math cell holds
+//!   a [`Handle`](sym::Handle) into it.
+//! - [`document`]: the loaded [`Document`] and its request and read API,
+//!   re-exported here.
+//! - [`tick`] (API): run time: a request is inverted to essential cells and
 //!   recomputed.
-//! - [`testing`]: the reference oracle and test helpers (`testing` feature).
-//! - [`trace`]: named spans over a load.
+//! - [`testing`] (API, `testing` feature): the reference oracle and test
+//!   helpers.
+//! - [`trace`] (API): named spans over a load.
+//! - [`diagnostics`], [`limits`], [`index`], [`error`], [`profile`]: the
+//!   crate's own; what a consumer needs of them is re-exported here.
+//!
+//! A module marked API is `pub` because a consumer (`cells-wasm`,
+//! `cells-bench`, `tests/`) imports a path in it; every other module is
+//! private, and the contributor docs (`npm run doc`) show it.
 
 // These docs are read with private items (`npm run doc`), so public docs may
 // link to private ones.
@@ -79,6 +90,8 @@
 // `pub(in ..)` between a parent and its submodules. Inside a private module
 // `pub` would compile as `pub(crate)` and read as API, so it is refused.
 #![warn(unreachable_pub)]
+// Every item of the API has a doc (`npm run doc:public` is what it reads).
+#![warn(missing_docs)]
 
 mod index;
 

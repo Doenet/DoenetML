@@ -30,7 +30,9 @@ use crate::dast::{Dast, DastWriter, NodeId, NodeKind};
 /// A node of a tree to build.
 #[derive(Debug, Clone)]
 pub enum Node {
+    /// An element, with its attributes and children.
     Element(Element),
+    /// A text node.
     Text(String),
     /// A `$` reference: its path, one part per `.`.
     Macro(Vec<Part>),

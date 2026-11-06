@@ -22,6 +22,7 @@ use super::*;
 /// A document's inputs, by their element's stable key.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Signature {
+    /// Every input, by its element's stable key.
     pub inputs: BTreeMap<String, Input>,
 }
 
@@ -31,6 +32,7 @@ pub struct Signature {
 pub struct Input {
     /// The element it was made from, for a report.
     pub node: NodeId,
+    /// Its element's tag name, for a report.
     pub tag: &'static str,
     /// Its interactive props, by name, with their value types.
     pub props: Vec<(String, ValueType)>,
@@ -64,9 +66,13 @@ pub enum Domain {
     Choices(Vec<(String, u64)>),
     /// A select's options by key, in order, with how it picks.
     Options {
+        /// Each option's key, in order.
         keys: Vec<String>,
+        /// Each option's weight, as its `f64` bits.
         weights: Vec<u64>,
+        /// How many options it picks.
         num_to_select: u32,
+        /// Whether one option can be picked more than once.
         with_replacement: bool,
     },
 }

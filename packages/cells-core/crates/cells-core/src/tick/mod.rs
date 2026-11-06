@@ -12,7 +12,9 @@ pub(crate) mod snap;
 /// A renderer's ask to change one cell to a value.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Request {
+    /// The cell to change.
     pub cell: CellIdx,
+    /// The value asked for.
     pub value: f64,
 }
 

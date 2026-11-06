@@ -45,6 +45,8 @@ crate::index::index_type! {
 /// document is allowed its structural depth plus one too.
 const MAX_PASSES: usize = 8;
 
+/// No id: the raw `u32` behind every index type's `NONE`, for a caller that reads
+/// the table's columns as `u32`s.
 pub const NONE: u32 = u32::MAX;
 /// Set on a `child_list` entry whose low bits are a string id, not a component.
 pub const TEXT_BIT: u32 = 1 << 31;
@@ -90,6 +92,7 @@ pub struct Built {
     pub sym: SymState,
     /// The dirty closure's tables for `program`, built on first use.
     dirty: Option<DirtyClosure>,
+    /// The components: types, names, children and prop cells.
     pub components: ComponentTable,
     /// Names and text: the DAST's table, then the strings the build added,
     /// then those interned since load.
@@ -98,6 +101,7 @@ pub struct Built {
     interned: Option<HashMap<String, StrId>>,
     /// Index of the root `<document>` component.
     pub root: CompIdx,
+    /// What the build made of the document's shape, which a rebuild reads.
     pub structure: Structure,
     /// Sticky groups as cells.
     sticky: Vec<sticky::StickyTable>,
@@ -191,6 +195,8 @@ impl Built {
         self.n_const..self.n_const + self.n_essential
     }
 
+    /// Whether `cell` is essential: a stored value a request may write, which
+    /// no instruction computes.
     pub fn is_essential(&self, cell: CellIdx) -> bool {
         self.essentials().contains(&cell.index())
     }

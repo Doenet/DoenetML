@@ -18,5 +18,8 @@ component! {
     machinery: Choice,
 }
 
+/// The position of `choice`: the 1-based position of the first case whose condition
+/// holds, or 0.
 pub const CHOICE: usize = Props::AT.choice;
+/// The position of `hide`: 1 when what the choice shows is hidden.
 pub const HIDE: usize = Props::AT.hide;

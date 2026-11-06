@@ -59,8 +59,11 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `numVertices`: how many vertices the polygon's list holds.
 pub const NUM_VERTICES: usize = Props::AT.numVertices;
+/// The position of `cx`: the x-coordinate of the mean of the vertices.
 pub const CX: usize = Props::AT.cx;
+/// The position of `cy`: the y-coordinate of the mean of the vertices.
 pub const CY: usize = Props::AT.cy;
 
 /// Plans a polygon from its `vertices` and, when it is `rigid` or

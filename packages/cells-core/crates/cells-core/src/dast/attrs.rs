@@ -116,6 +116,7 @@ impl LiteralAttrs {
         }
     }
 
+    /// The heap memory the literal attributes hold, in bytes.
     pub fn heap_bytes(&self) -> usize {
         self.nodes.capacity() * 8
             + self.attrs.capacity() * 8

@@ -15,4 +15,5 @@ component! {
     owner: Award,
 }
 
+/// The position of `value`: 1 while its condition holds.
 pub const VALUE: usize = Props::AT.value;

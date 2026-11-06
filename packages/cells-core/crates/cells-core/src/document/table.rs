@@ -10,19 +10,27 @@ use crate::components::PropAt;
 /// `prop_base[c + 1]`.
 #[derive(Debug, Clone, Default)]
 pub struct ComponentTable {
+    /// Each component's type.
     pub component_type: Vec<ComponentType>,
     /// String id of the name, or `NONE`.
     pub name: Vec<StrId>,
+    /// Each component's parent, or `NONE` for the root.
     pub parent: Vec<CompIdx>,
+    /// Where each component's prop cells start in `prop_cells`.
     pub prop_base: Vec<u32>,
+    /// Every component's prop cells, end to end.
     pub prop_cells: Vec<CellIdx>,
+    /// Where each component's children start in `child_list`.
     pub child_start: Vec<u32>,
+    /// How many children each component has.
     pub child_count: Vec<u32>,
+    /// Every component's children, end to end: components and text, in order.
     pub child_list: Vec<ChildEntry>,
     /// DAST element each component came from (NONE if synthesized) and the
     /// scope it was created in. Together they identify a component across
     /// rebuilds.
     pub dast_node: Vec<NodeId>,
+    /// The scope each component was created in; see `dast_node`.
     pub scope: Vec<ScopeId>,
     /// The component this one is a reference to (`$P`, `<point extend="$P"/>`,
     /// a container copy's clone), or `NONE`. What a reference presents as and
@@ -44,6 +52,7 @@ impl ComponentTable {
         &self.prop_cells[base..end]
     }
 
+    /// The number of components.
     pub fn len(&self) -> usize {
         self.component_type.len()
     }
@@ -54,6 +63,7 @@ impl ComponentTable {
         (r != CompIdx::NONE).then_some(r)
     }
 
+    /// Whether the table holds no component.
     pub fn is_empty(&self) -> bool {
         self.component_type.is_empty()
     }
@@ -123,6 +133,7 @@ impl ComponentTable {
         (rendered, in_sticky)
     }
 
+    /// The heap memory the table holds, in bytes.
     pub fn heap_bytes(&self) -> usize {
         self.component_type.capacity() * std::mem::size_of::<ComponentType>()
             + 4 * (self.name.capacity()
@@ -170,31 +181,38 @@ impl ChildEntry {
 /// A child of a component, as a renderer reads it: a component, or text.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Child<'a> {
+    /// A component child.
     Component(CompIdx),
+    /// A text child.
     Text(&'a str),
 }
 
 /// The component table, as a renderer reads it: types, names, children and prop
 /// cells, and the value of a cell.
 impl Built {
+    /// The number of components.
     pub fn n_components(&self) -> usize {
         self.components.len()
     }
 
+    /// The type of component `c`.
     pub fn component_type(&self, c: CompIdx) -> ComponentType {
         self.components.component_type[c.index()]
     }
 
+    /// The name of component `c`, trimmed, if it has one.
     pub fn name(&self, c: CompIdx) -> Option<&str> {
         let s = self.components.name[c.index()];
         (s != StrId::NONE).then(|| self.strings.get(s).trim())
     }
 
+    /// The parent of component `c`; none for the root.
     pub fn parent(&self, c: CompIdx) -> Option<CompIdx> {
         let p = self.components.parent[c.index()];
         (p != CompIdx::NONE).then_some(p)
     }
 
+    /// The children of component `c`, in order.
     pub fn children(&self, c: CompIdx) -> impl Iterator<Item = Child<'_>> + '_ {
         let (s, n) = (
             self.components.child_start[c.index()] as usize,
@@ -261,6 +279,7 @@ impl Built {
         (cells.len() == 1).then(|| cells[0])
     }
 
+    /// The value of the single cell behind `name.prop` (see [`Built::cell`]).
     pub fn value(&self, name: &str, prop: &str) -> Option<f64> {
         self.cell(name, prop).map(|c| self.cells[c.index()])
     }
@@ -320,6 +339,7 @@ impl Document {
         }
     }
 
+    /// The heap memory the document holds, in bytes, by part.
     pub fn memory_estimate(&self) -> MemoryEstimate {
         MemoryEstimate {
             cells: self.cells.capacity() * 8,

@@ -17,5 +17,7 @@ component! {
     owner: Answer,
 }
 
+/// The position of `credit`: what the award gives when it holds.
 pub const CREDIT: usize = Props::AT.credit;
+/// The position of `awarded`: `credit` when the award holds, else 0.
 pub const AWARDED: usize = Props::AT.awarded;

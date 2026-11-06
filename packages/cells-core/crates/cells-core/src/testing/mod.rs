@@ -146,8 +146,12 @@ pub fn unsaved_essentials(doc: &crate::Document) -> Vec<String> {
 /// them.
 #[derive(Debug, Clone, PartialEq)]
 pub struct InputState {
+    /// Each interactive prop's name and value as text, in prop order.
     pub values: Vec<(String, String)>,
+    /// Each x/y pair among its props (`x` and `y`, `cx` and `cy`, ...), as a point.
     pub points: Vec<(f64, f64)>,
+    /// The authored `[xmin, xmax, ymin, ymax]` of the graph it is in; None
+    /// outside a graph, or for a graph itself.
     pub bounds: Option<[f64; 4]>,
 }
 

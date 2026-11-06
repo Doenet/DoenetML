@@ -42,9 +42,13 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `x1`: the first endpoint's x-coordinate.
 pub const X1: usize = Props::AT.x1;
+/// The position of `y1`: the first endpoint's y-coordinate.
 pub const Y1: usize = Props::AT.y1;
+/// The position of `x2`: the second endpoint's x-coordinate.
 pub const X2: usize = Props::AT.x2;
+/// The position of `y2`: the second endpoint's y-coordinate.
 pub const Y2: usize = Props::AT.y2;
 // Read as (x, y) pairs by a sticky group, like a point's.
 const _: () = assert!(

@@ -37,7 +37,9 @@ use crate::tick::Request;
 /// moves at once.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PointRequest {
+    /// The point's x and y cells.
     pub cells: [CellIdx; 2],
+    /// The x and y asked for.
     pub values: [f64; 2],
 }
 

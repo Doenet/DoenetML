@@ -23,6 +23,7 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `value`: 1 for true, 0 for false.
 pub const VALUE: usize = Props::AT.value;
 
 /// Its content: a literal, one reference, or a condition.

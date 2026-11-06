@@ -23,6 +23,10 @@ component! {
     machinery: FunctionIterates,
 }
 
+/// The position of `iterates`: `n`, the number of applications of `f`, clamped.
 pub const ITERATES: usize = Props::AT.iterates;
+/// The position of `count`: `n + 1`, the structural cell.
 pub const COUNT: usize = Props::AT.count;
+/// The position of `allIteratesWithInitial`: as a number, how many values that list
+/// holds.
 pub const ALL: usize = Props::AT.allIteratesWithInitial;

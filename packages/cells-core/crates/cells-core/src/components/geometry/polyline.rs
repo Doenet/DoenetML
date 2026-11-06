@@ -17,6 +17,7 @@ component! {
     machinery: Collect,
 }
 
+/// The position of `numVertices`: how many points the polyline collects.
 pub const NUM_VERTICES: usize = Props::AT.numVertices;
 
 /// What a `<polyline>` collects.

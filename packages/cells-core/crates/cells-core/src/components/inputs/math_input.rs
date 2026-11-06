@@ -32,7 +32,9 @@ component! {
     planner: Plan(plan),
 }
 
+/// The position of `value`: the input's numeric value.
 pub const VALUE: usize = Props::AT.value;
+/// The position of `expr`: the entered expression, a math cell; NaN when bound.
 pub const EXPR: usize = Props::AT.expr;
 
 /// A mathInput bound to a cell (a reference child or `bindValueTo`)

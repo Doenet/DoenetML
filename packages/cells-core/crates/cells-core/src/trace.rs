@@ -20,10 +20,16 @@ use web_time::Instant;
 /// recorded inside it.
 #[derive(Debug, Clone)]
 pub struct Span {
+    /// The name it was opened with (`span(name)` or `tally(name)`).
     pub name: &'static str,
+    /// 0 for an outermost span, one more per enclosing span.
     pub depth: u32,
+    /// When it opened, from `start`.
     pub start: Duration,
+    /// How long it ran; for a tally, the sum over its openings.
     pub duration: Duration,
+    /// The work recorded inside it by `count`, by name; a tally's `n` counts its
+    /// openings.
     pub counts: Vec<(&'static str, u64)>,
 }
 

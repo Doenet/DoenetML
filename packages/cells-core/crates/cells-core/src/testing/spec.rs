@@ -51,7 +51,9 @@ use std::path::Path;
 /// prop of several cells.
 #[derive(Debug, Clone)]
 pub enum Value {
+    /// One number.
     Num(f64),
+    /// One number per cell, in order.
     Tuple(Vec<f64>),
 }
 
@@ -89,17 +91,24 @@ impl<A: Into<f64>, const N: usize> From<[A; N]> for Value {
 /// One step of a case, in order.
 #[derive(Debug, Clone)]
 pub enum Op {
+    /// `expect`: each `"name.prop"` holds its value now.
     Expect(Vec<(&'static str, Value)>),
+    /// `request`: one tick asking each `"name.prop"` for its value.
     Request(Vec<(&'static str, Value)>),
+    /// `dropped(n)`: the last tick dropped this many requests.
     Dropped(usize),
+    /// `diagnostics[..]`: every diagnostic's code, in order.
     Diagnostics(Vec<&'static str>),
 }
 
 /// One case of a component's spec: a source and the steps run on it.
 #[derive(Debug, Clone)]
 pub struct Case {
+    /// What the case checks, for a report.
     pub name: &'static str,
+    /// The DoenetML it loads.
     pub source: &'static str,
+    /// Its steps, in order.
     pub ops: Vec<Op>,
 }
 
