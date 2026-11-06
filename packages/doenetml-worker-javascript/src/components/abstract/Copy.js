@@ -7945,6 +7945,9 @@ async function valueAsWritten(component) {
  * whatever the value written, so `numToSelect="2"` and `numToSelect="$n"`
  * are the same, and by the type a child is written as, also when written as
  * a reference (`<option copy="$o"/>`); it is known when the document loads.
+ * Of a tag whose text children become its choices (`choiceTextChildren`, as
+ * the pieces of `<shuffle>1 2 3</shuffle>`), text that is not whitespace is
+ * also added choices.
  * Only what the author wrote on the copy (`copyInChildren`) is checked, and
  * `copy` instead makes a new component that chooses again.
  */
@@ -8003,24 +8006,33 @@ async function copyWithStateChangesChoicesErrors({
     }
     const addedChild = writtenChildren.find(
         (child) =>
-            typeof child === "object" &&
-            child !== null &&
-            choiceChildTypes.some((choiceType) =>
-                componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: writtenType(child),
-                    baseComponentType: choiceType,
-                }),
-            ),
+            (typeof child === "string" &&
+                replacementClass.choiceTextChildren &&
+                choiceChildTypes.length > 0 &&
+                child.trim() !== "") ||
+            (typeof child === "object" &&
+                child !== null &&
+                choiceChildTypes.some((choiceType) =>
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: writtenType(child),
+                        baseComponentType: choiceType,
+                    }),
+                )),
     );
-    if (addedChild) {
+    if (addedChild !== undefined) {
         errors.push(
             codedDiagnostic({
                 type: "error",
                 code: "doenet-e0069",
                 args: {
+                    // text, whose pieces would be added as choices
                     childType:
-                        addedChild.attributes?._createComponentOfType?.primitive
-                            ?.value ?? addedChild.componentType,
+                        typeof addedChild === "string"
+                            ? "text"
+                            : (addedChild.attributes?._createComponentOfType
+                                  ?.primitive?.value ??
+                              addedChild.componentType),
+                    kind: typeof addedChild === "string" ? "text" : "element",
                     componentType: tag,
                 },
             }),

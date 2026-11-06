@@ -1135,4 +1135,68 @@ ${repeat}
         expect((await doc.sv("gc.picks")).text.split(", ").length).eq(2);
         expect((await doc.sv("gw.picks")).text).eq(source);
     });
+
+    it("copyWithState: text added to a shuffle or a select made from text is an error, whitespace is not", async () => {
+        for (const { source, copy, kind } of [
+            {
+                source: `<shuffle name="x">1 2 3</shuffle>`,
+                copy: `<shuffle name="w" copyWithState="$x">4 5</shuffle>`,
+                kind: "text",
+            },
+            {
+                source: `<shuffle name="x">a b c</shuffle>`,
+                copy: `<shuffle name="w" copyWithState="$x">d</shuffle>`,
+                kind: "text",
+            },
+            {
+                source: `<shuffle name="x"><text>a</text><text>b</text></shuffle>`,
+                copy: `<shuffle name="w" copyWithState="$x">c</shuffle>`,
+                kind: "text",
+            },
+            {
+                // made into options by the select's sugar
+                source: `<select name="x">a b c</select>`,
+                copy: `<select name="w" copyWithState="$x">d e</select>`,
+                kind: "element",
+            },
+        ]) {
+            const doc = await loaded(`
+<p name="p0">${source}</p>
+<p name="p1">${copy}</p>
+`);
+            const errors = doc.diagnostics().errors;
+            expect(
+                errors.map((e: any) => e.code),
+                copy,
+            ).eqls(["doenet-e0069"]);
+            expect(errors[0].position.start.line, copy).eq(3);
+            expect(errors[0].args.kind, copy).eq(kind);
+            if (kind === "text") {
+                expect(errors[0].message, copy).eq(
+                    "Adding text to a `copyWithState` of a `<shuffle>` would add to what it chooses from, which a `copyWithState` keeps. Use `copy` to make a new `<shuffle>` that chooses again.",
+                );
+            }
+        }
+
+        for (const { source, copy } of [
+            {
+                source: `<shuffle name="x">1 2 3</shuffle>`,
+                copy: `<shuffle name="w" copyWithState="$x">
+</shuffle>`,
+            },
+            {
+                source: `<select name="x">a b c</select>`,
+                copy: `<select name="w" copyWithState="$x"> </select>`,
+            },
+        ]) {
+            const doc = await loaded(`
+<p name="p0">${source}</p>
+<p name="p1">${copy}</p>
+`);
+            expect(doc.diagnostics().errors, copy).eqls([]);
+            expect((await doc.sv("p1")).text, copy).eq(
+                (await doc.sv("p0")).text,
+            );
+        }
+    });
 });

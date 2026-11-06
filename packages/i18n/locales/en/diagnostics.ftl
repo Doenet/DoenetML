@@ -1673,8 +1673,14 @@ copy-with-state-changes-choice = `{ $attribute }` decides what this `<{ $compone
 
 # As `copy-with-state-changes-choice`, for a child $childType (an `<option>` of
 # a `<select>`, a `<choice>` of a `<choiceInput>` that shuffles its order)
-# added inside a `copyWithState`, which would change what it chooses.
-copy-with-state-adds-options = Adding a `<{ $childType }>` to a `copyWithState` of a `<{ $componentType }>` would change what it chooses, which a `copyWithState` keeps. Use `copy` to make a new `<{ $componentType }>` that chooses again.
+# added inside a `copyWithState`, which would change what it chooses. $kind is
+# `text` when what was added is text whose pieces become choices (the `4 5` of
+# `<shuffle copyWithState="$s">4 5</shuffle>`), and `element` otherwise.
+copy-with-state-adds-options =
+    { $kind ->
+        [text] Adding text to a `copyWithState` of a `<{ $componentType }>` would add to what it chooses from, which a `copyWithState` keeps. Use `copy` to make a new `<{ $componentType }>` that chooses again.
+       *[other] Adding a `<{ $childType }>` to a `copyWithState` of a `<{ $componentType }>` would change what it chooses, which a `copyWithState` keeps. Use `copy` to make a new `<{ $componentType }>` that chooses again.
+    }
 
 # A document loaded from a URI, $uri, has no reader state, so a
 # `copyWithState` of it has nothing to carry and is made as a `copy`.
