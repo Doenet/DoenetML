@@ -16,7 +16,10 @@
  *   `<math copyWithState="$x"/>`)
  *   to what it names, when it names the component as a whole, or an index
  *   into a `<math>` or a type built on it, such as a `<matrix>` (`$m[2]`),
- *   which reads the whole value. A property (`$x.y`) may or may not read
+ *   which reads the whole value, unless the index was taken through what a
+ *   reference makes (`$h[1]` in `<group extend="$g" name="h">`, which names
+ *   one of what the copy makes only when the document runs). A property
+ *   (`$x.y`) may or may not read
  *   what is written in `x`, an index into a composite names one of what it
  *   holds, decided only when it runs, an index into a list reads one item
  *   (`<textList name="l"><text>a</text><text>$l[1]</text></textList>` is
@@ -25,19 +28,22 @@
  *   reference written as a tag that names the tag itself, whatever its path
  *   (`<group name="g" extend="$g.x"/>`);
  * - a composite (`<conditionalContent>`, `<group>`, `<repeat>`, …), a
- *   `<case>` or an `<option>`, or a reference written as a composite
- *   (`<group extend="$s">`, which holds what is written in it too), to each
+ *   `<case>` or an `<option>`, or a reference written as a composite that
+ *   holds what is written in it too (`<group extend="$s">`, a `<module
+ *   extend>`, or any composite written with `copy` or `copyWithState`; an
+ *   `extend` of a `<repeat>` or another composite that makes its content
+ *   makes nothing of what is written in it, `doenet-e0057`), to each
  *   child but a `<setup>`, as what it holds is made from them. A `<setup>`
  *   makes nothing, so it has no edges, though what is in it is checked;
  * - a tag whose value is made from its children (`VALUE_FROM_CHILDREN`: a
  *   `<math>`, a `<text>`, a `<label>`, an `<em>`, …, which takes children, so
  *   not an `<evaluate>`), or a reference written as one, to each child.
  *
- * A `<label>` child is not followed where its parent takes it as its label
- * (a child group of labels alone, as a graphical component has), which may
- * read the component (`<point name="P"><label>$P</label></point>` means P's
- * value, #1384). Where a label is content (`<label><label>$l</label></label>`,
- * `<m>`), it is followed.
+ * A component that takes a `<label>` as its label (a `<point>`, an input)
+ * is none of these, so it has no edges, and its label may read it
+ * (`<point name="P"><label>$P</label></point>` means P's value, #1384).
+ * A label that is content (`<label><label>$l</label></label>`, `<m>`) is
+ * followed.
  *
  * Every reference in a strongly connected part of that graph with an edge
  * (a cycle) is made an `_error`, which breaks every cycle, as each cycle
@@ -59,8 +65,9 @@ import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
  * Tags whose value is made from their children, and the tags that inherit
- * from them: the same list as `getSelfReferentialFallbackPropName` uses for
- * the tags whose own reference inside them reads their value.
+ * from them: those `getSelfReferentialFallbackPropName` lists as the tags
+ * whose own reference inside them reads their value, and the inline
+ * containers.
  */
 const VALUE_FROM_CHILDREN = [
     "label",
@@ -89,7 +96,13 @@ function referenceOf(copy: SerializedComponent) {
         extending.ExtendAttribute ??
         extending.CopyAttribute ??
         extending.CopyWithStateAttribute) as
-        { nodeIdx: number; unresolvedPath: any[] | null } | undefined;
+        | {
+              nodeIdx: number;
+              unresolvedPath: any[] | null;
+              originalPath?: any[];
+              nodesInResolvedPath?: number[];
+          }
+        | undefined;
 }
 
 /**
@@ -193,44 +206,43 @@ export function breakReferenceCycles({
             : node.componentType;
     }
 
-    /**
-     * Whether a component of type `componentType` takes a `<label>` child as
-     * its label, not as content: one of its child groups holds labels alone.
-     */
-    function takesLabels(componentType: string | undefined) {
-        const componentClass =
-            componentType === undefined
-                ? undefined
-                : componentInfoObjects.allComponentClasses[componentType];
-        const childGroups = componentClass?.returnChildGroups?.() ?? [];
-        return childGroups.some(
-            (group: { componentTypes?: string[] }) =>
-                group.componentTypes?.length === 1 &&
-                group.componentTypes[0] === "label",
-        );
-    }
-
-    /** The edges to the children of a component holding them as `type`. */
-    function childEdges(component: SerializedComponent, type: string) {
-        const skipLabels = takesLabels(type);
+    /** The edges to the children of `component`, but a `<setup>`. */
+    function childEdges(component: SerializedComponent) {
         const edges: number[] = [];
         for (const child of component.children ?? []) {
             if (typeof child === "string" || child.componentType === "setup") {
                 // a `<setup>` is not part of what its parent holds or shows
                 continue;
             }
-            if (
-                skipLabels &&
-                componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: child.componentType,
-                    baseComponentType: "label",
-                })
-            ) {
-                continue;
-            }
             edges.push(child.componentIdx);
         }
         return edges;
+    }
+
+    /**
+     * Whether `reference` has an index that the resolver took through a
+     * component a reference makes (`$h[1]` in `<group extend="$g"
+     * name="h">`): it resolves to what is written in that component, but
+     * when the document runs it names one of what the copy makes, decided
+     * then, so it is not an edge.
+     */
+    function indexThroughCopy(reference: {
+        originalPath?: any[];
+        nodesInResolvedPath?: number[];
+    }) {
+        const hasIndex = reference.originalPath?.some(
+            (part: any) => part.index?.length > 0,
+        );
+        return Boolean(
+            hasIndex &&
+            reference.nodesInResolvedPath
+                ?.slice(1, -1)
+                .some(
+                    (idx) =>
+                        copiesByCreatedIdx.has(idx) ||
+                        componentsByIdx.get(idx)?.componentType === "_copy",
+                ),
+        );
     }
 
     function edgesOf(component: SerializedComponent): number[] {
@@ -244,8 +256,13 @@ export function breakReferenceCycles({
             }
             const edges: number[] = [];
             const target = targetOf(component);
-            if (target && target !== component) {
-                const path = referenceOf(component)!.unresolvedPath;
+            const reference = referenceOf(component);
+            if (
+                target &&
+                target !== component &&
+                !indexThroughCopy(reference!)
+            ) {
+                const path = reference!.unresolvedPath;
                 const onlyIndices = path?.every(
                     (part: any) => part.name === "" && part.index?.length > 0,
                 );
@@ -271,10 +288,17 @@ export function breakReferenceCycles({
             const written = writtenType(component);
             if (
                 written !== undefined &&
-                (valueFromChildren(written) || isComposite(written))
+                (valueFromChildren(written) ||
+                    (isComposite(written) &&
+                        (!(component.extending as any)?.ExtendAttribute ||
+                            written === "group" ||
+                            written === "module")))
             ) {
-                // what is written in it is part of what it makes
-                edges.push(...childEdges(component, written));
+                // what is written in it is part of what it makes; an extend
+                // of a composite that makes its own content (a `<repeat>`)
+                // makes nothing of what is written in it, which is an error
+                // of its own (`doenet-e0057`)
+                edges.push(...childEdges(component));
             }
             return edges;
         }
@@ -289,7 +313,7 @@ export function breakReferenceCycles({
             type === "option" ||
             valueFromChildren(type)
         ) {
-            return childEdges(component, type);
+            return childEdges(component);
         }
         return [];
     }

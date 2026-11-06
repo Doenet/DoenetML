@@ -399,6 +399,18 @@ describe("Reference cycles decided at load @group2", async () => {
         expect(rest).eq("rest");
     });
 
+    // An extend of a composite that makes its content makes nothing of what
+    // is written in it, which is its own error, not a cycle.
+    it("children written in an extend of a repeat are an error, not a cycle", async () => {
+        const { core, rest } = await errorsAndRest(
+            `<repeat for="1 2" valueName="v" name="x"><text>$v</text></repeat><repeat extend="$x" name="x2"><text>$x2</text></repeat>`,
+        );
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => error.code),
+        ).eqls(["doenet-e0057"]);
+        expect(rest).eq("rest");
+    });
+
     it("a module extend holding a reference to itself", async () => {
         const { errors, rest } = await errorsAndRest(
             `<module name="md"><math>1</math></module><module name="m2" extend="$md"><math>$m2</math></module>`,
@@ -537,6 +549,16 @@ describe("Reference cycles decided at load @group2", async () => {
         [
             "a reference to a setup, in the setup",
             `<setup name="s"><math>$s</math></setup>`,
+        ],
+        // an index into what a group extend or copy makes names, when the
+        // document runs, the first of what it makes: the copy of `t`
+        [
+            "an index into a group extend, in the group extend",
+            `<group name="g"><text name="t">a</text></group><group extend="$g" name="h"><text>$h[1]</text></group>`,
+        ],
+        [
+            "an index into a group copy, in the group copy",
+            `<group name="g"><text name="t">a</text></group><group copy="$g" name="h"><text>$h[1]</text></group>`,
         ],
     ];
     for (const [description, doenetML] of notCycles) {
