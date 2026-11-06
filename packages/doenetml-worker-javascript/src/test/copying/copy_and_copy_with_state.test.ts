@@ -577,7 +577,7 @@ describe("copy and copyWithState @group3", () => {
     });
 
     for (const repeat of [
-        `<repeatForSequence name="r" from="1" to="2">`,
+        `<repeatForSequence name="r" from="1" to="2" valueName="v">`,
         `<repeat name="r" for="1 2" valueName="v">`,
     ]) {
         const tag = repeat.split(" ")[0].slice(1);
@@ -586,6 +586,7 @@ describe("copy and copyWithState @group3", () => {
 ${repeat}
   <mathInput name="mi" prefill="1"/>
   <p name="s"><selectFromSequence to="1000000" numToSelect="3"/></p>
+  <point name="Q">($v, 0)</point>
 </${tag}>
 <booleanInput name="show"/>
 <conditionalContent condition="$show">
@@ -608,6 +609,14 @@ ${repeat}
                     const s = (await doc.sv(`r[${i}].s`)).text;
                     expect((await doc.sv(`rc[${i}].s`)).text).not.eq(s);
                     expect((await doc.sv(`rw[${i}].s`)).text).eq(s);
+                    // a reference to the value resolves in each iteration
+                    for (const r of ["r", "rc", "rw"]) {
+                        expect(
+                            (await doc.sv(`${r}[${i}].Q`)).xs.map(
+                                (x: any) => x.tree,
+                            ),
+                        ).eqls([i, 0]);
+                    }
                 }
                 expect((await doc.sv("rc[1].mi")).value.tree).eq(1);
                 expect((await doc.sv("rw[1].mi")).value.tree).eq(5);

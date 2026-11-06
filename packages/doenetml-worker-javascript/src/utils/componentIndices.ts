@@ -508,14 +508,20 @@ function remapRefResolutions(
                 // `keepReferents`, they keep their referents. Otherwise each
                 // is resolved from the copy, which the resolver is given with
                 // the rest of what is copied, also when the original resolved
-                // them from where they were written.
+                // them from where they were written. One whose path starts
+                // with no name resolves from its referent, which a copy
+                // pasted it with (`remapCopiedRefResolution`), so it keeps
+                // that origin, as in a repeat's template that was copied
+                // (`<repeatForSequence copy="$r"/>`).
                 for (const slot of (attribute as any).slots) {
                     if (keepReferents) {
                         remapCopiedRefResolution(slot.refResolution, idxMap);
                     } else {
                         remapRefResolution(slot.refResolution, idxMap);
-                        slot.refResolution.nodesInResolvedPath[0] =
-                            component.componentIdx;
+                        if (slot.refResolution.originalPath[0]?.name !== "") {
+                            slot.refResolution.nodesInResolvedPath[0] =
+                                component.componentIdx;
+                        }
                     }
                 }
             }

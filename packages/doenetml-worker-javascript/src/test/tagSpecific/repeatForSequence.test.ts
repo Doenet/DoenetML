@@ -1520,7 +1520,7 @@ describe("RepeatForSequence tag tests @group3", async () => {
         ).eq("1, 2");
     });
 
-    it("a copy of a repeatForSequence with added children starts from the source's state", async () => {
+    it("a copyWithState of a repeatForSequence with added children starts from the source's state", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" prefill="0" />
@@ -1529,7 +1529,7 @@ describe("RepeatForSequence tag tests @group3", async () => {
     </graph>
     <repeatForSequence length="$n" name="outer">
         <graph description="copy">
-            <repeatForSequence copy="$r" name="r2"><point name="Q">(5,5)</point></repeatForSequence>
+            <repeatForSequence copyWithState="$r" name="r2"><point name="Q">(5,5)</point></repeatForSequence>
         </graph>
     </repeatForSequence>
     `,

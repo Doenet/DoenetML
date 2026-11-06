@@ -2291,7 +2291,7 @@ describe("Unlinked Copying Tests @group4", async () => {
 
     <callAction name="takeSnapshot" target="$graph2" actionName="addChildren">
         <label>Take snapshot</label>
-            <group copy="$gr" />
+            <group copyWithState="$gr" />
     </callAction>
     <updateValue triggerWith="$takeSnapshot" target="$takeSnapshot.disabled" newValue="true" type="boolean" />
 
@@ -2332,7 +2332,7 @@ describe("Unlinked Copying Tests @group4", async () => {
 
     <graph name="graph2">
         <conditionalContent condition="$copy">
-            <repeatForSequence copy="$mp" />
+            <repeatForSequence copyWithState="$mp" />
         </conditionalContent>
     </graph>
   `,

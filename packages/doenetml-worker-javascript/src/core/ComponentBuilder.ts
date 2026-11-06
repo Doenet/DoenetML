@@ -798,6 +798,9 @@ export async function createChildrenThenComponent({
     if (serializedComponent.unlinkedCopySource) {
         newComponent.unlinkedCopySource =
             serializedComponent.unlinkedCopySource;
+        if (serializedComponent.unlinkedCopyWithoutReaderState) {
+            newComponent.unlinkedCopyWithoutReaderState = true;
+        }
     }
 
     await deriveChildResultsFromDefiningChildren({

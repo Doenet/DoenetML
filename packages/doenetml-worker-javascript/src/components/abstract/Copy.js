@@ -2402,6 +2402,7 @@ export default class Copy extends CompositeComponent {
             componentIdx: component.componentIdx,
             addShadowDependencies: link,
             unlinkExternalCopies: false,
+            withoutReaderState: !link && !withState,
         });
 
         for (let repl of serializedReplacements) {

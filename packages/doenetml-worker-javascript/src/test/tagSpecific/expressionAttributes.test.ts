@@ -288,7 +288,9 @@ describe("Coordinates held by their point @group4", () => {
             act: drag("r2[1].Q", 5, 6),
             reload: true,
         });
-        expect(texts.p).toBe("(1, 2) (2, 4) (3, 6) (1, 6) (2, 0) (1, 6)");
+        // `r3` is a `copy`, which starts as `r2` was written, whatever the
+        // reader did to it (D33)
+        expect(texts.p).toBe("(1, 2) (2, 4) (3, 6) (1, 6) (2, 0) (1, 0)");
     });
 
     it("points made for an attribute (a polygon's vertices, a label's anchor), and a vector", async () => {

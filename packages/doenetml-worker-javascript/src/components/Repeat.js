@@ -435,7 +435,13 @@ export default class Repeat extends CompositeComponent {
         );
         nComponents = aliasResult.nComponents;
 
-        if (component.unlinkedCopySource && !isUpdate) {
+        // only for a `copyWithState`: a `copy` makes its iterations as
+        // written, with its own random choices (D33)
+        if (
+            component.unlinkedCopySource &&
+            !component.unlinkedCopyWithoutReaderState &&
+            !isUpdate
+        ) {
             await copyStateFromUnlinkedSource({
                 components,
                 component,
@@ -791,7 +797,8 @@ export default class Repeat extends CompositeComponent {
     }
 }
 
-// If a repeat is an unlinked copy of another repeat,
+// If a repeat is a `copyWithState` of another repeat (an unlinked copy that
+// carries its source's state; a `copy` does not, D33),
 // then when its replacements are created,
 // they should be initialized with the current state
 // of the original repeat's replacements.
