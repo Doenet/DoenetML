@@ -779,9 +779,10 @@ extend-attribute-ignored = The `{ $attribute }` attribute is ignored: a `<{ $com
 extend-children-ignored = Children written inside a `<{ $componentType }>` with `extend` are ignored: it shows the same content as the component it extends.
 
 # An attribute the component does not have, written on a component with
-# `copy` or `extend` (#2332). The component is still shown, as what it copies;
-# the attribute does nothing. Written on the component without `copy` or
-# `extend`, the same attribute is an error (`attribute-invalid-for-component`).
+# `copy`, `copyWithState` or `extend` (#2332), including one that names
+# nothing. The component is still shown, as what it copies, or as a blank; the
+# attribute does nothing. Written on the component without `copy` or `extend`,
+# the same attribute is an error (`attribute-invalid-for-component`).
 # $attribute and $componentType are an attribute name and an element name,
 # part of the DoenetML language, so they stay in English.
 copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored: a `<{ $componentType }>` has no such attribute.

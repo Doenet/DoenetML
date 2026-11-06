@@ -890,3 +890,53 @@ fn a_function_reference_that_fails_to_resolve_keeps_its_arguments() {
     assert_eq!(spanned(source, &arg_error.position), "$a");
     assert!(matches!(&input[1][..], [UntaggedContent::Text(t)] if t.trim() == "2"));
 }
+
+/// Nothing is made of the arguments of a function reference that fails to
+/// resolve, though they are kept, so a name written in them resolves to the
+/// function reference itself, as it did when they were dropped: `$m` with
+/// `$$f(<math name="m"/>)` shows a blank, not nothing.
+#[test]
+fn a_name_in_the_arguments_of_a_function_reference_that_fails_resolves_to_it() {
+    let source = r#"<p>$$f(<math name="m"/>)</p><p>$m</p>"#;
+    let dast_root = dast_root(source);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let mut resolver = Expander::expand(&mut flat_root);
+    flat_root.compactify(Some(&mut resolver));
+
+    let function_error_idx = errors_of(&flat_root)
+        .iter()
+        .find(|e| e.input.is_some())
+        .expect("the function reference's error")
+        .idx;
+
+    // The reference expanded already
+    let extending = flat_root
+        .nodes
+        .iter()
+        .find_map(|node| match node {
+            FlatNode::Element(e)
+                if e.position.is_some() && spanned(source, &e.position) == "$m" =>
+            {
+                e.extending.as_ref()
+            }
+            _ => None,
+        })
+        .expect("`$m`");
+    assert_eq!(extending.idx(), function_error_idx);
+    assert!(
+        extending
+            .get_resolution()
+            .nodes_in_resolved_path
+            .contains(&function_error_idx)
+    );
+
+    // and the reference resolved again by the worker
+    let path = vec![FlatPathPart {
+        name: "m".to_string(),
+        index: Vec::new(),
+        position: None,
+        source_doc: None,
+    }];
+    let resolution = resolver.resolve(&path, 0, false).unwrap();
+    assert_eq!(resolution.node_idx, function_error_idx);
+}

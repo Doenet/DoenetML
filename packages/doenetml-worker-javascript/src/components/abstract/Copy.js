@@ -6924,7 +6924,9 @@ async function missingSourceInPlace({
  * missing component under its index, `stateId` and name, so what the copy
  * keeps of its source (`workspace`) is unchanged, and the copy is made again
  * from its source when that changes. A copy written as a tag is missing as
- * that tag (`missingOfWrittenType`), and any other is a `_missing`.
+ * that tag (`missingOfWrittenType`), a bare reference where a component of a
+ * type is needed is missing as that type (below), and any other is a
+ * `_missing`.
  */
 function missingInPlaceOfCopiedError({
     component,

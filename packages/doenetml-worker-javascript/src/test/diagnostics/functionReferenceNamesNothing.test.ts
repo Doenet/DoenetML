@@ -178,7 +178,7 @@ describe("A function reference that names nothing @group4", async () => {
             doenetML: string;
             text: string;
             code: string;
-            args: Record<string, string>;
+            args: { reference: string; [arg: string]: unknown };
             marked: string;
         }[] = [
             {
@@ -224,6 +224,19 @@ describe("A function reference that names nothing @group4", async () => {
                     component: "group",
                 },
                 marked: "$$f[1](2)",
+            },
+            {
+                // an index past the iterations of a repeat
+                doenetML: `<repeat name="r" for="1 2" valueName="v"><function>x^$v</function></repeat><p name="p">[$$r[3](2)]</p>`,
+                text: "[＿]",
+                code: "doenet-w0181",
+                args: {
+                    reference: "$$r[3](2)",
+                    component: "repeat",
+                    kind: "iteration",
+                    count: 2,
+                },
+                marked: "$$r[3](2)",
             },
         ];
 
@@ -283,6 +296,20 @@ describe("A function reference that names nothing @group4", async () => {
                 doenetML: `<point name="P" x="$$f($a)" y="3" /><p name="p">$P</p>`,
                 text: "(＿, 3)",
                 references: ["$$f($a)", "$a"],
+            },
+            {
+                // nothing is made of the arguments, so a name in them is the
+                // function reference's, and a reference to it is a blank
+                doenetML: `<p name="p">[$$f(<math name="m">2</math>)] [$m] [<math extend="$m"/>]</p>`,
+                text: "[＿] [＿] [＿]",
+                references: [`$$f(<math name="m">2</math>)`],
+            },
+            {
+                doenetML: `<p name="p">[$$f(<group name="g"><math name="m">2</math></group>)] [$g] [$g.m]</p>`,
+                text: "[＿] [＿] [＿]",
+                references: [
+                    `$$f(<group name="g"><math name="m">2</math></group>)`,
+                ],
             },
         ];
 

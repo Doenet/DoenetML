@@ -5,7 +5,17 @@ use super::{NodeParent, NodeResolverData, Ref, Resolver};
 impl Resolver {
     /// Compactify the resolver so that it corresponds to the new indices
     /// of the compactified dast.
-    pub fn compactify(&mut self, node_is_referenced: &[bool], old_to_new_indices: &[usize]) {
+    ///
+    /// A name, or an index, now resolves to `name_targets` of the node it
+    /// resolved to: its new index, or, for a node in the arguments of a
+    /// function reference that names nothing, the index of that reference
+    /// (`FlatRoot::compactify`).
+    pub fn compactify(
+        &mut self,
+        node_is_referenced: &[bool],
+        old_to_new_indices: &[usize],
+        name_targets: &[usize],
+    ) {
         // Note: the first entry, which corresponds to the flat_root, is always present
         let new_node_resolver_data: Vec<NodeResolverData> = self
             .node_resolver_data
@@ -20,23 +30,17 @@ impl Resolver {
                         .name_map
                         .iter()
                         .map(|(key, ref_)| match ref_ {
-                            Ref::Unique(idx) => {
-                                (key.clone(), Ref::Unique(old_to_new_indices[*idx]))
-                            }
-                            Ref::Branches(idx) => {
-                                (key.clone(), Ref::Branches(old_to_new_indices[*idx]))
-                            }
+                            Ref::Unique(idx) => (key.clone(), Ref::Unique(name_targets[*idx])),
+                            Ref::Branches(idx) => (key.clone(), Ref::Branches(name_targets[*idx])),
                             Ref::Ambiguous(vec_idx) => (
                                 key.clone(),
                                 Ref::Ambiguous(
                                     vec_idx
                                         .iter()
                                         .map(|ref_| match ref_ {
-                                            Ref::Branches(idx) => {
-                                                Ref::Branches(old_to_new_indices[*idx])
-                                            }
+                                            Ref::Branches(idx) => Ref::Branches(name_targets[*idx]),
                                             ref_ => Ref::Unique(
-                                                old_to_new_indices[ref_.single_idx().unwrap()],
+                                                name_targets[ref_.single_idx().unwrap()],
                                             ),
                                         })
                                         .collect(),
@@ -49,7 +53,7 @@ impl Resolver {
                 let index_resolutions = node_data
                     .index_resolutions
                     .iter()
-                    .map(|v| v.map(|idx| old_to_new_indices[idx]))
+                    .map(|v| v.map(|idx| name_targets[idx]))
                     .collect();
 
                 if idx_plus_1 == 0 {
