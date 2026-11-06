@@ -1,6 +1,7 @@
 //! The kinds of planner a component type's definition names
 //! (`component!`'s `planner:`), and how the compile finds a type's.
 
+use super::Planning;
 use super::ctx::PlanCtx;
 use crate::compile::*;
 
@@ -25,7 +26,7 @@ pub(crate) enum Planner {
 impl Planning<'_> {
     /// How an element of `component_type` is planned: what its definition
     /// (`component!`) says.
-    pub(in crate::compile) fn planner(component_type: ComponentType) -> Planner {
+    pub(super) fn planner(component_type: ComponentType) -> Planner {
         component_type.def().planner
     }
 }

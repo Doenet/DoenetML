@@ -7,6 +7,7 @@
 //! document seed; a conditional content's `choice` cell is the first case
 //! whose condition holds, and every case is built.
 
+use super::Planning;
 use crate::compile::*;
 use crate::components::prop::conditional_content;
 use crate::limits::MAX_CASES;
@@ -18,7 +19,7 @@ impl<'a> Planning<'a> {
     /// A choice's props: a select's `hide`; for a reactive choice also a
     /// hidden port per case condition (an else is a constant 1) and
     /// `choice`, the first of them that holds.
-    pub(in crate::compile) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    pub(super) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let Body::Choice(cid) = self.rd.outlined(t).elems[e.index()].body else {
             unreachable!()
         };

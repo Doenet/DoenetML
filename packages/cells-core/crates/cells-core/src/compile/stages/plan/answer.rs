@@ -21,6 +21,7 @@
 //! or the most any award gives (`credit` × holds). Other content is
 //! refused, never left blank.
 
+use super::Planning;
 use crate::compile::*;
 use crate::components::prop::{
     answer, award, choice, choice_input, math_input, response, text_input, when,
@@ -30,7 +31,7 @@ use crate::limits::MAX_CHOICES;
 /// Planning, `<answer>`: its response, awards and credit. Reads the record and
 /// what outlining settled, never another element's plan (ADR 0029).
 impl<'a> Planning<'a> {
-    pub(in crate::compile) fn plan_answer(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    pub(super) fn plan_answer(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.rd.dast;
         let Elem {
             node: el,

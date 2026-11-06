@@ -136,7 +136,7 @@ impl<'c> Builder<'c> {
                 })
                 .collect();
             // One kind of value in every branch: checked when compiled
-            // (ADR 0032, `compile/seal/types.rs`).
+            // (ADR 0032, `compile/stages/seal/types.rs`).
             let kind = self.value_type(branch_slots[0]);
             let s = self.slot(w, pi);
             let inputs: Vec<SlotId> = std::iter::once(choice).chain(branch_slots).collect();

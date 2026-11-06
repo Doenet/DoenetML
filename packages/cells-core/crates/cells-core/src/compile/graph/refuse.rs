@@ -5,8 +5,8 @@
 //! (`program::refuse`).
 
 use super::define::Defined;
-use super::share::FxMap;
 use super::*;
+use crate::compile::FxMap;
 use crate::diagnostics::Diagnostic;
 use crate::program::refuse::{self, Finding, Graph, NodeKind as RefuseKind};
 

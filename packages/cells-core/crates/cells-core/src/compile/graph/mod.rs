@@ -28,8 +28,8 @@
 //! build's order, so its messages are the ones that build gave: every
 //! component in the order that build made them.
 
-use super::share::FxMap;
 use super::*;
+use crate::compile::FxMap;
 use crate::components::{Collection, PropAt, PropSel};
 use crate::error::Error;
 use crate::program::{OpSpec, SymKind, VecOp};

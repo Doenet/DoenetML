@@ -10,8 +10,8 @@
 //! it) and where a request on it goes (the inputs its inverse may write,
 //! nowhere when a constant flag holds it).
 
-use super::share::FxMap;
 use super::*;
+use crate::compile::FxMap;
 use crate::error::Error;
 
 /// What define made of the graph: the cells, and each node's class.

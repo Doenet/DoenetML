@@ -1287,7 +1287,7 @@ mod tests {
     #[test]
     fn plan_ctx_grows_deliberately() {
         const PLAN_CTX_METHODS: usize = 19;
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/planning/ctx.rs");
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
             .lines()

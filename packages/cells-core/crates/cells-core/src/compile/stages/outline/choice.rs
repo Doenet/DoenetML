@@ -9,12 +9,7 @@ use crate::compile::*;
 impl Outlining<'_> {
     /// Give a choice element its branch templates. `<group rendered="c">`
     /// is a conditional content with one case.
-    pub(in crate::compile) fn add_choice(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-        el: NodeId,
-    ) -> Result<()> {
+    pub(super) fn add_choice(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<()> {
         let d = self.dast;
         let reactive =
             self.outlined(t).elems[e.index()].component_type == ComponentType::ConditionalContent;

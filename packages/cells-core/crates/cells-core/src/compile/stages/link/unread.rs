@@ -12,7 +12,7 @@ impl Linking<'_, '_> {
     /// nothing read while planning; what is under it is left out of the
     /// diagnostics. A node the check names with no element made for it is
     /// boxed by compiling again.
-    pub(in crate::compile) fn box_unread_attributes(&mut self) {
+    pub(super) fn box_unread_attributes(&mut self) {
         let unread = unread_attributes(self.rd.dast, &self.boxes.all());
         if unread.is_empty() {
             return;

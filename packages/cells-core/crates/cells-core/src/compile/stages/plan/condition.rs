@@ -6,14 +6,15 @@
 //! the two expressions in the engine, and `<`, `>` and a lone operand
 //! evaluate the expression to a number first.
 
+use super::Planning;
 use crate::compile::*;
 
 /// How `=` compares two expressions that are not both numeric: as written
 /// (`symbolicEquality`) or by value, after `post` on both sides.
 #[derive(Debug, Clone, Copy)]
-pub(in crate::compile) struct Compare {
-    pub(in crate::compile) syntactic: bool,
-    pub(in crate::compile) post: Post,
+pub(super) struct Compare {
+    pub(super) syntactic: bool,
+    pub(super) post: Post,
 }
 
 impl Default for Compare {
@@ -27,7 +28,7 @@ impl Default for Compare {
 
 impl Compare {
     /// The equality in the engine: as written, or by value.
-    pub(in crate::compile) fn equals(&self) -> SymKind {
+    pub(super) fn equals(&self) -> SymKind {
         if self.syntactic {
             SymKind::EqualsSyntax
         } else {
@@ -43,7 +44,7 @@ impl<'a> Planning<'a> {
     /// 1 or 0. Comparisons (`< <= > >= = !=`), `and`/`&&`, `or`/`||`,
     /// `not`/`!`, parentheses, `true`, `false`, and math operands; a bare
     /// operand holds when it is nonzero.
-    pub(in crate::compile) fn plan_condition(
+    pub(super) fn plan_condition(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -128,7 +129,7 @@ impl<'a> Planning<'a> {
 
     /// A condition from tokens already made, with a say in
     /// how expressions compare.
-    pub(in crate::compile) fn plan_condition_tokens(
+    pub(super) fn plan_condition_tokens(
         &mut self,
         wiring: &mut ElemWiring,
         toks: &[Token],
@@ -153,7 +154,7 @@ impl<'a> Planning<'a> {
     /// `<when>`'s) as hidden ports of `wiring`; returns the port holding 1 or
     /// 0. Text the numeric tokenizer cannot read (`%`, `'`, `_`) can still
     /// be one `=` between two expressions for the engine.
-    pub(in crate::compile) fn plan_condition_content(
+    pub(super) fn plan_condition_content(
         &mut self,
         t: TemplateId,
         scope: ElemId,
@@ -187,7 +188,7 @@ impl<'a> Planning<'a> {
     /// How `=` compares, from the first of `els` that gives each attribute
     /// (`symbolicEquality`, `simplifyOnCompare`, `expandOnCompare`): an
     /// award's say, then its answer's.
-    pub(in crate::compile) fn compare_attrs(&self, els: &[NodeId]) -> Compare {
+    pub(super) fn compare_attrs(&self, els: &[NodeId]) -> Compare {
         let on = |name: &str| {
             els.iter()
                 .find(|&&el| self.rd.dast.attr(el, name).is_some())
@@ -228,12 +229,7 @@ impl<'a> Planning<'a> {
 
     /// A symbolic math source from the engine's spelling of an operand
     /// (each `$ref` written `cellN<plan>`), as a hidden port of `wiring`.
-    pub(in crate::compile) fn sym_operand(
-        &mut self,
-        wiring: &mut ElemWiring,
-        sym: String,
-        post: Post,
-    ) -> Port {
+    pub(super) fn sym_operand(&mut self, wiring: &mut ElemWiring, sym: String, post: Post) -> Port {
         // The arena only needs an id to key the text by; the engine parses
         // the text itself when the element expands (`sym_source`).
         let id = self.ar.arena.push(Expr::Sym(sym.clone()));

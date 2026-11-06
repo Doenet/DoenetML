@@ -5,24 +5,25 @@
 //! and `fixLocation` are inherited: what an element does not give itself,
 //! the nearest element around it that gives decides.
 
+use super::Planning;
 use crate::compile::*;
 
 /// An attribute that holds an element: whether an element without it takes
 /// the nearest container's (an element's own setting always wins), and
 /// which types it holds.
-pub(in crate::compile) struct HoldAttr {
-    pub(in crate::compile) name: &'static str,
+pub(super) struct HoldAttr {
+    pub(super) name: &'static str,
     /// Whether an element that does not write the attribute takes it from
     /// the nearest element around it that does, through the repeats and
     /// choices around its template. Without, only the element's own counts.
-    pub(in crate::compile) inherited: bool,
+    pub(super) inherited: bool,
     /// The types it holds. An inherited attribute is read on every type,
     /// so a container may give it to what is inside.
-    pub(in crate::compile) holds: fn(ComponentType) -> bool,
+    pub(super) holds: fn(ComponentType) -> bool,
 }
 
 /// Every attribute that holds an element. A new one is a row here.
-pub(in crate::compile) const HOLD_ATTRS: &[HoldAttr] = &[
+pub(super) const HOLD_ATTRS: &[HoldAttr] = &[
     // An element whose value is held: no request changes it.
     HoldAttr {
         name: "fixed",
@@ -60,7 +61,7 @@ impl<'a> Planning<'a> {
     /// own, else (an inherited one) the nearest ancestor's. A
     /// literal true on any of them holds the element always; a reference
     /// holds it while its flag is set, several while any is.
-    pub(in crate::compile) fn plan_hold(&mut self, t: TemplateId, e: ElemId) -> Result<Hold> {
+    pub(super) fn plan_hold(&mut self, t: TemplateId, e: ElemId) -> Result<Hold> {
         let component_type = self.rd.outlined(t).elems[e.index()].component_type;
         let mut flags = Vec::new();
         for row in HOLD_ATTRS {

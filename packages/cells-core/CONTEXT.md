@@ -43,7 +43,7 @@ Aliasing is structural, decided at load time, never by comparing values.
 
 **Shared computation** — Two instructions that apply the same operator to
 the same input cells, which the compile makes one by an alias in the plans
-(`compile/share.rs`), so both props name one cell
+(`compile/stages/share.rs`), so both props name one cell
 (ADR 0033): what an extend that overrides nothing an instruction reads has
 of its referent's derived props. Decided by the dataflow, not by values or
 planners; a leaf is never shared this way. `LoadOptions::share` off, in
@@ -352,7 +352,7 @@ computes where a value sits. The build numbers an element's ports into
 its slots in the wiring's order: the table's props, then two per list
 point, then the hidden ports. Every port has a **port type** (`PortType`,
 ADR 0032): a number, text or math, which the compile infers once from the
-port's source and the ports it reads (`compile/seal/types.rs`) and every
+port's source and the ports it reads (`compile/stages/seal/types.rs`) and every
 build reads to decide what the port's cell holds, whether a `<math>` is a
 math cell, and which reference leaf inside math is a math leaf. Every port
 also has **port attributes** (`PortAttrs`, ADR 0032 step 8, ADR 0036):

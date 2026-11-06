@@ -7,7 +7,7 @@
 use crate::compile::*;
 
 crate::index::index_type! {
-    /// An element's stable key, as an index into the compile's [`Keys`](crate::compile::seal::keys::Keys):
+    /// An element's stable key, as an index into the compile's [`Keys`](crate::compile::keys::Keys):
     /// what saved state names it by. Every instance of a template element
     /// shares its key; the scope tells them apart.
     pub struct ElemKey;

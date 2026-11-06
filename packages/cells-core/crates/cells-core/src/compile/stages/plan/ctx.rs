@@ -34,7 +34,7 @@ struct Base {
 }
 
 impl<'c, 'a> PlanCtx<'c, 'a> {
-    pub(in crate::compile) fn new(
+    pub(super) fn new(
         p: &'c mut Planning<'a>,
         t: TemplateId,
         e: ElemId,

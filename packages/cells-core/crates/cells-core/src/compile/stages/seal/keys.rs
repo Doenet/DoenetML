@@ -12,6 +12,7 @@ use std::collections::HashMap;
 
 use serde_json::{Value, json};
 
+use super::Seal;
 use crate::compile::*;
 
 /// Every element's key, by [`ElemKey`], and what saved state needs besides.
@@ -85,7 +86,7 @@ fn push_number(out: &mut String, k: u32) {
 /// as outlining made them; writes only [`Seal::keys`].
 impl Seal<'_> {
     /// Every element's key, once every element is planned, by template.
-    pub(in crate::compile) fn assign_keys(&mut self) -> Vec<Vec<ElemKey>> {
+    pub(super) fn assign_keys(&mut self) -> Vec<Vec<ElemKey>> {
         let mut keys = Keys::default();
         // The branch each choice template is: (choice, branch).
         let mut branch_of: HashMap<TemplateId, (ChoiceId, usize)> = HashMap::new();

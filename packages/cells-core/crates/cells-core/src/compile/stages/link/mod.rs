@@ -7,21 +7,44 @@ mod unread;
 
 use crate::compile::*;
 
+/// Link what planning made: box the readers of boxes and the elements
+/// with an attribute nothing read, to a fixpoint, and tie the given leaves
+/// copies share. Writes the boxes, the tables' boxes and shared slots, and
+/// [`Planned`]'s shares.
+pub(in crate::compile) fn link<'l, 'b>(
+    rd: Reader<'l>,
+    ar: &'l Arenas,
+    tables: &'l mut [Tables],
+    boxes: &'l mut Boxes<'b>,
+    planned: &'l mut Planned,
+) -> std::result::Result<(), Failure> {
+    crate::trace::span("link").run(|| {
+        Linking {
+            rd,
+            ar,
+            tables,
+            boxes,
+            planned,
+        }
+        .link()
+    })
+}
+
 /// Linking's view: what outlining settled and the arenas, read-only; the
 /// tables, whose boxes and whose plans' shared slots it writes, the boxes,
 /// and [`Planned`], whose shares it ties.
-pub(in crate::compile) struct Linking<'l, 'b> {
+struct Linking<'l, 'b> {
     /// The source and what outlining settled.
-    pub(in crate::compile) rd: Reader<'l>,
+    rd: Reader<'l>,
     /// The reference and expression arenas.
-    pub(in crate::compile) ar: &'l Arenas,
+    ar: &'l Arenas,
     /// Boxing's and planning's tables, by [`TemplateId`].
-    pub(in crate::compile) tables: &'l mut [Tables],
+    tables: &'l mut [Tables],
     /// What boxing records, linking's while it runs.
-    pub(in crate::compile) boxes: &'l mut Boxes<'b>,
+    boxes: &'l mut Boxes<'b>,
     /// What planning made for linking: the reads, the shares, the given
     /// leaves.
-    pub(in crate::compile) planned: &'l mut Planned,
+    planned: &'l mut Planned,
 }
 
 /// Linking: readers of boxes boxed to a fixpoint, and the given leaves copies
@@ -31,7 +54,7 @@ impl Linking<'_, '_> {
     /// Linking: box the readers of boxes, then the elements with an
     /// attribute nothing read and their readers, then tie shared state
     /// between the elements left.
-    pub(in crate::compile) fn link(&mut self) -> std::result::Result<(), Failure> {
+    fn link(&mut self) -> std::result::Result<(), Failure> {
         let box_readers = |l: &mut Self| {
             crate::trace::span("box readers")
                 .run(|| l.box_readers_of_boxes())
@@ -81,7 +104,7 @@ impl Linking<'_, '_> {
     /// Alias each given leaf a copy shares to the referent's port holding
     /// it. A copy or referent that is a box shares nothing, and a copy
     /// keeps its own given value for a leaf its referent has none of.
-    pub(in crate::compile) fn link_given_leaves(&mut self) {
+    fn link_given_leaves(&mut self) {
         let planned = &mut *self.planned;
         for s in std::mem::take(&mut planned.shares) {
             let (rt, re) = match s.referent {

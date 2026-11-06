@@ -13,28 +13,48 @@ use crate::compile::*;
 /// the tables it makes for each element, the [`Outline`] it fills for the
 /// stages after it, and what it needs only while it runs. The driver takes
 /// what it made apart once it is done; nothing writes [`Settled`] after.
-pub(in crate::compile) struct Outlining<'a> {
+struct Outlining<'a> {
     /// The source being compiled.
-    pub(in crate::compile) dast: &'a Dast,
+    dast: &'a Dast,
     /// What outlining settles, as it makes it.
-    pub(in crate::compile) settled: Settled,
+    settled: Settled,
     /// Boxing's and planning's tables: a template's and an element's row
     /// for each outlining makes.
-    pub(in crate::compile) tables: Vec<Tables>,
+    tables: Vec<Tables>,
     /// What outlining appends to: the reference plans of extends, clones
     /// and an answer's whens.
-    pub(in crate::compile) ar: Arenas,
+    ar: Arenas,
     /// What boxing records, outlining's while it runs.
-    pub(in crate::compile) boxes: Boxes<'a>,
+    boxes: Boxes<'a>,
     /// What outlining hands on, as it fills it.
-    pub(in crate::compile) work: Outline,
+    work: Outline,
     /// The container copies (`<graph extend="$g"/>`) the walk found, which
     /// get their clones once every name is in the table.
-    pub(in crate::compile) container_copies: Vec<(TemplateId, ElemId)>,
+    container_copies: Vec<(TemplateId, ElemId)>,
     /// By (template, element), the container copies expanding now and
     /// those done: one reached again while it expands is a cycle.
-    pub(in crate::compile) expanding: HashSet<(TemplateId, ElemId)>,
-    pub(in crate::compile) expanded: HashSet<(TemplateId, ElemId)>,
+    expanding: HashSet<(TemplateId, ElemId)>,
+    expanded: HashSet<(TemplateId, ElemId)>,
+}
+
+/// Outline `dast`, with what boxing records: what it settles, its rows of
+/// boxing's and planning's tables, the arenas it appended to, the boxes, and
+/// the work it found for the stages after it.
+pub(in crate::compile) fn outline<'a>(
+    dast: &'a Dast,
+    boxes: Boxes<'a>,
+) -> (Settled, Vec<Tables>, Arenas, Boxes<'a>, Outline) {
+    let mut outlining = Outlining::new(dast, boxes);
+    crate::trace::span("outline").run(|| outlining.outline());
+    let Outlining {
+        settled,
+        tables,
+        ar,
+        boxes,
+        work,
+        ..
+    } = outlining;
+    (settled, tables, ar, boxes, work)
 }
 
 /// Outlining: elements, templates and names from the DAST, and what a reference
@@ -42,7 +62,7 @@ pub(in crate::compile) struct Outlining<'a> {
 /// ([`Settled`]) and the work for the stages after it ([`Outline`]).
 impl<'a> Outlining<'a> {
     /// Outlining of `dast`, with what boxing records: nothing made yet.
-    pub(in crate::compile) fn new(dast: &'a Dast, boxes: Boxes<'a>) -> Self {
+    fn new(dast: &'a Dast, boxes: Boxes<'a>) -> Self {
         Outlining {
             dast,
             settled: Settled::default(),
@@ -58,7 +78,7 @@ impl<'a> Outlining<'a> {
 
     /// Outline the document: what it settles in `settled`, its rows of the
     /// tables in `tables`, and the work for the stages after it in `work`.
-    pub(in crate::compile) fn outline(&mut self) {
+    fn outline(&mut self) {
         let dast = self.dast;
         // Template 0, the document's.
         self.push_template(None);
@@ -101,26 +121,23 @@ impl<'a> Outlining<'a> {
     }
 
     /// What outlining has settled so far, read-only: what the readers read.
-    pub(in crate::compile) fn rd(&self) -> Reader<'_> {
+    fn rd(&self) -> Reader<'_> {
         Reader::new(self.dast, &self.settled)
     }
 
     /// Outlining's part of template `t`, as made so far.
-    pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &Outlined {
+    fn outlined(&self, t: TemplateId) -> &Outlined {
         &self.settled.templates[t.index()]
     }
 
     /// Outlining's part of template `t`, to make.
-    pub(in crate::compile) fn outlined_mut(&mut self, t: TemplateId) -> &mut Outlined {
+    fn outlined_mut(&mut self, t: TemplateId) -> &mut Outlined {
         &mut self.settled.templates[t.index()]
     }
 
     /// Adds a template to outlining's part and to the tables; only
     /// outlining makes one.
-    pub(in crate::compile) fn push_template(
-        &mut self,
-        parent: Option<(TemplateId, ElemId)>,
-    ) -> TemplateId {
+    fn push_template(&mut self, parent: Option<(TemplateId, ElemId)>) -> TemplateId {
         let t = TemplateId::from_index(self.tables.len());
         self.settled.templates.push(Outlined {
             parent,
@@ -130,7 +147,7 @@ impl<'a> Outlining<'a> {
         t
     }
 
-    pub(in crate::compile) fn push_elem(
+    fn push_elem(
         &mut self,
         t: TemplateId,
         node: NodeId,
@@ -144,7 +161,7 @@ impl<'a> Outlining<'a> {
     /// `push_elem` whose name is registered only up to ancestor `stop`
     /// (inclusive): a container copy's children are reached through the
     /// copy's name, never bare, so they do not make the original ambiguous.
-    pub(in crate::compile) fn push_elem_visible_to(
+    fn push_elem_visible_to(
         &mut self,
         t: TemplateId,
         node: NodeId,
@@ -217,12 +234,7 @@ impl<'a> Outlining<'a> {
     /// The `_error` element standing for boxed node `node`: no children,
     /// no props, and the element's name, so a reference to it resolves and
     /// reads as undefined. A name a sibling already holds is left off.
-    pub(in crate::compile) fn push_error_elem(
-        &mut self,
-        t: TemplateId,
-        node: NodeId,
-        name_scope: ElemId,
-    ) -> ElemId {
+    fn push_error_elem(&mut self, t: TemplateId, node: NodeId, name_scope: ElemId) -> ElemId {
         let name = match self.dast.kind(node) {
             NodeKind::Element => self.rd().attr_name_str(node, "name").unwrap_or(StrId::NONE),
             _ => StrId::NONE,
@@ -239,7 +251,7 @@ impl<'a> Outlining<'a> {
 
     /// Leaves `e` its name only when the name table holds the name for it:
     /// a box made for a duplicate name carries none.
-    pub(in crate::compile) fn drop_unregistered_name(&mut self, t: TemplateId, e: ElemId) {
+    fn drop_unregistered_name(&mut self, t: TemplateId, e: ElemId) {
         let el = &self.outlined(t).elems[e.index()];
         if el.name == StrId::NONE {
             return;
@@ -254,7 +266,7 @@ impl<'a> Outlining<'a> {
         }
     }
 
-    pub(in crate::compile) fn add_synthetic(
+    fn add_synthetic(
         &mut self,
         t: TemplateId,
         component_type: ComponentType,
@@ -268,12 +280,7 @@ impl<'a> Outlining<'a> {
     /// element. A boxed node becomes an `_error` element, and so does one
     /// that fails: each element boxes its own failure, so a failure under
     /// `el` boxes the innermost failing element and leaves `el` be.
-    pub(in crate::compile) fn add_elem(
-        &mut self,
-        t: TemplateId,
-        el: NodeId,
-        name_scope: ElemId,
-    ) -> ElemId {
+    fn add_elem(&mut self, t: TemplateId, el: NodeId, name_scope: ElemId) -> ElemId {
         if self.boxes.prior.contains(&el) {
             return self.push_error_elem(t, el, name_scope);
         }
@@ -423,7 +430,7 @@ impl<'a> Outlining<'a> {
         Ok(())
     }
 
-    pub(in crate::compile) fn add_children(
+    fn add_children(
         &mut self,
         t: TemplateId,
         owner: Option<ElemId>,

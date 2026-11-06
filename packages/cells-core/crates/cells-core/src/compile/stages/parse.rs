@@ -32,15 +32,31 @@ impl Parsed {
     }
 }
 
+/// Parse every `<math>`'s text once, as outlining settled its type, and
+/// the record of every element in `to_plan`, each where it sits, appending
+/// their references to `ar`.
+pub(in crate::compile) fn parse<'p>(
+    rd: Reader<'p>,
+    tables: &'p [Tables],
+    ar: &'p mut Arenas,
+    math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
+    to_plan: &[(TemplateId, ElemId)],
+) -> Parsed {
+    let mut parsing = Parsing { rd, tables, ar };
+    let mut parsed = crate::trace::span("parse maths").run(|| parsing.parse_maths(math_texts));
+    crate::trace::span("parse records").run(|| parsing.parse_records(to_plan, &mut parsed));
+    parsed
+}
+
 /// Parsing's view: what outlining settled and the box table, read-only, and
 /// the arenas the math's and records' references are planned into.
-pub(in crate::compile) struct Parsing<'p> {
+struct Parsing<'p> {
     /// The source and what outlining settled.
-    pub(in crate::compile) rd: Reader<'p>,
+    rd: Reader<'p>,
     /// Boxing's and planning's tables, read for the boxes outlining made.
-    pub(in crate::compile) tables: &'p [Tables],
+    tables: &'p [Tables],
     /// What parsing appends to.
-    pub(in crate::compile) ar: &'p mut Arenas,
+    ar: &'p mut Arenas,
 }
 
 /// Parsing: every `<math>`'s text, once, as outlining settled its type, and
@@ -48,10 +64,7 @@ pub(in crate::compile) struct Parsing<'p> {
 impl Parsing<'_> {
     /// Parse every `<math>`'s text once as the type outlining settled, its
     /// `$ref`s planned where the math sits.
-    pub(in crate::compile) fn parse_maths(
-        &mut self,
-        math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
-    ) -> Parsed {
+    fn parse_maths(&mut self, math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>) -> Parsed {
         let mut parsed = Parsed::default();
         for ((t, e), mt) in math_texts {
             if self.tables[t.index()].is_box(e) {
@@ -73,11 +86,7 @@ impl Parsing<'_> {
 
     /// Parse every element's record: each attribute its type declares and
     /// its children as the type reads them, parsed where the element sits.
-    pub(in crate::compile) fn parse_records(
-        &mut self,
-        to_plan: &[(TemplateId, ElemId)],
-        parsed: &mut Parsed,
-    ) {
+    fn parse_records(&mut self, to_plan: &[(TemplateId, ElemId)], parsed: &mut Parsed) {
         for &(t, e) in to_plan {
             if self.tables[t.index()].is_box(e) || self.rd.elem(t, e).cloned {
                 continue;

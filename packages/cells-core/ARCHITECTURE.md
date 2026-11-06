@@ -97,7 +97,7 @@ loads it as JSON (`dast/json.rs`) or in a binary wire format
 
 Runs once per load and depends on the source alone.
 
-- **Lint** (`lint.rs`) is one walk over the DAST for the rules that need
+- **Lint** (`stages/lint.rs`) is one walk over the DAST for the rules that need
   nothing else, such as the accessibility rules. It looks attributes up
   with `Dast::attr_peek`, which records no read (ADR 0021), so it runs
   first without changing which attributes are refused (ADR 0027).
@@ -115,21 +115,22 @@ Runs once per load and depends on the source alone.
   over a view of its own that holds what earlier stages made read-only
   and its own table writable (`Outlining`, `Parsing`, `Planning`,
   `Linking`, `Seal`; ADR 0031), each returning what it makes for the
-  later ones, each in its own module:
-  **outline** (`outline/`) makes every element, template and name,
+  later ones, each a module of `stages/` whose one entry function is all
+  the driver (`compile/mod.rs`) sees of it; what they hand on is in `ir/`:
+  **outline** (`stages/outline/`) makes every element, template and name,
   settles what a reference reads of each (a `<math>`'s type, a
   `<collect>`'s collected type), gives container copies their clones and
   answers their synthetic children, and plans nothing (ADR 0030);
-  **parse** (`parse.rs`) parses every `<math>`'s text once; **plan**
-  (`planning/`) plans every element; **link** (`link/`) boxes every
+  **parse** (`stages/parse.rs`) parses every `<math>`'s text once; **plan**
+  (`stages/plan/`) plans every element; **link** (`stages/link/`) boxes every
   reader of a box to a fixpoint (every cross-element read is recorded,
   ADR 0032) and every element with an attribute nothing read, and ties
-  shared state between plans; **seal** (`seal/`) makes choice
+  shared state between plans; **seal** (`stages/seal/`) makes choice
   interfaces, checks arity, assigns keys and slot offsets, and infers
-  every port's type (`seal/types.rs`, ADR 0032), a fixpoint over every
+  every port's type (`stages/seal/types.rs`, ADR 0032), a fixpoint over every
   template from the ports' sources and the references between them,
   which every build reads for what a cell holds and whether a math is
-  symbolic; **share** (`share.rs`, ADR 0033) makes equal computations one
+  symbolic; **share** (`stages/share.rs`, ADR 0033) makes equal computations one
   cell by an alias in the plans: per template, a union-find over the
   cells the ports will make (a reference by its plan, one that names a
   port of the template as that port, an extend's referent in another
@@ -151,7 +152,7 @@ Runs once per load and depends on the source alone.
   source and what outlining and parsing made, never another element's plan
   (ADR 0029), so elements are planned in any order: what one shares with
   another (an extend's essential state) is linked once all are planned.
-- **Check** (`check.rs`, ADR 0012, ADR 0014) finds every error the document
+- **Check** (`stages/check.rs`, ADR 0012, ADR 0014) finds every error the document
   can have, all of it over the **template graph** (below), which stands
   for every count and every pick: stamping it fails on an element that
   cannot be built (`Stamp::fail`, which names the element to box), it

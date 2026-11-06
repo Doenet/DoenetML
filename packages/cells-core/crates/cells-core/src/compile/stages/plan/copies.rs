@@ -3,7 +3,7 @@
 //! type's planner: a bare copy aliases every prop, and a copy with its own
 //! attributes keeps the shared state they supply and shares the rest.
 
-use super::Planning;
+use super::{PlanCtx, Planner, Planning};
 use crate::compile::*;
 
 /// Planning, copies: `extend` with a prop path, container copies, clones, and
@@ -11,12 +11,7 @@ use crate::compile::*;
 /// and type, never its plan (ADR 0029).
 impl<'a> Planning<'a> {
     /// `extend="$c.prop"`: the element's value props alias the named prop.
-    pub(in crate::compile) fn plan_extend_prop(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-        p: RefId,
-    ) -> Result<()> {
+    pub(super) fn plan_extend_prop(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Result<()> {
         let component_type = self.rd.outlined(t).elems[e.index()].component_type;
         let props = match component_type {
             ComponentType::Point => prop::point::props_of(Source::coord(p, 0), Source::coord(p, 1)),
@@ -53,12 +48,7 @@ impl<'a> Planning<'a> {
     /// original's, or, for a type planned by a function (a section), are
     /// planned with the copy rules around it. Its children, clones, it has
     /// from outlining.
-    pub(in crate::compile) fn plan_container_copy(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-        p: RefId,
-    ) -> Result<()> {
+    pub(super) fn plan_container_copy(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Result<()> {
         let component_type = self.rd.outlined(t).elems[e.index()].planned_as;
         match Self::planner(component_type) {
             Planner::Plan(plan) => self.plan_with_extend(t, e, Some(p), plan),
@@ -71,7 +61,7 @@ impl<'a> Planning<'a> {
     /// port of the same position, its aggregates planned as every
     /// element's are, and a list is as long as the referent's, which only
     /// the build knows.
-    pub(in crate::compile) fn plan_bare_copy(&mut self, t: TemplateId, e: ElemId) {
+    pub(super) fn plan_bare_copy(&mut self, t: TemplateId, e: ElemId) {
         let component_type = self.rd.outlined(t).elems[e.index()].component_type;
         let extend = self.tables[t.index()].plans[e.index()]
             .extend
@@ -90,11 +80,7 @@ impl<'a> Planning<'a> {
     /// The referent of `extend` `p` of an element of template `t`, when
     /// the templates name one element: in this template, or in another
     /// reached by the path, with the path to rebase its record through.
-    pub(in crate::compile) fn extend_referent(
-        &mut self,
-        t: TemplateId,
-        p: RefId,
-    ) -> Option<Referent> {
+    pub(super) fn extend_referent(&mut self, t: TemplateId, p: RefId) -> Option<Referent> {
         if let Some(r) = self.rd.plan_elem_target(&self.ar, t, p) {
             return (self.rd.outlined(t).elems[r.index()].node != NodeId::NONE)
                 .then_some(Referent::Here(r));
@@ -117,7 +103,7 @@ impl<'a> Planning<'a> {
     /// children is planned from its record merged under the referent's;
     /// and every given leaf the copy did not give itself is shared with the
     /// referent's port holding it.
-    pub(in crate::compile) fn plan_with_extend(
+    pub(super) fn plan_with_extend(
         &mut self,
         t: TemplateId,
         e: ElemId,

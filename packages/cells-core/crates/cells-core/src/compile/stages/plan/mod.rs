@@ -3,35 +3,69 @@
 //! directory holds the machinery each type's planner builds on.
 
 mod answer;
-pub(in crate::compile) mod attrs;
+mod attrs;
 mod choice;
 mod condition;
 mod copies;
-pub(in crate::compile) mod ctx;
+mod ctx;
 mod fix;
 mod iterates;
-pub(in crate::compile) mod planner;
+mod planner;
 
 use crate::compile::*;
+// What a planner is given and how a type names its planner: the planner-facing
+// part of planning, which `api` re-exports to the components.
+pub(crate) use ctx::PlanCtx;
+pub(crate) use planner::Planner;
 
 /// Planning's view (ADR 0031, "The planner context"): what outlining
 /// settled and what parsing made, read-only; planning's table and the boxes
 /// in the tables, the arenas, and what it makes for linking and sealing,
 /// writable. A planner reaches it only through [`PlanCtx`].
-pub(in crate::compile) struct Planning<'a> {
+struct Planning<'a> {
     /// The source and what outlining settled.
-    pub(in crate::compile) rd: Reader<'a>,
+    rd: Reader<'a>,
     /// What parsing made.
-    pub(in crate::compile) parsed: &'a Parsed,
+    parsed: &'a Parsed,
     /// Boxing's and planning's tables, by [`TemplateId`]: planning fills its
     /// own, and boxes through `boxes`.
-    pub(in crate::compile) tables: Vec<Tables>,
+    tables: Vec<Tables>,
     /// What planning appends to.
-    pub(in crate::compile) ar: Arenas,
+    ar: Arenas,
     /// What boxing records, planning's while it runs.
-    pub(in crate::compile) boxes: Boxes<'a>,
+    boxes: Boxes<'a>,
     /// What planning makes for linking and sealing.
-    pub(in crate::compile) planned: Planned,
+    planned: Planned,
+}
+
+/// Plan every element and every `$ref` child outlining found (`work`),
+/// over what outlining settled and parsing made: boxing's and planning's
+/// tables, the arenas and the boxes as planning leaves them, and
+/// [`Planned`] for linking and sealing.
+pub(in crate::compile) fn plan<'a>(
+    rd: Reader<'a>,
+    parsed: &'a Parsed,
+    tables: Vec<Tables>,
+    ar: Arenas,
+    boxes: Boxes<'a>,
+    work: Outline,
+) -> (Vec<Tables>, Arenas, Boxes<'a>, Planned) {
+    let Outline {
+        to_plan,
+        macros,
+        reads,
+        ..
+    } = work;
+    let mut planning = Planning::new(rd, parsed, tables, ar, boxes, reads);
+    crate::trace::span("plan all").run(|| planning.plan_all(to_plan, macros));
+    let Planning {
+        tables,
+        ar,
+        boxes,
+        planned,
+        ..
+    } = planning;
+    (tables, ar, boxes, planned)
 }
 
 /// The ways an element is planned.
@@ -50,7 +84,7 @@ enum ElemShape {
 impl<'a> Planning<'a> {
     /// Planning over what the stages before it made: the reads outlining
     /// recorded are the first in [`Planned`].
-    pub(in crate::compile) fn new(
+    fn new(
         rd: Reader<'a>,
         parsed: &'a Parsed,
         tables: Vec<Tables>,
@@ -73,7 +107,7 @@ impl<'a> Planning<'a> {
 
     /// Plan every element and every `$ref` child. What fails is boxed in
     /// place; a `$ref` child that cannot be planned gets a box as its plan.
-    pub(in crate::compile) fn plan_all(
+    fn plan_all(
         &mut self,
         to_plan: Vec<(TemplateId, ElemId)>,
         ref_children: Vec<(TemplateId, RefChildId)>,
@@ -134,7 +168,7 @@ impl<'a> Planning<'a> {
 
     /// Plans element `e`, and records what holds it beside its plans.
     /// Elements are planned in any order, each once.
-    pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) {
+    fn plan_elem(&mut self, t: TemplateId, e: ElemId) {
         // A box, made when outlining or boxed in place, is planned as it is.
         if self.tables[t.index()].is_box(e) {
             return;
@@ -367,12 +401,7 @@ impl<'a> Planning<'a> {
 
     /// A plan naming prop `prop` of repeat `e` of template `t`, as seen
     /// from the repeat's own template (one hop up).
-    pub(in crate::compile) fn own_prop_plan(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-        prop: &'static str,
-    ) -> RefId {
+    fn own_prop_plan(&mut self, t: TemplateId, e: ElemId, prop: &'static str) -> RefId {
         let ty = self.rd.outlined(t).elems[e.index()].component_type;
         let prop_sel = RefProp::named(ty, prop).expect("a repeat has the prop its body reads");
         let plan = RefPlan {

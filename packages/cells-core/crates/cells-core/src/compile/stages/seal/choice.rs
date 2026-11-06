@@ -9,7 +9,7 @@ use crate::compile::*;
 impl Seal<'_> {
     /// Every choice's `used`: the interface names reference plans step
     /// into, in the order the plans first name them, and where each is.
-    pub(in crate::compile) fn gather_used_names(&mut self) {
+    pub(super) fn gather_used_names(&mut self) {
         for r in &self.ar.refs {
             for step in &r.steps {
                 if let Step::Iface(cid, id) = *step {
@@ -26,7 +26,7 @@ impl Seal<'_> {
     /// The branch interface of every choice, once every element is planned
     /// (a tuple-valued `<math>` only becomes a point when planned), then the
     /// check that every interface name a reference uses is in it.
-    pub(in crate::compile) fn finish_choices(&mut self) -> std::result::Result<(), Failure> {
+    pub(super) fn finish_choices(&mut self) -> std::result::Result<(), Failure> {
         for cid in 0..self.choices.len() {
             let def = &self.choices[cid];
             // A boxed choice has no branches to read.

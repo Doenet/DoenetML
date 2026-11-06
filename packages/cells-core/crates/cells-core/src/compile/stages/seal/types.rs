@@ -42,7 +42,7 @@ struct Target {
 impl Seal<'_> {
     /// Every port's type, by template and template slot (`offs` are the
     /// elements' slot offsets), and the checks that need them.
-    pub(in crate::compile) fn infer_types(
+    pub(super) fn infer_types(
         &self,
         offs: &[(Vec<TemplateSlot>, u32)],
     ) -> std::result::Result<Vec<Vec<PortType>>, Failure> {

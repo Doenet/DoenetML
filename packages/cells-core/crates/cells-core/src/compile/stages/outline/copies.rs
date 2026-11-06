@@ -10,7 +10,7 @@ use crate::compile::*;
 impl Outlining<'_> {
     /// Plan every other element's `extend`, once the container copies
     /// have their clones. One that cannot be planned boxes its element.
-    pub(in crate::compile) fn plan_extends(&mut self) {
+    pub(super) fn plan_extends(&mut self) {
         let made = self.work.to_plan.clone();
         for (t, e) in made {
             let el = &self.outlined(t).elems[e.index()];
@@ -31,7 +31,7 @@ impl Outlining<'_> {
 
     /// Give every container copy its clones. A copy of a copy is expanded
     /// after its referent, whatever the document's order.
-    pub(in crate::compile) fn expand_container_copies(&mut self) {
+    pub(super) fn expand_container_copies(&mut self) {
         for (t, e) in std::mem::take(&mut self.container_copies) {
             // Nothing is expanding between two copies here, so none is
             // reached again; were one, it is boxed like any failure.
@@ -47,11 +47,7 @@ impl Outlining<'_> {
     /// copy. A copy that fails is boxed, and the clones it made die with
     /// it. The one error returned is a copy reached again while it expands,
     /// a cycle, which is its reader's failure.
-    pub(in crate::compile) fn expand_container_copy(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-    ) -> Result<()> {
+    pub(super) fn expand_container_copy(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let key = (t, e);
         if self.expanded.contains(&key) || self.tables[t.index()].is_box(e) {
             // A copy boxed before its clones were made has none to read.
@@ -116,7 +112,7 @@ impl Outlining<'_> {
         Ok(())
     }
 
-    pub(in crate::compile) fn clone_children(
+    pub(super) fn clone_children(
         &mut self,
         t: TemplateId,
         from: ElemId,
@@ -188,11 +184,7 @@ impl Outlining<'_> {
 
     /// The reference in `e`'s `extend`, planned once, when outlining, from
     /// where `e` sits.
-    pub(in crate::compile) fn plan_extend(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-    ) -> Result<Option<RefId>> {
+    pub(super) fn plan_extend(&mut self, t: TemplateId, e: ElemId) -> Result<Option<RefId>> {
         if let Some(p) = self.outlined(t).elems[e.index()].extend {
             return Ok(Some(p));
         }
@@ -243,7 +235,7 @@ impl Outlining<'_> {
 
     /// Whether `e` is a container copy (`<graph extend="$g"/>`), which
     /// outlining gives its clones.
-    pub(in crate::compile) fn is_container_copy(&self, t: TemplateId, e: ElemId) -> bool {
+    pub(super) fn is_container_copy(&self, t: TemplateId, e: ElemId) -> bool {
         let el = &self.outlined(t).elems[e.index()];
         el.node != NodeId::NONE
             && !el.cloned
@@ -258,7 +250,7 @@ impl Outlining<'_> {
     /// Run `f`, which reads what outlining made through references: when it
     /// reaches a container copy whose clones are not made yet
     /// ([`Error::AwaitsClones`]), make them, and run it again from the start.
-    pub(in crate::compile) fn with_clones<T>(
+    pub(super) fn with_clones<T>(
         &mut self,
         mut f: impl FnMut(&mut Self) -> Result<T>,
     ) -> Result<T> {

@@ -86,7 +86,7 @@ was planned (ADR 0021): the core ignores no attribute silently.
 [`Dast::attr`](crate::dast::Dast::attr) records every lookup, and a build makes none; once planning
 is done, every element outside the boxes with an attribute never looked
 up, and not one a renderer reads ([`PRESENTATION_ATTRS`](crate::components::PRESENTATION_ATTRS), a type's
-`presentation`), is boxed in place when linking (`compile/link/unread.rs`, ADR
+`presentation`), is boxed in place when linking (`compile/stages/link/unread.rs`, ADR
 0030), all of them at once, like any failure: what its planning reported
 under it is dropped, and a reference into it reads undefined.
 
@@ -99,7 +99,7 @@ mid-session.
 
 ## The language server asks for diagnostics
 
-[`diagnose`](crate::diagnose) (`compile/check.rs`) runs the compile's check without loading a
+[`diagnose`](crate::diagnose) (`compile/mod.rs`) runs the compile's check without loading a
 document. Its result is a function of the DAST alone, at any seed and any
 count, and equals what a load reports.
 

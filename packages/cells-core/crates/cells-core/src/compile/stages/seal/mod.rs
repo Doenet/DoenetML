@@ -3,32 +3,46 @@
 //! element's key, the slot offsets, and every port's type. What fails here
 //! is boxed by compiling again, not in place.
 
-pub(in crate::compile) mod choice;
+mod choice;
 pub(crate) mod keys;
 mod types;
 
 use crate::compile::*;
 
+/// Seal what the stages before it made: outlining's rows and choices,
+/// boxing's and planning's tables, the arenas, and which port holds each
+/// given leaf. Sealing's tables: a [`SealedTemplate`] per template, a
+/// [`ChoiceSeal`] per choice, and the keys.
+pub(in crate::compile) fn seal<'a>(
+    dast: &'a Dast,
+    settled: &'a Settled,
+    ar: &'a Arenas,
+    tables: &'a [Tables],
+    given: &'a HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
+) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>, keys::Keys), Failure> {
+    crate::trace::span("seal").run(|| Seal::new(dast, settled, ar, tables, given).run())
+}
+
 /// Sealing's state: every earlier stage's tables, read-only, and what it
 /// finds of each choice and the keys, its own.
-pub(in crate::compile) struct Seal<'a> {
+struct Seal<'a> {
     /// The reference and expression arenas, read-only.
-    pub(in crate::compile) ar: &'a Arenas,
-    pub(in crate::compile) dast: &'a Dast,
-    pub(in crate::compile) names: &'a NameTable,
+    ar: &'a Arenas,
+    dast: &'a Dast,
+    names: &'a NameTable,
     /// Outlining's part of every template.
-    pub(in crate::compile) templates: &'a [Outlined],
+    templates: &'a [Outlined],
     /// Boxing's and planning's tables of every template.
-    pub(in crate::compile) tables: &'a [Tables],
+    tables: &'a [Tables],
     /// Every choice as outlining made it.
-    pub(in crate::compile) choices: &'a [ChoiceDef],
+    choices: &'a [ChoiceDef],
     /// What sealing finds of each choice, as it finds it.
-    pub(in crate::compile) choice_seals: Vec<ChoiceSeal>,
+    choice_seals: Vec<ChoiceSeal>,
     /// By (template, element), which port holds each given leaf, by which a
     /// key names a hidden port.
-    pub(in crate::compile) given: &'a HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
+    given: &'a HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
     /// Every element's stable key, once sealing has made them.
-    pub(in crate::compile) keys: keys::Keys,
+    keys: keys::Keys,
 }
 
 /// Sealing: the stage's entry, its order of passes, operator arity and the slot
@@ -38,7 +52,7 @@ impl<'a> Seal<'a> {
     /// Sealing over what the stages before it made: outlining's rows and
     /// choices, boxing's and planning's tables, the arenas, and which port
     /// holds each given leaf.
-    pub(in crate::compile) fn new(
+    fn new(
         dast: &'a Dast,
         settled: &'a Settled,
         ar: &'a Arenas,
@@ -60,7 +74,7 @@ impl<'a> Seal<'a> {
 
     /// Sealing's tables: a [`SealedTemplate`] per template, a
     /// [`ChoiceSeal`] per choice, and the keys.
-    pub(in crate::compile) fn run(
+    fn run(
         mut self,
     ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>, keys::Keys), Failure> {
         self.choice_seals = vec![ChoiceSeal::default(); self.choices.len()];
@@ -86,7 +100,7 @@ impl<'a> Seal<'a> {
     }
 
     /// Template `t`'s outlined part and its tables, read together.
-    pub(in crate::compile) fn view(&self, t: TemplateId) -> TemplateRef<'a> {
+    fn view(&self, t: TemplateId) -> TemplateRef<'a> {
         TemplateRef {
             outlined: &self.templates[t.index()],
             tables: &self.tables[t.index()],
@@ -94,7 +108,7 @@ impl<'a> Seal<'a> {
     }
 
     /// Every template, in order.
-    pub(in crate::compile) fn template_ids(&self) -> impl Iterator<Item = TemplateId> + use<'a> {
+    fn template_ids(&self) -> impl Iterator<Item = TemplateId> + use<'a> {
         TemplateId::below(self.templates.len())
     }
 

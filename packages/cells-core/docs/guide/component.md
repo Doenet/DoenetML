@@ -59,7 +59,7 @@ planner of its own as the block's last section:
 
 - `Plan(plan)` to return the element's plan, with the copy rules
   (`extend`), `fixed` and its list's length applied around it
-  (`plan_with_extend`, `compile/planning/copies.rs`); the points, lines and circle
+  (`plan_with_extend`, `compile/stages/plan/copies.rs`); the points, lines and circle
   are planned this way,
 
 Such a type lives in its own file, block and planner together (for
@@ -147,7 +147,7 @@ methods. Rules for planners:
   component writes.
 - An attribute the planner never looks up is refused: the check boxes any
   element carrying an attribute nothing read while the document was
-  planned (`compile/link/unread.rs`, ADR 0021), so an author's attribute never
+  planned (`compile/stages/link/unread.rs`, ADR 0021), so an author's attribute never
   does nothing silently. Reading an attribute (`ctx.attr`, `d.attr`) is
   what accepts it; an attribute a renderer reads from the literal
   attributes instead, and the core never does, is declared in the block

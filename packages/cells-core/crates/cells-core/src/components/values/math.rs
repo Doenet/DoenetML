@@ -24,7 +24,7 @@ component! {
         expand: On,
         simplify: On,
     }
-    // Parsed as the type outlining settled (`compile/parse.rs`), not here.
+    // Parsed as the type outlining settled (`compile/stages/parse.rs`), not here.
     children: Math,
     planner: Plan(plan),
 }

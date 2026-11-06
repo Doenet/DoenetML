@@ -1,6 +1,7 @@
 //! Attributes, as planned: each prop's source from the element's record,
 //! and the `<math>`s a plan inlines.
 
+use super::Planning;
 use crate::compile::*;
 
 /// Planning, attributes: each prop's source from the element's record, and the
@@ -10,7 +11,7 @@ impl<'a> Planning<'a> {
     /// The prop sources of a type described by [`PropFrom`]: attributes,
     /// bindings, computed chains, children. A `by_planner` prop is refused:
     /// a type with one is planned by a function.
-    pub(in crate::compile) fn plan_attrs(
+    pub(super) fn plan_attrs(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -21,7 +22,7 @@ impl<'a> Planning<'a> {
 
     /// `plan_attrs` for machinery that plans the `by_planner` props itself
     /// after the table: they are left absent.
-    pub(in crate::compile) fn plan_table(
+    pub(super) fn plan_table(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -143,7 +144,7 @@ impl<'a> Planning<'a> {
     /// Children or an attribute read as a value ([`ValueChildren`]), not
     /// blank: a reference, a literal, or math text. A literal is a value
     /// slot.
-    pub(in crate::compile) fn plan_value_children(
+    pub(super) fn plan_value_children(
         &mut self,
         t: TemplateId,
         scope: ElemId,
@@ -162,11 +163,7 @@ impl<'a> Planning<'a> {
     /// Replace cell leaves that name a `<math>` element of this template
     /// with that math's own expression, as parsed, when it has free
     /// symbols.
-    pub(in crate::compile) fn inline_symbolic_maths(
-        &mut self,
-        t: TemplateId,
-        id: ExprId,
-    ) -> ExprId {
+    pub(super) fn inline_symbolic_maths(&mut self, t: TemplateId, id: ExprId) -> ExprId {
         self.inline_maths(t, id, &mut Vec::new())
     }
 

@@ -149,39 +149,6 @@ impl UnionFind {
     }
 }
 
-/// A word-at-a-time hasher for the compile's small keys (the rotate and
-/// multiply of rustc's `FxHasher`): this stage's and the template
-/// graph's.
-#[derive(Default)]
-pub(crate) struct Fx(u64);
-
-impl std::hash::Hasher for Fx {
-    fn write(&mut self, bytes: &[u8]) {
-        for chunk in bytes.chunks(8) {
-            let mut w = [0u8; 8];
-            w[..chunk.len()].copy_from_slice(chunk);
-            self.write_u64(u64::from_le_bytes(w));
-        }
-    }
-    fn write_u8(&mut self, n: u8) {
-        self.write_u64(n as u64);
-    }
-    fn write_u32(&mut self, n: u32) {
-        self.write_u64(n as u64);
-    }
-    fn write_usize(&mut self, n: usize) {
-        self.write_u64(n as u64);
-    }
-    fn write_u64(&mut self, n: u64) {
-        self.0 = (self.0.rotate_left(5) ^ n).wrapping_mul(0x51_7c_c1_b7_27_22_0a_95);
-    }
-    fn finish(&self) -> u64 {
-        self.0
-    }
-}
-
-pub(crate) type FxMap<K, V> = HashMap<K, V, std::hash::BuildHasherDefault<Fx>>;
-
 /// One template's nodes, by number: an element's ports first, numbered
 /// from its base, then every other node as it is met.
 struct Nodes {
@@ -236,15 +203,15 @@ struct Share<'c> {
     math: HashMap<(u32, String), u32>,
 }
 
-impl Plans {
-    /// Sharing: the expression classes, then every equal pair of derived
-    /// ports made one, each but the kept one an alias, reading the maths'
-    /// text from `dast`. Returns how many ports it made aliases.
-    pub(in crate::compile) fn share(&mut self, dast: &Dast, paths: &[PathExtend]) -> usize {
-        self.expr_class = crate::trace::span("expressions")
-            .run(|| expr_classes(&self.arena, &self.refs, &mut RefClasses::default()));
+/// Sharing: the expression classes, then every equal pair of derived
+/// ports made one, each but the kept one an alias, reading the maths'
+/// text from `dast`. Returns how many ports it made aliases.
+pub(in crate::compile) fn share(plans: &mut Plans, dast: &Dast, paths: &[PathExtend]) -> usize {
+    crate::trace::span("share").run(|| {
+        plans.expr_class = crate::trace::span("expressions")
+            .run(|| expr_classes(&plans.arena, &plans.refs, &mut RefClasses::default()));
         let mut s = Share {
-            c: self,
+            c: plans,
             dast,
             refs: RefClasses::default(),
             math: HashMap::new(),
@@ -257,11 +224,11 @@ impl Plans {
         }
         let n = rewrites.len();
         for (t, e, port, arg) in rewrites {
-            self.templates[t.index()].tables.plans[e.index()].props[port.index()] =
+            plans.templates[t.index()].tables.plans[e.index()].props[port.index()] =
                 Source::alias(arg);
         }
         n
-    }
+    })
 }
 
 impl Share<'_> {

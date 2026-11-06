@@ -11,20 +11,26 @@ through the template nesting for every reference.
 
 The compile runs in stages (ADR 0027), each a function of what the
 stages before it made (ADR 0030), each writing a table of its own (ADR
-0031). [`compile::compile`](crate::compile::compile) is the entry; it
-lints, then runs the stages in
-[`Compiler::compile`](crate::compile::Compiler::compile), then the check.
+0031), each a module of [`compile::stages`](crate::compile::stages) with
+one entry function; how a stage reads and writes the tables is its
+module's own business. [`compile::compile`](crate::compile::compile) is
+the entry; it lints, then runs the stages in
+[`Compiler::compile`](crate::compile::Compiler::compile), then the check,
+and boxes and compiles again until the check passes
+([`plan_and_check`](crate::compile::plan_and_check)). What the stages
+write and the stages after them and the build read is in
+[`compile::ir`](crate::compile::ir).
 
 | Stage | Module | Entry | Makes | ADR |
 |---|---|---|---|---|
-| lint | [`compile::lint`](crate::compile::lint) | [`lint`](crate::compile::lint::lint) | findings from the DAST alone; records no read | 0021, 0027 |
-| outline | [`compile::outline`](crate::compile::outline) | [`Outlining::outline`](crate::compile::outline::Outlining::outline) | every element, template and name: [`Settled`](crate::compile::Settled), read-only after it, and the work for the stages after it ([`Outline`](crate::compile::Outline)); plans nothing | 0030 |
-| parse | [`compile::parse`](crate::compile::parse) | [`Parsing::parse_maths`](crate::compile::parse::Parsing::parse_maths), [`Parsing::parse_records`](crate::compile::parse::Parsing::parse_records) | every `<math>`'s text parsed once, as outlining settled its type, and every element's record: [`Parsed`](crate::compile::parse::Parsed) | 0034 |
-| plan | [`compile::planning`](crate::compile::planning) | [`Planning::plan_all`](crate::compile::planning::Planning::plan_all) | every element's plans and hold, every `$ref` child's plan (planning's columns of [`Tables`](crate::compile::ir::Tables)), and [`Planned`](crate::compile::Planned) for linking and sealing | 0029, 0034 |
-| link | [`compile::link`](crate::compile::link) | [`Linking::link`](crate::compile::link::Linking::link) | readers of boxes boxed to a fixpoint, elements with an attribute nothing read boxed, shared state tied | 0021, 0032 |
-| seal | [`compile::seal`](crate::compile::seal) | [`Seal::run`](crate::compile::seal::Seal::run) | choice interfaces, arity, keys, slot offsets and every port's type: a [`SealedTemplate`](crate::compile::ir::SealedTemplate) per template and a [`ChoiceSeal`](crate::compile::ir::ChoiceSeal) per choice | 0032 |
-| share | [`compile::share`](crate::compile::share) | [`Plans::share`](crate::compile::ir::Plans::share) | equal derived ports made aliases, and the expression classes | 0033 |
-| check | [`compile::check`](crate::compile::check) | [`template_graph_checked`](crate::compile::graph::template_graph_checked) | over the [`TemplateGraph`](crate::compile::graph::TemplateGraph): the elements that cannot be built, the cycle check, the structural depth, define, each port's attributes ([`Checked`](crate::compile::ir::Checked)), the constants, the load-time choices and the warnings | 0012, 0014, 0035, 0036, 0037 |
+| lint | [`stages::lint`](crate::compile::stages::lint) | [`lint`](crate::compile::stages::lint::lint) | findings from the DAST alone; records no read | 0021, 0027 |
+| outline | [`stages::outline`](crate::compile::stages::outline) | [`outline`](crate::compile::stages::outline::outline) | every element, template and name: [`Settled`](crate::compile::ir::Settled), read-only after it, and the work for the stages after it ([`Outline`](crate::compile::ir::Outline)); plans nothing | 0030 |
+| parse | [`stages::parse`](crate::compile::stages::parse) | [`parse`](crate::compile::stages::parse::parse) | every `<math>`'s text parsed once, as outlining settled its type, and every element's record: [`Parsed`](crate::compile::stages::parse::Parsed) | 0034 |
+| plan | [`stages::plan`](crate::compile::stages::plan) | [`plan`](crate::compile::stages::plan::plan) | every element's plans and hold, every `$ref` child's plan (planning's columns of [`Tables`](crate::compile::ir::Tables)), and [`Planned`](crate::compile::ir::Planned) for linking and sealing | 0029, 0034 |
+| link | [`stages::link`](crate::compile::stages::link) | [`link`](crate::compile::stages::link::link) | readers of boxes boxed to a fixpoint, elements with an attribute nothing read boxed, shared state tied | 0021, 0032 |
+| seal | [`stages::seal`](crate::compile::stages::seal) | [`seal`](crate::compile::stages::seal::seal) | choice interfaces, arity, keys, slot offsets and every port's type: a [`SealedTemplate`](crate::compile::ir::SealedTemplate) per template, a [`ChoiceSeal`](crate::compile::ir::ChoiceSeal) per choice, and the [`Keys`](crate::compile::keys::Keys) | 0032 |
+| share | [`stages::share`](crate::compile::stages::share) | [`share`](crate::compile::stages::share::share) | equal derived ports made aliases, and the expression classes | 0033 |
+| check | [`stages::check`](crate::compile::stages::check) | [`check`](crate::compile::stages::check::check) | over the [`TemplateGraph`](crate::compile::graph::TemplateGraph): the elements that cannot be built, the cycle check, the structural depth, define, each port's attributes ([`Checked`](crate::compile::ir::Checked)), the constants, the load-time choices and the warnings: [`Checks`](crate::compile::stages::check::Checks) | 0012, 0014, 0035, 0036, 0037 |
 
 Each template is the stages' tables put together once the compile is
 done: outlining's part ([`Outlined`](crate::compile::ir::Outlined)),
@@ -56,8 +62,8 @@ once all are planned. A planner is a function of its element's record
 (ADR 0034) and reaches the compile only through
 [`compile::api`](crate::compile::api); see the
 [component chapter](crate::_guide::component). Behind
-[`PlanCtx`](crate::compile::api::PlanCtx) is planning's view,
-[`Planning`](crate::compile::planning::Planning): what outlining settled
+[`PlanCtx`](crate::compile::api::PlanCtx) is planning's view, `Planning`
+([`compile::stages::plan`](crate::compile::stages::plan)): what outlining settled
 and what parsing made, read-only, and planning's table, the boxes and the
 arenas, writable (ADR 0031, "The planner context").
 

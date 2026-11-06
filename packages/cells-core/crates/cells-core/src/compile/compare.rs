@@ -1,7 +1,7 @@
 //! Whether an edit is safe for every student: the two versions' input
 //! signatures compared, from the sources alone.
 
-use super::check::signature_renamed;
+use super::signature_renamed;
 use super::*;
 use crate::build::signature::{Domain, Input, Signature};
 
