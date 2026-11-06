@@ -63,6 +63,8 @@ mod values;
 
 pub use check::diagnose;
 pub(crate) use check::{CompileOutput, compile};
+#[cfg(feature = "testing")]
+pub(crate) use check::define_failures_agree;
 pub use plan::Compiled;
 pub(crate) use plan::CompiledRef;
 

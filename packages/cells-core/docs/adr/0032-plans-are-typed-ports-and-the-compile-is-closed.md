@@ -1,8 +1,8 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
 Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done,
-the first three parts of step 8, and the first piece of its fourth; see
-Migration. Builds on
+the first three parts of step 8, and the first two pieces of its
+fourth; see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
 what an extend does not override) and the one ADR 0016 removed (lists of
@@ -857,6 +857,35 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
       isolated 30%. `load-diff.sh` against 5323bf3 puts poly at 1.08 to
       1.14 times its load, coords at 1.00 to 1.13, and every other shape
       within 1.05.
+
+      The second is done, in this form. `compile/graph/define.rs` merges
+      the aliased nodes into cells, finds each cell's defining node and
+      the flags that hold it (a constant flag holds it for good, a math
+      handle counting as not zero), orients the author's binary
+      operators as `build/orient.rs` does, in the same order, checks the
+      prefill rule, and walks: writable from every input prop through
+      where a request goes, live from every root through what a cell
+      needs and a seed's source; then each port's attributes
+      (`Defined::attrs`). The walks read the components through what the
+      stamping records once it ends (`TemplateGraph::comps`): every live
+      element and every made component, with its public ports and its
+      placement, rendered and under a sticky group or not, found from
+      the document root as `ComponentTable::placement` finds it.
+      `testing::attributes_disagreement` compares the attributes with
+      those the compile keeps, which the abstract build found, and
+      `testing::define_failures_agree` runs define over the graph beside
+      the abstract build's at every attempt of the compile's loop, so a
+      prefill the rule refuses is refused on the same element with the
+      same error. `tests/template_graph.rs` holds every document to both,
+      with documents of its own where orientation, a seed's source and a
+      constant hold each decide an attribute, and three prefills (a
+      computed value refused, a counted value and a given one allowed);
+      without orientation, the seeds, the constant holds' stop, the
+      rendered roots, the document rule, the prefill rule or its counted
+      exemption, it fails. The sticky clause of the live roots is in no
+      document where it decides an attribute: a sticky group's members'
+      props are rendered ones. Nothing in a load reads define over the
+      graph yet; the golden diff is unchanged.
    5. **The input signature over the graph.** ADR 0035's signature
       reads the graph's definitions instead of the abstract build's.
       Test: `tests/safe_edits.rs` unchanged.

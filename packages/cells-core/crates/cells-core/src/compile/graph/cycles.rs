@@ -386,7 +386,7 @@ fn comp_type(c: CompiledRef<'_>, g: &TemplateGraph, k: Comp) -> ComponentType {
 
 /// How node `n` is shown in an error: its component and prop (`p1.x`),
 /// a hidden port by its position.
-fn node_label(c: CompiledRef<'_>, g: &TemplateGraph, n: GraphNode) -> String {
+pub(super) fn node_label(c: CompiledRef<'_>, g: &TemplateGraph, n: GraphNode) -> String {
     let Some((k, pi)) = comp_of_node(g, n) else {
         return "(a value no component holds)".to_string();
     };

@@ -179,3 +179,41 @@ fn plan_and_check<T>(
         }
     }
 }
+
+/// For tests: compile `dast` as a load does, and at every attempt of the
+/// compile's loop run define over the template graph beside the abstract
+/// build's define (ADR 0032, step 8, part 4). Each attempt whose resolve
+/// and cycle check pass must end the same way in both: defined, or
+/// failing on the same element with the same error (the prefill rule).
+/// Returns the attempts where they differ, described.
+#[cfg(feature = "testing")]
+pub(crate) fn define_failures_agree(dast: &Dast) -> Vec<String> {
+    let mut differ = Vec::new();
+    let _ = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
+        let compiled = CompiledRef { dast, plans };
+        let mut ours = None;
+        let found = build::abstract_build(compiled, || {
+            cycle_check(compiled)?;
+            let mut g = graph::template_graph(compiled);
+            ours = Some(graph::define(&mut g, compiled).map(drop));
+            Ok(())
+        });
+        if let Some(ours) = ours {
+            let describe = |r: std::result::Result<(), &Failure>| match r {
+                Ok(()) => "defined".to_string(),
+                Err(f) => format!("{:?}: {}", f.node, f.error),
+            };
+            let (theirs, ours) = (
+                describe(found.as_ref().map(drop)),
+                describe(ours.as_ref().map(|_| ())),
+            );
+            if theirs != ours {
+                differ.push(format!(
+                    "the abstract build: {theirs}; define over the graph: {ours}"
+                ));
+            }
+        }
+        found
+    });
+    differ
+}

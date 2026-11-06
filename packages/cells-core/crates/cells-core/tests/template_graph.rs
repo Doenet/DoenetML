@@ -10,7 +10,10 @@
 use std::path::Path;
 
 use cells_core::testing::test_utils::{dast_json, repo_root};
-use cells_core::testing::{definitions_disagreement, par_map, template_graph_agreement};
+use cells_core::testing::{
+    attributes_disagreement, define_failures_agree, definitions_disagreement, par_map,
+    template_graph_agreement,
+};
 
 /// Documents for what the golden set has little of: references into and
 /// across iterations, by a cell, through interfaces and whole picks, a
@@ -173,6 +176,26 @@ const DOCUMENTS: &[(&str, &str)] = &[
         <number name="x" extend="$w" fixed="true"/>"#,
     ),
     (
+        // A drag on `p` writes `b`, not the held `c`: only when `$c + $b`
+        // is turned round.
+        "oriented",
+        r#"<number name="c" fixed>3</number>
+        <number name="b">1</number>
+        <graph><point name="p">($c + $b, 0)</point></graph>"#,
+    ),
+    (
+        // `n` is read only through the seed.
+        "seeded-from-setup",
+        r#"<setup><number name="n">5</number></setup>
+        <mathInput name="mi" prefill="$n"/>"#,
+    ),
+    (
+        // A drag on the fixed point stops at it: `a` is not written.
+        "held-copy",
+        r#"<number name="a">1</number>
+        <graph><point name="p" fixed>($a, 2)</point></graph>"#,
+    ),
+    (
         "points",
         r#"<graph>
           <point name="p">(1,2)</point>
@@ -250,6 +273,86 @@ fn the_template_graph_defines_what_the_abstract_build_does() {
         "{} disagreements:\n{}",
         failures.len(),
         failures.join("\n")
+    );
+}
+
+// Define over the graph (ADR 0032, step 8, part 4): every port's
+// attributes, writable, live, counted and document constant, the same as
+// the abstract build found.
+#[test]
+fn define_over_the_template_graph_classes_every_port_as_the_abstract_build_does() {
+    let docs = documents();
+    let results = par_map(&docs, |(name, bytes)| {
+        let dast = cells_core::dast::load(bytes).unwrap();
+        let compiled = cells_core::testing::compile(&dast).ok()?;
+        let found = attributes_disagreement(&compiled)
+            .unwrap_or_else(|e| panic!("{name}: define over the graph: {e}"));
+        Some((name.clone(), found))
+    });
+    let mut failures = Vec::new();
+    let mut compared = 0;
+    for (name, (disagree, n)) in results.into_iter().flatten() {
+        compared += n;
+        failures.extend(disagree.into_iter().map(|d| format!("{name}: {d}")));
+    }
+    assert!(compared > 0, "no port compared");
+    assert!(
+        failures.is_empty(),
+        "{} disagreements:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
+}
+
+/// Prefills the rule refuses or allows: a computed value is refused, a
+/// counted value and a given one are not.
+const PREFILLS: &[(&str, &str)] = &[
+    (
+        "prefill-computed",
+        r#"<number name="x">1</number><number name="n">$x + 1</number>
+        <mathInput name="mi" prefill="$n"/>"#,
+    ),
+    (
+        "prefill-counted",
+        r#"<numberInput name="k" value="2"/>
+        <graph><repeatForSequence name="r" length="$k"><point name="p">(1,2)</point></repeatForSequence></graph>
+        <collect name="c" from="$r" componentType="point"/>
+        <mathInput name="mi" prefill="$c.count"/>"#,
+    ),
+    (
+        "prefill-given",
+        r#"<number name="n">5</number><mathInput name="mi" prefill="$n"/>"#,
+    ),
+];
+
+// The prefill rule over the graph refuses what the abstract build's
+// refuses, on the same element, at every attempt of the compile's loop.
+#[test]
+fn define_over_the_template_graph_refuses_the_prefills_the_abstract_build_does() {
+    let mut docs = documents();
+    docs.extend(
+        PREFILLS
+            .iter()
+            .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
+    );
+    let failures: Vec<String> = par_map(&docs, |(name, bytes)| {
+        let dast = cells_core::dast::load(bytes).unwrap();
+        define_failures_agree(&dast)
+            .into_iter()
+            .map(|d| format!("{name}: {d}"))
+            .collect::<Vec<_>>()
+    })
+    .into_iter()
+    .flatten()
+    .collect();
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+    // The refused one is refused: the comparison compared a refusal.
+    let dast = cells_core::dast::load(dast_json(PREFILLS[0].1).as_bytes()).unwrap();
+    assert!(
+        cells_core::diagnose(&dast)
+            .iter()
+            .any(|d| d.message.contains("a prefill reference must name a value that is not computed")),
+        "the computed prefill is refused"
     );
 }
 

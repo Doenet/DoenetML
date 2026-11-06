@@ -10,8 +10,8 @@ pub mod spec;
 pub mod test_utils;
 
 pub use crate::build::coverage::{
-    AbstractEdges, GraphAgreement, abstract_edges, definitions_disagreement,
-    template_graph_agreement, uncovered,
+    AbstractEdges, GraphAgreement, abstract_edges, attributes_disagreement,
+    definitions_disagreement, template_graph_agreement, uncovered,
 };
 
 /// `f` of every item, computed on as many threads as the machine has
@@ -51,6 +51,13 @@ pub fn par_map<'a, T: Sync, R: Send>(items: &'a [T], f: impl Fn(&'a T) -> R + Sy
     done.into_iter()
         .map(|(_, r)| r.unwrap_or_else(|panic| resume_unwind(panic)))
         .collect()
+}
+
+/// The attempts of the compile's loop on `dast` where define over the
+/// template graph ends otherwise than the abstract build's define,
+/// described: none when the prefill rule refuses the same prefills.
+pub fn define_failures_agree(dast: &crate::dast::Dast) -> Vec<String> {
+    crate::compile::define_failures_agree(dast)
 }
 
 /// The compile of `dast`, checked as a load checks it.

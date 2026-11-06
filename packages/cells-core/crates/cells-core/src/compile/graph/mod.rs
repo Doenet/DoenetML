@@ -28,11 +28,13 @@ use crate::program::{OpSpec, SymKind, VecOp};
 
 mod aggregate;
 mod cycles;
+mod define;
 mod expand;
 mod math;
 mod walk;
 
 pub(crate) use cycles::{CycleFindings, check_cycles};
+pub(crate) use define::define;
 
 crate::index::index_type! {
     /// A node of the template graph: a position in its `nodes`.
@@ -221,6 +223,23 @@ pub(crate) struct TemplateGraph {
     /// Each copy of a list type that took its referent's ports, with how
     /// many are public.
     pub(crate) list_copies: FxMap<(TemplateId, ElemId), usize>,
+    /// Every component the abstract build makes, each with what define's
+    /// walks read of it: every live element, then every made one.
+    pub(crate) comps: Vec<GraphComp>,
+}
+
+/// A component as define's walks read it: its type, its public ports, and
+/// where it is placed.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GraphComp {
+    pub(crate) component_type: ComponentType,
+    /// Its first port; its public ports follow.
+    pub(crate) base: GraphNode,
+    pub(crate) n_public: u32,
+    /// Whether a renderer shows it.
+    pub(crate) rendered: bool,
+    /// Whether it is under a sticky group, where snapping reads it.
+    pub(crate) in_sticky: bool,
 }
 
 impl TemplateGraph {
@@ -461,6 +480,57 @@ impl<'c> Stamp<'c> {
         start.push(list.len() as u32);
         g.read_start = start;
         g.read_list = list;
+        self.place_comps();
+    }
+
+    /// Every component, with where it is placed: rendered when the walk
+    /// from the document root reaches it through what renders (a graph's
+    /// parts only inside a graph), and under a sticky group or not, as
+    /// `ComponentTable::placement` finds them.
+    fn place_comps(&mut self) {
+        use crate::components::Renders;
+        let mut placed: FxMap<Comp, (bool, bool)> = FxMap::default();
+        let root = self.root_children(TemplateId::new(0))[0];
+        let mut stack = vec![(root, false, false)];
+        while let Some((c, in_graph, sticky)) = stack.pop() {
+            let ty = self.component_type(c);
+            match ty.renders() {
+                Renders::Never => continue,
+                Renders::InGraph if !in_graph => continue,
+                _ => {}
+            }
+            placed.insert(c, (true, sticky));
+            let in_graph = in_graph || ty == ComponentType::Graph;
+            let sticky = sticky || ty == ComponentType::StickyGroup;
+            for k in self.children(c) {
+                stack.push((k, in_graph, sticky));
+            }
+        }
+        let all: Vec<Comp> = self
+            .instances
+            .iter()
+            .map(|&(t, e)| Comp::Elem(t, e))
+            .chain((0..self.g.made.len() as u32).map(Comp::Made))
+            .collect();
+        let comps = all
+            .into_iter()
+            .map(|c| {
+                let (rendered, in_sticky) = placed.get(&c).copied().unwrap_or_default();
+                let n_public = self.n_public(c);
+                GraphComp {
+                    component_type: self.component_type(c),
+                    base: if n_public == 0 {
+                        GraphNode::NONE
+                    } else {
+                        self.slot(c, 0)
+                    },
+                    n_public: n_public as u32,
+                    rendered,
+                    in_sticky,
+                }
+            })
+            .collect();
+        self.g.comps = comps;
     }
 
     /// Ports for element `e` of template `t`: `n` new nodes.

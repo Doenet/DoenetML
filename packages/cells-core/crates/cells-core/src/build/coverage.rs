@@ -11,7 +11,9 @@
 //! label the real iterations satisfy.
 
 use super::*;
-use crate::compile::graph::{Def, GraphNode, GraphOp, NodeKind, TemplateGraph, template_graph};
+use crate::compile::graph::{
+    Def, GraphNode, GraphOp, NodeKind, TemplateGraph, define, template_graph,
+};
 
 /// A slot of an element: (template, element, position among its slots).
 type Key = (TemplateId, ElemId, u32);
@@ -547,4 +549,45 @@ fn describe_def(
         Def::Op(GraphOp::Template, inputs) => format!("template({})", each(inputs)),
         Def::VecOut(head, k) => format!("out{k}({})", each(&[*head])),
     }
+}
+
+/// The ports' attributes define finds over the template graph of
+/// `compiled` (ADR 0032, step 8, part 4) against those the compile keeps,
+/// which the abstract build found: the disagreements, described, and how
+/// many template slots were compared.
+pub fn attributes_disagreement(
+    compiled: &Compiled,
+) -> std::result::Result<(Vec<String>, usize), String> {
+    let mut g = template_graph(compiled.view());
+    let defined = define(&mut g, compiled.view()).map_err(|f| f.error.to_string())?;
+    let found = defined.attrs(&g, compiled.view());
+    let mut out = Vec::new();
+    let mut compared = 0;
+    for (t, tpl) in compiled.plans.templates.iter().enumerate() {
+        let t = TemplateId::from_index(t);
+        for e in ElemId::below(tpl.elems.len()) {
+            let off = tpl.sealed.elems[e.index()].slot_off;
+            let reserved = tpl
+                .plan(e)
+                .props
+                .len()
+                .max(tpl.row(e).component_type.prop_defs().len());
+            for pi in 0..reserved {
+                let slot = off.offset(pi);
+                let kept = compiled.plans.port_attrs(t, slot);
+                let ours = found[t.index()]
+                    .get(slot.index())
+                    .copied()
+                    .unwrap_or_default();
+                compared += 1;
+                if kept != ours {
+                    out.push(format!(
+                        "{}: the abstract build found {kept:?}, define over the graph {ours:?}",
+                        key_name(compiled, (t, e, pi as u32))
+                    ));
+                }
+            }
+        }
+    }
+    Ok((out, compared))
 }
