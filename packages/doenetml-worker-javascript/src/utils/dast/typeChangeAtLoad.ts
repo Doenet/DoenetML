@@ -52,6 +52,7 @@
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedAttribute } from "./types";
 import { documentReferents } from "./valueReferences";
+import { unwrapSource } from "./convertNormalizedDast";
 import { typeChangeRule } from "../typeChange";
 import { codedDiagnostic } from "../diagnostics";
 import {
@@ -331,12 +332,9 @@ export function reportTypeChangesAtLoad({
                 writtenValue.toLowerCase()
             ] ??
                 writtenValue);
-        const extending: any = copy.extending ?? {};
-        const originalPath = (
-            extending.Ref ??
-            extending.ExtendAttribute ??
-            extending.CopyAttribute
-        )?.originalPath;
+        const originalPath = copy.extending
+            ? (unwrapSource(copy.extending as any) as any)?.originalPath
+            : undefined;
         if (!originalPath?.length) {
             continue;
         }
@@ -460,9 +458,7 @@ export function checkTypeChangesAtLoad({
         if (!extending) {
             return undefined;
         }
-        return (extending.Ref ??
-            extending.ExtendAttribute ??
-            extending.CopyAttribute) as
+        return unwrapSource(extending) as
             | {
                   nodeIdx: number;
                   unresolvedPath: any[] | null;
@@ -1121,7 +1117,8 @@ export function checkTypeChangesAtLoad({
             visited.add(current.componentIdx);
             trail.push(current.componentIdx);
             const extending: any = current.extending;
-            const ref = extending?.CopyAttribute;
+            const ref =
+                extending?.CopyAttribute ?? extending?.CopyWithStateAttribute;
             const ownAttributes = Object.keys(current.attributes ?? {}).filter(
                 (name) => !name.startsWith("_"),
             );

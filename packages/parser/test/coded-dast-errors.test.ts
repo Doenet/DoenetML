@@ -312,8 +312,15 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
                     fetchExternalDoenetML,
                 ),
             ),
+            // `copyWithState` of a URI has no state to carry (a warning).
+            ...extractDastErrors(
+                await expandExternalReferences(
+                    lezerToDast(`<p copyWithState="doenet:aParagraph" />`),
+                    fetchExternalDoenetML,
+                ),
+            ),
         ];
-        expect(codedErrors(errors).length).toBe(3);
+        expect(codedErrors(errors).length).toBe(4);
         expectRoundTrip(errors);
     });
 

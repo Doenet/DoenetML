@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     callAction,
     moveLine,
@@ -631,5 +632,54 @@ describe("External References Tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
         ).eq("target");
+    });
+
+    it("copyWithState of a URI making a select from text works as copy does, with a warning", async () => {
+        // A document loaded from a URI has no state, so `copyWithState` of it
+        // is made as a `copy`, with a warning. The warning must not land
+        // among the `<select>`'s children, where its text would no longer
+        // be read as options.
+        const doenetMLs = {
+            sel: `<select>1 2 3</select>`,
+        };
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <select copyWithState="doenet:sel" name="s1" />
+    <select copy="doenet:sel" name="s2" />
+    `,
+            externalDoenetMLs: doenetMLs,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors).toEqual([]);
+        const warnings = diagnostics.warnings.filter(
+            (w) => w.code === "doenet-w0185",
+        );
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).toContain("doenet:sel");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // The warning renders nothing.
+        expect(
+            Object.values(stateVariables).some(
+                (c: any) => c.componentType === "_error",
+            ),
+        ).eq(false);
+
+        for (const name of ["s1", "s2"]) {
+            const select = stateVariables[await resolvePathToNodeIdx(name)];
+            expect(select.stateValues.nOptions).eq(3);
+            expect(select.stateValues.selectedIndices.length).eq(1);
+            expect(select.replacements!.length).eq(1);
+            const selected =
+                stateVariables[select.replacements![0].componentIdx];
+            // An option is a group holding the number chosen.
+            expect(selected.componentType).eq("group");
+            const chosen =
+                stateVariables[selected.replacements![0].componentIdx];
+            expect([1, 2, 3]).toContain(chosen.stateValues.value.tree);
+        }
     });
 });

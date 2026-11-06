@@ -687,8 +687,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             );
         });
 
-        it("an unlinked copy of a repeat takes a write to a boolean literal in an iterate", async () => {
-            // The iterates of an unlinked copy take the essential state of
+        it("a copyWithState of a repeat takes a write to a boolean literal in an iterate", async () => {
+            // The iterates of a `copyWithState` take the essential state of
             // the source's iterates: a write to a boolean, but not one to a
             // number written as text, which the attribute component kept in
             // its text child.
@@ -699,7 +699,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <updateValue name="u" target="$r[1].g.xMin" newValue="-9" type="number" />
     <booleanInput name="show" />
     <conditionalContent condition="$show" name="cc">
-        <repeat copy="$r" name="rc" />
+        <repeat copyWithState="$r" name="rc" />
     </conditionalContent>
     `,
             });
@@ -732,9 +732,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ]).eqls([-9, true, false, -3]);
         });
 
-        it("an unlinked copy of a repeat takes a dragged anchor written as numbers", async () => {
+        it("a copyWithState of a repeat takes a dragged anchor written as numbers", async () => {
             // the anchor's point kept a drag in the essential state of its
-            // coordinates, which the copy's iterates took
+            // coordinates, which the `copyWithState`'s iterates took
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <graph>
@@ -742,7 +742,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     </graph>
     <booleanInput name="show" />
     <conditionalContent condition="$show" name="cc">
-        <graph><repeat copy="$r" name="rc" /></graph>
+        <graph><repeat copyWithState="$r" name="rc" /></graph>
     </conditionalContent>
     `,
             });

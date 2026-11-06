@@ -171,8 +171,7 @@ pub(super) fn branch_container_kind(
                 || element.extending.is_some()
                 || element.attributes.iter().any(|attr| {
                     // matched without regard to case, as `ref_expand` matches them
-                    attr.name.eq_ignore_ascii_case("extend")
-                        || attr.name.eq_ignore_ascii_case("copy")
+                    crate::dast::ref_expand::is_extend_or_copy_attribute(&attr.name)
                 });
             match num_to_select {
                 None if is_copy => None,

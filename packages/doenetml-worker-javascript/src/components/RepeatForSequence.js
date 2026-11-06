@@ -425,7 +425,13 @@ export default class RepeatForSequence extends CompositeComponent {
         nComponents = aliasResult.nComponents;
         const valueComponentIdx = aliasResult.valueComponentIdx;
 
-        if (component.unlinkedCopySource && !isUpdate) {
+        // only for a `copyWithState`: a `copy` makes its iterations as
+        // written, with its own random choices (D33)
+        if (
+            component.unlinkedCopySource &&
+            !component.unlinkedCopyWithoutReaderState &&
+            !isUpdate
+        ) {
             await copyStateFromUnlinkedSource({
                 components,
                 component,

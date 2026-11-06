@@ -65,6 +65,9 @@ pub enum UntaggedContent {
 pub enum Source<T> {
     ExtendAttribute(T),
     CopyAttribute(T),
+    /// From inside the `copyWithState` attribute: a `copy` that also carries
+    /// its source's reader state and random choices.
+    CopyWithStateAttribute(T),
     Ref(T),
 }
 
@@ -75,6 +78,7 @@ impl<T> Source<T> {
             Source::ExtendAttribute(_) => self,
             Source::Ref(m) => Source::ExtendAttribute(m),
             Source::CopyAttribute(m) => Source::ExtendAttribute(m),
+            Source::CopyWithStateAttribute(m) => Source::ExtendAttribute(m),
         }
     }
     /// Recast `self` as `Self::CopyAttribute`, indicating that it came from inside the `copy` attribute.
@@ -83,15 +87,28 @@ impl<T> Source<T> {
             Source::CopyAttribute(_) => self,
             Source::Ref(m) => Source::CopyAttribute(m),
             Source::ExtendAttribute(m) => Source::CopyAttribute(m),
+            Source::CopyWithStateAttribute(m) => Source::CopyAttribute(m),
+        }
+    }
+    /// Recast `self` as `Self::CopyWithStateAttribute`, indicating that it came from inside the `copyWithState` attribute.
+    pub fn as_copy_with_state_attribute(self) -> Self {
+        match self {
+            Source::CopyWithStateAttribute(_) => self,
+            Source::Ref(m) => Source::CopyWithStateAttribute(m),
+            Source::ExtendAttribute(m) => Source::CopyWithStateAttribute(m),
+            Source::CopyAttribute(m) => Source::CopyWithStateAttribute(m),
         }
     }
     /// Returns whether `self` is an `ExtendAttribute` variant.
     pub fn is_extend_attribute(&self) -> bool {
         matches!(self, Source::ExtendAttribute(_))
     }
-    /// Returns whether `self` is an `CopyAttribute` variant.
+    /// Returns whether `self` is a `CopyAttribute` or a `CopyWithStateAttribute` variant.
     pub fn is_copy_attribute(&self) -> bool {
-        matches!(self, Source::CopyAttribute(_))
+        matches!(
+            self,
+            Source::CopyAttribute(_) | Source::CopyWithStateAttribute(_)
+        )
     }
     /// Returns whether `self` is a `Ref` variant.
     pub fn is_ref(&self) -> bool {
@@ -103,7 +120,7 @@ impl Source<RefResolution> {
     pub fn idx(&self) -> Index {
         match self {
             Source::ExtendAttribute(a) => a.node_idx,
-            Source::CopyAttribute(a) => a.node_idx,
+            Source::CopyAttribute(a) | Source::CopyWithStateAttribute(a) => a.node_idx,
             Source::Ref(m) => m.node_idx,
         }
     }
@@ -112,7 +129,7 @@ impl Source<RefResolution> {
     pub fn set_idx(&mut self, idx: Index) {
         match self {
             Source::ExtendAttribute(a) => a.node_idx = idx,
-            Source::CopyAttribute(a) => a.node_idx = idx,
+            Source::CopyAttribute(a) | Source::CopyWithStateAttribute(a) => a.node_idx = idx,
             Source::Ref(m) => m.node_idx = idx,
         }
     }
@@ -121,7 +138,7 @@ impl Source<RefResolution> {
     pub fn get_resolution(&self) -> &RefResolution {
         match self {
             Source::ExtendAttribute(a) => a,
-            Source::CopyAttribute(a) => a,
+            Source::CopyAttribute(a) | Source::CopyWithStateAttribute(a) => a,
             Source::Ref(m) => m,
         }
     }
@@ -130,7 +147,7 @@ impl Source<RefResolution> {
     pub fn get_resolution_mut(&mut self) -> &mut RefResolution {
         match self {
             Source::ExtendAttribute(a) => a,
-            Source::CopyAttribute(a) => a,
+            Source::CopyAttribute(a) | Source::CopyWithStateAttribute(a) => a,
             Source::Ref(m) => m,
         }
     }
@@ -139,7 +156,7 @@ impl Source<RefResolution> {
     pub fn take_resolution(self) -> RefResolution {
         match self {
             Source::ExtendAttribute(a) => a,
-            Source::CopyAttribute(a) => a,
+            Source::CopyAttribute(a) | Source::CopyWithStateAttribute(a) => a,
             Source::Ref(m) => m,
         }
     }
@@ -147,7 +164,9 @@ impl Source<RefResolution> {
     pub fn set_initial_node_index(&mut self, idx: Index) {
         match self {
             Source::ExtendAttribute(a) => a.nodes_in_resolved_path[0] = idx,
-            Source::CopyAttribute(a) => a.nodes_in_resolved_path[0] = idx,
+            Source::CopyAttribute(a) | Source::CopyWithStateAttribute(a) => {
+                a.nodes_in_resolved_path[0] = idx
+            }
             Source::Ref(m) => m.nodes_in_resolved_path[0] = idx,
         }
     }

@@ -498,7 +498,11 @@ function referenceSpan(
         }
         // attribute names are case-insensitive, as the resolver reads them
         const lowerName = name.toLowerCase();
-        if (lowerName === "extend" || lowerName === "copy") {
+        if (
+            lowerName === "extend" ||
+            lowerName === "copy" ||
+            lowerName === "copywithstate"
+        ) {
             return { start: valueStart, end: valueEnd };
         }
         i = valueEnd + 1;

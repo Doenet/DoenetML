@@ -548,6 +548,13 @@ export async function createChildrenThenComponent({
                     attributes[attrName] = {
                         component: attrResult.components[0],
                     };
+                    if (attribute.authoredComponent) {
+                        // what was written in place of a value a
+                        // `copyWithState` kept (`authoredComponent` in
+                        // `Copy.js`), which a `copy` of it is given
+                        attributes[attrName].authoredComponent =
+                            structuredClone(attribute.authoredComponent);
+                    }
                 } catch (e: any) {
                     console.error(e);
                     if (e.message.includes("Circular dependency")) {
@@ -798,6 +805,9 @@ export async function createChildrenThenComponent({
     if (serializedComponent.unlinkedCopySource) {
         newComponent.unlinkedCopySource =
             serializedComponent.unlinkedCopySource;
+        if (serializedComponent.unlinkedCopyWithoutReaderState) {
+            newComponent.unlinkedCopyWithoutReaderState = true;
+        }
     }
 
     await deriveChildResultsFromDefiningChildren({

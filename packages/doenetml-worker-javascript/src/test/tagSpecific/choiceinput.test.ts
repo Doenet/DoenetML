@@ -1720,7 +1720,7 @@ describe("ChoiceInput tag tests @group4", async () => {
       </choiceInput>
     </group>
     
-    <group copy="$g" name="g2" />
+    <group copyWithState="$g" name="g2" />
     `,
         });
 

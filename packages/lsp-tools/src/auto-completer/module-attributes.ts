@@ -83,6 +83,7 @@ export const RESERVED_MODULE_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([
     "isresponse",
     "extend",
     "copy",
+    "copywithstate",
     "rendered",
     "aslist",
     ...RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA,
@@ -312,7 +313,7 @@ function readBareReferencePath(
 }
 
 /**
- * Resolve a `<module copy="$x" .../>` (or `extend=`) instance to the
+ * Resolve a `<module copy="$x" .../>` (or `copyWithState=`, `extend=`) instance to the
  * `<module name="x">` declaration's DAST node via the rust resolver bridge.
  *
  * Multi-segment paths (`copy="$s.m"`) are supported: the resolver walks
@@ -321,17 +322,18 @@ function readBareReferencePath(
  *
  * Returns `null` when:
  *   - `moduleElement` is not a `<module>` element,
- *   - neither `copy=` nor `extend=` is present,
+ *   - none of `copy=`, `copyWithState=` and `extend=` is present,
  *   - the attribute value is not a bare-name path (any segment with a
  *     bracket index, text content, or empty path returns undefined),
  *   - the resolver returns nothing or partially resolves the path,
  *   - the resolved target is not a `<module>` element,
  *   - the resolved target IS `moduleElement` itself (self-copy guard).
  *
- * `copy=` is consulted first; `extend=` is consulted only when `copy=` is
- * absent / non-bare.  Both have equivalent effect on `<moduleAttributes>`
- * consumption at runtime, so reading either is sufficient — the precedence
- * here matches what the runtime would resolve given both.
+ * `copy=` is consulted first, then `copyWithState=`, and `extend=` only when
+ * both are absent / non-bare.  All have equivalent effect on
+ * `<moduleAttributes>` consumption at runtime, so reading any is
+ * sufficient — the precedence here matches what the runtime would resolve
+ * given more than one.
  *
  * Intentionally non-recursive: this function follows exactly one
  * `copy`/`extend` edge.  Cycles (`a` copies `b` copies `a`) are out of
@@ -346,6 +348,7 @@ export async function resolveCopyExtendReference(
 
     const referencePath =
         readBareReferencePath(moduleElement, "copy") ??
+        readBareReferencePath(moduleElement, "copyWithState") ??
         readBareReferencePath(moduleElement, "extend");
     if (!referencePath) return null;
 
@@ -389,7 +392,7 @@ export async function getEffectiveModuleAttributes(
 
 /**
  * Walk a DAST tree and return every `<module>` element that authored a
- * `copy=` or `extend=` attribute (case-insensitive on the element name AND
+ * `copy=`, `copyWithState=` or `extend=` attribute (case-insensitive on the element name AND
  * the attribute key — `findAttributeKey` already does the latter).  Used
  * by the precompute pass on `AutoCompleter` so we only fire per-instance
  * resolution for sites that could be augmented, not every `<module>` in
@@ -409,6 +412,7 @@ export function collectModuleInstancesWithCopyOrExtend(
         if (
             node.name.toLowerCase() === "module" &&
             (findAttributeKey(node, "copy") !== undefined ||
+                findAttributeKey(node, "copyWithState") !== undefined ||
                 findAttributeKey(node, "extend") !== undefined)
         ) {
             out.push(node);

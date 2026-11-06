@@ -102,6 +102,7 @@ const COPY_MECHANICS = [
     "_createcomponentname",
     "_copyinchildren",
     "_link",
+    "_copywithstate",
     "name",
 ];
 const LIST_FORM_COPY_ATTRIBUTES: Record<string, Set<string>> = {

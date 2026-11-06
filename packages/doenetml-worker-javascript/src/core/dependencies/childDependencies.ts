@@ -1441,7 +1441,16 @@ export class DescendantDependency extends Dependency {
         return result;
     }
 
-    gatherUnexpandedComposites(component: any) {
+    gatherUnexpandedComposites(
+        component: any,
+        visited: Set<number> = new Set(),
+    ) {
+        // A composite and its replacements are both among the children of
+        // its parent, and the replacements are searched again from the
+        // composite, so each component is checked once (what it finds is
+        // merged into the same result the first time it is reached).
+        visited.add(component.componentIdx);
+
         let unexpandedCompositesReadyByParentName: Record<string, any> = {};
         let unexpandedCompositesNotReadyByParentName: Record<string, any> = {};
         let haveUnexpandedCompositeReady = false;
@@ -1497,10 +1506,31 @@ export class DescendantDependency extends Dependency {
             }
         }
 
-        for (const childIdxStr in component.allChildren) {
-            let child = component.allChildren[childIdxStr].component;
-            if (typeof child === "object") {
-                let result = this.gatherUnexpandedComposites(child);
+        const toCheck = Object.values(component.allChildren ?? {}).map(
+            (child: any) => child.component,
+        );
+        // The replacements of a composite are searched
+        // (`useReplacementsForComposites`, `gatherDescendants`), so a
+        // composite among them that is not expanded, which stands as a
+        // placeholder, is waited for as one among the children is. The
+        // replacements of a composite that is a child are also children of
+        // its parent, so are checked there too.
+        if (this.useReplacementsForComposites && component.replacements) {
+            toCheck.push(
+                ...component.replacements.slice(
+                    0,
+                    component.replacements.length -
+                        (component.replacementsToWithhold ?? 0),
+                ),
+            );
+        }
+        for (const child of toCheck) {
+            if (
+                typeof child === "object" &&
+                child !== null &&
+                !visited.has(child.componentIdx)
+            ) {
+                let result = this.gatherUnexpandedComposites(child, visited);
                 if (result.haveUnexpandedCompositeReady) {
                     Object.assign(
                         unexpandedCompositesReadyByParentName,

@@ -675,7 +675,7 @@ describe("A copy's references keep their referents @group4", () => {
   <p name="p5"><collect name="y" copy="$B.gB.x"/>; <collect copy="$y"/></p>
   <p name="p6"><collect copy="$B.gB.x" maxNumber="1"/></p>
   <p name="p7"><sort copy="$B.gB.s"/>; <sort extend="$B.gB.s"/></p>
-  <p name="p8"><shuffle copy="$B.gB.sh"/>; <shuffle extend="$B.gB.sh"/></p>
+  <p name="p8"><shuffle copyWithState="$B.gB.sh"/>; <shuffle extend="$B.gB.sh"/></p>
   <p name="p9">$B.gB.sh</p>
 </section>
 <section name="U">

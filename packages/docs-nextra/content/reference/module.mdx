@@ -69,4 +69,4 @@ are copied into the graph when the module is referenced.
 
 Referencing the module multiple times within the `<graph>{:dn}` and varying the
 attribute values has the effect of creating a "bunch" of balloons.
-Note the use of the `copy` attribute (rather than the `extend` attribute) so that each balloon is an independent copy.
+Note the use of the `copy` attribute (rather than the `extend` attribute) so that each balloon is an independent copy. Each `copy` of a module is its DoenetML written again, so any random components inside it make their own choices for each use. To duplicate a module along with its current state and random choices, use `copyWithState` instead.

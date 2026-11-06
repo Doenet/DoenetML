@@ -893,7 +893,7 @@ describe("Shuffle tag tests @group1", async () => {
             expect(againResult.values).eqls(firstResult.values);
 
             const copied = await createTestCore({
-                doenetML: `<section name="s">${shuffle}</section><section copy="$s" name="s2"/>`,
+                doenetML: `<section name="s">${shuffle}</section><section copyWithState="$s" name="s2"/>`,
                 requestedVariantIndex: variantIndex,
             });
             const source = await valuesAndOrder(
@@ -988,7 +988,7 @@ describe("Shuffle tag tests @group1", async () => {
             <p name="b"><selectFromSequence name="y" from="1" to="1000"/></p>
             <p name="c"><selectFromSequence name="w" from="1" to="1000"/></p>
         </shuffle>
-        <shuffle copy="$sh" name="sh2"/>`;
+        <shuffle copyWithState="$sh" name="sh2"/>`;
 
         async function valuesAndOrder(
             core: PublicDoenetMLCore,
@@ -1159,7 +1159,7 @@ describe("Shuffle tag tests @group1", async () => {
         const { shuffle, names } = cases[0];
         for (let variantIndex = 1; variantIndex <= 3; variantIndex++) {
             const copied = await createTestCore({
-                doenetML: `<section name="s">${shuffle}</section><section copy="$s" name="s2"/>`,
+                doenetML: `<section name="s">${shuffle}</section><section copyWithState="$s" name="s2"/>`,
                 requestedVariantIndex: variantIndex,
             });
             const source = await shown(
