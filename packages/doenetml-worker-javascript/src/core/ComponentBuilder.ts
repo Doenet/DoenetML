@@ -886,6 +886,24 @@ export async function checkForStateVariablesUpdatesForNewComponent({
 }) {
     let comp = core._components[componentIdx];
     const stateId = comp.stateId;
+    const savedType =
+        core.cumulativeStateVariableChanges?.__componentTypes?.[stateId];
+    if (
+        savedType !== undefined &&
+        savedType !== comp.componentType &&
+        stateId in core.updateInfo.stateVariableUpdatesForMissingComponents
+    ) {
+        // Saved from a component of another type that had the `stateId`
+        // (one a copy of a `<collect>` made before the reader changed what
+        // it collects), whose values this one could not take (SAVE-1,
+        // DIAG-5): it starts from its own default, and the entry is dropped.
+        delete core.updateInfo.stateVariableUpdatesForMissingComponents[
+            stateId
+        ];
+        delete core.cumulativeStateVariableChanges[stateId];
+        delete core.cumulativeStateVariableChanges.__componentTypes[stateId];
+        core.readerTouchedStateIds.delete(stateId);
+    }
     if (stateId in core.updateInfo.stateVariableUpdatesForMissingComponents) {
         // A list component (`ValueListComponent`) saves the values written
         // to its entries in an array sized by its values, so restoring them

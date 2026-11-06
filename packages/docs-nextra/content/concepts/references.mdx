@@ -79,6 +79,12 @@ keeps the choices it copies; that is an error that says to use `copy`, which
 makes a new component that chooses again. Neither form follows later changes
 to `x`, and neither changes `x`.
 
+A copy of a name inside a case of a `<conditionalContent>{:dn}`, such as
+`<p copy="$cc.p"/>{:dn}`, keeps showing the case it was made from when another
+case is shown, and keeps it through a reload. A `<conditionalContent>{:dn}`
+written as a copy, `<conditionalContent copy="$cc"/>{:dn}`, is a new one: it
+shows the case its own conditions select, as `cc` does.
+
 A copy of a property, such as `<math copy="$P.x"/>{:dn}`, has no DoenetML to
 write again, so it holds the value the property had when the copy was made.
 
