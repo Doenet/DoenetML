@@ -4,7 +4,7 @@
 use super::*;
 use crate::components::PropAt;
 
-/// The component table as parallel arrays indexed by `CompIdx`. Props are
+/// The component table as parallel arrays indexed by [`CompIdx`]. Props are
 /// implicit: component `c` of type `k` owns `prop_cells[prop_base[c] + i]` for
 /// each `i` in `k.prop_defs()`, then two per point of its list, up to
 /// `prop_base[c + 1]`.
@@ -94,7 +94,7 @@ impl ComponentTable {
     /// Per component, whether it is rendered, and whether a sticky group
     /// is above it, walking children down from `root`, as a
     /// renderer does: the root is rendered, and a child is when its parent
-    /// is and its type's rule (`Renders`) allows it where it is, `InGraph`
+    /// is and its type's rule ([`Renders`](crate::components::Renders)) allows it where it is, `InGraph`
     /// only with a `<graph>` above it. A component no children list
     /// reaches (an iterate's tuple) is not rendered.
     pub fn placement(&self, root: CompIdx) -> (Vec<bool>, Vec<bool>) {

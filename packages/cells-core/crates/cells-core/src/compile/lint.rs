@@ -3,7 +3,7 @@
 //! accessibility rules: a `<graph>` needs a `<shortDescription>` child or
 //! `decorative`; an input needs one, or a `<label>` child, a `label`
 //! attribute or `labelIsName`. Lint reads attributes with
-//! `Dast::attr_peek`, which records no read.
+//! [`Dast::attr_peek`], which records no read.
 
 use std::collections::BTreeMap;
 

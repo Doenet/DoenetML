@@ -6,7 +6,7 @@
 
 use super::{Dast, NodeId, NodeKind, StrId};
 
-/// A value id with this bit is an index into `LiteralAttrs::texts`.
+/// A value id with this bit is an index into [`LiteralAttrs::texts`].
 const OWN: u32 = 1 << 31;
 
 /// An attribute's value: a string in the document's table, text of several

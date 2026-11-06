@@ -9,7 +9,7 @@ mod copies;
 
 use crate::compile::*;
 
-/// Outlining's working state: the `Outline` it fills for the stages after
+/// Outlining's working state: the [`Outline`] it fills for the stages after
 /// it, and what it needs only while it runs.
 pub(in crate::compile) struct Outlining<'a> {
     /// What boxing records, outlining's while it runs.
@@ -29,7 +29,7 @@ pub(in crate::compile) struct Outlining<'a> {
 
 impl Compiler<'_> {
     /// Outline the document. Returns the work found for the stages after
-    /// it, and the boxes; what it settled is in `Compiler::settled`.
+    /// it, and the boxes; what it settled is in [`Compiler::settled`].
     pub(in crate::compile) fn outline<'b>(
         &mut self,
         boxes: Boxes<'b>,

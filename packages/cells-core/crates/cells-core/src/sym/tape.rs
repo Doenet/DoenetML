@@ -38,7 +38,7 @@ pub enum TapeOp {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Tape {
     pub ops: Vec<TapeOp>,
-    /// Cells read as parameters, in `Param` order.
+    /// Cells read as parameters, in [`Param`](TapeOp::Param) order.
     pub params: Vec<CellIdx>,
     /// Columns the stack needs at its deepest.
     pub depth: usize,

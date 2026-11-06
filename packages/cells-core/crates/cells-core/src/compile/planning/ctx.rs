@@ -266,7 +266,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Warns that the element cannot be what its attributes ask, with a
     /// diagnostic code and message. What the planner cannot define is
-    /// `Wire::undefined` of what this returns.
+    /// [`Wire::undefined`] of what this returns.
     pub(crate) fn warn(&mut self, code: &'static str, message: &str) -> Warned {
         let node = self.node();
         self.c.warn(node, code, message)

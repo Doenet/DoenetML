@@ -3,7 +3,7 @@
 //! classed. An x/y pair of one component (`x` and `y`, `x1` and `y1`, ...)
 //! is requested together, as a point group.
 //!
-//! A request comes out (`Class`):
+//! A request comes out ([`Class`]):
 //!
 //! - **exact**: the cells hold what was asked;
 //! - **projected**: they hold something else, and asking again for either

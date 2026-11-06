@@ -109,7 +109,7 @@ pub fn load(source: &str) -> crate::Result<crate::Document> {
     crate::Document::from_bytes(dast_json(source).as_bytes())
 }
 
-/// `load`, with every prop computed (`LoadOptions::prune` off), for a test
+/// `load`, with every prop computed ([`LoadOptions::prune`](crate::LoadOptions::prune) off), for a test
 /// that reads a prop no renderer reads.
 pub fn load_unpruned(source: &str) -> crate::Result<crate::Document> {
     let json = dast_json(source);

@@ -17,6 +17,7 @@
         "build:rust": "wireit",
         "test": "wireit",
         "lint": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings",
+        "doc": "RUSTDOCFLAGS='-D warnings' cargo doc -p cells-core --no-deps --document-private-items --features testing",
         "fixtures": "wireit",
         "stats": "cargo run --release -p cells-bench --bin stats",
         "golden-diff": "wireit",

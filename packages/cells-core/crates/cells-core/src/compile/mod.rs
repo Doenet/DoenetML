@@ -104,7 +104,7 @@ pub(in crate::compile) struct Attempt {
 /// which stage runs, and a cache.
 /// What boxing records is a [`Boxes`], given only to the stages that box.
 pub(in crate::compile) struct Compiler<'a> {
-    /// The source being compiled. Only the finished `Compiled` owns it.
+    /// The source being compiled. Only the finished [`Compiled`] owns it.
     pub(in crate::compile) dast: &'a Dast,
     /// What the compile makes from it.
     pub(in crate::compile) plans: Plans,
@@ -114,7 +114,7 @@ pub(in crate::compile) struct Compiler<'a> {
     /// What outlining settles, which every stage after it reads and none
     /// changes.
     settled: Settled,
-    /// Boxing's and planning's tables, by `TemplateId`.
+    /// Boxing's and planning's tables, by [`TemplateId`].
     tables: Vec<Tables>,
     /// The stage running now.
     stage: Stage,
@@ -143,9 +143,9 @@ pub(in crate::compile) struct Outline {
 #[derive(Default)]
 pub(in crate::compile) struct Settled {
     /// Outlining's part of every template: its elements' rows, its children
-    /// and its `$ref` children, by `TemplateId`.
+    /// and its `$ref` children, by [`TemplateId`].
     templates: Vec<Outlined>,
-    /// Every choice as outlining made it, by `ChoiceId`.
+    /// Every choice as outlining made it, by [`ChoiceId`].
     choices: Vec<ChoiceDef>,
     /// The name table.
     names: NameTable,

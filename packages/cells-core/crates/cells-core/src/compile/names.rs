@@ -7,7 +7,7 @@ pub(in crate::compile) const AMBIGUOUS: ElemId = ElemId::NONE;
 
 crate::index::index_type! {
     /// An element name, trimmed, as the name table numbers it
-    /// (`NameTable::ids`, `NameTable::texts`).
+    /// ([`NameTable::ids`], [`NameTable::texts`]).
     pub(crate) struct NameId;
 }
 

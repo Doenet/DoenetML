@@ -16,5 +16,5 @@ component! {
 
 /// The hidden port after `hide` holding the select's `numToSelect`, a
 /// document constant the check evaluates (ADR 0037) and a build reads as
-/// the number it recorded (`Plans::num_to_select`).
+/// the number it recorded ([`Plans::num_to_select`](crate::compile::plan::Plans::num_to_select)).
 pub(crate) const NUM_TO_SELECT: usize = 1;

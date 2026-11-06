@@ -11,13 +11,13 @@ use crate::document::CompIdx;
 
 crate::index::index_type! {
     /// A name scope: 0 is the document, every other scope is one iteration
-    /// of a repeat; a position in the session's `ScopeTable`.
+    /// of a repeat; a position in the session's [`ScopeTable`].
     pub struct ScopeId;
 }
 
 crate::index::index_type! {
     /// A position in a template's slot space: an element's slot offset
-    /// (`Sealed::slot_off`) plus the port's position among its slots. With
+    /// ([`Sealed::slot_off`](crate::compile::plan::Sealed::slot_off)) plus the port's position among its slots. With
     /// its scope it names an essential value across builds (see
     /// `CONTEXT.md`, essential key).
     pub struct TemplateSlot;
@@ -42,7 +42,7 @@ pub struct Repeat {
 }
 
 /// Every scope a build has made: (parent scope, repeat or choice element,
-/// 1-based position) per scope, indexed by `ScopeId`; entry 0 is the
+/// 1-based position) per scope, indexed by [`ScopeId`]; entry 0 is the
 /// document. Ids are stable across rebuilds: the table only grows.
 #[derive(Debug, Clone)]
 pub struct ScopeTable {
@@ -132,7 +132,7 @@ pub enum SlotClass {
         value: f64,
         document: bool,
         /// Whether the check's attribute marks its port a constant
-        /// (`PortAttrs::CONSTANT`, ADR 0037), which every constant a build
+        /// ([`PortAttrs::CONSTANT`](crate::compile::plan::PortAttrs::CONSTANT), ADR 0037), which every constant a build
         /// makes, a fold included, must be.
         marked: bool,
     },

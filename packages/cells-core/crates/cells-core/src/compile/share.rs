@@ -37,7 +37,7 @@ enum Node {
     Opaque(u32),
 }
 
-/// `Sel`, hashable.
+/// [`Sel`], hashable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum SelKey {
     Whole,
@@ -60,7 +60,7 @@ impl From<Sel> for SelKey {
 /// What a derived port computes, up to what a bucket can hash.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum What {
-    /// An operator of this kind (`OpSpec` has no hash; two in one bucket
+    /// An operator of this kind ([`OpSpec`] has no hash; two in one bucket
     /// are compared whole).
     Op(std::mem::Discriminant<OpSpec>),
     VecOut(u8),
@@ -74,7 +74,7 @@ enum What {
 struct Candidate {
     node: Node,
     what: What,
-    /// The operator, for `What::Op`.
+    /// The operator, for [`What::Op`].
     spec: Option<OpSpec>,
     inputs: Vec<Node>,
     /// The element whose port it is (a local candidate), to rewrite.

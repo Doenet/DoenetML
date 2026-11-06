@@ -4,7 +4,7 @@
 use crate::compile::*;
 
 impl<'a> Compiler<'a> {
-    /// The prop sources of a type described by `PropFrom`: attributes,
+    /// The prop sources of a type described by [`PropFrom`]: attributes,
     /// bindings, computed chains, children. A `by_planner` prop is refused:
     /// a type with one is planned by a function.
     pub(in crate::compile) fn plan_attrs(
@@ -122,7 +122,7 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// Children or an attribute read as a value (`ValueChildren`), not
+    /// Children or an attribute read as a value ([`ValueChildren`]), not
     /// blank: a reference, a literal, or math text. A literal is a value
     /// slot.
     pub(in crate::compile) fn plan_value_children(

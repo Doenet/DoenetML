@@ -56,7 +56,7 @@ impl Built {
     }
 
     /// Whether the document computes `cell`: some output, or the core
-    /// itself, reads it. Without `LoadOptions::prune`, every cell is computed
+    /// itself, reads it. Without [`LoadOptions::prune`], every cell is computed
     /// and this says which are needed.
     #[inline]
     pub fn is_live(&self, cell: CellIdx) -> bool {

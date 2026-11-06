@@ -1,11 +1,11 @@
 //! Vector operators: instructions with several inputs and possibly several
 //! outputs, used by the geometric components, by choices and by scoring. Each
 //! is a pure function of its inputs with a hand-written inverse rule. Inputs
-//! are consecutive entries of `Program::operands`, outputs are consecutive
+//! are consecutive entries of [`Program::operands`](crate::program::Program::operands), outputs are consecutive
 //! cells.
 //!
 //! Inverse rules; the last column is the inputs each inverse may write
-//! (`VecOp::writes`):
+//! ([`VecOp::writes`]):
 //!
 //! | operator                 | forward                               | inverse (requested outputs → inputs)                                 | writes            |
 //! |--------------------------|---------------------------------------|----------------------------------------------------------------------|-------------------|
@@ -93,7 +93,7 @@ impl Produced {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum VecOp {
     /// Identity on `n` points (2n outputs) that move rigidly. Inputs are the
-    /// 2n coordinates, a pivot point (NaN unless `Pivot::Point`), and the
+    /// 2n coordinates, a pivot point (NaN unless [`Pivot::Point`]), and the
     /// least a pure dilation may shrink the shape to (`minShrink`).
     Shape { n: u8, opts: RigidOpts },
     /// Inputs (cx, cy, px, py); outputs (cx, cy, r).
@@ -847,7 +847,7 @@ fn project_line(x: f64, y: f64, x1: f64, y1: f64, x2: f64, y2: f64) -> (f64, f64
 }
 
 /// Every input a vector inverse writes, as a scalar write or a point of a
-/// group, is one `VecOp::writes` declares; and every inverse round-trips:
+/// group, is one [`VecOp::writes`] declares; and every inverse round-trips:
 /// what it writes, evaluated again, gives the requested outputs, or a
 /// projection that asking again leaves where it is.
 #[cfg(test)]
@@ -904,7 +904,7 @@ mod writes {
     }
 
     /// Input values: generic, with zeros, with a NaN, and a choice of
-    /// each branch for `Choose`.
+    /// each branch for [`Choose`].
     fn inputs(n: usize) -> Vec<Vec<f64>> {
         let generic: Vec<f64> = (0..n).map(|k| 0.5 + k as f64 * 1.25).collect();
         let zeros = vec![0.0; n];

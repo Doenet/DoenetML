@@ -25,7 +25,7 @@ pub(crate) enum AttrValue {
     Literal(Result<f64>),
     /// `LiteralFlag`: the flag, or none when it is no literal.
     LiteralFlag(Option<bool>),
-    /// `Content`.
+    /// [`Content`].
     Content(ValueChildren),
     Text(String),
     Math(Box<[NodeId]>),
@@ -85,7 +85,7 @@ enum Content {
     Value(ValueChildren),
 }
 
-/// Children read as a value (`children: Value`): a `PropFrom::Children`
+/// Children read as a value (`children: Value`): a [`PropFrom::Children`]
 /// prop's, or the value of a `<text>`, a `<boolean>` or an input.
 #[derive(Debug, Clone)]
 pub(crate) struct ValueChildren {
@@ -213,7 +213,7 @@ impl Record {
         }
     }
 
-    /// A `Content`: the value, none when absent.
+    /// A [`Content`]: the value, none when absent.
     pub(crate) fn content(&self, attr: Attr) -> Option<ValueChildren> {
         match self.get(attr) {
             AttrValue::Content(v) => Some(v.clone()),
@@ -265,7 +265,7 @@ impl Record {
         }
     }
 
-    /// The members of group `i` (`ChildrenDecl::groups`).
+    /// The members of group `i` ([`ChildrenDecl::groups`]).
     pub(crate) fn group(&self, i: usize) -> Vec<Member> {
         self.children.groups.get(i).cloned().unwrap_or_default()
     }
@@ -520,7 +520,7 @@ impl Compiler<'_> {
         })
     }
 
-    /// Content nodes read as a value (`ChildValue`): a reference among
+    /// Content nodes read as a value ([`ChildValue`]): a reference among
     /// them is planned here, where it was written.
     fn parse_value_children(
         &mut self,

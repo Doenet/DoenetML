@@ -1,5 +1,5 @@
 //! References: name lookup through template scopes, and `$a.b[k].c` paths
-//! turned into reference plans (`RefPlan`) that expansion resolves per
+//! turned into reference plans ([`RefPlan`]) that expansion resolves per
 //! instance.
 
 use super::*;
@@ -9,7 +9,7 @@ use super::*;
 pub(in crate::compile) type RefTarget = (Option<ComponentType>, Option<(TemplateId, ElemId)>);
 
 /// Reference planning's working state: the one writer of the reference
-/// table (`Plans::refs`), which every stage reads, and its cache of
+/// table ([`Plans::refs`]), which every stage reads, and its cache of
 /// prop spellings. The driver hands it to outlining, parsing and planning,
 /// which plan references, and to no other stage.
 #[derive(Default)]

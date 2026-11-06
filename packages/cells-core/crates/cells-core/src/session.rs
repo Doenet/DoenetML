@@ -60,7 +60,7 @@ pub struct MathStore {
     /// The symbolic engine every math value is a handle into.
     pub engine: Engine,
     /// The handle in `engine` of each constant expression of the source
-    /// (a math text with no cell leaves), its `Post` applied, by
+    /// (a math text with no cell leaves), its [`Post`] applied, by
     /// (expression, post).
     pub(crate) constants: HashMap<(ExprId, Post), Handle>,
 }

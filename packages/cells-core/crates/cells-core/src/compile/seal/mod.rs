@@ -29,8 +29,8 @@ pub(in crate::compile) struct Seal<'a> {
 }
 
 impl<'a> Seal<'a> {
-    /// Sealing's tables: a `SealedTemplate` per template and a
-    /// `ChoiceSeal` per choice.
+    /// Sealing's tables: a [`SealedTemplate`] per template and a
+    /// [`ChoiceSeal`] per choice.
     pub(in crate::compile) fn run(
         mut self,
     ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>), Failure> {

@@ -38,7 +38,7 @@ use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use std::borrow::Cow;
 use std::fmt;
 
-/// One kind of JSON value the builder reads; `Seed` adapts it to serde.
+/// One kind of JSON value the builder reads; [`Seed`] adapts it to serde.
 trait Item: Copy {
     type Value;
     fn read<'de, D: de::Deserializer<'de>>(

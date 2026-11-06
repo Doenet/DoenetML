@@ -34,7 +34,7 @@ pub enum ValueType {
 }
 
 /// What a program's symbolic instructions keep between runs: for each, from its
-/// `MemoIdx`, the input values it last ran on and its outputs from that run;
+/// [`MemoIdx`], the input values it last ran on and its outputs from that run;
 /// with scratch for `SampleTape`.
 #[derive(Debug, Clone, Default)]
 pub struct SymState {
@@ -82,17 +82,17 @@ const NEVER: f64 = f64::from_bits(0x7ff8_dead_beef_0001);
 pub struct Program {
     pub instrs: Vec<Instr>,
     /// `producer[cell]` = the instruction writing that cell, or
-    /// `InstrIdx::NONE` for essential cells and constants. A vector
+    /// [`InstrIdx::NONE`] for essential cells and constants. A vector
     /// instruction produces several consecutive cells.
     pub producer: Vec<InstrIdx>,
     /// Every input of a vector or symbolic instruction, indexed by
-    /// `OperandIdx`.
+    /// [`OperandIdx`].
     pub operands: Vec<CellIdx>,
-    /// Each symbolic instruction's kind and memo, by `SymIdx`.
+    /// Each symbolic instruction's kind and memo, by [`SymIdx`].
     pub syms: Vec<SymEntry>,
-    /// The distinct vector operators, by `VecIdx`.
+    /// The distinct vector operators, by [`VecIdx`].
     pub vecs: Vec<VecOp>,
-    /// How many memo entries its symbolic instructions take (`SymState`).
+    /// How many memo entries its symbolic instructions take ([`SymState`]).
     pub memo_len: usize,
     /// Compiled curves that `SampleTape` instructions run.
     pub tapes: Vec<crate::sym::tape::Tape>,
@@ -153,7 +153,7 @@ impl<'a> Needs<'a> {
 }
 
 impl Program {
-    /// What `cell` needs to be right (`Needs`).
+    /// What `cell` needs to be right ([`Needs`]).
     pub fn needs(&self, cell: CellIdx) -> Needs<'_> {
         let instr = self.producer_of(cell).map(|p| &self.instrs[p.index()]);
         Needs::new(instr, &self.operands, &self.holds, cell)
@@ -166,8 +166,8 @@ impl Program {
         (!p.is_none()).then_some(p)
     }
 
-    /// Each cell's producer (`Program::producer`) for `instrs` in their
-    /// order: `InstrIdx::NONE` for a cell none writes.
+    /// Each cell's producer ([`Program::producer`]) for `instrs` in their
+    /// order: [`InstrIdx::NONE`] for a cell none writes.
     pub fn producers(instrs: &[Instr], n_cells: usize) -> Vec<InstrIdx> {
         let mut producer = vec![InstrIdx::NONE; n_cells];
         for (i, ins) in instrs.iter().enumerate() {

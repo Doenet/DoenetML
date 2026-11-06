@@ -16,7 +16,7 @@ const _: () = assert!(
 
 /// A symbolic instruction: it calls the document's symbolic engine. Inputs are
 /// cells holding numbers or expression handles; every input is in
-/// `Program::operands`. Each one keeps the input values it last ran on and its
+/// [`Program::operands`](crate::program::Program::operands). Each one keeps the input values it last ran on and its
 /// outputs, and reruns only when an input changed.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SymKind {
@@ -78,39 +78,39 @@ impl SymKind {
 }
 
 crate::index::index_type! {
-    /// A position in `Program::tapes`: a compiled curve.
+    /// A position in [`Program::tapes`](crate::program::Program::tapes): a compiled curve.
     pub struct TapeIdx;
 }
 
 crate::index::index_type! {
-    /// A position in `Program::instrs`: an instruction, by where it stands
+    /// A position in [`Program::instrs`](crate::program::Program::instrs): an instruction, by where it stands
     /// in the schedule. `NONE` is "no instruction" (an essential cell or a
     /// constant has no producer).
     pub struct InstrIdx;
 }
 
 crate::index::index_type! {
-    /// A position in `Program::operands`, where a vector or symbolic
+    /// A position in [`Program::operands`](crate::program::Program::operands), where a vector or symbolic
     /// instruction's input cells are parked: an index into that list, never
     /// into the cells.
     pub struct OperandIdx;
 }
 
 crate::index::index_type! {
-    /// A position in a program's symbolic memo (`SymState`), where a
+    /// A position in a program's symbolic memo ([`SymState`](crate::program::SymState)), where a
     /// symbolic instruction keeps the input values it last ran on and its
     /// outputs.
     pub struct MemoIdx;
 }
 
 crate::index::index_type! {
-    /// A position in `Program::syms`: a symbolic instruction's kind and
+    /// A position in [`Program::syms`](crate::program::Program::syms): a symbolic instruction's kind and
     /// memo.
     pub struct SymIdx;
 }
 
-/// A position in `Program::vecs`, the program's distinct vector operators. A
-/// `u16`, so that `Op::Vec` fits an instruction of 16 bytes.
+/// A position in [`Program::vecs`](crate::program::Program::vecs), the program's distinct vector operators. A
+/// `u16`, so that [`Op::Vec`] fits an instruction of 16 bytes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct VecIdx(u16);
 
@@ -121,7 +121,7 @@ impl VecIdx {
 }
 
 /// What a symbolic instruction runs: its kind, and where its memo starts
-/// (the `n + n_out` entries it keeps in `SymState`).
+/// (the `n + n_out` entries it keeps in [`SymState`](crate::program::SymState)).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SymEntry {
     pub kind: SymKind,
@@ -130,7 +130,7 @@ pub struct SymEntry {
 
 /// What a build parks for the operators it binds: the operand list a program
 /// keeps, the symbolic instructions' kinds and the distinct vector operators,
-/// which an `Op` names by index, and how much of the symbolic memo its
+/// which an [`Op`] names by index, and how much of the symbolic memo its
 /// instructions take.
 #[derive(Debug, Clone, Default)]
 pub struct Operands {

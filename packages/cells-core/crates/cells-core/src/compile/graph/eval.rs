@@ -9,11 +9,11 @@
 //! counted value; when, computed, every flag that holds it is a constant
 //! (a value nothing computes no tick changes, held or not); and when
 //! every read it makes through an index is stable: the index lands inside
-//! what it indexes in every build (`Need`). This is a build's fold rule
+//! what it indexes in every build ([`Need`]). This is a build's fold rule
 //! (`Builder::folded_slots`) lifted to the check and stripped of its scope
 //! rule, which the graph needs not, every referent existing in it.
 //!
-//! A constant's range (`Range`) is computed as the walks read a node,
+//! A constant's range ([`Range`]) is computed as the walks read a node,
 //! through its definition (ADR 0035): a constant leaf is its value; an
 //! iteration index ranges over its repeat's count; a draw over `[0, 1)`;
 //! a select's stand-in over its members; an operator over all-exact
@@ -232,7 +232,7 @@ impl<'a, 'c> Constants<'a, 'c> {
         !self.nonconst[n.index()]
     }
 
-    /// Per node, whether it is a constant: what `PortAttrs::CONSTANT`
+    /// Per node, whether it is a constant: what [`PortAttrs::CONSTANT`]
     /// marks.
     pub(crate) fn constants(&self) -> Vec<bool> {
         self.nonconst.iter().map(|&x| !x).collect()
@@ -596,7 +596,7 @@ impl<'a, 'c> Constants<'a, 'c> {
 }
 
 /// What operator `spec` gives, output `k`, over inputs in `rs`: evaluated
-/// when every input is one value, else its range rule (`OpSpec::range`),
+/// when every input is one value, else its range rule ([`OpSpec::range`]),
 /// which speaks for its first output only.
 fn apply(spec: OpSpec, rs: &[Range], k: usize) -> Range {
     let points: Option<Vec<f64>> = rs.iter().map(|r| r.as_point()).collect();

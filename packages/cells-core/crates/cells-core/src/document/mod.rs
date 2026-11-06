@@ -31,12 +31,12 @@ pub use load::{LoadOptions, LoadTimings};
 pub use table::{Child, ChildEntry, ComponentTable};
 
 crate::index::index_type! {
-    /// A position in `Document::cells`, and in every list kept per cell.
+    /// A position in [`Built::cells`](crate::Built::cells), and in every list kept per cell.
     pub struct CellIdx;
 }
 
 crate::index::index_type! {
-    /// A component: a position in the `ComponentTable`'s columns.
+    /// A component: a position in the [`ComponentTable`]'s columns.
     pub struct CompIdx;
 }
 

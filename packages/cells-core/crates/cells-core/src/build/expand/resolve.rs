@@ -1,10 +1,10 @@
-//! Reference resolution at expansion: a `RefPlan` followed through scopes,
+//! Reference resolution at expansion: a [`RefPlan`] followed through scopes,
 //! iterations, collects and choice picks to the slots it names.
 
 use super::*;
 
 impl<'c> Builder<'c> {
-    /// The slot an `Arg` names for component `comp` in `scope`.
+    /// The slot an [`Arg`] names for component `comp` in `scope`.
     pub(in crate::build) fn arg_slot(
         &mut self,
         arg: Arg,

@@ -68,7 +68,7 @@ pub fn constant_ranges(
         .collect()
 }
 
-/// `compile`, with every value slot essential (`LoadOptions::classify`
+/// `compile`, with every value slot essential ([`LoadOptions::classify`](crate::LoadOptions::classify)
 /// off).
 pub fn compile_unclassified(
     dast: &crate::dast::Dast,
@@ -101,7 +101,7 @@ pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate:
     doc.tick_unchecked(&[crate::Request { cell, value }], &[])
 }
 
-/// Requests on any cells, inverted as `Document::request` inverts them,
+/// Requests on any cells, inverted as [`Document::request`](crate::document::Document::request) inverts them,
 /// without the check that each is an input's. It still writes only
 /// essential cells.
 pub fn request_unchecked(
@@ -245,7 +245,7 @@ pub fn inputs(
     out
 }
 
-/// Whether `pruned` (`LoadOptions::prune` on) and `full` (off), the same
+/// Whether `pruned` ([`LoadOptions::prune`](crate::LoadOptions::prune) on) and `full` (off), the same
 /// document after the same ticks, agree on every prop whose cell is live in
 /// `pruned`. Returns the first disagreement, as `type.prop of component`.
 pub fn live_cells_agree(full: &crate::Document, pruned: &crate::Document) -> Result<(), String> {

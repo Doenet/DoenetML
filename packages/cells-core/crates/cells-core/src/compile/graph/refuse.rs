@@ -129,7 +129,7 @@ impl Graph for Cells<'_> {
 
 /// Requests the program cannot land (ADR 0026), once per template
 /// element: each interactive prop's cell once, with the first component
-/// that names it, in the order the graph lists components (`TemplateGraph::comps`).
+/// that names it, in the order the graph lists components ([`TemplateGraph::comps`]).
 pub(crate) fn refuse_warnings(
     g: &TemplateGraph,
     d: &Defined,
@@ -197,7 +197,7 @@ pub(crate) fn refuse_warnings(
 }
 
 /// How node `n` is named in a warning or an error: its component, by
-/// name or by its tag and position in `TemplateGraph::comps`, and its
+/// name or by its tag and position in [`TemplateGraph::comps`], and its
 /// prop.
 pub(super) fn slot_label(g: &TemplateGraph, c: CompiledRef<'_>, n: GraphNode) -> String {
     let owner = g.comps.iter().enumerate().find(|(_, comp)| {

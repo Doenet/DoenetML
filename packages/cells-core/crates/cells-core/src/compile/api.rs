@@ -1,5 +1,5 @@
 //! What a component's planner may use: the record and its typed values,
-//! the port makers and `PlanCtx`, and no DAST type. A planner imports from
+//! the port makers and [`PlanCtx`], and no DAST type. A planner imports from
 //! here and nothing else of the compile.
 
 pub(crate) use super::expr::{ExprId, Token, tuple_entries};

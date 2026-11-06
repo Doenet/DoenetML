@@ -6,7 +6,7 @@
 //! plus the sections before it, the gated ones through a sum of their
 //! gates.
 //!
-//! The tree is the stamping's (`Stamp::children`): an element's children,
+//! The tree is the stamping's ([`Stamp::children`]): an element's children,
 //! an iteration's or an option's root, a conditional content's cases, a
 //! collect's copies, and the `$ref` children as placed. A scored item may
 //! be a copy: a `$ref` child or a collect's copy of an answer reads

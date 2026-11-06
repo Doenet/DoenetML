@@ -213,7 +213,7 @@ impl Op {
     }
 
     /// Evaluate a vector operator into `out` (`n_out` values); `vecs` is
-    /// the program's (`Program::vecs`).
+    /// the program's ([`Program::vecs`](crate::program::Program::vecs)).
     #[inline]
     pub fn eval_vec(&self, cells: &[f64], operands: &[CellIdx], vecs: &[VecOp], out: &mut [f64]) {
         let Op::Vec(n_in, _, v, start) = *self else {
@@ -231,7 +231,7 @@ impl Op {
         v.eval(&inp[..n_in], out);
     }
 
-    /// Range into `Program::operands` of inputs kept there (vector and
+    /// Range into [`Program::operands`](crate::program::Program::operands) of inputs kept there (vector and
     /// symbolic operators).
     #[inline(always)]
     pub fn operand_range(&self) -> std::ops::Range<usize> {
@@ -298,7 +298,7 @@ mod inverses {
     }
 
     /// Every input an inverse writes is one its entry declares
-    /// (`OpSpec::writes`).
+    /// ([`OpSpec::writes`]).
     #[test]
     fn every_inverse_writes_a_declared_input() {
         for spec in OpSpec::scalars() {

@@ -1,4 +1,4 @@
-//! A flat, columnar DAST. Nodes live in parallel arrays indexed by `NodeId`;
+//! A flat, columnar DAST. Nodes live in parallel arrays indexed by [`NodeId`];
 //! every string (tag names, attribute names, text, reference path parts)
 //! lives once in a shared [`StringTable`]. Two loaders fill the same
 //! structure: [`Dast::from_json`] for the JSON emitted by `@doenet/parser`,
@@ -30,7 +30,7 @@ crate::index::index_type! {
 }
 
 crate::index::index_type! {
-    /// A string: a position in a `StringTable`. A text cell holds one as
+    /// A string: a position in a [`StringTable`]. A text cell holds one as
     /// its `f64` value.
     pub struct StrId;
 }

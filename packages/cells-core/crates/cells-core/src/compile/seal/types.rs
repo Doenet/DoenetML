@@ -881,7 +881,7 @@ impl<'s, 'a> Types<'s, 'a> {
     }
 }
 
-/// What a collect gathers (`Types::collected`): the elements, and whether
+/// What a collect gathers ([`Types::collected`]): the elements, and whether
 /// any sits in a repeat's body.
 type Collected = (Vec<(TemplateId, ElemId)>, bool);
 

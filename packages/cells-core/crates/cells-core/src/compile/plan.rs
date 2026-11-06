@@ -13,7 +13,7 @@ crate::index::index_type! {
 }
 
 crate::index::index_type! {
-    /// An element's stable key, as an index into the compile's `Keys`:
+    /// An element's stable key, as an index into the compile's [`Keys`](crate::compile::seal::keys::Keys):
     /// what saved state names it by. Every instance of a template element
     /// shares its key; the scope tells them apart.
     pub struct ElemKey;
@@ -114,7 +114,7 @@ pub(crate) enum Sel {
 /// A value not given (yet): an attribute's default when it has no value
 /// of its own, an emptied input, an answer not submitted, an entry past a
 /// tuple's end, an operator input left out. A component writes NaN only
-/// as this, or as `Wire::undefined`/`Source::undefined` after a warning.
+/// as this, or as [`Wire::undefined`]/[`Source::undefined`] after a warning.
 pub(crate) const NO_VALUE: f64 = f64::NAN;
 
 /// Proof that the element's diagnostic was raised, required to make a
@@ -267,7 +267,7 @@ impl Source {
     pub(crate) fn absent() -> Self {
         Source::constant(NO_VALUE)
     }
-    /// An aggregate over a collection (`Flow::Aggregate`).
+    /// An aggregate over a collection ([`Flow::Aggregate`]).
     pub(crate) fn aggregate(a: Aggregate) -> Self {
         Source::Flow(Flow::Aggregate(a))
     }
@@ -296,7 +296,7 @@ impl Source {
     pub(crate) fn computed(op: OpSpec, args: Vec<Port>) -> Self {
         Source::op(op, args.into_iter().map(Arg::Own).collect())
     }
-    /// A type's `PropFrom::Computed` prop.
+    /// A type's [`PropFrom::Computed`] prop.
     pub(crate) fn from_def(op: OpSpec, args: &[ArgFrom]) -> Self {
         let arg = |&a: &ArgFrom| match a {
             ArgFrom::Prop(p) => Arg::Own(Port::table(p as usize)),
@@ -313,11 +313,11 @@ impl Source {
     pub(crate) fn vector(op: VecOp, args: Vec<Port>) -> Self {
         Source::computed(OpSpec::Vec(op), args)
     }
-    /// A math cell from math text (`Flow::SymExpr`).
+    /// A math cell from math text ([`Flow::SymExpr`]).
     pub(crate) fn sym_expr(id: ExprId, post: Post) -> Self {
         Source::Flow(Flow::SymExpr(id, post))
     }
-    /// Math text (`Flow::Math`).
+    /// Math text ([`Flow::Math`]).
     pub(crate) fn math(id: ExprId) -> Self {
         Source::Flow(Flow::Math(id))
     }
@@ -364,7 +364,7 @@ pub(crate) struct ChoiceDef {
     /// Load-time: picks, with replacement or not, and a weight per option.
     /// How many picks is known while outlining only when `numToSelect`
     /// is a literal; every build reads the number the check found
-    /// (`Plans::num_to_select`, ADR 0037).
+    /// ([`Plans::num_to_select`], ADR 0037).
     pub(crate) num_to_select: Option<u32>,
     pub(crate) with_replacement: bool,
     pub(crate) weights: Vec<f64>,
@@ -564,11 +564,11 @@ impl Elem {
     }
 }
 
-/// What planning makes of one element, indexed by `ElemId` in its
+/// What planning makes of one element, indexed by [`ElemId`] in its
 /// template.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct ElemPlan {
-    /// Each port's source, by `Port::index`: the table's props, then two
+    /// Each port's source, by [`Port::index`]: the table's props, then two
     /// per point of the list, then the hidden ports.
     pub(crate) props: Vec<Source>,
     /// How many points its list holds, which says how many of
@@ -597,7 +597,7 @@ impl ElemPlan {
 
     /// How many of the element's ports are public, for an element of
     /// `component_type`: its table's props and its list's points. None
-    /// when only a build knows (`ListLen::AsReferent`).
+    /// when only a build knows ([`ListLen::AsReferent`]).
     pub(crate) fn n_public(&self, component_type: ComponentType) -> Option<usize> {
         let n_table = component_type.prop_defs().len();
         match self.list {
@@ -664,7 +664,7 @@ pub(crate) enum Hold {
     While(Vec<RefId>),
 }
 
-/// What sealing makes of one element, indexed by `ElemId` in its template.
+/// What sealing makes of one element, indexed by [`ElemId`] in its template.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Sealed {
     /// The element's identity across loads, for saved state.
@@ -727,7 +727,7 @@ pub(crate) struct Outlined {
     /// Children of the template itself (the document, a repeat body or a
     /// choice branch).
     pub(crate) children: Vec<Child>,
-    /// The `$ref` children, by `RefChildId`.
+    /// The `$ref` children, by [`RefChildId`].
     pub(crate) ref_children: Vec<RefChild>,
 }
 
@@ -990,7 +990,7 @@ impl Attr {
         self.0
     }
 
-    /// Its position among its type's declarations (`Record`).
+    /// Its position among its type's declarations ([`Record`](crate::compile::record::Record)).
     pub(crate) const fn index(self) -> usize {
         self.1 as usize
     }
@@ -1164,7 +1164,7 @@ impl Wire {
 /// port.
 pub(crate) struct ElemWiring {
     component_type: ComponentType,
-    /// Each port's source, by `Port::index`.
+    /// Each port's source, by [`Port::index`].
     props: Vec<Option<Source>>,
     /// How many points the list holds, two ports each after the table's
     /// props.
@@ -1207,7 +1207,7 @@ impl std::ops::IndexMut<Port> for TableProps {
 }
 
 /// `props`, wiring for an element of `component_type`, with every prop
-/// the type's table declares an aggregate (`PropFrom::Aggregate`) planned
+/// the type's table declares an aggregate ([`PropFrom::Aggregate`]) planned
 /// so, whatever else the element inherits or copies: a copy of a section
 /// is numbered among its own siblings and scores what is inside it.
 pub(crate) fn mark_aggregates(component_type: ComponentType, props: &mut [Source]) {
@@ -1371,7 +1371,7 @@ impl ElemWiring {
         matches!(self.props[port.index()], Some(Source::Leaf(Leaf::Given(_))))
     }
 
-    /// Every port's source, by `Port::index`, and how many points the list
+    /// Every port's source, by [`Port::index`], and how many points the list
     /// holds: what an element's plan keeps of it.
     pub(crate) fn finish(self) -> (Vec<Source>, ListLen) {
         let list = if self.component_type.given_coords().is_some() {
@@ -1417,7 +1417,7 @@ pub struct Compiled {
     pub(crate) dast: Dast,
     pub(crate) plans: Plans,
     /// The source's diagnostics, in node order: a fact about the source
-    /// (ADR 0014), which the document shares (`Loaded::diagnostics`).
+    /// (ADR 0014), which the document shares ([`Loaded::diagnostics`](crate::document::Loaded::diagnostics)).
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
 }
 

@@ -24,7 +24,7 @@
 
 use super::*;
 
-/// Most items one `WeightedMean` reads: weights and credits share
+/// Most items one [`WeightedMean`] reads: weights and credits share
 /// `MAX_VEC_IN` inputs.
 use crate::limits::SCORE_CHUNK as CHUNK;
 

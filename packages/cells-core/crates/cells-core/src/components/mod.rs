@@ -3,7 +3,7 @@
 //! tag vocabulary.
 //!
 //! A prop may be computed from the component's other props by an operator
-//! (`PropFrom::Computed`), so a value chain such as a `<slider>`'s is data,
+//! ([`PropFrom::Computed`]), so a value chain such as a `<slider>`'s is data,
 //! inverted by the generic operator inverse.
 //!
 //! Each type is one `component!` block, grouped by family; the list of
@@ -37,8 +37,8 @@ pub const PRESENTATION_ATTRS: &[&str] = &[
 pub use geometry::{MAX_RIGID_VERTICES, MAX_VERTICES};
 pub use values::MAX_TUPLE;
 
-/// Declares every component type from one list: the `ComponentType` enum,
-/// `ComponentType::ALL`, and `COMPONENT_DEFS`, all in list order. Each
+/// Declares every component type from one list: the [`ComponentType`] enum,
+/// [`ComponentType::ALL`], and `COMPONENT_DEFS`, all in list order. Each
 /// entry names a `component!` block's `DEFINITION`. The `#[cfg(test)]`
 /// entries come last, so no other type's discriminant depends on them.
 macro_rules! component_types {
@@ -530,7 +530,7 @@ impl ComponentType {
     }
 
     /// The coordinate names of the type's list when its points are as many
-    /// as an element was given (`ListPoints::Given`), with the list.
+    /// as an element was given ([`ListPoints::Given`]), with the list.
     fn given_list(self) -> Option<(&'static ListProp, [&'static str; 2], Option<&'static str>)> {
         let list = self.list()?;
         match list.points {
@@ -552,7 +552,7 @@ impl ComponentType {
 
     /// The attribute that gives the type's list its points, and the most
     /// the list keeps, when they are as many as an element was given
-    /// (`ListPoints::Given`): a circle's `through`, at most three.
+    /// ([`ListPoints::Given`]): a circle's `through`, at most three.
     pub(crate) fn given_from(self) -> Option<(crate::compile::api::Attr, Option<usize>)> {
         match self.list()?.points {
             ListPoints::Given { attribute, max, .. } => Some((attribute, max)),
@@ -561,7 +561,7 @@ impl ComponentType {
     }
 
     /// The points of the list `name` when they are the table's props
-    /// (`ListPoints::Table`): each one's two prop names.
+    /// ([`ListPoints::Table`]): each one's two prop names.
     pub fn table_list(self, name: &str) -> Option<&'static [[&'static str; 2]]> {
         let list = self.list().filter(|l| l.names.contains(&name))?;
         match list.points {
@@ -680,7 +680,7 @@ impl ComponentType {
 
     /// Where the prop `name` is: a position in the table, or a point (or
     /// coordinate) of the type's list when its points are stored after the
-    /// table (`ListPoints::Given`), or nowhere. Whether such a point exists
+    /// table ([`ListPoints::Given`]), or nowhere. Whether such a point exists
     /// depends on the element (`list_slot`). A table list's points are
     /// table props already.
     pub fn prop_at(self, name: &str) -> Option<PropAt> {
@@ -886,7 +886,7 @@ impl ComponentType {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PropFrom {
-    /// Value given by an attribute (`PropDef::attr`, or the prop's name).
+    /// Value given by an attribute ([`PropDef::attr`], or the prop's name).
     Attribute,
     /// Value given by the element's children (a literal or one reference).
     Children,
@@ -981,8 +981,8 @@ pub struct PropDef {
     pub name: &'static str,
     pub default: f64,
     pub from: PropFrom,
-    /// Attribute to read instead of `name`, for `PropFrom::Attribute`; for
-    /// `PropFrom::Children`, the attribute that stands in for blank
+    /// Attribute to read instead of `name`, for [`PropFrom::Attribute`]; for
+    /// [`PropFrom::Children`], the attribute that stands in for blank
     /// children (a mathInput's `prefill`).
     pub attr: Option<&'static str>,
     /// An attribute whose reference, when present, this prop aliases
@@ -1083,7 +1083,7 @@ mod tests {
     }
 
     /// No component file but `define.rs` writes `f64::NAN` itself: NaN
-    /// is `NO_VALUE` or `Wire::undefined` / `Source::undefined`. A spec
+    /// is `NO_VALUE` or [`Wire::undefined`] / [`Source::undefined`]. A spec
     /// (`*.spec.rs`) may expect one.
     #[test]
     fn components_write_no_nan_of_their_own() {
@@ -1115,7 +1115,7 @@ mod tests {
         );
     }
 
-    /// No planner computes a slot position (`list_slot`, `Port::table`):
+    /// No planner computes a slot position (`list_slot`, [`Port::table`]):
     /// it names a port.
     #[test]
     fn components_compute_no_slot_positions() {
@@ -1200,7 +1200,7 @@ mod tests {
         );
     }
 
-    /// `PlanCtx`'s planner methods match a recorded count, so the API
+    /// [`PlanCtx`]'s planner methods match a recorded count, so the API
     /// grows only deliberately.
     #[test]
     fn plan_ctx_grows_deliberately() {

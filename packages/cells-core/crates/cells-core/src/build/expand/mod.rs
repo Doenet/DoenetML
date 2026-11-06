@@ -1,6 +1,6 @@
 //! Expand: stamp templates into components per scope, give `$ref` children
 //! their type, expand collects and point lists, and turn every prop's
-//! `Source` into a `BuiltSource` (an essential value, an alias, or an
+//! [`Source`] into a [`BuiltSource`] (an essential value, an alias, or an
 //! operator over slots).
 
 use super::*;
@@ -105,7 +105,7 @@ pub(in crate::build) struct ChoiceInst {
     pub(in crate::build) scopes: Vec<ScopeId>,
     /// The branch each of `scopes` instantiates.
     pub(in crate::build) branch_of: Vec<usize>,
-    /// Reactive choice: one component per `ChoiceDef::used` standing for
+    /// Reactive choice: one component per [`ChoiceDef::used`] standing for
     /// that name in every branch.
     pub(in crate::build) iface_comps: Vec<CompIdx>,
 }

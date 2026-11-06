@@ -14,7 +14,7 @@ use serde_json::{Value, json};
 
 use crate::compile::*;
 
-/// Every element's key, by `ElemKey`, and what saved state needs besides.
+/// Every element's key, by [`ElemKey`], and what saved state needs besides.
 #[derive(Debug, Default)]
 pub(crate) struct Keys {
     /// Every key's text, one after the other; key `i` ends at `ends[i]`.

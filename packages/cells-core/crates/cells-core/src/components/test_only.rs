@@ -2,7 +2,7 @@
 //! what a rule of the core needs, so a unit test of that rule depends on
 //! no real component.
 //!
-//! - `<testValue value="..">`: planned from its table alone (`Props`).
+//! - `<testValue value="..">`: planned from its table alone ([`Props`]).
 //! - `<testShape a=".." b="..">`: planned by a function inside
 //!   `plan_with_extend`'s handling of `extend`, with two pieces of shared
 //!   state, each supplied by the attribute of the same name, `a` else by

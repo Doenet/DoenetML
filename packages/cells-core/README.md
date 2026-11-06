@@ -3,7 +3,7 @@
 A DoenetML core organized around a flat list of `f64` cells: components and
 props name cells, and the dependency graph is a list of operators with
 inverses. `ARCHITECTURE.md` is the map, `CONTEXT.md` the vocabulary,
-`docs/adr/` the decisions.
+`docs/adr/` the decisions, and `npm run doc` the types, linked.
 
 - `crates/cells-core`: the core, with math-expressions-rs as its symbolic
   engine (`src/sym/`, ADR 0011).
@@ -45,6 +45,10 @@ iterated. `fixtures/sir.doenet` is a document using most of these.
   downloads once; a system binaryen older than 110 breaks the build's
   output, as `crates/cells-wasm/Cargo.toml` explains.
 - `npm run lint`: fmt and clippy, warnings denied.
+- `npm run doc`: the API docs, private items included, at
+  `target/doc/cells_core/index.html` (`npm run doc -- --open` opens it).
+  Its front page is the pipeline by type, each name a link; a broken
+  link fails it, and CI runs it.
 - `cargo test` also runs in CI (`.github/workflows/cells-core.yml`); fmt
   and clippy in the `Lint Rust Code` job of `ci.yml`.
 - `npm run fixtures`, `npm run golden-diff -- [rev]`: the generated

@@ -86,7 +86,7 @@ macro_rules! scalar_ops {
         pub enum OpSpec {
             $($(#[$m])* $name,)*
             Vec(VecOp),
-            /// Any number of inputs (a template's leaves); see `SymKind`.
+            /// Any number of inputs (a template's leaves); see [`SymKind`].
             Sym(SymKind),
         }
 
@@ -128,7 +128,7 @@ macro_rules! scalar_ops {
             }
 
             /// The input positions its inverse may write, as a mask over
-            /// `Op::inputs`: bit `k` for input `k`. `vecs` and `syms` are the
+            /// [`Op::inputs`]: bit `k` for input `k`. `vecs` and `syms` are the
             /// program's tables.
             pub fn writes(&self, vecs: &[VecOp], syms: &[crate::program::SymEntry]) -> u64 {
                 match *self {
@@ -214,7 +214,7 @@ macro_rules! scalar_ops {
 
             /// A range holding every value the operator can give from
             /// inputs in `inputs` (ADR 0037): its entry's range rule, a
-            /// vector operator's (`VecOp::range`), ⊤ for a symbolic one.
+            /// vector operator's ([`VecOp::range`]), ⊤ for a symbolic one.
             pub fn range(&self, inputs: &[Range]) -> Range {
                 match self {
                     $(OpSpec::$name => scalar_ops!(@range inputs [$($in),+] $($range)?),)*

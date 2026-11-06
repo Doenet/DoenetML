@@ -5,7 +5,7 @@
 //! 0026), the prefill rule, and the two walks, writable (ADR 0018) and
 //! live (ADR 0019), from which each port's attributes follow.
 //!
-//! A walk reads a cell through its definition (`CellDef`), which offers
+//! A walk reads a cell through its definition ([`CellDef`]), which offers
 //! what the cell needs (what its definition reads, and the flags that hold
 //! it) and where a request on it goes (the inputs its inverse may write,
 //! nowhere when a constant flag holds it).

@@ -5,7 +5,7 @@
 //! Such a request is refused.
 //!
 //! A cell's *written* cells are the essential cells its inverse can reach,
-//! through each operator to the inputs it may write (`Graph::writes`). Paths
+//! through each operator to the inputs it may write ([`Graph::writes`]). Paths
 //! are counted from each written cell forward through every input of every
 //! node, saturating at 2. A vector operator counts as one node: its outputs
 //! take the largest count of its inputs, not their sum.

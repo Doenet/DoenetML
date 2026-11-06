@@ -19,7 +19,7 @@
 //! stand-ins, every port's reads, the aggregates, and last the holds.
 //!
 //! The compile's check runs over it: the stamping's own failures, an
-//! element that cannot be built (`Stamp::fail`), the cycle and count
+//! element that cannot be built ([`Stamp::fail`]), the cycle and count
 //! checks (`cycles.rs`), define and its walks (`define.rs`), and the
 //! refuse warnings (`refuse.rs`). `build/coverage.rs` tests that it covers
 //! every dependency of every build at every count (`tests/every_count.rs`).
@@ -64,7 +64,7 @@ pub(crate) enum Coord {
     Reset,
 }
 
-/// A reference's label: one `Coord` per level of nesting of its target,
+/// A reference's label: one [`Coord`] per level of nesting of its target,
 /// what the read from its reader carries. The identity when every
 /// coordinate is `Keep(0)`; in a build whose view does not fold
 /// iterations, empty.
@@ -152,7 +152,7 @@ pub(crate) enum ScopeLeaf {
 pub(crate) enum NodeKind {
     /// Port `port` of element `elem` of the node's template.
     Port { elem: ElemId, port: u32 },
-    /// Port `port` of a made component (`TemplateGraph::made`).
+    /// Port `port` of a made component ([`TemplateGraph::made`]).
     Made { made: u32, port: u32 },
     /// A value a read goes through: a leaf inside math, a choose, a gate.
     Read,
@@ -171,7 +171,7 @@ pub(crate) struct Node {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum GraphOp {
     Spec(OpSpec),
-    /// A symbolic template (`TemplateGraph::templates`).
+    /// A symbolic template ([`TemplateGraph::templates`]).
     Template(u32),
 }
 
@@ -320,7 +320,7 @@ pub(crate) struct TemplateGraph {
     pub(crate) counted: Vec<GraphNode>,
     /// The nodes whose plan gives a document constant if they are one.
     pub(crate) document: Vec<GraphNode>,
-    /// The symbolic templates, by `GraphOp::Template`.
+    /// The symbolic templates, by [`GraphOp::Template`].
     pub(crate) templates: Vec<TemplateOp>,
     /// The nodes whose cell is not a number, with what it holds, as a
     /// build types its slots (`Builder::typed_slots`).
@@ -730,7 +730,7 @@ impl<'c> Stamp<'c> {
     /// Every component, with where it is placed: rendered when the walk
     /// from the document root reaches it through what renders (a graph's
     /// parts only inside a graph), and under a sticky group or not, as
-    /// `ComponentTable::placement` finds them.
+    /// [`ComponentTable::placement`](crate::ComponentTable::placement) finds them.
     fn place_comps(&mut self) {
         use crate::components::Renders;
         let mut placed: FxMap<Comp, (bool, bool)> = FxMap::default();

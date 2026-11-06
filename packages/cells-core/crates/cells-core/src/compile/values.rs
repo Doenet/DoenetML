@@ -166,7 +166,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    /// A list of scalars (`AttrKind::Scalars`): each item a literal number
+    /// A list of scalars ([`AttrKind::Scalars`](crate::components::AttrKind::Scalars)): each item a literal number
     /// or one reference, items separated by spaces, as DoenetML writes a
     /// list. Anything else (math, a reference with text against it, a
     /// comma) is refused.

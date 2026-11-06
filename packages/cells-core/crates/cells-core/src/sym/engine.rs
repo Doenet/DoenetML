@@ -1,5 +1,5 @@
 //! The symbolic engine: math-expressions-rs, linked natively. Each handle is
-//! one boxed `Expr` tree. An expression equal to one the engine holds gets
+//! one boxed [`Expr`] tree. An expression equal to one the engine holds gets
 //! that one's handle, so an expression made again neither reads as a change
 //! nor grows the engine. Handles stay valid for the life of the engine. Cell
 //! leaves are symbols named `cellN<i>` (numeric) or `cellM<i>` (math).
@@ -226,7 +226,7 @@ impl Engine {
         self.exprs.is_empty()
     }
 
-    /// Approximate: every node counted at the size of one `Expr`.
+    /// Approximate: every node counted at the size of one [`Expr`].
     pub fn heap_bytes(&self) -> usize {
         self.exprs.iter().map(count_nodes).sum::<usize>() * std::mem::size_of::<Expr>()
             + self.index.capacity() * 16
@@ -266,7 +266,7 @@ fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
     }
 }
 
-/// A builder tree as text, as `Engine::text` prints it once imported: a
+/// A builder tree as text, as [`Engine::text`] prints it once imported: a
 /// function of the tree alone, held by no engine. A cell leaf prints by
 /// its number (`cellN3`).
 pub fn template_text<L: Leaf>(tree: &Tree<L>) -> String {

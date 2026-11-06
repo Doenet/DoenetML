@@ -232,8 +232,8 @@ fn write_all(w: &mut DastWriter, nodes: Vec<Node>) -> Vec<NodeId> {
 }
 
 /// Loads the document `dast` with every author's value essential
-/// (`LoadOptions::classify` off) and every prop computed
-/// (`LoadOptions::prune` off), for unit tests over test-only components.
+/// ([`LoadOptions::classify`](crate::LoadOptions::classify) off) and every prop computed
+/// ([`LoadOptions::prune`](crate::LoadOptions::prune) off), for unit tests over test-only components.
 pub fn load(dast: Dast) -> crate::Result<crate::Document> {
     let options = crate::LoadOptions {
         classify: false,

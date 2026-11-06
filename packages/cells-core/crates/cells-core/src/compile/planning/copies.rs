@@ -1,5 +1,5 @@
 //! Copies, as planned: `extend` with a prop path, container copies, the
-//! clone elements themselves, and the copy rules around a `Planner::Plan`
+//! clone elements themselves, and the copy rules around a [`Planner::Plan`]
 //! type's planner: a bare copy aliases every prop, and a copy with its own
 //! attributes keeps the shared state they supply and shares the rest.
 

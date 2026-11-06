@@ -9,8 +9,8 @@ use crate::compile::*;
 
 /// What boxing records: the nodes an earlier compile boxed, the nodes
 /// boxed here with their errors, and the first failure no element could
-/// carry. Every stage reads the box table (`Tables::boxes`); only what
-/// holds a `Boxes` writes it (`mark`).
+/// carry. Every stage reads the box table ([`Tables::boxes`]); only what
+/// holds a [`Boxes`] writes it (`mark`).
 pub(in crate::compile) struct Boxes<'a> {
     /// Nodes an earlier compile could not build: outlining compiles each
     /// as an `_error` element with its name but no children and no props.
@@ -58,7 +58,7 @@ impl<'a> Boxes<'a> {
     }
 
     /// Marks element `e` a box in `boxes`, a template's box table: the
-    /// one write to that table, which only a holder of a `Boxes` makes.
+    /// one write to that table, which only a holder of a [`Boxes`] makes.
     fn mark(&self, boxes: &mut [BoxState], e: ElemId, state: BoxState) {
         boxes[e.index()] = state;
     }

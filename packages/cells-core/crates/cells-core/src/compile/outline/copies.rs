@@ -187,7 +187,7 @@ impl Compiler<'_> {
 impl Compiler<'_> {
     /// Run `f`, which reads what outlining made through references: when it
     /// reaches a container copy whose clones are not made yet
-    /// (`Error::AwaitsClones`), make them, and run it again from the start.
+    /// ([`Error::AwaitsClones`]), make them, and run it again from the start.
     pub(in crate::compile) fn with_clones<T>(
         &mut self,
         o: &mut Outlining<'_>,

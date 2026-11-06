@@ -1,4 +1,4 @@
-//! Recompute strategies (`Recompute`): how a tick, given the essential
+//! Recompute strategies ([`Recompute`]): how a tick, given the essential
 //! cells it wrote, computes the derived cells and finds which changed.
 //! Both take the changed cells as seeds and append the derived cells whose
 //! value changed, and both give the same values; they differ only in how
