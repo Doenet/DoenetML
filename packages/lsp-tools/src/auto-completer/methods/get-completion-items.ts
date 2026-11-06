@@ -866,9 +866,11 @@ function createQuoteWrapCompletionItems({
  * This function analyzes the cursor context to determine what type of completions
  * are appropriate and returns a combination of:
  * - Ref-name completions after `$` in text content or attribute values, including
- *   `$name[]` snippet completions for takesIndex elements
+ *   `$name[]` snippet completions for takesIndex elements,
+ *   and names every branch of a `<conditionalContent>` or one-pick `<select>` declares
  * - Ref-member completions after `.` on a resolved ref chain, filtered by addressability
- *   and visibility rules (ChildrenInvisibleToTheirGrandparents, sugar hiding, etc.)
+ *   and visibility rules (ChildrenInvisibleToTheirGrandparents, the names every
+ *   branch of a branch container shares, etc.)
  * - Additional injected ref names (e.g., repeat valueName/indexName) from
  *   rustResolverAdapter.getDerivedRepeatNames()
  * - Schema-based element completions (allowed elements based on parent/context)
@@ -977,8 +979,22 @@ export async function getCompletionItems(
         // Inject additional names (e.g. repeat valueName/indexName) that
         // don't exist in the raw DAST but are valid at runtime.
         const additionalNames = this.getAdditionalRefNames(offset);
+        // Names every branch of a `<conditionalContent>` or one-pick
+        // `<select>` declares, which the walk above drops for being declared
+        // more than once, but which resolve through the container to the
+        // active branch's (issue #2455). `isNameAddressable` below decides
+        // whether each is reachable from here.
+        const branchNames =
+            this._rustResolverAdapter &&
+            typeof this._rustResolverAdapter.getBranchSharedNames === "function"
+                ? this._rustResolverAdapter.getBranchSharedNames()
+                : [];
         const uniqueNames = [
-            ...new Set([...addressableNames, ...additionalNames]),
+            ...new Set([
+                ...addressableNames,
+                ...additionalNames,
+                ...branchNames,
+            ]),
         ];
         const isAddressableFlags = await Promise.all(
             uniqueNames.map((name) => this.isNameAddressable(offset, name)),
@@ -1001,8 +1017,18 @@ export async function getCompletionItems(
             labelInfo: RefCompletionLabelInfo;
         };
         const referentInfoByName = new Map<string, ReferentInfo>();
-        for (const name of filteredNames) {
-            const resolved = this.resolveRefNameForHelp(offset, name);
+        // A branch-shared name misses the AST-only lookup and falls back to
+        // a worker round trip; issue those concurrently rather than one per
+        // completion item in turn.
+        const resolvedByName = await Promise.all(
+            filteredNames.map(
+                (name) =>
+                    this.resolveRefNameForHelp(offset, name) ??
+                    this.resolveBranchNameForHelp(offset, name),
+            ),
+        );
+        for (const [i, name] of filteredNames.entries()) {
+            const resolved = resolvedByName[i];
             if (!resolved) continue;
             const { referent, line, ownEntry, effectiveEntry } = resolved;
             const detail =
@@ -1181,10 +1207,12 @@ export async function getCompletionItems(
         const filteredDescendantNames = [...descendantNames].filter((name) =>
             prefix ? name.toLowerCase().startsWith(prefix) : true,
         );
+        const hiddenMemberNames = new Set(resolved.hiddenMemberNames ?? []);
         const filteredPropertyNames = propertyNames.filter(
             (name) =>
                 (!prefix || name.toLowerCase().startsWith(prefix)) &&
-                !descendantNames.has(name),
+                !descendantNames.has(name) &&
+                !hiddenMemberNames.has(name),
         );
 
         const propertyDescriptions = new Map<string, string>();
