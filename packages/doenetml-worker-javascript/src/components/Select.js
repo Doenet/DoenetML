@@ -220,6 +220,10 @@ export default class Select extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "allVariantNames",
                 },
+                choicesDecidedByDoenetML: {
+                    dependencyType: "stateVariable",
+                    variableName: "choicesDecidedByDoenetML",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let availableVariants = {};
@@ -250,6 +254,11 @@ export default class Select extends CompositeComponent {
                                     availableVariants[variantName].length,
                                 numToSelect: dependencyValues.numToSelect,
                             },
+                            // `numToSelect` can come from a value, such as
+                            // another random choice
+                            type: selectFailureType(
+                                dependencyValues.choicesDecidedByDoenetML,
+                            ),
                         });
 
                         return {

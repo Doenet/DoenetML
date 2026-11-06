@@ -257,6 +257,15 @@ describe("A selection that a value decides can't be made @group4", async () => {
             variable: "selectedIndices",
             made: (selected) => selected?.length > 0,
         },
+        {
+            tag: "<select> with options for variants, numToSelect from another random choice",
+            doenetML: `<variantControl numVariants="4" variantNames="a b c d"/>
+<selectFromSequence name="a" from="1" to="2"/>
+<p name="p"><select name="s" numToSelect="$a"><option selectForVariants="a b c d">u</option><option selectForVariants="a b c d">v</option></select></p>`,
+            code: "doenet-e0032",
+            variable: "selectedIndices",
+            made: (selected) => selected?.length > 0,
+        },
     ];
 
     for (const { tag, doenetML, code, variable, made } of valueCases) {
@@ -358,6 +367,12 @@ describe("A selection that a value decides can't be made @group4", async () => {
             tag: "<selectFromSequence coprime>",
             doenetML: `<selectFromSequence name="s" numToSelect="2" from="2" step="4" coprime/>`,
             code: "doenet-e0042",
+        },
+        {
+            tag: "<select> with options for variants",
+            doenetML: `<variantControl numVariants="2" variantNames="a b"/>
+<select name="s"><option selectForVariants="a b">u</option><option selectForVariants="a b">v</option></select>`,
+            code: "doenet-e0032",
         },
     ];
 
