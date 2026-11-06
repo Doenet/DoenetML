@@ -1,4 +1,5 @@
 import me from "math-expressions";
+import { deepClone } from "@doenet/utils";
 import BaseComponent from "./BaseComponent";
 import {
     pathHasIndexComponents,
@@ -604,6 +605,17 @@ export default class ValueRef extends BaseComponent {
                 }
             }
             serialized.state.value = await this.stateValues.value;
+            // What it captured is what the component made from this with
+            // the state carried (a `copyWithState`) was made with, so a
+            // `copy` of that one starts from it (`initialEssentialState`,
+            // D33), not from a reader's later change to it. The baseline
+            // inherited from the reference itself has none of it.
+            if (!parameters.withoutReaderState) {
+                serialized.initialEssentialState = {
+                    ...(serialized.initialEssentialState ?? {}),
+                    ...deepClone(serialized.state),
+                };
+            }
         }
         return serialized;
     }

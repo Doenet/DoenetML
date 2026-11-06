@@ -1014,4 +1014,39 @@ ${repeat}
         ).eqls(["k"]);
         expect(doc.diagnostics().errors).eqls([]);
     });
+
+    it("a copy of a copyWithState of a value reference in a container holds the value captured, not a reader's write to it, through a reload", async () => {
+        const doc = await loaded(`
+<math name="m">x</math>
+<group name="g">$m</group>
+<math name="w" copyWithState="$g[1]"/>
+<math name="c" copy="$w"/>
+<mathInput name="wi" bindValueTo="$w"/>
+<booleanInput name="show"/>
+<conditionalContent condition="$show">
+  <math name="c2" copy="$w"/>
+</conditionalContent>
+`);
+        expect((await doc.sv("w")).value.tree).eq("x");
+        expect((await doc.sv("c")).value.tree).eq("x");
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await doc.resolve("wi"),
+            core: doc.core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await doc.resolve("show"),
+            core: doc.core,
+        });
+        async function check() {
+            expect((await doc.sv("m")).value.tree).eq("x");
+            expect((await doc.sv("w")).value.tree).eq("y");
+            expect((await doc.sv("c")).value.tree).eq("x");
+            expect((await doc.sv("c2")).value.tree).eq("x");
+        }
+        await check();
+        await doc.reload();
+        await check();
+    });
 });
