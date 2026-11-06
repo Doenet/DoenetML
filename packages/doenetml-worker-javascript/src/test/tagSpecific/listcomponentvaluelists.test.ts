@@ -750,18 +750,6 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
-    // The text of one `<p>`, evaluating only what it needs. Evaluating
-    // every state variable of the document first (`textsOf`) could resolve a
-    // reference that the document itself leaves stale.
-    async function textOf(
-        core: any,
-        resolvePathToNodeIdx: any,
-        name: string,
-    ): Promise<string> {
-        const idx = await resolvePathToNodeIdx(name);
-        return await core.core.components[idx].state.text.value;
-    }
-
     it("the children of a copy of a list in a repeat iteration are reached from outside the repeat, as in a copy of a <p>", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -776,8 +764,10 @@ describe("Value lists as list components @group4", async () => {
         });
 
         expect(getDiagnosticsByType(core).warnings).eqls([]);
-        expect(await textOf(core, resolvePathToNodeIdx, "pl")).eq("x x");
-        expect(await textOf(core, resolvePathToNodeIdx, "pp")).eq("x x");
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pp"])).eqls({
+            pl: "x x",
+            pp: "x x",
+        });
     });
 
     it("the children of a copy of a list in a conditionalContent case are reached through the conditionalContent once the case shows, as in a copy of a <p>", async () => {
@@ -795,24 +785,30 @@ describe("Value lists as list components @group4", async () => {
     `,
         });
 
-        expect(await textOf(core, resolvePathToNodeIdx, "pl")).eq("＿");
-        expect(await textOf(core, resolvePathToNodeIdx, "pp")).eq("＿");
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pp"])).eqls({
+            pl: "＿",
+            pp: "＿",
+        });
 
         await updateBooleanInputValue({
             boolean: true,
             componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
-        expect(await textOf(core, resolvePathToNodeIdx, "pl")).eq("x");
-        expect(await textOf(core, resolvePathToNodeIdx, "pp")).eq("x");
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pp"])).eqls({
+            pl: "x",
+            pp: "x",
+        });
 
         await updateBooleanInputValue({
             boolean: false,
             componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
-        expect(await textOf(core, resolvePathToNodeIdx, "pl")).eq("＿");
-        expect(await textOf(core, resolvePathToNodeIdx, "pp")).eq("＿");
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pp"])).eqls({
+            pl: "＿",
+            pp: "＿",
+        });
     });
 
     for (const tag of ["mathList", "p"]) {
@@ -844,7 +840,9 @@ describe("Value lists as list components @group4", async () => {
                     core,
                 });
             }
-            expect(await textOf(core, resolvePathToNodeIdx, "pq")).eq("y y");
+            expect(await textsOf(core, resolvePathToNodeIdx, ["pq"])).eqls({
+                pq: "y y",
+            });
 
             await core.saveImmediately();
             const reloaded = await createTestCore({
@@ -852,12 +850,10 @@ describe("Value lists as list components @group4", async () => {
                 initialState: scoreState.state,
             });
             expect(
-                await textOf(
-                    reloaded.core,
-                    reloaded.resolvePathToNodeIdx,
+                await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, [
                     "pq",
-                ),
-            ).eq("y y");
+                ]),
+            ).eqls({ pq: "y y" });
         });
     }
 
