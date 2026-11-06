@@ -126,7 +126,7 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
     }
 
     async determineDownstreamComponents() {
-        let component = this.dependencyHandler._components[this.componentIdx];
+        const component = this.dependencyHandler._components[this.componentIdx];
 
         if (!component) {
             await this.addBlockerUpdateTriggerForMissingComponent(
@@ -144,24 +144,41 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         // (`listEntryOfValueReference`) has no properties of its own: the
         // path is read on the list as one on the entry, so `$s[1].hide`,
         // where entry 1 of a composite `<sort>` is the reference made for
-        // `$l[2]`, reads `$l[2].hide` (#2480).
-        let definitionPath = this.definition.unresolvedPath;
+        // `$l[2]`, reads `$l[2].hide` (#2480). A property the entry does not
+        // have (`$s[1].bogus`) is looked up on the reference, as before, so
+        // that it is reported as one its referent does not have.
         const listEntry = listEntryOfValueReference(
             component,
             this.dependencyHandler._components,
             this.dependencyHandler.componentInfoObjects,
         );
         if (listEntry) {
-            component = listEntry.list;
-            definitionPath = [
+            const variableNamesBefore = this.originalDownstreamVariableNames;
+            const onEntry = await this._downstreamOfPath(listEntry.list, [
                 {
                     name: "",
                     index: [{ value: [String(listEntry.position)] }],
                 },
-                ...definitionPath,
-            ];
+                ...this.definition.unresolvedPath,
+            ]);
+            if (onEntry.downstreamComponentIndices.length > 0) {
+                return onEntry;
+            }
+            this.originalDownstreamVariableNames = variableNamesBefore;
         }
 
+        return this._downstreamOfPath(
+            component,
+            this.definition.unresolvedPath,
+        );
+    }
+
+    /**
+     * The downstream component of the path `definitionPath` read on
+     * `component`: `component` itself, with the variable and `propIndex`
+     * set, or none when `component` has nothing at that path.
+     */
+    async _downstreamOfPath(component: any, definitionPath: any[]) {
         // A property of a list component's entries (`$l[2].text`,
         // `$l.text`) is read from an array of the list, whose name is
         // resolved here, so it is not matched again against the list's

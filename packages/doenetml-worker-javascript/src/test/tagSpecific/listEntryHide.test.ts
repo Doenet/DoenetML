@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -820,6 +821,24 @@ describe("Hidden content nested inside a list @group4", async () => {
             "false true true true false true",
             "1 2 3 false",
             ["1 false true", "b false false"],
+        ]);
+    });
+
+    it("a property an entry of a list in a sort that stays a composite does not have is reported", async () => {
+        // The entry's own properties are read on the list (#2480); one it
+        // does not have is not, and is reported as for any referent.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><sort name="s"><mathList>3 1</mathList><text>b</text></sort></p>
+    <p name="p">[$s[1].bogus][$s[1].hide]</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[＿][false]");
+        expect(getDiagnosticsByType(core).warnings.map((w) => w.message)).eqls([
+            "No referent found for reference: `$s[1].bogus`",
         ]);
     });
 
