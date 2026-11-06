@@ -984,6 +984,17 @@ describe.skipIf(!wasmAvailable)(
                 );
                 expect(valid?.visibleDescendantNames).toEqual(["x"]);
             }
+            // Beside the cases of a container nested in a case, it is
+            // ambiguous with the case's own `x` (`doenet-w0105`).
+            const nested = `<conditionalContent name="c"><case condition="true"><math name="x">1</math><conditionalContent><case condition="true"><text>a</text></case><math name="x">9</math></conditionalContent></case><else><math name="x">2</math></else></conditionalContent>`;
+            expect(await refNameLabels(`${nested}\n$`)).not.toContain("x");
+            const throughC = await memberNames(`${nested}\n$c.`, ["c", ""]);
+            expect(throughC?.visibleDescendantNames).toEqual([]);
+            const below = await memberNames(
+                `<section name="sec">${nested}</section>\n$sec.`,
+                ["sec", ""],
+            );
+            expect(below?.visibleDescendantNames ?? []).not.toContain("x");
         });
 
         it("leaves out content written beside the branches", async () => {

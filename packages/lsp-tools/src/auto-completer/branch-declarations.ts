@@ -284,8 +284,8 @@ function declarationsBelow(
  *   branch's;
  * - `null` otherwise: a branch lacks it (`doenet-w0183`), the tags differ
  *   (`doenet-w0184`), a branch declares it twice, a child beside the
- *   branches declares it too (`doenet-w0105`), the container has no
- *   branches, or what a branch holds is not read here.
+ *   branches declares it (`doenet-w0105` with the branches'), the
+ *   container has no branches, or what a branch holds is not read here.
  *
  * With `indexed`, for a name after an index into a select's picks
  * (`$s[2].x`), `container` may be a `<select>` of any number of picks.
@@ -306,12 +306,16 @@ export function branchDeclarations(
     const perBranch = read.branches.map((nodes) =>
         declarationsIn(nodes, names),
     );
+    if (countVisibleDeclarations(read.strays, names[0]) > 0) {
+        // Declared beside the branches, which a reference also sees: with
+        // the branches' it is ambiguous (`doenet-w0105`), and alone it is
+        // not a branch name. Not `"none"`, so that a container nested in a
+        // branch still counts it against the branch's own (`$cc.x` for
+        // an `x` in a case and beside the cases of a container in it).
+        return null;
+    }
     if (perBranch.every((declared) => declared === "none")) {
         return "none";
-    }
-    if (countVisibleDeclarations(read.strays, names[0]) > 0) {
-        // Also declared beside the branches: ambiguous (`doenet-w0105`).
-        return null;
     }
     const result: DastElement[] = [];
     for (const declared of perBranch) {
