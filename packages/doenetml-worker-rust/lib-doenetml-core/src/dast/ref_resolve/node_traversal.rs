@@ -190,7 +190,10 @@ impl Resolver {
                 |(index, index_resolution)| match index_resolution {
                     None => None,
                     Some(res_index) => {
-                        if visited[*res_index] {
+                        // the setup a repeat adds is not reached by an index
+                        if visited[*res_index]
+                            || self.node_resolver_data[*res_index + 1].iteration_aliases
+                        {
                             None
                         } else {
                             visited[*res_index] = true;

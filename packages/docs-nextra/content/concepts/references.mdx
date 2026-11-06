@@ -89,7 +89,12 @@ Here `$P[2]` is `4`, `$m[1]` is `8`, `$A[2]` is the second row of `A` (as a
 depends on the value, not the tag: a `<math>` holding a matrix is indexed by
 row, like a `<matrix>`. A value that is a single expression, such as
 `<number name="n">5</number>`, has no entries, so `$n[1]` references nothing
-and DoenetML reports a warning. The warning follows the value: for `$m[2]` of a
+and DoenetML reports a warning. An index after an entry indexes that entry the
+same way, as long as it has entries: `$t[1][2]` of
+`<math name="t">((1,2),(3,4))</math>` is `2`, and `$l[1][2]` of a list whose
+first entry is a tuple is that tuple's second entry. An index past them, such
+as `$P[1][1]` of a point, whose coordinates have no entries, or `$A[1][2][3]`,
+references nothing with the same warning. The warning follows the value: for `$m[2]` of a
 `<math>` whose value comes from an input, it is there while the value is a
 single expression and goes away once it is a tuple. A `copy`, such as
 `<math copy="$m[2]"/>{:dn}`, doesn't follow its source, so it keeps the warning
@@ -467,7 +472,11 @@ An index selects an iteration, not one of the components inside it: to reach a
 component in an iteration, give it a name and write the name after the index, as
 `$rep[2].squared` does. When the whole content of a repeat is another repeat, an
 index after an iteration passes on to the inner repeat, so nested repeats take
-one index for each level.
+one index for each level. A `<group>` that extends or copies an iteration, such
+as `<group name="g" extend="$table[2]"/>{:dn}`, is the iteration again and takes
+indices the same way: `$g[3]` is `$table[2][3]`. The `valueName` and `indexName`
+bindings are reached only by name, as `$rep[1].v` does, never by an index past
+an iteration's content.
 
 ```doenet-editor-horiz
 <repeatForSequence name="table" from="1" to="3" valueName="row">

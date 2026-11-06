@@ -26,8 +26,10 @@ import {
 import {
     returnMathVectorMatrixStateVariableDefinitions,
     VALUE_ENTRY_PREFIX,
-    valueEntryOf,
-    hasMatrixRows,
+    VALUE_ENTRY_DEPTH,
+    selectValueEntry,
+    withValueEntry,
+    indicesIntoScalar,
 } from "../../utils/mathVectorMatrixStateVariables";
 import { booleanFromWord, booleanWord } from "../../utils/booleanWords";
 import {
@@ -314,10 +316,18 @@ export default class ValueListComponent extends BaseComponent {
         }
         // What an index into the entry reads (`$l[2][1]`), as `$m[1]` reads
         // of a `<math>` (D27).
+        // Further indices index that entry in turn (`$l[2][1][2]`,
+        // `__valueEntry1_2`), as `$m[1][2]` does.
         if (name.startsWith(VALUE_ENTRY_PREFIX)) {
-            const index = Number(name.slice(VALUE_ENTRY_PREFIX.length));
-            if (Number.isInteger(index) && index > 0) {
-                return entryValueEntryProperty(index);
+            const indices = name
+                .slice(VALUE_ENTRY_PREFIX.length)
+                .split("_")
+                .map(Number);
+            if (
+                indices.length <= VALUE_ENTRY_DEPTH &&
+                indices.every((index) => Number.isInteger(index) && index > 0)
+            ) {
+                return entryValueEntryProperty(indices);
             }
         }
         return undefined;
@@ -879,35 +889,63 @@ export default class ValueListComponent extends BaseComponent {
                         desiredStateVariableValues.entryCoordinateWrites,
                     )) {
                         // An index into an entry (`entryValueEntryProperty`)
-                        // writes a coordinate, except of a matrix entry,
-                        // whose index reads a row: that takes no write.
+                        // writes what it selects in the entry's value, as a
+                        // write through `$m[i][j]` does; one that names
+                        // nothing there takes no write. A coordinate (`x2`)
+                        // is written as a point's is.
                         const coordinates = {};
-                        let throughRow = false;
+                        const throughIndex = [];
                         for (const [key, coordinate] of Object.entries(
                             written,
                         )) {
                             if (key.startsWith(VALUE_ENTRY_PREFIX)) {
-                                const value = dependencyValues.values[entryKey];
-                                throughRow ||=
-                                    value != null && hasMatrixRows(value);
-                                coordinates[
-                                    key.slice(VALUE_ENTRY_PREFIX.length)
-                                ] = coordinate;
+                                throughIndex.push([key, coordinate]);
                             } else {
                                 coordinates[key] = coordinate;
                             }
                         }
-                        if (throughRow) {
-                            continue;
+                        let entryValue = dependencyValues.values[entryKey];
+                        if (Object.keys(coordinates).length > 0) {
+                            workspace.coordinates[entryKey] = {
+                                ...workspace.coordinates[entryKey],
+                                ...coordinates,
+                            };
+                            entryValue = withCoordinates(
+                                entryValue,
+                                workspace.coordinates[entryKey],
+                            );
                         }
-                        workspace.coordinates[entryKey] = {
-                            ...workspace.coordinates[entryKey],
-                            ...coordinates,
-                        };
-                        desiredValue[entryKey] = withCoordinates(
-                            dependencyValues.values[entryKey],
-                            workspace.coordinates[entryKey],
-                        );
+                        if (throughIndex.length > 0) {
+                            let tree =
+                                workspace.valueEntryTrees?.[entryKey] ??
+                                entryValue?.tree;
+                            for (const [key, desired] of throughIndex) {
+                                tree =
+                                    tree === undefined
+                                        ? undefined
+                                        : withValueEntry(
+                                              tree,
+                                              key
+                                                  .slice(
+                                                      VALUE_ENTRY_PREFIX.length,
+                                                  )
+                                                  .split("_")
+                                                  .map(Number),
+                                              convertValueToMathExpression(
+                                                  desired,
+                                              ).tree,
+                                          );
+                            }
+                            if (tree === undefined) {
+                                continue;
+                            }
+                            workspace.valueEntryTrees = {
+                                ...workspace.valueEntryTrees,
+                                [entryKey]: tree,
+                            };
+                            entryValue = me.fromAst(tree);
+                        }
+                        desiredValue[entryKey] = entryValue;
                     }
                     if (Object.keys(desiredValue).length === 0) {
                         return { success: false };
@@ -1590,35 +1628,38 @@ function entryCoordinateProperty(n) {
 const valueEntryPropertiesByIndex = new Map();
 
 /**
- * Entry `n` (from 1) of the value of a `<math>` entry, which `$l[i][n]` reads,
- * as `$m[n]` reads of a `<math>`: an entry of a tuple, or a row of a matrix
- * as a 1×n matrix. Past the end, or for a scalar, which has no entries, it
- * is a blank, as a coordinate past an entry's dimensions is
- * (`entryCoordinateProperty`): an entry's property has a value for every
- * entry, and a repeat that became a list reads it in its template as the
- * repeat it was made from does. A write through it is a write of that
- * coordinate (`entryCoordinateWrites`), also where it reads a blank, as a
- * coordinate past an entry's dimensions is written: past the end it
- * lengthens the entry, and a scalar entry is taken as coordinate 1, so
- * `[1]` replaces it. A matrix entry, whose rows it reads, takes no write
- * through it.
+ * What `indices` (each from 1) select in the value of a `<math>` entry,
+ * which `$l[i][j]…` reads, as `$m[j]…` reads of a `<math>`
+ * (`selectValueEntry`): an entry of a tuple, a row of a matrix as a 1×n
+ * matrix, and so on while there are entries. Past the end, or in a scalar,
+ * which has no entries, it names nothing: the entry has no value there, so
+ * a reference to it is missing (VAL-5), as `$m[3]` of `<math>(1,2)</math>`
+ * is, and in a scalar it is reported (`indexIntoScalar`), as `$m[1]` of
+ * `<math>5</math>` is. A write through it is a write of what it selects
+ * (`entryCoordinateWrites`, `withValueEntry`), and where it names nothing,
+ * it takes none.
  */
-function entryValueEntryProperty(n) {
-    if (!valueEntryPropertiesByIndex.has(n)) {
-        valueEntryPropertiesByIndex.set(n, {
+function entryValueEntryProperty(indices) {
+    const key = indices.join("_");
+    if (!valueEntryPropertiesByIndex.has(key)) {
+        valueEntryPropertiesByIndex.set(key, {
             from: "value",
             componentType: "math",
             companionsOf: "vector",
             writeThrough: "entryCoordinateWrites",
-            // marked as written through an index, which a matrix entry
-            // refuses (`entryCoordinateWrites`)
             writeThroughValue: (coordinate) => ({
-                [`${VALUE_ENTRY_PREFIX}${n}`]: coordinate,
+                [`${VALUE_ENTRY_PREFIX}${key}`]: coordinate,
             }),
-            compute: (value) => valueEntryOf(value, n) ?? me.fromAst("\uff3f"),
+            compute(value) {
+                const selected = selectValueEntry(value.tree, indices);
+                return typeof selected === "string"
+                    ? undefined
+                    : me.fromAst(selected.tree);
+            },
+            indexIntoScalar: (value) => indicesIntoScalar(value, indices),
         });
     }
-    return valueEntryPropertiesByIndex.get(n);
+    return valueEntryPropertiesByIndex.get(key);
 }
 
 /**

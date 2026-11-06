@@ -32,6 +32,7 @@ impl Resolver {
                         index_kind: IndexKind::Instances,
                         source_sequence: None,
                         branch_kind: None,
+                        iteration_aliases: false,
                     }
                 } else {
                     let node = &flat_root.nodes[idx_plus_1 - 1];
@@ -46,6 +47,7 @@ impl Resolver {
                         index_kind: IndexKind::of_node(node),
                         source_sequence: extract_source_sequence(node),
                         branch_kind: node_branch_kind(&FlatRootOrFragment::Root(flat_root), node),
+                        iteration_aliases: holds_iteration_aliases(node),
                     }
                 }
             })
@@ -95,6 +97,9 @@ impl Resolver {
                     self.node_resolver_data[idx + 1].source_sequence =
                         Some(extract_source_sequence_from_attribute(source_sequence));
                 }
+                if let Some(position) = flat_fragment.parent_index_pass_through {
+                    self.set_index_pass_through(idx, position);
+                }
                 NodeParent::Node(idx)
             }
             None => NodeParent::None,
@@ -112,6 +117,7 @@ impl Resolver {
                     index_kind: IndexKind::Instances,
                     source_sequence: None,
                     branch_kind: None,
+                    iteration_aliases: false,
                 },
                 padding,
             ));
@@ -123,6 +129,8 @@ impl Resolver {
                 node.parent().map(NodeParent::Node).unwrap_or(parent_node);
             self.node_resolver_data[node.idx() + 1].source_sequence = extract_source_sequence(node);
             self.node_resolver_data[node.idx() + 1].index_kind = IndexKind::of_node(node);
+            self.node_resolver_data[node.idx() + 1].iteration_aliases =
+                holds_iteration_aliases(node);
             self.node_resolver_data[node.idx() + 1].branch_kind =
                 node_branch_kind(&FlatRootOrFragment::Fragment(flat_fragment), node);
         }

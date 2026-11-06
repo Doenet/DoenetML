@@ -32,6 +32,15 @@ pub const CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS: [&str; 2] =
 /// (see [`IndexKind::PassThrough`]).
 pub const INDEX_PASS_THROUGH_ATTRIBUTE: &str = "_indexPassThrough";
 
+/// The attribute the worker puts on the `<setup>` a repeat adds to each iteration for its
+/// `valueName` and `indexName`, after the iteration's content. That setup is not the author's
+/// content (NAME-3), so an index never reaches it (see [`NodeResolverData::iteration_aliases`]):
+/// an index past the iteration's content (or a copy's) names nothing, as an index past the end
+/// of a list does, rather than reaching the setup and, through it, the aliases (`$r[1][4].v`).
+///
+/// [`NodeResolverData::iteration_aliases`]: super::NodeResolverData
+pub const ITERATION_ALIASES_ATTRIBUTE: &str = "_iterationAliases";
+
 /// What an index after a node selects among (D27).
 ///
 /// An index selects among the instances a component produces: the entries of a list,
@@ -94,6 +103,30 @@ impl Resolver {
                 .copied()
                 .flatten(),
             _ => None,
+        }
+    }
+
+    /// Make an index after the `<group>` `idx` pass to the component at `position` (from 1)
+    /// of its `index_resolutions`, or, for a `position` of `0`, select among its children,
+    /// as a copy or an extend of an iteration or a pick does
+    /// (see [`FlatFragment::parent_index_pass_through`](crate::dast::flat_dast::FlatFragment::parent_index_pass_through)).
+    /// A node whose index selects among its instances is not a `<group>`, and is left as it is.
+    pub(super) fn set_index_pass_through(&mut self, idx: Index, position: usize) {
+        let Some(node_data) = self.node_resolver_data.get_mut(idx + 1) else {
+            return;
+        };
+        if node_data.index_kind.is_instances() {
+            return;
+        }
+        let index_kind = if position > 0 {
+            IndexKind::PassThrough { position }
+        } else {
+            IndexKind::Children
+        };
+        if node_data.index_kind != index_kind {
+            node_data.index_kind = index_kind;
+            // What the names of the group and of the component an index passes to reach changes
+            self.root_name_cache.invalidate();
         }
     }
 
@@ -212,6 +245,21 @@ impl Resolver {
             }
             IndexResolution::None => unreachable!(),
         }
+    }
+}
+
+/// Whether `node` is the `<setup>` a repeat adds to an iteration
+/// (it carries [`ITERATION_ALIASES_ATTRIBUTE`]), which an index never reaches.
+pub(super) fn holds_iteration_aliases(node: &FlatNode) -> bool {
+    match node {
+        FlatNode::Element(element) => {
+            element.name == "setup"
+                && element
+                    .attributes
+                    .iter()
+                    .any(|attr| attr.name == ITERATION_ALIASES_ATTRIBUTE)
+        }
+        _ => false,
     }
 }
 

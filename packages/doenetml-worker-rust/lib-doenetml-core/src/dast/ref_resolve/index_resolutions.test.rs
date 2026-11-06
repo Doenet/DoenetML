@@ -1598,3 +1598,132 @@ fn a_child_index_records_where_the_index_was_written() {
         }]
     );
 }
+
+/// The `<setup>` a repeat adds to an iteration keeps its place among the iteration's index
+/// resolutions, but an index that would select it is past the iteration's content (#2438):
+/// the resolution stops at the iteration with that index unresolved, and nothing in the
+/// setup is reached through it.
+#[test]
+fn an_index_does_not_reach_the_setup_a_repeat_adds() {
+    let dast_root = dast_root_no_position(r#"<a><repeat name="r"><b/></repeat></a>"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let r_idx = find(&flat_root, "repeat").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let next_idx = flat_root.nodes.len();
+    let mut flat_fragment = flat_fragment_from_str(
+        r#"<group><c/><setup><d name="v"/></setup><e/></group>"#,
+        next_idx,
+        Some(r_idx),
+    );
+    let g_idx = next_idx;
+    let c_idx = next_idx + 1;
+    let setup_idx = next_idx + 2;
+    let e_idx = next_idx + 4;
+    mark_iteration_aliases(&mut flat_fragment, &[setup_idx]);
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: r_idx },
+    );
+
+    // `$r[1][1]` selects the child before the setup, and `$r[1][3]` the one after it
+    for (index, child_idx) in [("1", c_idx), ("3", e_idx)] {
+        assert_eq!(
+            resolver
+                .resolve(index_path("r", vec!["1", index]), a_idx, false)
+                .map(|res| res.node_idx),
+            Ok(child_idx)
+        );
+    }
+
+    // `$r[1][2]` would select the setup
+    let path = index_path("r", vec!["1", "2"]);
+    assert_eq!(
+        resolver.resolve(path.clone(), a_idx, false),
+        Ok(RefResolution {
+            node_idx: g_idx,
+            unresolved_path: Some(index_path("", vec!["2"])),
+            original_path: path,
+            nodes_in_resolved_path: vec![a_idx, r_idx, g_idx],
+            child_indexes: vec![],
+        })
+    );
+
+    // and `$r[1][2].v` does not reach what the setup holds
+    let path = make_path_with_indices(
+        &[
+            TestPathPart {
+                name: "r",
+                indices: vec!["1", "2"],
+            },
+            TestPathPart {
+                name: "v",
+                indices: vec![],
+            },
+        ],
+        None,
+    );
+    assert_eq!(
+        resolver.resolve(path, a_idx, false).map(|res| res.node_idx),
+        Ok(g_idx)
+    );
+}
+
+/// A `<group>` that a copy or an extend made of an iteration or a pick
+/// (`<group name="g" extend="$r[1]"/>`) is given the iteration's pass-through by the fragment
+/// that adds its content (`parent_index_pass_through`), and loses it when given `0` (#2438).
+#[test]
+fn a_group_made_from_an_iteration_takes_its_pass_through() {
+    let dast_root = dast_root_no_position(r#"<a><group name="g"/></a>"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let g_idx = find(&flat_root, "group").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let mut next_idx = flat_root.nodes.len();
+    let mut flat_fragment =
+        flat_fragment_from_str(r#"<repeat name="q"><c/></repeat>"#, next_idx, Some(g_idx));
+    let q_idx = next_idx;
+    flat_fragment.parent_index_pass_through = Some(1);
+    next_idx += flat_fragment.nodes.len();
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: g_idx },
+    );
+
+    let flat_fragment = flat_fragment_from_str(
+        r#"<group><e/></group><group><f/></group>"#,
+        next_idx,
+        Some(q_idx),
+    );
+    let q2_idx = next_idx + 2;
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: q_idx },
+    );
+
+    // `$g[2]` is iteration 2 of `q`, as for the iteration `g` was made of
+    let path = index_path("g", vec!["2"]);
+    assert_eq!(
+        resolver.resolve(path.clone(), a_idx, false),
+        Ok(RefResolution {
+            node_idx: q2_idx,
+            unresolved_path: None,
+            original_path: path,
+            nodes_in_resolved_path: vec![a_idx, g_idx, q_idx, q2_idx],
+            child_indexes: vec![],
+        })
+    );
+
+    // Made again from content that is not one indexable component, `g` selects its children
+    let mut flat_fragment = flat_fragment_from_str(r#""#, next_idx + 4, Some(g_idx));
+    flat_fragment.parent_index_pass_through = Some(0);
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    assert_eq!(
+        resolver
+            .resolve(index_path("g", vec!["1"]), a_idx, false)
+            .map(|res| (res.node_idx, res.child_indexes.len())),
+        Ok((q_idx, 1))
+    );
+}

@@ -6,6 +6,10 @@ import {
     calcStartEndIdx,
     getEffectiveComponentIdx,
 } from "../utils/resolver";
+import {
+    instanceGroupAttributes,
+    instanceKindOf,
+} from "../utils/indexInstances";
 
 /**
  * Adapter to the external (Rust) name resolver. Translates Core's
@@ -83,6 +87,7 @@ export async function addReplacementsToResolver({
     );
     const fragmentChildren: any[] = [];
     let parentSourceSequence: any = null;
+    let parentIndexPassThrough: number | undefined;
     if (fragmentParent) {
         if (fragmentParent.children) {
             fragmentChildren.push(...fragmentParent.children);
@@ -112,6 +117,10 @@ export async function addReplacementsToResolver({
                 sourceDoc: sourceSequence.sourceDoc,
             };
         }
+        parentIndexPassThrough = indexPassThroughOfCopiedInstance(
+            fragmentParent,
+            core,
+        );
     } else {
         fragmentChildren.push(...serializedReplacements);
     }
@@ -129,6 +138,7 @@ export async function addReplacementsToResolver({
         nodes: [],
         parentIdx,
         parentSourceSequence,
+        parentIndexPassThrough,
         copiedContent: component.componentType === "_copy",
         idxMap: {},
     };
@@ -162,6 +172,38 @@ export async function addReplacementsToResolver({
             }
         }
     }
+}
+
+/**
+ * What an index after `fragmentParent`, the one replacement of a copy or an
+ * extend, passes to (`FlatFragment.parentIndexPassThrough`), when that
+ * replacement is a `<group>` made from an iteration or a pick
+ * (`<group extend="$r[1]"/>`, REF-7): the position of the one indexable
+ * component that is its whole content (`instanceGroupAttributes`), as it is
+ * for the iteration or pick itself, or `0` when its content is not that,
+ * as when the author added to it. `undefined` for any other replacement,
+ * which leaves what an index after it selects as it is.
+ */
+function indexPassThroughOfCopiedInstance(
+    fragmentParent: any,
+    core: Core,
+): number | undefined {
+    if (fragmentParent.componentType !== "group") {
+        return undefined;
+    }
+    const instanceKind = instanceKindOf(
+        fragmentParent.attributes?._instanceOf?.primitive?.value,
+    );
+    if (instanceKind !== "iteration" && instanceKind !== "pick") {
+        return undefined;
+    }
+    return (
+        instanceGroupAttributes({
+            children: fragmentParent.children ?? [],
+            instanceOf: fragmentParent.attributes._instanceOf.primitive.value,
+            componentInfoObjects: core.componentInfoObjects,
+        })._indexPassThrough?.primitive.value ?? 0
+    );
 }
 
 /**

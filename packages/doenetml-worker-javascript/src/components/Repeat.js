@@ -960,8 +960,8 @@ async function addAndLinkAliasComponents(
         componentIdx: nComponents++,
         stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
         attributes: {},
-        // Not written by the author, so an index that reaches it is not
-        // reported as selecting a child (`reportChildIndexes`, D27)
+        // Not written by the author (NAME-3), so an index never reaches it:
+        // the resolver is told so (`_iterationAliases`, `addNodesToFlatFragment`)
         doenetAttributes: { iterationAliases: true },
         state: {},
         children: [],
