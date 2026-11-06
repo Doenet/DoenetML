@@ -1,8 +1,6 @@
-//! A literal `<number>` is a value an input or an action can reach, as
-//! DoenetML's authors rely on (INT-1, INT-3 and ACT-2 of the principles,
-//! `docs/principles-alignment.md` §3.4): it is a value slot the classing
-//! (ADR 0018) makes essential when something a student does can write it,
-//! and a constant otherwise.
+//! A literal `<number>` is a value an input or an action can reach: it is
+//! essential when something a student does can write it, and a constant
+//! otherwise.
 
 mod common;
 use common::{set, v};
@@ -50,8 +48,8 @@ fn dragging_a_point_whose_coordinate_is_a_literal_number_writes_it() {
     assert_eq!(v(&doc, "n", "value"), 8.0);
 }
 
-/// Which literal numbers are essential is the walk's decision (ADR 0018):
-/// one nothing a student does can reach stays a constant.
+/// Which literal numbers are essential is the walk's decision: one nothing
+/// a student does can reach stays a constant.
 #[test]
 fn a_literal_number_nothing_reaches_is_a_fixed_cell() {
     let src = r#"<number name="a">1</number>

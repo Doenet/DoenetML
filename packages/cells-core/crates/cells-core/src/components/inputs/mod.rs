@@ -7,6 +7,12 @@ pub mod choice_input;
 pub mod math_input;
 pub mod text_input;
 
+/// The slider's spec: `slider` is an inline module below, so its spec file
+/// sits beside this one.
+#[cfg(all(test, feature = "testing"))]
+#[path = "slider.spec.rs"]
+mod slider_spec;
+
 pub mod number_input {
     use super::*;
 
@@ -63,9 +69,8 @@ pub mod slider {
     use super::*;
 
     component! {
-        /// `<slider>` in numeric mode. Its whole value chain is computed props,
-        /// so it needs no code of its own; the chain reproduces the current
-        /// core's `numItems`, `index` and `value` definitions:
+        /// `<slider>` in numeric mode. Its whole value chain is computed
+        /// props:
         ///
         /// ```text
         /// maxIndex = floor((to - from) / step + 1e-10)

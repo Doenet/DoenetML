@@ -1,6 +1,5 @@
-//! The per-phase profile: a load's or a rebuild's spans (`crate::trace`)
-//! printed to stderr when `CELLS_BUILD_PROFILE` is set, for finding where
-//! the time goes from a terminal.
+//! The per-phase profile: a load's or a rebuild's spans printed to stderr
+//! when `CELLS_BUILD_PROFILE` is set.
 
 use crate::trace::Span;
 

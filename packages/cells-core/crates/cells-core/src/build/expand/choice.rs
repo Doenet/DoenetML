@@ -1,6 +1,5 @@
 //! Choices at expansion: a select's picks from the document seed, a
 //! conditional content's cases, and references through a branch interface.
-//! The design is in `compile/planning/choice.rs`.
 
 use super::*;
 
@@ -13,28 +12,22 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         comp: CompIdx,
     ) -> Result<Vec<ChildEntry>> {
-        let c: &'c Compiled = self.compiled;
+        let c = self.compiled.plans;
         let def = &c.choices[cid.index()];
-        let every_option = !def.reactive && self.view.options() == Options::Every;
         let mut inst = ChoiceInst {
             comp,
             scopes: Vec::new(),
             branch_of: Vec::new(),
             iface_comps: Vec::new(),
-            every_option,
         };
         let mut kids = Vec::new();
         if !def.reactive {
-            let picks = if every_option {
-                (0..def.branches.len()).collect()
-            } else {
-                let (t, e) = def.at;
-                self.pick(
-                    def,
-                    scope,
-                    c.templates[t.index()].sealed.elems[e.index()].key,
-                )
-            };
+            let (t, e) = def.at;
+            let picks = self.pick(
+                def,
+                scope,
+                c.templates[t.index()].sealed.elems[e.index()].key,
+            );
             // A pick's scope is its option and which pick of it this is
             // (ADR 0017), so its state is the option's whatever order the
             // options were drawn in.
@@ -47,15 +40,6 @@ impl<'c> Builder<'c> {
                 kids.extend(self.expand(def.branches[b], s, comp)?);
                 inst.scopes.push(s);
                 inst.branch_of.push(b);
-            }
-            if every_option {
-                for name in &def.used {
-                    let component_type = def.iface[name].0;
-                    let members = self.members(def, name, &inst);
-                    let ic = self.stand_in(component_type, &members, comp, scope);
-                    self.stand_ins.insert(ic, members);
-                    inst.iface_comps.push(ic);
-                }
             }
         } else {
             let choice = self.slot(comp, crate::components::prop::conditional_content::CHOICE);
@@ -110,8 +94,8 @@ impl<'c> Builder<'c> {
     }
 
     /// A component standing for `members`, of their type, with as many
-    /// props as the most any of them has: a list as long as the longest
-    /// (ADR 0016), the shorter ones missing past their end.
+    /// props as the most any of them has: a list as long as the longest,
+    /// the shorter ones missing past their end.
     fn stand_in(
         &mut self,
         component_type: ComponentType,
@@ -131,39 +115,10 @@ impl<'c> Builder<'c> {
         w
     }
 
-    /// The abstract build's stand-in for a whole pick of select `c` built
-    /// with every option, whose options each hold one component of one
-    /// type: it reads each option's component, so a rule about the referent
-    /// sees every option a later iteration may draw (ADR 0014).
-    pub(in crate::build) fn whole_pick(&mut self, c: CompIdx) -> Result<CompIdx> {
-        if let Some(&w) = self.pick_stand_ins.get(&c) {
-            return Ok(w);
-        }
-        let scopes = self.choice_insts[self.comp_choice[&c]].scopes.clone();
-        let members: Vec<CompIdx> = scopes
-            .iter()
-            .map(|&s| self.iteration_components(c, s)[0])
-            .collect();
-        let component_type = self.components.component_type[members[0].index()];
-        let scope = self.components.scope[c.index()];
-        let w = self.stand_in(component_type, &members, c, scope);
-        self.stand_ins.insert(w, members.clone());
-        self.stand_in_sources(w, &members, None)?;
-        self.pick_stand_ins.insert(c, w);
-        Ok(w)
-    }
-
     /// Sources and kinds of stand-in `w` for `members`: each prop chooses
-    /// among theirs by `choice` when it is given (a reactive choice), else
-    /// only reads them (the abstract build's stand-in for a pick). The
-    /// members hold one kind of value per prop (checked when compiled,
-    /// ADR 0032), which the stand-in holds too.
-    fn stand_in_sources(
-        &mut self,
-        w: CompIdx,
-        members: &[CompIdx],
-        choice: Option<SlotId>,
-    ) -> Result<()> {
+    /// among theirs by `choice`. The members hold one kind of value per
+    /// prop, which the stand-in holds too.
+    fn stand_in_sources(&mut self, w: CompIdx, members: &[CompIdx], choice: SlotId) {
         let component_type = self.components.component_type[w.index()];
         let symbolic = members.iter().any(|&m| self.is_symbolic(m));
         let n = byte(members.len());
@@ -182,17 +137,8 @@ impl<'c> Builder<'c> {
             // (ADR 0032, `compile/seal/types.rs`).
             let kind = self.value_type(branch_slots[0]);
             let s = self.slot(w, pi);
-            self.sources[s.index()] = match choice {
-                None => {
-                    // An edge to the prop in every option.
-                    let scope = self.components.scope[w.index()];
-                    self.reads(&branch_slots, scope)
-                }
-                Some(choice) => {
-                    let inputs: Vec<SlotId> = std::iter::once(choice).chain(branch_slots).collect();
-                    self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs)
-                }
-            };
+            let inputs: Vec<SlotId> = std::iter::once(choice).chain(branch_slots).collect();
+            self.sources[s.index()] = self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs);
             if kind == ValueType::Text {
                 self.typed_slots.push((s, ValueType::Text));
             }
@@ -201,13 +147,11 @@ impl<'c> Builder<'c> {
             let s = self.slot(w, pi);
             self.typed_slots.push((s, ValueType::Math));
         }
-        Ok(())
     }
 
     /// A select's picks: option indices drawn from a stream that depends on
     /// the document seed and the select's position (its element and the
     /// iteration chain it sits in), so it draws the same way in every build.
-    /// Compile has checked that the picks can be drawn (`plan_choice`).
     fn pick(&self, def: &ChoiceDef, scope: ScopeId, key: ElemKey) -> Vec<usize> {
         let n = def.branches.len();
         // A select with no options picks nothing.
@@ -237,25 +181,18 @@ impl<'c> Builder<'c> {
         picks
     }
 
-    /// Sources of the interface components of built choices: each public
-    /// prop chooses among the branches' cells by the choice cell (a reactive
-    /// choice), or only reads them (a select built with every option).
-    /// Runs before instance sources, so a symbolic interface math is known
-    /// to be one when its copies are planned.
-    pub(in crate::build) fn choice_sources(&mut self) -> Result<()> {
+    /// Sources of the interface components of reactive choices: each
+    /// public prop chooses among the branches' cells by the choice cell.
+    /// Must run before instance sources.
+    pub(in crate::build) fn choice_sources(&mut self) {
         for i in 0..self.choice_insts.len() {
             let inst = self.choice_insts[i].clone();
-            let choice = (!inst.every_option)
-                .then(|| self.slot(inst.comp, prop::conditional_content::CHOICE));
+            let choice = self.slot(inst.comp, prop::conditional_content::CHOICE);
             for &ic in &inst.iface_comps {
                 let members = self.stand_ins[&ic].clone();
-                if let Err(e) = self.stand_in_sources(ic, &members, choice) {
-                    self.fail_at_comp(inst.comp);
-                    return Err(e);
-                }
+                self.stand_in_sources(ic, &members, choice);
             }
         }
-        Ok(())
     }
 
     /// Where the interface name with name-table id `id` of choice `cid`
@@ -263,12 +200,12 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn resolve_iface(
         &self,
         cid: ChoiceId,
-        id: u32,
+        id: NameId,
         cur: Resolved,
     ) -> (Resolved, ScopeId) {
-        let def = &self.compiled.choices[cid.index()];
+        let def = &self.compiled.plans.choices[cid.index()];
         let u = def.used_at[&id];
-        let elems = &def.iface[&def.used[u as usize]].1;
+        let elems = &def.iface[&def.used[u.index()]].1;
         let in_branch = |inst: &ChoiceInst, j: usize| {
             let s = inst.scopes[j];
             (
@@ -289,7 +226,7 @@ impl<'c> Builder<'c> {
             Resolved::Comp(c) => {
                 let inst = &self.choice_insts[self.comp_choice[&c]];
                 (
-                    Resolved::Comp(inst.iface_comps[u as usize]),
+                    Resolved::Comp(inst.iface_comps[u.index()]),
                     self.components.scope[c.index()],
                 )
             }
@@ -302,15 +239,15 @@ impl<'c> Builder<'c> {
 impl<'c> Builder<'c> {
     /// The start of a load-time choice's stream: the document seed mixed
     /// with the element's stable key and the stable levels of the scope it
-    /// sits in (ADR 0017), so it draws the same way in every build and in
+    /// sits in, so it draws the same way in every build and in
     /// every version of the document that keeps the element's key.
     pub(super) fn seeded_stream(&self, scope: ScopeId, key: ElemKey) -> u64 {
         let mut h = splitmix(self.session.seed ^ 0x5eed_5e1e_c7ed_0001);
-        h = splitmix(h ^ stable_hash(self.compiled.keys.key_text(key).as_bytes()));
+        h = splitmix(h ^ stable_hash(self.compiled.plans.keys.key_text(key).as_bytes()));
         let mut s = scope;
         while s != ScopeId::DOCUMENT {
             let (parent, n, k) = self.scopes[s];
-            let level = self.compiled.keys.scope_level(n, k).to_string();
+            let level = self.compiled.plans.keys.scope_level(n, k).to_string();
             h = splitmix(h ^ stable_hash(level.as_bytes()));
             s = parent;
         }
@@ -319,13 +256,13 @@ impl<'c> Builder<'c> {
 }
 
 /// FNV-1a: a hash of bytes that no Rust release or platform changes.
-fn stable_hash(bytes: &[u8]) -> u64 {
+pub(crate) fn stable_hash(bytes: &[u8]) -> u64 {
     bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| {
         (h ^ b as u64).wrapping_mul(0x0100_0000_01b3)
     })
 }
 
-pub(super) fn splitmix(x: u64) -> u64 {
+pub(crate) fn splitmix(x: u64) -> u64 {
     let mut z = x.wrapping_add(0x9e37_79b9_7f4a_7c15);
     z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
     z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);

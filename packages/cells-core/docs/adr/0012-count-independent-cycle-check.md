@@ -1,6 +1,8 @@
 # Cycles are rejected for every iteration count, not the count at load
 
-Status: accepted 2026-10-16.
+Status: accepted 2026-10-16. Amended 2026-11-05 by ADR 0035: the abstract
+build stops at define and runs no emit, and the prefill rule is define's;
+see the last section.
 
 The cycle check runs on the template graph with every indexed reference
 assumed to land on a real iteration, so a document that is acyclic at the
@@ -77,7 +79,9 @@ once, since rebuilds change counts but never templates.
 - The prefill rule (a seed must name a value that is not computed), which
   the build applies at emit, is applied in the abstract build from the
   resolved sources, so a referent past the count at load is checked as the
-  iteration it would name.
+  iteration it would name. (Since ADR 0035 the rule is define's, in every
+  build, stated on the definitions: a prefill must name a cell whose
+  definition is not an operator, unless it is a counted value.)
 - Caps are ignored: a loop is reported at any count that would close it.
 
 ## Considered options
@@ -216,8 +220,10 @@ test is unchanged. The abstract build now runs emit too, with its output
 discarded, so the prefill rule is checked by `seed_cells` itself rather than
 by a copy in the abstract build; a loop of aliases in the abstract build, a
 recurrence folded onto its one iteration, is left to the SCC test rather
-than reported by emit. `cycles.rs` went from 604 to 492 lines. The golden
-diff against 6e66632 is identical.
+than reported by emit. (No longer since ADR 0035: the abstract build stops
+at define, which now holds the prefill rule and that step for a loop of
+aliases, and runs no emit; see the last section.) `cycles.rs` went from
+604 to 492 lines. The golden diff against 6e66632 is identical.
 
 `tests/every_count.rs` checks the promise independently of the abstract
 build: every golden document, `sir` and every generated fixture, plus the
@@ -294,3 +300,54 @@ noise, about 10%, which the whole table carries. `LoadTimings::cycle_check`
 is the abstract build's time, which `check off`
 (`LoadOptions::check_cycles`) no longer removes: it only skips the abstract
 build's loop checks.
+
+### The abstract build stops at define, 2026-11-05
+
+ADR 0035 ends the abstract build at define: it expands, resolves, runs
+its loop checks, merges aliases, orients operators, checks the prefill
+rule (now define's, in every build) and classes every cell, and makes no
+program. Emit, with its numbering, pool, folds, instructions, seeds and
+tapes, runs only in a stamped build. The reason given above under One
+structure view for running emit, that `seed_cells` itself checks the
+prefill rule, is gone with it: the rule is stated on the definitions, and
+admits any counted value where it admitted only a collect's count that
+follows its repeats. So the
+price of 2026-10-29 for a document without repeats or selects falls from
+one more expand and emit to one more expand, resolve and define.
+
+Measured with `cycle_check_cost` (release, a four-core cloud container,
+slower than the laptop above, so compare ratios, not times; each figure
+is the mean of two runs' medians of 7 loads). "Before" is 6cc1c30, the
+commit that proposed ADR 0035; "now" is 48dcb08, the last commit of its
+code:
+
+| fixture | abstract build before (ms) | abstract build now (ms) | now / before | load before (ms) | load now (ms) | now / before |
+|---|---:|---:|---:|---:|---:|---:|
+| adventure-3 | 35.44 | 23.02 | 0.65 | 149.84 | 140.21 | 0.94 |
+| chain-1000 | 1.29 | 0.94 | 0.73 | 7.42 | 7.00 | 0.94 |
+| chain-100000 | 208.78 | 172.76 | 0.83 | 1714.55 | 1729.08 | 1.01 |
+| curves-100 | 1.93 | 1.50 | 0.77 | 8.96 | 9.09 | 1.01 |
+| fanout-10000 | 15.79 | 11.11 | 0.70 | 197.46 | 199.86 | 1.01 |
+| points-100 | 0.11 | 0.07 | 0.62 | 0.45 | 0.41 | 0.90 |
+| points-1000 | 0.87 | 0.47 | 0.54 | 4.14 | 3.80 | 0.92 |
+| points-10000 | 11.98 | 6.68 | 0.56 | 68.91 | 60.05 | 0.87 |
+| recur-1000 | 0.08 | 0.08 | 0.88 | 25.71 | 28.88 | 1.12 |
+| repeat-1000 | 0.08 | 0.07 | 0.94 | 5.48 | 5.54 | 1.01 |
+| repeat-10000 | 0.09 | 0.07 | 0.78 | 61.42 | 58.11 | 0.95 |
+| select-1000 | 21.21 | 18.50 | 0.87 | 70.46 | 66.28 | 0.94 |
+| selectflat-1000 | 1.13 | 0.80 | 0.70 | 8.41 | 7.79 | 0.93 |
+| sir | 0.19 | 0.15 | 0.76 | 6.85 | 6.58 | 0.96 |
+| sliderstack-1000 | 5.22 | 2.66 | 0.51 | 20.30 | 17.12 | 0.84 |
+| sticky-1000 | 11.34 | 6.97 | 0.61 | 35.20 | 29.26 | 0.83 |
+| symchain-1000 | 8.98 | 6.71 | 0.75 | 56.49 | 48.27 | 0.85 |
+| wording-1000 | 20.63 | 15.86 | 0.77 | 89.47 | 79.61 | 0.89 |
+
+Over the 43 fixtures without a repeat or a select, the abstract build
+takes 0.51 to 1.14 times what it took, the median 0.71, and is 5% to 32%
+of a load, the median 14%; a load takes 0.81 to 1.37 times what it took,
+the median 0.93. The two runs of one binary differ by up to 23% on a
+fixture (67% on wordingflat-100, the one fixture whose abstract build
+grew), so a single row's load ratio is within noise. The abstract build's
+fall is larger than that on most fixtures and goes the same way on every
+fixture whose abstract build takes over a millisecond. The repeat and
+recur fixtures' abstract builds take under 0.1 ms on either side.

@@ -1,24 +1,15 @@
-//! The live walk (ADR 0019): which slots a document must compute. It
-//! starts from the roots, the slots of every prop that is an output or
-//! that the core reads itself: a rendered prop of a rendered component, a
-//! score, an input, a prop an action reads, a repeat's count, and what
-//! snapping a sticky group reads. It goes backward over the cells the slots
-//! will make, from a cell to what it needs (`slot_cells::Def::needs`):
-//! through an operator to every input it reads, a vector operator's output
-//! to its head, which reads every input, and a held cell to its flags,
-//! which a request on it reads. A seeded slot reads its seed's source when
-//! it is built. A cell it reaches is live.
-//!
-//! When the view folds iterations (the abstract build), a slot may have
-//! another source in the iterations after the first
-//! (`Builder::later_sources`): the walk follows that one too, as the
-//! writable walk does (`Builder::walk_cells` is the walk both share). The
-//! abstract build records what it finds by template slot, and every other
-//! build reads the record (`live_by_record`).
+//! The live walk: which slots a document must compute. It starts from the
+//! roots, the slots of every prop that is an output or that the core reads
+//! itself (a rendered prop, a score, an input, a prop an action reads, a
+//! repeat's count, what snapping reads), and goes backward over the cells
+//! the slots will make to what each needs. A cell it reaches is live. A
+//! build reads which cells are live from the ports' attributes, which the
+//! template graph's walk found; this walk is the tests' check of them.
 
 use super::*;
 
 impl<'c> Builder<'c> {
+    #[cfg(feature = "testing")]
     /// Per slot, whether its cell is live by this build's own walk.
     pub(in crate::build) fn live_slots(&self, slot_cells: &SlotCells) -> Vec<bool> {
         let n = self.sources.len();
@@ -29,27 +20,18 @@ impl<'c> Builder<'c> {
             .collect()
     }
 
-    /// Per slot, whether the abstract build's record makes its cell live: a
-    /// cell with a template slot the record marks. The record names a cell
-    /// by template slot, which a synthesized component's slots (a choice's
-    /// interface, `expand/choice.rs`) have none of, so such a cell is live
-    /// when a root or a live cell needs it, as it was in the abstract
-    /// build's walk. A cell the record names and does not mark stays dead
-    /// whatever needs it: the record is checked against the walk
-    /// (`tests/live.rs`), and a live cell needing a dead one fails the
-    /// build.
-    pub(in crate::build) fn live_by_record(
-        &self,
-        record: &Record,
-        slot_cells: &SlotCells,
-    ) -> Vec<bool> {
+    /// Per slot, whether the ports' attributes make its cell live: a cell
+    /// with a template slot whose port is live. A cell with no template
+    /// slot is live when a root or a live cell needs it. A cell with a
+    /// template slot whose port is not live stays dead whatever needs it.
+    pub(in crate::build) fn live_by_attributes(&self, slot_cells: &SlotCells) -> Vec<bool> {
         let n = self.sources.len();
         let (mut live, mut named) = (vec![false; n], vec![false; n]);
         for s in SlotId::below(n) {
             if let Some((t, ts)) = self.template_slot(s) {
                 let cell = slot_cells.cell_of(s);
                 named[cell.index()] = true;
-                if record.marks(t, ts) {
+                if self.compiled.plans.port_attrs(t, ts).has(PortAttrs::LIVE) {
                     live[cell.index()] = true;
                 }
             }
@@ -88,9 +70,8 @@ impl<'c> Builder<'c> {
     }
 
     /// Mark live, in `live` by cell, every cell reached from `stack`
-    /// through what it needs (`slot_cells::Def::needs`), where `may_mark`
-    /// allows it; a cell it does not allow is neither marked nor followed. A seeded
-    /// slot reads its seed's source when it is built.
+    /// through what it needs, where `may_mark` allows it; a cell it does not
+    /// allow is neither marked nor followed.
     fn walk_live(
         &self,
         slot_cells: &SlotCells,

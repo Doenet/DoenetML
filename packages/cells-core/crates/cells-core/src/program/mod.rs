@@ -1,29 +1,24 @@
-//! The instruction set: what the build emits and a tick runs. An
-//! instruction and its unbound spec are in `instr.rs`; the operator, with
-//! the scalar operators' evaluation and inverse rules, in `scalar.rs`; the
-//! vector operators and theirs in `vector.rs`. This file holds the
-//! instruction list and its topological schedule. The inversion engine that drives the inverses is
-//! `tick/invert.rs`.
+//! The instruction set: what the build emits and a tick runs. This module
+//! holds the instruction list and its topological schedule.
 
 use crate::sym::{Engine, Handle};
 
 use crate::document::CellIdx;
 mod instr;
 mod ops;
-pub mod refuse;
+pub(crate) mod refuse;
 mod scalar;
 mod vector;
 
 pub use instr::{
-    Instr, MemoIdx, OperandIdx, Operands, Post, SAMPLES, SymEntry, SymIdx, SymKind, VecIdx,
+    Instr, InstrIdx, MemoIdx, OperandIdx, Operands, Post, SAMPLES, SymEntry, SymIdx, SymKind,
+    TapeIdx, VecIdx,
 };
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
 pub use vector::{MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp};
 
-/// What a cell's `f64` means: a number, a string id into the document's
-/// string table, or an expression handle in the symbolic engine. Recorded
-/// by the build for every cell, from the source that defines the cell; the
-/// tick only reads it when a request arrives, never while recomputing.
+/// What a cell's `f64` means: a number, a string id into the document's string
+/// table, or an expression handle in the symbolic engine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[repr(u8)]
 pub enum ValueType {
@@ -33,15 +28,13 @@ pub enum ValueType {
     Math,
 }
 
-/// What a program's symbolic instructions keep between runs: for each,
-/// from its `MemoIdx`, the input values it last ran on and its outputs
-/// from that run; with scratch for `SampleTape`. Owned by the document
-/// beside its program, which stays read-only while a tick runs.
+/// What a program's symbolic instructions keep between runs: for each, from its
+/// `MemoIdx`, the input values it last ran on and its outputs from that run;
+/// with scratch for `SampleTape`.
 #[derive(Debug, Clone, Default)]
 pub struct SymState {
     memo: Vec<f64>,
-    /// How many symbolic steps called the engine (an input had changed):
-    /// what the cutoff is measured by (`tests/symbolic.rs`).
+    /// How many symbolic steps called the engine (an input had changed).
     #[cfg(feature = "testing")]
     pub runs: u64,
     /// Scratch columns for `SampleTape`.
@@ -59,7 +52,7 @@ impl SymState {
 }
 
 /// What running a program writes besides its cells: its symbolic
-/// instructions' state and the session's engine they call.
+/// instructions' state and the document's engine they call.
 pub struct SymRun<'a> {
     pub state: &'a mut SymState,
     pub engine: &'a mut Engine,
@@ -83,10 +76,10 @@ const NEVER: f64 = f64::from_bits(0x7ff8_dead_beef_0001);
 #[derive(Debug, Clone, Default)]
 pub struct Program {
     pub instrs: Vec<Instr>,
-    /// producer[cell] = index into `instrs` of the instruction writing that
-    /// cell, or `u32::MAX` for essential cells and constants. A vector
+    /// `producer[cell]` = the instruction writing that cell, or
+    /// `InstrIdx::NONE` for essential cells and constants. A vector
     /// instruction produces several consecutive cells.
-    pub producer: Vec<u32>,
+    pub producer: Vec<InstrIdx>,
     /// Every input of a vector or symbolic instruction, indexed by
     /// `OperandIdx`.
     pub operands: Vec<CellIdx>,
@@ -105,12 +98,9 @@ pub struct Program {
     pub holds: Holds,
 }
 
-/// What a cell needs to be right: what its instruction reads, and the
-/// flags that hold it (`Program::holds`), which a request on it reads. The
-/// one place a cell's dependencies are defined: what is live is closed
-/// under it (ADR 0019), and the input signature hashes it (ADR 0017).
-/// Evaluation order is not it: a flag is read only when a request arrives,
-/// so `Program::schedule` orders instructions by `Op::inputs` alone.
+/// What a cell needs to be right: what its instruction reads, and the flags
+/// that hold it. The one place a cell's dependencies are defined. Evaluation
+/// order is not it: a flag is read only when a request arrives.
 pub struct Needs<'a> {
     instr: Option<&'a Instr>,
     operands: &'a [CellIdx],
@@ -160,9 +150,29 @@ impl<'a> Needs<'a> {
 impl Program {
     /// What `cell` needs to be right (`Needs`).
     pub fn needs(&self, cell: CellIdx) -> Needs<'_> {
-        let p = self.producer[cell.index()];
-        let instr = (p != u32::MAX).then(|| &self.instrs[p as usize]);
+        let instr = self.producer_of(cell).map(|p| &self.instrs[p.index()]);
         Needs::new(instr, &self.operands, &self.holds, cell)
+    }
+
+    /// The instruction writing `cell`, if one does.
+    #[inline]
+    pub fn producer_of(&self, cell: CellIdx) -> Option<InstrIdx> {
+        let p = self.producer[cell.index()];
+        (!p.is_none()).then_some(p)
+    }
+
+    /// Each cell's producer (`Program::producer`) for `instrs` in their
+    /// order: `InstrIdx::NONE` for a cell none writes.
+    pub fn producers(instrs: &[Instr], n_cells: usize) -> Vec<InstrIdx> {
+        let mut producer = vec![InstrIdx::NONE; n_cells];
+        for (i, ins) in instrs.iter().enumerate() {
+            for k in 0..ins.op.n_out() {
+                let out = ins.out.index() + k;
+                debug_assert!(producer[out].is_none(), "two instructions write one cell");
+                producer[out] = InstrIdx::from_index(i);
+            }
+        }
+        producer
     }
 }
 
@@ -200,8 +210,8 @@ impl Holds {
     }
 
     /// Per cell of `cells`, whether a constant flag holds it: one of the
-    /// constants `constants` (`Document::n_const`) that is set, which no
-    /// request passes while the program stands.
+    /// constants `constants` that is set, which no request passes while the
+    /// program stands.
     pub fn held_always(&self, cells: &[f64], constants: std::ops::Range<usize>) -> Vec<bool> {
         let mut held = vec![false; cells.len()];
         for (&c, flags) in &self.0 {
@@ -221,13 +231,6 @@ fn differs(new: f64, old: f64) -> bool {
 impl Program {
     /// Orders `instrs` topologically. Returns the cell index of an output
     /// involved in a cycle on failure.
-    ///
-    /// Fast path: the builder emits instructions in creation order, which
-    /// for a template stamped per iteration is almost always already a valid
-    /// evaluation order (within an iteration the template is in document
-    /// order; a lag of `k - d` reads an earlier iteration). One linear pass
-    /// checks that every input is essential, a constant, or produced earlier; only
-    /// when that fails does the general sort run.
     pub fn schedule(
         instrs: Vec<Instr>,
         n_cells: usize,
@@ -240,18 +243,11 @@ impl Program {
             memo_len,
             ..
         } = operands;
-        let mut producer = vec![u32::MAX; n_cells];
-        for (i, ins) in instrs.iter().enumerate() {
-            for k in 0..ins.op.n_out() {
-                let out = ins.out.index() + k;
-                debug_assert_eq!(producer[out], u32::MAX, "two instructions write one cell");
-                producer[out] = i as u32;
-            }
-        }
+        let producer = Program::producers(&instrs, n_cells);
         let in_order = instrs.iter().enumerate().all(|(i, ins)| {
             ins.op.inputs(&operands).all(|input| {
                 let p = producer[input.index()];
-                p == u32::MAX || (p as usize) < i
+                p.is_none() || p.index() < i
             })
         });
         if in_order {
@@ -276,8 +272,8 @@ impl Program {
         for ins in instrs.iter() {
             for input in ins.op.inputs(&operands) {
                 let p = producer[input.index()];
-                if p != u32::MAX {
-                    dep_count[p as usize + 1] += 1;
+                if !p.is_none() {
+                    dep_count[p.index() + 1] += 1;
                 }
             }
         }
@@ -285,29 +281,28 @@ impl Program {
             dep_count[i + 1] += dep_count[i];
         }
         let mut fill = dep_count.clone();
-        let mut dependents = vec![0u32; dep_count[n] as usize];
+        let mut dependents = vec![InstrIdx::NONE; dep_count[n] as usize];
         for (i, ins) in instrs.iter().enumerate() {
             for input in ins.op.inputs(&operands) {
                 let p = producer[input.index()];
-                if p != u32::MAX {
+                if !p.is_none() {
                     indegree[i] += 1;
-                    dependents[fill[p as usize] as usize] = i as u32;
-                    fill[p as usize] += 1;
+                    dependents[fill[p.index()] as usize] = InstrIdx::from_index(i);
+                    fill[p.index()] += 1;
                 }
             }
         }
-        let mut ready: Vec<u32> = (0..n as u32)
-            .filter(|&i| indegree[i as usize] == 0)
+        let mut ready: Vec<InstrIdx> = InstrIdx::below(n)
+            .filter(|i| indegree[i.index()] == 0)
             .collect();
         ready.reverse();
         let mut order = Vec::with_capacity(n);
         while let Some(i) = ready.pop() {
-            order.push(instrs[i as usize]);
-            for &d in
-                &dependents[dep_count[i as usize] as usize..dep_count[i as usize + 1] as usize]
+            order.push(instrs[i.index()]);
+            for &d in &dependents[dep_count[i.index()] as usize..dep_count[i.index() + 1] as usize]
             {
-                indegree[d as usize] -= 1;
-                if indegree[d as usize] == 0 {
+                indegree[d.index()] -= 1;
+                if indegree[d.index()] == 0 {
                     ready.push(d);
                 }
             }
@@ -316,12 +311,7 @@ impl Program {
             let stuck = (0..n).find(|&i| indegree[i] > 0).unwrap();
             return Err(instrs[stuck].out);
         }
-        let mut producer = vec![u32::MAX; n_cells];
-        for (i, ins) in order.iter().enumerate() {
-            for k in 0..ins.op.n_out() {
-                producer[ins.out.index() + k] = i as u32;
-            }
-        }
+        let producer = Program::producers(&order, n_cells);
         Ok(Program {
             instrs: order,
             producer,
@@ -378,10 +368,8 @@ impl Program {
         }
     }
 
-    /// A symbolic instruction: rerun only if an input changed since its last
-    /// run, then write the outputs of that run. Keyed on input values rather
-    /// than on a dirty flag, so stepping on a scratch copy (the reference
-    /// evaluator) gives the same answer as stepping on the cells.
+    /// A symbolic instruction: rerun only if an input value changed since its
+    /// last run, then write the outputs of that run.
     #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn step_sym(
@@ -414,7 +402,7 @@ impl Program {
             }
             if let SymKind::SampleTape { tape } = kind {
                 let stack = &mut state.tape_stack;
-                run_tape(&self.tapes[tape as usize], cells, inputs, outs, stack);
+                run_tape(&self.tapes[tape.index()], cells, inputs, outs, stack);
             } else {
                 run_sym(sym.engine, kind, cells, inputs, outs);
             }
@@ -462,8 +450,7 @@ impl Program {
     }
 
     /// Recompute every derived cell, appending the indices whose value
-    /// changed to `changed`. NaN to NaN counts as unchanged. Never inlined:
-    /// the tick's hot loop then compiles the same whatever its caller does.
+    /// changed to `changed`. NaN to NaN counts as unchanged.
     #[inline(never)]
     pub fn run_all_tracking(
         &self,

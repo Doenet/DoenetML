@@ -1,10 +1,10 @@
 //! Golden behavior dump for refactoring: every component's props by tree
-//! path, after load and after each step of a fixed script of requests, so two
-//! commits can be diffed (`scripts/golden-diff.sh`). Values print as Rust's
-//! shortest round-trip `f64`; math cells print their expression text and
-//! `<text>` values their string, so neither cell layout nor handle numbering
-//! shows up. Usage: `golden <out-dir>`; program fingerprints go to
-//! `<out-dir>.programs`.
+//! path, after load and after each step of a fixed script of requests, and
+//! the document's input signature (ADR 0017), so two commits can be
+//! diffed. Values print as Rust's shortest round-trip `f64`, math cells as
+//! expression text and `<text>` values as their string, so neither cell
+//! layout nor handle numbering shows up. Usage: `golden <out-dir>`; program
+//! fingerprints go to `<out-dir>.programs`.
 //!
 //! Documents: `crates/cells-bench/golden/*.doenet` plus the smallest fixture
 //! of each shape in `fixtures/`.
@@ -15,11 +15,10 @@ use std::fmt::Write as _;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::PathBuf;
 
-/// A type's list of points (ADR 0016), the prefixes of its items'
-/// coordinates, and the prop that counts its live points: dumped as the
-/// live points through `prop_cells`, which a core with fixed layouts
-/// answers too (padded past the count), so two commits on either side of
-/// a layout change compare equal.
+/// A type's list of points, the prefixes of its items' coordinates, and
+/// the prop that counts its live points: dumped as the live points through
+/// `prop_cells`, so two commits on either side of a layout change compare
+/// equal.
 const LISTS: &[(ComponentType, &str, [&str; 2], &str)] = &[
     (
         ComponentType::Circle,
@@ -87,6 +86,27 @@ fn dump(doc: &Document, out: &mut String) {
     let _ = writeln!(out, "text {:?}", doc.rendered_text(doc.root));
 }
 
+/// The input signature, one line per input: a function of the source
+/// alone, which no refactor may move (ADR 0017).
+fn signature(json: &str, out: &mut String) {
+    let _ = writeln!(out, "## signature");
+    let dast = cells_core::dast::Dast::from_json(json).expect("the document loaded");
+    match cells_core::input_signature(&dast) {
+        Ok(sig) => {
+            for (key, input) in &sig.inputs {
+                let _ = writeln!(
+                    out,
+                    "{key} <{}> props={:?} domain={:?} derivation={:016x} defaults={:?}",
+                    input.tag, input.props, input.domain, input.derivation, input.defaults
+                );
+            }
+        }
+        Err(e) => {
+            let _ = writeln!(out, "error: {e}");
+        }
+    }
+}
+
 /// A hash of the loaded program (instructions, their inputs, initial
 /// cells): equal when a refactor left the built document untouched.
 fn fingerprint(doc: &Document) -> u64 {
@@ -117,6 +137,7 @@ fn run(source: &str, programs: &mut String, name: &str) -> String {
         let _ = writeln!(out, "warning {w}");
     }
     dump(&doc, &mut out);
+    signature(&json, &mut out);
     for (path, action) in plan(&doc) {
         let _ = write!(out, "## {path}: {}", describe(&action));
         match catch_unwind(AssertUnwindSafe(|| apply(&mut doc, &path, &action))) {

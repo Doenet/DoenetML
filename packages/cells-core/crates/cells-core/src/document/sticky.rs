@@ -1,10 +1,7 @@
-//! Sticky groups as a pre-pass on the requests a tick receives
-//! (ADR 0007). After every build the document records each group's members
-//! as cells; a request that names a member's cell is snapped before it is
-//! inverted. Requests that reach a member's cells only through inversion
-//! (from a cell derived from a member) are not snapped: snapping is a
-//! response to a drag, and the pre-pass sees drags as the renderer sends
-//! them.
+//! Sticky groups as a pre-pass on the requests a tick receives. After every
+//! build the document records each group's members as cells; a request that
+//! names a member's cell is snapped before it is inverted. Requests that
+//! reach a member's cells only through inversion are not snapped.
 
 use std::borrow::Cow;
 use std::collections::HashSet;
@@ -13,7 +10,7 @@ use super::*;
 use crate::components::StickyPoints;
 use crate::program::VecOp;
 use crate::tick::invert::PointRequest;
-use crate::tick::snap::{Member, Params, Pt, snap_group};
+use crate::tick::snap::{Member, Params, PointIdx, Pt, snap_group};
 
 /// One group as cells.
 #[derive(Debug, Clone)]
@@ -27,12 +24,12 @@ pub struct StickyTable {
     /// share its index.
     points: Vec<[CellIdx; 2]>,
     /// Member cell -> (point, coordinate).
-    index: HashMap<CellIdx, (u32, u8)>,
+    index: HashMap<CellIdx, (PointIdx, u8)>,
     /// Per member, the `active` cells of the cases it sits in.
     gates: Vec<Vec<CellIdx>>,
 }
 
-impl Document {
+impl Built {
     /// The sticky groups of a freshly built document. A group whose points
     /// are exactly an earlier group's (a copy of the group) is left out:
     /// snapping twice is not snapping once.
@@ -82,7 +79,7 @@ impl Document {
                     let id = match t.index.get(&x) {
                         Some(&(id, _)) => id,
                         None => {
-                            let id = t.points.len() as u32;
+                            let id = PointIdx::from_index(t.points.len());
                             t.points.push([x, y]);
                             t.index.insert(x, (id, 0));
                             t.index.insert(y, (id, 1));
@@ -109,12 +106,12 @@ impl Document {
 
     /// A rigid polygon's vertices are outputs of its `Shape` instruction.
     fn is_shape_output(&self, cell: CellIdx) -> bool {
-        let p = self.program.producer[cell.index()];
-        p != u32::MAX
-            && matches!(
-                self.program.vec_op(&self.program.instrs[p as usize].op),
+        self.program.producer_of(cell).is_some_and(|p| {
+            matches!(
+                self.program.vec_op(&self.program.instrs[p.index()].op),
                 Some(VecOp::Shape { .. })
             )
+        })
     }
 
     /// Snap the requests on member cells, in place. Points a snap moves
@@ -129,8 +126,8 @@ impl Document {
             let mut requested: Vec<Option<Pt>> = vec![None; t.points.len()];
             let mut ask = |cell: CellIdx, value: f64| {
                 if let Some(&(id, k)) = t.index.get(&cell) {
-                    let [x, y] = t.points[id as usize];
-                    let p = requested[id as usize].get_or_insert([cur(x), cur(y)]);
+                    let [x, y] = t.points[id.index()];
+                    let p = requested[id.index()].get_or_insert([cur(x), cur(y)]);
                     p[k as usize] = value;
                 }
             };
@@ -164,7 +161,7 @@ impl Document {
                 .into_iter()
                 .flatten()
             {
-                let [cx, cy] = t.points[id as usize];
+                let [cx, cy] = t.points[id.index()];
                 for (cell, value) in [(cx, x), (cy, y)] {
                     match at.get(&cell) {
                         Some(&i) => snapped[i].1 = value,

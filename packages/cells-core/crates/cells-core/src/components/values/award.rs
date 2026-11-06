@@ -1,11 +1,11 @@
-//! `<award>`: its definition and its planner (ADR 0016).
+//! `<award>`: its definition and its planner.
 
 use crate::components::define::*;
 
 component! {
     /// `<award credit="0.5">` inside an `<answer>`: `awarded` is `credit` when
     /// its `<when>` holds (or its content equals the submitted response), else
-    /// 0. Planned with its answer (`plan_answer`).
+    /// 0. Planned with its answer.
     tags: ["award"],
     flags: [owned],
     renders: Never,

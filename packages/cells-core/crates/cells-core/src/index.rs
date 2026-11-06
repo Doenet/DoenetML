@@ -1,10 +1,17 @@
 //! Index types: a position in one particular list, as its own type, so an
 //! index into one list cannot be passed where an index into another is
-//! meant. Each wraps a `u32` (`#[repr(transparent)]`, so no larger than
-//! one) and is read as a position only through `index()`.
+//! meant. Each wraps a `u32` and is read as a position through `index()`.
+
+/// What every index type is: a position, as a type a generic reader of
+/// positions (the refuse analysis over a program or over a build's slots)
+/// can take.
+pub(crate) trait Idx: Copy + Eq + std::fmt::Debug {
+    fn index(self) -> usize;
+    fn from_index(i: usize) -> Self;
+}
 
 /// Define an index type over `u32`. Its `Debug` and `Display` print the
-/// bare number, so dumps and messages read as they did with a `u32`.
+/// bare number.
 macro_rules! index_type {
     ($(#[$attr:meta])* $vis:vis struct $name:ident;) => {
         $(#[$attr])*
@@ -62,9 +69,26 @@ macro_rules! index_type {
                 v.into_iter().map($name).collect()
             }
 
+            /// The `n` indices from `start` on, in order: a run of a list
+            /// kept as (start, count).
+            pub fn span(start: u32, n: u32) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator + Clone {
+                (start..start + n).map($name)
+            }
+
             /// Every index below `n`, in order.
             pub fn below(n: usize) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator {
                 (0..u32::try_from(n).expect(concat!(stringify!($name), " out of range"))).map($name)
+            }
+        }
+
+        impl crate::index::Idx for $name {
+            #[inline(always)]
+            fn index(self) -> usize {
+                self.0 as usize
+            }
+            #[inline(always)]
+            fn from_index(i: usize) -> Self {
+                $name::from_index(i)
             }
         }
 

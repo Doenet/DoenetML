@@ -2,24 +2,20 @@
 //! cells it wrote, computes the derived cells and finds which changed.
 //! Both take the changed cells as seeds and append the derived cells whose
 //! value changed, and both give the same values; they differ only in how
-//! much work they do. Running every instruction is
-//! `Program::run_all_tracking`; the dirty closure is here.
+//! much work they do.
 
 use crate::document::CellIdx;
-use crate::program::{Program, SymRun};
+use crate::program::{InstrIdx, Program, SymRun};
 
-/// Walk only the downstream closure of the seeds, in schedule order. The
-/// schedule is topological, so every instruction a step queues lies after
-/// it: a bitset over schedule positions, scanned forward a word at a time,
-/// replaces a priority queue. Work is proportional to the closure plus its
-/// span over 64.
+/// The tables for walking only the downstream closure of the seeds, in
+/// schedule order, by a bitset over schedule positions.
 #[derive(Debug, Clone)]
 pub struct DirtyClosure {
-    /// dependents[dep_start[cell]..dep_start[cell + 1]] = schedule
+    /// `dependents[dep_start[cell]..dep_start[cell + 1]]` = schedule
     /// positions of instructions reading `cell`, ascending, in
     /// compressed-sparse-row form.
     dep_start: Vec<u32>,
-    dependents: Vec<u32>,
+    dependents: Vec<InstrIdx>,
     /// One bit per schedule position; all clear between ticks.
     dirty: Vec<u64>,
 }
@@ -36,10 +32,10 @@ impl DirtyClosure {
             dep_start[c + 1] += dep_start[c];
         }
         let mut fill = dep_start.clone();
-        let mut dependents = vec![0u32; dep_start[n_cells] as usize];
+        let mut dependents = vec![InstrIdx::NONE; dep_start[n_cells] as usize];
         for (i, ins) in program.instrs.iter().enumerate() {
             for input in ins.op.inputs(&program.operands) {
-                dependents[fill[input.index()] as usize] = i as u32;
+                dependents[fill[input.index()] as usize] = InstrIdx::from_index(i);
                 fill[input.index()] += 1;
             }
         }
@@ -51,8 +47,8 @@ impl DirtyClosure {
     }
 
     /// Mark the readers of `cell`. Readers in word `w` go into `bits`, the
-    /// word being scanned, which the caller holds in a register; `hi` is
-    /// raised to the highest word marked in `dirty`.
+    /// word being scanned; `hi` is raised to the highest word marked in
+    /// `dirty`.
     #[inline(always)]
     fn mark_dependents(&mut self, cell: CellIdx, w: usize, bits: &mut u64, hi: &mut usize) {
         let (s, e) = (
@@ -60,8 +56,8 @@ impl DirtyClosure {
             self.dep_start[cell.index() + 1] as usize,
         );
         for &i in &self.dependents[s..e] {
-            let dw = i as usize / 64;
-            let bit = 1u64 << (i % 64);
+            let dw = i.index() / 64;
+            let bit = 1u64 << (i.index() % 64);
             if dw == w {
                 *bits |= bit;
             } else {
@@ -72,15 +68,13 @@ impl DirtyClosure {
     }
 }
 
-/// How a document recomputes after a tick's writes (`Document::request`):
-/// a setting, which a rebuild keeps. The dirty closure's tables follow the
-/// program and live beside it in the document.
+/// How a document recomputes after a tick's writes: a setting, which a
+/// rebuild keeps.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Recompute {
-    /// Every instruction in schedule order, ignoring the seeds
-    /// (`Program::run_all_tracking`).
+    /// Every instruction in schedule order, ignoring the seeds.
     Full,
-    /// The closure of what changed (`DirtyClosure`), what the browser runs.
+    /// The closure of what changed.
     #[default]
     DirtyClosure,
 }
@@ -122,7 +116,7 @@ impl DirtyClosure {
                 .get(self.dep_start[c.index()] as usize..self.dep_start[c.index() + 1] as usize)
                 .and_then(|d| d.first())
             {
-                lo = lo.min(first as usize / 64);
+                lo = lo.min(first.index() / 64);
             }
             // No word is being scanned yet: every mark lands in `dirty`.
             self.mark_dependents(c, usize::MAX, &mut 0, &mut hi);

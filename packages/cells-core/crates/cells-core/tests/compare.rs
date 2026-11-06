@@ -1,6 +1,5 @@
-//! Whether an edit is safe for every student (ADR 0017, steps 3 and 4):
-//! `compare_versions` over the two sources, each row of step 4's table and
-//! the edits the ADR says may change freely.
+//! Whether an edit is safe for every student: `compare_versions` over two
+//! sources, for each kind of edit it classes.
 
 use cells_core::dast::Dast;
 use cells_core::testing::test_utils::dast_json;
@@ -136,9 +135,9 @@ fn a_copy_given_an_override_fails_condition_2() {
     fails_with(old, new, "c", 2);
 }
 
-/// ADR 0018: an author's value is state only while an input reaches it.
-/// Unbinding the input leaves the boolean a student wrote a constant,
-/// and the input reads a cell of its own: its derivation changed.
+/// An author's value is state only while an input reaches it. Unbinding
+/// the input leaves the boolean a constant, and the input reads a cell of
+/// its own: its derivation changed.
 #[test]
 fn an_edit_that_leaves_a_written_value_fixed_fails_condition_2() {
     let old = r#"<boolean name="b"/><booleanInput name="bi" bindValueTo="$b"/>"#;

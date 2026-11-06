@@ -1,70 +1,62 @@
-//! Whether the abstract build's graph covers a real build's (ADR 0012, ADR
-//! 0014), for tests: the compile finds every cycle only if every dependency
-//! a build at any count and pick can have is one the abstract build has,
-//! with a label that admits it. That rests on conventions (every structural
-//! read goes through the view, every indexed edge is labelled right); this
-//! checks them on a given build instead of trusting them.
+//! Whether the compile's template graph covers a real build's graph, for
+//! tests: the compile finds every cycle only if every dependency a build
+//! at any count and pick can have is one the template graph has
+//! (ADR 0032, step 8), with a label that admits it. This checks that on a
+//! given build.
 //!
-//! A slot of an element is known in both graphs by its template, element
-//! and position among the element's slots: the abstract build stamps each
-//! template once, so that names one abstract-build slot. Other slots (an
-//! operator's intermediates, the abstract build's stand-ins for a pick, the
-//! missing referent) are passed through: a dependency is from an element's
-//! slot to the element slots it reaches through them, its abstract-build
-//! label composed along the way. A real dependency is covered when the
-//! abstract build has one between the same slots whose label the real
-//! iterations satisfy: a kept coordinate at a level says the position there
-//! is shifted by its amount, a reset one says nothing.
+//! An element's port is known in both graphs by its template, element and
+//! position among the element's ports. Other nodes and slots are passed
+//! through: a dependency is from an element's slot to the element slots it
+//! reaches through them, in the template graph with its label composed
+//! along the way. A real dependency is covered when the template graph has
+//! one between the same ports whose label the real iterations satisfy.
 
 use super::*;
+use crate::compile::graph::{Coord, GraphNode, NodeKind, TemplateGraph, template_graph};
 
-/// A slot of an element: (template, element, position among its slots).
+/// A port of an element: (template, element, position among its ports).
 type Key = (TemplateId, ElemId, u32);
 
-/// Every dependency of the abstract build's graph, between element slots,
-/// with the labels of the paths that make it. Built once per compile.
-pub struct AbstractEdges {
+/// Every dependency of the template graph, between element ports, with
+/// the labels of the paths that make it.
+pub struct GraphEdges {
     deps: HashMap<Key, Vec<(Key, Vec<Coord>)>>,
 }
 
-/// The abstract build's dependencies for `compiled`.
-pub fn abstract_edges(compiled: &Compiled) -> std::result::Result<AbstractEdges, String> {
-    let session = Session::new(0);
-    let mut engine = Engine::new();
-    let b = staged(compiled, &session, &mut engine, &View::Abstract)?;
-    let depth = b.scope_depths();
+/// The template graph's dependencies for `compiled`.
+pub fn graph_edges(compiled: &Compiled) -> GraphEdges {
+    let g = template_graph(compiled.view());
     let mut deps: HashMap<Key, Vec<(Key, Vec<Coord>)>> = HashMap::new();
-    for u in SlotId::below(b.sources.len()) {
-        let Some(ku) = b.slot_key(u) else { continue };
+    for u in GraphNode::below(g.nodes.len()) {
+        let Some(ku) = graph_key(&g, u) else { continue };
         let found = deps.entry(ku).or_default();
-        for (v, label) in b.element_deps(u, &depth, true) {
-            let kv = b.slot_key(v).expect("an element slot");
-            if !found.contains(&(kv, label.clone())) {
-                found.push((kv, label));
+        for dep in graph_element_deps(&g, u) {
+            if !found.contains(&dep) {
+                found.push(dep);
             }
         }
     }
-    Ok(AbstractEdges { deps })
+    GraphEdges { deps }
 }
 
 /// The dependencies of the build of `compiled` at `counts`, reading
-/// `session`, that the abstract build's graph does not cover, described;
-/// empty when it covers them all.
+/// `session`, that the template graph does not cover, described; empty
+/// when it covers them all.
 pub fn uncovered(
-    edges: &AbstractEdges,
+    edges: &GraphEdges,
     compiled: &Compiled,
     session: &Session,
     counts: &Counts,
 ) -> std::result::Result<Vec<String>, String> {
-    let mut engine = Engine::new();
-    let view = View::Stamped { counts };
-    let b = staged(compiled, session, &mut engine, &view)?;
-    let depth = b.scope_depths();
+    let mut math = MathStore::default();
+    let mut b = Builder::new(compiled.view(), session, false, &mut math, counts);
+    b.expand_all().map_err(|e| e.to_string())?;
+    b.resolve_all().map_err(|e| e.to_string())?;
     let mut out = Vec::new();
     for u in SlotId::below(b.sources.len()) {
         let Some(ku) = b.slot_key(u) else { continue };
         let at_u = b.positions(b.slot_scope[u.index()]);
-        for (v, _) in b.element_deps(u, &depth, false) {
+        for v in b.element_deps(u) {
             let kv = b.slot_key(v).expect("an element slot");
             let at_v = b.positions(b.slot_scope[v.index()]);
             let covered = edges.deps.get(&ku).is_some_and(|ds| {
@@ -73,7 +65,7 @@ pub fn uncovered(
             });
             if !covered {
                 out.push(format!(
-                    "{} (at {at_u:?}) reads {} (at {at_v:?}), which the abstract build does not",
+                    "{} (at {at_u:?}) reads {} (at {at_v:?}), which the template graph does not",
                     b.slot_label(u),
                     b.slot_label(v)
                 ));
@@ -83,26 +75,10 @@ pub fn uncovered(
     Ok(out)
 }
 
-/// A builder through `view` with every template expanded and every
-/// reference resolved: the whole graph, before cells are made.
-fn staged<'c>(
-    compiled: &'c Compiled,
-    session: &'c Session,
-    engine: &'c mut Engine,
-    view: &'c View<'c>,
-) -> std::result::Result<Builder<'c>, String> {
-    let mut b = Builder::new(compiled, session, false, engine, view);
-    b.expand_all().map_err(|e| e.to_string())?;
-    b.resolve_all().map_err(|e| e.to_string())?;
-    Ok(b)
-}
-
 /// Whether a real dependency, from a slot at scope positions `at_u` to one
 /// at `at_v` (per level from the document down: the repeat or choice
-/// element and the 1-based position), satisfies a abstract-build label. A
-/// kept coordinate relates positions, whatever repeat each is in
-/// (`$r[$k+1]` inside `q` keeps `q`'s position plus one): a loop comes back
-/// to the same slot, so the same repeat, and only the positions add up.
+/// element and the 1-based position), satisfies a template graph label. A
+/// kept coordinate relates positions, whatever repeat each is in.
 fn admits(label: &[Coord], at_u: &[(NodeId, u32)], at_v: &[(NodeId, u32)]) -> bool {
     label.iter().enumerate().all(|(j, c)| match c {
         Coord::Reset => true,
@@ -121,24 +97,15 @@ impl Builder<'_> {
             return None;
         }
         let i = self.comp_instance[comp.index()];
-        if i == NONE {
+        if i.is_none() {
             return None;
         }
-        let inst = self.instances[i as usize];
+        let inst = self.instances[i.index()];
         Some((
             inst.template,
             inst.elem,
             s.get() - self.slot_base[comp.index()].get(),
         ))
-    }
-
-    /// The depth of every scope: 0 for the document.
-    fn scope_depths(&self) -> Vec<u32> {
-        let mut depth = vec![0u32; self.scopes.len()];
-        for s in 1..self.scopes.len() {
-            depth[s] = depth[self.scopes[ScopeId::from_index(s)].0.index()] + 1;
-        }
-        depth
     }
 
     /// A scope's (element, position) per level, from the document down.
@@ -153,28 +120,17 @@ impl Builder<'_> {
         out
     }
 
-    /// The element slots `u` reads, directly or through other slots, each
-    /// with the label of a path to it (composed when `labelled`).
-    fn element_deps(&self, u: SlotId, depth: &[u32], labelled: bool) -> Vec<(SlotId, Vec<Coord>)> {
+    /// The element slots `u` reads, directly or through other slots.
+    fn element_deps(&self, u: SlotId) -> Vec<SlotId> {
         let mut out = Vec::new();
         let mut seen = HashSet::new();
-        let mut stack = vec![(u, Vec::new(), true)];
-        let mut inputs = Vec::new();
-        while let Some((a, so_far, first)) = stack.pop() {
-            inputs.clear();
-            self.push_inputs(a, &mut inputs);
-            for &w in &inputs {
-                let label = if !labelled {
-                    Vec::new()
-                } else if first {
-                    self.edge_label(a, w, depth)
-                } else {
-                    compose(&so_far, &self.edge_label(a, w, depth))
-                };
+        let mut stack = vec![u];
+        while let Some(a) = stack.pop() {
+            for w in self.sources[a.index()].eval_inputs(&self.op_inputs) {
                 if self.slot_key(w).is_some() {
-                    out.push((w, label));
-                } else if seen.insert((w, label.clone())) {
-                    stack.push((w, label, false));
+                    out.push(w);
+                } else if seen.insert(w) {
+                    stack.push(w);
                 }
             }
         }
@@ -193,4 +149,39 @@ fn compose(to_a: &[Coord], a_to_v: &[Coord]) -> Vec<Coord> {
             _ => Coord::Reset,
         })
         .collect()
+}
+
+/// The key of an element's port node; None for any other node.
+fn graph_key(g: &TemplateGraph, n: GraphNode) -> Option<Key> {
+    let node = g.nodes[n.index()];
+    match node.kind {
+        NodeKind::Port { elem, port } => Some((node.template, elem, port)),
+        _ => None,
+    }
+}
+
+/// The element ports `u` reads, directly or through other nodes, each
+/// with the label of a path to it, composed along the way.
+fn graph_element_deps(g: &TemplateGraph, u: GraphNode) -> Vec<(Key, Vec<Coord>)> {
+    let mut out = Vec::new();
+    let mut seen = HashSet::new();
+    let mut stack = vec![(u, Vec::new(), true)];
+    while let Some((a, so_far, first)) = stack.pop() {
+        for &w in g.reads(a) {
+            let label = if first {
+                g.label(a, w)
+            } else {
+                compose(&so_far, &g.label(a, w))
+            };
+            match graph_key(g, w) {
+                Some(kw) => out.push((kw, label)),
+                None => {
+                    if seen.insert((w, label.clone())) {
+                        stack.push((w, label, false));
+                    }
+                }
+            }
+        }
+    }
+    out
 }

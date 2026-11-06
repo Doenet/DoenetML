@@ -1,6 +1,5 @@
-//! Credit and section numbers (`build/expand/scoring.rs`). The scenarios follow
-//! the current core's `document.test.ts`, `sectioning.test.ts` and the
-//! paginator Cypress test, whose answers sit in conditional content.
+//! Credit and section numbers, in scenarios that follow the current core's
+//! tests, including answers in conditional content.
 
 mod common;
 

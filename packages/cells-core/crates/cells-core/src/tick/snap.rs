@@ -1,16 +1,9 @@
-//! Sticky groups (ADR 0007): the snapping rule. A member a request moves is
-//! pulled onto the vertices and edges of the group's other members when it
-//! comes within the threshold. This file is the rule only: a pure function
-//! of the dragged member's requested vertices and the other members'
-//! current ones. Which cells it reads and where its result goes is the
-//! request pre-pass's business (`document/sticky.rs`, ADR 0007).
-//!
-//! The rule is the current core's (`StickyGroup.js`, `constraints.js`,
-//! `constraintUtils.js`), ported line for line, including its quirks, so the
-//! oracle's numbers come out the same. What is left out is Tier 3 (ADR
-//! 0007's declared gap): a rigid or similarity shape dragged by one vertex
-//! (rotation snapping, which the current core does through a pre-snap
-//! reference cache). Such a drag is not snapped.
+//! Sticky groups: the snapping rule. A member a request moves is pulled onto
+//! the vertices and edges of the group's other members when it comes within
+//! the threshold. The rule is a pure function of the dragged member's
+//! requested vertices and the other members' current ones, ported from the
+//! current core including its quirks. A rigid or similarity shape dragged by
+//! one vertex is not snapped.
 
 pub type Pt = [f64; 2];
 
@@ -81,8 +74,8 @@ impl Attractors {
 /// unrequested ones at their current values) and receives the result.
 /// `moved` is the one vertex requested, when only one was: that vertex may
 /// distort the shape; otherwise the whole shape shifts. `rigid` marks a
-/// rigid or similarity shape, whose one-vertex drags are Tier 3 and pass
-/// through unsnapped.
+/// rigid or similarity shape, whose one-vertex drags pass through
+/// unsnapped.
 pub fn snap(
     shape: Shape,
     rigid: bool,
@@ -113,6 +106,11 @@ pub fn snap(
     }
 }
 
+crate::index::index_type! {
+    /// A point of a sticky group: a position in the group's point list.
+    pub struct PointIdx;
+}
+
 /// One member of a group, as the wirings describe it: its shape, whether
 /// it is rigid, and its points as indices into the group's point list. Two
 /// members that share a point (a polygon whose vertex is a member point)
@@ -121,7 +119,7 @@ pub fn snap(
 pub struct Member {
     pub shape: Shape,
     pub rigid: bool,
-    pub points: Vec<u32>,
+    pub points: Vec<PointIdx>,
 }
 
 /// Snap every dragged member of a group. `current` holds each point's
@@ -137,11 +135,11 @@ pub fn snap_group(
     current: &[Pt],
     requested: &[Option<Pt>],
     p: &Params,
-) -> Vec<Vec<(u32, Pt)>> {
+) -> Vec<Vec<(PointIdx, Pt)>> {
     let n_req = |m: &Member| {
         m.points
             .iter()
-            .filter(|&&i| requested[i as usize].is_some())
+            .filter(|&&i| requested[i.index()].is_some())
             .count()
     };
     let mut dragged: Vec<usize> = (0..members.len())
@@ -154,17 +152,17 @@ pub fn snap_group(
     let mut busy = vec![false; current.len()];
     for &m in &dragged {
         for &i in &members[m].points {
-            busy[i as usize] = true;
+            busy[i.index()] = true;
         }
     }
     let mut att = Attractors::default();
     let mut pts: Vec<Pt> = Vec::new();
     for m in members {
-        if m.points.iter().any(|&i| busy[i as usize]) {
+        if m.points.iter().any(|&i| busy[i.index()]) {
             continue;
         }
         pts.clear();
-        pts.extend(m.points.iter().map(|&i| current[i as usize]));
+        pts.extend(m.points.iter().map(|&i| current[i.index()]));
         att.add(m.shape, &pts);
     }
     let mut placed = vec![false; current.len()];
@@ -174,7 +172,7 @@ pub fn snap_group(
         if mem
             .points
             .iter()
-            .all(|&i| placed[i as usize] || requested[i as usize].is_none())
+            .all(|&i| placed[i.index()] || requested[i.index()].is_none())
         {
             continue;
         }
@@ -182,10 +180,10 @@ pub fn snap_group(
         pts.extend(
             mem.points
                 .iter()
-                .map(|&i| requested[i as usize].unwrap_or(current[i as usize])),
+                .map(|&i| requested[i.index()].unwrap_or(current[i.index()])),
         );
         let asked: Vec<usize> = (0..mem.points.len())
-            .filter(|&k| requested[mem.points[k] as usize].is_some())
+            .filter(|&k| requested[mem.points[k].index()].is_some())
             .collect();
         let moved = if asked.len() == 1 {
             Some(asked[0])
@@ -196,9 +194,9 @@ pub fn snap_group(
         let mut writes = Vec::new();
         for (k, &i) in mem.points.iter().enumerate() {
             let changed =
-                pts[k] != current[i as usize] && !(pts[k][0].is_nan() && pts[k][1].is_nan());
-            if !placed[i as usize] && (requested[i as usize].is_some() || changed) {
-                placed[i as usize] = true;
+                pts[k] != current[i.index()] && !(pts[k][0].is_nan() && pts[k][1].is_nan());
+            if !placed[i.index()] && (requested[i.index()].is_some() || changed) {
+                placed[i.index()] = true;
                 writes.push((i, pts[k]));
             }
         }
@@ -539,11 +537,9 @@ fn constrain_edges(
 }
 
 /// `attractSegment`: the closest other edge the segment can lie along, with
-/// its length kept, if within the threshold. The current core screens
-/// candidates against a threshold widened a thousandfold when rotation is
-/// allowed (for its rotation fallbacks, which are Tier 3), then keeps only a
-/// result within the real threshold; the screen is kept since it decides
-/// which candidates are seen.
+/// its length kept, if within the threshold. Candidates are first screened
+/// against a threshold widened a thousandfold when rotation is allowed, as
+/// the current core does.
 fn attract_segment(
     seg: [Pt; 2],
     allow_rotation: bool,
@@ -731,17 +727,17 @@ mod tests {
             Member {
                 shape: Shape::Point,
                 rigid: false,
-                points: vec![0],
+                points: PointIdx::from_u32s(vec![0]),
             },
             Member {
                 shape: Shape::Closed,
                 rigid: false,
-                points: vec![0, 1, 2],
+                points: PointIdx::from_u32s(vec![0, 1, 2]),
             },
             Member {
                 shape: Shape::Point,
                 rigid: false,
-                points: vec![3],
+                points: PointIdx::from_u32s(vec![3]),
             },
         ];
         let current = [[0.0, 0.0], [4.0, 0.0], [0.0, 4.0], [10.0, 10.0]];
@@ -754,14 +750,18 @@ mod tests {
         assert_eq!(w.len(), 1);
         assert_eq!(
             w[0],
-            vec![(0, [0.2, 0.1]), (1, [4.2, 0.1]), (2, [0.2, 4.1])]
+            vec![
+                (PointIdx::new(0), [0.2, 0.1]),
+                (PointIdx::new(1), [4.2, 0.1]),
+                (PointIdx::new(2), [0.2, 4.1])
+            ]
         );
         // Point 3 does attract.
         requested[0] = Some([9.8, 9.9]);
         requested[1] = None;
         requested[2] = None;
         let w = snap_group(&members, &current, &requested, &P);
-        assert_eq!(w[0], vec![(0, [10.0, 10.0])]);
+        assert_eq!(w[0], vec![(PointIdx::new(0), [10.0, 10.0])]);
     }
 
     #[test]

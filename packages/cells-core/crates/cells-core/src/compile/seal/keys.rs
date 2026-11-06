@@ -1,19 +1,12 @@
-//! Stable keys (ADR 0017, step 1): what saved state names an element, a
-//! slot and a scope by, chosen so that an ordinary edit does not move them.
+//! Stable keys: what saved state names an element, a slot and a scope by,
+//! chosen so that an ordinary edit does not move them.
 //!
-//! A key is text. A named element is its name path from its template's
-//! prefix through its named ancestors (`s.a`); an unnamed one is its
-//! nearest named ancestor's key, its tag and its position among that
-//! ancestor's unnamed elements of the tag (`s.mathInput#2`); an element the
-//! compile makes is the element it is made for and its position among
-//! those (`a+1`). A repeat body's prefix is the repeat's key and `[*]`
-//! (`r[*].q`), a choice branch's the choice's key and the branch's
-//! (`sel[option#2].x`). Names are letters, digits, `-` and `_`, so no key
-//! of one form is a key of another. A name that two elements under one
-//! named ancestor carry names neither: both are keyed as unnamed.
-//!
-//! The keys outlive the compile: a document without repeats drops its
-//! compile after load, and saves by its keys.
+//! A named element's key is its name path (`s.a`); an unnamed one's is its
+//! nearest named ancestor's key, its tag and its position (`s.mathInput#2`);
+//! a compile-made element's is the element it is made for and a position
+//! (`a+1`). Repeat bodies add `[*]` (`r[*].q`), choice branches the
+//! branch's key (`sel[option#2].x`). A name two elements under one named
+//! ancestor share keys neither.
 
 use std::collections::HashMap;
 
@@ -29,9 +22,9 @@ pub(crate) struct Keys {
     ends: Vec<u32>,
     /// The type of the element each key names.
     types: Vec<ComponentType>,
-    /// How many of each element's ports are public (ADR 0032): its
-    /// table's props and its list's points, as far as the compile knows
-    /// (`n_public`). A port past them is hidden.
+    /// How many of each element's ports are public: its table's props and
+    /// its list's points, as far as the compile knows. A port past them is
+    /// hidden.
     n_public: Vec<u32>,
     /// The elements that own templates (repeats, choices), by node: their
     /// key, and a choice's branches.
@@ -89,8 +82,7 @@ fn push_number(out: &mut String, k: u32) {
 }
 
 impl super::Seal<'_> {
-    /// Every element's key, once every element is planned, by template;
-    /// the key texts go to `Compiled::keys`.
+    /// Every element's key, once every element is planned, by template.
     pub(in crate::compile) fn assign_keys(&mut self) -> Vec<Vec<ElemKey>> {
         let mut keys = Keys::default();
         // The branch each choice template is: (choice, branch).
@@ -168,7 +160,7 @@ impl super::Seal<'_> {
                             self.names
                                 .id(s)
                                 .and_then(|id| self.names.entry(t, anchor, id))
-                                == Some(e as u32)
+                                == Some(ElemId::from_index(e))
                         });
                     named.push(name.is_some());
                     match name {
@@ -214,7 +206,7 @@ impl super::Seal<'_> {
         // A hidden port holding a given leaf is saved by what gave it; a
         // public one by the prop's name.
         for (&(t, e), given) in self.given {
-            let id = elem_keys[t as usize][e as usize];
+            let id = elem_keys[t.index()][e.index()];
             let n_public = keys.n_public[id.index()];
             for (g, &port) in given {
                 if port.index() as u32 >= n_public {
@@ -227,7 +219,7 @@ impl super::Seal<'_> {
         keys.ends.shrink_to_fit();
         keys.types.shrink_to_fit();
         keys.n_public.shrink_to_fit();
-        self.compiled.keys = Arc::new(keys);
+        self.plans.keys = Arc::new(keys);
         elem_keys
     }
 }
@@ -265,7 +257,7 @@ impl Keys {
             .collect()
     }
 
-    /// What saved state names port `port` of `key` by (ADR 0032): a public
+    /// What saved state names port `port` of `key` by: a public
     /// prop's name, or the shared state a hidden port holds; None for a
     /// hidden port without any, which is not saved.
     pub(crate) fn prop_key(&self, key: ElemKey, port: u32) -> Option<String> {
@@ -278,8 +270,8 @@ impl Keys {
             .map(|n| n.into_owned())
     }
 
-    /// Whether the slot of `key` saved as `prop` is view state (ADR 0017,
-    /// step 2): a graph's own bounds, which only pan and zoom write.
+    /// Whether the slot of `key` saved as `prop` is view state: a graph's
+    /// own bounds, which only pan and zoom write.
     pub(crate) fn is_view(&self, key: ElemKey, prop: &str) -> bool {
         self.types[key.index()] == ComponentType::Graph
             && matches!(prop, "xmin" | "xmax" | "ymin" | "ymax")

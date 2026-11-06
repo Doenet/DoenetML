@@ -1,29 +1,15 @@
 //! `fixed`, `fixLocation` and a graph's `fixAxes`: the attributes that
 //! hold an element, declared once in [`HOLD_ATTRS`]. What holds an element
-//! is a fact beside its plans ([`Hold`]), never a change to them: the
-//! element is what its planner says, and the build makes every cell of it
-//! refuse requests while the hold is set (`Program::holds`), so what reads
-//! the element reads it through the hold, as a reference to it does.
-//! `fixed` and `fixLocation` are inherited (ADR 0022): what an element
-//! does not give itself, the nearest element around it that gives decides,
-//! a container's content being held with the container unless it says
-//! otherwise.
-//!
-//! `plan_elem` decides the hold of every element (`Compiler::plan_hold`),
-//! whatever planned it, so the rules here hold for every component type
-//! and every way an element is planned: no planner applies them, and none
-//! can leave them out.
+//! is a fact beside its plans ([`Hold`]), never a change to them: every
+//! cell of a held element refuses requests while the hold is set. `fixed`
+//! and `fixLocation` are inherited: what an element does not give itself,
+//! the nearest element around it that gives decides.
 
 use crate::compile::*;
 
-/// An attribute that holds an element, as `inherited-attributes.md` §5 of
-/// the principles states one: whether an element without it takes the
-/// nearest container's (an element's own setting always wins over its
-/// containers'), and which types it holds. What every row shares is the
-/// fold (`Compiler::plan_fix`): a reference means what it means where it
-/// was written, however deep the element that inherits it; a reference to
-/// the element is held because the hold is upstream of every alias; and a
-/// held element still follows its sources (a hold blocks only requests).
+/// An attribute that holds an element: whether an element without it takes
+/// the nearest container's (an element's own setting always wins), and
+/// which types it holds.
 pub(in crate::compile) struct HoldAttr {
     pub(in crate::compile) name: &'static str,
     /// Whether an element that does not write the attribute takes it from
@@ -31,8 +17,7 @@ pub(in crate::compile) struct HoldAttr {
     /// choices around its template. Without, only the element's own counts.
     pub(in crate::compile) inherited: bool,
     /// The types it holds. An inherited attribute is read on every type,
-    /// so a container may give it to what is inside; on a type it does not
-    /// hold, it has nothing to do there.
+    /// so a container may give it to what is inside.
     pub(in crate::compile) holds: fn(ComponentType) -> bool,
 }
 
@@ -69,10 +54,15 @@ fn is_graph(component_type: ComponentType) -> bool {
 
 impl<'a> Compiler<'a> {
     /// How the attributes of [`HOLD_ATTRS`] reach element `e`: each its
-    /// own, else (an inherited one) the nearest ancestor's (ADR 0022). A
+    /// own, else (an inherited one) the nearest ancestor's. A
     /// literal true on any of them holds the element always; a reference
     /// holds it while its flag is set, several while any is.
-    pub(in crate::compile) fn plan_hold(&mut self, t: TemplateId, e: ElemId) -> Result<Hold> {
+    pub(in crate::compile) fn plan_hold(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<Hold> {
         let component_type = self.outlined(t).elems[e.index()].component_type;
         let mut flags = Vec::new();
         for row in HOLD_ATTRS {
@@ -106,8 +96,8 @@ impl<'a> Compiler<'a> {
                 attr: row.name.into(),
                 text: self.attr_text(a).unwrap_or_default(),
             })?;
-            let p = self.plan_ref(at, name_scope, m)?;
-            self.compiled.refs[p.index()].hops += hops;
+            let p = self.plan_ref(rf, at, name_scope, m)?;
+            self.plans.refs[p.index()].hops += hops;
             flags.push(p);
         }
         Ok(if flags.is_empty() {
@@ -128,7 +118,7 @@ impl<'a> Compiler<'a> {
         mut e: ElemId,
         name: &str,
         inherited: bool,
-    ) -> Option<(TemplateId, ElemId, u32, u32)> {
+    ) -> Option<(TemplateId, ElemId, AttrId, u32)> {
         let d = self.dast;
         let mut hops = 0;
         loop {
@@ -159,9 +149,9 @@ mod tests {
     use crate::testing::dast::{Element, Nodes, el, mac};
 
     /// The plan of the element named `name` in the compile, in any
-    /// template: nothing when it was boxed (`Template::plan`).
+    /// template: nothing when it was boxed.
     fn plan<'c>(compiled: &'c Compiled, name: &str) -> Option<&'c ElemPlan> {
-        compiled.templates.iter().find_map(|t| {
+        compiled.plans.templates.iter().find_map(|t| {
             let e = t.elems.iter().position(|e| {
                 e.name != StrId::NONE && compiled.dast.strings.get(e.name).trim() == name
             })?;
@@ -170,8 +160,7 @@ mod tests {
     }
 
     /// Whether the element named `x` in `doc` is held, and whether `doc`
-    /// loads with no error (an attribute nothing reads is refused, ADR
-    /// 0021; a refused `x` is not held).
+    /// loads with no error (a refused `x` is not held).
     fn held_and_clean(doc: Vec<Element>) -> (bool, bool) {
         let mut all = vec![el("testValue").name("f").attr("value", "1")];
         all.extend(doc);
@@ -187,13 +176,9 @@ mod tests {
         (held, clean)
     }
 
-    /// Every row of `HOLD_ATTRS` holds as its row says, on a type it
-    /// holds: the element's own setting holds it and wins over its
-    /// containers'; an inherited one reaches through containers and the
-    /// repeats around them, a literal or a reference written there; an
-    /// own-only one is looked up on its element alone, and on a type it
-    /// does not hold is refused. One test of the table, whatever rows it
-    /// grows and whatever types they hold.
+    /// Every row of `HOLD_ATTRS` holds as its row says: an own setting
+    /// wins, an inherited one reaches through containers and repeats, and
+    /// an own-only one on a type it does not hold is refused.
     #[test]
     fn every_hold_attribute_holds_as_its_row_says() {
         for row in HOLD_ATTRS {

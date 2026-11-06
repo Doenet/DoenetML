@@ -20,29 +20,28 @@ fn the_walk_matches_the_queue() {
     let mut checked = 0;
     for src in DOCS {
         let mut doc = load(src).unwrap();
-        let engine = doc.session.engine.clone();
         let essentials = doc.essentials();
         for cell in CellIdx::below(doc.cells.len()) {
             for value in [0.5, -3.0, 7.25] {
                 let r = Request { cell, value };
                 let alone = cells_core::tick::invert::invert_requests(
-                    &doc.program,
+                    &doc.built.program,
                     &mut SymRun {
-                        state: &mut doc.sym,
-                        engine: &mut engine.borrow_mut(),
+                        state: &mut doc.built.sym,
+                        engine: &mut doc.math.engine,
                     },
-                    &doc.cells,
+                    &doc.built.cells,
                     essentials.clone(),
                     &[r],
                     &[],
                 );
                 let twice = cells_core::tick::invert::invert_requests(
-                    &doc.program,
+                    &doc.built.program,
                     &mut SymRun {
-                        state: &mut doc.sym,
-                        engine: &mut engine.borrow_mut(),
+                        state: &mut doc.built.sym,
+                        engine: &mut doc.math.engine,
                     },
-                    &doc.cells,
+                    &doc.built.cells,
                     essentials.clone(),
                     &[r, r],
                     &[],
@@ -53,7 +52,7 @@ fn the_walk_matches_the_queue() {
                     writes
                         .iter()
                         .map(|&(c, v)| {
-                            let engine = doc.session.engine.borrow();
+                            let engine = &doc.math.engine;
                             if doc.value_types[c.index()] == cells_core::ValueType::Math
                                 && v.fract() == 0.0
                                 && (0.0..engine.len() as f64).contains(&v)

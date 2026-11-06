@@ -1,8 +1,8 @@
 //! The literal attributes of a DAST, kept after load in place of the DAST:
 //! the presentation a renderer reads by a component's node (a style number,
-//! decimals to display, a width), which is not state. Names and values are
-//! ids in the DAST's string table, which every document's table begins
-//! with, except a value made of several text nodes, which the table keeps.
+//! decimals to display, a width). Names and values are ids in the DAST's
+//! string table, except a value made of several text nodes, which the table
+//! keeps.
 
 use super::{Dast, NodeId, NodeKind, StrId};
 
@@ -11,7 +11,7 @@ const OWN: u32 = 1 << 31;
 
 /// An attribute's value: a string in the document's table, text of several
 /// nodes the attributes keep themselves (`OWN` set), or none (`EMPTY`, an
-/// attribute with no children). Read with `LiteralAttrs::text`.
+/// attribute with no children).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AttrValue(u32);
 

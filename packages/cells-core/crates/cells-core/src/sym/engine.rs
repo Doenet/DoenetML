@@ -1,13 +1,8 @@
-//! The symbolic engine: math-expressions-rs, the library the current
-//! DoenetML core calls through wasm, linked natively. Each handle is one
-//! boxed `Expr` tree. An expression equal to one the engine holds gets that
-//! one's handle, so equal handles are equal expressions and an expression
-//! made again (a recomputation, a rebuild, a request for the current value)
-//! neither reads as a change nor grows the engine. (Two expressions whose
-//! hashes collide both get stored: a collision costs a duplicate, never a
-//! wrong handle.) Handles stay valid for the life of the engine; nothing is
-//! reclaimed. Cell leaves are symbols named
-//! `cellN<i>` (numeric) or `cellM<i>` (math), replaced by `substitute`.
+//! The symbolic engine: math-expressions-rs, linked natively. Each handle is
+//! one boxed `Expr` tree. An expression equal to one the engine holds gets
+//! that one's handle, so an expression made again neither reads as a change
+//! nor grows the engine. Handles stay valid for the life of the engine. Cell
+//! leaves are symbols named `cellN<i>` (numeric) or `cellM<i>` (math).
 
 use std::collections::HashMap;
 use std::hash::{BuildHasher, RandomState};
@@ -85,43 +80,12 @@ impl Engine {
         h
     }
 
-    fn convert<L: Leaf>(&self, t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
-        match t {
-            Tree::Num(v) => number(*v),
-            Tree::Sym(s) if s == BLANK => Expr::Blank,
-            Tree::Sym(s) => Expr::sym(s),
-            Tree::Cell { cell, math } => {
-                let cell = cell.raw();
-                if !leaves.contains(&(cell, *math)) {
-                    leaves.push((cell, *math));
-                }
-                Expr::sym(&leaf_name(cell, *math))
-            }
-            Tree::Add(ts) => Expr::Add(ts.iter().map(|t| self.convert(t, leaves)).collect()),
-            Tree::Mul(ts) => Expr::Mul(ts.iter().map(|t| self.convert(t, leaves)).collect()),
-            Tree::Sub(a, b) => Expr::Add(vec![
-                self.convert(a, leaves),
-                Expr::Neg(Box::new(self.convert(b, leaves))),
-            ]),
-            Tree::Div(a, b) => Expr::Div(
-                Box::new(self.convert(a, leaves)),
-                Box::new(self.convert(b, leaves)),
-            ),
-            Tree::Neg(x) => Expr::Neg(Box::new(self.convert(x, leaves))),
-            Tree::Pow(a, b) => Expr::Pow(
-                Box::new(self.convert(a, leaves)),
-                Box::new(self.convert(b, leaves)),
-            ),
-            Tree::Apply(f, x) => Expr::Apply(Box::new(Expr::sym(f)), vec![self.convert(x, leaves)]),
-        }
-    }
-
     /// Bring a builder tree in. Cell leaves are kept as leaves, by number:
     /// only a tree whose leaves are cells makes a template `instantiate`
     /// can fill.
     pub fn import<L: Leaf>(&mut self, tree: &Tree<L>) -> Handle {
         let mut leaves = Vec::new();
-        let e = self.convert(tree, &mut leaves);
+        let e = convert(tree, &mut leaves);
         let h = self.push(e);
         if !leaves.is_empty() {
             self.leaves.insert(h, leaves);
@@ -143,10 +107,9 @@ impl Engine {
         self.parser.convert(text).map_err(|e| e.to_string())
     }
 
-    /// Parse math text into a builder tree without storing it: what the
-    /// build does with a template's math text, whose `$ref`s it has written
-    /// as `cellN<plan>` leaves. Fails on what a tree cannot say (a relation,
-    /// a tuple, a function of several arguments).
+    /// Parse math text into a builder tree without storing it; `cellN<i>`
+    /// symbols become leaves. Fails on what a tree cannot say (a relation, a
+    /// tuple, a function of several arguments).
     pub fn parse_tree<L: Leaf>(&mut self, text: &str) -> Result<Tree<L>, String> {
         let e = self.convert_text(text)?;
         to_tree(&e).ok_or_else(|| {
@@ -160,8 +123,7 @@ impl Engine {
 
     /// Replace every cell leaf with the cell's current value: a number, or
     /// the expression a math cell holds. A template without cell leaves
-    /// returns itself. Any expression can be a template: a derivative taken
-    /// at build time keeps its leaves, found here on first use.
+    /// returns itself. Any expression can be a template.
     pub fn instantiate(&mut self, template: Handle, cells: &[f64]) -> Handle {
         let leaves = self
             .leaves
@@ -184,10 +146,7 @@ impl Engine {
         self.push(e)
     }
 
-    /// Parse math text with no cell leaves to a stored expression: what a
-    /// template's text becomes when it says something a tree cannot (a
-    /// relation, a tuple, a function of several arguments) but reads no
-    /// cell, so it never has to be instantiated.
+    /// Parse math text with no cell leaves to a stored expression.
     pub fn parse_constant(&mut self, text: &str) -> Result<Handle, String> {
         let e = self.convert_text(text)?;
         if !cell_leaves(&e).is_empty() {
@@ -244,9 +203,8 @@ impl Engine {
     }
 
     /// The expression as a builder tree, cell leaves included as the `L`
-    /// the caller knows them to be, for compiling (`tape::Tape`). `None`
-    /// when it uses something a tree cannot say (sets, relations, a
-    /// function of several arguments).
+    /// the caller knows them to be. `None` when it uses something a tree
+    /// cannot say (sets, relations, a function of several arguments).
     pub fn export<L: Leaf>(&self, h: Handle) -> Option<Tree<L>> {
         to_tree(&self.exprs[h.index()])
     }
@@ -276,10 +234,43 @@ impl Engine {
 }
 
 /// The symbol a cell leaf becomes: `cellN<i>` for a numeric cell, `cellM<i>`
-/// for a math cell. The build writes the numeric form into math text for a
-/// `$ref`; the parser keeps it as one symbol.
+/// for a math cell.
 pub fn leaf_name(cell: u32, math: bool) -> String {
     format!("cell{}{cell}", if math { 'M' } else { 'N' })
+}
+
+/// A builder tree as an expression, its cell leaves (cell, is math)
+/// appended to `leaves` in first-seen order.
+fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
+    match t {
+        Tree::Num(v) => number(*v),
+        Tree::Sym(s) if s == BLANK => Expr::Blank,
+        Tree::Sym(s) => Expr::sym(s),
+        Tree::Cell { cell, math } => {
+            let cell = cell.raw();
+            if !leaves.contains(&(cell, *math)) {
+                leaves.push((cell, *math));
+            }
+            Expr::sym(&leaf_name(cell, *math))
+        }
+        Tree::Add(ts) => Expr::Add(ts.iter().map(|t| convert(t, leaves)).collect()),
+        Tree::Mul(ts) => Expr::Mul(ts.iter().map(|t| convert(t, leaves)).collect()),
+        Tree::Sub(a, b) => Expr::Add(vec![
+            convert(a, leaves),
+            Expr::Neg(Box::new(convert(b, leaves))),
+        ]),
+        Tree::Div(a, b) => Expr::Div(Box::new(convert(a, leaves)), Box::new(convert(b, leaves))),
+        Tree::Neg(x) => Expr::Neg(Box::new(convert(x, leaves))),
+        Tree::Pow(a, b) => Expr::Pow(Box::new(convert(a, leaves)), Box::new(convert(b, leaves))),
+        Tree::Apply(f, x) => Expr::Apply(Box::new(Expr::sym(f)), vec![convert(x, leaves)]),
+    }
+}
+
+/// A builder tree as text, as `Engine::text` prints it once imported: a
+/// function of the tree alone, held by no engine. A cell leaf prints by
+/// its number (`cellN3`).
+pub fn template_text<L: Leaf>(tree: &Tree<L>) -> String {
+    me::to_text(&convert(tree, &mut Vec::new()), &TextOpts::default())
 }
 
 /// The cell leaf a symbol names, if it is one.

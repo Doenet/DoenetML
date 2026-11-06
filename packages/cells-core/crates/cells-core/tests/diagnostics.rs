@@ -1,8 +1,7 @@
-//! Diagnostics are a product of one exhaustive build (ADR 0013): the list
-//! `diagnose` returns is a function of the DAST alone, covers every
-//! option of a select and every repeat body whatever the seed or the
-//! counts, and a load whose check ran reports the same errors (ADR 0014).
-//! A tick never adds one.
+//! Diagnostics: the list `diagnose` returns is a function of the DAST
+//! alone, covers every option of a select and every repeat body whatever
+//! the seed or the counts, and a load reports the same errors. A tick never
+//! adds one.
 
 use cells_core::CompIdx;
 use std::collections::BTreeSet;
@@ -56,7 +55,7 @@ fn an_element_that_fails_becomes_an_error_component_and_the_rest_loads() {
 }
 
 /// A reference to a box resolves, and reads as undefined with no
-/// diagnostic of its own: the box's error is its explanation (ADR 0027).
+/// diagnostic of its own.
 #[test]
 fn a_reference_to_a_boxed_element_reads_undefined() {
     let doc = load(r#"<number name="a">$nope</number><number name="b">$a + 1</number><number name="c">2</number>"#).unwrap();
@@ -68,7 +67,7 @@ fn a_reference_to_a_boxed_element_reads_undefined() {
 }
 
 /// One wrong element is one error: what names it, through a prop or
-/// through another element, is not reported unknown (ADR 0027).
+/// through another element, is not reported unknown.
 #[test]
 fn a_box_does_not_cascade() {
     let src = r#"<point name="P" bogus="1"/><number name="n">$P.x</number><p name="t">$n</p>"#;
@@ -126,9 +125,8 @@ fn a_repeat_body_at_count_zero_is_still_diagnosed() {
 }
 
 /// An attribute nothing in the core reads is refused on its element, which
-/// is boxed, rather than ignored: an author's attribute that does nothing
-/// would be a silent wrong answer. The error names the attribute, and
-/// `diagnose` reports the same one.
+/// is boxed; the error names the attribute, and `diagnose` reports the
+/// same one.
 #[test]
 fn an_attribute_nothing_reads_is_refused_on_its_element() {
     let src = r#"<point name="p" x="1" draggable="false"/><number name="n">3</number>"#;
@@ -169,12 +167,10 @@ fn every_unread_attribute_is_reported_at_once_and_boxed_content_is_not() {
     assert!(messages[1].contains("'hide'") && messages[1].contains("<number>"));
 }
 
-/// An attribute a renderer reads from the literal attributes is not the
-/// core's to refuse: the ones every type may carry (`styleNumber`,
-/// `displayDecimals`), and one a type declares as its renderer's (`to` on a
-/// `<ref>`). The names ignore case, as every attribute name does. Nor is
-/// anything inside the normalizer's own elements: a repeat's `indexName`
-/// becomes an `<integer>` in `_repeatSetup` that no planner visits.
+/// An attribute a renderer reads is not refused: one every type may carry
+/// (`styleNumber`, `displayDecimals`) or one a type declares as its
+/// renderer's (`to` on a `<ref>`), in any case. Nor is anything inside the
+/// normalizer's own elements, such as a repeat's `indexName`.
 #[test]
 fn presentation_attributes_and_the_normalizers_elements_are_not_refused() {
     let src = r#"<graph><point name="p" x="1" styleNumber="2" DISPLAYDECIMALS="1"/></graph>
@@ -235,9 +231,8 @@ fn accessibility_findings_are_structural() {
     assert_eq!(doc.diagnostics()[0].code, "doenet-a0001");
 }
 
-/// Lint looks at attributes without reading them (ADR 0027), so it may
-/// run before the compile: an attribute only lint looks up is still
-/// unread, and still refused where nothing else reads it (ADR 0021).
+/// Lint may run before the compile: an attribute only lint looks up is
+/// still unread, and still refused where nothing else reads it.
 #[test]
 fn lint_records_no_read() {
     let dast = cells_core::dast::load(
@@ -375,7 +370,7 @@ fn stem(p: &Path) -> String {
 }
 
 /// Errors planning finds are boxed where they arise, so a document with
-/// several independent ones plans once, not once per error (ADR 0027).
+/// several independent ones plans once, not once per error.
 #[test]
 fn independent_errors_plan_once() {
     let dast = cells_core::dast::load(
@@ -398,7 +393,7 @@ fn independent_errors_plan_once() {
 
 /// An element boxed where it fails takes what is under it along: its
 /// children and its repeat's body are not built or diagnosed, and a
-/// reference to them reads as undefined (ADR 0027).
+/// reference to them reads as undefined.
 #[test]
 fn what_is_under_a_box_is_not_built() {
     let src = r#"<graph name="g" xmin="$nope"><point name="A" x="$nope2"/></graph>
@@ -418,8 +413,8 @@ fn what_is_under_a_box_is_not_built() {
     assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
 }
 
-/// Outlining settles a `<math>`'s type from its own text (ADR 0029), each
-/// `$ref` one token, and its planner plans it as that type.
+/// Outlining settles a `<math>`'s type from its own text, each `$ref` one
+/// token, and its planner plans it as that type.
 #[test]
 fn a_maths_type_is_settled_from_its_text() {
     let src = r#"<number name="n">2</number>
@@ -451,8 +446,7 @@ fn a_maths_type_is_settled_from_its_text() {
 }
 
 /// An extend of an element that fails while planning is boxed when linking
-/// with the referent as its cause, whichever is written first: planning
-/// needs no order (ADR 0029).
+/// with the referent as its cause, whichever is written first.
 #[test]
 fn an_extend_of_an_element_boxed_while_planning_is_boxed_in_any_order() {
     let p = r#"<point name="P" x="$nope" y="1"/>"#;
@@ -479,10 +473,8 @@ fn an_extend_of_an_element_boxed_while_planning_is_boxed_in_any_order() {
 }
 
 /// An element that fails after a container copy cloned what is under it
-/// is boxed in place like any other, and the copy, which read what is
-/// under it, is boxed with its clones when linking (ADR 0032): the
-/// document compiles once. The failures after it are boxed as any are,
-/// not passed through (ADR 0030).
+/// is boxed in place, and the copy is boxed with its clones when linking:
+/// the document compiles once.
 #[test]
 fn a_failure_under_a_cloned_subtree_compiles_once() {
     for (src, plans_wanted) in [
@@ -518,10 +510,10 @@ fn a_failure_under_a_cloned_subtree_compiles_once() {
     }
 }
 
-/// A clone reads its original (ADR 0032): an original boxed for its own
-/// error after it was cloned takes its clone along silently, the
-/// original's error the only diagnostic, in one compile; the copy itself
-/// stands, and a reference to the clone reads as undefined.
+/// A clone reads its original: an original boxed for its own error after
+/// it was cloned takes its clone along silently, the original's error the
+/// only diagnostic; the copy itself stands, and a reference to the clone
+/// reads as undefined.
 #[test]
 fn a_clone_of_an_element_boxed_later_is_boxed_silently() {
     let src = r#"<graph name="X"><point name="p" x="$nope"/><point name="q" x="2"/></graph>
@@ -548,10 +540,9 @@ fn a_clone_of_an_element_boxed_later_is_boxed_silently() {
 }
 
 /// An element with an attribute nothing read is boxed in place when
-/// linking (ADR 0030), so the document plans once. What its planning
-/// reported under it is dropped, as if it had never been planned; a
-/// reference into it reads undefined, and an extend of it is boxed with it
-/// as the cause, as for any box made in place (ADR 0027).
+/// linking, so the document plans once. What its planning reported under
+/// it is dropped; a reference into it reads undefined, and an extend of it
+/// is boxed with it as the cause.
 #[test]
 fn an_unread_attribute_is_boxed_in_place_and_plans_once() {
     let src = r#"<graph name="g" bogus="1"><point name="A" x="$nope"/></graph>
@@ -579,9 +570,7 @@ fn an_unread_attribute_is_boxed_in_place_and_plans_once() {
 }
 
 /// A reference through an element boxed while planning, and a copy of
-/// what is under it, plan the same whichever is planned first: no
-/// reference plan reads a box made while planning, and a reader of one is
-/// boxed when linking (ADR 0031).
+/// what is under it, plan the same whichever is planned first.
 #[test]
 fn what_reads_a_box_made_while_planning_does_not_depend_on_order() {
     let g = r#"<graph name="g" xmin="$nope"><point name="A" x="1"/></graph>"#;

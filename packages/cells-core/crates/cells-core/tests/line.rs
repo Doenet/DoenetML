@@ -196,7 +196,7 @@ fn a_whole_line_drag_against_a_grid_keeps_the_line_parallel() {
 
 /// A line's equation inlines a `<math>` it names whose own text has free
 /// symbols, and a math that math names in turn, wherever the maths are
-/// written: the line reads their source, not their plans (ADR 0029).
+/// written: the line reads their source, not their plans.
 #[test]
 fn line_from_equation_inlines_the_maths_it_names() {
     let maths = r#"<number name="k">1</number><math name="a">x</math><math name="b">2$a + x - x + $k</math>"#;

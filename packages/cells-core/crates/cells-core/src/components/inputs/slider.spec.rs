@@ -1,7 +1,7 @@
 //! `<slider>` in numeric mode: a value on the grid `from + k * step`,
 //! within `[from, to]`.
 
-use cells_core::spec;
+use crate::spec;
 
 spec! {
     slider;

@@ -1,12 +1,9 @@
-//! An element's record (ADR 0032, decision 3; ADR 0034, decision 2):
-//! every attribute its type declares (`attributes { .. }`) and its
-//! children as the type reads them (`children:`), parsed once by the
-//! compile into typed values, each in the scope it was written in. A
-//! planner reads the record, never the source; what a planner of a `Plan`
-//! type reads of an `extend` referent is the referent's record merged
-//! under the element's own (`Record::merged_over`), so an extend with
-//! overrides is the referent with those changes wherever the referent sits.
+//! An element's record: every attribute its type declares and its children
+//! as the type reads them, parsed once by the compile into typed values,
+//! each in the scope it was written in. A planner reads the record, never
+//! the source; an extend's record is its own merged over the referent's.
 
+use crate::compile::rebase::Rebaser;
 use crate::compile::*;
 use crate::components::{AttrDecl, AttrKind, ChildrenDecl, ChildrenKind};
 
@@ -52,10 +49,9 @@ impl PointAttr {
     }
 }
 
-/// An element's declared attributes, parsed (`AttrValue`), by the
-/// attribute's position among its type's declarations, and whether each
-/// is the element's own or taken from what it extends; and its children,
-/// as its type reads them (`Children`).
+/// An element's declared attributes, parsed, by the attribute's position
+/// among its type's declarations, and whether each is the element's own or
+/// taken from what it extends; and its children, as its type reads them.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Record {
     values: Vec<AttrValue>,
@@ -87,12 +83,11 @@ enum Content {
     Value(ValueChildren),
 }
 
-/// Children read as a value (`children: Value`): what `plan_attrs` reads
-/// for a `PropFrom::Children` prop, and the value of a `<text>`, a
-/// `<boolean>` or an input, parsed once.
+/// Children read as a value (`children: Value`): a `PropFrom::Children`
+/// prop's, or the value of a `<text>`, a `<boolean>` or an input.
 #[derive(Debug, Clone)]
 pub(crate) struct ValueChildren {
-    /// The content: the children but layout and presentation (ADR 0024).
+    /// The content: the children but layout and presentation.
     pub(crate) nodes: Box<[NodeId]>,
     pub(crate) value: ChildValue,
     /// The tag of the first element among them, which a value cannot hold.
@@ -235,7 +230,7 @@ impl Record {
         }
     }
 
-    /// Read by `Attrs::of` for the `Ref` kind, which no type declares yet.
+    /// A `Ref`: the reference, none when absent. No type declares one yet.
     #[allow(dead_code)]
     pub(crate) fn reference(&self, attr: Attr) -> Option<RefId> {
         match self.get(attr) {
@@ -265,12 +260,11 @@ impl Record {
         self.children.groups.get(i).cloned().unwrap_or_default()
     }
 
-    /// The record with every absent value taken from `referent`'s, the
-    /// merge an extend with overrides is planned from (ADR 0032, decision
-    /// 3): the element's own values over the referent's. Children merge
-    /// the same way, each part on its own: the referent's math text or
-    /// value when the element has none, and the referent's members of a
-    /// group of which the element has none.
+    /// The record with every absent value taken from `referent`'s: the
+    /// element's own values over the referent's. Children merge the same
+    /// way, each part on its own: the referent's math text or value when
+    /// the element has none, and the referent's members of a group of which
+    /// the element has none.
     pub(crate) fn merged_over(mut self, referent: &Record) -> Record {
         let n = self.values.len().max(referent.values.len());
         self.values.resize(n, AttrValue::Absent);
@@ -297,26 +291,21 @@ impl Record {
         self
     }
 
-    /// Every reference and math text the record holds rewritten, when the
-    /// record is read from another template (`Compiler::rebase_record`).
-    pub(in crate::compile) fn rebase<'a>(
-        &mut self,
-        cp: &mut Compiler<'a>,
-        refs: &mut dyn FnMut(&mut Compiler<'a>, &mut RefId),
-        exprs: &mut dyn FnMut(&mut Compiler<'a>, &mut ExprId),
-    ) {
+    /// Every reference and math text the record holds rewritten, for a
+    /// record read from another template.
+    pub(in crate::compile) fn rebase(&mut self, rw: &mut Rebaser<'_, '_>) {
         for v in &mut self.values {
             match v {
-                AttrValue::Scalar(s) => rebase_source(s, cp, refs, exprs),
-                AttrValue::Point(PointAttr::Point(p)) => rebase_point(p, cp, refs, exprs),
+                AttrValue::Scalar(s) => rebase_source(s, rw),
+                AttrValue::Point(PointAttr::Point(p)) => rebase_point(p, rw),
                 AttrValue::Points(ps) => {
                     for p in ps {
-                        rebase_point(p, cp, refs, exprs);
+                        rebase_point(p, rw);
                     }
                 }
-                AttrValue::Ref(p) => refs(cp, p),
+                AttrValue::Ref(p) => rw.reference(p),
                 AttrValue::Content(v) => match &mut v.value {
-                    ChildValue::Reference(p) => refs(cp, p),
+                    ChildValue::Reference(p) => rw.reference(p),
                     // Math text names nodes planned where the referent
                     // sits: through a path, the copy takes none.
                     ChildValue::Math => *v = ValueChildren::blank(),
@@ -331,40 +320,30 @@ impl Record {
     }
 }
 
-fn rebase_source<'a>(
-    s: &mut Source,
-    cp: &mut Compiler<'a>,
-    refs: &mut dyn FnMut(&mut Compiler<'a>, &mut RefId),
-    exprs: &mut dyn FnMut(&mut Compiler<'a>, &mut ExprId),
-) {
+fn rebase_source(s: &mut Source, rw: &mut Rebaser<'_, '_>) {
     match s {
-        Source::Flow(Flow::Alias(Arg::Ref(p, _))) => refs(cp, p),
+        Source::Flow(Flow::Alias(Arg::Ref(p, _))) => rw.reference(p),
         Source::Flow(Flow::Op(_, args)) => {
             for a in args {
                 if let Arg::Ref(p, _) = a {
-                    refs(cp, p);
+                    rw.reference(p);
                 }
             }
         }
         Source::Flow(
             Flow::Math(id) | Flow::MathHandle(id, _) | Flow::MathValue(id) | Flow::SymExpr(id, _),
-        ) => exprs(cp, id),
-        Source::Leaf(Leaf::Scope(ScopeConst::Seed(p))) => refs(cp, p),
+        ) => rw.expr(id),
+        Source::Leaf(Leaf::Scope(ScopeConst::Seed(p))) => rw.reference(p),
         _ => {}
     }
 }
 
-fn rebase_point<'a>(
-    p: &mut GivenPoint,
-    cp: &mut Compiler<'a>,
-    refs: &mut dyn FnMut(&mut Compiler<'a>, &mut RefId),
-    exprs: &mut dyn FnMut(&mut Compiler<'a>, &mut ExprId),
-) {
+fn rebase_point(p: &mut GivenPoint, rw: &mut Rebaser<'_, '_>) {
     match p {
-        GivenPoint::Ref(p) | GivenPoint::Item(p, _) => refs(cp, p),
+        GivenPoint::Ref(p) | GivenPoint::Item(p, _) => rw.reference(p),
         GivenPoint::Tuple(xy) => {
             for s in xy {
-                rebase_source(s, cp, refs, exprs);
+                rebase_source(s, rw);
             }
         }
     }
@@ -373,9 +352,13 @@ fn rebase_point<'a>(
 impl Compiler<'_> {
     /// Element `e`'s record: every attribute its planner's type declares,
     /// and its children as the type reads them, parsed from the element's
-    /// own source where the element sits. Parsed once, when parsing (ADR
-    /// 0030); a planner reads it through `PlanCtx::record`.
-    pub(in crate::compile) fn parse_record(&mut self, t: TemplateId, e: ElemId) -> Result<Record> {
+    /// own source where the element sits.
+    pub(in crate::compile) fn parse_record(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<Record> {
         let Elem {
             node,
             planned_as,
@@ -391,7 +374,7 @@ impl Compiler<'_> {
                 tag: String::new(),
             });
         }
-        self.parse_node_record(t, scope, node, planned_as)
+        self.parse_node_record(rf, t, scope, node, planned_as)
     }
 
     /// The record of `node`, an element of type `component_type` (an
@@ -399,6 +382,7 @@ impl Compiler<'_> {
     /// `scope`.
     fn parse_node_record(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
@@ -413,21 +397,22 @@ impl Compiler<'_> {
             tag: self.dast.str(node).to_string(),
         };
         for decl in decls {
-            let value = self.parse_attr(t, scope, node, decl)?;
+            let value = self.parse_attr(rf, t, scope, node, decl)?;
             record.own.push(!matches!(value, AttrValue::Absent));
             record.values.push(value);
         }
-        record.children = self.parse_children(t, scope, node, &def.children)?;
+        record.children = self.parse_children(rf, t, scope, node, &def.children)?;
         Ok(record)
     }
 
     /// The children of `node` as `decl` reads them, planned from `scope`.
-    /// Layout and presentation (ADR 0024) are no content. An element child
+    /// Layout and presentation are no content. An element child
     /// is a member of the group that names its type, directly or inside a
     /// wrapper named as the group is; one no group takes is an error when
     /// the type has groups, and math text's (as written) when it has none.
     fn parse_children(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
@@ -456,13 +441,13 @@ impl Compiler<'_> {
             if let Some(g) = decl.groups.iter().position(|g| g.name == tag) {
                 for &m in d.children(n) {
                     if d.kind(m) == NodeKind::Element {
-                        let member = self.parse_member(t, scope, m, decl, Some(g))?;
+                        let member = self.parse_member(rf, t, scope, m, decl, Some(g))?;
                         children.groups[g].push(member);
                     }
                 }
                 continue;
             }
-            let member = self.parse_member(t, scope, n, decl, None)?;
+            let member = self.parse_member(rf, t, scope, n, decl, None)?;
             let g = decl
                 .groups
                 .iter()
@@ -482,7 +467,9 @@ impl Compiler<'_> {
                 )));
             }
             ChildrenKind::Math => Content::Math(content.into()),
-            ChildrenKind::Value => Content::Value(self.parse_value_children(t, scope, content)?),
+            ChildrenKind::Value => {
+                Content::Value(self.parse_value_children(rf, t, scope, content)?)
+            }
         };
         Ok(children)
     }
@@ -492,6 +479,7 @@ impl Compiler<'_> {
     /// not that one) takes its type.
     fn parse_member(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         n: NodeId,
@@ -510,7 +498,7 @@ impl Compiler<'_> {
                 let names: Vec<&str> = decl.groups.iter().map(|g| g.name).collect();
                 Error::Unsupported(format!("<{tag}> among the {}", names.join(" or ")))
             })?;
-        let record = self.parse_node_record(t, scope, n, component_type)?;
+        let record = self.parse_node_record(rf, t, scope, n, component_type)?;
         Ok(Member {
             component_type,
             record,
@@ -521,6 +509,7 @@ impl Compiler<'_> {
     /// them is planned here, where it was written.
     fn parse_value_children(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: Vec<NodeId>,
@@ -541,7 +530,7 @@ impl Compiler<'_> {
             }
         }
         let value = match (macros, texts.len()) {
-            (1, 0) => ChildValue::Reference(self.plan_ref(t, scope, macro_node)?),
+            (1, 0) => ChildValue::Reference(self.plan_ref(rf, t, scope, macro_node)?),
             (0, 1..) => ChildValue::Text {
                 text: texts.iter().map(|&n| d.str(n)).collect(),
                 id: (texts.len() == 1).then(|| d.str_id(texts[0])),
@@ -559,6 +548,7 @@ impl Compiler<'_> {
     /// Attribute `decl` of `node`, planned from `scope`.
     fn parse_attr(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
@@ -570,12 +560,17 @@ impl Compiler<'_> {
         };
         Ok(match decl.kind {
             AttrKind::Scalar => {
-                AttrValue::Scalar(self.plan_scalar(t, scope, d.attr_children(a))?)
+                AttrValue::Scalar(self.plan_scalar(rf, t, scope, d.attr_children(a))?)
             }
-            AttrKind::Value => {
-                AttrValue::Scalar(self.plan_value(t, scope, decl.name, d.attr_children(a), None)?)
-            }
-            AttrKind::Point => AttrValue::Point(match self.plan_point_attr(t, scope, a) {
+            AttrKind::Value => AttrValue::Scalar(self.plan_value(
+                rf,
+                t,
+                scope,
+                decl.name,
+                d.attr_children(a),
+                None,
+            )?),
+            AttrKind::Point => AttrValue::Point(match self.plan_point_attr(rf, t, scope, a) {
                 Ok(p) => PointAttr::Point(p),
                 // Not a point (`center="A"`): the planner's to warn about
                 // or refuse.
@@ -584,10 +579,12 @@ impl Compiler<'_> {
                 }
                 Err(e) => return Err(e),
             }),
-            AttrKind::Points { .. } => AttrValue::Points(self.plan_point_list(t, scope, node, a)?),
+            AttrKind::Points { .. } => {
+                AttrValue::Points(self.plan_point_list(rf, t, scope, node, a)?)
+            }
             AttrKind::Flag { .. } => AttrValue::Scalar(match self.single_macro(a) {
                 // A reference is bound.
-                Some(_) => self.plan_scalar(t, scope, d.attr_children(a))?,
+                Some(_) => self.plan_scalar(rf, t, scope, d.attr_children(a))?,
                 // A literal: a bare attribute is true.
                 None => Source::given(if self.attr_flag(node, decl.name) {
                     1.0
@@ -611,7 +608,7 @@ impl Compiler<'_> {
             ),
             AttrKind::Content => {
                 let nodes = d.attr_children(a).to_vec();
-                AttrValue::Content(self.parse_value_children(t, scope, nodes)?)
+                AttrValue::Content(self.parse_value_children(rf, t, scope, nodes)?)
             }
             AttrKind::Text => match self.attr_text(a) {
                 Some(text) => AttrValue::Text(text),
@@ -623,16 +620,15 @@ impl Compiler<'_> {
                     attr: decl.name.into(),
                     text: self.attr_text(a).unwrap_or_default(),
                 })?;
-                AttrValue::Ref(self.plan_ref(t, scope, m)?)
+                AttrValue::Ref(self.plan_ref(rf, t, scope, m)?)
             }
         })
     }
 }
 
-/// The parse of children into the record (ADR 0034, decision 2), each
-/// kind against a type that declares it, and the merge an extend with
-/// overrides is planned from: the element's own children over its
-/// referent's, each part on its own.
+/// The parse of children into the record, each kind against a type that
+/// declares it, and the merge of an element's own children over its
+/// referent's.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -650,8 +646,7 @@ mod tests {
     }
 
     /// `children: Value`: a literal, one reference, math text and a
-    /// blank, presentation passed over (a `<number>`'s, read by
-    /// `plan_attrs`).
+    /// blank, presentation passed over.
     #[test]
     fn value_children_are_a_literal_a_reference_math_or_blank() {
         let doc = load(document([

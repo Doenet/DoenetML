@@ -1,6 +1,5 @@
-//! Load time of each `tick_cost` shape and of `fixtures/sir.doenet` (path in
-//! `SIR`), as JSON lines: the median of `REPS` loads (default 7). For
-//! comparing load across commits (ADR 0026, step 6); the sir source is
+//! Load time of each `tick_cost` shape and of `fixtures/sir.doenet`, as
+//! JSON lines: the median of `REPS` loads (default 7). The sir source is
 //! parsed once, outside the timing.
 //!
 //! - `CELLS_SHAPES`: which shapes (and `sir`) to run; default all.

@@ -1,13 +1,11 @@
-//! Which cells leave the core (ADR 0019): the props a renderer reads, of
-//! the components that are rendered, and the scores a grader reads. Each
-//! component type marks its props `rendered` or `score` and says where it
-//! is drawn (`Renders`); the viewer's test fails on a renderer's read of
-//! any other cell. And which cells the document computes: the live ones,
-//! which those outputs and the core itself read (`build/live.rs`).
+//! Which cells leave the core: the props a renderer reads, of the
+//! components that are rendered, and the scores a grader reads. And which
+//! cells the document computes: the live ones, which those outputs and the
+//! core itself read.
 
 use super::*;
 
-impl Document {
+impl Built {
     /// Per component, whether it is rendered: the document is, and a
     /// component is when its parent is and its type's rule allows it
     /// where it is, `InGraph` only with a `<graph>` above it.
@@ -20,9 +18,7 @@ impl Document {
     /// share (a copy and its original) is an output when any of them
     /// makes it one. A rendered prop that heads a run of cells (a curve's
     /// samples) makes every cell of the run an output, when the prop its
-    /// type names for it says the run is there (a function's `curve`): a
-    /// run the planner left absent is one constant. A run may be derived
-    /// or, over constants, folded into constants (ADR 0028).
+    /// type names for it says the run is there.
     fn output_bits(&self) -> Vec<u64> {
         let rendered = self.rendered_components();
         let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
@@ -51,7 +47,7 @@ impl Document {
         bits
     }
 
-    /// Every output cell, ascending, each once; see `output_bits`.
+    /// Every output cell, ascending, each once.
     pub fn output_cells(&self) -> Vec<CellIdx> {
         let bits = self.output_bits();
         (CellIdx::below(self.cells.len()))
@@ -60,16 +56,14 @@ impl Document {
     }
 
     /// Whether the document computes `cell`: some output, or the core
-    /// itself, reads it (`build/live.rs`). With `LoadOptions::prune`, the
-    /// default, every cell is but the dead cell, which every slot nothing
-    /// reads names; without it, every cell is computed and this says
-    /// which are needed.
+    /// itself, reads it. Without `LoadOptions::prune`, every cell is computed
+    /// and this says which are needed.
     #[inline]
     pub fn is_live(&self, cell: CellIdx) -> bool {
         bit(&self.live.cells, cell)
     }
 
-    /// Every live cell, ascending; see `is_live`.
+    /// Every live cell, ascending.
     pub fn live_cells(&self) -> Vec<CellIdx> {
         (CellIdx::below(self.cells.len()))
             .filter(|&c| self.is_live(c))

@@ -6,7 +6,8 @@ are formatted are not decided here (see The renderer). Amended 2026-10-22:
 a spec tests its component, and the language's rules are kept by the core
 (see Done is a green spec, and Migration step 8). Amended 2026-10-23: a
 prop declares whether a renderer may request it (`interactive`, ADR 0017;
-see Plans are typed).
+see Plans are typed). Amended 2026-11-05: a spec sits beside its
+component's definition, not under `tests/` (see Where a spec lives).
 
 Terms: what this ADR first called a *role* is *shared state* now
 (`SharedState`, declared in a component's `shared_state { .. }`); see
@@ -220,6 +221,27 @@ would have caught the padding above.
 The JavaScript core's tests, through the parity harness, are an aid to
 porting, not a gate.
 
+### Where a spec lives
+
+A component's spec is a file beside its definition:
+`components/geometry/circle.spec.rs` for `components/geometry/circle.rs`,
+which includes it as a test-only module
+(`#[cfg(all(test, feature = "testing"))] #[path = "circle.spec.rs"] mod
+spec;`), as the other Rust core does its `*.test.rs`. A type defined in an
+inline module of its family's `mod.rs` (the slider) has its spec beside
+that `mod.rs`, which includes it. The cost snapshots are in
+`components/snapshots/<component>.cost`. The unit test that requires a
+spec checks both that the file exists and that the defining file includes
+it, since a spec nothing includes would never run.
+
+Amended 2026-11-05. The specs were integration tests under `tests/specs/`,
+laid out as `src/components/` is, so that a spec could use only the
+public API (Migration step 2). Reading a component meant opening two
+trees. They moved beside their definitions: a spec is a `spec!` block,
+whose cases are DoenetML, public prop names and values, so it reaches
+nothing private but through a value's expression, and the boundary the
+crate split enforced was already the macro's.
+
 ## Migration
 
 Two pilots, `<slider>` (a prop table and an operator chain: the easy path)
@@ -311,7 +333,8 @@ case), carry every piece before other components follow:
    snapshot included, on the commit before it moved too.
    The specs are laid out as the components are
    (`tests/specs/geometry/circle.rs` for `components/geometry/circle.rs`),
-   and stay integration tests so that a spec can use only the public API.
+   and stay integration tests so that a spec can use only the public API
+   (moved beside the definitions 2026-11-05: see Where a spec lives).
 3. Lists with per-element lengths, for the circle's through points, then
    the polygon's vertices. **Done for the circle**: a type's one list
    (`ListProp`, `ComponentType::prop_at`) follows its table's props; an
@@ -431,7 +454,8 @@ case), carry every piece before other components follow:
    **Done: every component has a spec, or is listed without one.**
    `component_types!` names where each type is defined
    (`geometry::circle::DEFINITION`), which is where its spec is
-   (`tests/specs/geometry/circle.rs`); a unit test in `components/mod.rs`
+   (`tests/specs/geometry/circle.rs`, now `geometry/circle.spec.rs`
+   beside it: see Where a spec lives); a unit test in `components/mod.rs`
    fails for a type an author writes (not `internal`) with no spec there,
    unless it is in `WITHOUT_SPEC`, and for one in `WITHOUT_SPEC` that has
    a spec, so the list only shrinks. It starts with 54 types; the

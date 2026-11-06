@@ -1,6 +1,10 @@
 # Compile once, build per structure: a hard line between the two
 
 Status: accepted 2026-10-17. Every step of the migration is done; see Progress.
+Amended 2026-10-29 (one load sequence), 2026-11-05 (ADR 0035: a build
+gains a define stage, the abstract build stops at it, and the compile
+holds no program) and 2026-11-05 again (the document owns the engine and
+lends it to each build); see the amendments at the end.
 
 The core works in three stages that differ in how often they run and what
 they may depend on, and this ADR makes the line between them hard: each
@@ -321,6 +325,9 @@ The compile reads, from the build, only what its check runs:
 `build::abstract build`, `build::first_build` and `BuildOutput`, all in
 `compile/check.rs`. Per-phase profiling (`profile.rs`) belongs to
 neither. A change that needs more across the line is a change to this ADR.
+(Amended twice since: `first_build` went with the one load sequence, and
+no `BuildOutput` crosses the line since ADR 0035; see the amendments
+below.)
 
 ## Consequences
 
@@ -376,3 +383,70 @@ template slot) was taken as live whatever read it, so a pruned build
 computed an interface prop nothing reads from branch cells the record had
 pruned and failed as unchecked. Such a class is now live only when a root or
 a live class reads it, as in the abstract build's walk (`build/live.rs`).
+
+## Amendment: the abstract build stops at define, 2026-11-05
+
+ADR 0035 splits emit in two at the line the code drew inside it. **Define**
+merges aliased slots into the cells they will share, orients the author's
+operators and classes every cell; **emit** numbers the cells, pools and
+folds the constants, binds the instructions, seeds values and makes
+tapes. A build is expand, resolve, define, emit, schedule. The abstract
+build runs expand, resolve, its checks and define, and makes no program;
+emit runs only in a stamped build and reads no view.
+
+So what the compile reads of the build is now `build::abstract_build`,
+which returns `AbstractFindings`, and `build::abstract_signature`, the
+input signature (ADR 0017) read off the same definitions, both in
+`compile/check.rs`, with the signature's types for `compare_versions`
+(`compile/compare.rs`). No `BuildOutput` crosses the line: the compile
+never holds a program, made or discarded. The view is read by expand and
+resolve, by the abstract build's checks, and once by define, for a loop
+of aliases; never by emit or anything after it.
+
+The rule a contributor follows gains a line: a diagnostic raised in emit
+is misplaced, as one raised in a stamped build is, and a view read in emit
+is a bug. The price the amendment above names, one more expand and emit
+at load for a document without repeats or selects, is now an expand,
+resolve and define; ADR 0012's section of 2026-11-05 has the numbers.
+
+## Amendment: the document owns the engine, 2026-11-05
+
+"The engine into the session" put the math engine in `Session` as an
+`Rc<RefCell<Engine>>`, beside the cache of constant handles (ADR 0028,
+`Session::math_constants`), so that it outlived every build. A rebuild
+made whole new `Document`s, each pass's computed with the engine, and the
+old document had to stay whole if the rebuild failed; the shared `Rc` let
+both hold the engine. It cost a build that took `&Session` yet wrote to
+the engine through the `RefCell`, every new session cloning the handle, a
+request cloning it so its borrow did not hold the document, and an
+abstract build making a `Session` only to reach an engine. (The program
+no longer keeps a clone for the tick, as the section said: a tick lends
+it `&mut Engine`.)
+
+The document's fields already fell in two groups, what one build made and
+what outlives every build; the struct now says so. `Document` is `built:
+Built`, which a rebuild replaces, `session`, `math: MathStore`, `loaded`
+and how a tick recomputes. `MathStore` (`session.rs`) is the engine and the
+constant handles, which the session no longer holds. A build takes
+`&Session` and `&mut MathStore`; `settle` lends the document's math to
+every pass, which yields a `Built` and the session it returned, and a
+rebuild that settles replaces `built` and `session` and nothing else. A
+failed one leaves the document as it was but for what its math gained,
+which, as before, only grows: the engine never truncates, and an equal
+expression made again finds its handle, so every handle the document
+holds stays valid. A load makes a `MathStore` and moves it into the
+document; the abstract build makes its own, so no handle it makes reaches
+a document, as ADR 0028 requires of the constant handles.
+
+`Document` reads as its build (`Deref<Target = Built>`), so `doc.cells`
+and the build's read methods, now `Built`'s, are unchanged; nothing
+derefs mutably, so what writes to a build names `doc.built`, and a
+borrow of the engine beside one of the build is two fields lent at once,
+not a cloned handle. `BuildOutput::schedule` takes the math the build was
+lent and makes a document that owns it; `schedule_built` gives the
+`Built` and the session, for a caller that keeps its math itself, as a
+test that carries one session through many builds does. `parse_math`
+takes `&mut self`, since it adds to the engine. Cloning a document now
+copies its engine, which rebuilds the parser, where it used to share it:
+only tests clone a document. No behavior changed: the golden dump is
+identical.

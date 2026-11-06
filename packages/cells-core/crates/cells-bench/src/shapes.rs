@@ -1,11 +1,7 @@
-//! Synthetic documents for timing the tick (`examples/tick_cost.rs`), built
-//! in Rust with `testing::dast`, so neither the parser nor node is needed.
-//! Each shape is driven by dragging one coordinate of a point between two
-//! values, and knows what it computes: after a drag to `check.0`, the props
-//! in `check.1` must hold their values, or the shape was not built as
-//! meant. `docs/tick-design-decisions.md` says which decision each serves.
-
-use std::sync::Arc;
+//! Synthetic documents for timing the tick, built in Rust with
+//! `testing::dast`. Each shape is driven by dragging one coordinate of a
+//! point between two values, and knows what it computes: after a drag to
+//! `check.0`, the props in `check.1` must hold their values.
 
 use cells_core::testing::dast::{Element, Node, build, el, mac, text};
 use cells_core::{CellIdx, Document, LoadOptions};
@@ -325,9 +321,7 @@ fn chain(n: usize, pct: usize) -> Shape {
 pub fn load(elements: Vec<Element>) -> Document {
     let doc = elements.into_iter().fold(el("document"), |d, e| d.child(e));
     let dast = build([Node::from(doc)]);
-    Document::load_dast(Arc::new(dast), LoadOptions::default())
-        .unwrap()
-        .0
+    Document::load_dast(dast, LoadOptions::default()).unwrap().0
 }
 
 /// The one cell of `component.prop`.

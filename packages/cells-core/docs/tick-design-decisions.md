@@ -198,6 +198,8 @@ elements, measured at 10,000 and 100,000.
   builds `tick_cost` at a base commit and in the working tree, runs them
   alternately seven times, and prints the working tree's tick over the
   base's, with whether their values agree.
+- `examples/load_cost.rs` and `scripts/load-diff.sh [base] [shapes]
+  [sizes]` do the same for a load of each shape (`docs/load-cost.md`).
 - `examples/program_size.rs` prints each golden document's cells and
   instructions.
 
@@ -904,6 +906,8 @@ Kept in the repository:
 | `crates/cells-bench/examples/tick_cost.rs` | times shapes under the core's evaluators |
 | `crates/cells-bench/examples/program_size.rs` | golden documents' program sizes (#8) |
 | `scripts/tick-diff.sh` | a base commit against the working tree |
+| `crates/cells-bench/examples/load_cost.rs` | times a load of each shape |
+| `scripts/load-diff.sh` | a base commit's load against the working tree |
 
 Everything, at the tag `cells-tick-alternatives`:
 

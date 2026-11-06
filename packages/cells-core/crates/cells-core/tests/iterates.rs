@@ -1,6 +1,6 @@
 //! `<functionIterates>`, `<repeat for>` over its iterates, tuples,
 //! `<clampNumber>`, `<polyline>`, `prefill="$n"` and `<triggerSet>`, alone
-//! and together in the SIR simulation (`fixtures/sir.doenet`).
+//! and together in the SIR simulation.
 
 use cells_core::components::ComponentType;
 use cells_core::testing::reference;

@@ -1,4 +1,4 @@
-//! `<text>`: its definition and its planner (ADR 0016).
+//! `<text>`: its definition and its planner.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
@@ -7,8 +7,7 @@ use crate::error::{Error, Result};
 
 component! {
     /// `<text>` with literal content: `value` is a given value holding the
-    /// string id of its text (ADR 0009). A cell's meaning is a property of the
-    /// operators around it, so a text value never reaches a numeric one.
+    /// string id of its text. A text value never reaches a numeric one.
     tags: ["text"],
     flags: [copyable],
     default_prop: value,
@@ -21,9 +20,8 @@ component! {
 
 pub const VALUE: usize = Props::AT.value;
 
-/// Literal text (or nothing) is a given value holding its string id, since
-/// DoenetML's text value is state where a bound `<textInput>` writes it;
-/// a lone reference aliases another text's value.
+/// Literal text (or nothing) is a given value holding its string id; a
+/// lone reference aliases another text's value.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let children = Attrs::of(ctx.record()).children;
     let value = match children.value {

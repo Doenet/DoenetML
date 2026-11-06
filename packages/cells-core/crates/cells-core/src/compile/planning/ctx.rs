@@ -1,26 +1,23 @@
-//! [`PlanCtx`]: what every planner in `components/` is given (ADR 0016).
+//! [`PlanCtx`]: what every component planner is given.
 
+use super::Planning;
 use crate::compile::*;
 use crate::components::ConstrainTarget;
 
-/// What a planner is given (ADR 0016, ADR 0034): the element's record, the
-/// attributes and children the compile parsed before planning (the
-/// element's own merged over its `extend` referent's), the planning of
-/// what the record holds (math text, a reference), the port makers'
-/// facts, and `warn`; never the DAST, a node, or `extend`. What comes from
-/// the referent is planned where the referent sits, so a `$n` in it keeps
-/// the meaning it has there (ADR 0023); what the element writes itself is
-/// planned where the element sits. `plan_with_extend` makes it and does
-/// the rest: a bare copy and sharing state with the referent. No planner
-/// applies `fixed`: `plan_elem` holds every element after its planner
-/// (`compile/planning/fix.rs`). A test (`components/mod.rs`) counts its
-/// methods, so that it grows deliberately.
+/// What a planner is given: the element's record (its own attributes and
+/// children merged over its `extend` referent's), the planning of what the
+/// record holds, the port makers' facts, and `warn`; never the DAST, a
+/// node, or `extend`. What comes from the referent is planned where the
+/// referent sits; what the element writes itself, where the element sits.
+/// No planner applies `fixed`.
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
+    /// Planning's working set.
+    p: &'c mut Planning<'a>,
     t: TemplateId,
     e: ElemId,
-    /// The element's record (ADR 0032, ADR 0034): its own, merged under
-    /// its `extend` referent's for a copy with overrides.
+    /// The element's record: its own, merged under its `extend` referent's
+    /// for a copy with overrides.
     record: record::Record,
     /// The `extend` referent of a copy with overrides, in this template,
     /// whose math text in the record is planned where it sits.
@@ -40,6 +37,7 @@ struct Base {
 impl<'c, 'a> PlanCtx<'c, 'a> {
     pub(in crate::compile) fn new(
         c: &'c mut Compiler<'a>,
+        p: &'c mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
         record: record::Record,
@@ -70,6 +68,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         });
         PlanCtx {
             c,
+            p,
             t,
             e,
             record,
@@ -96,10 +95,9 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
-    /// The element's record (ADR 0032, ADR 0034): every attribute its
-    /// type declares and its children as the type reads them, parsed, the
-    /// element's own or its referent's. A planner reads it as its type's
-    /// `Attrs` (`Attrs::of(ctx.record())`).
+    /// The element's record: every attribute its type declares and its
+    /// children as the type reads them, parsed, the element's own or its
+    /// referent's.
     pub(crate) fn record(&self) -> &record::Record {
         &self.record
     }
@@ -131,26 +129,27 @@ impl<'a> PlanCtx<'_, 'a> {
     #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) fn scalar_of(&mut self, nodes: &[NodeId]) -> Result<Source> {
         let scope = self.scope_for(nodes);
-        self.c.plan_scalar(self.t, scope, nodes)
+        self.c.plan_scalar(&mut self.p.refs, self.t, scope, nodes)
     }
 
     /// Math text that is a pair, `(a, b)`, as its two coordinates.
     pub(crate) fn tuple(&mut self, nodes: &[NodeId]) -> Result<[Source; 2]> {
         let scope = self.scope_for(nodes);
-        self.c.plan_tuple(self.t, scope, nodes)
+        self.c.plan_tuple(&mut self.p.refs, self.t, scope, nodes)
     }
 
     /// Children or an attribute read as a value, not blank: a reference,
     /// a literal, or math text, as a table prop of `children` is planned.
     pub(crate) fn value_of(&mut self, v: &ValueChildren) -> Result<Source> {
         let scope = self.scope_for(&v.nodes);
-        self.c.plan_value_children(self.t, scope, v)
+        self.c
+            .plan_value_children(&mut self.p.refs, self.t, scope, v)
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
     /// an error when what it names has no such prop.
     pub(crate) fn with_prop(&mut self, p: RefId, prop: &'static str) -> Result<RefId> {
-        self.c.plan_with_prop(self.t, p, prop)
+        self.c.plan_with_prop(&mut self.p.refs, self.t, p, prop)
     }
 
     /// A prop of the element a reference names, as an operator's argument.
@@ -163,13 +162,15 @@ impl<'a> PlanCtx<'_, 'a> {
     /// outlining settled it (a `<math>` may be a point).
     pub(crate) fn reference_type(&mut self, p: RefId) -> Result<Option<ComponentType>> {
         match self.c.plan_elem_target(self.t, p) {
-            Some(_) => self.c.referent_type(self.t, self.e, p),
+            Some(_) => self
+                .c
+                .referent_type(&mut self.p.planned.reads, self.t, self.e, p),
             None => Ok(None),
         }
     }
 
     /// How a point is constrained to what `p` names: its type's
-    /// declaration (`constrain_target`, ADR 0034); an error when it names
+    /// `constrain_target` declaration; an error when it names
     /// no component in this template or one of a type that is no target.
     pub(crate) fn constrain_target(&mut self, p: RefId) -> Result<ConstrainTarget> {
         let target = self.reference_type(p)?.ok_or_else(|| {
@@ -188,7 +189,7 @@ impl<'a> PlanCtx<'_, 'a> {
         nodes: &'n [NodeId],
     ) -> Result<(Vec<Token>, MathSrc<'n>)> {
         let scope = self.scope_for(nodes);
-        self.c.math_tokens(self.t, scope, nodes)
+        self.c.math_tokens(&mut self.p.refs, self.t, scope, nodes)
     }
 
     /// An expression as a source: lowered to numeric operators when it is
@@ -207,7 +208,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// its text kept for the symbolic engine.
     pub(crate) fn sym_math(&mut self, nodes: &[NodeId], mt: &MathText) -> Result<ExprId> {
         let scope = self.scope_for(nodes);
-        self.c.parse_math_text(self.t, scope, mt)
+        self.c.parse_math_text(&mut self.p.refs, self.t, scope, mt)
     }
 
     /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as sources
@@ -235,10 +236,10 @@ impl<'a> PlanCtx<'_, 'a> {
             c.parse_tokens(&sides[0], src)?,
             c.parse_tokens(&sides[1], src)?,
         );
-        let diff = c.compiled.arena.push(Expr::Sub(lhs, rhs));
-        let diff = c.inline_symbolic_maths(t, diff);
+        let diff = c.plans.arena.push(Expr::Sub(lhs, rhs));
+        let diff = c.inline_symbolic_maths(&self.p.parsed, t, diff);
         Ok(
-            super::expr::linear_coeffs(&mut c.compiled.arena, diff, vx, vy).map(|[a, b, k]| {
+            super::expr::linear_coeffs(&mut c.plans.arena, diff, vx, vy).map(|[a, b, k]| {
                 [
                     c.plan_from_expr(a),
                     c.plan_from_expr(b),
@@ -248,7 +249,7 @@ impl<'a> PlanCtx<'_, 'a> {
         )
     }
 
-    /// The canonical string id of `text` (`Compiler::intern_literal`).
+    /// The canonical string id of `text`.
     pub(crate) fn intern(&mut self, text: &str) -> StrId {
         self.c.intern_literal(text)
     }
@@ -260,13 +261,12 @@ impl<'a> PlanCtx<'_, 'a> {
         let scope = self.scope_for(nodes);
         let compare = self.c.compare_attrs(&[self.node()]);
         self.c
-            .plan_condition_content(self.t, scope, nodes, compare, wiring)
+            .plan_condition_content(&mut self.p.refs, self.t, scope, nodes, compare, wiring)
     }
 
     /// Warns that the element cannot be what its attributes ask, with a
-    /// code and message of `packages/i18n/src/diagnostics.ts` (ADR 0013).
-    /// A planner warns rather than leave a NaN to explain itself: what it
-    /// cannot define is `Wire::undefined` of what this returns.
+    /// diagnostic code and message. What the planner cannot define is
+    /// `Wire::undefined` of what this returns.
     pub(crate) fn warn(&mut self, code: &'static str, message: &str) -> Warned {
         let node = self.node();
         self.c.warn(node, code, message)
@@ -274,10 +274,10 @@ impl<'a> PlanCtx<'_, 'a> {
 
     // The element's wiring.
 
-    /// The element's `<math>` text as it was parsed (ADR 0029), or the
+    /// The element's `<math>` text as it was parsed, or the
     /// error parsing it met.
     pub(crate) fn parsed_math(&self) -> Result<ParsedMath> {
-        match self.c.parsed().math(self.t, self.e) {
+        match self.p.parsed.math(self.t, self.e) {
             Some(parsed) => parsed.clone(),
             None => Err(Error::Internal("a <math> that was never parsed".into())),
         }

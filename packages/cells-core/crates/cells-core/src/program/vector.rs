@@ -1,13 +1,11 @@
 //! Vector operators: instructions with several inputs and possibly several
-//! outputs, used by the geometric components (ADR 0006), by choices (ADR
-//! 0009) and by scoring. Each is a pure
-//! function of its inputs with a hand-written inverse rule; none knows which
-//! component it serves. Inputs are consecutive entries of `Program::operands`,
-//! outputs are consecutive cells.
+//! outputs, used by the geometric components, by choices and by scoring. Each
+//! is a pure function of its inputs with a hand-written inverse rule. Inputs
+//! are consecutive entries of `Program::operands`, outputs are consecutive
+//! cells.
 //!
-//! Inverse rules, in one place so they can be judged together. The last
-//! column is the inputs each inverse may write (`VecOp::writes`, ADR
-//! 0018), which the `writes` tests below check:
+//! Inverse rules; the last column is the inputs each inverse may write
+//! (`VecOp::writes`):
 //!
 //! | operator                 | forward                               | inverse (requested outputs → inputs)                                 | writes            |
 //! |--------------------------|---------------------------------------|----------------------------------------------------------------------|-------------------|
@@ -31,10 +29,7 @@
 //! | `Centroid{n}`            | n points → their mean                 | translate every point by the requested center's shift                | every point       |
 //!
 //! Inverses that move several points at once hand them to the request
-//! engine as one *point group* ([`Produced::group`]); the engine, not the
-//! operator, asks what each point would actually become and shifts the free
-//! ones when a strict subset is held back (`tick/invert.rs`). A free line or
-//! polygon has no instruction at all: its point cells alias the points.
+//! engine as one *point group* ([`Produced::group`]).
 
 use crate::document::CellIdx;
 use crate::tick::invert::PointRequest;
@@ -52,7 +47,7 @@ pub enum Pivot {
 /// How a rigid shape may move. One dragged vertex rotates and, if `dilate`,
 /// scales the shape about the pivot; several dragged vertices translate it.
 /// `rotate` and `translate` switch those off. How far a pure dilation may
-/// shrink the shape is an input (`VecOp::Shape`).
+/// shrink the shape is an input.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RigidOpts {
     pub dilate: bool,
@@ -70,8 +65,8 @@ impl RigidOpts {
     };
 }
 
-/// What an inverse produces: scalar input requests, and point groups that
-/// the engine moves together (see `tick::invert::invert_requests`).
+/// What an inverse produces: scalar input requests, and point groups that the
+/// engine moves together.
 #[derive(Debug, Default)]
 pub struct Produced {
     pub writes: Vec<(CellIdx, f64)>,
@@ -113,10 +108,9 @@ pub enum VecOp {
     ProjectCircle,
     /// Inputs (x, y, x1, y1, x2, y2); outputs (x', y').
     ProjectLine,
-    /// A reactive choice's choice cell (ADR 0009): inputs are its `n`
-    /// condition cells; the output is the 1-based position of the first
-    /// that holds (nonzero, not NaN), or 0. No inverse: a request cannot
-    /// flip a branch.
+    /// A reactive choice's choice cell: inputs are its `n` condition cells; the
+    /// output is the 1-based position of the first that holds (nonzero, not
+    /// NaN), or 0. No inverse: a request cannot flip a branch.
     First { n: u8 },
     /// An interface name of a choice whose branches are all built: inputs
     /// are the choice cell and the name's cell in each of the `n` branches;
@@ -124,14 +118,12 @@ pub enum VecOp {
     /// The inverse writes the active branch only.
     Choose { n: u8 },
     /// Credit over scored items: inputs are `n` weights then `n` credits;
-    /// outputs are the weighted mean and the total weight. The mean is 1
-    /// when the total weight is 0 (nothing scored), as in the current core.
-    /// Means of chunks combine by their totals, so a large section is a
-    /// tree of these. No inverse: credit is not set by a request.
+    /// outputs are the weighted mean and the total weight. The mean is 1 when
+    /// the total weight is 0 (nothing scored). No inverse: credit is not set by
+    /// a request.
     WeightedMean { n: u8 },
     /// Input 0 held between inputs 1 and 2; NaN if any is NaN. A request
-    /// projects onto the bounds and writes input 0 (ADR 0003). A vector
-    /// operator only so that a scalar one reads at most two cells.
+    /// projects onto the bounds and writes input 0.
     Clamp,
     /// Inputs 2n point coordinates (n ≥ 1); outputs (cx, cy), their mean:
     /// a polygon's center. A request on it translates every point by the
@@ -179,7 +171,7 @@ impl VecOp {
     }
 
     /// The input positions its inverse may write, as a mask (the table's
-    /// last column; `OpSpec::writes`).
+    /// last column).
     pub fn writes(&self) -> u64 {
         let first = |k: usize| if k >= 64 { u64::MAX } else { (1u64 << k) - 1 };
         match *self {
@@ -579,8 +571,7 @@ fn unit(x: f64, y: f64) -> (f64, f64) {
     }
 }
 
-/// Unit direction, or straight up when the two points coincide (the current
-/// core's through-point default puts the point above the center).
+/// Unit direction, or straight up when the two points coincide.
 fn direction_or_up(x: f64, y: f64) -> (f64, f64) {
     let m = x.hypot(y);
     if m == 0.0 || !m.is_finite() {
@@ -715,9 +706,9 @@ fn project_line(x: f64, y: f64, x1: f64, y1: f64, x2: f64, y2: f64) -> (f64, f64
 }
 
 /// Every input a vector inverse writes, as a scalar write or a point of a
-/// group, is one `VecOp::writes` declares (ADR 0018); and every inverse
-/// round-trips: what it writes, evaluated again, gives the requested
-/// outputs, or a projection that asking again leaves where it is (ADR 0026).
+/// group, is one `VecOp::writes` declares; and every inverse round-trips:
+/// what it writes, evaluated again, gives the requested outputs, or a
+/// projection that asking again leaves where it is.
 #[cfg(test)]
 mod writes {
     use super::*;

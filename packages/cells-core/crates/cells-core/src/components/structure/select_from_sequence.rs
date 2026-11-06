@@ -1,4 +1,4 @@
-//! `<selectFromSequence>`: its definition and its planner (ADR 0016).
+//! `<selectFromSequence>`: its definition and its planner.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
@@ -7,7 +7,7 @@ use crate::error::{Error, Result};
 
 component! {
     /// `<selectFromSequence from to step>`: one number of the sequence, drawn
-    /// at load from the document seed (ADR 0009). The attributes must be
+    /// at load from the document seed. The attributes must be
     /// literals; `numToSelect` other than 1 is not supported.
     tags: ["selectFromSequence"],
     flags: [copyable],

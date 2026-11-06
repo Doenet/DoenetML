@@ -353,8 +353,9 @@ after each.
 
 Settled while implementing phase 1:
 
-- The handles are kept in the session (`Session::math_constants`), not
-  in `Compiled`: a handle is a position in the session's engine, and the
+- The handles are kept in the session (`Session::math_constants`; since
+  ADR 0015's amendment of 2026-11-05, `MathStore::constants`, which the
+  document owns beside the session), not in `Compiled`: a handle is a position in the session's engine, and the
   abstract build builds with an engine of its own
   (`build/abstract_build.rs`), so a handle the compile kept would name
   nothing in the document's engine. The cache is shared with every build's
@@ -514,3 +515,14 @@ Settled while implementing phase 6:
   constants shared: in every changed case, essential cells,
   instructions and components are the same, and cells and constants fall
   together.
+
+## Amendment: the pool's load cost, 2026-11-06
+
+Phase 6 made emit test every constant slot for being an operator's
+constant by scanning them all, so a load paid slots times constants: at
+10,000 distinct literals (the `breadth` and `isolated` shapes) emit took
+about 50 ms of a 90 ms load, against 1.4 ms on `depth`. The constants are
+now marked once per build. `scripts/load-diff.sh` against 79761c6, at
+10,000 elements: breadth 93.5 to 47.2 ms, isolated 96.6 to 46.7 ms, the
+other shapes within noise. `docs/load-cost.md` has the load's history
+since this ADR and where its time goes.

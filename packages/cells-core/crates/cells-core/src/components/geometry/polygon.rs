@@ -1,7 +1,6 @@
-//! `<polygon>`: its definition and its planner (ADR 0016). Its vertices
-//! are its list; a rigid or similar polygon keeps its shape through one
-//! instruction that owns every vertex. A triangle is planned here too
-//! (`triangle.rs`), with three vertices.
+//! `<polygon>`: its definition and its planner. Its vertices are its list;
+//! a rigid or similar polygon keeps its shape through one instruction that
+//! owns every vertex. A triangle is planned here too.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
@@ -13,7 +12,7 @@ use crate::tick::snap::Shape;
 
 component! {
     /// `<polygon vertices="...">`, optionally rigid: its vertices are its list
-    /// (ADR 0016), up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when rigid.
+    /// up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when rigid.
     tags: ["polygon"],
     flags: [copyable, located],
     renders: InGraph,
@@ -221,3 +220,7 @@ pub(super) fn plan_vertices(
     wiring.set_list(points);
     Ok(wiring)
 }
+
+#[cfg(all(test, feature = "testing"))]
+#[path = "polygon.spec.rs"]
+mod spec;

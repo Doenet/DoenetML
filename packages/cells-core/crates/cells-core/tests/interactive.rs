@@ -1,7 +1,6 @@
-//! Which cells a renderer may request (`Document::interactive_cells`, ADR
-//! 0017): the props each definition marks `interactive`, and the points of
-//! a list marked so. The core refuses a request on any other cell (ADR
-//! 0018); the viewer's test checks its renderers against these.
+//! Which cells a renderer may request (`Document::interactive_cells`): the
+//! props each definition marks `interactive`, and the points of a list
+//! marked so. The core refuses a request on any other cell.
 
 mod common;
 
@@ -109,8 +108,8 @@ fn interactive_cells_is_is_interactive() {
     assert_eq!(listed, every);
 }
 
-/// A submit and a trigger are actions (ADR 0018): each writes what a
-/// renderer's request on the same cells is refused.
+/// A submit and a trigger are actions: each writes what a renderer's
+/// request on the same cells is refused.
 #[test]
 fn a_submit_and_a_trigger_write_what_a_request_cannot() {
     let mut doc = load(

@@ -1,8 +1,7 @@
-//! Support for tests and benches, not used by the library itself: an
-//! independent oracle for the scheduled program, helpers that turn
-//! DoenetML source into a document, DASTs built in Rust for tests that
-//! need no parser (`dast`), component specs (`spec!`), and the round trip
-//! of every interactive cell (`round_trip`, ADR 0026).
+//! Support for tests and benches: an independent oracle for the scheduled
+//! program, helpers that turn DoenetML source into a document, DASTs built
+//! in Rust, component specs (`spec!`), and the round trip of every
+//! interactive cell.
 
 pub mod dast;
 pub mod reference;
@@ -10,15 +9,11 @@ pub mod round_trip;
 pub mod spec;
 pub mod test_utils;
 
-pub use crate::build::coverage::{AbstractEdges, abstract_edges, uncovered};
+pub use crate::build::coverage::{GraphEdges, graph_edges, uncovered};
 
 /// `f` of every item, computed on as many threads as the machine has
-/// cores, in the items' order: for a test that sweeps documents, seeds and
-/// counts, which would otherwise run on one core while the others wait.
-/// Each thread takes the next item as it finishes one, so one slow item
-/// (`sir.doenet`) does not hold up the rest. A panic stops every thread
-/// taking new items and is raised again here, the first by item order,
-/// once they have stopped.
+/// cores, returned in the items' order. A panic stops every thread taking
+/// new items and is raised again here, the first by item order.
 pub fn par_map<'a, T: Sync, R: Send>(items: &'a [T], f: impl Fn(&'a T) -> R + Sync) -> Vec<R> {
     use std::panic::{AssertUnwindSafe, catch_unwind, resume_unwind};
     use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -55,22 +50,19 @@ pub fn par_map<'a, T: Sync, R: Send>(items: &'a [T], f: impl Fn(&'a T) -> R + Sy
         .collect()
 }
 
-/// The compile of `dast`, checked as a load checks it. It depends on the
-/// source alone (ADR 0014): no seed reaches it.
+/// The compile of `dast`, checked as a load checks it.
 pub fn compile(
     dast: &crate::dast::Dast,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
-    let dast = std::sync::Arc::new(dast.clone());
-    Ok(crate::compile::compile(&dast, true, true, true, true, true)?.compiled)
+    Ok(crate::compile::compile(dast.clone(), true, true, true, true, true)?.compiled)
 }
 
-/// `compile`, with every value slot essential, as before ADR 0018
-/// (`LoadOptions::classify` off): what the classing is checked against.
+/// `compile`, with every value slot essential (`LoadOptions::classify`
+/// off).
 pub fn compile_unclassified(
     dast: &crate::dast::Dast,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
-    let dast = std::sync::Arc::new(dast.clone());
-    Ok(crate::compile::compile(&dast, true, false, true, true, true)?.compiled)
+    Ok(crate::compile::compile(dast.clone(), true, false, true, true, true)?.compiled)
 }
 
 /// The value of the one-cell prop at `path` (`"c.radius"`), for a unit
@@ -85,10 +77,8 @@ pub fn prop_value(doc: &crate::Document, path: &str) -> f64 {
     }
 }
 
-/// One tick requesting `value` for the one-cell prop at `path`, for a unit
-/// test of the language's rules over test-only components: a test of the
-/// machinery, so the request is unchecked (`request_unchecked`). Panics
-/// as `prop_value` does.
+/// One unchecked tick requesting `value` for the one-cell prop at `path`.
+/// Panics as `prop_value` does.
 pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate::TickOutcome {
     let cell = match spec::cells(doc, path)
         .unwrap_or_else(|e| panic!("{e}"))
@@ -101,11 +91,8 @@ pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate:
 }
 
 /// Requests on any cells, inverted as `Document::request` inverts them,
-/// without the check that each is an input's (ADR 0018): for a test of
-/// the core's machinery (a forced count, an inversion through a
-/// `<number>`), not of a component, whose spec reaches a prop through an
-/// input. It still writes only essential cells, so it cannot change a
-/// constant.
+/// without the check that each is an input's. It still writes only
+/// essential cells.
 pub fn request_unchecked(
     doc: &mut crate::Document,
     requests: &[crate::Request],
@@ -121,8 +108,8 @@ pub fn request_points_unchecked(
     doc.tick_unchecked(&[], &[points.to_vec()])
 }
 
-/// The essential cells saved state cannot name (ADR 0017): hidden ports
-/// holding no shared state, as `key (hidden slot k)`.
+/// The essential cells saved state cannot name: hidden ports holding no
+/// shared state, as `key (hidden slot k)`.
 pub fn unsaved_essentials(doc: &crate::Document) -> Vec<String> {
     let mut out: Vec<String> = doc
         .structure
@@ -143,9 +130,9 @@ pub fn unsaved_essentials(doc: &crate::Document) -> Vec<String> {
     out
 }
 
-/// What a student sees of one input (ADR 0017's soundness test): its
-/// interactive props' values as text, the points among them, and the
-/// bounds of the graph it is in, as the author set them.
+/// What a student sees of one input: its interactive props' values as text, the
+/// points among them, and the bounds of the graph it is in, as the author set
+/// them.
 #[derive(Debug, Clone, PartialEq)]
 pub struct InputState {
     pub values: Vec<(String, String)>,
@@ -154,8 +141,7 @@ pub struct InputState {
 }
 
 /// Every input of `doc` by its scope path and stable key, as `compiled`
-/// (the document's compile, from `compile`) keys its elements: what a
-/// restore must give back.
+/// (the document's compile) keys its elements.
 pub fn inputs(
     doc: &crate::Document,
     compiled: &crate::Compiled,
@@ -164,10 +150,13 @@ pub fn inputs(
     use crate::components::ComponentType;
 
     let mut key_of = std::collections::HashMap::new();
-    for t in &compiled.templates {
+    for t in &compiled.plans.templates {
         for (el, sealed) in t.elems.iter().zip(&t.sealed.elems) {
             if el.node != crate::dast::NodeId::NONE {
-                key_of.insert(el.node, compiled.keys.key_text(sealed.key).to_string());
+                key_of.insert(
+                    el.node,
+                    compiled.plans.keys.key_text(sealed.key).to_string(),
+                );
             }
         }
     }
@@ -246,11 +235,8 @@ pub fn inputs(
 }
 
 /// Whether `pruned` (`LoadOptions::prune` on) and `full` (off), the same
-/// document after the same ticks, agree on every live cell (ADR 0019):
-/// prop by prop, every prop whose cell is live in `pruned` holds the same
-/// value in both, a math cell the same expression and a text cell the
-/// same string. Pruning gives cells, never components, so the component
-/// tables match. The first disagreement, as `type.prop of component`.
+/// document after the same ticks, agree on every prop whose cell is live in
+/// `pruned`. Returns the first disagreement, as `type.prop of component`.
 pub fn live_cells_agree(full: &crate::Document, pruned: &crate::Document) -> Result<(), String> {
     use crate::program::ValueType;
     if full.n_components() != pruned.n_components() {

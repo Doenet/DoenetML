@@ -1,4 +1,4 @@
-//! `<point>`: its definition and its planner (ADR 0016). Its coordinates
+//! `<point>`: its definition and its planner. Its coordinates
 //! come from `coords`, from `x` and `y`, or from `(a, b)` children; a
 //! constraint child wraps them in a projection.
 
@@ -115,9 +115,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     Ok(wiring)
 }
 
-/// The point's coordinates as planned so far move to hidden raw ports,
-/// with their shared state, since they are its state; the public `x`, `y` are
-/// their projection onto the constraint.
+/// Moves the point's coordinates as planned so far to hidden raw ports,
+/// with their shared state; the public `x`, `y` become their projection
+/// onto the constraint.
 fn constrain(
     ctx: &mut PlanCtx<'_, '_>,
     wiring: &mut ElemWiring,

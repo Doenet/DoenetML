@@ -1,9 +1,5 @@
-//! `<choiceInput>`: a request on `selectedIndex` lands only when it names
-//! a choice. The current core's `selectedIndices` inverse keeps a requested
-//! index only when it is an integer from 1 to `numChoices`, and a
-//! single-select input given none clears its selection; here the
-//! `ChoiceIndex` projection does the same, so any other request chooses
-//! none (0).
+//! `<choiceInput>`: a request on `selectedIndex` lands only when it is an
+//! integer from 1 to `numChoices`; any other request chooses none (0).
 
 mod common;
 
@@ -38,10 +34,7 @@ fn a_request_naming_no_choice_chooses_none() {
     }
 }
 
-/// An infinite ask is dropped before inverting, as for every cell
-/// (`Document::request`), so the selection stays. The current core would
-/// clear it, as for any non-integer; recorded as a benign deviation, since
-/// no renderer asks for an infinite index.
+/// An infinite ask is dropped before inverting, so the selection stays.
 #[test]
 fn an_infinite_request_is_dropped() {
     let mut doc = load(THREE).unwrap();

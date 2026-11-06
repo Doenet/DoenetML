@@ -1,6 +1,6 @@
 # Plans are typed ports, and the compile is closed over its own IR
 
-Status: proposed 2026-11-03. Steps 1 to 7 of the Migration are done;
+Status: proposed 2026-11-03. Steps 1 to 8 of the Migration are done;
 see Migration. Builds on
 ADR 0027, ADR 0029, ADR 0030 and ADR 0031, which gave the compile its
 stages and its tables, and takes the step ADR 0023 deferred (aliasing
@@ -658,8 +658,405 @@ cheap; 4, 5 and 6 are independent of each other; 7 is last.
 8. **The abstract build as analysis.** Stamp templates in the abstract,
    label edges, join branches, count collections; the four records
    become port attributes; `build/abstract_build.rs` and the view go.
+   The attributes keep ADR 0036's rule: a stamped build reads the IR
+   and its attributes, never the abstract analysis's graph.
    Test: `tests/every_count.rs` and `tests/live.rs`, which check the
    records against real builds at every count and seed, unchanged.
+
+   It lands in six parts, each alone with the golden diff unchanged. The
+   order follows from ADR 0036: what the abstract build hands over stays
+   facts about ports, never an edge, so the template graph is the
+   compile's own from its first part, made from the IR, and is tested
+   against the abstract build while both exist; no part reads the graph
+   off the abstract builder.
+
+   1. **Port attributes.** The four records become attributes of
+      ports, a bit per fact by template slot, in a table of the check's
+      own (ADR 0031). Test: every test unchanged.
+
+      Done. `PortAttrs` (`compile/plan.rs`) is `WRITABLE`, `LIVE`,
+      `COUNTED` and `DOCUMENT_CONSTANT`; each template carries the
+      check's table, `Checked`, beside sealing's, and a build reads a
+      port's attributes through `Plans::port_attrs`
+      (`Builder::port_attrs` for a slot), so `Plans::classes`,
+      `Plans::live`, `Plans::counted`, `Plans::document_constants` and
+      the bitset `Record` of `compile/plan.rs` are gone, which leaves
+      `Record` naming only an element's attribute record (ADR 0034). The
+      classing off marks every port writable rather than leaving the
+      record out. A stamped build classes by the attributes
+      (`Defined::by_attributes`, `Builder::live_by_attributes`). The
+      abstract build still finds them, by its walks over its own slots,
+      and gives each port what its slots were found to be
+      (`AbstractFindings::attrs`). The golden diff is unchanged.
+   2. **The template graph.** The compile stamps each template once in
+      the abstract from the closed IR: a node per port and per value a
+      plan makes inside one (an operator of lowered math, a constant),
+      an edge per read, labelled by the reference's steps (an `Iter`
+      step's affine shift, `Coord::Keep`, or `Coord::Reset`, as
+      `index_coord` decides now), a choice's interface a join over its
+      branches, a collection's items and counts by the repeats it
+      crosses, and a specialization giving both of its sources. Nothing
+      reads it yet. Test: between element ports it has the dependencies
+      the abstract build has, with the same labels
+      (`testing::abstract_edges`), on the golden set and every fixture,
+      and it covers every stamped build at every count and seed
+      (`tests/every_count.rs`'s `admits`).
+
+      Done, in this form. `compile/graph/` stamps every live template
+      once from the plans (`template_graph`): a node per port of every
+      live element and of every component the abstract build makes
+      beside them (an interface's or a whole pick's stand-in, a case, a
+      `$ref` child, a collect's copy, a point list's point, kept in one
+      table, `TemplateGraph::made`), and per value a read goes through
+      (a reference leaf inside math, a choose over a dynamic index,
+      chunked as the build chunks it, an answer's credit, a case's gate,
+      a mean). A read keeps the label of the reference that made it when
+      that is not the identity (`TemplateGraph::labels`); any other read
+      keeps the levels its two ends' templates share and resets the
+      rest, as `edge_label` does, so the two graphs compose a path's
+      label the same way. The stamping runs in resolve's order, since
+      what a later step sees is what an earlier one made: copies of a
+      list type take their referent's ports, `$ref` children with no
+      index are placed, collects gather and count, point lists get their
+      points, indexed `$ref` children are placed, then the choices'
+      stand-ins, every port's reads, the aggregates and the holds
+      (`compile/graph/expand.rs`). References are walked as resolve
+      walks them in the abstract view (`compile/graph/walk.rs`), a
+      walk returning its label as resolve's does, and credit and section
+      numbers are stamped over the stamped tree, where a copy of an
+      answer scores through its own ports (`compile/graph/aggregate.rs`).
+      `Coord`, `Label` and `index_coord` moved to the compile, and the
+      abstract build reads them there. `tests/template_graph.rs` checks
+      it on the golden set, `sir.doenet`, every fixture and documents of
+      its own, one for each construct above: on every document that
+      compiles, the two graphs have the same dependencies between
+      element ports, with the same labels, and each document of its own
+      compares some. Breaking any one construct's reads fails it. One
+      thing it cannot see is a `$ref` child's own label: only an indexed
+      one has a label that is not the identity, and an element reaches
+      an indexed one only through a whole reference, which resets, or a
+      collect, which runs before it is placed and gathers nothing (a
+      document of its own pins that order). Since the abstract build's
+      graph covers every stamped build (`tests/every_count.rs`), so does
+      the template graph. The golden diff is unchanged.
+   3. **The cycle and count checks over the graph.** The Tarjan walk
+      with its Bellman-Ford per component (ADR 0012), the loop on the
+      graph of repeats and the structural depth are passes of the
+      compile over the template graph; `check_loops`, `check_scc` and
+      `check_counts` leave the builder. Test: `tests/cycles.rs`,
+      `tests/rebuild_cycles.rs`, the depths of `tests/repeat.rs` and
+      `tests/load_errors.rs`, and `tests/every_count.rs`, unchanged.
+
+      Done, in this form. `compile/graph/cycles.rs` holds the three
+      checks, run by the compile over the template graph
+      (`graph::check_cycles`); the graph lists the repeats as the
+      abstract build lists them, each after those its iterations stamp.
+      They run where the builder's ran, between the abstract build's
+      resolve and its define (`abstract_build`'s `between`), so a
+      failure of resolve's still comes first and a box of define's after,
+      and the compile, `diagnose` and the input signature all run them.
+      `check_loops`, `check_scc`, `check_counts`, `reads_only_earlier_slots`,
+      `scope_within`, the builder's `structural_depth` and `diagnostics`
+      and `AbstractFindings::structural_depth` are gone; `push_inputs`
+      and `edge_label` moved to `build/coverage.rs`, their one reader,
+      and `BuiltSource::eval_inputs` is the tests'. One thing changed: a
+      cycle's name. It is the first of its nodes in the stamping's order
+      that is a named component's port, else any component's, where the
+      builder took the first in its walk's order, and an unnamed
+      component is its tag (`<repeatForSequence>`), not its tag and the
+      build's index, which no source shows. Over the 570 documents in the
+      tests' sources, the golden set and `sir.doenet`, every load's
+      outcome, structural depth and diagnostic is the same before and
+      after, and 18 of the 31 cycles are named by another of their
+      members (`a.value` for `b.value`, `cc.choice` for
+      `cc.(hidden slot 2)`); no test names one. The cost, until part 6
+      removes the abstract build's expand and resolve, is a template
+      graph per compile, recorded in `docs/load-cost.md`: at 10,000
+      elements the stamping takes 2 to 7 ms and the checks 0.6 to 2.8 ms
+      (`LoadTimings::spans`), and `load-diff.sh` against 103d566 puts a
+      load at 1.01 to 1.08 times the base's for most shapes, and `coords`
+      at 1.12 and 1.10 in two runs and `refs` at 1.18 and 1.00, within a
+      run's variance of the spans. `tick-diff.sh` is unchanged (0.92 to
+      1.02, every value the same). The golden diff is unchanged.
+   4. **Define over the graph.** Which nodes merge into one cell, each
+      cell's definition, what it needs and where a request on it goes
+      (`Def`), and from them the writable and live walks, the counted
+      and document-constant classing, the prefill rule and the refuse
+      warnings (ADR 0026), as passes that set the ports' attributes.
+      Test: `tests/writable.rs`, `tests/live.rs`, `tests/refuse.rs` and
+      the classing checks of `tests/every_count.rs`, unchanged.
+
+      It lands in four pieces. Define, the walks and the refuse analysis
+      read a cell's definition, not only what it reads: which operator,
+      its inputs in order, which of them its inverse writes, what holds
+      it. So the graph first carries each node's definition as the
+      abstract build's slot carries its source, and only then does
+      define move.
+
+      1. **Definitions.** Every node is defined as the abstract build
+         defines its slot (`Def`: given, constant, alias, an operator
+         over its inputs in order, a vector output), with what else
+         defines it in later iterations, the flags that hold it, what
+         seeds it, the author's binary operators, the counted values and
+         the ports whose plan may give a document constant; a node's
+         reads are its definitions'. Test: each element port's
+         definition, unfolded through every other node to element
+         ports, is the abstract build's resolved source, with the same
+         later sources, flags, seed and marks, on every document.
+      2. **Define and the walks.** Cells by a union-find over the
+         aliases, each cell's defining node, orientation of the author's
+         operators (ADR 0026), the prefill rule, the writable and live
+         walks (ADR 0018, ADR 0019) with the stamped tree's placement for
+         the live roots, and from them each port's attributes. Test:
+         the attributes are the abstract build's on every document, and
+         a prefill the rule refuses is refused on the same element.
+      3. **The refuse warnings** (ADR 0026), `program::refuse::Graph`
+         over the graph's cells. Test: the warnings are the abstract
+         build's on every document.
+      4. **The compile reads the graph's.** The ports' attributes, the
+         warnings and the prefill rule's boxes come from the graph, and
+         the abstract build's walks, `Defined::by_walk`,
+         `AbstractFindings` and its orientation leave it, which then
+         serves only the input signature (step 5) and its own failures
+         (step 6). Test: every test unchanged.
+
+      The first is done. The graph's nodes carry `Def`
+      (`compile/graph/mod.rs`); constants and the missing value are
+      nodes of their own, one per value, as the build's are; math is
+      instantiated per template, shared by expression class for an
+      element no hold makes its own (ADR 0033), and lowered to operator
+      nodes once per node of the instantiated expression, a literal
+      second where the operator allows it and `k - b` as `-b + k`; a
+      symbolic text is a template over a leaf node per occurrence, or
+      the leaf itself when it is one math leaf (`compile/graph/math.rs`).
+      The aggregates are their operators (a weighted mean in chunks with
+      its total, a credit's `NanTo`, the gates' products, the sections'
+      sums), with the counted values found as the abstract build finds
+      them; a stand-in reads its members as the abstract build's does
+      (`Truthy`, a chain of `Max`, a `Choose` by a conditional content's
+      choice); a choose over a dynamic index chunks as the build's; and
+      the holds make their copies and list their flags.
+      `testing::definitions_disagreement` compares each element port's
+      definition, unfolded to element ports, with the abstract build's
+      resolved slots, their later sources, flags, seeds, counted and
+      document marks; values are left out, since a math handle's is the
+      engine's. `tests/template_graph.rs` holds every document to it, and
+      breaking any of eight constructs (a literal's order, a counted
+      credit, the flags, a seed, a case's `Eq`, a stand-in's `Truthy`,
+      the document marks, a lone math leaf) fails it. The golden diff is
+      unchanged. The stamping now does the math a second time beside
+      the abstract build's, which part 4's last piece and step 6 take
+      back: at 10,000 elements it takes 3.4 ms of depth's load, 11 ms of
+      refs' and coords', 15 ms of poly's (from 2.0, 7.2, 4.8 and 4.7),
+      with the graph's maps on the compile's word hasher (`share::Fx`),
+      the lowering memo a vector, and the reads one flat list. The
+      constants are keyed by a hasher that mixes every bit: a whole
+      number's bits end in zeros, which the word hasher keeps, so 10,000
+      distinct literals fell into one bucket and cost breadth and
+      isolated 30%. `load-diff.sh` against 5323bf3 puts poly at 1.08 to
+      1.14 times its load, coords at 1.00 to 1.13, and every other shape
+      within 1.05.
+
+      The second is done, in this form. `compile/graph/define.rs` merges
+      the aliased nodes into cells, finds each cell's defining node and
+      the flags that hold it (a constant flag holds it for good, a math
+      handle counting as not zero), orients the author's binary
+      operators as `build/orient.rs` does, in the same order, checks the
+      prefill rule, and walks: writable from every input prop through
+      where a request goes, live from every root through what a cell
+      needs and a seed's source; then each port's attributes
+      (`Defined::attrs`). The walks read the components through what the
+      stamping records once it ends (`TemplateGraph::comps`): every live
+      element and every made component, with its public ports and its
+      placement, rendered and under a sticky group or not, found from
+      the document root as `ComponentTable::placement` finds it.
+      `testing::attributes_disagreement` compares the attributes with
+      those the compile keeps, which the abstract build found, and
+      `testing::define_failures_agree` runs define over the graph beside
+      the abstract build's at every attempt of the compile's loop, so a
+      prefill the rule refuses is refused on the same element with the
+      same error. `tests/template_graph.rs` holds every document to both,
+      with documents of its own where orientation, a seed's source and a
+      constant hold each decide an attribute, and three prefills (a
+      computed value refused, a counted value and a given one allowed);
+      without orientation, the seeds, the constant holds' stop, the
+      rendered roots, the document rule, the prefill rule or its counted
+      exemption, it fails. The sticky clause of the live roots is in no
+      document where it decides an attribute: a sticky group's members'
+      props are rendered ones. Nothing in a load reads define over the
+      graph yet; the golden diff is unchanged.
+
+      The third is done. `compile/graph/refuse.rs` implements
+      `program::refuse::Graph` over the graph's cells (a vector
+      operator's later outputs listed with its head, a symbolic one with
+      no scalar inverse) and names each warning as `build/refuse.rs`
+      does: an interactive prop's cell once, by the first component in
+      the order the abstract build makes them, and a written value by its
+      component and prop, an unnamed one by its tag and its index in the
+      abstract build's table. So the stamping records every component in
+      that order (`TemplateGraph::comps`), a component's position its
+      index. `testing::warnings_disagreement` compares the warnings with
+      the abstract build's, word for word; `tests/template_graph.rs`
+      holds every document to it, with refusals of its own (a square, a
+      value reached two ways, a power, two outputs of one circle, a
+      branch's value through a conditional content's choose, an unnamed
+      point) and a request that lands. Dropping a vector operator's later
+      outputs, reading vector operators as scalar ones, ignoring the
+      constant holds or writing only first inputs fails it.
+
+      The fourth is done, in this form. The compile's check
+      (`compile/check.rs`, `check`) runs the abstract build as far as
+      resolve (`abstract_resolve`), for an element that cannot be built,
+      then stamps the template graph once, checks it for cycles, defines
+      it, which boxes a prefill the rule refuses, and keeps the ports'
+      attributes and the refuse warnings define over it finds; the
+      compile and `diagnose` run it. The abstract build's findings
+      (`AbstractFindings`, its marking of ports, `build/refuse.rs`) are
+      the tests' alone (`abstract_findings`, `abstract_define`), what
+      `tests/template_graph.rs` holds the graph's to until step 6
+      removes the abstract build. The input signature still defines
+      through the abstract build (step 5), with the cycle check between
+      its resolve and its define, and so do the stamped builds' own
+      walks that `tests/live.rs` and `tests/every_count.rs` compare.
+      A prefill's error names an unnamed source as the abstract build
+      did, by its tag and its index in the abstract build's table, which
+      the graph's order of components gives. Over the 570 documents in
+      the tests' sources, the golden set and `sir.doenet`, every load's
+      outcome, structural depth and diagnostic, message for message, is
+      the same before and after, 31 cycles, 6 documents with refuse
+      warnings and 2 refused prefills among them. The abstract build's
+      define and walks no longer run at load, which pays for the
+      graph's: `load-diff.sh` against 01e4fb5 puts every shape at 0.94
+      to 1.04 times its load, and `tick-diff.sh` is unchanged (0.96 to
+      1.05, every value the same). The golden diff is unchanged.
+   5. **The input signature over the graph.** ADR 0035's signature
+      reads the graph's definitions instead of the abstract build's.
+      Test: `tests/safe_edits.rs` unchanged.
+
+      Done, in this form. `compile/graph/signature.rs` reads the
+      signature off the template graph's definitions as
+      `build/signature.rs` read it off the abstract build's: each input's
+      derivation hashed over its closure, each cell by what it is, the
+      defaults of the essential cells it reads, and its domain. What the
+      abstract build's builder held that the graph did not, the graph
+      now records: each node's value type as the build types its slots
+      (`TemplateGraph::typed`), where a math value comes from, a given
+      tree or a constant text with its post (`TemplateGraph::math`), a
+      symbolic template's text, post and which leaves are math leaves
+      (`TemplateGraph::templates`), a `<selectFromSequence>`'s value,
+      drawn from seed 0 with the element's key and the scope levels as
+      `Builder::seeded_stream` draws it, and, when the signature asks
+      (`template_graph_with_parents`), each component's parent, a
+      stand-in's its choice. The compile has no engine; the signature
+      makes one of its own, as the abstract build did, for what a math
+      value and a template hash as, their text. `signature_renamed` runs
+      the check's resolve, cycle check and define and signs the graph;
+      the abstract build's signature is the tests' alone
+      (`abstract_signature_renamed`), and with it `with_abstract`,
+      `Defined::by_walk`, the build's walks of its own and its signer.
+      `testing::signature_disagreement` compares the two signatures,
+      hash for hash; `tests/template_graph.rs` holds every document to
+      it, with a response over math over math and a drawn graph bound
+      of its own, and dropping the types, the ancestors, a math text, a
+      template's math leaves or the draw fails it. A stand-in's text
+      type reaches no signature (a stand-in is computed, never essential
+      nor constant, and a seed reading one reads not-a-number either
+      way). `tests/safe_edits.rs` is unchanged, the golden diff is
+      unchanged, and `load-diff.sh` against 7101126 is within its noise
+      (0.90 to 1.07, coords and poly at 1.00 and 0.96 on a second run).
+
+   6. **The abstract build goes.** What expand and resolve raise in the
+      abstract build today, an element that cannot be built, is raised
+      by the template pass and boxed in place, as step 7's fixpoint
+      boxes; `build/abstract_build.rs`, `View::Abstract` and the fields
+      that exist for folding (`later_sources`, `stand_ins`,
+      `pick_stand_ins`, `labels`, `counted_slots`, `document_slots`,
+      `Plans::Both`) leave the build, and `tests/every_count.rs` checks
+      every stamped build against the template graph. Test:
+      `tests/diagnostics.rs` and `tests/every_count.rs`, unchanged.
+
+      In two pieces. The first, done: stamping the graph raises what the
+      abstract build's resolve raises. The stamping records the first
+      failure (`Stamp::fail`) with the element whose stamping met it, the
+      one the abstract build boxes (a `$ref` child's own node, else the
+      element whose ports, collect, point list or holds were being made),
+      and goes on stamping; `template_graph_checked` returns it. Each of
+      the build's checks has its place in the stamping: a list copy's
+      loop; a whole choice, a pick or an uncopyable type copied; a
+      collect from by a cell; a hold's flag of the wrong arity; a
+      reference inside math that is not one cell or is text; a symbolic
+      math's text unrecorded, with a numeric-only function, unparsed, or
+      over more than 255 references (parsed through the plans' cache or
+      an engine of the stamping's own); a reference an operator reads
+      that is text; a prop, a seed or a coordinate pair of the wrong
+      arity; an extend's type; and in the walk, an index of what is not
+      a repeat or a collect, a whole pick of unlike options, a component
+      named by a cell, an ambiguous or unknown name, no default prop, an
+      unknown prop, items of different sizes and a path too deep. An
+      unnamed component in a message is its tag and its index in the
+      abstract build's table, which the stamping keeps in creation order
+      (`Stamp::order_index`). `testing::resolve_failures_agree` runs the
+      compile's loop and compares the two at every attempt, element and
+      message; `tests/template_graph.rs` holds every document and every
+      DoenetML source written in a test (each raw string of
+      `tests/*.rs` that starts with a tag, 584 documents in all) to it,
+      with seventeen documents of its own that the planners pass and
+      resolve fails, and a math over 260 references. Most failing
+      sources fail at planning; these reach resolve. The comparison found
+      one difference, fixed: `$c[1][1]`, an index of a collect's item,
+      which the graph read as missing. Silencing each failure, one at a
+      time, fails the test at 18 of the 26 places and at the element a
+      failure names; the other eight (text inside math or read as a
+      number, unrecorded math text, an iteration indexed again, an
+      ambiguous or unknown name, an unknown prop, items of different
+      sizes, a path too deep) no document reaches past the planners,
+      and they stay as the build's were, defensive. (One of the
+      seventeen, a component named by a cell in an attribute, reached
+      nothing; it is now a component by a cell as a child, which does.)
+
+      The second, done: the abstract build goes. The check stamps the
+      graph once and reads its failure (`template_graph_checked`; the
+      signature's `template_graph_with_parents` likewise), and the span
+      a load times as its check is `check`, not `abstract build`.
+      `build/abstract_build.rs`, `build/view.rs` with `View`, `Plans`,
+      `Options` and `CollectCount`, and `build/refuse.rs` are gone; a
+      build reads its `Counts` itself. With the view went what existed
+      for folding: `later_sources` and `Plans::Both` (a specialized
+      port has the one plan of its iteration), `labels`,
+      `record_label`, `leaf` and every `Label` the build's walk
+      carried, `pick_stand_ins`, `whole_pick`, `picks_alike` and
+      `ChoiceInst::every_option` (a select draws its picks),
+      `document_slots`, a collect's count over its repeats' counts
+      (`gathered_counts`), a credit found counted by its depth, a loop
+      of aliases made a constant (now always the defensive
+      `Unchecked`), the orientation's and the walks' later sources, and
+      the builder-side signer with `Defined::by_walk`. `stand_ins` and
+      `counted_slots` stay: a conditional content's interface names
+      are stand-ins in every build, and a prefill and a seed read the
+      counted slots, which a build now takes from the ports' attributes
+      alone (`is_counted`). The tests that held the graph to the
+      abstract build (its graph, definitions, attributes, warnings,
+      prefills, failures and signature) went with it, and so did
+      `testing::{template_graph_agreement, definitions_disagreement,
+      attributes_disagreement, warnings_disagreement,
+      define_failures_agree, resolve_failures_agree,
+      signature_disagreement}`. Their documents stay:
+      `tests/every_count.rs` takes the construct documents and the
+      chunked choose, and holds every build of them at every count and
+      seed to the template graph's edges (`testing::graph_edges`, in
+      place of `abstract_edges`); `tests/template_graph.rs` holds the
+      refusal, prefill and failure documents to the diagnostics the
+      check gave each when the two agreed, word for word, and the math
+      over 260 references to its refusal. Over the 528 documents of
+      the tests' sources, the golden set and `sir.doenet`, every
+      diagnostic, compile outcome and input signature is the same
+      before and after. `tests/diagnostics.rs`
+      is unchanged and the golden diff is identical, programs
+      included. `load-diff.sh` against ac3aa16 puts a load at 0.82 to
+      1.01 times the base's (0.89 to 1.01 at 10,000 elements): the
+      check no longer expands and resolves the document a second time.
+      `tick-diff.sh` is unchanged (every instruction count and value the
+      same; 0.80 to 1.10, the programs being identical).
 9. **Capped lists.** `List(T, cap)` with a length port, for
    `<intersection>` first, as the test of the form the last section
    needs. The spreadsheet operator and the pool for `addChildren` are

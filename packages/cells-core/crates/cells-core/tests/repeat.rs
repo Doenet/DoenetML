@@ -376,9 +376,7 @@ fn a_returning_iteration_stamps_its_nested_repeat_in_one_pass() {
 }
 
 /// An iteration index name indexes inside a `<math>`'s text as anywhere
-/// else. A math's references are planned when parsing, before the repeat
-/// around it is planned, so whether a name is an index name is read from
-/// what outlining made, not from the repeat's plan.
+/// else.
 #[test]
 fn an_index_name_indexes_inside_a_math() {
     let src = r#"<collect name="c" from="$g" componentType="number"/>
@@ -398,7 +396,7 @@ fn an_index_name_indexes_inside_a_math() {
     assert_eq!(doc.value("r[2].m", "value"), Some(21.0));
 }
 
-/// A cell may index a repeat (ADR 0032, decision 5): `$r[$k].p.x` is the
+/// A cell may index a repeat: `$r[$k].p.x` is the
 /// `x` of whichever iteration `k` names, NaN past the count, and a request
 /// on it writes that iteration's point.
 #[test]

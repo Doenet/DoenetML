@@ -1,6 +1,4 @@
-//! Helpers shared by the integration tests. The geometry tests'
-//! scenarios mirror the current core's vitest suites, which the adapter
-//! runs verbatim; these are the core-level checks.
+//! Helpers shared by the integration tests.
 #![allow(dead_code)]
 
 use cells_core::testing::reference;
@@ -26,9 +24,8 @@ pub fn set(doc: &mut Document, name: &str, prop: &str, value: f64) -> TickOutcom
     doc.request(&[Request { cell, value }])
 }
 
-/// Request `value` on `name.prop` whether or not it is an input's
-/// (`testing::request_unchecked`, ADR 0018): for a test of the core's
-/// machinery, not of a component.
+/// Request `value` on `name.prop` whether or not it is an input's, for a
+/// test of the core's machinery.
 pub fn set_unchecked(doc: &mut Document, name: &str, prop: &str, value: f64) -> TickOutcome {
     let r = req(doc, name, prop, value);
     cells_core::testing::request_unchecked(doc, &[r])
@@ -64,7 +61,7 @@ macro_rules! assert_close {
     };
 }
 
-/// A whole-shape drag: the shape's points requested together (ADR 0006).
+/// A whole-shape drag: the shape's points requested together.
 pub fn move_points(doc: &mut Document, name: &str, props: &[(&str, &str)], at: &[(f64, f64)]) {
     let pts: Vec<PointRequest> = props
         .iter()

@@ -1,8 +1,7 @@
 //! The parse arena: math text parsed at compile time, cell leaves holding
 //! plan ids (slots, once a build stamps it). It decides whether a math is
-//! numeric and lowers it to operators (ADR 0005), and gives geometry its linear
-//! coefficients. It is not used at tick time: a symbolic math becomes a math
-//! cell in the document's symbolic engine (`cells-sym`, ADR 0008).
+//! numeric and lowers it to operators, and gives geometry its linear
+//! coefficients. It is not used at tick time.
 
 use super::plan::RefId;
 
@@ -26,7 +25,7 @@ pub enum Expr<L> {
     Pow(ExprId, ExprId),
     Neg(ExprId),
     /// `round(x)`, `min(a, b)`: a function the lowering knows. A clamp's
-    /// bounds are always numbers (the parser checks).
+    /// bounds are always numbers.
     Call(Func, Vec<ExprId>),
 }
 
@@ -215,7 +214,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
 }
 
 /// A token of math text. References (`$a`) arrive already resolved to a
-/// reference plan id (`Token::Cell`) by the caller.
+/// reference plan id.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Num(f64),

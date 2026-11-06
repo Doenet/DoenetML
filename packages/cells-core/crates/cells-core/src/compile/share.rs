@@ -1,41 +1,21 @@
-//! Sharing (ADR 0033), the compile's last stage before the abstract
-//! build: two ports that compute the same thing from the same cells
-//! become one, by an alias in the plans. Every build, the abstract build
-//! and its records (writable, live, counted, ADR 0018, ADR 0019, ADR 0028)
-//! then see the sharing as a fact of the plans, and no build pays for
-//! finding it.
+//! Sharing, the compile's last stage before its check: two ports
+//! that compute the same thing from the same cells become one, by an alias
+//! in the plans.
 //!
-//! Per template, a union-find over the cells its ports will make: a port
-//! of one of its elements (`Node::Local`), what a reference names
-//! (`Node::Ext`, by the reference's plan, which resolves the same from
-//! every element of the template; one that names a port of an element of
-//! the template is that port), and a constant. Aliases are merged first.
-//! Then two derived ports are equal when they apply the same operator to
-//! the same input cells, are the same output of two equal vector heads,
-//! or are the same math text (`Compiled::expr_class`) made the same way;
-//! they are merged, to a fixpoint. An extend whose referent is in another
-//! template (`Referent::Path`) sees the referent's ports through its path,
-//! `Ref(path, Port(k))`, so its derived ports match the referent's.
-//!
-//! Two ports merge only when the cells they make would carry the same
-//! request marks (`interactive`, written by an action), the same port types
-//! and the same hold (ADR 0022): a merge changes nothing about a cell but
-//! how many instructions compute it. The kept port is the referent's
-//! where an extend's matches one, else the lowest; every other is
-//! rewritten as an alias of it. A leaf, a scope specialization, an
-//! aggregate and a copy (`OpSpec::Copy`, a counted value's or a hold's)
-//! are never merged.
-//!
-//! Math also shares within an expression: `Compiled::expr_class` names
-//! each node of the expression arena by its class of structurally equal
-//! nodes (leaves by their references' plans), and a build lowers each class
-//! once per scope (`build/expand/math.rs`).
+//! Per template, a union-find over the cells its ports will make: an
+//! element's port, what a reference names, and a constant. Two derived
+//! ports are equal when they apply the same operator to the same input
+//! cells, are the same output of two equal vector heads, or are the same
+//! math text made the same way; they are merged to a fixpoint. Two ports
+//! merge only when their cells would carry the same request marks, port
+//! types and hold. The kept port is the referent's where an extend's
+//! matches one, else the lowest. A leaf, a scope specialization, an
+//! aggregate and a copy are never merged.
 
 use crate::compile::*;
 
-/// An extend whose referent is in another template, as linking tied its
-/// given leaves (`link_given_leaves`): an element of template `t`
-/// extending element `re` of template `rt` through reference `path`.
+/// An extend whose referent is in another template: an element of template
+/// `t` extending element `re` of template `rt` through reference `path`.
 #[derive(Debug, Clone, Copy)]
 pub(in crate::compile) struct PathExtend {
     pub(in crate::compile) t: TemplateId,
@@ -49,7 +29,7 @@ pub(in crate::compile) struct PathExtend {
 enum Node {
     /// Port `.1` of element `.0`.
     Local(u32, u8),
-    /// What a reference names, by its plan's class (`RefClasses`).
+    /// What a reference names, by its plan's class.
     Ext(u32, SelKey),
     /// A literal an operator reads.
     Const(u64),
@@ -179,11 +159,11 @@ impl UnionFind {
     }
 }
 
-/// A word-at-a-time hasher for this stage's small keys (the rotate and
-/// multiply of rustc's `FxHasher`): the default hasher costs more than the
-/// stage's work.
+/// A word-at-a-time hasher for the compile's small keys (the rotate and
+/// multiply of rustc's `FxHasher`): this stage's and the template
+/// graph's.
 #[derive(Default)]
-struct Fx(u64);
+pub(crate) struct Fx(u64);
 
 impl std::hash::Hasher for Fx {
     fn write(&mut self, bytes: &[u8]) {
@@ -210,7 +190,7 @@ impl std::hash::Hasher for Fx {
     }
 }
 
-type FxMap<K, V> = HashMap<K, V, std::hash::BuildHasherDefault<Fx>>;
+pub(crate) type FxMap<K, V> = HashMap<K, V, std::hash::BuildHasherDefault<Fx>>;
 
 /// One template's nodes, by number: an element's ports first, numbered
 /// from its base, then every other node as it is met.
@@ -256,25 +236,26 @@ impl Nodes {
     }
 }
 
-/// The compile's plans, read while this stage decides; what it decides
-/// is applied once every template is done, so every decision reads the
-/// plans as linking left them.
+/// The compile's plans and its source, read while this stage decides, and
+/// its classes of references and maths.
 struct Share<'c> {
-    c: &'c Compiled,
+    c: &'c Plans,
+    dast: &'c Dast,
     refs: RefClasses<'c>,
     /// Math classes: (expression class, symbolic text) per math text.
     math: HashMap<(u32, String), u32>,
 }
 
-impl Compiled {
-    /// Sharing (ADR 0033): the expression classes, then every equal pair
-    /// of derived ports made one, each but the kept one an alias. Returns
-    /// how many ports it made aliases.
-    pub(in crate::compile) fn share(&mut self, paths: &[PathExtend]) -> usize {
+impl Plans {
+    /// Sharing: the expression classes, then every equal pair of derived
+    /// ports made one, each but the kept one an alias, reading the maths'
+    /// text from `dast`. Returns how many ports it made aliases.
+    pub(in crate::compile) fn share(&mut self, dast: &Dast, paths: &[PathExtend]) -> usize {
         self.expr_class = crate::trace::span("expressions")
             .run(|| expr_classes(&self.arena, &self.refs, &mut RefClasses::default()));
         let mut s = Share {
             c: self,
+            dast,
             refs: RefClasses::default(),
             math: HashMap::new(),
         };
@@ -319,7 +300,7 @@ impl Share<'_> {
         let tpl = &self.c.templates[t.index()];
         let ty = tpl.elems[e.index()].component_type;
         let np = self.n_public(t, e);
-        let off = tpl.sealed.elems[e.index()].slot_off as usize;
+        let off = tpl.sealed.elems[e.index()].slot_off.index();
         for (port, c) in out.iter_mut().enumerate() {
             let mut bits = 0;
             if port < np && ty.is_interactive_prop(np, port) {
@@ -361,8 +342,7 @@ impl Share<'_> {
 
     /// The port of an element of template `t` that reference `r` names
     /// with `sel`, when that is fixed: a path of one step to an element of
-    /// the template, naming one of its ports, as the build resolves it
-    /// (`Builder::arg_slot`, `Builder::sel_slots`, `Builder::resolve_items`).
+    /// the template, naming one of its ports, as the build resolves it.
     fn port_of_ref(&self, t: TemplateId, r: RefId, sel: Sel) -> Option<Node> {
         let plan = &self.c.refs[r.index()];
         let [Step::Elem(e)] = plan.steps[..] else {
@@ -416,8 +396,8 @@ impl Share<'_> {
                 let mut text = String::new();
                 let mut plans = plans.iter();
                 for &n in nodes.iter() {
-                    match self.c.dast.kind(n) {
-                        NodeKind::Text => text.push_str(self.c.dast.str(n)),
+                    match self.dast.kind(n) {
+                        NodeKind::Text => text.push_str(self.dast.str(n)),
                         NodeKind::Macro => {
                             let p = *plans.next().expect("a plan per reference");
                             text.push('\u{0}');
@@ -505,11 +485,9 @@ impl Share<'_> {
         // The referents seen through a path: each of their ports is what
         // `Ref(path, Port(k))` names, and the reference that names it.
         let mut via: FxMap<Node, RefId> = FxMap::default();
-        let mut seen_paths: HashSet<(u32, u32, u32)> = HashSet::new();
+        let mut seen_paths: HashSet<(RefId, TemplateId, ElemId)> = HashSet::new();
         for p in paths {
-            if !self.takes_part(p.rt, p.re)
-                || !seen_paths.insert((p.path.get(), p.rt.get(), p.re.get()))
-            {
+            if !self.takes_part(p.rt, p.re) || !seen_paths.insert((p.path, p.rt, p.re)) {
                 continue;
             }
             let hold = self.hold(p.rt, p.re);
@@ -751,9 +729,9 @@ fn expr_classes<'c>(
     out
 }
 
-/// Equal computations share one cell (ADR 0033), over the test-only
-/// components: `<testShape>`'s `sum` adds its `a` and `b`, and
-/// `<testValue>`'s `double` doubles its `value`.
+/// Equal computations share one cell, over the test-only components:
+/// `<testShape>`'s `sum` adds its `a` and `b`, and `<testValue>`'s
+/// `double` doubles its `value`.
 #[cfg(test)]
 mod tests {
     use crate::Document;
@@ -769,7 +747,7 @@ mod tests {
             share,
             ..Default::default()
         };
-        let dast = std::sync::Arc::new(document(nodes));
+        let dast = document(nodes);
         let doc = Document::load_dast(dast, options).unwrap().0;
         assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
         doc
@@ -794,11 +772,11 @@ mod tests {
     }
 
     /// The sharing is in the plans: the extend's `sum` is an alias of the
-    /// referent's, which every build, and the abstract build, reads.
+    /// referent's, which every build, and the template graph, reads.
     #[test]
     fn the_plans_alias_the_shared_port() {
         let compiled = crate::testing::compile(&document(shape_and_copy())).unwrap();
-        let tpl = &compiled.templates[0];
+        let tpl = &compiled.plans.templates[0];
         let named = |name: &str| {
             (0..tpl.elems.len())
                 .find(|&e| {
@@ -869,9 +847,8 @@ mod tests {
         assert_eq!(doc.program.instrs.len() + 3, unshared.program.instrs.len());
     }
 
-    /// A `fixed` copy holds every cell of its own (ADR 0022): its leaves
-    /// are copies of the referent's (`hold_all`), so its sum reads its own
-    /// cells and stays its own.
+    /// A `fixed` copy holds every cell of its own: its leaves are copies of
+    /// the referent's, so its sum reads its own cells and stays its own.
     #[test]
     fn a_fixed_copy_does_not_merge() {
         let doc = load(
@@ -888,11 +865,9 @@ mod tests {
         assert_eq!(doc.value("u", "sum"), Some(3.0));
     }
 
-    /// Two equal copies merge only when the same flags hold them: a held
-    /// element's copy of another's cell is a cell of its own (`hold_all`),
-    /// so two elements held alike that copy one cell share the copy, and
-    /// what they compute from it (the compile shares a port between
-    /// elements held alike), and one held by another flag keeps its own.
+    /// Two equal copies merge only when the same flags hold them: two
+    /// elements held alike that copy one cell share the copy and what they
+    /// compute from it, and one held by another flag keeps its own.
     #[test]
     fn copies_merge_only_under_the_same_holds() {
         let doc = load(

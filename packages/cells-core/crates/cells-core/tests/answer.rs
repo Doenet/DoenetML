@@ -1,5 +1,5 @@
-//! The forms of `<answer>` (`compile/planning/answer.rs`): which input is the
-//! response, what a submit does, how awards combine, and what is refused.
+//! The forms of `<answer>`: which input is the response, what a submit
+//! does, how awards combine, and what is refused.
 
 mod common;
 

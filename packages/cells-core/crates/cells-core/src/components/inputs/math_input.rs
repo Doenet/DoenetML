@@ -1,4 +1,4 @@
-//! `<mathInput>`: its definition and its planner (ADR 0016).
+//! `<mathInput>`: its definition and its planner.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;

@@ -1,7 +1,10 @@
 # Each stage of the compile is a function of what it reads
 
 Status: accepted 2026-11-02. Proposed 2026-11-02; every step is done (see
-Migration). Amends ADR
+Migration). Amended 2026-11-05: `Compiler` holds no stage's own state,
+the stages read the source as a borrow, never through the compile, and a
+build borrows the compile rather than owning it (see the notes after step
+7). Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -258,6 +261,93 @@ otherwise.
    the caches (`extend_refs`, `string_ids`, `prop_sels`, `ref_subst`). The
    earlier steps' notes name `compile_all`; its body is now
    `Compiler::compile`'s.
+
+   Amended 2026-11-05: the `Option`s went. `Settled` was held twice, in
+   the `Outlining` while outlining ran and as `settled: &Settled` after,
+   and every accessor chose between them; it is now one owned field of
+   `Compiler`, written by outlining alone (`settled_mut`, which asserts
+   the stage) and read by every later stage. What a stage needs only
+   while it runs is a local of the stage's function, handed down to what
+   it calls: `Outlining` (`outline/mod.rs`: the work lists and the
+   copies expanding) is `outline`'s, passed through the walk, and
+   `Planning` (`planning/mod.rs`: `Parsed`, which it owns from here on,
+   and the `Planned` it fills) is `plan_all`'s, which the planners reach
+   through their `PlanCtx`. The stage running is a field (`stage`, set by
+   `compile` at each boundary), which boxing reads rather than inferring
+   it from which `Option` was `Some`; `Stage` names parsing and sealing
+   too, which box nothing. The reads outlining records go in its
+   `Outline`, and planning's `Planned::reads` starts from them, so
+   linking reads one list. The compile-time guarantee that nothing after
+   outlining changes what it settled is a runtime assertion now; the
+   guarantee that planning takes what it reads as arguments is the type.
+
+   Amended 2026-11-05, later: what boxing records left `Compiler` too.
+   `Boxes` (`boxes.rs`) holds the nodes an earlier compile boxed, the
+   nodes boxed here with their errors, and the first failure no element
+   could carry. The driver makes one and hands it to outlining, planning
+   and linking in turn, each returning it (outlining's and planning's
+   working states carry it while they run), and never to parsing or
+   sealing: every write to the box table goes through a `Boxes`
+   (`mark`), so a stage without one cannot box, which the compiler
+   checks. Every stage still reads the box table through `Compiler`
+   (`is_box`), and `Compiler::stage` still says which stage a box was
+   made in.
+
+   Amended 2026-11-05, later still: reference planning the same way.
+   `Refs` (`refs.rs`) is the one writer of the reference table
+   (`Compiled::refs`), which every stage and the build read, and holds
+   the cache of prop spellings that was `Compiler::prop_sels`. The driver
+   hands it to outlining, parsing and planning, the stages that plan
+   references (outlining's and planning's working states carry it;
+   parsing takes it as an argument), and never to linking or sealing;
+   every push to the table, every change to a plan and the one truncation
+   (`with_clones`) go through it, so a stage without one cannot plan a
+   reference, which the compiler checks. The cost is the argument on
+   every function between a stage's entry and `plan_ref`, some seventy;
+   the planners reach it through their context. A record read through a
+   path is rebased by a `Rebaser` (`rebase.rs`), which carries the `Refs`
+   where two closures used to share it.
+
+   Amended 2026-11-05, last: the source left what the stages make. Every
+   stage reads the DAST, and none changes it, but `Compiled` held it
+   (`Arc<Dast>`) while `Compiler` borrowed it too (`dast: &Dast`). That
+   left two ways to reach one input. The sharing stage, sealing, and the
+   planners that spell a reference in an error (`ref_display`) read it
+   through the compile being made, so the stage that read it was not
+   stated in its signature, and the source could not have one owner.
+   What the stages make is now `Plans` (`plan.rs`): what `Compiled` held,
+   less the source. `Compiler` holds the `Plans` it fills and the source
+   as a borrow (`Compiler::dast`), which is the only way a stage reaches
+   it. A stage that reads the source while the `Plans` are made is given
+   it: sharing takes `&Dast` (`Plans::share`), sealing has it in its
+   `Seal`, and a reference's spelling is `Plans::ref_display(dast, p)` and
+   `display_of(dast, plan)`. `Compiled` is the source and its `Plans`,
+   put together when an attempt has planned: `plan_and_check` owns the
+   source, plans from a borrow, pairs the source with the attempt's
+   `Plans` for the abstract build, and takes it back when the attempt is
+   boxed and planned again. A load moves its source into the compile, so
+   one `Dast` exists per load and nothing shares it. The build reads
+   both through `Compiled`; the label of a cycle's cell is handed the
+   source rather than keeping a handle to it. The reference table of the
+   note above is `Plans::refs`. No behavior changed.
+
+   Amended 2026-11-05, after that: a build borrows the source and its
+   plans. Every build only reads them, but it took `&Compiled`, the owned
+   pair, so the compile's loop moved its source into a `Compiled` to run
+   the abstract build and took it back when the attempt was boxed, and
+   `diagnose` and `signature_renamed`, given a `&Dast`, copied the whole
+   source to make one. A build now reads `CompiledRef` (`plan.rs`), the
+   source and the plans as two borrows, and `Compiled` is only the pair
+   something keeps: a document with a repeat, to rebuild from, and a test
+   that builds one compile many times. `Compiled::view` lends it to a
+   build, and the public entry points (`build::build`, the coverage
+   checks) still take `&Compiled`. `plan_and_check` borrows the source
+   from start to end: each attempt plans from it, `check` reads it with
+   the attempt's plans, and the loop returns the `Plans` that checked,
+   which `compile` pairs with the source it was given. `diagnose` and
+   `signature_renamed` copy nothing. A `CompiledRef` is made only from a
+   `Compiled` or by the check from the source it planned, so its plans
+   always index into its source. No behavior changed.
 8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`
    name the new paths. Done: `outline/` (the walk; `copies.rs`,
    `choice.rs`, `answer.rs` for what outlining makes of each), `parse.rs`,
@@ -275,3 +365,17 @@ otherwise.
    `compile::plan` is the compile's output types, which the rest of the
    crate reads. `compile::keys` is still the keys' path, re-exported.
    No code changed but its place and what it may be called from.
+
+   Amended 2026-11-05: a trace of which stage reaches each method found
+   three sets filed under planning that planning did not own. The point
+   lists (`points.rs`) were reached from parsing alone, through the
+   records; the value planners (a literal or reference, a math, a tuple,
+   a point, whether a reference reads text) from parsing and planning
+   both; and six readers of an answer's source from outlining and
+   planning both. Each now has a module of its own: `points.rs` and
+   `values.rs` beside `maths.rs`, `answer.rs` beside `refs.rs` for what
+   both stages read of an answer (its out-of-scope attributes, each
+   award's form, which input a reference names), and the two generic
+   readers (an element's element children, its content nodes) in
+   `source.rs`. `planning/attrs.rs` keeps what plans a type's props from
+   its record and the maths a plan inlines.

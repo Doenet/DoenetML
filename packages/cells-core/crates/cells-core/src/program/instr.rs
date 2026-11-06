@@ -1,6 +1,6 @@
 //! An instruction ([`Instr`]): an operator bound to its input cells and the
 //! cell it writes. [`OpSpec`] is the operator before its inputs are bound, as
-//! the build plans it; [`SymKind`] the symbolic instructions (ADR 0008).
+//! the build plans it; [`SymKind`] the symbolic instructions.
 
 use crate::document::CellIdx;
 use crate::program::{Op, OpSpec, VecOp};
@@ -14,17 +14,16 @@ const _: () = assert!(
     "`Op::Sym` keeps its outputs in a byte"
 );
 
-/// A symbolic instruction (ADR 0008): it calls the document's symbolic
-/// engine. Inputs are cells holding numbers or expression handles; every
-/// input is in `Program::operands`. Each one keeps the input values it last ran
-/// on and its outputs, and reruns only when an input changed.
+/// A symbolic instruction: it calls the document's symbolic engine. Inputs are
+/// cells holding numbers or expression handles; every input is in
+/// `Program::operands`. Each one keeps the input values it last ran on and its
+/// outputs, and reruns only when an input changed.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SymKind {
-    /// The template with each cell leaf replaced by its cell's value (a
-    /// number, or the expression a math cell holds), then `post`. Inputs
-    /// are the template's leaf cells; `template` is an engine expression
-    /// whose leaves are those cells (a build plans one as a
-    /// `PlannedOp::Template` until emit gives its leaves cells).
+    /// The template with each cell leaf replaced by its cell's value (a number,
+    /// or the expression a math cell holds), then `post`. Inputs are the
+    /// template's leaf cells; `template` is an engine expression whose leaves
+    /// are those cells.
     Instantiate { template: Handle, post: Post },
     /// The expression in input 0 as a number; NaN with free symbols.
     Evaluate,
@@ -40,9 +39,8 @@ pub enum SymKind {
     Sample,
     /// `Program::tapes[tape]` at `SAMPLES` evenly spaced x from input 0 to
     /// input 1; inputs 2.. are the tape's parameter cells. What `Sample`
-    /// becomes when the expression's shape is constant at build time: no engine
-    /// call at tick time.
-    SampleTape { tape: u32 },
+    /// becomes when the expression's shape is constant at build time.
+    SampleTape { tape: TapeIdx },
 }
 
 /// What a `<math>` does to its expression after instantiating it.
@@ -64,9 +62,8 @@ impl SymKind {
         }
     }
 
-    /// The input positions its inverse may write (`OpSpec::writes`):
-    /// `Evaluate`'s expression, which a math input's value request writes
-    /// (`tick/invert.rs`); no other symbolic operator inverts.
+    /// The input positions its inverse may write: `Evaluate`'s expression;
+    /// no other symbolic operator inverts.
     pub fn writes(self) -> u64 {
         match self {
             SymKind::Evaluate => 1,
@@ -78,6 +75,18 @@ impl SymKind {
     pub fn makes_math(self) -> bool {
         matches!(self, SymKind::Instantiate { .. } | SymKind::Derivative)
     }
+}
+
+crate::index::index_type! {
+    /// A position in `Program::tapes`: a compiled curve.
+    pub struct TapeIdx;
+}
+
+crate::index::index_type! {
+    /// A position in `Program::instrs`: an instruction, by where it stands
+    /// in the schedule. `NONE` is "no instruction" (an essential cell or a
+    /// constant has no producer).
+    pub struct InstrIdx;
 }
 
 crate::index::index_type! {
@@ -100,9 +109,8 @@ crate::index::index_type! {
     pub struct SymIdx;
 }
 
-/// A position in `Program::vecs`, the program's distinct vector operators.
-/// A `u16`, so that `Op::Vec` fits an instruction of 16 bytes: a program
-/// has few distinct vector operators, however many instructions use them.
+/// A position in `Program::vecs`, the program's distinct vector operators. A
+/// `u16`, so that `Op::Vec` fits an instruction of 16 bytes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct VecIdx(u16);
 
@@ -120,10 +128,10 @@ pub struct SymEntry {
     pub memo: MemoIdx,
 }
 
-/// What a build parks for the operators it binds (`OpSpec::bind`): the
-/// operand list a program keeps, the symbolic instructions' kinds and the
-/// distinct vector operators, which an `Op` names by index, and how much
-/// of the symbolic memo its instructions take.
+/// What a build parks for the operators it binds: the operand list a program
+/// keeps, the symbolic instructions' kinds and the distinct vector operators,
+/// which an `Op` names by index, and how much of the symbolic memo its
+/// instructions take.
 #[derive(Debug, Clone, Default)]
 pub struct Operands {
     pub cells: Vec<CellIdx>,
@@ -228,11 +236,7 @@ mod arity {
     use super::*;
     use crate::program::vector::{RigidOpts, VecOp};
 
-    /// Every operator: the scalar ones (`scalar_ops!` makes the list, so
-    /// none is missing), then every vector
-    /// and symbolic one. A vector or symbolic variant added does not compile
-    /// until `tag` gives it a number, and then this test fails until `every`
-    /// has one of it.
+    /// Every operator: the scalar ones, then every vector and symbolic one.
     fn every() -> Vec<OpSpec> {
         let mut ops = OpSpec::scalars();
         ops.extend([
@@ -265,7 +269,9 @@ mod arity {
             OpSpec::Sym(SymKind::Equals),
             OpSpec::Sym(SymKind::EqualsSyntax),
             OpSpec::Sym(SymKind::Sample),
-            OpSpec::Sym(SymKind::SampleTape { tape: 0 }),
+            OpSpec::Sym(SymKind::SampleTape {
+                tape: TapeIdx::new(0),
+            }),
         ]);
         ops
     }

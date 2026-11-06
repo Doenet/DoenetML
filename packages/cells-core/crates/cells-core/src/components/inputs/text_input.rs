@@ -1,4 +1,4 @@
-//! `<textInput>`: its definition and its planner (ADR 0016).
+//! `<textInput>`: its definition and its planner.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
@@ -8,8 +8,8 @@ use crate::error::{Error, Result};
 component! {
     /// `<textInput>`: `value` is an essential cell holding a string id (the
     /// `prefill`'s, or ""'s), unless `bindValueTo` or a `$ref` child binds it
-    /// to another text cell. Typing interns the text (`Document::intern`) and
-    /// requests the id. Planned by `plan`; `immediateValue` is the same cell.
+    /// to another text cell. Typing interns the text and requests the id.
+    /// `immediateValue` is the same cell.
     tags: ["textInput"],
     flags: [copyable],
     reads_as: Text,
@@ -28,7 +28,7 @@ component! {
 pub const VALUE: usize = Props::AT.value;
 
 /// `value` aliases what a lone `$ref` child names, else what
-/// `bindValueTo` names (a child wins, as in DoenetML); otherwise it is an
+/// `bindValueTo` names (a child wins); otherwise it is an
 /// essential cell holding the id of its `prefill` text (or of "").
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());

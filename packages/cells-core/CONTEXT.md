@@ -150,8 +150,8 @@ a sticky group reads.
 
 **Live cell** — A root, or a cell some root reads, through aliases and
 every input of the instructions that compute it. The compile finds the live template
-slots once, through the abstract build (the *live record*), and every build
-reads it. Every essential cell is live. A cell that is not live is **dead**:
+slots once, over the template graph, as a *port attribute*
+(`PortAttrs::LIVE`), and every build reads it. Every essential cell is live. A cell that is not live is **dead**:
 a load with `LoadOptions::prune`, the default, gives it no cell, and every
 prop that would name it names the one **dead cell** instead, a constant NaN
 that nothing computes. Unpruned, every cell is computed and
@@ -265,9 +265,9 @@ instructions run inside a tick, like any other instruction.
 **Symbolic engine** — The store of symbolic expressions: math-expressions-rs,
 called directly (`sym::Engine`, ADR 0008, ADR 0011). Math cells hold handles
 into it; the core treats expressions as opaque and reaches them only through
-the operations the engine offers. It belongs to the session
-(`Session::engine`), which the program shares for the tick, and only grows,
-so a handle stays valid for the session. Equal expressions have equal
+the operations the engine offers. The document owns it, beside the
+session (`MathStore::engine`), and lends it to each build and each tick;
+it only grows, so a handle stays valid for the session. Equal expressions have equal
 handles: an expression made again finds the handle it had, so a symbolic
 instruction whose result did not change cuts off what follows it.
 
@@ -324,9 +324,9 @@ _Avoid_: literal (a literal is text written in the source)
 which follows the iteration counts (ADR 0028): a collect's count from a
 repeat, a section's number after one, the credit of a section whose answers
 are all in repeats. A derived cell in every build, holding the number its build
-counted; the abstract build records which template slots hold one
-(`Compiled::counted`), since at a count with nothing to count a build cannot
-tell. Never a constant.
+counted; the compile's check finds which template slots hold one, a *port
+attribute* (`PortAttrs::COUNTED`), since at a count with nothing to count a
+build cannot tell. Never a constant.
 
 **Hold** — What `fixed` (or `fixAxes`) puts on an element: every cell of
 it refuses a request while one of its flags is nonzero (`Program::holds`);
@@ -350,7 +350,11 @@ point, then the hidden ports. Every port has a **port type** (`PortType`,
 ADR 0032): a number, text or math, which the compile infers once from the
 port's source and the ports it reads (`compile/seal/types.rs`) and every
 build reads to decide what the port's cell holds, whether a `<math>` is a
-math cell, and which reference leaf inside math is a math leaf.
+math cell, and which reference leaf inside math is a math leaf. Every port
+also has **port attributes** (`PortAttrs`, ADR 0032 step 8, ADR 0036):
+what the check found of it, which every build reads, a bit each for
+writable, live, a counted value and a document constant, kept by template
+slot in the check's table of each template (`Checked`).
 _Avoid_: slot (a slot is the build's numbering of a port)
 
 **Slot** — At build time, one port of one component instance, before
@@ -392,7 +396,7 @@ nothing overrides it, and a copy gets its own. One over a collection that
 crosses a repeat is a counted value.
 
 **Compile** — The once-per-load stage (ADR 0015): the source made into
-templates and plans (*plan*), checked through the abstract build (*check*),
+templates and plans (*plan*), checked over the template graph (*check*),
 with every element that fails boxed. Its product, `Compiled`, is what every
 build stamps, and depends on the source alone, not the seed (ADR 0014).
 
@@ -405,13 +409,23 @@ element's plan, from the source and what outlining and parsing made,
 never from another element's plan. *Link*: what ties plans together once
 all are made (shared state; boxing what read a boxed referent). *Seal*:
 what reads every plan and changes none (choice interfaces, arity, keys,
-slot offsets). *Abstract build*: one build through the abstract view. They
-are not called passes: a *pass* is one build while the repeat counts settle.
+slot offsets). *Check*: the template graph, every live template stamped
+once standing for every count and pick, its failures boxed, checked for
+loops at any count, defined and walked; it makes no program (ADR 0035,
+ADR 0032). The abstract build, a build through a view that folded every
+iteration into one, did this until the template graph replaced it. They are not called passes: a *pass* is one build while the
+repeat counts settle.
 
 **Build** — One pass from the compile, the session and iteration counts to
-cells, program and component table: expand, resolve, emit, schedule. A
-*load* is a compile, then builds until the structure *settles*; a *rebuild*
-is builds until it settles again.
+cells, program and component table: expand, resolve, define, emit,
+schedule. *Expand* stamps templates into components and slots, and
+*resolve* points each reference at a slot. *Define* merges aliased slots
+into the cells they will share, orients the author's operators and classes
+every cell (essential or not, live or dead); what a cell *is* is decided
+there or earlier. *Emit* numbers the cells and binds operators into
+instructions, and reads no structure view (ADR 0035). *Schedule* orders the
+instructions. A *load* is a compile, then builds until the structure
+*settles*; a *rebuild* is builds until it settles again.
 
 **Session** — What survives every build of a document (ADR 0015): the scope
 table, every essential value by key, which of them a student touched,
@@ -501,8 +515,8 @@ cell, the student's work.
 sequence before its count can be computed, plus one. Nesting adds one; a
 count that reads a cell inside another repeat's iterations adds one. A
 document loads in depth + 1 build passes, and a rebuild takes at most as
-many. The compile's check bounds the depth from the source (the abstract
-build's depth, which no build exceeds), and load and rebuild allow that many
+many. The compile's check bounds the depth from the source (the template
+graph's depth, which no build exceeds), and load and rebuild allow that many
 passes, so a structure that does not settle in them is a core bug. The
 second kind of link is reported as a warning, since authors can avoid it.
 
@@ -516,8 +530,8 @@ document can reach, not only the count at load. Rejected at load time
 
 **Diagnostic** — An error, warning, info or accessibility finding about the
 document: a kind, a code, its arguments and the node it is about. A
-function of the document text alone, found by the compile's check through
-the abstract build; `diagnose`, which the language server calls, returns the
+function of the document text alone, found by the compile's check over
+the template graph; `diagnose`, which the language server calls, returns the
 same list a load reports. A tick never produces one (ADR 0013).
 
 **Presentation attribute** — An attribute a renderer reads from the

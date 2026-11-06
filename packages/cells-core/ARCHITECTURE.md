@@ -60,7 +60,8 @@ The work splits by when it happens:
    │ Compiled (kept by the document for rebuilds)
    ▼
  build/      expand: templates → components, slots         per structure
-             emit:   slots → cells, instructions                ▲
+             define: slots → cells, each classed                ▲
+             emit:   cells → numbered cells, instructions       │
    │                                                            │
    │ BuildOutput                                                │
    ▼                                                            │
@@ -126,35 +127,72 @@ Runs once per load and depends on the source alone.
   else the lowest, is kept. So an extend that overrides nothing an
   instruction reads shares the referent's instruction whatever its
   planner did, and so do two unrelated elements computing the same thing;
-  every build and the abstract build's records see it as a plan fact, and
+  every build and the check's template graph see it as a plan fact,
+  and
   no build pays to find it. It also classes the math expressions
-  (`Compiled::expr_class`), so a build lowers a subexpression two of a
-  scope's maths share once (`Builder::lower`); the **abstract build**
-  (below) comes last. What more than one stage uses
+  (`Plans::expr_class`), so a build lowers a subexpression two of a
+  scope's maths share once (`Builder::lower`); the **check** (below)
+  comes last. What more than one stage uses
   has a module of its own (`names.rs`, `refs.rs`, `maths.rs`,
   `source.rs`, `boxes.rs`). A planner reads the
   source and what outlining and parsing made, never another element's plan
   (ADR 0029), so elements are planned in any order: what one shares with
   another (an extend's essential state) is linked once all are planned.
 - **Check** (`check.rs`, ADR 0012, ADR 0014) finds every error the document
-  can have. It builds the plans once through the **abstract build**
-  (`build/abstract_build.rs`), which folds every iteration into one and
-  builds every option of every select, so its graph holds every edge any
-  count or pick could create. It rejects any dependency loop that could
-  close at some count, records what every build reads (below) and the
-  document's structural depth, then discards that build. Every document goes
-  through the abstract build, with or without repeats: a load is one
-  sequence of steps. An element that fails to build is *boxed*; see [An
-  element cannot be built](#an-element-cannot-be-built).
+  can have, all of it over the **template graph** (below), which stands
+  for every count and every pick: stamping it fails on an element that
+  cannot be built (`Stamp::fail`, which names the element to box), it
+  rejects any dependency loop that could close at some count, finds the
+  document's structural depth, defines the graph and walks it for what
+  every build reads of each port (below), checks the prefill rule, and
+  warns of each request no build could land (ADR 0026). It makes no
+  program (ADR 0035). Every document goes through the check, with or
+  without repeats: a load is one sequence of steps. An element that fails
+  to build is *boxed*; see [An element cannot be
+  built](#an-element-cannot-be-built). The input signature (ADR 0017),
+  which compares two versions of a document, is read off the template
+  graph's definitions too (`compile/graph/signature.rs`), with an engine
+  of its own for what a math value hashes as.
+
+  The **template graph** (`compile/graph/`) stamps every live template once
+  from the plans alone, one iteration standing for every iteration of a
+  repeat and every option of a select stamped, in the order a build
+  resolves: a node per port of every element and of every component the
+  stamping makes beside them (a stand-in, a whole pick's stand-in, a
+  case, a `$ref` child, a collect's copy, a point list's point), and per
+  value a read goes through (a leaf inside math, a choose, a gate), with
+  a read per dependency, labelled by how it moves through the iterations
+  (`Coord`). It replaced the abstract build, which stamped the document
+  through a view that folded every iteration into one (ADR 0032, step 8),
+  and was held to that build's graph, definitions, walks, warnings,
+  failures and input signature on every document before the build went;
+  it keeps that build's order of components, so a message names a
+  component as that build did. `tests/every_count.rs` checks that every
+  dependency of every build, at every count and seed, is one it has, with
+  a label the iterations satisfy. The cycle and count checks run over it
+  (`compile/graph/cycles.rs`): a Tarjan walk with a Bellman-Ford per
+  component (ADR 0012), the loop on the graph of repeats, and the
+  structural depth with its warnings. A cycle is named by its first node
+  in the stamping's order that is a named component's port. Every node
+  carries its definition as a build's slot carries its source (`Def`),
+  and define runs over the graph (`compile/graph/define.rs`):
+  cells by a union-find over the aliases, the flags that hold each, the
+  author's operators oriented, the prefill rule, and the writable and
+  live walks, whose classes become the ports' attributes; the refuse
+  warnings are read off the same cells (`compile/graph/refuse.rs`).
 
 Each stage keeps its own table (ADR 0031): a template is outlining's part
 (`Outlined`, read-only once outlining is done), boxing's and planning's
-(`Tables`) and sealing's (`SealedTemplate`), put together into `Compiled`
+(`Tables`) and sealing's (`SealedTemplate`), put together into `Plans`
 when the compile is done.
 
-The result is `Compiled` (`plan.rs`): the templates, their plans, the
-abstract build's records and the source's diagnostics, the abstract build's
-warnings included.
+The result is `Compiled` (`plan.rs`): the source and the `Plans` made from
+it, which are the templates, their plans, the ports' attributes the
+check found and the source's diagnostics, the check's warnings included. The
+stages read the source as a borrow, given to each stage that needs it, and
+make `Plans`; only the finished `Compiled` owns the source. A build reads
+the two as a `CompiledRef`, borrowed: from the check, from the source it
+planned, and from a `Compiled` a document keeps (`Compiled::view`).
 
 ### Build (`build/`)
 
@@ -165,34 +203,44 @@ draw for every select.
 - **Expand** (`build/expand/`) stamps each template into components once per
   *scope* (the document, and each iteration of each repeat) and resolves
   references to slots.
-- **Emit** (`build/emit.rs`) merges aliased slots into cells with a
-  union-find, numbers the cells (the constants, with the session's pool of
-  document constants first, ADR 0028; then essential; then derived) and
-  binds operators to them as instructions. A given value (an
-  attribute's or a default) is essential only when a student's action can write it (ADR
-  0018): `build/writable.rs` walks back from every input prop to where a
-  request on each cell goes. Both walks read the cells the slots will make
+- **Define** (`build/define.rs`, ADR 0035) merges aliased slots into cells
+  with a union-find and finds the one slot that defines each cell, orients
+  the author's operators (ADR 0026), checks the prefill rule (a prefill
+  must name a value that is not computed, unless it is a counted value),
+  and classes every cell. A given value (an attribute's or a default) is
+  essential only when a student's action can write it (ADR 0018):
+  `build/writable.rs` walks back from every input prop to where a request
+  on each cell goes. Both walks read the cells the slots will make
   (`SlotCells`, `build/slot_cells.rs`) only through a cell's definition
   (`Def`), which defines its two relations once: what it needs (what its
   source reads, and the flags that hold it) and where a request on it goes
   (what its inverse may write, nowhere past a constant hold).
-  `Program::needs` is the first over the cells a build made. The abstract
-  build runs the walk and records the writable template slots in `Compiled`
-  (a `Record`), and every build classes by that record, so a slot's class is
-  the same in every build. A class is computed only when it is live (ADR
+  `Program::needs` is the first over the cells a build made. The check
+  runs the same walk over the template graph and marks the writable
+  ports, a *port attribute* (`PortAttrs`) kept by template slot in the
+  check's table of each template (`Checked`), and every build classes by
+  the attributes, so a slot's class is the same in every build. A class is computed only when it is live (ADR
   0019): `build/live.rs` walks back from every root (the rendered props of
   rendered components, scores, inputs, what an action or snapping reads,
-  repeat counts) through what each cell needs. The abstract build records
-  the live template slots in `Compiled::live` as it records the writable
-  ones; a class the record cannot name (a synthesized component's, such as a
-  choice's interface) is live when something live reads it. A dead class
-  gets no cell: its props name the one dead cell, a constant NaN, and its
-  instruction is never bound. A live class that needs the dead cell, an
-  instruction's input or a hold's flag, fails the build
-  (`Error::Unchecked`). `LoadOptions::prune` off computes every class.
+  repeat counts) through what each cell needs. The check marks the live
+  ports as it marks the writable ones; a class no port names (a
+  synthesized component's, such as a choice's interface) is live when
+  something live reads it (`Defined::by_attributes`); a build's own
+  walks are the tests' check of the attributes. What define makes, `Defined`, is what emit reads. The
+  refuse analysis (`program/refuse.rs`) is one rule over a graph that the
+  check asks of the template graph's cells (`compile/graph/refuse.rs`)
+  and a document asks of its program (`Interactive::refused_bits`).
+- **Emit** (`build/emit.rs`) numbers the cells (the constants, with the
+  session's pool of document constants first, ADR 0028; then essential;
+  then derived), binds operators to them as instructions, seeds values
+  and compiles curve tapes. A dead class gets no cell: its props name the
+  one dead cell, a constant NaN, and its instruction is never bound. A
+  live class that needs the dead cell, an instruction's input or a hold's
+  flag, fails the build (`Error::Unchecked`). `LoadOptions::prune` off
+  computes every class.
 
   Emit also makes the constants (ADR 0028). A document constant, by the
-  abstract build's record (`Compiled::document_constants`), an operator's
+  port's attribute (`PortAttrs::DOCUMENT_CONSTANT`), an operator's
   constant and the missing-referent cell name a cell of the session's
   **constant pool**, one per distinct value, which every build starts its
   cells from and appends to; a document constant's cell index is the same in
@@ -203,16 +251,29 @@ draw for every select.
   the program keeps no instruction for it. A *counted value*, which a build
   counts from the structure it stamped (a collect's count from a repeat, a
   section's number after one), is a derived cell in every build, never a
-  constant; the abstract build records which slots hold one
-  (`Compiled::counted`).
+  constant; the check marks the ports that hold one
+  (`PortAttrs::COUNTED`).
 
-A build learns the document's structure only through the **structure view**
-(`View`, `build/view.rs`): iteration counts, which iteration or item an
-index names, a collect's count, a select's options. A real build uses the
-`Stamped` view, which answers from the counts it was asked for; the check
-uses the `Abstract` view. Because the cycle check reasons about the
-abstract build, any structural read that bypasses the view is one the cycle
-check cannot see.
+A build learns the document's structure from the counts it was asked for
+(`Counts`) and the session's seed: how many iterations each repeat has,
+and so which iteration or item an index names, what a collect gathers
+and what a select draws. The cycle check reasons about the template
+graph, which stands for every count and every draw, and
+`tests/every_count.rs` holds every build to it; a structural read the
+graph does not model is one the cycle check cannot see.
+
+Expand and resolve read the counts; define finds a loop of aliases a gap
+in the check (`Unchecked`). Emit reads no structure (ADR 0035). So the
+check reads the graph and the cells'
+definitions, never a numbered cell or a bound instruction: a rule about
+what a cell *is* (its class, what it needs, where a request on it goes,
+what an author may reference) belongs in define or before it, and a rule
+about how a cell is numbered or an instruction bound belongs in emit. A
+diagnostic raised in emit is misplaced, and a structural read in emit is
+a bug. A build reads the compile and the session, never the template
+graph: what the check hands it is facts about template slots, the port
+attributes and the depth, and the graph is dropped with the check
+(ADR 0036).
 
 A build reads the `Session` (`session.rs`) and returns the next one. The
 session is everything that survives across builds: the scope table, every
@@ -249,8 +310,8 @@ downstream, and report a `TickOutcome`. See
 `Document::load` (`document/load.rs`):
 
 1. The bytes become a `Dast`.
-2. The compile runs once: lint, plan, check. The check's abstract build also
-   records which template slots are writable (ADR 0018), which are
+2. The compile runs once: lint, plan, check. The check also
+   marks which ports are writable (ADR 0018), which are
    live (ADR 0019), which are document constants and which hold counted
    values (ADR 0028), which every build reads, and the structural depth,
    which bounds the passes below.
@@ -311,9 +372,9 @@ error; every read of another element's facts is recorded (an extend's of
 its referent, a container copy's of what it clones, a clone's of its
 original), and linking boxes the readers of every box to a fixpoint (ADR
 0032), so a box's readers never stand on what it was. An error the
-abstract build raises records the innermost element it concerns, which is
-boxed from the start of a new compile, and the check builds again until
-every element builds. A box keeps its name (ADR 0027): a reference to it
+check raises records the innermost element it concerns, which is boxed
+from the start of a new compile, and the check runs again until every
+element builds. A box keeps its name (ADR 0027): a reference to it
 resolves and reads as undefined, with no diagnostic of its own, and an
 extend of it is boxed in turn (`cells-boxed-referent`). Only an error with
 no element to box, a dependency cycle, fails the load.
@@ -330,8 +391,8 @@ up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
 0030), all of them at once, like any failure: what its planning reported
 under it is dropped, and a reference into it reads undefined.
 
-Every error depends on the source alone (ADR 0014), and the abstract build
-stands for every count and every pick, so the check finds every error at
+Every error depends on the source alone (ADR 0014), and the template
+graph stands for every count and every pick, so the check finds every error at
 load. Later builds never find a new one: a build's error type
 (`build::BuildError`) has no variant for an author's mistake, and a build
 that hits one anyway fails with `BuildError::Unchecked` instead of boxing
@@ -360,13 +421,15 @@ the other action: it sets each `<updateValue>`'s target.
 |---|---|---|
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. |
 | `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
-| `Compiled`, `Template` | `compile/plan.rs` | The compile's output: one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
-| `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Abstract`, which folds every iteration into one (`build/abstract_build.rs`). |
-| `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
-| `Session`, `Counts`, `Pool` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine, the constant pool (ADR 0028); and the counts a build stamps. |
+| `Compiled`, `CompiledRef`, `Plans`, `Template` | `compile/plan.rs` | The compile's output: the source and its `Plans`, one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. A build reads it as a `CompiledRef`. |
+| `TemplateGraph` | `compile/graph/mod.rs` | Every live template stamped once from the plans: ports and the values stamped beside them, and what each reads, labelled by how it moves through the iterations (`Coord`). Every node defined as a build's slot is (ADR 0032, step 8): what the check's stamping failures, cycle check, define, walks, refuse warnings and the input signature read; every build is held to it (`tests/every_count.rs`). |
+| `Defined` | `build/define.rs` | What define made of a build's resolved slots: the cells they will make (`SlotCells`) and each slot's class, essential and live, by the ports' attributes the compile keeps (ADR 0035). What emit reads. |
+| `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one stamped build, before scheduling. |
+| `Session`, `Counts`, `Pool` | `session.rs` | What survives every build: scopes, essential values, strings, seed, the constant pool (ADR 0028); and the counts a build stamps. |
+| `MathStore` | `session.rs` | The math engine and the handles of the source's constant expressions, which the document owns beside the session and lends to each build and tick (ADR 0015's amendment of 2026-11-05). |
 | `Structure` | `build/structure.rs` | What one build made: its repeats and its essential cells' keys. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a scalar operator with its evaluation and inverse; `VecOp` (`vector.rs`) reads and writes several cells; symbolic operators call the math engine. A `Program` is read-only while a tick runs; what its symbolic instructions keep between runs is a `SymState` beside it in the document. |
-| `Document` | `document/mod.rs` | A loaded document and the API to it. `output_cells` and `is_live` (`document/outputs.rs`) say what leaves it and what it computes. |
+| `Document`, `Built` | `document/mod.rs` | A loaded document and the API to it: what one build made (`Built`, which a rebuild replaces and the document reads as), the session, the math and what the load settled. `output_cells` and `is_live` (`document/outputs.rs`) say what leaves it and what it computes. |
 | `Renders`, `Live` | `components/mod.rs`, `build/mod.rs` | Where a component type is drawn (always, never, only in a graph), which decides whether its `rendered` props are outputs; and a build's bit per cell of what it computes (ADR 0019). |
 | `CellIdx`, `CompIdx`, `NodeId`, `StrId`, `ScopeId`, `OperandIdx`, `MemoIdx`, `SymIdx`, and the compile's and build's ids (`TemplateId`, `ElemId`, `RefId`, `ChoiceId`, `ElemKey`, `ExprId`, `SlotId`, `Handle`) | `index.rs` | Positions in the cells, the component table, the DAST, a string table, the session's scopes, a program's operands, its symbolic instructions and its symbolic memo, and the like, each its own type over a `u32` made by `index_type!` (`index()` reads the position), so one cannot be passed for another. A text cell holds a `StrId` as its value (`StrId::to_value`). Two lists mix kinds of entry and say so in their types: a child list's `ChildEntry` (`document/table.rs`) is a component or a text child's string, and a literal attribute's `AttrValue` (`dast/attrs.rs`) is a string or text the attributes keep. A math's leaves say what they are by type: `Expr<L>` and `sym::Tree<L>` hold `RefId`s in the compile, `SlotId`s in a build, `CellIdx`s once emit rebinds them. |
 | `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, the component each reference refers to (`referent`, ADR 0024), and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
@@ -586,30 +649,33 @@ the core does not compute it, and the viewer's test, which checks every
 - `testing/dast.rs` builds a DAST in Rust, for a unit test of the core that
   needs neither the parser nor node; `tests/dast_builder.rs` checks it
   against the parser.
-- `tests/specs/` holds the component specs (`testing/spec.rs`, ADR 0016),
-  laid out as `src/components/` is: `tests/specs/geometry/circle.rs` is the
-  spec of `components/geometry/circle.rs`, and a type defined in its family's
-  `mod.rs` (the slider) has a file of its own (`tests/specs/inputs/slider.rs`).
+- A component's spec (`testing/spec.rs`, ADR 0016) sits beside its
+  definition: `components/geometry/circle.spec.rs` is the spec of
+  `components/geometry/circle.rs`, which includes it as a test-only module
+  (`#[path = "circle.spec.rs"] mod spec;`); a type defined in its family's
+  `mod.rs` (the slider) has its spec beside that `mod.rs`
+  (`components/inputs/slider.spec.rs`), included there.
   Each `spec!` case gives DoenetML, a sequence of requests, and the values an
   author should see after each. Every case is also checked against the
   reference evaluator and the component's cost snapshot in
-  `tests/specs/snapshots/`. `SPEC_UPDATE=1` rewrites a snapshot; review the
+  `components/snapshots/`. `SPEC_UPDATE=1` rewrites a snapshot; review the
   change alongside the code that caused it. A new component comes with its
-  spec: a unit test (`components/mod.rs`) fails for one without, unless
+  spec: a unit test (`components/mod.rs`) fails for one without (or with a
+  spec file its definition does not include), unless
   it is in `WITHOUT_SPEC`, a list that only shrinks; writing a listed
   type's spec means taking it off the list.
 - `tests/every_count.rs` builds every golden document and fixture at
   iteration counts 0 to 4 and four seeds, and checks that a document that
   passed the cycle check never fails a build with a cycle or an unsettled
-  structure. It also checks each build against the abstract build's graph
-  (`build/coverage.rs`): every dependency must be one the abstract build
+  structure. It also checks each build against the template graph
+  (`build/coverage.rs`): every dependency must be one the template graph
   has, with a label its iterations satisfy. This tests the assumptions the
   cycle check rests on directly, instead of waiting for a missed cycle. The
   same holds for the classing (ADR 0018): at each count and seed, nothing a
-  build's own walk finds writable is missing from the abstract build's
-  record, and every request on an interactive cell, submit and trigger, made
+  build's own walk finds writable is a port the check did not mark
+  writable, and every request on an interactive cell, submit and trigger, made
   with every value essential (`LoadOptions::classify` off), writes only
-  cells the record makes essential. And for the constants (ADR 0028): a slot
+  cells the attributes make essential. And for the constants (ADR 0028): a slot
   that is a constant in one build of a scope is the same constant in every
   build of it, at every count, and a document constant the same in every
   scope of its template.
@@ -629,7 +695,7 @@ the core does not compute it, and the viewer's test, which checks every
   document and ticks a pruned one beside it, which must agree on every
   live cell (`testing::live_cells_agree`), and its cost snapshot is the
   pruned one's.
-- `tests/live.rs` checks the live record (ADR 0019) at every golden
+- `tests/live.rs` checks the live attribute (ADR 0019) at every golden
   document and `sir.doenet`, four seeds and counts 0 to 4: nothing a
   build's own walk finds live is missing from it, every output and every
   essential cell is live, every live cell's `Program::needs` is live, a
@@ -649,3 +715,9 @@ the core does not compute it, and the viewer's test, which checks every
   unpruned. A refactor should leave it identical.
 - `packages/benchmark/scripts/perf-diff.sh [base]` compares speed against a
   base commit, loaded pruned as a browser loads (`CELLS_PRUNE=1`).
+- `scripts/tick-diff.sh [base]` and `scripts/load-diff.sh [base]` compare
+  a tick and a load, natively, against a base commit, over the synthetic
+  shapes of `cells-bench`. A change to the compile or the build records
+  both in its ADR: a pass that makes a tick cheaper is paid for at every
+  load, and the load is where it shows. `docs/load-cost.md` has the load's
+  history and where its time goes.

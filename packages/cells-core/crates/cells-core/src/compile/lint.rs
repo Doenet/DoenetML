@@ -1,13 +1,9 @@
 //! Lint: the diagnostics that are facts about the DAST alone, found by
-//! one walk over its elements before anything is compiled (ADR 0013).
-//! Today the accessibility rules this core has the types for, the
-//! current core's rules: a `<graph>` needs a `<shortDescription>` child
-//! or `decorative`; an input needs one, or a `<label>` child, a `label`
-//! attribute or `labelIsName`. Every build reports them, so a document
-//! whose build fails outright still has them. Lint looks attributes up
-//! with `Dast::attr_peek`, which records no read, so it may run in any
-//! pass without changing which attributes ADR 0021 refuses; it runs
-//! first (ADR 0027).
+//! one walk over its elements before anything is compiled. Today the
+//! accessibility rules: a `<graph>` needs a `<shortDescription>` child or
+//! `decorative`; an input needs one, or a `<label>` child, a `label`
+//! attribute or `labelIsName`. Lint reads attributes with
+//! `Dast::attr_peek`, which records no read.
 
 use std::collections::BTreeMap;
 

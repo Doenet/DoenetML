@@ -15,13 +15,17 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
     ) -> Result<BuiltSource> {
         let compiled = self.compiled;
-        let sym = compiled.sym_text.get(&expr).ok_or_else(|| Error::BadMath {
-            text: format!("{:?}", self.compiled.arena.get(expr)),
-            reason: "no math text recorded".into(),
-        })?;
+        let sym = compiled
+            .plans
+            .sym_text
+            .get(&expr)
+            .ok_or_else(|| Error::BadMath {
+                text: format!("{:?}", self.compiled.plans.arena.get(expr)),
+                reason: "no math text recorded".into(),
+            })?;
         // Spelled only to parse once, or for an error.
-        let text = || sym.spell(&compiled.dast);
-        if compiled.arena.has_call(expr) {
+        let text = || sym.spell(compiled.dast);
+        if compiled.plans.arena.has_call(expr) {
             return Err(Error::BadMath {
                 text: text(),
                 reason: "round, floor, min, max and clamp are for numeric math only".into(),
@@ -30,11 +34,11 @@ impl<'c> Builder<'c> {
         // A constant expression is the same in every instance and every
         // build: made once per load (ADR 0028).
         let constant = (expr, post);
-        if let Some(&h) = self.session.math_constants.borrow().get(&constant) {
+        if let Some(&h) = self.math_constants.get(&constant) {
             return Ok(BuiltSource::Const(h.to_value()));
         }
         let parsed;
-        let tree = if let Some(cached) = compiled.sym_trees.get(&expr) {
+        let tree = if let Some(cached) = compiled.plans.sym_trees.get(&expr) {
             cached.get_or_init(|| self.engine.parse_tree(&text()))
         } else {
             parsed = self.engine.parse_tree(&text());
@@ -76,10 +80,10 @@ impl<'c> Builder<'c> {
     }
 
     /// Constant expression `constant` as imported (`h`), its post applied
-    /// and kept for every later instance and build (ADR 0028).
+    /// and kept for every later instance and build.
     fn math_constant(&mut self, constant: (ExprId, Post), h: crate::sym::Handle) -> BuiltSource {
         let h = self.post(h, constant.1);
-        self.session.math_constants.borrow_mut().insert(constant, h);
+        self.math_constants.insert(constant, h);
         BuiltSource::Const(h.to_value())
     }
 
@@ -96,9 +100,9 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// Rebind a parsed template's `cellN<plan>` leaves to slots: a math leaf where
-    /// the reference names an expression, else a numeric leaf. Distinct leaf
-    /// slots are appended to `leaves`.
+    /// Rebind a parsed template's `cellN<plan>` leaves to slots: a math leaf
+    /// where the reference names an expression, else a numeric leaf.
+    /// Distinct leaf slots are appended to `leaves`.
     fn bind_leaves(
         &mut self,
         t: &Tree<RefId>,
@@ -118,14 +122,13 @@ impl<'c> Builder<'c> {
     /// expression (then the slot is the referent's math cell).
     fn leaf_slot(&mut self, plan: RefId, scope: ScopeId) -> Result<(SlotId, bool)> {
         let slot = self.math_ref(plan, scope)?;
-        let (slot, math) = match self.math_target(slot) {
+        Ok(match self.math_target(slot) {
             Some(m) => (m, true),
             None => (slot, false),
-        };
-        Ok((self.leaf(slot, scope), math))
+        })
     }
 
-    /// The slot a `$ref` inside math names: one cell, and not a string id.
+    /// The slot a `$ref` inside math names (one cell, and not a string id).
     fn math_ref(&mut self, plan: RefId, scope: ScopeId) -> Result<SlotId> {
         let slot = self.resolve_one(plan, scope).map_err(|e| match e {
             Error::ArityMismatch { .. } => Error::BadMath {
@@ -180,11 +183,9 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// What the cell of `slot` will hold: its template port's type, which
-    /// the compile settled (ADR 0032, `Compiled::port_type`), read through
-    /// the aliases of a component the build made (a copy, a placed
-    /// reference, a collect's item); an interface's stand-in holds what
-    /// its branches' components hold.
+    /// What the cell of `slot` will hold: its template port's type, read
+    /// through the aliases of a component the build made; an interface's
+    /// stand-in holds what its branches' components hold.
     pub(in crate::build) fn value_type(&self, slot: SlotId) -> ValueType {
         self.value_type_within(slot, 32)
     }
@@ -194,7 +195,7 @@ impl<'c> Builder<'c> {
             return ValueType::Number;
         }
         if let Some((t, ts)) = self.template_slot(slot) {
-            return self.compiled.port_type(t, ts).value_type();
+            return self.compiled.plans.port_type(t.index(), ts).value_type();
         }
         if let BuiltSource::Alias(t) = self.sources[slot.index()] {
             return self.value_type_within(t, depth - 1);
@@ -223,9 +224,9 @@ impl<'c> Builder<'c> {
     }
 
     /// Whether a component's `expr` is a math cell: its port's type is
-    /// `Math` (ADR 0032), for a function, an unbound mathInput, a math with
-    /// a free symbol or a reference to an expression, and for a copy or a
-    /// stand-in of one.
+    /// `Math`, for a function, an unbound mathInput, a math with a free
+    /// symbol or a reference to an expression, and for a copy or a stand-in
+    /// of one.
     pub(in crate::build) fn is_symbolic(&self, comp: CompIdx) -> bool {
         let component_type = self.components.component_type[comp.index()];
         match component_type.prop_index("expr") {
@@ -243,25 +244,22 @@ impl<'c> Builder<'c> {
         id: ExprId,
         scope: ScopeId,
     ) -> Result<ExprId> {
-        // Equal math is one class (ADR 0033, `Compiled::expr_class`): a
+        // Equal math is one class (ADR 0033, `Plans::expr_class`): a
         // class is instantiated once per scope, for an element no hold
         // makes its own (`share_math`).
         let class = self
             .share_math
-            .then(|| (self.compiled.expr_class[id.index()], scope));
+            .then(|| (self.compiled.plans.expr_class[id.index()], scope));
         if let Some(key) = class
             && let Some(&done) = self.instantiated.get(&key)
         {
             return Ok(done);
         }
-        let e = self.compiled.arena.get(id).clone();
+        let e = self.compiled.plans.arena.get(id).clone();
         let out = match e {
             Expr::Num(v) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
-            Expr::Cell(plan) => {
-                let slot = self.math_ref(plan, scope)?;
-                Expr::Cell(self.leaf(slot, scope))
-            }
+            Expr::Cell(plan) => Expr::Cell(self.math_ref(plan, scope)?),
             Expr::Add(a, b)
             | Expr::Sub(a, b)
             | Expr::Mul(a, b)
@@ -286,13 +284,10 @@ impl<'c> Builder<'c> {
     }
 
     /// Lower a numeric expression to operator slots. A literal is read from
-    /// the build's shared constants (`const_slot`), so a bare literal gives
-    /// a slot no prop may alias. A binary operator's inverse writes its
-    /// first input, so a literal goes second where the operator allows it.
-    /// The expression's own operator is new, a cell for the port that
-    /// lowers it, whose marks and hold are its own; what it reads is
-    /// lowered once per node (`lower_shared`), so a subexpression an
-    /// instantiation shares is computed once (ADR 0033).
+    /// the build's shared constants, so a bare literal gives a slot no prop
+    /// may alias. A literal goes second where the operator allows it. The
+    /// expression's own operator is a new slot; what it reads is lowered
+    /// once per node.
     pub(in crate::build) fn lower(&mut self, id: ExprId, scope: ScopeId) -> SlotId {
         let num = |a: &Arena<SlotId>, e: ExprId| match a.get(e) {
             Expr::Num(v) => Some(*v),
@@ -363,8 +358,8 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// `lower`, once per node of the build's arena: a node an instantiation
-    /// shares (`instantiate_expr`) gives one slot.
+    /// `lower`, once per node of the build's arena: a shared node gives one
+    /// slot.
     fn lower_shared(&mut self, id: ExprId, scope: ScopeId) -> SlotId {
         if let Some(&s) = self.lowered.get(&id) {
             return s;
@@ -375,8 +370,7 @@ impl<'c> Builder<'c> {
     }
 
     /// `op_slot` for an operator lowered from the author's math: a binary
-    /// one is recorded for orientation (`build/orient.rs`, ADR 0026), which
-    /// leaves the operators of components' own tables as written.
+    /// one is recorded for orientation.
     fn math_op(&mut self, spec: OpSpec, inputs: &[SlotId], scope: ScopeId) -> SlotId {
         let slot = self.op_slot(spec, inputs, scope);
         if inputs.len() == 2 {

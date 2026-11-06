@@ -1,6 +1,6 @@
-//! The count-independent cycle check (ADR 0012): a loop that closes at a
-//! count the document can reach is rejected at load, whatever the count
-//! at load; a loop that only marches through the iterations is not.
+//! The count-independent cycle check: a loop that closes at a count the
+//! document can reach is rejected at load, whatever the count at load; a
+//! loop that only marches through the iterations is not.
 
 use cells_core::testing::test_utils::{dast_json, load};
 use cells_core::{Document, Error, LoadOptions};

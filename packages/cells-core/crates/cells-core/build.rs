@@ -1,8 +1,7 @@
-//! The release id (ADR 0017, step 6): the crate version and the source
-//! revision, so saved state names the core that made it. A platform build
-//! may set it outright with `CELLS_CORE_RELEASE`; a tree with uncommitted
-//! changes is marked `.dirty`, since its revision is not its source; with
-//! no revision known it is the version and `unknown`.
+//! The release id: the crate version and the source revision, so saved
+//! state names the core that made it. `CELLS_CORE_RELEASE` overrides it; a
+//! tree with uncommitted changes is marked `.dirty`, and with no revision
+//! known it is the version and `unknown`.
 
 use std::process::Command;
 

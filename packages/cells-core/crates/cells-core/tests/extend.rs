@@ -1,9 +1,8 @@
 //! An `extend` with attributes or children of its own is the referent with
-//! those changes (REF-3 of the principles), and what it takes from the
-//! referent keeps the meaning it has there (REF-6, ADR 0023): a reference
-//! in an inherited attribute, in inherited children or in an inherited
-//! constraint binds where the referent sits, while a reference the extend
-//! writes itself binds where the extend sits (NAME-4).
+//! those changes, and what it takes from the referent keeps the meaning it
+//! has there: a reference in an inherited attribute, child or constraint
+//! binds where the referent sits, while a reference the extend writes
+//! itself binds where the extend sits.
 
 mod common;
 use common::{set, v};
@@ -77,10 +76,10 @@ fn an_inherited_constraint_keeps_the_referents_binding() {
 
 /// An extend whose referent is reached by an index, or sits in another
 /// repeat or choice, takes what it does not write from the referent's
-/// record, rebased through the path (ADR 0032, decision 3): a reference
-/// in an inherited attribute means what it means at the referent, in the
-/// iteration the path names, and a given leaf the extend does not write
-/// is shared with that iteration's. ADR 0023 refused this.
+/// record, rebased through the path: a reference in an inherited attribute
+/// means what it means at the referent, in the iteration the path names,
+/// and a given leaf the extend does not write is shared with that
+/// iteration's.
 #[test]
 fn overrides_on_an_extend_across_a_scope_take_the_referents_values() {
     let mut doc = load(
@@ -367,10 +366,9 @@ fn a_copy_of_a_later_container_copy_has_its_clones() {
     }
 }
 
-/// A cycle of extends with attributes of their own is no cycle of plans
-/// (ADR 0029): each plans from its own source, and the state they share
-/// is a cycle of values, which the build reports. A cycle of container
-/// copies has no clones to make, an error on a copy in it (ADR 0027).
+/// A cycle of extends with attributes of their own is no cycle of plans:
+/// the state they share is a cycle of values, which the build reports. A
+/// cycle of container copies is an error on a copy in it.
 #[test]
 fn a_cycle_of_extends_is_reported() {
     for source in [
@@ -440,9 +438,9 @@ fn a_cycle_of_values_is_the_builds() {
     }
 }
 
-/// A container copy is expanded before anything is planned (ADR 0027):
-/// a clone of a `<math>` takes the type planning gives it, and a name
-/// under the copy resolves from any element, wherever it is written.
+/// A container copy is expanded before anything is planned: a clone of a
+/// `<math>` takes the type planning gives it, and a name under the copy
+/// resolves from any element, wherever it is written.
 #[test]
 fn a_container_copys_clones_exist_before_planning() {
     let g = r#"<graph name="g"><math name="m">(3, 4)</math><point name="A" x="$g2.m.x" y="1"/></graph>"#;
@@ -489,10 +487,7 @@ fn a_container_copy_inside_its_referent_is_a_cycle() {
 }
 
 /// A container copy whose referent is inside another copy's clones,
-/// written before that copy: planning its reference reaches the other
-/// copy before outlining has made its clones, so outlining makes them and
-/// plans the reference again (ADR 0031). Either order loads to the same
-/// values.
+/// written before that copy, loads to the same values in either order.
 #[test]
 fn a_copy_of_what_is_inside_a_later_copy_has_its_clones() {
     let c = r#"<graph name="c" extend="$g2.inner"/>"#;

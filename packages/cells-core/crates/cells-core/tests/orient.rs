@@ -1,7 +1,6 @@
-//! Orientation (ADR 0026, `build/orient.rs`): a binary operator writes the
-//! input that leads to state, wherever it stands. Each of these requests
-//! dropped while every binary operator wrote its first input, because the
-//! first was a fixed value; now it lands, exactly.
+//! Orientation: a binary operator writes the input that leads to state,
+//! wherever it stands. Each request here lands exactly, though one
+//! operator's first input is a fixed value.
 
 mod common;
 

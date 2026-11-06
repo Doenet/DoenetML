@@ -1,5 +1,5 @@
 //! Reading the source, which every stage does: an element's literal
-//! attributes and which of its children are content.
+//! attributes, its children, and which of them are content.
 
 use crate::compile::*;
 
@@ -15,16 +15,13 @@ impl Compiler<'_> {
 
     /// Whether a child node is presentation a renderer reads rather than
     /// content a planner does: a `<label>` or `<shortDescription>` element.
-    /// Every type keeps such a child as a component (ADR 0024); a planner
-    /// reading its element children passes over them.
     pub(in crate::compile) fn is_presentation_child(&self, n: NodeId) -> bool {
         self.dast.kind(n) == NodeKind::Element
             && matches!(self.dast.str(n), "label" | "shortDescription")
     }
 
     /// Whether a child node is no content of its element: layout
-    /// (`is_blank`) or presentation (`is_presentation_child`). What
-    /// decides an element's value from its children looks past these.
+    /// (`is_blank`) or presentation (`is_presentation_child`).
     pub(in crate::compile) fn is_not_content(&self, n: NodeId) -> bool {
         self.is_blank(n) || self.is_presentation_child(n)
     }
@@ -58,7 +55,7 @@ impl Compiler<'_> {
         }
     }
 
-    pub(in crate::compile) fn attr_text(&self, a: u32) -> Option<String> {
+    pub(in crate::compile) fn attr_text(&self, a: AttrId) -> Option<String> {
         let d = self.dast;
         let mut s = String::new();
         for &n in d.attr_children(a) {
@@ -71,7 +68,7 @@ impl Compiler<'_> {
         Some(s)
     }
 
-    pub(in crate::compile) fn single_macro(&self, a: u32) -> Option<NodeId> {
+    pub(in crate::compile) fn single_macro(&self, a: AttrId) -> Option<NodeId> {
         let d = self.dast;
         let mut found = None;
         for &n in d.attr_children(a) {
@@ -94,11 +91,33 @@ impl Compiler<'_> {
         }
     }
 
-    pub(in crate::compile) fn literal_attr(&self, a: u32, name: &str) -> Result<f64> {
+    pub(in crate::compile) fn literal_attr(&self, a: AttrId, name: &str) -> Result<f64> {
         let text = self.attr_text(a).ok_or_else(|| Error::Banned(format!("'{name}' must be a literal number: a load-time choice depends only on the document seed and literals")))?;
         text.trim().parse::<f64>().map_err(|_| Error::BadValue {
             attr: name.into(),
             text,
         })
+    }
+
+    /// The element children of `e`.
+    pub(in crate::compile) fn elem_children(&self, t: TemplateId, e: ElemId) -> Vec<ElemId> {
+        self.outlined(t).elems[e.index()]
+            .children
+            .iter()
+            .filter_map(|c| match c {
+                Child::Elem(k) => Some(*k),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// The text and `$ref` nodes of an element, blanks left out.
+    pub(in crate::compile) fn content_nodes(&self, el: NodeId) -> Vec<NodeId> {
+        let d = self.dast;
+        d.children(el)
+            .iter()
+            .copied()
+            .filter(|&n| d.kind(n) != NodeKind::Element && !self.is_blank(n))
+            .collect()
     }
 }

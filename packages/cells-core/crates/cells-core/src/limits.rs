@@ -1,36 +1,27 @@
-//! Every size the core caps, in one place. Counts of an operator's inputs
-//! and outputs are stored in a byte (`Op::Vec`, `Op::Sym`, `BuiltSource::Op`),
-//! and a vector operator's inputs are copied into a fixed array
-//! (`MAX_VEC_IN`), so each cap that feeds one is asserted below to fit:
-//! raising a cap past what a byte or that array holds fails to compile.
-//! Each cap is checked against the source where it is written (a polygon's
-//! vertices, a choice's cases); the build counts within them, through
-//! `byte`, which names a broken invariant instead of wrapping.
+//! Every size the core caps, in one place. Operator input and output counts
+//! are stored in a byte and a vector operator's inputs in a fixed array of
+//! [`MAX_VEC_IN`], so each cap that feeds one is asserted at compile time
+//! to fit.
 
 /// The most inputs one vector operator reads.
 pub const MAX_VEC_IN: usize = 64;
 
-/// The most vertices of a polygon: two ports each, and an element's ports
-/// are numbered by a byte (`compile::plan::Port`), with room left for its
-/// hidden ports.
+/// The most vertices of a polygon.
 pub const MAX_VERTICES: usize = 100;
 
-/// The most vertices of a rigid polygon (`VecOp::Shape` reads two per
-/// vertex, a pivot point and the least it may shrink).
+/// The most vertices of a rigid polygon.
 pub const MAX_RIGID_VERTICES: usize = (MAX_VEC_IN - 3) / 2;
 
 /// The most entries of a tuple.
 pub const MAX_TUPLE: usize = 8;
 
-/// The most choices of a `<choiceInput>` an answer chooses among
-/// (`VecOp::Choose` reads the index and one credit per choice).
+/// The most choices of a `<choiceInput>` an answer chooses among.
 pub const MAX_CHOICES: usize = MAX_VEC_IN - 1;
 
-/// The most cases of a `<conditionalContent>` (`VecOp::First` reads one
-/// condition per case, `VecOp::Choose` the choice and one cell per case).
+/// The most cases of a `<conditionalContent>`.
 pub const MAX_CASES: usize = MAX_VEC_IN - 1;
 
-/// How many (credit, weight) pairs one `VecOp::WeightedMean` averages; a
+/// How many (credit, weight) pairs one weighted-mean operator averages; a
 /// longer list is averaged in chunks.
 pub const SCORE_CHUNK: usize = MAX_VEC_IN / 2;
 
@@ -52,8 +43,8 @@ const _: () = {
     assert!(MAX_REFERENCES <= byte);
 };
 
-/// `n` as the byte the core stores a count in. Every count the build makes
-/// is within a cap above; one that is not is a core bug, named here.
+/// `n` as the byte the core stores a count in. Panics if `n` exceeds a
+/// byte, which is a core bug.
 #[track_caller]
 pub(crate) fn byte(n: usize) -> u8 {
     u8::try_from(n).unwrap_or_else(|_| panic!("a count of {n} where the core holds at most 255"))

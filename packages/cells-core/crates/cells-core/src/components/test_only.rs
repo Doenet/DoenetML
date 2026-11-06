@@ -1,9 +1,6 @@
-//! Components that exist only in this crate's unit tests (ADR 0016,
-//! Migration step 8), registered in `component_types!`'s `#[cfg(test)]`
-//! section. They are here, not in `testing/`, because only `components/`
-//! can define a component (`define.rs`). Each has only what a rule of the core needs, so a unit test of
-//! that rule depends on no real component: a rule is tested where it is
-//! implemented, against these, and fails there rather than in a spec.
+//! Components that exist only in this crate's unit tests, each with only
+//! what a rule of the core needs, so a unit test of that rule depends on
+//! no real component.
 //!
 //! - `<testValue value="..">`: planned from its table alone (`Props`).
 //! - `<testShape a=".." b="..">`: planned by a function inside

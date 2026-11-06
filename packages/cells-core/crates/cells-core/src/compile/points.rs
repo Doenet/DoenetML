@@ -11,13 +11,14 @@ impl<'a> Compiler<'a> {
     /// per item.
     pub(in crate::compile) fn plan_point_list(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
-        a: u32,
+        a: AttrId,
     ) -> Result<Vec<GivenPoint>> {
         let d = self.dast;
-        let (toks, src) = self.math_tokens(t, scope, d.attr_children(a))?;
+        let (toks, src) = self.math_tokens(rf, t, scope, d.attr_children(a))?;
         let mut out = Vec::new();
         let mut i = 0;
         while i < toks.len() {
@@ -52,7 +53,7 @@ impl<'a> Compiler<'a> {
                             break;
                         }
                     }
-                    let entries = super::expr::tuple_entries(&toks[start..i]).unwrap();
+                    let entries = expr::tuple_entries(&toks[start..i]).unwrap();
                     out.push(GivenPoint::Tuple(self.point_from_entries(&entries, src)?));
                 }
                 Token::Comma => i += 1,
@@ -89,7 +90,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<usize>> {
-        let Some(prop) = &self.compiled.refs[p.index()].prop else {
+        let Some(prop) = &self.plans.refs[p.index()].prop else {
             return Ok(None);
         };
         // The element the path ends at, if it is in this template chain.

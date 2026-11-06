@@ -8,6 +8,7 @@ use crate::components::{Collection, PropAt, PropSel};
 
 mod aggregate;
 mod choice;
+pub(crate) use choice::{splitmix, stable_hash};
 mod math;
 mod resolve;
 
@@ -16,14 +17,30 @@ mod resolve;
 // ---------------------------------------------------------------------------
 
 crate::index::index_type! {
+    /// A position in the build's `op_inputs`, where an operator slot's
+    /// input slots are listed: never a slot itself.
+    pub(in crate::build) struct OpInputIdx;
+}
+
+crate::index::index_type! {
+    /// A position in the build's `instances`: a component stamped from a
+    /// template element.
+    pub(in crate::build) struct InstanceId;
+}
+
+crate::index::index_type! {
+    /// A position in the build's `repeats`.
+    pub(in crate::build) struct RepeatIdx;
+}
+
+crate::index::index_type! {
     /// A symbolic template a build has planned: a position in the
     /// builder's `sym_templates`, whose leaves are slots.
     pub(in crate::build) struct SymTemplateId;
 }
 
 /// An operator as a build plans it: one the program runs, or a symbolic
-/// template still over slots, which emit makes an `Instantiate` once its
-/// leaves have cells.
+/// template still over slots.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(in crate::build) enum PlannedOp {
     Spec(OpSpec),
@@ -38,7 +55,7 @@ impl PlannedOp {
         }
     }
 
-    /// The inputs a request's inverse may write (`OpSpec::writes`).
+    /// The inputs a request's inverse may write.
     pub(in crate::build) fn writes(&self) -> u64 {
         match self {
             PlannedOp::Spec(spec) => spec.writes(),
@@ -50,16 +67,16 @@ impl PlannedOp {
 #[derive(Debug, Clone)]
 pub(in crate::build) enum BuiltSource {
     Unset,
-    /// A given value: essential when the record says a student's action
-    /// can write it, a constant otherwise (ADR 0018).
+    /// A given value: essential when a student's action can write it, a
+    /// constant otherwise.
     Given(f64),
-    /// A constant, never essential (ADR 0028): an iteration index, a math
-    /// handle, the shared missing-referent cell.
+    /// A constant, never essential: an iteration index, a math handle, the
+    /// shared missing-referent cell.
     Const(f64),
     Alias(SlotId),
     /// Operator over `op_inputs[start..start + n]`; for a vector operator,
     /// the head (output 0).
-    Op(PlannedOp, u32, u8),
+    Op(PlannedOp, OpInputIdx, u8),
     /// Output `k` of the vector instruction headed at `head`.
     VecOut(SlotId, u8),
 }
@@ -72,13 +89,10 @@ pub(in crate::build) enum Resolved {
     Iter(CompIdx, ScopeId),
     /// An index with no referent (`$r[32]` with ten iterations).
     Missing,
-    /// `$r[$n]` (ADR 0032, decision 5): any of `items`, the one the cell
-    /// `index` names when the document runs. A value read through it is
-    /// a choose over the items' values (`Builder::targets_of`); it names
-    /// no one component. `label` is the edge to the index cell's.
+    /// `$r[$n]`: any of `items`, the one the cell `index` names when the
+    /// document runs; it names no one component.
     Chosen {
         index: SlotId,
-        label: Vec<Coord>,
         items: Vec<Resolved>,
     },
 }
@@ -92,12 +106,9 @@ pub(in crate::build) struct ChoiceInst {
     pub(in crate::build) scopes: Vec<ScopeId>,
     /// The branch each of `scopes` instantiates.
     pub(in crate::build) branch_of: Vec<usize>,
-    /// Reactive choice, or a select built with every option: one component
-    /// per `ChoiceDef::used` standing for that name in every branch.
+    /// Reactive choice: one component per `ChoiceDef::used` standing for
+    /// that name in every branch.
     pub(in crate::build) iface_comps: Vec<CompIdx>,
-    /// A select whose every option was built (`Options::Every`), since each
-    /// iteration draws its own (ADR 0012).
-    pub(in crate::build) every_option: bool,
 }
 
 /// One instantiated template element.
@@ -110,31 +121,32 @@ pub(in crate::build) struct Instance {
 }
 
 pub(in crate::build) struct Builder<'c> {
-    pub(in crate::build) compiled: &'c Compiled,
-    /// The session the build reads (ADR 0015): carried values, scopes.
+    pub(in crate::build) compiled: CompiledRef<'c>,
+    /// The session the build reads: carried values, scopes.
     pub(in crate::build) session: &'c Session,
     /// Seed seeded cells again whatever the session carries: a later pass
     /// of a load, before any student has changed a value.
     pub(in crate::build) reseed: bool,
+    /// The document's engine, lent for the build, which may add to it.
     pub(in crate::build) engine: &'c mut Engine,
+    /// The handle of each constant expression of the source, lent with
+    /// the engine it is a handle into.
+    pub(in crate::build) math_constants:
+        &'c mut HashMap<(ExprId, crate::program::Post), crate::sym::Handle>,
     /// Templates of `Instantiate` instructions, cell leaves holding slots
     /// until emit rebinds them to cells and imports them.
     pub(in crate::build) sym_templates: Vec<Tree<SlotId>>,
-    /// Slots defining a cell that is not a number, with its type: every
-    /// template slot whose port the compile typed text or math (ADR 0032),
-    /// and a choice's text or math interface. Symbolic instructions'
-    /// outputs are math by their operator as well. A cell's type is its
-    /// defining slot's (emit), so an alias never changes it.
+    /// Slots defining a cell that is not a number, with its type. A cell's
+    /// type is its defining slot's, so an alias never changes it.
     pub(in crate::build) typed_slots: Vec<(SlotId, ValueType)>,
     pub(in crate::build) components: ComponentTable,
     pub(in crate::build) slot_base: Vec<SlotId>,
-    /// Per component, how many of its slots are public props (its ports
-    /// up to its list's last point, ADR 0032) when that is not its type
-    /// table's count: an element whose list holds points (ADR 0016).
+    /// Per component, how many of its slots are public props when that is
+    /// not its type table's count (an element whose list holds points).
     /// NONE: the table's.
     pub(in crate::build) n_public: Vec<u32>,
     pub(in crate::build) sources: Vec<BuiltSource>,
-    /// Owning component of each slot (prop index = slot - slot_base[comp]).
+    /// Owning component of each slot (prop index = `slot - slot_base[comp]`).
     pub(in crate::build) slot_comp: Vec<CompIdx>,
     pub(in crate::build) op_inputs: Vec<SlotId>,
     /// Carried over from the previous build and extended.
@@ -142,10 +154,11 @@ pub(in crate::build) struct Builder<'c> {
     /// Per scope: element -> component, for the scope's template.
     pub(in crate::build) scope_comps: Vec<Vec<CompIdx>>,
     /// Per component: index into `instances`, or NONE for synthesized ones.
-    pub(in crate::build) comp_instance: Vec<u32>,
+    pub(in crate::build) comp_instance: Vec<InstanceId>,
     pub(in crate::build) instances: Vec<Instance>,
-    /// Per component: index into `repeats` for a repeat component.
-    pub(in crate::build) comp_repeat: Vec<u32>,
+    /// Per component: index into `repeats` for a repeat component, or
+    /// NONE.
+    pub(in crate::build) comp_repeat: Vec<RepeatIdx>,
     pub(in crate::build) repeats: Vec<Repeat>,
     /// `$ref` children awaiting a type: (component, plan, scope, has index).
     pub(in crate::build) pending: Vec<(CompIdx, RefId, ScopeId, bool)>,
@@ -157,86 +170,68 @@ pub(in crate::build) struct Builder<'c> {
     /// Expanded choices, and the instance each choice component owns.
     pub(in crate::build) choice_insts: Vec<ChoiceInst>,
     pub(in crate::build) comp_choice: HashMap<CompIdx, usize>,
-    /// A component standing for whichever branch a choice takes (an
-    /// interface name, or in the abstract build a select's whole pick) ->
-    /// the branches' components it stands for. What it holds is what any of
-    /// them may (`value_type`).
+    /// A component standing for whichever branch a conditional content
+    /// takes, an interface name -> the branches' components it stands for.
     pub(in crate::build) stand_ins: HashMap<CompIdx, Vec<CompIdx>>,
-    /// Per select (in the abstract build): the stand-in for its whole pick.
-    pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
     /// One slot per constant an operator or a hold reads, by the value's
-    /// bits (`const_slot`): a literal in math text, a case's position, the
-    /// flag that holds an element always.
+    /// bits.
     pub(in crate::build) consts: HashMap<u64, SlotId>,
-    /// The slots a `fixed` holds, each with a flag slot (`hold_all`): a
-    /// slot held by several flags is listed once per flag.
+    /// The slots a `fixed` holds, each with a flag slot; a slot held by
+    /// several flags is listed once per flag.
     pub(in crate::build) holds: Vec<(SlotId, SlotId)>,
     /// Essential math slots seeded from another slot's value when first
-    /// built (`Source::GivenMathFrom`): (slot, source slot).
+    /// built: (slot, source slot).
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
     pub(in crate::build) arena: Arena<SlotId>,
     pub(in crate::build) root: CompIdx,
-    /// Where the build learns counts, indexed referents, a collect's count
-    /// and a select's options (`build/view.rs`).
-    pub(in crate::build) view: &'c View<'c>,
+    /// How many iterations each repeat is stamped with.
+    pub(in crate::build) counts: &'c Counts,
     /// The scope each slot was made in.
     pub(in crate::build) slot_scope: Vec<ScopeId>,
     /// Per scope, the repeat component whose iteration it is, or NONE.
     pub(in crate::build) scope_repeat: Vec<CompIdx>,
     /// Collects (a polyline is one) whose count reads the counts of the
-    /// repeats they gather from (`CollectCount::RepeatCounts`).
+    /// repeats they gather from.
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
-    /// When the view folds iterations: the slots of the counted values it
-    /// found (`Builder::counted`), which the abstract build records.
+    /// The slots of the counted values (ADR 0028), as the ports'
+    /// attributes say.
     pub(in crate::build) counted_slots: Vec<SlotId>,
-    /// When the view folds iterations: the slots whose plan gives a
-    /// document constant if they are constants (`Source::gives_document_constant`),
-    /// which the abstract build records.
-    pub(in crate::build) document_slots: Vec<SlotId>,
-    /// Sources a slot has in iterations after the first, when the view
-    /// folds iterations (`Plans::Both`): edges the graph carries as well.
-    pub(in crate::build) later_sources: Vec<(SlotId, BuiltSource)>,
-    /// The binary operators lowered from the author's math (`Builder::lower`),
-    /// which orientation may turn round (ADR 0026), in the order lowered.
+    /// The binary operators lowered from the author's math, in the order
+    /// lowered.
     pub(in crate::build) author_ops: Vec<SlotId>,
-    /// Whether the element whose ports are being made shares its math
-    /// (ADR 0033): the compile classed the expressions, and no hold makes
-    /// the element's cells its own.
+    /// Whether the element whose ports are being made shares its math.
     pub(in crate::build) share_math: bool,
-    /// Each expression class instantiated, by scope (`instantiate_expr`).
+    /// Each expression class instantiated, by scope.
     pub(in crate::build) instantiated: HashMap<(ExprId, ScopeId), ExprId>,
-    /// Each node of the build's arena lowered, to its slot (`lower_shared`).
+    /// Each node of the build's arena lowered, to its slot.
     pub(in crate::build) lowered: HashMap<ExprId, SlotId>,
-    /// When the view folds iterations: the label of the last reference
-    /// resolved, and those of reference edges (from slot, to slot) that are
-    /// not the identity (`build/abstract_build.rs`).
-    pub(in crate::build) label: Vec<Coord>,
-    pub(in crate::build) labels: HashMap<(SlotId, SlotId), Vec<Coord>>,
-    /// The node of the element whose expansion or resolution failed, for
-    /// `build` to box (ADR 0013); none when the failure has no element.
+    /// The node of the element whose expansion or resolution failed; none
+    /// when the failure has no element.
     pub(in crate::build) failed_node: Option<NodeId>,
-    /// The abstract build's warnings and structural depth (`check_counts`,
-    /// ADR 0013): empty and zero in any other build.
-    pub(in crate::build) diagnostics: Vec<Diagnostic>,
-    pub(in crate::build) structural_depth: u32,
 }
 
 impl<'c> Builder<'c> {
     pub(in crate::build) fn new(
-        c: &'c Compiled,
+        c: CompiledRef<'c>,
         session: &'c Session,
         reseed: bool,
-        engine: &'c mut Engine,
-        view: &'c View<'c>,
+        math: &'c mut MathStore,
+        counts: &'c Counts,
     ) -> Self {
+        let MathStore { engine, constants } = math;
         // Size the columns by what every template stamped once makes (all
         // of a document without repeats), or by the previous build with an
         // eighth to spare when there was one. In wasm, capacity reserved and
         // never used still raises the high-water mark.
         let (last_comps, last_slots) = session.last_build;
-        let elems: usize = c.templates.iter().map(|t| t.elems.len()).sum();
-        let n_slots: usize = c.templates.iter().map(|t| t.sealed.n_slots as usize).sum();
+        let elems: usize = c.plans.templates.iter().map(|t| t.elems.len()).sum();
+        let n_slots: usize = c
+            .plans
+            .templates
+            .iter()
+            .map(|t| t.sealed.n_slots as usize)
+            .sum();
         let guess = elems.max(last_comps);
         let guess = guess + guess / 8;
         let slots = n_slots.max(last_slots);
@@ -246,6 +241,7 @@ impl<'c> Builder<'c> {
             session,
             reseed,
             engine,
+            math_constants: constants,
             sym_templates: Vec::new(),
             typed_slots: Vec::new(),
             components: ComponentTable {
@@ -279,29 +275,22 @@ impl<'c> Builder<'c> {
             choice_insts: Vec::new(),
             comp_choice: HashMap::new(),
             stand_ins: HashMap::new(),
-            pick_stand_ins: HashMap::new(),
             missing: None,
             consts: HashMap::new(),
             holds: Vec::new(),
             seeds: Vec::new(),
             arena: Arena::default(),
             root: CompIdx::new(0),
-            view,
+            counts,
             slot_scope: Vec::with_capacity(slots),
             scope_repeat: Vec::new(),
             follows_counts: HashSet::new(),
             counted_slots: Vec::new(),
-            document_slots: Vec::new(),
-            later_sources: Vec::new(),
             author_ops: Vec::new(),
             share_math: false,
             instantiated: HashMap::new(),
             lowered: HashMap::new(),
-            label: Vec::new(),
-            labels: HashMap::new(),
             failed_node: None,
-            diagnostics: Vec::new(),
-            structural_depth: 0,
         }
     }
 
@@ -327,8 +316,8 @@ impl<'c> Builder<'c> {
         self.components.dast_node.push(node);
         self.components.scope.push(scope);
         self.components.referent.push(CompIdx::NONE);
-        self.comp_instance.push(NONE);
-        self.comp_repeat.push(NONE);
+        self.comp_instance.push(InstanceId::NONE);
+        self.comp_repeat.push(RepeatIdx::NONE);
         self.slot_base.push(SlotId::NONE);
         self.n_public.push(NONE);
         self.allocate_slots(idx, n_slots);
@@ -407,8 +396,8 @@ impl<'c> Builder<'c> {
     }
 
     /// A slot that belongs to no component, made for an element in `scope`:
-    /// a lowered math subexpression, a shared constant (`const_slot`), the
-    /// missing-referent cell.
+    /// a lowered math subexpression, a shared constant, the missing-referent
+    /// cell.
     pub(in crate::build) fn anon_slot(&mut self, source: BuiltSource, scope: ScopeId) -> SlotId {
         let s = SlotId::from_index(self.sources.len());
         self.sources.push(source);
@@ -418,9 +407,8 @@ impl<'c> Builder<'c> {
     }
 
     /// The one slot holding the constant `v` that operators and holds
-    /// read, so a literal in a repeat's body is one cell, not one per
-    /// iteration. Never alias a prop to it: every slot aliased to it
-    /// would be one cell.
+    /// read. Never alias a prop to it: every slot aliased to it would be
+    /// one cell.
     pub(in crate::build) fn const_slot(&mut self, v: f64) -> SlotId {
         if let Some(&s) = self.consts.get(&v.to_bits()) {
             return s;
@@ -430,27 +418,22 @@ impl<'c> Builder<'c> {
         s
     }
 
-    /// Whether slot `s` holds a counted value (ADR 0028): one the build
-    /// counts from the structure it stamped, so it follows the counts. The
-    /// abstract build finds them, `found` saying this one is, and records
-    /// them; every other build reads the record, since at some counts there
-    /// is nothing to count and a build cannot tell.
-    pub(in crate::build) fn is_counted(&mut self, s: SlotId, found: bool) -> bool {
-        if self.view.folds_iterations() {
-            if found {
-                self.counted_slots.push(s);
-            }
-            return found;
+    /// Whether slot `s` holds a counted value: one the build counts from the
+    /// structure it stamped, so it follows the counts, as its port's
+    /// attributes say (the template graph found it). A counted slot is kept
+    /// in `counted_slots`, which the prefill rule and a seed read.
+    pub(in crate::build) fn is_counted(&mut self, s: SlotId) -> bool {
+        let counted = self.port_attrs(s).has(PortAttrs::COUNTED);
+        if counted {
+            self.counted_slots.push(s);
         }
-        self.template_slot(s)
-            .is_some_and(|(t, ts)| self.compiled.counted.marks(t, ts))
+        counted
     }
 
     /// Slot `s`'s source when this build counted `v` for it: a constant,
-    /// or for a counted value a derived cell holding `v`, so a value that
-    /// follows the counts is never a constant (ADR 0028).
-    pub(in crate::build) fn counted(&mut self, s: SlotId, v: f64, found: bool) -> BuiltSource {
-        if self.is_counted(s, found) {
+    /// or for a counted value a derived cell holding `v`.
+    pub(in crate::build) fn counted(&mut self, s: SlotId, v: f64) -> BuiltSource {
+        if self.is_counted(s) {
             let k = self.const_slot(v);
             self.op_source(OpSpec::Copy, &[k])
         } else {
@@ -501,29 +484,6 @@ impl<'c> Builder<'c> {
         self.scopes.get_or_insert(parent, node, k)
     }
 
-    /// Nesting depth of a scope: 0 for the document.
-    pub(in crate::build) fn scope_depth(&self, mut s: ScopeId) -> u32 {
-        let mut d = 0;
-        while s != ScopeId::DOCUMENT {
-            s = self.scopes[s].0;
-            d += 1;
-        }
-        d
-    }
-
-    /// The repeats whose iterations enclose `scope`, innermost first.
-    pub(in crate::build) fn enclosing_repeats(&self, mut scope: ScopeId) -> Vec<CompIdx> {
-        let mut out = Vec::new();
-        while scope != ScopeId::DOCUMENT {
-            match self.scope_repeat.get(scope.index()) {
-                Some(&r) if r != CompIdx::NONE => out.push(r),
-                _ => {}
-            }
-            scope = self.scopes[scope].0;
-        }
-        out
-    }
-
     /// Record `node` as the element to box if the build fails; the first
     /// recorded wins, which is the innermost since a failure unwinds.
     pub(in crate::build) fn fail_at(&mut self, node: NodeId) {
@@ -544,7 +504,7 @@ impl<'c> Builder<'c> {
             self.scope_comps.resize(s + 1, Vec::new());
         }
         self.scope_comps[s] =
-            vec![CompIdx::NONE; self.compiled.templates[template.index()].elems.len()];
+            vec![CompIdx::NONE; self.compiled.plans.templates[template.index()].elems.len()];
     }
 
     // ---- expansion -----------------------------------------------------------
@@ -567,14 +527,14 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         parent: CompIdx,
     ) -> Result<Vec<ChildEntry>> {
-        let n_elems = self.compiled.templates[t.index()].elems.len();
+        let n_elems = self.compiled.plans.templates[t.index()].elems.len();
         // Create every element's component first so children can refer to them.
         for e in 0..n_elems {
             // What is under a box is not built (ADR 0027).
-            if self.compiled.templates[t.index()].is_dead(ElemId::from_index(e)) {
+            if self.compiled.plans.templates[t.index()].is_dead(ElemId::from_index(e)) {
                 continue;
             }
-            let tpl = &self.compiled.templates[t.index()];
+            let tpl = &self.compiled.plans.templates[t.index()];
             let (el, plan) = (
                 tpl.row(ElemId::from_index(e)),
                 tpl.plan(ElemId::from_index(e)),
@@ -597,7 +557,7 @@ impl<'c> Builder<'c> {
                 self.n_public[comp.index()] = n as u32;
             }
             self.scope_comps[scope.index()][e] = comp;
-            self.comp_instance[comp.index()] = self.instances.len() as u32;
+            self.comp_instance[comp.index()] = InstanceId::from_index(self.instances.len());
             self.instances.push(Instance {
                 scope,
                 template: t,
@@ -611,15 +571,15 @@ impl<'c> Builder<'c> {
             if comp == CompIdx::NONE {
                 continue;
             }
-            let kids = match self.compiled.templates[t.index()]
+            let kids = match self.compiled.plans.templates[t.index()]
                 .row(ElemId::from_index(e))
                 .body
             {
                 Body::Repeat { template } => {
-                    let node = self.compiled.templates[t.index()]
+                    let node = self.compiled.plans.templates[t.index()]
                         .row(ElemId::from_index(e))
                         .node;
-                    let n = self.view.iterations(scope, node);
+                    let n = self.counts.get(scope, node);
                     let mut kids = Vec::new();
                     let mut iter_scopes = Vec::with_capacity(n as usize);
                     for k in 1..=n {
@@ -633,7 +593,7 @@ impl<'c> Builder<'c> {
                         let mut these = self.expand(template, s, comp)?;
                         kids.append(&mut these);
                     }
-                    self.comp_repeat[comp.index()] = self.repeats.len() as u32;
+                    self.comp_repeat[comp.index()] = RepeatIdx::from_index(self.repeats.len());
                     self.repeats.push(Repeat {
                         comp,
                         node,
@@ -648,7 +608,7 @@ impl<'c> Builder<'c> {
                     Vec::new()
                 }
                 Body::Choice(cid) => {
-                    let node = self.compiled.templates[t.index()]
+                    let node = self.compiled.plans.templates[t.index()]
                         .row(ElemId::from_index(e))
                         .node;
                     match self.expand_choice(cid, node, scope, comp) {
@@ -659,7 +619,7 @@ impl<'c> Builder<'c> {
                         }
                     }
                 }
-                _ if self.compiled.templates[t.index()]
+                _ if self.compiled.plans.templates[t.index()]
                     .row(ElemId::from_index(e))
                     .component_type
                     == ComponentType::PointList =>
@@ -679,9 +639,9 @@ impl<'c> Builder<'c> {
             }
         }
         // The template's own children (the repeat body); their parent is the repeat.
-        let mut out = Vec::with_capacity(self.compiled.templates[t.index()].children.len());
-        for i in 0..self.compiled.templates[t.index()].children.len() {
-            let ch = &self.compiled.templates[t.index()].children[i];
+        let mut out = Vec::with_capacity(self.compiled.plans.templates[t.index()].children.len());
+        for i in 0..self.compiled.plans.templates[t.index()].children.len() {
+            let ch = &self.compiled.plans.templates[t.index()].children[i];
             out.push(self.child_entry(t, ch, scope, parent));
         }
         Ok(out)
@@ -694,10 +654,13 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         parent: CompIdx,
     ) -> Vec<ChildEntry> {
-        let n = self.compiled.templates[t.index()].row(e).children.len();
+        let n = self.compiled.plans.templates[t.index()]
+            .row(e)
+            .children
+            .len();
         let mut kids = Vec::with_capacity(n);
         for i in 0..n {
-            let ch = &self.compiled.templates[t.index()].row(e).children[i];
+            let ch = &self.compiled.plans.templates[t.index()].row(e).children[i];
             kids.push(self.child_entry(t, ch, scope, parent));
         }
         kids
@@ -714,7 +677,7 @@ impl<'c> Builder<'c> {
             Child::Elem(e) => ChildEntry::comp(self.scope_comps[scope.index()][e.index()]),
             Child::Text(s) => ChildEntry::text(s),
             Child::Macro(id) => {
-                let tpl = &self.compiled.templates[t.index()];
+                let tpl = &self.compiled.plans.templates[t.index()];
                 let rc = tpl.ref_children[id.index()];
                 match tpl.tables.ref_child_plans[id.index()] {
                     RefChildPlan::Ref(plan) => {
@@ -767,7 +730,7 @@ impl<'c> Builder<'c> {
         let pending = std::mem::take(&mut self.pending);
         for &(idx, plan, scope, _) in pending.iter().filter(|p| !p.3) {
             if let Err(e) = self.place(idx, plan, scope) {
-                self.fail_at(self.compiled.refs[plan.index()].node);
+                self.fail_at(self.compiled.plans.refs[plan.index()].node);
                 return Err(e);
             }
         }
@@ -787,11 +750,11 @@ impl<'c> Builder<'c> {
         }
         for &(idx, plan, scope, _) in pending.iter().filter(|p| p.3) {
             if let Err(e) = self.place(idx, plan, scope) {
-                self.fail_at(self.compiled.refs[plan.index()].node);
+                self.fail_at(self.compiled.plans.refs[plan.index()].node);
                 return Err(e);
             }
         }
-        self.choice_sources()?;
+        self.choice_sources();
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
             if let Err(e) = self.instance_sources(inst) {
@@ -803,21 +766,16 @@ impl<'c> Builder<'c> {
         self.hold_all()
     }
 
-    /// Hold every slot of every element the compile says is held
-    /// (`Elem::hold`, `compile/planning/fix.rs`), each by its flags: whatever planned
-    /// the element, and whatever its slots turned out to be, once each has
-    /// its source. A slot is held as its cell, so a reference to the
-    /// element is held with it. A slot that aliases another element's gets
-    /// a cell of its own first (`OpSpec::Copy`), so the hold is on this
-    /// element and not on the other, unless the other is held by the same
-    /// flags, whose cell the hold is on already (the compile shares a
-    /// port between two elements held alike, ADR 0033). Elements held by
+    /// Hold every slot of every element the compile says is held, each by
+    /// its flags, once each has its source. A slot that aliases another
+    /// element's gets a cell of its own first, so the hold is on this
+    /// element, unless the other is held by the same flags. Elements held by
     /// the same flags that copy one cell share the copy.
     fn hold_all(&mut self) -> Result<()> {
         let mut flags_of: HashMap<CompIdx, Vec<SlotId>> = HashMap::new();
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
-            let c: &'c Compiled = self.compiled;
+            let c = self.compiled.plans;
             let flags = match &c.templates[inst.template.index()].plan(inst.elem).hold {
                 Hold::Off => continue,
                 Hold::Always => vec![self.const_slot(1.0)],
@@ -870,15 +828,6 @@ impl<'c> Builder<'c> {
                 self.holds.push((s, f));
             }
         }
-        for i in 0..self.later_sources.len() {
-            let (s, BuiltSource::Alias(t)) = self.later_sources[i] else {
-                continue;
-            };
-            let comp = self.slot_comp[s.index()];
-            if flags_of.contains_key(&comp) && !own(self, comp, t) {
-                self.later_sources[i].1 = self.op_source(OpSpec::Copy, &[t]);
-            }
-        }
         Ok(())
     }
 
@@ -912,7 +861,6 @@ impl<'c> Builder<'c> {
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, value);
                 self.sources[s.index()] = BuiltSource::Alias(targets[0]);
-                self.record_label(s, targets[0]);
             }
             (target, None) => {
                 let referent = self.single_component(target, plan)?;
@@ -938,15 +886,12 @@ impl<'c> Builder<'c> {
                     return Ok(());
                 }
                 self.copy_into(idx, referent);
-                for pi in 0..self.n_public(referent) {
-                    self.record_label(self.slot(idx, pi), self.slot(referent, pi));
-                }
             }
         }
         Ok(())
     }
 
-    /// Make `idx` an `as_type` holding `referent`'s value (ADR 0025): each
+    /// Make `idx` an `as_type` holding `referent`'s value: each
     /// of its props aliases the referent's prop of the same name (a math's
     /// `value` and `expr` from a mathInput's), and one the referent lacks
     /// is the missing value.
@@ -961,9 +906,7 @@ impl<'c> Builder<'c> {
             let s = self.slot(idx, pi);
             self.sources[s.index()] = match rt.prop_index(def.name) {
                 Some(rp) if rp < self.n_public(referent) => {
-                    let target = self.slot(referent, rp);
-                    self.record_label(s, target);
-                    BuiltSource::Alias(target)
+                    BuiltSource::Alias(self.slot(referent, rp))
                 }
                 _ => BuiltSource::Alias(self.missing_slot()),
             };
@@ -1003,12 +946,13 @@ impl<'c> Builder<'c> {
         let sel = prop.sel_on(component_type);
         if sel == Some(PropSel::At(PropAt::List)) {
             let n = self.n_public(comp);
-            return Ok((1..=component_type.list_len(n))
+            let items = (1..=component_type.list_len(n))
                 .map(|k| {
                     let at = |j| self.slot(comp, component_type.list_slot(n, k, j).unwrap());
                     [at(0), at(1)]
                 })
-                .collect());
+                .collect();
+            return Ok(items);
         }
         if sel != Some(PropSel::TableList) {
             return Err(Error::UnknownProp {
@@ -1016,19 +960,20 @@ impl<'c> Builder<'c> {
                 prop: prop.name().into_owned(),
             });
         }
-        Ok(component_type
+        let items = component_type
             .table_point_positions()
             .iter()
             .map(|&[x, y]| [self.slot(comp, x as usize), self.slot(comp, y as usize)])
-            .collect())
+            .collect();
+        Ok(items)
     }
 
     /// Give a point list its children: one synthesized point per item of
     /// the list prop it extends, or copies of the children of the point
     /// list it is a copy of.
     pub(in crate::build) fn expand_pointlist(&mut self, comp: CompIdx) -> Result<()> {
-        let inst = self.instances[self.comp_instance[comp.index()] as usize];
-        let tpl = &self.compiled.templates[inst.template.index()];
+        let inst = self.instances[self.comp_instance[comp.index()].index()];
+        let tpl = &self.compiled.plans.templates[inst.template.index()];
         let plan = tpl.plan(inst.elem);
         let mut kids = Vec::new();
         match (plan.from, plan.extend) {
@@ -1051,8 +996,6 @@ impl<'c> Builder<'c> {
                     );
                     self.sources[sx.index()] = BuiltSource::Alias(x);
                     self.sources[sy.index()] = BuiltSource::Alias(y);
-                    self.record_label(sx, x);
-                    self.record_label(sy, y);
                     // Not state: a synthesized point has no essential key.
                     self.sources[sh.index()] = BuiltSource::Const(0.0);
                     kids.push(ChildEntry::comp(pt));
@@ -1096,25 +1039,8 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
-    /// A source in `scope` over `inputs` whose value nothing reads: it
-    /// stands for a value that depends on them in a way the view leaves
-    /// open (a collect's count over its repeats' counts, an option a later
-    /// iteration may draw), so only its edges matter.
-    pub(in crate::build) fn reads(&mut self, inputs: &[SlotId], scope: ScopeId) -> BuiltSource {
-        match inputs {
-            [] => unreachable!("a stand-in reads something"),
-            [x] => self.op_source(OpSpec::Truthy, &[*x]),
-            [rest @ .., last] => {
-                let acc = rest[1..].iter().fold(rest[0], |acc, &x| {
-                    self.op_slot(OpSpec::Max, &[acc, x], scope)
-                });
-                self.op_source(OpSpec::Max, &[acc, *last])
-            }
-        }
-    }
-
-    /// Descendants of `c` of `component_type`, in document order, not recursing into
-    /// a match (as the current core's `recurseToMatchedChildren: false`).
+    /// Descendants of `c` of `component_type`, in document order, not
+    /// recursing into a match.
     pub(in crate::build) fn collect_descendants(
         &self,
         c: CompIdx,
@@ -1156,13 +1082,12 @@ impl<'c> Builder<'c> {
     }
 
     /// Give a bare or cloned copy of a type with a list its slots, as many
-    /// as its referent has (ADR 0016), each an alias of the referent's; a
-    /// referent that is such a copy itself is placed first. A copy whose
-    /// referent is missing holds the table's props, which inherit the
-    /// missing value (`instance_sources`). `visiting` holds the copies being
+    /// as its referent has, each an alias of the referent's; a referent that
+    /// is such a copy itself is placed first. A copy whose referent is
+    /// missing holds the missing value. `visiting` holds the copies being
     /// placed, so a loop of them is a cycle.
     fn place_list_copy(&mut self, inst: Instance, visiting: &mut Vec<CompIdx>) -> Result<()> {
-        let tpl = &self.compiled.templates[inst.template.index()];
+        let tpl = &self.compiled.plans.templates[inst.template.index()];
         let (el, plan) = (tpl.row(inst.elem), tpl.plan(inst.elem));
         let (component_type, extend_plan, n_props) =
             (el.component_type, plan.extend, plan.props.len());
@@ -1177,40 +1102,34 @@ impl<'c> Builder<'c> {
             Some(p) => self.extend_referent(p, inst.scope, component_type)?,
             None => None,
         };
-        let label = self.label.clone();
         let Some(referent) = referent else {
             self.n_public[inst.comp.index()] = component_type.prop_defs().len() as u32;
             self.allocate_slots(inst.comp, n_props);
             return Ok(());
         };
         let ri = self.comp_instance[referent.index()];
-        if ri != NONE {
+        if !ri.is_none() {
             visiting.push(inst.comp);
-            let r = self.instances[ri as usize];
+            let r = self.instances[ri.index()];
             self.place_list_copy(r, visiting)?;
             visiting.pop();
         }
         self.copy_into(inst.comp, referent);
-        let n = self.n_public(referent);
-        self.n_public[inst.comp.index()] = n as u32;
-        for pi in 0..n {
-            let (s, t) = (self.slot(inst.comp, pi), self.slot(referent, pi));
-            self.record_label_as(s, t, &label);
-        }
+        self.n_public[inst.comp.index()] = self.n_public(referent) as u32;
         Ok(())
     }
 
     /// The component an `extend` plan names from `scope`, of the copy's
     /// own type: None for an index past the count, when the copy holds the
-    /// missing value wherever it would inherit, as `$r[k].x` does (ADR
-    /// 0014).
+    /// missing value wherever it would inherit.
     fn extend_referent(
         &mut self,
         p: RefId,
         scope: ScopeId,
         component_type: ComponentType,
     ) -> Result<Option<CompIdx>> {
-        let referent = match self.resolve(p, scope)?.0 {
+        let (target, _) = self.resolve(p, scope)?;
+        let referent = match target {
             Resolved::Missing => return Ok(None),
             target => self.single_component(target, p)?,
         };
@@ -1229,7 +1148,7 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
         let (component_type, extend_plan) = {
-            let tpl = &self.compiled.templates[inst.template.index()];
+            let tpl = &self.compiled.plans.templates[inst.template.index()];
             (
                 tpl.row(inst.elem).component_type,
                 tpl.plan(inst.elem).extend,
@@ -1245,22 +1164,24 @@ impl<'c> Builder<'c> {
         }
         // A copy of a type with a list was made whole by `place_list_copy`.
         if extend.is_some()
-            && self.compiled.templates[inst.template.index()]
+            && self.compiled.plans.templates[inst.template.index()]
                 .plan(inst.elem)
                 .list
                 == ListLen::AsReferent
         {
             return Ok(());
         }
-        let n_props = self.compiled.templates[inst.template.index()]
+        let n_props = self.compiled.plans.templates[inst.template.index()]
             .plan(inst.elem)
             .props
             .len();
-        let slot_off =
-            self.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].slot_off;
-        self.share_math = !self.compiled.expr_class.is_empty()
+        let slot_off = self.compiled.plans.templates[inst.template.index()]
+            .sealed
+            .elems[inst.elem.index()]
+        .slot_off;
+        self.share_math = !self.compiled.plans.expr_class.is_empty()
             && matches!(
-                self.compiled.templates[inst.template.index()]
+                self.compiled.plans.templates[inst.template.index()]
                     .plan(inst.elem)
                     .hold,
                 Hold::Off
@@ -1270,13 +1191,14 @@ impl<'c> Builder<'c> {
             // What the cell holds is the port's type (ADR 0032).
             let port_type = self
                 .compiled
-                .port_type(inst.template.index(), slot_off + pi as u32);
+                .plans
+                .port_type(inst.template.index(), slot_off.offset(pi));
             if port_type != PortType::Num {
                 self.typed_slots.push((s, port_type.value_type()));
             }
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
-            let c: &'c Compiled = self.compiled;
+            let c = self.compiled.plans;
             let plan = &c.templates[inst.template.index()].plan(inst.elem).props[pi];
             if matches!(plan, Source::Flow(Flow::Aggregate(_))) {
                 continue; // materialized from the tree (`fill_aggregate`)
@@ -1292,24 +1214,14 @@ impl<'c> Builder<'c> {
                 // The one predicate today: the enclosing repeat's first
                 // iteration.
                 Source::Specialize(ScopePred::FirstIteration, first, rest) => {
-                    match self.view.plans(self.scopes[inst.scope].2) {
-                        Plans::First => self.plan_source(first, inst, pi)?,
-                        Plans::Rest => self.plan_source(rest, inst, pi)?,
-                        Plans::Both => {
-                            let rest = self.plan_source(rest, inst, pi)?;
-                            self.later_sources.push((s, rest));
-                            self.plan_source(first, inst, pi)?
-                        }
+                    if self.scopes[inst.scope].2 == 1 {
+                        self.plan_source(first, inst, pi)?
+                    } else {
+                        self.plan_source(rest, inst, pi)?
                     }
                 }
                 plan => self.plan_source(plan, inst, pi)?,
             };
-            if self.view.folds_iterations()
-                && matches!(source, BuiltSource::Const(_) | BuiltSource::Given(_))
-                && plan.gives_document_constant()
-            {
-                self.document_slots.push(s);
-            }
             self.sources[s.index()] = source;
         }
         Ok(())
@@ -1320,7 +1232,7 @@ impl<'c> Builder<'c> {
         let comp = inst.comp;
         let s = self.slot(comp, pi);
         let component_type = self.components.component_type[comp.index()];
-        let c: &'c Compiled = self.compiled;
+        let c = self.compiled.plans;
         Ok(match plan {
             Source::Specialize(..) => unreachable!("a nested specialization"),
             Source::Leaf(leaf) => match leaf {
@@ -1354,7 +1266,7 @@ impl<'c> Builder<'c> {
                     BuiltSource::Alias(self.arg_slot(*arg, comp, inst.scope, component_type, pi)?)
                 }
                 Flow::Op(spec, args) => {
-                    let start = self.op_inputs.len() as u32;
+                    let start = OpInputIdx::from_index(self.op_inputs.len());
                     for &a in args {
                         let slot = self.arg_slot(a, comp, inst.scope, component_type, pi)?;
                         // A reference read by an operator is a number: text
@@ -1364,7 +1276,7 @@ impl<'c> Builder<'c> {
                         {
                             return Err(Error::Unsupported(format!(
                                 "a text value (${}) used as a number",
-                                c.ref_display(p)
+                                self.compiled.ref_display(p)
                             )));
                         }
                         self.op_inputs.push(slot);
@@ -1387,7 +1299,8 @@ impl<'c> Builder<'c> {
                     // Symbolic when the compile typed the port math (ADR 0032).
                     if self
                         .compiled
-                        .port_type(inst.template.index(), slot_off_of(self, inst) + pi as u32)
+                        .plans
+                        .port_type(inst.template.index(), slot_off_of(self, inst).offset(pi))
                         == PortType::Math
                     {
                         self.sym_source(*expr, *post, inst.scope)?
@@ -1429,7 +1342,7 @@ impl<'c> Builder<'c> {
         op: PlannedOp,
         inputs: &[SlotId],
     ) -> BuiltSource {
-        let start = self.op_inputs.len() as u32;
+        let start = OpInputIdx::from_index(self.op_inputs.len());
         self.op_inputs.extend_from_slice(inputs);
         BuiltSource::Op(op, start, byte(inputs.len()))
     }
@@ -1460,11 +1373,14 @@ impl<'c> Builder<'c> {
 }
 
 /// The slot offset of instance `inst`'s element in its template.
-fn slot_off_of(b: &Builder<'_>, inst: Instance) -> u32 {
-    b.compiled.templates[inst.template.index()].sealed.elems[inst.elem.index()].slot_off
+fn slot_off_of(b: &Builder<'_>, inst: Instance) -> TemplateSlot {
+    b.compiled.plans.templates[inst.template.index()]
+        .sealed
+        .elems[inst.elem.index()]
+    .slot_off
 }
 
-/// Inheritance as the build makes it (ADR 0016, Migration step 8), against
+/// Inheritance as the build makes it, against
 /// the test-only components: a bare copy's prop aliases its referent's port
 /// in every instance, a copy of a list holds as many points as its
 /// referent, and a held copy reads its referent through a cell of its own.

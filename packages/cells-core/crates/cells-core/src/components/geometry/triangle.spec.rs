@@ -1,7 +1,7 @@
 //! `<triangle>`: a polygon of three vertices, each the current core's
 //! default when not given.
 
-use cells_core::spec;
+use crate::spec;
 
 spec! {
     triangle;

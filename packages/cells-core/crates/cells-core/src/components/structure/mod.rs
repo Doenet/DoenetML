@@ -18,7 +18,7 @@ pub mod repeat_for_sequence {
         /// `<repeatForSequence>`: its children are every iteration's expanded
         /// template, flattened; its `count` prop is the structural cell. The
         /// iteration count is derived like any other cell and read by the
-        /// builder (see `CONTEXT.md`, structural cell):
+        /// builder:
         ///
         /// ```text
         /// lengthFromTo = floor((to - from) / step + 1 + 1e-10)

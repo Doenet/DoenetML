@@ -4,7 +4,7 @@
 use super::*;
 
 impl Document {
-    /// Submit an answer, an action (ADR 0018): one tick copying each live
+    /// Submit an answer, an action: one tick copying each live
     /// response handle into its `submitted` cell and counting the
     /// submission. Those cells are not interactive: no renderer sets them.
     pub fn submit(&mut self, answer: CompIdx) -> TickOutcome {
@@ -12,7 +12,7 @@ impl Document {
         self.tick_unchecked(&requests, &[])
     }
 
-    /// The writes a submit makes (`submit`), as requests.
+    /// The writes a submit makes, as requests.
     pub(crate) fn submit_requests(&self, answer: CompIdx) -> Vec<Request> {
         let mut requests: Vec<Request> = self
             .answer_responses(answer)
@@ -91,7 +91,7 @@ impl Document {
 
     /// A section's full number, such as "2.1": its own `number` cell,
     /// after its nearest section ancestor's full number when it includes
-    /// its parent's (`build/expand/scoring.rs`). None for other components.
+    /// its parent's. None for other components.
     pub fn section_number(&self, c: CompIdx) -> Option<String> {
         if self.component_type(c) != ComponentType::Section {
             return None;

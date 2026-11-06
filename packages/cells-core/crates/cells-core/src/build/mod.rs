@@ -1,38 +1,21 @@
-//! The build stage (ADR 0015): the compile stamped into a document at given
-//! iteration counts, reading the session. A load builds until the structure
-//! settles, and so does a rebuild in a tick. A build finds no error the
-//! compile did not (ADR 0014).
+//! The build stage: the compile stamped into a document at given iteration
+//! counts, reading the session. A build finds no error the compile did not.
 //!
 //! **Expand** stamps templates into components. Each instance of a template
 //! is a *scope*: scope 0 is the document, every iteration of a repeat is a
 //! scope whose parent is the scope the repeat sits in. Scopes carry dense
 //! tables (element -> component) so a reference plan resolves with array
-//! reads: walk `hops` parents, index the element table, follow indices into
-//! iteration scopes. Scope ids are stable for the session (the table only
-//! grows), which is how essential values carry over: they are stored per
-//! (scope, template slot).
+//! reads. Scope ids are stable for the session, so essential values carry
+//! over per (scope, template slot).
 //!
-//! **Emit**: union-find over aliases makes cells; cells are numbered
-//! (the constants, the session's pool first, then essential, then
-//! derived); and operators are bound.
-//! [`BuildOutput::schedule`] then orders the
-//! instructions, with a fast path when creation order is already a valid
-//! evaluation order.
+//! **Define**: union-find over aliases makes cells, the author's operators
+//! are oriented, and every cell is classed. **Emit**: cells are numbered
+//! (constants, then essential, then derived) and operators are bound.
+//! [`BuildOutput::schedule`] then orders the instructions.
 //!
-//! Files: **`expand/`**: `mod.rs` holds the builder's state and stamps
-//! templates; `resolve.rs` follows reference plans, `math.rs` gives math
-//! its source per instance, `choice.rs` picks and wires branches, and
-//! `aggregate.rs` materializes aggregates (collects, credit, section
-//! numbers). **`emit.rs`** makes cells and instructions. **`view.rs`** is
-//! the structure view, the one interface
-//! through which expand and emit learn iteration counts, indexed referents,
-//! a collect's count and a select's options. **`abstract_build.rs`** is the
-//! abstract build, the build through a view that folds every iteration into
-//! one, which the compile's check runs (ADR 0012, ADR 0014). This file
-//! holds [`build`] and what a build returns ([`BuildOutput`]);
-//! `structure.rs` what a build records about the document's shape
-//! ([`Structure`], [`ScopeTable`], [`Repeat`]); `coverage.rs`, for tests,
-//! checks that the abstract build's graph covers a real build's.
+//! A build reads no analysis of its own: what the compile found over the
+//! template graph (ADR 0032), each port's attributes, classes its cells,
+//! so a slot's class is the same in every build.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -45,18 +28,18 @@ use crate::compile::keys::pick_position;
 use crate::compile::plan::*;
 use crate::components::{ComponentType, prop};
 use crate::dast::{NodeId, StrId, StringTable};
-use crate::diagnostics::Diagnostic;
+
 use crate::document::{CellIdx, ChildEntry, CompIdx, ComponentTable, Document, NONE};
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::VecOp;
 use crate::program::{Instr, OpSpec, Post, SymKind};
 use crate::program::{Operands, Program, ValueType};
-use crate::session::{Counts, Session};
+use crate::session::{Counts, MathStore, Session};
 
-mod abstract_build;
 #[cfg(feature = "testing")]
 pub mod coverage;
+mod define;
 mod emit;
 mod expand;
 mod live;
@@ -64,14 +47,13 @@ mod orient;
 pub mod signature;
 mod slot_cells;
 mod structure;
-mod view;
 mod writable;
 
-pub(crate) use abstract_build::abstract_build;
+use define::Defined;
 use slot_cells::SlotCells;
 #[cfg(feature = "testing")]
 pub use structure::SlotClass;
-pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
+pub use structure::{Repeat, ScopeId, ScopeTable, Structure, TemplateSlot};
 
 crate::index::index_type! {
     /// A build's slot: one prop of one stamped element, before emit gives it
@@ -89,57 +71,29 @@ impl crate::sym::Leaf for SlotId {
     }
 }
 
-use abstract_build::Coord;
 use expand::*;
-use view::{CollectCount, Options, Plans, View};
+pub(crate) use expand::{splitmix, stable_hash};
 
-/// Expand, resolve, optionally run the abstract build's count and loop
-/// checks, and emit, through `view`. The failure names the element to box.
-pub(in crate::build) fn build_with(
-    compiled: &Compiled,
-    session: &Session,
-    reseed: bool,
-    engine: &mut Engine,
-    view: &View,
-    abstract_checks: bool,
-) -> std::result::Result<BuildOutput, Failure> {
-    let mut b = Builder::new(compiled, session, reseed, engine, view);
-    let staged = (|| {
-        crate::trace::span("expand").run(|| b.expand_all())?;
-        crate::trace::span("resolve").run(|| b.resolve_all())?;
-        if abstract_checks {
-            let _s = crate::trace::span("loop check");
-            b.check_counts()?;
-            b.check_loops()?;
-        }
-        Ok(())
-    })();
-    if let Err(error) = staged {
-        return Err(Failure {
+impl<'c> Builder<'c> {
+    /// Expand and resolve. The failure names the element to box.
+    pub(in crate::build) fn stage(&mut self) -> std::result::Result<(), Failure> {
+        let staged = (|| {
+            crate::trace::span("expand").run(|| self.expand_all())?;
+            crate::trace::span("resolve").run(|| self.resolve_all())
+        })();
+        staged.map_err(|error| Failure {
             error,
-            node: b.failed_node,
-        });
+            node: self.failed_node,
+        })
     }
-    let u = {
-        let _s = crate::trace::span("emit");
-        let u = b.finish()?;
-        crate::trace::count("cells", u.cells.len());
-        crate::trace::count("instructions", u.instrs.len());
-        crate::trace::count("components", u.components.len());
-        u
-    };
-    Ok(u)
 }
 
 impl<'c> Builder<'c> {
-    /// The backward walk over the cells the slots will make that the
-    /// writable walk (`writable.rs`, ADR 0018) and the live walk
-    /// (`live.rs`, ADR 0019) share: from the cells on `stack`, each cell
-    /// `enter` admits is given to `edge` as its definition
-    /// (`slot_cells::Def`), then as each other source its slots have (its
-    /// later sources when the view folds iterations, and `extra`), and
-    /// `edge` pushes the cells to go on to, by one of the definition's
-    /// relations. A cell `enter` refuses is neither followed nor seen.
+    /// Walk backward over the cells the slots will make: from the cells on
+    /// `stack`, each cell `enter` admits is given to `edge` as its
+    /// definition, then as each other source in `extra` its slots have,
+    /// and `edge` pushes the cells to go on to. A cell
+    /// `enter` refuses is neither followed nor seen.
     pub(in crate::build) fn walk_cells(
         &self,
         slot_cells: &SlotCells,
@@ -151,7 +105,7 @@ impl<'c> Builder<'c> {
         let mut seen = vec![false; self.sources.len()];
         // The other sources of each cell.
         let mut besides: HashMap<SlotId, Vec<&(SlotId, BuiltSource)>> = HashMap::new();
-        for entry in self.later_sources.iter().chain(extra) {
+        for entry in extra {
             besides
                 .entry(slot_cells.cell_of(entry.0))
                 .or_default()
@@ -175,19 +129,14 @@ impl<'c> Builder<'c> {
     }
 }
 
-/// What can go wrong in a build (ADR 0014, ADR 0015): only that the
-/// compile missed something, a core bug, which `tests/every_count.rs`
-/// exists to catch. Never an author's error: the compile has boxed or
-/// reported every one, a cycle included, and this type has no way to say
-/// one. The machinery the build shares with the compile's check fails with
-/// a `Failure`, a fact about the source; only the compile turns one into a
-/// diagnostic.
+/// What can go wrong in a build: only that the compile missed something,
+/// a core bug. Never an author's error.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum BuildError {
     /// Something the compile's check passed failed: an element, or the
     /// schedule, which found a cycle.
     #[error(
-        "a build after the load found an error the load did not report, which the core must never let happen (ADR 0014): {0}"
+        "a build after the load found an error the load did not report, which the core must never let happen: {0}"
     )]
     Unchecked(String),
 }
@@ -200,20 +149,67 @@ impl From<BuildError> for Error {
     }
 }
 
-/// A build (ADR 0015): the compile stamped with each repeat at its count
-/// in `counts`, reading the session. It compiles nothing and finds no error
-/// the compile did not (ADR 0014). With `reseed`, seeded cells take their
-/// seeds again whatever the session carries: a later pass of a load.
+/// A build: the compile stamped with each repeat at its count in `counts`,
+/// reading the session. It finds no error the compile did not. With
+/// `reseed`, seeded cells take their seeds again whatever the session
+/// carries: a later pass of a load.
 pub fn build(
     compiled: &Compiled,
     session: &Session,
+    math: &mut MathStore,
     counts: &Counts,
     reseed: bool,
 ) -> std::result::Result<BuildOutput, BuildError> {
-    let view = View::Stamped { counts };
-    let mut engine = session.engine.borrow_mut();
-    build_with(compiled, session, reseed, &mut engine, &view, false)
-        .map_err(|f| BuildError::Unchecked(f.error.to_string()))
+    let mut b = Builder::new(compiled.view(), session, reseed, math, counts);
+    let built = (|| {
+        b.stage()?;
+        let slot_cells = crate::trace::span("define").run(|| b.define())?;
+        let defined = Defined::by_attributes(&b, slot_cells);
+        let _s = crate::trace::span("emit");
+        let u = b.emit(defined)?;
+        crate::trace::count("cells", u.cells.len());
+        crate::trace::count("instructions", u.instrs.len());
+        crate::trace::count("components", u.components.len());
+        Ok(u)
+    })();
+    built.map_err(|f: Failure| BuildError::Unchecked(f.error.to_string()))
+}
+
+/// Which slot defines each cell and which component owns each slot: what
+/// a cell's human-readable owner is read from, with the build's own
+/// components and strings.
+struct CellOwners {
+    /// The slot defining each cell; `NONE` for a pooled constant.
+    cell_def_slot: Vec<SlotId>,
+    /// The component owning each slot; `NONE` for an anonymous one.
+    slot_comp: Vec<CompIdx>,
+    /// Each component's first slot.
+    slot_base: Vec<SlotId>,
+}
+
+impl CellOwners {
+    /// The owner of `cell`, e.g. "p1.x".
+    fn label(&self, cell: CellIdx, components: &ComponentTable, strings: &StringTable) -> String {
+        let slot = self.cell_def_slot[cell.index()];
+        if slot == SlotId::NONE {
+            return "(a pooled constant)".to_string();
+        }
+        let comp = self.slot_comp[slot.index()];
+        if comp == CompIdx::NONE {
+            return "(anonymous cell)".to_string();
+        }
+        let pi = slot.index() - self.slot_base[comp.index()].index();
+        let component_type = components.component_type[comp.index()];
+        let owner = match components.name[comp.index()] {
+            StrId::NONE => format!("<{}>#{}", component_type.tag(), comp),
+            s => strings.get(s).trim().to_string(),
+        };
+        let n_public = components.comp_cells(comp).len();
+        match component_type.prop_name(n_public, pi) {
+            Some(name) => format!("{owner}.{name}"),
+            None => format!("{owner}.(hidden slot {pi})"),
+        }
+    }
 }
 
 /// A built document whose program has not yet been scheduled.
@@ -231,71 +227,47 @@ pub struct BuildOutput {
     operands: Operands,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
-    /// The cells a `fixed` holds (`Program::holds`).
+    /// The cells a `fixed` holds.
     holds: crate::program::Holds,
-    /// Each component's element's stable key, `NONE` for one no element
-    /// makes (a case): what the input signature names components by.
-    comp_keys: Vec<ElemKey>,
-    /// Human-readable owner of a cell, e.g. "p1.x". Computed lazily because
-    /// a cycle error is the only consumer.
-    cell_label: Box<dyn Fn(CellIdx) -> String>,
-    /// Which cells the document computes (ADR 0019).
+    /// What a cell's owner is read from, for a cycle's error.
+    owners: CellOwners,
+    /// Which cells the document computes.
     live: Live,
-    /// What the abstract build found for the compile to keep (`findings`):
-    /// empty in any other build, which records nothing and runs no count
-    /// check.
-    findings: AbstractFindings,
 }
 
-/// What the abstract build's build found for the compile to keep (ADR 0012,
-/// ADR 0018, ADR 0019): what every later build reads, and the warnings.
-#[derive(Debug, Default)]
-pub(crate) struct AbstractFindings {
-    /// The structural depth (`check_counts`).
-    pub(crate) structural_depth: u32,
-    /// The template slots a student's action can write.
-    pub(crate) writable: Record,
-    /// The live template slots.
-    pub(crate) live: Record,
-    /// The counted values' template slots (ADR 0028).
-    pub(crate) counted: Record,
-    /// The document constants' template slots (ADR 0028).
-    pub(crate) document_constants: Record,
-    /// The warnings (`check_counts`).
-    pub(crate) warnings: Vec<Diagnostic>,
-}
-
-/// Which cells a build computes (ADR 0019): a bit per cell, set for one
-/// some output or the core itself reads, by the compile's record or the
-/// build's own walk (`build/live.rs`).
+/// Which cells a build computes: a bit per cell, set for one some output
+/// or the core itself reads.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Live {
     pub(crate) cells: Vec<u64>,
-    /// The same by this build's own walk, whatever the record says: what
-    /// the record is checked against (`tests/live.rs`).
+    /// The same by this build's own walk, whatever the record says.
     #[cfg(feature = "testing")]
     pub(crate) walked: Vec<u64>,
 }
 
 impl BuildOutput {
-    /// Whether cell `i` is essential: the essential cells follow the
-    /// constants (ADR 0028).
-    pub(crate) fn is_essential(&self, i: usize) -> bool {
-        (self.n_const..self.n_const + self.n_essential).contains(&i)
+    /// Schedule the program into a document of `compiled` that owns
+    /// `math`, the math this build was lent.
+    pub fn schedule(
+        self,
+        compiled: Arc<Compiled>,
+        math: MathStore,
+    ) -> std::result::Result<Document, BuildError> {
+        let (built, session) = self.schedule_built()?;
+        Ok(Document::new(
+            built,
+            session,
+            math,
+            crate::document::Loaded::of(compiled),
+        ))
     }
 
-    /// Whether cell `i` is a constant: the constants come first.
-    pub(crate) fn is_const(&self, i: usize) -> bool {
-        i < self.n_const
-    }
-
-    /// What the abstract build found, which the compile keeps.
-    pub(crate) fn abstract_findings(self) -> AbstractFindings {
-        self.findings
-    }
-
-    /// Schedule the program into a document.
-    pub fn schedule(self, compiled: Arc<Compiled>) -> std::result::Result<Document, BuildError> {
+    /// Schedule the program: what the build made, as a document holds it,
+    /// and the session the build returned. For a caller that keeps the
+    /// math it lent the build itself, rather than in a document.
+    pub fn schedule_built(
+        self,
+    ) -> std::result::Result<(crate::document::Built, Session), BuildError> {
         let n = self.cells.len();
         let program = match Program::schedule(self.instrs, n, self.operands) {
             Ok(mut p) => {
@@ -304,11 +276,12 @@ impl BuildOutput {
                 p
             }
             Err(cell) => {
-                let cycle = Error::Cycle((self.cell_label)(cell));
+                let owner = self.owners.label(cell, &self.components, &self.strings);
+                let cycle = Error::Cycle(owner);
                 return Err(BuildError::Unchecked(cycle.to_string()));
             }
         };
-        Ok(Document::new(
+        let built = crate::document::Built::new(
             self.cells,
             self.n_essential,
             self.n_const,
@@ -318,9 +291,9 @@ impl BuildOutput {
             self.strings,
             self.root,
             self.structure,
-            self.session,
-            compiled,
+            &self.session,
             self.live,
-        ))
+        );
+        Ok((built, self.session))
     }
 }

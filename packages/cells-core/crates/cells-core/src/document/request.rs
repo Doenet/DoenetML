@@ -1,10 +1,8 @@
 //! The request entry points: one tick, from a renderer's requests to the
-//! cells that changed. A renderer may request only an input's cell (ADR
-//! 0018, `interactive.rs`); a submit and a trigger are actions, which the
-//! core carries out as one tick of its own. The stages themselves are in `tick/`: the sticky
-//! pre-pass (`sticky.rs`, here because it reads the component table), then
-//! inversion (`tick/invert.rs`) and recompute (`tick/eval.rs`), then a
-//! rebuild if a structural cell changed (`load.rs`).
+//! cells that changed. A renderer may request only an input's cell; a submit
+//! and a trigger are actions, each carried out as one tick of its own. A
+//! tick runs the sticky pre-pass, inversion and recompute, then a rebuild if
+//! a structural cell changed.
 
 use std::sync::Arc;
 
@@ -23,7 +21,7 @@ impl Document {
     }
 
     /// Apply a point group: points dragged together, which keep their shape
-    /// when one of them is constrained (ADR 0006).
+    /// when one of them is constrained.
     pub fn request_points(&mut self, points: &[PointRequest]) -> TickOutcome {
         self.request_with_groups(&[], &[points.to_vec()])
     }
@@ -38,8 +36,7 @@ impl Document {
         self.tick(requests, groups, true)
     }
 
-    /// A tick on any cell, without the check that it is an input's: an
-    /// action's own writes, and `testing::request_unchecked`.
+    /// A tick on any cell, without the check that it is an input's.
     pub(crate) fn tick_unchecked(
         &mut self,
         requests: &[Request],
@@ -103,17 +100,17 @@ impl Document {
             }
         }
         self.snap_sticky(&mut accepted, &mut finite_groups);
-        let engine = self.session.engine.clone();
-        let mut engine = engine.borrow_mut();
         let essentials = self.essentials();
+        // The build's symbolic state and the document's engine, which are
+        // separate fields, so both are lent at once.
         let mut sym = SymRun {
-            state: &mut self.sym,
-            engine: &mut engine,
+            state: &mut self.built.sym,
+            engine: &mut self.math.engine,
         };
         let inv = invert_requests(
-            &self.program,
+            &self.built.program,
             &mut sym,
-            &self.cells,
+            &self.built.cells,
             essentials.clone(),
             &accepted,
             &finite_groups,
@@ -127,32 +124,40 @@ impl Document {
         let mut newly_touched = Vec::new();
         for &(cell, _) in &inv.writes {
             if essentials.contains(&cell.index()) {
-                let at = self.structure.essential_slots[cell.index() - essentials.start];
+                let at = self.built.structure.essential_slots[cell.index() - essentials.start];
                 if Arc::make_mut(&mut self.session.touched).insert(at) {
                     newly_touched.push(at);
                 }
             }
         }
         for (cell, value) in inv.writes {
-            let old = self.cells[cell.index()];
+            let old = self.built.cells[cell.index()];
             if value != old && !(value.is_nan() && old.is_nan()) {
-                self.cells[cell.index()] = value;
+                self.built.cells[cell.index()] = value;
                 before.push((cell, old));
                 tick.changed.push(cell);
             }
         }
         if !tick.changed.is_empty() {
             match self.recompute {
-                Recompute::Full => {
-                    self.program
-                        .run_all_tracking(&mut sym, &mut self.cells, &mut tick.changed)
-                }
+                Recompute::Full => self.built.program.run_all_tracking(
+                    &mut sym,
+                    &mut self.built.cells,
+                    &mut tick.changed,
+                ),
                 Recompute::DirtyClosure => self
+                    .built
                     .dirty
-                    .get_or_insert_with(|| DirtyClosure::new(&self.program, self.cells.len()))
-                    .recompute(&self.program, &mut sym, &mut self.cells, &mut tick.changed),
+                    .get_or_insert_with(|| {
+                        DirtyClosure::new(&self.built.program, self.built.cells.len())
+                    })
+                    .recompute(
+                        &self.built.program,
+                        &mut sym,
+                        &mut self.built.cells,
+                        &mut tick.changed,
+                    ),
             }
-            drop(engine);
             if !self.structure_settled() {
                 match self.rebuild() {
                     Ok(passes) => {
@@ -166,7 +171,7 @@ impl Document {
                         // shows a count its iterations do not match, and
                         // report every request of the tick as dropped.
                         for &(cell, old) in &before {
-                            self.cells[cell.index()] = old;
+                            self.built.cells[cell.index()] = old;
                         }
                         let touched = Arc::make_mut(&mut self.session.touched);
                         for at in &newly_touched {
@@ -190,8 +195,8 @@ impl Document {
 }
 
 impl Document {
-    /// Press a `<triggerSet>` (or a lone `<updateValue>`), an action (ADR
-    /// 0018): every `<updateValue>` under it requests its `newValue`'s
+    /// Press a `<triggerSet>` (or a lone `<updateValue>`), an action: every
+    /// `<updateValue>` under it requests its `newValue`'s
     /// current value on its target's cell, all in one tick, in document
     /// order. A target is not interactive: only the press writes it.
     pub fn trigger(&mut self, comp: crate::document::CompIdx) -> TickOutcome {
@@ -236,8 +241,7 @@ impl Document {
     }
 
     /// Every literal attribute of every element (`name` aside), keyed by
-    /// DAST node, for a renderer that reads presentation once per build
-    /// instead of asking per component (`attr_text`).
+    /// DAST node.
     pub fn literal_attrs(&self) -> Vec<(crate::dast::NodeId, Vec<(&str, String)>)> {
         let literal = &self.loaded.literal_attrs;
         literal

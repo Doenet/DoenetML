@@ -1,7 +1,7 @@
 //! `<lineSegment>`: its endpoints, given or defaulted, and where a drag of
 //! an endpoint or of the whole segment lands.
 
-use cells_core::spec;
+use crate::spec;
 
 spec! {
     segment;

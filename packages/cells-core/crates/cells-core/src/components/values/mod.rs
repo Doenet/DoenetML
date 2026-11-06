@@ -1,10 +1,7 @@
 //! Number, boolean, text, math, evaluate, clamp number, tuple, update
 //! value, function, derivative and answer (with its award, when and
-//! response): types that hold a value,
-//! numeric or symbolic. Function and derivative are `symbolic`, planned as
-//! math cells (`curve.rs`); so is answer (`answer.rs`). Each type with a
-//! planner is in its own file, its definition and its planner together
-//! (ADR 0016); tuple and response, which no tag makes, refuse here.
+//! response): types that hold a value, numeric or symbolic. Function,
+//! derivative and answer are `symbolic`, planned as math cells.
 
 use super::define::*;
 use crate::program::SymKind;
@@ -181,8 +178,8 @@ pub mod update_value {
 
     component! {
         /// `<updateValue target="$a" newValue="$b"/>`: `target` aliases the
-        /// target's value cell, so performing it (`Document::trigger`) is a
-        /// request on that cell for `newValue`'s current value.
+        /// target's value cell, so performing it is a request on that cell
+        /// for `newValue`'s current value.
         tags: ["updateValue"],
         renders: Never,
         props {

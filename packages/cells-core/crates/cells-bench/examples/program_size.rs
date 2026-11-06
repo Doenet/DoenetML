@@ -1,8 +1,6 @@
 //! The size of each golden document's program (and the smallest fixture of
 //! each shape): cells, essential cells and instructions, as a Markdown
-//! table. For comparing what an alternative in
-//! `docs/tick-design-decisions.md` does to real documents' programs:
-//! run it on each side.
+//! table.
 //!
 //!   cargo run --release -p cells-bench --example program_size
 

@@ -1,10 +1,9 @@
-//! The binary wire format (`CDST`, little-endian; see
-//! `docs/adr/0002-binary-wire-format.md` and `scripts/cdast-encode.mjs`).
+//! The binary wire format (`CDST`, little-endian).
 
 use super::{Dast, NodeId, NodeKind, ReadFlags, StrId, StringTable};
 
 impl Dast {
-    /// Load from the binary wire format (little-endian, see module docs).
+    /// Load from the binary wire format.
     pub fn from_binary(bytes: &[u8]) -> crate::Result<Dast> {
         let bad = |what: &str| crate::Error::WireFormat(what.to_string());
         if bytes.len() < 8 + 6 * 4 || &bytes[0..4] != b"CDST" {
@@ -108,8 +107,7 @@ impl Dast {
         Ok(dast)
     }
 
-    /// Serialize to the binary wire format: what the tests check the
-    /// JavaScript encoder's bytes against (`tests/wire.rs`).
+    /// Serialize to the binary wire format.
     #[cfg(feature = "testing")]
     pub fn to_binary(&self) -> Vec<u8> {
         let mut out = Vec::with_capacity(64 + self.strings.bytes.len() + self.len() * 24);

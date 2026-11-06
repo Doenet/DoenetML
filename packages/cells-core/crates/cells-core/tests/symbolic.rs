@@ -1,4 +1,4 @@
-//! Symbolic instructions in the tick (ADR 0008): simplify on leaf
+//! Symbolic instructions in the tick: simplify on leaf
 //! changes, mathInputs as essential math cells, answers, function curves,
 //! gating, and equal handles for equal expressions: the cutoff, and an
 //! engine that does not grow with expressions made again.
@@ -168,7 +168,7 @@ fn a_copy_of_a_symbolic_math_shares_its_cell() {
 }
 
 fn engine_len(doc: &Document) -> usize {
-    doc.session.engine.borrow().len()
+    doc.math.engine.len()
 }
 
 // The `Evaluate` inverse (`tick/invert.rs`) makes the requested number's
@@ -207,12 +207,9 @@ fn rebuilding_back_and_forth_does_not_grow_the_engine() {
     assert_eq!(engine_len(&doc), len);
 }
 
-/// A lookahead (`realize`, ADR 0006 as amended) writes no cell. What it
-/// stores in the engine and the memos is what the tick after it computes,
-/// so that tick finds its expressions already there; and a lookahead at
-/// other values leaves memos the tick cannot use, since a memo is keyed by
-/// the values it last ran on, so the tick reruns and answers as a fresh
-/// document does.
+/// A lookahead (`realize`) writes no cell, and the tick after it answers
+/// as a fresh document does, whether the lookahead was at the same values
+/// or others.
 #[test]
 fn a_lookahead_writes_no_cell_and_the_tick_after_it_agrees() {
     use cells_core::program::SymRun;
@@ -233,15 +230,14 @@ fn a_lookahead_writes_no_cell_and_the_tick_after_it_agrees() {
             (cell(doc, "q", "y"), 0.0),
         ];
         let mut realized = Vec::new();
-        let engine = doc.session.engine.clone();
         let essentials = doc.essentials();
         realize(
-            &doc.program,
+            &doc.built.program,
             &mut SymRun {
-                state: &mut doc.sym,
-                engine: &mut engine.borrow_mut(),
+                state: &mut doc.built.sym,
+                engine: &mut doc.math.engine,
             },
-            &doc.cells,
+            &doc.built.cells,
             essentials,
             &asked,
             &mut realized,

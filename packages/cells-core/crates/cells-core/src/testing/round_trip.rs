@@ -1,8 +1,7 @@
-//! The round trip of ADR 0026: every interactive number cell of a document
-//! is requested at several values, each on a fresh copy, and what the
-//! inverse did is classed. An x/y pair of one component (`x` and `y`, `x1`
-//! and `y1`, ...) is requested together, as a point group, as a renderer
-//! drags a point.
+//! The round trip: every interactive number cell of a document is requested
+//! at several values, each on a fresh copy, and what the inverse did is
+//! classed. An x/y pair of one component (`x` and `y`, `x1` and `y1`, ...)
+//! is requested together, as a point group.
 //!
 //! A request comes out (`Class`):
 //!

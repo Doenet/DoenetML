@@ -5,7 +5,7 @@
 //! - `<answer response="$mi">x</answer>`: the response is the named
 //!   input's expression; `x` is the correct expression.
 //! - `<answer>x</answer>`: the answer owns an implicit `<mathInput>`,
-//!   a synthetic child outlining makes (`add_answer_children`).
+//!   a synthetic child outlining makes.
 //! - `<answer><mathInput name="mi"/>x</answer>`: the input child is the
 //!   response.
 //! - `<answer><award>x</award><award credit="0.5">y</award></answer>`:
@@ -17,31 +17,24 @@
 //!   one per input referenced, which outlining makes), so credit changes
 //!   only on submit. No implicit input is made.
 //!
-//! Outlining makes the synthetic children, so the element set is fixed
-//! before anything is planned (ADR 0030); the answer's planner plans them.
-//! Outlining decides them from the source as the planner does, and where
-//! the planner would refuse the answer, they die with its box.
-//!
 //! In every form `credit` is what a submit earns: equality with `correct`,
-//! or the most any award gives (`credit` × holds). Other content (choices,
-//! text answers, `matchPartial`, feedback) is refused, never left blank.
+//! or the most any award gives (`credit` × holds). Other content is
+//! refused, never left blank.
 
+use crate::compile::answer::AwardForm;
 use crate::compile::*;
 use crate::components::prop::{
     answer, award, choice, choice_input, math_input, response, text_input, when,
 };
 use crate::limits::MAX_CHOICES;
 
-/// An `<award>` as read from the DAST: its `<when>`, or its content.
-pub(in crate::compile) struct AwardForm {
-    pub(in crate::compile) e: ElemId,
-    pub(in crate::compile) el: NodeId,
-    pub(in crate::compile) when: Option<(ElemId, NodeId)>,
-    pub(in crate::compile) nodes: Vec<NodeId>,
-}
-
 impl<'a> Compiler<'a> {
-    pub(in crate::compile) fn plan_answer(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    pub(in crate::compile) fn plan_answer(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<()> {
         let d = self.dast;
         let Elem {
             node: el,
@@ -80,10 +73,10 @@ impl<'a> Compiler<'a> {
                     "an <answer> with a <choiceInput> and content or awards".into(),
                 ));
             }
-            return self.plan_choice_answer(t, e, el, *ci);
+            return self.plan_choice_answer(rf, t, e, el, *ci);
         }
         if text_answer {
-            return self.plan_text_answer(t, e, el, &inputs, &awards);
+            return self.plan_text_answer(rf, t, e, el, &inputs, &awards);
         }
         if inputs
             .iter()
@@ -115,7 +108,7 @@ impl<'a> Compiler<'a> {
         let response_attr = d.attr(el, "response");
         let mut response = match (needs_input, response_attr, inputs.as_slice()) {
             (true, Some(a), []) => {
-                self.plan_value(t, scope, "response", d.attr_children(a), Some("expr"))?
+                self.plan_value(rf, t, scope, "response", d.attr_children(a), Some("expr"))?
             }
             (true, Some(_), _) => {
                 return Err(Error::Unsupported(
@@ -150,11 +143,11 @@ impl<'a> Compiler<'a> {
         let correct = if text_nodes.is_empty() {
             Source::absent()
         } else {
-            let id = self.plan_sym_math(t, scope, &text_nodes)?;
+            let id = self.plan_sym_math(rf, t, scope, &text_nodes)?;
             Source::sym_expr(id, Post::None)
         };
         let mut submitted = Source::Leaf(Leaf::GivenMath(None));
-        let weight = self.plan_weight(t, e, el)?;
+        let weight = self.plan_weight(rf, t, e, el)?;
 
         if forms.is_empty() {
             let eq = self.equals_op(&[el]);
@@ -173,7 +166,7 @@ impl<'a> Compiler<'a> {
         // Awards. Inputs the whens reference get a `response` child each.
         let mut responses: Vec<((u32, ElemId), ElemId)> = Vec::new();
         for form in &forms {
-            self.plan_award(t, e, el, form, &mut responses)?;
+            self.plan_award(rf, t, e, el, form, &mut responses)?;
         }
         let awards: Vec<ElemId> = forms.iter().map(|f| f.e).collect();
         let best = best_award(&mut wiring, &awards);
@@ -195,11 +188,17 @@ impl<'a> Compiler<'a> {
 
     /// An answer's `weight` (1 when omitted), its references looked up from
     /// the answer's scope like any other attribute's.
-    fn plan_weight(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<Source> {
+    fn plan_weight(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        e: ElemId,
+        el: NodeId,
+    ) -> Result<Source> {
         let d = self.dast;
         let scope = self.outlined(t).elems[e.index()].name_scope;
         Ok(match d.attr(el, "weight") {
-            Some(a) => self.plan_value(t, scope, "weight", d.attr_children(a), None)?,
+            Some(a) => self.plan_value(rf, t, scope, "weight", d.attr_children(a), None)?,
             None => Source::constant(1.0),
         })
     }
@@ -209,6 +208,7 @@ impl<'a> Compiler<'a> {
     /// is the submitted choice's `credit` (0 while nothing is chosen).
     fn plan_choice_answer(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         e: ElemId,
         el: NodeId,
@@ -227,7 +227,7 @@ impl<'a> Compiler<'a> {
         }
         let ports = answer::Props::PORTS;
         let mut wiring = ElemWiring::of(ComponentType::Answer);
-        let weight = self.plan_weight(t, e, el)?;
+        let weight = self.plan_weight(rf, t, e, el)?;
         let mut args = vec![Arg::Own(ports.submitted)];
         args.extend(
             choices
@@ -257,6 +257,7 @@ impl<'a> Compiler<'a> {
     /// award's literal text, trimmed, by id.
     fn plan_text_answer(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         e: ElemId,
         el: NodeId,
@@ -282,7 +283,7 @@ impl<'a> Compiler<'a> {
             ));
         }
         let mut wiring = ElemWiring::of(ComponentType::Answer);
-        let weight = self.plan_weight(t, e, el)?;
+        let weight = self.plan_weight(rf, t, e, el)?;
         let mut planned: Vec<ElemId> = Vec::new();
         for &a in awards {
             let form = self.award_form(t, a)?;
@@ -302,7 +303,7 @@ impl<'a> Compiler<'a> {
             }
             let id = self.intern_literal(text.trim()).to_value();
             let mut award_wiring = ElemWiring::of(ComponentType::Award);
-            let credit = self.award_credit(t, a, form.el)?;
+            let credit = self.award_credit(rf, t, a, form.el)?;
             let correct = award_wiring.hidden(Source::constant(id));
             let holds = award_wiring.hidden(Source::op(
                 OpSpec::Eq,
@@ -331,136 +332,10 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// Attributes that change what an answer checks and are out of scope.
-    /// Returns whether the answer is `type="text"`.
-    pub(in crate::compile) fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {
-        let d = self.dast;
-        self.reject_compare_attrs(el, "answer")?;
-        let mut text = false;
-        if let Some(a) = d.attr(el, "type") {
-            let ty = self.attr_text(a).unwrap_or_default();
-            match ty.trim() {
-                "math" => {}
-                "text" => text = true,
-                other => {
-                    return Err(Error::Unsupported(format!("<answer type=\"{other}\">")));
-                }
-            }
-        }
-        if self.attr_on(el, "matchPartial") {
-            return Err(Error::Unsupported("<answer matchPartial>".into()));
-        }
-        if let Some(a) = d.attr(el, "numAwardsCredited")
-            && self.attr_text(a).unwrap_or_default().trim() != "1"
-        {
-            return Err(Error::Unsupported("<answer numAwardsCredited>".into()));
-        }
-        Ok(text)
-    }
-
-    /// Attributes of an answer or award that change how responses compare
-    /// and are not modelled: refused, never ignored.
-    fn reject_compare_attrs(&self, el: NodeId, tag: &str) -> Result<()> {
-        const OUT_OF_SCOPE: &[&str] = &[
-            "allowedErrorInNumbers",
-            "allowedErrorIsAbsolute",
-            "includeErrorInNumberExponents",
-            "nSignErrorsMatched",
-            "nPeriodicSetMatchesRequired",
-            "unorderedCompare",
-            "matchByExactPositions",
-            "caseInsensitiveMatch",
-            "matchBlanks",
-            "splitSymbols",
-        ];
-        for &name in OUT_OF_SCOPE {
-            if self.dast.attr(el, name).is_some() {
-                return Err(Error::Unsupported(format!("<{tag} {name}>")));
-            }
-        }
-        Ok(())
-    }
-
-    /// The element children of `e`.
-    pub(in crate::compile) fn elem_children(&self, t: TemplateId, e: ElemId) -> Vec<ElemId> {
-        self.outlined(t).elems[e.index()]
-            .children
-            .iter()
-            .filter_map(|c| match c {
-                Child::Elem(k) => Some(*k),
-                _ => None,
-            })
-            .collect()
-    }
-
-    /// The text and `$ref` nodes of an element, blanks left out.
-    pub(in crate::compile) fn content_nodes(&self, el: NodeId) -> Vec<NodeId> {
-        let d = self.dast;
-        d.children(el)
-            .iter()
-            .copied()
-            .filter(|&n| d.kind(n) != NodeKind::Element && !self.is_blank(n))
-            .collect()
-    }
-
-    pub(in crate::compile) fn award_form(&self, t: TemplateId, a: ElemId) -> Result<AwardForm> {
-        let d = self.dast;
-        let el = self.outlined(t).elems[a.index()].node;
-        if d.attr(el, "feedback").is_some() {
-            return Err(Error::Unsupported("<award feedback>".into()));
-        }
-        if d.attr(el, "extend").is_some() {
-            return Err(Error::Unsupported("<award extend>".into()));
-        }
-        self.reject_compare_attrs(el, "award")?;
-        let mut when = None;
-        // `<award><math>2 + $a</math></award>`: the math is the content.
-        let mut math_child = None;
-        for k in self.elem_children(t, a) {
-            match self.outlined(t).elems[k.index()].component_type {
-                ComponentType::When if when.is_none() => {
-                    when = Some((k, self.outlined(t).elems[k.index()].node))
-                }
-                ComponentType::Math if math_child.is_none() && when.is_none() => {
-                    math_child = Some(self.outlined(t).elems[k.index()].node)
-                }
-                ComponentType::When => {
-                    return Err(Error::Unsupported("two <when>s in an <award>".into()));
-                }
-                other => {
-                    return Err(Error::Unsupported(format!(
-                        "a <{}> inside an <award>",
-                        other.tag()
-                    )));
-                }
-            }
-        }
-        let nodes = match math_child {
-            Some(m) if self.content_nodes(el).is_empty() => self.content_nodes(m),
-            Some(_) => {
-                return Err(Error::Unsupported(
-                    "an <award> with both a <math> and text".into(),
-                ));
-            }
-            None => self.content_nodes(el),
-        };
-        match (when, nodes.is_empty()) {
-            (Some(_), false) => Err(Error::Unsupported(
-                "an <award> with both a <when> and content".into(),
-            )),
-            (None, true) => Err(Error::Unsupported("an empty <award>".into())),
-            _ => Ok(AwardForm {
-                e: a,
-                el,
-                when,
-                nodes,
-            }),
-        }
-    }
-
     /// `awarded` of one award: its `credit` times whether it holds.
     fn plan_award(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         answer_e: ElemId,
         answer_el: NodeId,
@@ -469,7 +344,7 @@ impl<'a> Compiler<'a> {
     ) -> Result<()> {
         let d = self.dast;
         let mut wiring = ElemWiring::of(ComponentType::Award);
-        let credit = self.award_credit(t, form.e, form.el)?;
+        let credit = self.award_credit(rf, t, form.e, form.el)?;
         let compare = self.compare_attrs(&[form.el, answer_el]);
         let holds = match form.when {
             Some((w, w_el)) => {
@@ -489,20 +364,21 @@ impl<'a> Compiler<'a> {
                     // Planned when outlining made the responses.
                     let p = match self.settled().when_refs.get(&m) {
                         Some(&p) => p,
-                        None => self.plan_ref(t, w, m)?,
+                        None => self.plan_ref(rf, t, w, m)?,
                     };
                     if let Some((key, input_type)) = self.input_named(t, p)
                         && !responses.iter().any(|(k, _)| *k == key)
                     {
                         let r = self.outlined_response(t, answer_e, key)?;
-                        self.plan_response(t, r, p, input_type);
+                        self.plan_response(rf, t, r, p, input_type);
                         responses.push((key, r));
                     }
                 }
                 // Each such `$mi` is planned as its response when the
                 // condition plans it (`Settled::submitted`).
                 let mut when_wiring = ElemWiring::of(ComponentType::When);
-                let port = self.plan_condition_content(t, w, &nodes, compare, &mut when_wiring)?;
+                let port =
+                    self.plan_condition_content(rf, t, w, &nodes, compare, &mut when_wiring)?;
                 when_wiring.set_public_sources(when::Props {
                     value: Source::own(port),
                 });
@@ -510,7 +386,7 @@ impl<'a> Compiler<'a> {
                 wiring.hidden(Source::alias(Arg::Elem(w, when::Props::PORTS.value)))
             }
             None => {
-                let id = self.plan_sym_math(t, form.e, &form.nodes)?;
+                let id = self.plan_sym_math(rf, t, form.e, &form.nodes)?;
                 let correct = wiring.hidden(Source::sym_expr(id, Post::None));
                 wiring.hidden(Source::op(
                     OpSpec::Sym(compare.equals()),
@@ -529,32 +405,18 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// The input a reference plan names (`$mi`, `$mi.value`), as (hops,
-    /// element) and its type; None for anything else.
-    pub(in crate::compile) fn input_named(
-        &self,
-        t: TemplateId,
-        p: RefId,
-    ) -> Option<((u32, ElemId), ComponentType)> {
-        let r = &self.compiled.refs[p.index()];
-        if !r.prop.is_none_or(|p| p.is("value")) {
-            return None;
-        }
-        let (cur_t, x) = self.static_target(t, p)?;
-        let input_type = self.outlined(cur_t).elems[x.index()].component_type;
-        matches!(
-            input_type,
-            ComponentType::MathInput | ComponentType::BooleanInput
-        )
-        .then_some(((r.hops, x), input_type))
-    }
-
     /// An award's `credit`: what the attribute says (1 without one), which
     /// is not state, so a literal is a constant.
-    fn award_credit(&mut self, t: TemplateId, a: ElemId, el: NodeId) -> Result<Source> {
+    fn award_credit(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        a: ElemId,
+        el: NodeId,
+    ) -> Result<Source> {
         let d = self.dast;
         Ok(match d.attr(el, "credit") {
-            Some(c) => match self.plan_value(t, a, "credit", d.attr_children(c), None)? {
+            Some(c) => match self.plan_value(rf, t, a, "credit", d.attr_children(c), None)? {
                 Source::Leaf(Leaf::Given(v)) => Source::constant(v),
                 p => p,
             },
@@ -567,7 +429,7 @@ impl<'a> Compiler<'a> {
     fn outlined_response(&self, t: TemplateId, e: ElemId, key: (u32, ElemId)) -> Result<ElemId> {
         self.settled()
             .answer_responses
-            .get(&(t.get(), e.get()))
+            .get(&(t, e))
             .and_then(|rs| rs.iter().find(|(k, _)| *k == key))
             .map(|&(_, r)| r)
             .ok_or_else(|| Error::Internal("a response outlining did not make".into()))
@@ -575,14 +437,20 @@ impl<'a> Compiler<'a> {
 
     /// Response `r` for the input plan `p` names: its live expression (or
     /// a boolean input's value), the submitted copy, and the copy's value.
-    fn plan_response(&mut self, t: TemplateId, r: ElemId, p: RefId, input_type: ComponentType) {
-        let mut live = self.compiled.refs[p.index()].clone();
+    fn plan_response(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        r: ElemId,
+        p: RefId,
+        input_type: ComponentType,
+    ) {
+        let mut live = self.plans.refs[p.index()].clone();
         let math = input_type == ComponentType::MathInput;
         let name = if math { "expr" } else { "value" };
         live.prop = RefProp::named(input_type, name);
         debug_assert!(live.prop.is_some(), "an input has its value prop");
-        self.compiled.refs.push(live);
-        let live = Source::reference(RefId::from_index(self.compiled.refs.len() - 1));
+        let live = Source::reference(rf.push(&mut self.plans.refs, live));
         let submitted_port = response::Props::PORTS.submitted;
         let (submitted, value) = if math {
             (

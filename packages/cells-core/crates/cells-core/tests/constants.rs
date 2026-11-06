@@ -1,9 +1,7 @@
-//! The constants of the golden set and `fixtures/sir.doenet` (ADR 0028):
-//! per document, at load, how many constants it has, how many the pool
-//! holds, and how many of their template slots the compile's record makes
-//! document constants and how many scope constants; and the pool, the
-//! folds and the curves the bridge reads. Whether the record is right is
-//! `tests/every_count.rs`'s `a_constant_is_the_same_in_every_build`.
+//! The constants of the golden set and `sir.doenet`: per document, at
+//! load, how many constants it has, how many the pool holds, and how many
+//! template slots are document or scope constants; and the pool, the folds
+//! and drawn curves.
 
 use std::collections::HashSet;
 use std::path::Path;
@@ -79,10 +77,8 @@ fn census() {
     assert!(total[1] > 0, "no document constant in the golden set");
 }
 
-/// A folded instruction is a constant (ADR 0028): after the load, a full
-/// recompute, which runs every instruction the program kept, changes no
-/// constant and no other cell, and nothing the program runs writes a
-/// constant.
+/// A folded instruction is a constant: after the load, a full recompute
+/// changes no cell, and nothing the program runs writes a constant.
 #[test]
 fn a_full_recompute_changes_no_constant() {
     for (name, src) in documents() {
@@ -107,12 +103,8 @@ fn a_full_recompute_changes_no_constant() {
     }
 }
 
-/// A curve's samples fold like any instruction over constants (a graph
-/// whose axes `fixAxes` holds), and the curve is still drawn: the bridge
-/// tells a function with a curve from one without by its `curve` prop, a
-/// fact about the source, not by its samples being derived (`CURVE` in
-/// `doenetml-worker/src/cells/contracts.ts`), and the whole run of samples
-/// is output either way.
+/// A curve's samples fold like any instruction over constants, and the
+/// curve is still drawn: its whole run of samples is output.
 #[test]
 fn a_folded_curve_is_still_drawn() {
     for (src, folds) in [
@@ -158,9 +150,9 @@ fn a_folded_curve_is_still_drawn() {
     assert!(doc.is_const(doc.cell("g", "samples").unwrap()));
 }
 
-/// The constant pool (ADR 0028): a document constant is one cell per
-/// distinct value, shared by every iteration, at the front of the cells,
-/// and keeps that cell through every rebuild, whose pool only grows.
+/// The constant pool: a document constant is one cell per distinct value,
+/// shared by every iteration, at the front of the cells, and keeps that
+/// cell through every rebuild.
 #[test]
 fn a_document_constant_keeps_its_cell_across_rebuilds() {
     let src = r#"<numberInput name="n" value="3"/>
@@ -200,10 +192,9 @@ fn a_document_constant_keeps_its_cell_across_rebuilds() {
     }
 }
 
-/// A curve shared with another (ADR 0033) is still drawn: two functions
-/// with the same expression over the same cells share its instantiated
-/// template (step 2) and so their samples, which fold as one curve's do,
-/// and both functions' samples are outputs.
+/// A curve shared with another is still drawn: two functions with the same
+/// expression over the same cells share their samples, and both
+/// functions' samples are outputs.
 #[test]
 fn a_shared_folded_curve_is_still_drawn() {
     let src = r#"<number name="a">2</number>

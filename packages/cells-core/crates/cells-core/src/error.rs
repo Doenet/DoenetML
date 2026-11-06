@@ -2,8 +2,7 @@ use std::sync::Arc;
 
 use thiserror::Error;
 
-/// Cloneable, so a stage's result can hold an error for every reader of
-/// it to report (a `<math>`'s parse, ADR 0030).
+/// An error the core reports.
 #[derive(Debug, Clone, Error)]
 pub enum Error {
     #[error("invalid DAST JSON: {0}")]
@@ -75,21 +74,18 @@ pub enum Error {
     BadMath { text: String, reason: String },
     #[error("unsupported: {0}")]
     Unsupported(String),
-    #[error(
-        "saved state from core release {saved} cannot be restored by release {core} (ADR 0017)"
-    )]
+    #[error("saved state from core release {saved} cannot be restored by release {core}")]
     OtherRelease { saved: String, core: String },
-    #[error("not allowed (ADR 0009): {0}")]
+    #[error("not allowed: {0}")]
     Banned(String),
     #[error(
-        "a build after the load found an error the load did not report, which the core must never let happen (ADR 0014): {0}"
+        "a build after the load found an error the load did not report, which the core must never let happen: {0}"
     )]
     Unchecked(String),
     #[error("the core planned an element it cannot build (a core bug): {0}")]
     Internal(String),
     /// A reference reached a container copy whose clones outlining has not
-    /// made yet (ADR 0031): outlining makes them and plans the reference
-    /// again (`with_clones`). Never reported, but as a core bug.
+    /// made yet. Never reported, but as a core bug.
     #[error("a container copy's clones were read before outlining made them (a core bug)")]
     AwaitsClones { template: u32, elem: u32 },
     #[error("'{name}' is not in the branch interface of '{choice}': {reason}")]

@@ -1,5 +1,4 @@
-//! `<section>` and the tags that make one: its definition and its planner
-//! (ADR 0016).
+//! `<section>` and the tags that make one: its definition and its planner.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
@@ -10,9 +9,8 @@ component! {
     /// `<section>`, `<subsection>`, `<subsubsection>`, `<problem>`,
     /// `<exercise>`, `<example>`: a rendered container that is numbered among
     /// its sibling sections and, when it aggregates scores, holds the weighted
-    /// credit of the answers and sections inside it. Both are aggregates
-    /// (ADR 0032), materialized by the build (`build/expand/aggregate.rs`).
-    /// The parser writes `<section>` as `<division type="section">`.
+    /// credit of the answers and sections inside it, both aggregates. The
+    /// parser writes `<section>` as `<division type="section">`.
     tags: [
         "section",
         "division",
@@ -44,8 +42,7 @@ component! {
     planner: Plan(plan),
 }
 
-/// A tag that makes a `Section`, and its defaults (the current core's
-/// `Sectioning.js`).
+/// A tag that makes a `Section`, and its defaults.
 pub struct SectionTag {
     pub tag: &'static str,
     /// The word its automatic title shows: "Problem 3".
@@ -107,8 +104,7 @@ pub const INCLUDE_PARENT_NUMBER: usize = Props::AT.includeParentNumber;
 pub const LABEL: usize = Props::AT.label;
 
 /// A section's `aggregateScores`, `includeParentNumber` and `label`:
-/// literals, defaulted by tag as in the current core, since they decide
-/// how credit and numbers are wired.
+/// literals, defaulted by tag.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());
     let tag = match ctx.record().tag() {

@@ -1,15 +1,14 @@
 //! Container copies (`<graph extend="$g"/>`) given their clones when
-//! outlining, once every name is in the table (ADR 0027, step 5).
+//! outlining, once every name is in the table.
 
+use super::Outlining;
 use crate::compile::*;
 
 impl Compiler<'_> {
-    /// After the container copies have their clones, every other
-    /// element's `extend` is planned (ADR 0031), so planning reads the
-    /// reference from outlining's row. One that cannot be planned boxes its
-    /// element here, as planning did.
-    pub(in crate::compile) fn plan_extends(&mut self) {
-        let made = self.outlining().work.to_plan.clone();
+    /// Plan every other element's `extend`, once the container copies
+    /// have their clones. One that cannot be planned boxes its element.
+    pub(in crate::compile) fn plan_extends(&mut self, o: &mut Outlining) {
+        let made = o.work.to_plan.clone();
         for (t, e) in made {
             let el = &self.outlined(t).elems[e.index()];
             if el.node == NodeId::NONE
@@ -20,73 +19,71 @@ impl Compiler<'_> {
             {
                 continue;
             }
-            if let Err(error) = self.with_clones(|cp| cp.plan_extend(t, e)) {
-                self.box_in_place(t, e, error);
+            if let Err(error) = self.with_clones(o, |cp, rf| cp.plan_extend(rf, t, e)) {
+                self.box_in_place(&mut o.boxes, t, e, error);
             }
         }
     }
 
-    /// The end of outlining (ADR 0027): every container copy gets its
-    /// clones, now that every name is in the table, so the element set is
-    /// complete before anything is planned. A copy of a copy is expanded
+    /// Give every container copy its clones. A copy of a copy is expanded
     /// after its referent, whatever the document's order.
-    pub(in crate::compile) fn expand_container_copies(&mut self) {
-        for (t, e) in std::mem::take(&mut self.outlining().container_copies) {
+    pub(in crate::compile) fn expand_container_copies(&mut self, o: &mut Outlining) {
+        for (t, e) in std::mem::take(&mut o.container_copies) {
             // Nothing is expanding between two copies here, so none is
             // reached again; were one, it is boxed like any failure.
-            if let Err(error) = self.expand_container_copy(t, e) {
-                self.box_in_place(t, e, error);
+            if let Err(error) = self.expand_container_copy(o, t, e) {
+                self.box_in_place(&mut o.boxes, t, e, error);
             }
         }
     }
 
     /// Give container copy `e` its children: clones of its referent's,
     /// named under the copy, followed by the children written inside the
-    /// copy (REF-4 of the principles: added after the referent's). A copy
-    /// that fails is boxed, and the clones it made die with it. The one
-    /// error returned is a copy reached again while it expands, a cycle,
-    /// which is its reader's failure.
+    /// copy. A copy that fails is boxed, and the clones it made die with
+    /// it. The one error returned is a copy reached again while it expands,
+    /// a cycle, which is its reader's failure.
     pub(in crate::compile) fn expand_container_copy(
         &mut self,
+        o: &mut Outlining<'_>,
         t: TemplateId,
         e: ElemId,
     ) -> Result<()> {
-        let key = (t.get(), e.get());
-        // After outlining, every copy has its clones.
-        let Some(o) = self.outlining.as_mut() else {
-            return Ok(());
-        };
+        let key = (t, e);
         if o.expanded.contains(&key) || self.is_box(t, e) {
             // A copy boxed before its clones were made has none to read.
             self.outlined_mut(t).elems[e.index()].clones_pending = false;
             return Ok(());
         }
-        if !self.outlining().expanding.insert(key) {
+        if !o.expanding.insert(key) {
             return Err(Error::Cycle(self.elem_label(t, e)));
         }
         let n = self.outlined(t).elems.len();
-        let r = self.expand_container_copy_inner(t, e);
-        let o = self.outlining();
+        let r = self.expand_container_copy_inner(o, t, e);
         o.expanding.remove(&key);
         o.expanded.insert(key);
         // Its clones are made, or it is boxed and has none to read.
         self.outlined_mut(t).elems[e.index()].clones_pending = false;
         if let Err(error) = r {
             for x in n..self.outlined(t).elems.len() {
-                self.make_box(t, ElemId::from_index(x), true);
+                self.make_box(&mut o.boxes, t, ElemId::from_index(x), true);
             }
-            self.box_in_place(t, e, error);
+            self.box_in_place(&mut o.boxes, t, e, error);
         }
         Ok(())
     }
 
-    fn expand_container_copy_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    fn expand_container_copy_inner(
+        &mut self,
+        o: &mut Outlining<'_>,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<()> {
         let p = self
-            .with_clones(|cp| cp.plan_extend(t, e))?
+            .with_clones(o, |cp, rf| cp.plan_extend(rf, t, e))?
             .expect("a container copy extends");
         // `<graph extend="$x.prop"/>` is no container copy: planning refuses
         // it as an extend of a prop.
-        if self.compiled.refs[p.index()].prop.is_some() {
+        if self.plans.refs[p.index()].prop.is_some() {
             return Ok(());
         }
         let r = self
@@ -94,18 +91,20 @@ impl Compiler<'_> {
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
         // A referent that is itself a copy has its clones first; one that
         // is a box has none to clone.
-        self.with_clones(|cp| cp.ref_target(t, p).map(drop))?;
-        self.referent_type(t, e, p)?;
+        self.with_clones(o, |cp, _| cp.ref_target(t, p).map(drop))?;
+        self.referent_type(&mut o.work.reads, t, e, p)?;
         let scope = self.child_scope(t, e);
-        let mut kids = self.clone_children(t, r, scope, e)?;
-        let own = std::mem::take(&mut self.outlined_mut(t).elems[e.index()].children);
-        kids.extend(own);
-        self.outlined_mut(t).elems[e.index()].children = kids;
+        let kids = self.clone_children(o, t, r, scope, e)?;
+        // The clones come first, then the copy's own children.
+        self.outlined_mut(t).elems[e.index()]
+            .children
+            .splice(0..0, kids);
         Ok(())
     }
 
     pub(in crate::compile) fn clone_children(
         &mut self,
+        o: &mut Outlining<'_>,
         t: TemplateId,
         from: ElemId,
         scope: ElemId,
@@ -119,7 +118,7 @@ impl Compiler<'_> {
                     // A copy among the children has its clones first; a
                     // clone takes the type outlining settled for its original.
                     if self.is_container_copy(t, c) {
-                        self.expand_container_copy(t, c)?;
+                        self.expand_container_copy(o, t, c)?;
                     }
                     let el = self.outlined_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
@@ -143,7 +142,7 @@ impl Compiler<'_> {
                         scope,
                         root,
                     )?;
-                    self.compiled.refs.push(RefPlan {
+                    let plan = RefPlan {
                         hops: 0,
                         steps: vec![Step::Elem(c)],
                         prop: None,
@@ -151,8 +150,8 @@ impl Compiler<'_> {
                             format!("(copy of {})", self.elem_label(t, c)).into(),
                         ),
                         node: NodeId::NONE,
-                    });
-                    let ep = RefId::from_index(self.compiled.refs.len() - 1);
+                    };
+                    let ep = o.refs.push(&mut self.plans.refs, plan);
                     {
                         let el = &mut self.outlined_mut(t).elems[ne.index()];
                         el.extend = Some(ep);
@@ -161,11 +160,11 @@ impl Compiler<'_> {
                     // The clone took its original's row: it reads it (ADR
                     // 0032), and is boxed with it should the original be
                     // boxed later.
-                    self.record_read(t, ne, ep);
+                    Self::record_read(&mut o.work.reads, t, ne, ep);
                     let child_scope = if name != StrId::NONE { ne } else { scope };
-                    let sub = self.clone_children(t, c, child_scope, root)?;
+                    let sub = self.clone_children(o, t, c, child_scope, root)?;
                     self.outlined_mut(t).elems[ne.index()].children = sub;
-                    self.outlining().work.to_plan.push((t, ne));
+                    o.work.to_plan.push((t, ne));
                     out.push(Child::Elem(ne));
                 }
                 other => out.push(other),
@@ -186,22 +185,21 @@ impl Compiler<'_> {
 }
 
 impl Compiler<'_> {
-    /// Run `f`, which reads what outlining made through references (ADR
-    /// 0031): when it reaches a container copy whose clones are not made
-    /// yet (`Error::AwaitsClones`), make them, and run it again from where
-    /// it began. A copy reached again while it is expanding is a cycle
-    /// (`expand_container_copy`), so this ends.
+    /// Run `f`, which reads what outlining made through references: when it
+    /// reaches a container copy whose clones are not made yet
+    /// (`Error::AwaitsClones`), make them, and run it again from the start.
     pub(in crate::compile) fn with_clones<T>(
         &mut self,
-        mut f: impl FnMut(&mut Self) -> Result<T>,
+        o: &mut Outlining<'_>,
+        mut f: impl FnMut(&mut Self, &mut Refs) -> Result<T>,
     ) -> Result<T> {
         loop {
-            let n = self.compiled.refs.len();
-            match f(self) {
+            let n = self.plans.refs.len();
+            match f(self, &mut o.refs) {
                 Err(Error::AwaitsClones { template, elem }) => {
                     // What the attempt planned is planned again.
-                    self.compiled.refs.truncate(n);
-                    self.expand_container_copy(TemplateId::new(template), ElemId::new(elem))?;
+                    o.refs.truncate(&mut self.plans.refs, n);
+                    self.expand_container_copy(o, TemplateId::new(template), ElemId::new(elem))?;
                 }
                 r => return r,
             }
@@ -216,7 +214,7 @@ mod tests {
 
     /// Template and element of the element named `name`.
     fn find(compiled: &Compiled, name: &str) -> (TemplateId, ElemId) {
-        for (ti, tpl) in compiled.templates.iter().enumerate() {
+        for (ti, tpl) in compiled.plans.templates.iter().enumerate() {
             for (ei, e) in tpl.elems.iter().enumerate() {
                 if e.name != StrId::NONE && compiled.dast.strings.get(e.name).trim() == name {
                     return (TemplateId::from_index(ti), ElemId::from_index(ei));
@@ -226,9 +224,8 @@ mod tests {
         panic!("no element named {name}");
     }
 
-    /// Every `extend` is planned when outlining, in outlining's row (ADR
-    /// 0031); whether the element is a copy of what it names is planning's:
-    /// a copy of a point is, a point extending a prop aliases it instead.
+    /// Every `extend` is planned when outlining; a copy of a point is a
+    /// copy, while a point extending a prop aliases it.
     #[test]
     fn outlining_plans_every_extend_and_planning_decides_the_copy() {
         let dast = document([
@@ -240,7 +237,7 @@ mod tests {
         let compiled = crate::testing::compile(&dast).unwrap();
         for (name, copy) in [("Q", true), ("R", false)] {
             let (t, e) = find(&compiled, name);
-            let tpl = &compiled.templates[t.index()];
+            let tpl = &compiled.plans.templates[t.index()];
             assert!(tpl.elems[e.index()].extend.is_some(), "{name}");
             assert_eq!(tpl.plan(e).extend.is_some(), copy, "{name}");
         }

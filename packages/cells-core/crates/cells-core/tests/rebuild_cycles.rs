@@ -1,9 +1,6 @@
-//! The holes the rebuild-cycle survey found
-//! (`docs/rebuild-cycles-survey.md`): documents that loaded without a cycle
-//! error and hit one on a rebuild. The abstract build (ADR 0012) now models
-//! each one and rejects the document at load, which each test asserts; the
-//! rebuild failure path is tested with the check switched off, since no
-//! document that passes it is known to fail on rebuild.
+//! Documents that once loaded without a cycle error and hit one on a
+//! rebuild. The abstract build now rejects each at load; the rebuild
+//! failure path is tested with the check switched off.
 
 mod common;
 use common::{set, type_into, v};
@@ -136,8 +133,8 @@ fn a_prefill_naming_a_computed_cell_past_the_count_is_rejected_at_load() {
 // Not a cycle: a failed rebuild once put a fresh `Sym` (empty memo) back
 // and recomputed, which indexed past the memo in `step_sym` and panicked,
 // so every hole above was a crash beside a `<mathInput>` or symbolic
-// `<math>`. The engine now lives in the session, which the program shares
-// and a failed rebuild leaves in place (ADR 0015).
+// `<math>`. The document now owns the engine and lends it to each build,
+// which a failed rebuild leaves in place (ADR 0015).
 #[test]
 fn a_failed_rebuild_beside_a_symbolic_instruction_reports_instead_of_panicking() {
     let mut doc = load_unchecked(

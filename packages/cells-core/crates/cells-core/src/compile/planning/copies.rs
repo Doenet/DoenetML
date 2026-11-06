@@ -1,10 +1,9 @@
-//! Copies, as planned: `extend` with a prop path, container copies (whose
-//! clones outlining made, `outline/copies.rs`), the clone elements
-//! themselves, and `plan_with_extend`, which runs a `Planner::Plan` type's
-//! planner and applies the copy rules around it: a bare copy aliases every
-//! prop, and a copy with its own attributes keeps the shared state they
-//! supply and shares the rest, which linking ties (`link/mod.rs`).
+//! Copies, as planned: `extend` with a prop path, container copies, the
+//! clone elements themselves, and the copy rules around a `Planner::Plan`
+//! type's planner: a bare copy aliases every prop, and a copy with its own
+//! attributes keeps the shared state they supply and shares the rest.
 
+use super::Planning;
 use crate::compile::*;
 
 impl<'a> Compiler<'a> {
@@ -32,8 +31,8 @@ impl<'a> Compiler<'a> {
             | ComponentType::Boolean
             | ComponentType::BooleanInput => vec![Source::reference(p)],
             ComponentType::Math => {
-                let id = self.compiled.arena.push(Expr::Cell(p));
-                self.compiled.sym_text.insert(id, SymText::Leaf(p));
+                let id = self.plans.arena.push(Expr::Cell(p));
+                self.plans.sym_text.insert(id, SymText::Leaf(p));
                 prop::math::props_of(id, Post::None)
             }
             // Its points are the list's, synthesized when built.
@@ -41,7 +40,7 @@ impl<'a> Compiler<'a> {
                 self.tables[t.index()].plans[e.index()].from = Some(p);
                 Vec::new()
             }
-            _ => return Err(Error::PathTooDeep(self.compiled.ref_display(p))),
+            _ => return Err(Error::PathTooDeep(self.plans.ref_display(self.dast, p))),
         };
         self.tables[t.index()].plans[e.index()].props = props;
         Ok(())
@@ -50,17 +49,18 @@ impl<'a> Compiler<'a> {
     /// `<graph extend="$g" name="g2"/>`: the copy's props alias the
     /// original's, or, for a type planned by a function (a section), are
     /// planned with the copy rules around it. Its children, clones, it has
-    /// from outlining (`expand_container_copy`).
+    /// from outlining.
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
+        pl: &mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<()> {
         let component_type = self.outlined(t).elems[e.index()].planned_as;
         match Self::planner(component_type) {
-            Planner::Plan(plan) => self.plan_with_extend(t, e, Some(p), plan),
-            _ => self.plan_attrs(t, e, Some(p)),
+            Planner::Plan(plan) => self.plan_with_extend(pl, t, e, Some(p), plan),
+            _ => self.plan_attrs(&mut pl.refs, &pl.parsed, t, e, Some(p)),
         }
     }
 
@@ -101,7 +101,7 @@ impl<'a> Compiler<'a> {
         let (rt, re) = last?;
         // The path ends at the element (not at a collect an index steps
         // into), which is one the author wrote.
-        let plan = &self.compiled.refs[p.index()];
+        let plan = &self.plans.refs[p.index()];
         let ends_at_elem = matches!(plan.steps.last(), Some(Step::Elem(_))) && plan.prop.is_none();
         (ends_at_elem
             && ty.is_some()
@@ -110,16 +110,14 @@ impl<'a> Compiler<'a> {
             .then_some(Referent::Path(p, rt, re))
     }
 
-    /// Runs a `Plan` type's planner (`plan`, from `planner`) with the copy
-    /// rules around it (ADR 0032, decision 3): a bare copy aliases every
-    /// prop; a copy with its own attributes or children is planned from
-    /// its record merged under the referent's, each value where its
-    /// writer sits (ADR 0023), the referent's rebased through the path
-    /// when the referent sits in another template; and every given leaf
-    /// the copy did not give itself is shared with the referent's port
-    /// holding it (`link_given_leaves`).
+    /// Runs a `Plan` type's planner `plan` with the copy rules around it: a
+    /// bare copy aliases every prop; a copy with its own attributes or
+    /// children is planned from its record merged under the referent's;
+    /// and every given leaf the copy did not give itself is shared with the
+    /// referent's port holding it.
     pub(in crate::compile) fn plan_with_extend(
         &mut self,
+        pl: &mut Planning<'a>,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
@@ -139,13 +137,13 @@ impl<'a> Compiler<'a> {
             self.plan_bare_copy(t, e);
             return Ok(());
         }
-        let mut record = self.parsed().record(t, e)?;
+        let mut record = pl.parsed.record(t, e)?;
         let referent = match extend {
             Some(p) => {
                 let r = self.extend_referent(t, p).ok_or_else(|| {
                     Error::Unsupported(format!(
                         "attributes or children on an extend of '${}', which names no element; a bare extend of it works",
-                        self.compiled.ref_display(p)
+                        self.plans.ref_display(self.dast, p)
                     ))
                 })?;
                 let (rt, re) = match r {
@@ -154,13 +152,13 @@ impl<'a> Compiler<'a> {
                 };
                 // A referent whose record did not parse is boxed by its
                 // own error; the copy is boxed as its reader (ADR 0027).
-                let theirs = self
-                    .parsed()
+                let theirs = pl
+                    .parsed
                     .record(rt, re)
-                    .map_err(|_| Error::BoxedReferent(self.compiled.ref_display(p)))?;
+                    .map_err(|_| Error::BoxedReferent(self.plans.ref_display(self.dast, p)))?;
                 let theirs = match r {
                     Referent::Here(_) => theirs,
-                    Referent::Path(p, ..) => self.rebase_record(p, theirs),
+                    Referent::Path(p, ..) => self.rebase_record(&mut pl.refs, p, theirs),
                 };
                 record = record.merged_over(&theirs);
                 Some(r)
@@ -171,7 +169,7 @@ impl<'a> Compiler<'a> {
             Some(Referent::Here(r)) => Some(r),
             _ => None,
         };
-        let wiring = plan(&mut PlanCtx::new(self, t, e, record, here))?;
+        let wiring = plan(&mut PlanCtx::new(self, pl, t, e, record, here))?;
         // A given leaf the copy did not give itself is the referent's: the
         // current core's copies share their essential state variables. The
         // copy names what it shares, and linking ties it to the port the
@@ -188,7 +186,7 @@ impl<'a> Compiler<'a> {
                 if own || !wiring.is_given(port) {
                     continue;
                 }
-                self.planning().shares.push(Share {
+                pl.planned.shares.push(Share {
                     t,
                     e,
                     port,
@@ -198,9 +196,7 @@ impl<'a> Compiler<'a> {
             }
         }
         if !wiring.given().is_empty() {
-            self.planning()
-                .given
-                .insert((t.get(), e.get()), wiring.given().clone());
+            pl.planned.given.insert((t, e), wiring.given().clone());
         }
         let (props, list) = wiring.finish();
         let plan = &mut self.tables[t.index()].plans[e.index()];
@@ -210,8 +206,8 @@ impl<'a> Compiler<'a> {
     }
 }
 
-/// The copy rules of `plan_with_extend` (ADR 0016, Migration step 8), against the
-/// test-only components: a bare copy aliases its referent; a copy with
+/// The copy rules of `plan_with_extend`, against the test-only
+/// components: a bare copy aliases its referent; a copy with
 /// its own attributes keeps the shared state those attributes supply, and
 /// shares the rest with its referent, in both directions.
 #[cfg(test)]

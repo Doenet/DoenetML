@@ -1,20 +1,11 @@
-//! Choices (ADR 0009): `<conditionalContent>` and `<select>`, as planned.
-//! Their branches are made when outlining (`outline/choice.rs`) and their
-//! interfaces finished when sealing (`seal/choice.rs`).
+//! Choices: `<conditionalContent>` and `<select>`, as planned.
 //!
 //! Each branch (a case or an option) is its own template, so the names
-//! inside it are private, as a repeat's are. What the rest of the document
-//! may reach is the branch interface: the names every branch declares, each
-//! with the same type in every branch, checked once every element is
-//! planned.
-//!
-//! A select picks its options while the document is built, from the
-//! document seed: unchosen options are never expanded. A conditional
-//! content's `choice` cell is the first case whose condition holds. Every
-//! case is built, inside a `Case` component whose `active` cell says
-//! whether it is shown, and an interface name is a `Choose` over the
-//! branches' cells, so a flip is an ordinary tick. (Rebuilding with only
-//! the active case lost on every tick; see ADR 0009.)
+//! inside it are private. The rest of the document may reach the branch
+//! interface: the names every branch declares, each with the same type in
+//! every branch. A select picks its options at build time from the
+//! document seed; a conditional content's `choice` cell is the first case
+//! whose condition holds, and every case is built.
 
 use crate::compile::*;
 use crate::components::prop::conditional_content;
@@ -24,7 +15,12 @@ impl<'a> Compiler<'a> {
     /// A choice's props: a select's `hide`; for a reactive choice also a
     /// hidden port per case condition (an else is a constant 1) and
     /// `choice`, the first of them that holds.
-    pub(in crate::compile) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    pub(in crate::compile) fn plan_choice(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<()> {
         let Body::Choice(cid) = self.outlined(t).elems[e.index()].body else {
             unreachable!()
         };
@@ -42,7 +38,7 @@ impl<'a> Compiler<'a> {
                     0.0
                 })
             }
-            Some(a) => self.plan_value(t, scope, "hide", d.attr_children(a), None)?,
+            Some(a) => self.plan_value(rf, t, scope, "hide", d.attr_children(a), None)?,
             None => Source::constant(0.0),
         };
         if !self.choice(cid).reactive {
@@ -53,7 +49,7 @@ impl<'a> Compiler<'a> {
         let mut conds = Vec::new();
         for c in self.choice(cid).conditions.clone() {
             conds.push(match c {
-                Some(a) => self.plan_condition(t, e, &mut wiring, d.attr_children(a))?,
+                Some(a) => self.plan_condition(rf, t, e, &mut wiring, d.attr_children(a))?,
                 None => wiring.hidden(Source::constant(1.0)),
             });
         }

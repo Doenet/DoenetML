@@ -1,6 +1,6 @@
 //! Elements are planned in the order of what reads whose plan, not the
-//! document's (ADR 0027): siblings whose order cannot change their
-//! meaning load to the same values in any order.
+//! document's: siblings whose order cannot change their meaning load to
+//! the same values in any order.
 
 mod common;
 

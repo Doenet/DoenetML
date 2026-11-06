@@ -10,14 +10,15 @@ use crate::program::{SymRun, SymState};
 pub struct ReferenceEvaluator<'a> {
     doc: &'a Document,
     producer: HashMap<CellIdx, usize>,
-    /// Each derived cell's value once computed: without it a chain whose
-    /// cells each read the previous ones several times (function iterates)
-    /// is exponential.
+    /// Each derived cell's value once computed.
     memo: std::cell::RefCell<HashMap<CellIdx, f64>>,
-    /// A copy of the document's symbolic state: a symbolic instruction's
-    /// memo is keyed on its input values, so stepping on scratch cells
-    /// with it gives what stepping on the cells did.
+    /// A copy of the document's symbolic state, for stepping on scratch cells.
     sym: std::cell::RefCell<SymState>,
+    /// A copy of the document's engine, so the oracle changes nothing of
+    /// the document it checks. It holds every expression at the handle the
+    /// document's does, and an equal expression made again finds it, so
+    /// its handles compare with the document's cells.
+    engine: std::cell::RefCell<crate::sym::Engine>,
 }
 
 impl<'a> ReferenceEvaluator<'a> {
@@ -34,6 +35,7 @@ impl<'a> ReferenceEvaluator<'a> {
             producer,
             memo: Default::default(),
             sym: std::cell::RefCell::new(doc.sym.clone()),
+            engine: std::cell::RefCell::new(doc.math.engine.clone()),
         }
     }
 
@@ -52,7 +54,7 @@ impl<'a> ReferenceEvaluator<'a> {
             scratch[input.index()] = self.value(input);
         }
         let mut out = vec![0.0; ins.op.n_out()];
-        let mut engine = self.doc.session.engine.borrow_mut();
+        let mut engine = self.engine.borrow_mut();
         let mut state = self.sym.borrow_mut();
         let mut sym = SymRun {
             state: &mut state,

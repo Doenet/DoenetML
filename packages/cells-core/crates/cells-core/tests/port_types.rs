@@ -1,25 +1,14 @@
-//! The type pass (ADR 0032, step 2) agrees with every build: for every
-//! document of the golden set (`crates/cells-bench/golden`),
-//! `fixtures/sir.doenet` and every generated fixture (`npm run fixtures`;
-//! skipped when absent), the type the compile settled for a template port
-//! (`Compiled::port_type`) is the value type its cell holds in the loaded
-//! document, and, for a document with repeats, in a build at every count
-//! from 0 to 4 of every repeat at once. The abstract build, which stamps
-//! every branch and option, is checked too.
-//!
-//! A port's type is what the build reads to decide what a cell holds
-//! (`Builder::value_type`), so this is a check that the pass is consistent
-//! with how the build binds cells: that no port typed a number aliases a
-//! math or text cell and no port typed math or text ends in a numeric one,
-//! through copies, interface stand-ins, collects and every alias the build
-//! makes itself. What the types mean for a document's values is the golden
-//! diff's to check.
+//! The type pass agrees with every build: for every golden document,
+//! `sir.doenet` and every generated fixture (skipped when absent), the type
+//! the compile settled for a template port (`Compiled::port_type`) is the
+//! value type its cell holds in the loaded document, in a build at every
+//! count from 0 to 4 of every repeat, and in the abstract build.
 
 use std::path::Path;
 use std::sync::Arc;
 
-use cells_core::build::{ScopeId, build};
-use cells_core::session::{Counts, Session};
+use cells_core::build::{ScopeId, TemplateSlot, build};
+use cells_core::session::{Counts, MathStore, Session};
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::{Compiled, Document, LoadOptions, ValueType};
 
@@ -83,7 +72,7 @@ fn agree(
     name: &str,
     what: &str,
     compiled: &Compiled,
-    slot_types: &[((ScopeId, u32, u32), ValueType)],
+    slot_types: &[((ScopeId, u32, TemplateSlot), ValueType)],
     failures: &mut Vec<String>,
 ) -> usize {
     for &((scope, template, slot), held) in slot_types {
@@ -110,9 +99,10 @@ fn build_at(compiled: &Arc<Compiled>, session: &mut Session, c: u32) -> Option<D
             stamped.set(scope, node, n);
         }
         let s = Session::new(session.seed);
-        let mut doc = build(compiled, &s, &stamped, false)
+        let mut math = MathStore::default();
+        let mut doc = build(compiled, &s, &mut math, &stamped, false)
             .ok()?
-            .schedule(compiled.clone())
+            .schedule(compiled.clone(), math)
             .ok()?;
         doc.recompute();
         let mut settled = true;

@@ -1,13 +1,10 @@
 //! Conditions: comparisons and boolean operators over math, planned as
-//! hidden ports of an element. A `<case condition>` and a
-//! `<conditionalContent condition>` plan theirs on the choice element; a
-//! `<boolean>` plans its content on itself (`components/values/boolean.rs`).
+//! hidden ports of an element.
 //!
-//! An operand that lowers to numeric operators (ADR 0005) is compared
-//! numerically. One that does not (a free symbol, a function the lowering
-//! does not know) is a symbolic math source: `=` and `!=` then compare the
-//! two expressions in the engine, the way an `<answer>` does, and `<`, `>`
-//! and a lone operand evaluate the expression to a number first.
+//! An operand that lowers to numeric operators is compared numerically.
+//! One that does not is a symbolic math source: `=` and `!=` then compare
+//! the two expressions in the engine, and `<`, `>` and a lone operand
+//! evaluate the expression to a number first.
 
 use crate::compile::*;
 
@@ -46,27 +43,26 @@ impl<'a> Compiler<'a> {
     /// operand holds when it is nonzero.
     pub(in crate::compile) fn plan_condition(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         e: ElemId,
         wiring: &mut ElemWiring,
         nodes: &[NodeId],
     ) -> Result<Port> {
-        if let Some(port) = self.plan_text_condition(t, e, nodes, wiring)? {
+        if let Some(port) = self.plan_text_condition(rf, t, e, nodes, wiring)? {
             return Ok(port);
         }
-        let (toks, src) = self.math_tokens(t, e, nodes)?;
+        let (toks, src) = self.math_tokens(rf, t, e, nodes)?;
         self.plan_condition_tokens(wiring, &toks, src, Compare::default())
     }
 
     /// A condition over a text value: `$t = rain`, `rain != $t`, `$t = $ti`,
     /// one `=` or `!=` with a lone text reference or literal text on each
-    /// side. Equal text holds equal string ids (`intern_literal`,
-    /// `Document::intern`), so it is `Eq` on the two cells, the literal
-    /// side a constant with its id. `None` when no text value is
-    /// involved; any other use of one is refused by name, so a text cell
-    /// never compares as a number.
+    /// side, planned as `Eq` on string ids. `None` when no text value is
+    /// involved; any other use of one is refused.
     fn plan_text_condition(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
@@ -107,7 +103,7 @@ impl<'a> Compiler<'a> {
                 .and_then(|k| k.parse::<usize>().ok());
             match lone {
                 Some(k) if cp.macro_reads_text(t, scope, refs[k]) => {
-                    let p = cp.plan_ref(t, scope, refs[k])?;
+                    let p = cp.plan_ref(rf, t, scope, refs[k])?;
                     Ok(wiring.hidden(Source::reference(p)))
                 }
                 Some(_) => Err(refuse("a text value compared with a number")),
@@ -130,7 +126,7 @@ impl<'a> Compiler<'a> {
         }))
     }
 
-    /// A condition from tokens already made (`math_tokens`), with a say in
+    /// A condition from tokens already made, with a say in
     /// how expressions compare.
     pub(in crate::compile) fn plan_condition_tokens(
         &mut self,
@@ -159,19 +155,20 @@ impl<'a> Compiler<'a> {
     /// be one `=` between two expressions for the engine.
     pub(in crate::compile) fn plan_condition_content(
         &mut self,
+        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
         compare: Compare,
         wiring: &mut ElemWiring,
     ) -> Result<Port> {
-        if let Some(port) = self.plan_text_condition(t, scope, nodes, wiring)? {
+        if let Some(port) = self.plan_text_condition(rf, t, scope, nodes, wiring)? {
             return Ok(port);
         }
-        match self.math_tokens(t, scope, nodes) {
+        match self.math_tokens(rf, t, scope, nodes) {
             Ok((toks, src)) => self.plan_condition_tokens(wiring, &toks, src, compare),
             Err(Error::BadMath { text, reason }) => {
-                let sym = self.sym_spelling(t, scope, nodes)?;
+                let sym = self.sym_spelling(rf, t, scope, nodes)?;
                 let Some((lhs, rhs, negate)) = split_equality(&sym) else {
                     return Err(Error::BadMath { text, reason });
                 };
@@ -211,14 +208,20 @@ impl<'a> Compiler<'a> {
 
     /// The content as the engine spells it: text as written, each `$ref`
     /// as its `cellN<plan>` leaf.
-    fn sym_spelling(&mut self, t: TemplateId, scope: ElemId, nodes: &[NodeId]) -> Result<String> {
+    fn sym_spelling(
+        &mut self,
+        rf: &mut Refs,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &[NodeId],
+    ) -> Result<String> {
         let d = self.dast;
         let mut sym = String::new();
         for &n in nodes {
             match d.kind(n) {
                 NodeKind::Text => sym.push_str(d.str(n)),
                 NodeKind::Macro => {
-                    let p = self.plan_ref(t, scope, n)?;
+                    let p = self.plan_ref(rf, t, scope, n)?;
                     sym.push_str(&format!(
                         " {} ",
                         crate::sym::engine::leaf_name(p.get(), false)
@@ -240,8 +243,8 @@ impl<'a> Compiler<'a> {
     ) -> Port {
         // The arena only needs an id to key the text by; the engine parses
         // the text itself when the element expands (`sym_source`).
-        let id = self.compiled.arena.push(Expr::Sym(sym.clone()));
-        self.compiled.sym_text.insert(id, SymText::Spelled(sym));
+        let id = self.plans.arena.push(Expr::Sym(sym.clone()));
+        self.plans.sym_text.insert(id, SymText::Spelled(sym));
         wiring.hidden(Source::sym_expr(id, post))
     }
 }
@@ -409,9 +412,9 @@ impl CondParser<'_> {
             [] => return Err(self.err("expected a value".into())),
             [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(Source::constant(1.0)),
             [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(Source::constant(0.0)),
-            _ => match Parser::parse(toks, &mut cp.compiled.arena) {
-                Ok(id) if cp.compiled.arena.is_numeric(id) => {
-                    Some(match cp.compiled.arena.get(id) {
+            _ => match Parser::parse(toks, &mut cp.plans.arena) {
+                Ok(id) if cp.plans.arena.is_numeric(id) => {
+                    Some(match cp.plans.arena.get(id) {
                         // A constant in a condition is not state.
                         Expr::Num(v) => Source::constant(*v),
                         // A lone reference too, so expand checks it is a

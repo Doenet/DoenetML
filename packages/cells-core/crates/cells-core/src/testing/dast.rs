@@ -1,5 +1,5 @@
 //! DASTs built in Rust, for unit tests of the core that need neither the
-//! parser nor node (ADR 0016, Migration step 8).
+//! parser nor node.
 //!
 //! ```
 //! use cells_core::testing::dast::{document, el, mac, part, text};
@@ -19,15 +19,11 @@
 //! assert_eq!(dast.str(dast.children(cells_core::dast::Dast::ROOT)[0]), "document");
 //! ```
 //!
-//! What is built is the DAST the core reads, which is the parser's after
-//! normalization (`normalizeDocumentDast`). The builder does not normalize:
-//! text is not split around `$` references (write `mac` where the parser
-//! would find one), and sugar the normalizer expands (an `<answer>`'s
-//! award, a `<repeat>`'s setup, a `<graph>`'s `_dynamicChildren`) is
-//! written in its expanded form or left out, as a test needs. Nodes are
-//! numbered and strings interned as the JSON loader does
-//! (`dast::DastWriter`), so a tree written as the parser would produce it
-//! is the same DAST, byte for byte (`tests/dast_builder.rs`).
+//! What is built is the parser's DAST after normalization, but the builder
+//! does not normalize: write `mac` where the parser would find a `$`
+//! reference, and write normalizer sugar in its expanded form. Nodes are
+//! numbered and strings interned as the JSON loader does, so a tree
+//! written as the parser would produce it is the same DAST, byte for byte.
 
 use crate::dast::{Dast, DastWriter, NodeId, NodeKind};
 
@@ -235,17 +231,14 @@ fn write_all(w: &mut DastWriter, nodes: Vec<Node>) -> Vec<NodeId> {
     nodes.into_iter().map(|n| write(w, n)).collect()
 }
 
-/// Loads the document `dast`, as `test_utils::load` loads source, but with
-/// every author's value essential (`LoadOptions::classify` off, ADR 0018)
-/// and every prop computed (`LoadOptions::prune` off, ADR 0019): the unit
-/// tests it serves check the language's rules over test-only components,
-/// which no input reaches and no renderer reads, and request and read
-/// their props unchecked (`request_prop`).
+/// Loads the document `dast` with every author's value essential
+/// (`LoadOptions::classify` off) and every prop computed
+/// (`LoadOptions::prune` off), for unit tests over test-only components.
 pub fn load(dast: Dast) -> crate::Result<crate::Document> {
     let options = crate::LoadOptions {
         classify: false,
         prune: false,
         ..Default::default()
     };
-    Ok(crate::Document::load_dast(std::sync::Arc::new(dast), options)?.0)
+    Ok(crate::Document::load_dast(dast, options)?.0)
 }

@@ -1,20 +1,15 @@
-//! The promise of ADR 0017, step 5, checked independently of how
-//! `compare_versions` keeps it: an edit it calls safe harms no student.
+//! An edit `compare_versions` calls safe harms no student, checked
+//! independently of how it decides.
 //!
-//! Every document of the golden set (`crates/cells-bench/golden`) and the
-//! documents below gets generated edits:
-//! literals changed, paragraphs and inputs inserted, elements removed and
-//! renamed, points added that read an input. Each version that loads is
-//! compared with the original, and for every edit called safe, generated
-//! sessions of requests and submits run on the original. The session's
-//! saved state, restored into the edited version, must show every old
+//! Every golden document and the documents below get generated edits. For
+//! every edit called safe, generated sessions run on the original, and
+//! their saved state, restored into the edited version, must show every old
 //! input with the values it had, every point inside its new graph's bounds
 //! if it was inside the old one's, and every new point inside its graph if
-//! a fresh load puts it there. A failure is a hole in the check, found
-//! before a student finds it.
+//! a fresh load puts it there.
 //!
 //! `SAFE_EDITS_LONG=1` runs many more edits and sessions per document, and
-//! `fixtures/sir.doenet` too.
+//! `sir.doenet` too.
 
 use cells_core::CompIdx;
 use std::path::Path;
@@ -165,7 +160,7 @@ fn stem(p: &Path) -> String {
 
 /// One version of a document: its source, its DAST and its compile.
 struct Version {
-    /// The DAST as JSON, parsed once: parsing runs the parser in node.
+    /// The DAST as JSON, parsed once.
     json: String,
     compiled: std::sync::Arc<cells_core::Compiled>,
     signature: Signature,
@@ -292,8 +287,7 @@ fn inside((x, y): (f64, f64), [x0, x1, y0, y1]: [f64; 4]) -> bool {
 }
 
 /// Requests on interactive cells, with values of their types, a submit
-/// of every answer and a press of every trigger: the actions, whose cells
-/// are not interactive (ADR 0018).
+/// of every answer and a press of every trigger.
 fn session(doc: &mut Document, rng: &mut Rng) {
     let n = if long() { 24 } else { 8 };
     for _ in 0..n {
