@@ -41,7 +41,10 @@ impl Compiler<'_> {
                 if self.tables[t.index()].is_box(e) {
                     continue;
                 }
-                match self.read_referent(bx, t, p) {
+                match self
+                    .rd()
+                    .read_referent(&self.ar, bx.visible(&self.tables), t, p)
+                {
                     Err(error @ Error::BoxedReferent(_)) => {
                         bx.box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
                         boxed_one = true;

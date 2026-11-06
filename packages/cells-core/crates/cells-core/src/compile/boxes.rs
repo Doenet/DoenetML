@@ -91,17 +91,12 @@ impl Boxes<'_> {
         self.stage = stage;
     }
 
-    /// Whether element `e` is a box a reader of its type may see now: while
-    /// planning, only outlining's.
-    pub(in crate::compile) fn is_visible(
-        &self,
-        tables: &[Tables],
-        t: TemplateId,
-        e: ElemId,
-    ) -> bool {
-        match &tables[t.index()].boxes[e.index()] {
-            BoxState::Live => false,
-            BoxState::Boxed { by, .. } => self.stage != Stage::Plan || *by == Stage::Outline,
+    /// The boxes in `tables` a reader of a referent's type may see now:
+    /// while planning, only outlining's.
+    pub(in crate::compile) fn visible<'t>(&self, tables: &'t [Tables]) -> Visible<'t> {
+        Visible {
+            tables,
+            stage: self.stage,
         }
     }
 
@@ -207,6 +202,24 @@ impl Boxes<'_> {
             e,
             BoxState::Boxed { row, by, dead },
         );
+    }
+}
+
+/// The boxes a reader of a referent's type may see while a stage runs
+/// ([`Boxes::visible`]): what [`Reader::read_referent`] stops at.
+#[derive(Clone, Copy)]
+pub(in crate::compile) struct Visible<'t> {
+    tables: &'t [Tables],
+    stage: Stage,
+}
+
+impl Visible<'_> {
+    /// Whether element `e` is a box a reader of its type may see.
+    pub(in crate::compile) fn is_box(self, t: TemplateId, e: ElemId) -> bool {
+        match &self.tables[t.index()].boxes[e.index()] {
+            BoxState::Live => false,
+            BoxState::Boxed { by, .. } => self.stage != Stage::Plan || *by == Stage::Outline,
+        }
     }
 }
 

@@ -367,13 +367,13 @@ fn rebase_point(p: &mut GivenPoint, rw: &mut Rebaser<'_, '_>) {
 /// Reading the source, an element's record: every attribute its type declares
 /// and its children, parsed once into typed values. Run by parsing; a planner
 /// reads the record, never the source.
-impl Compiler<'_> {
+impl Reader<'_> {
     /// Element `e`'s record: every attribute its planner's type declares,
     /// and its children as the type reads them, parsed from the element's
     /// own source where the element sits.
     pub(in crate::compile) fn parse_record(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         e: ElemId,
     ) -> Result<Record> {
@@ -392,15 +392,15 @@ impl Compiler<'_> {
                 tag: String::new(),
             });
         }
-        self.parse_node_record(rf, t, scope, node, planned_as)
+        self.parse_node_record(ar, t, scope, node, planned_as)
     }
 
     /// The record of `node`, an element of type `component_type` (an
     /// element, or a member of a group of one's children), planned from
     /// `scope`.
     fn parse_node_record(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
@@ -415,11 +415,11 @@ impl Compiler<'_> {
             tag: self.dast.str(node).to_string(),
         };
         for decl in decls {
-            let value = self.parse_attr(rf, t, scope, node, decl)?;
+            let value = self.parse_attr(ar, t, scope, node, decl)?;
             record.own.push(!matches!(value, AttrValue::Absent));
             record.values.push(value);
         }
-        record.children = self.parse_children(rf, t, scope, node, &def.children)?;
+        record.children = self.parse_children(ar, t, scope, node, &def.children)?;
         Ok(record)
     }
 
@@ -429,8 +429,8 @@ impl Compiler<'_> {
     /// wrapper named as the group is; one no group takes is an error when
     /// the type has groups, and math text's (as written) when it has none.
     fn parse_children(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
@@ -459,13 +459,13 @@ impl Compiler<'_> {
             if let Some(g) = decl.groups.iter().position(|g| g.name == tag) {
                 for &m in d.children(n) {
                     if d.kind(m) == NodeKind::Element {
-                        let member = self.parse_member(rf, t, scope, m, decl, Some(g))?;
+                        let member = self.parse_member(ar, t, scope, m, decl, Some(g))?;
                         children.groups[g].push(member);
                     }
                 }
                 continue;
             }
-            let member = self.parse_member(rf, t, scope, n, decl, None)?;
+            let member = self.parse_member(ar, t, scope, n, decl, None)?;
             let g = decl
                 .groups
                 .iter()
@@ -486,7 +486,7 @@ impl Compiler<'_> {
             }
             ChildrenKind::Math => Content::Math(content.into()),
             ChildrenKind::Value => {
-                Content::Value(self.parse_value_children(rf, t, scope, content)?)
+                Content::Value(self.parse_value_children(ar, t, scope, content)?)
             }
         };
         Ok(children)
@@ -496,8 +496,8 @@ impl Compiler<'_> {
     /// when it sits in that group's wrapper): an error when no group (or
     /// not that one) takes its type.
     fn parse_member(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         n: NodeId,
@@ -516,7 +516,7 @@ impl Compiler<'_> {
                 let names: Vec<&str> = decl.groups.iter().map(|g| g.name).collect();
                 Error::Unsupported(format!("<{tag}> among the {}", names.join(" or ")))
             })?;
-        let record = self.parse_node_record(rf, t, scope, n, component_type)?;
+        let record = self.parse_node_record(ar, t, scope, n, component_type)?;
         Ok(Member {
             component_type,
             record,
@@ -526,8 +526,8 @@ impl Compiler<'_> {
     /// Content nodes read as a value ([`ChildValue`]): a reference among
     /// them is planned here, where it was written.
     fn parse_value_children(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         nodes: Vec<NodeId>,
@@ -548,7 +548,7 @@ impl Compiler<'_> {
             }
         }
         let value = match (macros, texts.len()) {
-            (1, 0) => ChildValue::Reference(self.plan_ref(rf, t, scope, macro_node)?),
+            (1, 0) => ChildValue::Reference(self.plan_ref(ar, t, scope, macro_node)?),
             (0, 1..) => ChildValue::Text {
                 text: texts.iter().map(|&n| d.str(n)).collect(),
                 id: (texts.len() == 1).then(|| d.str_id(texts[0])),
@@ -565,8 +565,8 @@ impl Compiler<'_> {
 
     /// Attribute `decl` of `node`, planned from `scope`.
     fn parse_attr(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
@@ -578,17 +578,17 @@ impl Compiler<'_> {
         };
         Ok(match decl.kind {
             AttrKind::Scalar => {
-                AttrValue::Scalar(self.plan_scalar(rf, t, scope, d.attr_children(a))?)
+                AttrValue::Scalar(self.plan_scalar(ar, t, scope, d.attr_children(a))?)
             }
             AttrKind::Value => AttrValue::Scalar(self.plan_value(
-                rf,
+                ar,
                 t,
                 scope,
                 decl.name,
                 d.attr_children(a),
                 None,
             )?),
-            AttrKind::Point => AttrValue::Point(match self.plan_point_attr(rf, t, scope, a) {
+            AttrKind::Point => AttrValue::Point(match self.plan_point_attr(ar, t, scope, a) {
                 Ok(p) => PointAttr::Point(p),
                 // Not a point (`center="A"`): the planner's to warn about
                 // or refuse.
@@ -598,12 +598,12 @@ impl Compiler<'_> {
                 Err(e) => return Err(e),
             }),
             AttrKind::Points { .. } => {
-                AttrValue::Points(self.plan_point_list(rf, t, scope, node, a)?)
+                AttrValue::Points(self.plan_point_list(ar, t, scope, node, a)?)
             }
-            AttrKind::Scalars => AttrValue::Scalars(self.plan_scalar_list(rf, t, scope, a)?),
+            AttrKind::Scalars => AttrValue::Scalars(self.plan_scalar_list(ar, t, scope, a)?),
             AttrKind::Flag { .. } => AttrValue::Scalar(match self.single_macro(a) {
                 // A reference is bound.
-                Some(_) => self.plan_scalar(rf, t, scope, d.attr_children(a))?,
+                Some(_) => self.plan_scalar(ar, t, scope, d.attr_children(a))?,
                 // A literal: a bare attribute is true.
                 None => Source::given(if self.attr_flag(node, decl.name) {
                     1.0
@@ -627,7 +627,7 @@ impl Compiler<'_> {
             ),
             AttrKind::Content => {
                 let nodes = d.attr_children(a).to_vec();
-                AttrValue::Content(self.parse_value_children(rf, t, scope, nodes)?)
+                AttrValue::Content(self.parse_value_children(ar, t, scope, nodes)?)
             }
             AttrKind::Text => match self.attr_text(a) {
                 Some(text) => AttrValue::Text(text),
@@ -639,7 +639,7 @@ impl Compiler<'_> {
                     attr: decl.name.into(),
                     text: self.attr_text(a).unwrap_or_default(),
                 })?;
-                AttrValue::Ref(self.plan_ref(rf, t, scope, m)?)
+                AttrValue::Ref(self.plan_ref(ar, t, scope, m)?)
             }
         })
     }

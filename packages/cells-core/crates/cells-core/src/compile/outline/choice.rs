@@ -32,7 +32,7 @@ impl Compiler<'_> {
         // its position among the branches with that tag.
         let mut tag_counts: HashMap<&str, u32> = HashMap::new();
         let mut branch_key = |n: NodeId| -> Box<str> {
-            if let Some(name) = self.attr_name_str(n, "name") {
+            if let Some(name) = self.rd().attr_name_str(n, "name") {
                 return d.strings.get(name).trim().into();
             }
             let k = tag_counts.entry(d.str(n)).or_insert(0);
@@ -67,7 +67,7 @@ impl Compiler<'_> {
                     }
                     NodeKind::Element if !reactive && d.str(n) == "option" => {
                         let weight = match d.attr(n, "selectWeight") {
-                            Some(a) => self.literal_attr(a, "selectWeight")?,
+                            Some(a) => self.rd().literal_attr(a, "selectWeight")?,
                             None => 1.0,
                         };
                         branches.push((None, self.branch_body(n), weight));
@@ -92,8 +92,8 @@ impl Compiler<'_> {
             (Some(1), false)
         } else {
             let num = match d.attr(el, "numToSelect") {
-                Some(a) if self.attr_text(a).is_some() => {
-                    Some(self.literal_attr(a, "numToSelect")?)
+                Some(a) if self.rd().attr_text(a).is_some() => {
+                    Some(self.rd().literal_attr(a, "numToSelect")?)
                 }
                 Some(_) => None,
                 None => Some(1.0),
@@ -106,7 +106,10 @@ impl Compiler<'_> {
                     text: num.to_string(),
                 });
             }
-            (num.map(|n| n as u32), self.attr_flag(el, "withReplacement"))
+            (
+                num.map(|n| n as u32),
+                self.rd().attr_flag(el, "withReplacement"),
+            )
         };
         let mut templates = Vec::with_capacity(branches.len());
         for (_, nodes, _) in &branches {
@@ -141,7 +144,7 @@ impl Compiler<'_> {
             .children(n)
             .iter()
             .copied()
-            .filter(|&c| !self.is_blank(c))
+            .filter(|&c| !self.rd().is_blank(c))
             .collect();
         match content.as_slice() {
             [g] if d.kind(*g) == NodeKind::Element

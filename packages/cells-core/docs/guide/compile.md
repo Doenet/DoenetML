@@ -39,7 +39,13 @@ What more than one stage runs has a module of its own: names
 ([`compile::source`](crate::compile::source),
 [`compile::values`](crate::compile::values),
 [`compile::record`](crate::compile::record)) and boxing
-([`compile::boxes`](crate::compile::boxes)).
+([`compile::boxes`](crate::compile::boxes)). The readers are methods of
+[`Reader`](crate::compile::reader::Reader): the source and what outlining
+settled, read-only, which every stage holds or makes. What they write is
+an [`Arenas`](crate::compile::reader::Arenas), the reference and
+expression arenas and what else only grows, handed to them `&mut`;
+boxing's methods are [`Boxes`](crate::compile::boxes::Boxes)'s, handed
+the tables they read and write.
 
 ## Planning
 

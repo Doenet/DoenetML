@@ -60,12 +60,7 @@ impl<'a> Compiler<'a> {
     /// own, else (an inherited one) the nearest ancestor's. A
     /// literal true on any of them holds the element always; a reference
     /// holds it while its flag is set, several while any is.
-    pub(in crate::compile) fn plan_hold(
-        &mut self,
-        rf: &mut Refs,
-        t: TemplateId,
-        e: ElemId,
-    ) -> Result<Hold> {
+    pub(in crate::compile) fn plan_hold(&mut self, t: TemplateId, e: ElemId) -> Result<Hold> {
         let component_type = self.outlined(t).elems[e.index()].component_type;
         let mut flags = Vec::new();
         for row in HOLD_ATTRS {
@@ -84,8 +79,8 @@ impl<'a> Compiler<'a> {
             let Elem {
                 node, name_scope, ..
             } = self.outlined(at).elems[ae.index()];
-            if self.attr_text(a).is_some() {
-                if self.attr_flag(node, row.name) {
+            if self.rd().attr_text(a).is_some() {
+                if self.rd().attr_flag(node, row.name) {
                     return Ok(Hold::Always);
                 }
                 // An explicit false, the element's own or the nearest
@@ -95,12 +90,13 @@ impl<'a> Compiler<'a> {
             // A reference, planned where the element that wrote it sits
             // (its names mean what they mean there), and reached from
             // `e` that many templates up.
-            let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
+            let m = self.rd().single_macro(a).ok_or_else(|| Error::BadValue {
                 attr: row.name.into(),
-                text: self.attr_text(a).unwrap_or_default(),
+                text: self.rd().attr_text(a).unwrap_or_default(),
             })?;
-            let p = self.plan_ref(rf, at, name_scope, m)?;
-            self.plans.refs[p.index()].hops += hops;
+            let p =
+                Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, at, name_scope, m)?;
+            self.ar.refs[p.index()].hops += hops;
             flags.push(p);
         }
         Ok(if flags.is_empty() {

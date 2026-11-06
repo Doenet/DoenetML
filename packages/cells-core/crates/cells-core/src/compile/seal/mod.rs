@@ -10,9 +10,10 @@ mod types;
 use crate::compile::*;
 
 /// Sealing's state: every earlier stage's tables, read-only, and what it
-/// finds of each choice. Of the compile it writes only the keys.
+/// finds of each choice and the keys, its own.
 pub(in crate::compile) struct Seal<'a> {
-    pub(in crate::compile) plans: &'a mut Plans,
+    /// The reference and expression arenas, read-only.
+    pub(in crate::compile) ar: &'a Arenas,
     pub(in crate::compile) dast: &'a Dast,
     pub(in crate::compile) names: &'a NameTable,
     /// Outlining's part of every template.
@@ -26,17 +27,19 @@ pub(in crate::compile) struct Seal<'a> {
     /// By (template, element), which port holds each given leaf, by which a
     /// key names a hidden port.
     pub(in crate::compile) given: &'a HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
+    /// Every element's stable key, once sealing has made them.
+    pub(in crate::compile) keys: keys::Keys,
 }
 
 /// Sealing: the stage's entry, its order of passes, operator arity and the slot
 /// offsets. Reads every earlier stage's tables; writes only the keys and
 /// [`SealedTemplate`]s.
 impl<'a> Seal<'a> {
-    /// Sealing's tables: a [`SealedTemplate`] per template and a
-    /// [`ChoiceSeal`] per choice.
+    /// Sealing's tables: a [`SealedTemplate`] per template, a
+    /// [`ChoiceSeal`] per choice, and the keys.
     pub(in crate::compile) fn run(
         mut self,
-    ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>), Failure> {
+    ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>, keys::Keys), Failure> {
         self.choice_seals = vec![ChoiceSeal::default(); self.choices.len()];
         crate::trace::span("used names").run(|| self.gather_used_names());
         crate::trace::span("choices").run(|| self.finish_choices())?;
@@ -56,7 +59,7 @@ impl<'a> Seal<'a> {
                 types,
             })
             .collect();
-        Ok((sealed, self.choice_seals))
+        Ok((sealed, self.choice_seals, self.keys))
     }
 
     /// Template `t`'s outlined part and its tables, read together.
@@ -136,10 +139,10 @@ impl Compiler<'_> {
     pub(in crate::compile) fn seal(
         &mut self,
         planned: &Planned,
-    ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>), Failure> {
+    ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>, keys::Keys), Failure> {
         let settled = &self.settled;
         seal::Seal {
-            plans: &mut self.plans,
+            ar: &self.ar,
             dast: self.dast,
             names: &settled.names,
             templates: &settled.templates,
@@ -147,6 +150,7 @@ impl Compiler<'_> {
             choices: &settled.choices,
             choice_seals: Vec::new(),
             given: &planned.given,
+            keys: keys::Keys::default(),
         }
         .run()
     }

@@ -15,7 +15,7 @@ pub(in crate::compile) struct AwardForm {
 /// Reading the source, an `<answer>`: the attributes out of scope, each award's
 /// form and the input a reference names. Read-only; run by outlining and
 /// planning.
-impl Compiler<'_> {
+impl Reader<'_> {
     /// Attributes that change what an answer checks and are out of scope.
     /// Returns whether the answer is `type="text"`.
     pub(in crate::compile) fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {
@@ -125,14 +125,15 @@ impl Compiler<'_> {
     /// element) and its type; None for anything else.
     pub(in crate::compile) fn input_named(
         &self,
+        ar: &Arenas,
         t: TemplateId,
         p: RefId,
     ) -> Option<((u32, ElemId), ComponentType)> {
-        let r = &self.plans.refs[p.index()];
+        let r = &ar.refs[p.index()];
         if !r.prop.is_none_or(|p| p.is("value")) {
             return None;
         }
-        let (cur_t, x) = self.static_target(t, p)?;
+        let (cur_t, x) = self.static_target(ar, t, p)?;
         let input_type = self.outlined(cur_t).elems[x.index()].component_type;
         matches!(
             input_type,

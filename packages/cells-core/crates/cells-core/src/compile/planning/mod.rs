@@ -19,8 +19,6 @@ use crate::compile::*;
 pub(in crate::compile) struct Planning<'a> {
     /// What boxing records, planning's while it runs.
     pub(in crate::compile) boxes: Boxes<'a>,
-    /// Reference planning's state, planning's while it runs.
-    pub(in crate::compile) refs: Refs,
     pub(in crate::compile) parsed: Parsed,
     pub(in crate::compile) planned: Planned,
 }
@@ -44,15 +42,13 @@ impl<'a> Compiler<'a> {
     pub(in crate::compile) fn plan_all(
         &mut self,
         boxes: Boxes<'a>,
-        refs: Refs,
         parsed: Parsed,
         to_plan: Vec<(TemplateId, ElemId)>,
         ref_children: Vec<(TemplateId, RefChildId)>,
         reads: Vec<Read>,
-    ) -> (Planned, Boxes<'a>, Refs) {
+    ) -> (Planned, Boxes<'a>) {
         let mut pl = Planning {
             boxes,
-            refs,
             parsed,
             planned: Planned {
                 reads,
@@ -92,21 +88,22 @@ impl<'a> Compiler<'a> {
                 continue;
             }
             let scope = match owner {
-                Some(e) => self.child_scope(t, e),
+                Some(e) => self.rd().child_scope(t, e),
                 None => ROOT_SCOPE,
             };
-            let plan = match self.plan_ref(&mut pl.refs, t, scope, m) {
-                Ok(p) => RefChildPlan::Ref(p),
-                // A reference that cannot be planned is boxed where it
-                // stands (ADR 0027).
-                Err(error) => {
-                    pl.boxes.record(m, &error);
-                    RefChildPlan::Boxed
-                }
-            };
+            let plan =
+                match Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, scope, m) {
+                    Ok(p) => RefChildPlan::Ref(p),
+                    // A reference that cannot be planned is boxed where it
+                    // stands (ADR 0027).
+                    Err(error) => {
+                        pl.boxes.record(m, &error);
+                        RefChildPlan::Boxed
+                    }
+                };
             self.tables[t.index()].ref_child_plans[id.index()] = plan;
         }
-        (pl.planned, pl.boxes, pl.refs)
+        (pl.planned, pl.boxes)
     }
 
     /// Plans element `e`, and records what holds it beside its plans.
@@ -124,7 +121,7 @@ impl<'a> Compiler<'a> {
         let planned_as = self.outlined(t).elems[e.index()].planned_as;
         let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(pl, t, e).and_then(|()| {
-            let hold = crate::trace::tally("hold").run(|| self.plan_hold(&mut pl.refs, t, e))?;
+            let hold = crate::trace::tally("hold").run(|| self.plan_hold(t, e))?;
             self.tables[t.index()].plans[e.index()].hold = hold;
             Ok(())
         });
@@ -166,11 +163,11 @@ impl<'a> Compiler<'a> {
             }
             ElemShape::ByType(extend) => match Self::planner(component_type) {
                 Planner::Props => {
-                    self.plan_attrs(&mut pl.refs, &pl.parsed, t, e, extend)?;
+                    self.plan_attrs(&pl.parsed, t, e, extend)?;
                     // A repeat's `valueName` and `indexName` make hidden
                     // elements in its body, which its table cannot say.
                     if matches!(self.outlined(t).elems[e.index()].body, Body::Repeat { .. }) {
-                        self.plan_iteration_names(&mut pl.refs, t, e);
+                        self.plan_iteration_names(t, e);
                     }
                     Ok(())
                 }
@@ -223,14 +220,14 @@ impl<'a> Compiler<'a> {
         m: Machinery,
     ) -> Result<()> {
         match m {
-            Machinery::Answer => self.plan_answer(&mut pl.refs, t, e),
-            Machinery::Choice => self.plan_choice(&mut pl.refs, t, e),
+            Machinery::Answer => self.plan_answer(t, e),
+            Machinery::Choice => self.plan_choice(t, e),
             Machinery::RepeatFor => {
-                self.plan_iteration_names(&mut pl.refs, t, e);
-                self.plan_repeat_for(&mut pl.refs, t, e)
+                self.plan_iteration_names(t, e);
+                self.plan_repeat_for(t, e)
             }
             Machinery::FunctionIterates => self.plan_function_iterates(pl, t, e),
-            Machinery::Collect => self.plan_collect(&mut pl.refs, t, e),
+            Machinery::Collect => self.plan_collect(t, e),
         }
     }
 
@@ -238,7 +235,7 @@ impl<'a> Compiler<'a> {
     /// its `from` (a `<polyline>`'s `vertices`) names, of the type
     /// outlining recorded it collects, gathered when it expands; its count
     /// is an aggregate over them.
-    fn plan_collect(&mut self, rf: &mut Refs, t: TemplateId, e: ElemId) -> Result<()> {
+    fn plan_collect(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let Elem {
             node,
             name_scope: scope,
@@ -257,10 +254,10 @@ impl<'a> Compiler<'a> {
         let m = self
             .dast
             .attr(node, attr)
-            .and_then(|a| self.single_macro(a))
+            .and_then(|a| self.rd().single_macro(a))
             .ok_or(refused)?;
-        let p = self.plan_ref(rf, t, scope, m)?;
-        if self.plans.refs[p.index()].prop.is_some() {
+        let p = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, scope, m)?;
+        if self.ar.refs[p.index()].prop.is_some() {
             return Err(if polyline {
                 Error::Unsupported(
                     "<polyline vertices> must name a component holding points".into(),
@@ -305,7 +302,7 @@ impl<'a> Compiler<'a> {
         let extend = self.outlined(t).elems[e.index()].extend;
         if let Some(p) = extend
             && component_type.container()
-            && self.plans.refs[p.index()].prop.is_none()
+            && self.ar.refs[p.index()].prop.is_none()
         {
             self.tables[t.index()].plans[e.index()].extend = Some(p);
             return Ok(ElemShape::ContainerCopy(p));
@@ -313,13 +310,20 @@ impl<'a> Compiler<'a> {
         let extend = match extend {
             Some(p) => {
                 // An extend of a box is planned from nothing (ADR 0027).
-                self.referent_type(&pl.boxes, &mut pl.planned.reads, t, e, p)?;
+                self.rd().referent_type(
+                    &self.ar,
+                    pl.boxes.visible(&self.tables),
+                    &mut pl.planned.reads,
+                    t,
+                    e,
+                    p,
+                )?;
                 // `<point extend="$c.center"/>`, `<math extend="$c.radius"/>`,
                 // `<pointList extend="$l.points"/>`: the element's value
                 // props alias the named prop. An extend across related
                 // types names the referent's default prop already
                 // (`plan_extend`).
-                if self.plans.refs[p.index()].prop.is_some() {
+                if self.ar.refs[p.index()].prop.is_some() {
                     return Ok(ElemShape::ExtendProp(p));
                 }
                 Some(p)
@@ -343,7 +347,6 @@ impl<'a> Compiler<'a> {
     /// from the repeat's own template (one hop up).
     pub(in crate::compile) fn own_prop_plan(
         &mut self,
-        rf: &mut Refs,
         t: TemplateId,
         e: ElemId,
         prop: &'static str,
@@ -357,7 +360,7 @@ impl<'a> Compiler<'a> {
             display: RefDisplay::Spelled(format!("(repeat).{prop}").into()),
             node: NodeId::NONE,
         };
-        rf.push(&mut self.plans.refs, plan)
+        self.ar.push_ref(plan)
     }
 }
 

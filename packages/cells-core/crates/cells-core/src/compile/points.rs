@@ -6,21 +6,21 @@ use crate::compile::*;
 
 /// Reading the source, point lists: an attribute's points and how many a list
 /// holds. Run by parsing, for an element's record.
-impl<'a> Compiler<'a> {
+impl<'a> Reader<'a> {
     /// The points of attribute `a` of the element at `node`: bare
     /// references, parenthesized tuples (which may contain references), and
     /// references to list props (`$l.points`), which contribute one point
     /// per item.
     pub(in crate::compile) fn plan_point_list(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         node: NodeId,
         a: AttrId,
     ) -> Result<Vec<GivenPoint>> {
         let d = self.dast;
-        let (toks, src) = self.math_tokens(rf, t, scope, d.attr_children(a))?;
+        let (toks, src) = self.math_tokens(ar, t, scope, d.attr_children(a))?;
         let mut out = Vec::new();
         let mut i = 0;
         while i < toks.len() {
@@ -28,7 +28,7 @@ impl<'a> Compiler<'a> {
                 Token::Cell(p) => {
                     let p = *p;
                     // A list prop expands to its items.
-                    let items = self.array_items_of_plan(t, p)?;
+                    let items = self.array_items_of_plan(ar, t, p)?;
                     match items {
                         Some(n) => out.extend((0..n).map(|k| GivenPoint::Item(p, k))),
                         None => out.push(GivenPoint::Ref(p)),
@@ -56,7 +56,9 @@ impl<'a> Compiler<'a> {
                         }
                     }
                     let entries = expr::tuple_entries(&toks[start..i]).unwrap();
-                    out.push(GivenPoint::Tuple(self.point_from_entries(&entries, src)?));
+                    out.push(GivenPoint::Tuple(
+                        self.point_from_entries(ar, &entries, src)?,
+                    ));
                 }
                 Token::Comma => i += 1,
                 // A symbol (`through="A"`) is not a point here: undefined,
@@ -67,7 +69,7 @@ impl<'a> Compiler<'a> {
                          the point is undefined.",
                         d.attr_name(a)
                     );
-                    let w = self.warn(node, "cells-point-not-numerical", &message);
+                    let w = ar.warn(node, "cells-point-not-numerical", &message);
                     out.push(GivenPoint::Tuple([
                         Source::undefined(w),
                         Source::undefined(w),
@@ -89,14 +91,15 @@ impl<'a> Compiler<'a> {
     /// compile time from the referent element).
     pub(in crate::compile) fn array_items_of_plan(
         &self,
+        ar: &Arenas,
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<usize>> {
-        let Some(prop) = &self.plans.refs[p.index()].prop else {
+        let Some(prop) = &ar.refs[p.index()].prop else {
             return Ok(None);
         };
         // The element the path ends at, if it is in this template chain.
-        let Some((cur_t, e)) = self.static_target(t, p) else {
+        let Some((cur_t, e)) = self.static_target(ar, t, p) else {
             return Ok(None);
         };
         let el = &self.outlined(cur_t).elems[e.index()];

@@ -58,6 +58,7 @@ mod parse;
 pub(crate) mod plan;
 mod planning;
 mod points;
+mod reader;
 pub(crate) mod rebase;
 pub(crate) mod record;
 mod refs;
@@ -87,13 +88,14 @@ impl From<Failure> for Error {
     }
 }
 
-use boxes::Boxes;
+use boxes::{Boxes, Visible};
 use names::*;
 use parse::Parsed;
 use planning::ctx::PlanCtx;
 use planning::planner::Planner;
+use reader::{Arenas, Reader};
 use record::{ChildValue, ValueChildren};
-use refs::Refs;
+use refs::record_read;
 pub(crate) use seal::keys;
 
 /// A compile that planned: what it planned, the errors of the elements it
@@ -105,17 +107,13 @@ pub(in crate::compile) struct Attempt {
 }
 
 /// What every stage of one compile works on, outline to seal: the source,
-/// read-only, the plans being made in their parts, the planners' warnings,
-/// which stage runs, and a cache.
+/// read-only, the plans being made in their parts, and which stage runs.
 /// What boxing records is a [`Boxes`], given only to the stages that box.
 pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled. Only the finished [`Compiled`] owns it.
     pub(in crate::compile) dast: &'a Dast,
-    /// What the compile makes from it.
-    pub(in crate::compile) plans: Plans,
-    /// The planners' warnings about the source, which the compile reports
-    /// with the boxes' errors.
-    warnings: Vec<Diagnostic>,
+    /// What the stages append to: the arenas, the strings, the warnings.
+    pub(in crate::compile) ar: Arenas,
     /// What outlining settles, which every stage after it reads and none
     /// changes.
     settled: Settled,
@@ -123,9 +121,6 @@ pub(in crate::compile) struct Compiler<'a> {
     tables: Vec<Tables>,
     /// The stage running now.
     stage: Stage,
-    /// Every string's canonical id, over the DAST table and then
-    /// `extra_strings`; built when first needed. A cache.
-    pub(in crate::compile) string_ids: Option<HashMap<String, StrId>>,
 }
 
 /// What outlining hands to the stages after it: the work it found for
@@ -230,34 +225,14 @@ impl Compiler<'_> {
     ) -> std::result::Result<Attempt, Failure> {
         let mut cp = Compiler {
             dast,
-            plans: Plans {
-                // Put together once the compile is done (ADR 0031).
-                templates: Vec::new(),
-                refs: Vec::new(),
-                arena: Arena::default(),
-                sym_text: HashMap::new(),
-                sym_trees: HashMap::new(),
-                choices: Vec::new(),
-                keys: Arc::default(),
-                version: dast.version_hash(),
-                extra_strings: Vec::new(),
-                structural_depth: 0,
-                prune: false,
-                fold: false,
-                expr_class: Vec::new(),
-            },
-            warnings: Vec::new(),
+            ar: Arenas::default(),
             settled: Settled::default(),
             tables: Vec::new(),
             stage: Stage::Outline,
-            string_ids: None,
         };
-        // What boxing records, handed to each stage that boxes, and
-        // reference planning's state, handed to each stage that plans one.
+        // What boxing records, handed to each stage that boxes.
         let boxes = Boxes::new(boxed);
-        let refs = Refs::default();
-        let (outline, mut boxes, mut refs) =
-            crate::trace::span("outline").run(|| cp.outline(boxes, refs));
+        let (outline, mut boxes) = crate::trace::span("outline").run(|| cp.outline(boxes));
         let Outline {
             to_plan,
             macros,
@@ -272,13 +247,12 @@ impl Compiler<'_> {
         cp.stage = Stage::Parse;
         boxes.enter(Stage::Parse);
         let mut parsed: Parsed =
-            crate::trace::span("parse maths").run(|| cp.parse_maths(&mut refs, math_texts));
-        crate::trace::span("parse records")
-            .run(|| cp.parse_records(&mut refs, &to_plan, &mut parsed));
+            crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
+        crate::trace::span("parse records").run(|| cp.parse_records(&to_plan, &mut parsed));
         cp.stage = Stage::Plan;
         boxes.enter(Stage::Plan);
-        let (mut planned, mut boxes, _) = crate::trace::span("plan all")
-            .run(|| cp.plan_all(boxes, refs, parsed, to_plan, macros, reads));
+        let (mut planned, mut boxes) = crate::trace::span("plan all")
+            .run(|| cp.plan_all(boxes, parsed, to_plan, macros, reads));
         boxes.restart_if_needed()?;
         cp.stage = Stage::Link;
         boxes.enter(Stage::Link);
@@ -287,34 +261,54 @@ impl Compiler<'_> {
         boxes.restart_if_needed()?;
         cp.stage = Stage::Seal;
         boxes.enter(Stage::Seal);
-        let (sealed, choice_seals) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
+        let (sealed, choice_seals, keys) = crate::trace::span("seal").run(|| cp.seal(&planned))?;
         let _s = crate::trace::span("finish");
-        boxes.drop_reports_of_boxes(&cp.settled.templates, &cp.tables, &mut cp.warnings);
+        boxes.drop_reports_of_boxes(&cp.settled.templates, &cp.tables, &mut cp.ar.warnings);
         let errors = boxes.into_errors();
         // Each stage's tables put together, as the build reads them (ADR
         // 0031).
         let Compiler {
             dast,
-            mut plans,
-            warnings,
+            ar,
             tables,
             settled,
             ..
         } = cp;
+        let Arenas {
+            refs,
+            arena,
+            sym_text,
+            extra_strings,
+            warnings,
+            ..
+        } = ar;
         let Settled {
             templates, choices, ..
         } = settled;
-        plans.templates = (templates.into_iter().zip(tables).zip(sealed))
-            .map(|((outlined, tables), sealed)| Template {
-                outlined,
-                tables,
-                sealed,
-                checked: Checked::default(),
-            })
-            .collect();
-        plans.choices = (choices.into_iter().zip(choice_seals))
-            .map(|(def, seal)| seal.into_def(def))
-            .collect();
+        let mut plans = Plans {
+            templates: (templates.into_iter().zip(tables).zip(sealed))
+                .map(|((outlined, tables), sealed)| Template {
+                    outlined,
+                    tables,
+                    sealed,
+                    checked: Checked::default(),
+                })
+                .collect(),
+            refs,
+            arena,
+            sym_text,
+            sym_trees: HashMap::new(),
+            choices: (choices.into_iter().zip(choice_seals))
+                .map(|(def, seal)| seal.into_def(def))
+                .collect(),
+            keys: Arc::new(keys),
+            version: dast.version_hash(),
+            extra_strings,
+            structural_depth: 0,
+            prune: false,
+            fold: false,
+            expr_class: Vec::new(),
+        };
         // Equal computations share one cell (ADR 0033), once every port's
         // type is known.
         if share {
@@ -361,11 +355,6 @@ impl Compiler<'_> {
         &self.settled.names
     }
 
-    /// The answer's `response` a `$mi` in a `<when>` stands for.
-    pub(in crate::compile) fn submitted(&self, m: NodeId) -> Option<ElemId> {
-        self.settled.submitted.get(&m).copied()
-    }
-
     /// Outlining's part of template `t`, read-only.
     pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &Outlined {
         &self.settled.templates[t.index()]
@@ -406,16 +395,9 @@ impl Compiler<'_> {
         t
     }
 
-    /// A warning about the element at `node`, which the compile reports.
-    pub(in crate::compile) fn warn(
-        &mut self,
-        node: NodeId,
-        code: &'static str,
-        message: &str,
-    ) -> Warned {
-        self.warnings
-            .push(Diagnostic::warning(code, Some(node), message.into()));
-        Warned::raised()
+    /// What outlining settled (so far), read-only: what the readers read.
+    pub(in crate::compile) fn rd(&self) -> Reader<'_> {
+        Reader::new(self.dast, &self.settled)
     }
 
     /// How many elements the templates hold.

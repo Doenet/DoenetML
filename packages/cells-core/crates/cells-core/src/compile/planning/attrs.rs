@@ -12,20 +12,18 @@ impl<'a> Compiler<'a> {
     /// a type with one is planned by a function.
     pub(in crate::compile) fn plan_attrs(
         &mut self,
-        rf: &mut Refs,
         parsed: &Parsed,
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
     ) -> Result<()> {
-        self.plan_table(rf, parsed, t, e, extend, false)
+        self.plan_table(parsed, t, e, extend, false)
     }
 
     /// `plan_attrs` for machinery that plans the `by_planner` props itself
     /// after the table: they are left absent.
     pub(in crate::compile) fn plan_table(
         &mut self,
-        rf: &mut Refs,
         parsed: &Parsed,
         t: TemplateId,
         e: ElemId,
@@ -65,19 +63,26 @@ impl<'a> Compiler<'a> {
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
                     let bind = def.bind.unwrap();
-                    let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
+                    let m = self.rd().single_macro(a).ok_or_else(|| Error::BadValue {
                         attr: bind.into(),
-                        text: self.attr_text(a).unwrap_or_default(),
+                        text: self.rd().attr_text(a).unwrap_or_default(),
                     })?;
-                    Some(Source::reference(self.plan_ref(rf, t, scope, m)?))
+                    Some(Source::reference(
+                        Reader::new(self.dast, &self.settled).plan_ref(
+                            &mut self.ar,
+                            t,
+                            scope,
+                            m,
+                        )?,
+                    ))
                 }
                 None => None,
             };
             let source = match (bound, def.from) {
                 (Some(p), _) => p,
                 (None, PropFrom::Attribute) => match d.attr(el, def.attr_name()) {
-                    Some(a) => self.plan_value(
-                        rf,
+                    Some(a) => Reader::new(self.dast, &self.settled).plan_value(
+                        &mut self.ar,
                         t,
                         scope,
                         def.attr_name(),
@@ -87,24 +92,38 @@ impl<'a> Compiler<'a> {
                     None => default(def.default, pi),
                 },
                 (None, PropFrom::AttributeOr { alias }) => match d.attr(el, def.attr_name()) {
-                    Some(a) => {
-                        self.plan_value(rf, t, scope, def.attr_name(), d.attr_children(a), None)?
-                    }
+                    Some(a) => Reader::new(self.dast, &self.settled).plan_value(
+                        &mut self.ar,
+                        t,
+                        scope,
+                        def.attr_name(),
+                        d.attr_children(a),
+                        None,
+                    )?,
                     None => Source::own(Port::table(alias as usize)),
                 },
                 (None, PropFrom::Computed { op, args }) => Source::from_def(op, &args),
                 (None, PropFrom::Children) => match &children.value {
                     // A mathInput's `prefill` stands in for blank children.
                     ChildValue::Blank => match def.attr.and_then(|a| d.attr(el, a)) {
-                        Some(a) => match self.try_value(rf, t, scope, d.attr_children(a), None)? {
+                        Some(a) => match Reader::new(self.dast, &self.settled).try_value(
+                            &mut self.ar,
+                            t,
+                            scope,
+                            d.attr_children(a),
+                            None,
+                        )? {
                             Some(p) => p,
-                            None => {
-                                Source::math(self.plan_math(rf, t, scope, d.attr_children(a))?)
-                            }
+                            None => Source::math(Reader::new(self.dast, &self.settled).plan_math(
+                                &mut self.ar,
+                                t,
+                                scope,
+                                d.attr_children(a),
+                            )?),
                         },
                         None => default(def.default, pi),
                     },
-                    _ => self.plan_value_children(rf, t, scope, &children)?,
+                    _ => self.plan_value_children(t, scope, &children)?,
                 },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
@@ -130,7 +149,6 @@ impl<'a> Compiler<'a> {
     /// slot.
     pub(in crate::compile) fn plan_value_children(
         &mut self,
-        rf: &mut Refs,
         t: TemplateId,
         scope: ElemId,
         v: &ValueChildren,
@@ -141,28 +159,13 @@ impl<'a> Compiler<'a> {
                 values::literal_value(text.trim()).expect("a literal")
             }
             // Not a single literal or reference: math text.
-            _ => Source::math(self.plan_math(rf, t, scope, &v.nodes)?),
+            _ => Source::math(Reader::new(self.dast, &self.settled).plan_math(
+                &mut self.ar,
+                t,
+                scope,
+                &v.nodes,
+            )?),
         })
-    }
-
-    /// The canonical string id of `text`: the DAST's if it has one, else
-    /// from `extra_strings`. Equal text has equal ids.
-    pub(in crate::compile) fn intern_literal(&mut self, text: &str) -> StrId {
-        let d = self.dast;
-        let ids = self.string_ids.get_or_insert_with(|| {
-            let mut ids = HashMap::new();
-            for i in StrId::below(d.strings.len()).rev() {
-                ids.insert(d.strings.get(i).to_string(), i);
-            }
-            ids
-        });
-        if let Some(&id) = ids.get(text) {
-            return id;
-        }
-        let id = StrId::from_index(d.strings.len() + self.plans.extra_strings.len());
-        self.plans.extra_strings.push(text.to_string());
-        ids.insert(text.to_string(), id);
-        id
     }
 
     /// Replace cell leaves that name a `<math>` element of this template
@@ -186,12 +189,15 @@ impl<'a> Compiler<'a> {
         id: ExprId,
         inlining: &mut Vec<ElemId>,
     ) -> ExprId {
-        let e = self.plans.arena.get(id).clone();
+        let e = self.ar.arena.get(id).clone();
         match e {
             Expr::Cell(p) => {
-                let plan = &self.plans.refs[p.index()];
+                let plan = &self.ar.refs[p.index()];
                 let is_value = plan.prop.is_none_or(|pr| pr.is("value"));
-                let Some(target) = (is_value).then(|| self.plan_elem_target(t, p)).flatten() else {
+                let Some(target) = (is_value)
+                    .then(|| self.rd().plan_elem_target(&self.ar, t, p))
+                    .flatten()
+                else {
                     return id;
                 };
                 // Every `<math>` is parsed before planning; one that did not parse is
@@ -204,7 +210,7 @@ impl<'a> Compiler<'a> {
                     return id;
                 }
                 let mut syms = Vec::new();
-                self.plans.arena.symbols(inner, &mut syms);
+                self.ar.arena.symbols(inner, &mut syms);
                 if syms.is_empty() {
                     return id;
                 }
@@ -216,14 +222,14 @@ impl<'a> Compiler<'a> {
             Expr::Num(_) | Expr::Sym(_) => id,
             Expr::Neg(a) => {
                 let a = self.inline_maths(parsed, t, a, inlining);
-                self.plans.arena.push(Expr::Neg(a))
+                self.ar.arena.push(Expr::Neg(a))
             }
             Expr::Call(f, args) => {
                 let args = args
                     .into_iter()
                     .map(|a| self.inline_maths(parsed, t, a, inlining))
                     .collect();
-                self.plans.arena.push(Expr::Call(f, args))
+                self.ar.arena.push(Expr::Call(f, args))
             }
             Expr::Add(a, b)
             | Expr::Sub(a, b)
@@ -234,7 +240,7 @@ impl<'a> Compiler<'a> {
                     self.inline_maths(parsed, t, a, inlining),
                     self.inline_maths(parsed, t, b, inlining),
                 );
-                self.plans.arena.push(e.with_operands(na, nb))
+                self.ar.arena.push(e.with_operands(na, nb))
             }
         }
     }

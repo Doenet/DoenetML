@@ -10,8 +10,8 @@ use crate::compile::*;
 /// it composed with the path (`rebase_ref`), each math text's references
 /// too (`rebase_expr`).
 pub(in crate::compile) struct Rebaser<'r, 'a> {
-    cp: &'r mut Compiler<'a>,
-    rf: &'r mut Refs,
+    rd: Reader<'a>,
+    ar: &'r mut Arenas,
     path: RefId,
     /// How many templates the path enters.
     down: u32,
@@ -19,31 +19,31 @@ pub(in crate::compile) struct Rebaser<'r, 'a> {
 
 impl Rebaser<'_, '_> {
     pub(in crate::compile) fn reference(&mut self, p: &mut RefId) {
-        *p = self.cp.rebase_ref(self.rf, self.path, self.down, *p);
+        *p = self.rd.rebase_ref(self.ar, self.path, self.down, *p);
     }
 
     pub(in crate::compile) fn expr(&mut self, id: &mut ExprId) {
-        *id = self.cp.rebase_expr(self.rf, self.path, self.down, *id);
+        *id = self.rd.rebase_expr(self.ar, self.path, self.down, *id);
     }
 }
 
 /// Reading the source, a record from another template: the referent's
 /// references rebased through the path an extend names. Run by planning, for an
 /// extend whose referent is in another template.
-impl<'a> Compiler<'a> {
+impl<'a> Reader<'a> {
     /// Record `record`, the referent's, as read from the template the
     /// extend `path` is planned from: every reference in it composed with
     /// `path` (`rebase_ref`), every math text's references too.
     pub(in crate::compile) fn rebase_record(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         path: RefId,
         mut record: record::Record,
     ) -> record::Record {
-        let down = self.levels_entered(path);
+        let down = self.levels_entered(ar, path);
         let mut rw = Rebaser {
-            cp: self,
-            rf,
+            rd: *self,
+            ar,
             path,
             down,
         };
@@ -53,8 +53,8 @@ impl<'a> Compiler<'a> {
 
     /// How many templates the steps of `path` enter: an index into a
     /// repeat or a select, an interface name into a branch.
-    fn levels_entered(&self, path: RefId) -> u32 {
-        let plan = &self.plans.refs[path.index()];
+    fn levels_entered(&self, ar: &Arenas, path: RefId) -> u32 {
+        let plan = &ar.refs[path.index()];
         plan.steps.iter().filter(|s| enters_template(s)).count() as u32
     }
 
@@ -64,14 +64,14 @@ impl<'a> Compiler<'a> {
     /// `inner`'s hops reach, then `inner`'s steps, with an iteration index
     /// `inner` names by hops named as the path names it.
     pub(in crate::compile) fn rebase_ref(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         path: RefId,
         down: u32,
         inner: RefId,
     ) -> RefId {
-        let path_plan = self.plans.refs[path.index()].clone();
-        let inner_plan = self.plans.refs[inner.index()].clone();
+        let path_plan = ar.refs[path.index()].clone();
+        let inner_plan = ar.refs[inner.index()].clone();
         let (hops, mut steps) = if inner_plan.hops >= down {
             (path_plan.hops + inner_plan.hops - down, Vec::new())
         } else {
@@ -128,7 +128,7 @@ impl<'a> Compiler<'a> {
                             }
                             // The cell is read from where the referent sits.
                             IndexTerm::Cell(p) => {
-                                terms.push(IndexTerm::Cell(self.rebase_ref(rf, path, down, *p)))
+                                terms.push(IndexTerm::Cell(self.rebase_ref(ar, path, down, *p)))
                             }
                         }
                     }
@@ -156,25 +156,25 @@ impl<'a> Compiler<'a> {
             ),
             node: inner_plan.node,
         };
-        rf.push(&mut self.plans.refs, plan)
+        ar.push_ref(plan)
     }
 
     /// Expression `id`, its cell leaves rebased (`rebase_ref`), as a new
     /// expression; its symbolic text, when it has one, rebased with it.
-    fn rebase_expr(&mut self, rf: &mut Refs, path: RefId, down: u32, id: ExprId) -> ExprId {
-        let e = self.plans.arena.get(id).clone();
+    fn rebase_expr(&self, ar: &mut Arenas, path: RefId, down: u32, id: ExprId) -> ExprId {
+        let e = ar.arena.get(id).clone();
         let out = match e {
             Expr::Num(v) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
-            Expr::Cell(p) => Expr::Cell(self.rebase_ref(rf, path, down, p)),
+            Expr::Cell(p) => Expr::Cell(self.rebase_ref(ar, path, down, p)),
             Expr::Neg(a) => {
-                let a = self.rebase_expr(rf, path, down, a);
+                let a = self.rebase_expr(ar, path, down, a);
                 Expr::Neg(a)
             }
             Expr::Call(f, args) => {
                 let args = args
                     .into_iter()
-                    .map(|a| self.rebase_expr(rf, path, down, a))
+                    .map(|a| self.rebase_expr(ar, path, down, a))
                     .collect();
                 Expr::Call(f, args)
             }
@@ -184,26 +184,26 @@ impl<'a> Compiler<'a> {
             | Expr::Div(a, b)
             | Expr::Pow(a, b) => {
                 let (na, nb) = (
-                    self.rebase_expr(rf, path, down, a),
-                    self.rebase_expr(rf, path, down, b),
+                    self.rebase_expr(ar, path, down, a),
+                    self.rebase_expr(ar, path, down, b),
                 );
                 e.with_operands(na, nb)
             }
         };
-        let new = self.plans.arena.push(out);
-        if let Some(text) = self.plans.sym_text.get(&id).cloned() {
+        let new = ar.arena.push(out);
+        if let Some(text) = ar.sym_text.get(&id).cloned() {
             let text = match text {
                 SymText::Nodes { nodes, plans } => SymText::Nodes {
                     nodes,
                     plans: plans
                         .iter()
-                        .map(|&p| self.rebase_ref(rf, path, down, p))
+                        .map(|&p| self.rebase_ref(ar, path, down, p))
                         .collect(),
                 },
-                SymText::Leaf(p) => SymText::Leaf(self.rebase_ref(rf, path, down, p)),
+                SymText::Leaf(p) => SymText::Leaf(self.rebase_ref(ar, path, down, p)),
                 SymText::Spelled(s) => SymText::Spelled(s),
             };
-            self.plans.sym_text.insert(new, text);
+            ar.sym_text.insert(new, text);
         }
         new
     }

@@ -39,7 +39,6 @@ impl Compiler<'_> {
     /// `$ref`s planned where the math sits.
     pub(in crate::compile) fn parse_maths(
         &mut self,
-        rf: &mut Refs,
         math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
     ) -> Parsed {
         let mut parsed = Parsed::default();
@@ -52,7 +51,15 @@ impl Compiler<'_> {
                 component_type,
                 ..
             } = self.outlined(t).elems[e.index()];
-            let math = mt.and_then(|mt| self.parse_math(rf, t, name_scope, component_type, &mt));
+            let math = mt.and_then(|mt| {
+                Reader::new(self.dast, &self.settled).parse_math(
+                    &mut self.ar,
+                    t,
+                    name_scope,
+                    component_type,
+                    &mt,
+                )
+            });
             parsed.maths.insert((t, e), math);
         }
         parsed
@@ -62,7 +69,6 @@ impl Compiler<'_> {
     /// its children as the type reads them, parsed where the element sits.
     pub(in crate::compile) fn parse_records(
         &mut self,
-        rf: &mut Refs,
         to_plan: &[(TemplateId, ElemId)],
         parsed: &mut Parsed,
     ) {
@@ -74,7 +80,7 @@ impl Compiler<'_> {
             if def.attributes.is_empty() && def.children.built() {
                 continue;
             }
-            let record = self.parse_record(rf, t, e);
+            let record = Reader::new(self.dast, &self.settled).parse_record(&mut self.ar, t, e);
             parsed.records.insert((t, e), record);
         }
     }

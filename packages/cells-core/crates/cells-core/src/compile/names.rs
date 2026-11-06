@@ -94,7 +94,7 @@ pub(in crate::compile) enum NameHit {
 
 /// The name table, read: the name a scope sees at a node. Run by reference
 /// planning in every stage after outlining made the table.
-impl Compiler<'_> {
+impl Reader<'_> {
     /// What `name` names from `scope` of template `t`: the one descendant
     /// carrying it, or that several do.
     pub(in crate::compile) fn name_at(&self, t: TemplateId, scope: ElemId, name: &str) -> NameHit {

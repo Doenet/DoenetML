@@ -5,18 +5,18 @@ use crate::compile::*;
 /// Reading the source, math text: tokenized, its `$ref`s planned, parsed. Run
 /// by outlining (tokenizing), parsing, and the planners that read math
 /// themselves; writes only the reference and expression arenas.
-impl Compiler<'_> {
+impl Reader<'_> {
     /// Tokenize math text with `$ref` children as cell leaves holding plan
     /// ids; with where the text came from, for an error.
     pub(in crate::compile) fn math_tokens<'n>(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         nodes: &'n [NodeId],
     ) -> Result<(Vec<Token>, MathSrc<'n>)> {
         let (toks, macros) = self.tokenize_math(nodes)?;
-        let (toks, _) = self.resolve_tokens(rf, t, scope, &toks, &macros)?;
+        let (toks, _) = self.resolve_tokens(ar, t, scope, &toks, &macros)?;
         Ok((toks, MathSrc(nodes)))
     }
 
@@ -68,20 +68,20 @@ impl Compiler<'_> {
     /// The tokens of `mt` with its `$ref`s planned from `scope`, and the
     /// plan of each `$ref`, in order (what its symbolic text spells).
     pub(in crate::compile) fn resolve_math(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         mt: &MathText,
     ) -> Result<(Vec<Token>, Vec<RefId>)> {
-        self.resolve_tokens(rf, t, scope, &mt.toks, &mt.macros)
+        self.resolve_tokens(ar, t, scope, &mt.toks, &mt.macros)
     }
 
     /// `toks` with each placeholder the plan of its `$ref` in `macros`,
     /// planned from `scope`; and the plans.
     fn resolve_tokens(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         toks: &[Token],
@@ -90,11 +90,11 @@ impl Compiler<'_> {
         let _s = crate::trace::tally("resolve math");
         let mut plans = Vec::with_capacity(macros.len());
         for &m in macros {
-            let p = self.plan_ref(rf, t, scope, m)?;
+            let p = self.plan_ref(ar, t, scope, m)?;
             // A text cell holds a string id, which is not a number: refused
             // here where the plan reaches an element; a path past an
             // interface name is refused by the type pass (ADR 0032).
-            let is_text = crate::trace::tally("is text").run(|| self.ref_is_text(t, p));
+            let is_text = crate::trace::tally("is text").run(|| self.ref_is_text(ar, t, p));
             if is_text {
                 return Err(Error::Unsupported(format!(
                     "a text value (${}) inside math",
@@ -119,15 +119,15 @@ impl Compiler<'_> {
     /// `mt` parsed as one expression, its `$ref`s planned from `scope`,
     /// its text kept for the symbolic engine in case it is symbolic.
     pub(in crate::compile) fn parse_math_text(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         mt: &MathText,
     ) -> Result<ExprId> {
-        let (toks, plans) = self.resolve_math(rf, t, scope, mt)?;
-        let id = self.parse_tokens(&toks, mt.src())?;
-        self.plans.sym_text.insert(
+        let (toks, plans) = self.resolve_math(ar, t, scope, mt)?;
+        let id = self.parse_tokens(ar, &toks, mt.src())?;
+        ar.sym_text.insert(
             id,
             SymText::Nodes {
                 nodes: mt.nodes.clone(),
@@ -140,33 +140,34 @@ impl Compiler<'_> {
     /// A `<math>`'s text parsed as the type outlining settled for it: one
     /// expression, or a tuple's entries.
     pub(in crate::compile) fn parse_math(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         component_type: ComponentType,
         mt: &MathText,
     ) -> Result<ParsedMath> {
         if component_type == ComponentType::Math {
-            return Ok(ParsedMath::Expr(self.parse_math_text(rf, t, scope, mt)?));
+            return Ok(ParsedMath::Expr(self.parse_math_text(ar, t, scope, mt)?));
         }
-        let (toks, _) = self.resolve_math(rf, t, scope, mt)?;
+        let (toks, _) = self.resolve_math(ar, t, scope, mt)?;
         let parts = super::expr::tuple_entries(&toks).expect("outlining settled a tuple");
         let entries = parts
             .iter()
-            .map(|part| self.parse_tokens(part, mt.src()))
+            .map(|part| self.parse_tokens(ar, part, mt.src()))
             .collect::<Result<_>>()?;
         Ok(ParsedMath::Entries(entries))
     }
 
     /// Parse math tokens into the arena; `src` is for the error.
     pub(in crate::compile) fn parse_tokens(
-        &mut self,
+        &self,
+        ar: &mut Arenas,
         toks: &[Token],
         src: MathSrc<'_>,
     ) -> Result<ExprId> {
         let _s = crate::trace::tally("parse");
-        Parser::parse(toks, &mut self.plans.arena).map_err(|reason| Error::BadMath {
+        Parser::parse(toks, &mut ar.arena).map_err(|reason| Error::BadMath {
             text: src.text(self.dast),
             reason,
         })

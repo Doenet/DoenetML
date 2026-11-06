@@ -23,7 +23,7 @@ impl<'a> Compiler<'a> {
     fn attr_macro(&self, el: NodeId, tag: &str, attr: &str) -> Result<NodeId> {
         self.dast
             .attr(el, attr)
-            .and_then(|a| self.single_macro(a))
+            .and_then(|a| self.rd().single_macro(a))
             .ok_or_else(|| Error::Unsupported(format!("<{tag}> needs {attr}=\"$name\"")))
     }
 
@@ -39,7 +39,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         e: ElemId,
     ) -> Result<()> {
-        self.plan_table(&mut pl.refs, &pl.parsed, t, e, None, true)?;
+        self.plan_table(&pl.parsed, t, e, None, true)?;
         let ports = function_iterates::Props::PORTS;
         self.tables[t.index()].plans[e.index()].props[ports.allIteratesWithInitial.index()] =
             Source::own(ports.count);
@@ -53,10 +53,18 @@ impl<'a> Compiler<'a> {
             unreachable!("a functionIterates has a body template")
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
-        let fp = self.plan_ref(&mut pl.refs, t, scope, fm)?;
-        self.referent_type(&pl.boxes, &mut pl.planned.reads, t, e, fp)?;
+        let fp = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, scope, fm)?;
+        self.rd().referent_type(
+            &self.ar,
+            pl.boxes.visible(&self.tables),
+            &mut pl.planned.reads,
+            t,
+            e,
+            fp,
+        )?;
         let (ft, fe) = self
-            .static_target(t, fp)
+            .rd()
+            .static_target(&self.ar, t, fp)
             .filter(|&(ft, fe)| {
                 self.outlined(ft).elems[fe.index()].component_type == ComponentType::Function
             })
@@ -66,7 +74,12 @@ impl<'a> Compiler<'a> {
         let fnode = self.outlined(ft).elems[fe.index()].node;
         let vars = self.function_variables(fnode);
         let nodes: Vec<NodeId> = d.children(fnode).to_vec();
-        let (mut toks, src) = self.math_tokens(&mut pl.refs, sub, ROOT_SCOPE, &nodes)?;
+        let (mut toks, src) = Reader::new(self.dast, &self.settled).math_tokens(
+            &mut self.ar,
+            sub,
+            ROOT_SCOPE,
+            &nodes,
+        )?;
         // Variable j is entry j of the previous iterate: `$fi[k-1]`'s tuple.
         let prev: Vec<RefId> = (0..vars.len())
             .map(|j| {
@@ -83,7 +96,7 @@ impl<'a> Compiler<'a> {
                     display: RefDisplay::Spelled(format!("(previous iterate).{}", vars[j]).into()),
                     node: NodeId::NONE,
                 };
-                pl.refs.push(&mut self.plans.refs, plan)
+                self.ar.push_ref(plan)
             })
             .collect();
         for tok in &mut toks {
@@ -107,9 +120,9 @@ impl<'a> Compiler<'a> {
         }
         let mut exprs = Vec::with_capacity(n);
         for part in &parts {
-            let id = self.parse_tokens(part, src)?;
+            let id = Reader::new(self.dast, &self.settled).parse_tokens(&mut self.ar, part, src)?;
             let mut syms = Vec::new();
-            self.plans.arena.symbols(id, &mut syms);
+            self.ar.arena.symbols(id, &mut syms);
             if !syms.is_empty() {
                 return Err(Error::BadMath {
                     text: src.text(self.dast),
@@ -121,7 +134,7 @@ impl<'a> Compiler<'a> {
             }
             exprs.push(id);
         }
-        let firsts = self.plan_initial_value(&mut pl.refs, sub, el, n)?;
+        let firsts = self.plan_initial_value(sub, el, n)?;
         let entries = firsts
             .into_iter()
             .enumerate()
@@ -140,19 +153,14 @@ impl<'a> Compiler<'a> {
     /// The `n` entries of a `<functionIterates>`' `initialValue`, planned
     /// from its body: a reference (`$x0`, a number, point or tuple) or math
     /// text (`0.5`, `(1, $a, 0)`). Written numbers are constants, not state.
-    fn plan_initial_value(
-        &mut self,
-        rf: &mut Refs,
-        sub: TemplateId,
-        el: NodeId,
-        n: usize,
-    ) -> Result<Vec<Source>> {
+    fn plan_initial_value(&mut self, sub: TemplateId, el: NodeId, n: usize) -> Result<Vec<Source>> {
         let d = self.dast;
         let a = d
             .attr(el, "initialValue")
             .ok_or_else(|| Error::Unsupported("<functionIterates> needs initialValue".into()))?;
-        if let Some(m) = self.single_macro(a) {
-            let init = self.plan_ref(rf, sub, ROOT_SCOPE, m)?;
+        if let Some(m) = self.rd().single_macro(a) {
+            let init =
+                Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, sub, ROOT_SCOPE, m)?;
             return Ok(if n == 1 {
                 vec![Source::reference(init)]
             } else {
@@ -160,7 +168,12 @@ impl<'a> Compiler<'a> {
             });
         }
         let nodes: Vec<NodeId> = d.attr_children(a).to_vec();
-        let (toks, src) = self.math_tokens(rf, sub, ROOT_SCOPE, &nodes)?;
+        let (toks, src) = Reader::new(self.dast, &self.settled).math_tokens(
+            &mut self.ar,
+            sub,
+            ROOT_SCOPE,
+            &nodes,
+        )?;
         let parts = match expr::tuple_entries(&toks) {
             Some(entries) if n > 1 => entries,
             _ => vec![toks.clone()],
@@ -174,8 +187,9 @@ impl<'a> Compiler<'a> {
         parts
             .iter()
             .map(|part| {
-                let id = self.parse_tokens(part, src)?;
-                Ok(match self.plan_from_expr(id) {
+                let id =
+                    Reader::new(self.dast, &self.settled).parse_tokens(&mut self.ar, part, src)?;
+                Ok(match self.rd().plan_from_expr(&self.ar, id) {
                     Source::Leaf(Leaf::Given(v)) => Source::constant(v),
                     other => other,
                 })
@@ -189,7 +203,7 @@ impl<'a> Compiler<'a> {
         crate::components::values::curve::variables(
             self.dast
                 .attr(fnode, "variables")
-                .and_then(|a| self.attr_text(a)),
+                .and_then(|a| self.rd().attr_text(a)),
         )
     }
 
@@ -198,12 +212,7 @@ impl<'a> Compiler<'a> {
     /// is `from + (k - 1) * step`, its `from` and `step` aliasing the
     /// repeat's own (one hop up) and `k` the iteration's position; either
     /// repeat's index is the iteration's position.
-    pub(in crate::compile) fn plan_iteration_names(
-        &mut self,
-        rf: &mut Refs,
-        t: TemplateId,
-        e: ElemId,
-    ) {
+    pub(in crate::compile) fn plan_iteration_names(&mut self, t: TemplateId, e: ElemId) {
         let Body::Repeat { template: sub } = self.outlined(t).elems[e.index()].body else {
             return;
         };
@@ -214,8 +223,8 @@ impl<'a> Compiler<'a> {
             }
             let props = match el.component_type {
                 ComponentType::SequenceValue => {
-                    let from = self.own_prop_plan(rf, t, e, "from");
-                    let step = self.own_prop_plan(rf, t, e, "step");
+                    let from = self.own_prop_plan(t, e, "from");
+                    let step = self.own_prop_plan(t, e, "step");
                     use prop::sequence_value as sv;
                     let ports = sv::Props::PORTS;
                     let table = |port| Wire::from_table(ComponentType::SequenceValue, port);
@@ -244,12 +253,7 @@ impl<'a> Compiler<'a> {
     /// list's length, and the item `$x` of iteration `k` aliases every
     /// prop of the tuple of iteration `k` of the `<functionIterates>`
     /// (`k + 1` for `iterates`, which leaves out the initial value).
-    pub(super) fn plan_repeat_for(
-        &mut self,
-        rf: &mut Refs,
-        t: TemplateId,
-        e: ElemId,
-    ) -> Result<()> {
+    pub(super) fn plan_repeat_for(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let Elem {
             node: el,
             name_scope: scope,
@@ -259,22 +263,25 @@ impl<'a> Compiler<'a> {
             unreachable!("a repeat has a body template")
         };
         let m = self.attr_macro(el, "repeat", "for")?;
-        let fp = self.plan_ref(rf, t, scope, m)?;
+        let fp = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, scope, m)?;
         let unsupported = || {
             Error::Unsupported(
                 "<repeat for> takes a <functionIterates>' allIteratesWithInitial or iterates"
                     .into(),
             )
         };
-        let offset = match self.plans.refs[fp.index()].prop {
+        let offset = match self.ar.refs[fp.index()].prop {
             Some(p) if p.is("allIteratesWithInitial") => 0,
             Some(p) if p.is("iterates") => 1,
             _ => return Err(unsupported()),
         };
-        let mut base = self.plans.refs[fp.index()].clone();
+        let mut base = self.ar.refs[fp.index()].clone();
         base.prop = None;
-        let base_id = rf.push(&mut self.plans.refs, base.clone()).index();
-        match self.static_target(t, RefId::from_index(base_id)) {
+        let base_id = self.ar.push_ref(base.clone()).index();
+        match self
+            .rd()
+            .static_target(&self.ar, t, RefId::from_index(base_id))
+        {
             Some((ft, fe))
                 if self.outlined(ft).elems[fe.index()].component_type
                     == ComponentType::FunctionIterates => {}
@@ -306,7 +313,7 @@ impl<'a> Compiler<'a> {
                         ),
                         node: NodeId::NONE,
                     };
-                    Source::reference(rf.push(&mut self.plans.refs, plan))
+                    Source::reference(self.ar.push_ref(plan))
                 })
                 .collect();
             self.tables[sub.index()].plans[0].props = props;

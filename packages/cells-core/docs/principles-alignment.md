@@ -78,7 +78,7 @@ mechanism count as expected failures rather than gaps.
 | COMP-10 a case keeps its state; COMP-11 and D13/D22(b) the branch interface | ADR 0009: every branch is built, an interface name is a `Choose` over the branches, a flip is a tick |
 | NAME-7 and D14 a cycle is a located diagnostic and the rest renders | ADR 0012 and ADR 0013: the abstract build rejects a loop at any count, the element is boxed |
 | NAME-3, REF-8 names inside a copy are private and an unnamed reference adds no names | `push_elem_visible_to(.., stop)` registers a clone's names only up to the copy (`names_resolve_through_containers_and_copies`) |
-| NAME-1 nearest match wins, a tie is reported | `Compiler::lookup` walks ancestors, own name first, unique descendant next, several is `AmbiguousName`; reported as `doenet-w0105` **[probe]** |
+| NAME-1 nearest match wins, a tie is reported | `Reader::lookup` walks ancestors, own name first, unique descendant next, several is `AmbiguousName`; reported as `doenet-w0105` **[probe]** |
 | INT-2 derived values are never stored; INT-4 rigid drags; INT-5 projection | ADR 0018 (only what a student can write is essential), ADR 0006 (point groups), ADR 0003 (project then write), which is D15's first recommendation |
 | SAVE-3 keyed by document, not build order; SAVE-5 indices are not identity; D30 | ADR 0017 stable keys; the bridge numbers elements by stable identity so a rebuild is an update |
 | REF-7 an extend of a repeat or select shows the same content | `extend` of a `<select>`, `<conditionalContent>` or `<case>` is `Banned` (ADR 0009); the warning forms w0168/w0169 become load errors, which D4 allows |

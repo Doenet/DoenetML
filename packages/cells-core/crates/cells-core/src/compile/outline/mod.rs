@@ -14,8 +14,6 @@ use crate::compile::*;
 pub(in crate::compile) struct Outlining<'a> {
     /// What boxing records, outlining's while it runs.
     pub(in crate::compile) boxes: Boxes<'a>,
-    /// Reference planning's state, outlining's while it runs.
-    pub(in crate::compile) refs: Refs,
     /// What outlining hands on, as it fills it.
     pub(in crate::compile) work: Outline,
     /// The container copies (`<graph extend="$g"/>`) the walk found, which
@@ -33,15 +31,10 @@ pub(in crate::compile) struct Outlining<'a> {
 impl Compiler<'_> {
     /// Outline the document. Returns the work found for the stages after
     /// it, and the boxes; what it settled is in [`Compiler::settled`].
-    pub(in crate::compile) fn outline<'b>(
-        &mut self,
-        boxes: Boxes<'b>,
-        refs: Refs,
-    ) -> (Outline, Boxes<'b>, Refs) {
+    pub(in crate::compile) fn outline<'b>(&mut self, boxes: Boxes<'b>) -> (Outline, Boxes<'b>) {
         let dast = self.dast;
         let mut outlining = Outlining {
             boxes,
-            refs,
             work: Outline::default(),
             container_copies: Vec::new(),
             expanding: HashSet::new(),
@@ -88,10 +81,8 @@ impl Compiler<'_> {
         }
         crate::trace::span("extends").run(|| self.plan_extends(o));
         crate::trace::span("answer children").run(|| self.add_answer_children(o));
-        let Outlining {
-            work, boxes, refs, ..
-        } = outlining;
-        (work, boxes, refs)
+        let Outlining { work, boxes, .. } = outlining;
+        (work, boxes)
     }
 
     pub(in crate::compile) fn push_elem(
@@ -189,7 +180,7 @@ impl Compiler<'_> {
         name_scope: ElemId,
     ) -> ElemId {
         let name = match self.dast.kind(node) {
-            NodeKind::Element => self.attr_name_str(node, "name").unwrap_or(StrId::NONE),
+            NodeKind::Element => self.rd().attr_name_str(node, "name").unwrap_or(StrId::NONE),
             _ => StrId::NONE,
         };
         // A name a sibling holds fails to register, but the element is
@@ -286,7 +277,7 @@ impl Compiler<'_> {
                 "<case> outside a <conditionalContent>".into(),
             ));
         }
-        let name = self.attr_name_str(el, "name").unwrap_or(StrId::NONE);
+        let name = self.rd().attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
         o.work.to_plan.push((t, e));
         if self.is_container_copy(t, e) {
@@ -314,10 +305,10 @@ impl Compiler<'_> {
                 } else {
                     ComponentType::SequenceValue
                 };
-                if let Some(vn) = self.attr_name_str(el, "valueName") {
+                if let Some(vn) = self.rd().attr_name_str(el, "valueName") {
                     self.add_synthetic(sub, value_type, vn);
                 }
-                if let Some(iname) = self.attr_name_str(el, "indexName") {
+                if let Some(iname) = self.rd().attr_name_str(el, "indexName") {
                     self.add_synthetic(sub, ComponentType::Number, iname);
                 }
                 let kids = self.add_children(o, sub, None, ROOT_SCOPE, d.children(el));
@@ -350,7 +341,7 @@ impl Compiler<'_> {
                     .children(el)
                     .iter()
                     .copied()
-                    .filter(|&n| self.is_presentation_child(n))
+                    .filter(|&n| self.rd().is_presentation_child(n))
                     .collect();
                 if !presentational.is_empty() {
                     let kids = self.add_children(o, t, Some(e), child_scope, &presentational);
@@ -380,7 +371,7 @@ impl Compiler<'_> {
         let elem = &self.outlined(t).elems[e.index()];
         let component_type = match elem.component_type {
             ComponentType::Math => {
-                let mt = self.math_text(d.children(el));
+                let mt = self.rd().math_text(d.children(el));
                 let k = match &mt {
                     Ok(mt) => crate::components::values::math::settled_type(mt.tokens()),
                     Err(_) => ComponentType::Math,
@@ -390,7 +381,8 @@ impl Compiler<'_> {
                 return Ok(());
             }
             ComponentType::Collect => crate::components::structure::collect::collected_type(
-                d.attr(el, "componentType").and_then(|a| self.attr_text(a)),
+                d.attr(el, "componentType")
+                    .and_then(|a| self.rd().attr_text(a)),
             )?,
             ComponentType::Polyline => crate::components::geometry::polyline::COLLECTED,
             _ => return Ok(()),

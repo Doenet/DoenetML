@@ -8,75 +8,23 @@ use super::*;
 /// the last element its path named.
 pub(in crate::compile) type RefTarget = (Option<ComponentType>, Option<(TemplateId, ElemId)>);
 
-/// Reference planning's working state: the one writer of the reference
-/// table ([`Plans::refs`]), which every stage reads, and its cache of
-/// prop spellings. The driver hands it to outlining, parsing and planning,
-/// which plan references, and to no other stage.
-#[derive(Default)]
-pub(in crate::compile) struct Refs {
-    /// By DAST string, the prop a reference spelled with it last named,
-    /// with the type it named it on: a spelling is nearly always used on
-    /// one type, so this is an array read.
-    prop_sels: Vec<Option<(ComponentType, Option<PropSel>)>>,
-}
-
-impl Refs {
-    /// Adds `plan` to the table, as the reference it is the plan of.
-    pub(in crate::compile) fn push(&mut self, table: &mut Vec<RefPlan>, plan: RefPlan) -> RefId {
-        table.push(plan);
-        RefId::from_index(table.len() - 1)
-    }
-
-    /// Plan `p`, to change: a prop named on it after it was planned.
-    pub(in crate::compile) fn plan_mut<'t>(
-        &mut self,
-        table: &'t mut [RefPlan],
-        p: RefId,
-    ) -> &'t mut RefPlan {
-        &mut table[p.index()]
-    }
-
-    /// Drops the plans made since the table held `n`: what an attempt
-    /// planned before it found a copy's clones unmade (`with_clones`).
-    pub(in crate::compile) fn truncate(&mut self, table: &mut Vec<RefPlan>, n: usize) {
-        table.truncate(n);
-    }
-
-    /// Prop `name` (a DAST string) of type `ty`, found once per type and
-    /// spelling: a reference reads it with no name to compare.
-    fn prop_sel(&mut self, dast: &Dast, ty: ComponentType, name: StrId) -> Option<PropSel> {
-        let i = name.index();
-        if let Some(Some((of, sel))) = self.prop_sels.get(i)
-            && *of == ty
-        {
-            return *sel;
-        }
-        let sel = ty.resolve_prop(ty.canonical_prop(dast.strings.get(name)));
-        if self.prop_sels.len() <= i {
-            self.prop_sels.resize(dast.strings.len().max(i + 1), None);
-        }
-        self.prop_sels[i] = Some((ty, sel));
-        sel
-    }
-}
-
 /// Reference plans: name lookup through template scopes and `$a.b[k].c` paths,
 /// run by outlining, parsing and planning (ADR 0031, "Code more than one stage
 /// runs"). Writes only the reference arena.
-impl<'a> Compiler<'a> {
+impl<'a> Reader<'a> {
     /// A copy of plan `p` naming `prop` instead of its own (`$l` -> `$l.x2`).
     pub(in crate::compile) fn plan_with_prop(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         p: RefId,
         prop: &'static str,
     ) -> Result<RefId> {
-        let named = self.prop_named(t, p, prop)?;
-        let mut plan = self.plans.refs[p.index()].clone();
+        let named = self.prop_named(ar, t, p, prop)?;
+        let mut plan = ar.refs[p.index()].clone();
         plan.prop = named;
         plan.display = RefDisplay::Prop(Box::new(plan.display), prop);
-        Ok(rf.push(&mut self.plans.refs, plan))
+        Ok(ar.push_ref(plan))
     }
 
     /// Prop `name` of what plan `p`, planned from `t`, names, resolved on
@@ -84,17 +32,18 @@ impl<'a> Compiler<'a> {
     /// box, what is under one, or a whole pick or iteration holding several
     /// components.
     pub(in crate::compile) fn prop_named(
-        &mut self,
+        &self,
+        ar: &Arenas,
         t: TemplateId,
         p: RefId,
         name: &'static str,
     ) -> Result<Option<RefProp>> {
-        match self.ref_target_type(t, p)? {
+        match self.ref_target_type(ar, t, p)? {
             None | Some(ComponentType::Error) => Ok(None),
             Some(ty) => RefProp::named(ty, name)
                 .map(Some)
                 .ok_or_else(|| Error::UnknownProp {
-                    name: self.plans.ref_display(self.dast, p),
+                    name: ar.ref_display(self.dast, p),
                     prop: name.into(),
                 }),
         }
@@ -118,10 +67,11 @@ impl<'a> Compiler<'a> {
     /// template. The plan may name a prop of it.
     pub(in crate::compile) fn static_target(
         &self,
+        ar: &Arenas,
         t: TemplateId,
         p: RefId,
     ) -> Option<(TemplateId, ElemId)> {
-        let plan = &self.plans.refs[p.index()];
+        let plan = &ar.refs[p.index()];
         let mut last = None;
         for step in &plan.steps {
             match step {
@@ -134,12 +84,17 @@ impl<'a> Compiler<'a> {
 
     /// The element a plan names, if it is in template `t` itself (a path of
     /// names without indices, no prop).
-    pub(in crate::compile) fn plan_elem_target(&self, t: TemplateId, p: RefId) -> Option<ElemId> {
-        let plan = &self.plans.refs[p.index()];
+    pub(in crate::compile) fn plan_elem_target(
+        &self,
+        ar: &Arenas,
+        t: TemplateId,
+        p: RefId,
+    ) -> Option<ElemId> {
+        let plan = &ar.refs[p.index()];
         if plan.hops != 0 || plan.prop.is_some() {
             return None;
         }
-        self.static_target(t, p).map(|(_, e)| e)
+        self.static_target(ar, t, p).map(|(_, e)| e)
     }
 
     /// The component type a plan names, when it can be told from the
@@ -147,17 +102,23 @@ impl<'a> Compiler<'a> {
     /// outlining made it. `None` where the path cannot be followed, or
     /// names a whole iteration or pick that holds several components.
     pub(in crate::compile) fn ref_target_type(
-        &mut self,
+        &self,
+        ar: &Arenas,
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
-        Ok(self.ref_target(t, p)?.0)
+        Ok(self.ref_target(ar, t, p)?.0)
     }
 
     /// `ref_target_type`, and the last element the path named on the way
     /// (the target, or the collect an index steps into).
-    pub(in crate::compile) fn ref_target(&mut self, t: TemplateId, p: RefId) -> Result<RefTarget> {
-        let hops = self.plans.refs[p.index()].hops;
+    pub(in crate::compile) fn ref_target(
+        &self,
+        ar: &Arenas,
+        t: TemplateId,
+        p: RefId,
+    ) -> Result<RefTarget> {
+        let hops = ar.refs[p.index()].hops;
         let mut t = t;
         for _ in 0..hops {
             let Some((pt, _)) = self.outlined(t).parent else {
@@ -168,8 +129,8 @@ impl<'a> Compiler<'a> {
         let mut cur: Option<ElemId> = None;
         let mut last = None;
         let mut ty = None;
-        for i in 0..self.plans.refs[p.index()].steps.len() {
-            match self.plans.refs[p.index()].steps[i].clone() {
+        for i in 0..ar.refs[p.index()].steps.len() {
+            match ar.refs[p.index()].steps[i].clone() {
                 Step::Elem(e) => {
                     cur = Some(e);
                     last = Some((t, e));
@@ -323,8 +284,8 @@ impl<'a> Compiler<'a> {
     }
 
     pub(in crate::compile) fn plan_ref(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         m: NodeId,
@@ -441,7 +402,7 @@ impl<'a> Compiler<'a> {
                         // `$l.points[1]`, `$l.points[1][2]`, `$l.points[2].y`:
                         // points of a list, by literal index. The prop is
                         // found once per type and spelling (`prop_sel`).
-                        let sel = rf.prop_sel(self.dast, component_type, names[i]);
+                        let sel = ar.prop_sel(self.dast, component_type, names[i]);
                         let prop_of = |sel| RefProp::of(component_type, sel);
                         // A list's points are as many as the element has: an
                         // index past them is the missing value when built.
@@ -586,18 +547,18 @@ impl<'a> Compiler<'a> {
                 // build walks what the kind says and asks no type.
                 match self.outlined(cur_t).elems[e.index()].body {
                     Body::Repeat { template } => {
-                        let ip = self.plan_index(rf, t, scope, expr, display)?;
+                        let ip = self.plan_index(ar, t, scope, expr, display)?;
                         steps.push(Step::Iter(ip));
                         cur_t = template;
                         at = At::Iteration;
                     }
                     // A collect's item: still that component.
                     Body::Collect { .. } => {
-                        let ip = self.plan_index(rf, t, scope, expr, display)?;
+                        let ip = self.plan_index(ar, t, scope, expr, display)?;
                         steps.push(Step::Item(Collection::Gathered, ip));
                     }
                     Body::Choice(cid) if !self.choice(cid).reactive && !after_iface => {
-                        let ip = self.plan_index(rf, t, scope, expr, display)?;
+                        let ip = self.plan_index(ar, t, scope, expr, display)?;
                         // Which option a pick is comes from the seed, not a
                         // cell.
                         if ip.is_dynamic() {
@@ -609,7 +570,7 @@ impl<'a> Compiler<'a> {
                     _ if self.outlined(cur_t).elems[e.index()].component_type
                         == ComponentType::PointList =>
                     {
-                        let ip = self.plan_index(rf, t, scope, expr, display)?;
+                        let ip = self.plan_index(ar, t, scope, expr, display)?;
                         steps.push(Step::Item(Collection::ListPoints, ip));
                     }
                     _ => return Err(Error::NotIndexable(display.to_string())),
@@ -646,7 +607,7 @@ impl<'a> Compiler<'a> {
             display: RefDisplay::Written,
             node: m,
         };
-        Ok(rf.push(&mut self.plans.refs, plan))
+        Ok(ar.push_ref(plan))
     }
 
     /// A literal integer index (list props are static, so `[$n]` is not
@@ -674,8 +635,8 @@ impl<'a> Compiler<'a> {
     /// reads when the document runs. A cell plus a literal is not read as a
     /// sum: the reference is the whole index.
     pub(in crate::compile) fn plan_index(
-        &mut self,
-        rf: &mut Refs,
+        &self,
+        ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         expr: &[NodeId],
@@ -726,7 +687,7 @@ impl<'a> Compiler<'a> {
                         if !terms.is_empty() {
                             return Err(Error::DynamicIndex(display.to_string()));
                         }
-                        let p = self.plan_ref(rf, t, scope, n)?;
+                        let p = self.plan_ref(ar, t, scope, n)?;
                         terms.push(IndexTerm::Cell(p));
                     }
                 }
@@ -766,6 +727,12 @@ impl std::fmt::Display for Written<'_> {
     }
 }
 
+/// Record that element `e` of template `t` read the facts of what `p` names
+/// (its type, its row, its children), so it is boxed when that is.
+pub(in crate::compile) fn record_read(reads: &mut Vec<Read>, t: TemplateId, e: ElemId, p: RefId) {
+    reads.push((t, e, p));
+}
+
 /// An integer as `str::parse::<i64>` reads it, from `chars` with no
 /// leading whitespace, trailing whitespace allowed: one optional sign, then
 /// ASCII digits, within `i64`.
@@ -794,9 +761,9 @@ fn parse_index(mut chars: impl Iterator<Item = char>) -> Option<i64> {
     Some(value)
 }
 
-/// What both outlining and planning read of a reference: an `extend`'s
-/// plan, its referent's type, and a choice's interface a path steps into.
-impl Compiler<'_> {
+/// What both outlining and planning read of a reference: its referent's type,
+/// and a choice's interface a path steps into.
+impl<'a> Reader<'a> {
     /// A reference `display` naming the one option select `cid` picks
     /// needs the select to pick one, which only a literal `numToSelect`
     /// says while planning.
@@ -815,8 +782,8 @@ impl Compiler<'_> {
     /// Element `e` as outlining made it, for a reference to read on
     /// through. Fails naming a container copy whose clones outlining has
     /// not made yet.
-    pub(in crate::compile) fn outlined_elem(&self, t: TemplateId, e: ElemId) -> Result<&Elem> {
-        let el = &self.outlined(t).elems[e.index()];
+    pub(in crate::compile) fn outlined_elem(&self, t: TemplateId, e: ElemId) -> Result<&'a Elem> {
+        let el = self.elem(t, e);
         if el.clones_pending {
             return Err(Error::AwaitsClones {
                 template: t.get(),
@@ -826,103 +793,36 @@ impl Compiler<'_> {
         Ok(el)
     }
 
-    /// The reference in `e`'s `extend`, planned once, when outlining, from
-    /// where `e` sits.
-    pub(in crate::compile) fn plan_extend(
-        &mut self,
-        rf: &mut Refs,
-        t: TemplateId,
-        e: ElemId,
-    ) -> Result<Option<RefId>> {
-        if let Some(p) = self.outlined(t).elems[e.index()].extend {
-            return Ok(Some(p));
-        }
-        let Elem {
-            node, name_scope, ..
-        } = self.outlined(t).elems[e.index()];
-        let Some(a) = self.dast.attr(node, "extend") else {
-            return Ok(None);
-        };
-        let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
-            attr: "extend".into(),
-            text: self.attr_text(a).unwrap_or_default(),
-        })?;
-        let p = self.plan_ref(rf, t, name_scope, m)?;
-        // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an extend
-        // across related types is the referent's value as the element's
-        // type (REF-5, ADR 0025), so it is the extend of its default prop,
-        // decided here from the types outlining settled. An unrelated pair
-        // is left to the build, which refuses it once both types are
-        // known. A container copy names its referent itself.
-        let component_type = self.outlined(t).elems[e.index()].component_type;
-        if !component_type.container()
-            && self.plans.refs[p.index()].prop.is_none()
-            && let Ok(Some(rt)) = self.ref_target_type(t, p)
-            && rt != component_type
-        {
-            // `<boolean extend="$x"/>` reads `x`'s `value` whatever its
-            // type: the coercion of a referent's value to a boolean (until
-            // ADR 0032's table of coercions lands, here, not in a planner).
-            let dp = if component_type == ComponentType::Boolean {
-                Some("value")
-            } else if ComponentType::extends_as(rt, component_type) {
-                rt.default_prop()
-            } else {
-                None
-            };
-            if let Some(dp) = dp {
-                let named = self.prop_named(t, p, dp)?;
-                let r = rf.plan_mut(&mut self.plans.refs, p);
-                r.prop = named;
-                let base = std::mem::replace(&mut r.display, RefDisplay::Written);
-                r.display = RefDisplay::Prop(Box::new(base), dp);
-            }
-        }
-        debug_assert_eq!(self.stage, Stage::Outline, "only outlining plans an extend");
-        self.outlined_mut(t).elems[e.index()].extend = Some(p);
-        Ok(Some(p))
-    }
-
     /// The type of what `p` names, as outlining settled it, for `e`'s
     /// planner to decide its plan by. Fails when the referent is a box, so
     /// `e` is boxed in turn. The read is recorded in `reads`.
     pub(in crate::compile) fn referent_type(
-        &mut self,
-        bx: &Boxes<'_>,
+        &self,
+        ar: &Arenas,
+        boxes: Visible<'_>,
         reads: &mut Vec<Read>,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
-        Self::record_read(reads, t, e, p);
-        self.read_referent(bx, t, p)
-    }
-
-    /// Record that element `e` of template `t` read the facts of what `p`
-    /// names (its type, its row, its children), so it is boxed when that
-    /// is.
-    pub(in crate::compile) fn record_read(
-        reads: &mut Vec<Read>,
-        t: TemplateId,
-        e: ElemId,
-        p: RefId,
-    ) {
-        reads.push((t, e, p));
+        record_read(reads, t, e, p);
+        self.read_referent(ar, boxes, t, p)
     }
 
     /// The type of what `p` names, or, when it is a box this stage may see,
     /// the error that boxes what reads it.
     pub(in crate::compile) fn read_referent(
-        &mut self,
-        bx: &Boxes<'_>,
+        &self,
+        ar: &Arenas,
+        boxes: Visible<'_>,
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
-        let (ty, last) = self.ref_target(t, p)?;
-        let boxed = ty == Some(ComponentType::Error)
-            || last.is_some_and(|(lt, le)| bx.is_visible(&self.tables, lt, le));
+        let (ty, last) = self.ref_target(ar, t, p)?;
+        let boxed =
+            ty == Some(ComponentType::Error) || last.is_some_and(|(lt, le)| boxes.is_box(lt, le));
         if boxed {
-            return Err(Error::BoxedReferent(self.plans.ref_display(self.dast, p)));
+            return Err(Error::BoxedReferent(ar.ref_display(self.dast, p)));
         }
         Ok(ty)
     }

@@ -21,7 +21,7 @@ impl Compiler<'_> {
             {
                 continue;
             }
-            if let Err(error) = self.with_clones(o, |cp, rf| cp.plan_extend(rf, t, e)) {
+            if let Err(error) = self.with_clones(o, |cp| cp.plan_extend(t, e)) {
                 o.boxes
                     .box_in_place(&self.settled.templates, &mut self.tables, t, e, error);
             }
@@ -90,21 +90,29 @@ impl Compiler<'_> {
         e: ElemId,
     ) -> Result<()> {
         let p = self
-            .with_clones(o, |cp, rf| cp.plan_extend(rf, t, e))?
+            .with_clones(o, |cp| cp.plan_extend(t, e))?
             .expect("a container copy extends");
         // `<graph extend="$x.prop"/>` is no container copy: planning refuses
         // it as an extend of a prop.
-        if self.plans.refs[p.index()].prop.is_some() {
+        if self.ar.refs[p.index()].prop.is_some() {
             return Ok(());
         }
         let r = self
-            .plan_elem_target(t, p)
+            .rd()
+            .plan_elem_target(&self.ar, t, p)
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
         // A referent that is itself a copy has its clones first; one that
         // is a box has none to clone.
-        self.with_clones(o, |cp, _| cp.ref_target(t, p).map(drop))?;
-        self.referent_type(&o.boxes, &mut o.work.reads, t, e, p)?;
-        let scope = self.child_scope(t, e);
+        self.with_clones(o, |cp| cp.rd().ref_target(&cp.ar, t, p).map(drop))?;
+        self.rd().referent_type(
+            &self.ar,
+            o.boxes.visible(&self.tables),
+            &mut o.work.reads,
+            t,
+            e,
+            p,
+        )?;
+        let scope = self.rd().child_scope(t, e);
         let kids = self.clone_children(o, t, r, scope, e)?;
         // The clones come first, then the copy's own children.
         self.outlined_mut(t).elems[e.index()]
@@ -131,7 +139,7 @@ impl Compiler<'_> {
                     if self.is_container_copy(t, c) {
                         self.expand_container_copy(o, t, c)?;
                     }
-                    let el = self.outlined_elem(t, c)?;
+                    let el = self.rd().outlined_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
                     let repeat = matches!(el.body, Body::Repeat { .. });
                     if repeat
@@ -162,7 +170,7 @@ impl Compiler<'_> {
                         ),
                         node: NodeId::NONE,
                     };
-                    let ep = o.refs.push(&mut self.plans.refs, plan);
+                    let ep = self.ar.push_ref(plan);
                     {
                         let el = &mut self.outlined_mut(t).elems[ne.index()];
                         el.extend = Some(ep);
@@ -171,7 +179,7 @@ impl Compiler<'_> {
                     // The clone took its original's row: it reads it (ADR
                     // 0032), and is boxed with it should the original be
                     // boxed later.
-                    Self::record_read(&mut o.work.reads, t, ne, ep);
+                    record_read(&mut o.work.reads, t, ne, ep);
                     let child_scope = if name != StrId::NONE { ne } else { scope };
                     let sub = self.clone_children(o, t, c, child_scope, root)?;
                     self.outlined_mut(t).elems[ne.index()].children = sub;
@@ -182,6 +190,62 @@ impl Compiler<'_> {
             }
         }
         Ok(out)
+    }
+
+    /// The reference in `e`'s `extend`, planned once, when outlining, from
+    /// where `e` sits.
+    pub(in crate::compile) fn plan_extend(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<Option<RefId>> {
+        if let Some(p) = self.outlined(t).elems[e.index()].extend {
+            return Ok(Some(p));
+        }
+        let Elem {
+            node, name_scope, ..
+        } = self.outlined(t).elems[e.index()];
+        let Some(a) = self.dast.attr(node, "extend") else {
+            return Ok(None);
+        };
+        let m = self.rd().single_macro(a).ok_or_else(|| Error::BadValue {
+            attr: "extend".into(),
+            text: self.rd().attr_text(a).unwrap_or_default(),
+        })?;
+        let p = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, name_scope, m)?;
+        // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an extend
+        // across related types is the referent's value as the element's
+        // type (REF-5, ADR 0025), so it is the extend of its default prop,
+        // decided here from the types outlining settled. An unrelated pair
+        // is left to the build, which refuses it once both types are
+        // known. A container copy names its referent itself.
+        let component_type = self.outlined(t).elems[e.index()].component_type;
+        if !component_type.container()
+            && self.ar.refs[p.index()].prop.is_none()
+            && let Ok(Some(rt)) = self.rd().ref_target_type(&self.ar, t, p)
+            && rt != component_type
+        {
+            // `<boolean extend="$x"/>` reads `x`'s `value` whatever its
+            // type: the coercion of a referent's value to a boolean (until
+            // ADR 0032's table of coercions lands, here, not in a planner).
+            let dp = if component_type == ComponentType::Boolean {
+                Some("value")
+            } else if ComponentType::extends_as(rt, component_type) {
+                rt.default_prop()
+            } else {
+                None
+            };
+            if let Some(dp) = dp {
+                let named = self.rd().prop_named(&self.ar, t, p, dp)?;
+                let r = self.ar.ref_mut(p);
+                r.prop = named;
+                let base = std::mem::replace(&mut r.display, RefDisplay::Written);
+                r.display = RefDisplay::Prop(Box::new(base), dp);
+            }
+        }
+        debug_assert_eq!(self.stage, Stage::Outline, "only outlining plans an extend");
+        self.outlined_mut(t).elems[e.index()].extend = Some(p);
+        Ok(Some(p))
     }
 
     /// Whether `e` is a container copy (`<graph extend="$g"/>`), which
@@ -204,14 +268,14 @@ impl Compiler<'_> {
     pub(in crate::compile) fn with_clones<T>(
         &mut self,
         o: &mut Outlining<'_>,
-        mut f: impl FnMut(&mut Self, &mut Refs) -> Result<T>,
+        mut f: impl FnMut(&mut Self) -> Result<T>,
     ) -> Result<T> {
         loop {
-            let n = self.plans.refs.len();
-            match f(self, &mut o.refs) {
+            let n = self.ar.refs.len();
+            match f(self) {
                 Err(Error::AwaitsClones { template, elem }) => {
                     // What the attempt planned is planned again.
-                    o.refs.truncate(&mut self.plans.refs, n);
+                    self.ar.truncate_refs(n);
                     self.expand_container_copy(o, TemplateId::new(template), ElemId::new(elem))?;
                 }
                 r => return r,

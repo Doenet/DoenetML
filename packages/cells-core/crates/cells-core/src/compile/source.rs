@@ -5,7 +5,7 @@ use crate::compile::*;
 
 /// Reading the source: an element's literal attributes, its children and which
 /// of them are content. Read-only; run by every stage.
-impl Compiler<'_> {
+impl Reader<'_> {
     pub(in crate::compile) fn attr_name_str(&self, el: NodeId, attr: &str) -> Option<StrId> {
         let d = self.dast;
         let a = d.attr(el, attr)?;

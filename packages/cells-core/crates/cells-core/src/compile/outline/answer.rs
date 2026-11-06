@@ -22,21 +22,21 @@ impl Compiler<'_> {
         for (t, e) in answers {
             // An answer the planner refuses is boxed then; what is made
             // for it here dies with it.
-            let _ = self.add_answer_children_of(&mut o.refs, t, e);
+            let _ = self.add_answer_children_of(t, e);
         }
     }
 
     /// Add answer `e`'s synthetic children. Stops early where the answer's
     /// planner would refuse it.
-    fn add_answer_children_of(&mut self, rf: &mut Refs, t: TemplateId, e: ElemId) -> Result<()> {
+    fn add_answer_children_of(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.dast;
         let el = self.outlined(t).elems[e.index()].node;
-        if self.reject_answer_attrs(el)? {
+        if self.rd().reject_answer_attrs(el)? {
             return Ok(());
         }
         let mut inputs = Vec::new();
         let mut awards = Vec::new();
-        for k in self.elem_children(t, e) {
+        for k in self.rd().elem_children(t, e) {
             match self.outlined(t).elems[k.index()].component_type {
                 ComponentType::ChoiceInput => return Ok(()),
                 ComponentType::MathInput
@@ -48,10 +48,10 @@ impl Compiler<'_> {
         }
         let mut forms = Vec::with_capacity(awards.len());
         for &a in &awards {
-            forms.push(self.award_form(t, a)?);
+            forms.push(self.rd().award_form(t, a)?);
         }
         let needs_input =
-            !self.content_nodes(el).is_empty() || forms.iter().any(|f| f.when.is_none());
+            !self.rd().content_nodes(el).is_empty() || forms.iter().any(|f| f.when.is_none());
         if needs_input && d.attr(el, "response").is_none() && inputs.is_empty() {
             self.add_implicit_input(t, e);
         }
@@ -66,13 +66,13 @@ impl Compiler<'_> {
             {
                 return Ok(());
             }
-            for m in self.content_nodes(w_el) {
+            for m in self.rd().content_nodes(w_el) {
                 if d.kind(m) != NodeKind::Macro {
                     continue;
                 }
-                let p = self.plan_ref(rf, t, w, m)?;
+                let p = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, w, m)?;
                 self.settled_mut().when_refs.insert(m, p);
-                if let Some((key, _)) = self.input_named(t, p) {
+                if let Some((key, _)) = self.rd().input_named(&self.ar, t, p) {
                     let r = match keys.iter().find(|(k, _)| *k == key) {
                         Some(&(_, r)) => r,
                         None => {

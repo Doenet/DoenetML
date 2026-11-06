@@ -34,8 +34,8 @@ impl<'a> Compiler<'a> {
             | ComponentType::Boolean
             | ComponentType::BooleanInput => vec![Source::reference(p)],
             ComponentType::Math => {
-                let id = self.plans.arena.push(Expr::Cell(p));
-                self.plans.sym_text.insert(id, SymText::Leaf(p));
+                let id = self.ar.arena.push(Expr::Cell(p));
+                self.ar.sym_text.insert(id, SymText::Leaf(p));
                 prop::math::props_of(id, Post::None)
             }
             // Its points are the list's, synthesized when built.
@@ -43,7 +43,7 @@ impl<'a> Compiler<'a> {
                 self.tables[t.index()].plans[e.index()].from = Some(p);
                 Vec::new()
             }
-            _ => return Err(Error::PathTooDeep(self.plans.ref_display(self.dast, p))),
+            _ => return Err(Error::PathTooDeep(self.ar.ref_display(self.dast, p))),
         };
         self.tables[t.index()].plans[e.index()].props = props;
         Ok(())
@@ -63,7 +63,7 @@ impl<'a> Compiler<'a> {
         let component_type = self.outlined(t).elems[e.index()].planned_as;
         match Self::planner(component_type) {
             Planner::Plan(plan) => self.plan_with_extend(pl, t, e, Some(p), plan),
-            _ => self.plan_attrs(&mut pl.refs, &pl.parsed, t, e, Some(p)),
+            _ => self.plan_attrs(&pl.parsed, t, e, Some(p)),
         }
     }
 
@@ -96,15 +96,15 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Option<Referent> {
-        if let Some(r) = self.plan_elem_target(t, p) {
+        if let Some(r) = self.rd().plan_elem_target(&self.ar, t, p) {
             return (self.outlined(t).elems[r.index()].node != NodeId::NONE)
                 .then_some(Referent::Here(r));
         }
-        let (ty, last) = self.ref_target(t, p).ok()?;
+        let (ty, last) = self.rd().ref_target(&self.ar, t, p).ok()?;
         let (rt, re) = last?;
         // The path ends at the element (not at a collect an index steps
         // into), which is one the author wrote.
-        let plan = &self.plans.refs[p.index()];
+        let plan = &self.ar.refs[p.index()];
         let ends_at_elem = matches!(plan.steps.last(), Some(Step::Elem(_))) && plan.prop.is_none();
         (ends_at_elem
             && ty.is_some()
@@ -135,7 +135,7 @@ impl<'a> Compiler<'a> {
             .map(|a| d.attr_name(a).to_string())
             .filter(|n| n != "name" && n != "extend")
             .collect();
-        let has_children = !d.children(el).iter().all(|&n| self.is_not_content(n));
+        let has_children = !d.children(el).iter().all(|&n| self.rd().is_not_content(n));
         if extend.is_some() && own_attrs.is_empty() && !has_children {
             self.plan_bare_copy(t, e);
             return Ok(());
@@ -146,7 +146,7 @@ impl<'a> Compiler<'a> {
                 let r = self.extend_referent(t, p).ok_or_else(|| {
                     Error::Unsupported(format!(
                         "attributes or children on an extend of '${}', which names no element; a bare extend of it works",
-                        self.plans.ref_display(self.dast, p)
+                        self.ar.ref_display(self.dast, p)
                     ))
                 })?;
                 let (rt, re) = match r {
@@ -158,10 +158,12 @@ impl<'a> Compiler<'a> {
                 let theirs = pl
                     .parsed
                     .record(rt, re)
-                    .map_err(|_| Error::BoxedReferent(self.plans.ref_display(self.dast, p)))?;
+                    .map_err(|_| Error::BoxedReferent(self.ar.ref_display(self.dast, p)))?;
                 let theirs = match r {
                     Referent::Here(_) => theirs,
-                    Referent::Path(p, ..) => self.rebase_record(&mut pl.refs, p, theirs),
+                    Referent::Path(p, ..) => {
+                        Reader::new(self.dast, &self.settled).rebase_record(&mut self.ar, p, theirs)
+                    }
                 };
                 record = record.merged_over(&theirs);
                 Some(r)
