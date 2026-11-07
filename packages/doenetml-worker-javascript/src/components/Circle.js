@@ -9,6 +9,7 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import { evaluateToNumber } from "../utils/math";
 
 export default class Circle extends Curve {
@@ -924,11 +925,19 @@ export default class Circle extends Curve {
                     dependencyType: "stateVariable",
                     variableName: "haveNonNumericalThroughPoints",
                 },
+                throughDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["through"],
+                },
             }),
             definition: function ({ dependencyValues }) {
                 if (dependencyValues.haveNonNumericalThroughPoints) {
-                    let warning = codedDiagnostic({
-                        type: "warning",
+                    // a warning for points written so, an info for points
+                    // from values that can change, as a blank input (DIAG-2)
+                    let diagnostic = codedDiagnostic({
+                        type: levelFromSource(
+                            dependencyValues.throughDecidedByDoenetML,
+                        ),
                         code: "doenet-w0027",
                         args: { count: dependencyValues.numThroughPoints },
                     });
@@ -937,7 +946,7 @@ export default class Circle extends Curve {
                             numericalRadiusCalculatedWithCenter: null,
                             numericalCenterCalculatedWithRadius: null,
                         },
-                        sendDiagnostics: [warning],
+                        conditionDiagnostics: [diagnostic],
                     };
                 }
 

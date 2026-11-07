@@ -7,6 +7,7 @@
  */
 
 import { Dependency } from "./Dependency";
+import { partsDecidedByDoenetML } from "../../utils/decidedByDoenetML";
 
 export class CountAmongSiblingsDependency extends Dependency {
     static dependencyType = "countAmongSiblings";
@@ -375,6 +376,42 @@ export class ValueDependency extends Dependency {
             value: this.value,
             changes: {},
         };
+    }
+}
+
+/**
+ * Whether the attributes `attributeNames` of the component, and with
+ * `children: true` its children, are decided by the DoenetML alone, rather
+ * than by values that can change (`partsDecidedByDoenetML`). A definition
+ * whose diagnostic can come from either reads it to set the level (DIAG-2,
+ * `levelFromSource`).
+ *
+ * It depends on what the author wrote, not on any value, so it is decided
+ * once, the first time it is read.
+ */
+export class DecidedByDoenetMLDependency extends Dependency {
+    static dependencyType = "decidedByDoenetML";
+
+    setUpParameters() {
+        this.attributeNames = this.definition.attributeNames ?? [];
+        this.children = Boolean(this.definition.children);
+    }
+
+    async getValue() {
+        if (this.value === undefined) {
+            const component =
+                this.dependencyHandler._components[this.upstreamComponentIdx];
+            this.value = component
+                ? partsDecidedByDoenetML({
+                      component,
+                      attributeNames: this.attributeNames,
+                      children: this.children,
+                      componentInfoObjects:
+                          this.dependencyHandler.componentInfoObjects,
+                  })
+                : true;
+        }
+        return { value: this.value, changes: {} };
     }
 }
 

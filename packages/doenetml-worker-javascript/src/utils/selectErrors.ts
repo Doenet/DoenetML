@@ -4,6 +4,7 @@ import {
     type DiagnosticCode,
 } from "@doenet/i18n";
 import { diagnosticCodeFrom } from "./diagnostics";
+import { attributeDecidedByDoenetML } from "./decidedByDoenetML";
 
 /**
  * The error a `<select>`, `<selectFromSequence>` or `<selectPrimeNumbers>`
@@ -106,70 +107,6 @@ export function isInfoSelectFailure(errorDiagnostic: unknown): boolean {
         typeof errorDiagnostic === "object" &&
         errorDiagnostic !== null &&
         (errorDiagnostic as { type?: unknown }).type === "info"
-    );
-}
-
-/**
- * Whether the attribute `attribute` of a component is decided by the
- * DoenetML alone: not written (its default), a literal, a primitive, or an
- * attribute component that holds no reference. A reference anywhere in it
- * (`to="$a"`, `numToSelect="$n+1"`) makes it a value that can change.
- */
-function attributeDecidedByDoenetML(
-    attribute: any,
-    componentInfoObjects: any,
-): boolean {
-    if (!attribute) {
-        return true;
-    }
-    if (attribute.type === "literal" || attribute.type === "primitive") {
-        return true;
-    }
-    if (attribute.type === "expression") {
-        return (attribute.slots ?? []).length === 0;
-    }
-    if (attribute.component) {
-        return componentDecidedByDoenetML(
-            attribute.component,
-            componentInfoObjects,
-        );
-    }
-    // a reference to a variable of another component
-    return false;
-}
-
-/**
- * Whether the live component `component`, an attribute component or a
- * child, holds only what is written: no reference (a `_ref` read for its
- * value, or a composite, such as a `_copy`), no extend, and the same of its
- * children and attributes.
- */
-function componentDecidedByDoenetML(
-    component: any,
-    componentInfoObjects: any,
-): boolean {
-    if (typeof component !== "object" || component === null) {
-        return true;
-    }
-    if (
-        component.shadows ||
-        component.extending ||
-        // a reference read for its value (`valueReferences.ts`)
-        component.componentType === "_ref" ||
-        componentInfoObjects.isCompositeComponent({
-            componentType: component.componentType,
-            includeNonStandard: true,
-        })
-    ) {
-        return false;
-    }
-    return (
-        (component.definingChildren ?? []).every((child: any) =>
-            componentDecidedByDoenetML(child, componentInfoObjects),
-        ) &&
-        Object.values(component.attributes ?? {}).every((attribute) =>
-            attributeDecidedByDoenetML(attribute, componentInfoObjects),
-        )
     );
 }
 

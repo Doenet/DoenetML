@@ -791,6 +791,19 @@ export class StateVariableEvaluator {
             }
         }
 
+        if (
+            result.conditionDiagnostics ||
+            this.core.diagnosticsManager._conditionDiagnostics.has(
+                component.componentIdx,
+            )
+        ) {
+            this.setDefinitionConditionDiagnostics({
+                component,
+                stateVariables: allStateVariablesAffected,
+                result,
+            });
+        }
+
         for (const [varName, received] of receivedValue) {
             if (!(
                 received ||
@@ -869,6 +882,54 @@ export class StateVariableEvaluator {
      * When consumeChanges is false, dependency change flags are observed but preserved
      * for a later consuming read.
      */
+    /**
+     * Report the diagnostics a definition gives on a condition of values that
+     * can change (`result.conditionDiagnostics`): those it gives now, replacing
+     * what it gave the last time it ran, so they go away when the definition
+     * runs again and gives none (B33, DIAG-2). Unlike `sendDiagnostics`, which
+     * stay once added. A definition that returns nothing, as when nothing it
+     * depends on changed (`noChanges`), leaves them as they are.
+     *
+     * Keyed by the definition, through the first of the state variables it
+     * defines, so it is the same whichever of them asked for it.
+     */
+    setDefinitionConditionDiagnostics({
+        component,
+        stateVariables,
+        result,
+    }: {
+        component: ComponentInstance;
+        stateVariables: string[];
+        result: any;
+    }) {
+        if (result.noChanges && !result.conditionDiagnostics) {
+            return;
+        }
+        const condition = `stateVariable:${[...stateVariables].sort()[0]}`;
+        const diagnostics: any[] = result.conditionDiagnostics ?? [];
+        if (
+            diagnostics.length === 0 &&
+            !this.core.diagnosticsManager._conditionDiagnostics
+                .get(component.componentIdx)
+                ?.has(condition)
+        ) {
+            return;
+        }
+        const { position, sourceDoc } =
+            diagnostics.length > 0
+                ? this.core.getSourceLocationForComponent(component)
+                : { position: undefined, sourceDoc: undefined };
+        this.core.diagnosticsManager.setConditionDiagnostics(
+            component.componentIdx,
+            condition,
+            diagnostics.map((diagnostic) => ({
+                position,
+                sourceDoc,
+                ...diagnostic,
+            })),
+        );
+    }
+
     async getStateVariableDefinitionArguments({
         component,
         stateVariable,
