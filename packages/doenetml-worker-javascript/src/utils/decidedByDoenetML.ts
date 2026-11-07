@@ -144,3 +144,19 @@ export function withLevelsFromSource<T extends { code?: string; type: string }>(
             : diagnostic,
     );
 }
+
+/**
+ * Whether an index in the reference path `path`, as written, comes from a
+ * value that can change (`$l[$i]`), rather than being written as a literal
+ * (`$l[2]`). A literal index part holds only strings; one written as a
+ * reference holds the component it is read from.
+ */
+export function pathHasIndexFromValue(path: any): boolean {
+    return (path ?? []).some((part: any) =>
+        (part?.index ?? []).some((indexPart: any) =>
+            (indexPart?.value ?? []).some(
+                (value: any) => typeof value !== "string",
+            ),
+        ),
+    );
+}

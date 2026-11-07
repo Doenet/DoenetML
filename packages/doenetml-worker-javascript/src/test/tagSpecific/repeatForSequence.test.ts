@@ -2761,7 +2761,7 @@ describe("RepeatForSequence tag tests @group3", async () => {
         expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
 
-    it("reference to an iteration still warns when the nested reference resolves nowhere", async () => {
+    it("reference to an iteration still reports when the nested reference resolves nowhere", async () => {
         // The counterpart of the two cases above: falling back to the origins up the
         // `shadows` chain must not swallow a reference that has no referent anywhere.
         //
@@ -2769,7 +2769,7 @@ describe("RepeatForSequence tag tests @group3", async () => {
         // so `$g[$n]` has no referent — not from inside the iteration where it was
         // written, and not from the copy `$r[3]` lifts into the `<div>`. Every candidate
         // origin therefore throws, and the diagnostic that follows the candidate loop is
-        // still raised: once (identical warnings are deduplicated by source position),
+        // still raised: once (identical diagnostics are deduplicated by source position),
         // reported against `$g[$n]` as the author wrote it rather than against `$r[3]`.
         //
         // The reference has to fail on an *index* to reach that loop at all: a name the
@@ -2795,10 +2795,13 @@ describe("RepeatForSequence tag tests @group3", async () => {
     `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
-        expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0104");
-        expect(warnings[0].args).eqls({ reference: "$g[$n]" });
+        // An info rather than a warning: the index comes from a value that
+        // can change (DIAG-2)
+        const { warnings, infos } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
+        const indexInfos = infos.filter((d) => d.code === "doenet-w0104");
+        expect(indexInfos.length).eq(1);
+        expect(indexInfos[0].args).eqls({ reference: "$g[$n]" });
     });
 
     it("reference to an iteration keeps the nested referent when the index changes", async () => {

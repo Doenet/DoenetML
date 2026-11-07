@@ -18,14 +18,15 @@ async function setup(doenetML: string) {
         doenetML,
     });
 
-    /** The diagnostics with `code` now, as type and line. */
+    /** The diagnostics with `code` now, as type and line, by line. */
     function diagnostics(code: string) {
         return (core as any).core.diagnostics
             .filter((d: any) => d.code === code)
             .map((d: any) => ({
                 type: d.type,
                 line: d.position?.start.line,
-            }));
+            }))
+            .sort((a: any, b: any) => a.line - b.line);
     }
 
     async function setMath(name: string, latex: string) {
@@ -134,6 +135,53 @@ describe("Warning levels by the source of the condition", () => {
         await setMath("m", "0");
         expect(diagnostics("doenet-w0164")).eqls([
             { type: "warning", line: 2 },
+        ]);
+    });
+
+    it("w0104: an index that names nothing", async () => {
+        const { diagnostics, setMath } = await setup(`
+<mathList name="l">a b c</mathList>
+<p>$l[0]</p>
+<mathInput name="i" prefill="0"/>
+<p>$l[$i]</p>
+<repeat name="r" for="1 2" valueName="v"><p>$v</p></repeat>
+<p>$r[$i]</p>
+`);
+        expect(diagnostics("doenet-w0104")).eqls([
+            { type: "warning", line: 3 },
+            { type: "info", line: 5 },
+            { type: "info", line: 7 },
+        ]);
+
+        await setMath("i", "1");
+        expect(diagnostics("doenet-w0104")).eqls([
+            { type: "warning", line: 3 },
+        ]);
+
+        await setMath("i", "0");
+        expect(diagnostics("doenet-w0104")).eqls([
+            { type: "warning", line: 3 },
+            { type: "info", line: 5 },
+            { type: "info", line: 7 },
+        ]);
+    });
+
+    it("w0100: an index into a value that is a scalar", async () => {
+        const { diagnostics, setMath } = await setup(`
+<math name="m">5</math>
+<p>$m[2]</p>
+<mathInput name="a" prefill="5"/>
+<math name="m2">$a</math>
+<p>$m2[2]</p>
+`);
+        expect(diagnostics("doenet-w0100")).eqls([
+            { type: "warning", line: 3 },
+            { type: "info", line: 6 },
+        ]);
+
+        await setMath("a", "(1,2)");
+        expect(diagnostics("doenet-w0100")).eqls([
+            { type: "warning", line: 3 },
         ]);
     });
 });

@@ -8,6 +8,7 @@ import {
     ensureStateVariableMaterialized,
 } from "../StateVariableInitializer";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
+import { pathHasIndexFromValue } from "../../utils/decidedByDoenetML";
 
 /**
  * Base class shared by every concrete dependency type. Concrete subclasses
@@ -593,6 +594,11 @@ export class Dependency {
                     reference: referenceText
                         ? {
                               text: `$${referenceText}`,
+                              indexFromValue: pathHasIndexFromValue(
+                                  this.definition.referenceOriginalPath ??
+                                      referringComponent?.refResolution
+                                          ?.originalPath,
+                              ),
                               // Marked where the index was written. Read
                               // with `?.`: a path carried on the dependency
                               // yields text whether or not the component

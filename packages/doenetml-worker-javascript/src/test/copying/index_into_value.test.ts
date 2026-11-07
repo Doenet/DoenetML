@@ -464,11 +464,14 @@ describe("An index into a value with entries @group4", async () => {
         /**
          * The references reported now as indexing into a scalar. What is
          * reported follows the value, as a reload would decide it (B33).
+         * Each is an info, as the value comes from an input (DIAG-2).
          */
         function reported() {
             const { warnings, errors, infos } = getDiagnosticsByType(core);
-            expect([...errors, ...infos]).eqls([]);
-            return warnings.map((w) => [w.code, w.args?.reference]);
+            expect([...errors, ...warnings]).eqls([]);
+            return infos
+                .filter((d) => d.code === "doenet-w0100")
+                .map((d) => [d.code, d.args?.reference]);
         }
 
         expect(await shown()).eqls(["[2]", "[2]", "[＿]"]);
@@ -841,13 +844,20 @@ describe("An index into an entry of a list @group4", async () => {
                 reference,
                 lists,
             );
+            // `ml` holds a reference (`$M.value`), so its value can change,
+            // and an index into it that names nothing is an info (DIAG-2)
+            const fromValue = reference.startsWith("$ml");
+            const reported = fromValue ? infos : warnings;
             expect(text, reference).eq("[＿]");
-            expect([...errors, ...infos], reference).eqls([]);
             expect(
-                warnings.map((w) => w.code),
+                [...errors, ...(fromValue ? warnings : infos)],
+                reference,
+            ).eqls([]);
+            expect(
+                reported.map((w) => w.code),
                 reference,
             ).eqls([code]);
-            expect(warnings[0].args, reference).eqls({ reference });
+            expect(reported[0].args, reference).eqls({ reference });
         }
     });
 });

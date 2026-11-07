@@ -4,6 +4,7 @@ import { reportInternalError } from "../utils/internalErrors";
 import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
 import { readHeldCopySnapshot } from "../utils/copySnapshot";
+import { componentDecidedByDoenetML } from "../utils/decidedByDoenetML";
 import {
     applyPendingShadowModification,
     getClassStateVariableDefinitions,
@@ -2185,8 +2186,13 @@ async function reportIndexIntoScalarOf({
     reference: { text: string; position?: Position; sourceDoc?: number };
     watch?: { owner: number; isCurrent: () => boolean };
 }) {
+    // A warning when the value is written in the DoenetML, so it is always
+    // a scalar, and an info when it can change, as an input's or one made
+    // from references (DIAG-2)
     const diagnostic = codedDiagnostic({
-        type: "warning",
+        type: componentDecidedByDoenetML(component, core.componentInfoObjects)
+            ? "warning"
+            : "info",
         code: "doenet-w0100",
         args: { reference: reference.text },
         position: reference.position,
@@ -2345,6 +2351,12 @@ export async function arrayEntryNamesFromPropIndex({
     reference?: {
         /** The reference as written, `$` and all: `$p.styleDescription[1]`. */
         text: string;
+        /**
+         * Whether an index of the reference comes from a value that can
+         * change (`$l[$i]`, `pathHasIndexFromValue`), so an index that names
+         * nothing is an info, not a warning (DIAG-2).
+         */
+        indexFromValue?: boolean;
         position?: Position;
         sourceDoc?: number;
     };
@@ -2522,7 +2534,28 @@ export async function arrayEntryNamesFromPropIndex({
     }
 
     // Once, however many of the variables the index was applied to.
-    if (reportBelowOne && reference) {
+    if (reference?.indexFromValue && watch) {
+        // An index from a value that can change (`$l[$i]` with `i` = 0)
+        // names nothing only while the value is below 1: an info, reported
+        // while it lasts, as a condition of the component the reference
+        // belongs to, which is decided again when the index changes
+        // (DIAG-2, B33). `$l[0]` is a warning, below.
+        core.diagnosticsManager.setConditionDiagnostics(
+            watch.owner,
+            `indexBelowOne:${reference.text}`,
+            reportBelowOne
+                ? [
+                      codedDiagnostic({
+                          type: "info",
+                          code: "doenet-w0104",
+                          args: { reference: reference.text },
+                          position: reference.position,
+                          sourceDoc: reference.sourceDoc,
+                      }),
+                  ]
+                : [],
+        );
+    } else if (reportBelowOne && reference) {
         core.addDiagnostic(
             codedDiagnostic({
                 type: "warning",

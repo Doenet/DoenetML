@@ -46,7 +46,7 @@ function inParagraph(body: string) {
 }
 
 describe("An index that names nothing @group4", async () => {
-    it("shows a blank, and an index below 1 gets one coded warning quoting the whole reference", async () => {
+    it("shows a blank, and an index below 1 gets one coded warning, or info for an index from a value, quoting the whole reference", async () => {
         const cases: { body: string; reference: string }[] = [
             { body: `[$l[0]]`, reference: "$l[0]" },
             { body: `[$l[-1]]`, reference: "$l[-1]" },
@@ -77,13 +77,17 @@ describe("An index that names nothing @group4", async () => {
             const { text, warnings, errors, infos } = await shownAndReported(
                 inParagraph(body),
             );
+            // An index from a reference (`$l[$i]`) is a value that can
+            // change, so it is an info rather than a warning (DIAG-2)
+            const indexFromValue = reference.includes("[$");
+            const reported = indexFromValue ? infos : warnings;
             expect(text, body).eq("[＿]");
             expect(errors, body).eqls([]);
-            expect(infos, body).eqls([]);
-            expect(warnings.length, body).eq(1);
-            expect(warnings[0].code, body).eq("doenet-w0104");
-            expect(warnings[0].args, body).eqls({ reference });
-            expect(warnings[0].message, body).eq(
+            expect(indexFromValue ? warnings : infos, body).eqls([]);
+            expect(reported.length, body).eq(1);
+            expect(reported[0].code, body).eq("doenet-w0104");
+            expect(reported[0].args, body).eqls({ reference });
+            expect(reported[0].message, body).eq(
                 `No referent found for reference: \`${reference}\``,
             );
         }
@@ -231,7 +235,7 @@ describe("An index that names nothing @group4", async () => {
         expect(warnings[0].message).contain("$$f.x");
     });
 
-    it("warns when a dynamic index becomes 0, as the literal index does", async () => {
+    it("gives an info while a dynamic index is 0, and none once it names an entry", async () => {
         const doenetML = `${preamble}<mathInput name="i" prefill="2" /><p name="p">[$l[$i]]</p>`;
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
@@ -255,10 +259,12 @@ describe("An index that names nothing @group4", async () => {
             core,
         });
         expect(await text()).eq("[＿]");
-        const { warnings } = getDiagnosticsByType(core);
-        expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0104");
-        expect(warnings[0].args).eqls({ reference: "$l[$i]" });
+        // an info, as the index comes from a value that can change (DIAG-2)
+        const { warnings, infos } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
+        const indexInfos = infos.filter((d) => d.code === "doenet-w0104");
+        expect(indexInfos.length).eq(1);
+        expect(indexInfos[0].args).eqls({ reference: "$l[$i]" });
 
         await updateMathInputValue({
             latex: "3",
@@ -266,6 +272,12 @@ describe("An index that names nothing @group4", async () => {
             core,
         });
         expect(await text()).eq("[3]");
+        // and goes away once the index names an entry
+        expect(
+            getDiagnosticsByType(core).infos.filter(
+                (d) => d.code === "doenet-w0104",
+            ),
+        ).eqls([]);
     });
 
     it("shows a blank for an index on a property that is not an array", async () => {
