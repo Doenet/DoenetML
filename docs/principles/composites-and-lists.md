@@ -270,7 +270,9 @@ so (DIAG-7). Checking today's variants is a regression aid, never the guarantee.
   over 5..10, and an error in every variant when `a` can be 1, naming the value.
 - **SEL-4: a parameter is in an analysable form:** a literal, a reference with a known range (a
   selection, a literal `<number>`), and `+ − ×`, integer division, `min`, `max`, `abs` of these.
-  Anything else is an error. (Open: also a `<number>` whose content is in these forms.)
+  A `<number>` or `<integer>` whose content is in these forms counts too, so
+  `<number name="m">$a + 2</number>` and `numToSelect="$m"` is fine; an error there names the
+  `<number>` and the part that isn't analysable. Anything else is an error.
 - **SEL-5: selections depending on each other form an order**, with no cycle (`e0005`), and
   ranges flow forward through it.
 - **SEL-6: every option, case and iteration template is checked, picked or not:** its errors and
