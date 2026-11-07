@@ -191,10 +191,10 @@ describe("a composite reports its own failure rather than losing it @group4", ()
         // A failure after load is a bug, which the end-of-load assertion
         // reports (DIAG-7): in production it is a warning.
         expect(
-            takeErrorsReportedAfterLoad().filter((error) =>
+            takeErrorsReportedAfterLoad().map((error) =>
                 error.message.includes(INJECTED),
-            ).length,
-        ).eq(1);
+            ),
+        ).eqls([true]);
     });
 
     it("control: the same update with nothing injected", async () => {
@@ -267,10 +267,10 @@ describe("a composite reports its own failure rather than losing it @group4", ()
         // A failure after load is a bug, which the end-of-load assertion
         // reports (DIAG-7): in production it is a warning.
         expect(
-            takeErrorsReportedAfterLoad().filter((error) =>
+            takeErrorsReportedAfterLoad().map((error) =>
                 error.message.includes(INJECTED),
-            ).length,
-        ).eq(1);
+            ),
+        ).eqls([true]);
     });
 
     // Extending a composite makes a second composite that shadows it, and a
@@ -327,10 +327,10 @@ describe("a composite reports its own failure rather than losing it @group4", ()
         // A failure after load is a bug, which the end-of-load assertion
         // reports (DIAG-7): in production it is a warning.
         expect(
-            takeErrorsReportedAfterLoad().filter((error) =>
+            takeErrorsReportedAfterLoad().map((error) =>
                 error.message.includes(INJECTED),
-            ).length,
-        ).eq(1);
+            ),
+        ).eqls([true]);
     });
 
     it("control: the same shadowed update with nothing injected", async () => {

@@ -174,6 +174,11 @@ const documents: [string, string, string[]][] = [
     ],
     // what is decided at load is what the content gives when it is made
     [
+        "a select in a case with no options, which selects nothing",
+        inCase(`<select numToSelect="2"/><select></select>`),
+        [],
+    ],
+    [
         "a tag in a case, of a list whose maxNumber keeps two of its entries",
         `<numberList name="nl" maxNumber="2.5">1 2 3</numberList>${inCase(`<number extend="$nl"/>`)}`,
         ["doenet-e0064"],

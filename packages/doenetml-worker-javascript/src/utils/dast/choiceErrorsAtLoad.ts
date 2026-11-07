@@ -105,7 +105,9 @@ function selectError(select: SerializedComponent) {
     ) {
         return undefined;
     }
-    if (numUniqueRequired <= options.length) {
+    // A select with no options selects nothing, and is no error, as the
+    // select decides when it is made (`selectFreshIndices` in `Select.js`).
+    if (options.length === 0 || numUniqueRequired <= options.length) {
         return undefined;
     }
     return codedDiagnostic({
