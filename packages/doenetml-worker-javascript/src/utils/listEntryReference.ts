@@ -671,3 +671,45 @@ function arrayForEntryProperty(
     }
     return LIST_ENTRY_ARRAY_PREFIX + entryProperty;
 }
+
+/**
+ * The list component and the position (1 for the first) of the entry whose
+ * value the value reference `component` (`_ref`) reads, when a copy made it
+ * for one (`fixedReferent`, as for `$l[2]`): what a composite `<sort>` or
+ * `<shuffle>` makes for an entry of a list among what it sorts
+ * (`listEntryReplacement` in `Sort.js`). `undefined` otherwise, as for a
+ * reference that reads another property of an entry (`$l[2].text`).
+ *
+ * A path on such a reference is read on the list as one on the entry
+ * (`$l[2].hide` for `$s[1].hide`, #2480), since the reference stands for
+ * the entry, which has the properties of its type, and the reference has
+ * none of its own.
+ */
+export function listEntryOfValueReference(
+    component: any,
+    components: Record<number, any>,
+    componentInfoObjects: ComponentInfoObjects,
+): { list: any; position: number } | undefined {
+    const fixedReferent = component?.doenetAttributes?.fixedReferent;
+    const position = fixedReferent?.listEntryPosition;
+    if (component?.componentType !== "_ref" || position === undefined) {
+        return undefined;
+    }
+    const list = components[fixedReferent.componentIdx];
+    const listClass = list?.constructor;
+    if (listClass?.listEntryComponentType === undefined) {
+        return undefined;
+    }
+    const valuesArray = arrayForEntryProperty(
+        listClass,
+        "value",
+        componentInfoObjects,
+    );
+    if (
+        list.state[fixedReferent.referencedVariable]?.arrayStateVariable !==
+        valuesArray
+    ) {
+        return undefined;
+    }
+    return { list, position };
+}

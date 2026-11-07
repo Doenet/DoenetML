@@ -760,3 +760,412 @@ describe("An unlinked copy through a reload @group4", () => {
         expect(await shown()).eqls(moved);
     });
 });
+
+/**
+ * A copy of a component named in a case of a `<conditionalContent>` (`$cc.p`)
+ * is made from the case it was made from, through a reload, whichever case
+ * is active then (B35): a `copy` shows the paragraph it was made from, and a
+ * `copyWithState` that with the reader's edits.
+ */
+describe("A copy of a name in a case through a reload @group4", () => {
+    function doenetMLFor(form: string, reference = "$cc.p", written = "p") {
+        return `
+    <mathInput name="n" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$n = 1"><p name="p">one: <mathInput name="a"/></p></case>
+      <else><p name="p">other: <mathInput name="a"/></p></else>
+    </conditionalContent>
+    <booleanInput name="b"/>
+    <conditionalContent><case condition="$b"><${written} ${form}="${reference}" name="pc"/></case></conditionalContent>
+    `;
+    }
+    async function setN(
+        r: Awaited<ReturnType<typeof reloader>>,
+        latex: string,
+    ) {
+        await updateMathInputValue({
+            latex,
+            componentIdx: await r.resolve("n"),
+            core: r.core(),
+        });
+    }
+
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form}: made from the first case, then the case changed`, async () => {
+            const r = await reloader(doenetMLFor(form));
+            await r.setBoolean("b", true);
+            expect((await r.sv("pc")).stateValues.text).eq("one: ＿");
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await r.resolve("pc.a"),
+                core: r.core(),
+            });
+            await setN(r, "2");
+            expect((await r.sv("cc.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            const saved = await r.reload();
+            expect(Object.values(saved.__copySnapshots)).toMatchObject([
+                {
+                    sourceCase: {
+                        cases: [{ stateId: "/~cc", caseIndex: 0 }],
+                    },
+                },
+            ]);
+            expect((await r.sv("cc.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            // the first case active again, and a reload then, keep it
+            await setN(r, "1");
+            await r.reload();
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            // and the case changed again, with a reload
+            await setN(r, "3");
+            await r.reload();
+            expect((await r.sv("cc.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+        });
+
+        it(`${form}: made from the else, then the first case active`, async () => {
+            const r = await reloader(doenetMLFor(form));
+            await setN(r, "2");
+            await r.setBoolean("b", true);
+            await updateMathInputValue({
+                latex: "6",
+                componentIdx: await r.resolve("pc.a"),
+                core: r.core(),
+            });
+            await setN(r, "1");
+            expect((await r.sv("pc")).stateValues.text).eq("other: 6");
+
+            await r.reload();
+            expect((await r.sv("cc.p")).stateValues.text).eq("one: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("other: 6");
+        });
+
+        it(`${form}: of a deeper path, keeps the case`, async () => {
+            const r = await reloader(doenetMLFor(form, "$cc.p.a", "mathInput"));
+            await setN(r, "2");
+            await r.setBoolean("b", true);
+            await updateMathInputValue({
+                latex: "6",
+                componentIdx: await r.resolve("pc"),
+                core: r.core(),
+            });
+            await setN(r, "1");
+            expect((await r.sv("pc")).stateValues.value.tree).eq(6);
+            const saved = await r.reload();
+            expect(Object.values(saved.__copySnapshots)).toMatchObject([
+                {
+                    sourceCase: {
+                        cases: [{ stateId: "/~cc", caseIndex: 1 }],
+                    },
+                },
+            ]);
+            expect((await r.sv("pc")).stateValues.value.tree).eq(6);
+        });
+    }
+
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form}: made from the one case, kept while no case is active`, async () => {
+            // `$cc.p` names nothing while `b` is false, and the copy is made
+            // again from the case it was made from, with the reader's value.
+            const r = await reloader(`
+    <booleanInput name="b" prefill="true"/>
+    <conditionalContent name="cc">
+      <case condition="$b"><p name="p">one: <mathInput name="a"/></p></case>
+    </conditionalContent>
+    <p ${form}="$cc.p" name="pc"/>
+    `);
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await r.resolve("pc.a"),
+                core: r.core(),
+            });
+            await r.setBoolean("b", false);
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            await r.reload();
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            await r.setBoolean("b", true);
+            await r.reload();
+            expect((await r.sv("cc.p")).stateValues.text).eq("one: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+        });
+    }
+
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form}: of a case's content by index, keeps the case`, async () => {
+            // `$cc[1]` is the content of the case active when the copy is
+            // made; a reload makes it again from that case.
+            const r = await reloader(`
+    <mathInput name="n" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$n = 1"><p name="p">one: <mathInput name="a"/></p></case>
+      <else><p name="p">other: <mathInput name="a"/></p></else>
+    </conditionalContent>
+    <group ${form}="$cc[1]" name="gc"/>
+    `);
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await r.resolve("gc.a"),
+                core: r.core(),
+            });
+            await setN(r, "2");
+            expect((await r.sv("cc.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("gc.p")).stateValues.text).eq("one: 5");
+
+            await r.reload();
+            expect((await r.sv("cc.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("gc.p")).stateValues.text).eq("one: 5");
+        });
+    }
+
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form}: in a case shown again, keeps the case it was made from`, async () => {
+            // The copy is in a case of `outer`, which deletes it when its
+            // else is shown and makes it again when the case is shown
+            // again, after `cc` has another case.
+            const r = await reloader(`
+    <mathInput name="n" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$n = 1"><p name="p">one: <mathInput name="a"/></p></case>
+      <else><p name="p">other: <mathInput name="a"/></p></else>
+    </conditionalContent>
+    <booleanInput name="b" prefill="true"/>
+    <conditionalContent name="outer">
+      <case condition="$b"><p ${form}="$cc.p" name="pc"/></case>
+      <else><p name="none">none</p></else>
+    </conditionalContent>
+    `);
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await r.resolve("pc.a"),
+                core: r.core(),
+            });
+            await setN(r, "2");
+            await r.setBoolean("b", false);
+            expect(await r.sv("pc")).eq(undefined);
+            await r.setBoolean("b", true);
+            expect((await r.sv("cc.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            await r.reload();
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+        });
+    }
+
+    it("of a name inside a group in a case, keeps the case", async () => {
+        // A name in only some cases names nothing, in any case, so is not
+        // made from one (`$cc.y` of a `y` only in the first case).
+        const doenetML = `
+    <mathInput name="n" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$n = 1"><group name="g"><text name="x">one</text><text name="y">only one</text></group></case>
+      <else><group name="g"><text name="x">other</text></group></else>
+    </conditionalContent>
+    <text copy="$cc.g.x" name="cgx"/>
+    <text copy="$cc.x" name="cx"/>
+    <text copy="$cc.y" name="cy"/>
+    `;
+        const r = await reloader(doenetML);
+        await setN(r, "2");
+        expect((await r.sv("cc.x")).stateValues.value).eq("other");
+        expect((await r.sv("cgx")).stateValues.value).eq("one");
+        expect((await r.sv("cx")).stateValues.value).eq("one");
+        expect((await r.sv("cy")).stateValues.value).eq("");
+
+        await r.reload();
+        expect((await r.sv("cc.x")).stateValues.value).eq("other");
+        expect((await r.sv("cgx")).stateValues.value).eq("one");
+        expect((await r.sv("cx")).stateValues.value).eq("one");
+        expect((await r.sv("cy")).stateValues.value).eq("");
+    });
+
+    it("of a name in a nested conditionalContent, keeps both cases", async () => {
+        // `ct` is made from the first case of each, and `ct2` from the
+        // second case of the inner one, which the inner one need not have
+        // when the outer one has its first case again.
+        const doenetML = `
+    <mathInput name="n" prefill="1"/>
+    <mathInput name="m" prefill="1"/>
+    <conditionalContent name="outer">
+      <case condition="$n = 1"><conditionalContent name="inner">
+        <case condition="$m = 1"><text name="t">one one</text></case>
+        <else><text name="t">one other</text></else>
+      </conditionalContent></case>
+      <else><text name="t">other</text></else>
+    </conditionalContent>
+    <text copy="$outer.t" name="ct"/>
+    <booleanInput name="b"/>
+    <conditionalContent><case condition="$b"><text copy="$outer.t" name="ct2"/></case></conditionalContent>
+    `;
+        const r = await reloader(doenetML);
+        async function setM(latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await r.resolve("m"),
+                core: r.core(),
+            });
+        }
+        await setM("2");
+        expect((await r.sv("ct")).stateValues.value).eq("one one");
+        const saved = await r.reload();
+        expect(Object.values(saved.__copySnapshots)).toMatchObject([
+            {
+                sourceCase: {
+                    cases: [
+                        { stateId: "/~outer", caseIndex: 0 },
+                        { stateId: "/~outer/~inner", caseIndex: 0 },
+                    ],
+                },
+            },
+        ]);
+        expect((await r.sv("outer.t")).stateValues.value).eq("one other");
+        expect((await r.sv("ct")).stateValues.value).eq("one one");
+
+        await r.setBoolean("b", true);
+        expect((await r.sv("ct2")).stateValues.value).eq("one other");
+        await setM("1");
+        await setN(r, "2");
+        expect((await r.sv("outer.t")).stateValues.value).eq("other");
+        await r.reload();
+        expect((await r.sv("outer.t")).stateValues.value).eq("other");
+        expect((await r.sv("ct")).stateValues.value).eq("one one");
+        expect((await r.sv("ct2")).stateValues.value).eq("one other");
+    });
+
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form}: a conditionalContent copy of one named in a case keeps that case, and decides its own`, async () => {
+            // `c` is a new `<conditionalContent>` made from the `inner` of
+            // the first case of `outer`: it decides its own case from `$b`,
+            // also after a reload while `outer` has its `<else>`, whose
+            // `inner` it was not made from.
+            const doenetML = `
+    <booleanInput name="a" prefill="true"/>
+    <booleanInput name="b" prefill="true"/>
+    <conditionalContent name="outer">
+      <case condition="$a"><conditionalContent name="inner">
+        <case condition="$b"><p name="p">one <mathInput name="m"/></p></case>
+        <else><p name="p">two <mathInput name="m"/></p></else>
+      </conditionalContent></case>
+      <else><conditionalContent name="inner">
+        <case condition="$b"><p name="p">e1</p></case>
+        <else><p name="p">e2</p></else>
+      </conditionalContent></else>
+    </conditionalContent>
+    <conditionalContent ${form}="$outer.inner" name="c"/>
+    `;
+            const r = await reloader(doenetML);
+            async function setM(latex: string) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await r.resolve("c.m"),
+                    core: r.core(),
+                });
+            }
+            await setM("5");
+            await r.setBoolean("b", false);
+            await setM("6");
+            await r.setBoolean("a", false);
+            expect((await r.sv("outer.p")).stateValues.text).eq("e2");
+            expect((await r.sv("c.p")).stateValues.text).eq("two 6");
+
+            await r.reload();
+            expect((await r.sv("outer.p")).stateValues.text).eq("e2");
+            expect((await r.sv("c.p")).stateValues.text).eq("two 6");
+            await r.setBoolean("b", true);
+            expect((await r.sv("c.p")).stateValues.text).eq("one 5");
+            await r.reload();
+            expect((await r.sv("outer.p")).stateValues.text).eq("e1");
+            expect((await r.sv("c.p")).stateValues.text).eq("one 5");
+        });
+    }
+});
+
+/**
+ * What was saved of a component is restored only to a component of the type
+ * it was saved from (B36). A copy of a `<collect>` made again on load is
+ * made from what the collect holds then, and counts its `stateId`s from its
+ * own, so a component of another type can have the `stateId` a saved one
+ * had.
+ */
+describe("A saved value restored to a component of another type @group4", () => {
+    const doenetMLFor = (tail: string) => `
+    <booleanInput name="b"/>
+    <section name="s"><conditionalContent name="cc">
+      <case condition="$b"><textInput name="i"/></case>
+      <else><mathInput name="i"/></else>
+    </conditionalContent></section>
+    <collect name="col" componentType="_input" from="$s"/>
+    ${tail}
+    `;
+
+    for (const form of ["copy", "copyWithState"]) {
+        it(`is dropped, for a ${form} of a collect`, async () => {
+            const r = await reloader(
+                doenetMLFor(`<group ${form}="$col" name="gc"/>`),
+            );
+            await updateMathInputValue({
+                latex: "x+1",
+                componentIdx: await r.resolve("gc.i"),
+                core: r.core(),
+            });
+            await r.setBoolean("b", true);
+
+            const saved = await r.reload();
+            // the mathInput the reader typed into, which the textInput made
+            // again on load has the `stateId` of
+            const [stateId] = Object.entries(saved.__componentTypes).find(
+                ([, type]) => type === "mathInput",
+            )!;
+            expect(saved[stateId].value).eqls(["+", "x", 1]);
+
+            const i = await r.sv("gc.i");
+            expect(i.componentType).eq("textInput");
+            expect(i.stateValues.value).eq("");
+            await updateTextInputValue({
+                text: "hello",
+                componentIdx: await r.resolve("gc.i"),
+                core: r.core(),
+            });
+
+            const resaved = await r.reload();
+            expect(resaved.__componentTypes[stateId]).eq("textInput");
+            expect((await r.sv("gc.i")).stateValues.value).eq("hello");
+        });
+    }
+
+    it("does not happen for a collect, or a linked copy of one", async () => {
+        // their components shadow what they collect, whose values are saved
+        // under its own `stateId`
+        const r = await reloader(
+            doenetMLFor(`<group extend="$col" name="ge"/>`),
+        );
+        await updateMathInputValue({
+            latex: "x+1",
+            componentIdx: await r.resolve("ge.i"),
+            core: r.core(),
+        });
+        await r.setBoolean("b", true);
+        const saved = await r.reload();
+        expect(Object.keys(saved.__componentTypes).sort()).eqls([
+            "/~b",
+            "/~s/~cc/1/0/0",
+        ]);
+        expect((await r.sv("ge.i")).stateValues.value).eq("");
+        expect((await r.sv("col[1]")).stateValues.value).eq("");
+    });
+
+    it("saves the type only of what it saves", async () => {
+        const r = await reloader(`
+    <mathInput name="m" prefill="1"/>
+    <booleanInput name="b"/>
+    `);
+        await r.setBoolean("b", true);
+        const saved = await r.reload();
+        expect(saved.__componentTypes).eqls({ "/~b": "booleanInput" });
+    });
+});

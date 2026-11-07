@@ -192,7 +192,10 @@ describe("what a rebuild cannot recompute is still saved @group4", () => {
         });
         await core.saveImmediately();
 
-        const keys = Object.keys(JSON.parse(scoreState.state as string));
+        // (`__` keys are not components' entries)
+        const keys = Object.keys(JSON.parse(scoreState.state as string)).filter(
+            (key) => !key.startsWith("__"),
+        );
         expect(keys.sort()).eqls(["/~sampled", "/~ti"]);
     });
 });

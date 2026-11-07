@@ -118,8 +118,8 @@ export function copySnapshotOf(
  * none applies within a replacement whose `stateId` has an entry only of
  * another type: that replacement and what it contains were made from other
  * DoenetML. A copy made again with a different shape (one whose shape no
- * held case decides, as of a `<collect>` or of `$cc.p`, or one from a save
- * that held the snapshot alone, `heldCopySnapshot`) is thus made from its
+ * held case decides, as of a `<collect>`, or one from a save that held the
+ * snapshot alone, `heldCopySnapshot`) is thus made from its
  * source as restored, and keeps nothing it cannot apply: the copy then holds
  * only the snapshot of what it made.
  */
@@ -266,6 +266,9 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
  *   index named nothing (`doenet-i0054`);
  * - `caseIndex`, the case of a `<conditionalContent>` a copy of it was made
  *   from, or `null` when it had no active case;
+ * - `sourceCase`, for a copy of a component named in a case of a
+ *   `<conditionalContent>` (`$cc.p`), that component and the case of each
+ *   `<conditionalContent>` it was in (`sourceCaseOf` in `Copy.js`);
  * - `indexIntoScalar`, by the reference as written, whether an index of the
  *   copy named nothing because it indexed into a scalar, which is reported
  *   as it was when the copy was made (`reportIndexIntoScalarAsMade`).
@@ -282,6 +285,7 @@ export function heldCopySnapshot(component) {
     if (
         madeFrom.typeChange === undefined &&
         madeFrom.caseIndex === undefined &&
+        madeFrom.sourceCase === undefined &&
         !hasIndexWarnings
     ) {
         return component.unlinkedSnapshot;
@@ -293,6 +297,9 @@ export function heldCopySnapshot(component) {
         }),
         ...(madeFrom.caseIndex !== undefined && {
             caseIndex: madeFrom.caseIndex,
+        }),
+        ...(madeFrom.sourceCase !== undefined && {
+            sourceCase: madeFrom.sourceCase,
         }),
         ...(hasIndexWarnings && { indexIntoScalar }),
     };
@@ -314,6 +321,14 @@ export async function indexWarningsStillMade(component) {
         }
     }
     return true;
+}
+
+/**
+ * Whether two `sourceCase`s (`sourceCaseOf` in `Copy.js`) say the same of
+ * where a copy was made from.
+ */
+export function sameSourceCase(a, b) {
+    return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
 
 /**

@@ -47,7 +47,9 @@ export default class Collect extends CompositeComponent {
             description: "Maximum number of descendants to collect.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
+            // no limit, which has no value: `$c.maxNumber` is missing
             defaultValue: null,
+            nullIsMissing: true,
             public: true,
         };
 
