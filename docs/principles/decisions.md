@@ -2225,7 +2225,21 @@ checks that a document's errors are the same across variants.
 ## D39. No variant is broken by a selection (decided, Tier 1)
 
 **Decided**, with the answers below. COMP-8 and the SEL principles in
-[composites-and-lists.md](composites-and-lists.md) state it. SEL-4 accepts an intermediate
+[composites-and-lists.md](composites-and-lists.md) state it.
+
+**Revised after the questions:**
+- **Existence and parameters are separate.** A reader may decide whether a choice exists (a
+  case revealed, iterations added through `<repeatForSequence to="$n">`), never what it chooses
+  from. A repeat's `indexName` is always allowed in a parameter, and its `valueName` when what
+  it iterates over is analysable. No user value reaches a parameter, even where its effect could
+  be worked out (`from="$n"`).
+- **An iteration index ranges over every iteration that can exist**, with no end when the count
+  comes from an input, and iteration *k*'s choice depends only on the variant and *k* (SEL-3).
+- **The author-facing rule is one Tier 1 statement**, worded so it doesn't change as analysable
+  forms are added; the rules that say how it is checked are Tier 2, renumbered SEL-1 to SEL-8. The
+  proposal below keeps its original numbering; the principle file's is current (proposal SEL-2 is
+  now SEL-4, SEL-3 is SEL-5, SEL-4 is SEL-6, SEL-5 is SEL-7, SEL-6 is SEL-8; SEL-2 and SEL-3 are
+  new). SEL-4 accepts an intermediate
 `<number>` or `<integer>` (decided after the questions below).
 
 **The goal.** A student should never get a variant the author didn't know was broken. A select
