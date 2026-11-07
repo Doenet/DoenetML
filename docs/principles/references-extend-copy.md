@@ -354,8 +354,8 @@ So the bare form and the tag report the same diagnostics, at the same level (REF
   missingness, so `$r[1].m.value` of a missing `m` reads `NaN`;
 - `<group><group/><math/></group>`, one component beside a child that holds nothing, is not
   decided at load;
-- a `<conditionalContent>` or `<select>` nested in a case or option is allowed at load but shows
-  `<T/>`'s default with no info (B22, #2437).
+- B22 (a nested `<conditionalContent>` or `<select>`, or a component reached through a `_copy`)
+  was fixed by #2484: the one component a composite holds is found through references.
 
 History: #2447 (closing #2445) implemented D36, deciding at load and making a missing referent on
 a tag an error. D37 kept the load-time type check and reversed the errors for missing (#2458).
@@ -478,6 +478,15 @@ Evidence: `T/copying/extend_references.test.ts`:
 Code: `W/components/abstract/Copy.js:1747-1758`, `addChildrenFromComposite` (`:4448`).
 
 Exception: composites (REF-7).
+
+Since #2483 the children written on a `copy` or `extend` are read with the type's sugar, as on a
+tag written on its own: `<point copy="$P">(3,4)</point>` is at (3,4) (B13, #2395), as are a
+`<vector>`, `<line>` or `<angle>` child; on `<sum>`, `<series>` and `<sortIndices>` the child is
+appended to the source's terms; on an input it is what the input is bound to, as `bindValueTo`.
+A child's sugar overrides an attribute written on the copy. **Known violations (#2486):** a
+child the copy ignores (`<function copy="$f">x^3</function>`, `<answer copy>`, `<curve copy>`, an
+extend of an input) gives no warning, where it gave `w0107` before #2483; and
+`<matrix copy="$M">[[5,6],[7,8]]</matrix>` is an empty matrix.
 
 ### REF-4a: of a child a component uses only one of, the last one written wins (Tier 1)
 A component uses only one `<label>`, `<title>` or `<shortDescription>`. When more than one is
@@ -616,15 +625,16 @@ list or `<group>` written as the tag, internal list forms, and unresolved paths.
 reference to a copy (`$a1[2]` of `<group name="a1" extend="$a"/>`) selects a child of the copy,
 not a pick of what it copies, so it is left to run time (compare B26).
 
+**Done by #2484** (closing #2440, #2429, #2437; B22, B24, B30): an input written as a related
+tag reads its value, so `<point extend="$mi"/>` is `(1, 2)` and dragging it edits `mi`. A boolean
+is `1`/`0` as a number or math (`convertBoolean`, which an author's `<number convertBoolean>`
+can now be written through). A `<boolean>` from a text reads the word `true`/`false`, and any
+other text is missing with `i0053`. A property source is checked against its value as it
+changes (`<point extend="$P.x"/>` is missing). `bindValueTo` of a `<subsetOfRealsInput>` works.
+
 Known violations:
-- a related type reached through a reference shows a default (B22, #2437);
-- the `bindValueTo` that `e0062` recommends throws for a `<subsetOfRealsInput>` (B24, #2429);
-- some allowed pairs give a default (a mathInput holding a tuple as a point, a text `true` as a
-  boolean), and a property source is not checked against its value (B30, #2440). The input pairs
-  are wider than that: `<math extend="$bi"/>`, `<text extend="$mi"/>` and every other tag from a
-  `<textInput>` hold the input itself as a child, show a default, and mostly warn `doenet-w0107`
-  "Invalid children". So do `<math extend="$b"/>` and `<number extend="$b"/>` of a `<boolean>`,
-  which should be `1` or `0`;
+- `<point extend="$ci"/>` of a `<choiceInput>` is checked only when made, not as the selection
+  changes (#2488);
 - a copy that made nothing could report a different info after a reload (B37). #2447 removed
   the run-time `e0065` of its example; whether two infos can still differ is not checked;
 - a `<select>` whose options are all written with `copy` failed to load (B39); fixed by #2468.
@@ -825,8 +835,9 @@ copies of a URI, copies of a module, and copies that change what is chosen (#245
 - a `copyWithState` doesn't carry a sampler's draws, and they aren't kept through a reload; and
   a module attribute reaching a nested choice through a list other than `<numberList>` isn't
   kept, with no `w0186` (#2477);
-- a copy of a `<conditionalContent>` doesn't follow its own condition, and a reference inside it
-  whose name is shadowed where the copy sits shows `＿` (#2476).
+- #2476 was not a defect: `condition` on a `<conditionalContent>` with an `<else>` is ignored with a
+  warning, and the blank came from a name declared twice. #2481 made `<conditionalContent copy>`
+  a new `<conditionalContent>` that decides its own case, also through a reload.
 
 Evidence:
 - `T/copying/unlinked copy.test.ts:285` "copy no link, base test";
@@ -855,9 +866,10 @@ show behavior through 0.7, D33.)
   includes what decided its shape: the type-change decision of a copy written as another tag,
   and the case of a `<conditionalContent>` it was made from. A copy deleted and made again
   within a session keeps them too.
-- **Known violations:** a copy of a component named inside a `<conditionalContent>`,
-  `<p copy="$cc.p"/>`, is remade on load from the case active then (B35, #2446). A `<group copy>` of a
-  `<collect>` whose collected input changed type throws on reload (B36, #2446).
+- Since #2481 a copy of a component named inside a case keeps that case through a reload (B35),
+  and a saved value is restored only to a component of its own type (B36). **Known
+  violations:** a source a composite in the case makes, and `$e.p` through an extend of a
+  `<conditionalContent>`, are made from what the reference names now (#2485).
 
 This is how authors freeze a reader's work, and it is why `copyWithState` is "pasted DoenetML
 *plus the current state*", not pure paste. `copy` is pure paste (CPY-1).
