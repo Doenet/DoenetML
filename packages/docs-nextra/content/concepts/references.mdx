@@ -147,11 +147,12 @@ same way, as long as it has entries: `$t[1][2]` of
 `<math name="t">((1,2),(3,4))</math>` is `2`, and `$l[1][2]` of a list whose
 first entry is a tuple is that tuple's second entry. An index past them, such
 as `$P[1][1]` of a point, whose coordinates have no entries, or `$A[1][2][3]`,
-references nothing with the same warning. The warning follows the value: for `$m[2]` of a
-`<math>` whose value comes from an input, it is there while the value is a
-single expression and goes away once it is a tuple. A `copy`, such as
-`<math copy="$m[2]"/>{:dn}`, doesn't follow its source, so it keeps the warning
-it was made with, as it keeps what it shows. An index past the last
+references nothing with the same warning. When the value can change, as for
+`$m[2]` of a `<math>` whose value comes from an input, it is an info rather
+than a warning, since nothing in the DoenetML needs to change. It follows the
+value: it is there while the value is a single expression and goes away once it
+is a tuple. A `copy`, such as `<math copy="$m[2]"/>{:dn}`, doesn't follow its
+source, so it keeps the info it was made with, as it keeps what it shows. An index past the last
 entry also references nothing, without a warning, since the number of entries
 can change.
 
@@ -282,8 +283,9 @@ a while, shown as `＿`, with an info, and none changes its type:
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
   iterations of `r` is missing, and is made from the iteration again, with the
   tag's own children, when the index names one. The bare reference `$r[$i]`
-  shows `＿` too, without the info. A literal index below 1, such as `$l[0]`,
-  never names anything, and is a warning in either form.
+  shows `＿` too. While `i` is below 1, it gives an info too, as does `$l[$i]`
+  of a list, which goes away once `i` names an entry. A literal index below 1,
+  such as `$l[0]`, never names anything, and is a warning in either form.
 * **A composite that holds nothing.** `<math extend="$cc"/>{:dn}` of a
   `<conditionalContent>` with no `<else>` is missing while no case is true,
   and so is one whose chosen case holds nothing, or holds another
