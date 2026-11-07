@@ -153,13 +153,16 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
 12. Selections are made once, from the variant, and never made again: not when what they were
     made from changes, not on a reload, not to recover from a problem. The same variant gives
     the same selections. (COMP-8, VAR-1)
+13. The reader can decide whether a random choice appears, but never what it chooses from: that
+    comes from what you wrote. Every choice that can appear can be made as written; if DoenetML
+    can't show that, you get an error, the same in every variant. (SEL, D39)
 
 **Inherited attributes**
 
-13. `hide`, `fixed`, `fixLocation`, `disabled` and `styleNumber` written on a container apply to
+14. `hide`, `fixed`, `fixLocation`, `disabled` and `styleNumber` written on a container apply to
     what is inside it. Something inside can opt out with its own attribute, except that nothing
     inside a hidden container can unhide itself. (CTX-1 to CTX-6)
-14. What each one does:
+15. What each one does:
 
     | Attribute | Effect |
     |---|---|
@@ -173,9 +176,9 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
 
 **Interaction**
 
-15. An input shows the value it is bound to. Typing into it changes that value if a formula
+16. An input shows the value it is bound to. Typing into it changes that value if a formula
     can be run backward (`2$n+1`, `($a,$b)`). Otherwise it snaps back. (INT-1 to INT-3)
-16. A reader's work survives a reload, and survives content being hidden and shown again.
+17. A reader's work survives a reload, and survives content being hidden and shown again.
     (SAVE-1, SAVE-4)
 
 ## How to use these documents

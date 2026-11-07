@@ -285,6 +285,8 @@ samplers.
 
 **Known violations** (D39 is not implemented):
 - a parameter may come from an input, or from a value a reader can change;
+- whether an iteration made later is seeded by its position, so its choice doesn't depend on the
+  order iterations were made (SEL-3), is not tested;
 - a failure a value decides is a missing selection with an info in some variants (#2468): `to="$a"`
   with a random `a`, `e0032` at info level;
 - `coprime` draws that find nothing (`i0057`) and the fluke codes `e0052`/`e0053` fail by chance;
