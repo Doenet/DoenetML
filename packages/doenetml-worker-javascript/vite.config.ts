@@ -24,5 +24,7 @@ export default defineConfig({
     test: {
         testTimeout: 180000,
         pool: "threads",
+        // Fail a test whose document reports an error after load (DIAG-7).
+        setupFiles: ["./src/test/setupErrorsAfterLoad.ts"],
     },
 });

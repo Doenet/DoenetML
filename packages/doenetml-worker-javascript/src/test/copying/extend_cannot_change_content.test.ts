@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { takeErrorsReportedAfterLoad } from "../utils/errorsAfterLoad";
 import { updateMathInputValue, updateSelectedIndices } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -471,6 +472,15 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
             ["doenet-e0056", "$r[2]"],
             ["doenet-e0056", "$r[1]"],
         ]);
+        // A known violation of DIAG-7: the error for `$r[1]` appears only
+        // after `n` changes, which the end-of-load assertion reports. It is
+        // to be decided at load, from what is written (#2463).
+        expect(
+            takeErrorsReportedAfterLoad().map((error) => [
+                error.code,
+                error.args?.source,
+            ]),
+        ).eqls([["doenet-e0056", "$r[1]"]]);
     });
 
     it("an attribute given by a reference on an extend is reported once, with nothing about its value", async () => {

@@ -63,6 +63,61 @@ function isCopyOfReportedError(serializedComponent: any, core: Core): boolean {
 }
 
 /**
+ * The error diagnostic an `_error` component reports, read back off its
+ * `state`: an `_error` built from a coded error (`convertToErrorComponent`)
+ * stays coded, and one built from a bare string stays a bare string.
+ */
+function errorDiagnosticOf(serializedComponent: any) {
+    return {
+        type: "error" as const,
+        message: serializedComponent.state.message,
+        ...diagnosticCodeFrom(serializedComponent.state),
+        position: serializedComponent.position,
+        sourceDoc: serializedComponent.sourceDoc,
+    };
+}
+
+/**
+ * In production, an `_error` made after load, whose error was not reported
+ * at load, is missing instead (DIAG-7, `ErrorsAfterLoad`): its error is
+ * reported as a warning, and a blank (`＿`) is shown in its place rather than
+ * an error box, so a reader never sees an error appear. Anything else is
+ * returned as it is.
+ */
+function missingInPlaceOfErrorAfterLoad(
+    serializedComponent: any,
+    core: Core,
+): any {
+    const manager = core.diagnosticsManager;
+    if (
+        serializedComponent.componentType !== "_error" ||
+        manager.errorsAfterLoad !== "warn" ||
+        !manager.loaded ||
+        isCopyOfReportedError(serializedComponent, core)
+    ) {
+        return serializedComponent;
+    }
+    const diagnostic = errorDiagnosticOf(serializedComponent);
+    if (!manager.isErrorAfterLoad(diagnostic)) {
+        return serializedComponent;
+    }
+    // reported as a warning (`DiagnosticsManager._afterLoad`)
+    core.addDiagnostic(diagnostic);
+    return {
+        type: "serialized",
+        componentType: "_missing",
+        componentIdx: serializedComponent.componentIdx,
+        stateId: serializedComponent.stateId,
+        position: serializedComponent.position,
+        sourceDoc: serializedComponent.sourceDoc,
+        attributes: {},
+        doenetAttributes: {},
+        state: {},
+        children: [],
+    };
+}
+
+/**
  * Build a list of ancestor descriptors with `parent` prepended to its own
  * `ancestors` chain — the canonical shape consumed by component
  * constructors and by `createIsolatedComponents` recursion.
@@ -318,6 +373,11 @@ export async function createIsolatedComponents({
             newComponents.push(serializedComponent);
             continue;
         }
+
+        serializedComponent = missingInPlaceOfErrorAfterLoad(
+            serializedComponent,
+            core,
+        );
 
         let componentClass =
             core.componentInfoObjects.allComponentClasses[
@@ -662,13 +722,7 @@ export async function createChildrenThenComponent({
         // the author wrote its cause, and the copy only shows it again
         // (DIAG-4, #2449).
         if (!isCopyOfReportedError(serializedComponent, core)) {
-            core.addDiagnostic({
-                type: "error",
-                message: serializedComponent.state.message,
-                ...diagnosticCodeFrom(serializedComponent.state),
-                position: serializedComponent.position,
-                sourceDoc: serializedComponent.sourceDoc,
-            });
+            core.addDiagnostic(errorDiagnosticOf(serializedComponent));
         }
     } else if (
         lastErrorMessageFromAttribute ||

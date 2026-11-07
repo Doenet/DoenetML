@@ -5,6 +5,7 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
+import { takeErrorsReportedAfterLoad } from "../utils/errorsAfterLoad";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -890,6 +891,12 @@ describe("A reference written as a different tag is allowed only between related
         expect(typeChangeDiagnostics().map((d) => [d.code, d.type])).eqls([
             ["doenet-e0064", "error"],
         ]);
+        // A known violation of DIAG-7: a value decides how many entries the
+        // list holds, so the error appears after load, which the end-of-load
+        // assertion reports. It is to be a missing tag with an info (#2463).
+        expect(takeErrorsReportedAfterLoad().map((e) => e.code)).eqls([
+            "doenet-e0064",
+        ]);
 
         await updateMathInputValue({ latex: "1", componentIdx: n, core });
         expect(await texts(["p1"])).eqls({ p1: "1" });
@@ -1003,6 +1010,21 @@ describe("A reference written as a different tag is allowed only between related
         expect(newDiagnostics()).eqls([
             ["doenet-e0064", "error", 7],
             ["doenet-e0064", "error", 8],
+        ]);
+        // A known violation of DIAG-7: a value decides how many entries
+        // `ml2` holds, so each error appears after load, which the end-of-load
+        // assertion reports. It is to be a missing tag with an info (#2463).
+        expect(
+            takeErrorsReportedAfterLoad().map((e) => [
+                e.code,
+                e.position?.start.line,
+                e.args?.count,
+            ]),
+        ).eqls([
+            ["doenet-e0064", 7, 2],
+            ["doenet-e0064", 8, 2],
+            ["doenet-e0064", 7, 0],
+            ["doenet-e0064", 8, 0],
         ]);
     });
 
