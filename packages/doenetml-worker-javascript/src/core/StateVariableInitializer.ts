@@ -929,6 +929,23 @@ function arrayDefinition(this: any, args: any) {
 
             result = arrayStateVarObj.arrayDefinitionByKey(args);
 
+            // What each array key recalculated gives on a condition now
+            // (`setDefinitionConditionDiagnostics`): those it returned, and
+            // none for a key it returned none for, which withdraws them. A
+            // key not recalculated keeps what it gave.
+            if (
+                result.conditionDiagnosticsByKey ||
+                arrayStateVarObj.reportsConditionDiagnosticsByKey
+            ) {
+                arrayStateVarObj.reportsConditionDiagnosticsByKey = true;
+                const byKey: Record<string, any[]> = {};
+                for (const arrayKey of arrayKeysToRecalculate) {
+                    byKey[arrayKey] =
+                        result.conditionDiagnosticsByKey?.[arrayKey] ?? [];
+                }
+                result.conditionDiagnosticsByKey = byKey;
+            }
+
             // in case definition returns additional array entries,
             // mark all array keys received as fresh as well
             const markReturnedKeysFresh = (valuesByKey: any) => {

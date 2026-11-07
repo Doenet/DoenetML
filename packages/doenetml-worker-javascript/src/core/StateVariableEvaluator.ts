@@ -793,6 +793,7 @@ export class StateVariableEvaluator {
 
         if (
             result.conditionDiagnostics ||
+            result.conditionDiagnosticsByKey ||
             this.core.diagnosticsManager._conditionDiagnostics.has(
                 component.componentIdx,
             )
@@ -891,7 +892,9 @@ export class StateVariableEvaluator {
      * depends on changed (`noChanges`), leaves them as they are.
      *
      * Keyed by the definition, through the first of the state variables it
-     * defines, so it is the same whichever of them asked for it.
+     * defines, so it is the same whichever of them asked for it. An array's
+     * definition gives them by array key (`conditionDiagnosticsByKey`), as
+     * it recalculates only some keys.
      */
     setDefinitionConditionDiagnostics({
         component,
@@ -902,11 +905,51 @@ export class StateVariableEvaluator {
         stateVariables: string[];
         result: any;
     }) {
-        if (result.noChanges && !result.conditionDiagnostics) {
+        const condition = `stateVariable:${[...stateVariables].sort()[0]}`;
+        if (result.conditionDiagnosticsByKey) {
+            // an array's definition, which recalculates some of its keys
+            // (`arrayDefinitionByKey`): each key's diagnostics are replaced
+            // only when the key is recalculated
+            for (const arrayKey in result.conditionDiagnosticsByKey) {
+                this.setConditionDiagnosticsOf({
+                    component,
+                    condition: `${condition}[${arrayKey}]`,
+                    diagnostics: result.conditionDiagnosticsByKey[arrayKey],
+                });
+            }
             return;
         }
-        const condition = `stateVariable:${[...stateVariables].sort()[0]}`;
-        const diagnostics: any[] = result.conditionDiagnostics ?? [];
+        if (
+            (result.noChanges && !result.conditionDiagnostics) ||
+            stateVariables.some(
+                (varName) =>
+                    component.state[varName]?.isArray ||
+                    component.state[varName]?.isArrayEntry,
+            )
+        ) {
+            // nothing was decided again, or only some keys of an array were
+            return;
+        }
+        this.setConditionDiagnosticsOf({
+            component,
+            condition,
+            diagnostics: result.conditionDiagnostics ?? [],
+        });
+    }
+
+    /**
+     * Report `diagnostics` as what `condition` of `component` gives now,
+     * located at the component unless they say where.
+     */
+    setConditionDiagnosticsOf({
+        component,
+        condition,
+        diagnostics,
+    }: {
+        component: ComponentInstance;
+        condition: string;
+        diagnostics: any[];
+    }) {
         if (
             diagnostics.length === 0 &&
             !this.core.diagnosticsManager._conditionDiagnostics
