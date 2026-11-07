@@ -179,6 +179,25 @@ const documents: [string, string, string[]][] = [
         [],
     ],
     [
+        "a select in a case with withReplacement written as an expression, which is true",
+        inCase(
+            `<select numToSelect="3" withReplacement="1"><option>a</option><option>b</option></select>`,
+        ),
+        [],
+    ],
+    [
+        "a select in a case with an option written as an extend, which is no option",
+        `<option name="o">q</option>${inCase(`<select numToSelect="3"><option extend="$o"/></select>`)}`,
+        ["doenet-e0061"],
+    ],
+    [
+        "a select in a case with an option and an extend of it, which is no option",
+        inCase(
+            `<select numToSelect="2"><option name="o1">a</option><option extend="$o1"/></select>`,
+        ),
+        ["doenet-e0061", "doenet-e0035"],
+    ],
+    [
         "a tag in a case, of a list whose maxNumber keeps two of its entries",
         `<numberList name="nl" maxNumber="2.5">1 2 3</numberList>${inCase(`<number extend="$nl"/>`)}`,
         ["doenet-e0064"],

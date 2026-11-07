@@ -73,11 +73,14 @@ function selectError(select: SerializedComponent) {
         return undefined;
     }
     // Written bare, `withReplacement` is `"true"` by now; written as `""`,
-    // it is false, as the select reads it.
-    const replacement =
-        withReplacement !== undefined &&
-        withReplacement.toLowerCase() === "true";
-    if (replacement) {
+    // it is false, as the select reads it. Any other text is read as an
+    // expression (`"1"` and `"1>0"` are true), so it is left to run time.
+    const replacementText = withReplacement?.toLowerCase();
+    if (
+        replacementText !== undefined &&
+        replacementText !== "false" &&
+        replacementText !== ""
+    ) {
         return undefined;
     }
     const options: SerializedComponent[] = [];
@@ -93,6 +96,12 @@ function selectError(select: SerializedComponent) {
             !optionWrittenInDoenetML(child)
         ) {
             return undefined;
+        }
+        // An `<option extend>` is an error (`doenet-e0061`, decided by
+        // `extendErrorsAtLoad.ts` before this), which takes its place when
+        // the select is made, so it is no option.
+        if ((child.doenetAttributes?.extendErrorsAtLoad ?? []).length > 0) {
+            continue;
         }
         options.push(child);
     }
