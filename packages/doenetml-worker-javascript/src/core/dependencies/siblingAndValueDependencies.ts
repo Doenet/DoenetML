@@ -402,10 +402,11 @@ export class DecidedByDoenetMLDependency extends Dependency {
             const component =
                 this.dependencyHandler._components[this.upstreamComponentIdx];
             this.value = component
-                ? partsDecidedByDoenetML({
+                ? decidedFollowingShadows({
                       component,
                       attributeNames: this.attributeNames,
                       children: this.children,
+                      components: this.dependencyHandler._components,
                       componentInfoObjects:
                           this.dependencyHandler.componentInfoObjects,
                   })
@@ -413,6 +414,58 @@ export class DecidedByDoenetMLDependency extends Dependency {
         }
         return { value: this.value, changes: {} };
     }
+}
+
+/**
+ * {@link partsDecidedByDoenetML} of `component`, where a copy (a component
+ * that shadows another) is decided as its source is: what it copies is
+ * decided where it was written. An attribute the copy writes itself, as
+ * `<vector extend="$v" displacement="(1,2,3)"/>`, is decided on the copy.
+ */
+function decidedFollowingShadows({
+    component,
+    attributeNames,
+    children,
+    components,
+    componentInfoObjects,
+}: {
+    component: any;
+    attributeNames: string[];
+    children: boolean;
+    components: any[];
+    componentInfoObjects: any;
+}): boolean {
+    const source = component.shadows
+        ? components[component.shadows.componentIdx]
+        : undefined;
+    if (!source) {
+        return partsDecidedByDoenetML({
+            component,
+            attributeNames,
+            children,
+            componentInfoObjects,
+        });
+    }
+    const ownAttributes = attributeNames.filter((name) => {
+        const attribute = component.attributes?.[name];
+        return attribute && !attribute.component?.shadows;
+    });
+    return (
+        partsDecidedByDoenetML({
+            component,
+            attributeNames: ownAttributes,
+            componentInfoObjects,
+        }) &&
+        decidedFollowingShadows({
+            component: source,
+            attributeNames: attributeNames.filter(
+                (name) => !ownAttributes.includes(name),
+            ),
+            children,
+            components,
+            componentInfoObjects,
+        })
+    );
 }
 
 export class FlagDependency extends ValueDependency {

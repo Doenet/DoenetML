@@ -1509,12 +1509,15 @@ describe("MatchesPattern tag tests @group3", async () => {
             expected: { "3x+3": false, "ax+a": ["＿"] },
         });
 
-        let warnings = getDiagnosticsByType(core).warnings;
-        expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0117");
+        // The parameters come from an input, so a parameter the pattern
+        // lacks is an info, there while it lasts (DIAG-2, B33).
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        let infos = getDiagnosticsByType(core).infos;
+        expect(infos.length).eq(1);
+        expect(infos[0].code).eq("doenet-w0117");
 
-        // Returning to `a` and back to `b` recomputes both ways without
-        // raising the same warning a second time.
+        // Returning to `a` and back to `b` recomputes both ways: the info
+        // goes away and comes back, once.
         await updateMathInputValue({
             latex: "a",
             componentIdx: await resolvePathToNodeIdx("params"),
@@ -1526,6 +1529,7 @@ describe("MatchesPattern tag tests @group3", async () => {
             numMatches: 1,
             expected: { "3x+3": ["3"] },
         });
+        expect(getDiagnosticsByType(core).infos.length).eq(0);
 
         await updateMathInputValue({
             latex: "b",
@@ -1538,7 +1542,8 @@ describe("MatchesPattern tag tests @group3", async () => {
             numMatches: 1,
             expected: { "3x+3": false },
         });
-        expect(getDiagnosticsByType(core).warnings.length).eq(1);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        expect(getDiagnosticsByType(core).infos.length).eq(1);
     });
 
     it("changing the pattern at runtime recomputes the match", async () => {
@@ -1572,8 +1577,8 @@ describe("MatchesPattern tag tests @group3", async () => {
             expected: { "3x+3": false, "3x^2+3": ["3"] },
         });
 
-        // A pattern that no longer mentions `a` warns; going back clears the
-        // way for a match again.
+        // A pattern from an input that no longer mentions `a` gives an info
+        // (DIAG-2); going back clears it, and the way for a match again.
         await updateMathInputValue({
             latex: "bx+b",
             componentIdx: await resolvePathToNodeIdx("pat"),
@@ -1585,8 +1590,9 @@ describe("MatchesPattern tag tests @group3", async () => {
             numMatches: 1,
             expected: { "3x+3": false },
         });
-        expect(getDiagnosticsByType(core).warnings.length).eq(1);
-        expect(getDiagnosticsByType(core).warnings[0].code).eq("doenet-w0117");
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        expect(getDiagnosticsByType(core).infos.length).eq(1);
+        expect(getDiagnosticsByType(core).infos[0].code).eq("doenet-w0117");
 
         await updateMathInputValue({
             latex: "ax+a",
@@ -1599,5 +1605,6 @@ describe("MatchesPattern tag tests @group3", async () => {
             numMatches: 1,
             expected: { "3x+3": ["3"] },
         });
+        expect(getDiagnosticsByType(core).infos.length).eq(0);
     });
 });
