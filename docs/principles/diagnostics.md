@@ -19,7 +19,8 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
   - a cycle (NAME-7).
 - **Warning:** the DoenetML is valid, but almost certainly not what was meant, or does nothing.
   The author should change it. Examples:
-  - an attribute that is ignored;
+  - an attribute that is ignored, including one the tag doesn't have on a `copy`, `copyWithState`
+    or `extend` (`doenet-w0187`, #2482);
   - a deprecated form;
   - an ambiguous name (`doenet-w0105`);
   - a literal `$l[0]`;
@@ -102,21 +103,23 @@ Decided in D35.
   authors learn the rule, so it is part of the rule.
 
 **Known violations:**
-- a function reference with an index quotes only up to the index, `$$f[2]`, not `$$f[2](2)`
-  (#2434);
 - an index into a tag written with `extend` that reads itself,
   `<math name="m2" extend="$m">$m2[1]</math>`, gives an internal error (#2473). B29 was fixed by
   #2471;
-- `<p name="p" copy="$p"/>` reports an internal `<_copy>` (NAME-7).
+- `<p name="p" copy="$p"/>` reports an internal `<_copy>` (NAME-7);
+- `<repeat for="">` gives an uncoded "Invalid empty attribute for" (#2488).
+
+Since #2482 a function reference is quoted whole after an index (`$$f[2](2)`), and a missing
+function's arguments are resolved for their own diagnostics: `$$f($a)` reports both (#2434).
 
 ### DIAG-4: a diagnostic is located where the author wrote the cause (Tier 2)
 A reference's diagnostic is marked at the reference, also inside an `extend` or `copy`
 attribute (#2410). An extend's error is marked on the extend (#2409). A cycle is marked at the
 components involved, not reported as one message with no location (D14, #2418).
 
-**Known violations:** a reference to a component in error repeats the error where the
-reference is written, quoting the cause: `$m $m` of `<math name="m" extend="$nothing"/>` gives
-three errors, two of them at the `$m`s (B38, #2449).
+Since #2482 (closing #2449, B38), a reference to a component in error reports nothing more: the
+error is reported once, at its cause, also at run time when a case holding it becomes active. A
+copy of a component holding an error shows it without reporting it again.
 
 ### DIAG-5: an error does not stop the rest of the document (Tier 2)
 The component in error shows nothing, or the error in its place. The rest of the document
@@ -126,9 +129,9 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 **Known violations:**
 - state-variable cycles throw, and the document fails to load (D14, NAME-7);
 - a loop where no composite can be singled out still stops the document (#2425);
-- `bindValueTo` of a `<subsetOfRealsInput>` throws (B24, #2429). `<text extend="$cc"/>` of
-  bare-text cases threw until #2447 (B23);
-- a reload throws when a saved value reaches a component of another type (B36, #2446).
+- fixed: `bindValueTo` of a `<subsetOfRealsInput>` (B24, #2484), `<text extend="$cc"/>` of
+  bare-text cases (B23, #2447), and a reload restoring a value to a component of another type
+  (B36, #2481).
 
 ### DIAG-6: the diagnostics are the same after a reload (Tier 2)
 A reload restores what the reader saw (SAVE-1), and that includes the diagnostics.
@@ -199,4 +202,4 @@ covers a tag's type errors there (`fixedTypeError` and `reportTypeChangesAtLoad`
 - state-variable cycles that throw (D14) through a property or an attribute,
   `<number name="n">$n.value</number>` (#2473). Whole-component cycles such as
   `<math name="z" extend="$z"/>` are `e0005` since #2471;
-- exceptions during interaction, such as B36's on reload (DIAG-5).
+- exceptions during interaction (DIAG-5). B36's on reload was fixed by #2481.

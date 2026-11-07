@@ -138,15 +138,17 @@ Recent fixes show where the current representation is fragile:
 - **A restore raced an array's size** (#2328).
 - **Restored values are trusted rather than recomputed**, so a restored "just submitted" can be
   stale (#2325).
-- **A restored value is matched by `stateId`, not by type.** `<group copy="$col"/>` of a
-  `<collect>` whose collected `<mathInput>` the reader typed into throws on reload once it
-  collects a `<textInput>` (B36, #2446).
+- **A restored value is matched by `stateId`; since #2481 also by type** (B36). The save records
+  each component's type (`__componentTypes`), and a value whose type differs from the component
+  now at that `stateId` is dropped. The ids themselves can still collide across a copy's
+  different contents (SAVE-3, #2485).
 - **Copies' saved snapshots concern `copyWithState` only** (D33). A `copy` carries no state from its
   source, so it has no snapshot: its own components save their state like written content. Both
   forms keep what decided their shape (the case, the type-change decision) through a reload.
 - **What decided a copy's shape was not saved** (B31). #2443 saves the type-change decision and
-  the case of a `<conditionalContent>` the copy was made from. A copy of a component named inside
-  the `<conditionalContent>` still is remade from the case active on load (B35, #2446).
+  the case of a `<conditionalContent>` the copy was made from. Since #2481 a copy of a component
+  named inside a case (`$cc.p`, `$cc.g.x`, `$cc[1]`) keeps that case too (B35). Not held: a source
+  a composite in the case makes, and `$e.p` through an extend of a `<conditionalContent>` (#2485).
 
 A rewrite should save only true sources, and recompute everything else.
 

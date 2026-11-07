@@ -203,7 +203,11 @@ How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
 `$n.value[1]`, `$ms[1]` and `$pl[2].coords[1]` name nothing; since #2458 they are missing and
 show `＿`. An index into a scalar entry of a
 list still gives `＿` (B34, #2438). A property with no value, such as `$c.maxNumber` with no
-limit, shows `NaN` (#2416). Under D37 it is missing and shows `＿`.
+limit, is missing (`＿`) since #2483 (closing #2416), through an opt-in `nullIsMissing` that only
+`maxNumber` uses; other attributes whose `null` means unset wait on #2460. **Known violations
+(#2487):** `<number extend="$P.z"/>` of a point in the plane holds `NaN` without being missing,
+and in a `<text>` a reference that makes nothing through a composite (`<text>$c.maxNumber</text>`,
+`<text>$r[3]</text>`) is empty, not `＿`.
 
 **A property the source doesn't have** is a mistake in what the author wrote, so it is warning
 `doenet-w0104` (DIAG-2), bare or on a tag, and the reference is missing (D37). Since #2447 it is
@@ -429,8 +433,8 @@ when it makes each replacement, so a source that switches between setting a styl
 setting one is not followed (#2426, Tier 3).
 
 Known violations:
-- `$s[1].hide` and `$s[1].hidden` are `＿` when an entry of a composite sort is a list entry
-  (#2480). A composite sort or shuffle leaves out an entry hidden by a container since #2474
+- fixed by #2483 (closing #2480): an entry's properties are read through a composite sort or
+  shuffle, also when the entry is a list entry. A composite sort or shuffle leaves out an entry hidden by a container since #2474
   (closing #2394); one inside `<group hide>` or `<conditionalContent hide>` counts all its
   entries as hidden, so `$s` placed elsewhere draws nothing, as the list forms do;
 - **a write through `$l[k].hide`** does nothing (above).
