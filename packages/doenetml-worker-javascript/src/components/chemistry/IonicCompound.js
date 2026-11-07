@@ -10,6 +10,7 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { levelFromSource } from "../../utils/decidedByDoenetML";
 
 export default class IonicCompound extends InlineComponent {
     static componentType = "ionicCompound";
@@ -72,6 +73,13 @@ export default class IonicCompound extends InlineComponent {
                     childGroups: ["ions"],
                     variableNames: ["symbol", "charge", "atomicNumber", "name"],
                 },
+                // whether the ions are written in the DoenetML, so charges
+                // that don't form a compound are a warning, or come from
+                // values that can change, so they are an info (DIAG-2)
+                ionsDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    children: true,
+                },
             }),
             definition({ dependencyValues }) {
                 let charges = dependencyValues.ionChildren.map(
@@ -91,12 +99,14 @@ export default class IonicCompound extends InlineComponent {
 
                 if (!(charges[0] * charges[1] < 0)) {
                     let warning = codedDiagnostic({
-                        type: "warning",
+                        type: levelFromSource(
+                            dependencyValues.ionsDecidedByDoenetML,
+                        ),
                         code: "doenet-w0054",
                     });
                     return {
                         setValue: { ionicCompound: null },
-                        sendDiagnostics: [warning],
+                        conditionDiagnostics: [warning],
                     };
                 }
 

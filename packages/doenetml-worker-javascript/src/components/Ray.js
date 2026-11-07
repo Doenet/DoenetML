@@ -12,6 +12,7 @@ import {
 } from "../utils/numberDisplay";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import { evaluateToNumber, markUnspecifiedComponents } from "../utils/math";
 
 export default class Ray extends GraphicalComponent {
@@ -601,6 +602,14 @@ export default class Ray extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "numDimEndpoint",
                 },
+                // whether the endpoint, through point and direction are
+                // written in the DoenetML, so dimensions that don't match
+                // are a warning, or come from values that can change, so
+                // they are an info (DIAG-2)
+                decidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["endpoint", "through", "direction"],
+                },
             }),
             definition: function ({ dependencyValues }) {
                 // console.log(`numDimensions definition`)
@@ -615,12 +624,14 @@ export default class Ray extends GraphicalComponent {
                             dependencyValues.numDimEndpoint
                         ) {
                             let warning = codedDiagnostic({
-                                type: "warning",
+                                type: levelFromSource(
+                                    dependencyValues.decidedByDoenetML,
+                                ),
                                 code: "doenet-w0006",
                             });
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendDiagnostics: [warning],
+                                conditionDiagnostics: [warning],
                             };
                         }
                     } else if (dependencyValues.basedOnThrough) {
@@ -629,12 +640,14 @@ export default class Ray extends GraphicalComponent {
                             dependencyValues.numDimThrough
                         ) {
                             let warning = codedDiagnostic({
-                                type: "warning",
+                                type: levelFromSource(
+                                    dependencyValues.decidedByDoenetML,
+                                ),
                                 code: "doenet-w0006",
                             });
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendDiagnostics: [warning],
+                                conditionDiagnostics: [warning],
                             };
                         }
                     }
@@ -646,12 +659,14 @@ export default class Ray extends GraphicalComponent {
                             dependencyValues.numDimThrough
                         ) {
                             let warning = codedDiagnostic({
-                                type: "warning",
+                                type: levelFromSource(
+                                    dependencyValues.decidedByDoenetML,
+                                ),
                                 code: "doenet-w0006",
                             });
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendDiagnostics: [warning],
+                                conditionDiagnostics: [warning],
                             };
                         }
                     }

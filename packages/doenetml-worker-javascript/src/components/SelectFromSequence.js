@@ -20,6 +20,7 @@ import {
 } from "../utils/excludeCombinations";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import {
     NO_SELECT_ERROR,
     choicesDecidedByDoenetML,
@@ -210,16 +211,27 @@ export default class SelectFromSequence extends Sequence {
                     dependencyType: "stateVariable",
                     variableName: "coprime",
                 },
+                // whether `coprime` and the `type` it is ignored for are
+                // written in the DoenetML: a warning then, and an info when
+                // they come from values that can change (DIAG-2). Whether
+                // `excludeCombinations` is given is always written.
+                coprimeDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["coprime", "type"],
+                },
             }),
             definition: function ({ dependencyValues }) {
                 const diagnostics = [];
+                const level = levelFromSource(
+                    dependencyValues.coprimeDecidedByDoenetML,
+                );
                 if (
                     dependencyValues.coprime &&
                     dependencyValues.type !== "number"
                 ) {
                     diagnostics.push(
                         codedDiagnostic({
-                            type: "warning",
+                            type: level,
                             code: "doenet-w0051",
                         }),
                     );
@@ -251,7 +263,7 @@ export default class SelectFromSequence extends Sequence {
                         if (dependencyValues.coprime) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: "warning",
+                                    type: level,
                                     code: "doenet-w0052",
                                 }),
                             );

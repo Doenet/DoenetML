@@ -4,6 +4,7 @@ import {
     validMultivariateHypergeometricParameters,
 } from "../utils/randomNumbers";
 import { setUpVariantSeedAndRng } from "../utils/variants";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import ValueListComponent from "./abstract/ValueListComponent";
 
 /**
@@ -324,6 +325,13 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                         dependencyType: "stateVariable",
                         variableName: "numDraws",
                     },
+                    // whether the parameters are written in the DoenetML, which
+                    // makes a diagnostic about them a warning rather than an
+                    // info (DIAG-2)
+                    parametersDecidedByDoenetML: {
+                        dependencyType: "decidedByDoenetML",
+                        attributeNames: ["type", "numInCategories", "numDraws"],
+                    },
                 };
                 if (stateValues.variantDeterminesSeed) {
                     dependencies.rng = {
@@ -359,8 +367,9 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                     // stays reproducible.
                     return {
                         useEssentialOrDefaultValue: { sampledValues: true },
-                        sendDiagnostics:
+                        conditionDiagnostics: withLevels(
                             multivariateSamplingDiagnostics(dependencyValues),
+                        ),
                     };
                 }
 
@@ -370,8 +379,19 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                 return {
                     setEssentialValue: { sampledValues },
                     setValue: { sampledValues },
-                    sendDiagnostics: diagnostics,
+                    // what these parameters give now, gone when they no longer
+                    // give it (B33)
+                    conditionDiagnostics: withLevels(diagnostics),
                 };
+
+                function withLevels(diagnostics) {
+                    return diagnostics.map((diagnostic) => ({
+                        ...diagnostic,
+                        type: levelFromSource(
+                            dependencyValues.parametersDecidedByDoenetML,
+                        ),
+                    }));
+                }
             },
             inverseDefinition({ desiredStateVariableValues }) {
                 return {

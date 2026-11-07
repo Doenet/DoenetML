@@ -2,6 +2,7 @@ import MathList from "../MathList";
 import me from "math-expressions";
 import { isValidVariable } from "../../utils/math";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { levelFromSource } from "../../utils/decidedByDoenetML";
 
 export default class VariableNameList extends MathList {
     static componentType = "_variableNameList";
@@ -43,19 +44,36 @@ export default class VariableNameList extends MathList {
                         },
                     };
                 }
-                return { dependenciesByKey };
+                // whether the variables are written in the DoenetML, so one
+                // that is not a variable is a warning, or come from values
+                // that can change, so it is an info (DIAG-2)
+                let globalDependencies = {
+                    variablesDecidedByDoenetML: {
+                        dependencyType: "decidedByDoenetML",
+                        children: true,
+                    },
+                };
+                return { dependenciesByKey, globalDependencies };
             },
-            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
+            arrayDefinitionByKey({
+                globalDependencyValues,
+                dependencyValuesByKey,
+                arrayKeys,
+            }) {
                 let variables = {};
                 let validVariables = {};
-                let diagnostics = [];
+                // reported for each key while it is not a variable (B33)
+                let conditionDiagnosticsByKey = {};
                 for (let arrayKey of arrayKeys) {
                     let variable = dependencyValuesByKey[arrayKey].math;
                     let validVariable = isValidVariable(variable);
+                    conditionDiagnosticsByKey[arrayKey] = [];
                     if (!validVariable) {
-                        diagnostics.push(
+                        conditionDiagnosticsByKey[arrayKey].push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: levelFromSource(
+                                    globalDependencyValues.variablesDecidedByDoenetML,
+                                ),
                                 code: "doenet-w0017",
                                 args: { value: variable.toString() },
                             }),
@@ -67,7 +85,7 @@ export default class VariableNameList extends MathList {
                 }
                 return {
                     setValue: { variables, validVariables },
-                    sendDiagnostics: diagnostics,
+                    conditionDiagnosticsByKey,
                 };
             },
         };

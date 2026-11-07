@@ -2,6 +2,7 @@ import { isValidVariable } from "../../utils/math";
 import { renameStateVariable } from "../../utils/stateVariables";
 import MathComponent from "../Math";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { levelFromSource } from "../../utils/decidedByDoenetML";
 
 export default class Variable extends MathComponent {
     static componentType = "_variableName";
@@ -36,6 +37,13 @@ export default class Variable extends MathComponent {
                     dependencyType: "stateVariable",
                     variableName: "valuePreValidate",
                 },
+                // whether the variable is written in the DoenetML, so one
+                // that is not a variable is a warning, or comes from values
+                // that can change, so it is an info (DIAG-2)
+                valueDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    children: true,
+                },
             }),
             definition({ dependencyValues }) {
                 let diagnostics = [];
@@ -46,7 +54,9 @@ export default class Variable extends MathComponent {
                 if (!validVariable) {
                     diagnostics.push(
                         codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(
+                                dependencyValues.valueDecidedByDoenetML,
+                            ),
                             code: "doenet-w0017",
                             args: {
                                 value: dependencyValues.valuePreValidate.toString(),
@@ -60,7 +70,8 @@ export default class Variable extends MathComponent {
                         value: dependencyValues.valuePreValidate,
                         validVariable,
                     },
-                    sendDiagnostics: diagnostics,
+                    // reported while it is not a variable (B33)
+                    conditionDiagnostics: diagnostics,
                 };
             },
             inverseDefinition({ desiredStateVariableValues }) {

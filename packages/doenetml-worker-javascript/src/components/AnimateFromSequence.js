@@ -8,6 +8,7 @@ import me from "math-expressions";
 const { mod } = me.math;
 import { nanoid } from "nanoid";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { targetDiagnosticLevels } from "./UpdateValue";
 
 export default class AnimateFromSequence extends BaseComponent {
     constructor(args) {
@@ -460,9 +461,14 @@ export default class AnimateFromSequence extends BaseComponent {
                     targetIdentities === null ||
                     targetIdentities.length === 0
                 ) {
+                    // No target is what the DoenetML says, a warning. A
+                    // target that is a composite with no replacements now,
+                    // or a list with no entries now, has none from values
+                    // that can change, an info (DIAG-2).
                     diagnostics.push(
                         codedDiagnostic({
-                            type: "warning",
+                            type:
+                                targetIdentities === null ? "warning" : "info",
                             code: "doenet-w0043",
                             args: { source: "animateFromSequence" },
                         }),
@@ -471,7 +477,9 @@ export default class AnimateFromSequence extends BaseComponent {
 
                 return {
                     setValue: { targetIdentities },
-                    sendDiagnostics: diagnostics,
+                    // what the target gives now, gone when it no longer
+                    // gives it (B33)
+                    conditionDiagnostics: diagnostics,
                 };
             },
         };
@@ -491,6 +499,10 @@ export default class AnimateFromSequence extends BaseComponent {
                     unresolvedPath: {
                         dependencyType: "stateVariable",
                         variableName: "unresolvedPath",
+                    },
+                    targetComponent: {
+                        dependencyType: "stateVariable",
+                        variableName: "targetComponent",
                     },
                 };
 
@@ -542,9 +554,15 @@ export default class AnimateFromSequence extends BaseComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentInfoObjects }) {
                 let targets = null;
                 let diagnostics = [];
+                const { missingTargetLevel, missingPropertyLevel } =
+                    targetDiagnosticLevels({
+                        targetComponent: dependencyValues.targetComponent,
+                        targetIdentities: dependencyValues.targetIdentities,
+                        componentInfoObjects,
+                    });
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -554,7 +572,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         if (target == null) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: "warning",
+                                    type: missingTargetLevel,
                                     code: "doenet-w0043",
                                     args: { source: "animateFromSequence" },
                                 }),
@@ -577,7 +595,7 @@ export default class AnimateFromSequence extends BaseComponent {
                                 }
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: "warning",
+                                        type: missingPropertyLevel,
                                         code: "doenet-w0044",
                                         args: {
                                             source: "animateFromSequence",
@@ -589,7 +607,7 @@ export default class AnimateFromSequence extends BaseComponent {
                             } else {
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: "warning",
+                                        type: missingPropertyLevel,
                                         code: "doenet-w0044",
                                         args: {
                                             source: "animateFromSequence",
@@ -603,7 +621,12 @@ export default class AnimateFromSequence extends BaseComponent {
                     }
                 }
 
-                return { setValue: { targets }, sendDiagnostics: diagnostics };
+                return {
+                    setValue: { targets },
+                    // what the targets give now, gone when they no longer
+                    // give it (B33)
+                    conditionDiagnostics: diagnostics,
+                };
             },
         };
 

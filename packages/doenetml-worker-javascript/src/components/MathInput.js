@@ -33,6 +33,7 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 
 export default class MathInput extends Input {
     constructor(args) {
@@ -309,6 +310,17 @@ export default class MathInput extends Input {
                     dependencyType: "attributeComponent",
                     attributeName: "resetFunctionNames",
                 },
+                // whether the names are written in the DoenetML, so an
+                // invalid one is a warning, or come from values that can
+                // change, so it is an info (DIAG-2)
+                functionNamesDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: [
+                        "additionalFunctionNames",
+                        "removedFunctionNames",
+                        "resetFunctionNames",
+                    ],
+                },
             }),
             definition({ dependencyValues }) {
                 const { names, droppedFromAdditional, droppedFromReset } =
@@ -321,7 +333,9 @@ export default class MathInput extends Input {
                 const diagnostics = [];
                 const invalidNames = (attr, list, position) =>
                     codedDiagnostic({
-                        type: "warning",
+                        type: levelFromSource(
+                            dependencyValues.functionNamesDecidedByDoenetML,
+                        ),
                         code: "doenet-w0082",
                         args: {
                             attribute: attr,
@@ -359,8 +373,8 @@ export default class MathInput extends Input {
                         ),
                     );
                 }
-                if (diagnostics.length > 0)
-                    result.sendDiagnostics = diagnostics;
+                // reported while the names are invalid (B33)
+                result.conditionDiagnostics = diagnostics;
                 return result;
             },
         };

@@ -1884,31 +1884,41 @@ export default class Graph extends BlockComponent {
                 const attrChildren = dependencyValues.gridAttrCompChildren;
                 const attrValue = dependencyValues.gridAttr.stateValues.value;
 
-                // Only a value the author spelled out can be reported as
-                // invalid. Once the attribute contains a reference, an unusable
+                // Only a value the author spelled out is a mistake to warn
+                // about. Once the attribute contains a reference, an unusable
                 // value is not reliably a mistake: it is usually a `<mathInput>`
-                // the reader has not filled in yet — warning about that would
-                // fire on every load — or one they have filled in badly, which
-                // is not the author's to fix. The cost is that a reference to a
-                // value the author got wrong, as in `grid="1 $negativeNumber"`,
-                // goes unreported.
+                // the reader has not filled in yet, or one they have filled in
+                // badly, which is not the author's to fix. So it is an info,
+                // there while the value is unusable and gone when it is not
+                // (DIAG-2, B33).
                 const authoredInFull =
                     dependencyValues.allGridAttrChildren.every(
                         (child) => typeof child === "string",
                     );
 
+                // A child the attribute could not hold (`grid="$aPoint"`) is
+                // dropped from its value, and its format is reported already
+                // (`doenet-w0106`), so the remnant is not quoted back too.
+                const droppedAChild = dependencyValues.allGridAttrChildren.some(
+                    (child) =>
+                        typeof child !== "string" &&
+                        !attrChildren.some(
+                            (kept) => kept?.componentIdx === child.componentIdx,
+                        ),
+                );
+
                 const noGrid = () => ({
                     setValue: { grid: "none" },
                     setCreateComponentOfType: { grid: "text" },
-                    sendDiagnostics: authoredInFull
-                        ? [
+                    conditionDiagnostics: droppedAChild
+                        ? []
+                        : [
                               codedDiagnostic({
-                                  type: "warning",
+                                  type: authoredInFull ? "warning" : "info",
                                   code: "doenet-w0119",
                                   args: { grid: attrValue },
                               }),
-                          ]
-                        : [],
+                          ],
                 });
 
                 let grid = attrValue.toLowerCase().trim();
@@ -1921,6 +1931,7 @@ export default class Graph extends BlockComponent {
                     return {
                         setValue: { grid },
                         setCreateComponentOfType: { grid: "text" },
+                        conditionDiagnostics: [],
                     };
                 }
 
@@ -1950,6 +1961,7 @@ export default class Graph extends BlockComponent {
                 return {
                     setValue: { grid },
                     setCreateComponentOfType: { grid: "numberList" },
+                    conditionDiagnostics: [],
                 };
             },
         };

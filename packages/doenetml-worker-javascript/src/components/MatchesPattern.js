@@ -1,6 +1,7 @@
 import BooleanComponent from "./Boolean";
 import { numberToLetters } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import { isValidVariable, treeContainsBlank, BLANK } from "../utils/math";
 import me from "math-expressions";
 
@@ -207,6 +208,13 @@ export default class MatchesPattern extends BooleanComponent {
                     attributeName: "parameters",
                     variableNames: ["variables"],
                 },
+                // whether the pattern and parameters are written in the
+                // DoenetML, so a parameter the pattern lacks is a warning, or
+                // come from values that can change, so it is an info (DIAG-2)
+                patternDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["pattern", "parameters"],
+                },
             }),
             definition({ dependencyValues }) {
                 let patternVariables = [];
@@ -261,7 +269,7 @@ export default class MatchesPattern extends BooleanComponent {
                 // placeholders at all.
                 let position =
                     dependencyValues.parametersAttr.position || undefined;
-                let sendDiagnostics = [];
+                let conditionDiagnostics = [];
 
                 let substitutions = new Map(); // parameter key -> placeholder
                 let parametersByPlaceholder = new Map(); // placeholder -> text
@@ -304,9 +312,11 @@ export default class MatchesPattern extends BooleanComponent {
                     .map(([_, text]) => text);
 
                 if (absent.length > 0) {
-                    sendDiagnostics.push(
+                    conditionDiagnostics.push(
                         codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(
+                                dependencyValues.patternDecidedByDoenetML,
+                            ),
                             code: "doenet-w0117",
                             args: { parameters: absent },
                             position,
@@ -314,9 +324,10 @@ export default class MatchesPattern extends BooleanComponent {
                     );
                 }
 
+                // reported while a parameter is absent (B33)
                 return {
                     setValue: { pattern, patternVariables },
-                    sendDiagnostics,
+                    conditionDiagnostics,
                 };
             },
         };

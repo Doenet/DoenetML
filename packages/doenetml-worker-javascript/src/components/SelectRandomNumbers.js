@@ -1,4 +1,8 @@
-import { sampleFromRandomNumbers } from "../utils/randomNumbers";
+import {
+    sampleFromRandomNumbers,
+    samplingParametersDecidedDependencies,
+    withSamplingLevels,
+} from "../utils/randomNumbers";
 import SampleRandomNumbers from "./SampleRandomNumbers";
 import {
     choicesDecidedByDoenetML,
@@ -255,6 +259,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     dependencyType: "stateVariable",
                     variableName: "variants",
                 },
+                // whether each distribution's parameters are written in the
+                // DoenetML, which makes a diagnostic about them a warning
+                // rather than an info (DIAG-2)
+                ...samplingParametersDecidedDependencies(),
                 rng: {
                     dependencyType: "value",
                     value: sharedParameters.variantRng,
@@ -309,7 +317,11 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                         },
                         desiredValues.length,
                     ),
-                    sendDiagnostics: diagnostics,
+                    sendDiagnostics: withSamplingLevels(
+                        diagnostics,
+                        dependencyValues.type,
+                        dependencyValues,
+                    ),
                 };
             }
 
@@ -326,7 +338,12 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             return {
                 setEssentialValue: { selectedValues },
                 setValue: { selectedValues },
-                sendDiagnostics: diagnostics,
+                // the selection is made once (`immutable`), so these stay
+                sendDiagnostics: withSamplingLevels(
+                    diagnostics,
+                    dependencyValues.type,
+                    dependencyValues,
+                ),
             };
         }
 

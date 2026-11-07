@@ -17,6 +17,43 @@ import InlineComponent from "./abstract/InlineComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
 
+/**
+ * The levels of the diagnostics an action (`<updateValue>`,
+ * `<animateFromSequence>`) gives about the targets it found (DIAG-2):
+ *
+ * - `missingTargetLevel`, for a target that is gone (`doenet-w0043`): an
+ *   info when the targets are the replacements of a composite or the
+ *   entries of a list, which change with values, and a warning otherwise.
+ * - `missingPropertyLevel`, for a target without the property to change
+ *   (`doenet-w0044`): an info when the targets are the replacements of a
+ *   composite whose replacements, and so their types, depend on the active
+ *   case or a random choice (`<conditionalContent>`, `<select>`), and a
+ *   warning otherwise, as the DoenetML then says what each target is.
+ */
+export function targetDiagnosticLevels({
+    targetComponent,
+    targetIdentities,
+    componentInfoObjects,
+}) {
+    const fromReplacementsOrEntries = (targetIdentities ?? []).some(
+        (target) =>
+            target.componentIdx !== targetComponent?.componentIdx ||
+            target.listEntryIndex !== undefined,
+    );
+    const typesDependOnCase =
+        targetComponent != null &&
+        ["conditionalContent", "select"].some((baseComponentType) =>
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: targetComponent.componentType,
+                baseComponentType,
+            }),
+        );
+    return {
+        missingTargetLevel: fromReplacementsOrEntries ? "info" : "warning",
+        missingPropertyLevel: typesDependOnCase ? "info" : "warning",
+    };
+}
+
 export default class UpdateValue extends InlineComponent {
     constructor(args) {
         super(args);
@@ -321,9 +358,14 @@ export default class UpdateValue extends InlineComponent {
                     targetIdentities === null ||
                     targetIdentities.length === 0
                 ) {
+                    // No target is what the DoenetML says, a warning. A
+                    // target that is a composite with no replacements now,
+                    // or a list with no entries now, has none from values
+                    // that can change, an info (DIAG-2).
                     diagnostics.push(
                         codedDiagnostic({
-                            type: "warning",
+                            type:
+                                targetIdentities === null ? "warning" : "info",
                             code: "doenet-w0043",
                             args: { source: "updateValue" },
                         }),
@@ -332,7 +374,9 @@ export default class UpdateValue extends InlineComponent {
 
                 return {
                     setValue: { targetIdentities },
-                    sendDiagnostics: diagnostics,
+                    // what the target gives now, gone when it no longer
+                    // gives it (B33)
+                    conditionDiagnostics: diagnostics,
                 };
             },
         };
@@ -352,6 +396,10 @@ export default class UpdateValue extends InlineComponent {
                     unresolvedPath: {
                         dependencyType: "stateVariable",
                         variableName: "unresolvedPath",
+                    },
+                    targetComponent: {
+                        dependencyType: "stateVariable",
+                        variableName: "targetComponent",
                     },
                 };
 
@@ -434,9 +482,15 @@ export default class UpdateValue extends InlineComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentInfoObjects }) {
                 let targets = null;
                 let diagnostics = [];
+                const { missingTargetLevel, missingPropertyLevel } =
+                    targetDiagnosticLevels({
+                        targetComponent: dependencyValues.targetComponent,
+                        targetIdentities: dependencyValues.targetIdentities,
+                        componentInfoObjects,
+                    });
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -446,7 +500,7 @@ export default class UpdateValue extends InlineComponent {
                         if (target == null) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: "warning",
+                                    type: missingTargetLevel,
                                     code: "doenet-w0043",
                                     args: { source: "updateValue" },
                                 }),
@@ -469,7 +523,7 @@ export default class UpdateValue extends InlineComponent {
                                 }
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: "warning",
+                                        type: missingPropertyLevel,
                                         code: "doenet-w0044",
                                         args: {
                                             source: "updateValue",
@@ -481,7 +535,7 @@ export default class UpdateValue extends InlineComponent {
                             } else {
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: "warning",
+                                        type: missingPropertyLevel,
                                         code: "doenet-w0044",
                                         args: {
                                             source: "updateValue",
@@ -495,7 +549,12 @@ export default class UpdateValue extends InlineComponent {
                     }
                 }
 
-                return { setValue: { targets }, sendDiagnostics: diagnostics };
+                return {
+                    setValue: { targets },
+                    // what the targets give now, gone when they no longer
+                    // give it (B33)
+                    conditionDiagnostics: diagnostics,
+                };
             },
         };
 

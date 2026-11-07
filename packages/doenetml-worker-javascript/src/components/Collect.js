@@ -3,6 +3,7 @@ import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import { listEntryReplacement } from "./Sort";
 
 /**
@@ -83,6 +84,10 @@ export default class Collect extends CompositeComponent {
         };
 
         stateVariableDefinitions.sourceComponentIdx = {
+            // `partlyResolvedSourceIdx`: the component `from` names part of
+            // the way, when the rest of its path names nothing now
+            // (`$cc.S` while the case holding `S` is not active)
+            additionalStateVariablesDefined: ["partlyResolvedSourceIdx"],
             returnDependencies: () => ({
                 from: {
                     dependencyType: "attributeRefResolutions",
@@ -98,12 +103,20 @@ export default class Collect extends CompositeComponent {
                         setValue: {
                             sourceComponentIdx:
                                 dependencyValues.from[0].componentIdx,
+                            partlyResolvedSourceIdx: null,
                         },
                     };
                 } else {
+                    const partlyResolvedSourceIdx =
+                        dependencyValues.from?.length === 1 &&
+                        dependencyValues.from[0].componentIdx != null &&
+                        dependencyValues.from[0].componentIdx !== -1
+                            ? dependencyValues.from[0].componentIdx
+                            : null;
                     return {
                         setValue: {
                             sourceComponentIdx: null,
+                            partlyResolvedSourceIdx,
                         },
                     };
                 }
@@ -164,21 +177,45 @@ export default class Collect extends CompositeComponent {
         };
 
         stateVariableDefinitions.sourceName = {
-            returnDependencies: () => ({
+            stateVariablesDeterminingDependencies: ["partlyResolvedSourceIdx"],
+            returnDependencies: ({ stateValues }) => ({
                 sourceComponent: {
                     dependencyType: "stateVariable",
                     variableName: "sourceComponent",
                 },
+                ...(stateValues.partlyResolvedSourceIdx != null
+                    ? {
+                          partlyResolvedSource: {
+                              dependencyType: "componentIdentity",
+                              componentIdx: stateValues.partlyResolvedSourceIdx,
+                          },
+                      }
+                    : {}),
             }),
-            definition: function ({ dependencyValues }) {
+            definition: function ({ dependencyValues, componentInfoObjects }) {
                 if (dependencyValues.sourceComponent === null) {
-                    let warning = codedDiagnostic({
-                        type: "warning",
+                    // No source, or one `from` names nothing in, is what the
+                    // DoenetML says, a warning. A source `from` names inside
+                    // a composite, missing now because what the composite
+                    // makes depends on values that can change (`$cc.S` while
+                    // the case holding `S` is not active), is an info
+                    // (DIAG-2).
+                    const partlyResolvedSource =
+                        dependencyValues.partlyResolvedSource;
+                    const missingFromValues =
+                        partlyResolvedSource != null &&
+                        componentInfoObjects.isCompositeComponent({
+                            componentType: partlyResolvedSource.componentType,
+                            includeNonStandard: false,
+                        });
+                    let diagnostic = codedDiagnostic({
+                        type: missingFromValues ? "info" : "warning",
                         code: "doenet-w0072",
                     });
                     return {
                         setValue: { sourceName: "" },
-                        sendDiagnostics: [warning],
+                        // gone when the source is found (B33)
+                        conditionDiagnostics: [diagnostic],
                     };
                 }
                 return {
@@ -186,6 +223,7 @@ export default class Collect extends CompositeComponent {
                         sourceName:
                             dependencyValues.sourceComponent.componentIdx,
                     },
+                    conditionDiagnostics: [],
                 };
             },
         };
@@ -197,6 +235,13 @@ export default class Collect extends CompositeComponent {
                     dependencyType: "attributeComponent",
                     attributeName: "componentType",
                     variableNames: ["value"],
+                },
+                // whether `componentType` is written in the DoenetML: a
+                // warning then, and an info when it comes from a value that
+                // can change (DIAG-2)
+                componentTypeDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["componentType"],
                 },
             }),
             definition: function ({ dependencyValues, componentInfoObjects }) {
@@ -216,14 +261,16 @@ export default class Collect extends CompositeComponent {
                     if (cClass) {
                         componentTypeToCollect = componentType;
                     } else {
+                        const position =
+                            dependencyValues.componentTypeAttr.position;
                         diagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: levelFromSource(
+                                    dependencyValues.componentTypeDecidedByDoenetML,
+                                ),
                                 code: "doenet-w0073",
                                 args: { component: cType },
-                                position:
-                                    dependencyValues.componentTypeAttr
-                                        .position || undefined,
+                                ...(position ? { position } : {}),
                             }),
                         );
                     }
@@ -233,7 +280,8 @@ export default class Collect extends CompositeComponent {
                     setValue: {
                         componentTypeToCollect,
                     },
-                    sendDiagnostics: diagnostics,
+                    // gone when the type is one (B33)
+                    conditionDiagnostics: diagnostics,
                 };
             },
         };

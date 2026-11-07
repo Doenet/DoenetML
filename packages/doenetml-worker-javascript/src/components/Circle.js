@@ -1485,6 +1485,14 @@ export default class Circle extends Curve {
                         dependencyType: "stateVariable",
                         variableName: "haveCenterRadiusPoints",
                     },
+                    // whether the radius and the points are written in the
+                    // DoenetML, so a circle they don't determine is a
+                    // warning, or come from values that can change, so it is
+                    // an info (DIAG-2)
+                    radiusThroughDecidedByDoenetML: {
+                        dependencyType: "decidedByDoenetML",
+                        attributeNames: ["radius", "through"],
+                    },
                 };
 
                 let dependenciesByKey = {};
@@ -1666,8 +1674,10 @@ export default class Circle extends Curve {
 
                         if (r < 0 || 4 * r2 < dist2) {
                             let dist = Math.round(Math.sqrt(dist2) * 100) / 100;
-                            let warning = codedDiagnostic({
-                                type: "warning",
+                            let diagnostic = codedDiagnostic({
+                                type: levelFromSource(
+                                    globalDependencyValues.radiusThroughDecidedByDoenetML,
+                                ),
                                 code: "doenet-w0031",
                                 // Strings rather than numbers: the radius is
                                 // the author's own value quoted back, and a
@@ -1678,9 +1688,16 @@ export default class Circle extends Curve {
                                     radius: String(r),
                                 },
                             });
+                            // reported while the radius is too small,
+                            // under each key recalculated, as all are set
                             return {
                                 setValue: { numericalCenter: [NaN, NaN] },
-                                sendDiagnostics: [warning],
+                                conditionDiagnosticsByKey: Object.fromEntries(
+                                    arrayKeys.map((arrayKey) => [
+                                        arrayKey,
+                                        [diagnostic],
+                                    ]),
+                                ),
                             };
                         }
 
@@ -1971,6 +1988,14 @@ export default class Circle extends Curve {
                         dependencyType: "stateVariable",
                         variableName: "haveCenterRadiusPoints",
                     },
+                    // whether what determines the circle is written in the
+                    // DoenetML, so a radius it can't be changed to is a
+                    // warning, or comes from values that can change, so it is
+                    // an info (DIAG-2)
+                    decidedByDoenetML: {
+                        dependencyType: "decidedByDoenetML",
+                        attributeNames: ["through", "center", "radius"],
+                    },
                 };
 
                 if (stateValues.havePrescribedRadius) {
@@ -2156,7 +2181,9 @@ export default class Circle extends Curve {
                     };
                 } else {
                     let warning = codedDiagnostic({
-                        type: "warning",
+                        type: levelFromSource(
+                            dependencyValues.decidedByDoenetML,
+                        ),
                         code: "doenet-w0035",
                     });
                     return { success: false, sendDiagnostics: [warning] };
@@ -2305,6 +2332,20 @@ export default class Circle extends Curve {
                     haveCenterRadiusPoints: {
                         dependencyType: "stateVariable",
                         variableName: "haveCenterRadiusPoints",
+                    },
+                    // whether the radius and the points are written in the
+                    // DoenetML, so a circle they don't determine is a
+                    // warning, or come from values that can change, so it is
+                    // an info (DIAG-2)
+                    radiusThroughDecidedByDoenetML: {
+                        dependencyType: "decidedByDoenetML",
+                        attributeNames: ["radius", "through"],
+                    },
+                    // the same, of all that determines the circle, for a
+                    // center it can't be changed to
+                    decidedByDoenetML: {
+                        dependencyType: "decidedByDoenetML",
+                        attributeNames: ["through", "center", "radius"],
                     },
                 };
                 let dependenciesByKey = {};
@@ -2512,11 +2553,16 @@ export default class Circle extends Curve {
                         ) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: "warning",
+                                    type: levelFromSource(
+                                        globalDependencyValues.radiusThroughDecidedByDoenetML,
+                                    ),
                                     code: "doenet-w0036",
                                 }),
                             );
                         }
+                        // reported while the radius or a point is not
+                        // numerical, under each key recalculated, as all
+                        // are set
                         return {
                             setValue: {
                                 center: [
@@ -2524,7 +2570,12 @@ export default class Circle extends Curve {
                                     me.fromAst("\uff3f"),
                                 ],
                             },
-                            sendDiagnostics: diagnostics,
+                            conditionDiagnosticsByKey: Object.fromEntries(
+                                arrayKeys.map((arrayKey) => [
+                                    arrayKey,
+                                    diagnostics,
+                                ]),
+                            ),
                         };
                     }
                 }
@@ -2670,7 +2721,9 @@ export default class Circle extends Curve {
                     };
                 } else {
                     let warning = codedDiagnostic({
-                        type: "warning",
+                        type: levelFromSource(
+                            globalDependencyValues.decidedByDoenetML,
+                        ),
                         code: "doenet-w0037",
                     });
                     return { success: false, sendDiagnostics: [warning] };
