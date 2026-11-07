@@ -2225,8 +2225,8 @@ checks that a document's errors are the same across variants.
 ## D39. No variant is broken by a selection (decided, Tier 1)
 
 **Decided**, with the answers below. COMP-8 and the SEL principles in
-[composites-and-lists.md](composites-and-lists.md) state it. Open: whether SEL-4 also accepts an
-intermediate `<number>`.
+[composites-and-lists.md](composites-and-lists.md) state it. SEL-4 accepts an intermediate
+`<number>` or `<integer>` (decided after the questions below).
 
 **The goal.** A student should never get a variant the author didn't know was broken. A select
 that errors in some variants is broken, but so is one that selects nothing, a blank, or values
@@ -2315,7 +2315,7 @@ outside the analysable set, and is an **error** that says so (question 2). This 
 DoenetML's flexibility on purpose, for selection parameters only. It could be loosened later,
 but the hope is that it needn't be.
 
-**Open: an intermediate `<number>`.** Should a parameter be able to reference a `<number>` (or
+**Decided: an intermediate `<number>` is allowed.** Should a parameter be able to reference a `<number>` (or
 `<integer>`) whose content is itself in these forms, so an author can write
 `<number name="m">$a + 2</number>` and `numToSelect="$m"`?
 - **For:** the check follows a reference into the `<number>` and analyses its content the same
@@ -2325,8 +2325,8 @@ but the hope is that it needn't be.
 - **Against:** arithmetic in the attribute makes it plain that only simple computations are
   allowed. A `<number>` invites content outside the forms, whose error then appears at the
   attribute, one step from the cause.
-- **Recommendation:** allow it, for `<number>` and `<integer>` only, and have the error name the
-  `<number>` and the part of its content that isn't analysable (DIAG-3, DIAG-4).
+- **Decided:** allow it, for `<number>` and `<integer>` only. The error names the `<number>` and
+  the part of its content that isn't analysable (DIAG-3, DIAG-4).
 
 **SEL-5. Selections that depend on each other form an order, and are checked in it (Tier 2).** A
 selection's parameters may reference earlier selections, never itself or a later one through a
