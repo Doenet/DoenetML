@@ -1,5 +1,52 @@
 # @doenet/v06-to-v07
 
+## 0.8.0
+
+### Patch Changes
+
+- 2669d80: A reference that depends on itself through what is written is now reported when the document loads, and the rest of the document renders. `<text name="t">$t</text>`, `<math name="z" extend="$z"/>`, two maths that read each other (`<math name="z1">$z2</math><math name="z2">$z1</math>`), and a math that indexes itself (`<math name="m">(1, $m[2])</math>`) each give a circular-dependency error (`doenet-e0005`) at every reference on the cycle, and are shown as that error. Before, the document failed to load, or, for the math that indexes itself, failed with an internal error.
+
+    The cycle is found over every case of a `<conditionalContent>`, every option of a `<select>` and every repeat template, whether shown or not, so the error is there from the start. A reference or copy elsewhere of a component that holds the cycle (`$x`, `<math extend="$x"/>` or `<p copy="$q"/>` of `<p name="q"><math name="x">$x+1</math></p>`, or `<module extend="$m"/>` of a module holding one) can report the error again, without a code, as for any error a reference copies (#2449): when the document loads, or, for a name declared in a case or option, once that case is shown or that option picked. Two `<conditionalContent>`s whose cases extend each other now give an error at both extends when the document loads, where they used to report one only after the case became true (and, with an `<else>`, an internal error too). A cycle closed through an attribute, a property (`$n.value`), a name that every case or option declares (`$x` or `$cc.x`), or a tag whose value is not made from its children, such as a `<p>`, a `<section>` or a `<div>` (`<p name="q">a $q</p>`), is not found this way, and is still reported, or stops the document, when it is reached, as before: in a case, once the case is shown, and in a `<select>`, only in the variants that pick its option.
+
+    `<group extend="$cc.x"/>` (or `<group extend="$x"/>`) of a name that every case of a `<conditionalContent>` declares now follows the case, and `<group extend="$r[2]"/>` of an iteration of a `<repeat>` follows the repeat when its number of iterations changes. They used to report a circular dependency where there was none (for the case, at its first change; for the repeat, once the iteration was withheld), and then stay empty.
+
+    A tag extending something in an iteration of a `<repeat>` that is withheld after the document loads (`<math extend="$r[2].m"/>`, `<number extend="$r[2].io[1]"/>`) now gives the same info (`doenet-i0054`) as when the iteration is not there at load. Before, it gave no info, or kept an info about a value it no longer showed.
+
+    A tag whose error was decided at load, such as `<math extend="$g"/>` inside the `<group name="g">` it extends when the group holds two components, or `<math extend="$r"/>` in the template of the `<repeat>` named `r`, no longer also reports a circular dependency (`doenet-e0005`) once it is made.
+
+    The v0.6-to-v0.7 converter still treats a document with a reference cycle as one it cannot load, and leaves its `<copy>` tags as they are, as it did when the cycle stopped the load.
+
+    Closes #2439, #2453 and #2430.
+
+- 6f5107c: Keep every entry when converting a copy of a whole array prop. `<copy prop="vertices" source="poly" />`
+  now becomes `$poly.vertices`, or `<pointList extend="$poly.vertices" />` when the copy has other
+  attributes, instead of a single `<point>`. A `<map>` whose sources are only references now
+  iterates over them directly (`<repeat for="$c.iterateValues">`). References with attributes to a
+  map's alias or index, such as `$(x{displayDigits="5"})`, now convert when the type of the values
+  is known: from a single list or array prop, or from a `<sequence>`. The copy made for a macro with
+  attributes inside an attribute value, such as `x="$(a{link='false'})"`, now goes inside the
+  enclosing `<module>` or `<repeat>`, where it can see the same names.
+- 51cbfff: Convert more v0.6 documents:
+    - A `<copy>` of a component that itself holds a `<copy>`, or of a named `<copy>`, converts instead of being left as a `<copy>`.
+    - A `<copy>` inside the component it copies, such as `$p.x{displayDecimals="2"}` in `p`'s own label, converts.
+    - The prop of a `<copy>` or `<collect>` is spelled as v0.7 spells it: v0.6 matched `prop="numericalsolution"` to `numericalSolution`.
+    - A `<copy>` of a component inside an unselected `<option>` or a `<case>` whose condition is false converts, when only one component has that name.
+    - A `<copy>` of a prop with no single type, such as an `<answer>`'s `submittedResponse`, becomes a bare reference like `$a.submittedResponse` when it has no other attributes.
+    - A `<collect>` of a prop with no fixed type, such as a `<choiceInput>`'s `selectedValue` or `values`, takes its type from the list it is written in. Before, `selectedValue` became a `<mathList>` and `values` stopped the conversion. A `<collect>` of a prop that does not exist is now reported instead of stopping the conversion.
+    - A `<ref>` with both `uri` and `target` keeps its link to the other document. The `target` is dropped with a diagnostic.
+    - `doenet:activityId=<id>` and `doenet:doenetId=<id>` in a `<ref>` or `<copy uri>` become `doenet:<id>`, the only form v0.7 reads. A `cid` is dropped. A `pageId` or a legacy id is left with a diagnostic.
+    - A new `fetchExternalDoenetML` option loads the documents a `<copy uri>` names. The converted element then takes the type of that document's root element, and references into the loaded content convert.
+    - A GeoGebra `<embed>` is commented out, with a TODO to rebuild it as a DoenetML widget.
+- 947b866: Convert more v0.6 `<copy>` and `<map>` forms:
+    - `propIndex` and `componentIndex` on a `<copy>` become indices in the reference, e.g. `$poly.vertices[2][1]` and `$g[2]`.
+    - `$(a{assignNames='b'})` inside an attribute value names its copy `b`.
+    - A `<map>` with several `<sources>` becomes nested repeats. With `behavior="parallel"` or `assignNames` it is left with a diagnostic.
+    - An inner `<map>` whose sources refer to the outer map's alias converts.
+    - A map's alias is typed when all its values share one type, including written components.
+    - A `<sequence>` next to other sources is no longer dropped.
+    - A `<map>` placed before a module's `<setup>` no longer breaks the module's attributes.
+    - A `<sources>`'s `alias` and `indexAlias`, and a `<sequence>`'s `type`, are recognized however they are capitalized.
+
 ## 0.7.27
 
 ### Patch Changes
