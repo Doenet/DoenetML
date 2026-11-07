@@ -7979,11 +7979,12 @@ async function typeChangeStatus({
             if (level === "info") {
                 return undefined;
             }
-            // A count the DoenetML fixes is an error. One a value can change
-            // (`maxNumber="$n"`) is decided by the value, so the tag is
-            // missing while the list does not hold one, with an info, and no
-            // error appears when a reader changes it (DIAG-2, DIAG-7,
-            // `listCountAtLoad.ts`).
+            // A count the DoenetML fixes is an error. Any other is not
+            // decided at load: one a value can change (`maxNumber="$n"`), or
+            // one with an entry not read at load (a comma, a math). So the
+            // tag is missing while the list does not hold one, with an info,
+            // and no error appears when a reader changes a value (DIAG-2,
+            // DIAG-7, `listCountAtLoad.ts`).
             return mismatch({
                 level: sourceComponent.doenetAttributes?.entryCountFixed
                     ? "error"

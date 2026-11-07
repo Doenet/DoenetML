@@ -172,6 +172,29 @@ describe("A scalar tag made from a list the author writes (e0064) @group4", () =
         expect(d.infos.filter((i) => i.code === "doenet-e0064")).eqls([]);
     });
 
+    it("is missing, with an info, when an entry is not read at load", async () => {
+        // An entry with a comma, or a math, may be read as several entries,
+        // which load does not decide (`listCountAtLoad.ts`), so the count is
+        // not fixed by the DoenetML as far as load can tell.
+        for (const list of [
+            `<mathList name="ml">1,2</mathList>`,
+            `<mathList name="ml"><math>1</math><math>2</math></mathList>`,
+            `<textList name="ml">a, b</textList>`,
+        ]) {
+            const scalar = list.startsWith("<textList") ? "text" : "math";
+            const { core, text } = await setup(
+                `${list}<p name="p1"><${scalar} extend="$ml"/></p>`,
+            );
+            expect(await text("p1"), list).eq("＿");
+            const d = getDiagnosticsByType(core);
+            expect(d.errors, list).eqls([]);
+            expect(
+                d.infos.map((i) => i.code),
+                list,
+            ).contains("doenet-e0064");
+        }
+    });
+
     it("is an error when the list's entries are written", async () => {
         const { core, text } = await setup(`
 <mathList name="ml">1 2</mathList>

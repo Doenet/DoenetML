@@ -9,7 +9,9 @@
  * it, as `maxNumber="$n"` or an entry that is a reference to a composite,
  * it is decided by the value, so the tag is missing while the list does not
  * hold one, with an info (DIAG-2, DIAG-7, D37), and no error appears when a
- * reader changes the value (`typeChangeStatus` in `Copy.js`).
+ * reader changes the value (`typeChangeStatus` in `Copy.js`). An entry this
+ * pass does not read (text with a comma, a math) leaves the count undecided
+ * too, so it is also missing with an info, though no value changes it.
  *
  * A scalar tag of a list whose count is fixed, and not one, is that error,
  * reported here, wherever the tag is (returned).
@@ -73,11 +75,12 @@ export function markListsWithFixedEntryCount({
 
     /**
      * How many entries `child`, written in the list `list`, always gives, or
-     * `undefined` when a value can change it. Text gives its pieces
+     * `undefined` when that is not decided here. Text gives its pieces
      * (`splitTextIntoPieces`), unless a piece has a comma, which a math
-     * may read as several entries (`1,2`). A tag gives one, unless it is a
-     * composite, a reference other than a bare one to a tag that is not a
-     * composite or a list, or a math, whose value may be a list.
+     * may read as several entries (`1,2`). A bare reference to a list of the
+     * same type gives that list's count. Any other tag gives one, unless it
+     * is in error, a composite, a math (whose value may be a list), or a
+     * reference that is not bare, or is to a list, a composite or a math.
      */
     function entriesOf(
         list: SerializedComponent,
@@ -137,8 +140,8 @@ export function markListsWithFixedEntryCount({
     }
 
     /**
-     * How many entries the list `list` always holds, or `undefined` when a
-     * value can change it.
+     * How many entries the list `list` always holds, or `undefined` when
+     * that is not decided here (`entriesOf`, `effectiveMaxNumber`).
      */
     const countByList = new Map<SerializedComponent, number | undefined>();
     const counting = new Set<SerializedComponent>();

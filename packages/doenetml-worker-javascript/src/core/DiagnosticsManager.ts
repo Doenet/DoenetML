@@ -15,18 +15,21 @@ type ConditionEntry = {
  * ({@link DiagnosticsManager.markLoaded}), which DIAG-7 forbids: an error is
  * decided at load, from the DoenetML alone (D38, #2463).
  *
- * - `"assert"`, in development and tests: it is reported as an error, and
+ * - `"assert"`, in tests, or in Node in development
+ *   ({@link defaultErrorsAfterLoad}): it is reported as an error, and
  *   recorded in {@link DiagnosticsManager.errorsReportedAfterLoad}, which the
  *   test harness fails a test on.
- * - `"warn"`, in production: it is reported as a warning, and the component
+ * - `"warn"`, otherwise, as in a browser: it is reported as a warning, and the component
  *   in error is missing (`＿`) rather than an error box
  *   ({@link DiagnosticsManager.isErrorAfterLoad}), so a reader sees no error.
  */
 export type ErrorsAfterLoad = "assert" | "warn";
 
 /**
- * `"assert"` when running in tests (Vitest) or in Node in development, and
- * `"warn"` otherwise, which is how the worker runs in a browser.
+ * `"assert"` when running in tests (Vitest) or in Node in development
+ * (`NODE_ENV=development`), and `"warn"` otherwise, which is how the worker
+ * runs in a browser, where `process` is not defined, in a development
+ * build too.
  */
 export function defaultErrorsAfterLoad(): ErrorsAfterLoad {
     const env = (globalThis as any).process?.env;

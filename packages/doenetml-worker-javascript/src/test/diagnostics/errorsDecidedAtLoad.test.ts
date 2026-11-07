@@ -122,6 +122,11 @@ const documents: [string, string, string[]][] = [
         ["doenet-e0059"],
     ],
     [
+        "an extend in a case of a choiceInput that adds a choice",
+        `<choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>${inCase(`<choiceInput extend="$ci"><choice>c</choice></choiceInput>`)}`,
+        ["doenet-e0058"],
+    ],
+    [
         "an extend in a case of a module that sets one of its attributes",
         `<module name="mod"><moduleAttributes><text name="title">t</text></moduleAttributes><p>$title</p></module>${inCase(`<module extend="$mod" title="u"/>`)}`,
         ["doenet-e0060"],
