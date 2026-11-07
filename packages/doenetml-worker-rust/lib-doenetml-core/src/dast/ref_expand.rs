@@ -112,6 +112,7 @@ impl Expander {
                             } else {
                                 None
                             },
+                            input: None,
                             position: ref_.position.clone(),
                             source_doc: ref_.source_doc,
                         }),
@@ -210,6 +211,12 @@ impl Expander {
                                 } else {
                                     None
                                 },
+                                // Kept, so that the worker still resolves
+                                // the arguments and reports a reference in
+                                // them that fails (`$a` of `$$f($a)`) with
+                                // the function reference, not once that is
+                                // fixed (#2434).
+                                input: function_ref.input,
                                 position: function_ref.position.clone(),
                                 source_doc: function_ref.source_doc,
                             }),

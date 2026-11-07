@@ -385,11 +385,13 @@ describe("A reference written as a different tag is allowed only between related
 <p name="p3"><text extend="$g"/></p>
 <p name="p4"><collect copy="$bad"/></p>
 `);
+        // a blank in place of the error, which is reported once, at its
+        // cause (#2449)
         expect(await texts(["p1", "p2", "p3", "p4"])).eqls({
-            p1: "",
-            p2: "",
-            p3: "",
-            p4: "",
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
         });
         expect(typeChangeDiagnostics()).eqls([]);
     });

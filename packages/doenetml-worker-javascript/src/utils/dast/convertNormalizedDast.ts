@@ -32,7 +32,10 @@ import {
 import { convertToErrorComponent, errorComponentState } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
-import { convertRefsToCopies } from "./convertToCopy";
+import {
+    convertRefsToCopies,
+    warnOfAttributesTheTagDoesNotHave,
+} from "./convertToCopy";
 import { convertCopiesToValueReferences } from "./valueReferences";
 import { convertToListForms } from "./listForms";
 import {
@@ -45,6 +48,7 @@ import { breakReferenceCycles } from "./referenceCycles";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
+    doenetMLReferenceAsWritten,
     doenetMLStringForReference,
 } from "../sourceLocation";
 import {
@@ -224,31 +228,72 @@ export async function normalizedDastToSerializedComponents(
                     ?.listEntryComponentType !== undefined);
         // A division's `type` is its component type (`getComponentType`),
         // not an attribute, as for a tag that is not missing.
-        const attributes = node.attributes.filter(
-            (attribute) =>
-                !(attribute.name === "type" && node.name === "division") &&
-                (!isComposite ||
-                    attribute.name === "name" ||
-                    attribute.name.toLowerCase() === "hide"),
-        );
+        const attributes: Record<string, UnflattenedAttribute> =
+            Object.fromEntries(
+                node.attributes
+                    .filter(
+                        (attribute) =>
+                            !(
+                                attribute.name === "type" &&
+                                node.name === "division"
+                            ),
+                    )
+                    .map((attribute) => [
+                        attribute.name,
+                        {
+                            name: attribute.name,
+                            children: unflattenDastNodes(
+                                attribute.children,
+                                diagnostics,
+                            ),
+                            position: attribute.position,
+                            sourceDoc: attribute.sourceDoc,
+                        },
+                    ]),
+            );
+        // An attribute the tag does not have is ignored and warned of, as on
+        // an `extend` or `copy` that names something (`doenet-w0187`, #2332),
+        // whatever the tag is missing as.
+        warnOfAttributesTheTagDoesNotHave({
+            component: {
+                componentType,
+                position: node.position,
+                sourceDoc: node.sourceDoc,
+            },
+            attributes,
+            componentInfoObjects,
+            diagnostics,
+        });
+        // What is left is the tag's, or the reference's (`asList`, `link`),
+        // which has no source to apply to, and is dropped.
+        const componentClass =
+            mapped === undefined
+                ? undefined
+                : componentInfoObjects.allComponentClasses[mapped];
+        const tagAttributes =
+            componentClass && !componentClass.acceptAnyAttribute
+                ? new Set(
+                      Object.keys(componentClass.createAttributesObject()).map(
+                          (name) => name.toLowerCase(),
+                      ),
+                  )
+                : undefined;
+        for (const name of Object.keys(attributes)) {
+            if (
+                isComposite
+                    ? name !== "name" && name.toLowerCase() !== "hide"
+                    : tagAttributes !== undefined &&
+                      !tagAttributes.has(name.toLowerCase()) &&
+                      !name.includes(":")
+            ) {
+                delete attributes[name];
+            }
+        }
         return {
             type: "unflattened",
             componentType: isComposite ? "_missing" : componentType,
             componentIdx,
-            attributes: Object.fromEntries(
-                attributes.map((attribute) => [
-                    attribute.name,
-                    {
-                        name: attribute.name,
-                        children: unflattenDastNodes(
-                            attribute.children,
-                            diagnostics,
-                        ),
-                        position: attribute.position,
-                        sourceDoc: attribute.sourceDoc,
-                    },
-                ]),
-            ),
+            attributes,
             position: node.position,
             sourceDoc: node.sourceDoc,
             doenetAttributes: isComposite ? {} : { missing: true },
@@ -370,6 +415,19 @@ export async function normalizedDastToSerializedComponents(
                                     normalized_root.sources,
                                 ),
                             );
+
+                            // The arguments of a function reference that
+                            // names nothing (`$a` of `$$f($a)`), which the
+                            // resolver keeps (`ref_expand.rs`). They are not
+                            // shown, but a reference in them is resolved, and
+                            // reported when it fails, now rather than once
+                            // the function reference is fixed (#2434).
+                            const input = (
+                                node as { input?: UntaggedContent[][] }
+                            ).input;
+                            for (const argument of input ?? []) {
+                                unflattenDastNodes(argument, diagnostics);
+                            }
 
                             // Depending on the parent, we still want something to show up for these invalid reference.
                             // Since we already have that logic implemented for copy, we'll just make a copy
@@ -540,6 +598,7 @@ export async function normalizedDastToSerializedComponents(
         componentInfoObjects,
         allNodes: normalized_root.nodes,
         addNodesToResolver,
+        diagnostics,
     });
     nComponents = convertToCopyResult.nComponents;
 
@@ -609,13 +668,10 @@ export async function normalizedDastToSerializedComponents(
             code: code as any,
             args: {
                 ...args,
-                reference: `${doenetMLDollarsForReference(
+                reference: doenetMLReferenceAsWritten(
                     originalPath,
                     normalized_root.sources,
-                )}${doenetMLStringForReference(
-                    originalPath,
-                    normalized_root.sources,
-                )}`,
+                ),
             },
             position: copy.position,
             sourceDoc: copy.sourceDoc,

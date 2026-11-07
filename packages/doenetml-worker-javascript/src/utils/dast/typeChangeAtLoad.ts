@@ -55,10 +55,7 @@ import { documentReferents } from "./valueReferences";
 import { unwrapSource } from "./convertNormalizedDast";
 import { typeChangeRule } from "../typeChange";
 import { codedDiagnostic } from "../diagnostics";
-import {
-    doenetMLDollarsForReference,
-    doenetMLStringForReference,
-} from "../sourceLocation";
+import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { sequenceEntryComponentType } from "../sequence";
 
 /** What `doenetAttributes.typeChangeAtLoad` holds for an error. */
@@ -338,10 +335,7 @@ export function reportTypeChangesAtLoad({
         if (!originalPath?.length) {
             continue;
         }
-        const source = `${doenetMLDollarsForReference(
-            originalPath,
-            sources,
-        )}${doenetMLStringForReference(originalPath, sources)}`;
+        const source = doenetMLReferenceAsWritten(originalPath, sources);
         const { diagnostic } = typeChangeAtLoadDiagnostic({
             mark,
             writtenType,

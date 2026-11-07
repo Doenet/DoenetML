@@ -34,8 +34,9 @@ import {
     valueAllowsTypeChange,
 } from "../../utils/typeChange";
 import {
+    doenetMLArgumentsForReference,
     doenetMLDollarsForReference,
-    doenetMLStringForReference,
+    doenetMLReferenceAsWritten,
 } from "../../utils/sourceLocation";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import {
@@ -1608,6 +1609,7 @@ export default class Copy extends CompositeComponent {
         const result = await this.createSerializedReplacementsOfCopy(args);
         await reportMissingProperty(args);
         await missingSourceInPlace({ ...args, result });
+        missingInPlaceOfCopiedError({ ...args, result });
         return result;
     }
 
@@ -1692,10 +1694,10 @@ export default class Copy extends CompositeComponent {
         if (allDoenetMLs && workspace.referenceAsWritten === undefined) {
             const originalPath = await component.stateValues.originalPath;
             if (originalPath?.length > 0) {
-                workspace.referenceAsWritten = `${doenetMLDollarsForReference(
+                workspace.referenceAsWritten = doenetMLReferenceAsWritten(
                     originalPath,
                     allDoenetMLs,
-                )}${doenetMLStringForReference(originalPath, allDoenetMLs)}`;
+                );
             }
         }
         // What decided what an unlinked copy made, for a save to hold
@@ -2695,6 +2697,7 @@ export default class Copy extends CompositeComponent {
         await reportMissingProperty(args);
         await blankInPlaceOfNothing({ ...args, result });
         await missingSourceInPlace({ ...args, result });
+        missingInPlaceOfCopiedError({ ...args, result });
         return result;
     }
 
@@ -3839,10 +3842,8 @@ async function diagnosticForUnusedIndex({
 
     const originalPath = await component.stateValues.originalPath;
     const dollars = doenetMLDollarsForReference(originalPath, allDoenetMLs);
-    const reference = `${dollars}${doenetMLStringForReference(
-        originalPath,
-        allDoenetMLs,
-    )}`;
+    // whole, with the arguments of a function reference (`$$f[2](2)`)
+    const reference = doenetMLReferenceAsWritten(originalPath, allDoenetMLs);
     const sourceClass =
         componentInfoObjects.allComponentClasses[
             replacementSource.componentType
@@ -3875,7 +3876,13 @@ async function diagnosticForUnusedIndex({
                     suggestion: `${dollars}${source.substring(
                         pathStart,
                         indexStart,
-                    )}.${property}${source.substring(indexStart, pathEnd)}`,
+                    )}.${property}${source.substring(
+                        indexStart,
+                        pathEnd,
+                    )}${doenetMLArgumentsForReference(
+                        originalPath,
+                        allDoenetMLs,
+                    )}`,
                     property,
                 },
             });
@@ -7293,6 +7300,146 @@ async function missingSourceInPlace({
     ];
 }
 
+/**
+ * Make a copy of a component in error missing (VAL-5, #2449): `$m`, `<math
+ * extend="$m"/>` or `copy="$m"` of an `m` that is an `_error` shows a blank,
+ * `＿`, and not the error again. The error is reported once, where its cause
+ * is written, and a copy of it reports nothing (`ComponentBuilder`).
+ *
+ * This applies when the copy's one replacement is a copy of an `_error`. An
+ * error held inside its one replacement, as in a copy of a `<p>` holding one,
+ * is shown as it is. Each such replacement, in `result.replacements` or in a
+ * change that adds it (`result.replacementChanges`), is swapped for one
+ * missing component under its index, `stateId` and name, so what the copy
+ * keeps of its source (`workspace`) is unchanged, and the copy is made again
+ * from its source when that changes. A copy written as a tag is missing as
+ * that tag (`missingOfWrittenType`), a bare reference where a component of a
+ * type is needed is missing as that type (below), and any other is a
+ * `_missing`.
+ */
+function missingInPlaceOfCopiedError({
+    component,
+    components,
+    componentInfoObjects,
+    result,
+}) {
+    if (component.doenetAttributes?.isIndex) {
+        // `$io` of `$l[$io]` (`convertToCopy.ts`): the reference says its
+        // index cannot be worked out (`doenet-w0163`).
+        return;
+    }
+
+    function isCopiedError(replacement) {
+        return (
+            typeof replacement === "object" &&
+            replacement.componentType === "_error" &&
+            replacement.originalIdx != undefined &&
+            components[replacement.originalIdx]?.componentType === "_error"
+        );
+    }
+
+    const writtenType = component.attributes._createComponentOfType?.primitive
+        ?.value
+        ? componentInfoObjects.componentTypeLowerCaseMapping[
+              component.attributes._createComponentOfType.primitive.value.toLowerCase()
+          ]
+        : undefined;
+
+    /**
+     * Whether `replacement` is a copied error, or, for a copy written as a
+     * tag (`<math extend="$m"/>`), the component of that tag made to hold
+     * one (`verifyReplacementsMatchSpecifiedType`), which, unable to show
+     * the error as a child, would be made an `_error` showing it again.
+     */
+    function isOrHoldsOnlyCopiedError(replacement) {
+        if (isCopiedError(replacement)) {
+            return true;
+        }
+        if (
+            writtenType === undefined ||
+            typeof replacement !== "object" ||
+            replacement.componentType !== writtenType ||
+            replacement.originalIdx != undefined
+        ) {
+            return false;
+        }
+        const children = replacement.children ?? [];
+        const nonStrings = children.filter((x) => typeof x === "object");
+        return (
+            nonStrings.length === 1 &&
+            isCopiedError(nonStrings[0]) &&
+            children.every(
+                (x) => typeof x === "object" || x.trim().length === 0,
+            )
+        );
+    }
+
+    // A bare reference in a parent that needs it to make something of a
+    // type (`compositesMustHaveAReplacement`: `x="$m"` of a `<point>`, whose
+    // `x` is a `<math>`, or the function `$$f(2)` evaluates) is missing as
+    // that type, as it is when it names nothing
+    // (`verifyReplacementsMatchSpecifiedType`). A `_missing` there would be
+    // an invalid child of the parent, which would say so (`doenet-w0106`).
+    const neededType =
+        writtenType === undefined &&
+        component.sharedParameters?.compositesMustHaveAReplacement &&
+        component.sharedParameters.compositesDefaultReplacementType
+            ? component.sharedParameters.compositesDefaultReplacementType
+            : undefined;
+
+    function missingInPlaceOf(error) {
+        // Its index and `stateId` are the error's, set below.
+        const stateIdInfo = { prefix: "", num: 0 };
+        let missing;
+        if (writtenType !== undefined || neededType !== undefined) {
+            const res = missingOfWrittenType({
+                component,
+                componentInfoObjects,
+                compositeAttributesObj:
+                    component.constructor.createAttributesObject(),
+                nComponents: result.nComponents,
+                stateIdInfo,
+                componentType: neededType,
+            });
+            result.nComponents = res.nComponents;
+            missing = res.replacements[0];
+        } else {
+            missing = missingReplacement({
+                nComponents: result.nComponents,
+                stateIdInfo,
+            });
+        }
+        missing.componentIdx = error.componentIdx;
+        missing.stateId = error.stateId;
+        if (error.attributes?.name) {
+            missing.attributes.name = error.attributes.name;
+        }
+        return missing;
+    }
+
+    function swap(replacements) {
+        const nonStrings = replacements.filter((x) => typeof x === "object");
+        if (
+            nonStrings.length !== 1 ||
+            !isOrHoldsOnlyCopiedError(nonStrings[0])
+        ) {
+            return replacements;
+        }
+        return replacements.map((x) =>
+            typeof x === "object" ? missingInPlaceOf(x) : x,
+        );
+    }
+
+    if (result.replacements) {
+        result.replacements = swap(result.replacements);
+    }
+    for (const change of result.replacementChanges ?? []) {
+        if (change.changeType === "add" && change.serializedReplacements) {
+            change.serializedReplacements = swap(change.serializedReplacements);
+        }
+    }
+}
+
 /** A `_missing` (`Missing.js`), as the one replacement of a copy. */
 function missingReplacement({ nComponents, stateIdInfo }) {
     return {
@@ -7358,10 +7505,16 @@ function missingOfWrittenType({
     compositeAttributesObj,
     nComponents,
     stateIdInfo,
+    // in place of the written type, for a bare reference that must make a
+    // component of this type (`missingInPlaceOfCopiedError`)
+    componentType: typeNeeded,
 }) {
     const componentType =
         componentInfoObjects.componentTypeLowerCaseMapping[
-            component.attributes._createComponentOfType.primitive.value.toLowerCase()
+            (
+                typeNeeded ??
+                component.attributes._createComponentOfType.primitive.value
+            ).toLowerCase()
         ];
 
     if (componentInfoObjects.isCompositeComponent({ componentType })) {

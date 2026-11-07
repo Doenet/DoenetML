@@ -117,6 +117,80 @@ export function doenetMLDollarsForReference(
 }
 
 /**
+ * The arguments an author wrote after a function reference, parentheses
+ * included: `(2)` of `$$f[2](2)`, and `((x), 3)` of `$$(f)((x), 3)`. `""` for
+ * a reference that is not a function reference, or whose source is not there
+ * to read.
+ *
+ * The path of a function reference spans the name and its index, not the
+ * arguments (`doenetMLStringForReference`), so a diagnostic quoting the
+ * reference from its path would cut it short (#2434). DIAG-3 quotes a
+ * reference whole, as written, arguments included. The arguments start right
+ * after the path, or after the `)` closing a parenthesized path, and end at
+ * the parenthesis that balances their first.
+ */
+export function doenetMLArgumentsForReference(
+    originalPath: ReferencePathPart[] | undefined | null,
+    allDoenetMLs: readonly string[] | undefined,
+): string {
+    if (
+        !originalPath?.length ||
+        doenetMLDollarsForReference(originalPath, allDoenetMLs) !== "$$"
+    ) {
+        return "";
+    }
+    const startOffset = originalPath[0].position?.start.offset;
+    let argsStart = originalPath[originalPath.length - 1].position?.end.offset;
+    const source = allDoenetMLs?.[originalPath[0].sourceDoc ?? 0];
+    if (
+        startOffset == undefined ||
+        argsStart == undefined ||
+        source == undefined
+    ) {
+        return "";
+    }
+    if (source[startOffset - 1] === "(") {
+        // `$$(f)(2)`: step over the parenthesis closing the path.
+        if (source[argsStart] !== ")") {
+            return "";
+        }
+        argsStart++;
+    }
+    if (source[argsStart] !== "(") {
+        return "";
+    }
+    let depth = 0;
+    for (let i = argsStart; i < source.length; i++) {
+        if (source[i] === "(") {
+            depth++;
+        } else if (source[i] === ")" && --depth === 0) {
+            return source.substring(argsStart, i + 1);
+        }
+    }
+    return "";
+}
+
+/**
+ * A reference as the author wrote it, for a diagnostic to quote: its `$` or
+ * `$$` (`doenetMLDollarsForReference`), its path
+ * (`doenetMLStringForReference`), and, for a function reference, its
+ * arguments (`doenetMLArgumentsForReference`). So `$$f[2](2)` is quoted
+ * whole, not as `$$f[2]`, and any other reference as it was before.
+ */
+export function doenetMLReferenceAsWritten(
+    originalPath: ReferencePathPart[] | undefined | null,
+    allDoenetMLs: readonly string[] | undefined,
+): string {
+    return `${doenetMLDollarsForReference(
+        originalPath,
+        allDoenetMLs,
+    )}${doenetMLStringForReference(
+        originalPath,
+        allDoenetMLs,
+    )}${doenetMLArgumentsForReference(originalPath, allDoenetMLs)}`;
+}
+
+/**
  * Matches the run of XML tag-name characters immediately after `<`.
  * Per XML 1.0 a name may contain a wider set of characters, but DoenetML
  * tag names only ever use these — keeping the class tight avoids accidentally

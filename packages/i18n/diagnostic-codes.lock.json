@@ -304,5 +304,6 @@
     "doenet-w0183": "reference-name-missing-in-branch",
     "doenet-w0184": "reference-name-types-differ-in-branches",
     "doenet-w0185": "copy-with-state-of-uri",
-    "doenet-w0186": "copy-with-state-attribute-reaches-choice"
+    "doenet-w0186": "copy-with-state-attribute-reaches-choice",
+    "doenet-w0187": "copy-attribute-invalid-for-component"
 }

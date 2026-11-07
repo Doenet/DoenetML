@@ -7326,15 +7326,19 @@ describe("Extend and references tests @group2", async () => {
       <function variables="x">x^3</function>
     </group>`;
 
-            for (const reference of [`$$fs[$bad](3)`, `$$fs[$bad]`]) {
+            // The arguments of the called spelling are quoted too (#2434).
+            for (const [reference, quoted] of [
+                [`$$fs[$bad](3)`, "`$$fs[$bad](3)`"],
+                [`$$fs[$bad]`, "`$$fs[$bad]`"],
+            ]) {
                 const { diagnostics } = await run(
                     `${setup}<p name="p1">${reference}</p>`,
                 );
                 const warning = diagnostics.warnings.find(
                     (w: any) => w.code === "doenet-w0163",
                 );
-                expect(warning?.message).contain("`$$fs[$bad]`");
-                expect(warning?.message).not.contain("`$fs[$bad]`");
+                expect(warning?.message).contain(quoted);
+                expect(warning?.message).not.contain("`$fs[$bad]");
                 expect(warning?.position).toBeDefined();
             }
 
@@ -7342,7 +7346,10 @@ describe("Extend and references tests @group2", async () => {
             // has to be stepped over to find the dollars behind it. The
             // parentheses are not quoted back — the path alone names the same
             // reference in the spelling that does not need them.
-            for (const reference of [`$$(fs[$bad])(3)`, `$$(fs[$bad])`]) {
+            for (const [reference, quoted] of [
+                [`$$(fs[$bad])(3)`, "`$$fs[$bad](3)`"],
+                [`$$(fs[$bad])`, "`$$fs[$bad]`"],
+            ]) {
                 const { diagnostics } = await run(
                     `${setup}<p name="p1">${reference}</p>`,
                 );
@@ -7350,7 +7357,7 @@ describe("Extend and references tests @group2", async () => {
                     diagnostics.warnings.find(
                         (w: any) => w.code === "doenet-w0163",
                     )?.message,
-                ).contain("`$$fs[$bad]`");
+                ).contain(quoted);
             }
 
             // Ordinary references still get the single `$` they were written
@@ -7929,7 +7936,7 @@ describe("Extend and references tests @group2", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
 <section name="S"><textInput name="h" prefill="original" /></section>
-<section copy="$S" name="S2" link="false"><p name="q">$h</p><p name="q2">$S2.h</p></section>
+<section copy="$S" name="S2"><p name="q">$h</p><p name="q2">$S2.h</p></section>
 `,
             });
 

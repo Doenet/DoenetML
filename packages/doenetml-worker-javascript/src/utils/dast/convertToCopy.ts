@@ -12,6 +12,8 @@ import {
     UnflattenedRefResolution,
 } from "./intermediateTypes";
 import { addSource, isCopySource, unwrapSource } from "./convertNormalizedDast";
+import type { DiagnosticRecord } from "@doenet/utils";
+import { codedDiagnostic } from "../diagnostics";
 
 /**
  * The settings of the `_copy` an unlinked copy is made into: `_link` false,
@@ -34,12 +36,80 @@ function unlinkedCopyAttributes(
     return attributes;
 }
 
+/**
+ * Warn for each attribute written on a tag with `copy`, `copyWithState` or
+ * `extend` that the tag does not have, and drop it (#2332). Written on the
+ * tag without one, such an attribute is an error (`doenet-e0004`). On a copy
+ * or an extend, the component is still shown, as what it copies, and the
+ * attribute does nothing, so it is a warning (`doenet-w0187`, DIAG-1: an
+ * attribute that is ignored). It is decided here, from the tag the author
+ * wrote, so that it is the same for every kind of component: one made from
+ * its replacement (`convertUnresolvedAttributesForComponentType`, which would
+ * otherwise drop it silently), a list, which keeps the attributes on the
+ * list itself (which would otherwise make it an error), and a tag whose
+ * `extend` or `copy` names nothing, which is missing (`missingTag` in
+ * `convertNormalizedDast.ts`). An attribute is the tag's when its class
+ * declares it, or the `_copy`'s, as `asList`. A class
+ * that accepts any attribute (`<module>`, whose extend reports what it
+ * ignores itself, `doenet-w0168`) and a namespaced attribute (`xmlns:…`) are
+ * left alone.
+ */
+export function warnOfAttributesTheTagDoesNotHave({
+    component,
+    attributes,
+    componentInfoObjects,
+    diagnostics,
+}: {
+    component: Pick<
+        UnflattenedComponent,
+        "componentType" | "position" | "sourceDoc"
+    >;
+    attributes: Record<string, UnflattenedAttribute>;
+    componentInfoObjects: ComponentInfoObjects;
+    diagnostics: DiagnosticRecord[];
+}) {
+    const componentType =
+        componentInfoObjects.componentTypeLowerCaseMapping[
+            component.componentType.toLowerCase()
+        ];
+    const componentClass =
+        componentInfoObjects.allComponentClasses[componentType];
+    if (!componentClass || componentClass.acceptAnyAttribute) {
+        return;
+    }
+    const known = new Set(
+        [
+            ...Object.keys(componentClass.createAttributesObject()),
+            ...Object.keys(
+                componentInfoObjects.allComponentClasses._copy.createAttributesObject(),
+            ),
+        ].map((name) => name.toLowerCase()),
+    );
+    for (const attrName of Object.keys(attributes)) {
+        if (known.has(attrName.toLowerCase()) || attrName.includes(":")) {
+            continue;
+        }
+        const attribute = attributes[attrName];
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0187",
+                args: { attribute: attrName, componentType },
+                position: attribute.position ?? component.position,
+                sourceDoc: attribute.sourceDoc ?? component.sourceDoc,
+            }),
+        );
+        delete attributes[attrName];
+    }
+}
+
 export function convertRefsToCopies({
     serializedComponents,
     nComponents,
     componentInfoObjects,
     allNodes,
     addNodesToResolver,
+    diagnostics = [],
 }: {
     serializedComponents: (UnflattenedComponent | string)[];
     nComponents: number;
@@ -49,6 +119,8 @@ export function convertRefsToCopies({
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
     ) => void;
+    /** Where the warnings for attributes the tag does not have go. */
+    diagnostics?: DiagnosticRecord[];
 }) {
     const newComponents: (UnflattenedComponent | string)[] = [];
 
@@ -68,6 +140,7 @@ export function convertRefsToCopies({
             componentInfoObjects,
             allNodes,
             addNodesToResolver,
+            diagnostics,
         });
         newComponent.children = res.components;
         nComponents = res.nComponents;
@@ -81,6 +154,7 @@ export function convertRefsToCopies({
                 componentInfoObjects,
                 allNodes,
                 addNodesToResolver,
+                diagnostics,
             });
             attribute.children = res.components;
             nComponents = res.nComponents;
@@ -111,6 +185,7 @@ export function convertRefsToCopies({
                 componentInfoObjects,
                 allNodes,
                 addNodesToResolver,
+                diagnostics,
             });
 
             nComponents = evalResult.nComponents;
@@ -128,6 +203,12 @@ export function convertRefsToCopies({
         // and we make the name and componentIdx the component be assigned to the eventual replacement
 
         if ("ExtendAttribute" in extending || isCopySource(extending)) {
+            warnOfAttributesTheTagDoesNotHave({
+                component: newComponent,
+                attributes: outerAttributes,
+                componentInfoObjects,
+                diagnostics,
+            });
             if (
                 newComponent.componentType.endsWith("List") &&
                 !["asList", "convertSetToList"].includes(
@@ -286,6 +367,7 @@ export function convertRefsToCopies({
                         componentInfoObjects,
                         allNodes,
                         addNodesToResolver,
+                        diagnostics,
                     });
                     nComponents = res.nComponents;
 
@@ -325,6 +407,14 @@ export function convertRefsToCopies({
                             comp.attributes._createComponentOfType = {
                                 name: "_createComponentOfType",
                                 children: ["integer"],
+                            };
+                            // An index of a component in error stays the
+                            // error, not a blank (`missingInPlaceOfCopiedError`
+                            // in `Copy.js`), so the reference says its index
+                            // cannot be worked out (`doenet-w0163`).
+                            comp.doenetAttributes = {
+                                ...comp.doenetAttributes,
+                                isIndex: true,
                             };
                             return {
                                 value: [comp],
@@ -431,6 +521,7 @@ function convertEvaluate({
     componentInfoObjects,
     allNodes,
     addNodesToResolver,
+    diagnostics,
 }: {
     evaluateComponent: UnflattenedComponent;
     refResolution: UnflattenedRefResolution;
@@ -441,6 +532,7 @@ function convertEvaluate({
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
     ) => void;
+    diagnostics: DiagnosticRecord[];
 }) {
     // The function to evaluate is an attribute
 
@@ -469,6 +561,7 @@ function convertEvaluate({
         componentInfoObjects,
         allNodes,
         addNodesToResolver,
+        diagnostics,
     });
     nComponents = res.nComponents;
 

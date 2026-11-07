@@ -7,8 +7,9 @@
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
+    doenetMLArgumentsForReference,
     doenetMLDollarsForReference,
-    doenetMLStringForReference,
+    doenetMLReferenceAsWritten,
 } from "../../utils/sourceLocation";
 import { listEntryAtResolverNode } from "../listEntryResolverNodes";
 import { listEntryTargetOfResolution } from "../listEntryTargets";
@@ -510,13 +511,10 @@ export class RefResolutionDependency extends Dependency {
                     type: "warning",
                     code: "doenet-w0163",
                     args: {
-                        reference: `${doenetMLDollarsForReference(
+                        reference: doenetMLReferenceAsWritten(
                             this.refResolutionOf(composite).originalPath,
                             this.dependencyHandler.core.allDoenetMLs,
-                        )}${doenetMLStringForReference(
-                            this.refResolutionOf(composite).originalPath,
-                            this.dependencyHandler.core.allDoenetMLs,
-                        )}`,
+                        ),
                     },
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
@@ -599,23 +597,12 @@ export class RefResolutionDependency extends Dependency {
         }
 
         /**
-         * Given the ref resolution `this.refResolutionOf(composite)`
-         * and the DoenetML string from `this.dependencyHandler.core.allDoenetMLs[0]`,
-         * return the substring of DoenetML corresponding to the resolution's `originalPath`.
+         * The reference as the author wrote it, from the ref resolution
+         * `this.refResolutionOf(composite)`: its `$` or `$$`, its path, and
+         * the arguments of a function reference (`$$f[2](2)`, #2434).
          */
-        const getDoenetMLStringForReference = () =>
-            doenetMLStringForReference(
-                this.refResolutionOf(composite).originalPath,
-                this.dependencyHandler.core.allDoenetMLs,
-            );
-
-        /**
-         * The `$` or `$$` the author wrote. Hardcoding `$` named a function
-         * reference as something they did not write: `$$fs[$i]` came back as
-         * `$fs[$i]`.
-         */
-        const getDollarsForReference = () =>
-            doenetMLDollarsForReference(
+        const getReferenceAsWritten = () =>
+            doenetMLReferenceAsWritten(
                 this.refResolutionOf(composite).originalPath,
                 this.dependencyHandler.core.allDoenetMLs,
             );
@@ -677,8 +664,6 @@ export class RefResolutionDependency extends Dependency {
         refResolution ??= selfReferentialResolution;
 
         if (refResolution === undefined) {
-            const referenceText = getDoenetMLStringForReference();
-
             // A reference written as a tag whose index is not a positive
             // integer now (`<math extend="$r[$k]"/>` while `k` is blank or
             // 0) names nothing, and says so itself, as an info that lasts
@@ -709,7 +694,7 @@ export class RefResolutionDependency extends Dependency {
                             ? { code: "doenet-w0105" as const }
                             : { code: "doenet-w0104" as const }),
                         args: {
-                            reference: `${getDollarsForReference()}${referenceText}`,
+                            reference: getReferenceAsWritten(),
                         },
                         position: composite.position,
                         sourceDoc: composite.sourceDoc,
@@ -855,7 +840,7 @@ export class RefResolutionDependency extends Dependency {
 
             // If the composite is expanded and yet the index did not match one of the composite's replacements,
             // then there is no replacement at that index, and we obtained no referent for the reference.
-            const reference = `${getDollarsForReference()}${getDoenetMLStringForReference()}`;
+            const reference = getReferenceAsWritten();
 
             // An iteration or pick holding only a reference to a list or to a
             // composite with instances is indexed as that list or composite
@@ -973,6 +958,15 @@ export class RefResolutionDependency extends Dependency {
             originalPath,
             core.allDoenetMLs,
         );
+        // The arguments of a function reference (`(2)` of `$$g[1](2)`), quoted
+        // after an index that ends the path, and so ends what is quoted
+        // (#2434).
+        const pathEnd =
+            originalPath?.[originalPath.length - 1]?.position?.end.offset;
+        const args = doenetMLArgumentsForReference(
+            originalPath,
+            core.allDoenetMLs,
+        );
 
         for (const { containerIdx, childIdx, position } of childIndexes) {
             const indexStart = position?.start.offset;
@@ -997,6 +991,7 @@ export class RefResolutionDependency extends Dependency {
                 continue;
             }
             const before = `${dollars}${source.substring(start, indexStart)}`;
+            const after = indexEnd === pathEnd ? args : "";
 
             const childName = authoredName(child);
             const instanceOf =
@@ -1008,8 +1003,8 @@ export class RefResolutionDependency extends Dependency {
                     type: "warning",
                     code: "doenet-w0179",
                     args: {
-                        reference: `${dollars}${source.substring(start, indexEnd)}`,
-                        suggestion: `${before}.${childName ?? "x"}`,
+                        reference: `${dollars}${source.substring(start, indexEnd)}${after}`,
+                        suggestion: `${before}.${childName ?? "x"}${after}`,
                         named: childName === undefined ? "no" : "yes",
                         container: containerKind(instanceOf),
                         component: instanceOf ?? "group",
