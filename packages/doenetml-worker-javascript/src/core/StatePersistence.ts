@@ -9,6 +9,7 @@ import type Core from "../Core";
 import {
     heldCopySnapshot,
     indexWarningsStillMade,
+    sameSourceCase,
     snapshotStillMade,
 } from "../utils/copySnapshot";
 
@@ -165,6 +166,21 @@ export class StatePersistence {
                 continue;
             }
             toSave[stateId] = cumulative[stateId];
+        }
+        // The type of each component saved, not of those dropped here
+        // (`mergeIntoCumulative`)
+        if (cumulative.__componentTypes) {
+            const types: Record<string, string> = {};
+            for (const stateId in cumulative.__componentTypes) {
+                if (stateId in toSave) {
+                    types[stateId] = cumulative.__componentTypes[stateId];
+                }
+            }
+            if (Object.keys(types).length > 0) {
+                toSave.__componentTypes = types;
+            } else {
+                delete toSave.__componentTypes;
+            }
         }
         return toSave;
     }
@@ -386,13 +402,14 @@ export class StatePersistence {
      * the snapshot it holds what decided what the copy made, where a copy
      * made again could decide otherwise: whether a copy written as a
      * different tag was made, and the case of a `<conditionalContent>` it
-     * was made from (`heldCopySnapshot`), so a reload makes the copy as it
+     * was made from, or that a component it copies was named in
+     * (`heldCopySnapshot`), so a reload makes the copy as it
      * was. A copy is held too when one made now would decide otherwise
      * whether an index of it names nothing in a scalar (the warning of
      * `reportIndexIntoScalarAsMade`), which what it shows need not reveal,
      * so a reload reports the warning it had. A copy made again with a
-     * different shape all the same (one whose shape no held case decides, as of a `<collect>` or of `$cc.p`, or one
-     * from a save that held the snapshot alone) is made from its source as
+     * different shape all the same (one whose shape no held case decides,
+     * as of a `<collect>`, or one from a save that held the snapshot alone) is made from its source as
      * restored, and keeps nothing it could not apply (`applyCopySnapshot`).
      * A save with no unlinked copies does not call this (`unlinkedCopies`).
      */
@@ -419,6 +436,12 @@ export class StatePersistence {
                 // which a `copy`, holding no snapshot of what it made from DoenetML,
                 // shows only here
                 madeFrom?.caseIndex === component.unlinkedMadeFrom?.caseIndex &&
+                // nor one made from a component named in another case
+                // (`sourceCaseOf`)
+                sameSourceCase(
+                    madeFrom?.sourceCase,
+                    component.unlinkedMadeFrom?.sourceCase,
+                ) &&
                 // nor one that would decide an index warning otherwise
                 // (`reportIndexIntoScalarAsMade`), which what it shows need
                 // not reveal, as of a blank value

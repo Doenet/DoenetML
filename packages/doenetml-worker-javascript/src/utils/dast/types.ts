@@ -43,6 +43,13 @@ export type SerializedComponent = {
     };
     state: Record<string, any>;
     skipSugar?: boolean;
+    /**
+     * The sugar of this component and of everything in it has already been
+     * applied, so `applySugar` leaves it as it is. Set only while the sugar
+     * of a component's type is applied to children that were sugared where
+     * they were written (`addChildrenFromComposite` in `Copy.js`).
+     */
+    sugarApplied?: boolean;
     preSugarInd?: number;
     doenetAttributes: Record<string, any>; // TODO: remove doenetAttributes?
 };

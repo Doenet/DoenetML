@@ -495,6 +495,7 @@ function deleteSavedState(core: Core, stateId: string) {
             delete core.cumulativeStateVariableChanges.__copySnapshots;
         }
     }
+    delete core.cumulativeStateVariableChanges.__componentTypes?.[stateId];
     core.readerTouchedStateIds.delete(stateId);
     core.definitionSetStateIds.delete(stateId);
 }

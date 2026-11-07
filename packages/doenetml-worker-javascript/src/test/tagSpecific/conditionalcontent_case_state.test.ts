@@ -169,9 +169,11 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         expect(await h.sv("c.t")).eq(undefined);
     });
 
-    it("applies nothing saved of a copy of a component named in one case to a copy from another", async () => {
+    it("makes a copy of a component named in one case again from that case, not another's component of another type", async () => {
         // The copied `<p>` is in a case's group, not itself a replacement of
-        // the conditionalContent.
+        // the conditionalContent. A reload makes the copy again from the
+        // case it was made from (B35), with the reader's value; nothing of
+        // it reaches the other case's textInput.
         const h = await setup(`
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc">
@@ -184,16 +186,22 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         expect(await h.math("cp.a")).eq(7);
         await h.setB(false);
         await h.reload();
-        const t = await h.sv("cp.a");
-        expect(t.componentType).eq("textInput");
-        expect(t.stateValues.value).eq("hi");
+        const a = await h.sv("cp.a");
+        expect(a.componentType).eq("mathInput");
+        expect(a.stateValues.value.tree).eq(7);
+        expect((await h.sv("cc.a")).stateValues.value).eq("hi");
     });
 
     for (const source of ["cc", "e"]) {
         it(`names the case a copy was made from, made as $${source} changes case`, async () => {
             // `cc2` comes first, so when `b` changes, its else's copy is made
             // while `cc` (and `e`) still hold the case's replacements: the
-            // copy is a mathInput, though `cc` now selects its else.
+            // copy is a mathInput, though `cc` now selects its else. A
+            // reload makes the copy of `$cc.p` again from the case it was
+            // made from (B35), with the reader's value. A copy of `$e.p`,
+            // through a conditionalContent that extends another, holds no
+            // case, and is made again from the else, taking nothing of the
+            // mathInput.
             const h = await setup(`
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc2">
@@ -211,6 +219,11 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
             await h.typeMath("cc2.cp.a", "7");
             await h.reload();
             const t = await h.sv("cc2.cp.a");
+            if (source === "cc") {
+                expect(t.componentType).eq("mathInput");
+                expect(t.stateValues.value.tree).eq(7);
+                return;
+            }
             expect(t.componentType).eq("textInput");
             expect(t.stateValues.value).eq("hi");
             expect(t.stateValues.numWords).eq(1);

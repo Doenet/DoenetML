@@ -44,6 +44,12 @@ export type ReferentDescription = {
      * at least that.
      */
     listEntryPosition?: number;
+    /**
+     * Whether the variable holds `null` for having no value
+     * (`nullIsMissing`, as `maxNumber` of a `<collect>` with no limit), so
+     * that a reference reading `null` from it is missing (D37).
+     */
+    nullIsMissing?: boolean;
 };
 
 /**
@@ -128,6 +134,7 @@ export function describeReferentVariable(
         companions,
         isLocation: Boolean(arrayStateVarObj?.isLocation),
         ...(listEntryPosition === undefined ? {} : { listEntryPosition }),
+        ...(stateVarObj?.nullIsMissing ? { nullIsMissing: true } : {}),
     };
 }
 

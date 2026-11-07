@@ -332,7 +332,9 @@ describe("saved state is keyed by an identifier a rebuild reproduces @group4", (
         await first.core.saveImmediately();
         const saved = first.scoreState.state as string;
         expect(
-            Object.keys(JSON.parse(saved)),
+            Object.keys(JSON.parse(saved)).filter(
+                (key) => !key.startsWith("__"),
+            ),
             "the drag was not saved, so the reload proves nothing",
         ).eqls(["/~b@@adapt0"]);
 
