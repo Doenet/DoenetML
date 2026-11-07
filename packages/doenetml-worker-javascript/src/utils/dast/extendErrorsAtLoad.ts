@@ -15,13 +15,16 @@
  * change nothing), which `Copy.js` reports in place of computing them again,
  * so the error is the same one, kept once, when the extend is made. An
  * extend whose source's tag the DoenetML does not give (`$g.x` of a name
- * left for run time, written as a tag that does not make its content) is not
- * marked, and is decided when it is made.
+ * left for run time, written as a tag that does not make its content), or
+ * that is written as a tag other than the one it extends (`<group
+ * extend="$r">` of a `<repeat>`), is not marked, and is decided when it is
+ * made.
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
 import { unwrapSource } from "./convertNormalizedDast";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
+import { TAGS_OF_LIST_FORMS } from "../copy";
 import {
     extendChangesContentErrors,
     TAGS_MAKING_THEIR_CONTENT,
@@ -244,6 +247,21 @@ export function checkExtendErrorsAtLoad({
             }
         }
         if (!allClasses[replacementType]) {
+            continue;
+        }
+        // Written as a tag other than the one it extends, an extend may be
+        // made from what its source makes (a composite's replacements), or
+        // be a type error, which `Copy.js` decides before any of these
+        // errors; so it is left to run time. A part of a choosing tag is an
+        // error whatever it extends.
+        if (
+            writtenType !== undefined &&
+            writtenType !== replacementType &&
+            TAGS_OF_LIST_FORMS[
+                replacementType as keyof typeof TAGS_OF_LIST_FORMS
+            ] !== writtenType &&
+            !Object.hasOwn(PARTS_OF_CHOOSING_TAGS, writtenType)
+        ) {
             continue;
         }
 

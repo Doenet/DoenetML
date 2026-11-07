@@ -98,6 +98,13 @@ export class DiagnosticsManager {
      * `"assert"`, in order. The test harness fails a test that leaves any.
      */
     errorsReportedAfterLoad: DiagnosticRecord[] = [];
+    /**
+     * The keys of what was reported by the end of load ({@link markLoaded}).
+     * An error among them is not one after load, however many times it is
+     * reported again, and whether or not the cap of {@link getDiagnostics}
+     * has dropped it since.
+     */
+    _keysAtLoad: Set<string> = new Set();
 
     constructor({
         preliminaryDiagnostics,
@@ -185,6 +192,14 @@ export class DiagnosticsManager {
      * the same one, kept once, and is not reported again.
      */
     markLoaded(): void {
+        this._keysAtLoad = new Set(this._diagnosticKeys);
+        for (const byCondition of this._conditionDiagnostics.values()) {
+            for (const entries of byCondition.values()) {
+                for (const entry of entries) {
+                    this._keysAtLoad.add(entry.key);
+                }
+            }
+        }
         this.loaded = true;
     }
 
@@ -192,13 +207,14 @@ export class DiagnosticsManager {
      * Whether `diagnostic` is a new error reported after load, which in
      * production is a warning with its component missing
      * ({@link ErrorsAfterLoad}). One that was reported at load already is
-     * not new.
+     * not new; one first reported after load stays one, as when a composite
+     * reports it and then makes the `_error` that shows it.
      */
     isErrorAfterLoad(diagnostic: DiagnosticRecord): boolean {
         return (
             this.loaded &&
             diagnostic.type === "error" &&
-            !this._diagnosticKeys.has(diagnosticDedupKey(diagnostic))
+            !this._keysAtLoad.has(diagnosticDedupKey(diagnostic))
         );
     }
 
@@ -209,7 +225,7 @@ export class DiagnosticsManager {
      * duplicate.
      */
     _afterLoad(diagnostic: DiagnosticRecord): DiagnosticRecord {
-        if (!this.loaded || diagnostic.type !== "error") {
+        if (!this.isErrorAfterLoad(diagnostic)) {
             return diagnostic;
         }
         if (this.errorsAfterLoad === "assert") {

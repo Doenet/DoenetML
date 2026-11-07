@@ -155,6 +155,34 @@ const documents: [string, string, string[]][] = [
         ),
         ["doenet-e0035"],
     ],
+    [
+        "a select in a case with a numToSelect that rounds to more than its options",
+        inCase(`<select numToSelect="2.5"><option>a</option></select>`),
+        ["doenet-e0035"],
+    ],
+    [
+        "a select in a case with withReplacement written empty, which is false",
+        inCase(
+            `<select numToSelect="3" withReplacement=""><option>a</option></select>`,
+        ),
+        ["doenet-e0035"],
+    ],
+    // what is decided at load is what the content gives when it is made
+    [
+        "a tag in a case, of a list whose maxNumber keeps two of its entries",
+        `<numberList name="nl" maxNumber="2.5">1 2 3</numberList>${inCase(`<number extend="$nl"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a case, of a list whose maxNumber keeps one of its entries",
+        `<numberList name="nl" maxNumber="1.5">1 2</numberList>${inCase(`<number extend="$nl"/>`)}`,
+        [],
+    ],
+    [
+        "a group in a case, of a repeat, with a child",
+        `<repeat name="rr" for="1 2" valueName="w"><text>$w</text></repeat>${inCase(`<group extend="$rr"><text>z</text></group>`)}`,
+        [],
+    ],
 ];
 
 describe("Errors are decided when the document loads (DIAG-7) @group4", () => {

@@ -65,14 +65,18 @@ function selectError(select: SerializedComponent) {
     if (numToSelect === null || withReplacement === null) {
         return undefined;
     }
+    // `numToSelect` is an integer, which rounds what is written (`2.5` is
+    // 3), as the select does when it is made.
     const numUniqueRequired =
-        numToSelect === undefined ? 1 : Number(numToSelect);
+        numToSelect === undefined ? 1 : Math.round(Number(numToSelect));
     if (!Number.isInteger(numUniqueRequired) || numUniqueRequired < 1) {
         return undefined;
     }
+    // Written bare, `withReplacement` is `"true"` by now; written as `""`,
+    // it is false, as the select reads it.
     const replacement =
         withReplacement !== undefined &&
-        ["", "true"].includes(withReplacement.toLowerCase());
+        withReplacement.toLowerCase() === "true";
     if (replacement) {
         return undefined;
     }

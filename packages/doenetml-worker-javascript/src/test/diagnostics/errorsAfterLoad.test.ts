@@ -89,6 +89,28 @@ describe("An error after load (DIAG-7) @group4", () => {
         }
     });
 
+    it("is not one when reported at load, after the cap has dropped it", () => {
+        for (const mode of ["assert", "warn"] as const) {
+            const manager = new DiagnosticsManager({
+                preliminaryDiagnostics: [error],
+                errorsAfterLoad: mode,
+            });
+            manager.markLoaded();
+            for (let i = 0; i < 1000; i++) {
+                manager.addDiagnostic({
+                    ...error,
+                    type: "warning",
+                    message: `w${i}`,
+                });
+            }
+            manager.getDiagnostics();
+            expect(manager.isErrorAfterLoad(error)).eq(false);
+            expect(manager.addDiagnostic(error)).eq(true);
+            expect(manager.errorsReportedAfterLoad).eqls([]);
+            expect(manager.diagnostics.at(-1)).eqls(error);
+        }
+    });
+
     it("warnings and infos after load are reported as they are", () => {
         const manager = new DiagnosticsManager({
             preliminaryDiagnostics: [],

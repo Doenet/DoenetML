@@ -136,9 +136,11 @@ export function markListsWithFixedEntryCount({
             }
             count += n;
         }
+        // The list keeps its first `maxNumber` entries, as `slice` does, so
+        // `maxNumber="1.5"` keeps one (`AuthoredValueList`).
         return maxNumber === undefined
             ? count
-            : Math.min(count, Math.max(0, maxNumber));
+            : Math.min(count, Math.floor(Math.max(0, maxNumber)));
     }
 
     /**
