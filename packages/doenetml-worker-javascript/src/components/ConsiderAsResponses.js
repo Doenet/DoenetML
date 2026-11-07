@@ -54,6 +54,8 @@ export default class ConsiderAsResponses extends BaseComponent {
                         "componentTypeAsResponse",
                         // a missing component (D37), recorded as a blank math
                         "valueMissing",
+                        // a subset of the reals, recorded as its subset
+                        "subsetValue",
                     ],
                     variablesOptional: true,
                 },

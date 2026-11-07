@@ -667,6 +667,7 @@ export default class NumberComponent extends InlineComponent {
                 dependencyValues,
                 stateValues,
                 overrideFixed,
+                componentInfoObjects,
             }) {
                 if (!(await stateValues.canBeModified) && !overrideFixed) {
                     return { success: false };
@@ -687,6 +688,29 @@ export default class NumberComponent extends InlineComponent {
                                     setDependency: "allChildren",
                                     desiredValue:
                                         numberToMathExpression(desiredValue),
+                                    childIndex: 0,
+                                    variableIndex: 0,
+                                },
+                            ],
+                        };
+                    } else if (
+                        dependencyValues.convertBoolean &&
+                        dependencyValues.allChildren.length === 1 &&
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType:
+                                dependencyValues.allChildren[0].componentType,
+                            baseComponentType: "boolean",
+                        }) &&
+                        (desiredValue === 0 || desiredValue === 1)
+                    ) {
+                        // a boolean read as `1` or `0` (`convertBoolean`),
+                        // which is `true` or `false` written back
+                        return {
+                            success: true,
+                            instructions: [
+                                {
+                                    setDependency: "allChildren",
+                                    desiredValue: desiredValue === 1,
                                     childIndex: 0,
                                     variableIndex: 0,
                                 },
@@ -909,8 +933,44 @@ export default class NumberComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "singleMathChild",
                 },
+                convertBoolean: {
+                    dependencyType: "stateVariable",
+                    variableName: "convertBoolean",
+                },
+                allChildren: {
+                    dependencyType: "child",
+                    childGroups: [
+                        "strings",
+                        "numbers",
+                        "maths",
+                        "texts",
+                        "booleans",
+                    ],
+                },
+                booleanChildModifiable: {
+                    dependencyType: "child",
+                    childGroups: ["booleans"],
+                    variableNames: ["canBeModified"],
+                    variablesOptional: true,
+                },
             }),
             definition: function ({ dependencyValues }) {
+                // A boolean read as `1` or `0` (`convertBoolean`) is written
+                // back as `true` or `false` (`value`'s inverse).
+                const singleBooleanChild =
+                    dependencyValues.convertBoolean &&
+                    dependencyValues.allChildren.length === 1 &&
+                    dependencyValues.booleanChildModifiable.length === 1;
+                if (singleBooleanChild) {
+                    return {
+                        setValue: {
+                            canBeModified:
+                                !dependencyValues.fixed &&
+                                dependencyValues.booleanChildModifiable[0]
+                                    .stateValues.canBeModified !== false,
+                        },
+                    };
+                }
                 if (
                     dependencyValues.fixed ||
                     !(

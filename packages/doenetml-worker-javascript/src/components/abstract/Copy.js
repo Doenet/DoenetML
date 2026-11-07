@@ -28,7 +28,11 @@ import { codedDiagnostic } from "../../utils/diagnostics";
 import { applySugar } from "../../utils/dast/sugar";
 import { typeChangeAtLoadDiagnostic } from "../../utils/dast/typeChangeAtLoad";
 import AuthoredValueList from "./AuthoredValueList";
-import { typeChangeRule, valueAllowsTypeChange } from "../../utils/typeChange";
+import {
+    madeFromInputValue,
+    typeChangeRule,
+    valueAllowsTypeChange,
+} from "../../utils/typeChange";
 import {
     doenetMLDollarsForReference,
     doenetMLStringForReference,
@@ -618,9 +622,19 @@ export default class Copy extends CompositeComponent {
                             source.componentType
                         ].stateVariableDescriptions[variableForImplicitProp];
 
+                    // An input written as a related type is made from its
+                    // value (D26, REF-5): `<point extend="$mi"/>` is a
+                    // point made from mi's value, a math, not from the
+                    // mathInput itself, which a point can't hold.
                     if (
                         varInfo.createComponentOfType !== undefined &&
-                        varInfo.createComponentOfType !== componentTypeFromAttr
+                        varInfo.createComponentOfType !==
+                            componentTypeFromAttr &&
+                        !madeFromInputValue({
+                            writtenType: componentTypeFromAttr,
+                            sourceType: source.componentType,
+                            componentInfoObjects,
+                        })
                     ) {
                         return { setValue: { implicitProp: null } };
                     }
@@ -1169,8 +1183,24 @@ export default class Copy extends CompositeComponent {
         // the math it holds. A value reference (`_ref`) is of the type it
         // presents (`typeStoodFor`).
         stateVariableDefinitions.typeChangeValueCheck = {
-            stateVariablesDeterminingDependencies: ["extendedComponent"],
-            returnDependencies: ({ stateValues }) => ({
+            stateVariablesDeterminingDependencies: [
+                "extendedComponent",
+                "effectivePropNameBySource",
+                "replacementSourceIdentities",
+            ],
+            returnDependencies: ({ stateValues, componentInfoObjects }) => ({
+                // A property is a value (VAL-1): its type is the source's
+                // here (`<point extend="$P.x"/>` is made from a math), as is
+                // that of the value an input is made from (`implicitProp`).
+                ...(propOfTypeChange(stateValues) && {
+                    propComponentType: {
+                        dependencyType: "value",
+                        value: propComponentType(
+                            propOfTypeChange(stateValues),
+                            componentInfoObjects,
+                        ),
+                    },
+                }),
                 extendedComponent: {
                     dependencyType: "stateVariable",
                     variableName: "extendedComponent",
@@ -1194,8 +1224,10 @@ export default class Copy extends CompositeComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const sourceType =
-                    dependencyValues.presentedComponentType ??
-                    dependencyValues.extendedComponent?.componentType;
+                    "propComponentType" in dependencyValues
+                        ? dependencyValues.propComponentType
+                        : (dependencyValues.presentedComponentType ??
+                          dependencyValues.extendedComponent?.componentType);
                 const writtenType =
                     dependencyValues.writtenType &&
                     componentInfoObjects.componentTypeLowerCaseMapping[
@@ -1371,6 +1403,19 @@ export default class Copy extends CompositeComponent {
                 }
 
                 if (
+                    stateValues.typeChangeValueCheck === "value" &&
+                    propOfTypeChange(stateValues)
+                ) {
+                    // the property, or the value of an input
+                    // (`implicitProp`), the extend is made from
+                    const { source, propName } = propOfTypeChange(stateValues);
+                    dependencies.typeChangeSourceValue = {
+                        dependencyType: "stateVariable",
+                        componentIdx: source.componentIdx,
+                        variableName: propName,
+                        variablesOptional: true,
+                    };
+                } else if (
                     ["value", "numEntries", "numEntriesValue"].includes(
                         stateValues.typeChangeValueCheck,
                     ) &&
@@ -2991,8 +3036,13 @@ export default class Copy extends CompositeComponent {
 
         // A type change that was not allowed, or is no longer, makes its
         // replacements again (`typeChangeStatus`). A copy of a prop is decided
-        // only when made.
-        if (effectivePropNameBySource[0]) {
+        // only when made, unless the type is checked against the prop's
+        // value (`<point extend="$P.x"/>`, or `<point extend="$mi"/>`, made
+        // from mi's value), which is decided again as it changes.
+        if (
+            effectivePropNameBySource[0] &&
+            (await component.stateValues.typeChangeValueCheck) !== "value"
+        ) {
             if (workspace.typeChangeKey?.startsWith("mismatch")) {
                 return {
                     replacementChanges: unwithheldChanges(component),
@@ -5901,6 +5951,56 @@ function listIsDecided(listType, { componentInfoObjects }) {
     );
 }
 
+/**
+ * The property an `extend` or `copy` is made from, as `x` of `$P.x`, or the
+ * value of an input it is made from (`implicitProp`), with the component it
+ * is of, when it is made from one such property: `undefined` otherwise.
+ */
+function propOfTypeChange(stateValues) {
+    const propNames = stateValues.effectivePropNameBySource;
+    const source = stateValues.replacementSourceIdentities?.[0];
+    if (
+        propNames?.length !== 1 ||
+        !propNames[0] ||
+        propNames[0].startsWith("__") ||
+        typeof source !== "object" ||
+        source === null
+    ) {
+        return undefined;
+    }
+    return { source, propName: propNames[0] };
+}
+
+/**
+ * The type of the component the property `propName` of `source` makes
+ * (`propOfTypeChange`), from its description: `math` for `x1` of a point,
+ * an entry of its array `xs`. `undefined` for a property that is itself an
+ * array, or that is not described.
+ */
+function propComponentType({ source, propName }, componentInfoObjects) {
+    const info =
+        componentInfoObjects.publicStateVariableInfo[source.componentType];
+    if (!info) {
+        return undefined;
+    }
+    let description = info.stateVariableDescriptions[propName];
+    if (!description) {
+        const prefix = Object.keys(info.arrayEntryPrefixes ?? {})
+            .filter((p) => propName.startsWith(p))
+            .sort((a, b) => b.length - a.length)[0];
+        const entry = prefix && info.arrayEntryPrefixes[prefix];
+        if (!entry || entry.numDimensions > 0) {
+            return undefined;
+        }
+        description = info.stateVariableDescriptions[entry.arrayVariableName];
+    } else if (description.isArray) {
+        return undefined;
+    }
+    return typeof description?.createComponentOfType === "string"
+        ? description.createComponentOfType
+        : undefined;
+}
+
 /** Whether a `typeChangeValueCheck` is of what a composite holds. */
 function watchesContent(typeChangeValueCheck) {
     return (
@@ -5931,11 +6031,27 @@ function valueChecked(content, { componentInfoObjects }) {
     return checked.length > MAX_VALUES_WATCHED ? [] : checked;
 }
 
+const instanceIds = new WeakMap();
+let lastInstanceId = 0;
+
+/**
+ * A number for the component object `component`, different for each
+ * component object made, including one made again with the `componentIdx`
+ * of the one it replaced.
+ */
+function instanceId(component) {
+    if (!instanceIds.has(component)) {
+        instanceIds.set(component, ++lastInstanceId);
+    }
+    return instanceIds.get(component);
+}
+
 /**
  * The components a composite stands for as the dependency
  * `allReplacementIdentities` of `needsReplacementsUpdatedWhenStale` sees
  * them: through the composites it holds other than a `<group>`, which is
- * where that dependency stops, with whether each is inactive. When this is
+ * where that dependency stops, with whether each is inactive, and which
+ * instance it is (`instanceId`). When this is
  * unchanged, nothing that dependency watches changed, so an extend updated
  * only because what it is of changed further in (`typeChangeContent`) is
  * left as it is when it is decided the same way.
@@ -5970,8 +6086,12 @@ async function replacementIdentity(
                 await walk(child);
                 parts.push(")");
             } else {
+                // A component made again in place of another, keeping its
+                // index (`_createComponentIdx`), as the point of `<point
+                // extend="$cc[1]"/>` is when a case switches or its value
+                // stops being a tuple, is told apart as another instance.
                 parts.push(
-                    `${child.componentIdx}${(await child.stateValues.isInactiveCompositeReplacement) ? "i" : ""}`,
+                    `${child.componentIdx}${(await child.stateValues.isInactiveCompositeReplacement) ? "i" : ""}#${instanceId(child)}`,
                 );
             }
         }
@@ -6060,22 +6180,22 @@ function shadowedOriginal(component, components) {
 }
 
 /**
- * The one component a case, a pick or an iteration (`source`, a `<group>`
- * that `replacementSourceIdentities` stops at) holds, when `component`, an
- * `extend` or `copy` written as a tag, is written as another type that may
- * be made from it (`typeChangeRule`):
- * `<point extend="$cc"/>` while the active case holds one math. The copy is
- * made from that component, as `<point extend="$cc[1]"/>` is, rather than
- * from the group, which, given the type, could only make an empty component
- * of it (`verifyReplacementsMatchSpecifiedType`). Otherwise `undefined`.
+ * The one component a composite (`source`, such as the `<group>` of a case,
+ * a pick or an iteration that `replacementSourceIdentities` stops at, or a
+ * `_copy` in a group) holds, through every composite in it, when
+ * `component`, an `extend` or `copy` written as a tag, is written as another
+ * type that may be made from it (`typeChangeRule`): `<point extend="$cc"/>`
+ * while the active case holds one math, or `$m` naming one. The copy is made
+ * from that component, as `<point extend="$cc[1]"/>` is, rather than from the
+ * composite, which, given the type, could only make an empty component of it
+ * (`verifyReplacementsMatchSpecifiedType`). Otherwise `undefined`.
  *
- * A `<setup>` and blank strings show nothing. What a group holds is fixed
- * when it is made, so the copy is made again when its source is another
- * group (another case, pick or iteration), as it is made again from the
- * group. A `_copy` is not looked into: what it holds is made again without
- * its source changing, which a copy of its shadow follows and a copy of
- * the component it held would not (a group holding
- * `<point extend="$cc[1]"/>`, extended as a vector).
+ * A `<setup>`, blank strings, inactive content and a composite that makes
+ * nothing show nothing. What a composite in `source` holds can be made again
+ * without `source` changing (a `_copy` makes its replacements again when the
+ * case it names switches, keeping their indices), so the copy watches it
+ * (`typeChangeContent`), and is made again when another component, another
+ * instance (`replacementIdentity`), is stood for.
  */
 async function componentStoodFor({
     component,
@@ -6084,46 +6204,82 @@ async function componentStoodFor({
     componentInfoObjects,
 }) {
     const writtenType = typeStandingFor(component, { componentInfoObjects });
-    if (!writtenType) {
+    if (
+        !writtenType ||
+        !source ||
+        componentInfoObjects.allComponentClasses[source.componentType]
+            ?.listEntryComponentType !== undefined ||
+        !componentInfoObjects.isCompositeComponent({
+            componentType: source.componentType,
+            includeNonStandard: true,
+        })
+    ) {
         return undefined;
     }
-    let one = source;
-    while (one?.componentType === "group") {
-        if (!one.isExpanded || one.componentIdx === component.componentIdx) {
-            return undefined;
+    // What the group shows, through every composite in it, as
+    // `typeChangeStatus` gathers it: a `_copy` (`$m`), a
+    // `<conditionalContent>` or another group. A composite that makes
+    // nothing, such as a `<repeat>` with no iterations, shows nothing.
+    const shown = [];
+    let decided = true;
+    async function gather(composite) {
+        if (
+            !composite.isExpanded ||
+            composite.componentIdx === component.componentIdx
+        ) {
+            decided = false;
+            return;
         }
-        let replacements = one.replacements ?? [];
-        if (one.replacementsToWithhold > 0) {
-            replacements = replacements.slice(0, -one.replacementsToWithhold);
+        let replacements = composite.replacements ?? [];
+        if (composite.replacementsToWithhold > 0) {
+            replacements = replacements.slice(
+                0,
+                -composite.replacementsToWithhold,
+            );
         }
-        const shown = [];
         for (const replacement of replacements) {
             if (typeof replacement === "string") {
                 if (replacement.trim() !== "") {
-                    return undefined;
+                    decided = false;
                 }
                 continue;
             }
             const comp = components[replacement.componentIdx];
             if (!comp) {
-                return undefined;
+                decided = false;
+                continue;
             }
-            if (comp.componentType !== "setup") {
+            if (
+                comp.componentType === "setup" ||
+                (await comp.stateValues.isInactiveCompositeReplacement)
+            ) {
+                continue;
+            }
+            if (
+                componentInfoObjects.allComponentClasses[comp.componentType]
+                    ?.listEntryComponentType === undefined &&
+                componentInfoObjects.isCompositeComponent({
+                    componentType: comp.componentType,
+                    includeNonStandard: true,
+                })
+            ) {
+                await gather(comp);
+            } else {
                 shown.push(comp);
             }
         }
-        if (shown.length !== 1) {
-            return undefined;
-        }
-        one = shown[0];
     }
+    await gather(source);
     if (
-        one === source ||
-        !canStandFor(one.componentType, writtenType, { componentInfoObjects })
+        !decided ||
+        shown.length !== 1 ||
+        !canStandFor(typeStoodFor(shown[0]), writtenType, {
+            componentInfoObjects,
+        })
     ) {
         return undefined;
     }
-    return one;
+    return shown[0];
 }
 
 /**
@@ -7543,8 +7699,48 @@ async function typeChangeStatus({
     }
 
     if (propName) {
+        // A property is a value (VAL-1), checked as a math's is
+        // (`<point extend="$P.x"/>`), as is the value of an input
+        // (`implicitProp`).
+        const propSource =
+            components[
+                (await component.stateValues.replacementSourceIdentities)?.[0]
+                    ?.componentIdx
+            ];
+        const propVariable = propSource?.state[propName];
+        // A property that is an array, as the `selectedValues` of a
+        // `<choiceInput>`, makes a component per entry: made from one
+        // entry, the tag is checked against that entry's value.
+        const readValue =
+            propVariable &&
+            (async () => {
+                const value = await propVariable.value;
+                return propVariable.isArray &&
+                    Array.isArray(value) &&
+                    value.length === 1
+                    ? value[0]
+                    : value;
+            });
         if (!propReplacements) {
-            return undefined;
+            // Decided again as the document runs, from the type of the
+            // property, when it is checked against its value
+            // (`typeChangeValueCheck` "value").
+            const propType =
+                propSource &&
+                propComponentType(
+                    { source: propSource, propName },
+                    componentInfoObjects,
+                );
+            if (
+                !propVariable ||
+                !propType ||
+                componentInfoObjects.isCompositeComponent({
+                    componentType: propType,
+                })
+            ) {
+                return undefined;
+            }
+            return decide({ sourceType: propType, readValue });
         }
         const nonStrings = propReplacements.filter(
             (x) => typeof x === "object",
@@ -7558,7 +7754,7 @@ async function typeChangeStatus({
         ) {
             return undefined;
         }
-        return decide({ sourceType: typeStoodFor(nonStrings[0]) });
+        return decide({ sourceType: typeStoodFor(nonStrings[0]), readValue });
     }
 
     const sourceType = typeStoodFor(sourceComponent);
@@ -7769,6 +7965,17 @@ async function typeChangeStatus({
         (await everyCompositeExpanded(sourceComponent, components, {
             componentInfoObjects,
         }));
+    if (content.length === 0 && found.canWatch) {
+        // Expanded through every composite in it, and holding nothing now,
+        // as a case holding a `<conditionalContent>` no case of which is
+        // true: the tag is missing until it holds one component (D37), with
+        // the info of what it names holding nothing (`indexNamesNothing`).
+        return await indexNamesNothing({
+            component,
+            componentInfoObjects,
+            workspace: workspace ?? {},
+        });
+    }
     if (content.length !== 1) {
         // Not expanded yet, which updates an `extend` of it when it is
         // (`needsReplacementsUpdatedWhenStale`), or content that was not

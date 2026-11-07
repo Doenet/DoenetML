@@ -1544,4 +1544,57 @@ describe("SubsetOfReals tag tests @group1", async () => {
                 .value.tree,
         ).eqls(["interval", ["tuple", 0, Infinity], ["tuple", false, false]]);
     });
+
+    it("bindValueTo of a subsetOfRealsInput, or of its subsetValue, edits it, and an unnamed extend of it renders (#2429)", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <subsetOfRealsInput name="sori" />
+    <p name="p1"><subsetOfReals extend="$sori" /></p>
+    <subsetOfReals extend="$sori" name="sor" />
+    <mathInput bindValueTo="$sori.subsetValue" name="mi1" />
+    <mathInput bindValueTo="$sori" name="mi2" />
+    `,
+        });
+
+        async function texts() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, string> = {};
+            for (const name of ["p1", "sor", "mi1", "mi2"]) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.text;
+            }
+            return result;
+        }
+
+        expect(await texts()).eqls({ p1: "∅", sor: "∅", mi1: "∅", mi2: "∅" });
+
+        await updateMathInputValue({
+            latex: "\\{3\\}",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        expect(await texts()).eqls({
+            p1: "{3}",
+            sor: "{3}",
+            mi1: "{3}",
+            mi2: "{3}",
+        });
+
+        await updateMathInputValue({
+            latex: "(0,1)",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        expect(await texts()).eqls({
+            p1: "(0, 1)",
+            sor: "(0, 1)",
+            mi1: "(0, 1)",
+            mi2: "(0, 1)",
+        });
+    });
 });

@@ -669,18 +669,34 @@ export function valueReferenceDiffers(current: any, serialized: any): boolean {
     );
 }
 
+/**
+ * Whether a value reference can stand in for a component of
+ * `componentType`: one of `VALUE_COMPONENT_TYPES`, or a type that inherits
+ * from one, whose value (`stateVariableToBeShadowed`) is its `value`, which
+ * a value reference holds the referenced value as. That leaves out a
+ * `<subsetOfReals>`, a math whose value is its `subsetValue`, from which its
+ * `value` is made, so a reference holding a subset as a math's `value` would
+ * read it as a math (#2429), and a `<when>`, a boolean whose value is its
+ * `conditionSatisfied`.
+ */
 export function isValueComponentType(
     componentType: string | undefined,
     componentInfoObjects: ComponentInfoObjects,
 ): boolean {
-    return (
-        typeof componentType === "string" &&
-        VALUE_COMPONENT_TYPES.some((baseComponentType) =>
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: componentType,
-                baseComponentType,
-            }),
-        )
+    if (typeof componentType !== "string") {
+        return false;
+    }
+    const shadowed = (
+        componentInfoObjects.allComponentClasses[componentType] as any
+    )?.stateVariableToBeShadowed;
+    if (shadowed !== undefined && shadowed !== "value") {
+        return false;
+    }
+    return VALUE_COMPONENT_TYPES.some((baseComponentType) =>
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType,
+        }),
     );
 }
 

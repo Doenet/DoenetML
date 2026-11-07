@@ -10279,6 +10279,67 @@ describe("An answer's submitted responses through a reload @group4", async () =>
         }
     });
 
+    it("a subsetOfReals written or extended as a response is recorded as its subset", async () => {
+        // A `$sor` is a value reference presenting as a math, and is
+        // recorded as the math (D13)
+        const doenetML = `
+    <subsetOfReals name="sor">(0,1)</subsetOfReals>
+    <answer name="ans">
+        <considerAsResponses>
+            <subsetOfReals>[2,3)</subsetOfReals>
+            <subsetOfReals extend="$sor" />
+            $sor
+        </considerAsResponses>
+        <award><when>true</when></award>
+    </answer>
+    <answer name="ans2">
+        <award><when><subsetOfReals extend="$sor" isResponse /> = (0,1)</when></award>
+    </answer>
+    `;
+
+        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
+            doenetML,
+            async inputs(core, resolvePathToNodeIdx) {
+                await submitAnswer({
+                    componentIdx: await resolvePathToNodeIdx("ans2"),
+                    core,
+                });
+            },
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const ans2Idx = await resolvePathToNodeIdx("ans2");
+        for (const sv of [before, after]) {
+            const { submittedResponses, submittedResponsesComponentType } =
+                sv[ansIdx].stateValues;
+            expect(submittedResponsesComponentType).eqls([
+                "subsetOfReals",
+                "subsetOfReals",
+                "math",
+            ]);
+            expect(submittedResponses[0]).not.toBeInstanceOf(me.class);
+            expect(submittedResponses[0].toString()).eq("(2,3) U {2}");
+            expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
+            expect(submittedResponses[1].toString()).eq("(0,1)");
+            expect(submittedResponses[2].tree).eqls([
+                "interval",
+                ["tuple", 0, 1],
+                ["tuple", false, false],
+            ]);
+
+            expect(sv[ans2Idx].stateValues.creditAchieved).eq(1);
+            expect(
+                sv[ans2Idx].stateValues.submittedResponsesComponentType,
+            ).eqls(["subsetOfReals"]);
+            expect(
+                sv[ans2Idx].stateValues.submittedResponses[0],
+            ).not.toBeInstanceOf(me.class);
+            expect(sv[ans2Idx].stateValues.submittedResponses[0].toString()).eq(
+                "(0,1)",
+            );
+        }
+    });
+
     it("a submitted angle response is read as that angle through a reference", async () => {
         const doenetML = `
     <angle name="A">pi/3</angle>

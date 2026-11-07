@@ -7,7 +7,9 @@
  * wrapping it in a new `T` (`verifyReplacementsMatchSpecifiedType`).
  *
  * Allowed:
- * - between the value types math, number, text and boolean;
+ * - between the value types math, number, text and boolean, a boolean
+ *   being `1` or `0` as a number or a math, and a text being a boolean
+ *   only while it is the word `true` or `false`;
  * - between the geometric types point, vector and coords;
  * - math from a point, vector or coords, as the tuple of its coordinates;
  * - a point, vector or coords from a math whose value is a tuple;
@@ -200,7 +202,10 @@ export function typeChangeRule({
         const writtenIsValue = VALUE_TYPES.includes(written.type);
         const sourceIsValue = VALUE_TYPES.includes(source.type);
         if (writtenIsValue && sourceIsValue) {
-            if (written.type === "boolean" && source.type === "math") {
+            if (
+                written.type === "boolean" &&
+                (source.type === "math" || source.type === "text")
+            ) {
                 return { allowed: true, valueCheck: "boolean" };
             }
             return { allowed: true };
@@ -223,6 +228,28 @@ export function typeChangeRule({
         return { allowed: false, kind: "container" };
     }
     return { allowed: false, kind: "unrelated" };
+}
+
+/**
+ * Whether a `writtenType` made from an input of `sourceType` is made from
+ * the input's value (`INPUT_VALUE_TYPES`), as the type change allows
+ * (`typeChangeRule`): `<point extend="$mi"/>` of a `<mathInput>` is a point
+ * made from mi's value, a math, which it follows and writes back to, as
+ * `<point extend="$m"/>` of a `<math>` is. `Copy.js` then reads the input's
+ * `variableForImplicitProp` (its `implicitProp`) though that makes a
+ * different type than the one written.
+ */
+export function madeFromInputValue({
+    writtenType,
+    sourceType,
+    componentInfoObjects,
+}) {
+    const source = familyOf(sourceType, componentInfoObjects);
+    if (source.kind !== "input" || !source.valueType) {
+        return false;
+    }
+    return typeChangeRule({ writtenType, sourceType, componentInfoObjects })
+        .allowed;
 }
 
 /**
@@ -264,12 +291,12 @@ const BOOLEAN_OPERATORS = new Set([
 ]);
 
 /**
- * Whether `value`, the value of a math, passes `valueCheck`
+ * Whether `value`, the value of a math or a text, passes `valueCheck`
  * (`typeChangeRule`): a tuple or vector (`vectorOperators`, as `Point.js`
  * reads its coordinates, including `⟨1,2⟩`) for a point, vector or coords to
- * be made from it; `true`, `false`, a relation, or an expression that
- * evaluates to a number, as a `<boolean>` reads a math
- * (`utils/booleanLogic.js`), for a boolean.
+ * be made from it; for a boolean, `true`, `false`, a relation, or an
+ * expression that evaluates to a number, as a `<boolean>` reads a math, or
+ * the word `true` or `false`, as it reads a text (`utils/booleanLogic.js`).
  */
 export function valueAllowsTypeChange(valueCheck, value) {
     const tree = value?.tree;
@@ -277,6 +304,11 @@ export function valueAllowsTypeChange(valueCheck, value) {
         return Array.isArray(tree) && vectorOperators.includes(tree[0]);
     }
     if (valueCheck === "boolean") {
+        if (typeof value === "string") {
+            // a text, which is true or false only as that word
+            const word = value.trim().toLowerCase();
+            return word === "true" || word === "false";
+        }
         // A number is true or false only when finite: a simplified `1/0` is
         // the number Infinity, as an unsimplified one evaluates to.
         if (typeof tree === "number") {
