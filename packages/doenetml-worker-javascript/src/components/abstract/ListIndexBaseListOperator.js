@@ -1,5 +1,6 @@
 import ValueListComponent from "./ValueListComponent";
 import me from "math-expressions";
+import { withLevelsFromSource } from "../../utils/decidedByDoenetML";
 import {
     returnBreakStringsIntoTypeSugarInstruction,
     returnListValueStateVariableDefinitions,
@@ -170,6 +171,18 @@ export default class ListIndexBaseListOperator extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "locate",
                 },
+                // Whether the target, and the values, are written in the
+                // DoenetML, which makes a diagnostic about them a warning
+                // rather than an info (DIAG-2)
+                targetDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["target"],
+                },
+                valuesDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["target"],
+                    children: true,
+                },
                 // Declared only by a subclass that offers an `allowUnsorted`
                 // attribute, since the rest have no such state variable.
                 ...(supportsAllowUnsorted
@@ -198,9 +211,16 @@ export default class ListIndexBaseListOperator extends ValueListComponent {
                             me.fromAst(result.index),
                         ),
                     },
-                    sendDiagnostics: diagnosticsForNoIndices(
-                        results,
-                        componentType,
+                    // what the values give now, gone when they no longer
+                    // give it (B33)
+                    conditionDiagnostics: withLevelsFromSource(
+                        diagnosticsForNoIndices(results, componentType),
+                        {
+                            "doenet-w0134":
+                                dependencyValues.targetDecidedByDoenetML,
+                            "doenet-w0164":
+                                dependencyValues.valuesDecidedByDoenetML,
+                        },
                     ),
                 };
             },

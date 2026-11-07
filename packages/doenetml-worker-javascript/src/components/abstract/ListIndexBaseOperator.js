@@ -165,7 +165,8 @@ export default class ListIndexBaseOperator extends MathComponent {
 
                 return {
                     setValue: { unnormalizedValue: me.fromAst(result.index) },
-                    sendDiagnostics: diagnosticsForNoIndex(
+                    // gone when the values give an index again (B33)
+                    conditionDiagnostics: diagnosticsForNoIndex(
                         result.reason,
                         componentType,
                     ),

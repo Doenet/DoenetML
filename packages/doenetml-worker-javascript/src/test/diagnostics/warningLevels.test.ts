@@ -68,4 +68,72 @@ describe("Warning levels by the source of the condition", () => {
             { type: "info", line: 7 },
         ]);
     });
+
+    it("w0144: a bar chart's value that is not a number", async () => {
+        const { diagnostics, setMath } = await setup(`
+<chart type="bar">4 x</chart>
+<mathInput name="m"/>
+<chart type="bar">4 $m</chart>
+`);
+        expect(diagnostics("doenet-w0144")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setMath("m", "3");
+        expect(diagnostics("doenet-w0144")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+    });
+
+    it("w0143: a bar width out of range", async () => {
+        const { diagnostics, setMath } = await setup(`
+<chart type="bar" barWidth="5">4</chart>
+<mathInput name="w" prefill="5"/>
+<chart type="bar" barWidth="$w">4</chart>
+`);
+        expect(diagnostics("doenet-w0143")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setMath("w", "0.5");
+        expect(diagnostics("doenet-w0143")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+    });
+
+    it("w0141: decreasing cut points of a binCounts", async () => {
+        const { diagnostics, setMath } = await setup(`
+<binCounts bins="0 5 2">1</binCounts>
+<mathInput name="b" prefill="2"/>
+<binCounts bins="0 5 $b">1</binCounts>
+`);
+        expect(diagnostics("doenet-w0141")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setMath("b", "7");
+        expect(diagnostics("doenet-w0141")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+    });
+
+    it("w0164: values of a searchSorted out of order", async () => {
+        const { diagnostics, setMath } = await setup(`
+<searchSorted target="2">3 1</searchSorted>
+<mathInput name="m" prefill="3"/>
+<searchSorted target="2">$m 1</searchSorted>
+`);
+        expect(diagnostics("doenet-w0164")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setMath("m", "0");
+        expect(diagnostics("doenet-w0164")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+    });
 });

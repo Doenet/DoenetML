@@ -125,3 +125,22 @@ export function levelFromSource(
 ): "warning" | "info" {
     return decidedByDoenetML === false ? "info" : "warning";
 }
+
+/**
+ * `diagnostics`, with the level of each whose code is in `decidedByCode` set
+ * by whether what causes it is written in the DoenetML
+ * ({@link levelFromSource}). The others are as they are.
+ */
+export function withLevelsFromSource<T extends { code?: string; type: string }>(
+    diagnostics: T[],
+    decidedByCode: Record<string, boolean | undefined>,
+): T[] {
+    return diagnostics.map((diagnostic) =>
+        diagnostic.code !== undefined && diagnostic.code in decidedByCode
+            ? {
+                  ...diagnostic,
+                  type: levelFromSource(decidedByCode[diagnostic.code]),
+              }
+            : diagnostic,
+    );
+}

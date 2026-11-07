@@ -5,6 +5,7 @@ import {
     widthsBySize,
 } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import {
     returnSizeAttributes,
     returnSizeStateVariableDefinitions,
@@ -626,6 +627,10 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "barWidthAttr",
                 },
+                barWidthDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["barWidth"],
+                },
             }),
             definition({ dependencyValues }) {
                 const requested = dependencyValues.barWidthAttr;
@@ -633,11 +638,15 @@ export default class Chart extends BlockComponent {
                     return { setValue: { barWidth: requested } };
                 }
 
+                // An info while a width from a value that can change is out
+                // of range, gone once it is in range (DIAG-2).
                 return {
                     setValue: { barWidth: DEFAULT_BAR_WIDTH },
-                    sendDiagnostics: [
+                    conditionDiagnostics: [
                         codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(
+                                dependencyValues.barWidthDecidedByDoenetML,
+                            ),
                             code: "doenet-w0143",
                             args: { barWidth: String(requested) },
                         }),
@@ -1159,8 +1168,36 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "yMaxAttr",
                 },
+                // Whether each part a diagnostic below can come from is
+                // written in the DoenetML: then the diagnostic is a warning,
+                // and otherwise an info, while the values are as they are
+                // (DIAG-2). A type from a value decides which checks run at
+                // all, so it makes every one of them value-driven.
+                typeDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["type"],
+                },
+                dataDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    children: true,
+                },
+                binsDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["bins"],
+                },
             }),
             definition({ dependencyValues, usedDefault }) {
+                const typeLevel = levelFromSource(
+                    dependencyValues.typeDecidedByDoenetML,
+                );
+                const dataLevel = levelFromSource(
+                    dependencyValues.typeDecidedByDoenetML &&
+                        dependencyValues.dataDecidedByDoenetML,
+                );
+                const binsLevel = levelFromSource(
+                    dependencyValues.typeDecidedByDoenetML &&
+                        dependencyValues.binsDecidedByDoenetML,
+                );
                 // A type the attribute rejected arrives here as `null`,
                 // exactly as a missing one does, so both get the one message —
                 // which is why it says no chart was named rather than that the
@@ -1171,9 +1208,9 @@ export default class Chart extends BlockComponent {
                 if (!DRAWABLE_TYPES.has(type)) {
                     return {
                         setValue: { chartGeometry: null },
-                        sendDiagnostics: [
+                        conditionDiagnostics: [
                             codedDiagnostic({
-                                type: "warning",
+                                type: typeLevel,
                                 code: "doenet-w0146",
                             }),
                         ],
@@ -1197,15 +1234,12 @@ export default class Chart extends BlockComponent {
                         // A value that is not a finite number gets no bar.
                         // Saying so matters because the alternative reading of
                         // a missing bar is a value of zero, and the author
-                        // cannot tell the two apart by looking. The message
-                        // carries no count, so the append-only diagnostics
-                        // queue holds one of it however often the values
-                        // change.
-                        sendDiagnostics:
+                        // cannot tell the two apart by looking.
+                        conditionDiagnostics:
                             geometry.undrawnValues > 0
                                 ? [
                                       codedDiagnostic({
-                                          type: "warning",
+                                          type: dataLevel,
                                           code: "doenet-w0144",
                                       }),
                                   ]
@@ -1226,19 +1260,19 @@ export default class Chart extends BlockComponent {
                     // different: a value that is not a number, a value that is
                     // negative, a total with no share to take of it, and more
                     // series than a pie draws. A chart can hit more than one.
-                    const sendDiagnostics = [];
+                    const conditionDiagnostics = [];
                     if (geometry.undrawnValues > 0) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: dataLevel,
                                 code: "doenet-w0149",
                             }),
                         );
                     }
                     if (geometry.negativeValues > 0) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: dataLevel,
                                 code: "doenet-w0150",
                             }),
                         );
@@ -1248,17 +1282,17 @@ export default class Chart extends BlockComponent {
                     // with no values at all is one being written rather than
                     // one that is wrong.
                     if (geometry.valuesInTotal > 0 && !(geometry.total > 0)) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: dataLevel,
                                 code: "doenet-w0151",
                             }),
                         );
                     }
                     if (geometry.undrawnSeries > 0) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: dataLevel,
                                 code: "doenet-w0152",
                             }),
                         );
@@ -1266,7 +1300,7 @@ export default class Chart extends BlockComponent {
 
                     return {
                         setValue: { chartGeometry: geometry },
-                        sendDiagnostics,
+                        conditionDiagnostics,
                     };
                 }
 
@@ -1279,16 +1313,16 @@ export default class Chart extends BlockComponent {
                         yMaxAttr: dependencyValues.yMaxAttr,
                     });
 
-                    const sendDiagnostics = [];
+                    const conditionDiagnostics = [];
                     // An observation that is not a finite number is left out of
                     // the summary. Saying so matters more here than on a bar
                     // chart, where the reader can see the empty slot: a
                     // dropped observation moves every quartile of the box drawn
                     // from it and leaves nothing on the page to notice.
                     if (geometry.undrawnValues > 0) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: dataLevel,
                                 code: "doenet-w0154",
                             }),
                         );
@@ -1301,9 +1335,9 @@ export default class Chart extends BlockComponent {
                         dependencyValues.categoriesAttr?.stateValues.texts
                             ?.length > 0
                     ) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: typeLevel,
                                 code: "doenet-w0155",
                             }),
                         );
@@ -1311,7 +1345,7 @@ export default class Chart extends BlockComponent {
 
                     return {
                         setValue: { chartGeometry: geometry },
-                        sendDiagnostics,
+                        conditionDiagnostics,
                     };
                 }
 
@@ -1330,32 +1364,32 @@ export default class Chart extends BlockComponent {
                         yMaxAttr: dependencyValues.yMaxAttr,
                     });
 
-                    const sendDiagnostics = [];
+                    const conditionDiagnostics = [];
                     // An observation that is not a finite number falls in no
                     // bin. Saying so matters more here than on a bar chart,
                     // where the reader can see the empty slot: a dropped
                     // observation lowers a bar by one and leaves nothing on
                     // the page to notice.
                     if (geometry.undrawnValues > 0) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: dataLevel,
                                 code: "doenet-w0156",
                             }),
                         );
                     }
                     if (geometry.undrawnSeries > 0) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: dataLevel,
                                 code: "doenet-w0157",
                             }),
                         );
                     }
                     if (geometry.binsProblem === "count") {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: binsLevel,
                                 code: "doenet-w0158",
                                 args: {
                                     bins: String(
@@ -1368,9 +1402,9 @@ export default class Chart extends BlockComponent {
                         );
                     }
                     if (geometry.binsProblem === "cutPoints") {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: binsLevel,
                                 code: "doenet-w0159",
                             }),
                         );
@@ -1381,7 +1415,7 @@ export default class Chart extends BlockComponent {
                     // some of it out. A reader cannot see what is missing
                     // either way.
                     if (geometry.uncountedValues > 0) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
                                 type: "info",
                                 code: "doenet-i0052",
@@ -1396,9 +1430,9 @@ export default class Chart extends BlockComponent {
                         dependencyValues.categoriesAttr?.stateValues.texts
                             ?.length > 0
                     ) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: typeLevel,
                                 code: "doenet-w0160",
                             }),
                         );
@@ -1408,9 +1442,9 @@ export default class Chart extends BlockComponent {
                     // stretches of one scale, so there is no slot for a width
                     // to be a fraction of.
                     if (!usedDefault.barWidthAttr) {
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: typeLevel,
                                 code: "doenet-w0161",
                             }),
                         );
@@ -1418,7 +1452,7 @@ export default class Chart extends BlockComponent {
 
                     return {
                         setValue: { chartGeometry: geometry },
-                        sendDiagnostics,
+                        conditionDiagnostics,
                     };
                 }
 
@@ -1443,11 +1477,11 @@ export default class Chart extends BlockComponent {
                     // `x` ran out — the second of which is what a series given
                     // fewer coordinates than values produces, and is otherwise
                     // indistinguishable from having asked for fewer points.
-                    sendDiagnostics:
+                    conditionDiagnostics:
                         geometry.undrawnValues > 0
                             ? [
                                   codedDiagnostic({
-                                      type: "warning",
+                                      type: dataLevel,
                                       code: "doenet-w0148",
                                   }),
                               ]
@@ -1742,6 +1776,11 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "chartGeometry",
                 },
+                labelsDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["type"],
+                    children: true,
+                },
                 width: {
                     dependencyType: "stateVariable",
                     variableName: "width",
@@ -1858,18 +1897,21 @@ export default class Chart extends BlockComponent {
                         shortDescription: dependencyValues.shortDescription,
                     });
 
-                    if (axisNames) {
-                        diagnostics.push(
-                            codedDiagnostic({
-                                type: "warning",
-                                code: "doenet-w0153",
-                            }),
-                        );
-                    }
-
                     return {
                         setValue: { prefigureXML: xml },
                         sendDiagnostics: diagnostics,
+                        // gone once the chart is not a pie or has no axis
+                        // names, an info while a value decides either (DIAG-2)
+                        conditionDiagnostics: axisNames
+                            ? [
+                                  codedDiagnostic({
+                                      type: levelFromSource(
+                                          dependencyValues.labelsDecidedByDoenetML,
+                                      ),
+                                      code: "doenet-w0153",
+                                  }),
+                              ]
+                            : [],
                     };
                 }
 

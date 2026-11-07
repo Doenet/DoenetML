@@ -62,28 +62,27 @@ export function returnListTypeAttribute({ readsTarget = false } = {}) {
  * Not every 0 belongs here. `<indexOf>` answering 0 for a target that is not in
  * the list is its documented result, not a problem, and reporting it would fire
  * on ordinary correct documents — once per distinct value a student or author
- * types into an input bound to `target`. The diagnostics queue is append-only
- * and deduplicates by message, so anything that varies with a transient value
- * accumulates permanently; only reasons that stay true of a settled document
- * are reported.
+ * types into an input bound to `target`. Only reasons that say why there is no
+ * answer are reported. Each is reported while it holds and goes away once it
+ * ends (`conditionDiagnostics`, B33).
  *
  * Omitting `target` is one such: nothing about that document can ever produce
- * an answer, so it is a warning. Having no values at all is another, and is
- * only info, since a list driven by an input can legitimately be empty for a
+ * an answer, so it is a warning. A target from a reference that names nothing
+ * now is an info (DIAG-2). Having no values at all is another, and is only
+ * info, since a list driven by an input can legitimately be empty for a
  * while.
  *
  * Values that are not in sorted order are the third, and are what
  * `<searchSorted>` refuses: its answer means nothing unless the list is
  * ordered, so rather than return a plausible number it declines, the way an
- * absent `target` does. A warning rather than an error because a list can be
- * unsorted only in passing — a `<cumulativeSum>` over numbers a student is
- * midway through typing goes in and out of order — and because the append-only
- * queue keeps the message once it has appeared.
+ * absent `target` does. A warning when the values and target are written in
+ * the DoenetML, and an info when one comes from a value that can change: a
+ * `<cumulativeSum>` over numbers a student is midway through typing goes in
+ * and out of order (DIAG-2).
  *
- * That last point is why the message may name no offending position or value:
- * the queue deduplicates by message, so anything varying with a transient value
- * accumulates one entry per rearrangement. Every message here is static apart
- * from the component's own tag.
+ * The messages name no offending position or value, so a diagnostic is the
+ * same one however the values are rearranged. Every message here is static
+ * apart from the component's own tag.
  *
  * An empty *list* of targets is a fourth case, and gets no message at all: it
  * produces no indices rather than a 0, so there is no misleading result to
