@@ -18,40 +18,24 @@ import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
 
 /**
- * The levels of the diagnostics an action (`<updateValue>`,
- * `<animateFromSequence>`) gives about the targets it found (DIAG-2):
+ * The level of the diagnostic an action (`<updateValue>`,
+ * `<animateFromSequence>`) gives for a target that is gone (`doenet-w0043`,
+ * DIAG-2): an info when the targets are the replacements of a composite or
+ * the entries of a list, which change with values, and a warning otherwise.
  *
- * - `missingTargetLevel`, for a target that is gone (`doenet-w0043`): an
- *   info when the targets are the replacements of a composite or the
- *   entries of a list, which change with values, and a warning otherwise.
- * - `missingPropertyLevel`, for a target without the property to change
- *   (`doenet-w0044`): an info when the targets are the replacements of a
- *   composite whose replacements, and so their types, depend on the active
- *   case or a random choice (`<conditionalContent>`, `<select>`), and a
- *   warning otherwise, as the DoenetML then says what each target is.
+ * A target without the property to change (`doenet-w0044`) stays a warning
+ * even when the targets are the replacements of a `<conditionalContent>` or
+ * `<select>`: those replace themselves with a `<group>` whatever the active
+ * case or choice, so what the target is, and whether it has the property, is
+ * decided by the DoenetML.
  */
-export function targetDiagnosticLevels({
-    targetComponent,
-    targetIdentities,
-    componentInfoObjects,
-}) {
+export function missingTargetLevel({ targetComponent, targetIdentities }) {
     const fromReplacementsOrEntries = (targetIdentities ?? []).some(
         (target) =>
             target.componentIdx !== targetComponent?.componentIdx ||
             target.listEntryIndex !== undefined,
     );
-    const typesDependOnCase =
-        targetComponent != null &&
-        ["conditionalContent", "select"].some((baseComponentType) =>
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: targetComponent.componentType,
-                baseComponentType,
-            }),
-        );
-    return {
-        missingTargetLevel: fromReplacementsOrEntries ? "info" : "warning",
-        missingPropertyLevel: typesDependOnCase ? "info" : "warning",
-    };
+    return fromReplacementsOrEntries ? "info" : "warning";
 }
 
 export default class UpdateValue extends InlineComponent {
@@ -482,15 +466,13 @@ export default class UpdateValue extends InlineComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues, componentInfoObjects }) {
+            definition({ dependencyValues }) {
                 let targets = null;
                 let diagnostics = [];
-                const { missingTargetLevel, missingPropertyLevel } =
-                    targetDiagnosticLevels({
-                        targetComponent: dependencyValues.targetComponent,
-                        targetIdentities: dependencyValues.targetIdentities,
-                        componentInfoObjects,
-                    });
+                const targetLevel = missingTargetLevel({
+                    targetComponent: dependencyValues.targetComponent,
+                    targetIdentities: dependencyValues.targetIdentities,
+                });
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -500,7 +482,7 @@ export default class UpdateValue extends InlineComponent {
                         if (target == null) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: missingTargetLevel,
+                                    type: targetLevel,
                                     code: "doenet-w0043",
                                     args: { source: "updateValue" },
                                 }),
@@ -523,7 +505,7 @@ export default class UpdateValue extends InlineComponent {
                                 }
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: missingPropertyLevel,
+                                        type: "warning",
                                         code: "doenet-w0044",
                                         args: {
                                             source: "updateValue",
@@ -535,7 +517,7 @@ export default class UpdateValue extends InlineComponent {
                             } else {
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: missingPropertyLevel,
+                                        type: "warning",
                                         code: "doenet-w0044",
                                         args: {
                                             source: "updateValue",

@@ -8,7 +8,7 @@ import me from "math-expressions";
 const { mod } = me.math;
 import { nanoid } from "nanoid";
 import { codedDiagnostic } from "../utils/diagnostics";
-import { targetDiagnosticLevels } from "./UpdateValue";
+import { missingTargetLevel } from "./UpdateValue";
 
 export default class AnimateFromSequence extends BaseComponent {
     constructor(args) {
@@ -554,15 +554,13 @@ export default class AnimateFromSequence extends BaseComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues, componentInfoObjects }) {
+            definition({ dependencyValues }) {
                 let targets = null;
                 let diagnostics = [];
-                const { missingTargetLevel, missingPropertyLevel } =
-                    targetDiagnosticLevels({
-                        targetComponent: dependencyValues.targetComponent,
-                        targetIdentities: dependencyValues.targetIdentities,
-                        componentInfoObjects,
-                    });
+                const targetLevel = missingTargetLevel({
+                    targetComponent: dependencyValues.targetComponent,
+                    targetIdentities: dependencyValues.targetIdentities,
+                });
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -572,7 +570,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         if (target == null) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: missingTargetLevel,
+                                    type: targetLevel,
                                     code: "doenet-w0043",
                                     args: { source: "animateFromSequence" },
                                 }),
@@ -595,7 +593,7 @@ export default class AnimateFromSequence extends BaseComponent {
                                 }
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: missingPropertyLevel,
+                                        type: "warning",
                                         code: "doenet-w0044",
                                         args: {
                                             source: "animateFromSequence",
@@ -607,7 +605,7 @@ export default class AnimateFromSequence extends BaseComponent {
                             } else {
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: missingPropertyLevel,
+                                        type: "warning",
                                         code: "doenet-w0044",
                                         args: {
                                             source: "animateFromSequence",

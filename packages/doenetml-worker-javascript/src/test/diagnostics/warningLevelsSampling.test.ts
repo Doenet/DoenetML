@@ -234,11 +234,14 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         ]);
     });
 
-    it("w0044: an action whose target has no value to change", async () => {
+    it("w0044: a target with no value to change is a warning, case or not", async () => {
+        // A `<conditionalContent>` replaces itself with a `<group>` whatever
+        // the active case, so a target that is one has no value whichever
+        // case is active: the DoenetML decides it.
         const { diagnostics, refresh, setBoolean } = await setup(`
 <p name="p">hi</p>
 <updateValue target="$p" newValue="1"/>
-<booleanInput name="b"/>
+<booleanInput name="b" prefill="true"/>
 <conditionalContent name="cc">
   <case condition="$b"><math>1</math></case>
   <else><p>no</p></else>
@@ -248,12 +251,13 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         await refresh();
         expect(diagnostics("doenet-w0044")).eqls([
             { type: "warning", line: 3 },
-            { type: "info", line: 9 },
+            { type: "warning", line: 9 },
         ]);
 
-        await setBoolean("b", true);
+        await setBoolean("b", false);
         expect(diagnostics("doenet-w0044")).eqls([
             { type: "warning", line: 3 },
+            { type: "warning", line: 9 },
         ]);
     });
 
