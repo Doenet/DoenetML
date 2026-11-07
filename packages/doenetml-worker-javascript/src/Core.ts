@@ -434,6 +434,14 @@ export default class Core {
             // (`heldCopySnapshot`, `readHeldCopySnapshot`).
             savedCopySnapshot: (stateId: string) =>
                 this.cumulativeStateVariableChanges?.__copySnapshots?.[stateId],
+            // The component with `stateId`, if one is made, for an unlinked
+            // copy to find the `<conditionalContent>` a save held it was
+            // made through (`heldSourceInCase` in `Copy.js`).
+            componentOfStateId: (stateId: string) => {
+                const component =
+                    this._components[this.componentIdxByStateId[stateId]];
+                return component?.stateId === stateId ? component : undefined;
+            },
         };
 
         this.updateInfo = {

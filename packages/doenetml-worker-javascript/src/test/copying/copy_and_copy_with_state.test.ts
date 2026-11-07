@@ -1446,3 +1446,61 @@ describe("descendant dependency traversal", () => {
         }
     });
 });
+
+/**
+ * A copy of a `<conditionalContent>` written as one is a new one, which
+ * decides its own case from what its pasted DoenetML refers to, and whose
+ * references keep their referents (#2476): `$n` in the copy is the `n` in
+ * `s0`, not the `n` declared where the copy sits. It does so on a reload too,
+ * with what the reader entered in each of its cases.
+ */
+describe("A copy of a conditionalContent @group4", () => {
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form} follows its condition and keeps its referents`, async () => {
+            const r = await loaded(`
+    <booleanInput name="b"/>
+    <section name="s0">
+      <number name="n">1</number>
+      <p name="p0"><conditionalContent name="cc">
+        <case condition="$b"><text>true $n</text><mathInput name="a"/></case>
+        <else><text>false $n</text><mathInput name="a"/></else>
+      </conditionalContent></p>
+    </section>
+    <section name="s1">
+      <number name="n">2</number>
+      <p name="p1"><conditionalContent ${form}="$s0.cc" name="cc"/></p>
+    </section>
+    `);
+            async function setB(boolean: boolean) {
+                await updateBooleanInputValue({
+                    boolean,
+                    componentIdx: await r.resolve("b"),
+                    core: r.core,
+                });
+            }
+            async function type(name: string, latex: string) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await r.resolve(name),
+                    core: r.core,
+                });
+            }
+            expect((await r.sv("s0.p0")).text).eq("false 1＿");
+            expect((await r.sv("s1.p1")).text).eq("false 1＿");
+            await type("s1.cc.a", "5");
+            await setB(true);
+            expect((await r.sv("s0.p0")).text).eq("true 1＿");
+            expect((await r.sv("s1.p1")).text).eq("true 1＿");
+            await type("s1.cc.a", "6");
+            expect((await r.sv("s1.p1")).text).eq("true 16");
+
+            await r.reload();
+            expect((await r.sv("s0.p0")).text).eq("true 1＿");
+            expect((await r.sv("s1.p1")).text).eq("true 16");
+            await setB(false);
+            expect((await r.sv("s1.p1")).text).eq("false 15");
+            await r.reload();
+            expect((await r.sv("s1.p1")).text).eq("false 15");
+        });
+    }
+});

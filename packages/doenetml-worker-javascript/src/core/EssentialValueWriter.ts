@@ -1840,9 +1840,27 @@ export class EssentialValueWriter {
      * via `removeFunctionsMathExpressionClass` before write.
      *
      * Lazily creates `cumulativeStateVariableChanges[stateId]` if absent.
+     *
+     * Records the `componentType` of the component with `stateId` too
+     * (`__componentTypes`), so a reload applies what was saved only to a
+     * component of the type it was saved from
+     * (`checkForStateVariablesUpdatesForNewComponent`). A component of
+     * another type that has the `stateId` now starts the entry afresh.
      */
     mergeIntoCumulative(stateId: string, varName: string, value: any): void {
         const cumulative = this.core.cumulativeStateVariableChanges;
+        const component =
+            this.core._components?.[this.core.componentIdxByStateId?.[stateId]];
+        if (component?.stateId === stateId) {
+            const types = (cumulative.__componentTypes ??= {});
+            if (
+                types[stateId] !== undefined &&
+                types[stateId] !== component.componentType
+            ) {
+                delete cumulative[stateId];
+            }
+            types[stateId] = component.componentType;
+        }
         if (!cumulative[stateId]) {
             cumulative[stateId] = {};
         }
