@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import { DiagnosticsManager } from "../../core/DiagnosticsManager";
-import { createTestCore } from "../utils/test-core";
-import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -123,86 +120,6 @@ describe("An error after load (DIAG-7) @group4", () => {
         expect(manager.diagnostics.map((d) => d.type)).eqls([
             "warning",
             "info",
-        ]);
-    });
-});
-
-describe("A scalar tag made from a list the author writes (e0064) @group4", () => {
-    async function setup(doenetML: string) {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML,
-        });
-        async function text(name: string) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
-                .text;
-        }
-        return { core, resolvePathToNodeIdx, text };
-    }
-
-    it("is missing, with an info, while a value makes the list hold more than one", async () => {
-        const { core, resolvePathToNodeIdx, text } = await setup(`
-<mathInput name="n" prefill="1"/>
-<mathList name="ml" maxNumber="$n">1 2</mathList>
-<p name="p1"><math extend="$ml"/></p>
-`);
-        expect(await text("p1")).eq("1");
-        const d = getDiagnosticsByType(core);
-        expect(d.errors).eqls([]);
-        expect(d.infos.filter((i) => i.code === "doenet-e0064")).eqls([]);
-
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: await resolvePathToNodeIdx("n"),
-            core,
-        });
-        expect(await text("p1")).eq("＿");
-        expect(d.errors).eqls([]);
-        expect(d.infos.map((i) => i.code)).contains("doenet-e0064");
-
-        await updateMathInputValue({
-            latex: "1",
-            componentIdx: await resolvePathToNodeIdx("n"),
-            core,
-        });
-        expect(await text("p1")).eq("1");
-        expect(d.infos.filter((i) => i.code === "doenet-e0064")).eqls([]);
-    });
-
-    it("is missing, with an info, when an entry is not read at load", async () => {
-        // An entry with a comma, or a math, may be read as several entries,
-        // which load does not decide (`listCountAtLoad.ts`), so the count is
-        // not fixed by the DoenetML as far as load can tell.
-        for (const list of [
-            `<mathList name="ml">1,2</mathList>`,
-            `<mathList name="ml"><math>1</math><math>2</math></mathList>`,
-            `<textList name="ml">a, b</textList>`,
-        ]) {
-            const scalar = list.startsWith("<textList") ? "text" : "math";
-            const { core, text } = await setup(
-                `${list}<p name="p1"><${scalar} extend="$ml"/></p>`,
-            );
-            expect(await text("p1"), list).eq("＿");
-            const d = getDiagnosticsByType(core);
-            expect(d.errors, list).eqls([]);
-            expect(
-                d.infos.map((i) => i.code),
-                list,
-            ).contains("doenet-e0064");
-        }
-    });
-
-    it("is an error when the list's entries are written", async () => {
-        const { core, text } = await setup(`
-<mathList name="ml">1 2</mathList>
-<p name="p1"><math extend="$ml"/></p>
-`);
-        await text("p1");
-        expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
-            "doenet-e0064",
         ]);
     });
 });

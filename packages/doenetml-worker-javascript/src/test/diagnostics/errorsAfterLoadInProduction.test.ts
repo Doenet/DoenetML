@@ -9,13 +9,9 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-// An extend's errors are left undecided at load, so the extend below, made
-// only after an interaction, reports its error then: an error after load,
-// which DIAG-7 forbids and which stands in here for any such bug.
-vi.mock("../../utils/dast/extendErrorsAtLoad", () => ({
-    checkExtendErrorsAtLoad: () => [],
-}));
-
+// The extend below would change what it extends (`doenet-e0056`), and is
+// made only after an interaction, so it reports its error then: an error
+// after load, which DIAG-7 forbids, standing in here for any such bug.
 /**
  * In production (`errorsAfterLoad: "warn"`), an error reported after load is
  * a warning, and the component in error is missing (`＿`) rather than an
