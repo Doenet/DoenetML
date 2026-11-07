@@ -1402,13 +1402,19 @@ describe("Graph tag tests @group2", async () => {
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
-    it("a grid value from a reference stays quiet", async () => {
+    it("a grid value from a reference is an info, not a warning", async () => {
         // An unusable value coming from a reference is normally an input the
         // reader has not filled in yet, so it must not warn on load — only a
         // value the author spelled out in full does. A reference is also how a
         // graph gets a grid the reader chooses, so an unusable one is not even
         // reliably a mistake: `$ti` below is unusable until the reader types
-        // `dense` into it.
+        // `dense` into it. So it is an info, there while the value is
+        // unusable and gone when it is not (DIAG-2).
+        const gridInfos = () =>
+            getDiagnosticsByType(core)
+                .infos.filter((d: any) => d.code === "doenet-w0119")
+                .map((d: any) => d.position?.start.line)
+                .sort();
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="gx" />
@@ -1431,6 +1437,7 @@ describe("Graph tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("g3")].stateValues.grid,
         ).eq("none");
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        expect(gridInfos()).eqls([4, 5, 7]);
 
         // Filling the inputs in still produces the grid it always did.
         await updateMathInputValue({
@@ -1452,9 +1459,11 @@ describe("Graph tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("g2")].stateValues.grid,
         ).eqls([6, 4.5]);
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        expect(gridInfos()).eqls([7]);
 
         // A reader who types a value the graph cannot use gets no grid and
-        // still no warning: the mistake is not the author's to fix.
+        // still no warning, only an info: the mistake is not the author's to
+        // fix.
         await updateMathInputValue({
             latex: "-1",
             componentIdx: await resolvePathToNodeIdx("gx"),
@@ -1466,6 +1475,7 @@ describe("Graph tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
         ).eq("none");
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        expect(gridInfos()).eqls([4, 5, 7]);
 
         // A single reference is the one way an author gets a reader-chosen
         // `none`/`medium`/`dense`, so it must not be reported as unusable just
@@ -1481,6 +1491,7 @@ describe("Graph tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("g3")].stateValues.grid,
         ).eq("dense");
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        expect(gridInfos()).eqls([4, 5]);
     });
 
     it("a grid the attribute cannot hold is not quoted back at the author", async () => {
