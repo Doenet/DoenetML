@@ -35,7 +35,10 @@ import { ActionTriggerScheduler } from "./core/ActionTriggerScheduler";
 import { AutoSubmitManager } from "./core/AutoSubmitManager";
 import { addComponents } from "./core/ComponentBuilder";
 import { CompositeReplacementUpdater } from "./core/CompositeReplacementUpdater";
-import { DiagnosticsManager } from "./core/DiagnosticsManager";
+import {
+    DiagnosticsManager,
+    type ErrorsAfterLoad,
+} from "./core/DiagnosticsManager";
 import { EssentialValueWriter } from "./core/EssentialValueWriter";
 import { navigateToTarget } from "./core/NavigationHandler";
 import { ProcessQueue } from "./core/ProcessQueue";
@@ -67,6 +70,12 @@ export interface CoreOptions {
     flags: Record<string, any>;
     allDoenetMLs: string[];
     preliminaryDiagnostics?: any;
+    /**
+     * What happens to an error reported after load (DIAG-7,
+     * `ErrorsAfterLoad`). Left out, `"assert"` in tests and `"warn"` in a
+     * browser (`defaultErrorsAfterLoad`).
+     */
+    errorsAfterLoad?: ErrorsAfterLoad;
     activityId: string;
     cid: string | null;
     docId: string;
@@ -319,6 +328,7 @@ export default class Core {
         flags,
         allDoenetMLs,
         preliminaryDiagnostics,
+        errorsAfterLoad,
         activityId,
         cid,
         docId,
@@ -377,6 +387,7 @@ export default class Core {
 
         this.diagnosticsManager = new DiagnosticsManager({
             preliminaryDiagnostics,
+            errorsAfterLoad,
         });
         this.diagnosticsManager.isShown = (componentIdx: number) =>
             this.isComponentShown(componentIdx);
@@ -751,6 +762,9 @@ export default class Core {
                 );
             }
         }
+
+        // The document has loaded: every error is decided by now (DIAG-7).
+        this.diagnosticsManager.markLoaded();
 
         let diagnostics: any = undefined;
         if (this.hasPendingDiagnostics) {

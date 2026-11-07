@@ -4,6 +4,7 @@ import { Dependency } from "../../core/dependencies/Dependency";
 import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
 import { PASSED } from "../../core/dependencies/circularCheckMarks";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { takeErrorsReportedAfterLoad } from "../utils/errorsAfterLoad";
 import {
     movePoint,
     updateBooleanInputValue,
@@ -1514,6 +1515,12 @@ describe("A copy of a component that references itself @group2", async () => {
         expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
             "doenet-e0005",
         ]);
+        // A known violation of DIAG-7: a cycle through an index that a value
+        // decides is found only after load (#2473), which the end-of-load
+        // assertion reports.
+        expect(takeErrorsReportedAfterLoad().map((e) => e.code)).eqls([
+            "doenet-e0005",
+        ]);
 
         await updateMathInputValue({ latex: "1", componentIdx: nIdx, core });
         expect(await texts()).eqls(["hi [one]", "hi [one]", "after"]);
@@ -1707,6 +1714,12 @@ describe("Composites that queue each other in turn @group2", async () => {
             ["doenet-e0005", 2],
             ["doenet-e0005", 3],
         ]);
+        // A loop that only a bug in a composite makes is caught after load,
+        // which the end-of-load assertion reports (DIAG-7).
+        expect(takeErrorsReportedAfterLoad().map((e) => e.code)).eqls([
+            "doenet-e0005",
+            "doenet-e0005",
+        ]);
     });
 });
 
@@ -1762,6 +1775,10 @@ describe("A composite that queues itself on every pass @group2", async () => {
                 "Circular dependency detected involving `<conditionalContent>` component.",
                 2,
             ],
+        ]);
+        // caught after load, which the end-of-load assertion reports (DIAG-7)
+        expect(takeErrorsReportedAfterLoad().map((e) => e.code)).eqls([
+            "doenet-e0005",
         ]);
 
         // The rest of the document still responds.

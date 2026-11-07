@@ -459,7 +459,8 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
         });
         await check("a1, a2");
 
-        // `$r[$n]` is reported for each index it has been expanded with
+        // Decided when the document loaded, from what is written (DIAG-7),
+        // so `$r[$n]` is reported once, as written, whatever index it has
         expect(
             getDiagnosticsByType(core).errors.map((error) => [
                 error.code,
@@ -468,8 +469,7 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
         ).eqls([
             ["doenet-e0056", "$x"],
             ["doenet-e0057", "$x"],
-            ["doenet-e0056", "$r[2]"],
-            ["doenet-e0056", "$r[1]"],
+            ["doenet-e0056", "$r[$n]"],
         ]);
     });
 
