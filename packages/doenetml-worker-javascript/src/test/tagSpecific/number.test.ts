@@ -2312,6 +2312,65 @@ describe("Number tag tests @group3", async () => {
         ).eqls(NaN);
     });
 
+    it("a number with convertBoolean of one boolean writes 1 or 0 back as true or false", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p><boolean name="b">true</boolean></p>
+  <p><number name="n" convertBoolean>$b</number></p>
+  <p><mathInput name="mi" bindValueTo="$n" /></p>
+  <p><number name="fn" convertBoolean fixed>$b</number></p>
+  <p><mathInput name="mif" bindValueTo="$fn" /></p>
+  `,
+        });
+
+        async function check_values(b: boolean, n: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .value,
+            ).eq(b);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value,
+            ).eq(n);
+        }
+
+        await check_values(true, 1);
+
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check_values(false, 0);
+
+        // only 1 and 0 are a boolean's values
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check_values(false, 0);
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check_values(true, 1);
+
+        // a fixed number does not write back
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("mif"),
+            core,
+        });
+        await check_values(true, 1);
+    });
+
     it("can invert without convertBoolean", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

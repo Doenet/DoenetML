@@ -1841,6 +1841,8 @@ export default class Answer extends InlineComponent {
                                 "componentTypeAsResponse",
                                 // a missing component (D37)
                                 "valueMissing",
+                                // a subset of the reals, whose value is this
+                                "subsetValue",
                             ],
                             variablesOptional: true,
                             recurseToMatchedChildren: true,
@@ -1991,7 +1993,14 @@ export default class Answer extends InlineComponent {
                         ct = "vector";
                     }
 
-                    if (Array.isArray(component.stateValues.values)) {
+                    if (component.stateValues.subsetValue !== undefined) {
+                        // A subset of the reals is recorded as its subset,
+                        // not as the math it inherits from.
+                        currentResponses.push(
+                            component.stateValues.subsetValue,
+                        );
+                        componentType.push(ct);
+                    } else if (Array.isArray(component.stateValues.values)) {
                         currentResponses.push(...component.stateValues.values);
                         componentType.push(
                             ...Array(component.stateValues.values.length).fill(

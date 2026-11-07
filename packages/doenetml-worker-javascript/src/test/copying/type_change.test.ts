@@ -1186,3 +1186,157 @@ describe("A reference written as a different tag is allowed only between related
         made.mockRestore();
     });
 });
+
+describe("A related type is made from the value of what is referenced, not from the component (#2440, #2437) @group4", () => {
+    it("a value type from an input, and the value types from one another", async () => {
+        // Each was the tag's default before #2440, most with the source put
+        // in as a child it can't hold (`doenet-w0107`). A boolean is `1` or
+        // `0` as a number or a math, and a text a boolean while it is the
+        // word.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<mathInput name="mi" prefill="(1,2)"/>
+<mathInput name="mi2" prefill="2"/>
+<booleanInput name="bi" prefill="true"/>
+<textInput name="ti" prefill="2"/>
+<textInput name="tt" prefill="false"/>
+<boolean name="b">true</boolean>
+<boolean name="bf">false</boolean>
+<text name="t">true</text>
+<text name="t2">2</text>
+<p name="pointFromMathInput"><point extend="$mi"/></p>
+<p name="textFromMathInput"><text extend="$mi2"/></p>
+<p name="mathFromBooleanInput"><math extend="$bi"/></p>
+<p name="textFromBooleanInput"><text extend="$bi"/></p>
+<p name="numberFromBooleanInput"><number extend="$bi"/></p>
+<p name="mathFromTextInput"><math extend="$ti"/></p>
+<p name="numberFromTextInput"><number extend="$ti"/></p>
+<p name="booleanFromTextInput"><boolean extend="$tt"/></p>
+<p name="mathFromBoolean"><math extend="$b"/></p>
+<p name="numberFromBoolean"><number extend="$b"/></p>
+<p name="numberFromFalse"><number copy="$bf"/></p>
+<p name="booleanFromText"><boolean extend="$t"/></p>
+`);
+        expect(
+            await texts([
+                "pointFromMathInput",
+                "textFromMathInput",
+                "mathFromBooleanInput",
+                "textFromBooleanInput",
+                "numberFromBooleanInput",
+                "mathFromTextInput",
+                "numberFromTextInput",
+                "booleanFromTextInput",
+                "mathFromBoolean",
+                "numberFromBoolean",
+                "numberFromFalse",
+                "booleanFromText",
+            ]),
+        ).eqls({
+            pointFromMathInput: "(1, 2)",
+            textFromMathInput: "2",
+            mathFromBooleanInput: "1",
+            textFromBooleanInput: "true",
+            numberFromBooleanInput: "1",
+            mathFromTextInput: "2",
+            numberFromTextInput: "2",
+            booleanFromTextInput: "false",
+            mathFromBoolean: "1",
+            numberFromBoolean: "1",
+            numberFromFalse: "0",
+            booleanFromText: "true",
+        });
+        expect(typeChangeDiagnostics()).eqls([]);
+    });
+
+    it("a value that doesn't convert is missing, with an info, from a text, an input or a property", async () => {
+        const { texts, typeChangeDiagnostics } = await setup(`
+<text name="t">2</text>
+<textInput name="ti" prefill="yes"/>
+<point name="P">(3,4)</point>
+<choiceInput name="ci" preselectChoice="1"><choice><math>x</math></choice><choice><math>(1,2)</math></choice></choiceInput>
+<p name="p1"><boolean extend="$t"/></p>
+<p name="p2"><boolean extend="$ti"/></p>
+<p name="p3"><point extend="$P.x"/></p>
+<p name="p4"><point extend="$ci"/></p>
+<p name="p5"><point extend="$P.coords"/></p>
+`);
+        expect(await texts(["p1", "p2", "p3", "p4", "p5"])).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "(3, 4)",
+        });
+        expect(typeChangeDiagnostics()).eqls([
+            {
+                code: "doenet-i0053",
+                type: "info",
+                line: 6,
+                message:
+                    "A `<boolean>` can't be made from `$t` while its value, 2, isn't true or false, so it is missing until it is.",
+            },
+            {
+                code: "doenet-i0053",
+                type: "info",
+                line: 7,
+                message:
+                    "A `<boolean>` can't be made from `$ti` while its value, yes, isn't true or false, so it is missing until it is.",
+            },
+            {
+                code: "doenet-i0053",
+                type: "info",
+                line: 8,
+                message:
+                    "A `<point>` can't be made from `$P.x` while its value, 3, isn't a tuple of coordinates, so it is missing until it is.",
+            },
+            {
+                code: "doenet-i0053",
+                type: "info",
+                line: 9,
+                message:
+                    "A `<point>` can't be made from `$ci` while its value, x, isn't a tuple of coordinates, so it is missing until it is.",
+            },
+        ]);
+    });
+
+    it("the selected value of a choiceInput that converts makes the tag", async () => {
+        // `selectedValues` is an array: the tag is checked against its one
+        // entry, not the array, which is never a tuple.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<choiceInput name="ci" preselectChoice="2"><choice><math>x</math></choice><choice><math>(1,2)</math></choice></choiceInput>
+<p name="p1"><point extend="$ci"/></p>
+<p name="p2"><vector extend="$ci"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({
+            p1: "(1, 2)",
+            p2: "(1, 2)",
+        });
+        expect(typeChangeDiagnostics()).eqls([]);
+    });
+
+    it("the one component a composite stands for is found through references in it", async () => {
+        // Each was the tag's default (`(0, 0)`, or `(1, 0)` for a vector)
+        // before #2437.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<math name="m">(1,2)</math>
+<conditionalContent name="cc"><case condition="true">$m</case></conditionalContent>
+<conditionalContent name="nested"><case condition="true"><conditionalContent><case condition="true"><math>(3,4)</math></case></conditionalContent></case></conditionalContent>
+<conditionalContent name="cc5"><case condition="true"><math>(5,6)</math></case></conditionalContent>
+<group name="g">$cc5</group>
+<group name="h"><point extend="$cc5[1]"/></group>
+<p name="p1"><point extend="$cc"/></p>
+<p name="p2"><point extend="$cc[1]"/></p>
+<p name="p3"><point extend="$nested"/></p>
+<p name="p4"><point extend="$g"/></p>
+<p name="p5"><vector extend="$h"/></p>
+`);
+        expect(await texts(["p1", "p2", "p3", "p4", "p5"])).eqls({
+            p1: "(1, 2)",
+            p2: "(1, 2)",
+            p3: "(3, 4)",
+            p4: "(5, 6)",
+            p5: "(5, 6)",
+        });
+        expect(typeChangeDiagnostics()).eqls([]);
+    });
+});

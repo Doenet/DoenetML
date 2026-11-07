@@ -179,23 +179,33 @@ nothing.
 When `t` is not a `<math>`, the tag asks for a math made from `t`. That works
 only between related types:
 
-* `<math>`, `<number>`, `<text>` and `<boolean>`, from one another;
+* `<math>`, `<number>`, `<text>` and `<boolean>`, from one another, by value.
+  A boolean is `1` or `0` as a `<number>` or a `<math>`, and a text is a
+  `<boolean>` while it is the word `true` or `false`;
 * `<point>`, `<vector>` and `<coords>`, from one another;
 * a `<math>` from a point, vector or coords, as the tuple of its coordinates,
   and a point, vector or coords from a math whose value is a tuple;
 * a `<math>`, `<number>`, `<text>` or `<boolean>` from an input, as its value:
-  `<math extend="$mi"/>{:dn}` of a `<mathInput>`;
+  `<math extend="$mi"/>{:dn}` of a `<mathInput>`, and anything its value can
+  be made into, such as `<point extend="$mi"/>{:dn}` while `mi` holds a tuple;
 * a component as what it stands for wherever its own tag can't go, such as an
   `<angle>` as a `<math>`, or an `<ion>` as the `<text>` of its name.
 
 A `<group>` can be made from anything, and holds it.
 
+Made by value, the tag follows the value, and writing to the tag writes it
+back where the conversion runs backward: dragging `<point extend="$mi"/>{:dn}`
+edits `mi`, and a `<math extend="$b"/>{:dn}` of a `<boolean>` set to `0` sets
+`b` to false.
+
 ```doenet-editor-horiz
 <point name="P">(3,4)</point>
 <group name="g"><number>7</number></group>
+<booleanInput name="bi"><label>On</label></booleanInput>
 
 <p>As a math: <math extend="$P"/></p>
 <p>As a math: <math extend="$g"/></p>
+<p>As a number: <number extend="$bi"/></p>
 ```
 
 #### Made from a composite
@@ -264,20 +274,28 @@ a while, shown as `＿`, with an info, and none changes its type:
 
 * **A value that doesn't convert.** `<point extend="$m"/>{:dn}` while `m` is not
   a tuple, or `<boolean extend="$t"/>{:dn}` while `t` is not true or false, is
-  missing until the value converts.
+  missing until the value converts. So is one made from an input's value, such
+  as `<point extend="$mi"/>{:dn}` or the selected value of a `<choiceInput>`, or
+  from a property, such as `<point extend="$P.x"/>{:dn}`, which is never a
+  tuple. The selected value of a `<choiceInput>` is checked only when the tag
+  is made, not again as the selection changes.
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
   iterations of `r` is missing, and is made from the iteration again, with the
   tag's own children, when the index names one. The bare reference `$r[$i]`
   shows `＿` too, without the info. A literal index below 1, such as `$l[0]`,
   never names anything, and is a warning in either form.
 * **A composite that holds nothing.** `<math extend="$cc"/>{:dn}` of a
-  `<conditionalContent>` with no `<else>` is missing while no case is true.
+  `<conditionalContent>` with no `<else>` is missing while no case is true,
+  and so is one whose chosen case holds nothing, or holds another
+  `<conditionalContent>` that holds nothing now.
 
 While the info lasts there is one, naming the value as it is now, and none for a
 tag in content that isn't there now, such as a case that isn't chosen. A `copy`
 does not follow its source, so it stays as it was made, and so does its info.
-A property, such as `<point extend="$P.x"/>{:dn}`, and the selected value of a
-`<choiceInput>` are not checked against their value.
+
+The one component a composite holds is found through the references in it:
+`<point extend="$cc"/>{:dn}` of a `<conditionalContent>` whose case holds `$m`
+is made from `m`, and follows it as the case, or `m`, changes.
 
 ```doenet-editor-horiz
 <mathInput name="mi" prefill="x"><label>Enter a point, such as (1,2)</label></mathInput>

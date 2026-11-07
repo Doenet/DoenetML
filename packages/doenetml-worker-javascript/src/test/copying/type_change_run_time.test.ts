@@ -5,6 +5,7 @@ import {
     movePoint,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateTextInputValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -135,6 +136,14 @@ async function setup(doenetML: string) {
         });
     }
 
+    async function setText(name: string, text: string) {
+        await updateTextInputValue({
+            text,
+            componentIdx: await resolvePathToNodeIdx(name),
+            core,
+        });
+    }
+
     async function move(name: string, x: number, y: number) {
         await movePoint({
             componentIdx: await resolvePathToNodeIdx(name),
@@ -155,6 +164,7 @@ async function setup(doenetML: string) {
         reload,
         setBoolean,
         setMath,
+        setText,
         resolvePathToNodeIdx: (name: string) => resolvePathToNodeIdx(name),
     };
 }
@@ -558,7 +568,7 @@ describe("A reference written as a tag of a composite is decided when the docume
             expect(await d.replacedBy(p), p).eqls(["_error"]);
         }
         // A case holding nothing is allowed: the math is missing while it
-        // is active (D37).
+        // is active, with the info that `cc3` holds nothing (D37).
         expect(await d.texts(["p4"])).eqls({ p4: "＿" });
         expect(d.newDiagnostics().map((x) => x.message)).eqls([
             "A `<math>` can be made from `$g` only when it always holds one component, and a case of the `<conditionalContent>` holds 2. To read what it holds as one value, write `<math>$g</math>`.",
@@ -566,6 +576,7 @@ describe("A reference written as a tag of a composite is decided when the docume
             "A `<math>` can be made from `$cc2` only when it always holds one component, and an option of the `<select>` holds 2. To read what it holds as one value, write `<math>$cc2</math>`.",
             "A `<math>` can be made from `$r[1]` only when it always holds one component, and an iteration of the `<repeat>` holds 2. To read what it holds as one value, write `<math>$r[1]</math>`.",
             "A `<math>` can be made from `$rs[1]` only when it always holds one component, and an iteration of the `<repeatForSequence>` holds 2. To read what it holds as one value, write `<math>$rs[1]</math>`.",
+            "`$cc3` holds nothing now, so this `<math>` is missing until it holds one component.",
         ]);
         await d.setBoolean("b", true);
         expect(await d.texts(["p4"])).eqls({ p4: "1" });
@@ -842,10 +853,11 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p3"><math extend="$g3"/></p>
 <p name="p4"><math extend="$g4"/></p>
 `);
-        // `g2` holds nothing, so its math is missing (D37).
+        // `g2` holds nothing, so its math is missing (D37), with the info.
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
             ["doenet-e0064", 7],
             ["doenet-e0064", 9],
+            ["doenet-i0055", 8],
         ]);
         expect(await d.replacedBy("p1")).eqls(["_error"]);
         expect(await d.replacedBy("p2")).eqls(["math"]);
@@ -1447,5 +1459,194 @@ describe("What still changes at run time, without changing what the component is
         }
         // A named extend still names what it shows.
         expect(await d.texts(["t"])).eqls({ t: "no" });
+    });
+});
+
+describe("A related type made from a value follows it, and writes back (#2440, #2437) @group4", () => {
+    /**
+     * The text of each named component, a point or vector in a graph as its
+     * coordinates, and `＿` while it is missing.
+     */
+    async function shown(
+        d: Awaited<ReturnType<typeof setup>>,
+        names: string[],
+    ) {
+        const core = await d.core();
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const result: Record<string, string> = {};
+        for (const name of names) {
+            const sv =
+                stateVariables[await d.resolvePathToNodeIdx(name)].stateValues;
+            result[name] =
+                sv.text ??
+                (sv.valueMissing
+                    ? "＿"
+                    : sv.latex
+                          .replace(/\\left|\\right|\s/g, "")
+                          .replace(/,/g, ", "));
+        }
+        return result;
+    }
+
+    it("a point from a mathInput is missing while its value is no tuple, and dragging it writes the mathInput", async () => {
+        const d = await setup(`
+<mathInput name="mi" prefill="(1,2)"/>
+<graph><point extend="$mi" name="Q"/></graph>
+<p name="p"><point extend="$mi.value"/></p>
+`);
+        expect(await shown(d, ["Q", "p"])).eqls({ Q: "(1, 2)", p: "(1, 2)" });
+        expect(d.newDiagnostics()).eqls([]);
+
+        await d.setMath("mi", "x");
+        expect(await shown(d, ["Q", "p"])).eqls({ Q: "＿", p: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0053", 3],
+            ["doenet-i0053", 4],
+        ]);
+
+        await d.setMath("mi", "(3,4)");
+        expect(await shown(d, ["Q", "p"])).eqls({ Q: "(3, 4)", p: "(3, 4)" });
+        expect(d.newDiagnostics()).eqls([]);
+
+        await d.move("Q", -1, 5);
+        expect(await shown(d, ["mi", "Q", "p"])).eqls({
+            mi: "(-1, 5)",
+            Q: "(-1, 5)",
+            p: "(-1, 5)",
+        });
+    });
+
+    it("a boolean from a text input, and a number and a math from a boolean input, follow and write back", async () => {
+        const d = await setup(`
+<textInput name="ti" prefill="true"/>
+<booleanInput name="bi" prefill="true"/>
+<p name="p1"><boolean extend="$ti" name="B"/></p>
+<p name="p2"><math extend="$bi" name="M"/></p>
+<p name="p3"><number extend="$bi" name="N"/></p>
+<booleanInput name="biB" bindValueTo="$B"/>
+<mathInput name="miM" bindValueTo="$M"/>
+`);
+        expect(await shown(d, ["p1", "p2", "p3"])).eqls({
+            p1: "true",
+            p2: "1",
+            p3: "1",
+        });
+
+        await d.setText("ti", "maybe");
+        expect(await shown(d, ["p1"])).eqls({ p1: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0053", 4],
+        ]);
+        await d.setText("ti", "False");
+        expect(await shown(d, ["p1"])).eqls({ p1: "false" });
+        expect(d.newDiagnostics()).eqls([]);
+
+        // written back as the word
+        await d.setBoolean("biB", true);
+        expect(await shown(d, ["ti", "p1"])).eqls({ ti: "true", p1: "true" });
+
+        await d.setBoolean("bi", false);
+        expect(await shown(d, ["p2", "p3"])).eqls({ p2: "0", p3: "0" });
+
+        // `1` and `0` written back as true and false
+        await d.setMath("miM", "1");
+        expect(await shown(d, ["bi", "p2", "p3"])).eqls({
+            bi: "true",
+            p2: "1",
+            p3: "1",
+        });
+        await d.setMath("miM", "0");
+        expect(await shown(d, ["bi", "p2", "p3"])).eqls({
+            bi: "false",
+            p2: "0",
+            p3: "0",
+        });
+    });
+
+    it("the one component a composite stands for through references follows it as it changes", async () => {
+        const d = await setup(`
+<booleanInput name="b1" prefill="true"/>
+<booleanInput name="b2" prefill="true"/>
+<mathInput name="mi" prefill="(1,2)"/>
+<math name="m">$mi</math>
+<math name="m2">(5,6)</math>
+<conditionalContent name="cc"><case condition="$b1">$m</case><else>$m2</else></conditionalContent>
+<conditionalContent name="cc2"><case condition="$b1"><conditionalContent><case condition="$b2"><math>(1,2)</math></case></conditionalContent></case><else><math>(3,4)</math></else></conditionalContent>
+<group name="g">$cc</group>
+<group name="h"><point extend="$cc[1]"/></group>
+<graph>
+  <point extend="$cc" name="A"/>
+  <point extend="$cc2" name="B"/>
+  <point extend="$g" name="C"/>
+  <vector extend="$h" name="D"/>
+</graph>
+`);
+        const all = ["A", "B", "C", "D"];
+        expect(await shown(d, all)).eqls({
+            A: "(1, 2)",
+            B: "(1, 2)",
+            C: "(1, 2)",
+            D: "(1, 2)",
+        });
+
+        await d.setMath("mi", "(7,8)");
+        expect(await shown(d, all)).eqls({
+            A: "(7, 8)",
+            B: "(1, 2)",
+            C: "(7, 8)",
+            D: "(7, 8)",
+        });
+
+        // missing while the math is no tuple, and again a point after
+        await d.setMath("mi", "x");
+        expect(await shown(d, all)).eqls({
+            A: "＿",
+            B: "(1, 2)",
+            C: "＿",
+            D: "＿",
+        });
+        await d.setMath("mi", "(1,2)");
+        expect(await shown(d, all)).eqls({
+            A: "(1, 2)",
+            B: "(1, 2)",
+            C: "(1, 2)",
+            D: "(1, 2)",
+        });
+        d.newDiagnostics();
+
+        // a nested case that holds nothing: missing, with the info
+        await d.setBoolean("b2", false);
+        expect(await shown(d, ["B"])).eqls({ B: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0055", 13],
+        ]);
+
+        await d.setBoolean("b1", false);
+        expect(await shown(d, all)).eqls({
+            A: "(5, 6)",
+            B: "(3, 4)",
+            C: "(5, 6)",
+            D: "(5, 6)",
+        });
+        expect(d.newDiagnostics()).eqls([]);
+
+        await d.setBoolean("b1", true);
+        await d.setBoolean("b2", true);
+        expect(await shown(d, all)).eqls({
+            A: "(1, 2)",
+            B: "(1, 2)",
+            C: "(1, 2)",
+            D: "(1, 2)",
+        });
+
+        // dragging writes the math the case holds
+        await d.move("C", -3, 4);
+        expect(await shown(d, ["mi", ...all])).eqls({
+            mi: "(-3, 4)",
+            A: "(-3, 4)",
+            B: "(1, 2)",
+            C: "(-3, 4)",
+            D: "(-3, 4)",
+        });
     });
 });

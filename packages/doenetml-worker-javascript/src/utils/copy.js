@@ -655,7 +655,14 @@ export async function verifyReplacementsMatchSpecifiedType({
 
         if (wrapExistingReplacements) {
             for (let [ind, repl] of replacements.entries()) {
-                repl.children = [originalReplacements[ind]];
+                const res = wrapAsWrittenType({
+                    wrapper: repl,
+                    wrapped: originalReplacements[ind],
+                    componentInfoObjects,
+                    nComponents,
+                    stateIdInfo,
+                });
+                nComponents = res.nComponents;
             }
         }
 
@@ -693,6 +700,97 @@ export async function verifyReplacementsMatchSpecifiedType({
     }
 
     return { replacements, replacementChanges, diagnostics, nComponents };
+}
+
+/**
+ * Makes `wrapper`, a new component of the type an `extend` or `copy` was
+ * written as, hold `wrapped`, the replacement made from its source, so that
+ * its value is the source's converted to that type (D26, REF-5). Most types
+ * read a child of another value type as their own (a `<point>` a math
+ * tuple, a `<text>` a math). A boolean is `1` or `0` as a number or a math:
+ * a `<number>` reads a boolean child so with `convertBoolean`, and a
+ * `<math>` reads it through such a number, which writes `1` or `0` back as
+ * `true` or `false`. A `<boolean>` reads a text as the word `true` or `false`
+ * with `_textAsWord`. A component that is missing makes `wrapper` missing.
+ */
+function wrapAsWrittenType({
+    wrapper,
+    wrapped,
+    componentInfoObjects,
+    nComponents,
+    stateIdInfo,
+}) {
+    const isOfType = (componentType, baseComponentType) =>
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType,
+        });
+    if (
+        typeof wrapped === "object" &&
+        (wrapped.doenetAttributes?.missing ||
+            wrapped.componentType === "_missing")
+    ) {
+        // A tag made from what is missing is missing (D37): the component a
+        // composite holds, missing while its value does not convert (a
+        // `<point extend="$cc[1]"/>` while that is no tuple), is missing as
+        // the vector it is extended as.
+        wrapper.doenetAttributes = {
+            ...wrapper.doenetAttributes,
+            missing: true,
+        };
+        wrapper.children = [];
+        return { nComponents };
+    }
+    const convertBoolean = {
+        type: "primitive",
+        name: "convertBoolean",
+        primitive: { type: "boolean", value: true },
+    };
+
+    if (
+        typeof wrapped === "object" &&
+        isOfType(wrapped.componentType, "text") &&
+        isOfType(wrapper.componentType, "boolean")
+    ) {
+        // read as the word `true` or `false`
+        wrapper.attributes._textAsWord = {
+            type: "primitive",
+            name: "_textAsWord",
+            primitive: { type: "boolean", value: true },
+        };
+        wrapper.children = [wrapped];
+        return { nComponents };
+    }
+    if (
+        typeof wrapped === "object" &&
+        isOfType(wrapped.componentType, "boolean")
+    ) {
+        if (isOfType(wrapper.componentType, "number")) {
+            wrapper.attributes.convertBoolean = convertBoolean;
+            wrapper.children = [wrapped];
+            return { nComponents };
+        }
+        if (
+            isOfType(wrapper.componentType, "math") &&
+            !isOfType(wrapper.componentType, "coords")
+        ) {
+            wrapper.children = [
+                {
+                    componentType: "number",
+                    componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                    attributes: { convertBoolean },
+                    doenetAttributes: {},
+                    state: {},
+                    children: [wrapped],
+                },
+            ];
+            return { nComponents };
+        }
+    }
+
+    wrapper.children = [wrapped];
+    return { nComponents };
 }
 
 export function calculateReplacementTypesFromChanges(

@@ -1282,39 +1282,39 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         <controlVectors>
           <vector>
             ($c1.controlPoints[1][1][1]
-             -<point extend="$c1.throughPoints[1][1]" fixed />,
+             -<math extend="$c1.throughPoints[1][1]" fixed />,
              $c1.controlPoints[1][1][2]
-             -<point extend="$c1.throughPoints[1][2]" fixed />)
+             -<math extend="$c1.throughPoints[1][2]" fixed />)
           </vector>
         </controlVectors>
         <controlVectors>
           <vector>
             ($c1.controlPoints[2][1][2]
-             -<point extend="$c1.throughPoints[2][2]" fixed />,
+             -<math extend="$c1.throughPoints[2][2]" fixed />,
              $c1.controlPoints[2][1][1]
-             -<point extend="$c1.throughPoints[2][1]" fixed />)
+             -<math extend="$c1.throughPoints[2][1]" fixed />)
           </vector>
         </controlVectors>
         <controlVectors direction="both">
           <vector>
             ($c1.controlPoints[3][1][1]
-             -<point extend="$c1.throughPoints[3][1]" fixed />,
+             -<math extend="$c1.throughPoints[3][1]" fixed />,
              $c1.controlPoints[3][1][2]
-             -<point extend="$c1.throughPoints[3][2]" fixed />)
+             -<math extend="$c1.throughPoints[3][2]" fixed />)
           </vector>
           <vector>
             ($c1.controlPoints[3][2][2]
-             -<point extend="$c1.throughPoints[3][2]" fixed />,
+             -<math extend="$c1.throughPoints[3][2]" fixed />,
              $c1.controlPoints[3][2][1]
-             -<point extend="$c1.throughPoints[3][1]" fixed />)
+             -<math extend="$c1.throughPoints[3][1]" fixed />)
           </vector>
         </controlVectors>
         <controlVectors>
           <vector>
             ($c1.controlPoints[4][1][2]
-             -<point extend="$c1.throughPoints[4][2]" fixed />,
+             -<math extend="$c1.throughPoints[4][2]" fixed />,
              $c1.controlPoints[4][1][1]
-             -<point extend="$c1.throughPoints[4][1]" fixed />)
+             -<math extend="$c1.throughPoints[4][1]" fixed />)
           </vector>
         </controlVectors>
       </bezierControls>
