@@ -516,6 +516,7 @@ describe("List operator tag tests @group4", async () => {
                 text: stateVariables[await resolvePathToNodeIdx(name)]
                     .stateValues.text,
                 warnings: d.warnings.map((w) => w.message),
+                infos: d.infos.map((i) => i.message),
             };
         }
 
@@ -718,12 +719,14 @@ describe("List operator tag tests @group4", async () => {
         });
 
         it("text out of alphabetical order is unsorted", async () => {
-            const { text, warnings } = await resultsFor(`
+            const { text, warnings, infos } = await resultsFor(`
     <textList name="tl">apple pear fig</textList>
     <p name="p"><searchSorted type="text" target="cherry">$tl</searchSorted></p>
     `);
             expect(text).eq("0");
-            expect(warnings.filter(notSorted).length).eq(1);
+            // values from a reference can change, so it is an info (DIAG-2)
+            expect(warnings.filter(notSorted)).eqls([]);
+            expect(infos.filter(notSorted).length).eq(1);
         });
 
         it("sortedness is judged by the comparison the search will use", async () => {
@@ -752,12 +755,14 @@ describe("List operator tag tests @group4", async () => {
         it("many targets on an unsorted list report once", async () => {
             // The list is one fact about the document however many targets ask
             // about it, and the queue keeps every distinct message forever.
-            const { text, warnings } = await resultsFor(`
+            const { text, warnings, infos } = await resultsFor(`
     <numberList name="targets">1 2 3 4 5</numberList>
     <p name="p"><searchSorted target="$targets">10 30 20</searchSorted></p>
     `);
             expect(text).eq("0, 0, 0, 0, 0");
-            expect(warnings.filter(notSorted).length).eq(1);
+            // values from a reference can change, so it is an info (DIAG-2)
+            expect(warnings.filter(notSorted)).eqls([]);
+            expect(infos.filter(notSorted).length).eq(1);
         });
 
         it("a value that is not a number neither confirms nor refutes sortedness", async () => {
@@ -778,12 +783,14 @@ describe("List operator tag tests @group4", async () => {
             // between them. Comparing only neighbors would find no inversion
             // — every comparison involving `x` is `NaN`, and `NaN > 0` is
             // false — and answer 2, a position in no arrangement of this list.
-            const { text, warnings } = await resultsFor(`
+            const { text, warnings, infos } = await resultsFor(`
     <numberList name="nl">9 x 1</numberList>
     <p name="p"><searchSorted target="4">$nl</searchSorted></p>
     `);
             expect(text).eq("0");
-            expect(warnings.filter(notSorted).length).eq(1);
+            // values from a reference can change, so it is an info (DIAG-2)
+            expect(warnings.filter(notSorted)).eqls([]);
+            expect(infos.filter(notSorted).length).eq(1);
         });
 
         it("a math that is not a real number takes no part in the ordering either", async () => {
@@ -792,12 +799,14 @@ describe("List operator tag tests @group4", async () => {
             // not a number, so it compares with nothing, exactly as a number
             // that does not parse does. The 9 and the 1 on either side of it
             // are still compared with each other.
-            const { text, warnings } = await resultsFor(`
+            const { text, warnings, infos } = await resultsFor(`
     <mathList name="ml">9 i 1</mathList>
     <p name="p"><searchSorted target="4">$ml</searchSorted></p>
     `);
             expect(text).eq("0");
-            expect(warnings.filter(notSorted).length).eq(1);
+            // values from a reference can change, so it is an info (DIAG-2)
+            expect(warnings.filter(notSorted)).eqls([]);
+            expect(infos.filter(notSorted).length).eq(1);
 
             // And in order it is passed over rather than reported, as `x` is.
             const inOrder = await resultsFor(`
@@ -855,12 +864,12 @@ describe("List operator tag tests @group4", async () => {
                 text: "3",
             });
 
-            // The page says the first one warns; the second must not add a
-            // second warning of its own.
-            const warnings = getDiagnosticsByType(core).warnings.map(
-                (w) => w.message,
+            // The first one reports, as an info since its values come from
+            // a reference (DIAG-2); the second must not add one of its own.
+            const reported = getDiagnosticsByType(core).infos.map(
+                (i) => i.message,
             );
-            expect(warnings.filter(notSorted).length).eq(1);
+            expect(reported.filter(notSorted).length).eq(1);
         });
 
         it("indexOf is unaffected by an unsorted list", async () => {
@@ -873,11 +882,10 @@ describe("List operator tag tests @group4", async () => {
             expect(warnings.filter(notSorted)).eqls([]);
         });
 
-        it("a list that goes out of order and back reports once and answers again", async () => {
-            // The queue is append-only, so a list that is unsorted only in
-            // passing keeps the message; what must not happen is a second
-            // entry for the second time it happens, and the operator must
-            // answer again once the order is restored.
+        it("a list that goes out of order reports an info while it is, and answers again", async () => {
+            // A list unsorted only in passing, from an input, gives an info
+            // while it is (DIAG-2), one however often it happens, gone once
+            // the order is restored, and the operator answers again.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathInput name="mi" prefill="5" />
@@ -893,6 +901,14 @@ describe("List operator tag tests @group4", async () => {
                 text: "2",
             });
 
+            function unsortedReports() {
+                const { warnings, infos } = getDiagnosticsByType(core);
+                expect(warnings.map((w) => w.message).filter(notSorted)).eqls(
+                    [],
+                );
+                return infos.map((i) => i.message).filter(notSorted).length;
+            }
+
             for (const latex of ["0", "5", "0", "5"]) {
                 await updateMathInputValue({
                     latex,
@@ -900,6 +916,7 @@ describe("List operator tag tests @group4", async () => {
                     core,
                 });
                 await core.returnAllStateVariables(false, true);
+                expect(unsortedReports()).eq(latex === "0" ? 1 : 0);
             }
 
             await expectText({
@@ -909,10 +926,7 @@ describe("List operator tag tests @group4", async () => {
                 text: "2",
             });
 
-            const warnings = getDiagnosticsByType(core).warnings.map(
-                (w) => w.message,
-            );
-            expect(warnings.filter(notSorted).length).eq(1);
+            expect(unsortedReports()).eq(0);
         });
     });
 

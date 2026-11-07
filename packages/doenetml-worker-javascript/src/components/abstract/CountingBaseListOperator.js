@@ -111,10 +111,11 @@ export default class CountingBaseListOperator extends ValueListComponent {
                     dependencyType: "decidedByDoenetML",
                     attributeNames: ["bins"],
                 },
+                // a category written twice is written twice however the
+                // values it counts arrive
                 categoriesDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
                     attributeNames: ["categories", "type"],
-                    children: true,
                 },
             }),
             definition({ dependencyValues }) {
