@@ -183,6 +183,27 @@ const documents: [string, string, string[]][] = [
         `<repeat name="rr" for="1 2" valueName="w"><text>$w</text></repeat>${inCase(`<group extend="$rr"><text>z</text></group>`)}`,
         [],
     ],
+    // a list made from a list whose entries are written holds as many
+    [
+        "a tag in a case, of an extend of a list of two written entries",
+        `<mathList name="ml">1 2</mathList><mathList name="ml2" extend="$ml"/>${inCase(`<math extend="$ml2"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a case, of a list holding a list of two written entries",
+        `<mathList name="ml">1 2</mathList><mathList name="ml2">$ml</mathList>${inCase(`<math extend="$ml2"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a case, of an extend that adds an entry to a list that keeps one",
+        `<mathList name="ml" maxNumber="1">1 2</mathList><mathList name="ml2" extend="$ml">3</mathList>${inCase(`<math extend="$ml2"/>`)}`,
+        [],
+    ],
+    [
+        "a tag in a case, of a list with an entry in error",
+        `<mathList name="ml">1 <bogus/></mathList>${inCase(`<math extend="$ml"/>`)}`,
+        ["doenet-e0002"],
+    ],
 ];
 
 describe("Errors are decided when the document loads (DIAG-7) @group4", () => {

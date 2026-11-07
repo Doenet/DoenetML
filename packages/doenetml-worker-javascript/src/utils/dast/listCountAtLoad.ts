@@ -14,9 +14,11 @@
  * A scalar tag of a list whose count is fixed, and not one, is that error,
  * reported here, wherever the tag is (returned).
  *
- * The count is fixed when `maxNumber` is left out or written as a number,
- * and each entry is fixed (`entriesOf`): text with no comma, or a tag that is
- * one component, not a math, whose value may be a list.
+ * The count is fixed when `maxNumber` is left out or written as a number
+ * (or, on an extend of a list, taken from the list extended), and each entry
+ * is fixed (`entriesOf`): text with no comma, a tag that is one component,
+ * not a math, whose value may be a list, or a bare reference to a list of
+ * the same type whose count is fixed (`<mathList extend="$ml"/>`).
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
@@ -93,6 +95,11 @@ export function markListsWithFixedEntryCount({
             return pieces.length;
         }
         let componentType: string | undefined = child.componentType;
+        if (componentType === "_error") {
+            // what is written there is in error, as a reference in a cycle
+            // (`breakReferenceCycles`), and gives no entry to count
+            return undefined;
+        }
         if (componentType === "_copy") {
             const written: any = child.attributes?._createComponentOfType;
             const extending: any = child.extending;
@@ -104,6 +111,16 @@ export function markListsWithFixedEntryCount({
                 (ref.unresolvedPath?.length ?? 0) > 0
             ) {
                 return undefined;
+            }
+            // A bare reference to a list of the same type, as the `_copy`
+            // that `<mathList extend="$ml"/>` holds, gives that list's
+            // entries, so as many as it holds when that is fixed.
+            const node = referents.componentsByIdx.get(ref.nodeIdx);
+            if (
+                node?.componentType === list.componentType &&
+                isAuthoredList(node.componentType)
+            ) {
+                return entryCount(node);
             }
             componentType = referents.referentType(ref.nodeIdx);
             if (
@@ -123,8 +140,24 @@ export function markListsWithFixedEntryCount({
      * How many entries the list `list` always holds, or `undefined` when a
      * value can change it.
      */
+    const countByList = new Map<SerializedComponent, number | undefined>();
+    const counting = new Set<SerializedComponent>();
     function entryCount(list: SerializedComponent): number | undefined {
-        const maxNumber = literalMaxNumber(list);
+        if (countByList.has(list)) {
+            return countByList.get(list);
+        }
+        if (counting.has(list)) {
+            return undefined;
+        }
+        counting.add(list);
+        const count = uncachedEntryCount(list);
+        counting.delete(list);
+        countByList.set(list, count);
+        return count;
+    }
+
+    function uncachedEntryCount(list: SerializedComponent): number | undefined {
+        const maxNumber = effectiveMaxNumber(list, new Set());
         if (maxNumber === null) {
             return undefined;
         }
@@ -141,6 +174,33 @@ export function markListsWithFixedEntryCount({
         return maxNumber === undefined
             ? count
             : Math.min(count, Math.floor(Math.max(0, maxNumber)));
+    }
+
+    /**
+     * The `maxNumber` that applies to `list`: the one written on it
+     * (`literalMaxNumber`), or, when it is left out on an extend of a list
+     * (`<mathList extend="$ml">3</mathList>`), the one that applies to the
+     * list extended, whose attributes an extend takes (`extendsList`).
+     */
+    function effectiveMaxNumber(
+        list: SerializedComponent,
+        visiting: Set<SerializedComponent>,
+    ): number | undefined | null {
+        const written = literalMaxNumber(list);
+        const extendsList = list.doenetAttributes?.extendsList;
+        if (written !== undefined || extendsList === undefined) {
+            return written;
+        }
+        const source = referents.componentsByIdx.get(extendsList);
+        if (
+            !source ||
+            visiting.has(source) ||
+            source.componentType !== list.componentType
+        ) {
+            return null;
+        }
+        visiting.add(source);
+        return effectiveMaxNumber(source, visiting);
     }
 
     /**
@@ -187,7 +247,7 @@ export function markListsWithFixedEntryCount({
 
     const seen = new Set<SerializedComponent>();
     const copies: SerializedComponent[] = [];
-    const countByList = new Map<SerializedComponent, number>();
+    const lists: SerializedComponent[] = [];
     function visit(components: (SerializedComponent | string)[]) {
         for (const component of components) {
             if (typeof component !== "object" || seen.has(component)) {
@@ -198,14 +258,7 @@ export function markListsWithFixedEntryCount({
                 copies.push(component);
             }
             if (isAuthoredList(component.componentType)) {
-                const count = entryCount(component);
-                if (count !== undefined) {
-                    component.doenetAttributes = {
-                        ...component.doenetAttributes,
-                        entryCountFixed: true,
-                    };
-                    countByList.set(component, count);
-                }
+                lists.push(component);
             }
             for (const attribute of Object.values(component.attributes ?? {})) {
                 const attr: any = attribute;
@@ -219,6 +272,16 @@ export function markListsWithFixedEntryCount({
         }
     }
     visit(serializedComponents);
+    // After the visit, so that a list made from another list (`$ml`) finds
+    // it wherever it is.
+    for (const list of lists) {
+        if (entryCount(list) !== undefined) {
+            list.doenetAttributes = {
+                ...list.doenetAttributes,
+                entryCountFixed: true,
+            };
+        }
+    }
 
     // A scalar tag of such a list whose count is not one is an error
     // (`doenet-e0064`), reported now, wherever the tag is, as in a case not
