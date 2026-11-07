@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { updateMathInputValue } from "../utils/actions";
+import { takeErrorsReportedAfterLoad } from "../utils/errorsAfterLoad";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -187,6 +188,13 @@ describe("a composite reports its own failure rather than losing it @group4", ()
                 error.message.includes(INJECTED),
             ).length,
         ).eq(1);
+        // A failure after load is a bug, which the end-of-load assertion
+        // reports (DIAG-7): in production it is a warning.
+        expect(
+            takeErrorsReportedAfterLoad().filter((error) =>
+                error.message.includes(INJECTED),
+            ).length,
+        ).eq(1);
     });
 
     it("control: the same update with nothing injected", async () => {
@@ -256,6 +264,13 @@ describe("a composite reports its own failure rather than losing it @group4", ()
                 error.message.includes(INJECTED),
             ).length,
         ).eq(1);
+        // A failure after load is a bug, which the end-of-load assertion
+        // reports (DIAG-7): in production it is a warning.
+        expect(
+            takeErrorsReportedAfterLoad().filter((error) =>
+                error.message.includes(INJECTED),
+            ).length,
+        ).eq(1);
     });
 
     // Extending a composite makes a second composite that shadows it, and a
@@ -306,6 +321,13 @@ describe("a composite reports its own failure rather than losing it @group4", ()
 
         expect(
             getDiagnosticsByType(core).errors.filter((error) =>
+                error.message.includes(INJECTED),
+            ).length,
+        ).eq(1);
+        // A failure after load is a bug, which the end-of-load assertion
+        // reports (DIAG-7): in production it is a warning.
+        expect(
+            takeErrorsReportedAfterLoad().filter((error) =>
                 error.message.includes(INJECTED),
             ).length,
         ).eq(1);

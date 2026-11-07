@@ -2565,8 +2565,13 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
             });
 
+            // Decided when the document loaded, from what is written
+            // (`extendErrorsAtLoad.ts`), where the DoenetML gives the tag
+            // extended: the same errors, kept once (DIAG-7).
+            const errorsAtLoad = component.doenetAttributes?.extendErrorsAtLoad;
             const errors = link
-                ? extendChangesContentErrors({
+                ? (errorsAtLoad?.map((error) => ({ ...error })) ??
+                  extendChangesContentErrors({
                       replacementType: repl.componentType,
                       writtenType:
                           component.attributes._createComponentOfType?.primitive
@@ -2581,7 +2586,7 @@ export default class Copy extends CompositeComponent {
                           replacementSourceComponent,
                       ),
                       componentInfoObjects,
-                  })
+                  }))
                 : withState && copyInChildren
                   ? await copyWithStateChangesChoicesErrors({
                         replacementType: repl.componentType,
@@ -7974,8 +7979,15 @@ async function typeChangeStatus({
             if (level === "info") {
                 return undefined;
             }
+            // A count the DoenetML fixes is an error. One a value can change
+            // (`maxNumber="$n"`) is decided by the value, so the tag is
+            // missing while the list does not hold one, with an info, and no
+            // error appears when a reader changes it (DIAG-2, DIAG-7,
+            // `listCountAtLoad.ts`).
             return mismatch({
-                level,
+                level: sourceComponent.doenetAttributes?.entryCountFixed
+                    ? "error"
+                    : "info",
                 code: "doenet-e0064",
                 args: {
                     reason: "count",
@@ -8192,7 +8204,7 @@ async function everyCompositeExpanded(
  * A `<group>` and a `<module>` are left out: their children are written, and
  * children added to their extend are added after their own.
  */
-const TAGS_MAKING_THEIR_CONTENT = new Set([
+export const TAGS_MAKING_THEIR_CONTENT = new Set([
     "repeat",
     "repeatForSequence",
     "select",
@@ -8237,7 +8249,7 @@ const KIND_OF_CHILDREN = {
  * is a `<case>` by the time it is extended (`conditionalContentSugar`), so it
  * is named as written.
  */
-const PARTS_OF_CHOOSING_TAGS = {
+export const PARTS_OF_CHOOSING_TAGS = {
     case: "conditionalContent",
     else: "conditionalContent",
     option: "select",
@@ -8682,7 +8694,7 @@ async function copyWithStateChangesChoicesErrors({
  *
  * `source` is the reference the extend is of, as written (`$r`).
  */
-function extendChangesContentErrors({
+export function extendChangesContentErrors({
     replacementType,
     writtenType,
     copyInChildren,

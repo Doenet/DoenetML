@@ -100,6 +100,61 @@ const documents: [string, string, string[]][] = [
     // a tag that does not exist
     ["an unknown tag in a case", inCase(`<bogus/>`), ["doenet-e0002"]],
     ["an unknown tag in a repeat", inRepeat(`<bogus/>`), ["doenet-e0002"]],
+    // an extend that would change what its source makes (D32)
+    [
+        "an extend in a case that changes a sequence's content",
+        `<sequence name="s" from="1" to="3"/>${inCase(`<sequence extend="$s" to="5"/>`)}`,
+        ["doenet-e0056"],
+    ],
+    [
+        "an extend in a repeat that adds a repeat's template",
+        `<repeat name="rr" for="1 2" valueName="w"><text>$w</text></repeat>${inRepeat(`<repeat extend="$rr"><text>z</text></repeat>`)}`,
+        ["doenet-e0057"],
+    ],
+    [
+        "an extend in a case of a case",
+        `<conditionalContent><case name="c1" condition="true"><text>a</text></case></conditionalContent>${inCase(`<case extend="$c1"/>`)}`,
+        ["doenet-e0061"],
+    ],
+    [
+        "an extend in a case of a choiceInput that shuffles it",
+        `<choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>${inCase(`<choiceInput extend="$ci" shuffleOrder/>`)}`,
+        ["doenet-e0059"],
+    ],
+    [
+        "an extend in a case of a module that sets one of its attributes",
+        `<module name="mod"><moduleAttributes><text name="title">t</text></moduleAttributes><p>$title</p></module>${inCase(`<module extend="$mod" title="u"/>`)}`,
+        ["doenet-e0060"],
+    ],
+    [
+        "an extend in a case of a sequence named in an iteration",
+        `<repeat name="rs" for="1 2" valueName="w"><sequence name="s" from="1" to="$w"/></repeat>${inCase(`<sequence extend="$rs[1].s" to="5"/>`)}`,
+        ["doenet-e0056"],
+    ],
+    // a scalar tag of a list whose entries are written
+    [
+        "a tag in a case, of a list of two written entries",
+        `<mathList name="ml">1 2</mathList>${inCase(`<math extend="$ml"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a repeat, of a list with no entries",
+        `<numberList name="nl"/>${inRepeat(`<number extend="$nl"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    // a choice its literals decide
+    [
+        "a select in a case with more to select than options",
+        inCase(`<select numToSelect="3"><option>a</option></select>`),
+        ["doenet-e0035"],
+    ],
+    [
+        "a select in a repeat with more to select than options",
+        inRepeat(
+            `<select numToSelect="2" withReplacement="false"><option>a</option></select>`,
+        ),
+        ["doenet-e0035"],
+    ],
 ];
 
 describe("Errors are decided when the document loads (DIAG-7) @group4", () => {

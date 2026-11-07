@@ -11,6 +11,29 @@ type ConditionEntry = {
 };
 
 /**
+ * What happens to an error reported after the document has loaded
+ * ({@link DiagnosticsManager.markLoaded}), which DIAG-7 forbids: an error is
+ * decided at load, from the DoenetML alone (D38, #2463).
+ *
+ * - `"assert"`, in development and tests: it is reported as an error, and
+ *   recorded in {@link DiagnosticsManager.errorsReportedAfterLoad}, which the
+ *   test harness fails a test on.
+ * - `"warn"`, in production: it is reported as a warning, and the component
+ *   in error is missing (`＿`) rather than an error box
+ *   ({@link DiagnosticsManager.isErrorAfterLoad}), so a reader sees no error.
+ */
+export type ErrorsAfterLoad = "assert" | "warn";
+
+/**
+ * `"assert"` when running in tests (Vitest) or in Node in development, and
+ * `"warn"` otherwise, which is how the worker runs in a browser.
+ */
+export function defaultErrorsAfterLoad(): ErrorsAfterLoad {
+    const env = (globalThis as any).process?.env;
+    return env?.VITEST || env?.NODE_ENV === "development" ? "assert" : "warn";
+}
+
+/**
  * Owns the diagnostics queue (errors, warnings, info, accessibility) for a Core
  * instance. Core delegates to this manager for adding and reading diagnostics.
  *
@@ -63,12 +86,27 @@ export class DiagnosticsManager {
      * where the start tag of a tag ends (`withoutExplainedIndexInfos`).
      */
     sources: readonly string[] = [];
+    /**
+     * Whether the document has loaded ({@link markLoaded}). After that, an
+     * error is a bug (DIAG-7), handled as {@link errorsAfterLoad} says.
+     */
+    loaded = false;
+    /** What happens to an error reported after load ({@link ErrorsAfterLoad}). */
+    errorsAfterLoad: ErrorsAfterLoad;
+    /**
+     * Each error reported after load while {@link errorsAfterLoad} is
+     * `"assert"`, in order. The test harness fails a test that leaves any.
+     */
+    errorsReportedAfterLoad: DiagnosticRecord[] = [];
 
     constructor({
         preliminaryDiagnostics,
+        errorsAfterLoad = defaultErrorsAfterLoad(),
     }: {
         preliminaryDiagnostics: DiagnosticRecord[];
+        errorsAfterLoad?: ErrorsAfterLoad;
     }) {
+        this.errorsAfterLoad = errorsAfterLoad;
         // Preliminary diagnostics seed the queue at construction. They are not
         // unique: a reference resolution carries the same index nodes on both
         // its `originalPath` and its `unresolvedPath`, and the load-time
@@ -137,6 +175,48 @@ export class DiagnosticsManager {
                 .sort((a, b) => a.seq - b.seq)
                 .map((entry) => entry.diagnostic),
         );
+    }
+
+    /**
+     * Mark the end of load: the document's components are made and its first
+     * render is decided. Every error is decided by then (DIAG-7), so one
+     * reported after it is a bug, handled as {@link errorsAfterLoad} says.
+     * One reported at load and again later, as when its content is made, is
+     * the same one, kept once, and is not reported again.
+     */
+    markLoaded(): void {
+        this.loaded = true;
+    }
+
+    /**
+     * Whether `diagnostic` is a new error reported after load, which in
+     * production is a warning with its component missing
+     * ({@link ErrorsAfterLoad}). One that was reported at load already is
+     * not new.
+     */
+    isErrorAfterLoad(diagnostic: DiagnosticRecord): boolean {
+        return (
+            this.loaded &&
+            diagnostic.type === "error" &&
+            !this._diagnosticKeys.has(diagnosticDedupKey(diagnostic))
+        );
+    }
+
+    /**
+     * `diagnostic` as it is reported now: as it is, or, for an error after
+     * load, recorded ({@link errorsReportedAfterLoad}) or made a warning, as
+     * {@link errorsAfterLoad} says. The caller has checked it is not a
+     * duplicate.
+     */
+    _afterLoad(diagnostic: DiagnosticRecord): DiagnosticRecord {
+        if (!this.loaded || diagnostic.type !== "error") {
+            return diagnostic;
+        }
+        if (this.errorsAfterLoad === "assert") {
+            this.errorsReportedAfterLoad.push(diagnostic);
+            return diagnostic;
+        }
+        return { ...diagnostic, type: "warning" };
     }
 
     /**
@@ -222,7 +302,17 @@ export class DiagnosticsManager {
             return false;
         }
 
+        // Keyed as it was reported, so an error made a warning after load
+        // (`_afterLoad`) is still kept once when it is reported again.
         this._diagnosticKeys.add(key);
+        diagnostic = this._afterLoad(diagnostic);
+        const reportedKey = diagnosticDedupKey(diagnostic);
+        if (reportedKey !== key) {
+            if (this._diagnosticKeys.has(reportedKey)) {
+                return false;
+            }
+            this._diagnosticKeys.add(reportedKey);
+        }
         this._queue.push(diagnostic);
         this._queueSeq.push(this._seq++);
 
@@ -257,6 +347,24 @@ export class DiagnosticsManager {
     ): void {
         for (const diagnostic of diagnostics) {
             this.assertDiagnosticIsValid(diagnostic);
+        }
+        // A condition comes from values that can change, so it gives no
+        // error (DIAG-2, DIAG-7); one it gives after load is a bug.
+        if (this.loaded) {
+            const previousKeys = new Set(
+                (
+                    this._conditionDiagnostics
+                        .get(componentIdx)
+                        ?.get(condition) ?? []
+                ).map((entry) => entry.key),
+            );
+            diagnostics = diagnostics.map((diagnostic) =>
+                diagnostic.type === "error" &&
+                !previousKeys.has(diagnosticDedupKey(diagnostic)) &&
+                !this._diagnosticKeys.has(diagnosticDedupKey(diagnostic))
+                    ? this._afterLoad(diagnostic)
+                    : diagnostic,
+            );
         }
         let byCondition = this._conditionDiagnostics.get(componentIdx);
         const previous = byCondition?.get(condition) ?? [];

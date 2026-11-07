@@ -28,6 +28,8 @@ import type { DoenetMLFlags } from "../../../../doenetml/src/flags";
 
 import util from "util";
 import { createTestCoreRust } from "./test-core-rust";
+import { registerTestCore } from "./errorsAfterLoad";
+import type { ErrorsAfterLoad } from "../../core/DiagnosticsManager";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -57,6 +59,12 @@ type CreateTestCoreOptions = {
     }>;
     externalDoenetMLs?: Record<string, string>;
     initialState?: string;
+    /**
+     * What happens to an error reported after load (DIAG-7). `"assert"`,
+     * the default in tests, fails the test unless it takes the errors
+     * (`takeErrorsReportedAfterLoad`); `"warn"` is what production does.
+     */
+    errorsAfterLoad?: ErrorsAfterLoad;
 };
 
 export async function createTestCore({
@@ -72,6 +80,7 @@ export async function createTestCore({
     requestSolutionView = async () => ({ allowView: true }),
     externalDoenetMLs = {},
     initialState,
+    errorsAfterLoad,
 }: CreateTestCoreOptions): Promise<
     Awaited<ReturnType<typeof createTestCoreJavascript>>
 > {
@@ -105,6 +114,7 @@ export async function createTestCore({
         requestSolutionView,
         externalDoenetMLs,
         initialState,
+        errorsAfterLoad,
     });
 }
 
@@ -121,6 +131,7 @@ async function createTestCoreJavascript({
     requestSolutionView = async () => ({ allowView: true }),
     externalDoenetMLs = {},
     initialState,
+    errorsAfterLoad,
 }: CreateTestCoreOptions) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
@@ -198,6 +209,7 @@ async function createTestCoreJavascript({
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
     const core = new PublicDoenetMLCore();
+    registerTestCore(core);
 
     core.setSource(doenetML);
     core.setFlags(flags);
@@ -286,6 +298,7 @@ async function createTestCoreJavascript({
             styleOverrides,
             stateVariableChanges: initialState,
             requestedVariant,
+            errorsAfterLoad,
         },
         () => null,
         reportScoreAndStateCallback,

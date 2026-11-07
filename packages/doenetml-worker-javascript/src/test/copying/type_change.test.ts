@@ -874,7 +874,7 @@ describe("A reference written as a different tag is allowed only between related
         expect(typeChangeDiagnostics()).eqls([]);
     });
 
-    it("a list whose entries are written is decided again when how many it holds changes", async () => {
+    it("a list whose entries are written is decided again when how many it holds changes, missing while a value makes it more than one", async () => {
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`
 <mathInput name="n" prefill="1"/>
@@ -885,10 +885,12 @@ describe("A reference written as a different tag is allowed only between related
         expect(typeChangeDiagnostics()).eqls([]);
 
         const n = await resolvePathToNodeIdx("n");
+        // How many it holds is decided by a value (`maxNumber="$n"`), so the
+        // tag is missing, with an info, and no error appears (DIAG-7)
         await updateMathInputValue({ latex: "2", componentIdx: n, core });
-        expect(await texts(["p1"])).eqls({ p1: "" });
+        expect(await texts(["p1"])).eqls({ p1: "＿" });
         expect(typeChangeDiagnostics().map((d) => [d.code, d.type])).eqls([
-            ["doenet-e0064", "error"],
+            ["doenet-e0064", "info"],
         ]);
 
         await updateMathInputValue({ latex: "1", componentIdx: n, core });
@@ -979,10 +981,10 @@ describe("A reference written as a different tag is allowed only between related
         expect(newDiagnostics()).eqls([["doenet-i0053", "info", 7]]);
 
         await setMath("n", "2");
-        expect(await texts(names)).eqls({ p1: "(3, 4)", p2: "", p3: "" });
+        expect(await texts(names)).eqls({ p1: "(3, 4)", p2: "＿", p3: "＿" });
         expect(newDiagnostics()).eqls([
-            ["doenet-e0064", "error", 7],
-            ["doenet-e0064", "error", 8],
+            ["doenet-e0064", "info", 7],
+            ["doenet-e0064", "info", 8],
         ]);
 
         await setMath("n", "1");
@@ -999,10 +1001,10 @@ describe("A reference written as a different tag is allowed only between related
         // decided once the count has caught up with the values, not from
         // the blank entry the list holds until then
         await setMath("n", "0");
-        expect(await texts(names)).eqls({ p1: "＿", p2: "", p3: "" });
+        expect(await texts(names)).eqls({ p1: "＿", p2: "＿", p3: "＿" });
         expect(newDiagnostics()).eqls([
-            ["doenet-e0064", "error", 7],
-            ["doenet-e0064", "error", 8],
+            ["doenet-e0064", "info", 7],
+            ["doenet-e0064", "info", 8],
         ]);
     });
 

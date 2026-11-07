@@ -19,6 +19,7 @@ import {
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
+import type { ErrorsAfterLoad } from "./core/DiagnosticsManager";
 
 // Type signatures for callbacks
 
@@ -254,6 +255,8 @@ export class PublicDoenetMLCore {
             requestedVariant?: Record<string, any>;
             stateVariableChanges?: string;
             initializeCounters: Record<string, number>;
+            /** What happens to an error reported after load (DIAG-7). */
+            errorsAfterLoad?: ErrorsAfterLoad;
         },
         updateRenderersCallback: UpdateRenderersCallback,
         reportScoreAndStateCallback: ReportScoreAndStateCallback,
