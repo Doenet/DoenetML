@@ -9,7 +9,11 @@
  * reaches it can write to it then.
  *
  * Where a reader writes:
- * - what an input's `bindValueTo` names;
+ * - what an input's `bindValueTo` names, and the child that holds an
+ *   input's value (`<mathInput>$a</mathInput>`,
+ *   `<textInput><text>$t</text></textInput>`), which the input writes its
+ *   value back to, unless the input is fixed (its own `fixed`, or one it
+ *   inherits): a fixed component writes nothing through its inverse;
  * - the `target` of an `<updateValue>`, an `<animateFromSequence>` or a
  *   `<callAction>`;
  * - every component inside a `<graph>` that is not fixed (`fixed` or
@@ -22,7 +26,10 @@
  *   it references.
  *
  * A write to a component reaches its descendants and, through them, what
- * they reference (an inverse definition), until a fixed component stops it.
+ * they reference (an inverse definition), until a fixed component stops it:
+ * neither a fixed component nor what it references is written to, and the
+ * write reaches past it only a descendant that writes `fixed="false"`
+ * (a `<cell fixed="false">` in a `<row fixed>`).
  * `fixLocation` stops only a write to a location (`isLocation`), as
  * `EssentialValueWriter` does, so it stops a write only at a component
  * that has one (a point, a line): a `<numberList fixLocation>` an input is
@@ -54,6 +61,47 @@ const ACTION_TYPES = new Set([
 
 /** The components a reader edits in place, writing to what they hold. */
 const EDITED_TYPES = new Set(["spreadsheet"]);
+
+/**
+ * The inputs that write their value back to their value child, when they
+ * have one (the inverse that sets `mathChild`, `textChild` or
+ * `booleanChild`), and the type of that child. A `<choiceInput>` writes
+ * only its choices' `submitted`, which is the choices' own.
+ */
+const VALUE_CHILD_TYPE_OF_INPUT: Record<string, string> = {
+    mathInput: "math",
+    matrixInput: "math",
+    fractionInput: "math",
+    textInput: "text",
+    booleanInput: "boolean",
+};
+
+/**
+ * The children of the input `node` that can hold its value: a child of
+ * its value type (`<math>`, `<text>`, `<boolean>`; `$a` written as a child
+ * of a `<mathInput>` is wrapped in a `<math>`), or a composite that can
+ * become one (`$b` in a `<booleanInput>`). A label or a description is
+ * not one, nor is the input's own grid.
+ */
+function valueChildren(
+    node: any,
+    valueType: string,
+    componentInfoObjects: any,
+): any[] {
+    return (node.children ?? []).filter(
+        (child: any) =>
+            typeof child === "object" &&
+            child !== null &&
+            (child.componentType === valueType ||
+                (componentInfoObjects?.isCompositeComponent
+                    ? componentInfoObjects.isCompositeComponent({
+                          componentType: child.componentType,
+                          includeNonStandard: true,
+                      })
+                    : child.componentType === "_copy" ||
+                      child.componentType === "_ref")),
+    );
+}
 
 /** Whether `value` is a reference: a serialized `refResolution`. */
 function isReference(value: any): boolean {
@@ -133,6 +181,43 @@ function writtenAsTrue(attribute: any): boolean {
 }
 
 /**
+ * The component indices named by the references `node`, a serialized
+ * component, holds itself, appended to `found`: what it extends or copies
+ * (`extending`), and what the expressions of its attributes reference
+ * (`slots`), but not what is referenced in its children or in the
+ * components of its attributes, which are components of their own.
+ */
+function ownReferencesIn(node: any, found: number[] = []): number[] {
+    for (const [key, value] of Object.entries(node)) {
+        if (
+            key === "children" ||
+            key === "attributes" ||
+            KEYS_NOT_WRITTEN_THROUGH.has(key)
+        ) {
+            continue;
+        }
+        referencesIn(value, found);
+    }
+    for (const attribute of Object.values(node.attributes ?? {}) as any[]) {
+        if (typeof attribute !== "object" || attribute === null) {
+            continue;
+        }
+        for (const [key, value] of Object.entries(attribute)) {
+            if (
+                key === "component" ||
+                key === "references" ||
+                key === "children" ||
+                KEYS_NOT_WRITTEN_THROUGH.has(key)
+            ) {
+                continue;
+            }
+            referencesIn(value, found);
+        }
+    }
+    return found;
+}
+
+/**
  * The serialized components directly under `node`: its children and the
  * components of its attributes.
  */
@@ -208,8 +293,14 @@ export function buildReaderWritableIndex(
     componentInfoObjects?: any,
 ): Set<number> {
     const nodeByIdx = new Map<number, any>();
-    const fixedIdx = new Set<number>();
-    const seeds: number[] = [];
+    // the serialized components a write stops at, an attribute's component
+    // without an index among them
+    const fixedNodes = new Set<any>();
+    // the serialized components that aren't fixed by what they write
+    // themselves (`fixed="false"`), which a write reaches under a fixed one
+    const unfixedOwnNodes = new Set<any>();
+    // component indices, or serialized components (an input's value child)
+    const seeds: (number | any)[] = [];
 
     // `fixed` and `fixLocation` are each inherited from where a component
     // sits, unless it writes its own (`fixed="false"` in a fixed graph),
@@ -232,17 +323,24 @@ export function buildReaderWritableIndex(
         const isGraph = node.componentType === "graph";
         if (typeof node.componentIdx === "number" && node.componentIdx >= 0) {
             nodeByIdx.set(node.componentIdx, node);
-            if (
-                own.fixed ||
-                (own.fixLocation &&
-                    (!componentInfoObjects ||
-                        hasLocation(node.componentType, componentInfoObjects)))
-            ) {
-                fixedIdx.add(node.componentIdx);
-            }
         }
-        if (node.attributes?.bindValueTo) {
+        if (
+            own.fixed ||
+            (own.fixLocation &&
+                (!componentInfoObjects ||
+                    hasLocation(node.componentType, componentInfoObjects)))
+        ) {
+            fixedNodes.add(node);
+        } else if (node.attributes?.fixed || node.attributes?.fixLocation) {
+            unfixedOwnNodes.add(node);
+        }
+        // a fixed input writes nothing back (its inverse isn't called)
+        if (node.attributes?.bindValueTo && !own.fixed) {
             referencesIn(node.attributes.bindValueTo, seeds);
+        }
+        const valueType = VALUE_CHILD_TYPE_OF_INPUT[node.componentType];
+        if (valueType && !own.fixed) {
+            seeds.push(...valueChildren(node, valueType, componentInfoObjects));
         }
         if (ACTION_TYPES.has(node.componentType) && node.attributes?.target) {
             referencesIn(node.attributes.target, seeds);
@@ -276,26 +374,48 @@ export function buildReaderWritableIndex(
     }
     walk(root, false, { fixed: false, fixLocation: false });
 
+    // A write reaches a component's descendants, each visited on its own,
+    // so that a fixed one stops it, and what each references itself (an
+    // inverse definition). Under a component it stops at (`stopped`), it
+    // reaches only a descendant that writes its own `fixed="false"` (a
+    // `<cell fixed="false">` in a `<row fixed>`, which the spreadsheet
+    // writes to itself), and what is under that one.
     const writable = new Set<number>();
-    const queue = [...seeds];
+    const reached = new Set<any>();
+    const reachedStopped = new Set<any>();
+    const queue: { item: number | any; stopped: boolean }[] = seeds.map(
+        (item) => ({ item, stopped: false }),
+    );
     while (queue.length > 0) {
-        const idx = queue.pop()!;
-        if (writable.has(idx) || fixedIdx.has(idx)) {
-            continue;
-        }
-        writable.add(idx);
-        const node = nodeByIdx.get(idx);
+        const { item, stopped: stoppedAbove } = queue.pop()!;
+        const node = typeof item === "number" ? nodeByIdx.get(item) : item;
         if (!node) {
+            // a component the serialized document doesn't hold
+            writable.add(item);
             continue;
         }
-        // what is made from it later is written to as it is
-        node.readerWritable = true;
-        // a write reaches its descendants, and what they reference
-        referencesIn(node, queue);
-        for (const under of componentsUnder(node)) {
-            if (typeof under.componentIdx === "number") {
-                queue.push(under.componentIdx);
+        const stopped =
+            fixedNodes.has(node) ||
+            (stoppedAbove && !unfixedOwnNodes.has(node));
+        if (reached.has(node) || (stopped && reachedStopped.has(node))) {
+            continue;
+        }
+        (stopped ? reachedStopped : reached).add(node);
+        if (!stopped) {
+            if (
+                typeof node.componentIdx === "number" &&
+                node.componentIdx >= 0
+            ) {
+                writable.add(node.componentIdx);
             }
+            // what is made from it later is written to as it is
+            node.readerWritable = true;
+            for (const idx of ownReferencesIn(node)) {
+                queue.push({ item: idx, stopped: false });
+            }
+        }
+        for (const under of componentsUnder(node)) {
+            queue.push({ item: under, stopped });
         }
     }
     return writable;

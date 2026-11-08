@@ -557,12 +557,16 @@ it.
 
 A value can change when it comes from an input, an `<answer>{:dn}`, a random
 choice, which case of a `<conditionalContent>{:dn}` is shown when its condition
-can change, or something a reader can change: what an input's `bindValueTo` names, the `target` of an
+can change, or something a reader can change: what an input's `bindValueTo`
+names or its child references (`<mathInput>$a</mathInput>{:dn}` writes the
+reader's input to `a`), unless the input is `fixed`, the `target` of an
 `<updateValue>{:dn}`, `<animateFromSequence>{:dn}` or `<callAction>{:dn}`, what
 is in a `<graph>{:dn}` and not `fixed` (or, for a point or other shape,
 `fixLocation`), which a reader can drag, what a cell of a
-`<spreadsheet>{:dn}` that isn't `fixed` references, which a reader's edit
-writes to, and whether a hint, solution or section is open.
+`<spreadsheet>{:dn}` references, unless the cell (or its row, column or
+spreadsheet) is `fixed`, which a reader's edit writes to, and whether a hint,
+solution or section is open. What is inside a `fixed` component isn't written
+to through it.
 
 When the problem is that something is missing from a `<conditionalContent>{:dn}`,
 a `<repeat>{:dn}` or a list (an `<updateValue>{:dn}` whose target holds nothing,

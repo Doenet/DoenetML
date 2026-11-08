@@ -12,10 +12,12 @@ vi.mock("hyperformula");
  * random choice, the active case, or something a reader can write to) makes
  * it an info.
  *
- * A reader writes to what an input's `bindValueTo` names, to the target of
- * an `<updateValue>` or `<callAction>`, to what is in a graph and not
- * fixed, as they drag it, and to what a spreadsheet's cell references, as
- * they edit it, including content not shown yet.
+ * A reader writes to what an input's `bindValueTo` names or its value
+ * child references, to the target of an `<updateValue>` or `<callAction>`,
+ * to what is in a graph and not fixed, as they drag it, and to what a
+ * spreadsheet's cell references, as they edit it, including content not
+ * shown yet. A fixed component stops a write, so what is inside it isn't
+ * written to through it.
  */
 
 /** The levels of the diagnostics with `code` once `doenetML` loads. */
@@ -348,6 +350,145 @@ describe("What a reader writes to can change", () => {
             `<number name="a">5</number>
 <spreadsheet fixed><cell>$a</cell></spreadsheet>
 <binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a fixed cell of a spreadsheet references",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<spreadsheet><cell fixed>$a</cell></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a cell in a fixed row of a spreadsheet references",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<spreadsheet><row fixed><cell>Count</cell><cell>$a</cell></row></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a cell that is not fixed, in a fixed row, references",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<spreadsheet><row fixed><cell>Count</cell><cell fixed="false">$a</cell></row></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in a group a reader drags in a graph",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<graph><group><point>($a,1)</point></group></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a fixed point in a group in a graph",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<graph><group><point fixed>($a,1)</point></group></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+    ]);
+});
+
+describe("An input written with a child writes to what the child references", () => {
+    check([
+        [
+            "a number a mathInput holds as its child",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number><mathInput>$a</mathInput>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a mathInput's math child references",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number><mathInput><math>$a</math></mathInput>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a fractionInput holds as its child",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number><fractionInput>$a</fractionInput>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a fixed mathInput holds as its child",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number><mathInput fixed>$a</mathInput>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a mathInput in a fixed group holds as its child",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number><group fixed><mathInput>$a</mathInput></group>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a fixed mathInput is bound to",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number><mathInput fixed bindValueTo="$a"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number only a mathInput's prefill references",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number><mathInput prefill="$a"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number only a mathInput's label references",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number><mathInput><label>Enter $a</label></mathInput>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a text a textInput's text child references",
+            "doenet-w0140",
+            "info",
+            `<text name="t">apple</text><textInput><text>$t</text></textInput>
+<binCounts bins="0 1 2">$t 1</binCounts>`,
+        ],
+        [
+            "a text a fixed textInput's text child references",
+            "doenet-w0140",
+            "warning",
+            `<text name="t">apple</text><textInput fixed><text>$t</text></textInput>
+<binCounts bins="0 1 2">$t 1</binCounts>`,
+        ],
+        [
+            "a boolean a booleanInput's boolean child references",
+            "doenet-w0072",
+            "info",
+            `<boolean name="b">false</boolean><booleanInput><boolean>$b</boolean></booleanInput>
+<conditionalContent name="cc"><case condition="$b"><section name="S"><math>x</math></section></case></conditionalContent>
+<p><collect componentType="math" from="$cc.S"/></p>`,
+        ],
+        [
+            "a boolean a booleanInput holds as its child",
+            "doenet-w0072",
+            "info",
+            `<boolean name="b">false</boolean><booleanInput>$b</booleanInput>
+<conditionalContent name="cc"><case condition="$b"><section name="S"><math>x</math></section></case></conditionalContent>
+<p><collect componentType="math" from="$cc.S"/></p>`,
+        ],
+        [
+            "a boolean nothing writes to",
+            "doenet-w0072",
+            "warning",
+            `<boolean name="b">false</boolean>
+<conditionalContent name="cc"><case condition="$b"><section name="S"><math>x</math></section></case></conditionalContent>
+<p><collect componentType="math" from="$cc.S"/></p>`,
         ],
     ]);
 });

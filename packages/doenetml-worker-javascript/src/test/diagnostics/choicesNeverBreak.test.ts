@@ -994,6 +994,58 @@ describe("A reference to what cannot change decides a selection @group4", async 
             expect(infos).toContain(code);
         });
 
+        it(`${tag} from a literal an input holds as its child is an info`, async () => {
+            for (const input of [
+                `<mathInput>$n</mathInput>`,
+                `<mathInput><math>$n</math></mathInput>`,
+            ]) {
+                const { errors, infos } = await load({
+                    doenetML: `<number name="n">4</number>${input}${select("$n")}`,
+                    variable,
+                });
+                expect(errors).eqls([]);
+                expect(infos).toContain(code);
+            }
+        });
+
+        it(`${tag} from a literal a fixed input holds as its child is an error`, async () => {
+            const { errors } = await load({
+                doenetML: `<number name="n">4</number><mathInput fixed>$n</mathInput>${select("$n")}`,
+                variable,
+            });
+            expect(errors).eqls([code]);
+        });
+
+        it(`${tag} from a literal a fixed cell of a spreadsheet references is an error`, async () => {
+            for (const spreadsheet of [
+                `<spreadsheet><cell fixed>$n</cell></spreadsheet>`,
+                `<spreadsheet><row fixed><cell>Count</cell><cell>$n</cell></row></spreadsheet>`,
+            ]) {
+                const { errors } = await load({
+                    doenetML: `<number name="n">4</number>${spreadsheet}${select("$n")}`,
+                    variable,
+                });
+                expect(errors).eqls([code]);
+            }
+        });
+
+        it(`${tag} from a literal in a fixed point in a group in a graph is an error`, async () => {
+            const { errors } = await load({
+                doenetML: `<number name="n">4</number><graph><group><point fixed>($n,1)</point></group></graph>${select("$n")}`,
+                variable,
+            });
+            expect(errors).eqls([code]);
+        });
+
+        it(`${tag} from a literal in a point in a group a reader drags is an info`, async () => {
+            const { errors, infos } = await load({
+                doenetML: `<number name="n">4</number><graph><group><point>($n,1)</point></group></graph>${select("$n")}`,
+                variable,
+            });
+            expect(errors).eqls([]);
+            expect(infos).toContain(code);
+        });
+
         it(`${tag} from another random choice is an info`, async () => {
             const { errors, infos } = await load({
                 doenetML: `<selectFromSequence name="n" from="4" to="5"/>${select("$n")}`,
