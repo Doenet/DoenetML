@@ -1,4 +1,4 @@
-import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
+import { breakIntoBracketedListEntries } from "../commonsugar/lists";
 import InlineComponent from "./InlineComponent";
 
 export default class ListOfNumberLists extends InlineComponent {
@@ -18,9 +18,9 @@ export default class ListOfNumberLists extends InlineComponent {
             nComponents,
             stateIdInfo,
         }) {
-            let results = breakEmbeddedStringsIntoParensPieces({
+            let results = breakIntoBracketedListEntries({
                 componentList: matchedChildren,
-                removeParens: true,
+                removeBrackets: true,
             });
 
             if (results.success !== true) {

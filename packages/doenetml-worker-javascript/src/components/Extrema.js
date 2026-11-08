@@ -1,8 +1,6 @@
 import BaseComponent from "./abstract/BaseComponent";
-import {
-    returnBreakStringsSugarFunction,
-    breakEmbeddedStringsIntoParensPieces,
-} from "./commonsugar/breakstrings";
+import { returnBreakStringsSugarFunction } from "./commonsugar/breakstrings";
+import { breakIntoBracketedListEntries } from "./commonsugar/lists";
 
 export class Extremum extends BaseComponent {
     static componentType = "extremum";
@@ -328,7 +326,7 @@ export class Extrema extends BaseComponent {
             nComponents,
             stateIdInfo,
         }) {
-            let results = breakEmbeddedStringsIntoParensPieces({
+            let results = breakIntoBracketedListEntries({
                 componentList: matchedChildren,
             });
 

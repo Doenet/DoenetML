@@ -905,26 +905,19 @@ describe("Warning Tests @group4", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(1);
         expect(diagnosticsByType.infos.length).eq(0);
 
+        // Any closing bracket closes any opening one (Doenet/DoenetML#2492),
+        // so the list the domain makes reads `[0,2}` as one interval, and the
+        // function is the one to find it is not an interval it can use.
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Invalid format for attribute domain of `<function>`",
+            "Invalid format for domain for function",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(20);
         expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.end.column).eq(34);
-
-        // The list the domain makes reports the text it cannot read as it
-        // reads it, before the function finds it has no interval.
-        expect(diagnosticsByType.warnings[1].message).contain(
-            "Insufficient dimensions for domain for function.",
-        );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(20);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(2);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(34);
     });
 
     it("Correctly get reference text when extend with an index", async () => {

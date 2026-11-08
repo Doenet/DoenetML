@@ -1,3 +1,4 @@
+import { splitListItems } from "@doenet/parser";
 import InlineComponent from "./abstract/InlineComponent";
 
 export default class TextListFromString extends InlineComponent {
@@ -5,7 +6,7 @@ export default class TextListFromString extends InlineComponent {
 
     static componentDocs = {
         summary:
-            "A list of text strings parsed from a single string by splitting on whitespace.",
+            "A list of text strings parsed from a single string by the rule for lists: separated by commas if it has one, by spaces otherwise.",
     };
     static rendererType = "asList";
     static renderChildren = true;
@@ -17,16 +18,22 @@ export default class TextListFromString extends InlineComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
+        // Break the text into entries by the one rule for lists
+        // (Doenet/DoenetML#2492): `a b c` or `a, b, c`. Each entry is a string
+        // of its own. Anything else among the children is kept as it is.
         let breakStringsBySpaces = function ({ matchedChildren, nComponents }) {
-            // break any string by white space
-
-            let newChildren = matchedChildren.reduce(function (a, c) {
-                if (typeof c === "string") {
-                    return [...a, ...c.split(/\s+/).filter((s) => s)];
-                } else {
-                    return [...a, c];
+            const { entries } = splitListItems(matchedChildren);
+            const newChildren = [];
+            for (const parts of entries) {
+                for (const part of parts) {
+                    const child = matchedChildren[part.item];
+                    newChildren.push(
+                        part.start === undefined
+                            ? child
+                            : child.slice(part.start, part.end),
+                    );
                 }
-            }, []);
+            }
 
             return {
                 success: true,

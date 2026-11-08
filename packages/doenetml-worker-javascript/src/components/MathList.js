@@ -89,9 +89,14 @@ export default class MathList extends AuthoredValueList {
     }
 
     // Whether a math whose value is a list (`1, 2, 3`) is one entry per item:
-    // when asked to, or when it is the list's only child or piece of text.
+    // when asked to, or when it is the list's only child (`$m`). Text is
+    // split into entries by the rule for lists, so a piece of it is never a
+    // list to merge.
     static mergesMathChild({ sources, mergeAttribute }) {
-        return Boolean(mergeAttribute) || sources.length === 1;
+        return (
+            Boolean(mergeAttribute) ||
+            (sources.length === 1 && typeof sources[0] !== "string")
+        );
     }
 
     static returnStateVariableDefinitions() {

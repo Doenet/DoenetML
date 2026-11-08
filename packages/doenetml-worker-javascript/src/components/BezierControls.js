@@ -1,7 +1,7 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { convertValueToMathExpression } from "@doenet/utils";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import { returnGroupIntoListEntriesOfComponentType } from "./commonsugar/lists";
 // Control components are read through `evaluateToNumber`. Each of these
 // readings is handed straight to `me.fromAst`, and the engine used to answer
 // `null` — not `NaN` — for a control vector that is still symbolic.
@@ -44,20 +44,23 @@ export default class BezierControls extends InlineComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let groupIntoVectorsSeparatedBySpacesOutsideParens =
-            returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                componentType: "vector",
-            });
+        const groupIntoVectors = returnGroupIntoListEntriesOfComponentType({
+            componentType: "vector",
+        });
 
         let createControlVectorsList = function ({
             matchedChildren,
             nComponents,
             stateIdInfo,
             componentInfoObjects,
+            parentComponentType,
         }) {
-            let results = groupIntoVectorsSeparatedBySpacesOutsideParens({
+            let results = groupIntoVectors({
                 matchedChildren,
+                componentInfoObjects,
                 nComponents,
+                stateIdInfo,
+                parentComponentType,
             });
 
             if (!results.success) {
@@ -92,6 +95,7 @@ export default class BezierControls extends InlineComponent {
                     }
                 }),
                 nComponents,
+                diagnostics: results.diagnostics,
             };
         };
 

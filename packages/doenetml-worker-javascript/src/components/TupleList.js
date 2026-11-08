@@ -1,5 +1,5 @@
 import MathList from "./MathList";
-import { breakEmbeddedStringsIntoParensPieces } from "./commonsugar/breakstrings";
+import { breakIntoBracketedListEntries } from "./commonsugar/lists";
 
 export default class TupleList extends MathList {
     static componentType = "tupleList";
@@ -19,7 +19,7 @@ export default class TupleList extends MathList {
             nComponents,
             stateIdInfo,
         }) {
-            let results = breakEmbeddedStringsIntoParensPieces({
+            let results = breakIntoBracketedListEntries({
                 componentList: matchedChildren,
             });
 

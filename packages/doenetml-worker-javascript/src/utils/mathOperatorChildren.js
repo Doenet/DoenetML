@@ -1,5 +1,6 @@
 import me from "math-expressions";
 import { isNumericConstant } from "./math";
+import { returnGroupIntoListEntriesOfComponentType } from "../components/commonsugar/lists";
 
 /**
  * Shared machinery for the two families of math operators: the ones that
@@ -15,44 +16,39 @@ import { isNumericConstant } from "./math";
  */
 
 /**
- * Sugar that splits bare string children on whitespace and wraps each piece in
- * a `<number>` when it parses as a number and a `<math>` otherwise, so that
- * `<sum>1 2 x</sum>` has three children rather than one string.
+ * Sugar that splits the children into the entries of a list by the one rule
+ * for lists (`returnGroupIntoListEntriesOfComponentType`, Doenet/DoenetML#2492)
+ * and wraps each in a `<number>` when it is text that parses as a number and
+ * a `<math>` otherwise, so that `<sum>1 2 x</sum>` and `<sum>1, 2, x + 1</sum>`
+ * have three children rather than one string. A reference is an operand of
+ * its own, wherever it is written (`<sum>$a$b</sum>` adds two).
  */
 export function returnBreakStringsIntoMathsBySpacesSugarInstruction() {
+    const groupIntoListEntries = returnGroupIntoListEntriesOfComponentType({
+        componentType: "math",
+        componentsAreEntries: true,
+        // An empty entry (`1,,2`) is a blank math, not the `0` that
+        // `Number("")` is.
+        componentTypeOfText: (text) =>
+            text.trim() !== "" && Number.isFinite(Number(text))
+                ? "number"
+                : "math",
+    });
+
     function breakStringsIntoMathsBySpaces({
         matchedChildren,
+        componentInfoObjects,
         nComponents,
         stateIdInfo,
+        parentComponentType,
     }) {
-        let newChildren = matchedChildren.reduce(function (a, c) {
-            if (typeof c === "string") {
-                return [
-                    ...a,
-                    ...c
-                        .split(/\s+/)
-                        .filter((s) => s)
-                        .map((s) => ({
-                            type: "serialized",
-                            componentType: Number.isFinite(Number(s))
-                                ? "number"
-                                : "math",
-                            componentIdx: nComponents++,
-                            stateId: stateIdInfo
-                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                : undefined,
-                            children: [s],
-                            attributes: {},
-                            doenetAttributes: {},
-                            state: {},
-                        })),
-                ];
-            } else {
-                return [...a, c];
-            }
-        }, []);
-
-        return { success: true, newChildren, nComponents };
+        return groupIntoListEntries({
+            matchedChildren,
+            componentInfoObjects,
+            nComponents,
+            stateIdInfo,
+            parentComponentType,
+        });
     }
 
     return { replacementFunction: breakStringsIntoMathsBySpaces };

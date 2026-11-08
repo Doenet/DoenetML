@@ -1,3 +1,4 @@
+import { splitListItems } from "@doenet/parser";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {
@@ -30,15 +31,15 @@ import { codedDiagnostic } from "../utils/diagnostics";
 import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDescription";
 
 /**
- * Evaluates one whitespace-separated group of the `grid` attribute to the
- * positive spacing it stands for, or null when it does not stand for one.
+ * Evaluates one group of the `grid` attribute (`groupGridAttrChildren`) to
+ * the positive spacing it stands for, or null when it does not stand for one,
+ * as an empty group (`grid="1,,2"`) does not.
  *
  * A group can hold more than one piece: `grid="2$a 3$b"` puts `2` and `$a` in
  * the same group, and their product is the spacing.
  *
- * `me.fromText` throws on text it cannot parse — `grid="(1, 2)"` splits on the
- * space into `(1,` and `2)`, neither of which parses — so every parse is
- * guarded. An unparseable piece makes its group unusable rather than taking
+ * `me.fromText` throws on text it cannot parse (`grid="(1"`), so every parse
+ * is guarded. An unparseable piece makes its group unusable rather than taking
  * the whole document down with it.
  *
  * A non-string piece is read out of `dependencyValues`, which carries both the
@@ -46,6 +47,9 @@ import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDes
  * its index) and one `childAdapter<index>` per child.
  */
 function gridSpacingFromGroup(group, dependencyValues) {
+    if (group.length === 0) {
+        return null;
+    }
     let spacing = 1;
 
     for (let piece of group) {
@@ -75,46 +79,18 @@ function gridSpacingFromGroup(group, dependencyValues) {
 }
 
 /**
- * Splits the `grid` attribute's children into whitespace-separated groups.
- *
- * Whitespace only ever appears inside string children, so a group runs until a
- * string child contributes a space. Non-string children join whatever group is
- * open around them.
+ * Splits the `grid` attribute's children into groups by the one rule for
+ * lists (Doenet/DoenetML#2492): `grid="1 2"` or `grid="1, 2"`. Only text
+ * separates; a non-string child joins the group it is written in.
  */
 function groupGridAttrChildren(attrChildren) {
-    const groupedChildren = [];
-    let pieces = [];
-
-    // Closes the group being built, if anything is in it.
-    const endGroup = () => {
-        if (pieces.length > 0) {
-            groupedChildren.push(pieces);
-            pieces = [];
-        }
-    };
-
-    for (const child of attrChildren) {
-        if (typeof child !== "string") {
-            pieces.push(child);
-            continue;
-        }
-
-        for (const [ind, piece] of child.split(/\s+/).entries()) {
-            // A space preceded every piece but the first, and an empty first
-            // piece means the child led with one. Either way the group that
-            // was open ends at that space.
-            if (ind > 0 || piece === "") {
-                endGroup();
-            }
-            if (piece !== "") {
-                pieces.push(piece);
-            }
-        }
-    }
-
-    endGroup();
-
-    return groupedChildren;
+    return splitListItems(attrChildren).entries.map((parts) =>
+        parts.map((part) =>
+            part.start === undefined
+                ? attrChildren[part.item]
+                : attrChildren[part.item].slice(part.start, part.end),
+        ),
+    );
 }
 
 export default class Graph extends BlockComponent {
@@ -1927,7 +1903,7 @@ export default class Graph extends BlockComponent {
                 const groupedChildren = groupGridAttrChildren(attrChildren);
 
                 if (groupedChildren.length < 2) {
-                    // if don't have at least two pieces separated by spaces, it isn't valid
+                    // if don't have at least two pieces, it isn't valid
                     return noGrid();
                 }
 

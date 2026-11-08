@@ -39,7 +39,7 @@ import {
 } from "./convertNormalizedDast";
 import { documentReferents } from "./valueReferences";
 import { staticValueReferenceTarget } from "../valueReference";
-import { splitBySpacesOutsideParens } from "../../components/commonsugar/lists";
+import { listSplittingAttributeValue } from "../../components/commonsugar/lists";
 import { REORDERED_LIST_BASES } from "../../components/abstract/ReorderedValueList";
 import { COLLECT_LIST_BASES } from "../../components/CollectList";
 
@@ -464,7 +464,20 @@ export function convertToListForms({
                 ...withoutAttribute(candidate.attributes, "type"),
                 type: typeAttribute,
             };
-            candidate.children = childrenAsText(candidate.children, type);
+            const asText = childrenAsText(candidate.children, type);
+            candidate.children = asText.children;
+            if (asText.keptText) {
+                // The pieces kept as text are joined by commas, and hold
+                // none, so the list splits them at those commas alone.
+                candidate.attributes._listSplitting = {
+                    type: "primitive",
+                    name: "_listSplitting",
+                    primitive: {
+                        type: "string",
+                        value: listSplittingAttributeValue(KEPT_TEXT_SPLITTING),
+                    },
+                };
+            }
         }
     }
 
@@ -499,36 +512,57 @@ function withoutAttribute(
 }
 
 /**
+ * How a list form of `<sort>` or `<shuffle>` splits the pieces of text
+ * `childrenAsText` gave back: at the commas that join them, which they don't
+ * hold, with brackets not grouping.
+ */
+const KEPT_TEXT_SPLITTING = {
+    separator: "comma",
+    bracketsGroup: false,
+} as const;
+
+/**
  * The children of a list form of `<sort>` or `<shuffle>` whose entries are of
  * `type`, with each component its sugar made from a piece of text
  * (`textPiece`) given back as that text, for the list to read
  * (`AuthoredValueList.parseTextPiece`), when the list reads such text
- * itself (`keepsTextPiece`).
+ * itself (`keepsTextPiece`). Consecutive pieces are joined by commas, which
+ * the list splits them at (`KEPT_TEXT_SPLITTING`), so a piece holding a
+ * comma stays a component. `keptText` is whether any piece was given back.
  */
 function childrenAsText(
     children: (SerializedComponent | string)[],
     type: string,
-): (SerializedComponent | string)[] {
+): { children: (SerializedComponent | string)[]; keptText: boolean } {
     const listClass = (REORDERED_LIST_BASES as Record<string, any>)[type];
     const result: (SerializedComponent | string)[] = [];
+    let keptText = false;
+    let lastWasPiece = false;
     for (const child of children) {
+        if (typeof child === "string" && child.trim() === "") {
+            // blank text between the components, which separates nothing
+            continue;
+        }
         const text =
             typeof child === "object"
                 ? child.doenetAttributes?.textPiece
                 : undefined;
         const piece =
             typeof text === "string" &&
-            splitBySpacesOutsideParens(text).length === 1 &&
+            text !== "" &&
+            !text.includes(",") &&
             listClass.keepsTextPiece(text)
                 ? text
                 : undefined;
         const item = piece ?? child;
         const last = result[result.length - 1];
-        if (typeof item === "string" && typeof last === "string") {
-            result[result.length - 1] = `${last} ${item}`;
+        if (piece !== undefined && lastWasPiece) {
+            result[result.length - 1] = `${last}, ${piece}`;
         } else {
             result.push(item);
         }
+        lastWasPiece = piece !== undefined;
+        keptText ||= lastWasPiece;
     }
-    return result;
+    return { children: result, keptText };
 }

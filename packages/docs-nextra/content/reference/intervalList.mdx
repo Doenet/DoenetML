@@ -11,10 +11,12 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<intervalList>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
 component that collects a sequence of intervals.
 
-When creating an `<intervalList>{:dn}`, separate items by **spaces**, not commas.
-The component will default to displaying the list with commas. (The commas that
-appear inside each interval — e.g. `(-1, 2)` — are part of the interval itself, not
-separators between intervals.)
+When creating an `<intervalList>{:dn}`, separate items by **commas** or by
+**spaces**, as for any [list](../concepts/essentialConcepts#lists): `(1, 2] [3, 4)` and `(1, 2], [3, 4)` are the
+same list. The commas that appear inside each interval are part of the
+interval itself, not separators between intervals, and any closing bracket
+closes any opening one, so a half-open interval like `(1, 2]` is one entry.
+The component will default to displaying the list with commas.
 
 <AttrPropDisplay name='intervalList'/>
 

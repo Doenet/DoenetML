@@ -11,7 +11,9 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 components that accept a `<numberList>{:dn}` as an input include `<function>{:dn}`, `<repeat>{:dn}`, 
 and `<award>{:dn}`.
 
-When creating a `<numberList>{:dn}`, separate items by **spaces**, not commas.
+When creating a `<numberList>{:dn}`, separate items by **commas** or by
+**spaces**, as for any [list](../concepts/essentialConcepts#lists): `1 2 3` and `1, 2, 3` are the same list, and
+with commas an entry can hold spaces (`1 + 1, 3`).
 The component will default to displaying the list with commas.
 
 <AttrPropDisplay name='numberList'/>

@@ -1,5 +1,8 @@
+import { splitListItems } from "../../../list-separation";
+import { codedDastError } from "../../../coded-dast-error";
 import {
     DastElement,
+    DastError,
     DastElementContent,
     DastFunctionMacro,
     DastMacro,
@@ -8,28 +11,33 @@ import {
 } from "../../../types";
 
 /**
- * Break all `children` into groups separated by any spaces inside text nodes
- * that are not inside parentheses and wrap them with a new component of type `componentType`.
- *
- * Do nothing if any `children` are not a text node or a reference (macro or function) node.
- * Also do nothing if there are mismatched parentheses.
+ * Break `children`, a list written as text and references, into its entries
+ * by the one rule for lists (`splitListItems`, Doenet/DoenetML#2492): commas
+ * if the text has a comma outside brackets, spaces otherwise, with what is
+ * inside balanced brackets kept together. Each entry is wrapped in a new
+ * element of type `componentType`; an empty entry (`a,,b`) is an empty one.
  *
  * For example, if `children` is parsed from `"a $b $$f(x) (c - $d) e$g"`,
  * then the `children` array will have seven components:\
  * `["a ", $b, " ", $$f(x), " (c - ", $d, ") e", $g]`.\
  * The children will then be grouped into five groups `[[$a], [$b], [$$f(x)], ["(c - ", $d, ")"], ["e", "$g"]]`
  * and each of those groups will become the children of a new child of type `componentType`.
+ * Written `"a, $b + 1, (c - $d)"`, they are grouped into three:
+ * `[["a"], [$b, " + 1"], ["(c - ", $d, ")"]]`.
  *
  * If `wrapSingleNonTextNodes` is `false` and a group is a single reference node such as `[$a]`,
  * then node is returned without wrapping it in a parent of type `componentType`.
  *
  * Returns:
  * - `success`: `true` if the `children` were successfully broken into groups.
- *   `success` will be `false` if there is a child that is not a text node or a reference node
- *   or if there are mismatched parentheses.
+ *   `success` will be `false` if there is a child that is not a text node or
+ *   a reference node.
  * - `newChildren`: if `success`, then `newChildren` is the array of new children.
+ * - `unmatchedBrackets`: if `success`, whether the brackets of the text
+ *   didn't balance, so were ignored, which the caller reports
+ *   (`listBracketsUnmatchedError`).
  */
-export function groupTextAndReferencesBySpacesOutsideParens({
+export function groupTextAndReferencesIntoListEntries({
     children,
     componentType,
     wrapSingleNonTextNodes = true,
@@ -44,122 +52,79 @@ export function groupTextAndReferencesBySpacesOutsideParens({
           newChildren: (
               DastText | DastMacro | DastFunctionMacro | DastElement
           )[];
+          unmatchedBrackets: boolean;
       } {
     // Only apply transformation if all children are text or references
+    const items: (string | DastMacro | DastFunctionMacro)[] = [];
     for (const child of children) {
-        if (!["text", "macro", "function"].includes(child.type)) {
+        if (child.type === "text") {
+            items.push(child.value);
+        } else if (child.type === "macro" || child.type === "function") {
+            items.push(child);
+        } else {
             return { success: false };
         }
     }
 
+    const { entries, unmatchedBrackets } = splitListItems(items);
+
+    const sourceDoc = children.find(
+        (child) => child.source_doc !== undefined,
+    )?.source_doc;
+
     const newChildren: (
         DastText | DastMacro | DastFunctionMacro | DastElement
-    )[] = [];
-    let currentGroup: (
-        DastText | DastMacro | DastFunctionMacro | DastElement
-    )[] = [];
-
-    let nParens = 0;
-
-    for (const child of children) {
-        switch (child.type) {
-            case "macro":
-            case "function":
-                // If child is a reference, add it to the current group.
-                currentGroup.push(child);
-                continue;
-            case "text":
-                const splitNodes = splitAtParensOrSpace(child);
-
-                let currentText = "";
-                let currentTextStartPos = splitNodes[0]?.position?.start;
-
-                for (const node of splitNodes) {
-                    if (node.value === "(") {
-                        currentText += node.value;
-                        nParens++;
-                    } else if (node.value === ")") {
-                        if (nParens === 0) {
-                            // We have an unmatched closing parenthesis, so give up.
-                            // TODO: issue a warning?
-                            return { success: false };
-                        } else {
-                            currentText += node.value;
-                            nParens--;
-                        }
-                    } else if (nParens === 0 && node.value.match(/\s/)) {
-                        // We found a space outside parens, so we will create a new child from
-                        // the current group and any extra text before the space.
-
-                        if (currentText.length > 0) {
-                            // Add any text before the space.
-                            currentGroup.push(
-                                createNewTextNode(
-                                    currentText,
-                                    currentTextStartPos,
-                                    child.source_doc,
-                                ),
-                            );
-                        }
-
-                        // Create the new child from all new components found up to the space.
-                        if (currentGroup.length > 0) {
-                            newChildren.push(
-                                createElementFromChildren(
-                                    componentType,
-                                    currentGroup,
-                                    wrapSingleNonTextNodes,
-                                    child.source_doc,
-                                ),
-                            );
-
-                            currentGroup = [];
-                        }
-
-                        currentText = "";
-                        currentTextStartPos = node.position?.end;
-                    } else {
-                        currentText += node.value;
-                    }
-                }
-
-                // We've reached the end of the string.
-                // Add any remaining substring to the current group.
-                if (currentText.length > 0) {
-                    currentGroup.push(
-                        createNewTextNode(
-                            currentText,
-                            currentTextStartPos,
-                            child.source_doc,
-                        ),
-                    );
-                }
-
-                break;
-
-            default:
-                throw Error("Unreachable");
-        }
-    }
-
-    if (nParens > 0) {
-        // We have an unmatched opening parenthesis, so give up.
-        // TODO: issue a warning?
-        return { success: false };
-    }
-
-    // Any remaining components become the last child.
-    if (currentGroup.length > 0) {
-        newChildren.push(
-            createElementFromChildren(
-                componentType,
-                currentGroup,
-                wrapSingleNonTextNodes,
-            ),
+    )[] = entries.map((parts) => {
+        const group = parts.map((part) => {
+            const child = children[part.item];
+            if (part.start === undefined) {
+                return child as DastMacro | DastFunctionMacro;
+            }
+            const textNode = child as DastText;
+            const text = textNode.value.slice(part.start, part.end);
+            const nodeStart = textNode.position?.start;
+            return createNewTextNode(
+                text,
+                nodeStart
+                    ? part.start === 0
+                        ? nodeStart
+                        : computeEndPosition(
+                              textNode.value.slice(0, part.start),
+                              nodeStart,
+                          )
+                    : undefined,
+                textNode.source_doc,
+            );
+        });
+        return createElementFromChildren(
+            componentType,
+            group,
+            wrapSingleNonTextNodes,
+            sourceDoc,
         );
-    }
+    });
 
-    return { success: true, newChildren };
+    return { success: true, newChildren, unmatchedBrackets };
+}
+
+/**
+ * The warning that the brackets of the list written in `node` (a
+ * `<select>`, or the `for` of a `<repeat>`, at `position`) don't balance, so
+ * were ignored: the parser's copy of `list-brackets-unmatched`, which the
+ * worker reports for the lists it splits.
+ */
+export function listBracketsUnmatchedError(
+    node: DastElement,
+    position = node.position,
+): DastError {
+    return codedDastError({
+        code: "doenet-w0188",
+        error_type: "warning",
+        message: `The brackets in the list of \`<${node.name}>\` don't match, so they are ignored: commas and spaces inside them separate entries. Balance the brackets, or write the entries as children.`,
+        args: { componentType: node.name },
+        position,
+        source_doc: node.source_doc,
+    });
 }
 
 /**
@@ -190,8 +155,8 @@ function createElementFromChildren(
         source_doc,
     };
 
-    const startPos = children[0].position?.start;
-    const endPos = children[children.length - 1].position?.end;
+    const startPos = children[0]?.position?.start;
+    const endPos = children[children.length - 1]?.position?.end;
 
     if (startPos && endPos) {
         newChild.position = {
@@ -223,36 +188,6 @@ function createNewTextNode(
         };
     }
     return newNode;
-}
-
-/**
- * Split a text node based on `(`, `)`, and `\s+`. The
- * parens and spaces are kept in the output.
- */
-function splitAtParensOrSpace(node: DastText) {
-    // Split up the text node and calculate the positions of the returned elements
-
-    let startPos = node.position!.start;
-
-    const splitText: DastText[] = [];
-
-    for (const match of node.value.matchAll(/([()]|\s+|[^()\s]+)/g)) {
-        const newNode: DastText = {
-            type: "text",
-            value: match[0],
-            source_doc: node.source_doc,
-        };
-        if (startPos) {
-            newNode.position = {
-                start: startPos,
-                end: computeEndPosition(match[0], startPos),
-            };
-            startPos = newNode.position.end;
-        }
-        splitText.push(newNode);
-    }
-
-    return splitText;
 }
 
 /**

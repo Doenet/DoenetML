@@ -5,8 +5,10 @@ import ValueListComponent, {
 import me from "math-expressions";
 import { convertValueToMathExpression } from "@doenet/utils";
 import {
-    returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens,
-    splitBySpacesOutsideParens,
+    listSplittingAttributeValue,
+    listSplittingFromAttribute,
+    returnGroupIntoListEntriesOfComponentType,
+    splitListEntries,
 } from "../commonsugar/lists";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { returnUnorderedListStateVariableDefinitions } from "../../utils/unorderedLists";
@@ -33,7 +35,9 @@ const AUTHORED_LIST_OWN_PROPERTIES = [
  * child per value.
  *
  * The entries come from the list's children, in order:
- * - its text, split at the spaces outside parentheses, each piece parsed as
+ * - its text, split by the one rule for lists (Doenet/DoenetML#2492: commas
+ *   if the text has a comma outside brackets, spaces otherwise), each piece
+ *   parsed as
  *   a value of the entries' type by the list (`parseTextPiece`), with no
  *   component for it;
  * - an authored child (`<math displayDigits="5">pi</math>`), which stays a
@@ -264,13 +268,15 @@ export default class AuthoredValueList extends ValueListComponent {
     }
 
     /**
-     * The pieces of `text` that are entries: the text separated at the
-     * spaces outside parentheses, as sugar separates it. `null` for text
+     * The pieces of `text` that are entries, as sugar separates them: by
+     * `splitting`, how sugar split the list's written text, which this text
+     * was kept from (`_listSplitting`), or, for text a composite among the
+     * children gives, by the rule for lists on its own. `null` for text
      * that is not a list of entries (`<intervalList>` text that is not
      * intervals), which gives none and is reported.
      */
-    static splitTextIntoPieces(text) {
-        return splitBySpacesOutsideParens(text);
+    static splitTextIntoPieces(text, splitting) {
+        return splitListEntries(text, splitting);
     }
 
     // Whether `splitTextIntoPieces` can find text that is not a list of
@@ -299,6 +305,19 @@ export default class AuthoredValueList extends ValueListComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        // Set by sugar, not by authors: how the list's written text was
+        // split (commas or spaces, and whether brackets group), so that the
+        // text it kept as strings is split the same way
+        // (`listSplittingAttributeValue`), or, with none, by the rule for
+        // lists, string by string. The leading `_` keeps it out of reach of
+        // an author's attributes.
+        attributes._listSplitting = {
+            createPrimitiveOfType: "string",
+            createStateVariable: "listSplitting",
+            defaultValue: null,
+            excludeFromSchema: true,
+        };
+
         attributes.maxNumber = {
             description: "Maximum number of items to retain in the list.",
             createComponentOfType: "number",
@@ -322,25 +341,53 @@ export default class AuthoredValueList extends ValueListComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         const listClass = this;
-        const group =
-            returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                componentType: this.listEntryComponentType,
-                keepTextGroup: (text) => listClass.keepsTextPiece(text),
-            });
+        const group = returnGroupIntoListEntriesOfComponentType({
+            componentType: this.listEntryComponentType,
+            keepTextGroup: (text) => listClass.keepsTextPiece(text),
+        });
 
         sugarInstructions.push({
             replacementFunction: function ({
                 matchedChildren,
+                componentAttributes,
                 componentInfoObjects,
                 nComponents,
                 stateIdInfo,
+                isAttributeComponent,
+                parentComponentType,
             }) {
-                return group({
+                const { listSplitting, ...result } = group({
                     matchedChildren,
                     componentInfoObjects,
                     nComponents,
                     stateIdInfo,
+                    // An attribute's list is reported as the component it is
+                    // an attribute of; a list written as a tag, as itself.
+                    parentComponentType: isAttributeComponent
+                        ? parentComponentType
+                        : listClass.componentType,
+                    // A splitting the list is created with (an attribute
+                    // that says how it is split,
+                    // `attributesForCreatedComponent`), in place of the rule.
+                    splitting: listSplittingFromAttribute(
+                        componentAttributes?._listSplitting?.value,
+                    ),
                 });
+                if (listSplitting) {
+                    result.newAttributes = {
+                        _listSplitting: {
+                            type: "primitive",
+                            name: "_listSplitting",
+                            primitive: {
+                                type: "string",
+                                value: listSplittingAttributeValue(
+                                    listSplitting,
+                                ),
+                            },
+                        },
+                    };
+                }
+                return result;
             },
         });
 
@@ -468,12 +515,20 @@ export default class AuthoredValueList extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "textPieceParseSettings",
                 },
+                listSplitting: {
+                    dependencyType: "stateVariable",
+                    variableName: "listSplitting",
+                },
             }),
             definition({ dependencyValues }) {
                 const textPieceValues = [];
                 for (const text of dependencyValues.stringChildren) {
-                    for (const piece of listClass.splitTextIntoPieces(text) ??
-                        []) {
+                    for (const piece of listClass.splitTextIntoPieces(
+                        text,
+                        listSplittingFromAttribute(
+                            dependencyValues.listSplitting,
+                        ),
+                    ) ?? []) {
                         textPieceValues.push(
                             listClass.parseTextPiece(
                                 piece,
@@ -501,6 +556,10 @@ export default class AuthoredValueList extends ValueListComponent {
                     childGroups: ["strings"],
                     reportCompositeChanges: true,
                 },
+                listSplitting: {
+                    dependencyType: "stateVariable",
+                    variableName: "listSplitting",
+                },
             }),
             definition({ dependencyValues }) {
                 const stringChildren = dependencyValues.stringChildren;
@@ -516,7 +575,13 @@ export default class AuthoredValueList extends ValueListComponent {
                         numStringsOfComposite[stateId] = stringInd + 1;
                         stringKey = `${stateId}:${stringInd}`;
                     }
-                    const pieces = listClass.splitTextIntoPieces(text) ?? [];
+                    const pieces =
+                        listClass.splitTextIntoPieces(
+                            text,
+                            listSplittingFromAttribute(
+                                dependencyValues.listSplitting,
+                            ),
+                        ) ?? [];
                     for (const pieceInString of pieces.keys()) {
                         textPieceWriteKeys.push(
                             stringKey === null
@@ -646,13 +711,22 @@ export default class AuthoredValueList extends ValueListComponent {
                     childGroups,
                     skipComponentIndices: true,
                 },
+                listSplitting: {
+                    dependencyType: "stateVariable",
+                    variableName: "listSplitting",
+                },
             }),
             definition({ dependencyValues }) {
                 const sources = [];
                 for (const child of dependencyValues.children) {
                     if (typeof child === "string") {
                         sources.push(
-                            ...(listClass.splitTextIntoPieces(child) ?? []),
+                            ...(listClass.splitTextIntoPieces(
+                                child,
+                                listSplittingFromAttribute(
+                                    dependencyValues.listSplitting,
+                                ),
+                            ) ?? []),
                         );
                     } else {
                         sources.push(child);
@@ -706,6 +780,10 @@ export default class AuthoredValueList extends ValueListComponent {
                         dependencyType: "stateVariable",
                         variableName: "textPieceWriteKeys",
                     },
+                    listSplitting: {
+                        dependencyType: "stateVariable",
+                        variableName: "listSplitting",
+                    },
                     shadow: {
                         dependencyType: "stateVariable",
                         variableName: "listValuesShadow",
@@ -752,7 +830,12 @@ export default class AuthoredValueList extends ValueListComponent {
                 let componentInd = 0;
                 for (const child of dependencyValues.children) {
                     if (typeof child === "string") {
-                        const pieces = listClass.splitTextIntoPieces(child);
+                        const pieces = listClass.splitTextIntoPieces(
+                            child,
+                            listSplittingFromAttribute(
+                                dependencyValues.listSplitting,
+                            ),
+                        );
                         if (pieces === null) {
                             invalidText = true;
                         }

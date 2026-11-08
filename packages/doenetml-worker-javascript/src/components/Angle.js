@@ -570,7 +570,7 @@ export default class Angle extends GraphicalComponent {
                 let foundBadThroughPoint = false;
                 for (let [ind, prescribedPoint] of prescribedPoints.entries()) {
                     for (let i = 0; i < 2; i++) {
-                        // A point list gives a point that is not one (`(0,0),`)
+                        // A point list gives a point that is not one (`(,5)`)
                         // the coordinates it has, as one blank coordinate
                         // padded with 0s, so a blank or a tuple for a
                         // coordinate is as bad as a missing one.

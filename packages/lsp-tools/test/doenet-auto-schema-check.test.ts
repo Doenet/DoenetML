@@ -506,6 +506,13 @@ describe("AutoCompleter", () => {
             "[]",
         );
 
+        // Separated by commas, as any list can be (Doenet/DoenetML#2492).
+        source = `<a aligns="top, middle, bottom" />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(await autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(
+            "[]",
+        );
+
         // A single allowed item is fine too.
         source = `<a aligns="middle" />`;
         autoCompleter = new AutoCompleter(source, schema.elements);

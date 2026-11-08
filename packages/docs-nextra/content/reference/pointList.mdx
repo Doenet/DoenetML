@@ -20,8 +20,9 @@ a fixed graph. All the points
 have the same number of coordinates, the most any of them has: a point
 with fewer has 0 in the coordinates it lacks.
 
-When creating a `<pointList>{:dn}`, separate items by **spaces**, not commas.
-The component will default to displaying the list with commas. (The commas
+When creating a `<pointList>{:dn}`, separate items by **commas** or by
+**spaces**, as for any [list](../concepts/essentialConcepts#lists): `(1, 2) (3, 4)` and `(1, 2), (3, 4)` are the
+same list. The component will default to displaying the list with commas. (The commas
 inside each point's `(x, y)` coordinate tuple are part of the point itself, not
 separators between points.)
 
@@ -43,8 +44,8 @@ separators between points.)
 
 
 
-Each point is written as `(x, y)`. Spaces between the parenthesized tuples
-separate the points; the comma between `x` and `y` is part of a single
+Each point is written as `(x, y)`. Spaces, or commas, between the
+parenthesized tuples separate the points; the comma between `x` and `y` is part of a single
 point's coordinates. Individual points are addressable with array notation.
 
 

@@ -281,6 +281,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0185": "copy-with-state-of-uri",
     "doenet-w0186": "copy-with-state-attribute-reaches-choice",
     "doenet-w0187": "copy-attribute-invalid-for-component",
+    "doenet-w0188": "list-brackets-unmatched",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

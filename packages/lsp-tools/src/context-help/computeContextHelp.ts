@@ -1,4 +1,4 @@
-import type { DastElement } from "@doenet/parser";
+import { splitListText, type DastElement } from "@doenet/parser";
 // Its own subpath rather than the root export, which would drag
 // math-expressions and the AST and URL helpers onto the boot path of a worker
 // the editor waits on. `test/no-root-utils-import.test.ts` explains it in full
@@ -760,7 +760,7 @@ function readTextListAttribute(
     if (value === undefined) return [];
     const seen = new Set<string>();
     const out: string[] = [];
-    for (const entry of value.split(/\s+/)) {
+    for (const entry of splitListText(value).entries) {
         if (entry.length === 0 || seen.has(entry)) continue;
         seen.add(entry);
         out.push(entry);
