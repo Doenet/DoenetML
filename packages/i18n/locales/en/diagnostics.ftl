@@ -341,7 +341,7 @@ matches-pattern-parameter-not-in-pattern =
 # values; all four stay in English, as does the example. $grid is the value the
 # author wrote, reproduced verbatim — it reached this message precisely because
 # it was not one of the forms listed.
-graph-grid-invalid = `<graph>`: cannot interpret grid="{ $grid }". It must be none, medium, dense, or two positive numbers separated by a space, such as grid="1 0.5". No grid is drawn.
+graph-grid-invalid = `<graph>`: cannot interpret grid="{ $grid }". It must be none, medium, dense, or two positive numbers separated by a space or a comma, such as grid="1 0.5". No grid is drawn.
 
 ## `<slopeField>` and `<vectorField>`
 

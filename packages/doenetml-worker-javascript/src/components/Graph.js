@@ -1,4 +1,5 @@
 import { splitListItems } from "@doenet/parser/list-separation";
+import { listBracketsUnmatchedInfo } from "./commonsugar/lists";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {
@@ -81,16 +82,19 @@ function gridSpacingFromGroup(group, dependencyValues) {
 /**
  * Splits the `grid` attribute's children into groups by the one rule for
  * lists (Doenet/DoenetML#2492): `grid="1 2"` or `grid="1, 2"`. Only text
- * separates; a non-string child joins the group it is written in.
+ * separates; a non-string child joins the group it is written in. Also
+ * returns whether the text's brackets don't balance, so were ignored.
  */
 function groupGridAttrChildren(attrChildren) {
-    return splitListItems(attrChildren).entries.map((parts) =>
+    const { entries, unmatchedBrackets } = splitListItems(attrChildren);
+    const groups = entries.map((parts) =>
         parts.map((part) =>
             part.start === undefined
                 ? attrChildren[part.item]
                 : attrChildren[part.item].slice(part.start, part.end),
         ),
     );
+    return { groups, unmatchedBrackets };
 }
 
 export default class Graph extends BlockComponent {
@@ -1873,18 +1877,27 @@ export default class Graph extends BlockComponent {
                         (child) => typeof child === "string",
                     );
 
+                // Brackets that don't balance are ignored in splitting the
+                // value, which the info explains whether or not the grid
+                // is then usable. Only written text has brackets, so they
+                // are the author's even beside a reference.
+                let bracketsInfo = [];
+
                 const noGrid = () => ({
                     setValue: { grid: "none" },
                     setCreateComponentOfType: { grid: "text" },
-                    sendDiagnostics: authoredInFull
-                        ? [
-                              codedDiagnostic({
-                                  type: "warning",
-                                  code: "doenet-w0119",
-                                  args: { grid: attrValue },
-                              }),
-                          ]
-                        : [],
+                    sendDiagnostics: [
+                        ...(authoredInFull
+                            ? [
+                                  codedDiagnostic({
+                                      type: "warning",
+                                      code: "doenet-w0119",
+                                      args: { grid: attrValue },
+                                  }),
+                              ]
+                            : []),
+                        ...bracketsInfo,
+                    ],
                 });
 
                 let grid = attrValue.toLowerCase().trim();
@@ -1900,7 +1913,11 @@ export default class Graph extends BlockComponent {
                     };
                 }
 
-                const groupedChildren = groupGridAttrChildren(attrChildren);
+                const { groups: groupedChildren, unmatchedBrackets } =
+                    groupGridAttrChildren(attrChildren);
+                if (unmatchedBrackets) {
+                    bracketsInfo = [listBracketsUnmatchedInfo("graph")];
+                }
 
                 if (groupedChildren.length < 2) {
                     // if don't have at least two pieces, it isn't valid
@@ -1926,6 +1943,7 @@ export default class Graph extends BlockComponent {
                 return {
                     setValue: { grid },
                     setCreateComponentOfType: { grid: "numberList" },
+                    sendDiagnostics: bracketsInfo,
                 };
             },
         };

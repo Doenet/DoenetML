@@ -307,6 +307,41 @@ describe("Separating the entries of a list @group4", async () => {
         ).eq(3);
     });
 
+    it("brackets that don't balance are explained in lists whose result is invalid, and in token lists", async () => {
+        // Each is split with its brackets ignored. A grid, the extrema of a
+        // function and the lists of `excludeCombinations` are then not
+        // usable, which their own warning says; the info says why. A token
+        // list is usable, and only the info is given.
+        const { core } = await textsOf(
+            `
+    <variantControl numVariants="2" variantNames="(a b" />
+    <graph grid="(1 2" />
+    <graph grid="1, (2" />
+    <function minima="(1, 2) (3, 4" />
+    <selectFromSequence from="1" to="3" numToSelect="2" excludeCombinations="(1 2) (2 1" />
+    <selectPrimeNumbers from="1" to="10" numToSelect="2" excludeCombinations="(2 3) (3 2" />
+    <graph grid="1 2" />
+    `,
+            [],
+        );
+        const diagnostics = getDiagnosticsByType(core);
+        const infos = diagnostics.infos.filter(
+            (d) => d.code === "doenet-i0058",
+        );
+        // each names the component whose attribute it is
+        expect(infos.map((d) => d.message.match(/<(\w+)>/)?.[1]).sort()).eqls([
+            "function",
+            "graph",
+            "graph",
+            "selectFromSequence",
+            "selectPrimeNumbers",
+            "variantControl",
+        ]);
+        const warningCodes = diagnostics.warnings.map((d) => d.code);
+        expect(warningCodes.filter((c) => c === "doenet-w0119").length).eq(2);
+        expect(warningCodes.filter((c) => c === "doenet-w0106").length).eq(3);
+    });
+
     it("brackets that don't balance in a select or a repeat are reported", async () => {
         const { core, stateVariables, resolvePathToNodeIdx } = await textsOf(
             `

@@ -1,5 +1,6 @@
 import { splitListItems } from "@doenet/parser/list-separation";
 import InlineComponent from "./abstract/InlineComponent";
+import { listBracketsUnmatchedInfo } from "./commonsugar/lists";
 
 export default class TextListFromString extends InlineComponent {
     static componentType = "textListFromString";
@@ -21,8 +22,14 @@ export default class TextListFromString extends InlineComponent {
         // Break the text into entries by the one rule for lists
         // (Doenet/DoenetML#2492): `a b c` or `a, b, c`. Each entry is a string
         // of its own. Anything else among the children is kept as it is.
-        let breakStringsBySpaces = function ({ matchedChildren, nComponents }) {
-            const { entries } = splitListItems(matchedChildren);
+        let breakStringsBySpaces = function ({
+            matchedChildren,
+            nComponents,
+            isAttributeComponent,
+            parentComponentType,
+        }) {
+            const { entries, unmatchedBrackets } =
+                splitListItems(matchedChildren);
             const newChildren = [];
             for (const parts of entries) {
                 for (const part of parts) {
@@ -39,6 +46,15 @@ export default class TextListFromString extends InlineComponent {
                 success: true,
                 newChildren: newChildren,
                 nComponents,
+                diagnostics: unmatchedBrackets
+                    ? [
+                          listBracketsUnmatchedInfo(
+                              isAttributeComponent
+                                  ? parentComponentType
+                                  : "textListFromString",
+                          ),
+                      ]
+                    : [],
             };
         };
 

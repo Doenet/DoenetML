@@ -169,18 +169,11 @@ export function returnGroupIntoListEntriesOfComponentType({
 
         const diagnostics = unmatchedBrackets
             ? [
-                  // an info: the DoenetML is valid, and often meant
-                  // (`a) apple, b) banana`), so it only explains the reading
-                  codedDiagnostic({
-                      type: "info",
-                      code: "doenet-i0058",
-                      args: {
-                          componentType:
-                              componentNameForDiagnostics ??
-                              parentComponentType ??
-                              componentType,
-                      },
-                  }),
+                  listBracketsUnmatchedInfo(
+                      componentNameForDiagnostics ??
+                          parentComponentType ??
+                          componentType,
+                  ),
               ]
             : [];
 
@@ -194,6 +187,22 @@ export function returnGroupIntoListEntriesOfComponentType({
             listSplitting: keptText ? splitting : undefined,
         };
     };
+}
+
+/**
+ * The info that explains that the brackets of a list written as text don't
+ * balance, so they were ignored in splitting it (`list-brackets-unmatched`).
+ * An info, not a warning: the DoenetML is valid, and often meant
+ * (`a) apple, b) banana`), so it only explains the reading.
+ * `componentType` is the component the author wrote: the list, or the
+ * owner of the attribute the list is the value of.
+ */
+export function listBracketsUnmatchedInfo(componentType: string) {
+    return codedDiagnostic({
+        type: "info",
+        code: "doenet-i0058",
+        args: { componentType },
+    });
 }
 
 /**

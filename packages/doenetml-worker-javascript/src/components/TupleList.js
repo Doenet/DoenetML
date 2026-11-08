@@ -1,6 +1,8 @@
 import MathList from "./MathList";
-import { breakIntoBracketedListEntries } from "./commonsugar/lists";
-import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    breakIntoBracketedListEntries,
+    listBracketsUnmatchedInfo,
+} from "./commonsugar/lists";
 
 export default class TupleList extends MathList {
     static componentType = "tupleList";
@@ -34,15 +36,11 @@ export default class TupleList extends MathList {
                     success: false,
                     diagnostics: results.unmatchedBrackets
                         ? [
-                              codedDiagnostic({
-                                  type: "info",
-                                  code: "doenet-i0058",
-                                  args: {
-                                      componentType: isAttributeComponent
-                                          ? parentComponentType
-                                          : "tupleList",
-                                  },
-                              }),
+                              listBracketsUnmatchedInfo(
+                                  isAttributeComponent
+                                      ? parentComponentType
+                                      : "tupleList",
+                              ),
                           ]
                         : [],
                 };

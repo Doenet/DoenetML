@@ -2,6 +2,7 @@ import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
 import {
     breakIntoBracketedListEntries,
+    listBracketsUnmatchedInfo,
     returnGroupIntoListEntriesOfComponentType,
 } from "../commonsugar/lists";
 import { codedDiagnostic } from "../../utils/diagnostics";
@@ -546,6 +547,8 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             parentAttributes,
             nComponents,
             stateIdInfo,
+            isAttributeComponent,
+            parentComponentType,
         }) {
             let results = breakIntoBracketedListEntries({
                 componentList: matchedChildren,
@@ -553,7 +556,20 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             });
 
             if (results.success !== true) {
-                return { success: false };
+                // With its brackets ignored, the text is not a list of
+                // lists, which is reported as invalid; explain why.
+                return {
+                    success: false,
+                    diagnostics: results.unmatchedBrackets
+                        ? [
+                              listBracketsUnmatchedInfo(
+                                  isAttributeComponent
+                                      ? parentComponentType
+                                      : "_componentListOfListsWithSelectableType",
+                              ),
+                          ]
+                        : [],
+                };
             }
 
             let diagnostics = [];
